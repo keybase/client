@@ -123,7 +123,7 @@ const DecorationSection = () => {
     <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Strikethrough (yStrikeoutPosition) — should bisect caps optically</Kb.Text>
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type} style={styles.strikethrough}>Hamburgefontsiv 0123456789 ÁÉÍÓÚ</Kb.Text>
         </Kb.Box2>
@@ -131,7 +131,7 @@ const DecorationSection = () => {
       <Kb.Divider style={styles.innerDivider} />
       <Kb.Text type="BodySmallSemibold">Underline (underlinePosition) — should sit just below descenders</Kb.Text>
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type} style={styles.underline}>Hamburgefontsiv gjpqy 0123456789</Kb.Text>
         </Kb.Box2>
@@ -139,7 +139,7 @@ const DecorationSection = () => {
       <Kb.Divider style={styles.innerDivider} />
       <Kb.Text type="BodySmallSemibold">Both together</Kb.Text>
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type} style={styles.bothDecoration}>Hamburgefontsiv 0123456789</Kb.Text>
         </Kb.Box2>
@@ -165,7 +165,7 @@ const InlineIconSection = () => {
       <Kb.Text type="BodySmallSemibold">Inline icon + text (sxHeight → vertical-align: middle)</Kb.Text>
       <Kb.Text type="BodyTiny" style={styles.hint}>Icons should sit at the optical mid-cap of adjacent text</Kb.Text>
       {iconSizePairs.map(({iconSize, textType}) => (
-        <Kb.Box2 key={textType} direction="horizontal" gap="xtiny" alignItems="center">
+        <Kb.Box2 key={textType} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
           <Kb.Icon type="iconfont-keybase" sizeType={iconSize} />
           <Kb.Text type={textType}>Hamburgefontsiv</Kb.Text>
@@ -251,7 +251,7 @@ const BaselineSection = () => {
       <Kb.Text type="BodyTiny" style={styles.hint}>All text should share a single baseline regardless of size</Kb.Text>
       {/* On desktop these render as inline spans so baseline aligns naturally */}
       {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig', 'Header'] as const).map((_, i, arr) => (
-        <Kb.Box2 key={i} direction="horizontal" alignItems="flex-end" gap="xtiny">
+        <Kb.Box2 key={i} direction="horizontal" fullWidth={true} alignItems="flex-end" gap="xtiny">
           {arr.slice(0, i + 2).map(t => (
             <Kb.Text key={t} type={t}>Hg</Kb.Text>
           ))}
@@ -260,7 +260,7 @@ const BaselineSection = () => {
       <Kb.Divider style={styles.innerDivider} />
       <Kb.Text type="BodySmallSemibold">Weight mixing — bold / regular / semibold same line</Kb.Text>
       {(['BodyTiny', 'BodySmall', 'Body', 'BodyBig'] as const).map(type => (
-        <Kb.Box2 key={type} direction="horizontal" gap="xtiny" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type}>regular</Kb.Text>
           <Kb.Text type={type} style={styles.bold}> bold </Kb.Text>
@@ -303,14 +303,14 @@ const RulerSection = () => {
       <Kb.Text type="BodySmallSemibold">Cap-height & x-height uniformity (sCapHeight, sxHeight)</Kb.Text>
       <Kb.Text type="BodyTiny" style={styles.hint}>All caps must reach the same height; x-height glyphs (a e o x) must be consistent</Kb.Text>
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type}>ABCDEFGHIJKLMNOPQRSTUVWXYZ</Kb.Text>
         </Kb.Box2>
       ))}
       <Kb.Divider style={styles.innerDivider} />
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type}>abcdefghijklmnopqrstuvwxyz</Kb.Text>
         </Kb.Box2>
@@ -318,7 +318,7 @@ const RulerSection = () => {
       <Kb.Divider style={styles.innerDivider} />
       <Kb.Text type="BodySmallSemibold">Diacritics — should not clip (usWinAscent)</Kb.Text>
       {TYPE_METRICS.map(({type}) => (
-        <Kb.Box2 key={type} direction="horizontal" gap="small" alignItems="center">
+        <Kb.Box2 key={type} direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="BodyTiny" style={styles.label}>{type}</Kb.Text>
           <Kb.Text type={type}>ÁÀÂÄÃÅÆÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜ ÅÄÖ áàâäéèêëíîóôöúùû</Kb.Text>
         </Kb.Box2>
