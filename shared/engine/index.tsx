@@ -10,6 +10,8 @@ import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadTy
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
+// the visual gate's dev-only fixtures (__kbVisualRpc); production builds resolve this to an empty module
+import '@/tests/e2e/visual/fixtures/runtime'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
 
@@ -191,7 +193,17 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: PayloadType) {
+  _rpcIncoming(incoming: PayloadType) {
+    let payload = incoming
+    if (__DEV__ && globalThis.__kbVisualRpc) {
+      const sessionID = payload.param[0]?.sessionID
+      const next = globalThis.__kbVisualRpc.incoming(payload, {
+        customResponse: !!this._customResponseAction[payload.method as MethodKey],
+        inSession: typeof sessionID === 'number' && this._sessionsMap.has(sessionID),
+      })
+      if (!next) return
+      payload = next as PayloadType
+    }
     const {method, param: incomingParam, response} = payload
     const param = incomingParam[0] || {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
@@ -263,13 +275,28 @@ class Engine {
       endHandler: session => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
-        this._rpcClient.invoke(method, param, (...args: Array<unknown>) => {
-          // If first argument is set, convert it to an Error type
-          if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0], method)
-          }
-          cb(args[0], args[1])
-        })
+        const real = (done: (err: unknown, data: unknown) => void) => {
+          this._rpcClient.invoke(method, param, (...args: Array<unknown>) => {
+            // If first argument is set, convert it to an Error type
+            if (args.length > 0 && !!args[0]) {
+              args[0] = convertToError(args[0], method)
+            }
+            done(args[0], args[1])
+          })
+        }
+        if (
+          __DEV__ &&
+          globalThis.__kbVisualRpc?.invoke({
+            deliver: (m, p) => session.incomingCall(m as MethodKey, {...p, sessionID}),
+            method,
+            param: param[0],
+            real,
+            reply: cb,
+          })
+        ) {
+          return
+        }
+        real(cb)
       },
       sessionID,
       waitingKey,

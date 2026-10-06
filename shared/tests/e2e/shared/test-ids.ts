@@ -169,6 +169,7 @@ export const PEOPLE_FEED = 'people-feed'
 export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
 // the server-picked "Consider following..." users
 export const PEOPLE_FOLLOW_SUGGESTIONS = 'people-follow-suggestions'
+export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
@@ -219,6 +220,8 @@ export const MODAL_CLOSE = 'modal-close'
 export const MODAL_SCREEN = 'modal-screen'
 // the team builder's recommendation list
 export const TEAM_BUILDING_RECS = 'team-building-recs'
+// a person row in the team builder's recommendations or search results
+export const TEAM_BUILDING_RESULT_ROW = 'team-building-result-row'
 // the bot search's results: the users it found and the featured bots
 export const CHAT_BOT_SEARCH_RESULTS = 'chat-bot-search-results'
 // the local database nuke confirmation (a debug page in settings)
