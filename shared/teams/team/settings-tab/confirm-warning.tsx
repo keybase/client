@@ -18,8 +18,8 @@ const ConfirmWarning = (props: Props) => {
   const styles = useStyles()
   const [enabled, setEnabled] = React.useState(false)
 
-  return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
+  const content = (
+    <>
       <Kb.Box2 direction="vertical" style={styles.iconBox}>
         {props.icon}
       </Kb.Box2>
@@ -40,45 +40,61 @@ const ConfirmWarning = (props: Props) => {
           </Kb.Box2>
         }
       />
+    </>
+  )
+
+  // desktop: the body scrolls in the modal and the buttons stay in the footer below it
+  return isMobile ? (
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
+      {content}
       <Kb.ConfirmButtons
         onCancel={props.onCancel}
         onConfirm={props.onConfirm}
-        confirmLabel={isMobile ? 'Confirm' : props.confirmLabel}
+        confirmLabel="Confirm"
         confirmType="Danger"
         confirmDisabled={!enabled}
       />
     </Kb.Box2>
+  ) : (
+    <>
+      <Kb.ScrollView style={styles.scroll}>
+        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
+          {content}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ModalFooter>
+        <Kb.ConfirmButtons
+          onCancel={props.onCancel}
+          onConfirm={props.onConfirm}
+          confirmLabel={props.confirmLabel}
+          confirmType="Danger"
+          confirmDisabled={!enabled}
+          split={true}
+        />
+      </Kb.ModalFooter>
+    </>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
   body: {marginBottom: Kb.Styles.globalMargins.small},
   checkbox: Kb.Styles.platformStyles({
-    isElectron: {
-      marginBottom: Kb.Styles.globalMargins.xlarge,
-    },
     isMobile: {
       marginBottom: Kb.Styles.globalMargins.small,
     },
   }),
   container: Kb.Styles.platformStyles({
-    common: {
-      paddingBottom: Kb.Styles.globalMargins.large,
-    },
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.xlarge,
-      paddingRight: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.medium),
     },
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.large),
     },
   }),
   header: {marginBottom: Kb.Styles.globalMargins.small},
   iconBox: {marginBottom: 20},
   label: {flexShrink: 1},
+  scroll: {flexGrow: 1, flexShrink: 1, minHeight: 0},
 }))
 
 export default ConfirmWarning
