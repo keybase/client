@@ -122,7 +122,7 @@ const Troubleshooting = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {!isMobile && (
-        <Kb.ModalFooter hideBorder={true}>
+        <Kb.ModalFooter>
           <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />
         </Kb.ModalFooter>
       )}

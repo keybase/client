@@ -72,7 +72,7 @@ const ConfirmModal = (props: Props) => {
         )}
         {props.content}
       </Box2>
-      <ModalFooter hideBorder={isMobile}>
+      <ModalFooter>
         <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
           {!isMobile && (
             <WaitingButton

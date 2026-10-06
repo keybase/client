@@ -23,7 +23,7 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.ModalFooter hideBorder={true} style={styles.footer}>
+      <Kb.ModalFooter style={styles.footer}>
         <Kb.WaitingButton
           fullWidth={true}
           onClick={onRequestPermissions}

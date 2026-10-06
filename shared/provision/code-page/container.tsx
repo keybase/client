@@ -225,7 +225,6 @@ const CodePageContainer = (op: OwnProps) => {
           {showHeyWaitInFooter && heyWaitBanner()}
         </Kb.Box2>
       ),
-      hideBorder: !inModal || currentDeviceType !== 'desktop',
       style: {
         backgroundColor: tabBackground,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, 0),
@@ -266,7 +265,7 @@ const CodePageContainer = (op: OwnProps) => {
     return (
       <>
         {content}
-        <Kb.ModalFooter hideBorder={f.hideBorder} style={f.style}>
+        <Kb.ModalFooter style={f.style}>
           {f.content}
         </Kb.ModalFooter>
       </>
