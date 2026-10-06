@@ -28,6 +28,7 @@ All from `shared/`. Add `--ios` for the phone; iOS is light only.
 | `yarn visual:aa` | Captures every entry twice, twice over (fresh prepare per round), and compares each pair. Run it after changing the tour or drivers |
 | `yarn visual:coverage <range>` | Lists changed Box2 / ClickableBox call sites in `<range>` that no base capture drew |
 | `yarn visual:routes` | Lists every route, for checking what the tour leaves out |
+| `yarn visual:gallery` | Writes and opens a review page of the last base (or `--base`, `--desktop`, `--ios` shas): desktop and iOS shots side by side, a notes box per id, and "Copy notes" to paste the noted ids as a list |
 | `yarn visual:unit` | The gate's own unit tests |
 
 Ids are like `settings/display` or `team/members`; globs use `*` (`'settings/*'`).
