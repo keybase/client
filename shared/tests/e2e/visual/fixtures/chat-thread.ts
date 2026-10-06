@@ -3,8 +3,9 @@
 // add, a journey card, custom emoji and mention decorations, a bot's and a revoked device's
 // messages), plus what the service only pushes (an unfurl prompt, coin flip statuses, the unread
 // line; not typing, whose indicator animates without end). The open conversation's thread replies
-// get these messages added after its real ones. Media in them is the thread's own first image, so
-// the entry opens e2e-media.
+// get these messages added after its real ones, sent by the account (they copy the sender fields of
+// its oldest message in the thread). Media in them is the thread's oldest image, so the entry opens
+// e2e-media.
 //
 // Message IDs are a reserved synthetic range (SYNTHETIC_FIRST and up, far past any real message of
 // the sealed threads); times are offsets from the frozen clock. Marking the conversation read would
@@ -34,8 +35,14 @@ const decorate = (d: T.RPCChat.UITextDecoration) => `$>kb$${btoa(JSON.stringify(
 
 const hexToBytes = (hex: string) => new Uint8Array((hex.match(/../g) ?? []).map(h => parseInt(h, 16)))
 
-const imageAsset = (media: Valid) =>
-  media.messageBody.messageType === 2 ? media.messageBody.attachment.object : undefined
+type Asset = T.RPCChat.Asset
+type Media = {valid: Valid; asset: Asset}
+
+// Edit and delete as the service allows them per message type (go/chat/utils
+// IsEditableByEditMessageType, IsDeleteableByDeleteMessageType; the only system message here, an
+// add to the team, is deletable).
+const editable = new Set<T.RPCChat.MessageType>([1, 2])
+const deleteable = new Set<T.RPCChat.MessageType>([1, 2, 11, 17])
 
 const payment = (ctx: FixtureContext, paymentID: string): T.RPCChat.UIPaymentInfo => ({
   accountID: null,
@@ -75,9 +82,9 @@ const payment = (ctx: FixtureContext, paymentID: string): T.RPCChat.UIPaymentInf
   worthAtSendTime: '$0.10',
 })
 
-// The thread's messages after the real ones, oldest first. `base` is a real message of the
-// account's, whose sender fields the synthetic ones copy; `media` the thread's first image.
-const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMessage> => {
+// The thread's messages after the real ones, oldest first. `base` is the account's oldest message
+// in the thread, whose sender fields the synthetic ones copy; `media` the thread's oldest image.
+const synthetic = (ctx: FixtureContext, base: Valid, media: Media): Array<UIMessage> => {
   const me = str(ctx, 'username')
   const second = str(ctx, 'secondUser')
   const team = str(ctx, 'teamname')
@@ -99,6 +106,8 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMess
       flipGameID: null,
       hasPairwiseMacs: false,
       isCollapsed: false,
+      isDeleteable: deleteable.has(v.messageBody.messageType),
+      isEditable: editable.has(v.messageBody.messageType),
       isEphemeral: false,
       isEphemeralExpired: false,
       messageID: id(i),
@@ -127,8 +136,8 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMess
       flipGameID: gameID,
       messageBody: {messageType: 17, flip: {flipConvID: new Uint8Array(), gameID: new Uint8Array(), text: body}},
     })
-  const image = imageAsset(media)
-  const previewURL = media.assetUrlInfo?.previewUrl ?? ''
+  const image = media.asset
+  const previewURL = media.valid.assetUrlInfo?.previewUrl ?? ''
   const emoji: T.RPCChat.Emoji = {
     alias: 'vg-emoji',
     isAlias: false,
@@ -168,25 +177,23 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMess
     }),
     // also encrypted for the team's bot, which its menu's header names
     text(5, 'This message explodes.', {botUsername: bot, etime: ctx.now + 6 * hour, isEphemeral: true}),
-    image
-      ? valid(6, {
-          assetUrlInfo: media.assetUrlInfo,
-          bodySummary: 'Audio message',
-          messageBody: {
-            attachment: {
-              emojis: null,
-              metadata: new Uint8Array(),
-              object: {...image, filename: 'vg-audio.m4a', metadata: {assetType: 2, video: {durationMs: 4000, height: 0, isAudio: true, width: 0}}, mimeType: 'audio/mp4', title: ''},
-              preview: null,
-              previews: [{...image, metadata: {assetType: 1, image: {audioAmps: [0.1, 0.4, 0.8, 0.5, 0.2, 0.6, 0.9, 0.3], height: 0, width: 0}}}],
-              teamMentions: null,
-              uploaded: true,
-              userMentions: null,
-            },
-            messageType: 2,
-          },
-        })
-      : text(6, 'The thread holds no image to make an audio message from.'),
+    valid(6, {
+      assetUrlInfo: media.valid.assetUrlInfo,
+      bodySummary: 'Audio message',
+      messageBody: {
+        attachment: {
+          emojis: null,
+          metadata: new Uint8Array(),
+          object: {...image, filename: 'vg-audio.m4a', metadata: {assetType: 2, video: {durationMs: 4000, height: 0, isAudio: true, width: 0}}, mimeType: 'audio/mp4', title: ''},
+          preview: null,
+          previews: [{...image, metadata: {assetType: 1, image: {audioAmps: [0.1, 0.4, 0.8, 0.5, 0.2, 0.6, 0.9, 0.3], height: 0, width: 0}}}],
+          teamMentions: null,
+          uploaded: true,
+          userMentions: null,
+        },
+        messageType: 2,
+      },
+    }),
     text(7, 'Where we met', {
       unfurls: [
         {
@@ -235,16 +242,30 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMess
   ]
 }
 
-const isImage = (m: UIMessage): m is {state: 1; valid: Valid} =>
-  m.state === 1 && m.valid.messageBody.messageType === 2 && !!m.valid.assetUrlInfo?.mimeType.startsWith('image/')
+const validOf = (m: UIMessage) => (m.state === 1 ? m.valid : undefined)
+const oldest = <M extends {valid: Valid}>(ms: ReadonlyArray<M>) =>
+  ms.reduce<M | undefined>((o, m) => (!o || m.valid.messageID < o.valid.messageID ? m : o), undefined)
 
+const imageOf = (valid: Valid): Media | undefined =>
+  valid.messageBody.messageType === 2 && valid.assetUrlInfo?.mimeType.startsWith('image/')
+    ? {asset: valid.messageBody.attachment.object, valid}
+    : undefined
+
+// Without a message of the account's or an image the thread is left as it is, and the entry's
+// ready testID never shows.
 const addMessages = (thread: string, ctx: FixtureContext) => {
   const t = JSON.parse(thread) as ThreadJSON
   const messages = t.messages ?? []
-  const media = messages.find(isImage)
-  if (!media) return thread
+  const valids = messages.flatMap(m => {
+    const valid = validOf(m)
+    return valid ? [{valid}] : []
+  })
+  const me = str(ctx, 'username')
+  const base = oldest(valids.filter(m => m.valid.senderUsername === me))
+  const media = oldest(valids.flatMap(m => imageOf(m.valid) ?? []))
+  if (!base || !media) return thread
   // the thread's replies are newest first
-  return JSON.stringify({...t, messages: [...synthetic(ctx, media.valid, media.valid).reverse(), ...messages]})
+  return JSON.stringify({...t, messages: [...synthetic(ctx, base.valid, media).reverse(), ...messages]})
 }
 
 const rewriteThread = (param: object, ctx: FixtureContext) => {
