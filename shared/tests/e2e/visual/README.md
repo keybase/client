@@ -26,7 +26,7 @@ All from `shared/`. Add `--ios` for the phone; iOS is light only.
 | `yarn visual:check <id\|glob>…` | Captures the named entries from this tree and compares them with the base. `--theme t` |
 | `yarn visual:gate` | `check` over every entry, between two full seals |
 | `yarn visual:aa` | Captures every entry twice, twice over (fresh prepare per round), and compares each pair. Run it after changing the tour or drivers |
-| `yarn visual:coverage <range>` | Lists changed Box2 / ClickableBox call sites in `<range>` that no base capture mounted |
+| `yarn visual:coverage <range>` | Lists changed Box2 / ClickableBox call sites in `<range>` that no base capture drew |
 | `yarn visual:routes` | Lists every route, for checking what the tour leaves out |
 | `yarn visual:unit` | The gate's own unit tests |
 
@@ -193,12 +193,12 @@ A bare ref diffs the working tree against it; `A..B` diffs two commits. A range 
 are the same commit (`HEAD..` is `HEAD..HEAD`), or that touches no `.tsx` file, is refused rather
 than passed. Untracked new `.tsx` files are not in `git diff`: `git add -N` them (or commit) first.
 
-`✗ never mounted: file.tsx:line` means the gate cannot see that change: add a tour entry that
+`✗ never drawn: file.tsx:line` means the gate cannot see that change: add a tour entry that
 reaches it, or prove it another way. Exit 1 if any are listed. Stories and tests (`*.stories.tsx`,
 `*.test.tsx`) render outside the app and are out of scope here and in the codemod's reports. Metro caches transforms per file,
 not per env var, so switching coverage on or off needs `--clear` (the CLI does this).
 
-An entry with any mask counts for no coverage: a call site under a mask mounts, but the compare
+An entry with any mask counts for no coverage: a call site under a mask is drawn, but the compare
 never sees its pixels. Each stored coverage file says whether its entry is masked; `coverage`
 skips those and prints how many it skipped. A base written before that flag counts every entry;
 retake it.

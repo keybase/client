@@ -38,7 +38,7 @@ import {
   outOfScopeFile,
   parseDiffHunks,
   unmarkedFile,
-  unmountedChanged,
+  undrawnChanged,
   type Hunk,
   type Range,
 } from '../../tests/e2e/visual/coverage/changed-sites.mts'
@@ -1657,19 +1657,19 @@ export const siteGateNeed = (path: babel.NodePath, filename: string, project?: P
 
 // The gate platforms whose base coverage misses a call site. Coverage ids are base-tree
 // `file:line`, carried forward through `hunks` (the base..tree diff of that file).
-export const unmountedPlatforms = (opts: {
+export const undrawnPlatforms = (opts: {
   rel: string
   platforms: ReadonlyArray<RunPlatform>
   range: Range
   hunks: ReadonlyArray<Hunk>
-  mounted: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
+  drawn: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
 }): Array<RunPlatform> =>
   opts.platforms.filter(
     platform =>
-      unmountedChanged({
+      undrawnChanged({
         baseHunks: new Map([[opts.rel, opts.hunks]]),
         changed: new Map([[opts.rel, [opts.range]]]),
-        mounted: opts.mounted[platform],
+        drawn: opts.drawn[platform],
       }).length > 0
   )
 
@@ -1680,20 +1680,20 @@ const coverageGap = (o: {
   need: GateNeed
   ranges: ReadonlyArray<Range>
   baseHunks: ReadonlyMap<string, ReadonlyArray<Hunk>>
-  mounted: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
+  drawn: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
 }) => {
   if (unmarkedFile(o.rel)) return 'file not marked by coverage'
   const range = o.ranges.find(r => r.start === o.line)
   if (!range) return 'call site not marked by coverage'
   if ('why' in o.need) return o.need.why
-  const missing = unmountedPlatforms({
+  const missing = undrawnPlatforms({
     hunks: o.baseHunks.get(o.rel) ?? [],
-    mounted: o.mounted,
+    drawn: o.drawn,
     platforms: o.need.platforms,
     range,
     rel: o.rel,
   })
-  return missing.length ? `never mounted on ${missing.join(' or ')}` : undefined
+  return missing.length ? `never drawn on ${missing.join(' or ')}` : undefined
 }
 
 // The call sites a platform's base captures drew. A masked entry counts for nothing: its sites
@@ -1717,7 +1717,7 @@ export const platformCoverage = (sha: string, platform: RunPlatform) => {
 }
 
 // Candidates are computed on the tree at `at` (HEAD by default; --write needs HEAD and a clean tree)
-// and kept only where every gate platform the site needs (siteGateNeed) mounted it.
+// and kept only where every gate platform the site needs (siteGateNeed) drew it.
 const runCleanup = (
   root: string,
   opts: {base: string; at: string; write: boolean; reportFile: string | undefined}
@@ -1730,8 +1730,8 @@ const runCleanup = (
     }
   }
   const sha = git(root, ['rev-parse', '--verify', `${opts.base}^{commit}`]).trim()
-  const mounted = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
-  if (!mounted.desktop.length || !mounted.ios.length) {
+  const drawn = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
+  if (!drawn.desktop.length || !drawn.ios.length) {
     throw new Error(`base ${sha} needs stored coverage for both desktop and iOS`)
   }
   const repoHunks = parseDiffHunks(git(root, ['diff', '--no-ext-diff', '-U0', sha, atSha, '--', '*.tsx']))
@@ -1754,7 +1754,7 @@ const runCleanup = (
     for (const c of cands) {
       before[c.rule]++
       const row = {attr: c.attr, rule: c.rule, site: `${rel}:${c.line}`}
-      const why = coverageGap({baseHunks, mounted, need: c.need, ranges, rel, line: c.line})
+      const why = coverageGap({baseHunks, drawn, need: c.need, ranges, rel, line: c.line})
       if (why) {
         uncovered.push({...row, why})
       } else {
@@ -1872,8 +1872,8 @@ export type U4Plan = {
 export const planU4 = (root: string, opts: {base: string; at: string; skips: ReadonlyArray<U4Skip>}): U4Plan => {
   const atSha = git(root, ['rev-parse', '--verify', `${opts.at}^{commit}`]).trim()
   const sha = git(root, ['rev-parse', '--verify', `${opts.base}^{commit}`]).trim()
-  const mounted = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
-  if (!mounted.desktop.length || !mounted.ios.length) {
+  const drawn = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
+  if (!drawn.desktop.length || !drawn.ios.length) {
     throw new Error(`base ${sha} needs stored coverage for both desktop and iOS`)
   }
   const repoHunks = parseDiffHunks(git(root, ['diff', '--no-ext-diff', '-U0', sha, atSha, '--', '*.tsx']))
@@ -1895,7 +1895,7 @@ export const planU4 = (root: string, opts: {base: string; at: string; skips: Rea
     const remove: Array<U4Site> = []
     for (const c of r.sites) {
       const site = `${rel}:${c.line}`
-      const why = coverageGap({baseHunks, mounted, need: c.need, ranges, rel, line: c.line})
+      const why = coverageGap({baseHunks, drawn, need: c.need, ranges, rel, line: c.line})
       const skip = kept.get(c)
       if (why) plan.uncovered.push({site, why})
       else if (skip) plan.kept.push({reason: skip.reason, site})
