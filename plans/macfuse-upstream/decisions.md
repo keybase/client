@@ -104,3 +104,15 @@ Settled in the 2026-10-06 grilling session.
 - **D35 — Kext approval steps.** Show only the steps for the user's architecture. Pass `process.arch` through the existing constants.
 - **D36 — Settings control.** On macOS, Settings → Files uses a `Kb.Switch`. Windows keeps its buttons.
 - **D37 — Amends D20 item 1.** The spike gate is: KBFS mounts at the D30 mount point. The `/keybase` part is dropped under D25. A new first check: does `mount_macfuse` create a missing `/Volumes/Keybase (<user>)`? Its answer settles D30.
+
+## Third round (2026-10-06, open questions raised by the reconciled specs)
+
+- **D38 — Drop the `app` install component on macOS.**
+  - `keybase install --components=app` no longer installs the helper.
+  - The helper install path in KBKit is deleted now, along with installer exit codes 6 and 8 and error -303.
+- **D39 — A visible CLI install action.** Settings gets an "Install command line tool" button that runs the D28 one-time admin prompt. The existing first-run prompt stays.
+- **D40 — Clean up any old redirector at `/Volumes/Keybase`.** If the old redirector had fallen back to `/Volumes/Keybase`, the D29 retirement also stops it and removes that directory. This uses the same existing helper methods.
+- **D41 — Remove the old per-user mount directory.** If D30 falls back to `~/Keybase`, the D29 retirement also removes the old `/Volumes/Keybase (<user>)` directory with the helper's `remove`. The user cannot do that without root.
+- **D42 — When to delete `osx/Helper/`.** It is deleted, and the helper stops being bundled, one or two releases after this ships. This is tracked in the README; it does not happen on this branch.
+- **D43 — No confirmation when turning Finder access off.** Turning it off just unmounts, so the macOS "Remove & Restart" dialog goes away with no replacement.
+- **D44 — Release notes.** User-facing notes go in `shared/desktop/CHANGELOG.txt` (the bulleted lines starting with `•`). Layer 05 adds the entry: macFUSE is now installed by the user from macfuse.io, and `/keybase` is gone on macOS.

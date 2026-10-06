@@ -2,7 +2,7 @@
 
 ## Goal
 
-Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBFS in Finder install stock macFUSE 5.x (kext mode) from https://macfuse.io themselves; the app only links there and tells them how to allow the kext. KBFS and the in-app Files tab keep working without it. The `/keybase` redirector and the root helper go away: new installs get no helper, and upgraders' helper and kbfuse are removed once, using methods the installed helper 1.0.47 already has (D1, D6, D7, D25, D29).
+Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBFS in Finder install stock macFUSE 5.x (kext mode) from https://macfuse.io themselves; the app only links there and tells them how to allow the kext. KBFS and the in-app Files tab keep working without it. The `/keybase` redirector and the root helper go away: nothing can install the helper any more, and upgraders' helper, kbfuse and old redirector/mount directories are removed once, using methods the installed helper 1.0.47 already has (D1, D6, D7, D25, D29, D38, D40, D41).
 
 - Worktree: `$GOPATH/src/github.com/keybase/client-macfuse`
 - Branch: `nojima/macfuse-upstream` (off `master`, base `6b06505404`)
@@ -13,14 +13,14 @@ Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBF
 |---|---|---|
 | 00 | [00-macfuse-facts.md](00-macfuse-facts.md) | ✓ reference (no code) |
 | 01 | [01-mounter.md](01-mounter.md) — mount on stock macFUSE, drop darwin redirector, mount point; **spike gate** | not started |
-| 02 | [02-install-status-cli.md](02-install-status-cli.md) — status, install, CLI, D27 marker, D28 CLI prompt, D29 retirement | not started |
-| 03 | [03-osx-packaging.md](03-osx-packaging.md) — delete kbfuse, no helper on new installs, `--retire-helper`, release gate | not started |
-| 04 | [04-ui.md](04-ui.md) — macFUSE states, approval help, Settings switch | not started |
-| 05 | [05-docs-audit.md](05-docs-audit.md) — docs and grep gate | not started |
+| 02 | [02-install-status-cli.md](02-install-status-cli.md) — status, install, CLI, D27 marker, D28 CLI prompt, D29 retirement, no `app` component (D38) | not started |
+| 03 | [03-osx-packaging.md](03-osx-packaging.md) — delete kbfuse and every helper install path (D38), `--retire-helper` with D40/D41 cleanup, release gate | not started |
+| 04 | [04-ui.md](04-ui.md) — macFUSE states, approval help, Settings switch with no off-confirm (D43), "Install command line tool" button (D39) | not started |
+| 05 | [05-docs-audit.md](05-docs-audit.md) — docs, `CHANGELOG.txt` entry (D44), grep gate | not started |
 
 Later, separate effort: [fskit-future.md](fskit-future.md) (our own FSKit module, D8).
 
-Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20.
+Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20. D38–D44 answer the owner questions the reconciled specs raised.
 
 ## Next step
 
@@ -53,21 +53,22 @@ Run the spike in `01-mounter.md`:
 ## How to resume
 
 1. Read this README.
-2. Read `decisions.md` in full (D25–D37 change a lot).
+2. Read `decisions.md` in full (D25–D44 change a lot).
 3. Read the spec of the first layer whose status is not ✓, then its Log.
 4. Check the worktree: `git -C $GOPATH/src/github.com/keybase/client-macfuse status` and `git log --oneline master..`.
 
 ## Owner questions still open
 
-Collected from the specs' Risks sections (not spike questions):
+Collected from the specs' Risks sections (not spike questions). Each spec states the default it assumes until answered.
 
-- `keybase install --components=app` still blesses the helper. Keep it, or drop the app component on macOS? (02, 03)
-- Add a visible "Install command line tool" button, or is the existing first-run prompt enough for D28? (02)
-- Should the D29 run also stop and remove `/Volumes/Keybase` (the old redirector's fallback mount)? (03)
-- Under the `~/Keybase` fallback, should the D29 run also remove the old `/Volumes/Keybase (<user>)` dir? (03)
-- When to delete `osx/Helper/` and stop bundling the helper. (03)
-- Drop the darwin "Remove & Restart" confirm dialog when turning Finder off, or keep a lighter one? (04)
-- Where user-facing release notes live. (05)
+- **Updater without the privileged fallback (02, from D38).** The updater's only automatic use of the `app` component was its fallback when it cannot rename `/Applications/Keybase.app` (`go/updater/keybase/platform_darwin.go:334-353`). With D38 that user can no longer auto-update. Accept it (default), or replace the fallback with a D28-style one-time `osascript` admin prompt?
+- **Other accounts' `/Volumes/Keybase (<user>)` dirs (03, from D41).** The retire run removes the helper, so it runs once per machine as whichever user launches first. Remove only that user's dir (default, D41 as written), or every `/Volumes/Keybase (*)` dir that is not a mount point?
+- **Bundled helper copy (03, from D38 + D42).** After D38 nothing blesses the helper copied into the installer bundle. Keep shipping it until the D42 cleanup (default), or drop the Copy Files phase now and leave only the `osx/Helper/` source for D42?
+
+## Follow-ups after ship (not on this branch)
+
+- **D42:** one or two releases after this ships, delete `osx/Helper/` and stop bundling the helper in `KeybaseInstaller` (Copy Files phase, `osx/Keybase.xcodeproj/project.pbxproj:25,94`, the `keybase.Helper` target, `project.pbxproj:524`, and `osx/Podfile:30`). Nothing will be left that can talk to an installed helper, so decide then what happens to `--retire-helper` and Go's `retireLegacyHelper` for anyone who still has not upgraded.
+- **D26:** drop `kbfuse` from the KBFS fstype list once the legacy removal has had time to run.
 
 ## Spike results
 

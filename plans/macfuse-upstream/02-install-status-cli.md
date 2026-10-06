@@ -4,15 +4,15 @@ Status: [ ] not started
 
 ## Goal
 
-Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS driver (D5, D7), with no root helper and no `/keybase` redirector (D25). The status RPC and the CLI report macFUSE (D10, D14, D32). Install never ships or installs a FUSE driver (D9). The user's Finder choice persists in a marker file (D27). `install-auto` retires the legacy helper and kbfuse once, retrying on the next launch if that fails (D29, D33). The CLI symlink moves to a one-time `osascript` admin prompt (D28). Windows and Linux are untouched (D4).
+Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS driver (D5, D7), with no root helper and no `/keybase` redirector (D25), and no `app` install component on macOS (D38). The status RPC and the CLI report macFUSE (D10, D14, D32). Install never ships or installs a FUSE driver (D9). The user's Finder choice persists in a marker file (D27). `install-auto` retires the legacy helper and kbfuse once, retrying on the next launch if that fails (D29, D33). The CLI symlink moves to a one-time `osascript` admin prompt (D28). Windows and Linux are untouched (D4).
 
 ## Depends on
 
-- `decisions.md`: D4–D6, D9, D10, D14, D17, D18, D25–D29, D31–D33.
+- `decisions.md`: D4–D6, D9, D10, D14, D17, D18, D25–D29, D31–D33, D38–D41.
 - `00-macfuse-facts.md`: bundle path `/Library/Filesystems/macfuse.fs`, kext ID `io.macfuse.filesystems.macfuse`, version key `CFBundleShortVersionString`/`CFBundleVersion`, fstype `macfuse` (**SPIKE** for the live string), `load_macfuse` path.
 - `01-mounter.md`: `mounter.IsMounted` accepts `macfuse` and `kbfuse` (D26), the D30 mount point, and `WaitForMounts` no longer waiting for redirector paths.
-- `03-osx-packaging.md`: the new `KeybaseInstaller --retire-helper` switch that runs the D29 steps, and the removal of every installer switch that would install the helper.
-- `04-ui.md` reads `FuseStatus` per change 2 and keeps the `installFuse` → exit code 5 path (D31).
+- `03-osx-packaging.md`: the new `KeybaseInstaller --retire-helper` switch that runs the D29 steps (extended by D40/D41), and the removal of every installer switch that would install the helper, including `--install-app-bundle`/`--uninstall-app` (D38).
+- `04-ui.md` reads `FuseStatus` per change 2 and keeps the `installFuse` → exit code 5 path (D31). Its Settings "Install command line tool" button (D39) execs `keybase install --components=clipaths` from Electron's main process, so no RPC is added here.
 
 ## Current state (verified 2026-10-06 on `nojima/macfuse-upstream` @ 6b06505404)
 
@@ -26,14 +26,16 @@ Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS 
   - `:51-56` exit codes 6 (auth canceled), 8 (critical update), 300; `:441` `mountsPresentErrorCode = 7`.
   - `:410-439` `InstallAuto`: kbfuse `INSTALLED` ⇒ cli, updater, service, kbfs, helper, fuse, mountdir, redirector, kbfs again; otherwise cli, updater, service, kbfs.
   - `:443-481` `installFuse` (redirector stop/retry around `--install-fuse`).
-  - `:484-648` `Install`: cli (`:491-497`, unprivileged symlink), app, updater, service, helper with auth-cancel/critical-update cleanup (`:523-602`), fuse (`:604-611`), mountdir (`:613-620`), kbfs, redirector (`:629-635`), clipaths (`:639-645`, `--install-cli` through the helper's `addToPath`).
+  - `:484-648` `Install`: cli (`:491-497`, unprivileged symlink), app (`:499-505`, `libnativeinstaller.InstallAppBundle`), updater, service, helper with auth-cancel/critical-update cleanup (`:523-602`), fuse (`:604-611`), mountdir (`:613-620`), kbfs, redirector (`:629-635`), clipaths (`:639-645`, `--install-cli` through the helper's `addToPath`).
   - `:650-724` `installCommandLine`: symlinks `/usr/local/bin/keybase` and `git-remote-keybase` (`install.go:195-205` `defaultLinkPath`) without privileges.
   - `:757-802` `InstallKBFS`: passes `-mount-type=none` when the mount dir does not exist (`:771-779`, `kbfsPlist` `:325-327`).
-  - `:822-914` `Uninstall`: redirector, kbfs, service, updater, mountdir, fuse, app, clipaths, helper, cli.
+  - `:822-914` `Uninstall`: redirector, kbfs, service, updater, mountdir, fuse, app (`:881-887`, `libnativeinstaller.UninstallApp`), clipaths, helper, cli.
   - `:916-935` `UninstallKBFSOnStop` (used by `keybase ctl stop`, `go/client/cmd_ctl_stop_osx.go:88`, and `stop_darwin.go:28`) calls `--uninstall-mountdir`.
   - `:937-962` `unmount` uses `mounter.IsMounted`.
-- `go/install/libnativeinstaller/app.go:68-149`: `execNativeInstallerWithArg` plus wrappers for `--install/uninstall-mountdir`, `-redirector`, `-fuse`, `-helper`, `-cli`, `--install-app-bundle`, `--uninstall-app`.
+- `go/install/libnativeinstaller/app.go:68-149`: `execNativeInstallerWithArg` plus wrappers for `--install/uninstall-mountdir`, `-redirector`, `-fuse`, `-helper`, `-cli`, `--install-app-bundle` (`InstallAppBundle`, `:140-144`), `--uninstall-app` (`UninstallApp`, `:146-150`).
 - `go/updater/keybase/platform_darwin.go:207-211`: before an update the updater runs `keybase uninstall --components=redirector`.
+- `go/updater/keybase/platform_darwin.go:334-353` (`Apply`): when renaming `/Applications/Keybase.app` fails with an `*os.LinkError`, the updater falls back to `keybase install --components=app --source-path=<unzipped app>` (`:346`), which blesses the helper and moves the bundle as root. This is the only automatic caller of the `app` component; `sourcePath` exists only for it (`cmd_install_osx.go:52-55` `install --source-path`, `:308-311` `install-auto --source-path`, threaded through `Install`/`InstallAuto` and the `install_default.go:17`/`install_windows.go:30` stubs).
+- `install.ComponentNameApp` (`install.go:55`) also names the GUI app for `keybase ctl start/stop` (`cmd_ctl.go:36`, `cmd_ctl_start_osx.go:105`, `cmd_ctl_stop_osx.go:77`); that meaning is unrelated to installing and stays.
 - `go/service/install.go`: `FuseStatus` (`:28-31`), `InstallFuse` = `{helper, fuse}` (`:33-38`), `InstallKBFS` = `{mountdir, kbfs, redirector}` (`:40-45`), `UninstallKBFS` = `{redirector, kbfs, mountdir, fuse}` (`:47-56`), `InstallCommandLinePrivileged` = `{clipaths}` (`:58-62`). The last RPC is not in `protocol/bin/enabled-calls.json`, so the UI cannot call it.
 - The legacy helper (to be retired, D29): binary `/Library/PrivilegedHelperTools/keybase.Helper` (`osx/KBKit/KBKit/Component/KBHelperTool.m:20`), launchd plist `/Library/LaunchDaemons/keybase.Helper.plist` (label and Mach service `keybase.Helper`, `osx/Helper/keybase.Helper.plist`; installed copy also has `Program` = the binary path). Version 1.0.47 (`osx/Helper/Info.plist:12-16`). It is reachable only over XPC from KBKit, so Go drives it through `KeybaseInstaller`.
 - The UI enables Finder with `installFuse` → `installKBFS` → `waitForMounts` (`shared/util/fs-platform.tsx:132-160`). Electron runs `keybase install-auto --format=json` at launch and, if the `cli` component failed, once runs `keybase install --components=clipaths` (`shared/desktop/app/installer.desktop.tsx:187-215`, remembered in `<userData>/installer.json`). A failed `fuse` result adds no dialog text (`:71-80`).
@@ -78,8 +80,8 @@ Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS 
 5. **Legacy retirement (D29, D33).** New `retireLegacyHelper(context, log) keybase1.ComponentResult` in `install_darwin.go`:
    - Runs only when `/Library/PrivilegedHelperTools/keybase.Helper` exists. If it is absent, return OK; a leftover `kbfuse.fs` without a helper is logged and left alone, since nothing can remove it without an admin prompt (see Risks).
    - Steps:
-     1. If the user's KBFS is mounted on kbfuse (`mounter.IsMounted`, D26), `UninstallKBFS(context, mountDir, true, log)` so the kext can unload.
-     2. `libnativeinstaller.RetireLegacyHelper(runMode, log)` → `KeybaseInstaller --retire-helper` (03). It calls only helper 1.0.47 methods, in this order: `stopRedirector` → `kextUnload` + `kextUninstall` (kbfuse) → `remove` `/keybase` → `remove` the helper's plist and binary.
+     1. If the user's KBFS is mounted on kbfuse (`mounter.IsMounted`, D26), `UninstallKBFS(context, mountDir, true, log)` so the kext can unload, and so the D41 directory is no longer a mount point.
+     2. `libnativeinstaller.RetireLegacyHelper(runMode, log)` → `KeybaseInstaller --retire-helper` (03 change 6). It calls only helper 1.0.47 methods, in this order: `stopRedirector` for `/keybase` and for the `/Volumes/Keybase` fallback (D40) → `kextUnload` + `kextUninstall` (kbfuse) → `remove` `/keybase` and `/Volumes/Keybase` (D40) → under the `~/Keybase` outcome only, `remove` the old `/Volumes/Keybase (<user>)` (D41) → `remove` the helper's plist and binary. The installer computes every path itself, so Go passes no new arguments.
    - Result name `fuse`, so the Electron startup check shows no dialog (`installer.desktop.tsx:71-80`). On failure log "legacy helper retirement failed; will retry next launch" and return the error. Any non-zero installer exit means retry (D33): until the 1.1.95 installer ships, `--retire-helper` is an unknown switch and exits 1.
    - The retry is implicit: every `install-auto` re-checks the helper binary. After exit 0, re-check that the binary is gone and treat its presence as a failure (guards against an installer that ignores the unknown switch, 03 Risks).
 6. **`InstallAuto` (`:410-439`).**
@@ -93,16 +95,22 @@ Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS 
    - `UninstallKBFS` = clear the marker, `Uninstall {kbfs}` (unmounts), then `Install {kbfs}` so KBFS keeps running unmounted. Chat and the in-app Files tab need it (D6), and 04 no longer relaunches the app. Plus `mountdir` uninstall under the fallback. Drop `redirector` and `fuse`; rewrite the comment at `:48-52`.
    - `InstallCommandLinePrivileged` stays `{clipaths}` (change 11).
 10. **Remove the helper and redirector from darwin flows (D25).**
-    - `Install`: delete the `helper` block with its critical-update cleanup (`:523-602`), the `redirector` block (`:629-635`) and their exit codes (`:51-56`). Delete `mountdir` (`:613-620`) unless the spike picked the fallback. `helper`/`redirector` passed explicitly become no-ops.
+    - `Install`: delete the `helper` block with its critical-update cleanup (`:523-602`), the `redirector` block (`:629-635`) and their exit codes 6, 8 and 300 (`:51-56`; D38 removes the last component that could produce 6 or 8). Delete `mountdir` (`:613-620`) unless the spike picked the fallback. `helper`/`redirector` passed explicitly become no-ops.
+    - `Install` and `Uninstall`: delete the `app` blocks (`:499-505`, `:881-887`, D38). An explicit `--components=app` returns a failed `app` result, "the app component is not supported on macOS", rather than a silent OK, so a stale caller cannot mistake it for a completed bundle move.
+    - Drop `sourcePath` (D38; only `app` read it): the `--source-path` flags (`cmd_install_osx.go:52-55`, `:308-311`), the `CmdInstall`/`CmdInstallAuto` fields, and the `sourcePath` parameter of `Install` (`install_darwin.go:484`, `install_default.go:17`, `install_windows.go:30`) and `InstallAuto` (`install_darwin.go:410`) with their callers (`cmd_install_osx.go:133,359`, `cmd_kbfs_mount.go:76`, `go/service/install.go:35,42,60`).
     - `Uninstall`: `redirector` becomes a no-op; `helper` and `fuse` both run `retireLegacyHelper` (D14, D29; it is idempotent). `mountdir` only under the fallback.
     - `UninstallKBFSOnStop` (`:916-935`): drop `UninstallMountDir` unless the fallback needs the sidebar entry removed.
-    - `libnativeinstaller/app.go`: delete the `InstallFuse`, `UninstallFuse`, `InstallRedirector`, `UninstallRedirector`, `InstallHelper`, `UninstallHelper`, `InstallCommandLinePrivileged` and `UninstallCommandLinePrivileged` wrappers; add `RetireLegacyHelper` (`--retire-helper`). Keep the mountdir wrappers only under the fallback. `InstallAppBundle`/`UninstallApp` are an owner question (Risks).
+    - `libnativeinstaller/app.go`: delete the `InstallFuse`, `UninstallFuse`, `InstallRedirector`, `UninstallRedirector`, `InstallHelper`, `UninstallHelper`, `InstallCommandLinePrivileged`, `UninstallCommandLinePrivileged`, `InstallAppBundle` and `UninstallApp` (`:140-150`, D38) wrappers; add `RetireLegacyHelper` (`--retire-helper`). Keep the mountdir wrappers only under the fallback.
     - `go/updater/keybase/platform_darwin.go:207-211`: delete the `uninstall --components=redirector` call.
+    - `go/updater/keybase/platform_darwin.go:334-353`: delete the privileged `install --components=app` fallback (D38); `Apply` returns the rename error. An update the user cannot move into `/Applications` now fails and is retried by the updater as any other failed apply (see Risks).
 11. **CLI on PATH (D28).** Reimplement `clipaths` in Go, with no helper:
     - New `installCommandLinePrivileged(binPath, log)` runs `/usr/bin/osascript -e 'do shell script "<cmd>" with administrator privileges'`, where `<cmd>` is `mkdir -p /usr/local/bin && ln -sfn <keybase bin> /usr/local/bin/keybase && ln -sfn <git-remote-keybase bin> /usr/local/bin/git-remote-keybase`. Paths are quoted with a pure `shellQuote` helper (table-tested), and the bin paths come from `chooseBinPath` (`install.go:222`), as `installCommandLine` already does.
     - `uninstallCommandLinePrivileged` removes the two links only if they point into the app bundle, plus `/etc/paths.d/Keybase` if present (left by the old helper's fallback, `osx/Helper/KBHelper.m:450-473`), all in one prompt.
     - A user cancel (`osascript` error -128) returns a failed `clipaths` result with the cancel text. Electron does not retry it, because it records the attempt in `installer.json`.
-    - Trigger: unchanged. Electron already runs `install --components=clipaths` once when the unprivileged `cli` component fails (`installer.desktop.tsx:187-204`). That is the "Install command line tool" action for new installs. Upgraders whose `cli` component succeeds keep their symlink and never see a prompt. A visible Settings action is an owner question (see Risks).
+    - Triggers, both from Electron's main process, both the same `install --components=clipaths --format=json` exec:
+      - First run, unchanged: Electron runs it once when the unprivileged `cli` component fails (`installer.desktop.tsx:187-204`). Upgraders whose `cli` component succeeds keep their symlink and never see a prompt.
+      - Settings "Install command line tool" button (D39, 04 change 16), any number of times.
+    - No RPC is needed: the service-side `InstallCommandLinePrivileged` (`go/service/install.go:58-62`) stays as is and stays out of `enabled-calls.json`. An `osascript` admin prompt started by the launchd-run service is less likely to reach the user's session than one started by Electron (**UNVERIFIED**, Risks).
     - `keybase uninstall` (`defaultUninstallComponents`) adds `clipaths`, so it removes the symlink "the same way" (D28).
 12. **CLI (D14, D32).**
     - `cmd_install_osx.go:87-96`: `defaultInstallComponents` becomes updater, service, cli, kbfs. Plain `keybase install` stays green without macFUSE.
@@ -114,11 +122,12 @@ Make the Go install layer treat stock macFUSE 5.x (kext mode) as the only macOS 
 ## Acceptance criteria
 
 - `git grep -n -i -E 'kbfuse|redirector|install-helper|InstallHelper' go/install go/service go/client/cmd_install_osx.go go/client/cmd_fuse_osx.go go/updater/keybase/platform_darwin.go` matches only: the D26 `kbfuse` fstype, `legacyKbfusePath` and `retireLegacyHelper` with D29 comments, and the cross-platform `ComponentNameRedirector` in `install.go`.
+- `git grep -n -E 'InstallAppBundle|UninstallApp\b|install-app-bundle|uninstall-app|components=app' -- go` and `git grep -n -E 'source-path|sourcePath' -- go/install go/client/cmd_install_osx.go` are empty (D38). The updater's own `check(sourcePath, …)` (`platform_darwin.go:306`) is unrelated and stays.
 - `deriveFuseStatus`, `parseMountOutput`, `FilterKBFSMountInfos`, `installAutoComponents`, `shouldMountKBFS` and `shellQuote` are pure and table-tested.
 - `keybase install` (default components) exits 0 with no macFUSE. `keybase install --components=fuse` exits 0 when ready and non-zero with a https://macfuse.io message when missing or outdated (D32).
 - With macFUSE ready and no marker, `install-auto` starts kbfs with `-mount-type=none`. With the marker set, kbfs mounts at the D30 mount point.
-- On a machine with the legacy helper: one `install-auto` run with the 1.1.95 installer removes `/Library/Filesystems/kbfuse.fs`, `/keybase`, `/Library/LaunchDaemons/keybase.Helper.plist` and `/Library/PrivilegedHelperTools/keybase.Helper`, and shows no admin prompt. With 1.1.94, the run returns a failing `fuse` result and the next launch retries (D33).
-- No code path on a new install runs `SMJobBless`: Go never execs `--install-helper`, `--install-redirector` or `--install-cli` (all deleted, 03), and `--install-mountdir` (fallback only) no longer requires the helper (03 change 4).
+- On a machine with the legacy helper: one `install-auto` run with the 1.1.95 installer removes `/Library/Filesystems/kbfuse.fs`, `/keybase`, `/Volumes/Keybase` if present (D40), the old `/Volumes/Keybase (<user>)` under the `~/Keybase` outcome (D41), `/Library/LaunchDaemons/keybase.Helper.plist` and `/Library/PrivilegedHelperTools/keybase.Helper`, and shows no admin prompt. With 1.1.94, the run returns a failing `fuse` result and the next launch retries (D33).
+- No code path runs `SMJobBless`: Go never execs `--install-helper`, `--install-redirector`, `--install-cli` or `--install-app-bundle` (all deleted, 03, D38), and `--install-mountdir` (fallback only) no longer requires the helper (03 change 4).
 - `go.mod` keeps go-kext; `go mod tidy` produces no diff.
 
 ## How to verify
@@ -147,11 +156,12 @@ Manual checks with the D19 dev service and `/tmp/macfuse-spike/keybase`:
 
 - **SPIKE:** whether `load_macfuse` runs as the user and what it returns when the kext is not approved (change 4 has a fallback).
 - **SPIKE:** the live fstype string (expected `macfuse`) and the D30 mount point (changes 8–10 branch on it).
-- **Owner decision:** `keybase install --components=app` (`--install-app-bundle`) still blesses the helper through KBKit (`osx/KBKit/KBKit/System/KBEnvironment.m:51-54`). No automatic caller exists. Keep it (a helper only when explicitly asked), or drop the component on macOS?
-- **Owner decision:** D28 names an "Install command line tool" action. This spec reuses the existing one-time first-run prompt as that action and adds no button. Is a visible Settings action wanted too?
+- **Decided (D38):** the `app` component is dropped on macOS. Correction to the earlier draft, which said it had no automatic caller: the updater's rename fallback (`platform_darwin.go:334-353`) calls it, and change 10 deletes that fallback.
+- **Owner decision (new, from D38):** without the fallback, a user who cannot rename `/Applications/Keybase.app` (for example a standard account when an admin installed the app) can no longer auto-update; before, the helper moved the bundle as root after an admin prompt. Accept that (the update fails and is logged; the user reinstalls from the website), or replace the fallback with a D28-style one-time `osascript … with administrator privileges` move? The spec assumes accept.
+- **Decided (D39):** a Settings button runs the same `clipaths` exec as the first-run prompt (change 11, 04 change 16).
 - **Risk:** a machine with `kbfuse.fs` but no helper binary (user removed it by hand) cannot be cleaned without an admin prompt. The spec leaves it and logs; the kbfuse kext stays unused.
 - **Risk:** helpers older than 1.0.47 (critical-update range < 1.0.44, `KBHelperTool.m:117-119`) may lack a method `--retire-helper` calls. **UNVERIFIED**; a failure there means retry forever. Consider a cap (stop retrying after N failures, logged).
-- **Risk:** `osascript … with administrator privileges` from `keybase install`, exec'd by Electron, shows the standard auth dialog. **UNVERIFIED** that it appears when the app was opened at login before the user is active.
+- **Risk:** `osascript … with administrator privileges` from `keybase install`, exec'd by Electron, shows the standard auth dialog. **UNVERIFIED** that it appears when the app was opened at login before the user is active. The D39 button is user-initiated, so it does not have this problem.
 
 ## Log
 
