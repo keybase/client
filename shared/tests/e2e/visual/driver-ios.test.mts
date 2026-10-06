@@ -197,18 +197,26 @@ test('scrollToTarget takes the view in the focused screen, not a hidden screen\'
 
 // ---- typeIntoTarget, run against a fake fiber tree
 
+// Kb.Input3 (onEnterKeyDown) over RN's TextInput, which hands its props (onSubmitEditing among
+// them) to the native host input
+const input3 = (typed: Array<string>, submitted: Array<string>) => {
+  const onChangeText = (t: string) => typed.push(t)
+  const onSubmitEditing = (e: {nativeEvent: {text: string}}) => submitted.push(e.nativeEvent.text)
+  return chain(
+    {memoizedProps: {onChangeText, onEnterKeyDown: onSubmitEditing}, tag: 0},
+    {memoizedProps: {onChangeText, onSubmitEditing}, tag: 11},
+    {memoizedProps: {onChangeText, onSubmitEditing}, tag: 0},
+    {memoizedProps: {onChange: () => {}, onChangeText, onSubmitEditing}, tag: 5}
+  )
+}
 const typeIn = (root: Fiber, enter: boolean) => {
   const hook = {getFiberRoots: () => [{current: root}], renderers: new Map([[1, {}]])}
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   const body = new Function('globalThis', typeIntoTarget('row', 'visual gate', enter)) as (g: object) => void
   body({__REACT_DEVTOOLS_GLOBAL_HOOK__: hook})
 }
-const input3 = (typed: Array<string>, submitted: Array<string>): Fiber => ({
-  memoizedProps: {onChangeText: (t: string) => typed.push(t), onSubmitEditing: (e: {nativeEvent: {text: string}}) => submitted.push(e.nativeEvent.text)},
-  tag: 5,
-})
 
-test('typeIntoTarget calls the onChangeText of the input under the testID, and Enter only when asked', () => {
+test('typeIntoTarget types through the native input under the testID, and presses Enter only when asked', () => {
   const typed: Array<string> = []
   const submitted: Array<string> = []
   const row = chain({memoizedProps: {testID: 'row'}, tag: 5}, {tag: 0}, input3(typed, submitted))

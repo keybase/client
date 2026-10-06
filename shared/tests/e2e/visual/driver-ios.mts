@@ -231,21 +231,26 @@ const targetByTestID = (testID: string) => `${FIBERS}
   const id = ${JSON.stringify(testID)}
   const target = hostsWithTestID(f => f.memoizedProps.testID === id && inFocusedScreen(f))[0]
   if (!target) throw new Error('no host view with testID ' + id + ' in the focused screen')`
-// Types into the text input at or under the host view with testID, through the input's own
+// Types into the text input at or under the host view with testID, through the native input's own
 // onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that
-// selects its text on focus drops and keeps characters unevenly.
+// selects its text on focus drops and keeps characters unevenly. The native input is the host
+// fiber that takes onChangeText: Kb.Input3 above it takes onEnterKeyDown, which it hands the native
+// input as onSubmitEditing.
 export const typeIntoTarget = (testID: string, text: string, enter: boolean) => `${targetByTestID(testID)}
   let input
   const stack = [target]
   while (stack.length && !input) {
     const f = stack.pop()
-    if (typeof f.memoizedProps?.onChangeText === 'function') input = f.memoizedProps
+    if (f.tag === 5 && typeof f.memoizedProps?.onChangeText === 'function') input = f.memoizedProps
     if (f.child) stack.push(f.child)
     if (f !== target && f.sibling) stack.push(f.sibling)
   }
   if (!input) throw new Error('no text input under testID ' + id)
   input.onChangeText(${JSON.stringify(text)})
-  if (${enter}) input.onSubmitEditing?.({nativeEvent: {text: ${JSON.stringify(text)}}})
+  if (${enter}) {
+    if (typeof input.onSubmitEditing !== 'function') throw new Error('the text input under testID ' + id + ' takes no Enter')
+    input.onSubmitEditing({nativeEvent: {text: ${JSON.stringify(text)}}})
+  }
 `
 
 // Scrolls the host view with this testID into the middle of what scrolls it, read off React's fiber
