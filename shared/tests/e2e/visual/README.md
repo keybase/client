@@ -131,9 +131,12 @@ empty module (`vite.config.mts`, `desktop/vite.node.mts`, `metro.config.js`;
 The engine never imports it: while a fixture is active the runtime sets `__kbVisualRpc`, and the
 engine hands it every outgoing RPC and incoming call. A rule stubs an RPC (answered on a later tick, optionally with
 calls into its session first) or transforms the live answer; a fixture can also rewrite incoming
-calls, inject notifications, hold the service's notifications, and set stores directly. Prompts that
+calls (chat-thread-content adds its messages to a thread's replies), inject notifications after the
+entry's ready state shows or right after an incoming call (`follow`: coin flip statuses once the
+thread is in, so a setup step can reach them), hold the service's notifications, and set stores
+directly. Prompts that
 need an answer always pass. An RPC whose name says it writes (post, set, send, delete, create, add,
-remove) that no rule answers is refused.
+remove, mark) that no rule answers is refused.
 
 Per fixture entry the driver resets to the tab, waits for an idle app, begins the fixture, remounts
 every screen (so none keeps live data), navigates, runs the setup, waits for `ready` (a testID only
