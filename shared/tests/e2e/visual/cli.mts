@@ -329,7 +329,9 @@ export async function runGate(deps: CheckDeps, argv: ReadonlyArray<string>): Pro
 const AA_ROUNDS = 2
 
 // Two captures of every entry in one sitting, compared with each other; then all of it again
-// after a fresh prepare. Any difference is an entry that needs a mask or a settle fix.
+// after a fresh prepare. Any difference is an entry that needs a mask or a settle fix. Both passes
+// of the live entries come before either pass of the fixture entries: a fixture can leave the app
+// in a state no live capture may follow (fixtureOrderProblems), and only a prepare puts it back.
 export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
@@ -339,34 +341,37 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   assertTouredConversationsRead(entries, before, deps.team())
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
   const dir = Store.runDir(`${Store.runStamp()}-aa`)
+  const groups = [entries.filter(e => !e.fixture), entries.filter(e => e.fixture)].filter(g => g.length)
   const rows: Array<ReportRow> = []
   try {
     for (let round = 1; round <= AA_ROUNDS; round++) {
       for (const theme of cmd.themes) {
-        const first = new Map<string, Capture>()
-        for (const e of entries) first.set(e.id, await deps.capture(e, {frozenAt, platform, theme}))
-        for (const e of entries) {
-          const a = first.get(e.id)!
-          const b = await deps.capture(e, {frozenAt, platform, theme})
-          const sub = path.join(dir, `round${round}`, platform, theme)
-          fs.mkdirSync(sub, {recursive: true})
-          const name = Store.idFile(e.id)
-          const refPng = a.png.length ? path.join(sub, `${name}.1.png`) : null
-          if (refPng) fs.writeFileSync(refPng, a.png)
-          const compared =
-            a.status === 'failed' || !refPng
-              ? {changePng: null, diffPng: null, error: a.error, masks: [], result: null, status: 'failed' as const}
-              : compareCapture({cap: b, dir: sub, name: `${name}.2`, refMasks: a.masks, refPng})
-          const row: ReportRow = {
-            basePng: refPng,
-            id: e.id,
-            platform,
-            theme: `${theme} round ${round}`,
-            ...compared,
-            status: a.status === 'unstable' && compared.status === 'same' ? 'unstable' : compared.status,
+        for (const group of groups) {
+          const first = new Map<string, Capture>()
+          for (const e of group) first.set(e.id, await deps.capture(e, {frozenAt, platform, theme}))
+          for (const e of group) {
+            const a = first.get(e.id)!
+            const b = await deps.capture(e, {frozenAt, platform, theme})
+            const sub = path.join(dir, `round${round}`, platform, theme)
+            fs.mkdirSync(sub, {recursive: true})
+            const name = Store.idFile(e.id)
+            const refPng = a.png.length ? path.join(sub, `${name}.1.png`) : null
+            if (refPng) fs.writeFileSync(refPng, a.png)
+            const compared =
+              a.status === 'failed' || !refPng
+                ? {changePng: null, diffPng: null, error: a.error, masks: [], result: null, status: 'failed' as const}
+                : compareCapture({cap: b, dir: sub, name: `${name}.2`, refMasks: a.masks, refPng})
+            const row: ReportRow = {
+              basePng: refPng,
+              id: e.id,
+              platform,
+              theme: `${theme} round ${round}`,
+              ...compared,
+              status: a.status === 'unstable' && compared.status === 'same' ? 'unstable' : compared.status,
+            }
+            rows.push(row)
+            if (row.status !== 'same') deps.log(line(false, row))
           }
-          rows.push(row)
-          if (row.status !== 'same') deps.log(line(false, row))
         }
       }
       // a fresh session for the next round: close restores the app, the next capture prepares again
