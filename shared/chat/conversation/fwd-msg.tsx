@@ -176,7 +176,7 @@ const TeamPickerInner = (props: Props) => {
   const content =
     pickerState === 'picker' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal">
           <Kb.SearchFilter
             size="full-width"
             icon="iconfont-search"

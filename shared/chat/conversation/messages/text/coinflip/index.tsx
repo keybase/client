@@ -120,7 +120,7 @@ function CoinFlipContainer() {
         <CoinFlipError error={errorInfo} />
       ) : (
         <>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
                 <Kb.Image src={commitSrc} style={styles.progressVis} />

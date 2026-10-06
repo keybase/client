@@ -278,7 +278,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                 httpSrvToken={httpSrvToken}
               />
               <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
+                <Kb.Box2 direction="horizontal" justifyContent="space-between">
                   <Kb.Text
                     type="BodyBold"
                     style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : styles.tlfWriterNotFollowing}
@@ -290,7 +290,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                     {TimestampUtil.formatTimeForConversationList(update.timestamp)}
                   </Kb.Text>
                 </Kb.Box2>
-                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Box2 direction="horizontal">
                   <Kb.Text type="BodySmall" style={styles.tlfParticipants}>in&nbsp;</Kb.Text>
                   <Kb.Text
                     className="hover-underline"

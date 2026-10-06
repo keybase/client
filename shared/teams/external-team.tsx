@@ -69,7 +69,6 @@ const ExternalTeam = (props: Props) => {
         <Kb.Box2
           direction="horizontal"
           gap={isMobile ? 'small' : 'tiny'}
-          fullWidth={true}
           alignItems="center"
         >
           <Kb.ProgressIndicator />
@@ -177,7 +176,7 @@ const Header = ({info}: ExternalTeamProps) => {
   const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={theme.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
-      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
+      <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-start">
         <Kb.Avatar size={96} teamname={teamname} />
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
