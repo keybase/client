@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as InputState from '../input-state'
 import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -58,7 +59,7 @@ const Typing = function Typing() {
   return (
     <Kb.Box2 direction="horizontal" style={styles.isTypingContainer}>
       {names.size > 0 && (
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.typingIconContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.typingIconContainer} testID={TestIDs.CHAT_TYPING}>
           <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
         </Kb.Box2>
       )}

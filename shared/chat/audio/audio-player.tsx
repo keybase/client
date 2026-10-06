@@ -4,6 +4,7 @@ import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 // The non-iOS module throws when rendered, so usage is gated on isIOS.
 import {SFSymbol} from '@react-navigation/native'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type VisProps = {
   amps: undefined | ReadonlyArray<number>
@@ -101,6 +102,7 @@ const AudioPlayer = (props: Props) => {
     <Kb.Box2 alignSelf="center"
       direction="horizontal"
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
+      testID={TestIDs.CHAT_AUDIO_PLAYER}
       gap="tiny"
     >
       <Kb.ClickableBox alignSelf="center" direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>

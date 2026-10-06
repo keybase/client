@@ -10,6 +10,7 @@ import {useChatTeamMembers} from '../../team-hooks'
 import {useConversationThreadID, useThreadMeta} from '../../thread-context'
 import {useConversationShowInfoPanel} from '../../thread-navigation'
 import {makeMessageWrapper} from '../wrapper/wrapper'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
@@ -130,7 +131,7 @@ const ManageComponent = (props: Props) => {
   }
   if (addee === you) {
     return (
-      <Kb.Box2 alignSelf="center" direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="vertical" testID={TestIDs.CHAT_ADDED_TO_TEAM}>
         <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>

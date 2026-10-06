@@ -282,7 +282,55 @@ const windows: Array<TourEntry> = [
 // Entries under a dev-only fixture (fixtures/): server-picked content the fixture replaces, so it
 // is compared instead of masked. They run after every live entry (fixtureOrderProblems).
 const recs = {name: 'team-builder-recs'} as const
+// e2e-media's thread with the chat-thread-content fixture's messages after its own (their media
+// is its image), each entry scrolled to its part. The phone's list only renders rows near what it
+// shows, so a row further up is reached through the rows between (scrollTo).
+const media = {channel: 'e2e-media', ref: 'conversationIDKey'} as const
+const threadContent = {
+  args: {bot: TEAM_BOT, conversationIDKey: media, secondUser: {ref: 'secondUser'}, teamname: {ref: 'teamname'}, username: {ref: 'username'}},
+  name: 'chat-thread-content',
+} as const
+const scrollTo = (...testIDs: ReadonlyArray<string>): Array<SetupStep> => testIDs.map(testID => ({kind: 'scrollIntoView', testID}))
+const toExploding = scrollTo(T.CHAT_MAP_UNFURL, T.CHAT_EXPLODING_META)
+const threadContentEntry = (id: string, at: ReadonlyArray<SetupStep>, ready: string, more: ReadonlyArray<SetupStep> = []): TourEntry => ({
+  fixture: threadContent,
+  id: `chat/content-${id}`,
+  nav: {tab: 'tabs.chatTab', thread: media},
+  platforms: ['desktop', 'phone'],
+  ready,
+  seal: ['inbox', 'teams'],
+  setup: [...at, ...more],
+})
 const fixtureEntries: Array<TourEntry> = [
+  // the unread line, a system add, a journey card, a bot's message, a revoked device's, mention,
+  // path and custom emoji decorations, and an exploding message
+  threadContentEntry('top', [...toExploding, ...scrollTo(T.CHAT_ADDED_TO_TEAM)], T.CHAT_ADDED_TO_TEAM),
+  // an audio message, a map unfurl and an unfurl prompt
+  threadContentEntry('media', scrollTo(T.CHAT_MAP_UNFURL), T.CHAT_MAP_UNFURL),
+  // coin flips: dealt hands, a long shuffle, and one still collecting commitments
+  threadContentEntry('flips', scrollTo(T.CHAT_COINFLIP), T.CHAT_COINFLIP),
+  // a payment and an inline payment
+  threadContentEntry('payments', scrollTo(T.CHAT_PAYMENT), T.CHAT_PAYMENT),
+  // who took part in a finished flip, on hover (desktop)
+  {
+    ...threadContentEntry('flip-participants', scrollTo(T.CHAT_COINFLIP_PARTICIPANTS), T.CHAT_COINFLIP_PARTICIPANT_LIST, [
+      {kind: 'hover', testID: T.CHAT_COINFLIP_PARTICIPANTS},
+    ]),
+    platforms: ['desktop'],
+  },
+  // The exploding message's menu, from its countdown. The teardown reloads the app, which closes
+  // the menu. On the phone the menu is a bottom sheet, so ready is the countdown.
+  ...(['desktop', 'phone'] as const).map(
+    (platform): TourEntry => ({
+      ...threadContentEntry(
+        'exploding-menu',
+        [...toExploding, ...scrollTo(T.CHAT_ADDED_TO_TEAM)],
+        platform === 'desktop' ? T.CHAT_EXPLODING_HEADER : T.CHAT_EXPLODING_META,
+        [{kind: 'openPopup', testID: T.CHAT_EXPLODING_META}]
+      ),
+      platforms: [platform],
+    })
+  ),
   {
     fixture: {args: {users: [{ref: 'secondUser'}, 'vg-ada', 'vg-ben']}, name: 'people-follow-suggestions'},
     id: 'tab/people',

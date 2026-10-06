@@ -8,6 +8,7 @@ import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ShownUsernameCacheContext, useConversationThreadSelector} from '../thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -76,7 +77,7 @@ function SeparatorConnector(p: Props) {
       pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
-      <Kb.Box2 alignSelf="center" key="orangeLine" direction="vertical" noShrink={true} style={styles.orangeLine}>
+      <Kb.Box2 alignSelf="center" key="orangeLine" direction="vertical" noShrink={true} style={styles.orangeLine} testID={TestIDs.CHAT_ORANGE_LINE}>
         {orangeTime ? (
           <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
             {orangeTime}
