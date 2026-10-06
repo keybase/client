@@ -129,6 +129,27 @@ const cascade = (classes: ReadonlySet<string>, parentClasses: ReadonlySet<string
   return decls
 }
 
+type Inherited = {customs: ReadonlyMap<string, string | number>; pointerEvents: string | number}
+
+// One element under `inherited`: its classes cascade (with its parent's for `> *` rules), custom
+// properties and pointer-events inherit unless set, and var() reads the inherited custom properties.
+const resolveElement = (
+  classes: ReadonlySet<string>,
+  parentClasses: ReadonlySet<string> | undefined,
+  inherited: Inherited
+): Inherited => {
+  const decls = cascade(classes, parentClasses)
+  const customs = new Map(inherited.customs)
+  for (const [k, v] of decls) if (k.startsWith('--')) customs.set(k, v)
+  const resolveVar = (v: string | number): string | number => {
+    const m = typeof v === 'string' ? /^var\((--[\w-]+)(?:,\s*(.+))?\)$/.exec(v) : null
+    if (!m) return v
+    return customs.get(m[1] ?? '') ?? (m[2] === undefined ? 'auto' : resolveVar(cssValue(m[2])))
+  }
+  const own = decls.get('pointer-events')
+  return {customs, pointerEvents: own === undefined ? inherited.pointerEvents : resolveVar(own)}
+}
+
 const kebab = (k: string) => k.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)
 
 const resolveDesktop = (p: Props): Resolved => {
@@ -139,8 +160,9 @@ const resolveDesktop = (p: Props): Resolved => {
     if (v !== undefined) expand(decls, kebab(k), v as string | number)
   }
   const pointerEvents = decls.get('pointer-events') ?? 'auto'
-  // pointer-events inherits: a plain child takes the box's value unless a rule sets its own
-  const childPointerEvents = cascade(new Set(), classes).get('pointer-events') ?? pointerEvents
+  const box = resolveElement(classes, undefined, {customs: new Map(), pointerEvents: 'auto'})
+  // a plain child under the box
+  const childPointerEvents = resolveElement(new Set(), classes, box).pointerEvents
   return {
     alignItems: decls.get('align-items'),
     childPointerEvents,
@@ -245,12 +267,47 @@ test('flex, noShrink, padding and gaps resolve the same on desktop and native, w
   expect(mismatches(combos)).toEqual([])
 })
 
-test('a box-none child keeps its own pointer-events', () => {
-  const parent = new Set(box2ClassNamesForTest({direction: 'vertical', pointerEvents: 'box-none'}).split(' '))
-  const own = (p: Props) => cascade(new Set(box2ClassNamesForTest(p).split(' ')), parent).get('pointer-events')
-  expect(own({direction: 'vertical'})).toBe('auto')
-  expect(own({direction: 'vertical', pointerEvents: 'none'})).toBe('none')
-  expect(own({direction: 'vertical', pointerEvents: 'box-none'})).toBe('none')
+// ─── pointer-events down a chain of boxes ─────────────────────────────────────
+
+// `chain` is outermost first; the last entry's pointer-events (undefined = a plain child) is returned.
+const desktopChain = (chain: ReadonlyArray<Props['pointerEvents']>) => {
+  let inherited: Inherited = {customs: new Map(), pointerEvents: 'auto'}
+  let parentClasses: ReadonlySet<string> | undefined
+  for (const pe of chain) {
+    const classes = new Set(box2ClassNamesForTest({direction: 'vertical', pointerEvents: pe}).split(' '))
+    inherited = resolveElement(classes, parentClasses, inherited)
+    parentClasses = classes
+  }
+  return inherited.pointerEvents
+}
+
+// React Native: 'none' removes the view and its whole subtree, 'box-none' only the view itself.
+const nativeChain = (chain: ReadonlyArray<Props['pointerEvents']>) => {
+  const own = chain.at(-1)
+  return own === 'none' || own === 'box-none' || chain.slice(0, -1).includes('none') ? 'none' : 'auto'
+}
+
+test('pointer-events resolve the same on desktop and native down every chain of boxes', () => {
+  const values = [undefined, 'none', 'box-none'] as const
+  let chains: Array<Array<Props['pointerEvents']>> = [[]]
+  const failures: Array<string> = []
+  for (let depth = 1; depth <= 4; depth++) {
+    chains = chains.flatMap(c => values.map(v => [...c, v]))
+    for (const chain of chains) {
+      const desktop = desktopChain(chain)
+      const native = nativeChain(chain)
+      if (desktop !== native) failures.push(`${JSON.stringify(chain)} desktop ${desktop} native ${native}`)
+    }
+  }
+  expect(failures).toEqual([])
+})
+
+test('a box-none child inherits an outer none and otherwise keeps its own pointer-events', () => {
+  expect(desktopChain(['none', 'box-none', undefined])).toBe('none')
+  expect(desktopChain(['box-none', undefined])).toBe('auto')
+  expect(desktopChain(['box-none', 'box-none', undefined])).toBe('auto')
+  expect(desktopChain(['box-none', 'none'])).toBe('none')
+  expect(desktopChain(['box-none', 'box-none'])).toBe('none')
 })
 
 test('a style without a shorthand passes through as the same object', () => {
