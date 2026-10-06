@@ -684,6 +684,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     frozenAt = p.frozenAt
     await applyLight()
     await remountScreens()
+    // what the remounted app starts loading settles before warmTabs and the first capture
+    await waitForNoLoading()
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
