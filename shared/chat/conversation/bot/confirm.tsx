@@ -17,6 +17,7 @@ const ConfirmBotRemoveImpl = (props: {
   conversationIDKey: T.Chat.ConversationIDKey
 }) => {
   const {botUsername, conversationIDKey} = props
+  const styles = useStyles()
   const clearModals = C.Router2.clearModals
   const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
   const onClose = () => {
@@ -47,12 +48,16 @@ const ConfirmBotRemoveImpl = (props: {
   )
   return (
     <Kb.ConfirmModal
-      prompt={`Are you sure you want to uninstall ${botUsername}?`}
+      prompt={
+        <Kb.Text center={true} type="HeaderBig" style={styles.prompt}>
+          Are you sure you want to uninstall {botUsername}?
+        </Kb.Text>
+      }
       waitingKey={C.waitingKeyChatBotRemove}
       onConfirm={onRemove}
       onCancel={onClose}
       description=""
-      header={<Kb.Avatar username={botUsername} size={96} />}
+      header={<Kb.Avatar username={botUsername} size={isMobile ? 96 : 64} />}
     />
   )
 }
@@ -64,5 +69,9 @@ const ConfirmBotRemove = (props: Props) => {
     <ConfirmBotRemoveImpl botUsername={botUsername} conversationIDKey={conversationIDKey} />
   ) : null
 }
+
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  prompt: {margin: Kb.Styles.globalMargins.small},
+}))
 
 export default ConfirmBotRemove
