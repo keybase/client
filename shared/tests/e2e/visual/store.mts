@@ -79,17 +79,22 @@ export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, 
 export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
   fs.existsSync(basePng(sha, platform, theme, id))
 
-// A coverage file: the `file:line` ids an entry mounted, and whether the entry has masks. A masked
-// entry's call sites may sit under a mask, where the compare never sees their pixels, so a masked
-// entry counts for no coverage. A file without the `masked` flag cannot say whether its entry was
-// masked, so it is refused rather than counted.
-export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean}
+// A coverage file: the `file:line` ids mounted when the entry was captured (atCapture), and
+// whether the entry has masks. A masked entry's call sites may sit under a mask, where the compare
+// never sees their pixels, so a masked entry counts for no coverage. A file without the `masked`
+// flag cannot say whether its entry was masked, and one without `atCapture` holds every site
+// mounted at any time during the entry (a loading row gone before the capture included), so either
+// is refused rather than counted.
+export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean; atCapture: true}
 
 export const writeCoverageJson = (ids: ReadonlyArray<string>, masked: boolean) =>
-  JSON.stringify({ids, masked} satisfies CoverageFile)
+  JSON.stringify({atCapture: true, ids, masked} satisfies CoverageFile)
 
-const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
+export const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
   if (Array.isArray(raw)) throw new Error(`${file} has no masked flag: retake the coverage base`)
+  if ((raw as Partial<CoverageFile>).atCapture !== true) {
+    throw new Error(`${file} counts sites mounted at any time during its entry, not at its capture: retake the coverage base`)
+  }
   return raw as CoverageFile
 }
 

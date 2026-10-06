@@ -13,6 +13,7 @@ import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
 import type {RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
 import {fixtureCapture, type FixtureHooks} from './fixtures/drive.mts'
+import type {Coverage} from './coverage/registry.ts'
 import type {VisualFixtures} from './fixtures/runtime.ts'
 
 export type Capture = {
@@ -164,7 +165,6 @@ type PageWindow = {
 }
 type DateGlobals = {Date: DateConstructor; __kbVisualRealDate?: DateConstructor; __kbVisualNow?: number}
 type WaitingStore = {getState: () => {counts: Map<string, number>}}
-type Coverage = {seq: () => number; mountedSince: (seq: number) => Array<string>; mounted: () => Array<string>}
 type ConfigStore = {getState: () => {windowShownCount: Map<string, number>}}
 // The preload's functions (desktop/renderer/preload.desktop.tsx) the driver calls in the main window.
 type PreloadFunctions = {
@@ -460,13 +460,22 @@ const coverageMounted = async (page: Page) =>
     'coverage mounted'
   )
 
-const coverageSince = async (page: Page, seq: number | null) =>
+// What the capture shows of what its entry mounted: the call sites mounted after `seq` that are
+// still mounted now.
+const coverageNowSince = async (page: Page, seq: number | null) =>
   seq === null
     ? null
     : withDeadline(
-        page.evaluate(s => (globalThis as unknown as DevGlobals).__kbVisualCoverage?.mountedSince(s) ?? null, seq),
+        page.evaluate(s => {
+          const c = (globalThis as unknown as DevGlobals).__kbVisualCoverage
+          if (!c) return null
+          if (typeof c.mountedNowSince !== 'function') {
+            throw new Error('the app records coverage without capture-time sites; serve a tree whose coverage/registry.ts has mountedNowSince')
+          }
+          return c.mountedNowSince(s)
+        }, seq),
         EVAL_MS,
-        'coverage mountedSince'
+        'coverage mountedNowSince'
       )
 
 // Electron implements neither Browser.getWindowForTarget nor Browser.setWindowBounds, so the
@@ -786,7 +795,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       png = settled.png
       const dpr = await withDeadline(shown.evaluate(() => (globalThis as unknown as PageWindow).devicePixelRatio), EVAL_MS, 'devicePixelRatio')
       const masks = await maskRects(shown, entry, dpr)
-      const coverage = win ? await coverageMounted(shown) : await coverageSince(page, seq)
+      const coverage = win ? await coverageMounted(shown) : await coverageNowSince(page, seq)
       result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}

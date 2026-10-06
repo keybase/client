@@ -65,6 +65,13 @@ test('a coverage file without the masked flag is refused', () => {
   assert.throws(() => store.readBaseCoverage('c3'), /has no masked flag: retake the coverage base/)
 })
 
+test('a coverage file without the atCapture flag is refused', () => {
+  const p = store.baseCoveragePath('c4', 'ios', 'light', 'tab/chat')
+  fs.mkdirSync(path.dirname(p), {recursive: true})
+  fs.writeFileSync(p, JSON.stringify({ids: ['a.tsx:1'], masked: false}))
+  assert.throws(() => store.readBaseCoverage('c4'), /mounted at any time during its entry, not at its capture: retake/)
+})
+
 test('run stamps have no characters a path dislikes', () => {
   assert.equal(store.runStamp(new Date(Date.UTC(2026, 0, 2, 3, 4, 5, 6))), '2026-01-02T03-04-05-006Z')
 })
