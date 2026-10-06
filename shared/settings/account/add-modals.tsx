@@ -227,7 +227,7 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>
-      <Kb.ModalFooter hideBorder={true} style={styles.blueBackground}>
+      <Kb.ModalFooter style={styles.blueBackground}>
         <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
           <Kb.Button
             disabled={disabled}
