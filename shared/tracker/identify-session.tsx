@@ -332,6 +332,11 @@ export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOp
   setDetails(
     s,
     produce(s.details, draft => {
+      // Rows and the proof count are accumulated per identify, so a proof that
+      // is gone now would otherwise outlive it. The user card, followers and
+      // following are each replaced whole when they land, so they stay shown.
+      draft.assertions = new Map()
+      draft.numAssertionsExpected = undefined
       draft.guiID = guiID
       if (!draft.resetBrokeTrack) {
         draft.reason = ''

@@ -317,3 +317,61 @@ test('a failed reload drops the earlier recent check instead of reviving its ses
   expect(identifySpy).toHaveBeenCalledTimes(3)
   unsubB()
 })
+
+const row = (guiID: string, value: string) =>
+  ({
+    color: T.RPCGen.Identify3RowColor.green,
+    ctime: 0,
+    guiID,
+    key: 'github',
+    kid: '',
+    metas: [],
+    priority: 0,
+    proofURL: '',
+    sigID: '',
+    siteIcon: [],
+    siteIconDarkmode: [],
+    siteIconFull: [],
+    siteIconFullDarkmode: [],
+    siteURL: '',
+    state: T.RPCGen.Identify3RowState.valid,
+    value,
+  }) as T.RPCGen.Identify3Row
+
+const sendRows = (values: Array<string>) => {
+  const guiID = getProfileDetails('testuser')?.guiID ?? ''
+  for (const value of values) {
+    notifyEngineActionListeners({
+      payload: {params: {row: row(guiID, value)}},
+      type: 'keybase.1.identify3Ui.identify3UpdateRow',
+    } as never)
+  }
+  notifyEngineActionListeners({
+    payload: {params: {guiID, result: T.RPCGen.Identify3ResultType.ok}},
+    type: 'keybase.1.identify3Ui.identify3Result',
+  } as never)
+}
+
+test('a new identify on a remembered session drops proofs the previous one reported', async () => {
+  const now = Date.now()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  sendRows(['a', 'b', 'c'])
+  await flush()
+  unsubA()
+  expect([...(getProfileDetails('testuser')?.assertions?.keys() ?? [])]).toEqual([
+    'github:a',
+    'github:b',
+    'github:c',
+  ])
+
+  // past the recheck window, inside the TTL: the session is reused and identified again
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(1))
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  sendRows(['a', 'b'])
+  await flush()
+  expect([...(getProfileDetails('testuser')?.assertions?.keys() ?? [])]).toEqual(['github:a', 'github:b'])
+  unsubB()
+})
