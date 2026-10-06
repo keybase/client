@@ -285,7 +285,7 @@ export const newModalRoutes = defineRouteMap({
         ? {}
         : {headerRight: route.params.usernames ? () => <AddToChannelsHeaderRight /> : undefined}),
       headerTitle: () => <AddToChannelsHeaderTitle teamID={route.params.teamID} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {
@@ -307,7 +307,7 @@ export const newModalRoutes = defineRouteMap({
           }
         : {headerLeft: () => <ConfirmHeaderLeft wizard={route.params.wizard} />}),
       headerTitle: () => <ConfirmHeaderTitle wizard={route.params.wizard} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamAddToTeamContacts: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-contacts')), {
@@ -316,14 +316,14 @@ export const newModalRoutes = defineRouteMap({
       // iOS: the screen drives unstable_headerRightItems via useModalHeaderAction
       ...(isIOS ? {} : {headerRight: () => <AddContactsHeaderRight />}),
       headerTitle: () => <AddContactsHeaderTitle wizard={route.params.wizard} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email')), {
     getOptions: ({route}) => ({
       ...Kb.modalBackLeftOptions,
       headerTitle: () => <WizardEmailHeaderTitle wizard={route.params.wizard} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
@@ -342,14 +342,14 @@ export const newModalRoutes = defineRouteMap({
         ? {headerRight: () => <AddFromWhereSkip wizard={route.params.wizard} />}
         : {}),
       headerTitle: () => <AddFromWhereHeaderTitle wizard={route.params.wizard} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone')), {
     getOptions: ({route}) => ({
       ...Kb.modalBackLeftOptions,
       headerTitle: () => <WizardPhoneHeaderTitle wizard={route.params.wizard} />,
-      modalSize: 'wide',
+      modalSize: 'medium',
     }),
   }),
   teamCreateChannels: C.makeScreen(React.lazy(async () => import('./channel/create-channels')), {
@@ -402,7 +402,7 @@ export const newModalRoutes = defineRouteMap({
   ),
   teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out'))),
   teamRename: C.makeScreen(React.lazy(async () => import('./rename-team')), {
-    getOptions: {modalSize: 'wide', title: 'Rename subteam'},
+    getOptions: {modalSize: 'medium', title: 'Rename subteam'},
   }),
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose')), {
     getOptions: ({route}) => ({

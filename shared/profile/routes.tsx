@@ -108,7 +108,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
-        modalSize: 'wide',
+        modalSize: 'medium',
         overlayTransparent: false,
       },
     }
@@ -149,15 +149,15 @@ export const newModalRoutes = defineRouteMap({
     getOptions: Kb.doneModalOptions(''),
   }),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
-    getOptions: {modalSize: 'wide'},
+    getOptions: {modalSize: 'medium'},
   }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
-    getOptions: {modalSize: 'wide', title: 'Prove your...'},
+    getOptions: {modalSize: 'medium', title: 'Prove your...'},
   }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
-    getOptions: {modalSize: 'wide'},
+    getOptions: {modalSize: 'medium'},
   }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
-    getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'wide'},
+    getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'medium'},
   }),
 })

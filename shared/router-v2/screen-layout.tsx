@@ -116,6 +116,8 @@ const ModalScreenWrapper = ({
   navigationOptions: GetOptionsRet
 }) => {
   const styles = useStyles()
+  const modalSize = navigationOptions?.modalSize ?? 'small'
+  const modalBox = {size: modalSize}
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
       {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
@@ -132,7 +134,7 @@ const ModalScreenWrapper = ({
           edges={navigationOptions?.safeAreaEdges}
           style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
         >
-          {children}
+          <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
         </Kb.SafeAreaView>
       </Kb.KeyboardAvoidingView2>
     </SafeAreaProvider>

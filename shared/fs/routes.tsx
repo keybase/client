@@ -141,12 +141,12 @@ export const newModalRoutes = defineRouteMap({
         headerTitle: () => (
           <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />
         ),
-        modalSize: 'wide',
+        modalSize: 'medium',
       }),
     }
   ),
   kextPermission: {
-    getOptions: {modalSize: 'wide'},
+    getOptions: {modalSize: 'medium'},
     screen: React.lazy(
       async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
     ),
