@@ -1,0 +1,19 @@
+Jenkinsfile
+  s_d5fac2ebbdd07b::t_22a1d761e56c90 564-566
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "15143847f02751e0bdcf13a7bd0c75216b7f1494",
+  "prompts": {},
+  "sessions": {
+    "s_d5fac2ebbdd07b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ce68c55b-48fd-4815-ab76-c047a6107683",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
