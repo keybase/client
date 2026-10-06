@@ -302,6 +302,11 @@ const endFixture = async (page: Page, name: string): Promise<Array<string>> => {
     await checkRendererAfterReload(page)
     await waitForNoLoading(page)
   } else {
+    // a remount of a state holding a pushed screen can leave the navigator with no state (seen on
+    // the phone with the device page), so the reset to the tab root comes first
+    await routerCall(page, 'clearModals')
+    await routerCall(page, 'popStack')
+    await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt(page)).atRoot)
     await remountScreens(page)
   }
   return leakProblems(name, report)
