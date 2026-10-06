@@ -302,6 +302,15 @@ const threadContentEntry = (id: string, at: ReadonlyArray<SetupStep>, ready: str
   setup: [...at, ...more],
 })
 const fixtureEntries: Array<TourEntry> = [
+  // Debug overlays over a screen whose content never moves: the git tab, the phone's settings list.
+  // Desktop dismisses the error bar 10s after it shows, well after the capture.
+  ...(['global-error', 'runtime-stats'] as const).flatMap((name): Array<TourEntry> => {
+    const ready = name === 'global-error' ? T.GLOBAL_ERROR : T.RUNTIME_STATS
+    return [
+      {fixture: {name}, id: `overlay/${name}`, nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready, seal: []},
+      {fixture: {name}, id: `overlay/${name}`, nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready, seal: []},
+    ]
+  }),
   // the unread line, a system add, a journey card, a bot's message, a revoked device's, mention,
   // path and custom emoji decorations, and an exploding message
   threadContentEntry('top', [...toExploding, ...scrollTo(T.CHAT_ADDED_TO_TEAM)], T.CHAT_ADDED_TO_TEAM),
@@ -1085,8 +1094,9 @@ export const tour: ReadonlyArray<TourEntry> = [
 // chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
 // phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
 // pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success
-// step needs a paper key submitted, and the menubar's logged-out views a signed-out app); global
-// errors and runtime stats are debug overlays.
+// step needs a paper key submitted, and the menubar's logged-out views a signed-out app); the
+// global error bar and runtime stats are debug overlays, toured as overlay/* under fixtures (not the
+// disconnect overlay, whose illustration animates without end).
 //
 // One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's
 // id on both (tab/git, tab/devices, tab/settings). Two phone roots have no desktop screen of their

@@ -193,29 +193,29 @@ const stopAppium = async (child: ChildProcess) => {
 }
 
 const ROUTER = `const r = kbModule('constants/router.tsx');`
-// Host views (fiber tag 5) that carry a testID, read through the React DevTools hook a dev build has.
+// Host views (fiber tag 5) in a screen that carry a testID, read through the React DevTools hook a
+// dev build has.
 const HOSTS_WITH_TESTID = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+  // a view in a screen: some component above it takes a route and its navigation; the overlays
+  // drawn over every screen (the global error bar, runtime stats) sit outside the navigator
+  const inScreen = f => {
+    for (let p = f.return; p; p = p.return) if (p.memoizedProps?.route && p.memoizedProps?.navigation) return true
+    return false
+  }
   const hosts = []
   for (const id of hook.renderers.keys()) {
     for (const root of hook.getFiberRoots(id)) {
       const stack = [root.current]
       while (stack.length) {
         const f = stack.pop()
-        if (f.tag === 5 && f.stateNode && f.memoizedProps?.testID) hosts.push(f.stateNode)
+        if (f.tag === 5 && f.stateNode && f.memoizedProps?.testID && inScreen(f)) hosts.push(f.stateNode)
         if (f.child) stack.push(f.child)
         if (f.sibling) stack.push(f.sibling)
       }
     }
   }`
-// Scrolls the host view with this testID into the middle of what scrolls it, read off React's fiber
-// tree as React DevTools does, walking up from the host fiber:
-// - in a virtualized list row (a cell, whose props carry its index): the list (the first instance
-//   above with scrollToIndex) centres that row;
-// - otherwise in a ScrollView (its class instance): scrollTo the view's offset in the content,
-//   measured synchronously (getBoundingClientRect, RN's DOM API) and clamped to the content.
-// Both without animation. Returns 'row', 'scrollView', or 'none' when neither holds the view.
 // Types into the text input at or under the host view with testID, through the input's own
 // onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that
 // selects its text on focus drops and keeps characters unevenly.
@@ -249,6 +249,13 @@ export const typeIntoTarget = (testID: string, text: string, enter: boolean) => 
   if (${enter}) input.onSubmitEditing?.({nativeEvent: {text: ${JSON.stringify(text)}}})
 `
 
+// Scrolls the host view with this testID into the middle of what scrolls it, read off React's fiber
+// tree as React DevTools does, walking up from the host fiber:
+// - in a virtualized list row (a cell, whose props carry its index): the list (the first instance
+//   above with scrollToIndex) centres that row;
+// - otherwise in a ScrollView (its class instance): scrollTo the view's offset in the content,
+//   measured synchronously (getBoundingClientRect, RN's DOM API) and clamped to the content.
+// Both without animation. Returns 'row', 'scrollView', or 'none' when neither holds the view.
 export const scrollToTarget = (testID: string) => `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
@@ -592,7 +599,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   // Screens mounted before Date was fixed (the restored tab, anything memoized at boot) rendered
   // with the real time. Resetting the navigation root to its own state without route keys gives
   // every route a new key, so every screen remounts under the fixed Date. Checked: no host view
-  // that carried a testID before the reset is still mounted after it.
+  // in a screen that carried a testID before the reset is still mounted after it.
   const remountScreens = async () => {
     const before = await appEval<number>(
       `${HOSTS_WITH_TESTID}
