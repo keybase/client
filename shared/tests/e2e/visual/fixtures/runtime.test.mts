@@ -125,7 +125,7 @@ test('stubs answer on a later tick, transforms rewrite the live answer, served w
     assert.equal(h.rt.fixtures.served(), true)
     // a read no rule names goes to the service untouched
     assert.equal(call(h.rt, 'a.1.x.getThing').handled, false)
-    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
+    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], failedTransforms: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
     assert.equal(h.rt.fixtures.served(), false)
   } finally {
     h.restore()
@@ -269,6 +269,39 @@ test("a follow-up whose payload throws is reported by end, and the incoming call
   }
 })
 
+test('a rewrite that throws is reported by end, and the call goes on unchanged', () => {
+  const h = harness({
+    incoming: [
+      {
+        method: 'a.1.x.thread',
+        transform: () => {
+          throw new Error('no message of testuser')
+        },
+      },
+    ],
+    rpc: [
+      {
+        method: 'a.1.x.get',
+        required: true,
+        transform: () => {
+          throw new Error('no rows')
+        },
+      },
+    ],
+    teardown: 'remount',
+  })
+  try {
+    h.begin()
+    const thread = {method: 'a.1.x.thread', param: [{sessionID: 1, thread: 'live'}]}
+    assert.deepEqual(h.rt.rpc.incoming(thread, {customResponse: false, inSession: true}), thread)
+    const {c} = call(h.rt, 'a.1.x.get')
+    assert.deepEqual([c.err, c.result], [undefined, 'live'])
+    assert.deepEqual(h.rt.fixtures.end().failedTransforms, ['a.1.x.thread: no message of testuser', 'a.1.x.get: no rows'])
+  } finally {
+    h.restore()
+  }
+})
+
 test('a follow-up the app fails to take is reported by end', async () => {
   const name = 'device-last-used'
   const saved = definitions[name]
@@ -314,7 +347,7 @@ test('declared stores are put back: a store that existed gets its state, one mad
     assert.deepEqual(kept.state, {recs: 'cleared'})
     registry.set('tb:people', store({recs: 'fixture'}))
     h.rt.fixtures.afterReady()
-    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
+    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], failedTransforms: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
     assert.deepEqual(kept.state, {recs: 'live'})
     assert.equal(registry.has('tb:people'), false)
   } finally {
@@ -422,8 +455,8 @@ test("the chat thread fixture adds its messages after the thread's newest, in th
   assert.ok(ids.slice(0, -1).every(i => i >= SYNTHETIC_FIRST))
   // newest first, as the service sends a thread
   assert.deepEqual([...ids].sort((a, b) => b - a), ids)
-  const noImage = JSON.stringify({messages: [], pagination: null})
-  assert.equal((rewrite({thread: noImage}, ctx) as {thread: string}).thread, noImage)
+  const noImage = JSON.stringify({messages: [{...image, valid: {...image.valid, assetUrlInfo: undefined, messageBody: {messageType: 1}}}], pagination: null})
+  assert.throws(() => rewrite({thread: noImage}, ctx), /no image in the thread page/)
 })
 
 test("the chat thread fixture's messages are the account's, sent like its oldest message, with the oldest image's media", async () => {
@@ -458,7 +491,6 @@ test("the chat thread fixture's messages are the account's, sent like its oldest
   assert.equal(audio.valid.assetUrlInfo?.previewUrl, 'old.png')
   // an order the service never sends changes nothing
   assert.deepEqual(thread([...real].reverse()).filter(m => (m.valid?.messageID ?? 0) >= SYNTHETIC_FIRST), added)
-  // nothing of the account's to send as: the thread is left as it is
-  const others = [msg(9, 'testuser-mac', 'new.png')]
-  assert.deepEqual(thread(others), others)
+  // nothing of the account's to send as: the fixture cannot draw what it describes
+  assert.throws(() => thread([msg(9, 'testuser-mac', 'new.png')]), /no message of testuser in the thread page/)
 })

@@ -33,7 +33,7 @@ import {
 import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
 import {fixtureHash} from './fixtures/drive.mts'
-import {isFixtureName, type FixtureName} from './fixtures/names.ts'
+import {FIXTURE_RUNTIME_VERSION, isFixtureName, type FixtureName} from './fixtures/names.ts'
 import {acquireLock} from './lock.mts'
 import {isRef} from './resolve.mts'
 import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts'
@@ -428,6 +428,7 @@ const DESKTOP_DRIVER = 'shared/tests/e2e/visual/driver-desktop.mts'
 const IOS_DRIVER = 'shared/tests/e2e/visual/driver-ios.mts'
 const BABEL_CONFIG = 'shared/babel.config.js'
 const FIXTURE_RUNTIME = 'shared/tests/e2e/visual/fixtures/runtime.ts'
+const FIXTURE_NAMES = 'shared/tests/e2e/visual/fixtures/names.ts'
 const SRC_MARK = 'shared/tests/e2e/visual/coverage/src-mark.tsx'
 const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
 
@@ -443,8 +444,16 @@ export const checkBaseInfra = (
   if (opts.coverage && !readFile(SRC_MARK)?.includes('__kbVisualSrcMark')) {
     throw new Error(`base ${sha} has coverage marks the driver cannot find (${SRC_MARK} __kbVisualSrcMark); ${PASS_BASE}, or drop --coverage`)
   }
-  if (opts.fixtures && !readFile(FIXTURE_RUNTIME)) {
-    throw new Error(`base ${sha} has no fixture runtime (${FIXTURE_RUNTIME}) for the fixture entries; ${PASS_BASE}, or name only live entries`)
+  if (opts.fixtures) {
+    if (!readFile(FIXTURE_RUNTIME)) {
+      throw new Error(`base ${sha} has no fixture runtime (${FIXTURE_RUNTIME}) for the fixture entries; ${PASS_BASE}, or name only live entries`)
+    }
+    const version = /FIXTURE_RUNTIME_VERSION = (\d+)/.exec(readFile(FIXTURE_NAMES) ?? '')?.[1]
+    if (Number(version) !== FIXTURE_RUNTIME_VERSION) {
+      throw new Error(
+        `base ${sha} has fixture runtime version ${version ?? 'unknown'} (${FIXTURE_NAMES}), this driver speaks ${FIXTURE_RUNTIME_VERSION}; ${PASS_BASE}, or name only live entries`
+      )
+    }
   }
   if (opts.ios) {
     if (!readFile(IOS_DRIVER)) throw new Error(`base ${sha} has no visual gate infra (${IOS_DRIVER}); ${PASS_BASE}`)
