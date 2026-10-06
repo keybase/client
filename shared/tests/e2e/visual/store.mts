@@ -13,7 +13,8 @@ import type {Seal} from './seal.mts'
 import type {Theme} from './tour-types.ts'
 
 export type RunPlatform = 'desktop' | 'ios'
-export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number}
+// `fixtures`: the definition hash (fixtures/drive.mts) of each fixture the base's entries ran under
+export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number; fixtures?: Record<string, string>}
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 

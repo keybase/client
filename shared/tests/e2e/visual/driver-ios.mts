@@ -24,6 +24,9 @@ import {
 import type {Rect} from './compare.mts'
 import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
+import {fixtureArgs, leakProblems} from './fixtures/drive.mts'
+import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
+import type {EndReport} from './fixtures/runtime.ts'
 
 export type IosSession = {
   // Fixes Date, remounts every screen under it, and visits each phone tab once.
@@ -561,6 +564,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
 
   let prepared = false
   let datePatched = false
+  let frozenAt: number | undefined
   // what prepare found, so close can put it back
   let original: IosOriginal | undefined
 
@@ -590,6 +594,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
     await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
     datePatched = true
+    frozenAt = p.frozenAt
     await applyLight()
     await remountScreens()
     // the same moment as desktop's: the reloaded app at its tab root and idle, before warmTabs
@@ -605,13 +610,53 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     return {chrome}
   }
 
+  // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
+
+  const FX = 'globalThis.__kbVisualFixtures'
+  const fixtureActive = async () => appEval<boolean>(`return ${FX}?.active() ?? false`, 'reading whether a fixture is active')
+  const beginFixture = async (f: NonNullable<TourEntry['fixture']>) => {
+    const args = await fixtureArgs(f)
+    await appEval(
+      `const fx = ${FX}
+       if (!fx) throw new Error('the app has no visual fixtures runtime; is this a dev build of a tree that has one?')
+       if (fx.version !== ${FIXTURE_RUNTIME_VERSION}) throw new Error('the app fixture runtime is version ' + fx.version + ', the driver wants ${FIXTURE_RUNTIME_VERSION}')
+       fx.begin(${JSON.stringify(f.name)}, ${JSON.stringify(args)})`,
+      `beginning fixture ${f.name}`
+    )
+  }
+  // end() always runs once begin did; then the app is put back as the fixture says.
+  const endFixture = async (name: string): Promise<Array<string>> => {
+    const report = await appEval<EndReport>(`return ${FX}.end()`, 'fixture end')
+    if (report.teardown === 'reload') {
+      if (frozenAt === undefined) throw new Error('a fixture ended before prepare')
+      await reloadJs()
+      await appEval(`(${fixDate.toString()})(${frozenAt})`, 'fixing Date')
+      await applyLight()
+      await remountScreens()
+      await warmTabs()
+    } else {
+      await remountScreens()
+    }
+    return leakProblems(name, report)
+  }
+
   const capture: IosSession['capture'] = async entry => {
     let png: Buffer | undefined
+    let fixtureOn = false
+    let result: Capture
     try {
       if (!prepared) throw new Error('capture called before prepare')
+      if (await fixtureActive()) throw new Error('a fixture is still active from an earlier entry')
       // before the reset, so coverage includes what switching to the tab mounts
       const seq = await coverageSeq()
       await resetTo(entry.nav.tab)
+      if (entry.fixture) {
+        // installed on an idle app, then every screen remounts so none keeps live data
+        await waitForNoLoading()
+        await beginFixture(entry.fixture)
+        fixtureOn = true
+        await remountScreens()
+      }
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {
@@ -635,6 +680,13 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         timeout: READY_MS,
         timeoutMsg: `testID ${entry.ready} did not appear after ${READY_MS / 1000}s`,
       })
+      if (entry.fixture) {
+        const {name} = entry.fixture
+        await waitFor(`fixture ${name} to answer every rule it needs`, READY_MS, async () =>
+          appEval<boolean>(`return ${FX}?.served() ?? false`, 'reading whether the fixture has answered')
+        )
+        await appEval(`${FX}.afterReady()`, 'fixture afterReady')
+      }
       await waitForNoLoading()
       // An auto-focused input blinks its caret, so a capture could catch either phase. Desktop
       // screenshots hide the caret; iOS can't, so the input loses focus instead.
@@ -653,10 +705,21 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       png = settled.png
       const masks = await maskRects(entry)
       const coverage = await coverageSince(seq)
-      return {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
+      result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
-      return {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
+      result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
+    if (fixtureOn && entry.fixture) {
+      let why: string | undefined
+      try {
+        const problems = await endFixture(entry.fixture.name)
+        if (problems.length) why = problems.join('; ')
+      } catch (e) {
+        why = `ending fixture ${entry.fixture.name}: ${(e as Error).message}`
+      }
+      if (why) result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
+    }
+    return result
   }
 
   const close: IosSession['close'] = async () => {

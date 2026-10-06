@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {validateEntry, matchEntries, popupFollowerProblems, type TourEntry} from './tour-types.ts'
+import {fixtureOrderProblems, validateEntry, matchEntries, popupFollowerProblems, type TourEntry} from './tour-types.ts'
+import * as T from '../shared/test-ids.ts'
 
 const base: TourEntry = {
   id: 'settings/advanced',
@@ -89,4 +90,28 @@ test('every popup entry in the real tour is followed by an entry that closes it'
   const {tour} = await import('./tour.ts')
   assert.ok(tour.some(e => e.leavesPopup), 'the tour has popup entries')
   assert.deepEqual(popupFollowerProblems(tour), [])
+})
+test('a fixture entry names a known fixture, waits on a ready only its state shows and has no masks', () => {
+  const fx: TourEntry = {...base, fixture: {name: 'people-follow-suggestions'}, ready: T.PEOPLE_FOLLOW_SUGGESTION}
+  assert.deepEqual(validateEntry(fx), [])
+  assert.match(validateEntry({...fx, fixture: {name: 'nope'}}).join(), /unknown fixture nope/)
+  // the suggestions' container shows with no suggestions in it
+  assert.match(validateEntry({...fx, ready: T.PEOPLE_FOLLOW_SUGGESTIONS}).join(), /not a testID only fixture people-follow-suggestions/)
+  assert.match(validateEntry({...fx, masks: [{reason: 'r', testID: 'a'}]}).join(), /has no masks/)
+  assert.match(validateEntry({...fx, window: {component: 'menubar', size: {height: 1, width: 1}}}).join(), /runs no fixture/)
+})
+test('fixture entries come after every live entry, per platform', () => {
+  const fx = (id: string, platforms: TourEntry['platforms']): TourEntry => ({...base, fixture: {name: 'featured-bots'}, id, platforms})
+  const live = (id: string, platforms: TourEntry['platforms']): TourEntry => ({...base, id, platforms})
+  assert.deepEqual(fixtureOrderProblems([live('a', ['desktop', 'phone']), fx('f', ['desktop', 'phone'])]), [])
+  // a phone-only live entry after a desktop-only fixture entry is fine
+  assert.deepEqual(fixtureOrderProblems([fx('f', ['desktop']), live('p', ['phone'])]), [])
+  assert.deepEqual(fixtureOrderProblems([fx('f', ['desktop', 'phone']), live('a', ['phone'])]), [
+    'a (phone): a live entry after the fixture entry f',
+  ])
+})
+test('the real tour runs its fixture entries last', async () => {
+  const {tour} = await import('./tour.ts')
+  assert.ok(tour.some(e => e.fixture), 'the tour has fixture entries')
+  assert.deepEqual(fixtureOrderProblems(tour), [])
 })
