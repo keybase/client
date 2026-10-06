@@ -87,7 +87,7 @@ const ArrowTick = () => {
   const theme = Kb.Styles.useTheme()
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.arrowTick,
@@ -451,7 +451,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
             ))
           : null}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
+      <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
         <Kb.Icon
           color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
           hoverColor={theme.whiteOrWhite}
@@ -499,7 +499,7 @@ const LoggedIn = (p: Props) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.footer}>
+      <Kb.Box2 direction="vertical" style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
           isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}
@@ -569,7 +569,7 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
       {isDarwin && <ArrowTick />}
       <IconBar {...p} showBadges={loggedIn} />
       {content}
@@ -619,7 +619,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.badgeIconContainer}>
+    <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
       <Kb.Icon
         color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
         hoverColor={theme.whiteOrWhite}

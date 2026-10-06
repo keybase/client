@@ -167,7 +167,7 @@ function AuthorSection(p: AuthorProps) {
   ) : null
 
   const botIcon = authorIsBot ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" tooltip="Bot">
+    <Kb.Box2 direction="vertical" tooltip="Bot">
       <Kb.Icon fontSize={13} color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
@@ -877,7 +877,7 @@ function RightSide(p: RProps) {
   ) : null
 
   const revokedIcon = showRevoked ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
+    <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
       <Kb.Icon type="iconfont-rip" color={theme.black_35} />
     </Kb.Box2>
   ) : null

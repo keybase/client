@@ -32,7 +32,7 @@ const InstallSecurityPrefs = () => {
 
   return (
     <>
-      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" centerChildren={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
         <Kb.Text type="HeaderBig" style={styles.title}>
           You need to change your system security preferences.
         </Kb.Text>
@@ -42,7 +42,7 @@ const InstallSecurityPrefs = () => {
             <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
-            <Kb.Box2 alignSelf="center" direction="horizontal">
+            <Kb.Box2 direction="horizontal">
               <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
                 •
               </Kb.Text>

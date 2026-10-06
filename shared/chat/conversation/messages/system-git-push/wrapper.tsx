@@ -131,7 +131,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
               max={commitRef.commits ? commitRef.commits.length - 1 : 0}
               style={styles.marker}
             />
-            <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
+            <Kb.Box2 direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
               <Kb.Box2 direction="vertical" fullHeight={true} style={styles.dot}>
                 <Kb.Text
                   type="Terminal"

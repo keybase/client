@@ -43,7 +43,7 @@ function UnfurlMap(p: {
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" testID={TestIDs.CHAT_MAP_UNFURL}>
+    <Kb.Box2 direction="vertical" testID={TestIDs.CHAT_MAP_UNFURL}>
       <UnfurlImage
         url={imageURL}
         height={height}

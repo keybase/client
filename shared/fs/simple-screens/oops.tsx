@@ -23,7 +23,7 @@ const Explain = (props: Props) => {
       return null
     case 'private':
       return (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.explainBox}>
+        <Kb.Box2 direction="horizontal" style={styles.explainBox}>
           <Kb.Text center={true} type="Body">
             Only people in the private folder can access this.
           </Kb.Text>

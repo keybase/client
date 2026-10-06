@@ -69,7 +69,7 @@ export const PaperKey = (props: Props) => {
         centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
         gap={isMobile ? 'tiny' : 'medium'}
       >
-        <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.ImageIcon type="icon-paper-key-64" />
           <Kb.Text type="Header">{props.hint}</Kb.Text>
         </Kb.Box2>

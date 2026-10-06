@@ -121,7 +121,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
         </Kb.Box2>
       </Kb.Box2>
       {!!description && (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.description}>
+        <Kb.Box2 direction="horizontal" style={styles.description}>
           <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
             {description}
           </Kb.Markdown>

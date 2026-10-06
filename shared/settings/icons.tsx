@@ -40,7 +40,7 @@ const SFToggleCell = ({off, on}: {off: SFSymbolName; on: SFSymbolName}) => {
   const [isOn, setOn] = React.useState(false)
   const name = isOn ? on : off
   return (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       onClick={() => setOn(s => !s)}
       direction="vertical"
       padding="xtiny"
@@ -65,7 +65,7 @@ const SFVariableCell = () => {
   const theme = Kb.Styles.useTheme()
   const [value, setValue] = React.useState(1)
   return (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       onClick={() => setValue(v => (v >= 1 ? 0 : Math.min(1, v + 0.34)))}
       direction="vertical"
       padding="xtiny"

@@ -23,7 +23,7 @@ const SyncNotificationSetting = (
   const onChangedSyncNotifications = (selectedIdx: number) =>
     setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
+    <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
@@ -34,7 +34,7 @@ const SyncNotificationSetting = (
         onChangedIdx={onChangedSyncNotifications}
         overlayStyle={styles.syncNotificationDropdownOverlay}
         selected={
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="horizontal"
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >

@@ -107,7 +107,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
     onAdd(channels)
   }
   return (
-    <Kb.ClickableBox alignSelf="center" onClick={() => setShowingPopup(true)} direction="vertical">
+    <Kb.ClickableBox onClick={() => setShowingPopup(true)} direction="vertical">
       <Kb.Box2
         direction="horizontal"
         gap="tiny"

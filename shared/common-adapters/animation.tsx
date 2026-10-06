@@ -94,7 +94,7 @@ function Animation(props: Props) {
 
   const source = animationData[animationType]
   return (
-    <Box2 alignSelf="center" direction="vertical" style={props.containerStyle}>
+    <Box2 direction="vertical" style={props.containerStyle}>
       <LottieView autoPlay={true} loop={true} source={source} style={props.style ?? noStyle} />
     </Box2>
   )

@@ -231,7 +231,7 @@ const Assertion = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Text>
-        <Kb.ClickableBox alignSelf="center"
+        <Kb.ClickableBox
           onClick={items ? showPopup : onShowProof}
           style={styles.statusAssertion}
           direction="horizontal"
@@ -345,7 +345,7 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   return isMobile ? (
     label
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.tooltip}>
+    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.tooltip}>
       {label}
       {popup}
     </Kb.Box2>
@@ -407,7 +407,7 @@ const Value = (p: {
 }
 
 const HoverOpacity = (p: {children: React.ReactNode}) => (
-  <Kb.Box2 alignSelf="center" direction="vertical" className="hover-opacity inverted">
+  <Kb.Box2 direction="vertical" className="hover-opacity inverted">
     {p.children}
   </Kb.Box2>
 )

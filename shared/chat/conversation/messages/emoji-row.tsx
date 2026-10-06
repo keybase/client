@@ -151,12 +151,12 @@ function EmojiRowContainer(p: OwnProps) {
       ])}
       className={className}
     >
-      <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+      <Kb.Box2 direction="horizontal" gap="tiny">
         {emojis.map(e => (
           <HoverEmoji emoji={e} key={e.name} onClick={() => onReact(e.name)} />
         ))}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
         <Kb.ClickableBox alignSelf="center"
           direction="vertical"

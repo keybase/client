@@ -15,10 +15,10 @@ export type Props = {
 const TimelineMarker = ({idx, max, type, style}: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={Styles.collapseStyles([{marginRight: 16}, style])}>
-      <Kb.Box2 alignSelf="center" direction="vertical" style={{...styles.line, opacity: idx ? 1 : 0}} />
-      {type === 'closed' ? <Kb.Box2 alignSelf="center" direction="vertical" style={styles.circleClosed} /> : <Kb.Box2 alignSelf="center" direction="vertical" style={styles.circleOpen} />}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={{...styles.line, opacity: idx < max ? 1 : 0}} />
+    <Kb.Box2 direction="vertical" alignItems="center" style={Styles.collapseStyles([{marginRight: 16}, style])}>
+      <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx ? 1 : 0}} />
+      {type === 'closed' ? <Kb.Box2 direction="vertical" style={styles.circleClosed} /> : <Kb.Box2 direction="vertical" style={styles.circleOpen} />}
+      <Kb.Box2 direction="vertical" style={{...styles.line, opacity: idx < max ? 1 : 0}} />
     </Kb.Box2>
   )
 }

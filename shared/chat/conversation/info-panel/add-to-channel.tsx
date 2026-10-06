@@ -118,7 +118,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
                 onClick={alreadyIn ? undefined : onCheck}
                 hideHover={alreadyIn}
                 body={
-                  <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start">
+                  <Kb.Box2 direction="vertical" alignItems="flex-start">
                     <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={item.username} />
                     <Kb.Text type="BodySmall" lineClamp={1}>
                       {alreadyIn && <Kb.Text type="BodySmall">Already in{!!item.fullName && ' • '}</Kb.Text>}

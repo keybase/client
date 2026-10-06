@@ -111,7 +111,7 @@ const CommonResult = (props: CommonResultProps) => {
         keybaseUsername={keybaseUsername}
         pictureUrl={props.pictureUrl}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.username}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
         {serviceUsername ? (
           <>
             <Username
@@ -137,7 +137,7 @@ const CommonResult = (props: CommonResultProps) => {
           <FallbackResultInfo displayLabel={props.displayLabel} prettyName={props.prettyName} />
         )}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         gap="tiny"
         centerChildren={true}
         direction="horizontal"
@@ -219,7 +219,7 @@ const ServicesIcons = (props: ServicesIconsProps) => {
             : styles.serviceIcon
         // On desktop the styles need to be applied to the box parent if they are to work correctly
         return (
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             key={serviceName}
             tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}

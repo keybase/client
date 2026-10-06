@@ -47,7 +47,7 @@ const ActionButton = (props: {
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       onClick={props.inTeam ? props.onRemove : props.onAdd}
       direction="vertical"
       centerChildren={true}

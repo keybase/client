@@ -30,7 +30,7 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
 const DeviceList = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
+    <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text center={true} type="Body" style={styles.infoText}>
         This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
         please turn on one of the devices below:

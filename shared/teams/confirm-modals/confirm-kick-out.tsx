@@ -97,7 +97,7 @@ const ConfirmKickOut = (props: Props) => {
     </Kb.Text>
   )
   const header = (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <AvatarBadge
         icon="iconfont-block"
