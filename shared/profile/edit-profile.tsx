@@ -63,7 +63,7 @@ const EditProfile = () => {
 
   return (
     <Kb.ScrollView>
-      <Kb.Box2 fullWidth={true} direction="vertical" padding="small" style={styles.container}>
+      <Kb.Box2 fullWidth={true} direction="vertical" padding="small">
         <Kb.RoundedBox side="top">
           <Kb.Input3
             value={fullname}
@@ -109,11 +109,6 @@ const EditProfile = () => {
 const maxBio = 255
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 350,
-    },
-  }),
   gap: {minHeight: Kb.Styles.globalMargins.small},
 }))
 
