@@ -241,7 +241,7 @@ const TopLineGear = (p: TopLineGearProps) => {
   const {subColor, isSelected, showPopup, popupAnchor} = p
   const iconHoverColor = isSelected ? theme.white_75 : theme.black
   return (
-    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.icon}>
+    <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.icon}>
       <Kb.Icon
         type="iconfont-gear"
         className="conversation-gear"

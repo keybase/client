@@ -121,9 +121,10 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
   const iconSet = isDarkMode ? a.siteIconDarkmode : a.siteIcon
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.assertionRow}>
-      <Kb.Box2 alignItems="flex-start" direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
+      <Kb.Box2 alignItems="flex-start" direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
         {iconSet.length > 0 && (
           <Kb.Box2
+            alignSelf="center"
             direction="vertical"
             style={Kb.Styles.collapseStyles([
               styles.siteIcon,

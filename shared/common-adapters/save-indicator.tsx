@@ -81,7 +81,7 @@ const SaveIndicator = (props: Props) => {
       break
   }
 
-  return <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box2>
+  return <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box2>
 }
 
 export default SaveIndicator

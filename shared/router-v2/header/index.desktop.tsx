@@ -278,7 +278,7 @@ function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {backButton}
-          <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
                 p.style?.backgroundColor !== theme.transparent &&

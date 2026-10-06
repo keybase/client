@@ -139,7 +139,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       onMouseUp={onMouseUp}
     >
       {overlayAvoidTabs && (
-        <Kb.Box2 direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
+        <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
       )}
       <Kb.Box2 alignSelf="center"
         direction="vertical"

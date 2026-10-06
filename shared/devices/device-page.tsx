@@ -42,7 +42,7 @@ const TimelineLabel = (p: {
         </Kb.Text>
       )}
       {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-      {spacerOnBottom && <Kb.Box2 direction="vertical" style={styles.timelineSpacer} />}
+      {spacerOnBottom && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.timelineSpacer} />}
     </Kb.Box2>
   )
 }

@@ -430,7 +430,7 @@ export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T
 }
 
 const makeEmojiPlaceholder = (index: number, styles: ReturnType<typeof useStyles>) => (
-  <Kb.Box2 direction="vertical" key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
+  <Kb.Box2 alignSelf="center" direction="vertical" key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
 const useStyles = Kb.Styles.createStyleHook(

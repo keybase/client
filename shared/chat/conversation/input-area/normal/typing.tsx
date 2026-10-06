@@ -57,7 +57,7 @@ const Typing = function Typing() {
   const showTypingStatus = !isMobile || (!showGiphySearch && !showCommandMarkdown)
   const names = showTypingStatus ? threadTyping : emptySet
   return (
-    <Kb.Box2 direction="horizontal" style={styles.isTypingContainer}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.isTypingContainer}>
       {names.size > 0 && (
         <Kb.Box2 alignSelf="center" direction="vertical" style={styles.typingIconContainer} testID={TestIDs.CHAT_TYPING}>
           <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
