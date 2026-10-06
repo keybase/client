@@ -350,3 +350,54 @@ test('a fixture entry needs a base that ran the fixture as this tree defines it'
   )
   assert.deepEqual(ran, ['modal/bots'])
 })
+
+// The capture dep prepares (a reload) whenever the theme changes, and again after closeCapture; a
+// live capture may only follow a fixture capture across one of those.
+const liveAfterFixture = (events: ReadonlyArray<{kind: 'close'} | {kind: 'capture'; e: TourEntry; theme: string}>) => {
+  const problems: Array<string> = []
+  let theme: string | undefined
+  let fixtureSince = false
+  for (const ev of events) {
+    if (ev.kind === 'close') {
+      theme = undefined
+      fixtureSince = false
+      continue
+    }
+    if (ev.theme !== theme) {
+      theme = ev.theme
+      fixtureSince = false
+    }
+    if (ev.e.fixture) fixtureSince = true
+    else if (fixtureSince) problems.push(`${ev.e.id} ${ev.theme}`)
+  }
+  return problems
+}
+
+test('aa, check and gate never capture a live entry after a fixture entry without a fresh prepare', async () => {
+  const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
+  const es = [...entries, fx]
+  const meta = () => ({createdAt: 0, fixtures: {'featured-bots': 'hash-of-featured-bots'}, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
+  const events: Array<{kind: 'close'} | {kind: 'capture'; e: TourEntry; theme: string}> = []
+  // aa compares its own pairs; check and gate get failed captures, so they read no base PNG
+  let result: Capture = {coverage: null, masks: [], png: pngOf(false), status: 'ok'}
+  const recording = deps({
+    capture: async (e: TourEntry, o: {theme: string}): Promise<Capture> => {
+      events.push({e, kind: 'capture', theme: o.theme})
+      return result
+    },
+    closeCapture: async () => {
+      events.push({kind: 'close'})
+    },
+    entries: es,
+    readBaseMeta: meta,
+  })
+  await runAa(recording, ['*', '--themes', 'light,dark'])
+  assert.ok(events.some(ev => ev.kind === 'capture' && ev.e.fixture), 'the fixture entry ran')
+  assert.deepEqual(liveAfterFixture(events), [])
+  events.length = 0
+  result = failed
+  await runCheck(recording, ['*', '--themes', 'light,dark'])
+  await runGate(recording, ['--themes', 'light,dark'])
+  assert.ok(events.some(ev => ev.kind === 'capture' && ev.e.fixture), 'the fixture entry ran')
+  assert.deepEqual(liveAfterFixture(events), [])
+})
