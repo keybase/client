@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import MenuHeader from './menu-header'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // the explanatory blueGrey footer row at the bottom of the channels/subteams tabs
 export const InfoNoteRow = (props: {children: React.ReactNode}) => {
@@ -64,6 +65,7 @@ export const getMassActionsProps = (username: string, selected: boolean, onSelec
       onCheck={onSelect}
       key={`check-${username}`}
       style={selectionStyles.widenClickableArea}
+      testID={TestIDs.TEAMS_MEMBER_CHECK}
     />
   ),
   iconStyleOverride: selectionStyles.checkCircle,
@@ -173,7 +175,8 @@ export const MemberActions = (props: MemberMenuProps) => {
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
+      alignSelf="center"
       direction="horizontal"
       gap="tiny"
       style={youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}

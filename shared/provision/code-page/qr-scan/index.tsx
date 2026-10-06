@@ -10,7 +10,7 @@ const QRScan = () => {
 
   if (!isMobile) {
     return (
-      <Kb.Box2 alignSelf="center" direction="vertical" justifyContent="center" relative={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" justifyContent="center" relative={true} style={styles.container}>
         <QRLines canScan={true} />
         {waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={true} />}
       </Kb.Box2>
@@ -18,7 +18,7 @@ const QRScan = () => {
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true} overflow="hidden" style={styles.container}>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden" style={styles.container}>
       {!waiting && (
         <QRScanner
           notAuthorizedView={<QRNotAuthorized />}

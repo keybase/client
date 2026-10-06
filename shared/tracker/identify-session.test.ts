@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {
   getProfileDetails,
@@ -9,9 +10,9 @@ import {
 } from './identify-session'
 
 const flush = async () => {
-  await Promise.resolve()
-  await Promise.resolve()
-  await Promise.resolve()
+  for (let i = 0; i < 10; ++i) {
+    await Promise.resolve()
+  }
 }
 
 let identifySpy: jest.SpyInstance
@@ -19,7 +20,14 @@ let identifySpy: jest.SpyInstance
 beforeEach(() => {
   identifySpy = jest
     .spyOn(T.RPCGen, 'identify3Identify3RpcListener')
-    .mockImplementation(async () => Promise.resolve() as unknown as Promise<never>)
+    .mockImplementation((async (p: {params: {guiID: string}}) => {
+      // like the service, report a result before the call returns
+      await Promise.resolve()
+      notifyEngineActionListeners({
+        payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+        type: 'keybase.1.identify3Ui.identify3Result',
+      } as never)
+    }) as never)
   jest
     .spyOn(T.RPCGen, 'userListTrackersUnverifiedRpcPromise')
     .mockImplementation(async () => Promise.resolve({users: []} as never))
@@ -164,16 +172,80 @@ test('subscribers are notified when their session details change', () => {
   expect(cb).toHaveBeenCalledTimes(2)
 })
 
-test('an idle session is dropped once its last subscriber leaves and its identify finished', async () => {
+const minutes = (n: number) => n * 60_000
+const mountOptions = {freshAfter: 0, ignoreCache: true, maxAgeMs: 30_000}
+
+// Open a profile, let its identify finish with an ok result and one follower, and close it.
+const openAndClose = async () => {
+  jest
+    .spyOn(T.RPCGen, 'userListTrackersUnverifiedRpcPromise')
+    .mockImplementation(async () => Promise.resolve({users: [{fullName: '', username: 'testuser-mac'}]} as never))
   const unsub = subscribeToProfile('testuser', () => {})
-  loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: true})
+  loadProfileIdentify('testuser', mountOptions)
+  notifyEngineActionListeners({
+    payload: {params: {guiID: getProfileDetails('testuser')?.guiID ?? '', result: T.RPCGen.Identify3ResultType.ok}},
+    type: 'keybase.1.identify3Ui.identify3Result',
+  } as never)
+  await flush()
+  unsub()
+}
+
+test('an idle session lets its result go once the last completed check expires', async () => {
+  const now = Date.now()
+  await openAndClose()
+  expect(getProfileDetails('testuser')?.guiID).toBeTruthy()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a profile reopened within the recheck window shows its last result without a new identify', async () => {
+  await openAndClose()
+  expect(identifySpy).toHaveBeenCalledTimes(1)
+
+  const unsub = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
   await flush()
 
+  expect(identifySpy).toHaveBeenCalledTimes(1)
   const details = getProfileDetails('testuser')
-  expect(details?.username).toBe('testuser')
+  expect(details?.followers).toEqual(new Set(['testuser-mac']))
+  expect(details?.following).toEqual(new Set())
   expect(details?.guiID).toBeTruthy()
+  expect(details?.state).toBe('valid')
   unsub()
-  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a profile reopened after the recheck window runs a full load again', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(1))
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  await flush()
+  unsubA()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(10))
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(3)
+  expect(getProfileDetails('testuser')?.state).toBe('checking')
+  unsubB()
+})
+
+test('a tracking change to a closed profile makes its reopen check again', async () => {
+  await openAndClose()
+  notifyEngineActionListeners({
+    payload: {params: {isTrackedByUs: true, uid: '', username: 'testuser'}},
+    type: 'keybase.1.NotifyTracking.trackingChanged',
+  } as never)
+
+  const unsub = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  unsub()
 })
 
 test('a session with an identify still running is kept even with no subscribers', () => {
@@ -210,4 +282,120 @@ test('events for an unknown guiID are dropped', () => {
 
   expect(getProfileDetails('testuser')?.state).toBe('checking')
   unsub()
+})
+
+const failNextIdentify = () =>
+  identifySpy.mockImplementationOnce(async () =>
+    // the engine rejects with an RPCError, which is not an Error subclass
+    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+    Promise.reject(new RPCError('network', T.RPCGen.StatusCode.scgeneric))
+  )
+
+test('a failed identify does not count as a recent check', async () => {
+  failNextIdentify()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  await flush()
+  unsubA()
+
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  unsubB()
+})
+
+test('a failed reload drops the earlier recent check instead of reviving its session', async () => {
+  await openAndClose()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  failNextIdentify()
+  loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: true})
+  await flush()
+  unsubA()
+
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(3)
+  unsubB()
+})
+
+const row = (guiID: string, value: string) =>
+  ({
+    color: T.RPCGen.Identify3RowColor.green,
+    ctime: 0,
+    guiID,
+    key: 'github',
+    kid: '',
+    metas: [],
+    priority: 0,
+    proofURL: '',
+    sigID: '',
+    siteIcon: [],
+    siteIconDarkmode: [],
+    siteIconFull: [],
+    siteIconFullDarkmode: [],
+    siteURL: '',
+    state: T.RPCGen.Identify3RowState.valid,
+    value,
+  }) as T.RPCGen.Identify3Row
+
+const sendRows = (values: Array<string>) => {
+  const guiID = getProfileDetails('testuser')?.guiID ?? ''
+  for (const value of values) {
+    notifyEngineActionListeners({
+      payload: {params: {row: row(guiID, value)}},
+      type: 'keybase.1.identify3Ui.identify3UpdateRow',
+    } as never)
+  }
+  notifyEngineActionListeners({
+    payload: {params: {guiID, result: T.RPCGen.Identify3ResultType.ok}},
+    type: 'keybase.1.identify3Ui.identify3Result',
+  } as never)
+}
+
+test('a new identify on a remembered session drops proofs the previous one reported', async () => {
+  const now = Date.now()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  sendRows(['a', 'b', 'c'])
+  await flush()
+  unsubA()
+  expect([...(getProfileDetails('testuser')?.assertions?.keys() ?? [])]).toEqual([
+    'github:a',
+    'github:b',
+    'github:c',
+  ])
+
+  // past the recheck window, inside the TTL: the session is reused and identified again
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(1))
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  sendRows(['a', 'b'])
+  await flush()
+  expect([...(getProfileDetails('testuser')?.assertions?.keys() ?? [])]).toEqual(['github:a', 'github:b'])
+  unsubB()
+})
+
+test('an expired recent check is released by a getter, not only by a new load', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  expect(getProfileDetails('testuser')).toBeUndefined()
+  // had the getter only skipped the entry, it would be readable again here
+  jest.spyOn(Date, 'now').mockReturnValue(now)
+  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a block notification releases expired sessions instead of updating them', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  notifyEngineActionListeners({
+    payload: {params: {b: {blocker: 'testuser', blocks: {}}}},
+    type: 'keybase.1.NotifyTracking.notifyUserBlocked',
+  } as never)
+  jest.spyOn(Date, 'now').mockReturnValue(now)
+  expect(getProfileDetails('testuser')).toBeUndefined()
 })

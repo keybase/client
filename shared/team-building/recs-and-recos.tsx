@@ -33,7 +33,7 @@ export const numSectionLabel = '0-9'
 const SearchHintText = () => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.searchHint}>
+    <Kb.Box2 direction="vertical" style={styles.searchHint}>
       <Kb.Text type="BodySmall" center={true}>
         Search anyone on Keybase by typing a username or a full name.
       </Kb.Text>

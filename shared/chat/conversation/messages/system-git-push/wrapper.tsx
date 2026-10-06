@@ -2,6 +2,7 @@ import * as Chat from '@/constants/chat'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import TimelineMarker from './timeline-marker'
 import UserNotice from '../user-notice'
 import * as FS from '@/constants/fs'
@@ -111,7 +112,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
   const styles = useStyles()
   const {pusher, you, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start" testID={TestIDs.CHAT_GIT_PUSH}>
       <Kb.Text type="BodySmall">
         {pusher === you ? 'You ' : ''}pushed {!!commitRef.commits && commitRef.commits.length}{' '}
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
@@ -130,7 +131,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
               max={commitRef.commits ? commitRef.commits.length - 1 : 0}
               style={styles.marker}
             />
-            <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
+            <Kb.Box2 direction="horizontal" alignItems="flex-start" style={styles.hashAndMessage}>
               <Kb.Box2 direction="vertical" fullHeight={true} style={styles.dot}>
                 <Kb.Text
                   type="Terminal"

@@ -31,7 +31,7 @@ const CreateChannel = (p: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.box}>
-          <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems="center" style={desktopStyles.back} onClick={props.onBack}>
+          <Kb.ClickableBox direction="horizontal" alignItems="center" style={desktopStyles.back} onClick={props.onBack}>
             <Kb.Icon style={desktopStyles.backIcon} type="iconfont-arrow-left" />
             <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
           </Kb.ClickableBox>
@@ -78,7 +78,7 @@ const CreateChannel = (p: Props) => {
         </Kb.Banner>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.box}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Kb.Box2 direction="vertical" gap="small">
           <Kb.Input3
             textType="BodySemibold"
             autoFocus={true}

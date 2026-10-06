@@ -36,13 +36,13 @@ test('the last base is kept per platform', () => {
 test('masks default to none; coverage is the union of every stored coverage JSON', () => {
   assert.deepEqual(store.readBaseMasks('c1', 'desktop', 'light', 'tab/chat'), [])
   const a = store.baseCoveragePath('c1', 'desktop', 'light', 'tab/chat')
-  const b = store.baseCoveragePath('c1', 'ios', 'light', '__chrome__')
+  const b = store.baseCoveragePath('c1', 'ios', 'light', 'tab/chat')
   fs.mkdirSync(path.dirname(a), {recursive: true})
   fs.mkdirSync(path.dirname(b), {recursive: true})
   fs.writeFileSync(a, store.writeCoverageJson(['b.tsx:2', 'a.tsx:1'], false))
   fs.writeFileSync(b, store.writeCoverageJson(['a.tsx:1', 'c.tsx:3'], false))
   fs.writeFileSync(path.join(path.dirname(a), '..', 'tab__chat.masks.json'), '[]')
-  assert.deepEqual(store.readBaseCoverage('c1'), {masked: [], mounted: ['a.tsx:1', 'b.tsx:2', 'c.tsx:3']})
+  assert.deepEqual(store.readBaseCoverage('c1'), {drawn: ['a.tsx:1', 'b.tsx:2', 'c.tsx:3'], masked: []})
 })
 
 test('a masked entry contributes no coverage and is reported', () => {
@@ -54,7 +54,7 @@ test('a masked entry contributes no coverage and is reported', () => {
   fs.writeFileSync(masked, store.writeCoverageJson(['a.tsx:1', 'm.tsx:9'], true))
   assert.deepEqual(store.readBaseCoverage('c2'), {
     masked: [path.join('desktop', 'dark', 'tab__people')],
-    mounted: ['a.tsx:1'],
+    drawn: ['a.tsx:1'],
   })
 })
 
@@ -63,6 +63,14 @@ test('a coverage file without the masked flag is refused', () => {
   fs.mkdirSync(path.dirname(p), {recursive: true})
   fs.writeFileSync(p, JSON.stringify(['a.tsx:1']))
   assert.throws(() => store.readBaseCoverage('c3'), /has no masked flag: retake the coverage base/)
+})
+
+test('a coverage file without the visible flag is refused', () => {
+  const p = store.baseCoveragePath('c4', 'ios', 'light', 'tab/chat')
+  fs.mkdirSync(path.dirname(p), {recursive: true})
+  // what a base that counted every site mounted at the capture wrote
+  fs.writeFileSync(p, JSON.stringify({atCapture: true, ids: ['a.tsx:1'], masked: false}))
+  assert.throws(() => store.readBaseCoverage('c4'), /counts sites its capture did not show: retake/)
 })
 
 test('run stamps have no characters a path dislikes', () => {

@@ -145,7 +145,7 @@ const Toast = (props: Props) => {
         {toast}
       </Kb.AnchoredPopup>
     ) : (
-      <Kb.Box2 alignSelf="center" direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+      <Kb.Box2 direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
         {toast}
       </Kb.Box2>
     )

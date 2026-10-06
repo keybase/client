@@ -7,6 +7,7 @@ import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer from './shared-timers'
 import {animationDuration} from './exploding-height-retainer'
 import type * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type OwnProps = {
   exploded: boolean
@@ -186,8 +187,8 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   switch (m) {
     case 'countdown':
       children = (
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny">
-          <Kb.Box2 alignSelf="center"
+        <Kb.Box2 direction="horizontal" gap="xtiny">
+          <Kb.Box2
             className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-top-left')}
             direction="horizontal"
             tooltip="Exploding message"
@@ -230,7 +231,7 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }
 
   return (
-    <Kb.ClickableBox alignSelf="center" direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox alignSelf="center" direction="horizontal" relative={true} onClick={onClick} style={styles.container} testID={TestIDs.CHAT_EXPLODING_META}>
       {children}
     </Kb.ClickableBox>
   )

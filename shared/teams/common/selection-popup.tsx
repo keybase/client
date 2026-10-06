@@ -9,6 +9,7 @@ import {useIsBigTeam, useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {pluralize} from '@/util/string'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -79,7 +80,8 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
     return null
   }
   const popup = (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
+    <Kb.Box2
+      alignSelf={isMobile ? undefined : 'center'}
       fullWidth={isMobile}
       direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'}
       alignItems="center"
@@ -89,6 +91,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       ])}
       gap={Kb.Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
+      testID={TestIDs.TEAMS_SELECTION_POPUP}
       onLayout={isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Kb.Styles.isPhone && (
@@ -175,7 +178,7 @@ const SelectionPopup = (props: Props) =>
   ) : null
 
 const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 alignSelf={(Kb.Styles.isPhone) ? undefined : 'center'} fullWidth={Kb.Styles.isPhone} direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
+  <Kb.Box2 alignSelf={Kb.Styles.isPhone ? undefined : 'center'} fullWidth={Kb.Styles.isPhone} direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
 )
@@ -275,7 +278,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   }
 
   return (
-    <Kb.Box2 alignSelf={(Kb.Styles.isPhone) ? undefined : 'center'} direction="vertical" gap="xtiny" fullWidth={Kb.Styles.isPhone}>
+    <Kb.Box2 direction="vertical" gap="xtiny" alignSelf={Kb.Styles.isPhone ? undefined : 'center'} fullWidth={Kb.Styles.isPhone}>
       <FloatingRolePicker
         presetRole={currentRole}
         onConfirm={onChangeRoles}

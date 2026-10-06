@@ -4,7 +4,7 @@
 //   check <id|glob>… [--ios] [--theme t]   captures the current tree and compares with the base
 //   gate [--ios]                           check over every entry, bracketed by a full seal
 //   aa [--ios]                             captures every entry twice from the current tree, twice
-//   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run mounted
+//   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run drew
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -20,16 +20,28 @@ import {udidForName} from '../ios-appium/helpers/app.ts'
 import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
-import {changedRanges, callSiteRanges, parseDiffHunks, unmarkedFile, unmountedChanged, type Hunk, type Range} from './coverage/changed-sites.mts'
+import {
+  changedRanges,
+  callSiteRanges,
+  outOfScopeFile,
+  parseDiffHunks,
+  unmarkedFile,
+  undrawnChanged,
+  type Hunk,
+  type Range,
+} from './coverage/changed-sites.mts'
 import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
+import {fixtureHash} from './fixtures/drive.mts'
+import {FIXTURE_RUNTIME_VERSION, isFixtureName, type FixtureName} from './fixtures/names.ts'
 import {acquireLock} from './lock.mts'
+import {isRef} from './resolve.mts'
 import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts'
 import {diffSeals, readSeal, type Seal, type SealField} from './seal.mts'
 import {assertServedFrom, listenerCwd} from './served-tree.mts'
 import * as Store from './store.mts'
 import {tour} from './tour.ts'
-import {matchEntries, nextDesktopEntry, type Platform, type Theme, type TourEntry} from './tour-types.ts'
+import {matchEntries, nextDesktopEntry, type ParamRef, type ParamValue, type Platform, type Theme, type TourEntry} from './tour-types.ts'
 
 type RunPlatform = Store.RunPlatform
 
@@ -75,7 +87,7 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   for (const t of asked ?? []) {
     if (!THEMES.includes(t as Theme)) throw new Error(`unknown theme ${t} (light or dark)`)
   }
-  const themes = (asked as Array<Theme> | undefined) ?? (ios ? ['light'] : [...THEMES])
+  const themes = (asked as Array<Theme> | undefined) ?? ['light']
   if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
   return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, themes}
 }
@@ -101,6 +113,10 @@ export const selectEntries = (entries: ReadonlyArray<TourEntry>, patterns: Reado
   return on.filter(e => hit.has(e))
 }
 
+const fixturesOf = (entries: ReadonlyArray<TourEntry>): Array<FixtureName> => [
+  ...new Set(entries.flatMap(e => (e.fixture && isFixtureName(e.fixture.name) ? [e.fixture.name] : []))),
+]
+
 const sealFieldsOf = (entries: ReadonlyArray<TourEntry>): Array<SealField> => [...new Set(entries.flatMap(e => e.seal))].sort()
 
 const pickSeal = (s: Seal, fields: ReadonlyArray<SealField>): Seal => ({
@@ -108,10 +124,19 @@ const pickSeal = (s: Seal, fields: ReadonlyArray<SealField>): Seal => ({
   fields: Object.fromEntries(fields.map(f => [f, s.fields[f]])),
 })
 
+const refsIn = (v: ParamValue | undefined): Array<ParamRef> =>
+  isRef(v)
+    ? [v]
+    : Array.isArray(v)
+      ? v.flatMap(x => refsIn(x as ParamValue))
+      : v && typeof v === 'object'
+        ? Object.values(v as {[k: string]: ParamValue}).flatMap(refsIn)
+        : []
+
 const conversationChannels = (e: TourEntry): Array<string> =>
-  [e.nav.thread, ...Object.values(e.nav.append?.params ?? {})].flatMap(r =>
-    r && typeof r === 'object' && r.ref === 'conversationIDKey' ? [r.channel ?? 'general'] : []
-  )
+  [e.nav.thread, ...Object.values(e.nav.append?.params ?? {})]
+    .flatMap(refsIn)
+    .flatMap(r => (r.ref === 'conversationIDKey' ? [r.channel ?? 'general'] : []))
 
 // Opening an unread conversation marks it read, which is a write to the account and changes the
 // inbox seal mid-run. Refuses before any capture; a person reads it by hand first.
@@ -146,6 +171,8 @@ export type CheckDeps = {
   team: () => string
   currentShared: string
   hasBasePng: (sha: string, platform: RunPlatform, theme: Theme, id: string) => boolean
+  // the definition hash of a fixture in this tree (fixtures/drive.mts)
+  fixtureHash: (name: FixtureName) => string
   // prepares (with a reload) whenever the theme or frozen instant changes, then captures
   capture: (entry: TourEntry, opts: CaptureOpts) => Promise<Capture>
   closeCapture: () => Promise<void>
@@ -222,6 +249,15 @@ const checkEntries = async (
       }
     }
   }
+  for (const name of fixturesOf(entries)) {
+    const based = meta.fixtures?.[name]
+    if (based !== deps.fixtureHash(name)) {
+      throw new Error(
+        `fixture ${name} ${based ? 'changed' : 'was not run'} since the base at ${sha.slice(0, 10)}; ` +
+          `retake the base: yarn visual:base ${named}${iosFlag} --base <the commit before your change>`
+      )
+    }
+  }
   const fields = sealFieldsOf(entries)
   if (fields.length) {
     const now = opts.sealNow ?? (await deps.readSeal(fields))
@@ -293,7 +329,9 @@ export async function runGate(deps: CheckDeps, argv: ReadonlyArray<string>): Pro
 const AA_ROUNDS = 2
 
 // Two captures of every entry in one sitting, compared with each other; then all of it again
-// after a fresh prepare. Any difference is an entry that needs a mask or a settle fix.
+// after a fresh prepare. Any difference is an entry that needs a mask or a settle fix. Both passes
+// of the live entries come before either pass of the fixture entries: a fixture can leave the app
+// in a state no live capture may follow (fixtureOrderProblems), and only a prepare puts it back.
 export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
@@ -303,34 +341,37 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   assertTouredConversationsRead(entries, before, deps.team())
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
   const dir = Store.runDir(`${Store.runStamp()}-aa`)
+  const groups = [entries.filter(e => !e.fixture), entries.filter(e => e.fixture)].filter(g => g.length)
   const rows: Array<ReportRow> = []
   try {
     for (let round = 1; round <= AA_ROUNDS; round++) {
       for (const theme of cmd.themes) {
-        const first = new Map<string, Capture>()
-        for (const e of entries) first.set(e.id, await deps.capture(e, {frozenAt, platform, theme}))
-        for (const e of entries) {
-          const a = first.get(e.id)!
-          const b = await deps.capture(e, {frozenAt, platform, theme})
-          const sub = path.join(dir, `round${round}`, platform, theme)
-          fs.mkdirSync(sub, {recursive: true})
-          const name = Store.idFile(e.id)
-          const refPng = a.png.length ? path.join(sub, `${name}.1.png`) : null
-          if (refPng) fs.writeFileSync(refPng, a.png)
-          const compared =
-            a.status === 'failed' || !refPng
-              ? {changePng: null, diffPng: null, error: a.error, masks: [], result: null, status: 'failed' as const}
-              : compareCapture({cap: b, dir: sub, name: `${name}.2`, refMasks: a.masks, refPng})
-          const row: ReportRow = {
-            basePng: refPng,
-            id: e.id,
-            platform,
-            theme: `${theme} round ${round}`,
-            ...compared,
-            status: a.status === 'unstable' && compared.status === 'same' ? 'unstable' : compared.status,
+        for (const group of groups) {
+          const first = new Map<string, Capture>()
+          for (const e of group) first.set(e.id, await deps.capture(e, {frozenAt, platform, theme}))
+          for (const e of group) {
+            const a = first.get(e.id)!
+            const b = await deps.capture(e, {frozenAt, platform, theme})
+            const sub = path.join(dir, `round${round}`, platform, theme)
+            fs.mkdirSync(sub, {recursive: true})
+            const name = Store.idFile(e.id)
+            const refPng = a.png.length ? path.join(sub, `${name}.1.png`) : null
+            if (refPng) fs.writeFileSync(refPng, a.png)
+            const compared =
+              a.status === 'failed' || !refPng
+                ? {changePng: null, diffPng: null, error: a.error, masks: [], result: null, status: 'failed' as const}
+                : compareCapture({cap: b, dir: sub, name: `${name}.2`, refMasks: a.masks, refPng})
+            const row: ReportRow = {
+              basePng: refPng,
+              id: e.id,
+              platform,
+              theme: `${theme} round ${round}`,
+              ...compared,
+              status: a.status === 'unstable' && compared.status === 'same' ? 'unstable' : compared.status,
+            }
+            rows.push(row)
+            if (row.status !== 'same') deps.log(line(false, row))
           }
-          rows.push(row)
-          if (row.status !== 'same') deps.log(line(false, row))
         }
       }
       // a fresh session for the next round: close restores the app, the next capture prepares again
@@ -386,6 +427,9 @@ const LAUNCH_APP = 'shared/tests/e2e/electron/launch-app.mts'
 const DESKTOP_DRIVER = 'shared/tests/e2e/visual/driver-desktop.mts'
 const IOS_DRIVER = 'shared/tests/e2e/visual/driver-ios.mts'
 const BABEL_CONFIG = 'shared/babel.config.js'
+const FIXTURE_RUNTIME = 'shared/tests/e2e/visual/fixtures/runtime.ts'
+const FIXTURE_NAMES = 'shared/tests/e2e/visual/fixtures/names.ts'
+const SRC_MARK = 'shared/tests/e2e/visual/coverage/src-mark.tsx'
 const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
 
 // The base is captured from the app served by the base tree (desktop: launched with the visual
@@ -394,8 +438,23 @@ const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commi
 export const checkBaseInfra = (
   sha: string,
   readFile: (repoPath: string) => string | undefined,
-  opts: {coverage: boolean; ios: boolean}
+  opts: {coverage: boolean; ios: boolean; fixtures?: boolean}
 ) => {
+  // the driver finds the marks it counts by this flag (coverage/visible.ts)
+  if (opts.coverage && !readFile(SRC_MARK)?.includes('__kbVisualSrcMark')) {
+    throw new Error(`base ${sha} has coverage marks the driver cannot find (${SRC_MARK} __kbVisualSrcMark); ${PASS_BASE}, or drop --coverage`)
+  }
+  if (opts.fixtures) {
+    if (!readFile(FIXTURE_RUNTIME)) {
+      throw new Error(`base ${sha} has no fixture runtime (${FIXTURE_RUNTIME}) for the fixture entries; ${PASS_BASE}, or name only live entries`)
+    }
+    const version = /FIXTURE_RUNTIME_VERSION = (\d+)/.exec(readFile(FIXTURE_NAMES) ?? '')?.[1]
+    if (Number(version) !== FIXTURE_RUNTIME_VERSION) {
+      throw new Error(
+        `base ${sha} has fixture runtime version ${version ?? 'unknown'} (${FIXTURE_NAMES}), this driver speaks ${FIXTURE_RUNTIME_VERSION}; ${PASS_BASE}, or name only live entries`
+      )
+    }
+  }
   if (opts.ios) {
     if (!readFile(IOS_DRIVER)) throw new Error(`base ${sha} has no visual gate infra (${IOS_DRIVER}); ${PASS_BASE}`)
     if (opts.coverage && !readFile(BABEL_CONFIG)?.includes('KB_VISUAL_COVERAGE')) {
@@ -612,7 +671,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(tour, cmd.patterns, platform)
   const sha = await resolveBaseSha(cmd.base)
-  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, ios: cmd.ios})
+  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, ios: cmd.ios})
   const baseShared = ensureBaseTree(sha, log)
   ensureInstalled(baseShared, log)
   const current = fs.realpathSync(SHARED_DIR)
@@ -646,11 +705,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       const problems: Array<string> = []
       try {
         for (const theme of cmd.themes) {
-          const {chrome} = await session.prepare({frozenAt, reload: true, theme})
-          if (cmd.coverage) {
-            if (!chrome) throw new Error('the app has no coverage marks after a --coverage launch')
-            writeStaged(Store.baseCoveragePath(sha, platform, theme, '__chrome__'), Store.writeCoverageJson(chrome, false))
-          }
+          await session.prepare({frozenAt, reload: true, theme})
           for (const e of entries) {
             const cap = await session.capture(e)
             if (cap.status !== 'ok') {
@@ -691,13 +746,19 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
     if (diffs.length) throw new Error(`base not written; the account changed during the run: ${diffs.join('; ')}`)
 
     const old = Store.readBaseMeta(sha, platform)
-    if (old && (old.frozenAt !== frozenAt || old.seal.hash !== before.hash)) {
+    const replaced = !!old && (old.frozenAt !== frozenAt || old.seal.hash !== before.hash)
+    if (replaced) {
       log(`replacing the earlier ${platform} base set at ${sha.slice(0, 10)}: its seal or frozen instant differs`)
       fs.rmSync(platformDir, {force: true, recursive: true})
     }
     fs.mkdirSync(platformDir, {recursive: true})
     fs.cpSync(stage, platformDir, {force: true, recursive: true})
-    Store.writeBaseMeta(sha, platform, {createdAt: Date.now(), frozenAt, seal: before})
+    // the fixtures as the base tree defines them, which is what these captures ran
+    const fixtures = {
+      ...(replaced ? {} : old?.fixtures),
+      ...Object.fromEntries(fixturesOf(entries).map(name => [name, fixtureHash(baseShared, name)])),
+    }
+    Store.writeBaseMeta(sha, platform, {createdAt: Date.now(), fixtures, frozenAt, seal: before})
     Store.writeLastBase(platform, sha)
     log(`base written to ${platformDir}`)
     return 0
@@ -748,8 +809,8 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
     throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
   }
   const sha = await usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base)
-  const {mounted, masked} = Store.readBaseCoverage(sha)
-  if (!mounted.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
+  const {drawn, masked} = Store.readBaseCoverage(sha)
+  if (!drawn.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
   if (masked.length) log(`skipped ${masked.length} masked capture${masked.length === 1 ? '' : 's'}: ${masked.join(', ')}`)
   const {left, right, symmetric} = parseCoverageRange(range)
   const revParse = (ref: string) => git(['rev-parse', '--verify', `${ref}^{commit}`]).trim()
@@ -763,7 +824,7 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
   const baseHunks = new Map<string, ReadonlyArray<Hunk>>()
   for (const [file, hunks] of files) {
     const rel = sharedRel(file)
-    if (unmarkedFile(rel)) continue
+    if (unmarkedFile(rel) || outOfScopeFile(rel)) continue
     const src = right ? gitShow(right, file) : fs.readFileSync(path.join(REPO_DIR, file), 'utf8')
     if (src === undefined) continue
     const sites = changedRanges(callSiteRanges(src), hunks)
@@ -773,9 +834,9 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
     baseHunks.set(rel, parseDiffHunks(toBase).get(file) ?? [])
   }
   const total = [...changed.values()].reduce((n, r) => n + r.length, 0)
-  const missing = unmountedChanged({baseHunks, changed, mounted})
-  for (const id of missing) log(`✗ never mounted: ${id}`)
-  log(`${total} changed call site${total === 1 ? '' : 's'}, ${missing.length} never mounted by base ${sha.slice(0, 10)}`)
+  const missing = undrawnChanged({baseHunks, changed, drawn})
+  for (const id of missing) log(`✗ never drawn: ${id}`)
+  log(`${total} changed call site${total === 1 ? '' : 's'}, ${missing.length} never drawn by base ${sha.slice(0, 10)}`)
   return missing.length ? 1 : 0
 }
 
@@ -813,9 +874,11 @@ export const realDeps = (cmd: Command): CheckDeps => {
     closeCapture: capturer.close,
     currentShared: fs.realpathSync(SHARED_DIR),
     entries: tour,
+    fixtureHash: name => fixtureHash(SHARED_DIR, name),
     hasBasePng: Store.hasBasePng,
     log: l => console.log(l),
     openReport: p => {
+      if (process.env['KB_VISUAL_NO_OPEN']) return
       spawn('open', [p], {detached: true, stdio: 'ignore'}).unref()
     },
     readBaseMeta: Store.readBaseMeta,

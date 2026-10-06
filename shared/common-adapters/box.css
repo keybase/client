@@ -210,9 +210,6 @@
 .box2_alignSelf_stretch {
   align-self: stretch;
 }
-.box2_no_shrink {
-  flex-shrink: 0;
-}
 .box2_alignItems_center {
   align-items: center;
 }
@@ -222,11 +219,31 @@
 .box2_alignItems_flex-end {
   align-items: flex-end;
 }
+/* after .box2_centeredChildren, which it overrides as on native */
+.box2_alignItems_stretch {
+  align-items: stretch;
+}
+/* --kb-pe-none inherits down the whole subtree, as React Native's none disables it, so a box-none
+   below can tell its children apart from ones that may take the pointer. */
 .box2_pointerEvents_none {
   pointer-events: none;
+  --kb-pe-none: none;
+}
+/* React Native's box-none: the box ignores the pointer, its children do not, unless a none above
+   it already disabled them. :where keeps the child rule at zero specificity, so a child's own
+   pointer-events (none, or a nested box-none) wins. */
+.box2_pointerEvents_box-none {
+  pointer-events: none;
+}
+:where(.box2_pointerEvents_box-none) > * {
+  pointer-events: var(--kb-pe-none, auto);
 }
 .box2_flex1 {
   flex: 1;
+}
+/* after .box2_flex1, whose shorthand would reset flex-shrink to 1 */
+.box2_no_shrink {
+  flex-shrink: 0;
 }
 .box2_justifyContent_center {
   justify-content: center;
@@ -249,14 +266,8 @@
 .box2_overflow_hidden {
   overflow: hidden;
 }
-.box2_overflow_scroll {
-  overflow: scroll;
-}
 .box2_overflow_visible {
   overflow: visible;
-}
-.box2_overflow_auto {
-  overflow: auto;
 }
 .box2_padding_xxtiny {
   padding: var(--size-xxtiny);

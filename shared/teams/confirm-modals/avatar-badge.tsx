@@ -10,7 +10,7 @@ const AvatarBadge = (props: {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       centerChildren={true}
       overflow="hidden"

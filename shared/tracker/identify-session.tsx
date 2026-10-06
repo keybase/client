@@ -62,11 +62,17 @@ const canonicalUsername = (username: string) => username.toLowerCase()
 
 const sessions = new Map<string, Session>()
 // Survives the session being dropped when it goes idle: closing a profile and
-// reopening it should still count as "we just checked this user".
-const lastCompleted = new Map<string, {at: number; ignoreCache: boolean}>()
+// reopening it should still count as "we just checked this user". The entry holds
+// the session it vouches for, so a reopen that skips the identify because of it
+// brings back that session's result (followers and following included, even if
+// they landed after the drop) instead of a blank one.
+const lastCompleted = new Map<string, {at: number; ignoreCache: boolean; session: Session}>()
 // An entry is only ever read against the caller's maxAgeMs, and the longest one
-// any caller passes is the profile screen's 30s recheck window, so anything this
-// old can never suppress an identify again - it is only holding a username.
+// any caller passes is the profile screen's 30s recheck window. Past this age it
+// can never suppress an identify again. There is no timer: an expired entry, and
+// the session it holds, is released the next time any username is looked up
+// (a getter, a subscribe, a load), an identify finishes, or a block notification
+// arrives - and none of those read or update it first.
 const lastCompletedTTLMs = 5 * 60_000
 
 const pruneLastCompleted = () => {
@@ -77,6 +83,11 @@ const pruneLastCompleted = () => {
     }
   }
 }
+const recentSession = (username: string) => {
+  pruneLastCompleted()
+  return lastCompleted.get(username)?.session
+}
+
 // Kept outside of Session so a subscriber stays attached to its username even
 // if the session object behind it is replaced.
 const subscribersByUsername = new Map<string, Set<() => void>>()
@@ -117,9 +128,9 @@ const ensureSession = (rawUsername: string) => {
   if (existing) {
     return existing
   }
-  const created = makeSession(username)
-  sessions.set(username, created)
-  return created
+  const s = recentSession(username) ?? makeSession(username)
+  sessions.set(username, s)
+  return s
 }
 
 const dropSessionIfIdle = (s: Session) => {
@@ -221,7 +232,16 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
     if (s.generation === generation) {
       s.inFlight = false
       pruneLastCompleted()
-      lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache})
+      // Only an identify that reached a result vouches for the session. One that
+      // failed (network error, cancel) leaves it in 'checking', and an earlier
+      // entry for it would otherwise bring that back on a reopen and skip the
+      // identify that should replace it.
+      const {state} = s.details
+      if (state === 'checking' || state === 'unknown') {
+        lastCompleted.delete(s.username)
+      } else {
+        lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache, session: s})
+      }
       dropSessionIfIdle(s)
     }
   }
@@ -314,6 +334,11 @@ export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOp
   setDetails(
     s,
     produce(s.details, draft => {
+      // Rows and the proof count are accumulated per identify, so a proof that
+      // is gone now would otherwise outlive it. The user card, followers and
+      // following are each replaced whole when they land, so they stay shown.
+      draft.assertions = new Map()
+      draft.numAssertionsExpected = undefined
       draft.guiID = guiID
       if (!draft.resetBrokeTrack) {
         draft.reason = ''
@@ -381,27 +406,34 @@ const ensureEngineSubscriptions = () => {
   })
 
   subscribeToEngineAction('keybase.1.NotifyTracking.notifyUserBlocked', action => {
-    for (const s of [...sessions.values()]) {
+    pruneLastCompleted()
+    const all = new Set([...sessions.values(), ...[...lastCompleted.values()].map(done => done.session)])
+    for (const s of all) {
       setDetails(s, updateTrackerDetailsBlocked(s.details, action.payload.params.b))
     }
   })
 
   subscribeToEngineAction('keybase.1.NotifyTracking.trackingChanged', action => {
-    const s = sessions.get(canonicalUsername(action.payload.params.username))
+    const username = canonicalUsername(action.payload.params.username)
+    // a closed profile's result is stale now too, so a reopen must not reuse it
+    lastCompleted.delete(username)
+    const s = sessions.get(username)
     if (!s?.details.guiID) {
       return
     }
-    lastCompleted.delete(s.username)
     loadProfileIdentify(s.username, {freshAfter: Date.now(), ignoreCache: true})
   })
 
   subscribeToEngineAction('keybase.1.NotifyUsers.userChanged', action => {
     const {uid, username: rawUsername} = useCurrentUserState.getState()
     const username = rawUsername ? canonicalUsername(rawUsername) : ''
-    if (!username || uid !== action.payload.params.uid || !sessions.has(username)) {
+    if (!username || uid !== action.payload.params.uid) {
       return
     }
     lastCompleted.delete(username)
+    if (!sessions.has(username)) {
+      return
+    }
     loadProfileIdentify(username, {freshAfter: Date.now(), ignoreCache: false})
   })
 }
@@ -427,9 +459,15 @@ export const subscribeToProfile = (rawUsername: string, cb: () => void) => {
   }
 }
 
-export const getProfileDetails = (username: string) => sessions.get(canonicalUsername(username))?.details
-export const getProfileNonUserDetails = (username: string) =>
-  sessions.get(canonicalUsername(username))?.nonUserDetails
+// A reopened profile's first render comes before its subscribe brings the
+// recent session back, so the getters read it from there as well.
+const findSession = (rawUsername: string) => {
+  const username = canonicalUsername(rawUsername)
+  const recent = recentSession(username)
+  return sessions.get(username) ?? recent
+}
+export const getProfileDetails = (username: string) => findSession(username)?.details
+export const getProfileNonUserDetails = (username: string) => findSession(username)?.nonUserDetails
 
 registerExternalResetter('tracker-identify-sessions', () => {
   sessions.clear()

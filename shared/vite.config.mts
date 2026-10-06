@@ -69,8 +69,14 @@ type AliasEntry = {find: string | RegExp; replacement: string}
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-export const makeAlias = (): Array<AliasEntry> => {
+// The visual gate's fixture runtime is dev-only: a production build resolves the app
+// entries' import of it to the empty module (metro.config.js does the same for the phone).
+export const devOnlyAlias = (isDev: boolean): Array<AliasEntry> =>
+  isDev ? [] : [{find: /^@\/tests\/e2e\/visual\/fixtures\/runtime(\.ts)?$/, replacement: emptyModulePath}]
+
+export const makeAlias = (isDev = true): Array<AliasEntry> => {
   const entries: Array<AliasEntry> = [
+    ...devOnlyAlias(isDev),
     // Point at react-native-web's CommonJS entry (not its ESM `module` build): the
     // ESM build is strictly checked by rolldown and genuinely lacks mobile-only
     // names (e.g. ActionSheetIOS) that desktop code imports but only uses behind
@@ -267,7 +273,7 @@ export default defineConfig(({mode}) => {
     // Cold dev builds + prod are loaded from file:// (relative base).
     base: isHot ? '/' : './',
     define: makeDefines(isDev, isHot, isProfile, fileSuffix),
-    resolve: sharedResolve,
+    resolve: {...sharedResolve, alias: makeAlias(isDev)},
     plugins: [
       emptyFileModulesPlugin(isDev),
       // the visual gate's opt-in call-site coverage (tests/e2e/visual/coverage)

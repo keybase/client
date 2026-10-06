@@ -45,7 +45,7 @@ function SettingsItem(props: SettingsItemProps) {
           }}
         />
       ) : null}
-      <Kb.Box2 alignSelf="center" direction="vertical">
+      <Kb.Box2 direction="vertical">
         <Kb.Text
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([

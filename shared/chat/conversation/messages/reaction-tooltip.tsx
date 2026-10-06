@@ -8,6 +8,7 @@ import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
 import {toggleReaction, useThreadMessageTarget} from '../message-commands'
 import {useConversationThreadMessage} from '../thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -188,12 +189,13 @@ const ReactionTooltip = (p: OwnProps) => {
       style={styles.overlay}
     >
       <MessageContext value={messageContext}>
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           onMouseLeave={onMouseLeave}
           onMouseOver={onMouseOver}
           direction="vertical"
           gap="tiny"
           style={styles.listContainer}
+          testID={TestIDs.CHAT_REACTION_TOOLTIP}
         >
           <Kb.SectionList
             alwaysBounceVertical={false}

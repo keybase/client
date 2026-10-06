@@ -156,7 +156,7 @@ const Card = (props: CardType) => {
       style={styles.card}
       title={cardToTitle(cards[props.card])}
     >
-      <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 direction="horizontal">
         <Kb.Text
           selectable={true}
           type={isMobile ? 'BodySmall' : 'Body'}
@@ -165,7 +165,7 @@ const Card = (props: CardType) => {
           {cards[props.card].value}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 direction="horizontal">
         <Kb.Icon
           fontSize={isMobile ? 10 : 12}
           type={suits[cards[props.card].suit].icon}
@@ -203,10 +203,10 @@ const CoinFlipResultCoin = (props: CoinType) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.coin} centerChildren={true}>
+      <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
         <Kb.ImageIcon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
+      <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text selectable={true} type="Header">
           {props.coin ? 'Heads!' : 'Tails!'}
         </Kb.Text>
@@ -226,17 +226,17 @@ const CoinFlipResultHands = (props: HandType) => {
   const [handsWithCards, handsWithoutCards] = partition(props.hands, hand => hand.hand)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="space-around" style={styles.handTarget}>
           {handsWithCards.map(hand => (
-            <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
+            <Kb.Box2 key={hand.target} alignSelf="flex-start" direction="vertical">
               <Kb.Text selectable={true} type="BodyBig">
                 {hand.target}
               </Kb.Text>
             </Kb.Box2>
           ))}
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.handContainer}>
+        <Kb.Box2 direction="vertical" style={styles.handContainer}>
           {handsWithCards.map(hand => {
             const d = hand.hand && isArrayOfCardIndex(hand.hand) ? hand.hand : undefined
             return (
@@ -289,7 +289,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => {
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>
       {props.shuffle?.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
       {props.shuffle && props.shuffle.length > 5 && (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.listFullContainer}>
+        <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
           <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
             Full shuffle:{' '}
             <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
@@ -306,7 +306,7 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
-      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
         <Kb.Text
           selectable={true}
           center={true}

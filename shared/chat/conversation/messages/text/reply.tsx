@@ -87,7 +87,7 @@ function ReplyStructure(p: RS) {
   return (
     <Kb.ClickableBox direction="horizontal" gap="tiny" fullWidth={true} style={styles.replyContainer} className={Kb.Styles.classNames('ReplyBox')} onClick={onClick}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />
-      <Kb.Box2 alignSelf="center" direction="vertical" gap="xtiny" flex={1}>
+      <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <AvatarHolder />
         </Kb.Box2>

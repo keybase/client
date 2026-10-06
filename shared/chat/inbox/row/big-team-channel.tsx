@@ -94,9 +94,10 @@ const BigTeamChannel = (props: Props) => {
   return (
     <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
-        <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+        <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
+          alignSelf={isMobile ? 'center' : undefined}
           fullWidth={!isMobile}
           alignItems="center"
           style={Kb.Styles.collapseStyles([
@@ -116,7 +117,7 @@ const BigTeamChannel = (props: Props) => {
           >
             {draftIcon}
             {outboxIcon}
-            {hasBadge && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.unread} />}
+            {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>

@@ -13,12 +13,12 @@ export type Box2Props = {
   className?: string
   collapsable?: boolean
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
-  flex?: number
+  flex?: 1
   fullHeight?: boolean
   fullWidth?: boolean
   justifyContent?: 'center' | 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'
   noShrink?: boolean
-  overflow?: 'hidden' | 'scroll' | 'visible' | 'auto'
+  overflow?: 'hidden' | 'visible'
   onDragLeave?: (syntheticDragEvent: React.DragEvent) => void
   onDragOver?: (syntheticDragEvent: React.DragEvent) => void
   onDrop?: (syntheticDragEvent: React.DragEvent) => void
@@ -161,7 +161,7 @@ const box2SharedProps = (p: Box2Props) => {
     alignItemsStyle,
     justifyContentStyle,
     noShrink && nativeStyles.noShrink,
-    flex != null && (flex === 1 ? nativeStyles.flex1 : {flex}),
+    flex && nativeStyles.flex1,
     relative && nativeStyles.relative,
     overflowStyle,
     padding && paddingStyles.get(padding),
@@ -208,6 +208,7 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
       box2_fullWidth: fullWidth,
       box2_horizontal: horizontal,
       box2_no_shrink: noShrink,
+      'box2_pointerEvents_box-none': pointerEvents === 'box-none',
       box2_pointerEvents_none: pointerEvents === 'none',
       box2_relative: relative,
       box2_reverse: reverse,
@@ -220,18 +221,36 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
 
 export const box2ClassNamesForTest = box2ClassNames
 
+// An inline shorthand resets every longhand a class set, but Yoga reads the more specific edge or
+// flexShrink first, in any order. So a prop's longhand follows a style shorthand here, as on native.
+// The style type has no gap shorthand to collide with the gap prop's rowGap / columnGap.
+const box2DesktopStyle = (p: Box2Props): React.CSSProperties | undefined => {
+  const {direction, gap, gapStart, gapEnd, noShrink, style: _style} = p
+  const style = Styles.collapseStylesDesktop([_style]) as {[key: string]: unknown} | undefined
+  if (!style) return undefined
+  const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
+  const longhands: ReadonlyArray<[string, {[key: string]: unknown} | false | undefined]> = [
+    ['flex', noShrink && nativeStyles.noShrink],
+    ['padding', gap && gapStart && (horizontal ? hgapStartStyles : vgapStartStyles).get(gap)],
+    ['padding', gap && gapEnd && (horizontal ? hgapEndStyles : vgapEndStyles).get(gap)],
+  ]
+  let out = style
+  for (const [shorthand, longhand] of longhands) {
+    if (!longhand || style[shorthand] === undefined) continue
+    const key = Object.keys(longhand)[0]
+    if (key !== undefined && style[key] === undefined) out = {...out, ...longhand}
+  }
+  return out as React.CSSProperties
+}
+
+export const box2DesktopStyleForTest = box2DesktopStyle
+
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
     const {ref} = p
     const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, testID} = p
-    const {onContextMenu, flex, onDragLeave, onDragOver, onDrop} = p
-    const {style: _style, title, tooltip} = p
-
-    const style = Styles.collapseStyles([
-      flex != null && flex !== 1 ? {flex} : undefined,
-      _style,
-    ]) as unknown as React.CSSProperties
-
+    const {onContextMenu, onDragLeave, onDragOver, onDrop, title, tooltip} = p
+    const style = box2DesktopStyle(p)
     const className = box2ClassNames(p)
 
     return (
@@ -324,9 +343,9 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
   const {onClick, onLongPress, hitSlop, asButton, ref, ...box2p} = p
 
   if (!isMobile) {
-    const {children, style: _style, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
+    const {children, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, title, tooltip} = box2p
     const cn = box2ClassNames(box2p, 'clickable-box2')
-    const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
+    const s = box2DesktopStyle(box2p)
     const onKeyDown =
       asButton && onClick
         ? (e: React.KeyboardEvent) => {

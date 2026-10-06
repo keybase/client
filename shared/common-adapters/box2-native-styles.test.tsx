@@ -31,7 +31,9 @@ const axes = {
   alignSelf: [undefined, 'center', 'flex-start', 'flex-end', 'stretch'],
   alignItems: [undefined, 'center', 'flex-start', 'flex-end', 'stretch'],
   centerChildren: [false, true],
-  flex: [undefined, 1, 2],
+  flex: [undefined, 1],
+  noShrink: [false, true],
+  overflow: [undefined, 'hidden', 'visible'],
   padding: [undefined, 'small'],
   gap: [undefined, 'tiny'],
   gapStart: [false, true],
@@ -186,4 +188,16 @@ test('the matrix runs the native style path', () => {
   // Desktop styles carry display:flex and collapse to one merged object; native keeps the array.
   expect(flatStyle({direction: 'vertical'})).not.toHaveProperty('display')
   expect(Array.isArray(box2SharedPropsForTest({direction: 'vertical', fullWidth: true}).style)).toBe(true)
+})
+
+test('flex and overflow take only the values both engines lay out alike', () => {
+  const rejected: Array<Props> = [
+    // @ts-expect-error native drops overflow scroll
+    {direction: 'vertical', overflow: 'scroll'},
+    // @ts-expect-error native drops overflow auto
+    {direction: 'vertical', overflow: 'auto'},
+    // @ts-expect-error flex other than 1 means different things to CSS and Yoga
+    {direction: 'vertical', flex: 2},
+  ]
+  expect(rejected).toHaveLength(3)
 })

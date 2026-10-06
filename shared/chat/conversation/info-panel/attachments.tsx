@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
 import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -297,17 +298,17 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
   const {onSelectView} = props
   return (
     <Kb.Box2
-      alignSelf="center"
       direction="horizontal"
       padding="small"
       style={styles.selectorContainer}
       fullWidth={true}
     >
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
         onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.media)}
+        testID={TestIDs.CHAT_INFO_PANEL_MEDIA}
         style={Kb.Styles.collapseStyles([
           styles.selectorItemContainer,
           styles.selectorMediaContainer,
@@ -318,11 +319,12 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Media
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
         onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.doc)}
+        testID={TestIDs.CHAT_INFO_PANEL_DOCS}
         style={Kb.Styles.collapseStyles([
           styles.selectorDocContainer,
           styles.selectorItemContainer,
@@ -333,11 +335,12 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Docs
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
         onClick={() => onSelectView(T.RPCChat.GalleryItemTyp.link)}
+        testID={TestIDs.CHAT_INFO_PANEL_LINKS}
         style={Kb.Styles.collapseStyles([
           styles.selectorItemContainer,
           styles.selectorLinkContainer,

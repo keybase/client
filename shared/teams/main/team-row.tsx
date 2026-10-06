@@ -45,14 +45,14 @@ const TeamRow = function TeamRow(props: Props) {
 
   const crownIcon =
     teamMeta.role === 'owner' || teamMeta.role === 'admin' ? (
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.crownIconBox} centerChildren={true}>
+      <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
         <RoleCrown role={teamMeta.role} sizeType="Tiny" style={styles.crownIcon} />
       </Kb.Box2>
     ) : null
 
   const avatarBlock = (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.avatarOuter} centerChildren={true}>
-      <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={styles.avatarRelative}>
+    <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+      <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
         <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
         {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
         {crownIcon}
@@ -83,21 +83,22 @@ const TeamRow = function TeamRow(props: Props) {
         <Kb.Divider style={styles.divider} />
         {avatarBlock}
         {isMobile ? (
-          <Kb.Box2 alignSelf="center" direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
+          <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
             {nameAndMemberCount}
             {activity}
           </Kb.Box2>
         ) : (
-          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
-            <Kb.Box2 alignSelf="center" direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
+            <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
               {nameAndMemberCount}
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.bodyRight}>
+            <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bodyRight}>
               {activity}
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
+          alignSelf="center"
           direction="horizontal"
           className={isMobile ? undefined : 'fade'}
           gap={isMobile ? 'tiny' : 'xtiny'}

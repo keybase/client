@@ -16,12 +16,14 @@
 //            Keeps name, type, id; Created and Last Used are dropped.
 //   kbfs     `fs ls -1 --nocolor /keybase/team/<team>` -> one entry name per line.
 //   kbfsPrivate  the same for /keybase/private/<smoke user>.
+//   fsHistory  `fs history` -> per folder and writer, a header line and one "<time>: <path>" line per
+//            recent edit: what the menubar widget's recent files show. Kept as its lines.
 // `git` is left out: nothing here can confirm `keybase git list` is read-only.
 import {createHash} from 'crypto'
 import {execFile} from 'child_process'
 import {e2eAccounts} from '../shared/chat-data.ts'
 
-export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate'
+export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate' | 'fsHistory'
 export type Seal = {
   takenAt: number
   newestMessageMs: number
@@ -29,7 +31,7 @@ export type Seal = {
   hash: string
 }
 
-const ALL_FIELDS: ReadonlyArray<SealField> = ['inbox', 'teams', 'follows', 'devices', 'kbfs', 'kbfsPrivate']
+const ALL_FIELDS: ReadonlyArray<SealField> = ['inbox', 'teams', 'follows', 'devices', 'kbfs', 'kbfsPrivate', 'fsHistory']
 
 type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})
@@ -100,7 +102,7 @@ const normalizeFollows = (raw: unknown) => {
 }
 
 // Columns start where their header does; names contain spaces, so splitting on whitespace is wrong.
-const normalizeDevices = (raw: unknown) => {
+export const normalizeDevices = (raw: unknown) => {
   const [header = '', , ...rows] = str(raw).split('\n')
   const typeAt = header.indexOf('Type')
   const idAt = header.indexOf('ID')
@@ -133,6 +135,8 @@ export const normalize = (field: SealField, raw: unknown): unknown => {
     case 'kbfs':
     case 'kbfsPrivate':
       return lines(raw).sort()
+    case 'fsHistory':
+      return lines(raw)
   }
 }
 
@@ -218,6 +222,8 @@ const readRaw = async (field: SealField): Promise<unknown> => {
       return run(['fs', 'ls', '-1', '--nocolor', `/keybase/team/${team}`])
     case 'kbfsPrivate':
       return run(['fs', 'ls', '-1', '--nocolor', `/keybase/private/${smokeUser}`])
+    case 'fsHistory':
+      return run(['fs', 'history'])
   }
 }
 

@@ -19,6 +19,7 @@ type Props = {
   fontSize?: number
   onCheck?: (newCheckedValue: boolean) => void
   style?: Styles.StylesCrossPlatform
+  testID?: string
 }
 
 const CheckCircle = (props: Props) => {
@@ -35,6 +36,7 @@ const CheckCircle = (props: Props) => {
     hoverColor,
     onCheck,
     style,
+    testID,
   } = props
   const onClick = () => {
     if (onCheck) {
@@ -65,6 +67,7 @@ const CheckCircle = (props: Props) => {
       }
       className={Styles.classNames(disabled && `checkCircle__disabled`, className)}
       style={style}
+      testID={testID}
     />
   )
 }

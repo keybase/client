@@ -1,4 +1,4 @@
-// Which Box2/ClickableBox call sites a diff touches, and which of those a base run mounted. Call
+// Which Box2/ClickableBox call sites a diff touches, and which of those a base run drew. Call
 // site ids are `<file under shared/>:<line of the opening element>`, as babel-plugin.cjs marks them.
 import {createRequire} from 'module'
 import {parse} from '@babel/parser'
@@ -10,6 +10,9 @@ const TARGETS: ReadonlySet<string> = new Set(['Box2', 'Kb.Box2', 'ClickableBox',
 
 // The files the babel plugin leaves unmarked.
 export const unmarkedFile = (createRequire(import.meta.url)('./babel-plugin.cjs') as {skipped: (rel: string) => boolean}).skipped
+
+// Stories and tests render components outside the app: their call sites are not the gate's to cover.
+export const outOfScopeFile = (rel: string) => /\.(stories|test)\.tsx?$/.test(rel)
 
 // `git diff -U0` output → hunks per post-change path (repo-relative). Deleted files are dropped.
 export const parseDiffHunks = (diff: string): Map<string, Array<Hunk>> => {
@@ -93,22 +96,22 @@ export const mapBaseLine = (line: number, hunks: ReadonlyArray<Hunk>): number =>
   return line + delta
 }
 
-// The changed call sites (as `file:line` in the post-change tree) that no mounted base id maps into.
-export const unmountedChanged = (opts: {
+// The changed call sites (as `file:line` in the post-change tree) that no drawn base id maps into.
+export const undrawnChanged = (opts: {
   changed: Map<string, ReadonlyArray<Range>>
   baseHunks: Map<string, ReadonlyArray<Hunk>>
-  mounted: ReadonlyArray<string>
+  drawn: ReadonlyArray<string>
 }): Array<string> => {
-  const mountedLines = new Map<string, Array<number>>()
-  for (const id of opts.mounted) {
+  const drawnLines = new Map<string, Array<number>>()
+  for (const id of opts.drawn) {
     const at = id.lastIndexOf(':')
     const file = id.slice(0, at)
     const line = mapBaseLine(Number(id.slice(at + 1)), opts.baseHunks.get(file) ?? [])
-    mountedLines.set(file, [...(mountedLines.get(file) ?? []), line])
+    drawnLines.set(file, [...(drawnLines.get(file) ?? []), line])
   }
   const out: Array<string> = []
   for (const [file, ranges] of opts.changed) {
-    const lines = mountedLines.get(file) ?? []
+    const lines = drawnLines.get(file) ?? []
     for (const r of ranges) {
       if (!lines.some(l => l >= r.start && l <= r.end)) out.push(`${file}:${r.start}`)
     }

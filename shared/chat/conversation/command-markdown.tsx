@@ -15,8 +15,9 @@ const CommandMarkdown = () => {
   const {commandMarkdownMaxHeight} = React.useContext(ComposerBoxContext)
   const maxHeightStyle = isMobile ? {maxHeight: commandMarkdownMaxHeight} : undefined
   return (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
+    <Kb.Box2
       direction="vertical"
+      alignSelf={isMobile ? undefined : 'center'}
       fullWidth={isMobile}
       style={Kb.Styles.collapseStyles([styles.container, maxHeightStyle])}
       testID={TestIDs.CHAT_COMMAND_MARKDOWN}

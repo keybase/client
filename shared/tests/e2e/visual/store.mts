@@ -2,7 +2,7 @@
 //   base/<sha>/<platform>/meta.json                       BaseMeta for that platform's base set
 //   base/<sha>/<platform>/<theme>/<id>.png                base capture
 //   base/<sha>/<platform>/<theme>/<id>.masks.json         mask rects the base capture had
-//   base/<sha>/<platform>/<theme>/coverage/<id>.json      call sites the entry mounted (--coverage)
+//   base/<sha>/<platform>/<theme>/coverage/<id>.json      call sites the capture drew (--coverage)
 //   runs/<stamp>/...                                      one check, gate or aa run and its report
 // Ids map to file names with '/' replaced by '__'.
 import * as fs from 'fs'
@@ -13,7 +13,8 @@ import type {Seal} from './seal.mts'
 import type {Theme} from './tour-types.ts'
 
 export type RunPlatform = 'desktop' | 'ios'
-export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number}
+// `fixtures`: the definition hash (fixtures/drive.mts) of each fixture the base's entries ran under
+export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number; fixtures?: Record<string, string>}
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 
@@ -78,23 +79,27 @@ export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, 
 export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
   fs.existsSync(basePng(sha, platform, theme, id))
 
-// A coverage file: the `file:line` ids an entry mounted, and whether the entry has masks. A masked
-// entry's call sites may sit under a mask, where the compare never sees their pixels, so a masked
-// entry counts for no coverage. A file without the `masked` flag cannot say whether its entry was
-// masked, so it is refused rather than counted.
-export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean}
+// A coverage file: the `file:line` ids drawn in the entry's capture (`visible`: an instance on
+// screen when it was taken, coverage/visible.ts), and whether the entry has masks. A masked entry's
+// call sites may sit under a mask, where the compare never sees their pixels, so a masked entry
+// counts for no coverage. A file without the `masked` flag cannot say whether its entry was masked,
+// and one without `visible` counts sites the capture did not show, so either is refused.
+export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean; visible: true}
 
 export const writeCoverageJson = (ids: ReadonlyArray<string>, masked: boolean) =>
-  JSON.stringify({ids, masked} satisfies CoverageFile)
+  JSON.stringify({ids, masked, visible: true} satisfies CoverageFile)
 
-const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
+export const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
   if (Array.isArray(raw)) throw new Error(`${file} has no masked flag: retake the coverage base`)
+  if ((raw as Partial<CoverageFile>).visible !== true) {
+    throw new Error(`${file} counts sites its capture did not show: retake the coverage base`)
+  }
   return raw as CoverageFile
 }
 
 // The union of every unmasked coverage file stored under base/<sha>, and the files skipped
 // because their entry is masked (`<platform>/<theme>/<id>`).
-export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: Array<string>} => {
+export const readBaseCoverage = (sha: string): {drawn: Array<string>; masked: Array<string>} => {
   const out = new Set<string>()
   const masked: Array<string> = []
   const root = baseDir(sha)
@@ -111,7 +116,7 @@ export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: 
     }
   }
   walk(root)
-  return {masked: masked.sort(), mounted: [...out].sort()}
+  return {drawn: [...out].sort(), masked: masked.sort()}
 }
 
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')

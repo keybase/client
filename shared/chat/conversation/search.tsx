@@ -422,8 +422,8 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
         fullWidth={true}
         gap="tiny"
       >
-        <Kb.Box2 alignSelf="center" direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
-          <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
+        <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
             <Kb.Input3
               autoFocus={true}
               onChangeText={onChangedText}
@@ -436,10 +436,10 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
               containerStyle={styles.bareInput}
             />
           </Kb.Box2>
-          <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" noShrink={true}>
+          <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
-              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
                 </Kb.Text>
@@ -503,8 +503,8 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
             Cancel
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
-          <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
+        <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
             <Kb.Input3
               ref={inputRef}
               autoFocus={false}
@@ -517,10 +517,10 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
               containerStyle={styles.bareInput}
             />
           </Kb.Box2>
-          <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" noShrink={true}>
+          <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
-              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {status === 'done' && numHits === 0 ? 'No results' : `${selectedIndex + 1} of ${numHits}`}
                 </Kb.Text>

@@ -74,7 +74,7 @@ const SetPublicName = ({route}: Props) => {
     >
       <Kb.Box2 alignSelf="center" direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.wrapper} gap="xsmall">
+        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.Input3
             textType="BodySemibold"
             autoFocus={true}

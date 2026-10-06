@@ -68,7 +68,6 @@ function Image(p: Props) {
           <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
           <Kb.ClickableBox
             direction="vertical"
-            alignSelf="center"
             onClick={openFullscreen}
             onLongPress={hasMessageID ? showPopup : undefined}
             ref={toastTargetRef}
@@ -89,7 +88,7 @@ function Image(p: Props) {
   )
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="center" alignItems="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start">
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )

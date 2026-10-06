@@ -44,7 +44,7 @@ const DestPickerHeaderTitle = (props: {
     )
   }
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={destPickerDesktopHeaderStyle} gap="xtiny">
+    <Kb.Box2 direction="horizontal" centerChildren={true} style={destPickerDesktopHeaderStyle} gap="xtiny">
       <Kb.Text type="Header" style={noShrinkStyle}>
         {'Move or Copy "'}
       </Kb.Text>

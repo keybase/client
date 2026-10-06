@@ -23,7 +23,7 @@ const SyncNotificationSetting = (
   const onChangedSyncNotifications = (selectedIdx: number) =>
     setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
+    <Kb.Box2 direction="horizontal" alignItems="center">
       <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
@@ -34,7 +34,7 @@ const SyncNotificationSetting = (
         onChangedIdx={onChangedSyncNotifications}
         overlayStyle={styles.syncNotificationDropdownOverlay}
         selected={
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="horizontal"
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
@@ -74,7 +74,7 @@ const FinderIntegration = () => {
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
@@ -107,7 +107,7 @@ const FinderIntegration = () => {
               </Kb.Box2>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySmall">
                 {
                   "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
@@ -248,7 +248,7 @@ const FilesSettings = () => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} testID={TestIDs.SETTINGS_FILES}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>

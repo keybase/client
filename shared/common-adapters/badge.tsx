@@ -29,7 +29,7 @@ function Badge(p: Badge2Props) {
   // with a border the badge shrinks inside a white ring box of the full height
   const innerSize = border ? height - 3 : height
   const badge = (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       className={className}
       pointerEvents={border ? undefined : 'none'}
@@ -64,7 +64,7 @@ function Badge(p: Badge2Props) {
     return badge
   }
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       pointerEvents="none"
       centerChildren={true}

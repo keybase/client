@@ -111,7 +111,6 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
-        alignSelf="stretch"
         centerChildren={true}
         style={styles.channelDummyInput}
       >

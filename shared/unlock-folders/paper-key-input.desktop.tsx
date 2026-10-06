@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   onBack: () => void
@@ -14,7 +15,13 @@ const PaperKeyInput = (props: Props) => {
   const {onContinue} = props
 
   return (
-    <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical" padding="small">
+    <Kb.Box2
+      alignSelf="center"
+      alignItems="center"
+      direction="vertical"
+      padding="small"
+      testID={TestIDs.UNLOCK_FOLDERS_PAPER_KEY_INPUT}
+    >
       <Kb.BackButton onClick={props.onBack} style={styles.back} />
       <Kb.ImageIcon style={styles.icon} type="icon-paper-key-48" />
       <Kb.Input3

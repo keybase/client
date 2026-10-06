@@ -147,7 +147,7 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
         )}
         ?
       </Kb.Text>
-      <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="vertical" style={styles.endangeredTLFContainer} fullWidth={isMobile}>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} alignSelf={isMobile ? undefined : 'center'} fullWidth={isMobile}>
         {!waiting && <EndangeredTLFList endangeredTLFs={endangeredTLFs} />}
       </Kb.Box2>
       <Kb.ConfirmButtons

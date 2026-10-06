@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationThreadSelector} from '../../thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -140,7 +141,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const {action, amount, approxWorth, balanceChange, balanceChangeColor} = stateProps
   const {canceled, icon, loading, memo, pending, showCoinsIcon} = stateProps
   const balanceChangeBox = (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
+    <Kb.Box2
       direction="horizontal"
       fullWidth={isMobile}
       style={styles.amountContainer}
@@ -170,7 +171,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {marginBottom: Kb.Styles.globalMargins.xtiny},
         ])}
       >
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center">
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center" testID={TestIDs.CHAT_PAYMENT}>
           {!!icon && (
             <Kb.Icon
               type={icon}

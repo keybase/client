@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const isIPhoneX = false as boolean
 // import lagRadar from 'lag-radar'
@@ -227,7 +228,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
 
   return (
     <Kb.BoxGrow style={styles.boxGrow}>
-      <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
+      <Kb.ClickableBox onClick={() => setMoreLogs(m => !m)} direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true} testID={TestIDs.RUNTIME_STATS}>
             {!moreLogs &&
               stats.processStats?.map((stat, i) => {
                 return (
@@ -327,7 +328,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
   const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
     <>
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         style={showLogs ? styles.modalLogStats : styles.modalLogStatsHidden}
         gap="xtiny"
@@ -336,9 +337,9 @@ const RuntimeStatsMobile = ({stats}: Props) => {
           <LogStats />
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
+      <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none" testID={TestIDs.RUNTIME_STATS}>
         {processStat && (
-          <Kb.Box2 alignSelf="center" direction="vertical">
+          <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
               <Kb.Text
                 style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity, styles)])}
@@ -358,7 +359,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
@@ -374,7 +375,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
             type="BodyTiny"
           >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,

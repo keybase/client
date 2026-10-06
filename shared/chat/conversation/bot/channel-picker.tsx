@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
@@ -60,7 +61,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
       type="Small"
       firstItem={false}
       body={
-        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
+        <Kb.Box2 direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
           <Kb.Box2 direction="horizontal" alignSelf="flex-start">
             <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
               #
@@ -117,7 +118,7 @@ const ChannelPicker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2 direction="horizontal">
         <Kb.SearchFilter
           size="full-width"
           icon="iconfont-search"
@@ -134,7 +135,11 @@ const ChannelPicker = (props: Props) => {
         </Kb.Box2>
       ) : (
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
+        <Kb.Box2
+          direction="horizontal"
+          style={{backgroundColor: theme.blueGrey}}
+          testID={TestIDs.CHAT_BOT_CHANNEL_PICKER}
+        >
           <Kb.ListItem
             type="Small"
             firstItem={true}

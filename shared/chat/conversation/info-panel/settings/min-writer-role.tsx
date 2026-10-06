@@ -134,7 +134,8 @@ const Dropdown = (p: DropdownProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
+        alignSelf="center"
         direction="horizontal"
         alignItems="center"
         style={styles.dropdown}

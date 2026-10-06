@@ -22,7 +22,7 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
         {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
-          <Kb.ClickableBox alignSelf="center"
+          <Kb.ClickableBox
             direction="horizontal"
             style={styles.input}
             testID={TestIDs.CRYPTO_RECIPIENTS}
@@ -42,7 +42,7 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
           </Kb.ClickableBox>
         )}
         {recipients.length ? (
-          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.removeRecipients}>
+          <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
             <Kb.Icon
               type="iconfont-remove"
               color={theme.black_20}

@@ -62,9 +62,9 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)
 
     return [
-      {title: 'members' as const},
-      {title: 'attachments' as const},
-      {title: 'bots' as const},
+      {testID: TestIDs.CHAT_INFO_PANEL_MEMBERS_TAB, title: 'members' as const},
+      {testID: TestIDs.CHAT_INFO_PANEL_ATTACHMENTS_TAB, title: 'attachments' as const},
+      {testID: TestIDs.CHAT_INFO_PANEL_BOTS_TAB, title: 'bots' as const},
       // e2e: text taps on the tab label no-op on iOS, so the tab needs a testID
       ...(showSettings ? [{testID: TestIDs.CHAT_INFO_PANEL_SETTINGS_TAB, title: 'settings' as const}] : []),
     ]

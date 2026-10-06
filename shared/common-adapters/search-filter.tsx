@@ -255,7 +255,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       )
     } else {
       return (
-        <Kb.ClickableBox alignSelf="center"
+        <Kb.ClickableBox
           onClick={() => {}}
           onMouseDown={cancel}
           direction="vertical"
@@ -272,10 +272,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   }
 
   const inside = (
-    <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+    <Kb.Box2
       ref={measureRef}
       direction="horizontal"
       alignItems="center"
+      alignSelf={isMobile ? 'center' : undefined}
       fullWidth={!isMobile}
       // With onClick the input is display-only; block it from taking focus so
       // clicks hit the ClickableBox and window refocus can't refire onFocus.
@@ -289,7 +290,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   const content = isMobile ? (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
       style={Styles.collapseStyles([
@@ -324,7 +325,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   return isMobile ? (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       style={Styles.collapseStyles([styles.containerMobile, style])}
       alignItems="center"

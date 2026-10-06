@@ -14,20 +14,20 @@ const InfoNote = (props: Props) => {
   const theme = Styles.useTheme()
   const lineStyle = Styles.collapseStyles([styles.line, props.color ? {backgroundColor: props.color} : undefined])
   return (
-    <Box2 alignSelf="center"
+    <Box2
       direction="vertical"
       gap="xtiny"
       alignItems="center"
       style={props.containerStyle}
     >
-      <Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center">
-        <Box2 alignSelf="center" direction="vertical" style={lineStyle} />
+      <Box2 direction="horizontal" gap="tiny" alignItems="center">
+        <Box2 direction="vertical" style={lineStyle} />
         <Icon
           color={props.color || theme.black_10}
           type="iconfont-info"
           fontSize={isMobile ? 22 : 16}
         />
-        <Box2 alignSelf="center" direction="vertical" style={lineStyle} />
+        <Box2 direction="vertical" style={lineStyle} />
       </Box2>
       {props.children}
     </Box2>

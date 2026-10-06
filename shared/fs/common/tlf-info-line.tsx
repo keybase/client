@@ -62,7 +62,7 @@ const resetText = (props: Props, styles: ReturnType<typeof useStyles>) => {
 
 const getPrefixText = (props: Props, styles: ReturnType<typeof useStyles>) =>
   props.mixedMode && props.tlfType ? (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapEnd={true}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
       <Kb.Text
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
