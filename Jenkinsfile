@@ -561,7 +561,9 @@ def testGoBind(prefix) {
   if (prefix != "test_linux_go_") {
     return
   }
-  timeout(activity: true, time: 10, unit: 'MINUTES') {
+  // The race compile prints nothing until it finishes, and on master it shares
+  // the agent with the BSD cross-builds. Ten minutes of silence was a false hang.
+  timeout(activity: true, time: 30, unit: 'MINUTES') {
     sh "go test -race -count=1 ./bind/..."
   }
 }
