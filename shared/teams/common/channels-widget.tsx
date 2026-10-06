@@ -107,7 +107,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
     onAdd(channels)
   }
   return (
-    <Kb.ClickableBox onClick={() => setShowingPopup(true)} direction="vertical">
+    <Kb.ClickableBox alignSelf="center" onClick={() => setShowingPopup(true)} direction="vertical">
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -138,7 +138,7 @@ const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: (
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
       <Kb.Text type={isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
       {onRemove && (
         <Kb.Icon type="iconfont-remove" onClick={onRemove} color={theme.black_20} />

@@ -499,7 +499,7 @@ const LoggedIn = (p: Props) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" style={styles.footer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
           isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}

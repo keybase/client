@@ -209,7 +209,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
             {props.footer}
           </Kb.Box2>
         )}
-        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
+        {!!props.banners && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
         {!!props.buttons && (
           <Kb.ButtonBar
             direction="column"

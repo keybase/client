@@ -37,6 +37,7 @@ function NewCard(outerProps: Props) {
       }
   return (
     <Kb.Box2
+      alignSelf="center"
       direction="horizontal"
       style={Kb.Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])}
       alignItems="flex-start"

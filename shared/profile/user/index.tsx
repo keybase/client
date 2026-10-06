@@ -334,7 +334,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
             {props.reason}
           </Kb.Text>
         )}
-        <Kb.Box2 direction="vertical" relative={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
           <BackgroundColorBox backgroundColorType={props.backgroundColorType} />
         </Kb.Box2>
         <BioLayout {...props} />

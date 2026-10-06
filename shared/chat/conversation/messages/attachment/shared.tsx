@@ -182,6 +182,7 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
     transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
   return (
     <Kb.Box2
+      alignSelf="center"
       direction="horizontal"
       overflow="hidden"
       alignItems="center"

@@ -57,6 +57,7 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
         {/* coloured zone bands */}
         {bands.map((b, i) => (
           <Kb.Box2
+            alignSelf="center"
             key={i}
             direction="horizontal"
             style={Kb.Styles.platformStyles({
@@ -78,6 +79,7 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
           {color: '#7f1d1d', label: 'base', top: z.baseline},
         ] as const).map(l => (
           <Kb.Box2
+            alignSelf="center"
             key={l.label}
             direction="horizontal"
             style={Kb.Styles.platformStyles({
@@ -200,7 +202,7 @@ const CenteringSection = () => {
       <Kb.Text type="BodyTiny" style={styles.hint}>Text must be visually centered in each box. Red line = exact center.</Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
         {containerHeights.map(h => (
-          <Kb.Box2 key={h} direction="vertical" alignItems="center" gap="xtiny">
+          <Kb.Box2 alignSelf="center" key={h} direction="vertical" alignItems="center" gap="xtiny">
             <Kb.Box2
               direction="horizontal"
               centerChildren={true}
@@ -210,6 +212,7 @@ const CenteringSection = () => {
               <Kb.Text type="BodyTinyBold">Ag</Kb.Text>
               {/* exact-center line */}
               <Kb.Box2
+                alignSelf="center"
                 direction="horizontal"
                 style={Kb.Styles.platformStyles({
                   isElectron: {
@@ -230,7 +233,7 @@ const CenteringSection = () => {
       <Kb.Text type="BodySmallSemibold" style={styles.innerDivider}>Badge pills (orange) — same test</Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
         {([1, 9, 42, 99, 999] as const).map(n => (
-          <Kb.Box2 key={n} direction="vertical" alignItems="center" gap="xtiny">
+          <Kb.Box2 alignSelf="center" key={n} direction="vertical" alignItems="center" gap="xtiny">
             <Kb.Badge badgeNumber={n} />
             <Kb.Text type="BodyTiny">{n}</Kb.Text>
           </Kb.Box2>

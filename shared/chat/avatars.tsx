@@ -27,7 +27,7 @@ const OverlayIcon = function OverlayIcon(p: {
   if (!type) return null
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.mutedIcon}>
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,

@@ -152,7 +152,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box2 direction="vertical" flex={1} />
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"

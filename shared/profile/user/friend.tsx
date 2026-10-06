@@ -28,6 +28,7 @@ const Friend = (ownProps: OwnProps) => {
 
   return (
     <Kb.ClickableBox
+      alignSelf="center"
       direction="vertical"
       centerChildren={true}
       noShrink={true}
