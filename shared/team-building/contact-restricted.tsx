@@ -94,7 +94,7 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
   },
   container: Kb.Styles.platformStyles({
     isElectron: {
-      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium),
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
       flex: 1,
     },
   }),
