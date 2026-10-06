@@ -726,9 +726,11 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       if (!prepared) throw new Error('capture called before prepare')
       await fixture.assertNoneActive()
       await resetTo(entry.nav.tab)
+      // the tab root's own loads finish before the entry navigates from it; a fixture is installed
+      // on this idle app
+      await waitForNoLoading()
       if (entry.fixture) {
-        // installed on an idle app, then every screen remounts so none keeps live data
-        await waitForNoLoading()
+        // every screen remounts so none keeps live data
         await fixture.begin()
         await remountScreens()
       }

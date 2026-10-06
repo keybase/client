@@ -695,9 +695,12 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // A setup click leaves the pointer where it clicked, and whatever lands under it later draws
       // hovered. Parked outside the viewport, nothing is hovered unless a hover step asks for it.
       await withDeadline(page.mouse.move(-1, -1), EVAL_MS, 'parking the mouse')
+      // The tab root's own loads finish before the entry navigates from it: a modal pushed at once
+      // over a tab visited for the first time drew that tab still empty under it. A fixture is
+      // installed on this idle app.
+      await waitForNoLoading(page)
       if (entry.fixture) {
-        // installed on an idle app, then every screen remounts so none keeps live data
-        await waitForNoLoading(page)
+        // every screen remounts so none keeps live data
         await fixture.begin()
         await remountScreens(page)
       }
