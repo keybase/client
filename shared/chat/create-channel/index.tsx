@@ -13,16 +13,8 @@ const CreateChannel = (p: Props) => {
       <>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.boxTop}>
           <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
-          <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
+          <Kb.Text type="BodySmallSemibold" style={desktopStyles.teamname}>
             {props.teamname}
-          </Kb.Text>
-          <Kb.Text
-            type="Header"
-            style={{
-              ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
-            }}
-          >
-            New chat channel
           </Kb.Text>
         </Kb.Box2>
         {!!props.errorText && (
@@ -31,10 +23,6 @@ const CreateChannel = (p: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.box}>
-          <Kb.ClickableBox direction="horizontal" alignItems="center" style={desktopStyles.back} onClick={props.onBack}>
-            <Kb.Icon style={desktopStyles.backIcon} type="iconfont-arrow-left" />
-            <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
-          </Kb.ClickableBox>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
             <Kb.Input3
               textType="BodySemibold"
@@ -117,12 +105,6 @@ const buttonBarStyle = {alignItems: 'center'} as const
 const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
-      back: {
-        left: 32,
-        position: 'absolute',
-        top: 32,
-      },
-      backIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       box: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
       },
@@ -130,6 +112,7 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         paddingTop: Kb.Styles.globalMargins.medium,
       },
+      teamname: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
     }) as const
 )
 

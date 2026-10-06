@@ -230,7 +230,11 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatCreateChannel: makeChatScreen(
     React.lazy(async () => import('./create-channel')),
-    {skipProvider: true}
+    {
+      // desktop: a header Back when it was opened from another modal (team add-to-channels)
+      getOptions: isMobile ? {title: 'New chat channel'} : {headerLeft: Kb.HeaderLeftButton, title: 'New chat channel'},
+      skipProvider: true,
+    }
   ),
   chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
   chatForwardMsgPick: makeChatScreen(
