@@ -69,7 +69,10 @@ const sessions = new Map<string, Session>()
 const lastCompleted = new Map<string, {at: number; ignoreCache: boolean; session: Session}>()
 // An entry is only ever read against the caller's maxAgeMs, and the longest one
 // any caller passes is the profile screen's 30s recheck window. Past this age it
-// can never suppress an identify again, and its session is let go.
+// can never suppress an identify again. There is no timer: an expired entry, and
+// the session it holds, is released the next time any username is looked up
+// (a getter, a subscribe, a load), an identify finishes, or a block notification
+// arrives - and none of those read or update it first.
 const lastCompletedTTLMs = 5 * 60_000
 
 const pruneLastCompleted = () => {
@@ -81,8 +84,8 @@ const pruneLastCompleted = () => {
   }
 }
 const recentSession = (username: string) => {
-  const done = lastCompleted.get(username)
-  return done && Date.now() - done.at < lastCompletedTTLMs ? done.session : undefined
+  pruneLastCompleted()
+  return lastCompleted.get(username)?.session
 }
 
 // Kept outside of Session so a subscriber stays attached to its username even
@@ -125,7 +128,6 @@ const ensureSession = (rawUsername: string) => {
   if (existing) {
     return existing
   }
-  pruneLastCompleted()
   const s = recentSession(username) ?? makeSession(username)
   sessions.set(username, s)
   return s
@@ -404,6 +406,7 @@ const ensureEngineSubscriptions = () => {
   })
 
   subscribeToEngineAction('keybase.1.NotifyTracking.notifyUserBlocked', action => {
+    pruneLastCompleted()
     const all = new Set([...sessions.values(), ...[...lastCompleted.values()].map(done => done.session)])
     for (const s of all) {
       setDetails(s, updateTrackerDetailsBlocked(s.details, action.payload.params.b))
@@ -460,7 +463,8 @@ export const subscribeToProfile = (rawUsername: string, cb: () => void) => {
 // recent session back, so the getters read it from there as well.
 const findSession = (rawUsername: string) => {
   const username = canonicalUsername(rawUsername)
-  return sessions.get(username) ?? recentSession(username)
+  const recent = recentSession(username)
+  return sessions.get(username) ?? recent
 }
 export const getProfileDetails = (username: string) => findSession(username)?.details
 export const getProfileNonUserDetails = (username: string) => findSession(username)?.nonUserDetails
