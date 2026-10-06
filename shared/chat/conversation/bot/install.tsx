@@ -516,7 +516,7 @@ const InstallBotPopup = (props: Props) => {
           Ask an admin or owner to install this bot
         </Kb.Text>
       ) : (
-        <Kb.Box2 direction="vertical" gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
             Install as
           </Kb.Text>

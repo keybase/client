@@ -69,6 +69,7 @@ const ExternalTeam = (props: Props) => {
         <Kb.Box2
           direction="horizontal"
           gap={isMobile ? 'small' : 'tiny'}
+          fullWidth={true}
           alignItems="center"
         >
           <Kb.ProgressIndicator />
