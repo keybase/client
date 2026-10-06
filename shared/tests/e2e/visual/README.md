@@ -112,11 +112,36 @@ that `resolve.mts` fills in through the read-only CLI (team, conversation, folde
 ## Masks
 
 A mask hides a region from the compare. Only for content the server picks or pushes that no seal
-field can pin, never for layout. Each one names a testID and a reason in `tour.ts`. A compare masks
-the union of the base's and the current capture's mask rects. Current masks: people feed follow
-suggestions, device last-used times, the team builder's recommendation list (server-picked and
-server-ordered; the builder's service tabs and search box stay compared), the bot search's
-featured bots.
+field can pin, and that no fixture supplies, never for layout. Each one names a testID and a reason
+in `tour.ts`. A compare masks the union of the base's and the current capture's mask rects. The
+tour has no masks now: fixtures replaced them.
+
+## Fixtures
+
+Content the server picks (follow suggestions, team builder recommendations, featured bots) or keeps
+moving (device last-used times) is supplied by a dev-only fixture instead of masked, so the entry is
+compared and counts for coverage. An entry names one with `fixture: {name, args}` (`args` are params
+like nav's, refs resolved). The names are in `fixtures/names.ts`, the definitions in
+`fixtures/<area>.ts`, typed against the app's RPC types.
+
+The runtime (`fixtures/runtime.ts`) is in every dev build: `engine/index.tsx` imports it, and
+production builds resolve that import to an empty module (`vite.config.mts`, `desktop/vite.node.mts`,
+`metro.config.js`; `fixtures/prod-exclusion.test.mts`). While a fixture is active the engine hands it
+every outgoing RPC and incoming call. A rule stubs an RPC (answered on a later tick, optionally with
+calls into its session first) or transforms the live answer; a fixture can also rewrite incoming
+calls, inject notifications, hold the service's notifications, and set stores directly. Prompts that
+need an answer always pass. An RPC whose name says it writes (post, set, send, delete, create, add,
+remove) that no rule answers is refused.
+
+Per fixture entry the driver resets to the tab, waits for an idle app, begins the fixture, remounts
+every screen (so none keeps live data), navigates, runs the setup, waits for `ready` (a testID only
+the fixture's data draws) and for every rule the fixture needs to have answered, runs its afterReady,
+and captures. `end()` runs whatever happened: it puts the fixture's stores back and reports a
+refused write, a reply still owed or a store it could not restore, any of which fails the capture.
+Then every screen remounts again (or the app reloads, if the fixture says so). Every capture first
+checks that no fixture is active, and fixture entries run after every live entry
+(`fixtureOrderProblems`, in `yarn visual:unit`). A base records a hash of each fixture's definition;
+`check` refuses when it changed since.
 
 ## Coverage
 
@@ -165,7 +190,8 @@ change with `--compare <baseline dir>`.
   `gate` and `aa` refuse before capturing when the seal shows a conversation the tour opens as
   unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun.
 - **Read-only.** The tour only navigates, switches sub-tabs, opens popups and hovers. Nothing is
-  sent, saved, toggled or confirmed, and every CLI call is read-only.
+  sent, saved, toggled or confirmed, and every CLI call is read-only. Under a fixture, a write the
+  app attempts is refused and fails the capture.
 
 ## Known exclusions
 

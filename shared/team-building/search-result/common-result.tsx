@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {
@@ -103,6 +104,7 @@ const CommonResult = (props: CommonResultProps) => {
         props.rowStyle,
         props.highlight ? styles.highlighted : undefined,
       ])}
+      testID={TestIDs.TEAM_BUILDING_RESULT_ROW}
     >
       <Avatar
         resultForService={props.resultForService}
