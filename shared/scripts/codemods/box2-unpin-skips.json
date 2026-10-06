@@ -109,5 +109,255 @@
     "rel": "teams/team/rows/bot-row/add-row.tsx",
     "tag": "<Kb.Box2 direction=\"horizontal\" alignItems=\"center\" style={styles.container}>",
     "reason": "gate desktop team/bots: moves the add a bot row"
+  },
+  {
+    "rel": "git/nav-header.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" alignItems=\"flex-start\" flex={1} style={styles.headerTitle} className=\"hover-underline-container\" >",
+    "reason": "gate desktop tab/git: moves the git tab's header text"
+  },
+  {
+    "rel": "fs/nav-header/title.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" style={styles.container}>",
+    "reason": "gate desktop files/team: moves the folder title in the files header"
+  },
+  {
+    "rel": "teams/role-picker.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={styles.header}>",
+    "reason": "gate desktop team/member-add-role: moves the role picker's rows"
+  },
+  {
+    "rel": "devices/common.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" style={headerStyles.headerTitle}>",
+    "reason": "gate desktop tab/devices: moves the devices header"
+  },
+  {
+    "rel": "unlock-folders/paper-key-input.desktop.tsx",
+    "tag": "<Kb.Box2 alignItems=\"center\" direction=\"vertical\" padding=\"small\" testID={TestIDs.UNLOCK_FOLDERS_PAPER_KEY_INPUT} >",
+    "reason": "gate desktop window/unlock-folders-paper-key: moves the paper key input"
+  },
+  {
+    "rel": "unlock-folders/device-list.desktop.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" centerChildren={true} style={styles.iconWrapper}>",
+    "reason": "gate desktop window/unlock-folders: moves the device rows"
+  },
+  {
+    "rel": "tracker/index.desktop.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" style={styles.avatarBackground} />",
+    "reason": "gate desktop window/tracker-self: moves the tracker's name block"
+  },
+  {
+    "rel": "app/global-errors.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" flex={1} centerChildren={true} gap=\"small\" style={styles.innerContainer}>",
+    "reason": "gate desktop overlay/global-error: moves the error bar's summary row"
+  },
+  {
+    "rel": "settings/logout.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\">",
+    "reason": "gate desktop modal/settings-log-out: moves the log out form"
+  },
+  {
+    "rel": "fs/banner/system-file-manager-integration-banner/kext-permission-popup.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" relative={true}>",
+    "reason": "gate desktop modal/kext-permission: moves the permission steps"
+  },
+  {
+    "rel": "tracker/assertion.tsx",
+    "tag": "<Kb.ClickableBox onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null} direction=\"vertical\">",
+    "reason": "gate desktop profile/self: moves the proof rows' status icons"
+  },
+  {
+    "rel": "chat/conversation/messages/emoji-row.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" ref={popupAnchor} style={Kb.Styles.collapseStyles([ styles.container, style, raiseBy > 0 ? Kb.Styles.platformStyles({isElectron: {transform: `translateY(-${raiseBy}px)`}}) : undefined, ])} className={className} >",
+    "reason": "gate desktop chat/reaction-tooltip: moves the hover bar's buttons"
+  },
+  {
+    "rel": "chat/conversation/messages/emoji-row.tsx",
+    "tag": "<Kb.ClickableBox direction=\"vertical\" className=\"hover_container\" onClick={hasMessageID ? _showPicker : undefined} style={Kb.Styles.collapseStyles([styles.iconContainer, !hasMessageID && styles.disabled])} tooltip=\"React\" >",
+    "reason": "gate desktop chat/reaction-tooltip: moves the hover bar's buttons"
+  },
+  {
+    "rel": "chat/conversation/messages/emoji-row.tsx",
+    "tag": "<Kb.ClickableBox direction=\"vertical\" className=\"hover_container\" onClick={onReply} style={styles.iconContainer} tooltip=\"Reply\" >",
+    "reason": "gate desktop chat/reaction-tooltip: moves the hover bar's buttons"
+  },
+  {
+    "rel": "chat/conversation/messages/emoji-row.tsx",
+    "tag": "<Kb.ClickableBox direction=\"vertical\" className=\"hover_container\" onClick={onForward} style={styles.iconContainer} tooltip=\"Forward\" >",
+    "reason": "gate desktop chat/message-react: moves the hover bar's react button"
+  },
+  {
+    "rel": "chat/conversation/messages/emoji-row.tsx",
+    "tag": "<Kb.ClickableBox direction=\"horizontal\" centerChildren={true} onClick={props.onClick} onMouseOver={_setHovering} onMouseLeave={_setNotHovering} style={styles.emojiBox} >",
+    "reason": "gate desktop chat/reaction-tooltip: moves the hover bar's buttons"
+  },
+  {
+    "rel": "chat/conversation/messages/text/unfurl/unfurl-list/giphy.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"tiny\">",
+    "reason": "gate desktop chat/reaction-tooltip: moves the giphy unfurl"
+  },
+  {
+    "rel": "chat/conversation/messages/text/coinflip/index.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\">",
+    "nth": 4,
+    "reason": "gate desktop chat/e2e-kinds: moves the coin flip's status text"
+  },
+  {
+    "rel": "chat/conversation/messages/text/unfurl/unfurl-list/image/index.tsx",
+    "tag": "<Kb.ClickableBox direction=\"vertical\" onClick={onClick || onOpenURL}>",
+    "reason": "gate desktop chat/e2e-kinds: moves an unfurl image"
+  },
+  {
+    "rel": "chat/conversation/search.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"tiny\" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>",
+    "nth": 1,
+    "reason": "gate desktop chat/thread-search-no-results: moves the search result count"
+  },
+  {
+    "rel": "team-building/search-result/common-result.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" fullWidth={isMobile} justifyContent=\"flex-start\">",
+    "reason": "gate desktop modal/team-builder: moves a result row's name"
+  },
+  {
+    "rel": "team-building/service-tab-bar.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" alignItems=\"center\" justifyContent=\"flex-start\" flex={1} style={desktopStyles.serviceIconContainer} >",
+    "reason": "gate desktop modal/team-builder: moves the service tabs"
+  },
+  {
+    "rel": "settings/contacts-joined.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" style={styles.avatar}>",
+    "reason": "gate desktop modal/settings-contacts-joined: moves the contact's follow button"
+  },
+  {
+    "rel": "chat/emoji-picker/skin-tone-picker.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" overflow=\"hidden\" style={styles.popupContainer} testID={TestIDs.CHAT_SKIN_TONE_OPTIONS}>",
+    "reason": "gate desktop modal/chat-emoji-skin-tones: moves the expanded skin tones"
+  },
+  {
+    "rel": "chat/audio/audio-player.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={{height: maxHeight, marginTop: Kb.Styles.globalMargins.xtiny, maxWidth: maxWidth}} >",
+    "reason": "gate desktop chat/content-media: moves the audio player"
+  },
+  {
+    "rel": "chat/conversation/messages/wrapper/wrapper.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" tooltip={`Encrypted for @${botname}`} className=\"tooltip-bottom-left\">",
+    "reason": "gate desktop chat/content-media: moves the revoked device icon"
+  },
+  {
+    "rel": "chat/conversation/messages/system-added-to-team/wrapper.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" testID={TestIDs.CHAT_ADDED_TO_TEAM}>",
+    "reason": "gate desktop chat/content-top: moves the added-to-team notification link"
+  },
+  {
+    "rel": "chat/conversation/messages/message-popup/exploding-header.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"xtiny\" gapStart={true} alignItems=\"center\">",
+    "nth": 1,
+    "reason": "gate desktop chat/content-exploding-menu: moves the exploding menu's author line"
+  },
+  {
+    "rel": "chat/conversation/messages/message-popup/exploding-header.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\">",
+    "nth": 2,
+    "reason": "gate desktop chat/content-exploding-menu: moves the exploding menu's bot line"
+  },
+  {
+    "rel": "chat/conversation/pinned-message.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" centerChildren={true} gap=\"xsmall\" style={styles.popup} testID={TestIDs.CHAT_UNPIN_PROMPT}>",
+    "reason": "gate desktop chat/unpin-prompt: moves the unpin prompt's text"
+  },
+  {
+    "rel": "fs/filepreview/text-view.tsx",
+    "tag": "<Kb.Box2 style={styles.innerContainer} direction=\"horizontal\" alignItems=\"flex-start\" testID={content ? TestIDs.FILES_TEXT_PREVIEW : undefined} >",
+    "reason": "gate desktop files/text: moves the text preview off center"
+  },
+  {
+    "rel": "chat/conversation/header-area/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" alignItems=\"center\" style={styles.channelHeaderContainer}>",
+    "nth": 2,
+    "reason": "gate ios chat/e2e-short: moves the conversation header title"
+  },
+  {
+    "rel": "teams/team/settings-tab/confirm-warning.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" alignItems=\"center\" style={styles.container}>",
+    "reason": "gate ios modal/team-open-warning: moves the warning's buttons"
+  },
+  {
+    "rel": "app/runtime-stats.tsx",
+    "tag": "<Kb.ClickableBox onClick={() => setShowLogs(s => !s)} direction=\"vertical\">",
+    "reason": "gate ios overlay/runtime-stats: moves the runtime stats"
+  },
+  {
+    "rel": "profile/user/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={styles.textEmpty} centerChildren={true}>",
+    "reason": "gate ios profile/other: moves the profile's follow buttons"
+  },
+  {
+    "rel": "team-building/service-tab-bar.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" relative={true}>",
+    "reason": "gate ios modal/team-builder: moves the service tabs"
+  },
+  {
+    "rel": "team-building/service-tab-bar.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\">",
+    "reason": "gate ios modal/team-builder: moves the service tabs"
+  },
+  {
+    "rel": "chat/conversation/search.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" centerChildren={true} noShrink={true}>",
+    "reason": "gate ios chat/thread-search-no-results: moves the phone search bar"
+  },
+  {
+    "rel": "chat/conversation/search.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"tiny\" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>",
+    "nth": 2,
+    "reason": "gate ios chat/thread-search-no-results: moves the phone search result count"
+  },
+  {
+    "rel": "chat/conversation/search.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"tiny\">",
+    "reason": "gate ios chat/thread-search-no-results: moves the phone search arrows"
+  },
+  {
+    "rel": "chat/conversation/messages/text/coinflip/results.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" centerChildren={true} noShrink={true} style={styles.card} title={cardToTitle(cards[props.card])} >",
+    "reason": "gate ios chat/content-flips: moves the dealt cards"
+  },
+  {
+    "rel": "chat/conversation/messages/wrapper/exploding-meta.tsx",
+    "tag": "<Kb.ClickableBox direction=\"horizontal\" relative={true} onClick={onClick} style={styles.container} testID={TestIDs.CHAT_EXPLODING_META}>",
+    "reason": "gate ios chat/content-media: moves the exploding countdown"
+  },
+  {
+    "rel": "chat/inbox/index.tsx",
+    "tag": "<Kb.Box2 className=\"grabLines\" direction=\"vertical\" style={desktopStyles.grabberLineContainer}>",
+    "reason": "gate desktop chat/info-panel: moves the inbox's drag handle"
+  },
+  {
+    "rel": "chat/inbox/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={desktopStyles.grabberLine} />",
+    "nth": 1,
+    "reason": "gate desktop chat/info-panel: moves the inbox's drag handle"
+  },
+  {
+    "rel": "chat/inbox/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={desktopStyles.grabberLine} />",
+    "nth": 2,
+    "reason": "gate desktop chat/info-panel: moves the inbox's drag handle"
+  },
+  {
+    "rel": "chat/inbox/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" style={desktopStyles.grabberLine} />",
+    "nth": 3,
+    "reason": "gate desktop chat/info-panel: moves the inbox's drag handle"
+  },
+  {
+    "rel": "unlock-folders/device-list.desktop.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"small\">",
+    "reason": "gate desktop window/unlock-folders: moves the device rows"
+  },
+  {
+    "rel": "chat/conversation/messages/message-popup/exploding-header.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\">",
+    "nth": 1,
+    "reason": "gate desktop chat/content-exploding-menu: moves the exploding menu's author line"
   }
 ]
