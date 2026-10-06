@@ -150,12 +150,21 @@ checks that no fixture is active, and fixture entries run after every live entry
 
 ## Coverage
 
-`--coverage` builds mark every Box2 / ClickableBox JSX call site (outside `common-adapters/box.tsx`
-and `node_modules/`) so each capture records which ones are mounted when it is taken: the call
-sites the entry mounted that are still mounted at the screenshot. A site mounted only on the way
-(a loading row replaced before ready) is not covered, since no compare sees it. A coverage base
-written before this (no `atCapture` in its coverage files) is refused; retake it. Take a coverage
-base, then:
+`--coverage` builds wrap every Box2 / ClickableBox JSX call site (outside `common-adapters/box.tsx`
+and `node_modules/`) in a mark that draws its child unchanged and runs no hooks, so a coverage
+build renders as a plain one. Each capture records the call sites drawn in its screenshot: at the
+capture the driver walks the app's fiber tree for the marks (`coverage/visible.ts`) and counts a
+site when one of its instances is on screen:
+
+- desktop: one of its elements is rendered (not `display: none` or `visibility: hidden`, not
+  empty) and overlaps the viewport once clipped by the ancestors that clip it;
+- phone: it is in the focused screen, or outside every screen (overlays, sheets), and one of its
+  views overlaps the window once clipped by the scroll views and `overflow: hidden` views around it.
+
+So a site mounted only on the way (a loading row replaced before ready), in a hidden tab or a
+screen under the top one, or scrolled out of view is not covered: no compare sees its pixels. The
+tab bar and other chrome count in every capture that draws them. A coverage file without the
+`visible` flag is refused. Take a coverage base, then:
 
 ```sh
 yarn visual:base --base HEAD --coverage        # desktop: relaunches the app with --coverage
@@ -218,6 +227,9 @@ An entry's `setup` runs after navigation, in order: `openPopup` and `switchSubTa
   checks all of this (`validateEntry`). Desktop fills the input; iOS calls the input's own
   `onChangeText`, since XCUITest's typing into a field that selects its text on focus loses
   characters.
+- On iOS, `type` and `scrollIntoView` act on the view with the testID in the focused screen, or
+  else one outside every screen (an overlay or sheet), and wait for it there: Appium's `~testID`
+  also finds the views of hidden tabs and screens under the top one.
 - `searchThread` opens the open conversation's thread search on a query by setting its route
   param, as the header's search button does, and so needs `nav.thread`.
 

@@ -12,8 +12,8 @@
 //   node scripts/codemods/box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]
 //
 // Once the default is gone, `cleanup` removes props that only restate the stretch (rules below),
-// at call sites that the visual gate's coverage base for <base sha> mounted on every gate platform
-// the site renders on (siteGateNeed).
+// at call sites that the visual gate's coverage base for <base sha> drew in a capture on every gate
+// platform the site renders on (siteGateNeed).
 //
 //   node scripts/codemods/box2-stretch-default.mts unpin [--write] [--report <file>]
 //
@@ -1696,9 +1696,9 @@ const coverageGap = (o: {
   return missing.length ? `never mounted on ${missing.join(' or ')}` : undefined
 }
 
-// The call sites a platform's base captures mounted. A masked entry counts for nothing: its sites
-// may sit under a mask the compare never sees. A bare id list predates the masked flag and may
-// come from a masked entry, so it is refused rather than trusted.
+// The call sites a platform's base captures drew. A masked entry counts for nothing: its sites
+// may sit under a mask the compare never sees. A file without the masked or visible flag is
+// refused rather than trusted (parseCoverageFile).
 export const platformCoverage = (sha: string, platform: RunPlatform) => {
   const out = new Set<string>()
   const walkCoverage = (dir: string) => {

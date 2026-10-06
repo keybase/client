@@ -428,7 +428,7 @@ const DESKTOP_DRIVER = 'shared/tests/e2e/visual/driver-desktop.mts'
 const IOS_DRIVER = 'shared/tests/e2e/visual/driver-ios.mts'
 const BABEL_CONFIG = 'shared/babel.config.js'
 const FIXTURE_RUNTIME = 'shared/tests/e2e/visual/fixtures/runtime.ts'
-const COVERAGE_REGISTRY = 'shared/tests/e2e/visual/coverage/registry.ts'
+const SRC_MARK = 'shared/tests/e2e/visual/coverage/src-mark.tsx'
 const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
 
 // The base is captured from the app served by the base tree (desktop: launched with the visual
@@ -439,8 +439,9 @@ export const checkBaseInfra = (
   readFile: (repoPath: string) => string | undefined,
   opts: {coverage: boolean; ios: boolean; fixtures?: boolean}
 ) => {
-  if (opts.coverage && !readFile(COVERAGE_REGISTRY)?.includes('mountedNowSince')) {
-    throw new Error(`base ${sha} records no capture-time coverage (${COVERAGE_REGISTRY} mountedNowSince); ${PASS_BASE}, or drop --coverage`)
+  // the driver finds the marks it counts by this flag (coverage/visible.ts)
+  if (opts.coverage && !readFile(SRC_MARK)?.includes('__kbVisualSrcMark')) {
+    throw new Error(`base ${sha} has coverage marks the driver cannot find (${SRC_MARK} __kbVisualSrcMark); ${PASS_BASE}, or drop --coverage`)
   }
   if (opts.fixtures && !readFile(FIXTURE_RUNTIME)) {
     throw new Error(`base ${sha} has no fixture runtime (${FIXTURE_RUNTIME}) for the fixture entries; ${PASS_BASE}, or name only live entries`)
@@ -695,11 +696,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       const problems: Array<string> = []
       try {
         for (const theme of cmd.themes) {
-          const {chrome} = await session.prepare({frozenAt, reload: true, theme})
-          if (cmd.coverage) {
-            if (!chrome) throw new Error('the app has no coverage marks after a --coverage launch')
-            writeStaged(Store.baseCoveragePath(sha, platform, theme, '__chrome__'), Store.writeCoverageJson(chrome, false))
-          }
+          await session.prepare({frozenAt, reload: true, theme})
           for (const e of entries) {
             const cap = await session.capture(e)
             if (cap.status !== 'ok') {

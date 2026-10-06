@@ -36,7 +36,7 @@ test('the last base is kept per platform', () => {
 test('masks default to none; coverage is the union of every stored coverage JSON', () => {
   assert.deepEqual(store.readBaseMasks('c1', 'desktop', 'light', 'tab/chat'), [])
   const a = store.baseCoveragePath('c1', 'desktop', 'light', 'tab/chat')
-  const b = store.baseCoveragePath('c1', 'ios', 'light', '__chrome__')
+  const b = store.baseCoveragePath('c1', 'ios', 'light', 'tab/chat')
   fs.mkdirSync(path.dirname(a), {recursive: true})
   fs.mkdirSync(path.dirname(b), {recursive: true})
   fs.writeFileSync(a, store.writeCoverageJson(['b.tsx:2', 'a.tsx:1'], false))
@@ -65,11 +65,12 @@ test('a coverage file without the masked flag is refused', () => {
   assert.throws(() => store.readBaseCoverage('c3'), /has no masked flag: retake the coverage base/)
 })
 
-test('a coverage file without the atCapture flag is refused', () => {
+test('a coverage file without the visible flag is refused', () => {
   const p = store.baseCoveragePath('c4', 'ios', 'light', 'tab/chat')
   fs.mkdirSync(path.dirname(p), {recursive: true})
-  fs.writeFileSync(p, JSON.stringify({ids: ['a.tsx:1'], masked: false}))
-  assert.throws(() => store.readBaseCoverage('c4'), /mounted at any time during its entry, not at its capture: retake/)
+  // what a base that counted every site mounted at the capture wrote
+  fs.writeFileSync(p, JSON.stringify({atCapture: true, ids: ['a.tsx:1'], masked: false}))
+  assert.throws(() => store.readBaseCoverage('c4'), /counts sites its capture did not show: retake/)
 })
 
 test('run stamps have no characters a path dislikes', () => {

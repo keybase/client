@@ -19,17 +19,17 @@ import {
   waitForQuiet,
   withDeadline,
   type Capture,
-  type Prepared,
 } from './driver-desktop.mts'
 import type {Rect} from './compare.mts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 import {fixtureCapture, type FixtureHooks} from './fixtures/drive.mts'
+import {VISIBLE_FUNCTIONS} from './coverage/visible.ts'
 
 export type IosSession = {
   // Fixes Date, remounts every screen under it, and visits each phone tab once.
-  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<Prepared>
+  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
   // Resets to the entry's tab root (modals cleared, stack popped). It does not reset scroll
   // position or a selected sub-tab: a setup step that scrolls or switches leaves that screen so
   // until the next reload.
@@ -193,44 +193,75 @@ const stopAppium = async (child: ChildProcess) => {
 }
 
 const ROUTER = `const r = kbModule('constants/router.tsx');`
-// The app's fibers, read through the React DevTools hook a dev build has, and where a view sits:
-// in a screen (some component above it takes a route and its navigation; the overlays drawn over
-// every screen, the global error bar and runtime stats, sit outside the navigator), and in the
-// focused one (navigation.isFocused also asks every navigator above it), not a hidden tab or a
-// screen under the top one.
+// The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
+// and placements of coverage/visible.ts: screenPlacement says whether a view is in the focused
+// screen, a hidden one (a hidden tab, a screen under the top one), or outside every screen (the
+// overlays and sheets drawn over the navigator: the global error bar, runtime stats).
 const FIBERS = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
-  const screenNavigation = f => {
-    for (let p = f.return; p; p = p.return) if (p.memoizedProps?.route && p.memoizedProps?.navigation) return p.memoizedProps.navigation
-    return undefined
-  }
-  const inScreen = f => !!screenNavigation(f)
-  const inFocusedScreen = f => !!screenNavigation(f)?.isFocused?.()
-  // host views (fiber tag 5) with a testID that keep accepts, in the order the walk meets them
-  const hostsWithTestID = keep => {
+  const roots = []
+  for (const id of hook.renderers.keys()) for (const root of hook.getFiberRoots(id)) roots.push(root.current)
+  ${VISIBLE_FUNCTIONS}
+  // host views with a testID that keep accepts, in the order the walk meets them; with \`first\`,
+  // only the first
+  const hostsWithTestID = (keep, first) => {
     const out = []
-    for (const id of hook.renderers.keys()) {
-      for (const root of hook.getFiberRoots(id)) {
-        const stack = [root.current]
-        while (stack.length) {
-          const f = stack.pop()
-          if (f.tag === 5 && f.memoizedProps?.testID && keep(f)) out.push(f)
-          if (f.child) stack.push(f.child)
-          if (f.sibling) stack.push(f.sibling)
-        }
-      }
-    }
+    walkFibers(roots, f => {
+      if (f.tag !== 5 || !f.memoizedProps?.testID || !keep(f)) return false
+      out.push(f)
+      return first
+    })
     return out
+  }
+  // what nativeInWindow needs: host rects in window points, read synchronously (RN's DOM API; a
+  // host view's public instance is made on demand, so one no ref asked for has none yet)
+  let nativeEnv
+  const env = () => {
+    if (nativeEnv) return nativeEnv
+    const renderer = kbModule('node_modules/react-native/Libraries/ReactNative/RendererImplementation.js')
+    const dims = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
+    const win = (dims.default ?? dims).get('window')
+    const rects = new Map()
+    nativeEnv = {
+      height: win.height,
+      rect: f => {
+        if (!rects.has(f)) {
+          const r = renderer.getPublicInstanceFromInternalInstanceHandle(f)?.getBoundingClientRect?.()
+          rects.set(f, r && {bottom: r.top + r.height, left: r.left, right: r.left + r.width, top: r.top})
+        }
+        return rects.get(f)
+      },
+      width: win.width,
+    }
+    return nativeEnv
   }`
 // `hosts`: the host views in any screen that carry a testID
 const HOSTS_WITH_TESTID = `${FIBERS}
-  const hosts = hostsWithTestID(f => !!f.stateNode && inScreen(f)).map(f => f.stateNode)`
-// `target`: the first host fiber with this testID in the focused screen, and `id` the testID
-const targetByTestID = (testID: string) => `${FIBERS}
+  const hosts = hostsWithTestID(f => !!f.stateNode && screenPlacement(f) !== 'overlay', false).map(f => f.stateNode)`
+// `target`: the host fiber with this testID in the focused screen, or else one outside every screen
+// (an overlay or sheet), or undefined; `id` the testID
+const findTarget = (testID: string) => `${FIBERS}
   const id = ${JSON.stringify(testID)}
-  const target = hostsWithTestID(f => f.memoizedProps.testID === id && inFocusedScreen(f))[0]
-  if (!target) throw new Error('no host view with testID ' + id + ' in the focused screen')`
+  let overlay
+  const target =
+    hostsWithTestID(f => {
+      if (f.memoizedProps.testID !== id) return false
+      const at = screenPlacement(f)
+      if (at === 'overlay') overlay ??= f
+      return at === 'focused'
+    }, true)[0] ?? overlay`
+const targetByTestID = (testID: string) => `${findTarget(testID)}
+  if (!target) throw new Error('no host view with testID ' + id + ' in the focused screen or an overlay')`
+// 'missing' until the target is there, then whether it draws in the window, clipped by what
+// scrolls it: 'inWindow' or 'outside'
+export const targetState = (testID: string) => `${findTarget(testID)}
+  if (!target) return 'missing'
+  return nativeInWindow(target, env()) ? 'inWindow' : 'outside'`
+// The call sites the capture draws (coverage/visible.ts), or null without coverage marks.
+export const VISIBLE_SITES = `${FIBERS}
+  const r = visibleSites(roots, m => nativeVisible(m, env()))
+  return r.marks ? r.ids : null`
 // Types into the text input at or under the host view with testID, through the native input's own
 // onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that
 // selects its text on focus drops and keeps characters unevenly. The native input is the host
@@ -238,13 +269,10 @@ const targetByTestID = (testID: string) => `${FIBERS}
 // input as onSubmitEditing.
 export const typeIntoTarget = (testID: string, text: string, enter: boolean) => `${targetByTestID(testID)}
   let input
-  const stack = [target]
-  while (stack.length && !input) {
-    const f = stack.pop()
+  walkFibers([target], f => {
     if (f.tag === 5 && typeof f.memoizedProps?.onChangeText === 'function') input = f.memoizedProps
-    if (f.child) stack.push(f.child)
-    if (f !== target && f.sibling) stack.push(f.sibling)
-  }
+    return !!input
+  })
   if (!input) throw new Error('no text input under testID ' + id)
   input.onChangeText(${JSON.stringify(text)})
   if (${enter}) {
@@ -275,7 +303,6 @@ export const scrollToTarget = (testID: string) => `${targetByTestID(testID)}
       return 'row'
     }
     if (index === undefined && node && typeof node.scrollTo === 'function' && typeof node.getInnerViewRef === 'function' && typeof node.getNativeScrollRef === 'function') {
-      // a host view's public instance is made on demand, so one no ref asked for has none yet
       const renderer = kbModule('node_modules/react-native/Libraries/ReactNative/RendererImplementation.js')
       const t = rectOf(renderer.getPublicInstanceFromInternalInstanceHandle(target), 'the view')
       const c = rectOf(node.getInnerViewRef(), 'the scroll content')
@@ -289,28 +316,17 @@ export const scrollToTarget = (testID: string) => `${targetByTestID(testID)}
 // Pauses every expo-video player on its first frame, as desktop pauses autoplay videos (a looping
 // giphy unfurl shows a different frame in every screenshot). Players live in hook state
 // (useVideoPlayer), so each mounted fiber's hooks are searched for one, as React DevTools reads them.
-export const STILL_VIDEOS = `
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+export const STILL_VIDEOS = `${FIBERS}
   const isPlayer = v => !!v && typeof v === 'object' && typeof v.pause === 'function' && typeof v.replace === 'function' && 'currentTime' in v
   const players = new Set()
-  for (const id of hook.renderers.keys()) {
-    for (const root of hook.getFiberRoots(id)) {
-      const stack = [root.current]
-      while (stack.length) {
-        const f = stack.pop()
-        if (f.tag === 0 || f.tag === 11 || f.tag === 15) {
-          for (let h = f.memoizedState; h && typeof h === 'object' && 'next' in h; h = h.next) {
-            const v = h.memoizedState
-            if (isPlayer(v)) players.add(v)
-            else if (Array.isArray(v) && isPlayer(v[0])) players.add(v[0])
-          }
-        }
-        if (f.child) stack.push(f.child)
-        if (f.sibling) stack.push(f.sibling)
-      }
+  walkFibers(roots, f => {
+    if (f.tag !== 0 && f.tag !== 11 && f.tag !== 15) return
+    for (let h = f.memoizedState; h && typeof h === 'object' && 'next' in h; h = h.next) {
+      const v = h.memoizedState
+      if (isPlayer(v)) players.add(v)
+      else if (Array.isArray(v) && isPlayer(v[0])) players.add(v[0])
     }
-  }
+  })
   for (const p of players) {
     try {
       p.pause()
@@ -491,6 +507,16 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
 
   const byTestID = (id: string) => browser.$(`~${id}`)
+  // Waits for the step's target in the focused screen or an overlay (Appium's ~testID would also
+  // find another screen's), and says whether it draws in the window.
+  const waitForTarget = async (testID: string) => {
+    let state = 'missing'
+    await waitFor(`${testID} in the focused screen or an overlay`, SETUP_MS, async () => {
+      state = await appEval<string>(targetState(testID), `finding ${testID}`)
+      return state !== 'missing'
+    })
+    return state === 'inWindow'
+  }
 
   const runStep = async (s: SetupStep) => {
     switch (s.kind) {
@@ -500,7 +526,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         await withDeadline(byTestID(s.testID).click(), SETUP_MS, `${s.kind} ${s.testID}`)
         return
       case 'type':
-        await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
+        await waitForTarget(s.testID)
         await appEval(typeIntoTarget(s.testID, s.text, !!s.enter), `typing into ${s.testID}`)
         return
       case 'searchThread': {
@@ -516,8 +542,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       case 'scrollIntoView': {
         // waits for the element, as desktop's scrollIntoViewIfNeeded does, so the step can gate
         // later steps on something that loads
-        await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
-        if (await withDeadline(byTestID(s.testID).isDisplayed(), SETUP_MS, `is ${s.testID} displayed`)) return
+        if (await waitForTarget(s.testID)) return
         // Appium's \`mobile: scroll\` gives up on the inverted chat thread (and can wedge WDA), so what
         // scrolls the element is scrolled from JS where it can be (scrollToTarget); only an element
         // in neither a list row nor a ScrollView is left to Appium.
@@ -619,22 +644,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     await waitForRuntime(false)
   }
 
-  const coverageSeq = async () =>
-    appEval<number | null>('return globalThis.__kbVisualCoverage?.seq() ?? null', 'coverage seq')
-  const coverageMounted = async () =>
-    appEval<Array<string> | null>('return globalThis.__kbVisualCoverage?.mounted() ?? null', 'coverage mounted')
-  // what the capture shows of what its entry mounted: the call sites mounted after `seq` that are
-  // still mounted now
-  const coverageNowSince = async (seq: number | null) =>
-    seq === null
-      ? null
-      : appEval<Array<string> | null>(
-          `const c = globalThis.__kbVisualCoverage
-           if (!c) return null
-           if (typeof c.mountedNowSince !== 'function') throw new Error('the app records coverage without capture-time sites; serve a tree whose coverage/registry.ts has mountedNowSince')
-           return c.mountedNowSince(${seq})`,
-          'coverage mountedNowSince'
-        )
+  const coverageVisible = async () => appEval<Array<string> | null>(VISIBLE_SITES, 'reading the visible coverage marks')
 
   let prepared = false
   let datePatched = false
@@ -661,27 +671,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     await waitForRuntime(false)
-    let reloaded = true
     if (changed || !(await accessibilityOn())) await relaunchApp()
     else if (p.reload) await reloadJs()
-    else reloaded = false
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
     await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
     datePatched = true
     frozenAt = p.frozenAt
     await applyLight()
     await remountScreens()
-    // the same moment as desktop's: the reloaded app at its tab root and idle, before warmTabs
-    let chrome: Prepared['chrome'] = null
-    if (reloaded) {
-      await waitForNoLoading()
-      chrome = await coverageMounted()
-    }
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
     prepared = true
-    return {chrome}
   }
 
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
@@ -717,8 +718,6 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     try {
       if (!prepared) throw new Error('capture called before prepare')
       await fixture.assertNoneActive()
-      // before the reset, so coverage includes what switching to the tab mounts
-      const seq = await coverageSeq()
       await resetTo(entry.nav.tab)
       if (entry.fixture) {
         // installed on an idle app, then every screen remounts so none keeps live data
@@ -767,7 +766,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }, CAPTURE_SETTLE)
       png = settled.png
       const masks = await maskRects(entry)
-      const coverage = await coverageNowSince(seq)
+      const coverage = await coverageVisible()
       result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}

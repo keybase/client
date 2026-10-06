@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -121,14 +121,19 @@ const parent = (p: Fiber, ...children: Array<Fiber>) => {
   })
   return p
 }
-const runIn = (root: Fiber, testID: string) => {
+// Runs a driver script against a fake app: the fiber tree, the renderer (which hands out a host
+// fiber's public instance, kept on the fiber here) and an 800 tall window.
+const runScript = <R,>(root: Fiber, script: string): R => {
   const hook = {getFiberRoots: () => [{current: root}], renderers: new Map([[1, {}]])}
-  // the renderer hands out a host fiber's public instance (the fake keeps it on the fiber)
-  const kbModule = () => ({getPublicInstanceFromInternalInstanceHandle: (f: Fiber) => (f.stateNode as {canonical: {publicInstance: unknown}}).canonical.publicInstance})
+  const kbModule = (m: string) =>
+    m.endsWith('Dimensions.js')
+      ? {get: () => ({height: 800, width: 400})}
+      : {getPublicInstanceFromInternalInstanceHandle: (f: Fiber) => (f.stateNode as {canonical: {publicInstance: unknown}}).canonical.publicInstance}
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  const body = new Function('globalThis', 'kbModule', scrollToTarget(testID)) as (g: object, k: typeof kbModule) => string
+  const body = new Function('globalThis', 'kbModule', script) as (g: object, k: typeof kbModule) => R
   return body({__REACT_DEVTOOLS_GLOBAL_HOOK__: hook}, kbModule)
 }
+const runIn = (root: Fiber, testID: string) => runScript<string>(root, scrollToTarget(testID))
 const scrollView = (content: Rect, port: Rect, horizontal = false) => {
   const calls: Array<object> = []
   const node = {
@@ -175,24 +180,65 @@ test('scrollToTarget leaves a view in neither a row nor a ScrollView to the call
   assert.throws(() => runIn(chain({tag: 3}), 'target'), /no host view with testID target/)
 })
 
-test('scrollToTarget takes the view in the focused screen, not a hidden screen\'s or one outside every screen', () => {
+test('scrollToTarget takes the view in the focused screen over one outside every screen, and never a hidden screen\'s', () => {
   const rect = {height: 10, left: 0, top: 1000, width: 10}
   const port = {height: 800, left: 0, top: 0, width: 400}
-  const [shown, hidden, overlay] = [0, 1, 2].map(() => scrollView({height: 3000, left: 0, top: 0, width: 400}, port))
-  // the walk meets the overlay's view first, then the hidden screen's, then the focused screen's
+  const views = () => [0, 1, 2].map(() => scrollView({height: 3000, left: 0, top: 0, width: 400}, port))
+  const [shown, hidden, overlay] = views()
+  // the walk meets the hidden screen's view first, then the overlay's, then the focused screen's
   const root = parent(
     {tag: 3},
     parent(
       {tag: 0},
       chain(screen(true), shown!.fiber, host('target', rect)),
-      chain(screen(false), hidden!.fiber, host('target', rect)),
-      chain({tag: 0}, overlay!.fiber, host('target', rect))
+      chain({tag: 0}, overlay!.fiber, host('target', rect)),
+      chain(screen(false), hidden!.fiber, host('target', rect))
     )
   )
   assert.equal(runIn(root, 'target'), 'scrollView')
   assert.deepEqual([shown!.calls.length, hidden!.calls.length, overlay!.calls.length], [1, 0, 0])
+  // a sheet or overlay outside the navigator, when no screen has one
+  const [, hidden2, overlay2] = views()
+  const noFocused = parent({tag: 3}, chain(screen(false), hidden2!.fiber, host('target', rect)), chain({tag: 0}, overlay2!.fiber, host('target', rect)))
+  assert.equal(runIn(noFocused, 'target'), 'scrollView')
+  assert.deepEqual([hidden2!.calls.length, overlay2!.calls.length], [0, 1])
   const onlyHidden = parent({tag: 3}, chain(screen(false), {tag: 0}, host('target', rect)))
-  assert.throws(() => runIn(onlyHidden, 'target'), /no host view with testID target in the focused screen/)
+  assert.throws(() => runIn(onlyHidden, 'target'), /no host view with testID target in the focused screen or an overlay/)
+})
+
+test('the target lookup stops at the first focused match', () => {
+  const rect = {height: 10, left: 0, top: 0, width: 10}
+  // the target's next sibling, which a walk that went on past the target would read
+  const poisoned = {tag: 5} as Fiber
+  Object.defineProperty(poisoned, 'memoizedProps', {
+    get: () => {
+      throw new Error('walked past the first match')
+    },
+  })
+  const root = parent({tag: 3}, chain(screen(true), parent({tag: 0}, host('target', rect), poisoned)))
+  assert.equal(runScript(root, targetState('target')), 'inWindow')
+})
+
+test('targetState waits for a target, then says whether it draws in the window, clipped by what scrolls it', () => {
+  const at = (top: number) => ({height: 50, left: 0, top, width: 100})
+  assert.equal(runScript(parent({tag: 3}, chain(screen(false), host('target', at(10)))), targetState('target')), 'missing')
+  assert.equal(runScript(parent({tag: 3}, chain(screen(true), host('target', at(10)))), targetState('target')), 'inWindow')
+  assert.equal(runScript(parent({tag: 3}, chain(screen(true), host('target', at(900)))), targetState('target')), 'outside')
+  // below the fold of a scroll view that ends at 400, though inside the window
+  const list = {...host('list', {height: 400, left: 0, top: 0, width: 400}), type: 'RCTScrollView'}
+  assert.equal(runScript(parent({tag: 3}, chain(screen(true), list, host('target', at(500)))), targetState('target')), 'outside')
+})
+
+test('STILL_VIDEOS pauses every player held in hook state on its first frame', () => {
+  const player = () => ({currentTime: 5, pause() {
+    this.paused = true
+  }, paused: false, replace: () => {}})
+  const [a, b] = [player(), player()]
+  // useVideoPlayer's state, alone and as a [player, setter] pair, in two components' hook lists
+  const hooks = (v: unknown) => ({memoizedState: {memoizedState: v, next: null}, tag: 0})
+  const root = parent({tag: 3}, hooks(a) as Fiber, chain({tag: 0}, hooks([b, () => {}]) as Fiber))
+  assert.equal(runScript(root, STILL_VIDEOS), 2)
+  assert.deepEqual([a.paused, a.currentTime, b.paused, b.currentTime], [true, 0, true, 0])
 })
 
 // ---- typeIntoTarget, run against a fake fiber tree

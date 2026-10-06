@@ -1,13 +1,9 @@
-// Runtime half of the visual-gate coverage transform (babel-plugin.cjs): each wrapped Box2 /
-// ClickableBox call site records its mount here. Only bundled when KB_VISUAL_COVERAGE=1.
-import * as React from 'react'
-import {makeCoverage, type Coverage} from './registry'
+// Runtime half of the visual-gate coverage transform (babel-plugin.cjs): the wrapper of a Box2 /
+// ClickableBox call site. It draws its child and nothing else, and runs no hooks, so a coverage
+// build renders and lays out as a plain one; at each capture the driver finds the marks on the
+// fiber tree by the flag below and counts those drawn in the screenshot (visible.ts). Only bundled
+// when KB_VISUAL_COVERAGE=1.
+import type * as React from 'react'
 
-// kept on the global so a hot reload of this module keeps what was recorded
-const g = globalThis as {__kbVisualCoverage?: Coverage}
-const coverage = (g.__kbVisualCoverage ??= makeCoverage())
-
-export const KbSrcMark = ({id, children}: {id: string; children: React.ReactNode}): React.ReactNode => {
-  React.useLayoutEffect(() => coverage.mount(id), [id])
-  return children
-}
+export const KbSrcMark = ({children}: {id: string; children: React.ReactNode}): React.ReactNode => children
+Object.assign(KbSrcMark, {__kbVisualSrcMark: true})
