@@ -12,7 +12,7 @@ import path from 'node:path'
 import {builtinModules} from 'node:module'
 import {fileURLToPath} from 'node:url'
 import type {InlineConfig, Plugin} from 'vite'
-import {makeDefines, sharedResolve} from '../vite.config.mts'
+import {makeAlias, makeDefines, sharedResolve} from '../vite.config.mts'
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 const distDir = path.resolve(rootDir, 'desktop/dist')
@@ -73,7 +73,7 @@ export const makeNodeConfig = (
     define: makeDefines(isDev, isHot, isProfile, fileSuffix),
     resolve: {
       ...sharedResolve,
-      alias: [...extraAlias, ...sharedResolve.alias],
+      alias: [...extraAlias, ...makeAlias(isDev)],
       conditions: ['node', 'require', 'default'],
     },
     plugins: [emptyNativeFilesPlugin],
