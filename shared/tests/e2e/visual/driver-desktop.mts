@@ -101,6 +101,12 @@ export const waitForQuiet = async (what: string, ms: number, quietMs: number, id
   })
 }
 
+// Whether a capture waits at its tab root for the tab's own loads before going on: when it leaves
+// the root for another screen (append, thread), acts on it (setup), or installs a fixture, which
+// begins on an idle app. A capture of the tab root itself waits once it is ready, as every capture does.
+export const waitsAtTabRoot = (entry: Pick<TourEntry, 'nav' | 'setup' | 'fixture'>): boolean =>
+  !!(entry.nav.append || entry.nav.thread || entry.setup?.length || entry.fixture)
+
 export async function settle(
   snap: () => Promise<Buffer>,
   opts: {deadlineMs: number; intervalMs: number}
@@ -698,7 +704,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // The tab root's own loads finish before the entry navigates from it: a modal pushed at once
       // over a tab visited for the first time drew that tab still empty under it. A fixture is
       // installed on this idle app.
-      await waitForNoLoading(page)
+      if (waitsAtTabRoot(entry)) await waitForNoLoading(page)
       if (entry.fixture) {
         // every screen remounts so none keeps live data
         await fixture.begin()

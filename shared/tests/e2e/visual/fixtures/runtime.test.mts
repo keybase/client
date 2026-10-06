@@ -149,6 +149,22 @@ test('a write no rule answers is refused and reported; a stubbed write is answer
   }
 })
 
+test('a write leaving a screen makes is answered empty on the next tick, never sent, and not refused', async () => {
+  const h = harness({rpc: [], teardown: 'remount'})
+  try {
+    h.begin()
+    const v = call(h.rt, 'keybase.1.home.homeMarkViewed')
+    assert.deepEqual([v.handled, v.c.replied, v.c.sent], [true, false, false])
+    await new Promise(resolve => setTimeout(resolve, 0))
+    assert.deepEqual([v.c.replied, v.c.err, v.c.result, v.c.sent], [true, undefined, undefined, false])
+    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], failedTransforms: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
+    // with no fixture active it goes to the service as ever
+    assert.equal(call(h.rt, 'keybase.1.home.homeMarkViewed').handled, false)
+  } finally {
+    h.restore()
+  }
+})
+
 test('end answers stub replies still pending with an error and reports them; a live answer after end passes', async () => {
   let late: ((err: unknown, r: unknown) => void) | undefined
   const h = harness({

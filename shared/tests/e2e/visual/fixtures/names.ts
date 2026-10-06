@@ -35,6 +35,6 @@ export const FIXTURES = {
 export type FixtureName = keyof typeof FIXTURES
 
 // __kbVisualFixtures.version; a driver refuses an app whose runtime speaks another
-export const FIXTURE_RUNTIME_VERSION = 3
+export const FIXTURE_RUNTIME_VERSION = 4
 
 export const isFixtureName = (name: string): name is FixtureName => Object.prototype.hasOwnProperty.call(FIXTURES, name)
