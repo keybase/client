@@ -217,7 +217,7 @@ export const newModalRoutes = defineRouteMap({
   chatChooseEmoji: makeChatScreen(
     React.lazy(async () => import('./emoji-picker/container')),
     {
-      getOptions: {headerShown: false},
+      getOptions: {headerShown: false, modalSize: 'wide'},
     }
   ),
   chatConfirmNavigateExternal: makeChatScreen(
