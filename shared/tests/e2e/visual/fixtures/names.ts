@@ -10,6 +10,20 @@
 import * as T from '../../shared/test-ids.ts'
 
 export const FIXTURES = {
+  'chat-thread-content': {
+    files: ['chat-thread.ts'],
+    ready: [
+      T.CHAT_ADDED_TO_TEAM,
+      T.CHAT_AUDIO_PLAYER,
+      T.CHAT_COINFLIP,
+      T.CHAT_COINFLIP_PARTICIPANT_LIST,
+      T.CHAT_EXPLODING_HEADER,
+      T.CHAT_EXPLODING_META,
+      T.CHAT_JOURNEY_CARD,
+      T.CHAT_MAP_UNFURL,
+      T.CHAT_PAYMENT,
+    ],
+  },
   'device-last-used': {files: ['devices.ts'], ready: [T.DEVICES_ROW_LAST_USED, T.DEVICE_PAGE_LAST_USED]},
   'featured-bots': {files: ['bots.ts'], ready: [T.CHAT_BOT_ROW]},
   'people-follow-suggestions': {files: ['people.ts'], ready: [T.PEOPLE_FOLLOW_SUGGESTION]},

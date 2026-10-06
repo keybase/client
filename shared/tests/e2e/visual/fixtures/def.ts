@@ -2,7 +2,7 @@
 // runtime.ts runs them.
 import type * as T from '@/constants/types'
 
-type Messages = T.RPCGen.MessageTypes
+type Messages = T.RPCGen.MessageTypes & T.RPCChat.MessageTypes
 export type Method = keyof Messages
 export type InParam<M extends Method> = Messages[M]['inParam']
 export type OutParam<M extends Method> = Messages[M]['outParam']
@@ -50,6 +50,10 @@ export type FixtureDef = {
   incoming?: ReadonlyArray<{method: string; transform: (param: object, ctx: FixtureContext) => object}>
   // notifications delivered after the entry's ready state shows
   inject?: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>
+  // notifications delivered on the tick after each incoming call named `after` (what the service
+  // pushes once that data is in, like coin flip statuses after the thread: a later copy of the
+  // data replaces what they set), so a setup step can already reach what they draw
+  follow?: ReadonlyArray<{after: string; method: string; param: (ctx: FixtureContext) => object}>
   // drop the service's notifications while active (prompts that need an answer still pass)
   hold?: boolean
   stores?: ReadonlyArray<StoreKey>

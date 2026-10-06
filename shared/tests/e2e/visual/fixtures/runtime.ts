@@ -9,16 +9,18 @@
 //   end()              puts the stores back, drops the rules, and reports what leaked
 //   active()           whether a fixture is installed
 // While a fixture is active, an RPC whose name says it writes (post, set, send, delete, create, add,
-// remove) and that no rule answers is refused rather than sent, apart from the few local UI writes
-// navigation makes (localWrites).
+// remove, mark) and that no rule answers is refused rather than sent, apart from the few local UI
+// writes navigation makes (localWrites).
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
 import type {FixtureContext, FixtureDef, RpcRule, StoreApi, StoreKey, Stores} from './def.ts'
+import {chatThreadContent} from './chat-thread.ts'
 import {deviceLastUsed} from './devices.ts'
 import {featuredBots} from './bots.ts'
 import {peopleFollowSuggestions} from './people.ts'
 import {teamBuilderRecs} from './team-building.ts'
 
 export const definitions: Readonly<Record<FixtureName, FixtureDef>> = {
+  'chat-thread-content': chatThreadContent,
   'device-last-used': deviceLastUsed,
   'featured-bots': featuredBots,
   'people-follow-suggestions': peopleFollowSuggestions,
@@ -63,7 +65,7 @@ declare global {
   var __kbVisualFixtures: VisualFixtures | undefined
 }
 
-const writeWords = new Set(['post', 'set', 'send', 'delete', 'create', 'add', 'remove'])
+const writeWords = new Set(['post', 'set', 'send', 'delete', 'create', 'add', 'remove', 'mark'])
 
 // Writes the app makes on its own whenever it navigates, live entries included, that touch only
 // this device's UI state: they pass to the service while a fixture is active.
@@ -104,6 +106,7 @@ type Active = {
   pending: Map<ReturnType<typeof setTimeout>, {method: string; reply: OutgoingCall['reply']}>
   refused: Array<string>
   injecting: boolean
+  followTimers: Set<ReturnType<typeof setTimeout>>
 }
 
 export const createRuntime = (deps: {
@@ -116,10 +119,31 @@ export const createRuntime = (deps: {
 }) => {
   let cur: Active | undefined
 
+  const deliver = (a: Active, payloads: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>) => {
+    a.injecting = true
+    try {
+      for (const i of payloads) deps.inject({method: i.method, param: [i.param(a.ctx())]})
+    } finally {
+      a.injecting = false
+    }
+  }
+
+  // the def's follow-ups of an incoming call, on the next tick
+  const followUp = (a: Active, method: string) => {
+    const due = (a.def.follow ?? []).filter(f => f.after === method)
+    if (!due.length) return
+    const timer = setTimeout(() => {
+      a.followTimers.delete(timer)
+      if (cur === a) deliver(a, due)
+    }, 0)
+    a.followTimers.add(timer)
+  }
+
   const rpc: VisualRpc = {
     incoming: (payload, how) => {
       const a = cur
       if (!a || payload.response?.cancelled || how.customResponse || a.injecting) return payload
+      followUp(a, payload.method)
       const t = a.def.incoming?.find(r => r.method === payload.method)
       if (t) {
         const [first, ...rest] = payload.param
@@ -171,12 +195,7 @@ export const createRuntime = (deps: {
       const a = cur
       if (!a) throw new Error('afterReady with no fixture active')
       a.def.afterReady?.(deps.stores, a.ctx())
-      a.injecting = true
-      try {
-        for (const i of a.def.inject ?? []) deps.inject({method: i.method, param: [i.param(a.ctx())]})
-      } finally {
-        a.injecting = false
-      }
+      deliver(a, a.def.inject ?? [])
     },
     begin: (name, args) => {
       if (cur) throw new Error(`fixture ${cur.name} is still active`)
@@ -192,6 +211,7 @@ export const createRuntime = (deps: {
         answered: new Set(),
         ctx: () => ({args: frozenArgs, now: deps.now()}),
         def,
+        followTimers: new Set(),
         injecting: false,
         name,
         pending: new Map(),
@@ -206,6 +226,7 @@ export const createRuntime = (deps: {
       if (!a) throw new Error('end with no fixture active')
       cur = undefined
       deps.install(undefined)
+      for (const timer of a.followTimers) clearTimeout(timer)
       const cancelledReplies: Array<string> = []
       for (const [timer, p] of a.pending) {
         clearTimeout(timer)

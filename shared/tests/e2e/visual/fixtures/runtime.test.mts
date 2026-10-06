@@ -73,7 +73,7 @@ const call = (rt: ReturnType<typeof createRuntime>, method: string, param: unkno
 }
 
 test('a write is a write verb among the camel-case words of the method name', () => {
-  for (const m of ['keybase.1.teams.teamAddMember', 'keybase.1.SimpleFS.simpleFSRemove', 'chat.1.local.postTextNonblock', 'keybase.1.config.guiSetValue', 'keybase.1.user.setUserBlocks', 'keybase.1.teams.teamCreate', 'chat.1.local.deleteConversationLocal']) {
+  for (const m of ['keybase.1.teams.teamAddMember', 'keybase.1.SimpleFS.simpleFSRemove', 'chat.1.local.postTextNonblock', 'keybase.1.config.guiSetValue', 'keybase.1.user.setUserBlocks', 'keybase.1.teams.teamCreate', 'chat.1.local.deleteConversationLocal', 'chat.1.local.markAsReadLocal']) {
     assert.ok(isWriteMethod(m), m)
   }
   for (const m of ['keybase.1.user.loadMySettings', 'keybase.1.home.homeGetScreen', 'keybase.1.SimpleFS.simpleFSSettings', 'keybase.1.device.deviceHistoryList', 'keybase.1.user.getUserBlocks']) {
@@ -216,6 +216,33 @@ test('hold drops notifications but not session calls, answer prompts, cancels or
   }
 })
 
+test('a follow-up is delivered on the tick after each of its incoming calls, and never after end', async () => {
+  const h = harness({
+    follow: [{after: 'a.1.x.thread', method: 'a.1.x.status', param: ctx => ({at: ctx.now})}],
+    hold: true,
+    rpc: [],
+    teardown: 'remount',
+  })
+  try {
+    h.begin()
+    const thread = {method: 'a.1.x.thread', param: [{sessionID: 1}]}
+    h.rt.rpc.incoming(thread, {customResponse: false, inSession: true})
+    h.rt.rpc.incoming(thread, {customResponse: false, inSession: true})
+    assert.deepEqual(h.injected, [])
+    await tick()
+    // held notifications drop, but a follow-up passes
+    const status = {method: 'a.1.x.status', param: [{at: 1_000_000}]}
+    assert.deepEqual(h.injected, [status, status])
+    h.rt.fixtures.end()
+    h.begin()
+    h.rt.rpc.incoming(thread, {customResponse: false, inSession: true})
+    h.rt.fixtures.end()
+    await tick()
+    assert.equal(h.injected.length, 2)
+  } finally {
+    h.restore()
+  }
+})
 test('declared stores are put back: a store that existed gets its state, one made during the fixture goes', () => {
   const kept = store({recs: 'live'})
   const registry = new Map<StoreKey, StoreApi>([['tb:chat', kept]])
@@ -316,4 +343,29 @@ test('a beforeNav that throws leaves the hook installed with its fixture, for en
   } finally {
     h.restore()
   }
+})
+
+test("the chat thread fixture adds its messages after the thread's newest, in the synthetic ID range", async () => {
+  const {chatThreadContent} = await import('./chat-thread.ts')
+  const {SYNTHETIC_FIRST} = await import('./chat-thread.ts')
+  const image = {
+    state: 1,
+    valid: {
+      assetUrlInfo: {fullUrl: 'f', fullUrlCached: false, inlineVideoPlayable: false, mimeType: 'image/png', previewUrl: 'p'},
+      messageBody: {attachment: {object: {filename: 'a.png', metadata: {}}}, messageType: 2},
+      messageID: 7,
+    },
+  }
+  const ctx = {args: {bot: 'b', conversationIDKey: 'ab', secondUser: 'testuser-mac', teamname: 't', username: 'testuser'}, now: 1_000_000}
+  const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadFull')!.transform
+  const out = rewrite({sessionID: 1, thread: JSON.stringify({messages: [image], pagination: null})}, ctx) as {sessionID: number; thread: string}
+  const messages = (JSON.parse(out.thread) as {messages: Array<{state: number; valid?: {messageID: number}; journeycard?: {ordinal: number}}>}).messages
+  assert.equal(out.sessionID, 1)
+  const ids = messages.map(m => m.valid?.messageID ?? m.journeycard?.ordinal ?? 0)
+  assert.equal(ids.at(-1), 7)
+  assert.ok(ids.slice(0, -1).every(i => i >= SYNTHETIC_FIRST))
+  // newest first, as the service sends a thread
+  assert.deepEqual([...ids].sort((a, b) => b - a), ids)
+  const noImage = JSON.stringify({messages: [], pagination: null})
+  assert.equal((rewrite({thread: noImage}, ctx) as {thread: string}).thread, noImage)
 })

@@ -75,6 +75,23 @@ export const CHAT_REACTION_TOOLTIP    = 'chat-reaction-tooltip'
 // the pinned banner's close icon, only while it would ask before unpinning, and that prompt
 export const CHAT_PINNED_UNPIN        = 'chat-pinned-unpin'
 export const CHAT_UNPIN_PROMPT        = 'chat-unpin-prompt'
+// Message kinds the gate's chat-thread-content fixture supplies (tests/e2e/visual/fixtures)
+export const CHAT_ADDED_TO_TEAM       = 'chat-added-to-team'
+export const CHAT_AUDIO_PLAYER        = 'chat-audio-player'
+export const CHAT_MAP_UNFURL          = 'chat-map-unfurl'
+export const CHAT_UNFURL_PROMPT       = 'chat-unfurl-prompt'
+export const CHAT_PAYMENT             = 'chat-payment'
+export const CHAT_JOURNEY_CARD        = 'chat-journey-card'
+export const CHAT_EXPLODING_META      = 'chat-exploding-meta'
+// the exploding message's header in its message menu
+export const CHAT_EXPLODING_HEADER    = 'chat-exploding-header'
+export const CHAT_COINFLIP            = 'chat-coinflip'
+// a finished flip's participant count (desktop: hovering it lists them) and that list
+export const CHAT_COINFLIP_PARTICIPANTS = 'chat-coinflip-participants'
+export const CHAT_COINFLIP_PARTICIPANT_LIST = 'chat-coinflip-participant-list'
+// the composer's typing indicator, and the unread line above the first unread message
+export const CHAT_TYPING              = 'chat-typing'
+export const CHAT_ORANGE_LINE         = 'chat-orange-line'
 // the emoji picker's skin tone button, and the tones it expands to
 export const CHAT_SKIN_TONE_BUTTON    = 'chat-skin-tone-button'
 export const CHAT_SKIN_TONE_OPTIONS   = 'chat-skin-tone-options'
