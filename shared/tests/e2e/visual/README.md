@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 157 desktop entries and 146 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 164 desktop entries and 152 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -191,9 +191,28 @@ change with `--compare <baseline dir>`.
 - **Unread conversations.** Opening an unread conversation marks it read, so `base`, `check`,
   `gate` and `aa` refuse before capturing when the seal shows a conversation the tour opens as
   unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun.
-- **Read-only.** The tour only navigates, switches sub-tabs, opens popups and hovers. Nothing is
-  sent, saved, toggled or confirmed, and every CLI call is read-only. Under a fixture, a write the
-  app attempts is refused and fails the capture.
+- **Read-only.** The tour only navigates, switches sub-tabs, opens popups, hovers, and presses or
+  types into controls that change nothing but the screen in front of it. Nothing is sent, saved,
+  toggled or confirmed, and every CLI call is read-only. Under a fixture, a write the app attempts
+  is refused and fails the capture.
+
+## Setup steps
+
+An entry's `setup` runs after navigation, in order: `openPopup` and `switchSubTab` (a click),
+`scrollIntoView`, `hover` (desktop), `click`, `type` and `searchThread`.
+
+- `click` presses only a control in `CLICK_TARGETS` (`tour-types.ts`), and `type` types only into
+  an input in `TYPE_TARGETS`: each is listed with what it does, and was checked to change only the
+  screen's own state (expand the skin tones, select a member, add an unsaved new folder row and
+  name it). Never add a send, save, create, confirm or delete control, or an input whose typing
+  reaches the server (the chat composer saves a draft and sends typing notifications).
+- `type` never submits. Its text may hold no line break, and its `enter` is allowed only for an
+  input in `ENTER_TARGETS`, whose Enter stays local (thread search's field). `yarn visual:unit`
+  checks all of this (`validateEntry`). Desktop fills the input; iOS calls the input's own
+  `onChangeText`, since XCUITest's typing into a field that selects its text on focus loses
+  characters.
+- `searchThread` opens the open conversation's thread search on a query by setting its route
+  param, as the header's search button does, and so needs `nav.thread`.
 
 ## Known exclusions
 

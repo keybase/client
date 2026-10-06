@@ -88,6 +88,11 @@ test('the second user resolves from the environment without the CLI', async () =
   assert.deepEqual((await resolveParams(nav, run)).append?.params, {u: 'testuser-mac'})
   assert.deepEqual(calls, [])
 })
+test("the second user's private folder resolves from the environment", async () => {
+  process.env['KB_SECOND_USER'] = 'testuser-mac'
+  const nav = {tab: 't', append: {name: 'x', params: {path: {ref: 'otherPrivateFolder' as const}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {path: '/keybase/private/testuser-mac'})
+})
 test('a missing second user fails loudly', async () => {
   const saved = process.env['KB_SECOND_USER']
   delete process.env['KB_SECOND_USER']

@@ -7,6 +7,7 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {chromium, type Browser, type BrowserContext, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
+import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
@@ -125,7 +126,8 @@ type Router = {
   navigateAppend: (p: {name: string; params?: object}) => boolean
   getTab: () => string | undefined
   navigateToThread: (conversationIDKey: string, reason: string) => void
-  setChatRootParams: (p: {infoPanel?: undefined}) => boolean
+  setChatRootParams: (p: {conversationIDKey?: string; infoPanel?: undefined; threadSearch?: {query: string} | undefined}) => boolean
+  getVisibleScreen: () => {params?: {conversationIDKey?: string}} | undefined
 }
 type NavState = {routes?: Array<{name: string; state?: NavState}>}
 type DarkStore = {
@@ -200,14 +202,14 @@ const routerAt = async (page: Page) =>
     'reading the router state'
   )
 
-const routerCall = async (page: Page, step: 'clearModals' | 'switchTab' | 'popStack' | 'closeInfoPanel', tab = '') =>
+const routerCall = async (page: Page, step: 'clearModals' | 'switchTab' | 'popStack' | 'closeChatRootPanels', tab = '') =>
   withDeadline(
     page.evaluate(
       ([s, t]) => {
         const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
         if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
         if (s === 'switchTab') r.switchTab(t)
-        else if (s === 'closeInfoPanel') r.setChatRootParams({infoPanel: undefined})
+        else if (s === 'closeChatRootPanels') r.setChatRootParams({infoPanel: undefined, threadSearch: undefined})
         else r[s]()
       },
       [step, tab] as const
@@ -224,9 +226,10 @@ const resetTo = async (page: Page, tab: string) => {
   await waitFor(`tab ${tab} to be current`, RESET_MS, async () => (await routerAt(page)).tab === tab)
   await routerCall(page, 'popStack')
   await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt(page)).atRoot)
-  // The info panel is a param of the chat root, which navigateToThread merges into rather than
-  // replaces, so an entry that opened it would leave it open for every conversation after it.
-  if (tab === CHAT_TAB) await routerCall(page, 'closeInfoPanel')
+  // The info panel and thread search are params of the chat root, which navigateToThread merges
+  // into rather than replaces, so an entry that opened one would leave it open for every
+  // conversation after it.
+  if (tab === CHAT_TAB) await routerCall(page, 'closeChatRootPanels')
 }
 
 // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
@@ -269,12 +272,37 @@ const fixtureHooks = (page: Page): FixtureHooks => ({
 })
 
 const runStep = async (page: Page, s: SetupStep) => {
+  if (s.kind === 'searchThread') {
+    // the conversation must be up first: its search param on a chat root still loading the
+    // conversation throws in the thread (no ConversationThreadProvider yet)
+    await page.getByTestId(CHAT_MESSAGE_LIST).locator('visible=true').first().waitFor({state: 'visible', timeout: SETUP_MS})
+    const ok = await withDeadline(
+      page.evaluate(query => {
+        const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
+        if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
+        const conversationIDKey = r.getVisibleScreen()?.params?.conversationIDKey
+        return !!conversationIDKey && r.setChatRootParams({conversationIDKey, threadSearch: {query}})
+      }, s.query),
+      EVAL_MS,
+      'opening thread search'
+    )
+    if (!ok) throw new Error('searchThread: no open conversation to search')
+    return
+  }
   const target = page.getByTestId(s.testID).locator('visible=true').first()
   switch (s.kind) {
     case 'openPopup':
     case 'switchSubTab':
+    case 'click':
       await target.click({timeout: SETUP_MS})
       return
+    case 'type': {
+      // the testID marks the input or a box holding it
+      const input = target.locator('css=input, textarea').or(target.and(page.locator('css=input, textarea'))).first()
+      await input.fill(s.text, {timeout: SETUP_MS})
+      if (s.enter) await input.press('Enter', {timeout: SETUP_MS})
+      return
+    }
     case 'scrollIntoView':
       await target.scrollIntoViewIfNeeded({timeout: SETUP_MS})
       return

@@ -13,8 +13,26 @@ const base: TourEntry = {
 }
 
 test('unknown setup kind is refused', () => {
-  const bad = {...base, setup: [{kind: 'click', testID: 'save'}]} as unknown as TourEntry
-  assert.match(validateEntry(bad).join(), /setup step 'click' is not allowed/)
+  const bad = {...base, setup: [{kind: 'drag', testID: 'a'}]} as unknown as TourEntry
+  assert.match(validateEntry(bad).join(), /setup step 'drag' is not allowed/)
+})
+test('a click only presses a listed local control', () => {
+  assert.deepEqual(validateEntry({...base, setup: [{kind: 'click', testID: T.TEAMS_MEMBER_CHECK}]}), [])
+  assert.match(validateEntry({...base, setup: [{kind: 'click', testID: T.CHAT_SEND_BUTTON}]}).join(), /not in CLICK_TARGETS/)
+})
+test('a type step types into a listed input and presses Enter only where Enter stays local', () => {
+  const step = (s: {testID: string; text: string; enter?: true}) => ({...base, setup: [{kind: 'type' as const, ...s}]})
+  assert.deepEqual(validateEntry(step({testID: T.FILES_EDITING_ROW, text: 'visual'})), [])
+  assert.deepEqual(validateEntry(step({enter: true, testID: T.CHAT_THREAD_SEARCH_INPUT, text: 'x'})), [])
+  assert.match(validateEntry(step({testID: T.CHAT_INPUT, text: 'hi'})).join(), /not in TYPE_TARGETS/)
+  assert.match(validateEntry(step({enter: true, testID: T.FILES_EDITING_ROW, text: 'x'})).join(), /not in ENTER_TARGETS/)
+  assert.match(validateEntry(step({testID: T.FILES_EDITING_ROW, text: 'x\n'})).join(), /line break/)
+})
+test('searchThread needs a query and an open conversation', () => {
+  const thread = {tab: 't', thread: {ref: 'conversationIDKey'}} as const
+  assert.deepEqual(validateEntry({...base, nav: thread, setup: [{kind: 'searchThread', query: 'q'}]}), [])
+  assert.match(validateEntry({...base, setup: [{kind: 'searchThread', query: 'q'}]}).join(), /needs a conversation/)
+  assert.match(validateEntry({...base, nav: thread, setup: [{kind: 'searchThread', query: ''}]}).join(), /needs a query/)
 })
 test('hover on phone is refused', () => {
   const bad: TourEntry = {...base, platforms: ['phone'], setup: [{kind: 'hover', testID: 'a'}]}

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -162,4 +162,29 @@ test('scrollToTarget centres a view in a ScrollView by its offset in the content
 test('scrollToTarget leaves a view in neither a row nor a ScrollView to the caller, and throws for a missing one', () => {
   assert.equal(runIn(chain({tag: 3}, {tag: 0}, host('target', {height: 1, left: 0, top: 0, width: 1})), 'target'), 'none')
   assert.throws(() => runIn(chain({tag: 3}), 'target'), /no host view with testID target/)
+})
+
+// ---- typeIntoTarget, run against a fake fiber tree
+
+test('typeIntoTarget calls the onChangeText of the input under the testID, and Enter only when asked', () => {
+  const typed: Array<string> = []
+  const submitted: Array<string> = []
+  const input: Fiber = {
+    memoizedProps: {onChangeText: (t: string) => typed.push(t), onSubmitEditing: (e: {nativeEvent: {text: string}}) => submitted.push(e.nativeEvent.text)},
+    tag: 5,
+  }
+  const other: Fiber = {memoizedProps: {onChangeText: () => typed.push('wrong')}, tag: 5}
+  const row = chain({memoizedProps: {testID: 'row'}, tag: 5}, {tag: 0}, input)
+  const root = chain({tag: 3}, row)
+  row.sibling = other
+  const run = (enter: boolean) => {
+    const hook = {getFiberRoots: () => [{current: root}], renderers: new Map([[1, {}]])}
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const body = new Function('globalThis', typeIntoTarget('row', 'visual gate', enter)) as (g: object) => void
+    body({__REACT_DEVTOOLS_GLOBAL_HOOK__: hook})
+  }
+  run(false)
+  assert.deepEqual([typed, submitted], [['visual gate'], []])
+  run(true)
+  assert.deepEqual([typed, submitted], [['visual gate', 'visual gate'], ['visual gate']])
 })
