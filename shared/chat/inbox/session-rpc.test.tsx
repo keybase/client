@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {RPCError} from '@/util/errors'
+import {ensureError, RPCError} from '@/util/errors'
 import {withChatSessionRetry} from './session-rpc'
 
 beforeEach(() => {
@@ -13,8 +13,9 @@ beforeEach(() => {
 
 afterEach(() => {
   resetAllStores()
-  jest.useRealTimers()
 })
+
+const loginRequired = () => new RPCError('chat session not ready', T.RPCGen.StatusCode.scloginrequired)
 
 test('returns the first success', async () => {
   const run = jest.fn().mockResolvedValue('ok')
@@ -29,49 +30,27 @@ test('gives up when the username is empty', async () => {
   expect(run).not.toHaveBeenCalled()
 })
 
-test('retries login-required while still logged in', async () => {
-  jest.useFakeTimers()
-  const run = jest
-    .fn()
-    .mockRejectedValueOnce(new RPCError('chat session not ready', T.RPCGen.StatusCode.scloginrequired))
-    .mockResolvedValueOnce('ok')
-
-  const pending = withChatSessionRetry(run)
-  await jest.advanceTimersByTimeAsync(250)
-  await expect(pending).resolves.toBe('ok')
-  expect(run).toHaveBeenCalledTimes(2)
+test('gives up when the chat session is not ready', async () => {
+  useConfigState.setState({loggedIn: true, userSwitching: true})
+  const run = jest.fn().mockResolvedValue('ok')
+  await expect(withChatSessionRetry(run)).resolves.toBeUndefined()
+  expect(run).not.toHaveBeenCalled()
 })
 
-test('does not retry other errors', async () => {
+// The engine has already tried it again
+test('a login-required failure is nothing loaded, and is not tried again here', async () => {
+  const run = jest.fn().mockRejectedValue(loginRequired())
+  await expect(withChatSessionRetry(run)).resolves.toBeUndefined()
+  expect(run).toHaveBeenCalledTimes(1)
+})
+
+test("a login-required failure from a listener's call is nothing loaded too", async () => {
+  const run = jest.fn().mockRejectedValue(ensureError(loginRequired()))
+  await expect(withChatSessionRetry(run)).resolves.toBeUndefined()
+})
+
+test('other errors reach the caller', async () => {
   const run = jest.fn().mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
   await expect(withChatSessionRetry(run)).rejects.toMatchObject({code: T.RPCGen.StatusCode.scgeneric})
-  expect(run).toHaveBeenCalledTimes(1)
-})
-
-test('gives up when the chat session is no longer ready', async () => {
-  jest.useFakeTimers()
-  const run = jest
-    .fn()
-    .mockRejectedValue(new RPCError('chat session not ready', T.RPCGen.StatusCode.scloginrequired))
-
-  const pending = withChatSessionRetry(run)
-  await Promise.resolve()
-  useConfigState.setState({loggedIn: true, userSwitching: true})
-  await jest.advanceTimersByTimeAsync(250)
-  await expect(pending).resolves.toBeUndefined()
-  expect(run).toHaveBeenCalledTimes(1)
-})
-
-test('gives up when the username changes during retry', async () => {
-  jest.useFakeTimers()
-  const run = jest
-    .fn()
-    .mockRejectedValue(new RPCError('chat session not ready', T.RPCGen.StatusCode.scloginrequired))
-
-  const pending = withChatSessionRetry(run)
-  await Promise.resolve()
-  useCurrentUserState.setState({username: 'otheruser'})
-  await jest.advanceTimersByTimeAsync(250)
-  await expect(pending).resolves.toBeUndefined()
   expect(run).toHaveBeenCalledTimes(1)
 })

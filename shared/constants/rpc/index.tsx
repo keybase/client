@@ -210,6 +210,7 @@ export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([
 // purpose, or belong to the process or the connection. An account change does not cancel
 // them, and their replies are not refused. Marked survivesAccountChange in enabled-calls.json.
 export const survivesAccountChangeMethods: ReadonlySet<string> = new Set<string>([
+  'chat.1.local.getStaticConfig',
   'keybase.1.account.cancelReset',
   'keybase.1.account.enterResetPipeline',
   'keybase.1.config.appendGUILogs',

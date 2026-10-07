@@ -17,7 +17,11 @@ import {
   niceError,
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
-import { startNewAccountGeneration } from "@/engine/account-generation";
+import {
+  setAccountLoggedIn,
+  setAccountSwitching,
+  startNewAccountGeneration,
+} from "@/engine/account-generation";
 import { disposeDialogsForLogout } from "@/engine/dialog";
 import { invalidPasswordErrorString } from "@/constants/config";
 import { navigateAppendOnceRootHas } from "@/constants/router";
@@ -510,6 +514,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     },
     resetState: (isDebug) => {
       if (isDebug) return;
+      setAccountLoggedIn(false);
       set((s) => ({
         ...initialStore,
         chatBuiltinCommands: s.chatBuiltinCommands,
@@ -606,6 +611,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         startNewAccountGeneration();
         disposeDialogsForLogout();
       }
+      setAccountLoggedIn(loggedIn);
       set((s) => {
         s.loggedIn = loggedIn;
       });
@@ -659,11 +665,16 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         if (fromLoggedIn) {
           startNewAccountGeneration();
         }
+        // Account-scoped calls made from here on wait for the switch to end: until then the service
+        // may still have the old account
+        setAccountSwitching(true);
         disposeDialogsForLogout();
         Z.resetAllStores();
         if (hasCallPort()) {
           getCallPort().cancelOutstandingSessions();
         }
+      } else if (!sw) {
+        setAccountSwitching(false);
       }
     },
     switchToAccount: (username) => {

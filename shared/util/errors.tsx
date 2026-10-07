@@ -87,6 +87,8 @@ export const isCancelled = (error: unknown, ...reasons: ReadonlyArray<CancelReas
 // echo of the client's own refusal). A lost link is not one: the call did not happen.
 export const isQuietCancel = (error: unknown) => isCancelled(error) && !isCancelled(error, 'disconnect')
 
+export const isLoginRequired = (error: unknown) => errorKind(error)?.type === 'loginRequired'
+
 export function logError(error: unknown) {
   logger.info(`logError: ${JSON.stringify(error)}`)
 }

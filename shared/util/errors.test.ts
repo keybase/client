@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {convertToError, ensureError, errorKind, isCancelled, isQuietCancel, RPCError} from './errors'
+import {convertToError, ensureError, errorKind, isCancelled, isLoginRequired, isQuietCancel, RPCError} from './errors'
 
 const S = T.RPCGen.StatusCode
 
@@ -8,7 +8,7 @@ describe("an error the service sent reads by its code", () => {
   test.each([
     ['sccanceled', S.sccanceled, {reason: 'service', type: 'cancelled'}],
     ['scinputcanceled', S.scinputcanceled, {reason: 'service', type: 'cancelled'}],
-    ['scloginrequired', S.scloginrequired, {type: 'service'}],
+    ['scloginrequired', S.scloginrequired, {type: 'loginRequired'}],
     ['sctimeout', S.sctimeout, {type: 'service'}],
     ['scassertionparseerror (101, the EOF code)', S.scassertionparseerror, {type: 'service'}],
     ['scgeneric', S.scgeneric, {type: 'service'}],
@@ -63,4 +63,12 @@ test.each([
   ['a plain Error', new Error('boom')],
 ])('isQuietCancel: %s is not a cancel', (_, e) => {
   expect(isQuietCancel(e)).toBe(false)
+})
+
+test('login-required reads by its kind, also on the Error a listener wraps it in', () => {
+  const e = new RPCError('login required', S.scloginrequired)
+  expect(isLoginRequired(e)).toBe(true)
+  expect(isLoginRequired(ensureError(e))).toBe(true)
+  expect(isLoginRequired(new RPCError('x', S.scgeneric))).toBe(false)
+  expect(isLoginRequired(new Error('boom'))).toBe(false)
 })
