@@ -275,6 +275,17 @@ describe('telling errors apart', () => {
     uninstallFakeEngine()
   })
 
+  test('a call that survives an account change is not cancelled when a switch starts', async () => {
+    const fake = installFakeEngine()
+    const held = fake.hold('keybase.1.login.getConfiguredAccounts')
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const p = T.RPCGen.loginGetConfiguredAccountsRpcPromise()
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    held[0]!.reply([])
+    await expect(p).resolves.toEqual([])
+    uninstallFakeEngine()
+  })
+
   test("the service's assertion-parse error (code 101) is not read as a lost link", async () => {
     const fake = installFakeEngine()
     fake.answer('keybase.1.config.getBootstrapStatus', () =>

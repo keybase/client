@@ -195,7 +195,16 @@ describe('a listener', () => {
   test('an account switch stops waiting', async () => {
     const fake = installFakeEngine()
     useConfigState.getState().dispatch.setLoggedIn(true)
-    const {ended, held} = await startListener(fake)
+    // A device add belongs to the account, unlike a recovery
+    const held = fake.hold('keybase.1.device.deviceAdd')
+    const ended = T.RPCGen.deviceDeviceAddRpcListener({
+      params: undefined,
+      customResponseIncomingCallMap: {},
+      incomingCallMap: {},
+      waitingKey,
+    }).catch((e: unknown) => e)
+    await tick()
+    expect(count(fake)).toBe(1)
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
     await ended
     expect(count(fake)).toBe(0)

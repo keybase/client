@@ -4,10 +4,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import colors from 'colors'
-import {customResponseError, isMustAnswer, isOneway} from './message-flags.ts'
+import {customResponseError, enabledCallErrors, isMustAnswer, isOneway} from './message-flags.ts'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
-type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
+type EnabledCalls = Record<string, Partial<Record<EnabledCallType | 'survivesAccountChange', boolean>>>
 type EnumMap = Record<string, number>
 type IncomingMap = Record<string, string>
 type SeenTypes = Record<string, boolean>
@@ -158,14 +158,15 @@ const primitiveTypeMap: Record<string, string> = {
 }
 
 // Sanity check this json file
-Object.entries(enabledCalls).forEach(([rpc, callTypes]) =>
-  Object.keys(callTypes).forEach(type => {
-    if (!['promise', 'incoming', 'engineListener', 'custom'].includes(type)) {
-      console.log(colors.red('ERROR! Invalid enabled call?\n\n '), rpc, type)
-      process.exit(1)
-    }
-  })
-)
+const enabledCallsErrors = Object.entries(enabledCalls).flatMap(([rpc, flags]) => enabledCallErrors(rpc, flags))
+if (enabledCallsErrors.length) {
+  enabledCallsErrors.forEach(e => console.log(colors.red(e)))
+  process.exit(1)
+}
+// Quoted method names, as they appear in the generated code
+const survivesAccountChangeMethods = Object.entries(enabledCalls)
+  .filter(([, flags]) => flags.survivesAccountChange)
+  .map(([rpc]) => `'${rpc}'`)
 
 const projects: Record<ProjectKey, ProjectState> = {
   chat1: {
@@ -606,10 +607,11 @@ function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
   const actionSpec = usedProjects
     .map(projectKey => `${renderActionTypeName(projectKey)}Map<${renderActionTypeName(projectKey)}>`)
     .join(' &\n  ')
-  const mustAnswer = [...mustAnswerMethods]
-    .sort()
-    .map(m => `\n  ${m},`)
-    .join('')
+  const listed = (methods: ReadonlyArray<string>) =>
+    [...methods]
+      .sort()
+      .map(m => `\n  ${m},`)
+      .join('')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 ${prelude.join('\n')}
@@ -635,7 +637,13 @@ export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly para
 
 // Custom calls that return a value: with no session and no registered answerer the engine answers
 // them with an error, since an empty result would be read as a real answer.
-export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([${mustAnswer}
+export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([${listed(mustAnswerMethods)}
+])
+
+// Calls the GUI makes whose answer outlives the logged-in account: they change the account on
+// purpose, or belong to the process or the connection. An account change does not cancel
+// them, and their replies are not refused. Marked survivesAccountChange in enabled-calls.json.
+export const survivesAccountChangeMethods: ReadonlySet<string> = new Set<string>([${listed(survivesAccountChangeMethods)}
 ])
 `
 }

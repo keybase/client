@@ -522,31 +522,30 @@ describe('logout', () => {
 
   test('the config store disposes non-surviving dialogs when an account switch starts', async () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
-    const {dialog: recover, fake} = await startRecover()
+    const {dialog: recover, fake, held} = await startRecover()
     const pgp = startPgp(fake)
     await tick()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
     expect(pgp.disposed).toBe(true)
-    // The switch cancels every outstanding session, so the surviving dialog ends without disposing
-    expect(recover.disposed).toBe(false)
-    await expect(settledError(recover.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
     await settledError(pgp.done)
+    // The recovery outlives the account, so the switch neither disposes nor cancels it
+    expect(recover.disposed).toBe(false)
+    held[0]!.reply(undefined)
+    await expect(recover.done).resolves.toBeUndefined()
   })
 
-  test('an account switch refuses the prompts of a dialog it does not dispose', async () => {
+  test('an account switch leaves the prompts of a dialog that survives it open', async () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
-    const {dialog, fake, sessionID} = await startRecover()
+    const {dialog, fake, held, sessionID} = await startRecover()
     const it = dialog.events[Symbol.asyncIterator]()
     const pushed = fake.push(choose, {devices}, {sessionID})
     const e = await nextEvent(it)
-    if (e.kind !== 'prompt') throw new Error('expected a prompt')
+    if (e.kind !== 'prompt' || e.method !== choose) throw new Error('expected the choose prompt')
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
-    await expect(pushed).resolves.toEqual({error: inputCanceled})
-    expect(e.open).toBe(false)
-    await expect(settledError(dialog.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
-    await expect(fake.push(pinentry, {pinentry: {}, terminal: null}, {sessionID})).resolves.toEqual({
-      error: inputCanceled,
-    })
+    expect(e.answer('d1')).toBe(true)
+    await expect(pushed).resolves.toEqual({result: 'd1'})
+    held[0]!.reply(undefined)
+    await expect(dialog.done).resolves.toBeUndefined()
   })
 
   test('a dialog whose RPC already ended is not disposed', async () => {

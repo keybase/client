@@ -126,7 +126,17 @@ test('an account switch rejects the caller at once and refuses late prompts unti
   const answered = registerPinentry()
   const onEngineIncoming = jest.fn()
   useConfigState.getState().dispatch.setLoggedIn(true)
-  const {ended, fake, held, sessionID} = await start(onEngineIncoming)
+  // A device add belongs to the account, unlike a recovery
+  const fake = installFakeEngine({onEngineIncoming})
+  const held = fake.hold('keybase.1.device.deviceAdd')
+  const ended = T.RPCGen.deviceDeviceAddRpcListener({
+    params: undefined,
+    customResponseIncomingCallMap: {},
+    globalFallthrough: ['keybase.1.secretUi.'],
+    incomingCallMap: {},
+  }).catch((e: unknown) => e)
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
   await expect(ended).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
   await expect(fake.push(pinentry, {pinentry: {}, terminal: null}, {sessionID})).resolves.toEqual({

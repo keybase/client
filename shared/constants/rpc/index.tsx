@@ -205,3 +205,33 @@ export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([
   'keybase.1.teamsUi.confirmRootTeamDelete',
   'keybase.1.teamsUi.confirmSubteamDelete',
 ])
+
+// Calls the GUI makes whose answer outlives the logged-in account: they change the account on
+// purpose, or belong to the process or the connection. An account change does not cancel
+// them, and their replies are not refused. Marked survivesAccountChange in enabled-calls.json.
+export const survivesAccountChangeMethods: ReadonlySet<string> = new Set<string>([
+  'keybase.1.account.cancelReset',
+  'keybase.1.account.enterResetPipeline',
+  'keybase.1.config.appendGUILogs',
+  'keybase.1.config.getBootstrapStatus',
+  'keybase.1.config.guiGetValue',
+  'keybase.1.config.guiSetValue',
+  'keybase.1.config.helloIAm',
+  'keybase.1.config.logSend',
+  'keybase.1.config.waitForClient',
+  'keybase.1.delegateUiCtl.registerChatUI',
+  'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+  'keybase.1.delegateUiCtl.registerHomeUI',
+  'keybase.1.delegateUiCtl.registerIdentify3UI',
+  'keybase.1.delegateUiCtl.registerLogUI',
+  'keybase.1.delegateUiCtl.registerRekeyUI',
+  'keybase.1.delegateUiCtl.registerSecretUI',
+  'keybase.1.login.accountDelete',
+  'keybase.1.login.deprovision',
+  'keybase.1.login.getConfiguredAccounts',
+  'keybase.1.login.login',
+  'keybase.1.login.logout',
+  'keybase.1.login.recoverPassphrase',
+  'keybase.1.notifyCtl.setNotifications',
+  'keybase.1.signup.signup',
+])
