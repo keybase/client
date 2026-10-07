@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {produce} from 'immer'
 import {RPCError} from '@/util/errors'
+import {openDialog, type Dialog} from '@/engine/dialog'
 import Modal from '@/profile/modal'
 import * as Validators from '@/util/simple-validators'
 
@@ -30,11 +31,8 @@ export const validatePgpInfo = (info: GeneratePgpArgs) => {
   }
 }
 
-type Step =
-  | {kind: 'choice'}
-  | {kind: 'info'}
-  | {kind: 'generate'}
-  | {kind: 'finished'; pgpKeyString: string; promptShouldStoreKeyOnServer: boolean}
+type FinishedStep = {kind: 'finished'; pgpKeyString: string; promptShouldStoreKeyOnServer: boolean}
+type Step = {kind: 'choice'} | {kind: 'info'} | {kind: 'generate'} | FinishedStep
 
 const makeInitialForm = (): GeneratePgpArgs => ({
   pgpEmail1: '',
@@ -43,70 +41,56 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
-export const generatePgp = async (
-  args: GeneratePgpArgs,
-  mountedRef: React.RefObject<boolean>,
-  cancelCurrentRef: React.RefObject<undefined | (() => void)>,
-  finishCurrentRef: React.RefObject<undefined | ((shouldStoreKeyOnServer: boolean) => void)>,
-  setStepSafe: (next: Step) => void
-) => {
-  let canceled = false
+const pushPrivate = 'keybase.1.pgpUi.shouldPushPrivate'
+
+export type PgpDialog = Dialog<void, typeof pushPrivate, 'keybase.1.pgpUi.finished'>
+
+// onFinished shows the key; the finished step answers the dialog's shouldPushPrivate prompt with
+// whether to store it on the server
+export const generatePgp = (args: GeneratePgpArgs, onFinished: (next: FinishedStep) => void) => {
   let pgpKeyString = 'Error getting public key...'
-  const inputCancelError = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
   const ids = [args.pgpEmail1, args.pgpEmail2, args.pgpEmail3].filter(Boolean).map(email => ({
     comment: '',
     email,
     username: args.pgpFullName,
   }))
-
-  cancelCurrentRef.current = () => {
-    canceled = true
-  }
-
-  try {
-    await T.RPCGen.pgpPgpKeyGenDefaultRpcListener({
-      customResponseIncomingCallMap: {
-        'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
-          if (canceled || !mountedRef.current) {
-            response.error(inputCancelError)
-            return
-          }
+  const dialog: PgpDialog = openDialog(
+    'keybase.1.pgp.pgpKeyGenDefault',
+    {createUids: {ids, useDefault: false}},
+    {
+      autoAnswer: {
+        'keybase.1.pgpUi.keyGenerated': ({key}) => {
           pgpKeyString = key.key
-          response.result()
-        },
-        'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-          if (canceled || !mountedRef.current) {
-            response.error(inputCancelError)
-            return
-          }
-          cancelCurrentRef.current = () => {
-            canceled = true
-            response.error(inputCancelError)
-          }
-          finishCurrentRef.current = (shouldStoreKeyOnServer: boolean) => {
-            finishCurrentRef.current = undefined
-            response.result(shouldStoreKeyOnServer)
-          }
-          setStepSafe({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: prompt})
         },
       },
       // The service logs key generation progress; the global handler writes it to the log. Storing the
       // key on the server can need the password, which desktop pinentry answers globally.
       globalFallthrough: ['keybase.1.logUi.log', 'keybase.1.secretUi.getPassphrase'],
-      incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
-      params: {createUids: {ids, useDefault: false}},
-    })
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+      notices: ['keybase.1.pgpUi.finished'],
+      prompts: [pushPrivate],
     }
-    if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
-      throw error
+  )
+  const showPrompts = async () => {
+    for await (const e of dialog.events) {
+      // A dispose between the dequeue and here closed it
+      if (e.kind === 'prompt' && e.open) {
+        onFinished({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: e.params.prompt})
+      }
     }
-  } finally {
-    cancelCurrentRef.current = undefined
-    finishCurrentRef.current = undefined
   }
+  const run = async () => {
+    try {
+      await Promise.all([showPrompts(), dialog.done])
+    } catch (error) {
+      if (dialog.disposed || !(error instanceof RPCError)) {
+        return
+      }
+      if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
+        throw error
+      }
+    }
+  }
+  return {dialog, finished: run()}
 }
 
 export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
@@ -123,46 +107,34 @@ export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
 export default function Choice() {
   const styles = useStyles()
   const {clearModals, navigateAppend, navigateUp} = C.Router2
-  const mountedRef = React.useRef(true)
-  const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
-  const finishCurrentRef = React.useRef<undefined | ((shouldStoreKeyOnServer: boolean) => void)>(undefined)
+  const dialogRef = React.useRef<PgpDialog | undefined>(undefined)
   const [form, setForm] = React.useState(makeInitialForm)
   const [step, setStep] = React.useState<Step>({kind: 'choice'})
 
-  React.useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-      const cancel = cancelCurrentRef.current
-      cancelCurrentRef.current = undefined
-      finishCurrentRef.current = undefined
-      cancel?.()
-    }
-  }, [])
+  React.useEffect(
+    () => () => {
+      dialogRef.current?.dispose()
+    },
+    []
+  )
 
   if (isMobile) {
     return <PgpMobileUnsupported onCancel={() => navigateUp()} />
   }
 
-  const setStepSafe = (next: Step) => {
-    if (mountedRef.current) {
-      setStep(next)
-    }
-  }
-
   const onCancel = () => {
     if (step.kind === 'info') {
-      setStepSafe({kind: 'choice'})
+      setStep({kind: 'choice'})
       return
     }
     if (step.kind === 'generate') {
-      cancelCurrentRef.current?.()
+      dialogRef.current?.dispose()
     }
     clearModals()
   }
 
   const onShowGetNew = () => {
-    setStepSafe({kind: 'info'})
+    setStep({kind: 'info'})
   }
   const onShowImport = () => {
     navigateAppend({name: 'profileImport', params: {}})
@@ -183,10 +155,10 @@ export default function Choice() {
     if (nextDisabled) {
       return
     }
-    const args = form
-    setStepSafe({kind: 'generate'})
-
-    ignorePromise(generatePgp(args, mountedRef, cancelCurrentRef, finishCurrentRef, setStepSafe))
+    setStep({kind: 'generate'})
+    const {dialog, finished} = generatePgp(form, setStep)
+    dialogRef.current = dialog
+    ignorePromise(finished)
   }
 
   const content = (() => {
@@ -296,9 +268,10 @@ export default function Choice() {
         return (
           <Finished
             onDone={shouldStoreKeyOnServer => {
-              const finish = finishCurrentRef.current
-              finishCurrentRef.current = undefined
-              finish?.(shouldStoreKeyOnServer)
+              dialogRef.current?.openPrompt(pushPrivate)?.answer(shouldStoreKeyOnServer)
+              // Storing the key may still ask for the password (desktop pinentry answers it), so
+              // leaving now must not dispose the dialog
+              dialogRef.current = undefined
               clearModals()
             }}
             pgpKeyString={step.pgpKeyString}
