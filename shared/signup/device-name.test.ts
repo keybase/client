@@ -1,5 +1,7 @@
 /// <reference types="jest" />
-import {isDeviceNameDisabled, makeCleanDeviceName} from './device-name'
+import * as T from '@/constants/types'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
+import {checkDeviceNameAndSignup, isDeviceNameDisabled, makeCleanDeviceName} from './device-name'
 
 describe('isDeviceNameDisabled', () => {
   test('empty and whitespace-only names are disabled', () => {
@@ -199,5 +201,33 @@ describe('smart apostrophes and separator normalization', () => {
     const sixtyFiveAlnum = `${'a'.repeat(63)} b c`
     expect(sixtyFiveAlnum.replace(/[^a-zA-Z0-9]/g, '').length).toBe(65)
     expect(isDeviceNameDisabled(sixtyFiveAlnum)).toBe(true)
+  })
+})
+
+describe('checkDeviceNameAndSignup through the engine listener', () => {
+  afterEach(() => uninstallListenerEngine())
+
+  test('a signup the service fails withdraws the just-signed-up prompt and shows the signup error', async () => {
+    const engine = installListenerEngine()
+    const showPermissionsPrompt = jest.fn()
+    const navigateAppend = jest.fn()
+    const done = checkDeviceNameAndSignup(
+      'testuser mac',
+      'testuser',
+      '',
+      jest.fn(),
+      showPermissionsPrompt,
+      navigateAppend as never
+    )
+    engine.succeed('keybase.1.device.checkDeviceNameFormat', true)
+    await new Promise<void>(resolve => setImmediate(resolve))
+    engine.fail('keybase.1.signup.signup', T.RPCGen.StatusCode.scbadsignupusernametaken, 'username taken')
+    await done
+
+    expect(showPermissionsPrompt.mock.calls).toEqual([[{justSignedUp: true}], [{justSignedUp: false}]])
+    expect(navigateAppend).toHaveBeenCalledWith({
+      name: 'signupError',
+      params: {errorCode: T.RPCGen.StatusCode.scbadsignupusernametaken, errorMessage: 'username taken'},
+    })
   })
 })

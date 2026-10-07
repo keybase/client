@@ -10,7 +10,7 @@ import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {RPCError} from '@/util/errors'
+import {ensureError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
 import {getChatRpc} from '../chat-rpc'
@@ -596,8 +596,9 @@ const runAttachmentViewLoad = async (p: {
     })
   } catch (error) {
     flushPendingMessages()
-    if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
-      logger.error('failed to load attachment view: ' + error.message, {
+    const {message} = ensureError(error)
+    if (isCurrentLoad()) {
+      logger.error('failed to load attachment view: ' + message, {
         conversationIDKey,
         fromMsgID,
         generation,
@@ -608,10 +609,10 @@ const runAttachmentViewLoad = async (p: {
         info.last = false
         info.status = 'error'
       })
-    } else if (error instanceof RPCError || error instanceof Error) {
+    } else {
       logger.info('attachment gallery load stale error ignored', {
         conversationIDKey,
-        error: error.message,
+        error: message,
         fromMsgID,
         generation,
         reason,

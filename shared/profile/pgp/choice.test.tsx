@@ -1,5 +1,8 @@
 /// <reference types="jest" />
-import {validatePgpInfo} from './choice'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
+import {generatePgp, validatePgpInfo} from './choice'
 
 const makeInfo = (overrides?: Partial<Parameters<typeof validatePgpInfo>[0]>) => ({
   pgpEmail1: 'testuser@example.com',
@@ -51,4 +54,32 @@ test('validatePgpInfo rejects emails with spaces', () => {
   const res = validatePgpInfo(makeInfo({pgpEmail1: 'test user@example.com'}))
   expect(res.pgpErrorEmail1).toBe(true)
   expect(res.pgpErrorText).toBe('Invalid email address.')
+})
+
+describe('generatePgp through the engine listener', () => {
+  afterEach(() => uninstallListenerEngine())
+
+  const run = () => {
+    const engine = installListenerEngine()
+    const done = generatePgp(
+      makeInfo(),
+      {current: true},
+      {current: undefined},
+      {current: undefined},
+      jest.fn()
+    )
+    return {done, engine}
+  }
+
+  test('a cancelled generation ends quietly', async () => {
+    const {done, engine} = run()
+    engine.fail('keybase.1.pgp.pgpKeyGenDefault', T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
+    await expect(done).resolves.toBeUndefined()
+  })
+
+  test('a generation the service fails rejects with its RPCError', async () => {
+    const {done, engine} = run()
+    engine.fail('keybase.1.pgp.pgpKeyGenDefault', T.RPCGen.StatusCode.scgeneric, 'keygen failed')
+    await expect(done).rejects.toBeInstanceOf(RPCError)
+  })
 })

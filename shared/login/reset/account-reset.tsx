@@ -5,7 +5,7 @@ import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {consumeKeyed, registerKeyedScoped} from '@/stores/flow-handles'
 import {startProvision} from '@/provision/flow'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 
 type EnterResetPipelineParams = {
   onError?: (error: string) => void
@@ -76,7 +76,11 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
         waitingKey: S.waitingKeyAutoresetEnterPipeline,
       })
     } catch (error) {
-      if (!(error instanceof RPCError)) {
+      // A cancel (the user backing out, the session going away) is not an error to show
+      if (
+        !(error instanceof RPCError) ||
+        isCancelError(error)
+      ) {
         return
       }
       logger.warn('Error resetting account:', error)

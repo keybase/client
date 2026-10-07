@@ -9,6 +9,7 @@ import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
+import {ensureError} from '@/util/errors'
 import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {getExplodingModeFromGregorItems} from './thread-load'
 
@@ -218,7 +219,9 @@ const useConversationMessagesAroundMessageID = (
         }
       } catch (error) {
         if (generationRef.current === generation) {
-          logger.warn(`useConversationMessagesAroundMessageID: failed for ${conversationIDKey}: ${String(error)}`)
+          logger.warn(
+            `useConversationMessagesAroundMessageID: failed for ${conversationIDKey}: ${ensureError(error).message}`
+          )
           setLoaded({conversationIDKey, messageID, messages: emptyMessages})
         }
       }

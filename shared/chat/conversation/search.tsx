@@ -24,7 +24,7 @@ type SearchState = {
   status: T.Chat.ThreadSearchInfo['status']
 }
 
-const runSearchInbox = async (p: {
+export const runSearchInbox = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   deviceName: string
   getLastOrdinal: () => T.Chat.Ordinal
