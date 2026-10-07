@@ -10,6 +10,7 @@ import {TeamBuilderScreen} from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
+import {useChatTeam} from './conversation/team-hooks'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
@@ -115,6 +116,17 @@ const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   return <ModalTitle teamID={teamID} title={displayTitle} />
 }
 
+const CreateChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const {teamname} = useChatTeam(teamID)
+  return (
+    <Kb.ModalHeaderTitle
+      title="New chat channel"
+      subtitle={teamname}
+      avatar={<Kb.Avatar size={16} teamname={teamname} isTeam={true} />}
+    />
+  )
+}
+
 const AddToChannelHeaderRight = () => {
   const {enabled, waiting, onAction} = useModalHeaderState(
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
@@ -182,6 +194,7 @@ export const newModalRoutes = defineRouteMap({
         // iOS: the screen drives unstable_headerRightItems via useModalHeaderAction
         ...(isIOS ? {} : {headerRight: () => <AddToChannelHeaderRight />}),
         headerTitle: () => <AddToChannelHeaderTitle teamID={route.params.teamID} />,
+        modalSize: 'medium',
       }),
     }
   ),
@@ -199,17 +212,13 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {modalSize: 'medium'}}
+    {getOptions: {modalSize: 'medium', title: 'Send attachment(s)'}}
   ),
   chatBlockingModal: {
     ...makeChatScreen(
       React.lazy(async () => import('./blocking/block-modal')),
       {
-        getOptions: {
-          headerTitle: () => (
-            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.getTheme().red} />
-          ),
-        },
+        getOptions: {modalSize: 'medium', title: 'Block & report'},
       }
     ),
     initialParams: emptyChatBlockingRouteParams,
@@ -217,7 +226,8 @@ export const newModalRoutes = defineRouteMap({
   chatChooseEmoji: makeChatScreen(
     React.lazy(async () => import('./emoji-picker/container')),
     {
-      getOptions: {headerShown: false, modalSize: 'medium'},
+      // phone: the picker draws its own Cancel next to the search field
+      getOptions: isMobile ? {headerShown: false} : {modalSize: 'medium', title: 'Choose emoji'},
     }
   ),
   chatConfirmNavigateExternal: makeChatScreen(
@@ -232,7 +242,13 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./create-channel')),
     {
       // desktop: a header Back when it was opened from another modal (team add-to-channels)
-      getOptions: isMobile ? {title: 'New chat channel'} : {headerLeft: Kb.HeaderLeftButton, title: 'New chat channel'},
+      getOptions: ({route}) =>
+        isMobile
+          ? {title: 'New chat channel'}
+          : {
+              headerLeft: Kb.HeaderLeftButton,
+              headerTitle: () => <CreateChannelHeaderTitle teamID={route.params.teamID} />,
+            },
       skipProvider: true,
     }
   ),
@@ -242,7 +258,7 @@ export const newModalRoutes = defineRouteMap({
   chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {
-      getOptions: {title: 'Forward to team or chat'},
+      getOptions: {modalSize: 'medium', title: 'Forward to team or chat'},
     }
   ),
   chatInfoPanel: makeChatScreen(
@@ -269,11 +285,11 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatInstallBotPick: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
-    {getOptions: {title: 'Add to team or chat'}, skipProvider: true}
+    {getOptions: {modalSize: 'medium', title: 'Add to team or chat'}, skipProvider: true}
   ),
   chatLocationPreview: makeChatScreen(
     React.lazy(async () => import('./conversation/input-area/location-popup')),
-    {getOptions: Kb.doneModalOptions('Location')}
+    {getOptions: {...Kb.doneModalOptions('Location'), modalSize: 'medium'}}
   ),
   chatMessagePopup: makeChatScreen(
     React.lazy(async () => {
@@ -308,7 +324,7 @@ export const newModalRoutes = defineRouteMap({
       React.lazy(async () => import('./conversation/bot/search')),
       {
         canBeNullConvoID: true,
-        getOptions: Kb.doneModalOptions('Add a bot'),
+        getOptions: {...Kb.doneModalOptions('Add a bot'), modalSize: 'medium'},
       }
     ),
     initialParams: emptyChatSearchBotsRouteParams,
@@ -332,11 +348,13 @@ export const newModalRoutes = defineRouteMap({
     }
   ),
   chatShowNewTeamDialog: {
-    ...makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+    ...makeChatScreen(React.lazy(async () => import('./new-team-dialog-container')), {
+      getOptions: {title: 'Create a team'},
+    }),
     initialParams: emptyChatShowNewTeamDialogRouteParams,
   },
   chatUnfurlMapPopup: makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
-    {getOptions: Kb.doneModalOptions('Location')}
+    {getOptions: {...Kb.doneModalOptions('Location'), modalSize: 'medium'}}
   ),
 })

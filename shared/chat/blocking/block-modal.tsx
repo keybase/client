@@ -135,6 +135,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
 
 const BlockModal = (ownProps: OwnProps) => {
   const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
@@ -417,9 +418,9 @@ const BlockModal = (ownProps: OwnProps) => {
 
   if (loadingWaiting) {
     return (
-      <Kb.Box2 direction="vertical" alignSelf="center" padding="medium">
+      <Kb.ModalScreen centered={true}>
         <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-      </Kb.Box2>
+      </Kb.ModalScreen>
     )
   }
 
@@ -434,6 +435,9 @@ const BlockModal = (ownProps: OwnProps) => {
     if (item === 'topStuff') {
       return (
         <>
+          <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.blockIcon}>
+            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={theme.red} />
+          </Kb.Box2>
           {(!!teamname || !adderUsername) && (
             <>
               <CheckboxRow
@@ -458,7 +462,16 @@ const BlockModal = (ownProps: OwnProps) => {
   }
 
   return (
-    <>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          {!isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />}
+          <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
+        </Kb.ButtonBar>
+      }
+    >
       <Kb.List
         items={items}
         renderItem={renderItem}
@@ -466,57 +479,18 @@ const BlockModal = (ownProps: OwnProps) => {
         extraData={newBlocks}
         itemHeight={itemHeightTrueVariable}
         estimatedItemHeight={81}
-        style={
-          isMobile
-            ? styles.grow
-            : getListHeightStyle(
-                !!teamname || !adderUsername,
-                !!adderUsername,
-                !!adderUsername && getShouldReport(adderUsername),
-                otherUsernames?.length ?? 0
-              )
-        }
+        style={styles.grow}
       />
-      <Kb.ModalFooter>
-        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          {!isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />}
-          <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 export default BlockModal
 
-// Items measure themselves; this is only used to size the modal (which is
-// content-sized on desktop, capped at the modal maxHeight). Overshooting is
-// fine — the modal clamps and the list scrolls.
 const itemHeightTrueVariable = {type: 'trueVariable'} as const
-const checkboxRowHeight = 40
-const getListHeightStyle = (
-  hasLeaveRow: boolean,
-  hasAdder: boolean,
-  expanded: boolean,
-  numOthers: number
-) => ({
-  height:
-    (hasLeaveRow ? checkboxRowHeight + 1 : 0) +
-    // Adder gets block + hide + report checkboxes.
-    (hasAdder ? 3 * checkboxRowHeight : 0) +
-    (expanded
-      ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
-        reasons.length * 18 + 54 + 40 + 20
-      : 0) +
-    (numOthers >= 1
-      ? // "Also block others" header is 41px. Without an adder every other user also
-        // gets a report checkbox, so rows are 3 checkboxes tall instead of 2 (+1px divider).
-        // We cap the count at 4 but even that is greater than the max modal height in Keybase.
-        41 + Math.min(numOthers, 4) * ((hasAdder ? 2 : 3) * checkboxRowHeight + 1)
-      : 0),
-})
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
+  blockIcon: {paddingTop: Kb.Styles.globalMargins.small},
   buttonBar: {minHeight: undefined},
   checkBoxRow: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   feedback: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small, 0),

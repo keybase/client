@@ -203,10 +203,14 @@ const ScreenBody = ({
         goButtonLabel={goButtonLabel}
         onFinishTeamBuilding={onFinishTeamBuilding}
       />
-      <Building
-        {...routeParams}
-        onFinishTeamBuilding={onFinishTeamBuilding}
-      />
+      {namespace === 'people' ? (
+        // the people search drops down over the tabs without a modal box
+        <Building {...routeParams} onFinishTeamBuilding={onFinishTeamBuilding} />
+      ) : (
+        <Kb.ModalScreen scroll={false} padding="none">
+          <Building {...routeParams} onFinishTeamBuilding={onFinishTeamBuilding} />
+        </Kb.ModalScreen>
+      )}
     </>
   )
 }

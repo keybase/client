@@ -41,9 +41,10 @@ const UnfurlMapPopupInner = (props: Props) => {
   const height = isMobile ? Math.ceil(Kb.Styles.dimensionHeight) : 300
   const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
-    <>
-      <LocationMap mapSrc={mapSrc} height={height} width={width} />
-      <Kb.ModalFooter>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
           {isAuthor && isLiveLocation && (
@@ -56,8 +57,10 @@ const UnfurlMapPopupInner = (props: Props) => {
             />
           )}
         </Kb.Box2>
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <LocationMap mapSrc={mapSrc} height={height} width={width} />
+    </Kb.ModalScreen>
   )
 }
 
