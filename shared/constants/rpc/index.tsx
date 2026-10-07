@@ -28,13 +28,7 @@ type Chat1IncomingAction =
   'chat.1.NotifyChat.ChatThreadsStale' |
   'chat.1.NotifyChat.ChatTypingUpdate' |
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded' |
-  'chat.1.NotifyChat.NewChatActivity'
-
-type Chat1IncomingActionMap<K extends chat1Types.MessageKey> = {
-  [P in K]: {readonly params: chat1Types.RpcIn<P>}
-}
-
-type Chat1ResponseAction =
+  'chat.1.NotifyChat.NewChatActivity' |
   'chat.1.chatUi.chatBotCommandsUpdateStatus' |
   'chat.1.chatUi.chatClearWatch' |
   'chat.1.chatUi.chatCoinFlipStatus' |
@@ -68,28 +62,19 @@ type Chat1ResponseAction =
   'chat.1.chatUi.chatWatchPosition' |
   'chat.1.chatUi.triggerContactSync'
 
-type Chat1ResponseActionMap<K extends chat1Types.MessageKey> = {
-  [P in K]: {readonly params: chat1Types.RpcIn<P>; readonly response: chat1Types.RpcResponse<P>}
+type Chat1IncomingActionMap<K extends chat1Types.MessageKey> = {
+  [P in K]: {readonly params: chat1Types.RpcIn<P>}
 }
 
 type Keybase1IncomingAction =
+  'keybase.1.NotifyApp.exit' |
   'keybase.1.NotifyAudit.boxAuditError' |
   'keybase.1.NotifyAudit.rootAuditError' |
   'keybase.1.NotifyBadges.badgeState' |
   'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' |
-  'keybase.1.NotifyFS.FSActivity' |
-  'keybase.1.NotifySession.loggedOut' |
-  'keybase.1.NotifyTracking.trackingChanged' |
-  'keybase.1.NotifyUsers.userChanged'
-
-type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
-  [P in K]: {readonly params: keybase1Types.RpcIn<P>}
-}
-
-type Keybase1ResponseAction =
-  'keybase.1.NotifyApp.exit' |
   'keybase.1.NotifyEmailAddress.emailAddressVerified' |
   'keybase.1.NotifyEmailAddress.emailsChanged' |
+  'keybase.1.NotifyFS.FSActivity' |
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged' |
   'keybase.1.NotifyFS.FSSubscriptionNotify' |
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath' |
@@ -102,6 +87,7 @@ type Keybase1ResponseAction =
   'keybase.1.NotifyService.shutdown' |
   'keybase.1.NotifySession.clientOutOfDate' |
   'keybase.1.NotifySession.loggedIn' |
+  'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
   'keybase.1.NotifyTeam.avatarUpdated' |
   'keybase.1.NotifyTeam.teamChangedByID' |
@@ -112,9 +98,11 @@ type Keybase1ResponseAction =
   'keybase.1.NotifyTeam.teamTreeMembershipsDone' |
   'keybase.1.NotifyTeam.teamTreeMembershipsPartial' |
   'keybase.1.NotifyTracking.notifyUserBlocked' |
+  'keybase.1.NotifyTracking.trackingChanged' |
   'keybase.1.NotifyTracking.trackingInfo' |
   'keybase.1.NotifyUsers.identifyUpdate' |
   'keybase.1.NotifyUsers.passwordChanged' |
+  'keybase.1.NotifyUsers.userChanged' |
   'keybase.1.gpgUi.selectKey' |
   'keybase.1.gpgUi.wantToAddGPGKey' |
   'keybase.1.gregorUI.pushState' |
@@ -165,15 +153,13 @@ type Keybase1ResponseAction =
   'keybase.1.teamsUi.confirmRootTeamDelete' |
   'keybase.1.teamsUi.confirmSubteamDelete'
 
-type Keybase1ResponseActionMap<K extends keybase1Types.MessageKey> = {
-  [P in K]: {readonly params: keybase1Types.RpcIn<P>; readonly response: keybase1Types.RpcResponse<P>}
+type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
+  [P in K]: {readonly params: keybase1Types.RpcIn<P>}
 }
 
 type ActionSpec =
   Chat1IncomingActionMap<Chat1IncomingAction> &
-  Chat1ResponseActionMap<Chat1ResponseAction> &
-  Keybase1IncomingActionMap<Keybase1IncomingAction> &
-  Keybase1ResponseActionMap<Keybase1ResponseAction>
+  Keybase1IncomingActionMap<Keybase1IncomingAction>
 
 export type ActionKey = keyof ActionSpec
 type EngineActionMap = {
@@ -188,4 +174,34 @@ export type ActionType = ActionKey
 export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
 export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
 export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
-export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
+
+// Custom calls that return a value: with no session and no registered answerer the engine answers
+// them with an error, since an empty result would be read as a real answer.
+export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([
+  'chat.1.chatUi.chatStellarDataConfirm',
+  'chat.1.chatUi.chatStellarDataError',
+  'chat.1.chatUi.chatWatchPosition',
+  'keybase.1.gpgUi.selectKey',
+  'keybase.1.gpgUi.wantToAddGPGKey',
+  'keybase.1.loginUi.chooseDeviceToRecoverWith',
+  'keybase.1.loginUi.getEmailOrUsername',
+  'keybase.1.loginUi.promptPassphraseRecovery',
+  'keybase.1.loginUi.promptResetAccount',
+  'keybase.1.loginUi.promptRevokePaperKeys',
+  'keybase.1.pgpUi.shouldPushPrivate',
+  'keybase.1.proveUi.continueChecking',
+  'keybase.1.proveUi.okToCheck',
+  'keybase.1.proveUi.preProofWarning',
+  'keybase.1.proveUi.promptOverwrite',
+  'keybase.1.proveUi.promptUsername',
+  'keybase.1.provisionUi.DisplayAndPromptSecret',
+  'keybase.1.provisionUi.PromptNewDeviceName',
+  'keybase.1.provisionUi.chooseDevice',
+  'keybase.1.provisionUi.chooseDeviceType',
+  'keybase.1.provisionUi.chooseGPGMethod',
+  'keybase.1.provisionUi.switchToGPGSignOK',
+  'keybase.1.secretUi.getPassphrase',
+  'keybase.1.teamsUi.confirmInviteLinkAccept',
+  'keybase.1.teamsUi.confirmRootTeamDelete',
+  'keybase.1.teamsUi.confirmSubteamDelete',
+])

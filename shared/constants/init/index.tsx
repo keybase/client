@@ -12,6 +12,7 @@ import type * as Tabs from '@/constants/tabs'
 import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
 import {getEngine} from '@/engine'
+import {registerIncomingAnswerer} from '@/engine/incoming-answerers'
 import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
@@ -139,8 +140,6 @@ const onChatWatchPosition = async (
   action: EngineGen.EngineAction<'chat.1.chatUi.chatWatchPosition'>
 ) => {
   const {ExpoLocation, ExpoTaskManager, requestLocationPermission} = _getNative()
-  const response = action.payload.response
-  response.result(0)
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (_error) {
@@ -303,18 +302,6 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   } else {
     const {isWindows, kbfsNotification} = _getDesktop()
     switch (action.type) {
-      case 'keybase.1.logsend.prepareLogsend': {
-        const f = async () => {
-          const response = action.payload.response
-          try {
-            await dumpLogs()
-          } finally {
-            response.result()
-          }
-        }
-        ignorePromise(f())
-        break
-      }
       case 'keybase.1.NotifyApp.exit':
         console.log('App exit requested')
         _getDesktop().KB2.functions.exitApp?.(0)
@@ -366,6 +353,26 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   }
 }
 
+// Calls the service makes outside any session that this platform answers itself
+export const registerPlatformAnswerers = (): Array<() => void> =>
+  isMobile
+    ? // The watch itself starts from the chatWatchPosition action
+      [registerIncomingAnswerer('chat.1.chatUi.chatWatchPosition', (_, response) => response.result(0))]
+    : [
+        registerIncomingAnswerer('keybase.1.logsend.prepareLogsend', (_, response) => {
+          const f = async () => {
+            try {
+              await dumpLogs()
+            } finally {
+              response.result()
+            }
+          }
+          ignorePromise(f())
+        }),
+        // Desktop has no location watch, so it answers watch id 0 as before
+        registerIncomingAnswerer('chat.1.chatUi.chatWatchPosition', (_, response) => response.result(0)),
+      ]
+
 // ─── initPlatformListener ─────────────────────────────────────────────────────
 
 const _platformUnsubs: Array<() => void> = __DEV__
@@ -388,6 +395,7 @@ const _initNativePlatformListener = () => {
   // HMR cleanup: unsubscribe old subscriptions before re-subscribing
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
+  _platformUnsubs.push(...registerPlatformAnswerers())
 
   _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
@@ -532,6 +540,7 @@ const _initDesktopPlatformListener = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
+  _platformUnsubs.push(...registerPlatformAnswerers())
 
   const {isLinux, isWindows} = _getDesktop()
 

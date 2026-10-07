@@ -1,6 +1,7 @@
 import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
-import type {CommonResponseHandler, WaitingKey} from './types'
+import {getAccountGeneration, survivesAccountChange} from './account-generation'
+import {inputCanceledError, type CommonResponseHandler, type ResponseType, type WaitingKey} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {ErrorType} from './rpc-transport'
 import type {CallPort, ListenParams} from './call-port'
@@ -32,25 +33,28 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     }
 
     // Wraps a response to update the waiting state
-    const makeWaitingResponse = (r?: Partial<CommonResponseHandler>) => {
-      if (!r || !waitingKey) {
-        return r
+    // A late answer to a settled response reaches no server, so it must not count as waiting on one.
+    const makeWaitingResponse = (r: ResponseType) => {
+      if (!waitingKey) {
+        return r as Partial<CommonResponseHandler>
       }
 
       const response: Partial<CommonResponseHandler> = {}
 
       if (r.error) {
         response.error = (e: ErrorType) => {
-          // Waiting on the server again
-          setWaitingOnServer(true)
+          if (!r.settled) {
+            setWaitingOnServer(true)
+          }
           r.error?.(e)
         }
       }
 
       if (r.result) {
         response.result = (...args: Array<unknown>) => {
-          // Waiting on the server again
-          setWaitingOnServer(true)
+          if (!r.settled) {
+            setWaitingOnServer(true)
+          }
           r.result?.(...args)
         }
       }
@@ -61,50 +65,65 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     // Waiting on the server
     setWaitingOnServer(true)
 
-    const makeHandler = (method: string, custom: boolean) => {
-      return (params: unknown, _response: CommonResponseHandler) => {
-        // No longer waiting on the server
-        setWaitingOnServer(false)
-
-        let response = makeWaitingResponse(_response)
-
-        if (__DEV__) {
-          if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
-            throw new Error('Invalid method in both incomingCallMap and customResponseIncomingCallMap ')
-          }
+    // Handlers run on a timer so transport work can flush before heavier state updates. By then an
+    // account switch may have reset the stores the handler writes to, unless this call outlives it.
+    const runDeferred = (
+      run: () => Promise<void>,
+      onStale: () => void,
+      onFailed: () => void,
+      handlerMethod: string
+    ) => {
+      const generation = getAccountGeneration()
+      setTimeout(() => {
+        if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
+          onStale()
+          return
         }
+        // wrapErrors logs the failure
+        wrapErrors(run, handlerMethod)().catch(onFailed)
+      }, 0)
+    }
 
-        if (!custom) {
-          if (response) {
-            response.result?.()
-            response = undefined
-          }
+    if (__DEV__) {
+      for (const m of Object.keys(incomingCallMap)) {
+        if (customResponseIncomingCallMap[m]) {
+          throw new Error(`Invalid method in both incomingCallMap and customResponseIncomingCallMap: ${m}`)
         }
-
-        // Yield after sending the auto-response so transport work can flush
-        // before handlers do heavier state updates.
-        setTimeout(() => {
-          const invokeAndDispatch = wrapErrors(async () => {
-            if (response) {
-              const cb = customResponseIncomingCallMap[method]
-              await cb?.(params, response)
-            } else {
-              const cb = incomingCallMap[method]
-              await cb?.(params)
-            }
-          }, method)
-
-          invokeAndDispatch().catch(() => {})
-        }, 0)
       }
     }
 
-    const callMap: {[key: string]: unknown} = {}
-    for (const method of Object.keys(incomingCallMap)) {
-      callMap[method] = makeHandler(method, false)
+    // The session acks these itself
+    const plainMap: {[key: string]: (params: unknown) => void} = {}
+    for (const m of Object.keys(incomingCallMap)) {
+      plainMap[m] = (params: unknown) => {
+        runDeferred(async () => incomingCallMap[m]?.(params), () => {}, () => {}, m)
+      }
     }
-    for (const method of Object.keys(customResponseIncomingCallMap)) {
-      callMap[method] = makeHandler(method, true)
+
+    const customMap: {[key: string]: (params: unknown, response: ResponseType) => void} = {}
+    for (const m of Object.keys(customResponseIncomingCallMap)) {
+      customMap[m] = (params: unknown, sessionResponse: ResponseType) => {
+        // No longer waiting on the server
+        setWaitingOnServer(false)
+        const response = makeWaitingResponse(sessionResponse)
+        // The service is still waiting on this prompt, and no handler will answer it
+        const refuse = () => {
+          if (!sessionResponse.settled) {
+            response.error?.(inputCanceledError)
+          }
+        }
+        runDeferred(
+          async () => {
+            // Settled meanwhile: the session ended or was cancelled, so nothing reads this answer
+            if (!sessionResponse.settled) {
+              await customResponseIncomingCallMap[m]?.(params, response)
+            }
+          },
+          refuse,
+          refuse,
+          m
+        )
+      }
     }
 
     // Make the actual call
@@ -130,7 +149,10 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
           resolve(params)
         }
       },
-      incomingCallMap: callMap,
+      customResponseIncomingCallMap: customMap,
+      // Always a list, so an unhandled incoming method on a listener is checked against it
+      globalFallthrough: p.globalFallthrough ?? [],
+      incomingCallMap: plainMap,
       method,
       params,
     })

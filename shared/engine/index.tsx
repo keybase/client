@@ -3,7 +3,7 @@ import Session, {type CancelHandlerType} from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {SessionID, MethodKey, WaitingKey} from './types'
+import {inputCanceledError, type SessionID, type MethodKey, type WaitingKey} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
@@ -16,7 +16,11 @@ import {
   type PayloadType,
 } from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
+import {mustAnswerMethods} from '@/constants/rpc'
 import type * as EngineGen from '@/constants/rpc'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
+import {getIncomingAnswerer, type IncomingAnswerer} from './incoming-answerers'
+import type {ErrorType, ResponseType as RPCResponseType} from './rpc-transport'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
@@ -30,14 +34,11 @@ class Engine implements CallPort {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
   _sessionsMap = new Map<SessionID, Session>()
+  // Prompts held by global answerers, by seqid: each entry drops its prompt unanswered
+  _globalHeld = new Map<number, () => void>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
   _makeClient: MakeClient
-  // Set which actions we don't auto respond with so listeners can themselves
-  _customResponseAction: {[K in MethodKey]: true} = {
-    'keybase.1.secretUi.getPassphrase': true,
-    ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
-  }
   _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
     'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
     'keybase.1.config.waitForClient': true,
@@ -51,6 +52,9 @@ class Engine implements CallPort {
 
   _emitWaiting: (changes: BatchParams) => void
   _onEngineIncoming?: (action: EngineGen.Actions) => void
+  // Told when a listener gets an incoming method it neither handles nor declared as left to global
+  // handling. The fake engine fails the test; unset, a dev build logs it.
+  onUndeclaredIncoming?: (message: string) => void
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
@@ -131,18 +135,29 @@ class Engine implements CallPort {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('lostLink')
+    this._forgetGlobalHeld()
     // tell renderer we're disconnected
     this._onConnectedCB(false)
   }
 
-  // The transport died, so the service has forgotten every in-flight RPC. Cancel the sessions so
-  // their promises reject and flows can react, instead of hanging forever on answers that will
-  // never come (e.g. a provision prompt screen left up across a service restart).
-  _cancelOutstandingSessions() {
+  // Cancel the sessions so their promises reject and flows can react, instead of hanging forever on
+  // answers that will never come (e.g. a provision prompt screen left up across a service restart).
+  // When the transport died the service has forgotten every in-flight RPC, so held prompts are
+  // dropped without an answer; otherwise the link is alive and they are refused. Dangling sessions
+  // are never cancelled, but a lost link still drops what they hold.
+  _cancelOutstandingSessions(why: 'lostLink' | 'client') {
     for (const session of [...this._sessionsMap.values()]) {
-      if (!session.getDangling()) {
-        session.cancel()
+      if (session.getDangling()) {
+        if (why === 'lostLink') {
+          session.forgetHeldForLostLink()
+        }
+      } else {
+        if (why === 'lostLink') {
+          session.cancelForLostLink()
+        } else {
+          session.cancel()
+        }
       }
     }
   }
@@ -194,7 +209,10 @@ class Engine implements CallPort {
           type: 'engineInternal',
         })
       }
-      cancelled.cancel()
+      cancelled.cancelByService(seqid)
+    } else if (this._globalHeld.has(seqid)) {
+      // A global answerer's prompt: the service no longer reads its answer
+      this._globalHeld.get(seqid)!()
     } else if (printRPC) {
       rpcLog({
         extra: {seqid},
@@ -219,22 +237,92 @@ class Engine implements CallPort {
       if (session?.incomingCall(method, param, response)) {
         // Part of a session?
       } else {
-        // Dispatch as an action
-        const extra: {response?: unknown} = {}
-        if (this._customResponseAction[method]) {
-          extra.response = response
-        } else {
-          // Not a custom response so we auto handle it
-          response?.result?.()
+        if (session?.isUndeclaredFallthrough(method)) {
+          this._reportUndeclaredIncoming(`${session._startMethod ?? 'unknown'} got undeclared incoming ${method}`)
         }
+        this._answerGlobalIncoming(method, param, response)
         const act = {
-          payload: {params: param, ...extra},
+          payload: {params: param},
           type: method as EngineGen.ActionKey,
         } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
           this._onEngineIncoming(act)
         }
       }
+    }
+  }
+
+  _reportUndeclaredIncoming(message: string) {
+    if (this.onUndeclaredIncoming) {
+      this.onUndeclaredIncoming(message)
+    } else if (__DEV__) {
+      logger.error(message)
+    }
+  }
+
+  // Exactly one answer for a call outside any session: its registered answerer's, else an ack, except
+  // a must-answer call is refused since an empty result would read as a real answer.
+  _answerGlobalIncoming(method: string, param: object, response: PayloadType['response']) {
+    const answerer = getIncomingAnswerer(method)
+    if (answerer) {
+      const held = response ? this._holdGlobal(method, response, answerer) : undefined
+      try {
+        answerer.answer(param, held)
+      } catch (e) {
+        logger.error(`Engine: answerer for ${method} threw`, e)
+        if (held && !held.settled) {
+          held.error(inputCanceledError)
+        }
+      }
+    } else if (mustAnswerMethods.has(method)) {
+      if (__DEV__) {
+        logger.error(`Engine: no answerer registered for ${method}`)
+      }
+      response?.error?.({code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
+    } else {
+      response?.result?.()
+    }
+  }
+
+  // The response a global answerer holds, settled once: by the answerer, or by the engine when the
+  // service cancels the call or the link goes, which writes nothing and tells the answerer.
+  _holdGlobal(method: string, response: RPCResponseType, answerer: IncomingAnswerer) {
+    const {seqid} = response
+    let settled = false
+    const settle = () => {
+      if (settled) {
+        return false
+      }
+      settled = true
+      this._globalHeld.delete(seqid)
+      return true
+    }
+    const answer = (write: () => void) => {
+      if (settle()) {
+        write()
+      } else if (__DEV__) {
+        logger.warn(`Engine: ${method} was answered after it was already settled`)
+      }
+    }
+    const held = {
+      error: (e?: ErrorType) => answer(() => response.error?.(e)),
+      result: (r?: unknown) => answer(() => response.result?.(r)),
+      seqid,
+      get settled() {
+        return settled
+      },
+    }
+    this._globalHeld.set(seqid, () => {
+      if (settle()) {
+        answerer.onCancelled?.(held)
+      }
+    })
+    return held
+  }
+
+  _forgetGlobalHeld() {
+    for (const forget of [...this._globalHeld.values()]) {
+      forget()
     }
   }
 
@@ -246,13 +334,15 @@ class Engine implements CallPort {
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     waitingKey?: WaitingKey
+    globalFallthrough?: ReadonlyArray<string>
   }) {
-    const {customResponseIncomingCallMap, incomingCallMap, waitingKey} = p
+    const {customResponseIncomingCallMap, globalFallthrough, incomingCallMap, waitingKey} = p
     const {method, params, callback} = p
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap,
       dangling: !!this._backgroundSessionMethods[method as MethodKey],
+      globalFallthrough,
       incomingCallMap,
       waitingKey,
     })
@@ -269,8 +359,10 @@ class Engine implements CallPort {
     cancelHandler?: CancelHandlerType
     dangling?: boolean
     waitingKey?: WaitingKey
+    globalFallthrough?: ReadonlyArray<string>
   }): Session {
-    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
+    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false} = p
+    const {globalFallthrough, waitingKey} = p
     const sessionID = this._generateSessionID()
 
     const session = new Session({
@@ -279,6 +371,7 @@ class Engine implements CallPort {
       dangling,
       dispatchWaiting: this.dispatchWaitingAction,
       endHandler: session => this._sessionEnded(session),
+      globalFallthrough,
       incomingCallMap,
       invoke: (method, param, cb) => {
         this._rpcClient.invoke(method, param, (...args: Array<unknown>) => {
@@ -319,7 +412,7 @@ class Engine implements CallPort {
   }
 
   cancelOutstandingSessions() {
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('client')
   }
 
   // Reset the engine
@@ -332,8 +425,13 @@ class Engine implements CallPort {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('lostLink')
+    // Dangling sessions survive a cancel; ending them drops their held prompts with the old link
+    for (const session of [...this._sessionsMap.values()]) {
+      session.end()
+    }
     this._sessionsMap.clear()
+    this._forgetGlobalHeld()
     this._queuedChanges = []
     this._hasConnected = false
     this._listenersAreReady = false

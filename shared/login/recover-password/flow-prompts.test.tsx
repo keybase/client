@@ -600,7 +600,7 @@ describe('pgp key warning', () => {
 describe('pgp key warning waiting state', () => {
   type Outgoing = {
     callback: (error?: RPCError) => void
-    incomingCallMap: {[method: string]: (params: unknown, response: unknown) => void}
+    customResponseIncomingCallMap: {[method: string]: (params: unknown, response: unknown) => void}
   }
   let outgoing: Array<Outgoing>
 
@@ -626,7 +626,7 @@ describe('pgp key warning waiting state', () => {
 
   const promptOn = async (call: Outgoing) => {
     const response = {error: jest.fn(), result: jest.fn()}
-    call.incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
+    call.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
       {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
       response
     )
@@ -639,7 +639,7 @@ describe('pgp key warning waiting state', () => {
     startRecoverPassword({username: 'testuser'})
     await flush()
     const response = {error: jest.fn(), result: jest.fn()}
-    outgoing[0]!.incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
+    outgoing[0]!.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
       {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
       response
     )

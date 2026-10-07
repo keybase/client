@@ -270,6 +270,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             customResponseIncomingCallMap: {
               "keybase.1.gpgUi.selectKey": cancelOnCallback,
               "keybase.1.loginUi.getEmailOrUsername": cancelOnCallback,
+              // The zero value Go has always read here: decline the reset
+              "keybase.1.loginUi.promptResetAccount": (_, response) =>
+                response.result(T.RPCGen.ResetPromptResponse.nothing),
               "keybase.1.provisionUi.DisplayAndPromptSecret": cancelOnCallback,
               "keybase.1.provisionUi.PromptNewDeviceName": (_, response) => {
                 cancelOnCallback(undefined, response);
@@ -284,7 +287,13 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
                 });
               },
               "keybase.1.provisionUi.chooseDevice": cancelOnCallback,
+              // The zero value Go has always read here; a login never adds another device
+              "keybase.1.provisionUi.chooseDeviceType": (_, response) =>
+                response.result(T.RPCGen.DeviceType.desktop),
               "keybase.1.provisionUi.chooseGPGMethod": cancelOnCallback,
+              // The zero value Go has always read here: no GPG signing
+              "keybase.1.provisionUi.switchToGPGSignOK": (_, response) =>
+                response.result(false),
               "keybase.1.secretUi.getPassphrase": (params, response) => {
                 if (
                   params.pinentry.type === T.RPCGen.PassphraseType.passPhrase

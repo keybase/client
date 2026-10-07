@@ -2,6 +2,7 @@
 import type * as Init from './index'
 import type * as EngineGen from '@/constants/rpc'
 import type * as Shell from '@/stores/shell'
+import type * as Answerers from '@/engine/incoming-answerers'
 
 // The init module picks its mobile behavior from the platform globals, so each test loads it
 // fresh with them set and the native modules mocked.
@@ -86,18 +87,13 @@ const watchPosition = () =>
   ({
     payload: {
       params: {convID: new Uint8Array([0xaa, 0xbb]), perm: 1},
-      response: {
-        result: () => {
-          calls.push('result')
-        },
-      },
     },
     type: 'chat.1.chatUi.chatWatchPosition',
   }) as unknown as EngineGen.Actions
 
 const clearWatch = () =>
   ({
-    payload: {params: {id: 1}, response: {result: () => {}}},
+    payload: {params: {id: 1}},
     type: 'chat.1.chatUi.chatClearWatch',
   }) as unknown as EngineGen.Actions
 
@@ -138,15 +134,27 @@ test('iOS starts the native watch once for overlapping watches and stops it afte
   await flush()
 
   expect(calls).toEqual([
-    'result',
     'requestPermission:1',
     'startLocationWatch',
     'addFixListener',
-    'result',
     'requestPermission:1',
     'stopLocationWatch',
     'removeFixListener',
   ])
+})
+
+test.each([
+  ['ios', true],
+  ['desktop', false],
+] as const)('%s answers a watch with id 0 outside any session', (_, mobile) => {
+  const init = load('ios')
+  global.isMobile = mobile
+  const {getIncomingAnswerer} = require('@/engine/incoming-answerers') as typeof Answerers
+  const unregisters = init.registerPlatformAnswerers()
+  const result = jest.fn()
+  getIncomingAnswerer('chat.1.chatUi.chatWatchPosition')?.answer({}, {error: jest.fn(), result})
+  unregisters.forEach(u => u())
+  expect(result).toHaveBeenCalledWith(0)
 })
 
 test('iOS forwards each native fix to the service in the foreground', async () => {
@@ -198,7 +206,7 @@ test('iOS restarts the throttle with each watch, so its first fix always records
   expect(calls).toEqual(['locationUpdate:37.775,-122.4194,10'])
 })
 
-test('iOS answers the watch before starting the native watch, which may throw', async () => {
+test('iOS retries the native watch after a start that threw', async () => {
   startLocationWatchThrows = true
   const init = load('ios')
   init.onEngineIncoming(watchPosition())
@@ -208,10 +216,8 @@ test('iOS answers the watch before starting the native watch, which may throw', 
   await flush()
 
   expect(calls).toEqual([
-    'result',
     'requestPermission:1',
     'startLocationWatch',
-    'result',
     'requestPermission:1',
     'startLocationWatch',
   ])
@@ -267,7 +273,6 @@ test('Android asks for permission and runs the expo location task', async () => 
   await flush()
 
   expect(calls).toEqual([
-    'result',
     'requestPermission:1',
     'defineTask',
     'startLocationUpdates',

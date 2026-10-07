@@ -12,6 +12,7 @@ import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
+import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
@@ -300,6 +301,22 @@ describe('login', () => {
     expect(mockOnceRootHas).not.toHaveBeenCalled()
     expect(state.userSwitching).toBe(true)
     expect(state.loginError).toBeUndefined()
+  })
+
+  test.each([
+    ['keybase.1.loginUi.promptResetAccount', {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}}, T.RPCGen.ResetPromptResponse.nothing],
+    ['keybase.1.provisionUi.chooseDeviceType', {kind: T.RPCGen.ChooseType.existingDevice}, T.RPCGen.DeviceType.desktop],
+    ['keybase.1.provisionUi.switchToGPGSignOK', {importError: '', key: {}}, false],
+  ] as const)('login answers %s with the zero value, once', async (method, params, answer) => {
+    const fake = installFakeEngine()
+    fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    await expect(fake.push(method, params, {sessionID})).resolves.toEqual({result: answer})
+    await flush()
+    // The fake records a second answer to the seqid, or a prompt the login neither handles nor declares
+    expect(() => uninstallFakeEngine()).not.toThrow()
   })
 
   test('an RPC error clears userSwitching and records the login error', async () => {

@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import colors from 'colors'
+import {customResponseError, isMustAnswer, isOneway} from './message-flags.ts'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
@@ -85,6 +86,7 @@ type TypeDefinition = RecordDefinition | EnumDefinition | VariantDefinition | Fi
 type MessageDefinition = {
   lint?: JsonLint
   notify?: unknown
+  oneway?: unknown
   request: ReadonlyArray<MessageArgument>
   response?: TypeRef
 }
@@ -125,7 +127,6 @@ type ProjectState = {
 }
 
 type GeneratedAction = {
-  hasResponse: boolean
   method: string
   projectKey: ProjectKey
 }
@@ -139,6 +140,9 @@ const __dirname = path.dirname(__filename)
 const enabledCalls = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8')
 ) as EnabledCalls
+const customResponseErrors: Array<string> = []
+// Quoted method names, as they appear in the generated code
+const mustAnswerMethods: Array<string> = []
 
 const primitiveTypeMap: Record<string, string> = {
   bool: 'boolean',
@@ -356,11 +360,16 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
     const hasIncoming = enabledCall(methodName, 'incoming')
     const wantsCustom = enabledCall(methodName, 'custom')
-    if (wantsCustom && message.hasOwnProperty('notify')) {
-      console.log(colors.red('ERROR! Custom call cannot be a notify method:\n\n '), methodName)
-      process.exit(1)
+    const customError = customResponseError(methodName, message, wantsCustom)
+    if (customError) {
+      customResponseErrors.push(customError)
     }
-    const hasCustomResponse = wantsCustom && !message.hasOwnProperty('notify')
+    const hasCustomResponse = wantsCustom && !isOneway(message)
+    // Only `custom` calls are must-answer: a value-returning method marked just `incoming` is auto-acked
+    // with nil, which Go reads as the zero value (delegateRekeyUI relies on that reading as 0).
+    if (isMustAnswer(message, wantsCustom, outParam)) {
+      mustAnswerMethods.push(methodName)
+    }
     const isIncomingMethod = hasIncoming || hasCustomResponse
 
     if (isIncomingMethod) {
@@ -538,7 +547,6 @@ async function writeActions(): Promise<void> {
         Object.keys(callMap).reduce((actions, method) => {
           seenProjects[projectKey] = true
           actions.push({
-            hasResponse: Boolean(projects[projectKey].customResponseIncomingMaps[method]),
             method,
             projectKey,
           })
@@ -556,79 +564,52 @@ async function writeActions(): Promise<void> {
   })
 }
 
-type GroupedActions = Partial<Record<ProjectKey, {incoming: Array<string>; response: Array<string>}>>
+type GroupedActions = Partial<Record<ProjectKey, Array<string>>>
 
 function groupActions(actions: Array<GeneratedAction>): GroupedActions {
   return actions.reduce<GroupedActions>((grouped, action) => {
-    const projectActions = grouped[action.projectKey] ?? {incoming: [], response: []}
-    const methods = action.hasResponse ? projectActions.response : projectActions.incoming
+    const methods = grouped[action.projectKey] ?? []
     methods.push(action.method)
-    grouped[action.projectKey] = projectActions
+    grouped[action.projectKey] = methods
     return grouped
   }, {})
 }
 
-function renderActionTypeName(projectKey: ProjectKey, hasResponse: boolean): string {
-  return `${capitalize(projectKey)}${hasResponse ? 'Response' : 'Incoming'}Action`
+function renderActionTypeName(projectKey: ProjectKey): string {
+  return `${capitalize(projectKey)}IncomingAction`
 }
 
-function renderActionUnion(projectKey: ProjectKey, hasResponse: boolean, methods: Array<string>): string {
-  return `type ${renderActionTypeName(projectKey, hasResponse)} =
+function renderActionUnion(projectKey: ProjectKey, methods: Array<string>): string {
+  return `type ${renderActionTypeName(projectKey)} =
   ${methods.sort().join(' |\n  ')}`
 }
 
-function renderActionHelper(projectKey: ProjectKey, hasResponse: boolean): string {
-  const typeName = `${renderActionTypeName(projectKey, hasResponse)}Map`
+// An action never carries the response: the engine answers it, or a registered answerer does.
+function renderActionHelper(projectKey: ProjectKey): string {
   const rpcNamespace = `${projectKey}Types`
-  const payload = hasResponse
-    ? `{readonly params: ${rpcNamespace}.RpcIn<P>; readonly response: ${rpcNamespace}.RpcResponse<P>}`
-    : `{readonly params: ${rpcNamespace}.RpcIn<P>}`
-
-  return `type ${typeName}<K extends ${rpcNamespace}.MessageKey> = {
-  [P in K]: ${payload}
+  return `type ${renderActionTypeName(projectKey)}Map<K extends ${rpcNamespace}.MessageKey> = {
+  [P in K]: {readonly params: ${rpcNamespace}.RpcIn<P>}
 }`
 }
 
 function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
   const groupedActions = groupActions(actions)
   const usedProjects = (Object.keys(projects) as Array<ProjectKey>).filter(projectKey =>
-    Boolean(groupedActions[projectKey])
+    Boolean(groupedActions[projectKey]?.length)
   )
   const actionHelpers = usedProjects
-    .flatMap(projectKey => {
-      const projectActions = groupedActions[projectKey]
-      if (!projectActions) {
-        return []
-      }
-      const helpers: Array<string> = []
-      if (projectActions.incoming.length) {
-        helpers.push(renderActionUnion(projectKey, false, projectActions.incoming))
-        helpers.push(renderActionHelper(projectKey, false))
-      }
-      if (projectActions.response.length) {
-        helpers.push(renderActionUnion(projectKey, true, projectActions.response))
-        helpers.push(renderActionHelper(projectKey, true))
-      }
-      return helpers
-    })
+    .flatMap(projectKey => [
+      renderActionUnion(projectKey, groupedActions[projectKey] ?? []),
+      renderActionHelper(projectKey),
+    ])
     .join('\n\n')
   const actionSpec = usedProjects
-    .flatMap(projectKey => {
-      const projectActions = groupedActions[projectKey]
-      if (!projectActions) {
-        return []
-      }
-
-      const types: Array<string> = []
-      if (projectActions.incoming.length) {
-        types.push(`${renderActionTypeName(projectKey, false)}Map<${renderActionTypeName(projectKey, false)}>`)
-      }
-      if (projectActions.response.length) {
-        types.push(`${renderActionTypeName(projectKey, true)}Map<${renderActionTypeName(projectKey, true)}>`)
-      }
-      return types
-    })
+    .map(projectKey => `${renderActionTypeName(projectKey)}Map<${renderActionTypeName(projectKey)}>`)
     .join(' &\n  ')
+  const mustAnswer = [...mustAnswerMethods]
+    .sort()
+    .map(m => `\n  ${m},`)
+    .join('')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 ${prelude.join('\n')}
@@ -651,7 +632,11 @@ export type ActionType = ActionKey
 export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
 export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
 export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
-export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
+
+// Custom calls that return a value: with no session and no registered answerer the engine answers
+// them with an error, since an empty result would be read as a real answer.
+export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([${mustAnswer}
+])
 `
 }
 
@@ -695,8 +680,9 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
   const messageEntries = Object.entries(typeDefs.messages).sort(([left], [right]) => left.localeCompare(right))
   const promiseMethods = messageEntries.filter(([, message]) => message.rpcPromise).map(([key]) => key)
   const listenerMethods = messageEntries.filter(([, message]) => message.engineListener).map(([key]) => key)
+  // A must-answer method only goes in the custom map, where its handler gets the response to answer
   const incomingMethods = Object.keys(project.incomingMaps)
-    .filter(im => enabledCall(im, 'incoming'))
+    .filter(im => enabledCall(im, 'incoming') && !mustAnswerMethods.includes(im))
     .sort()
   const customIncomingMethods = Object.keys(project.customResponseIncomingMaps)
     .filter(im => enabledCall(im, 'custom'))
@@ -733,6 +719,8 @@ type ListenerArgs<M extends ListenerMethod> = {
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
   waitingKey?: WaitingKey,
   onSessionCreated?: (cancel: () => void) => void,
+  // Prefixes of incoming methods this call leaves to global handling; any other unhandled one is reported
+  globalFallthrough?: ReadonlyArray<string>,
 }
 export type ListenerFn<M extends ListenerMethod> = (p: ListenerArgs<M>) => Promise<RpcOut<M>>
 const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
@@ -744,6 +732,7 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
       customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       waitingKey: p.waitingKey,
       onSessionCreated: p.onSessionCreated,
+      globalFallthrough: p.globalFallthrough,
     }) as Promise<RpcOut<M>>) as ListenerFn<M>`
       : '',
   ]
@@ -962,8 +951,8 @@ function lintError(s: string, lint?: JsonLint): void {
 }
 
 async function main(): Promise<void> {
-  const keys = Object.keys(projects)
-  for (const key of keys) {
+  // Analyze every project before writing anything, so a failing check leaves no partial output
+  const analyzed = Object.keys(projects).map(key => {
     const project = projects[key as ProjectKey]
     const typeDefs = fs
       .readdirSync(project.root)
@@ -979,6 +968,13 @@ async function main(): Promise<void> {
         },
         {consts: {}, messages: {}, types: {}}
       )
+    return {project, typeDefs}
+  })
+  if (customResponseErrors.length) {
+    customResponseErrors.forEach(e => console.log(colors.red(e)))
+    process.exit(1)
+  }
+  for (const {project, typeDefs} of analyzed) {
     await writeFlow(typeDefs, project)
   }
   await writeAll()

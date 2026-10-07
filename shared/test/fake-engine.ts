@@ -200,6 +200,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     opts?.onEngineIncoming,
     makeClient
   )
+  engine.onUndeclaredIncoming = message => failures.push(message)
 
   const fake: FakeEngine = {
     answer: (method, reply) => {
@@ -269,7 +270,8 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
 }
 
 // Fails everything still in flight, then throws, naming each, if any call reached the fake with
-// nothing scripted, an answer threw, or the GUI answered a push that was not waiting.
+// nothing scripted, an answer threw, the GUI answered a push that was not waiting, or a listener got
+// an incoming method it neither handles nor declared as left to global handling.
 export const uninstallFakeEngine = () => {
   const i = installed
   if (!i) return
