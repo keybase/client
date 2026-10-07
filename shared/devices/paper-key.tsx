@@ -31,42 +31,35 @@ const PaperKey = () => {
   const clearModals = C.Router2.clearModals
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      centerChildren={true}
-      style={styles.container}
-      gap="medium"
-      padding="medium"
-    >
-      <Kb.Text type="Header">Paper key generated!</Kb.Text>
-      <Kb.Text type="Body" center={true}>
-        Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
-        This is the only time you&apos;ll see this so be sure to write it down.
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true} padding="medium">
-        {paperkey ? (
-          <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
-            {paperkey}
-          </Kb.Text>
-        ) : (
-          <Kb.ProgressIndicator type="Large" />
-        )}
+    <Kb.ModalScreen centered={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="medium">
+        <Kb.Text type="Body" center={true}>
+          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+          This is the only time you&apos;ll see this so be sure to write it down.
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true} padding="medium">
+          {paperkey ? (
+            <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
+              {paperkey}
+            </Kb.Text>
+          ) : (
+            <Kb.ProgressIndicator type="Large" />
+          )}
+        </Kb.Box2>
+        <Kb.Checkbox
+          label="Yes, I wrote this down."
+          checked={wroteItDown}
+          disabled={!paperkey}
+          onCheck={setWroteItDown}
+        />
+        <Kb.WaitingButton
+          label="Done"
+          onClick={clearModals}
+          disabled={!wroteItDown}
+          waitingKey={C.waitingKeyDevices}
+        />
       </Kb.Box2>
-      <Kb.Checkbox
-        label="Yes, I wrote this down."
-        checked={wroteItDown}
-        disabled={!paperkey}
-        onCheck={setWroteItDown}
-      />
-      <Kb.WaitingButton
-        label="Done"
-        onClick={clearModals}
-        disabled={!wroteItDown}
-        waitingKey={C.waitingKeyDevices}
-      />
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -75,10 +68,6 @@ const borderWidth = 3
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      container: {
-        alignSelf: 'center',
-        maxWidth: isMobile ? undefined : 560,
-      },
       keyBox: {
         backgroundColor: theme.white,
         borderColor: theme.blueDarker,

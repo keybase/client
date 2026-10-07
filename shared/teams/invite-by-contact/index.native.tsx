@@ -76,7 +76,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.ModalScreen scroll={false} padding="none">
       {!!errorMessage && (
         <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true} justifyContent="center">
           <Kb.Text center={true} type="BodySemibold" negative={true}>
@@ -121,7 +121,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
           />
         </Kb.Box2>
       )}
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 

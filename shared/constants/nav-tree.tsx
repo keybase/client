@@ -77,6 +77,18 @@ export const isModalRouteName = (name: string) => {
 
 // ---- Readers ----
 
+// Whether the root-stack route just below `routeKey` is a modal, i.e. whether a modal's Back
+// leads to another modal rather than closing it.
+export const previousRouteIsModal = (
+  state: {routes: ReadonlyArray<{key: string; name: string}>} | undefined,
+  routeKey: string
+) => {
+  const routes = state?.routes ?? []
+  const idx = routes.findIndex(r => r.key === routeKey)
+  const prev = idx > 0 ? routes[idx - 1] : undefined
+  return !!prev && isModalRouteName(prev.name)
+}
+
 export const isLoggedIn = (state?: Immutable<NavState>) => state?.routes?.[0]?.name === 'loggedIn'
 
 export const currentTab = (state?: Immutable<NavState>): Tabs.Tab | undefined => {

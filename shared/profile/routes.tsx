@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {ModalTitle} from '@/teams/common'
 import {defineRouteMap} from '@/constants/types/router'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
@@ -10,12 +10,13 @@ import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const Title = React.lazy(async () => import('./search'))
 
-const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
-  const navigateUp = C.Router2.navigateUp
+// Desktop closes with the X, so its left slot only ever holds Back.
+const EditAvatarHeaderLeft = (p: HeaderBackButtonProps & {wizard?: boolean; showBack?: boolean}) => {
+  const {wizard, showBack, ...rest} = p
   if (wizard || showBack) {
-    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+    return <HeaderLeftButton {...rest} />
   }
-  return <HeaderLeftButton mode="cancel" />
+  return isMobile ? <HeaderLeftButton mode="cancel" /> : null
 }
 
 const EditAvatarHeaderRight = ({
@@ -61,12 +62,9 @@ const EditAvatarHeaderTitle = ({
 }) => {
   if (teamID) {
     const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-    if (isMobile) {
-      return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
-    }
-    return <Kb.Text type="BodyBig">{title}</Kb.Text>
+    return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
   }
-  return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
+  return <Kb.ModalHeaderTitle title="Upload an avatar" />
 }
 
 const EditAvatarWizardHeaderRight = ({
@@ -107,10 +105,7 @@ export const newModalRoutes = defineRouteMap({
   profileAddToTeam: C.makeScreen(
     React.lazy(async () => import('./add-to-team')),
     {
-      getOptions: {
-        modalSize: 'wide',
-        overlayTransparent: false,
-      },
+      getOptions: ({route}) => ({modalSize: 'medium', title: `Add ${route.params.username} to...`}),
     }
   ),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
@@ -126,8 +121,8 @@ export const newModalRoutes = defineRouteMap({
                 : [Kb.nativeCancelHeaderItem()],
           }
         : {
-            headerLeft: () => (
-              <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
+            headerLeft: (p: HeaderBackButtonProps) => (
+              <EditAvatarHeaderLeft {...p} wizard={route.params.wizard} showBack={route.params.showBack} />
             ),
           }),
       // Only register a right item when the Skip button actually renders: on iOS 26 a
@@ -143,21 +138,22 @@ export const newModalRoutes = defineRouteMap({
           wizard={route.params.wizard}
         />
       ),
+      modalSize: 'medium',
     }),
   }),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import')), {
-    getOptions: Kb.doneModalOptions(''),
+    getOptions: Kb.doneModalOptions('Import a PGP key'),
   }),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
-    getOptions: {modalSize: 'wide'},
+    getOptions: {title: 'Add a PGP key'},
   }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
-    getOptions: {modalSize: 'wide', title: 'Prove your...'},
+    getOptions: {modalSize: 'medium', title: 'Prove your...'},
   }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
-    getOptions: {modalSize: 'wide'},
+    getOptions: ({route}) => ({title: route.params.platform === 'pgp' ? 'Drop PGP key' : 'Revoke proof'}),
   }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
-    getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'wide'},
+    getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'medium'},
   }),
 })

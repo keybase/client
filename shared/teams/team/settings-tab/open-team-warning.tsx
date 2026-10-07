@@ -10,7 +10,6 @@ type Props = {
 
 const OpenTeamWarning = (props: Props) => {
   const isOpenTeam = props.isOpenTeam
-  const teamname = props.teamname
   const onConfirmCallback = useSettingsTabState(s => s.dispatch.triggerAllowOpen)
 
   const clearModals = C.Router2.clearModals
@@ -24,7 +23,6 @@ const OpenTeamWarning = (props: Props) => {
   return (
     <ConfirmWarning
       icon={<Kb.ImageIcon type={'icon-illustration-teams-216'} />}
-      header={`Make ${teamname} into ${isOpenTeam ? 'an open' : 'a closed'} team?`}
       body={
         <>
           You are about to make this team{' '}

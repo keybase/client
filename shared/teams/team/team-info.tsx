@@ -93,15 +93,17 @@ const TeamInfo = (props: Props) => {
   }, [waiting])
 
   return (
-    <>
-      {Object.keys(errors).map(k =>
+    <Kb.ModalScreen
+      banner={Object.keys(errors).map(k =>
         errors[k as keyof typeof errors] ? (
           <Kb.Banner color="red" key={k}>
             {errors[k as keyof typeof errors] ?? ''}
           </Kb.Banner>
         ) : null
       )}
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
+      footer={<Kb.Button label="Save" onClick={onSave} fullWidth={true} disabled={saveDisabled} waiting={waiting} />}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.Avatar
           onClick={onEditAvatar}
           isTeam={true}
@@ -149,10 +151,7 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button label="Save" onClick={onSave} fullWidth={true} disabled={saveDisabled} waiting={waiting} />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
@@ -161,13 +160,6 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     alignSelf: 'center',
     marginRight: Kb.Styles.globalMargins.tiny,
   },
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
   editTeamAvatar: Kb.Styles.platformStyles({
     common: {
       backgroundColor: theme.blue,

@@ -12,9 +12,6 @@ const useConnect = () => {
   const [showDisableCertPinningWarning, setShowDisableCertPinningWarning] = React.useState(false)
   const loadProxyData = C.useRPC(T.RPCGen.configGetProxyDataRpcPromise)
   const saveProxyData = C.useRPC(T.RPCGen.configSetProxyDataRpcPromise)
-  const onBack = () => {
-    C.Router2.navigateUp()
-  }
   const onDisableCertPinning = () => {
     setShowDisableCertPinningWarning(true)
   }
@@ -31,7 +28,6 @@ const useConnect = () => {
   const props = {
     allowTlsMitmToggle,
     loadProxyData,
-    onBack,
     onCancelDisableCertPinning,
     onConfirmDisableCertPinning,
     onDisableCertPinning,
@@ -54,7 +50,7 @@ const Container = () => {
 // The proxy settings component used in the advanced settings screen
 const ProxySettings = () => {
   const props = useConnect()
-  return <ProxySettingsComponent {...props} />
+  return <ProxySettingsComponent {...props} showHeader={true} />
 }
 
 // A list so the order of the elements is fixed
@@ -89,7 +85,6 @@ type Props = {
     setResult: (result: T.RPCGen.ProxyData) => void,
     setError: (error: RPCError) => void
   ) => void
-  onBack: () => void
   onCancelDisableCertPinning: () => void
   onConfirmDisableCertPinning: () => void
   onDisableCertPinning: () => void
@@ -104,10 +99,12 @@ type Props = {
   showDisableCertPinningWarning: boolean
 }
 
-const ProxySettingsComponent = (props: Props) => {
+// the modal titles itself in its header; the advanced settings page shows the heading
+const ProxySettingsComponent = (props: Props & {showHeader: boolean}) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {
+    showHeader,
     loadProxyData,
     proxyData,
     setProxyData,
@@ -213,9 +210,11 @@ const ProxySettingsComponent = (props: Props) => {
 
   return (
     <>
-      <Kb.Text type="Header" style={styles.text}>
-        Proxy settings
-      </Kb.Text>
+      {showHeader && (
+        <Kb.Text type="Header" style={styles.text}>
+          Proxy settings
+        </Kb.Text>
+      )}
       {proxyTypeList.map(pt => (
         <Kb.RadioButton
           onSelect={() => proxyTypeSelected(pt)}
@@ -266,22 +265,13 @@ const ProxySettingsComponent = (props: Props) => {
   )
 }
 
-const ProxySettingsPopup = (props: Props) => {
-  const styles = useStyles()
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.popupBox}>
-      {!isMobile && <Kb.BackButton onClick={props.onBack} />}
-      <Kb.Box2 direction="vertical" padding="xlarge">
-        <ProxySettingsComponent {...props} />
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
+const ProxySettingsPopup = (props: Props) => (
+  <Kb.ModalScreen>
+    <ProxySettingsComponent {...props} showHeader={false} />
+  </Kb.ModalScreen>
+)
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  popupBox: {
-    minHeight: '40%',
-  },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
   radioButton: {marginRight: Kb.Styles.globalMargins.medium},
   text: Kb.Styles.platformStyles({

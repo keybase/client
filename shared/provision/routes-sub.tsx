@@ -33,6 +33,7 @@ export const newRoutes = {
     getOptions: {
       // iOS: default native back button only (headerBackVisible), no extra items
       ...(isIOS ? {} : {headerLeft: () => <CodePageHeaderLeft />}),
+      modalSize: 'medium' as const,
       title: '',
     },
   }),
@@ -51,7 +52,7 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./password')),
   },
   selectOtherDevice: {
-    getOptions: {title: 'Authorize this device'},
+    getOptions: {modalSize: 'medium' as const, title: 'Authorize this device'},
     screen: React.lazy(async () => import('./select-other-device-connected')),
   },
   setPublicName: {

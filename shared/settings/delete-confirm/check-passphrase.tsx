@@ -19,22 +19,29 @@ const CheckPassphraseImpl = () => {
   const keyboardType = showTyping && isAndroid ? 'visible-password' : 'default'
 
   return (
-    <>
-      {checkPasswordIsCorrect === false ? (
-        <Kb.Banner key="errorBanner" color="red">
-          Wrong password. Please try again.
-        </Kb.Banner>
-      ) : null}
-      {checkPasswordIsCorrect === true ? (
-        <Kb.Banner key="successBanner" color="green">
-          Your password is correct.
-        </Kb.Banner>
-      ) : null}
-      <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
-        <Kb.Text style={styles.headerText} type="Header">
+    <Kb.ModalScreen
+      banner={
+        checkPasswordIsCorrect === false ? (
+          <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+        ) : checkPasswordIsCorrect === true ? (
+          <Kb.Banner color="green">Your password is correct.</Kb.Banner>
+        ) : undefined
+      }
+      footer={
+        <Kb.WaitingButton
+          fullWidth={true}
+          waitingKey={C.waitingKeySettingsCheckPassword}
+          disabled={!!checkPasswordIsCorrect || !password}
+          label="Authorize"
+          onClick={() => onCheckPassword(password)}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Text center={true} type="BodyBig">
           Do you know your password?
         </Kb.Text>
-        <Kb.Text style={styles.bodyText} type="Body">
+        <Kb.Text center={true} type="Body">
           You will need it to delete this account.
         </Kb.Text>
         <Kb.RoundedBox>
@@ -48,12 +55,7 @@ const CheckPassphraseImpl = () => {
             hideBorder={true}
           />
         </Kb.RoundedBox>
-        <Kb.Checkbox
-          checked={showTyping}
-          label="Show typing"
-          onCheck={setShowTyping}
-          style={styles.checkbox}
-        />
+        <Kb.Checkbox checked={showTyping} label="Show typing" onCheck={setShowTyping} />
         {checkPasswordIsCorrect && (
           <Kb.Button
             label="Delete forever"
@@ -64,35 +66,13 @@ const CheckPassphraseImpl = () => {
           />
         )}
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
-          <Kb.WaitingButton
-            fullWidth={true}
-            waitingKey={C.waitingKeySettingsCheckPassword}
-            disabled={!!checkPasswordIsCorrect || !password}
-            label="Authorize"
-            onClick={() => onCheckPassword(password)}
-          />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      bodyText: {paddingBottom: Kb.Styles.globalMargins.tiny, textAlign: 'center'},
-      buttonBar: {minHeight: undefined},
-      checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
-      container: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-        backgroundColor: theme.blueGrey,
-      },
-      deleteButton: {marginTop: Kb.Styles.globalMargins.large},
-      headerText: {marginBottom: Kb.Styles.globalMargins.small, textAlign: 'center'},
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  deleteButton: {marginTop: Kb.Styles.globalMargins.large},
+}))
 
 const CheckPassphrase = isMobile ? CheckPassphraseImpl : () => null
 export default CheckPassphrase

@@ -54,38 +54,35 @@ const SelectChannel = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-      <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
-          <Kb.Text type="Header">Select a channel</Kb.Text>
-          <Kb.ErrorBanner error={error} />
-          {channelNames.map(name => (
-            <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
-              <Kb.RadioButton
-                label={name}
-                selected={selected === name}
-                style={styles.radioButton}
-                onSelect={selected => selected && setSelected(name)}
-              />
-            </Kb.Box2>
-          ))}
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ButtonBar>
-        <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
-        <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
-      </Kb.ButtonBar>
-    </Kb.Box2>
+    <Kb.ModalScreen
+      banner={<Kb.ErrorBanner error={error} />}
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waiting={waiting}
+          onCancel={onCancel}
+          onConfirm={submit}
+          confirmLabel="Submit"
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        {channelNames.map(name => (
+          <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
+            <Kb.RadioButton
+              label={name}
+              selected={selected === name}
+              style={styles.radioButton}
+              onSelect={selected => selected && setSelected(name)}
+            />
+          </Kb.Box2>
+        ))}
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  container: {
-    width: isMobile ? '100%' : 300,
-  },
-  innerContainer: {
-    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
-  },
   radioButton: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     marginLeft: Kb.Styles.globalMargins.tiny,
@@ -93,7 +90,6 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
   row: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
-  scrollContainer: {padding: Kb.Styles.globalMargins.small},
 }))
 
 export default SelectChannel

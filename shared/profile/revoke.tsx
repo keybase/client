@@ -5,7 +5,6 @@ import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'
 import {SiteIcon} from './generic/site-icon'
 import * as T from '@/constants/types'
-import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -53,27 +52,32 @@ const RevokeProof = (ownProps: OwnProps) => {
 
   const platformHandleSubtitle = platformSubtitle(platform)
   return (
-    <Modal onCancel={onCancel} skipButton={true}>
-      {!!errorMessage && (
-        <Kb.Box2
-          direction="vertical"
-          alignItems="center"
-          fullWidth={true}
-          justifyContent="center"
-          padding="tiny"
-          style={styles.errorBanner}
-        >
-          <Kb.Text center={!isMobile} style={styles.errorBannerText} type="BodySemibold">
-            {errorMessage}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
-      <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.contentContainer}>
+    <Kb.ModalScreen
+      centered={true}
+      banner={
+        errorMessage ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={errorMessage} />
+          </Kb.Banner>
+        ) : undefined
+      }
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waitingKey={C.waitingKeyProfile}
+          onCancel={onCancel}
+          onConfirm={onRevoke}
+          confirmLabel={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
+          confirmType="Danger"
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
           <Kb.ImageIcon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box2>
-        <Kb.Text center={!isMobile} style={styles.platformUsername} type="Header">
+        <Kb.Text center={true} style={styles.platformUsername} type="BodyBig">
           {platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
@@ -81,52 +85,33 @@ const RevokeProof = (ownProps: OwnProps) => {
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text center={!isMobile} style={styles.descriptionText} type="Header">
+        <Kb.Text center={true} style={styles.descriptionText} type="BodyBig">
           {formatMessage(platform)}
         </Kb.Text>
-        <Kb.Text center={!isMobile} style={styles.reminderText} type="Body">
+        <Kb.Text center={true} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
-        <Kb.ConfirmButtons
-          waitingKey={C.waitingKeyProfile}
-          onCancel={onCancel}
-          onConfirm={onRevoke}
-          confirmLabel={platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-          confirmType="Danger"
-        />
       </Kb.Box2>
-    </Modal>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      contentContainer: {
-        margin: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
-        maxWidth: 512,
-        textAlign: isMobile ? undefined : 'center',
-      },
+      container: {paddingTop: Kb.Styles.globalMargins.small},
       descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
-      errorBanner: {
-        backgroundColor: theme.red,
-        minHeight: Kb.Styles.globalMargins.large,
-      },
-      errorBannerText: {
-        color: theme.white,
-        maxWidth: 512,
-      },
       platformSubtitle: {
         color: theme.black_20,
       },
       platformUsername: Kb.Styles.platformStyles({
         common: {
           color: theme.redDark,
+          marginTop: Kb.Styles.globalMargins.small,
           textDecorationLine: 'line-through',
         },
         isElectron: {
-          maxWidth: 400,
-          overflowWrap: 'break-word',
+          overflowWrap: 'anywhere',
         },
       }),
       reminderText: {marginTop: Kb.Styles.globalMargins.tiny},

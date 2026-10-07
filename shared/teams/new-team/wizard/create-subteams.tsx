@@ -35,14 +35,11 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
     : 'Continue without subteams'
 
   return (
-    <>
-      <WizardBanner icon="icon-illustration-teams-subteams-460-96" />
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={styles.body}
-        gap={isMobile ? 'xsmall' : 'tiny'}
-      >
+    <Kb.ModalScreen
+      banner={<WizardBanner icon="icon-illustration-teams-subteams-460-96" />}
+      footer={<Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'xsmall' : 'tiny'}>
         <Kb.Text type="BodySmall">
           Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team
           hierarchy.
@@ -62,21 +59,11 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
         ))}
         <AddRowButton onAdd={onAdd} />
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-    },
-    isElectron: {minHeight: 326},
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
   input: wizardInputStyle,
 }))
 

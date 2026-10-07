@@ -20,7 +20,6 @@ jest.mock('@/common-adapters', () => {
     Box2: passThrough,
     Button: ({label, disabled, onClick}: {label?: string; disabled?: boolean; onClick?: () => void}) =>
       React.createElement('button', {disabled, onClick, type: 'button'}, label),
-    ButtonBar: passThrough,
     Checkbox: ({label, onCheck}: {label?: string; onCheck?: () => void}) =>
       React.createElement('button', {onClick: onCheck, type: 'button'}, label),
     Icon: () => React.createElement('div'),
@@ -38,9 +37,9 @@ jest.mock('@/common-adapters', () => {
         placeholder,
         value,
       }),
-    ModalFooter: passThrough,
+    ModalScreen: ({banner, children, footer}: {banner?: React.ReactNode; children?: React.ReactNode; footer?: React.ReactNode}) =>
+      React.createElement('div', null, banner, children, footer),
     RoundedBox: passThrough,
-    ScrollView: passThrough,
     Styles: {
       createStyleHook:
         <S,>(styles: (theme: unknown) => S) =>

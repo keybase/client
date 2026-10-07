@@ -83,72 +83,60 @@ const JoinTeamInner = ({initialTeamname, success: successParam}: OwnProps) => {
   }
 
   return (
-    <>
-      {errorText ? (
-        <Kb.Banner key="red" color="red">
-          <Kb.BannerParagraph bannerColor="red" content={errorText} />
-        </Kb.Banner>
-      ) : null}
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        {success ? (
-          <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
-            {open ? (
-              <Success teamname={successTeamName} />
-            ) : (
-              <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true}>
-                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-                  <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
-                </Kb.Box2>
-                <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-                  <Kb.Text center={true} type="Body">
-                    Your request was sent to the admins of{' '}
-                    {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
-                    {"Hang tight, you'll get notified as soon as you're let in."}
-                  </Kb.Text>
-                </Kb.Box2>
-              </Kb.Box2>
-            )}
+    <Kb.ModalScreen
+      centered={success && open}
+      banner={
+        errorText ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={errorText} />
+          </Kb.Banner>
+        ) : success && !open ? (
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
+            <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
           </Kb.Box2>
+        ) : undefined
+      }
+      footer={
+        <Kb.WaitingButton
+          fullWidth={true}
+          label={success ? 'Close' : 'Continue'}
+          onClick={success ? onBack : onSubmit}
+          type={success ? 'Dim' : 'Default'}
+          waitingKey={C.waitingKeyTeamsJoinTeam}
+        />
+      }
+    >
+      {success ? (
+        open ? (
+          <Success teamname={successTeamName} />
         ) : (
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
-            <Kb.RoundedBox>
-              <Kb.Input3
-                autoFocus={true}
-                onChangeText={setName}
-                onEnterKeyDown={onSubmit}
-                placeholder="Token or team name"
-                value={name}
-                hideBorder={true}
-              />
-            </Kb.RoundedBox>
-            <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
-          </Kb.Box2>
-        )}
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={success ? 'Close' : 'Continue'}
-            onClick={success ? onBack : onSubmit}
-            type={success ? 'Dim' : 'Default'}
-            waitingKey={C.waitingKeyTeamsJoinTeam}
-          />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+          <Kb.Text center={true} type="Body">
+            Your request was sent to the admins of{' '}
+            {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
+            {"Hang tight, you'll get notified as soon as you're let in."}
+          </Kb.Text>
+        )
+      ) : (
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.RoundedBox>
+            <Kb.Input3
+              autoFocus={true}
+              onChangeText={setName}
+              onEnterKeyDown={onSubmit}
+              placeholder="Token or team name"
+              value={name}
+              hideBorder={true}
+            />
+          </Kb.RoundedBox>
+          <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
+        </Kb.Box2>
+      )}
+    </Kb.ModalScreen>
   )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  () =>
-    ({
-      banner: Kb.Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
-      buttonBar: {minHeight: undefined},
-      container: {
-        padding: Kb.Styles.globalMargins.small,
-      },
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  banner: Kb.Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
+}))
 
 export default JoinTeam

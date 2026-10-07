@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
-import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
 import {usePhoneVerification} from './use-verification'
 
@@ -19,7 +18,6 @@ const VerifyPhoneNumber = ({route}: Props) => {
     phoneNumber,
   })
 
-  const navigateUp = C.Router2.navigateUp
   const onResend = () => resendVerificationForPhone(phoneNumber)
 
   const [code, onChangeCode] = React.useState('')
@@ -30,10 +28,8 @@ const VerifyPhoneNumber = ({route}: Props) => {
         verifyPhoneNumber(phoneNumber, code)
       }
 
-  const displayPhone = e164ToDisplay(phoneNumber)
   return (
     <SignupScreen
-      onBack={navigateUp}
       banners={
         error ? (
           <Kb.Banner key="error" color="red">
@@ -42,46 +38,15 @@ const VerifyPhoneNumber = ({route}: Props) => {
         ) : null
       }
       buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: verifyWaiting}]}
-      titleComponent={
-        <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-          {displayPhone}
-        </Kb.Text>
-      }
       containerStyle={styles.container}
-      headerStyle={styles.container}
-      header={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.headerContainer}>
-          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={navigateUp}>
-            Back
-          </Kb.Text>
-          <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-            {displayPhone}
-          </Kb.Text>
-          <Kb.Box2 direction="horizontal" flex={1} />
-        </Kb.Box2>
-      }
-      negativeHeader={true}
-      showHeaderInfoIcon={true}
     >
       <VerifyBody onChangeCode={onChangeCode} code={code} onResend={onResend} resendWaiting={resendWaiting} />
     </SignupScreen>
   )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      backButton: {
-        color: theme.white,
-        ...Kb.Styles.globalStyles.flexOne,
-      },
-      container: {backgroundColor: theme.blue},
-      headerContainer: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-        backgroundColor: theme.blue,
-      },
-      headerText: {color: theme.black_50},
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  container: {backgroundColor: theme.blue},
+}))
 
 export default VerifyPhoneNumber

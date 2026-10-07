@@ -6,7 +6,6 @@ import {type Device} from '@/constants/provision'
 type Props = {
   passwordRecovery?: boolean
   devices: ReadonlyArray<Device>
-  onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
   waitingDeviceName?: string
@@ -20,7 +19,7 @@ const itemHeight = {type: 'trueVariable'} as const
 
 const SelectOtherDevice = (props: Props) => {
   const styles = useStyles()
-  const {passwordRecovery, devices, onBack, onSelect, onResetAccount, waitingDeviceName} = props
+  const {passwordRecovery, devices, onSelect, onResetAccount, waitingDeviceName} = props
 
   const items: Item[] = [
     {type: 'header'},
@@ -93,14 +92,10 @@ const SelectOtherDevice = (props: Props) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       waitingOverlay={!passwordRecovery}
       noBackground={true}
-      onBack={onBack}
-      title={
-        passwordRecovery ? 'Recover password' : `Authorize this ${isMobile ? 'device' : 'computer'}`
-      }
       contentContainerStyle={Kb.Styles.padding(0)}
+      modalScroll={false}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} alignSelf="center" style={styles.contentBox}>
         <Kb.List

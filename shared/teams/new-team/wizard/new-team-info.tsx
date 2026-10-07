@@ -119,8 +119,10 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
+    <Kb.ModalScreen
+      footer={<Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         {parentName ? (
           <Kb.Input3
             textType="BodySemibold"
@@ -228,22 +230,12 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
   biggerOnTheInside: {height: 100},
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
   extraLineText: {
     height: 36,
   },

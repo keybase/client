@@ -6,6 +6,7 @@ import {
   isLoggedIn,
   modalStack,
   modalState,
+  previousRouteIsModal,
   pushedAboveTabs,
   setModalRouteNames,
   tabNavigatorState,
@@ -263,5 +264,27 @@ test('pushedAboveTabs uses each tab own root screen', () => {
       },
       {name: 'fsBrowse', params: {path: '/keybase/private/testuser'}},
     ],
+  })
+})
+
+describe('previousRouteIsModal', () => {
+  const state = {
+    routes: [
+      {key: 'loggedIn', name: 'loggedIn'},
+      {key: 'm1', name: 'chatInfoPanel'},
+      {key: 'm2', name: 'chatInfoPanel'},
+    ],
+  }
+  test('the first modal over the app has nothing to go back to', () => {
+    expect(previousRouteIsModal(state, 'm1')).toBe(false)
+  })
+  test('a modal over another modal goes back to it', () => {
+    expect(previousRouteIsModal(state, 'm2')).toBe(true)
+  })
+  test('a route over a non-modal screen, or not in the stack, does not', () => {
+    const phone = {routes: [...state.routes.slice(0, 1), {key: 'c', name: 'chatConversation'}, {key: 'm', name: 'chatInfoPanel'}]}
+    expect(previousRouteIsModal(phone, 'm')).toBe(false)
+    expect(previousRouteIsModal(state, 'missing')).toBe(false)
+    expect(previousRouteIsModal(undefined, 'm1')).toBe(false)
   })
 })

@@ -11,7 +11,6 @@ import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {settingsAccountTab} from '@/constants/settings'
 
 export const Email = () => {
-  const styles = useStyles()
   const nav = useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
@@ -47,38 +46,15 @@ export const Email = () => {
     })
   }
   return (
-    <>
-      {!!emailError && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError} />
-        </Kb.Banner>
-      )}
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-        flex={1}
-        relative={true}
-        style={styles.body}
-      >
-        <EnterEmailBody
-          email={email}
-          onChangeEmail={onChangeEmail}
-          showSearchable={true}
-          searchable={searchable}
-          onChangeSearchable={onChangeSearchable}
-          onContinue={onContinue}
-          iconType={
-            isMobile
-              ? C.isLargeScreen
-                ? 'icon-email-add-96'
-                : 'icon-email-add-64'
-              : 'icon-email-add-64'
-          }
-        />
-      </Kb.Box2>
-      <Kb.ModalFooter style={styles.footer}>
+    <Kb.ModalScreen
+      banner={
+        emailError ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={emailError} />
+          </Kb.Banner>
+        ) : null
+      }
+      footer={
         <Kb.ConfirmButtons
           split={true}
           waiting={waiting}
@@ -87,12 +63,27 @@ export const Email = () => {
           confirmLabel="Continue"
           confirmDisabled={disabled}
         />
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <EnterEmailBody
+        email={email}
+        onChangeEmail={onChangeEmail}
+        showSearchable={true}
+        searchable={searchable}
+        onChangeSearchable={onChangeSearchable}
+        onContinue={onContinue}
+        iconType={
+          isMobile
+            ? C.isLargeScreen
+              ? 'icon-email-add-96'
+              : 'icon-email-add-64'
+            : 'icon-email-add-64'
+        }
+      />
+    </Kb.ModalScreen>
   )
 }
 export const Phone = () => {
-  const styles = useStyles()
   const nav = useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
@@ -128,37 +119,15 @@ export const Phone = () => {
   }
 
   return (
-    <>
-      {!!error && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      )}
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-        flex={1}
-        relative={true}
-        style={styles.body}
-      >
-        <EnterPhoneNumberBody
-          defaultCountry={defaultCountry}
-          onChangeNumber={onChangeNumberCb}
-          onContinue={onContinue}
-          searchable={searchable}
-          onChangeSearchable={onChangeSearchable}
-          iconType={
-            isMobile
-              ? C.isLargeScreen
-                ? 'icon-phone-number-add-96'
-                : 'icon-phone-number-add-64'
-              : 'icon-phone-number-add-64'
-          }
-        />
-      </Kb.Box2>
-      <Kb.ModalFooter style={styles.footer}>
+    <Kb.ModalScreen
+      banner={
+        error ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null
+      }
+      footer={
         <Kb.ConfirmButtons
           split={true}
           waiting={waiting}
@@ -167,8 +136,23 @@ export const Phone = () => {
           confirmLabel="Continue"
           confirmDisabled={disabled}
         />
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <EnterPhoneNumberBody
+        defaultCountry={defaultCountry}
+        onChangeNumber={onChangeNumberCb}
+        onContinue={onContinue}
+        searchable={searchable}
+        onChangeSearchable={onChangeSearchable}
+        iconType={
+          isMobile
+            ? C.isLargeScreen
+              ? 'icon-phone-number-add-96'
+              : 'icon-phone-number-add-64'
+            : 'icon-phone-number-add-64'
+        }
+      />
+    </Kb.ModalScreen>
   )
 }
 type VerifyPhoneProps = {
@@ -203,74 +187,33 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
   const disabled = !code
 
   return (
-    <>
-      {!!error && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      )}
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([
-          styles.blueBackground,
-          styles.verifyContainer,
-          Kb.Styles.globalStyles.flexOne,
-        ])}
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-      >
-        <VerifyBody
-          onResend={onResend}
-          resendWaiting={resendWaiting}
-          code={code}
-          onChangeCode={onChangeCode}
+    <Kb.ModalScreen
+      centered={true}
+      style={styles.blueBackground}
+      footerDivider={false}
+      banner={
+        error ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null
+      }
+      footer={
+        <Kb.Button
+          disabled={disabled}
+          type="Success"
+          label="Continue"
+          onClick={onContinue}
+          waiting={verifyWaiting}
+          fullWidth={true}
         />
-      </Kb.Box2>
-      <Kb.ModalFooter hideBorder={true} style={styles.blueBackground}>
-        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-          <Kb.Button
-            disabled={disabled}
-            type="Success"
-            label="Continue"
-            onClick={onContinue}
-            waiting={verifyWaiting}
-            fullWidth={true}
-          />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <VerifyBody onResend={onResend} resendWaiting={resendWaiting} code={code} onChangeCode={onChangeCode} />
+    </Kb.ModalScreen>
   )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      banner: {
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      blueBackground: {
-        backgroundColor: theme.blue,
-      },
-      body: {
-        ...Kb.Styles.padding(
-          isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xlarge,
-          Kb.Styles.globalMargins.small,
-          0
-        ),
-        backgroundColor: theme.blueGrey,
-      },
-      buttonBar: {
-        minHeight: undefined,
-      },
-      footer: {
-        padding: Kb.Styles.globalMargins.small,
-      },
-      verifyContainer: {
-        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-      },
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(theme => ({
+  blueBackground: {backgroundColor: theme.blue},
+}))

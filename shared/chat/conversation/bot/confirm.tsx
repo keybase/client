@@ -47,12 +47,12 @@ const ConfirmBotRemoveImpl = (props: {
   )
   return (
     <Kb.ConfirmModal
-      prompt={`Are you sure you want to uninstall ${botUsername}?`}
+      confirmText="Uninstall"
+      prompt={`Uninstall ${botUsername}?`}
       waitingKey={C.waitingKeyChatBotRemove}
       onConfirm={onRemove}
       onCancel={onClose}
-      description=""
-      header={<Kb.Avatar username={botUsername} size={96} />}
+      header={<Kb.Avatar username={botUsername} size={isMobile ? 96 : 64} />}
     />
   )
 }

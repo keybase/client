@@ -122,57 +122,52 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      gap="small"
-      gapEnd={true}
-      padding="small"
+    <Kb.ModalScreen
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waitingKey={C.waitingKeyDevices}
+          onCancel={onCancel}
+          onConfirm={onSubmit}
+          confirmLabel="Yes, delete it"
+          confirmType="Danger"
+        />
+      }
     >
-      <Kb.NameWithIcon
-        icon={getDeviceRevokeIconType(type, iconNumber)}
-        title={device.name}
-        titleStyle={styles.headerName}
-        size="small"
-      />
-      <Kb.Text center={true} type="Header">
-        Are you sure you want to revoke{' '}
-        {device.currentDevice ? (
-          'your current device'
-        ) : (
-          <Kb.Text type="Header" style={styles.italicName}>
-            {device.name}
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Kb.NameWithIcon
+          icon={getDeviceRevokeIconType(type, iconNumber)}
+          title={device.name}
+          titleStyle={styles.headerName}
+          size="small"
+        />
+        <Kb.Text center={true} type="BodyBig">
+          Are you sure you want to revoke{' '}
+          {device.currentDevice ? (
+            'your current device'
+          ) : (
+            <Kb.Text type="BodyBig" style={styles.italicName}>
+              {device.name}
+            </Kb.Text>
+          )}
+          ?
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          {!waiting && <EndangeredTLFList endangeredTLFs={endangeredTLFs} />}
+        </Kb.Box2>
+        {waiting && (
+          <Kb.Text center={true} type="BodySmallItalic">
+            Calculating any side effects...
           </Kb.Text>
         )}
-        ?
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} alignSelf={isMobile ? undefined : 'center'} fullWidth={isMobile}>
-        {!waiting && <EndangeredTLFList endangeredTLFs={endangeredTLFs} />}
       </Kb.Box2>
-      <Kb.ConfirmButtons
-        waitingKey={C.waitingKeyDevices}
-        onCancel={onCancel}
-        onConfirm={onSubmit}
-        confirmLabel="Yes, delete it"
-        confirmType="Danger"
-      />
-      {waiting && (
-        <Kb.Text center={true} type="BodySmallItalic">
-          Calculating any side effects...
-        </Kb.Text>
-      )}
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      endangeredTLFContainer: Kb.Styles.platformStyles({
-        isElectron: {alignSelf: 'center'},
-        isMobile: {...Kb.Styles.globalStyles.flexGrow},
-      }),
       headerName: {
         color: theme.redDark,
         textDecorationLine: 'line-through',
@@ -184,7 +179,7 @@ const useStyles = Kb.Styles.createStyleHook(
           flexGrow: 1,
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
         },
-        isElectron: {height: 162, width: 440},
+        isElectron: {height: 162},
       }),
       row: {
         ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xxtiny),

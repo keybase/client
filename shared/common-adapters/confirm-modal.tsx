@@ -1,15 +1,15 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import ButtonBar from './button-bar'
+import ConfirmButtons from './confirm-buttons'
 import IconAuto from '@/common-adapters/icon-auto'
 import Text from '@/common-adapters/text'
-import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Banner, BannerParagraph} from './banner'
 import {Box2} from '@/common-adapters/box'
-import ModalFooter from './modal-footer'
+import ModalScreen from './modal-screen'
 
-// generally one of icon or header will be given
+// generally one of icon or header will be given. The route names the action in its title; the
+// prompt names what it acts on.
 export type Props = {
   confirmText?: string
   content?: React.ReactNode
@@ -21,101 +21,71 @@ export type Props = {
   onCancel?: () => void
   onConfirm?: () => void
   onConfirmDeactivated?: boolean
-  prompt: React.ReactNode
+  prompt?: string
   waitingKey?: string | string[]
   waiting?: boolean
 }
 
+const noop = () => {}
+
 const ConfirmModal = (props: Props) => {
+  const {confirmText, content, description, error, header, icon, iconColor, onCancel, onConfirm} = props
+  const {onConfirmDeactivated, prompt, waitingKey, waiting} = props
   const styles = useStyles()
   const theme = Styles.useTheme()
   return (
-    <>
-      {props.error ? (
-        <Banner key="error" color="red">
-          <BannerParagraph bannerColor="red" content={props.error} />
-        </Banner>
-      ) : null}
-      <Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        style={styles.container}
-        noShrink={true}
-      >
-        {props.icon && (
-          <Box2 direction="vertical" style={styles.icon}>
-            <IconAuto
-              color={props.iconColor ? props.iconColor : theme.black_50}
-              fontSize={isMobile ? 64 : 48}
-              style={styles.icon}
-              type={props.icon}
-            />
-          </Box2>
-        )}
-        {props.header && (
-          <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
-            {props.header}
-          </Box2>
-        )}
-        {typeof props.prompt === 'string' ? (
-          <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
-            {props.prompt}
-          </Text>
-        ) : (
-          props.prompt
-        )}
-        {!!props.description && (
-          <Text center={true} style={styles.text} type="Body">
-            {props.description}
-          </Text>
-        )}
-        {props.content}
-      </Box2>
-      <ModalFooter hideBorder={isMobile}>
-        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!isMobile && (
-            <WaitingButton
-              key="cancel"
-              disabled={!props.onCancel || props.waiting}
-              type="Dim"
-              label="Cancel"
-              onClick={props.onCancel}
-              style={styles.button}
-              waitingKey={props.waitingKey}
-            />
-          )}
-          <WaitingButton
-            key="confirm"
-            disabled={props.onConfirmDeactivated || !props.onConfirm}
-            type="Danger"
-            label={props.confirmText || 'Confirm'}
-            onClick={props.onConfirm}
-            style={styles.button}
-            waitingKey={props.waitingKey}
-            waiting={props.waiting}
-          />
-        </ButtonBar>
-      </ModalFooter>
-    </>
+    <ModalScreen
+      centered={true}
+      banner={
+        error ? (
+          <Banner color="red">
+            <BannerParagraph bannerColor="red" content={error} />
+          </Banner>
+        ) : undefined
+      }
+      footer={
+        <ConfirmButtons
+          split={true}
+          onCancel={onCancel ?? noop}
+          onConfirm={onConfirm ?? noop}
+          confirmDisabled={onConfirmDeactivated || !onConfirm}
+          confirmLabel={confirmText || 'Confirm'}
+          confirmType="Danger"
+          waitingKey={waitingKey}
+          waiting={waiting}
+        />
+      }
+    >
+      {icon && (
+        <Box2 direction="vertical" style={styles.art}>
+          <IconAuto color={iconColor ?? theme.black_50} fontSize={isMobile ? 64 : 48} type={icon} />
+        </Box2>
+      )}
+      {header && (
+        <Box2 alignItems="center" direction="vertical" style={styles.art} noShrink={true}>
+          {header}
+        </Box2>
+      )}
+      {!!prompt && (
+        <Text center={true} style={styles.text} type="BodyBig" lineClamp={2}>
+          {prompt}
+        </Text>
+      )}
+      {!!description && (
+        <Text center={true} style={styles.text} type="Body">
+          {description}
+        </Text>
+      )}
+      {content}
+    </ModalScreen>
   )
 }
 
 const useStyles = Styles.createStyleHook(theme => ({
-  button: {flex: 1},
-  buttonBar: {minHeight: undefined},
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xlarge),
-      flex: 1,
-    },
-  }),
-  icon: {
-    ...Styles.marginV(Styles.globalMargins.small),
-  },
+  art: {...Styles.marginV(Styles.globalMargins.small)},
   text: {
     color: theme.black,
-    margin: Styles.globalMargins.small,
+    margin: Styles.globalMargins.tiny,
   },
 }))
 

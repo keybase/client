@@ -8,7 +8,6 @@ type Props = {route: {params: {id: number}}}
 
 const PgpWarning = ({route}: Props) => {
   const {id} = route.params
-  const styles = useStyles()
   // Absent outside a navigator (storybook).
   const navigation = React.useContext(NavigationContext)
 
@@ -43,40 +42,20 @@ const PgpWarning = ({route}: Props) => {
   }
 
   return (
-    <>
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2
-          centerChildren={!Kb.Styles.isTablet}
-          direction="vertical"
-          fullHeight={true}
-          flex={1}
-          gap="small"
-          padding="small"
-          style={styles.container}
-        >
-          <Kb.Text type="Body" center={true}>
-            Your account has PGP keys stored on Keybase, encrypted with your old password.
-          </Kb.Text>
-          <Kb.Text type="Body" center={true}>
-            If you reset your password you will lose them.
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} type="Danger" />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+    <Kb.ModalScreen
+      centered={!Kb.Styles.isTablet}
+      footer={<Kb.Button fullWidth={true} label="Continue" onClick={onContinue} type="Danger" />}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Kb.Text type="Body" center={true}>
+          Your account has PGP keys stored on Keybase, encrypted with your old password.
+        </Kb.Text>
+        <Kb.Text type="Body" center={true}>
+          If you reset your password you will lose them.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      buttonBar: {minHeight: undefined},
-      container: {backgroundColor: theme.blueGrey},
-    }) as const
-)
 
 export default PgpWarning

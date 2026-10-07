@@ -112,7 +112,7 @@ const getOptions = ({route}: OwnProps) => {
   const title = typeof route.params.title === 'string' ? route.params.title : ''
   const goButtonLabel = route.params.goButtonLabel
   const common = {
-    modalSize: 'wide',
+    modalSize: 'medium',
     overlayAvoidTabs: false,
     overlayTransparent: false,
     // body is a full-bleed scrolling result list; let it run to the screen
@@ -203,10 +203,14 @@ const ScreenBody = ({
         goButtonLabel={goButtonLabel}
         onFinishTeamBuilding={onFinishTeamBuilding}
       />
-      <Building
-        {...routeParams}
-        onFinishTeamBuilding={onFinishTeamBuilding}
-      />
+      {namespace === 'people' ? (
+        // the people search drops down over the tabs without a modal box
+        <Building {...routeParams} onFinishTeamBuilding={onFinishTeamBuilding} />
+      ) : (
+        <Kb.ModalScreen scroll={false} padding="none">
+          <Building {...routeParams} onFinishTeamBuilding={onFinishTeamBuilding} />
+        </Kb.ModalScreen>
+      )}
     </>
   )
 }

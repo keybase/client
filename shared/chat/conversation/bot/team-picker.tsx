@@ -59,47 +59,40 @@ const BotTeamPicker = (props: Props) => {
     )
   }
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal">
-          <Kb.SearchFilter
-            size="full-width"
-            icon="iconfont-search"
-            placeholderText={`Search chats and teams...`}
-            placeholderCentered={true}
-            onChange={debounce(setTerm, 200)}
-            style={styles.searchFilter}
-            focusOnMount={true}
-            waiting={waiting}
-          />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-          {error.length > 0 ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
-              {error}
-            </Kb.Text>
-          ) : (
-            <Kb.List
-              indexAsKey={true}
-              items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
-              renderItem={renderResult}
-            />
-          )}
-        </Kb.Box2>
+    <Kb.ModalScreen scroll={false} padding="none">
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.SearchFilter
+          size="full-width"
+          icon="iconfont-search"
+          placeholderText={`Search chats and teams...`}
+          placeholderCentered={true}
+          onChange={debounce(setTerm, 200)}
+          style={styles.searchFilter}
+          focusOnMount={true}
+          waiting={waiting}
+        />
       </Kb.Box2>
-    </>
+      {error.length > 0 ? (
+        <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
+          {error}
+        </Kb.Text>
+      ) : (
+        <Kb.BoxGrow2>
+          <Kb.List
+            indexAsKey={true}
+            items={results}
+            itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
+            renderItem={renderResult}
+          />
+        </Kb.BoxGrow2>
+      )}
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 450,
-        },
-      }),
       results: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),

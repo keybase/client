@@ -10,6 +10,7 @@ import {TeamBuilderScreen} from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
+import {useChatTeam} from './conversation/team-hooks'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
@@ -73,40 +74,41 @@ const BotInstallHeaderLeft = () => {
       subScreen: s.botSubScreen,
     }))
   )
-  if (subScreen === 'channels') {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
-        Back
-      </Kb.Text>
-    )
+  // desktop: the sub screens step back with a chevron; leaving the bot is the X
+  if (!isMobile) {
+    return subScreen === 'channels' || subScreen === 'install' ? <Kb.HeaderLeftButton onPress={onAction} /> : null
   }
-  if (isMobile || subScreen === 'install') {
-    const label =
-      subScreen === 'install' ? (
-        isMobile ? (
-          'Back'
-        ) : (
-          <Kb.Icon type="iconfont-arrow-left" />
-        )
-      ) : inTeam || readOnly ? (
-        'Close'
-      ) : (
-        'Cancel'
-      )
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
-        {label}
-      </Kb.Text>
-    )
-  }
-  return null
+  const label =
+    subScreen === 'channels' || subScreen === 'install' ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'
+  return (
+    <Kb.Text type="BodyBigLink" onClick={onAction}>
+      {label}
+    </Kb.Text>
+  )
 }
 
 const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
   const displayTitle = title || 'Add to channel'
-  if (isMobile) return <>{displayTitle}</>
+  if (isMobile) {
+    return (
+      <Kb.Text type="BodyBig" lineClamp={1} center={true}>
+        {displayTitle}
+      </Kb.Text>
+    )
+  }
   return <ModalTitle teamID={teamID} title={displayTitle} />
+}
+
+const CreateChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const {teamname} = useChatTeam(teamID)
+  return (
+    <Kb.ModalHeaderTitle
+      title="New chat channel"
+      subtitle={teamname}
+      avatar={<Kb.Avatar size={16} teamname={teamname} isTeam={true} />}
+    />
+  )
 }
 
 const AddToChannelHeaderRight = () => {
@@ -143,6 +145,7 @@ export const newRoutes = defineRouteMap({
     }),
   }),
   chatEnterPaperkey: {
+    getOptions: {title: 'Enter paper key'},
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
   chatRoot: Chat.isSplit
@@ -176,6 +179,7 @@ export const newModalRoutes = defineRouteMap({
         // iOS: the screen drives unstable_headerRightItems via useModalHeaderAction
         ...(isIOS ? {} : {headerRight: () => <AddToChannelHeaderRight />}),
         headerTitle: () => <AddToChannelHeaderTitle teamID={route.params.teamID} />,
+        modalSize: 'medium',
       }),
     }
   ),
@@ -186,24 +190,20 @@ export const newModalRoutes = defineRouteMap({
         orientation: 'all',
         ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
-        modalSize: 'fullscreen',
+        modalSize: 'large',
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
   ),
   chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {modalSize: 'wide'}}
+    {getOptions: {modalSize: 'medium', title: 'Send attachment(s)'}}
   ),
   chatBlockingModal: {
     ...makeChatScreen(
       React.lazy(async () => import('./blocking/block-modal')),
       {
-        getOptions: {
-          headerTitle: () => (
-            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.getTheme().red} />
-          ),
-        },
+        getOptions: {modalSize: 'medium', title: 'Block & report'},
       }
     ),
     initialParams: emptyChatBlockingRouteParams,
@@ -211,26 +211,39 @@ export const newModalRoutes = defineRouteMap({
   chatChooseEmoji: makeChatScreen(
     React.lazy(async () => import('./emoji-picker/container')),
     {
-      getOptions: {headerShown: false},
+      // phone: the picker draws its own Cancel next to the search field
+      getOptions: isMobile ? {headerShown: false} : {modalSize: 'medium', title: 'Choose emoji'},
     }
   ),
   chatConfirmNavigateExternal: makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
-    {skipProvider: true}
+    {getOptions: {title: 'Open link?'}, skipProvider: true}
   ),
   chatConfirmRemoveBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
-    {canBeNullConvoID: true}
+    {canBeNullConvoID: true, getOptions: {title: 'Uninstall bot'}}
   ),
   chatCreateChannel: makeChatScreen(
     React.lazy(async () => import('./create-channel')),
-    {skipProvider: true}
+    {
+      // desktop: a header Back when it was opened from another modal (team add-to-channels)
+      getOptions: ({route}) =>
+        isMobile
+          ? {title: 'New chat channel'}
+          : {
+              headerLeft: Kb.HeaderLeftButton,
+              headerTitle: () => <CreateChannelHeaderTitle teamID={route.params.teamID} />,
+            },
+      skipProvider: true,
+    }
   ),
-  chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
+  chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning')), {
+    getOptions: {title: 'Clear history'},
+  }),
   chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {
-      getOptions: {title: 'Forward to team or chat'},
+      getOptions: {modalSize: 'medium', title: 'Forward to team or chat'},
     }
   ),
   chatInfoPanel: makeChatScreen(
@@ -241,7 +254,7 @@ export const newModalRoutes = defineRouteMap({
           // (its content inset clears the home indicator) instead of leaving a
           // blank safe-area strip below the last row
           {...Kb.doneModalOptions(''), safeAreaEdges: ['top', 'left', 'right'] as const}
-        : {...Kb.doneModalOptions(''), modalSize: 'fullscreen'},
+        : {...Kb.doneModalOptions(''), modalSize: 'large'},
     }
   ),
   chatInstallBot: makeChatScreen(
@@ -250,18 +263,18 @@ export const newModalRoutes = defineRouteMap({
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
         headerTitle: () => <BotInstallHeaderTitle />,
-        modalSize: 'wide',
+        modalSize: 'medium',
       },
       skipProvider: true,
     }
   ),
   chatInstallBotPick: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
-    {getOptions: {title: 'Add to team or chat'}, skipProvider: true}
+    {getOptions: {modalSize: 'medium', title: 'Add to team or chat'}, skipProvider: true}
   ),
   chatLocationPreview: makeChatScreen(
     React.lazy(async () => import('./conversation/input-area/location-popup')),
-    {getOptions: Kb.doneModalOptions('Location')}
+    {getOptions: {...Kb.doneModalOptions('Location'), modalSize: 'medium'}}
   ),
   chatMessagePopup: makeChatScreen(
     React.lazy(async () => {
@@ -286,7 +299,7 @@ export const newModalRoutes = defineRouteMap({
               ],
             }
           : {headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined}),
-        modalSize: 'fullscreen',
+        modalSize: 'large',
         title: 'PDF',
       }),
     }
@@ -296,7 +309,7 @@ export const newModalRoutes = defineRouteMap({
       React.lazy(async () => import('./conversation/bot/search')),
       {
         canBeNullConvoID: true,
-        getOptions: Kb.doneModalOptions('Add a bot'),
+        getOptions: {...Kb.doneModalOptions('Add a bot'), modalSize: 'medium'},
       }
     ),
     initialParams: emptyChatSearchBotsRouteParams,
@@ -313,18 +326,20 @@ export const newModalRoutes = defineRouteMap({
             ? {headerLeft: () => <SendToChatHeaderLeft />}
             : {}),
         // sized like chatAttachmentGetTitles, which it pushes, so the modal doesn't jump
-        modalSize: 'wide',
+        modalSize: 'medium',
         title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
       }),
       skipProvider: true,
     }
   ),
   chatShowNewTeamDialog: {
-    ...makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+    ...makeChatScreen(React.lazy(async () => import('./new-team-dialog-container')), {
+      getOptions: {title: 'Create a team'},
+    }),
     initialParams: emptyChatShowNewTeamDialogRouteParams,
   },
   chatUnfurlMapPopup: makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
-    {getOptions: Kb.doneModalOptions('Location')}
+    {getOptions: {...Kb.doneModalOptions('Location'), modalSize: 'medium'}}
   ),
 })

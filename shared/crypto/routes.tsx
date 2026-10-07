@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import {doneModalOptions} from '@/common-adapters/header-buttons'
 import cryptoTeamBuilder from '../team-building/page'
@@ -48,28 +49,44 @@ const VerifyInputScreen = React.lazy(async () => {
 const DecryptOutputScreen = React.lazy(async () => {
   const {DecryptOutput} = await import('./decrypt')
   return {
-    default: (p: StaticScreenProps<CommonOutputRouteParams>) => <DecryptOutput route={p.route} />,
+    default: (p: StaticScreenProps<CommonOutputRouteParams>) => (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <DecryptOutput route={p.route} />
+      </Kb.ModalScreen>
+    ),
   }
 })
 
 const EncryptOutputScreen = React.lazy(async () => {
   const {EncryptOutput} = await import('./encrypt')
   return {
-    default: (p: StaticScreenProps<EncryptOutputRouteParams>) => <EncryptOutput route={p.route} />,
+    default: (p: StaticScreenProps<EncryptOutputRouteParams>) => (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <EncryptOutput route={p.route} />
+      </Kb.ModalScreen>
+    ),
   }
 })
 
 const SignOutputScreen = React.lazy(async () => {
   const {SignOutput} = await import('./sign')
   return {
-    default: (p: StaticScreenProps<CommonOutputRouteParams>) => <SignOutput route={p.route} />,
+    default: (p: StaticScreenProps<CommonOutputRouteParams>) => (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <SignOutput route={p.route} />
+      </Kb.ModalScreen>
+    ),
   }
 })
 
 const VerifyOutputScreen = React.lazy(async () => {
   const {VerifyOutput} = await import('./verify')
   return {
-    default: (p: StaticScreenProps<CommonOutputRouteParams>) => <VerifyOutput route={p.route} />,
+    default: (p: StaticScreenProps<CommonOutputRouteParams>) => (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <VerifyOutput route={p.route} />
+      </Kb.ModalScreen>
+    ),
   }
 })
 

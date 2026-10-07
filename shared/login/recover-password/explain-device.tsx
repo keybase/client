@@ -4,19 +4,12 @@ import * as T from '@/constants/types'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
-import {startRecoverPassword} from './flow'
 
 type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
 const ExplainDevice = ({route}: Props) => {
   const theme = Kb.Styles.useTheme()
-  const {deviceName, deviceType, username} = route.params
-  const onBack = () => {
-    startRecoverPassword({
-      replaceRoute: true,
-      username,
-    })
-  }
+  const {deviceName, deviceType} = route.params
   const onComplete = () => {
     C.Router2.navigateUp()
   }
@@ -33,8 +26,6 @@ const ExplainDevice = ({route}: Props) => {
         },
       ]}
       noBackground={true}
-      onBack={onBack}
-      title="Recover password"
     >
       <QuestionBody
         centered={false}

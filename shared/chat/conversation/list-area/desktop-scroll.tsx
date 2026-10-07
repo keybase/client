@@ -148,6 +148,9 @@ export const useDesktopThreadScroll = (p: {
     })
   }, [endAnchor, isScrolledToEnd, listRef, scrollTarget, scrollerOf])
 
+  // Where the scroller last was, to tell the reader's movements from the list's (onScrollerScroll).
+  const lastOffsetRef = React.useRef(0)
+
   // Outlives re-renders: the rows that make centring accurate arrive after it starts, so no effect
   // cleanup on messageOrdinals may tear it down.
   const centering = useSchedule()
@@ -207,9 +210,15 @@ export const useDesktopThreadScroll = (p: {
           if (isScrolledToEnd()) return
           void listRef.current?.scrollToEnd({animated: false})
           return
-        case 'center':
+        case 'center': {
+          // A centred load lays the cleared thread out again from the top, and the browser reports that
+          // jump only after the target has arrived. Taken for the reader's, it stopped the centring
+          // whenever the list had not been at the top already (every other reopening of a search).
+          const scroller = scrollerOf()
+          if (scroller) lastOffsetRef.current = scroller.scrollTop
           scrollToCentered(directive.ordinal)
           return
+        }
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)
           const scroller = scrollerOf()
@@ -375,7 +384,6 @@ export const useDesktopThreadScroll = (p: {
   // moved it: the list writes down where it is putting the scroller before it moves it (its initial
   // position, every scrollTo, its end anchor, holding rows in place as they measure), and anything
   // else that moved it is the reader, however they did it.
-  const lastOffsetRef = React.useRef(0)
   const onScrollerScroll = React.useCallback(
     (e: {target: unknown}) => {
       // Scroll events reach the wrapper from anything scrollable inside it; only the list's own counts.

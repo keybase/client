@@ -7,7 +7,8 @@ jest.mock('@/common-adapters', () => {
   const R = jest.requireActual<typeof React>('react')
   const passThrough = ({children}: {children?: React.ReactNode}) =>
     R.createElement('div', null, children)
-  const anyStyle: unknown = new Proxy({}, {get: () => () => ({})})
+  // every Styles.* is a style-hook factory: createStyleHook(...) gives a hook that returns {}
+  const anyStyle: unknown = new Proxy({}, {get: () => () => () => ({})})
   const components: {[key: string]: unknown} = {
     Avatar: () => null,
     ConfirmModal: (p: {onCancel: () => void; onConfirm: () => void; prompt: string}) =>
@@ -105,7 +106,7 @@ describe('ConfirmBotRemove', () => {
     rpc.on('previewConversation', () => previewResult(['testuser', 'testuser-mac']))
 
     renderConfirm()
-    expect(screen.getByText('Are you sure you want to uninstall helperbot?')).toBeTruthy()
+    expect(screen.getByText('Uninstall helperbot?')).toBeTruthy()
     await clickConfirm()
 
     expect(rpc.calls('removeBotMember')).toEqual([

@@ -14,7 +14,6 @@ const meta: Meta<typeof SelectOtherDevice> = {
   component: SelectOtherDevice,
   title: 'Provision/SelectOtherDevice',
   args: {
-    onBack: () => {},
     onSelect: () => {},
     onResetAccount: () => {},
   },

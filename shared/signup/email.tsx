@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner, desktopInputWidth} from './common'
+import {SignupScreen, errorBanner} from './common'
 import {useAddEmail} from '@/settings/account/use-add-email'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
@@ -17,11 +17,6 @@ const ConnectedEnterEmail = () => {
     } else {
       clearModals()
     }
-  }
-
-  const onSkip = () => {
-    setSignupEmail(C.noEmail)
-    afterEmail()
   }
 
   const onCreate = (email: string, searchable: boolean) => {
@@ -53,10 +48,6 @@ const ConnectedEnterEmail = () => {
           waiting,
         },
       ]}
-      rightActionLabel="Skip"
-      onRightAction={onSkip}
-      title="Your email address"
-      showHeaderInfoIcon={true}
     >
       <EnterEmailBody
         onChangeEmail={onChangeEmail}
@@ -83,50 +74,34 @@ type BodyProps = {
 export const EnterEmailBody = (props: BodyProps) => {
   const styles = useStyles()
   return (
-    <Kb.ScrollView>
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        gap={isMobile ? 'small' : 'medium'}
-        fullWidth={true}
-        flex={1}
-      >
-        <Kb.ImageIcon type={props.iconType} />
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-          <Kb.Input3
-            textType="BodySemibold"
-            autoFocus={true}
-            containerStyle={styles.input}
-            keyboardType="email-address"
-            placeholder="Email address"
-            onChangeText={props.onChangeEmail}
-            onEnterKeyDown={props.onContinue}
-            textContentType="emailAddress"
-            value={props.email}
+    <Kb.Box2 alignItems="center" direction="vertical" gap={isMobile ? 'small' : 'medium'} fullWidth={true} flex={1}>
+      <Kb.ImageIcon type={props.iconType} />
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+        <Kb.Input3
+          textType="BodySemibold"
+          autoFocus={true}
+          keyboardType="email-address"
+          placeholder="Email address"
+          onChangeText={props.onChangeEmail}
+          onEnterKeyDown={props.onContinue}
+          textContentType="emailAddress"
+          value={props.email}
+        />
+        {props.showSearchable && (
+          <Kb.Checkbox
+            label="Allow friends to find you by this email address"
+            checked={props.searchable}
+            onCheck={props.onChangeSearchable}
+            style={styles.checkbox}
           />
-          {props.showSearchable && (
-            <Kb.Checkbox
-              label="Allow friends to find you by this email address"
-              checked={props.searchable}
-              onCheck={props.onChangeSearchable}
-              style={styles.checkbox}
-            />
-          )}
-        </Kb.Box2>
+        )}
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.Box2>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
   checkbox: {width: '100%'},
-  input: desktopInputWidth,
-  inputBox: Kb.Styles.platformStyles({
-    // need to set width so subtext will wrap
-    isElectron: {width: 368},
-    isMobile: {width: '100%'},
-    isTablet: {width: 368},
-  }),
 }))
 
 export default ConnectedEnterEmail

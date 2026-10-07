@@ -18,6 +18,12 @@ type ChannelSelectableTab = 'channelMembers'
 type TeamActionsProps = {
   teamID: T.Teams.TeamID
 }
+// The selection reaches the actions as props: on mobile they render through a portal, outside the
+// selection provider.
+type TeamActionsSelection = TeamActionsProps & {
+  selectedChannels: ReadonlySet<T.Chat.ConversationIDKey>
+  selectedMembers: ReadonlySet<string>
+}
 type TeamProps = TeamActionsProps & {
   selectedTab: TeamSelectableTab
 }
@@ -149,7 +155,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
       selectedCount={selectedCount}
       onCancel={onCancel}
     >
-      <Actions teamID={teamID} />
+      <Actions teamID={teamID} selectedChannels={selectedChannels} selectedMembers={selectedMembers} />
     </JointSelectionPopup>
   )
 }
@@ -165,7 +171,11 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
       selectedCount={selectedCount}
       onCancel={clearSelectedMembers}
     >
-      <ChannelMembersActions conversationIDKey={conversationIDKey} teamID={teamID} />
+      <ChannelMembersActions
+        conversationIDKey={conversationIDKey}
+        teamID={teamID}
+        selectedMembers={selectedMembers}
+      />
     </JointSelectionPopup>
   )
 }
@@ -182,8 +192,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const {selectedMembers} = useTeamSelectionState()
+const TeamMembersActions = ({teamID, selectedMembers}: TeamActionsSelection) => {
   const isBigTeam = useIsBigTeam(teamID)
   const navigateAppend = C.Router2.navigateAppend
   if (!selectedMembers.size) {
@@ -303,8 +312,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   )
 }
 
-const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
-  const {selectedChannels} = useTeamSelectionState()
+const TeamChannelsActions = ({teamID, selectedChannels}: TeamActionsSelection) => {
   // Channels tab functions
   const navigateAppend = C.Router2.navigateAppend
   const onDelete = () =>
@@ -319,10 +327,13 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
     </ActionsWrapper>
   )
 }
-const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
+const ChannelMembersActions = ({
+  conversationIDKey,
+  teamID,
+  selectedMembers,
+}: ChannelActionsProps & {selectedMembers: ReadonlySet<string>}) => {
   const {channels} = useLoadedTeamChannels(teamID)
   const channelInfo = channels.get(conversationIDKey)
-  const {selectedMembers} = useChannelSelectionState()
   const channelname = channelInfo?.channelname ?? ''
   const navigateAppend = C.Router2.navigateAppend
 
@@ -362,7 +373,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   )
 }
 
-const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsProps>} = {
+const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsSelection>} = {
   teamChannels: TeamChannelsActions,
   teamMembers: TeamMembersActions,
 }

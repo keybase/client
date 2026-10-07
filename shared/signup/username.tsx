@@ -12,7 +12,6 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import {useNavigation} from '@react-navigation/native'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import {clearSignupDeviceNameDraft} from './device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
@@ -20,11 +19,7 @@ const ConnectedEnterUsername = (p: Props) => {
   const initialUsername = p.route.params.username ?? ''
   const inviteCode = p.route.params.inviteCode ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.Router2
-  const onBack = () => {
-    clearSignupDeviceNameDraft()
-    navigateUp()
-  }
+  const {navigateAppend} = C.Router2
   const [error, setError] = React.useState('')
   const [usernameTaken, setUsernameTaken] = React.useState('')
   const onUsernameChange = () => {
@@ -63,7 +58,6 @@ const ConnectedEnterUsername = (p: Props) => {
     <EnterUsername
       error={error}
       initialUsername={initialUsername}
-      onBack={onBack}
       onContinue={onContinue}
       onLogin={onLogin}
       onUsernameChange={onUsernameChange}
@@ -76,7 +70,6 @@ const ConnectedEnterUsername = (p: Props) => {
 type EnterUsernameProps = {
   error: string
   initialUsername?: string
-  onBack: () => void
   onContinue: (username: string) => void
   onLogin: (username: string) => void
   onUsernameChange: () => void
@@ -91,7 +84,6 @@ const EnterUsername = (props: EnterUsernameProps) => {
     usernameTaken,
     error,
     initialUsername,
-    onBack,
     onContinue: _onContinue,
     onUsernameChange,
     waiting,
@@ -169,9 +161,6 @@ const EnterUsername = (props: EnterUsernameProps) => {
         },
       ]}
       footer={isMobile ? eulaBlock : undefined}
-      hideDesktopHeader={!isMobile}
-      onBack={onBack}
-      title="Create account"
     >
       <Kb.ScrollView>
         <Kb.Box2

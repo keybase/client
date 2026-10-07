@@ -2,42 +2,39 @@ import * as Styles from '@/styles'
 import type * as React from 'react'
 import {Box2} from '@/common-adapters/box'
 
-const ModalFooter = (props: {
+type Props = {
   children: React.ReactNode
-  hideBorder?: boolean
+  // false over a colored body, which already sets the footer apart
+  divider?: boolean
   style?: Styles.StylesCrossPlatform
-}) => {
+}
+
+// The one modal footer: a divider over it on desktop (none on phone, where the sheet runs to the
+// bottom edge) and the bottom corners of the desktop box.
+const ModalFooter = (props: Props) => {
+  const {children, divider = true, style} = props
   const styles = useStyles()
   return (
     <Box2
       direction="vertical"
       centerChildren={true}
       fullWidth={true}
-      style={Styles.collapseStyles([props.hideBorder ? styles.footerNoBorder : styles.footer, props.style])}
+      noShrink={true}
+      style={Styles.collapseStyles([styles.footer, divider && styles.divider, style])}
     >
-      {props.children}
+      {children}
     </Box2>
   )
 }
 
 const useStyles = Styles.createStyleHook(theme => ({
+  divider: Styles.platformStyles({isElectron: Styles.topDivider(theme)}),
   footer: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      ...Styles.topDivider(theme),
-    },
-    isElectron: {
-      ...Styles.roundedBottom(),
-    },
-  }),
-  footerNoBorder: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
       minHeight: 56,
     },
-    isElectron: {
-      ...Styles.roundedBottom(),
-    },
+    isElectron: Styles.roundedBottom(),
   }),
 }))
 

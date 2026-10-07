@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {useIsFocused} from '@react-navigation/core'
-import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
 import type {Device} from '@/constants/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
@@ -19,7 +18,6 @@ type Props = {
 const SelectOtherDeviceContainer = ({route}: Props) => {
   const {devices, username} = route.params
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const onBack = useSafeSubmit(C.Router2.navigateUp, false)
   const [selectedName, setSelectedName] = React.useState('')
 
   const onResetAccount = () => {
@@ -62,7 +60,6 @@ const SelectOtherDeviceContainer = ({route}: Props) => {
   return (
     <SelectOtherDevice
       devices={devices}
-      onBack={onBack}
       onSelect={onSelect}
       onResetAccount={onResetAccount}
       waitingDeviceName={selectedName || undefined}

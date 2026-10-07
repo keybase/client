@@ -28,20 +28,6 @@ const PushPromptSkipButton = () => (
   </Kb.ClickableBox>
 )
 
-const CheckPassphraseCancelButton = () => {
-  const navigateUp = C.Router2.navigateUp
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        navigateUp()
-      }}
-    >
-      Cancel
-    </Kb.Text>
-  )
-}
-
 const VerifyPhoneHeaderTitle = ({phoneNumber}: {phoneNumber?: string}) => {
   const displayPhone = e164ToDisplay(phoneNumber ?? '')
   return (
@@ -126,7 +112,7 @@ export const sharedNewRoutes = defineRouteMap({
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
-  keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
+  keybaseLinkError: {getOptions: {title: 'Link error'}, screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   ...(__DEV__
     ? {
@@ -178,7 +164,7 @@ export const settingsDesktopTabRoutes = defineRouteMap({
 
 const sharedNewModalRoutes = {
   [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
-    getOptions: isMobile ? undefined : {title: 'Do you know your password?'},
+    getOptions: {title: 'Do you know your password?'},
   }),
   [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
     getOptions: {title: 'Password'},
@@ -186,7 +172,7 @@ const sharedNewModalRoutes = {
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
     getOptions: {title: 'Backup'},
   }),
-  deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
+  deleteConfirm: {getOptions: {title: 'Delete account'}, screen: React.lazy(async () => import('./delete-confirm'))},
   settingsAddEmail: C.makeScreen(
     React.lazy(async () => {
       const {Email} = await import('./account/add-modals')
@@ -201,7 +187,9 @@ const sharedNewModalRoutes = {
     }),
     {getOptions: isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
   ),
-  settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
+  settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete')), {
+    getOptions: ({route}) => ({title: route.params.type === 'email' ? 'Delete email' : 'Delete phone number'}),
+  }),
   settingsVerifyPhone: C.makeScreen(
     React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')
@@ -250,15 +238,14 @@ export const newModalRoutes = defineRouteMap({
   ...sharedNewModalRoutes,
   checkPassphraseBeforeDeleteAccount: C.makeScreen(
     React.lazy(async () => import('./delete-confirm/check-passphrase')),
-    {
-      getOptions: isIOS
-        ? {unstable_headerLeftItems: () => [Kb.nativeTextHeaderItem('Cancel', C.Router2.navigateUp)]}
-        : {headerLeft: () => <CheckPassphraseCancelButton />},
-    }
+    {getOptions: {title: 'Delete account'}}
   ),
-  modalFeedback: feedback,
+  modalFeedback: {
+    ...feedback,
+    getOptions: isMobile ? {headerShown: true, title: 'Feedback'} : {title: 'Send feedback'},
+  },
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined')), {
-    getOptions: Kb.doneModalOptions(''),
+    getOptions: {...Kb.doneModalOptions('Contacts on Keybase'), modalSize: 'medium'},
   }),
   settingsPushPrompt: isMobile
     ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
@@ -269,7 +256,9 @@ export const newModalRoutes = defineRouteMap({
                 unstable_headerRightItems: () => {
                   const theme = Kb.Styles.getTheme()
                   return [
+                    // no glass pill: a white pill hid the white label on the blue bar
                     Kb.nativeTextHeaderItem('Skip', onPushPromptSkip, {
+                      hidesSharedBackground: true,
                       labelStyle: {...Kb.nativeHeaderItemLabelStyle(theme), color: theme.white},
                     }),
                   ]

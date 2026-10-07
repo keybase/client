@@ -12,8 +12,22 @@ const PushPrompt = () => {
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" padding="small" style={styles.container}>
+    <Kb.ModalScreen
+      centered={true}
+      style={styles.blueBackground}
+      footerDivider={false}
+      footer={
+        <Kb.WaitingButton
+          fullWidth={true}
+          onClick={onRequestPermissions}
+          label="Allow notifications"
+          waitingKey={C.waitingKeyPushPermissionsRequesting}
+          style={styles.button}
+          type="Success"
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
         <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
@@ -23,23 +37,14 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.ModalFooter hideBorder={true} style={styles.footer}>
-        <Kb.WaitingButton
-          fullWidth={true}
-          onClick={onRequestPermissions}
-          label="Allow notifications"
-          waitingKey={C.waitingKeyPushPermissionsRequesting}
-          style={styles.button}
-          type="Success"
-        />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
+      blueBackground: {backgroundColor: theme.blue},
       button: Kb.Styles.platformStyles({
         common: {
           maxHeight: 40,
@@ -48,13 +53,6 @@ const useStyles = Kb.Styles.createStyleHook(
           marginBottom: Kb.Styles.globalMargins.medium,
         },
       }),
-      container: {
-        ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: theme.blue,
-      },
-      footer: {
-        backgroundColor: theme.blue,
-      },
       image: Kb.Styles.platformStyles({
         isTablet: {
           alignSelf: 'center',

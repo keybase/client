@@ -54,52 +54,45 @@ type ModalProps = {
   bannerImage: Kb.IconType
   bannerError?: string
   children: React.ReactNode
-  desktopHeight?: number
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
+  // false for a body that holds its own list
+  scroll?: boolean
 }
 
+// the emoji modals' layout: an illustration over a full-bleed body, and an optional footer button
 export const Modal = (props: ModalProps) => {
+  const {bannerImage, bannerError, children, footerButtonLabel, footerButtonOnClick} = props
+  const {footerButtonWaiting, scroll} = props
   const styles = useStyles()
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={isMobile}
-      fullWidth={isMobile}
-      style={Kb.Styles.collapseStyles([
-        styles.container,
-        !isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
-      ])}
-    >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
-        <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
-        {!!props.bannerError && (
-          <Kb.Banner color="red" style={styles.bannerError}>
-            {props.bannerError}
-          </Kb.Banner>
-        )}
-      </Kb.Box2>
-      {props.children}
-      {props.footerButtonLabel && (
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          style={styles.footerContainer}
-          gap="small"
-          fullWidth={true}
-        >
+    <Kb.ModalScreen
+      scroll={scroll}
+      padding="none"
+      banner={
+        <>
+          {!!bannerError && <Kb.Banner color="red">{bannerError}</Kb.Banner>}
+          <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true} style={styles.bannerContainer}>
+            <Kb.ImageIcon type={bannerImage} style={styles.bannerImage} />
+          </Kb.Box2>
+        </>
+      }
+      footer={
+        footerButtonLabel ? (
           <Kb.Button
             mode="Primary"
-            label={props.footerButtonLabel}
+            label={footerButtonLabel}
             fullWidth={true}
-            onClick={props.footerButtonOnClick}
-            disabled={!props.footerButtonOnClick}
-            waiting={props.footerButtonWaiting}
+            onClick={footerButtonOnClick}
+            disabled={!footerButtonOnClick}
+            waiting={footerButtonWaiting}
           />
-        </Kb.Box2>
-      )}
-    </Kb.Box2>
+        ) : undefined
+      }
+    >
+      {children}
+    </Kb.ModalScreen>
   )
 }
 
@@ -134,11 +127,6 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
   },
-  bannerError: Kb.Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-  }),
   bannerImage: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.size('100%'),
@@ -148,22 +136,6 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
     },
     isMobile: {
       resizeMode: 'cover',
-    },
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
-    isElectron: {
-      width: 400,
-    },
-  }),
-  footerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    },
-    isMobile: {
-      padding: Kb.Styles.globalMargins.small,
     },
   }),
   removeBox: {

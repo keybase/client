@@ -35,6 +35,9 @@
     "./chat/conversation/info-panel/settings/notifications.test.tsx",
     "./chat/conversation/pinned-message.test.tsx",
     "./common-adapters/markdown/index.test.tsx",
+    "./common-adapters/modal-footer.test.tsx",
+    "./common-adapters/modal-header-title.test.tsx",
+    "./common-adapters/modal-screen.test.tsx",
     "./common-adapters/banner.test.tsx",
     "./common-adapters/floating-menu/index.test.tsx",
     "./common-adapters/hot-key.test.tsx",
@@ -51,6 +54,7 @@
     "./git/index.test.tsx",
     "./settings/password.test.tsx",
     "./provision/waiting-overlay.test.tsx",
+    "./router-v2/screen-layout-modal.desktop.test.tsx",
     "./tests/e2e/ios-appium"
   ]
 }

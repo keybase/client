@@ -47,14 +47,12 @@ export default function AddDevice(ownProps: AddDeviceProps) {
     startAddNewDevice('mobile')
   }
   return (
-    <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.ModalScreen>
       <Kb.Box2
         direction="vertical"
         gap="medium"
         alignItems="center"
-        padding="small"
-        gapStart={true}
-        gapEnd={true}
+        fullWidth={true}
         // e2e: the illustrations follow the device history, so this marks them final
         testID={loaded ? TestIDs.DEVICES_ADD_DEVICE : undefined}
       >
@@ -81,7 +79,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.ModalScreen>
   )
 }
 

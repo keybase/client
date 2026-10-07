@@ -80,21 +80,34 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
   })
 
   return (
-    <>
-      {error ? (
-        <Kb.Banner color="red" key="err">
-          {error}
-        </Kb.Banner>
-      ) : null}
-      <Kb.SearchFilter
-        onChange={text => setFilter(text)}
-        size="full-width"
-        placeholderText={
-          loading ? 'Loading...' : `Search ${allMembers.length} ${pluralize('member', allMembers.length)}`
-        }
-        style={styles.filterInput}
-      />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      banner={error ? <Kb.Banner color="red">{error}</Kb.Banner> : undefined}
+      footer={
+        isMobile ? undefined : (
+          <Kb.ConfirmButtons
+            split={true}
+            waiting={waiting}
+            onCancel={onClose}
+            onConfirm={onAdd}
+            confirmLabel={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+            confirmDisabled={!toAdd.size}
+          />
+        )
+      }
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.SearchFilter
+          onChange={text => setFilter(text)}
+          size="full-width"
+          placeholderText={
+            loading ? 'Loading...' : `Search ${allMembers.length} ${pluralize('member', allMembers.length)}`
+          }
+          style={styles.filterInput}
+        />
+      </Kb.Box2>
+      <Kb.BoxGrow2>
         <Kb.List
           keyProperty="username"
           items={membersFiltered}
@@ -144,22 +157,9 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
             )
           }}
           itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
-          style={styles.list}
         />
-      </Kb.Box2>
-      {isMobile ? null : (
-        <Kb.ModalFooter>
-          <Kb.ConfirmButtons
-            split={true}
-            waiting={waiting}
-            onCancel={onClose}
-            onConfirm={onAdd}
-            confirmLabel={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
-            confirmDisabled={!toAdd.size}
-          />
-        </Kb.ModalFooter>
-      )}
-    </>
+      </Kb.BoxGrow2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -173,8 +173,6 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
       ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
     },
   }),
-  list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
-  listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
 }))
 
 export default AddToChannel

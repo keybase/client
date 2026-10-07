@@ -68,76 +68,76 @@ export const UpdatePassword = (props: Props) => {
   )
 
   return (
-    <>
-      {notification ? (
-        <Kb.Banner color="yellow">
-          <Kb.BannerParagraph bannerColor="yellow" content={notification} />
-        </Kb.Banner>
-      ) : null}
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2
-          centerChildren={!Kb.Styles.isTablet}
-          direction="vertical"
-          fullHeight={true}
-          flex={1}
-          padding="small"
-          style={styles.container}
-        >
-          <Kb.Text type="Body" style={styles.bodyText} center={true}>
-            A password is required for you to sign out and sign back in.
+    <Kb.ModalScreen
+      padding="none"
+      banner={
+        notification ? (
+          <Kb.Banner color="yellow">
+            <Kb.BannerParagraph bannerColor="yellow" content={notification} />
+          </Kb.Banner>
+        ) : null
+      }
+      footer={
+        <Kb.Button
+          fullWidth={true}
+          label={props.saveLabel || 'Save'}
+          disabled={!canSubmit()}
+          onClick={() => onSave(password)}
+          waiting={props.waitingForResponse}
+        />
+      }
+    >
+      <Kb.Box2
+        alignItems={Kb.Styles.isTablet ? undefined : 'center'}
+        direction="vertical"
+        fullWidth={true}
+        flex={1}
+        padding="small"
+        style={styles.container}
+      >
+        <Kb.Text type="Body" style={styles.bodyText} center={true}>
+          A password is required for you to sign out and sign back in.
+        </Kb.Text>
+        <Kb.RoundedBox side="top">
+          <Kb.Input3
+            placeholder="New password"
+            secureTextEntry={!showTyping}
+            keyboardType={keyboardType}
+            value={password}
+            onChangeText={handlePasswordChange}
+            hideBorder={true}
+          />
+        </Kb.RoundedBox>
+        <Kb.RoundedBox side="bottom">
+          <Kb.Input3
+            placeholder="Confirm password"
+            secureTextEntry={!showTyping}
+            keyboardType={keyboardType}
+            value={passwordConfirm}
+            onChangeText={handlePasswordConfirmChange}
+            onEnterKeyDown={() => {
+              if (canSubmit()) {
+                onSave(password)
+              }
+            }}
+            hideBorder={true}
+          />
+        </Kb.RoundedBox>
+        {typeof hintText === 'string' ? (
+          <Kb.Text style={styles.passwordFormat} type={hintType}>
+            {hintText}
           </Kb.Text>
-          <Kb.RoundedBox side="top">
-            <Kb.Input3
-              placeholder="New password"
-              secureTextEntry={!showTyping}
-              keyboardType={keyboardType}
-              value={password}
-              onChangeText={handlePasswordChange}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.RoundedBox side="bottom">
-            <Kb.Input3
-              placeholder="Confirm password"
-              secureTextEntry={!showTyping}
-              keyboardType={keyboardType}
-              value={passwordConfirm}
-              onChangeText={handlePasswordConfirmChange}
-              onEnterKeyDown={() => {
-                if (canSubmit()) {
-                  onSave(password)
-                }
-              }}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          {typeof hintText === 'string' ? (
-            <Kb.Text style={styles.passwordFormat} type={hintType}>
-              {hintText}
-            </Kb.Text>
-          ) : (
-            hintText
-          )}
-          <Kb.Checkbox
-            label="Show typing"
-            onCheck={() => setShowTyping(s => !s)}
-            checked={showTyping || !!props.showTyping}
-            style={styles.checkbox}
-          />
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            fullWidth={true}
-            label={props.saveLabel || 'Save'}
-            disabled={!canSubmit()}
-            onClick={() => onSave(password)}
-            waiting={props.waitingForResponse}
-          />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+        ) : (
+          hintText
+        )}
+        <Kb.Checkbox
+          label="Show typing"
+          onCheck={() => setShowTyping(s => !s)}
+          checked={showTyping || !!props.showTyping}
+          style={styles.checkbox}
+        />
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -146,9 +146,6 @@ const useStyles = Kb.Styles.createStyleHook(
     ({
       bodyText: {
         paddingBottom: Kb.Styles.globalMargins.small,
-      },
-      buttonBar: {
-        minHeight: undefined,
       },
       checkbox: {
         paddingBottom: Kb.Styles.globalMargins.tiny,

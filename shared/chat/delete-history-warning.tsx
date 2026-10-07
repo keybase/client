@@ -28,71 +28,30 @@ const DeleteHistoryWarning = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 alignSelf="center"
-      direction="vertical"
-      centerChildren={true}
-      style={Kb.Styles.collapseStyles([styles.padding, styles.box])}
+    <Kb.ModalScreen
+      centered={true}
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          onCancel={onCancel}
+          onConfirm={onDeleteHistory}
+          confirmLabel="Yes, clear for everyone"
+          confirmType="Danger"
+        />
+      }
     >
-      <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-      <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
-        Delete conversation history?
-      </Kb.Text>
-      <Kb.Text center={isMobile} style={styles.text} type="Body">
-        You are about to delete all the messages in this conversation. For everyone.
-      </Kb.Text>
-      <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
-        <Kb.Button
-          type="Dim"
-          style={styles.button}
-          onClick={onCancel}
-          label="Cancel"
-          fullWidth={isMobile}
-        />
-        <Kb.Button
-          type="Danger"
-          style={styles.button}
-          onClick={onDeleteHistory}
-          label="Yes, clear for everyone"
-          fullWidth={isMobile}
-        />
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="small" style={styles.container}>
+        <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+        <Kb.Text center={true} type="Body">
+          You are about to delete all the messages in this conversation. For everyone.
+        </Kb.Text>
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      box: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: theme.white,
-          padding: Kb.Styles.globalMargins.small,
-        },
-        isMobile: {
-          width: '100%',
-        },
-      }),
-      button: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: Kb.Styles.globalMargins.tiny},
-        isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
-      }),
-      buttonBox: Kb.Styles.platformStyles({
-        common: {marginTop: Kb.Styles.globalMargins.xlarge},
-        isMobile: {
-          flex: 1,
-          paddingTop: Kb.Styles.globalMargins.xlarge,
-          width: '100%',
-        },
-      }),
-      padding: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.marginH(80),
-          ...Kb.Styles.marginV(40),
-        },
-        isMobile: {paddingTop: Kb.Styles.globalMargins.xlarge},
-      }),
-      text: {padding: Kb.Styles.globalMargins.small},
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  container: {paddingTop: Kb.Styles.globalMargins.small},
+}))
 
 export default DeleteHistoryWarning

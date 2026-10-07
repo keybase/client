@@ -65,16 +65,16 @@ const InviteByEmail = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      alignItems="center"
-      fullWidth={true}
-      style={styles.outerBox}
+    <Kb.ModalScreen
+      footer={<Kb.WaitingButton fullWidth={true} label="Invite" onClick={onInvite} waitingKey={waitingKey} />}
     >
-        <Kb.Text style={styles.header} type="Header">
-          Invite by email
-        </Kb.Text>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.roleRow}>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="tiny">
+        <Kb.Box2
+          direction={isMobile ? 'vertical' : 'horizontal'}
+          alignItems="center"
+          gap={isMobile ? 'tiny' : undefined}
+          style={styles.roleRow}
+        >
           <Kb.Text style={styles.addAsText} type="Body">
             Add these team members to {teamname} as:
           </Kb.Text>
@@ -111,26 +111,24 @@ const InviteByEmail = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
-      <Kb.ButtonBar>
-        <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
-      </Kb.ButtonBar>
-    </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const _makeDropdownItem = (item: string, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 key={item} direction="horizontal" alignItems="center" style={styles.dropdownItem}>
-    <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
+    <Kb.Text type="BodyBig" lineClamp={1}>
+      {capitalize(item)}
+    </Kb.Text>
   </Kb.Box2>
 )
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
   addAsText: {margin: Kb.Styles.globalMargins.tiny},
-  dropdown: {width: 100},
+  dropdown: {flexShrink: 0, width: isMobile ? 160 : 130},
   dropdownItem: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.small)},
   errorText: {color: theme.redDark},
-  header: {padding: Kb.Styles.globalMargins.tiny},
-  outerBox: {margin: Kb.Styles.globalMargins.medium},
   roleRow: {margin: Kb.Styles.globalMargins.tiny},
 }))
 

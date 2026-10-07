@@ -8,10 +8,14 @@ import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {previousRouteIsModal} from '@/constants/nav-tree'
 
 
 type LayoutProps = {
   children: React.ReactNode
+  // the live options React Navigation resolved for this route: getOptions, the navigator's
+  // screenOptions and anything the screen set with navigation.setOptions
+  options?: GetOptionsRet
   route: GetOptionsParams['route']
   navigation: GetOptionsParams['navigation']
 }
@@ -73,21 +77,22 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-const desktopMakeLayout = (
+export const desktopMakeLayout = (
   isModal: boolean,
   _isLoggedOut: boolean,
   _isTabScreen: boolean,
-  getOptions?: GetOptions
+  _getOptions?: GetOptions
 ) => {
-  return ({children, route, navigation}: LayoutProps) => {
-    const navigationOptions: GetOptionsRet | undefined =
-      typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-
+  return ({children, options: navigationOptions, route, navigation}: LayoutProps) => {
     let body = children
 
     if (isModal) {
       body = (
-        <ModalWrapper navigation={navigation} navigationOptions={navigationOptions}>
+        <ModalWrapper
+          canGoBack={previousRouteIsModal(navigation.getState(), route.key)}
+          navigation={navigation}
+          navigationOptions={navigationOptions}
+        >
           {body}
         </ModalWrapper>
       )
@@ -111,6 +116,8 @@ const ModalScreenWrapper = ({
   navigationOptions: GetOptionsRet
 }) => {
   const styles = useStyles()
+  const modalSize = navigationOptions?.modalSize ?? 'small'
+  const modalBox = {size: modalSize}
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
       {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
@@ -127,7 +134,7 @@ const ModalScreenWrapper = ({
           edges={navigationOptions?.safeAreaEdges}
           style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
         >
-          {children}
+          <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
         </Kb.SafeAreaView>
       </Kb.KeyboardAvoidingView2>
     </SafeAreaProvider>
