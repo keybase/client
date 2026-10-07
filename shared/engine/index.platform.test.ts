@@ -36,7 +36,7 @@ const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingR
 }
 const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
 const down = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: false})
-const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 afterEach(() => {
   const {functions} = getPreload()
@@ -275,6 +275,8 @@ test('an engine that replaces one built by older code (HMR) is the only one hear
     )
     fromRelay(up(1))
     old.listenersAreReady()
+    const inFlight = jest.fn()
+    old.call({callback: inFlight, method: 'keybase.1.test.hello', params: {}})
     // what an engine older code built looks like to makeEngine
     ;(old as {version?: number}).version = ENGINE_VERSION - 1
 
@@ -293,6 +295,9 @@ test('an engine that replaces one built by older code (HMR) is the only one hear
     fromRelay(up(2))
     expect(linkChanges).toEqual([true])
     expect(next._rpcClient.transport.isLinkUp).toBe(true)
+    // The closed transport failed the old engine's call as a lost link: the link-up above runs the
+    // handshake again, which reloads what was waiting on it
+    expect(inFlight.mock.calls[0]![0]).toMatchObject({code: rpcErrors.EOF, kind: {reason: 'disconnect', type: 'cancelled'}})
   })
 })
 

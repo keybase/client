@@ -29,12 +29,13 @@ test('cancel rejects the start callback with a cancel RPCError', () => {
   const session = makeSession()
   const callback = jest.fn()
   session.start('keybase.1.login.login', undefined, callback)
-  session.cancel()
+  session.cancel('caller')
 
   expect(callback).toHaveBeenCalledTimes(1)
   const err = callback.mock.calls[0]![0] as RPCError
   expect(err).toBeInstanceOf(RPCError)
   expect(err.code).toBe(T.RPCGen.StatusCode.sccanceled)
+  expect(err.kind).toEqual({reason: 'caller', type: 'cancelled'})
 })
 
 test('cancel releases the waiting count when the server owes us a response', () => {
@@ -42,7 +43,7 @@ test('cancel releases the waiting count when the server owes us a response', () 
   session.start('keybase.1.login.login', undefined, jest.fn())
   mockDispatchWaitingAction.mockReset() // drop the +1 from start
 
-  session.cancel()
+  session.cancel('caller')
   expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: waitingKey})
 })
 
@@ -56,7 +57,7 @@ test('cancel does not double-release waiting while a prompt is pending on the GU
   expect(mockDispatchWaitingAction).toHaveBeenLastCalledWith({error: undefined, increment: false, key: waitingKey})
   mockDispatchWaitingAction.mockReset()
 
-  session.cancel()
+  session.cancel('caller')
   expect(mockDispatchWaitingAction).not.toHaveBeenCalled()
 })
 
@@ -101,7 +102,7 @@ test('a late server response after cancel does not fire the callback twice', () 
     sessionID: 7,
   })
   session2.start('keybase.1.login.login', undefined, callback)
-  session2.cancel()
+  session2.cancel('caller')
   expect(callback).toHaveBeenCalledTimes(1)
 
   // simulate the transport delivering a response afterwards

@@ -160,7 +160,9 @@ describe('final error handling', () => {
     await settle()
 
     fake.drop()
-    await expect(password).resolves.toEqual({error: expect.objectContaining({desc: 'fake engine: link dropped'})})
+    await expect(password).resolves.toEqual({
+      error: expect.objectContaining({desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}}),
+    })
     await settle()
     fake.restart()
     // the run is over: a submit reaches nothing and nothing starts again

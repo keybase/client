@@ -7,6 +7,8 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
 import {useDaemonState} from '@/stores/daemon'
 import {useRPCLoad} from './use-rpc-load'
+import * as T from '@/constants/types'
+import {RPCError, type CancelReason} from './errors'
 
 const flush = async () => {
   await act(async () => {
@@ -297,4 +299,96 @@ test('setData survives until the next load lands', async () => {
   })
   await flush()
   expect(result.current.data).toBe('got:2')
+})
+
+const cancelledBy = (reason: CancelReason) =>
+  new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
+
+// Only a lost link waits, for the reconnect's reload; any other cancel ends the load quietly
+test.each([
+  ['caller', false],
+  ['accountChange', false],
+  ['service', false],
+  ['disconnect', true],
+] as const)('a load cancelled by %s is not an error (still loading: %s)', async (reason, loading) => {
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(cancelledBy(reason))
+  const onError = jest.fn()
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
+  advancePastMountLoad()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBeUndefined()
+  expect(onError).not.toHaveBeenCalled()
+  expect(result.current.loading).toBe(loading)
+  expect(result.current.loaded).toBe(!loading)
+})
+
+test.each([
+  ['caller', false],
+  ['service', false],
+  ['disconnect', true],
+] as const)('a keyed load cancelled by %s (still loading: %s)', async (reason, loading) => {
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(cancelledBy(reason))
+  const {result} = renderHook(() => useRPCLoad(call, [], {key: 'k', map: (r: number) => r}))
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBeUndefined()
+  expect(result.current.loading).toBe(loading)
+})
+
+test('a load cancelled by a lost link loads again on reconnect', async () => {
+  const call = jest
+    .fn<() => Promise<number>>()
+    .mockRejectedValueOnce(cancelledBy('disconnect'))
+    .mockResolvedValue(7)
+  useDaemonState.setState({handshakeState: 'done'})
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r}))
+  advancePastMountLoad()
+  await flush()
+  expect(result.current.loading).toBe(true)
+  reconnect()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe(7)
+  expect(result.current.loading).toBe(false)
+})
+
+test("the service's own error still surfaces", async () => {
+  const error = new RPCError('nope', T.RPCGen.StatusCode.scgeneric)
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
+  const onError = jest.fn()
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
+  advancePastMountLoad()
+  await flush()
+  expect(result.current.error).toBe(error)
+  expect(onError).toHaveBeenCalledWith(error)
+})
+
+// A lost link waits only for a reload that will come; with none coming it fails like any error
+test.each([
+  ["when: 'manual'", {when: 'manual'} as const],
+  ['enabled: false', {enabled: false}],
+])('a load cancelled by a lost link, %s, fails', async (_, opts) => {
+  const error = cancelledBy('disconnect')
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
+  const onError = jest.fn()
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError, ...opts}))
+  act(() => {
+    result.current.reload()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBe(error)
+  expect(onError).toHaveBeenCalledWith(error)
+  expect(result.current.loading).toBe(false)
+})
+
+test('a local failure fails the load', async () => {
+  const error = new RPCError('write failed', 101, null, 'EOF', undefined, {type: 'local'})
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r}))
+  advancePastMountLoad()
+  await flush()
+  expect(result.current.error).toBe(error)
+  expect(result.current.loading).toBe(false)
 })

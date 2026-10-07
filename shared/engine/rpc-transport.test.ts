@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import logger from '@/logger'
+import {convertToError, isCancelled} from '@/util/errors'
 import {
   RPCTransport,
   encodeFrame,
@@ -98,7 +99,7 @@ test('invoke queues while disconnected and flushes on connect', () => {
   expect(cb).toHaveBeenCalledWith(null, {done: true})
 })
 
-const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 test('a link drop fails outstanding invocations with the disconnect error', () => {
   const transport = new TestTransport()
@@ -189,6 +190,10 @@ test('invoke fails the caller when the native write throws', () => {
     expect.objectContaining({code: errors.EOF, desc: writeError.message}),
     {}
   )
+  // The link is up: a local failure, which no reconnect retries, so not a lost link
+  const err = (cb.mock.calls[0] as [unknown])[0]
+  expect((err as {kind?: unknown}).kind).toEqual({type: 'local'})
+  expect(isCancelled(convertToError(err))).toBe(false)
 })
 
 test('a failed write leaves no outstanding invocation', () => {

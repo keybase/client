@@ -3,7 +3,14 @@ import Session from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import {inputCanceledError, type SessionID, type MethodKey, type WaitingChange, type WaitingKeys} from './types'
+import {
+  inputCanceledError,
+  type ClientCancelReason,
+  type SessionID,
+  type MethodKey,
+  type WaitingChange,
+  type WaitingKeys,
+} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
@@ -31,7 +38,7 @@ export type MakeClient = (
 
 // Bump when a change to the Engine, Session or listener would break an engine a hot reload keeps:
 // makeEngine replaces any engine stamped with another version
-export const ENGINE_VERSION = 2
+export const ENGINE_VERSION = 3
 
 class Engine implements CallPort {
   readonly version = ENGINE_VERSION
@@ -151,7 +158,7 @@ class Engine implements CallPort {
   // When the transport died the service has forgotten every in-flight RPC, so held prompts are
   // dropped without an answer; otherwise the link is alive and they are refused. Dangling sessions
   // are never cancelled, but a lost link still drops what they hold.
-  _cancelOutstandingSessions(why: 'lostLink' | 'client') {
+  _cancelOutstandingSessions(why: 'lostLink' | 'accountChange') {
     for (const session of [...this._sessionsMap.values()]) {
       if (session.getDangling()) {
         if (why === 'lostLink') {
@@ -161,7 +168,7 @@ class Engine implements CallPort {
         if (why === 'lostLink') {
           session.cancelForLostLink()
         } else {
-          session.cancel()
+          session.cancel('accountChange')
         }
       }
     }
@@ -414,14 +421,16 @@ class Engine implements CallPort {
     return this._sessionsMap.get(sessionID)?.holdServerWork() ?? (() => {})
   }
 
-  // Client-side cancel of one outstanding session: rejects its start callback (sccanceled). The
-  // service is not told; until its RPC replies, the session refuses whatever it still sends.
-  cancelSession(sessionID: number) {
-    this._sessionsMap.get(sessionID)?.cancel()
+  // Client-side cancel of one outstanding session: rejects its start callback (sccanceled, cancelled by
+  // the caller unless an account change disposes it). The service is not told; until its RPC replies,
+  // the session refuses whatever it still sends.
+  cancelSession(sessionID: number, reason: ClientCancelReason = 'caller') {
+    this._sessionsMap.get(sessionID)?.cancel(reason)
   }
 
+  // An account switch: every session of the old account rejects cancelled by the account change
   cancelOutstandingSessions() {
-    this._cancelOutstandingSessions('client')
+    this._cancelOutstandingSessions('accountChange')
   }
 
   // Reset the engine

@@ -6,6 +6,8 @@ import {useDaemonState} from '@/stores/daemon'
 import {nextReloadEpoch} from './reload-epoch'
 import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
 import {flush} from '@/test/flush'
+import * as T from '@/constants/types'
+import {RPCError, type CancelReason} from './errors'
 
 afterEach(() => {
   cleanup()
@@ -644,4 +646,54 @@ test('a cacheKey change resets the cache and refetches', async () => {
   await flush()
   expect(seen).toEqual(['a', 'b', 'a'])
   expect(result.current.data).toEqual({v: 3})
+})
+
+const cancelledBy = (reason: CancelReason) =>
+  new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
+
+// Silent for every cancel. A quiet cancel (the client's own, or the service's, often the echo of our
+// refusal) is no failure, so it neither backs off nor stays loading; a lost link stays loading until
+// the reconnect reload, which bypasses the backoff anyway.
+test.each([
+  ['caller', {backsOff: false, loading: false}],
+  ['accountChange', {backsOff: false, loading: false}],
+  ['disconnect', {backsOff: true, loading: true}],
+  ['service', {backsOff: false, loading: false}],
+] as const)('a load cancelled by %s', async (reason, expected) => {
+  const initialData = {v: 0}
+  const cache = createCachedResourceCache<Data, string>(initialData, 'k')
+  const load = jest.fn<() => Promise<Data>>().mockRejectedValue(cancelledBy(reason))
+  const onError = jest.fn()
+  let resource: ReturnType<typeof useCachedResource<Data, string>> | undefined
+  const Comp = () => {
+    // hoists the resource out to the test body; the compiler rejects the assignment
+    'use no memo'
+    resource = useCachedResource({cache, cacheKey: 'k', initialData, load, onError, staleMs: 5000})
+    return <div>{resource.data.v}</div>
+  }
+  render(<Comp />)
+  await flush()
+  expect(load).toHaveBeenCalledTimes(1)
+  expect(onError).not.toHaveBeenCalled()
+  expect(resource?.loading).toBe(expected.loading)
+  await act(async () => {
+    await resource?.loadIfStale()
+  })
+  await flush()
+  expect(load).toHaveBeenCalledTimes(expected.backsOff ? 1 : 2)
+})
+
+test("the service's own error still reaches onError", async () => {
+  const initialData = {v: 0}
+  const cache = createCachedResourceCache<Data, string>(initialData, 'k')
+  const error = new RPCError('nope', T.RPCGen.StatusCode.scgeneric)
+  const load = jest.fn<() => Promise<Data>>().mockRejectedValue(error)
+  const onError = jest.fn()
+  const Comp = () => {
+    const {data} = useCachedResource({cache, cacheKey: 'k', initialData, load, onError, staleMs: 5000})
+    return <div>{data.v}</div>
+  }
+  render(<Comp />)
+  await flush()
+  expect(onError).toHaveBeenCalledWith(error)
 })

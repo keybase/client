@@ -6,7 +6,7 @@ import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
 import {errors as rpcErrors} from './rpc-transport'
-import {isEOFError, isErrorTransient, type RPCError} from '@/util/errors'
+import {isCancelled, isErrorTransient, type RPCError} from '@/util/errors'
 
 afterEach(() => {
   resetAllStores()
@@ -26,7 +26,7 @@ test('a call in flight when the link drops rejects with the transport EOF error'
     (e: unknown) => e as RPCError
   )
   expect(err).toMatchObject({code: rpcErrors.EOF, desc: 'The service connection was lost'})
-  expect(isEOFError(err)).toBe(true)
+  expect(isCancelled(err, 'disconnect')).toBe(true)
   expect(isErrorTransient(err)).toBe(true)
   uninstallFakeEngine()
 })

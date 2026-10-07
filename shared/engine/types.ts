@@ -3,6 +3,8 @@ import type {ErrorType} from '@/engine/rpc-transport'
 import type {RPCError} from '@/util/errors'
 import type {WaitingKeys} from '@/constants/waiting-key-type'
 export type MethodKey = string
+// Why the client cancels a session of its own: the caller is done with it, or the account changed
+export type ClientCancelReason = 'caller' | 'accountChange'
 export type SessionID = number
 export type {WaitingKeys}
 // One change to a waiting key: a call starts or stops waiting on it, or, having stopped already, only

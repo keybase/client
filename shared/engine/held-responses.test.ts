@@ -273,7 +273,7 @@ test('a session prompt handler that throws is answered once with input canceled'
   const pushed = fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {}}, {sessionID: session.getId()})
   await expect(settledSoFar(pushed)).resolves.toEqual({error: inputCanceled})
   expect(logged).toHaveBeenCalledTimes(1)
-  session.cancel()
+  session.cancel('caller')
   await tick()
   expect(() => uninstallFakeEngine()).not.toThrow()
 })

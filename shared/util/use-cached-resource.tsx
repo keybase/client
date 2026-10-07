@@ -3,6 +3,7 @@ import * as React from 'react'
 import {produce} from 'immer'
 import {joinAnyEpoch, nextReloadEpoch} from './reload-epoch'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
+import {isCancelled, isQuietCancel} from './errors'
 
 export type CachedResourceCache<T, K> = {
   clearInFlight: (request: Promise<T>) => void
@@ -212,17 +213,27 @@ const runLoad = async <T, K>(
     }
   } catch (error) {
     // record the failure even for a superseded request: the backoff belongs to
-    // the shared cache, not to whichever instance happened to own the request
-    cache.setLoadFailed(generation)
+    // the shared cache, not to whichever instance happened to own the request.
+    // A quiet cancel is no failure of the resource, and a lost link's reconnect
+    // reload is forced past the backoff.
+    if (!isQuietCancel(error)) {
+      cache.setLoadFailed(generation)
+    }
     if (requestVersion !== requestVersionRef.current) {
       return
     }
-    onError?.(error)
-    setState(
-      produce(draft => {
-        draft.loading = false
-      })
-    )
+    // A cancel is never an error to show. A lost link stays loading until the
+    // reconnect's handshake reloads it; any other cancel ends the load quietly.
+    if (!isCancelled(error)) {
+      onError?.(error)
+    }
+    if (!isCancelled(error, 'disconnect')) {
+      setState(
+        produce(draft => {
+          draft.loading = false
+        })
+      )
+    }
   } finally {
     if (request) {
       cache.clearInFlight(request)
@@ -347,8 +358,8 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     await loadResource(false, joinAnyEpoch)
   }, [loadResource])
 
-  // reconnects orphan any in-flight load; force so cached data from before the
-  // restart doesn't mask post-restart changes. Disabled hooks must not touch the
+  // a lost link rejects an in-flight load, which stays loading; force so cached
+  // data from before the restart doesn't mask post-restart changes. Disabled hooks must not touch the
   // shared cache (loadResource resets it when disabled)
   useReloadOnReconnect(epoch => {
     if (latestRef.current.enabled) {

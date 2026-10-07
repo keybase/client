@@ -1,5 +1,6 @@
 import {decode, encode} from '@msgpack/msgpack'
 import logger from '@/logger'
+import type {RPCErrorKind} from '@/util/rpcerror'
 
 export const MESSAGE_TYPE_INVOKE = 0
 export const MESSAGE_TYPE_RESPONSE = 1
@@ -24,6 +25,8 @@ export type ErrorType = {
   code: number
   desc: string
   name?: string
+  // Only on the errors the transport hands its callers, never on the wire
+  kind?: RPCErrorKind
 }
 
 export type ResponseType = {
@@ -63,14 +66,20 @@ const makeTransportError = (name: ErrorName): ErrorType => ({
   name,
 })
 
-const makeEOFError = () => makeTransportError('EOF')
+// The link it was made on went away under a call, so it ends cancelled, by neither the user nor the
+// service. Its code stays EOF, and isErrorTransient knows it as a service restart.
+const disconnectKind: RPCErrorKind = {reason: 'disconnect', type: 'cancelled'}
 
-// Settles a call made on, or waiting on, a link to the service that has gone. An EOF, not a cancel:
-// callers read a cancel as the user's own and stay quiet, and isErrorTransient knows an EOF as a
-// service restart.
+// The transport was closed under its calls. Only makeEngine closes one, when a hot reload replaces the
+// engine, and the new engine's link-up runs the handshake again, so the calls' owners reload as after
+// any lost link.
+const makeEOFError = (): ErrorType => ({...makeTransportError('EOF'), kind: disconnectKind})
+
+// Settles a call made on, or waiting on, a link to the service that has gone
 const makeDisconnectError = (): ErrorType => ({
   code: errors.EOF,
   desc: 'The service connection was lost',
+  kind: disconnectKind,
   name: 'EOF',
 })
 
@@ -544,9 +553,10 @@ export abstract class RPCTransport {
       // rather than leaving the seqid outstanding for the rest of the session.
       // Shaped like every other transport-level failure (code/desc, not the
       // raw exception) so downstream convertToError yields an RPCError with a
-      // code; the original message survives in desc.
+      // code; the original message survives in desc. The link is up, so this
+      // is a local failure, not a lost link: no reconnect will retry it.
       this._invocations.delete(seqid)
-      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), name: 'EOF'}, {})
+      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), kind: {type: 'local'}, name: 'EOF'}, {})
     }
   }
 

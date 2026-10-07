@@ -1,8 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {errors as transportErrors} from '@/engine/rpc-transport'
-import RPCError from './rpcerror'
+import RPCError, {type CancelReason, type RPCErrorKind} from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
   return Object.hasOwn(err, 'desc') && Object.hasOwn(err, 'code')
@@ -62,11 +61,31 @@ type RPCErrorLike = {
   desc: string
   fields?: unknown
   name?: string
+  // Set by the client on the errors it makes; the service's errors have none
+  kind?: RPCErrorKind
 }
 
 function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
-  return new RPCError(err.desc, err.code, err.fields, err.name, method)
+  return new RPCError(err.desc, err.code, err.fields, err.name, method, err.kind)
 }
+
+// The kind of an RPCError, or of the Error a listener wraps one in (which copies its fields)
+export const errorKind = (error: unknown): RPCErrorKind | undefined => {
+  const kind = error && typeof error === 'object' ? (error as {kind?: unknown}).kind : undefined
+  return kind && typeof kind === 'object' && typeof (kind as {type?: unknown}).type === 'string'
+    ? (kind as RPCErrorKind)
+    : undefined
+}
+
+// A call that was cancelled for one of these reasons, or for any reason when none is given
+export const isCancelled = (error: unknown, ...reasons: ReadonlyArray<CancelReason>) => {
+  const kind = errorKind(error)
+  return kind?.type === 'cancelled' && (reasons.length === 0 || reasons.includes(kind.reason))
+}
+
+// A cancel that is no failure to show: by the caller, an account change, or the service (often the
+// echo of the client's own refusal). A lost link is not one: the call did not happen.
+export const isQuietCancel = (error: unknown) => isCancelled(error) && !isCancelled(error, 'disconnect')
 
 export function logError(error: unknown) {
   logger.info(`logError: ${JSON.stringify(error)}`)
@@ -117,10 +136,6 @@ function isRPCError(error: RPCError | Error): error is RPCError {
   return typeof (error as RPCError).code === 'number'
 }
 
-export function isEOFError(error: RPCError | Error) {
-  return isRPCError(error) && (error.code as number) === transportErrors['EOF']
-}
-
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
 const isIgnoredError = (error: RPCError | Error) => {
   if (isRPCError(error)) {
@@ -132,14 +147,14 @@ const isIgnoredError = (error: RPCError | Error) => {
 }
 
 export function isErrorTransient(error: RPCError | Error) {
-  // 'EOF from server' error from rpc library thrown when service
-  // restarts no need to show to user
-  return isEOFError(error) || isIgnoredError(error)
+  // The link to the service went away (a service restart): no need to show the user
+  return isCancelled(error, 'disconnect') || isIgnoredError(error)
 }
 
 export {RPCError}
+export type {CancelReason, RPCErrorKind}
 
-const networkErrorCodes = [
+const networkErrorCodes: ReadonlyArray<number> = [
   T.RPCGen.StatusCode.scgenericapierror,
   T.RPCGen.StatusCode.scapinetworkerror,
   T.RPCGen.StatusCode.sctimeout,

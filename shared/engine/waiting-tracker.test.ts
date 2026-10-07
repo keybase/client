@@ -211,3 +211,20 @@ test('any interleaving keeps the count 0 or 1, matching the model, and settles o
     steps.forEach((s, i) => expect(s).toBe(i % 2 === 0))
   }
 })
+
+test.each([
+  ['a cancel by the client', new RPCError('c', 237, null, undefined, undefined, {reason: 'caller', type: 'cancelled'})],
+  ['a cancel by the service', new RPCError('Input canceled', 239)],
+  ['a local failure', new RPCError('write failed', 101, null, 'EOF', undefined, {type: 'local'})],
+])('settle with %s records nothing', (_, error) => {
+  const {changes, tracker} = make()
+  tracker.settle(error)
+  expect(changes.at(-1)).toEqual({error: undefined, increment: false, key})
+})
+
+test('settle with a lost link records it', () => {
+  const {changes, tracker} = make()
+  const lost = new RPCError('lost', 101, null, 'EOF', undefined, {reason: 'disconnect', type: 'cancelled'})
+  tracker.settle(lost)
+  expect(changes.at(-1)).toEqual({error: lost, increment: false, key})
+})

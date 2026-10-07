@@ -1,4 +1,17 @@
 import logger from '@/logger'
+import {errorKind, isQuietCancel} from './errors'
+
+const logFailure = (logExtra: string, e: unknown) => {
+  // A quiet cancel (a switch, a dispose, the service's cancel) is not a failure of the wrapped work
+  const kind = errorKind(e)
+  if (isQuietCancel(e) && kind?.type === 'cancelled') {
+    logger.info('Cancelled wrapped call', logExtra, kind.reason)
+  } else if (__DEV__) {
+    logger.error('Error in wrapped call', logExtra, e)
+  } else {
+    logger.error('Error in wrapped call', logExtra)
+  }
+}
 
 export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
@@ -7,22 +20,14 @@ export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: st
       if (result instanceof Promise) {
          
         return result.catch((e: unknown) => {
-          if (__DEV__) {
-            logger.error('Error in wrapped call', logExtra, e)
-          } else {
-            logger.error('Error in wrapped call', logExtra)
-          }
+          logFailure(logExtra, e)
           throw e
         }) as ReturnType<T>
       }
        
       return result as ReturnType<T>
     } catch (e) {
-      if (__DEV__) {
-        logger.error('Error in wrapped call', logExtra, e)
-      } else {
-        logger.error('Error in wrapped call', logExtra)
-      }
+      logFailure(logExtra, e)
       throw e
     }
   }) as T
