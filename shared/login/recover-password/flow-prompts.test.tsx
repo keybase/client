@@ -5,8 +5,9 @@ import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
-import listener from '@/engine/listener'
-import {initEngine, initEngineListener} from '@/engine/require'
+import {makeListen} from '@/engine/listener'
+import {installCallPort, uninstallCallPort} from '@/engine/call-port'
+import type {WaitingKey} from '@/engine/types'
 
 import {
   answerRecoverPasswordPgp,
@@ -607,17 +608,19 @@ describe('pgp key warning waiting state', () => {
     outgoing = []
     useConfigState.getState().dispatch.setLoggedIn(true)
     nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-    initEngine({
-      _rpcOutgoing: (p: Outgoing) => {
-        outgoing.push(p)
+    const engine = {
+      call: (p: unknown) => {
+        outgoing.push(p as Outgoing)
         return outgoing.length
       },
       cancelSession: () => {},
-      dispatchWaitingAction: (key: string, waiting: boolean, error?: RPCError) =>
+      dispatchWaitingAction: (key: WaitingKey, waiting: boolean, error?: RPCError) =>
         useWaitingState.getState().dispatch.batch([{error, increment: waiting, key}]),
-    } as never)
-    initEngineListener(listener)
+    }
+    installCallPort({call: engine.call, cancelOutstandingSessions: () => {}, listen: makeListen(engine)})
   })
+
+  afterEach(() => uninstallCallPort())
 
   const waitingCount = () => useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
 

@@ -6,7 +6,6 @@ import {
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
 import {RPCError} from '@/util/errors'
-import {getEngine} from './require'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey, WaitingKey} from './types'
 
@@ -37,6 +36,7 @@ class Session {
 
   // Allow us to make calls
   _invoke: InvokeType
+  _dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
 
   constructor(p: {
     sessionID: SessionID
@@ -44,6 +44,7 @@ class Session {
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: WaitingKey
     invoke: InvokeType
+    dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
     endHandler: EndHandlerType
     cancelHandler?: CancelHandlerType
     dangling?: boolean
@@ -53,6 +54,7 @@ class Session {
     this._customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
+    this._dispatchWaiting = p.dispatchWaiting
     this._endHandler = p.endHandler
     this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
@@ -92,7 +94,7 @@ class Session {
         })
       }
       if (this._waitingKey) {
-        getEngine().dispatchWaitingAction(this._waitingKey, waiting, err)
+        this._dispatchWaiting(this._waitingKey, waiting, err)
       }
     }
   }

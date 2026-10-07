@@ -5,9 +5,6 @@ import * as T from '@/constants/types'
 import {startNewAccountGeneration, survivesAccountChange} from './account-generation'
 
 const mockDispatchWaitingAction = jest.fn()
-jest.mock('./require', () => ({
-  getEngine: () => ({dispatchWaitingAction: mockDispatchWaitingAction}),
-}))
 
 afterEach(() => {
   mockDispatchWaitingAction.mockReset()
@@ -16,6 +13,7 @@ afterEach(() => {
 const makeSession = (waitingKey?: string) =>
   new Session({
     customResponseIncomingCallMap: {'keybase.1.provisionUi.chooseDevice': jest.fn()} as never,
+    dispatchWaiting: mockDispatchWaitingAction,
     endHandler: jest.fn(),
     invoke: jest.fn(),
     sessionID: 123,
@@ -57,7 +55,12 @@ test('cancel does not double-release waiting while a prompt is pending on the GU
 test('a late server response after cancel does not fire the callback twice', () => {
   const callback = jest.fn()
   const invoke = jest.fn()
-  const session2 = new Session({endHandler: jest.fn(), invoke, sessionID: 7})
+  const session2 = new Session({
+    dispatchWaiting: mockDispatchWaitingAction,
+    endHandler: jest.fn(),
+    invoke,
+    sessionID: 7,
+  })
   session2.start('keybase.1.login.login', undefined, callback)
   session2.cancel()
   expect(callback).toHaveBeenCalledTimes(1)
@@ -74,6 +77,7 @@ describe('a call that outlives its account', () => {
     const callback = jest.fn()
     const session = new Session({
       customResponseIncomingCallMap: {'keybase.1.secretUi.getPassphrase': jest.fn()} as never,
+      dispatchWaiting: mockDispatchWaitingAction,
       endHandler: jest.fn(),
       invoke,
       sessionID: 9,
