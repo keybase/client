@@ -29,5 +29,7 @@ export const newModalRoutes = defineRouteMap({
       title: route.params.isTeam ? 'New team repository' : 'New personal repository',
     }),
   }),
-  gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
+  gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel')), {
+    getOptions: {title: 'Select a channel'},
+  }),
 })

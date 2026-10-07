@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {useSafeSubmit} from '@/util/safe-submit'
+import {useNavigation} from '@react-navigation/native'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -57,6 +58,13 @@ const LogoutContainer = () => {
 
   const keyboardType = showTyping && isAndroid ? 'visible-password' : 'default'
 
+  const navigation = useNavigation()
+  React.useEffect(() => {
+    if (hasRandomPW) {
+      navigation.setOptions({title: 'Set a password'})
+    }
+  }, [navigation, hasRandomPW])
+
   return hasRandomPW === undefined ? (
     <Kb.ProgressIndicator style={styles.progress} type="Huge" />
   ) : hasRandomPW ? (
@@ -68,51 +76,18 @@ const LogoutContainer = () => {
       waitingForResponse={waitingForResponse}
     />
   ) : (
-    <>
-      {checkPasswordIsCorrect === false ? (
-        <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
-      ) : null}
-      {checkPasswordIsCorrect === true ? (
-        <Kb.Banner color="green">Your password is correct.</Kb.Banner>
-      ) : null}
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
-          {isMobile && (
-            <Kb.Text style={styles.headerText} type="Header">
-              Do you know your password?
-            </Kb.Text>
-          )}
-          <Kb.Text style={styles.bodyText} type="Body">
-            You will need it to sign back in.
-          </Kb.Text>
-          <Kb.RoundedBox>
-            <Kb.Input3
-              keyboardType={keyboardType}
-              onEnterKeyDown={() => {
-                if (checkPasswordIsCorrect) {
-                  logOut()
-                } else {
-                  onCheckPassword(password)
-                }
-              }}
-              onChangeText={setPassword}
-              placeholder="Your password"
-              secureTextEntry={!showTyping}
-              value={password}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.Checkbox
-            checked={showTyping}
-            label="Show typing"
-            onCheck={() => setShowTyping(!showTyping)}
-            style={styles.checkbox}
-          />
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
-        {!checkPasswordIsCorrect ? (
-          <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
+    <Kb.ModalScreen
+      padding="none"
+      banner={
+        checkPasswordIsCorrect === false ? (
+          <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+        ) : checkPasswordIsCorrect === true ? (
+          <Kb.Banner color="green">Your password is correct.</Kb.Banner>
+        ) : null
+      }
+      footer={
+        !checkPasswordIsCorrect ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.WaitingButton
               fullWidth={true}
               waitingKey={C.waitingKeySettingsCheckPassword}
@@ -138,18 +113,43 @@ const LogoutContainer = () => {
                 </Kb.ClickableBox>
               )}
             </Kb.Box2>
-          </Kb.ButtonBar>
+          </Kb.Box2>
+        ) : loggingOut ? (
+          <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
         ) : (
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            {loggingOut ? (
-              <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
-            ) : (
-              <Kb.Button label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
-            )}
-          </Kb.ButtonBar>
-        )}
-      </Kb.ModalFooter>
-    </>
+          <Kb.Button label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
+        )
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.container}>
+        <Kb.Text style={styles.bodyText} type="Body">
+          You will need it to sign back in.
+        </Kb.Text>
+        <Kb.RoundedBox>
+          <Kb.Input3
+            keyboardType={keyboardType}
+            onEnterKeyDown={() => {
+              if (checkPasswordIsCorrect) {
+                logOut()
+              } else {
+                onCheckPassword(password)
+              }
+            }}
+            onChangeText={setPassword}
+            placeholder="Your password"
+            secureTextEntry={!showTyping}
+            value={password}
+            hideBorder={true}
+          />
+        </Kb.RoundedBox>
+        <Kb.Checkbox
+          checked={showTyping}
+          label="Show typing"
+          onCheck={() => setShowTyping(!showTyping)}
+          style={styles.checkbox}
+        />
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -160,15 +160,10 @@ const useStyles = Kb.Styles.createStyleHook(
         paddingBottom: Kb.Styles.globalMargins.tiny,
         textAlign: 'center',
       },
-      buttonBar: {minHeight: undefined},
       checkbox: {paddingTop: Kb.Styles.globalMargins.tiny},
       container: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
         backgroundColor: theme.blueGrey,
-      },
-      headerText: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        textAlign: 'center',
       },
       logout: {paddingLeft: Kb.Styles.globalMargins.xtiny},
       logoutContainer: Kb.Styles.platformStyles({

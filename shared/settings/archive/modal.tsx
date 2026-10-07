@@ -257,7 +257,7 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-              <Kb.Text type="Header">All Files</Kb.Text>
+              <Kb.Text type="BodyBig">All Files</Kb.Text>
             </Kb.Box2>
             <Kb.Text type="Body">
               Note: public folders that you are not a writer of will be skipped. Use{' '}
@@ -270,7 +270,7 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-              <Kb.Text type="Header">All Files</Kb.Text>
+              <Kb.Text type="BodyBig">All Files</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" centerChildren={true}>
               <Kb.Text type="Body">
@@ -287,7 +287,7 @@ const ArchiveModal = (p: Props) => {
         archiveAllGitResponseWaiter.state === 'idle' ? (
           <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
-            <Kb.Text type="Header">All Git Repos</Kb.Text>
+            <Kb.Text type="BodyBig">All Git Repos</Kb.Text>
           </Kb.Box2>
         ) : archiveAllGitResponseWaiter.state === 'waiting' ? (
           <Kb.LoadingLine />
@@ -295,7 +295,7 @@ const ArchiveModal = (p: Props) => {
           <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
-              <Kb.Text type="Header">All Git Repos</Kb.Text>
+              <Kb.Text type="BodyBig">All Git Repos</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" centerChildren={true}>
               <Kb.Text type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text>
@@ -343,35 +343,37 @@ const ArchiveModal = (p: Props) => {
   )
 
   return (
-    <>
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
-          {isMobile ? (
-            <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
-          ) : (
-            <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
-          )}
-          <Kb.BoxGrow />
-          {content}
-          <Kb.BoxGrow />
-          {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
-            ? null
-            : output}
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar small={true}>
-          {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
-          {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
-          {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+    <Kb.ModalScreen
+      footer={
+        started ? (
+          <Kb.ConfirmButtons
+            split={true}
+            cancelLabel="Close"
+            onCancel={onClose}
+            confirmLabel="See progress"
+            onConfirm={onProgress}
+          />
+        ) : (
+          <Kb.Button label="Start" onClick={onStart} disabled={!canStart} fullWidth={true} />
+        )
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
+        {isMobile ? (
+          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
+        ) : (
+          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
+        )}
+        {content}
+        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+          ? null
+          : output}
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  container: {padding: isMobile ? 8 : 16},
   contentContainer: {
     maxWidth: 400,
   },

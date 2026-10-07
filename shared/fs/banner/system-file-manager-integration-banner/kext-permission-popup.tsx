@@ -31,26 +31,19 @@ const InstallSecurityPrefs = () => {
   }, [driverStatus, onCancel])
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
-        <Kb.Text type="HeaderBig" style={styles.title}>
-          You need to change your system security preferences.
+    <Kb.ModalScreen centered={true}>
+      <Kb.Box2 direction="vertical" gap="small" alignItems="center" fullWidth={true}>
+        <Kb.Text type="Body" center={true}>
+          Open your macOS Security & Privacy Settings and follow these steps.
         </Kb.Text>
-        <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
-        <Kb.Box2 direction="horizontal">
-          <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
-            <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
-                •
-              </Kb.Text>
-              <Kb.Text type="BodySemibold" style={styles.listText}>
-                {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
+        <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
+            •
+          </Kb.Text>
+          <Kb.Text type="BodySemibold" style={styles.listText}>
+            {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
+          </Kb.Text>
         </Kb.Box2>
         <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
           Open Security & Privacy Settings
@@ -72,27 +65,19 @@ const InstallSecurityPrefs = () => {
           </Kb.Box2>
         </Kb.Box2>
       )}
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      container: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.mediumLarge, Kb.Styles.globalMargins.large),
-      },
       enablingContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: theme.black_63,
       },
-      image: {
-        width: 408,
-      },
-      listText: {
-        paddingBottom: 16,
-        paddingTop: 1,
-      },
+      image: {maxWidth: '100%'},
+      listText: {flexShrink: 1, paddingTop: 1},
       numberList: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.size(20),
@@ -101,11 +86,6 @@ const useStyles = Kb.Styles.createStyleHook(
           textAlign: 'center',
         },
       }),
-      numberListContainer: {paddingTop: Kb.Styles.globalMargins.large},
-      title: {
-        maxWidth: 480,
-        textAlign: 'center',
-      },
     }) as const
 )
 
