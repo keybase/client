@@ -83,12 +83,12 @@ const ContactsJoinedModal = (props: {contacts: ReadonlyArray<T.RPCGen.ProcessedC
   const following = useFollowerState(s => s.following)
   const filteredPeople = props.contacts.filter(p => !following.has(p.username))
   return (
-    <>
+    <Kb.ModalScreen scroll={false} padding="none">
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
       <Kb.List items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
-    </>
+    </Kb.ModalScreen>
   )
 }
 

@@ -107,9 +107,20 @@ const NewRepo = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.ScrollView>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} alignItems="center" gap="medium" style={styles.container}>
-        <Kb.ErrorBanner error={error} />
+    <Kb.ModalScreen
+      banner={<Kb.ErrorBanner error={error} />}
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waitingKey={C.waitingKeyGitLoading}
+          onCancel={navigateUp}
+          onConfirm={onSubmit}
+          confirmLabel="Create"
+          confirmDisabled={!canSubmit()}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="medium">
         <Kb.IconAuto type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'} />
         <Kb.Text type="Body">
           {isTeam
@@ -140,15 +151,8 @@ const NewRepo = (ownProps: OwnProps) => {
             style={styles.checkbox}
           />
         )}
-        <Kb.ConfirmButtons
-          waitingKey={C.waitingKeyGitLoading}
-          onCancel={navigateUp}
-          onConfirm={onSubmit}
-          confirmLabel="Create"
-          confirmDisabled={!canSubmit()}
-        />
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.ModalScreen>
   )
 }
 
@@ -161,17 +165,6 @@ const useStyles = Kb.Styles.createStyleHook(
         width: '100%',
       },
       checkbox: {alignSelf: 'flex-start'},
-      container: Kb.Styles.platformStyles({
-        common: {
-          padding: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
-        },
-        isElectron: {maxWidth: 400},
-        isTablet: {
-          alignSelf: 'center',
-          marginTop: Kb.Styles.globalMargins.xsmall,
-          width: 500,
-        },
-      }),
       dropdown: {width: '100%'},
       newTeamItem: {paddingLeft: Kb.Styles.globalMargins.small},
       teamName: Kb.Styles.platformStyles({

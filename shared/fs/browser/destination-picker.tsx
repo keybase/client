@@ -125,8 +125,16 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsScreenCoordinator(parentPath)
   FsCommon.useFsOnlineStatus()
 
+  const footer = isMobile ? (
+    onNewFolder ? (
+      <NewFolder onNewFolder={onNewFolder} />
+    ) : undefined
+  ) : (
+    <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+  )
+
   return (
-    <Kb.Box2 direction="vertical" flex={1} fullWidth={true} fullHeight={true}>
+    <Kb.ModalScreen scroll={false} padding="none" footer={footer}>
       {!isMobile && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
           <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
@@ -174,22 +182,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Rows path={parentPath} destinationPickerSource={source} />
       )}
       {isMobile && <Kb.Divider key="dfooter" />}
-      {(!isMobile || onNewFolder) && (
-        <Kb.Box2
-          key="footer"
-          direction="horizontal"
-          centerChildren={true}
-          fullWidth={true}
-          style={styles.footer}
-        >
-          {isMobile ? (
-            <NewFolder onNewFolder={onNewFolder} />
-          ) : (
-            <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-          )}
-        </Kb.Box2>
-      )}
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -235,16 +228,6 @@ const useStyles = Kb.Styles.createStyleHook(
         height: 48,
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
-      footer: Kb.Styles.platformStyles({
-        common: {
-          height: 64,
-        },
-        isElectron: {
-          backgroundColor: theme.white_90,
-          bottom: 0,
-          position: 'absolute',
-        },
-      }),
       newFolderBox: {
         padding: Kb.Styles.globalMargins.tiny,
       },

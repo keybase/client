@@ -148,7 +148,7 @@ export const newModalRoutes = defineRouteMap({
     }
   ),
   kextPermission: {
-    getOptions: {modalSize: 'medium'},
+    getOptions: {modalSize: 'medium', title: 'Change your security preferences'},
     screen: React.lazy(
       async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
     ),

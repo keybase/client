@@ -127,12 +127,9 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
-        <SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
-      </Kb.Box2>
-      {footer ? <Kb.ModalFooter>{footer}</Kb.ModalFooter> : null}
-    </>
+    <Kb.ModalScreen scroll={false} padding="none" footer={footer}>
+      <SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
+    </Kb.ModalScreen>
   )
 }
 

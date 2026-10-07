@@ -164,7 +164,7 @@ export const settingsDesktopTabRoutes = defineRouteMap({
 
 const sharedNewModalRoutes = {
   [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
-    getOptions: isMobile ? undefined : {title: 'Do you know your password?'},
+    getOptions: {title: 'Do you know your password?'},
   }),
   [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
     getOptions: {title: 'Password'},
@@ -245,7 +245,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: isMobile ? {headerShown: true, title: 'Feedback'} : {title: 'Send feedback'},
   },
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined')), {
-    getOptions: Kb.doneModalOptions(''),
+    getOptions: {...Kb.doneModalOptions('Contacts on Keybase'), modalSize: 'medium'},
   }),
   settingsPushPrompt: isMobile
     ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
@@ -256,7 +256,9 @@ export const newModalRoutes = defineRouteMap({
                 unstable_headerRightItems: () => {
                   const theme = Kb.Styles.getTheme()
                   return [
+                    // no glass pill: a white pill hid the white label on the blue bar
                     Kb.nativeTextHeaderItem('Skip', onPushPromptSkip, {
+                      hidesSharedBackground: true,
                       labelStyle: {...Kb.nativeHeaderItemLabelStyle(theme), color: theme.white},
                     }),
                   ]
