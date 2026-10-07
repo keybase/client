@@ -19,14 +19,9 @@ jest.mock('@/common-adapters', () => {
     Box2: passThrough,
     Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
       React.createElement('button', {onClick, type: 'button'}, label),
-    ButtonBar: passThrough,
-    ModalFooter: passThrough,
-    ScrollView: passThrough,
-    Styles: {
-      createStyleHook: () => () => ({}),
-      globalStyles: {flexOne: {}},
-      isTablet: false,
-    },
+    ModalScreen: ({banner, children, footer}: {banner?: React.ReactNode; children?: React.ReactNode; footer?: React.ReactNode}) =>
+      React.createElement('div', null, banner, children, footer),
+    Styles: {isTablet: false},
     Text: passThrough,
   }
 })

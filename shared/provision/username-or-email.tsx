@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
-import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -40,9 +39,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const error = inlineError && !inlineSignUpLink ? inlineError : ''
   const resetBannerUser = op.fromReset ? op.username : undefined
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const onBack = useSafeSubmit(C.Router2.navigateUp, hasError)
   const onForgotUsername = () => C.Router2.navigateAppend({name: 'forgotUsername', params: {}})
   const requestAutoInvite = useRequestAutoInvite()
   const [username, setUsername] = React.useState(op.username ?? '')
@@ -60,10 +57,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       waitingOverlay={true}
-      onRightAction={onGoToSignup}
-      rightActionLabel="Create account"
       banners={
         <>
           {resetBannerUser ? (
@@ -101,8 +95,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
           waiting: waiting,
         },
       ]}
-      onBack={onBack}
-      title="Log in"
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView

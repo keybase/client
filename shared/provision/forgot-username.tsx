@@ -25,7 +25,6 @@ const ForgotUsername = () => {
   const recoverUsernameWithEmail = C.useRPC(T.RPCGen.accountRecoverUsernameWithEmailRpcPromise)
   const recoverUsernameWithPhone = C.useRPC(T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise)
 
-  const onBack = C.Router2.navigateUp
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvisionForgotUsername)
   const [forgotUsernameResult, setForgotUsernameResult] = React.useState('')
 
@@ -57,7 +56,6 @@ const ForgotUsername = () => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       banners={
         <>
           {errorBanner(error)}
@@ -77,8 +75,6 @@ const ForgotUsername = () => {
           waiting,
         },
       ]}
-      onBack={onBack}
-      title="Recover username"
     >
       <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" style={styles.wrapper}>
         <Kb.RadioButton

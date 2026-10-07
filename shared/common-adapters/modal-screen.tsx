@@ -11,17 +11,21 @@ export type ModalScreenProps = {
   banner?: React.ReactNode
   // laid out in the shared ModalFooter
   footer?: React.ReactNode
+  // false over a colored body, which already sets the footer apart
+  footerDivider?: boolean
   // false: the body is a flex-1 box and the screen's own list scrolls. Needs a medium or large box:
   // a small box sizes to its content, so a list or BoxGrow body collapses to nothing.
   scroll?: boolean
   padding?: 'standard' | 'none'
   centered?: boolean
+  // the whole screen, behind banner, body and footer: a colored background
+  style?: Styles.StylesCrossPlatform
   testID?: string
 }
 
 // The body of a modal route: banner, body, footer, filling the modal box (desktop) or the sheet (phone).
 const ModalScreen = (props: ModalScreenProps) => {
-  const {children, banner, footer, scroll = true, padding = 'standard', centered, testID} = props
+  const {children, banner, footer, footerDivider, scroll = true, padding = 'standard', centered, style, testID} = props
   const styles = useStyles()
   const box = useModalBox()
   const boxSize = box?.size
@@ -40,7 +44,7 @@ const ModalScreen = (props: ModalScreenProps) => {
   ])
 
   return (
-    <Box2 direction="vertical" fullWidth={true} style={styles.screen} testID={testID}>
+    <Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.screen, style])} testID={testID}>
       {banner}
       {scroll ? (
         <ScrollView
@@ -55,7 +59,7 @@ const ModalScreen = (props: ModalScreenProps) => {
           {children}
         </Box2>
       )}
-      {footer ? <ModalFooter>{footer}</ModalFooter> : null}
+      {footer ? <ModalFooter divider={footerDivider}>{footer}</ModalFooter> : null}
     </Box2>
   )
 }

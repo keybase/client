@@ -4,9 +4,6 @@ import * as C from '@/constants'
 
 const EnterPaperKey = () => {
   const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
   const checkPaperKeyRPC = C.useRPC(T.RPCGen.loginPaperKeySubmitRpcPromise)
   const onSubmit = (paperKey: string) => {
     checkPaperKeyRPC(
@@ -17,6 +14,6 @@ const EnterPaperKey = () => {
     navigateUp()
     navigateUp()
   }
-  return <PaperKey onBack={onBack} onSubmit={onSubmit} error="" hint="" waiting={false} />
+  return <PaperKey onSubmit={onSubmit} error="" hint="" waiting={false} />
 }
 export default EnterPaperKey

@@ -86,7 +86,7 @@ const ConnectedEnterDevicename = (p: Props) => {
   const inviteCode = p.route.params.inviteCode ?? ''
   const username = p.route.params.username ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.Router2
+  const {navigateAppend} = C.Router2
   const [error, setError] = React.useState('')
   const onContinue = (devicename: string) => {
     setError('')
@@ -96,7 +96,7 @@ const ConnectedEnterDevicename = (p: Props) => {
     )
   }
 
-  return <EnterDevicename error={error} initialDevicename={initialDevicename} onBack={navigateUp} onContinue={onContinue} waiting={waiting} />
+  return <EnterDevicename error={error} initialDevicename={initialDevicename} onContinue={onContinue} waiting={waiting} />
 }
 
 export default ConnectedEnterDevicename
@@ -104,7 +104,6 @@ export default ConnectedEnterDevicename
 type EnterDevicenameProps = {
   error: string
   initialDevicename?: string
-  onBack: () => void
   onContinue: (devicename: string) => void
   waiting: boolean
 }
@@ -133,7 +132,7 @@ export const isDeviceNameDisabled = (cleanDeviceName: string) => {
 
 const EnterDevicename = (props: EnterDevicenameProps) => {
   const styles = useStyles()
-  const {error, initialDevicename, onBack, onContinue: _onContinue, waiting} = props
+  const {error, initialDevicename, onContinue: _onContinue, waiting} = props
 
   const [deviceName, setDeviceName] = React.useState(() => makeCleanDeviceName(initialDevicename || ''))
   const [readyToShowError, setReadyToShowError] = React.useState(false)
@@ -154,9 +153,6 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     <SignupScreen
       banners={errorBanner(error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting}]}
-      hideDesktopHeader={!isMobile}
-      onBack={onBack}
-      title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"
