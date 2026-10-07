@@ -18,6 +18,7 @@ import {
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
 import {
+  setAccountLoggedIn,
   setAccountSwitching,
   startNewAccountGeneration,
 } from "@/engine/account-generation";
@@ -513,6 +514,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     },
     resetState: (isDebug) => {
       if (isDebug) return;
+      setAccountLoggedIn(false);
       set((s) => ({
         ...initialStore,
         chatBuiltinCommands: s.chatBuiltinCommands,
@@ -609,6 +611,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         startNewAccountGeneration();
         disposeDialogsForLogout();
       }
+      setAccountLoggedIn(loggedIn);
       set((s) => {
         s.loggedIn = loggedIn;
       });

@@ -62,9 +62,10 @@ export const makeWaitingTracker = (
         return false
       }
       settled = true
-      // Only a service error or a lost link: a quiet cancel is no failure, and a local failure is
-      // the caller's to report
-      const recorded = errorKind(error)?.type === 'service' || isCancelled(error, 'disconnect') ? error : undefined
+      // Only a service error (login-required is one) or a lost link: a quiet cancel is no failure, and
+      // a local failure is the caller's to report
+      const type = errorKind(error)?.type
+      const recorded = type === 'service' || type === 'loginRequired' || isCancelled(error, 'disconnect') ? error : undefined
       if (waiting) {
         show(false, recorded)
       } else if (recorded && key) {

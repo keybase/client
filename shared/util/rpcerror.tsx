@@ -7,6 +7,8 @@ export type CancelReason = 'caller' | 'accountChange' | 'disconnect' | 'service'
 // error the service sent reads by its code. 'local': the call never left the client (a failed write).
 export type RPCErrorKind =
   | {readonly type: 'cancelled'; readonly reason: CancelReason}
+  // The service has no session for the call: logged out, or a session still being set up after a login
+  | {readonly type: 'loginRequired'}
   | {readonly type: 'service'}
   | {readonly type: 'local'}
 
@@ -17,6 +19,9 @@ const cancelCodes: ReadonlyArray<number> = [StatusCode.sccanceled, StatusCode.sc
 export const classifyCode = (code: number): RPCErrorKind => {
   if (cancelCodes.includes(code)) {
     return {reason: 'service', type: 'cancelled'}
+  }
+  if (code === StatusCode.scloginrequired) {
+    return {type: 'loginRequired'}
   }
   return {type: 'service'}
 }

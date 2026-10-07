@@ -6,10 +6,15 @@ import {
 import {mustAnswerMethods} from '@/constants/rpc'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
-import {convertToError, RPCError} from '@/util/errors'
+import {convertToError, isLoginRequired, RPCError} from '@/util/errors'
 import {makeDisconnectError} from './rpc-transport'
 import {makeWaitingTracker, type WaitingTracker} from './waiting-tracker'
-import {getAccountGeneration, holdDuringSwitch, survivesAccountChange} from './account-generation'
+import {
+  getAccountGeneration,
+  holdDuringSwitch,
+  mayRetryLoginRequired,
+  survivesAccountChange,
+} from './account-generation'
 import logger from '@/logger'
 import {
   inputCanceledError,
@@ -34,6 +39,9 @@ type HeldResponse = {
 
 // A custom handler the listener runs later says so, and calls what this returns once it has run
 export type DeferRun = () => () => void
+
+// Before each retry of a call the service failed as login-required: two retries, three attempts
+const loginRequiredRetryDelaysMs: ReadonlyArray<number> = [250, 750]
 
 const accountChangedError = () =>
   new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
@@ -62,6 +70,9 @@ class Session {
   _invokeOutstanding = false
   // Set while its RPC waits for an account switch to end, before it is sent; drops it from the wait
   _dropHeld: (() => void) | undefined
+  // Retries made after the service failed the RPC as login-required, and the wait before the next
+  _loginRetries = 0
+  _loginRetryTimer: ReturnType<typeof setTimeout> | undefined
   // Cancelled by the client while its RPC was outstanding: the caller has its rejection, and every
   // call the service still makes on this session is refused here until the reply or a lost link
   _refusing = false
@@ -179,9 +190,11 @@ class Session {
       }
       return
     }
-    // Never sent, so the service has nothing to forget
+    // Never sent, or waiting to be sent again: the service has nothing to forget
     this._dropHeld?.()
     this._dropHeld = undefined
+    clearTimeout(this._loginRetryTimer)
+    this._loginRetryTimer = undefined
     // A lost link ends the call as the transport's failed reply would, whichever comes first, so the
     // caller and the key agree. A client cancel is the user's own and records nothing.
     const lostLink =
@@ -229,6 +242,7 @@ class Session {
       return
     }
     this._ended = true
+    clearTimeout(this._loginRetryTimer)
     // Every path that ends a started session settles its RPC first
     if (this._tracker?.settle() && __DEV__) {
       logger.warn(`Session: ${this._startMethod ?? 'unknown'} ended without settling its waiting`)
@@ -270,6 +284,10 @@ class Session {
     // Waiting from here, also while the call is held for an account switch
     const tracker = makeWaitingTracker(this._waitingKey, this._dispatchWaiting, w => this._logWaiting(w))
     this._tracker = tracker
+    const rejectAccountChanged = () => {
+      tracker.settle()
+      wrappedCallback(accountChangedError())
+    }
     const send = () => {
       this._invokeOutstanding = true
       this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
@@ -280,8 +298,23 @@ class Session {
           return
         }
         if (this._belongsToPreviousAccount()) {
-          tracker.settle()
-          wrappedCallback(accountChangedError())
+          rejectAccountChanged()
+          return
+        }
+        const delay = this._loginRetryDelay(err)
+        if (delay !== undefined) {
+          this._loginRetries++
+          if (__DEV__) {
+            logger.info('[engine-retry]', method, `attempt ${this._loginRetries + 1} in ${delay}ms`)
+          }
+          this._loginRetryTimer = setTimeout(() => {
+            this._loginRetryTimer = undefined
+            if (this._belongsToPreviousAccount()) {
+              rejectAccountChanged()
+            } else {
+              dispatch()
+            }
+          }, delay)
           return
         }
         // Only the service's errors belong on the key, not a local failure like a queue overflow
@@ -289,18 +322,37 @@ class Session {
         wrappedCallback(err as RPCError | undefined, data)
       })
     }
-    this._dropHeld = holdDuringSwitch(method, accountChanged => {
-      this._dropHeld = undefined
-      if (accountChanged) {
-        tracker.settle()
-        wrappedCallback(accountChangedError())
-      } else {
+    const dispatch = () => {
+      this._dropHeld = holdDuringSwitch(method, accountChanged => {
+        this._dropHeld = undefined
+        if (accountChanged) {
+          rejectAccountChanged()
+        } else {
+          send()
+        }
+      })
+      if (!this._dropHeld) {
         send()
       }
-    })
-    if (!this._dropHeld) {
-      send()
     }
+    dispatch()
+  }
+
+  // How long to wait before making a plain call the service failed as login-required again, keeping
+  // its waiting key on; undefined when it is not made again. Never a listener's call, which may
+  // already have prompted the user.
+  _loginRetryDelay(error: unknown) {
+    const delay = loginRequiredRetryDelaysMs[this._loginRetries]
+    const plain =
+      this._globalFallthrough === undefined &&
+      Object.keys(this._incomingCallMap).length === 0 &&
+      Object.keys(this._customResponseIncomingCallMap).length === 0
+    return delay !== undefined &&
+      plain &&
+      isLoginRequired(error) &&
+      mayRetryLoginRequired(this._startMethod ?? '')
+      ? delay
+      : undefined
   }
 
   // We have an incoming call tied to a sessionID, called only by engine

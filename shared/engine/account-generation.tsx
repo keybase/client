@@ -4,7 +4,6 @@ import type {MethodKey} from './types'
 
 // A call made during an account switch, waiting for it to end
 type Held = {
-  generation: number
   method: MethodKey
   // Runs once: with true if the account changed while the call was held, so it must not go out
   resume: (accountChanged: boolean) => void
@@ -17,6 +16,7 @@ type Held = {
 // service sends on it are refused (see Session) instead of landing in the next account's stores.
 let accountGeneration = 0
 let switching = false
+let loggedIn = false
 // Oldest first
 const held: Array<Held> = []
 const warnAfterMs = 10_000
@@ -42,8 +42,8 @@ export const getAccountGeneration = () => accountGeneration
 // generation's. A call held for the old account will never go out.
 export const startNewAccountGeneration = () => {
   accountGeneration++
-  for (const h of held.filter(h => h.generation !== accountGeneration)) {
-    unhold(h)
+  for (const h of held.splice(0)) {
+    clearTimeout(h.warn)
     devLog('reject', h.method, 'the account changed while it was held')
     h.resume(true)
   }
@@ -70,6 +70,18 @@ export const setAccountSwitching = (on: boolean) => {
   }
 }
 
+// The config store says whether the app is logged in
+export const setAccountLoggedIn = (on: boolean) => {
+  loggedIn = on
+}
+
+// A call of the current account the service failed as login-required may be made again only while
+// the app is logged in and not switching: right after a login the service fails calls whose session it
+// is still setting up, and a retry then gets its answer. A call that outlives the account is not tied
+// to its session.
+export const mayRetryLoginRequired = (method: MethodKey) =>
+  loggedIn && !switching && !survivesAccountChange(method)
+
 // Holds a call made while the account is switching until the switch ends, unless it survives an
 // account change: it would reach whichever account the service has at that instant. Returns
 // undefined when the call goes out now, else a function that drops it without resuming.
@@ -79,7 +91,6 @@ export const holdDuringSwitch = (method: MethodKey, resume: Held['resume']): und
   }
   // No timeout: the switch always ends, and a call failed here would only be made again
   const h: Held = {
-    generation: accountGeneration,
     method,
     resume,
     since: Date.now(),
