@@ -6,7 +6,9 @@ import {
 import {mustAnswerMethods} from '@/constants/rpc'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
-import {RPCError} from '@/util/errors'
+import {convertToError, RPCError} from '@/util/errors'
+import {makeDisconnectError} from './rpc-transport'
+import {makeWaitingTracker, type WaitingTracker} from './waiting-tracker'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import logger from '@/logger'
 import {
@@ -15,17 +17,22 @@ import {
   type ResponseType,
   type EndHandlerType,
   type MethodKey,
+  type WaitingChange,
   type WaitingKey,
 } from './types'
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
 type HeldResponse = {
-  method: MethodKey
   response: ResponseType
-  // What the handler got, which carries its onCancelledByService
-  request?: ResponseType
   settled: boolean
+  // Its handler runs later, and says when it has
+  deferred?: boolean
+  // Set once its handler has run and left it unanswered: the GUI owes the service until it settles
+  release?: () => void
 }
+
+// A custom handler the listener runs later says so, and calls what this returns once it has run
+export type DeferRun = () => () => void
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -36,7 +43,9 @@ class Session {
   // Map of methods => callbacks
   _customResponseIncomingCallMap: CustomResponseIncomingCallMap
   // Let the outside know we're waiting
-  _waitingKey: WaitingKey
+  _waitingKey: WaitingKey | undefined
+  // What the RPC shows on its waiting key; made at start
+  _tracker: WaitingTracker | undefined
   // Tell engine we're done
   _endHandler: EndHandlerType | undefined
   // Responses handed to handlers and not yet settled (often we get cancel after we've replied)
@@ -60,7 +69,7 @@ class Session {
 
   // Allow us to make calls
   _invoke: InvokeType
-  _dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
+  _dispatchWaiting: (change: WaitingChange) => void
 
   constructor(p: {
     sessionID: SessionID
@@ -68,7 +77,7 @@ class Session {
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: WaitingKey
     invoke: InvokeType
-    dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
+    dispatchWaiting: (change: WaitingChange) => void
     endHandler: EndHandlerType
     dangling?: boolean
     globalFallthrough?: ReadonlyArray<string>
@@ -76,7 +85,7 @@ class Session {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
     this._customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
-    this._waitingKey = p.waitingKey || ''
+    this._waitingKey = p.waitingKey
     this._invoke = p.invoke
     this._dispatchWaiting = p.dispatchWaiting
     this._endHandler = p.endHandler
@@ -103,27 +112,20 @@ class Session {
     )
   }
 
-  // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
-  // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(method: MethodKey, seqid?: number) {
-    return (waiting: boolean, err?: RPCError) => {
-      if (printRPC) {
-        rpcLog({
-          extra: {
-            id: this.getId(),
-            seqid,
-            this: this,
-            waiting,
-          },
-          method,
-          reason: `[${waiting ? '+' : '-'}waiting]`,
-          type: 'engineInternal',
-        })
-      }
-      if (this._waitingKey) {
-        this._dispatchWaiting(this._waitingKey, waiting, err)
-      }
+  _logWaiting(waiting: boolean) {
+    if (printRPC) {
+      rpcLog({
+        extra: {id: this.getId(), this: this, waiting},
+        method: this._startMethod || 'unknown',
+        reason: `[${waiting ? '+' : '-'}waiting]`,
+        type: 'engineInternal',
+      })
     }
+  }
+
+  // Server work the flow knows goes on while it holds a prompt; settling the RPC ends it too
+  holdServerWork(): () => void {
+    return this._tracker?.holdServerWork() ?? (() => {})
   }
 
   // Client-side cancel. The link is alive, so held prompts are refused and the service stops waiting.
@@ -148,20 +150,14 @@ class Session {
   // DisplayAndPromptSecret once the other device finished, then calls ProvisioneeSuccess).
   cancelByService(seqid: number) {
     for (const held of [...this._held]) {
-      if (held.response.seqid === seqid && this._settle(held)) {
-        // Like an answer, the service is working on the RPC again
-        this._makeWaitingHandler(held.method, seqid)(true)
-        try {
-          held.request?.onCancelledByService?.()
-        } catch (e) {
-          logger.error(`Session: the service-cancel handler for ${held.method} threw`, e)
-        }
+      // Like an answer, settling it has the service working on the RPC again
+      if (held.response.seqid === seqid) {
+        this._settle(held)
       }
     }
   }
 
   _cancel(heldPrompts: 'refuse' | 'forget') {
-    const promptWasPending = this._held.size > 0
     if (this._refusing) {
       // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
       if (heldPrompts === 'forget') {
@@ -169,18 +165,19 @@ class Session {
       }
       return
     }
+    // A lost link ends the call as the transport's failed reply would, whichever comes first, so the
+    // caller and the key agree. A client cancel is the user's own and records nothing.
+    const lostLink =
+      heldPrompts === 'forget' ? (convertToError(makeDisconnectError(), this._startMethod) as RPCError) : undefined
+    // Before the held prompts, whose releases would otherwise show it waiting on the service again
+    this._tracker?.settle(lostLink)
     for (const held of [...this._held]) {
       this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
     if (this._startCallback) {
-      // No server response is coming, so release the waiting count ourselves — but only when the
-      // server owes us one; while a prompt is pending on the GUI the count was already released.
-      if (this._waitingKey && !promptWasPending) {
-        this._makeWaitingHandler(this._startMethod || 'unknown')(false)
-      }
       const callback = this._startCallback
       this._startCallback = undefined
-      callback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
+      callback(lostLink ?? new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
     // The service may still call us on this session before it replies, and a late prompt that
@@ -199,6 +196,7 @@ class Session {
     }
     held.settled = true
     this._held.delete(held)
+    held.release?.()
     write?.()
     return true
   }
@@ -208,6 +206,10 @@ class Session {
       return
     }
     this._ended = true
+    // Every path that ends a started session settles its RPC first
+    if (this._tracker?.settle() && __DEV__) {
+      logger.warn(`Session: ${this._startMethod ?? 'unknown'} ended without settling its waiting`)
+    }
     // However the session ended, the service no longer reads answers to its calls on it
     for (const held of [...this._held]) {
       this._settle(held)
@@ -242,8 +244,8 @@ class Session {
       })
     }
 
-    const updateWaiting = this._makeWaitingHandler(method)
-    updateWaiting(true)
+    const tracker = makeWaitingTracker(this._waitingKey, this._dispatchWaiting, w => this._logWaiting(w))
+    this._tracker = tracker
     this._invokeOutstanding = true
     this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
       this._invokeOutstanding = false
@@ -253,11 +255,12 @@ class Session {
         return
       }
       if (this._belongsToPreviousAccount()) {
-        updateWaiting(false)
+        tracker.settle()
         wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
         return
       }
-      updateWaiting(false, err as RPCError | undefined)
+      // Only the service's errors belong on the key, not a local failure like a queue overflow
+      tracker.settle(err instanceof RPCError ? err : undefined)
       wrappedCallback(err as RPCError | undefined, data)
     })
   }
@@ -280,7 +283,7 @@ class Session {
     const plain = (this._incomingCallMap as {[key: string]: undefined | ((param: object) => void)})[method]
     const custom = (
       this._customResponseIncomingCallMap as {
-        [key: string]: undefined | ((param: object, request: ResponseType) => void)
+        [key: string]: undefined | ((param: object, request: ResponseType, deferRun: DeferRun) => void)
       }
     )[method]
 
@@ -322,19 +325,13 @@ class Session {
     }
 
     // A custom call delivered as a notification has nothing to answer
-    const held: HeldResponse = {method, response: response ?? {}, settled: false}
+    const held: HeldResponse = {response: response ?? {}, settled: false}
     this._held.add(held)
 
-    const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
-    updateWaiting(false) // got a call from the server so we're no longer waiting
     const answer = (write: () => void) => {
-      if (!this._settle(held, write)) {
-        if (__DEV__) {
-          logger.warn(`Session: ${method} was answered after it was already settled`)
-        }
-        return
+      if (!this._settle(held, write) && __DEV__) {
+        logger.warn(`Session: ${method} was answered after it was already settled`)
       }
-      updateWaiting(true) // after we respond to the server we're waiting on it again
     }
     const request: ResponseType = {
       error: (...args: Array<unknown>) => answer(() => held.response.error?.(...args)),
@@ -343,15 +340,37 @@ class Session {
         return held.settled
       },
     }
-    held.request = request
+    // The GUI owes the service only once the task its handler ran in is over, unanswered. An answer
+    // in that task (an auto-answer, or a Dialog consumer a few microtasks later, as provision's replay)
+    // never shows waiting off: the engine flushes an "off" at once but throttles the "on" after it.
+    // Once, however often the handler reports it ran: one held prompt is one hold
+    let reported = false
+    const ran = () => {
+      if (reported) {
+        return
+      }
+      reported = true
+      setTimeout(() => {
+        if (!held.settled && !held.release) {
+          held.release = this._tracker?.holdPrompt()
+        }
+      }, 0)
+    }
+    const deferRun: DeferRun = () => {
+      held.deferred = true
+      return ran
+    }
     try {
-      custom(param, request)
+      custom(param, request, deferRun)
     } catch (e) {
       logger.error(`Session: handler for ${method} threw`, e)
       // Refused like any answer, so the session is waiting on the service again
       if (!held.settled) {
         request.error?.(inputCanceledError)
       }
+    }
+    if (!held.deferred) {
+      ran()
     }
     return true
   }

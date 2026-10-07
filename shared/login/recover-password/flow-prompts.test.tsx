@@ -5,9 +5,7 @@ import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
-import {makeListen} from '@/engine/listener'
-import {installCallPort, uninstallCallPort} from '@/engine/call-port'
-import type {WaitingKey} from '@/engine/types'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 
 import {
   answerRecoverPasswordPgp,
@@ -598,79 +596,71 @@ describe('pgp key warning', () => {
 
 // Runs the flow through the real engine listener, so its waiting-key bookkeeping is what the app sees.
 describe('pgp key warning waiting state', () => {
-  type Outgoing = {
-    callback: (error?: RPCError) => void
-    customResponseIncomingCallMap: {[method: string]: (params: unknown, response: unknown) => void}
-  }
-  let outgoing: Array<Outgoing>
+  const recover = 'keybase.1.login.recoverPassphrase'
+  const promptPgp = 'keybase.1.loginUi.promptPassphraseRecovery'
+  let fake: FakeEngine
 
   beforeEach(() => {
-    outgoing = []
     useConfigState.getState().dispatch.setLoggedIn(true)
     nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-    const engine = {
-      call: (p: unknown) => {
-        outgoing.push(p as Outgoing)
-        return outgoing.length
-      },
-      cancelSession: () => {},
-      dispatchWaitingAction: (key: WaitingKey, waiting: boolean, error?: RPCError) =>
-        useWaitingState.getState().dispatch.batch([{error, increment: waiting, key}]),
-    }
-    installCallPort({call: engine.call, cancelOutstandingSessions: () => {}, listen: makeListen(engine)})
+    fake = installFakeEngine()
   })
 
-  afterEach(() => uninstallCallPort())
+  // The engine throttles turning waiting on; flush it before reading the store
+  const waitingCount = () => {
+    fake.engine._throttledDispatchWaitingAction.flush()
+    return useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
+  }
 
-  const waitingCount = () => useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
-
-  const promptOn = async (call: Outgoing) => {
-    const response = {error: jest.fn(), result: jest.fn()}
-    call.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
-      response
-    )
-    // The listener runs handlers on a later tick.
+  // The listener runs handlers on a timer, and a prompt left unanswered becomes the GUI's on the next
+  const afterTimers = async () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0))
-    return response
+    await new Promise<void>(resolve => setTimeout(resolve, 0))
+  }
+
+  const startRun = async () => {
+    const held = fake.hold(recover)
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const sessionID = fake.calls.at(-1)!.params.sessionID as number
+    const push = async () =>
+      fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
+    return {end: () => held.at(-1)!.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'Canceling RPC')), push}
   }
 
   test('a prompt arriving after the run ended registers nothing', async () => {
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = {error: jest.fn(), result: jest.fn()}
-    outgoing[0]!.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
-      response
-    )
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await new Promise<void>(resolve => setTimeout(resolve, 0))
+    const {end, push} = await startRun()
+    const answered = jest.fn()
+    void push().then(answered)
+    end()
+    await afterTimers()
     await flush()
 
     expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toEqual([])
-    expect(response.result).not.toHaveBeenCalled()
+    expect(answered).not.toHaveBeenCalled()
   })
 
   test('answering after the run ended answers nothing and leaves the next attempt free', async () => {
-    startRecoverPassword({username: 'testuser'})
-    await flush()
+    const first = await startRun()
     expect(waitingCount()).toBe(1)
-    const response = await promptOn(outgoing[0]!)
+    const answered = jest.fn()
+    void first.push().then(answered)
+    await afterTimers()
     const id = (nav.pushes().at(-1)?.params as {id: number}).id
     expect(waitingCount()).toBe(0)
 
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+    first.end()
     await flush()
     answerRecoverPasswordPgp(id, true)
+    await flush()
 
     expect(waitingCount()).toBe(0)
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
+    expect(answered).not.toHaveBeenCalled()
 
-    startRecoverPassword({username: 'testuser'})
-    await flush()
+    const second = await startRun()
     expect(waitingCount()).toBe(1)
-    await promptOn(outgoing[1]!)
+    void second.push()
+    await afterTimers()
     expect(waitingCount()).toBe(0)
   })
 })

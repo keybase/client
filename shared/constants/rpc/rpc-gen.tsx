@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // This file is auto-generated. Run `yarn gen:protocol` to regenerate it.
-import {getCallPort} from '@/engine/call-port'
+import {getCallPort, type ListenParams} from '@/engine/call-port'
 import * as Gregor1 from './rpc-gregor-gen'
 export {Gregor1}
 type WaitingKey = string | ReadonlyArray<string>
@@ -1295,7 +1295,7 @@ type ListenerArgs<M extends ListenerMethod> = {
   incomingCallMap: IncomingCallMapType,
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
   waitingKey?: WaitingKey,
-  onSessionCreated?: (cancel: () => void) => void,
+  onSessionCreated?: ListenParams['onSessionCreated'],
   // Prefixes of incoming methods this call leaves to global handling; any other unhandled one is reported
   globalFallthrough?: ReadonlyArray<string>,
 }

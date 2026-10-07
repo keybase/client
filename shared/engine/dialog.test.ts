@@ -35,8 +35,12 @@ const pushPrivate = 'keybase.1.pgpUi.shouldPushPrivate'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 const waitingKey = 'dialog-test'
 
-// The listener hands incoming calls to their handlers on a timer
-const afterTimers = async () => new Promise(resolve => setTimeout(resolve, 0))
+// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
+// becomes the GUI's on the next
+const afterTimers = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 0))
+}
 
 const waitingCount = (fake: FakeEngine) => {
   fake.engine._throttledDispatchWaitingAction.flush()
@@ -451,6 +455,7 @@ test('waiting goes true, false while a prompt is up, and true again after the an
   void fake.push(choose, {devices}, {sessionID})
   const e = await nextEvent(it)
   if (e.kind !== 'prompt') throw new Error('expected a prompt')
+  await afterTimers()
   expect(waitingCount(fake)).toBe(0)
   e.answer('d1' as never)
   expect(waitingCount(fake)).toBe(1)

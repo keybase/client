@@ -2,11 +2,14 @@
 // The contacts store is a no-op on desktop, so load it as mobile.
 import type * as ContactsStore from '../settings-contacts'
 import type * as CurrentUser from '../current-user'
+import type * as Waiting from '@/stores/waiting'
+import type * as Logger from '@/logger'
 import type * as TT from '@/constants/types'
 
 // Jest maps every native-only package (expo-contacts, expo-localization, react-native-kb) to one
 // stub, so this mock stands in for all three.
 const mockGetAllDetails = jest.fn()
+const mockRequestPermissions = jest.fn()
 jest.mock('../../test/mocks/native-module', () => ({
   Contact: {getAllDetails: (...args: Array<unknown>) => mockGetAllDetails(...args)},
   ContactField: {EMAILS: 'emails', FULL_NAME: 'fullName', PHONES: 'phones'},
@@ -14,6 +17,7 @@ jest.mock('../../test/mocks/native-module', () => ({
   addNotificationRequest: async () => Promise.resolve(),
   getLocales: () => [{regionCode: 'US'}],
   getPermissionsAsync: async () => Promise.resolve({status: 'granted'}),
+  requestPermissionsAsync: async (...args: Array<unknown>) => Promise.resolve(mockRequestPermissions(...args)),
   requireNativeModule: () => ({}),
   requireOptionalNativeModule: () => null,
 }))
@@ -21,6 +25,8 @@ jest.mock('../../test/mocks/native-module', () => ({
 const g = globalThis as {isMobile?: boolean}
 let store: typeof ContactsStore
 let currentUser: typeof CurrentUser
+let waiting: typeof Waiting
+let logger: typeof Logger
 let T: typeof TT
 
 beforeEach(() => {
@@ -28,6 +34,10 @@ beforeEach(() => {
   jest.isolateModules(() => {
     store = require('../settings-contacts')
     currentUser = require('../current-user')
+    // The waiting store keeps Maps; the isolated registry has its own immer
+    ;(require('immer') as {enableMapSet: () => void}).enableMapSet()
+    waiting = require('@/stores/waiting')
+    logger = require('@/logger')
     T = require('@/constants/types')
   })
   currentUser.useCurrentUserState
@@ -72,4 +82,23 @@ test('does not upload to the next account when a switch lands while the address 
   await flush()
 
   expect(save).not.toHaveBeenCalled()
+})
+
+test('asking for permission holds the import key until it is answered, even when asking fails', async () => {
+  const importKey = 'settings:importContacts'
+  let answer: (r: {status: string}) => void = () => {}
+  mockRequestPermissions.mockImplementation(async () => new Promise(resolve => (answer = resolve)))
+  store.useSettingsContactsState.getState().dispatch.requestPermissions()
+  await flush()
+  expect(waiting.useWaitingState.getState().counts.get(importKey)).toBe(1)
+  answer({status: 'denied'})
+  await flush()
+  expect(waiting.useWaitingState.getState().counts.get(importKey)).toBeUndefined()
+
+  const logged = jest.spyOn(logger.default, 'error').mockImplementation(() => {})
+  mockRequestPermissions.mockRejectedValue(new Error('no permission api'))
+  store.useSettingsContactsState.getState().dispatch.requestPermissions()
+  await flush()
+  expect(logged).toHaveBeenCalled()
+  expect(waiting.useWaitingState.getState().counts.get(importKey)).toBeUndefined()
 })
