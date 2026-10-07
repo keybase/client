@@ -10,6 +10,8 @@ export type ResponseType = {
   seqid?: number
   // True once answered, by the handler or by the session ending
   readonly settled?: boolean
+  // Set by the listener: runs when the service cancels this call and its RPC goes on
+  onCancelledByService?: () => void
 }
 export type RPCErrorHandler = (e: ErrorType) => void
 export type CommonResponseHandler = {
