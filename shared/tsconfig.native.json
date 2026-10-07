@@ -35,6 +35,7 @@
     "./chat/conversation/info-panel/settings/notifications.test.tsx",
     "./chat/conversation/pinned-message.test.tsx",
     "./common-adapters/markdown/index.test.tsx",
+    "./common-adapters/modal-footer.test.tsx",
     "./common-adapters/modal-header-title.test.tsx",
     "./common-adapters/modal-screen.test.tsx",
     "./common-adapters/banner.test.tsx",
