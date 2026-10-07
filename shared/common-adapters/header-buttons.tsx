@@ -183,21 +183,26 @@ export function HeaderRightButton(hp: {onPress?: () => void}) {
   )
 }
 
-// Modals that are info-only / viewers / live-apply dismiss with a right-side "Done"
+// Phone modals that are info-only / viewers / live-apply dismiss with a right-side "Done"
 // (iOS convention). The modal group injects a left "Cancel" by default, so we also
-// clear the left slot here. The right slot uses a plain headerRight component on every
-// platform (HeaderRightButton dismisses via useNavigation); iOS only treats the left
-// slot specially, so clearing it needs unstable_headerLeftItems there.
-// headerShown is mobile-only: on desktop the root navigator hides React Navigation's
-// header and ModalWrapper draws its own from these options; forcing headerShown there
-// would render both.
-export const doneModalOptions = (title: string): NonNullable<GetOptionsRet> => ({
-  ...(isIOS
+// clear the left slot here. iOS only treats the left slot specially, so clearing it needs
+// unstable_headerLeftItems there. Desktop closes these with the box's X, so it only takes the
+// title: ModalWrapper draws its own header, and forcing headerShown there would render both.
+export const doneModalOptions = (title: string): NonNullable<GetOptionsRet> =>
+  isIOS
     ? {
+        headerBackVisible: false,
+        headerShown: true,
+        title,
         unstable_headerLeftItems: () => [],
         unstable_headerRightItems: () => [nativeTextHeaderItem('Done', navigateUp)],
       }
-    : {headerLeft: () => null, headerRight: () => <HeaderRightButton />}),
-  ...(isMobile ? {headerBackVisible: false, headerShown: true} : {}),
-  title,
-})
+    : isMobile
+      ? {
+          headerBackVisible: false,
+          headerLeft: () => null,
+          headerRight: () => <HeaderRightButton />,
+          headerShown: true,
+          title,
+        }
+      : {title}

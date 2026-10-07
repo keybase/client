@@ -24,6 +24,8 @@ const makeSrcSet = (name: IconType) => {
     .join(', ')
 }
 
+const pictureStyle = {display: 'contents'} as const
+
 const ImageIconDesktop = (props: ImageIconProps) => {
   const {type, style, className, allowLazy = true} = props
   const hasDarkVariant = !!iconMeta[type].nameDark
@@ -44,8 +46,9 @@ const ImageIconDesktop = (props: ImageIconProps) => {
     const darkName = iconMeta[type].nameDark!
     const darkSrcSet = makeSrcSet(darkName)
 
+    // display: contents so the img, not the picture, is the flex item its layout style targets
     return (
-      <picture>
+      <picture style={pictureStyle}>
         <source srcSet={darkSrcSet} media="(prefers-color-scheme: dark)" />
         {img}
       </picture>

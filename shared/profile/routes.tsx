@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {ModalTitle} from '@/teams/common'
 import {defineRouteMap} from '@/constants/types/router'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
@@ -10,12 +10,13 @@ import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const Title = React.lazy(async () => import('./search'))
 
-const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
-  const navigateUp = C.Router2.navigateUp
+// Desktop closes with the X, so its left slot only ever holds Back.
+const EditAvatarHeaderLeft = (p: HeaderBackButtonProps & {wizard?: boolean; showBack?: boolean}) => {
+  const {wizard, showBack, ...rest} = p
   if (wizard || showBack) {
-    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+    return <HeaderLeftButton {...rest} />
   }
-  return <HeaderLeftButton mode="cancel" />
+  return isMobile ? <HeaderLeftButton mode="cancel" /> : null
 }
 
 const EditAvatarHeaderRight = ({
@@ -120,8 +121,8 @@ export const newModalRoutes = defineRouteMap({
                 : [Kb.nativeCancelHeaderItem()],
           }
         : {
-            headerLeft: () => (
-              <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
+            headerLeft: (p: HeaderBackButtonProps) => (
+              <EditAvatarHeaderLeft {...p} wizard={route.params.wizard} showBack={route.params.showBack} />
             ),
           }),
       // Only register a right item when the Skip button actually renders: on iOS 26 a

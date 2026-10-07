@@ -630,12 +630,9 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['teams'],
   },
   teamTab('members', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST),
-  // A member selected, and the bulk actions bar that shows for it. Desktop only: on the phone the
-  // bar renders through a portal outside the team's selection provider and throws
-  // (TeamSelectionProvider missing).
+  // A member selected, and the bulk actions bar that shows for it.
   {
     ...teamTab('members-selected', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_SELECTION_POPUP),
-    platforms: ['desktop'],
     setup: [
       {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
       {kind: 'click', testID: T.TEAMS_MEMBER_CHECK},
@@ -1093,7 +1090,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 // chat/message-menu (the phone opens them with a long press, which setup can't do),
 // chat/thread-search (its phone button is a native header bar item with no testID; the phone's
 // search opens from its route param in chat/thread-search-no-results), chat/reaction-tooltip (a
-// long press on the phone), team/members-selected (its note), and
+// long press on the phone),
 // chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
 // phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
 // pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success
