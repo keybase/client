@@ -22,7 +22,6 @@ const Header = () => (
 )
 
 const DeleteChannel = (props: Props) => {
-  const styles = useStyles()
   const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
 
@@ -94,18 +93,10 @@ const DeleteChannel = (props: Props) => {
       header={<Header />}
       onConfirm={onDelete}
       onCancel={C.Router2.navigateUp}
-      prompt={
-        <Kb.Text type="Header" center={true} style={styles.prompt}>
-          Delete {deleteMsg}?
-        </Kb.Text>
-      }
+      prompt={`Delete ${deleteMsg}?`}
       waitingKey={waitingKey}
     />
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(() => ({
-  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-}))
 
 export default DeleteChannel

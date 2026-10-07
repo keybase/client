@@ -7,94 +7,53 @@ type Props = {
   // on mobile the confirm button always reads "Confirm"
   confirmLabel: string
   icon: React.ReactNode
-  header: React.ReactNode
   onCancel: () => void
   onConfirm: () => void
 }
 
-// destructive-settings warning: icon, header, body, an "I understand" checkbox
-// gating the confirm button
+// destructive-settings warning: icon, body, an "I understand" checkbox gating the confirm button.
+// The route's title asks the question.
 const ConfirmWarning = (props: Props) => {
+  const {body, checkboxLabel, confirmLabel, icon, onCancel, onConfirm} = props
   const styles = useStyles()
   const [enabled, setEnabled] = React.useState(false)
-
-  const content = (
-    <>
-      <Kb.Box2 direction="vertical" style={styles.iconBox}>
-        {props.icon}
-      </Kb.Box2>
-      <Kb.Text center={true} type="Header" style={styles.header}>
-        {props.header}
-      </Kb.Text>
-      <Kb.Text center={true} type="Body" style={styles.body}>
-        {props.body}
-      </Kb.Text>
-      <Kb.Checkbox
-        checked={enabled}
-        onCheck={setEnabled}
-        style={styles.checkbox}
-        label=""
-        labelComponent={
-          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-            {props.checkboxLabel}
-          </Kb.Box2>
-        }
-      />
-    </>
-  )
-
-  // desktop: the body scrolls in the modal and the buttons stay in the footer below it
-  return isMobile ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
-      {content}
-      <Kb.ConfirmButtons
-        onCancel={props.onCancel}
-        onConfirm={props.onConfirm}
-        confirmLabel="Confirm"
-        confirmType="Danger"
-        confirmDisabled={!enabled}
-      />
-    </Kb.Box2>
-  ) : (
-    <>
-      <Kb.ScrollView style={styles.scroll}>
-        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
-          {content}
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
+  return (
+    <Kb.ModalScreen
+      centered={true}
+      footer={
         <Kb.ConfirmButtons
-          onCancel={props.onCancel}
-          onConfirm={props.onConfirm}
-          confirmLabel={props.confirmLabel}
+          onCancel={onCancel}
+          onConfirm={onConfirm}
+          confirmLabel={isMobile ? 'Confirm' : confirmLabel}
           confirmType="Danger"
           confirmDisabled={!enabled}
           split={true}
         />
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="small" style={styles.container}>
+        {icon}
+        <Kb.Text center={true} type="Body">
+          {body}
+        </Kb.Text>
+        <Kb.Checkbox
+          checked={enabled}
+          onCheck={setEnabled}
+          label=""
+          labelComponent={
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
+              {checkboxLabel}
+            </Kb.Box2>
+          }
+        />
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: {marginBottom: Kb.Styles.globalMargins.small},
-  checkbox: Kb.Styles.platformStyles({
-    isMobile: {
-      marginBottom: Kb.Styles.globalMargins.small,
-    },
-  }),
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.medium),
-    },
-    isMobile: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.large),
-    },
-  }),
-  header: {marginBottom: Kb.Styles.globalMargins.small},
-  iconBox: {marginBottom: 20},
+  container: {paddingTop: Kb.Styles.globalMargins.small},
   label: {flexShrink: 1},
-  scroll: {flexGrow: 1, flexShrink: 1, minHeight: 0},
 }))
 
 export default ConfirmWarning

@@ -270,8 +270,21 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   contactRestricted,
-  openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
-  retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
+  openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning')), {
+    getOptions: ({route}) => ({
+      headerTitle: () => (
+        <Kb.ModalHeaderTitle
+          title={route.params.isOpenTeam ? 'Make team open?' : 'Make team private?'}
+          subtitle={route.params.teamname}
+        />
+      ),
+    }),
+  }),
+  retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning')), {
+    getOptions: ({route}) => ({
+      title: route.params.policy.type === 'explode' ? 'Explode messages?' : 'Auto-delete messages?',
+    }),
+  }),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
     getOptions: {title: 'Add emoji'},
   }),
@@ -358,8 +371,14 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => <ModalTitle teamID={route.params.teamID} title="Create channels" />,
     }),
   }),
-  teamDeleteChannel: C.makeScreen(React.lazy(async () => import('./confirm-modals/delete-channel'))),
-  teamDeleteTeam: C.makeScreen(React.lazy(async () => import('./delete-team'))),
+  teamDeleteChannel: C.makeScreen(React.lazy(async () => import('./confirm-modals/delete-channel')), {
+    getOptions: ({route}) => ({
+      title: (route.params.conversationIDKeys?.length ?? 0) > 1 ? 'Delete channels' : 'Delete channel',
+    }),
+  }),
+  teamDeleteTeam: C.makeScreen(React.lazy(async () => import('./delete-team')), {
+    getOptions: {title: 'Delete team'},
+  }),
   teamEditChannel: C.makeScreen(React.lazy(async () => import('./team/member/edit-channel')), {
     getOptions: ({route}) => ({
       ...Kb.modalBackLeftOptions,
@@ -396,11 +415,16 @@ export const newModalRoutes = defineRouteMap({
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {
     getOptions: {title: 'Create a team'},
   }),
-  teamReallyLeaveTeam: C.makeScreen(React.lazy(async () => import('./confirm-modals/really-leave-team'))),
+  teamReallyLeaveTeam: C.makeScreen(React.lazy(async () => import('./confirm-modals/really-leave-team')), {
+    getOptions: {title: 'Leave team'},
+  }),
   teamReallyRemoveChannelMember: C.makeScreen(
-    React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))
+    React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel')),
+    {getOptions: {title: 'Remove from channel'}}
   ),
-  teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out'))),
+  teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out')), {
+    getOptions: {title: 'Remove member'},
+  }),
   teamRename: C.makeScreen(React.lazy(async () => import('./rename-team')), {
     getOptions: {modalSize: 'medium', title: 'Rename subteam'},
   }),

@@ -42,23 +42,17 @@ export const ContactRestricted = (props: Props) => {
     default:
   }
   return (
-    <>
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        gap="small"
-        gapStart={true}
-        centerChildren={true}
-        fullWidth={true}
-        style={styles.container}
-        noShrink={true}
-      >
+    <Kb.ModalScreen
+      centered={true}
+      footer={<Kb.Button type="Default" label="Okay" onClick={onBack} fullWidth={true} />}
+    >
+      <Kb.Box2 alignItems="center" direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Kb.Icon type="iconfont-warning" sizeType="Huge" color={theme.black_20} />
-        <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
+        <Kb.Text center={true} type="BodyBig">
           {header}
         </Kb.Text>
         {disallowedUsers.length > 0 && (
-          <>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
             {disallowedUsers.map((username, idx) => (
               <Kb.ListItem
                 key={username}
@@ -68,39 +62,18 @@ export const ContactRestricted = (props: Props) => {
                 body={<Kb.Text type="BodySemibold">{username}</Kb.Text>}
               />
             ))}
-          </>
+          </Kb.Box2>
         )}
-        <Kb.Text center={true} style={styles.text} type="BodyBig">
+        <Kb.Text center={true} type="Body">
           {description}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  button: {
-    flex: 1,
-  },
-  buttonBar: {
-    marginBottom: Kb.Styles.globalMargins.medium,
-    marginTop: Kb.Styles.globalMargins.small,
-    minHeight: undefined,
-  },
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
-      flex: 1,
-    },
-  }),
-  text: {
-    margin: Kb.Styles.globalMargins.small,
-  },
+  container: {paddingTop: Kb.Styles.globalMargins.small},
 }))
 
 export default ContactRestricted

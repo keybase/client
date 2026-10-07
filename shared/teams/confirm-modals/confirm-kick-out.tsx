@@ -91,11 +91,7 @@ const ConfirmKickOut = (props: Props) => {
     }
   }, [navigation, waiting, waitingError])
 
-  const prompt = (
-    <Kb.Text center={true} type="Header" style={styles.prompt}>
-      Kick {Teams.stringifyPeople(members)} out of {teamname}?
-    </Kb.Text>
-  )
+  const prompt = `Kick ${Teams.stringifyPeople(members)} out of ${teamname}?`
   const header = (
     <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
@@ -114,7 +110,7 @@ const ConfirmKickOut = (props: Props) => {
       header={header}
       prompt={prompt}
       content={
-        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
           <Kb.Text type="Body" center={true}>
             They will lose access to all the team chats and folders, and they won’t be able to get back unless
             an admin invites them.
@@ -145,7 +141,6 @@ const ConfirmKickOut = (props: Props) => {
 export default ConfirmKickOut
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  container: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   headerIcon: Kb.Styles.platformStyles({
     common: {position: 'relative'},
     isElectron: {top: 1},
@@ -159,5 +154,4 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
   iconContainerMany: {
     right: isMobile ? 0 : 20,
   },
-  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
 }))

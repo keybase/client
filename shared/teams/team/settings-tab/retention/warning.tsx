@@ -27,7 +27,6 @@ const RetentionWarning = (props: Props) => {
           type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
         />
       }
-      header={`${props.exploding ? 'Explode' : 'Auto-delete'} chat messages after ${props.timePeriod}?`}
       body={
         <>
           You are about to set the messages in this {convType} to{' '}

@@ -22,7 +22,6 @@ const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
     <Kb.ConfirmModal
       icon="iconfont-open-browser"
       iconColor={theme.red}
-      prompt={'Open URL?'}
       description={description}
       onCancel={onCancel}
       onConfirm={onConfirm}

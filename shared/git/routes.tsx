@@ -22,7 +22,7 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo')), {
-    getOptions: {title: 'Delete repo?'},
+    getOptions: {title: 'Delete repository'},
   }),
   gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo')), {
     getOptions: ({route}) => ({
