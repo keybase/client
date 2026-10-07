@@ -5,7 +5,7 @@ import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
 import {addMembersToWizard, makeAddMembersWizard, type AddMembersWizard} from './add-members-wizard/state'
 import {ModalTitle} from './common'
-import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import {TeamBuilderScreen} from '../team-building/page'
@@ -124,29 +124,33 @@ const ConfirmHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => {
   return <ModalTitle teamID={wizard.teamID} title={`Inviting ${count} ${noun}`} newTeamWizard={wizard.newTeamWizard} />
 }
 
-const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
-  const newTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
-  if (newTeam) {
+// Android only: desktop closes with the X, iOS uses a native Cancel item
+const ClearModalsCancel = () => (
+  <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>
+    Cancel
+  </Kb.Text>
+)
+
+// desktop: a Back only while a wizard step is under it; leaving the flow is the X
+const ConfirmHeaderLeft = (p: HeaderBackButtonProps & {wizard: AddMembersWizard}) => {
+  const {wizard, ...rest} = p
+  if (wizard.teamID === T.Teams.newTeamWizardTeamID) {
     return (
-      <Kb.Icon
-        type="iconfont-arrow-left"
-        onClick={() => C.Router2.navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard}}, true)}
+      <HeaderLeftButton
+        {...rest}
+        onPress={() => C.Router2.navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard}}, true)}
       />
     )
   }
-  return (
-    <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>
-      Cancel
-    </Kb.Text>
-  )
+  return isMobile ? <ClearModalsCancel /> : null
 }
 
-const AddFromWhereHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
-  const newTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
-  if (newTeam) {
-    return <Kb.Icon type="iconfont-arrow-left" onClick={C.Router2.navigateUp} />
+const AddFromWhereHeaderLeft = (p: HeaderBackButtonProps & {wizard: AddMembersWizard}) => {
+  const {wizard, ...rest} = p
+  if (wizard.teamID === T.Teams.newTeamWizardTeamID) {
+    return <HeaderLeftButton {...rest} />
   }
-  return <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>Cancel</Kb.Text>
+  return isMobile ? <ClearModalsCancel /> : null
 }
 
 const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
@@ -224,16 +228,12 @@ const NewTeamInfoHeaderTitle = ({wizard}: {wizard: NewTeamWizard}) => {
   return <ModalTitle teamID={teamID} title={title} newTeamWizard={wizard} />
 }
 
-const NewTeamInfoHeaderLeft = ({wizard}: {wizard: NewTeamWizard}) => {
-  const isSubteam = wizard.teamType === 'subteam'
-  if (isSubteam) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>
-        Cancel
-      </Kb.Text>
-    )
+const NewTeamInfoHeaderLeft = (p: HeaderBackButtonProps & {wizard: NewTeamWizard}) => {
+  const {wizard, ...rest} = p
+  if (wizard.teamType === 'subteam') {
+    return isMobile ? <ClearModalsCancel /> : null
   }
-  return <Kb.Icon type="iconfont-arrow-left" onClick={C.Router2.navigateUp} />
+  return <HeaderLeftButton {...rest} />
 }
 
 export const newRoutes = defineRouteMap({
@@ -286,7 +286,7 @@ export const newModalRoutes = defineRouteMap({
     }),
   }),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
-    getOptions: {title: 'Add emoji'},
+    getOptions: {modalSize: 'medium', title: 'Add emoji'},
   }),
   teamAddEmojiAlias: makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
     getOptions: {title: 'Add an alias'},
@@ -318,7 +318,7 @@ export const newModalRoutes = defineRouteMap({
                   ]
                 : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
           }
-        : {headerLeft: () => <ConfirmHeaderLeft wizard={route.params.wizard} />}),
+        : {headerLeft: (p: HeaderBackButtonProps) => <ConfirmHeaderLeft {...p} wizard={route.params.wizard} />}),
       headerTitle: () => <ConfirmHeaderTitle wizard={route.params.wizard} />,
       modalSize: 'medium',
     }),
@@ -348,7 +348,7 @@ export const newModalRoutes = defineRouteMap({
                 ? [Kb.nativeBackHeaderItem(C.Router2.navigateUp)]
                 : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
           }
-        : {headerLeft: () => <AddFromWhereHeaderLeft wizard={route.params.wizard} />}),
+        : {headerLeft: (p: HeaderBackButtonProps) => <AddFromWhereHeaderLeft {...p} wizard={route.params.wizard} />}),
       // Only register a right item when Skip actually renders: on iOS 26 a custom header
       // view that renders nothing still draws an empty glass pill.
       ...(route.params.wizard.teamID === T.Teams.newTeamWizardTeamID
@@ -397,10 +397,16 @@ export const newModalRoutes = defineRouteMap({
     }),
   }),
   teamInviteByContact: C.makeScreen(React.lazy(async () => import('./invite-by-contact/team-invite-by-contacts')), {
-    getOptions: {title: 'Invite contacts'},
+    getOptions: {modalSize: 'medium', title: 'Invite contacts'},
   }),
-  teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
-  teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
+  teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email')), {
+    getOptions: ({route}) => ({
+      headerTitle: () => <ModalTitle teamID={route.params.teamID} title="Invite by email" />,
+    }),
+  }),
+  teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite')), {
+    getOptions: {title: 'Join team'},
+  }),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
     getOptions: ({route}) => ({
       ...(isIOS
@@ -426,11 +432,12 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {title: 'Remove member'},
   }),
   teamRename: C.makeScreen(React.lazy(async () => import('./rename-team')), {
-    getOptions: {modalSize: 'medium', title: 'Rename subteam'},
+    getOptions: {title: 'Rename subteam'},
   }),
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose')), {
     getOptions: ({route}) => ({
       headerTitle: () => <ModalTitle teamID={T.Teams.noTeamID} title="New team" newTeamWizard={route.params.wizard} />,
+      modalSize: 'medium',
     }),
   }),
   teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info')), {
@@ -442,8 +449,9 @@ export const newModalRoutes = defineRouteMap({
                 ? [Kb.nativeCancelHeaderItem(C.Router2.clearModals)]
                 : [Kb.nativeBackHeaderItem(C.Router2.navigateUp)],
           }
-        : {headerLeft: () => <NewTeamInfoHeaderLeft wizard={route.params.wizard} />}),
+        : {headerLeft: (p: HeaderBackButtonProps) => <NewTeamInfoHeaderLeft {...p} wizard={route.params.wizard} />}),
       headerTitle: () => <NewTeamInfoHeaderTitle wizard={route.params.wizard} />,
+      modalSize: 'medium',
     }),
   }),
   teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team')), {
@@ -452,6 +460,7 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => (
         <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Make it a big team?" newTeamWizard={route.params.wizard} />
       ),
+      modalSize: 'medium',
     }),
   }),
   teamWizard5Channels: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-channels')), {
@@ -460,6 +469,7 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => (
         <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create channels" newTeamWizard={route.params.wizard} />
       ),
+      modalSize: 'medium',
     }),
   }),
   teamWizard6Subteams: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-subteams')), {
@@ -468,6 +478,7 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => (
         <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create subteams" newTeamWizard={route.params.wizard} />
       ),
+      modalSize: 'medium',
     }),
   }),
   teamWizardSubteamMembers: C.makeScreen(React.lazy(async () => import('./new-team/wizard/add-subteam-members')), {
@@ -476,6 +487,7 @@ export const newModalRoutes = defineRouteMap({
       // iOS: the screen drives unstable_headerRightItems via useModalHeaderAction
       ...(isIOS ? {} : {headerRight: () => <SubteamMembersHeaderRight />}),
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" newTeamWizard={route.params.wizard} />,
+      modalSize: 'medium',
     }),
   }),
   teamsTeamBuilder: {

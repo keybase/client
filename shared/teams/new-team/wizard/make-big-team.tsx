@@ -9,7 +9,6 @@ type Props = {
 }
 
 const MakeBigTeam = ({wizard: initialWizard}: Props) => {
-  const styles = useStyles()
   const navigation = useNavigation('teamWizard4TeamSize')
   const navigateAppend = C.Router2.navigateAppend
   const onSubmit = (isBig: boolean) => {
@@ -26,13 +25,8 @@ const MakeBigTeam = ({wizard: initialWizard}: Props) => {
   }
 
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={styles.body}
-        gap={isMobile ? 'xsmall' : 'tiny'}
-      >
+    <Kb.ModalScreen>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'xsmall' : 'tiny'}>
         <CardChoice
           icon="icon-teams-size-big-64"
           title="Yes, make it a big team"
@@ -46,18 +40,8 @@ const MakeBigTeam = ({wizard: initialWizard}: Props) => {
           onClick={() => onSubmit(false)}
         />
       </Kb.Box2>
-    </>
+    </Kb.ModalScreen>
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-}))
 
 export default MakeBigTeam

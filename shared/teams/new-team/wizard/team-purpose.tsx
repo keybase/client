@@ -10,7 +10,6 @@ type Props = {
 }
 
 const TeamPurpose = ({wizard: wizardParam}: Props) => {
-  const styles = useStyles()
   const navigation = useNavigation('teamWizard1TeamPurpose')
   const navigateAppend = C.Router2.navigateAppend
   const wizard = wizardParam ?? makeNewTeamWizard()
@@ -21,13 +20,8 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
   }
 
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={styles.body}
-        gap={isMobile ? 'xsmall' : 'tiny'}
-      >
+    <Kb.ModalScreen>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'xsmall' : 'tiny'}>
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
         <CardChoice
           icon="icon-teams-type-squad-64"
@@ -54,18 +48,8 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
           onClick={() => onSubmit('other')}
         />
       </Kb.Box2>
-    </>
+    </Kb.ModalScreen>
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-}))
 
 export default TeamPurpose

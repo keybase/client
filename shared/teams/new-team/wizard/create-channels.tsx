@@ -49,16 +49,16 @@ export const CreateChannelsModal = (props: Props) => {
   )
 
   return (
-    <>
-      {props.banners}
-      <WizardBanner icon="icon-illustration-teams-channels-460-96" />
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        flex={1}
-        style={styles.body}
-        gap={isMobile ? 'xsmall' : 'tiny'}
-      >
+    <Kb.ModalScreen
+      banner={
+        <>
+          {props.banners}
+          <WizardBanner icon="icon-illustration-teams-channels-460-96" />
+        </>
+      }
+      footer={submitButton}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'xsmall' : 'tiny'}>
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
         {channels.map((value, idx) => (
@@ -77,8 +77,7 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.ModalFooter>{submitButton}</Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
@@ -133,9 +132,6 @@ const ChannelInput = (props: ChannelInputProps) => {
 const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
-      body: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      },
       input: wizardInputStyle,
       inputGeneral: {...wizardInputStyle, opacity: 0.4},
       noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},

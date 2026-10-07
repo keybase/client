@@ -191,9 +191,9 @@ const AddEmojiModal = (props: Props) => {
   return !hasEmojis ? (
     <Modal
       bannerImage="icon-illustration-emoji-add-460-96"
-      desktopHeight={537}
       footerButtonLabel={isMobile ? 'Choose Images' : undefined}
       footerButtonOnClick={isMobile ? pick : undefined}
+      scroll={false}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -201,10 +201,10 @@ const AddEmojiModal = (props: Props) => {
     <Modal
       bannerError={bannerError}
       bannerImage="icon-illustration-emoji-add-460-96"
-      desktopHeight={537}
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
+      scroll={false}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>

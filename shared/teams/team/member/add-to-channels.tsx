@@ -223,17 +223,15 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   const desktopFooter =
     !isMobile && mode !== 'self' ? (
-      <Kb.ModalFooter>
-        <Kb.ConfirmButtons
-          split={true}
-          waiting={waiting}
-          onCancel={onCancel}
-          onConfirm={onFinish}
-          confirmLabel={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
-          confirmDisabled={!numSelected}
-        />
-      </Kb.ModalFooter>
-    ) : null
+      <Kb.ConfirmButtons
+        split={true}
+        waiting={waiting}
+        onCancel={onCancel}
+        onConfirm={onFinish}
+        confirmLabel={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
+        confirmDisabled={!numSelected}
+      />
+    ) : undefined
 
   Kb.useModalHeaderAction({
     enabled: numSelected > 0,
@@ -245,36 +243,37 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
 
   return (
     <Common.ActivityLevelsProvider>
-      {loadingChannels && !channelMetas.size ? (
-        <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne} centerChildren={true}>
-          <Kb.ProgressIndicator type="Large" />
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
-            <Kb.SearchFilter
-              placeholderText={`Search ${channelMetasAll.length} ${pluralize(
-                'channel',
-                channelMetasAll.length
-              )}`}
-              icon="iconfont-search"
-              onChange={setFilter}
-              size="full-width"
-              hotkey="f"
-              onFocus={() => {
-                setFiltering(true)
-              }}
-              onBlur={() => {
-                setFiltering(false)
-              }}
-            />
+      <Kb.ModalScreen scroll={false} padding="none" footer={desktopFooter}>
+        {loadingChannels && !channelMetas.size ? (
+          <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne} centerChildren={true}>
+            <Kb.ProgressIndicator type="Large" />
           </Kb.Box2>
-          <Kb.BoxGrow2>
-            <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
-          </Kb.BoxGrow2>
-        </Kb.Box2>
-      )}
-      {desktopFooter}
+        ) : (
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
+              <Kb.SearchFilter
+                placeholderText={`Search ${channelMetasAll.length} ${pluralize(
+                  'channel',
+                  channelMetasAll.length
+                )}`}
+                icon="iconfont-search"
+                onChange={setFilter}
+                size="full-width"
+                hotkey="f"
+                onFocus={() => {
+                  setFiltering(true)
+                }}
+                onBlur={() => {
+                  setFiltering(false)
+                }}
+              />
+            </Kb.Box2>
+            <Kb.BoxGrow2>
+              <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
+            </Kb.BoxGrow2>
+          </Kb.Box2>
+        )}
+      </Kb.ModalScreen>
     </Common.ActivityLevelsProvider>
   )
 }

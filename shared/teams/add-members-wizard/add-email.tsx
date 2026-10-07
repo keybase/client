@@ -41,14 +41,13 @@ const AddEmail = (props: Props) => {
   }
 
   return (
-    <>
-      <Kb.ErrorBanner error={error} />
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={styles.body}
-        gap={isMobile ? 'tiny' : 'xsmall'}
-      >
+    <Kb.ModalScreen
+      banner={<Kb.ErrorBanner error={error} />}
+      footer={
+        <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} waiting={waiting} />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'tiny' : 'xsmall'}>
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" alignItems="flex-start">
           <Kb.Input3
@@ -71,22 +70,11 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} waiting={waiting} />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      backgroundColor: theme.blueGrey,
-      flex: 1,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
   errorText: {color: theme.redDark},
 }))
 
