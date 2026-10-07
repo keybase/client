@@ -131,7 +131,19 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
       }
 
   return (
-    <>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={
+        <Kb.Button
+          fullWidth={true}
+          label={`Invite ${addingMembers.length} ${noun} & finish`}
+          waiting={waiting}
+          onClick={onComplete}
+          disabled={addingMembers.length === 0}
+        />
+      }
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" gap="tiny">
           <AddingMembers
@@ -177,16 +189,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button
-          fullWidth={true}
-          label={`Invite ${addingMembers.length} ${noun} & finish`}
-          waiting={waiting}
-          onClick={onComplete}
-          disabled={addingMembers.length === 0}
-        />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 

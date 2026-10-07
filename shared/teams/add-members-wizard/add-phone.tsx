@@ -9,7 +9,6 @@ import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard}
 const waitingKey = 'phoneLookup'
 
 const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
-  const styles = useStyles()
   const [error, setError] = React.useState('')
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
@@ -41,9 +40,13 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   }
 
   return (
-    <>
-      <Kb.ErrorBanner error={error} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
+    <Kb.ModalScreen
+      banner={<Kb.ErrorBanner error={error} />}
+      footer={
+        <Kb.Button waiting={waiting} fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" alignItems="flex-start">
           {phoneNumbers.map((pn, idx) => (
@@ -59,22 +62,8 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button waiting={waiting} fullWidth={true} label="Continue" onClick={onContinue} disabled={disabled} />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(theme => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      ...Kb.Styles.globalStyles.flexOne,
-      backgroundColor: theme.blueGrey,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-}))
 
 export default AddPhone

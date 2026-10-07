@@ -35,54 +35,51 @@ export const CreateNewTeam = (props: Props) => {
   React.useEffect(() => () => dispatchClearWaiting(C.waitingKeyTeamsCreation), [dispatchClearWaiting])
 
   return (
-    <>
-      {!isSubteam ? (
-        <Kb.Banner color="blue">
-          {"For security reasons, team names are unique and can't be changed, so choose carefully."}
-        </Kb.Banner>
-      ) : null}
-      {isSubteam ? (
-        <Kb.Banner color="blue">
-          <Kb.BannerParagraph
-            bannerColor="blue"
-            content={[`You are creating a subteam of ${props.baseTeam}.`]}
-          />
-          <Kb.BannerParagraph
-            bannerColor="blue"
-            content={[{onClick: openSubteamInfo, text: 'Learn more'}]}
-          />
-        </Kb.Banner>
-      ) : null}
-      <Kb.ErrorBanner error={errorText} />
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
-          <Kb.Input3
-            textType="BodySemibold"
-            placeholder="Name your team"
-            value={name}
-            onChangeText={setName}
-            maxLength={16}
-            disabled={waiting}
-            onEnterKeyDown={disabled ? undefined : onSubmitCb}
-            autoFocus={!isMobile /* keyboard can cover the "join subteam" box on mobile */}
-          />
-          {isSubteam && (
-            <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>
-              This team will be named{' '}
-              <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
-                {props.baseTeam}.{name}
-              </Kb.Text>
-            </Kb.Text>
+    <Kb.ModalScreen
+      banner={
+        <>
+          {isSubteam ? (
+            <Kb.Banner color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[`You are creating a subteam of ${props.baseTeam}.`]}
+              />
+              <Kb.BannerParagraph bannerColor="blue" content={[{onClick: openSubteamInfo, text: 'Learn more'}]} />
+            </Kb.Banner>
+          ) : (
+            <Kb.Banner color="blue">
+              {"For security reasons, team names are unique and can't be changed, so choose carefully."}
+            </Kb.Banner>
           )}
-          {isSubteam && (
-            <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />
-          )}
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
+          <Kb.ErrorBanner error={errorText} />
+        </>
+      }
+      footer={
         <Kb.Button waiting={waiting} fullWidth={true} label="Create team" onClick={onSubmitCb} disabled={disabled} />
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Input3
+          textType="BodySemibold"
+          placeholder="Name your team"
+          value={name}
+          onChangeText={setName}
+          maxLength={16}
+          disabled={waiting}
+          onEnterKeyDown={disabled ? undefined : onSubmitCb}
+          autoFocus={!isMobile /* keyboard can cover the "join subteam" box on mobile */}
+        />
+        {isSubteam && (
+          <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>
+            This team will be named{' '}
+            <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
+              {props.baseTeam}.{name}
+            </Kb.Text>
+          </Kb.Text>
+        )}
+        {isSubteam && <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />}
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 

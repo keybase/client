@@ -10,7 +10,6 @@ type Props = {
 }
 
 const AddFromWhere = ({wizard}: Props) => {
-  const styles = useStyles()
   const nav = useSafeNavigation()
   const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
   const navigateAppend = C.Router2.navigateAppend
@@ -32,14 +31,8 @@ const AddFromWhere = ({wizard}: Props) => {
   const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
 
   return (
-    <>
-      <Kb.ErrorBanner error={createTeamError} />
-      <Kb.Box2
-        direction="vertical"
-        gap={isMobile ? 'tiny' : 'xsmall'}
-        style={styles.body}
-        fullWidth={true}
-      >
+    <Kb.ModalScreen banner={<Kb.ErrorBanner error={createTeamError} />}>
+      <Kb.Box2 direction="vertical" gap={isMobile ? 'tiny' : 'xsmall'} fullWidth={true}>
         <Kb.Text type="Body">
           {isNewTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
         </Kb.Text>
@@ -70,27 +63,8 @@ const AddFromWhere = ({wizard}: Props) => {
           onClick={onContinuePhone}
         />
       </Kb.Box2>
-    </>
+    </Kb.ModalScreen>
   )
 }
-
-const useStyles = Kb.Styles.createStyleHook(theme => ({
-  body: Kb.Styles.platformStyles({
-    common: {backgroundColor: theme.blueGrey},
-    isElectron: {
-      ...Kb.Styles.padding(
-        Kb.Styles.globalMargins.small,
-        Kb.Styles.globalMargins.small,
-        Kb.Styles.globalMargins.xlarge
-      ),
-      borderBottomRadius: 4,
-      flex: 1,
-    },
-    isMobile: {
-      ...Kb.Styles.globalStyles.flexOne,
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-    },
-  }),
-}))
 
 export default AddFromWhere

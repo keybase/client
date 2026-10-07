@@ -92,45 +92,40 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
     title: doneLabel,
   })
 
-  const desktopFooter = !isMobile ? (
-    <Kb.ModalFooter>
-      <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />
-    </Kb.ModalFooter>
-  ) : null
-
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} overflow="hidden">
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchContainer}>
-          <Kb.SearchFilter
-            size="full-width"
-            onChange={setFilter}
-            value={filter}
-            placeholderText={`Search ${parentMembers.length} members`}
-            icon="iconfont-search"
-            style={styles.search}
-          />
-        </Kb.Box2>
-        {/* TODO: once it's easier to make a single different-height header, make this part of the list2 */}
-        <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true} alignItems="center" justifyContent="space-between">
-          <Kb.Text type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
-            Members of {parentTeamName}
-          </Kb.Text>
-          <Kb.Text type="BodyPrimaryLink" onClick={allSelected ? onSelectNone : onSelectAll}>
-            Select {allSelected ? 'none' : 'all'}
-          </Kb.Text>
-        </Kb.Box2>
-        <Kb.BoxGrow>
-          <Kb.List
-            keyProperty="username"
-            items={filteredMembers}
-            renderItem={renderItem}
-            itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
-          />
-        </Kb.BoxGrow>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={isMobile ? undefined : <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchContainer}>
+        <Kb.SearchFilter
+          size="full-width"
+          onChange={setFilter}
+          value={filter}
+          placeholderText={`Search ${parentMembers.length} members`}
+          icon="iconfont-search"
+          style={styles.search}
+        />
       </Kb.Box2>
-      {desktopFooter}
-    </>
+      {/* TODO: once it's easier to make a single different-height header, make this part of the list2 */}
+      <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true} alignItems="center" justifyContent="space-between">
+        <Kb.Text type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
+          Members of {parentTeamName}
+        </Kb.Text>
+        <Kb.Text type="BodyPrimaryLink" onClick={allSelected ? onSelectNone : onSelectAll}>
+          Select {allSelected ? 'none' : 'all'}
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.BoxGrow>
+        <Kb.List
+          keyProperty="username"
+          items={filteredMembers}
+          renderItem={renderItem}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
+        />
+      </Kb.BoxGrow>
+    </Kb.ModalScreen>
   )
 }
 

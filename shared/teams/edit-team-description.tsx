@@ -45,36 +45,34 @@ const EditTeamDescription = (props: Props) => {
   useNavUpWhenDone(waiting, error)
 
   return (
-    <>
-      <Kb.ErrorBanner error={error} />
-      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
-        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} padding="small">
-          <Kb.Input3
-            textType="BodySemibold"
-            placeholder="Team description"
-            onChangeText={value => {
-              userEditedRef.current = true
-              setDescription(value)
-            }}
-            value={description}
-            multiline={true}
-            rowsMin={3}
-            rowsMax={3}
-            maxLength={280}
-            autoFocus={true}
-          />
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.ModalFooter>
+    <Kb.ModalScreen
+      banner={<Kb.ErrorBanner error={error} />}
+      footer={
         <Kb.ConfirmButtons
+          split={true}
           waiting={waiting}
           onCancel={C.Router2.navigateUp}
           onConfirm={onSave}
           confirmLabel="Save"
           confirmDisabled={description === origDescription}
         />
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      <Kb.Input3
+        textType="BodySemibold"
+        placeholder="Team description"
+        onChangeText={value => {
+          userEditedRef.current = true
+          setDescription(value)
+        }}
+        value={description}
+        multiline={true}
+        rowsMin={3}
+        rowsMax={3}
+        maxLength={280}
+        autoFocus={true}
+      />
+    </Kb.ModalScreen>
   )
 }
 

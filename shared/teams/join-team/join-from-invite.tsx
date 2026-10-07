@@ -101,32 +101,47 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
 
   const teamname = (details?.teamName.parts || []).join('.')
 
-  const body =
-    details === undefined ? (
-      loaded ? (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
+  if (details === undefined) {
+    return (
+      <Kb.ModalScreen centered={true}>
+        {loaded ? (
           <Kb.Text type="BodySmallError">ERROR: {error}</Kb.Text>
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
-          <Kb.ProgressIndicator type="Huge" />
-          <Kb.Text type="BodySmall">Loading...</Kb.Text>
-        </Kb.Box2>
-      )
-    ) : showSuccess ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
-        <Success teamname={teamname} />
-        <Kb.Button type="Dim" label="Close" onClick={onNavUp} style={styles.button} waiting={waiting} />
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2
-        centerChildren={true}
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        gap="xtiny"
-        style={styles.body}
+        ) : (
+          <Kb.Box2 direction="vertical" gap="small" alignItems="center">
+            <Kb.ProgressIndicator type="Huge" />
+            <Kb.Text type="BodySmall">Loading...</Kb.Text>
+          </Kb.Box2>
+        )}
+      </Kb.ModalScreen>
+    )
+  }
+  if (showSuccess) {
+    return (
+      <Kb.ModalScreen
+        centered={true}
+        footer={<Kb.Button type="Dim" label="Close" onClick={onNavUp} fullWidth={true} waiting={waiting} />}
       >
+        <Success teamname={teamname} />
+      </Kb.ModalScreen>
+    )
+  }
+  return (
+    <Kb.ModalScreen
+      centered={true}
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          cancelLabel="Later"
+          onCancel={onClose}
+          onConfirm={onJoinTeam}
+          confirmLabel="Join team"
+          confirmType="Success"
+          confirmDisabled={!canJoin}
+          waiting={waiting}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="xtiny">
         <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
@@ -135,103 +150,40 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
             imageOverrideUrl={details.teamAvatars?.['square_192']}
           />
           {details.teamIsOpen && (
-            <Kb.Box2
-              direction="horizontal"
-              style={styles.meta}
-              alignSelf={isMobile ? 'center' : undefined}
-              fullWidth={!isMobile}
-              centerChildren={true}
-            >
+            <Kb.Box2 direction="horizontal" style={styles.meta} fullWidth={true} centerChildren={true}>
               <Kb.Meta backgroundColor={theme.green} title="open" size="Small" />
             </Kb.Box2>
           )}
         </Kb.Box2>
-        <Kb.Text type="Header">Join {teamname}</Kb.Text>
+        <Kb.Text type="BodyBig" center={true} style={styles.teamname}>
+          {teamname}
+        </Kb.Text>
         <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
-        <Kb.Text type="Body" lineClamp={3} center={!isMobile} style={styles.description}>
+        <Kb.Text type="Body" lineClamp={3} center={true} style={styles.description}>
           {details.teamDesc}
         </Kb.Text>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          centerChildren={true}
-          gap="xtiny"
-          style={styles.buttonBar}
-        >
-          <Kb.Button
-            type="Success"
-            label="Join team"
-            onClick={onJoinTeam}
-            style={styles.button}
-            disabled={!canJoin}
-            waiting={waiting}
-          />
-          <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
-        </Kb.Box2>
-        {!!(error || missingInviteKeyError) && <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>}
-        <Kb.Box2 direction="vertical" flex={1} />
+        {!!(error || missingInviteKeyError) && (
+          <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>
+        )}
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar size={16} username={details.inviterUsername} />
-          <Kb.ConnectedUsernames
-            type="BodySmallBold"
-            usernames={[details.inviterUsername]}
-            colorFollowing={true}
-          />
+          <Kb.ConnectedUsernames type="BodySmallBold" usernames={[details.inviterUsername]} colorFollowing={true} />
           <Kb.Text type="BodySmall"> invited you.</Kb.Text>
         </Kb.Box2>
-        {isMobile && (
-          <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.laterBox}>
-            <Kb.Button label="Later" type="Dim" onClick={onClose} style={styles.button} />
-          </Kb.Box2>
-        )}
       </Kb.Box2>
-    )
-
-  return body
+    </Kb.ModalScreen>
+  )
 }
 
-const useStyles = Kb.Styles.createStyleHook(
-  theme =>
-    ({
-      avatar: Kb.Styles.platformStyles({
-        isElectron: {marginBottom: -36, paddingTop: 80, position: 'relative', top: -48},
-        isMobile: {marginBottom: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.medium},
-      }),
-      body: Kb.Styles.platformStyles({
-        common: {
-          paddingBottom: Kb.Styles.globalMargins.small,
-        },
-        isMobile: {
-          backgroundColor: theme.blueGreyLight,
-          borderRadius: 8,
-        },
-      }),
-      button: Kb.Styles.platformStyles({
-        isElectron: {maxWidth: 360, width: '100%'},
-        isMobile: {
-          flex: 1,
-          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
-        },
-      }),
-      buttonBar: Kb.Styles.platformStyles({
-        common: {paddingTop: Kb.Styles.globalMargins.small},
-        isElectron: Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
-      }),
-      description: Kb.Styles.platformStyles({
-        isElectron: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium), alignSelf: 'stretch'},
-        isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
-      }),
-      inviterBox: {paddingBottom: Kb.Styles.globalMargins.small},
-      laterBox: {
-        borderTopColor: theme.black_10,
-        borderTopWidth: 1,
-        paddingTop: Kb.Styles.globalMargins.small,
-      },
-      meta: {
-        bottom: -7,
-        position: 'absolute',
-      },
-    }) as const
-)
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  avatar: {marginBottom: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.small},
+  description: {alignSelf: 'stretch', paddingTop: Kb.Styles.globalMargins.tiny},
+  inviterBox: {paddingTop: Kb.Styles.globalMargins.small},
+  meta: {
+    bottom: -7,
+    position: 'absolute',
+  },
+  teamname: Kb.Styles.platformStyles({isElectron: {wordBreak: 'break-word'}}),
+}))
 
 export default JoinFromInvite

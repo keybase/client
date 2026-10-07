@@ -88,8 +88,18 @@ const EditChannel = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
+    <Kb.ModalScreen
+      footer={
+        <Kb.Button
+          label="Save"
+          onClick={onSave}
+          fullWidth={true}
+          disabled={oldName === name && description === oldDescription}
+          waiting={waiting}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.Input3
           textType="BodySemibold"
           autoFocus={true}
@@ -115,27 +125,11 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button
-          label="Save"
-          onClick={onSave}
-          fullWidth={true}
-          disabled={oldName === name && description === oldDescription}
-          waiting={waiting}
-        />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: Kb.Styles.borderRadius,
-    },
-    isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
   channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
