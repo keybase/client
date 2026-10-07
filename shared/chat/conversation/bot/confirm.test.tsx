@@ -50,7 +50,7 @@ const flushPromises = async () => {
 // flight, and on settle drop the count, recording the error on a failure
 const settleWithWaiting = async <R,>(
   outcome: {error: unknown} | {result: R},
-  waitingKey?: string | ReadonlyArray<string>
+  waitingKey?: T.Waiting.WaitingKeys
 ): Promise<R> => {
   const {dispatch} = useWaitingState.getState()
   if (waitingKey) dispatch.increment(waitingKey)

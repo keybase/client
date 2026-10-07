@@ -12,6 +12,7 @@ import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 import {NavigationContext} from '@react-navigation/core'
+import type * as T from '@/constants/types'
 
 const Kb = {
   BackButton,
@@ -191,7 +192,7 @@ export type OwnProps = {
   reloadOnMount?: boolean
   style?: Styles.StylesCrossPlatform
   title?: string
-  waitingKeys: string | Array<string>
+  waitingKeys: T.Waiting.WaitingKeys
   errorFilter?: (rPCError: RPCError) => boolean
 }
 

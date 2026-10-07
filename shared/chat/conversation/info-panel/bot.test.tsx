@@ -352,7 +352,7 @@ describe('BotTab participant previews', () => {
     expect(logError).not.toHaveBeenCalled()
   })
 
-  const runMutation = async (key: string, error?: Error) => {
+  const runMutation = async (key: T.Waiting.WaitingKeys, error?: Error) => {
     act(() => {
       C.useWaitingState.getState().dispatch.increment(key)
     })
@@ -366,7 +366,7 @@ describe('BotTab participant previews', () => {
   test.each([
     ['add', C.waitingKeyChatBotAdd],
     ['remove', C.waitingKeyChatBotRemove],
-  ])('when a bot %s finishes, a team conversation refreshes its participants and team members', async (_label, key) => {
+  ] as const)('when a bot %s finishes, a team conversation refreshes its participants and team members', async (_label, key) => {
     mockMeta = bigTeamMeta()
     rpc.on('previewConversation', () => previewWith([uiParticipant('testuser', true), uiParticipant('testbot')]))
 

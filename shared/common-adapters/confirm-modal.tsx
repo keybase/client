@@ -8,6 +8,7 @@ import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Banner, BannerParagraph} from './banner'
 import {Box2} from '@/common-adapters/box'
 import ModalFooter from './modal-footer'
+import type * as T from '@/constants/types'
 
 // generally one of icon or header will be given
 export type Props = {
@@ -22,7 +23,7 @@ export type Props = {
   onConfirm?: () => void
   onConfirmDeactivated?: boolean
   prompt: React.ReactNode
-  waitingKey?: string | string[]
+  waitingKey?: T.Waiting.WaitingKeys
   waiting?: boolean
 }
 

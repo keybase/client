@@ -15,15 +15,15 @@ export type State = T.Waiting.State & {
   dispatch: {
     resetState: () => void
     // Drops counts too, so it is only for a key no RPC holds (an RPC's tracker owns its count)
-    clear: (keys: string | ReadonlyArray<string>) => void
-    clearErrors: (keys: string | ReadonlyArray<string>) => void
-    increment: (keys: string | ReadonlyArray<string>) => void
-    decrement: (keys: string | ReadonlyArray<string>, error?: RPCError) => void
+    clear: (keys: T.Waiting.WaitingKeys) => void
+    clearErrors: (keys: T.Waiting.WaitingKeys) => void
+    increment: (keys: T.Waiting.WaitingKeys) => void
+    decrement: (keys: T.Waiting.WaitingKeys, error?: RPCError) => void
     batch: (changes: ReadonlyArray<WaitingChange>) => void
   }
 }
 
-const getKeys = (k?: string | ReadonlyArray<string>) => {
+const getKeys = (k?: T.Waiting.WaitingKeys): ReadonlyArray<T.Waiting.WaitingKey> => {
   if (k === undefined) return []
   if (typeof k === 'string') return [k]
   return k
@@ -31,8 +31,8 @@ const getKeys = (k?: string | ReadonlyArray<string>) => {
 
 // One change to one key's count, on the store's draft
 const changeCount = (
-  s: {counts: Map<string, number>; errors: Map<string, RPCError | undefined>},
-  k: string,
+  s: {counts: Map<T.Waiting.WaitingKey, number>; errors: Map<T.Waiting.WaitingKey, RPCError | undefined>},
+  k: T.Waiting.WaitingKey,
   diff: 1 | -1,
   error?: RPCError
 ) => {
@@ -58,7 +58,7 @@ const changeCount = (
 }
 
 export const useWaitingState = Z.createZustand<State>('waiting', set => {
-  const changeHelper = (keys: string | ReadonlyArray<string>, diff: 1 | -1, error?: RPCError) => {
+  const changeHelper = (keys: T.Waiting.WaitingKeys, diff: 1 | -1, error?: RPCError) => {
     set(s => {
       getKeys(keys).forEach(k => changeCount(s, k, diff, error))
     })
@@ -116,10 +116,10 @@ export const useWaitingState = Z.createZustand<State>('waiting', set => {
   }
 })
 
-export const useAnyWaiting = (k?: string | Array<string>) =>
+export const useAnyWaiting = (k?: T.Waiting.WaitingKeys) =>
   useWaitingState(s => !!getKeys(k).some(k => (s.counts.get(k) ?? 0) > 0))
 
-export const useAnyErrors = (k: string | Array<string>) =>
+export const useAnyErrors = (k: T.Waiting.WaitingKeys) =>
   useWaitingState(s => {
     const errorKey = getKeys(k).find(k => s.errors.get(k))
     return errorKey ? s.errors.get(errorKey) : undefined
@@ -128,15 +128,15 @@ export const useAnyErrors = (k: string | Array<string>) =>
 // A screen clears the error its key shows; the count belongs to whatever is still in flight
 export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatch.clearErrors)
 
-// Holds a key on for work outside an RPC; the release runs once
-export const holdWaiting = (key: string): (() => void) => {
+// Holds keys on for work outside an RPC; the release runs once
+export const holdWaiting = (key: T.Waiting.WaitingKeys): (() => void) => {
   const {decrement, increment} = useWaitingState.getState().dispatch
   increment(key)
   return once(() => decrement(key))
 }
 
-// Holds a key on while f runs, however it ends
-export const withWaiting = async <R,>(key: string, f: () => Promise<R>): Promise<R> => {
+// Holds keys on while f runs, however it ends
+export const withWaiting = async <R,>(key: T.Waiting.WaitingKeys, f: () => Promise<R>): Promise<R> => {
   const release = holdWaiting(key)
   try {
     return await f()

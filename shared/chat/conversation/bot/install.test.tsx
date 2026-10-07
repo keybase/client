@@ -59,6 +59,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useWaitingState} from '@/stores/waiting'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {testWaitingKey} from '@/test/waiting-key'
 import {useBotSettings} from './settings'
 import InstallBotPopup, {useBotTeamRole, useRefreshBotMembershipOnSuccess} from './install'
 
@@ -185,7 +186,7 @@ const settle = async () => {
 // flight, and on settle drop the count, recording the error on a failure
 const settleWithWaiting = async <R,>(
   outcome: {error: unknown} | {result: R},
-  waitingKey?: string | ReadonlyArray<string>
+  waitingKey?: T.Waiting.WaitingKeys
 ): Promise<R> => {
   const {dispatch} = useWaitingState.getState()
   if (waitingKey) dispatch.increment(waitingKey)
@@ -216,7 +217,7 @@ const previewResult = (participants: Array<string>) =>
   }) as unknown as T.RPCChat.InboxUIItem
 
 describe('useRefreshBotMembershipOnSuccess', () => {
-  const waitingKey = 'test:botMutation'
+  const waitingKey = testWaitingKey('test:botMutation')
   const run = (p: {
     conversationIDKey: T.Chat.ConversationIDKey | undefined
     error?: RPCError

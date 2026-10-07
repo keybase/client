@@ -2,8 +2,9 @@
 import {RPCError} from '@/util/errors'
 import {makeWaitingTracker} from './waiting-tracker'
 import type {WaitingChange} from './types'
+import {testWaitingKey} from '@/test/waiting-key'
 
-const key = 'tracker-test'
+const key = testWaitingKey('tracker-test')
 
 const make = (opts?: {noKey: true}) => {
   const changes: Array<WaitingChange> = []

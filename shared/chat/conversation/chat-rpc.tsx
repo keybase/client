@@ -8,8 +8,6 @@ import {enumKeys} from '@/constants/utils'
 import {isChatSessionReady} from '@/stores/config'
 import {hexToUint8Array} from '@/util/uint8array'
 
-type WaitingKey = string | ReadonlyArray<string>
-
 export type LoadThreadParams = {
   conversationIDKey: T.Chat.ConversationIDKey
   knownRemotes?: ReadonlyArray<string>
@@ -20,7 +18,7 @@ export type LoadThreadParams = {
   onThreadStatus?: (status: T.RPCChat.UIChatThreadStatus) => void
   pagination?: T.RPCChat.UIPagination | null
   reason?: T.RPCChat.GetThreadReason
-  waitingKey?: WaitingKey
+  waitingKey?: T.Waiting.WaitingKeys
 }
 
 export type PostTextParams = {
@@ -107,7 +105,7 @@ export type ChatThreadRpc = {
   // an implicit-team conversation between exactly these users
   createAdhocConversation: (
     usernames: ReadonlyArray<string>,
-    waitingKey?: WaitingKey
+    waitingKey?: T.Waiting.WaitingKeys
   ) => Promise<T.RPCChat.NewConversationLocalRes>
 
   makeUploadTempFile: (p: {
@@ -148,7 +146,7 @@ export type ChatThreadRpc = {
   // the conversation's inbox item, read without joining it
   previewConversation: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<T.RPCChat.InboxUIItem>
 
-  unpinMessage: (conversationIDKey: T.Chat.ConversationIDKey, waitingKey?: WaitingKey) => Promise<void>
+  unpinMessage: (conversationIDKey: T.Chat.ConversationIDKey, waitingKey?: T.Waiting.WaitingKeys) => Promise<void>
   // hides the pinned message for you only
   ignorePinnedMessage: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<void>
 
@@ -202,19 +200,19 @@ export type ChatThreadRpc = {
     conversationIDKey: T.Chat.ConversationIDKey
     settings?: T.RPCGen.TeamBotSettings
     username: string
-    waitingKey?: WaitingKey
+    waitingKey?: T.Waiting.WaitingKeys
   }) => Promise<void>
   getBotSettings: (conversationIDKey: T.Chat.ConversationIDKey, username: string) => Promise<T.RPCGen.TeamBotSettings>
   setBotSettings: (p: {
     conversationIDKey: T.Chat.ConversationIDKey
     settings: T.RPCGen.TeamBotSettings
     username: string
-    waitingKey?: WaitingKey
+    waitingKey?: T.Waiting.WaitingKeys
   }) => Promise<void>
   removeBotMember: (p: {
     conversationIDKey: T.Chat.ConversationIDKey
     username: string
-    waitingKey?: WaitingKey
+    waitingKey?: T.Waiting.WaitingKeys
   }) => Promise<void>
   // the names of the bot's public commands
   listPublicBotCommands: (username: string) => Promise<ReadonlyArray<string>>

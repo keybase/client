@@ -6,7 +6,7 @@ import {usePhoneNumberList} from '../common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {addMembersToWizardAndNav, searchResultsToMembers, type AddMembersWizard} from './state'
 
-const waitingKey = 'phoneLookup'
+const waitingKey = C.waitingKeyTeamsPhoneLookup
 
 const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   const styles = useStyles()
