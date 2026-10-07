@@ -74,33 +74,17 @@ const BotInstallHeaderLeft = () => {
       subScreen: s.botSubScreen,
     }))
   )
-  if (subScreen === 'channels') {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
-        Back
-      </Kb.Text>
-    )
+  // desktop: the sub screens step back with a chevron; leaving the bot is the X
+  if (!isMobile) {
+    return subScreen === 'channels' || subScreen === 'install' ? <Kb.HeaderLeftButton onPress={onAction} /> : null
   }
-  if (isMobile || subScreen === 'install') {
-    const label =
-      subScreen === 'install' ? (
-        isMobile ? (
-          'Back'
-        ) : (
-          <Kb.Icon type="iconfont-arrow-left" />
-        )
-      ) : inTeam || readOnly ? (
-        'Close'
-      ) : (
-        'Cancel'
-      )
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
-        {label}
-      </Kb.Text>
-    )
-  }
-  return null
+  const label =
+    subScreen === 'channels' || subScreen === 'install' ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'
+  return (
+    <Kb.Text type="BodyBigLink" onClick={onAction}>
+      {label}
+    </Kb.Text>
+  )
 }
 
 const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
@@ -161,6 +145,7 @@ export const newRoutes = defineRouteMap({
     }),
   }),
   chatEnterPaperkey: {
+    getOptions: {title: 'Enter paper key'},
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
   chatRoot: Chat.isSplit

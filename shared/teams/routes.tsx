@@ -252,7 +252,7 @@ export const newRoutes = defineRouteMap({
         header: undefined,
         headerBottomStyle: {height: undefined},
         headerShadowVisible: false,
-        title: ' ', // hack: trick router shim so it doesn't add a safe area around us
+        title: '',
       },
     }
   ),

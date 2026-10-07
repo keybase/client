@@ -163,12 +163,8 @@ describe('doneModalOptions', () => {
     expect(opts.headerShown).toBe(true)
   })
 
-  test('desktop draws its own header so headerShown is left alone', () => {
-    const opts = withPlatform(platforms.desktop, () => buttons.doneModalOptions('Settings')) as {
-      headerShown?: boolean
-      title?: string
-    }
-    expect(opts.headerShown).toBeUndefined()
-    expect(opts.title).toBe('Settings')
+  test('desktop only takes the title: the X closes, so there is no Done and headerShown is left alone', () => {
+    const opts = withPlatform(platforms.desktop, () => buttons.doneModalOptions('Settings'))
+    expect(opts).toEqual({title: 'Settings'})
   })
 })

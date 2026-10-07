@@ -112,7 +112,7 @@ export const sharedNewRoutes = defineRouteMap({
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
-  keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
+  keybaseLinkError: {getOptions: {title: 'Link error'}, screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   ...(__DEV__
     ? {
