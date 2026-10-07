@@ -175,8 +175,8 @@ const TeamPickerInner = (props: Props) => {
   const showError = !waiting && error.length > 0
   const content =
     pickerState === 'picker' ? (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal">
+      <Kb.ModalScreen scroll={false} padding="none">
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
             size="full-width"
             icon="iconfont-search"
@@ -188,43 +188,40 @@ const TeamPickerInner = (props: Props) => {
             waiting={waiting}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-          {showError ? (
-            <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
-              {error}
-            </Kb.Text>
-          ) : (
+        {showError ? (
+          <Kb.Text type="Body" style={{alignSelf: 'center', color: theme.redDark}}>
+            {error}
+          </Kb.Text>
+        ) : (
+          <Kb.BoxGrow2>
             <Kb.List
               indexAsKey={true}
               items={results}
               itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
-          )}
-        </Kb.Box2>
-      </Kb.Box2>
+          </Kb.BoxGrow2>
+        )}
+      </Kb.ModalScreen>
     ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Kb.ModalScreen
+        scroll={false}
+        footer={
+          <Kb.ConfirmButtons split={true} onCancel={onClose} onConfirm={onSubmit} confirmLabel="Send" />
+        }
+      >
         <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-          <Kb.Input3
-            containerStyle={styles.input}
-            autoFocus={true}
-            autoCorrect={true}
-            placeholder="Add a caption..."
-            onEnterKeyDown={onSubmit}
-            onChangeText={setTitle}
-            value={title}
-            selectTextOnFocus={true}
-          />
-        </Kb.Box2>
-        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {isMobile ? null : (
-            <Kb.Button fullWidth={true} type="Dim" onClick={onClose} label="Cancel" />
-          )}
-          <Kb.Button fullWidth={true} onClick={onSubmit} label="Send" />
-        </Kb.ButtonBar>
-      </Kb.Box2>
+        <Kb.Input3
+          containerStyle={styles.input}
+          autoFocus={true}
+          autoCorrect={true}
+          placeholder="Add a caption..."
+          onEnterKeyDown={onSubmit}
+          onChangeText={setTitle}
+          value={title}
+          selectTextOnFocus={true}
+        />
+      </Kb.ModalScreen>
     )
 
   React.useEffect(() => {
@@ -237,50 +234,18 @@ const TeamPickerInner = (props: Props) => {
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      boxGrow: {
-        flexGrow: 1,
-        margin: Kb.Styles.globalMargins.small,
-      },
-      buttonContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'flex-end',
-          borderStyle: 'solid',
-          borderTopColor: theme.black_10,
-          borderTopWidth: 1,
-          flexShrink: 0,
-          padding: Kb.Styles.globalMargins.small,
-          width: '100%',
-        },
-        isMobile: {width: '100%'},
-      }),
-      container: Kb.Styles.platformStyles({
-        isElectron: {height: 450},
-        isMobile: {padding: Kb.Styles.globalMargins.small},
-      }),
+      boxGrow: {marginBottom: Kb.Styles.globalMargins.small},
       image: {
         height: '100%',
         maxHeight: '100%',
         maxWidth: '100%',
         width: '100%',
       },
-      input: Kb.Styles.platformStyles({
-        common: {
-          borderColor: theme.blue,
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          minHeight: 40,
-          width: '100%',
-        },
-        isElectron: {maxHeight: 100},
-        isTablet: {
-          alignSelf: 'center',
-          maxWidth: 460,
-        },
-      }),
-      inputContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-        },
-      }),
+      input: {
+        borderColor: theme.blue,
+        minHeight: 40,
+        width: '100%',
+      },
       results: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),

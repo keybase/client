@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import ConversationList from './conversation-list/conversation-list'
 import {toAttachmentPath} from '../conversation/attachment-path'
@@ -35,4 +36,10 @@ export const SendToChat = (props: Props) => {
   return <ConversationList onSelect={onSelect} />
 }
 
-export default SendToChat
+const SendToChatScreen = (props: Props) => (
+  <Kb.ModalScreen scroll={false} padding="none">
+    <SendToChat {...props} />
+  </Kb.ModalScreen>
+)
+
+export default SendToChatScreen

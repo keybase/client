@@ -319,7 +319,11 @@ const TeamBuilding = ({
   const showContactsBanner = shouldShowContactsBanner(filterServices)
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([styles.container, namespace === 'people' && styles.containerPeople])}
+      fullWidth={true}
+    >
       {teamBox}
       {errorBanner}
       {(namespace !== 'people' || isMobile) && (
@@ -343,10 +347,9 @@ const TeamBuilding = ({
 }
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  container: Kb.Styles.platformStyles({
-    common: {...Kb.Styles.globalStyles.flexOne},
-    isElectron: {minHeight: 500},
-  }),
+  container: {...Kb.Styles.globalStyles.flexOne},
+  // the people drop-down has no modal box to size it
+  containerPeople: Kb.Styles.platformStyles({isElectron: {minHeight: 500}}),
   waiting: {
     ...Kb.Styles.globalStyles.fillAbsolute,
     backgroundColor: theme.black_20,

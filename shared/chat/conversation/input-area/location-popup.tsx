@@ -136,21 +136,10 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
     ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
   return (
-    <>
-      {locationDenied ? (
-        <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.denied} gap="small" justifyContent="center">
-          <Kb.Text center={true} type="Body" style={styles.deniedText}>
-            Location permission denied.
-          </Kb.Text>
-          <Kb.Text center={true} type="Body" style={styles.deniedText}>
-            Enable location for Keybase to see your current position.
-          </Kb.Text>
-          <Kb.Button label="Open settings" onClick={openAppSettings} />
-        </Kb.Box2>
-      ) : (
-        <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
-      )}
-      <Kb.ModalFooter>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <LocationButton
             disabled={locationDenied}
@@ -178,8 +167,22 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
             primary={true}
           />
         </Kb.Box2>
-      </Kb.ModalFooter>
-    </>
+      }
+    >
+      {locationDenied ? (
+        <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.denied} gap="small" justifyContent="center">
+          <Kb.Text center={true} type="Body" style={styles.deniedText}>
+            Location permission denied.
+          </Kb.Text>
+          <Kb.Text center={true} type="Body" style={styles.deniedText}>
+            Enable location for Keybase to see your current position.
+          </Kb.Text>
+          <Kb.Button label="Open settings" onClick={openAppSettings} />
+        </Kb.Box2>
+      ) : (
+        <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
+      )}
+    </Kb.ModalScreen>
   )
 }
 
