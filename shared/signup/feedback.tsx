@@ -12,30 +12,29 @@ const SignupFeedback = () => {
   const sending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
   const [feedbackSent, setFeedbackSent] = React.useState(false)
 
-  return (
-    <SignupScreen
-      banners={
-        <>
-          {feedbackSent ? (
-            <Kb.Banner key="feedbackSent" color="green">
-              <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
-            </Kb.Banner>
-          ) : null}
-          {sendError ? errorBanner(sendError) : null}
-        </>
-      }
-      hideDesktopHeader={true}
-    >
-      <FeedbackForm
-        sendError=""
-        loggedOut={loggedOut}
-        sending={sending}
-        onSendFeedback={onSendFeedback}
-        showInternalSuccessBanner={false}
-        onFeedbackDone={state => setFeedbackSent(!sendError && state)}
-      />
-    </SignupScreen>
+  const banners = (
+    <>
+      {feedbackSent ? (
+        <Kb.Banner key="feedbackSent" color="green">
+          <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+        </Kb.Banner>
+      ) : null}
+      {sendError ? errorBanner(sendError) : null}
+    </>
   )
+  const form = (
+    <FeedbackForm
+      banner={banners}
+      sendError=""
+      loggedOut={loggedOut}
+      sending={sending}
+      onSendFeedback={onSendFeedback}
+      showInternalSuccessBanner={false}
+      onFeedbackDone={state => setFeedbackSent(!sendError && state)}
+    />
+  )
+  // in a modal the form is a ModalScreen of its own, with these banners in its banner slot
+  return Kb.useModalBox() ? form : <SignupScreen banners={banners}>{form}</SignupScreen>
 }
 
 export default SignupFeedback

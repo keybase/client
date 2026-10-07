@@ -14,14 +14,11 @@ const KnowPassword = ({route}: Props) => {
   const [error, setError] = React.useState('')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
   const onYes = () => nav.safeNavigateAppend({name: 'resetEnterPassword', params: {username}})
   const onNo = () => enterResetPipeline({onError: setError, username})
   return (
     <SignupScreen
-      title="Account reset"
       noBackground={true}
-      onBack={onCancel}
       banners={errorBanner(error)}
       buttons={[
         {label: 'Yes', onClick: onYes, type: 'Success'},

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
@@ -24,7 +23,6 @@ const SetPublicName = ({route}: Props) => {
   const devices = route.params.devices ?? []
   const error = route.params.error ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const onBack = useSafeSubmit(C.Router2.navigateUp, !!error)
   const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
   const deviceIconNumber = isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
@@ -57,7 +55,6 @@ const SetPublicName = ({route}: Props) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       waitingOverlay={true}
       banners={errorBanner(error)}
       buttons={[
@@ -69,8 +66,6 @@ const SetPublicName = ({route}: Props) => {
           waiting,
         },
       ]}
-      onBack={onBack}
-      title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 alignSelf="center" direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />

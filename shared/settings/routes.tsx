@@ -240,7 +240,10 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./delete-confirm/check-passphrase')),
     {getOptions: {title: 'Delete account'}}
   ),
-  modalFeedback: feedback,
+  modalFeedback: {
+    ...feedback,
+    getOptions: isMobile ? {headerShown: true, title: 'Feedback'} : {title: 'Send feedback'},
+  },
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined')), {
     getOptions: Kb.doneModalOptions(''),
   }),

@@ -7,7 +7,7 @@ import {SignupScreen, errorBanner} from '@/signup/common'
 import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
-import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
+import {submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
@@ -37,14 +37,6 @@ const PromptReset = (props: Props) => {
       nav.safeNavigateAppend({name: 'resetKnowPassword', params: {username}}, true)
     }
   }
-  const onBack = () => {
-    if (skipPassword) {
-      startRecoverPassword({replaceRoute: true, username})
-    } else {
-      nav.safeNavigateUp()
-    }
-  }
-  const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
 
   return (
     <SignupScreen
@@ -57,9 +49,7 @@ const PromptReset = (props: Props) => {
         },
       ]}
       banners={errorBanner(error)}
-      onBack={onBack}
       noBackground={true}
-      title={title}
     >
       <QuestionBody
         centered={false}

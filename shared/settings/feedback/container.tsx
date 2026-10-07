@@ -1,7 +1,6 @@
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as C from '@/constants'
-import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'
 import logger from '@/logger'
@@ -28,7 +27,6 @@ const Connected = (ownProps: OwnProps) => {
   const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   const {sendFeedback: desktopSendFeedback, error: desktopError} = useSendFeedback()
   const desktopSending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
-  const navigateUp = C.Router2.navigateUp
 
   React.useEffect(() => {
     return () => {
@@ -83,25 +81,21 @@ const Connected = (ownProps: OwnProps) => {
     }
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Feedback
-          onSendFeedback={_onSendFeedback}
-          sending={mobileSending}
-          sendError={mobileSendError}
-          loggedOut={loggedOut}
-          showInternalSuccessBanner={true}
-          onFeedbackDone={() => null}
-          feedback={feedback}
-        />
-      </Kb.Box2>
+      <Feedback
+        onSendFeedback={_onSendFeedback}
+        sending={mobileSending}
+        sendError={mobileSendError}
+        loggedOut={loggedOut}
+        showInternalSuccessBanner={true}
+        onFeedbackDone={() => null}
+        feedback={feedback}
+      />
     )
   }
 
-  const onBack = () => navigateUp()
   const props = {
     feedback,
     loggedOut,
-    onBack,
     onFeedbackDone: () => null,
     onSendFeedback: desktopSendFeedback,
     sendError: desktopError,

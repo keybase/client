@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner, desktopInputWidth} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import {useAddPhoneNumber} from './use-verification'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
@@ -25,10 +25,9 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       flex={1}
       gap={isMobile ? 'small' : 'medium'}
       fullWidth={true}
-      style={styles.container}
     >
       <Kb.ImageIcon type={props.iconType} />
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
         <Kb.PhoneInput
           autoFocus={props.autoFocus ?? true}
           defaultCountry={props.defaultCountry}
@@ -53,29 +52,13 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
   checkbox: {width: '100%'},
-  container: Kb.Styles.platformStyles({
-    isTablet: {maxWidth: 386},
-  }),
-  input: Kb.Styles.platformStyles({
-    isElectron: {
-      height: 38,
-      width: 368,
-    },
-    isMobile: {
-      height: 48,
-      width: '100%',
-    },
-  }),
-  inputBox: desktopInputWidth,
+  input: {height: isMobile ? 48 : 38, width: '100%'},
 }))
 
 const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = useDefaultPhoneCountry()
   const navigateAppend = C.Router2.navigateAppend
   const {clearError, error, submitPhoneNumber, waiting} = useAddPhoneNumber()
-  const onSkip = () => {
-    navigateAppend({name: 'signupEnterEmail', params: {}}, true)
-  }
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
@@ -100,10 +83,6 @@ const ConnectedEnterPhoneNumber = () => {
         },
       ]}
       banners={errorBanner(error)}
-      rightActionLabel="Skip"
-      onRightAction={onSkip}
-      title="Your phone number"
-      showHeaderInfoIcon={true}
     >
       <EnterPhoneNumberBody
         autoFocus={!isMobile}

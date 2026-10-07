@@ -6,6 +6,7 @@ import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
 import {defineRouteMap} from '@/constants/types/router'
 import {clearSignupDeviceNameDraft} from './device-name-draft'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 // Backing out of the username screen also clears any device-name draft, so the next signup starts clean.
 const UsernameHeaderLeft = () => (
@@ -32,16 +33,14 @@ const onPhoneSkip = () => {
   C.Router2.navigateAppend({name: 'signupEnterEmail', params: {}}, true)
 }
 
-const EmailSkipButton = () => (
-  <Kb.Text type="BodyBigLink" onClick={onEmailSkip}>
-    Skip
-  </Kb.Text>
-)
-
-const PhoneSkipButton = () => (
-  <Kb.Text type="BodyBigLink" onClick={onPhoneSkip}>
-    Skip
-  </Kb.Text>
+// Desktop keeps the help menu (feedback, documentation) beside Skip.
+const SkipButton = ({onSkip}: {onSkip: () => void}) => (
+  <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
+    {isMobile ? null : <InfoIcon />}
+    <Kb.Text type="BodyBigLink" onClick={onSkip}>
+      Skip
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 export const newRoutes = defineRouteMap({
@@ -79,7 +78,7 @@ export const newModalRoutes = defineRouteMap({
             unstable_headerLeftItems: () => [],
             unstable_headerRightItems: () => [Kb.nativeTextHeaderItem('Skip', onEmailSkip)],
           }
-        : {headerLeft: () => null, headerRight: () => <EmailSkipButton />}),
+        : {headerLeft: () => null, headerRight: () => <SkipButton onSkip={onEmailSkip} />}),
       title: 'Your email address',
     },
     screen: React.lazy(async () => import('./email')),
@@ -91,7 +90,7 @@ export const newModalRoutes = defineRouteMap({
             unstable_headerLeftItems: () => [],
             unstable_headerRightItems: () => [Kb.nativeTextHeaderItem('Skip', onPhoneSkip)],
           }
-        : {headerLeft: () => null, headerRight: () => <PhoneSkipButton />}),
+        : {headerLeft: () => null, headerRight: () => <SkipButton onSkip={onPhoneSkip} />}),
       title: 'Your phone number',
     },
     screen: React.lazy(async () => import('./phone-number')),
@@ -104,7 +103,13 @@ export const newModalRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./feedback')),
   },
   signupVerifyPhoneNumber: {
-    getOptions: {title: 'Verify phone number'},
+    getOptions: ({route}: {route: {params: {phoneNumber: string}}}) => ({
+      ...(isMobile ? {} : {headerLeft: Kb.HeaderLeftButton}),
+      headerTitle: () => (
+        <Kb.ModalHeaderTitle title="Verify phone number" subtitle={e164ToDisplay(route.params.phoneNumber)} />
+      ),
+      title: 'Verify phone number',
+    }),
     screen: React.lazy(async () => import('./phone-number/verify')),
   },
 })

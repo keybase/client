@@ -8,21 +8,24 @@ import type {ProvisionRouteError} from '@/constants/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => {
+  const {onBack, children} = p
   const styles = useStyles()
+  // in a modal the box scrolls and the route titles the error
+  const inModal = !!Kb.useModalBox()
+  const content = (
+    <>
+      <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
+      <Kb.Text type={inModal ? 'BodyBig' : 'Header'} style={styles.header}>
+        Oops, something went wrong.
+      </Kb.Text>
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+        {children}
+      </Kb.Box2>
+    </>
+  )
   return (
-    <SignupScreen
-      onBack={p.onBack}
-      buttons={isMobile ? [{label: 'Close', onClick: p.onBack}] : undefined}
-    >
-      <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
-        <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
-        <Kb.Text type="Header" style={styles.header}>
-          Oops, something went wrong.
-        </Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
-          {p.children}
-        </Kb.Box2>
-      </Kb.ScrollView>
+    <SignupScreen buttons={isMobile ? [{label: 'Close', onClick: onBack}] : undefined}>
+      {inModal ? content : <Kb.ScrollView contentContainerStyle={styles.scrollContent}>{content}</Kb.ScrollView>}
     </SignupScreen>
   )
 }

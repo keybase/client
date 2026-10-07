@@ -24,13 +24,11 @@ const Password = ({route}: Props) => {
   const onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, onResetEmailSent: () => setResetEmailSent(true), username})
   }
-  const onBack = C.Router2.navigateUp
   const [password, setPassword] = React.useState('')
   const onSubmit = () => !waiting && submitProvisionPassphrase(password)
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       waitingOverlay={true}
       banners={
         <>
@@ -54,8 +52,6 @@ const Password = ({route}: Props) => {
           waiting,
         },
       ]}
-      onBack={onBack}
-      title={isMobile ? 'Enter password' : 'Enter your password'}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView

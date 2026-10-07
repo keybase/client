@@ -47,7 +47,7 @@ const DesktopLogin = (props: Props) => {
   const _inputRef = React.useRef<Kb.Input3Ref>(null)
 
   return (
-    <SignupScreen banners={errorBanner(error)} hideDesktopHeader={!isMobile}>
+    <SignupScreen banners={errorBanner(error)}>
       <Kb.Box2
         direction="vertical"
         fullHeight={true}

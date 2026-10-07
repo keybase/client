@@ -59,66 +59,6 @@ export const InfoIcon = (props: InfoIconProps) => {
   )
 }
 
-type HeaderProps = {
-  onBack?: () => void
-  title?: string
-  titleComponent?: React.ReactNode
-  showInfoIcon: boolean
-  style: Kb.Styles.StylesCrossPlatform
-  negative: boolean
-  rightActionLabel?: string
-  onRightAction?: () => void
-}
-
-// Only used on desktop
-const Header = (props: HeaderProps) => {
-  const styles = useStyles()
-  const theme = Kb.Styles.useTheme()
-  return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
-    >
-      {props.showInfoIcon && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
-          <InfoIcon invisible={props.negative} />
-        </Kb.Box2>
-      )}
-      <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
-        {props.onBack && (
-          <Kb.ClickableBox onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                color={props.negative ? theme.white : theme.black_50}
-                sizeType="Small"
-                style={styles.fixIconAlignment}
-              />
-              <Kb.Text
-                type="Body"
-                style={props.negative ? undefined : styles.backText}
-                negative={props.negative}
-              >
-                Back
-              </Kb.Text>
-          </Kb.ClickableBox>
-        )}
-        {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
-        {props.onRightAction && !!props.rightActionLabel && (
-          <Kb.Button
-            type="Default"
-            mode="Secondary"
-            small={true}
-            label={props.rightActionLabel}
-            onClick={props.onRightAction}
-            style={styles.rightActionButton}
-          />
-        )}
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
 type ButtonMeta = {
   disabled?: boolean
   label: string
@@ -132,31 +72,61 @@ type SignupScreenProps = {
   banners?: React.ReactNode
   buttons?: Array<ButtonMeta>
   children: React.ReactNode
-  negativeHeader?: boolean
   noBackground?: boolean
-  onBack?: () => void
-  headerStyle?: Kb.Styles.StylesCrossPlatform
   containerStyle?: Kb.Styles.StylesCrossPlatform
   contentContainerStyle?: Kb.Styles.StylesCrossPlatform
   footer?: React.ReactNode
-  title?: string
-  titleComponent?: React.ReactNode
-  header?: React.ReactNode
-  rightActionLabel?: string
-  onRightAction?: () => void
-  showHeaderInfoIcon?: boolean
-  hideDesktopHeader?: boolean
+  // in a modal: false when the body is a list that scrolls itself (needs a medium box)
+  modalScroll?: boolean
   waitingOverlay?: boolean
 }
 
-// Screens with header + body bg color (i.e. all but join-or-login)
-export const SignupScreen = (props: SignupScreenProps) => {
-  const styles = useStyles()
-  // When logged out, React Navigation's header owns the title/back/action row, so this screen-level
-  // header would be a second header. Only draw it for logged-in uses (e.g. the email and phone modals).
-  const loggedIn = useConfigState(s => s.loggedIn)
-  const showDesktopHeader = !isMobile && !props.hideDesktopHeader && loggedIn
+// Screens with a body bg color (i.e. all but join-or-login). The route's header owns the title, back
+// and actions. In a modal (signup and provision screens over the logged-in app) the body sits in a
+// ModalScreen.
+export const SignupScreen = (props: SignupScreenProps) =>
+  Kb.useModalBox() ? <SignupModalScreen {...props} /> : <SignupPageScreen {...props} />
 
+const SignupButtons = ({buttons}: {buttons: ReadonlyArray<ButtonMeta>}) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+    {buttons.map(b =>
+      b.waitingKey !== undefined ? (
+        <Kb.WaitingButton key={b.label} {...b} waitingKey={b.waitingKey} fullWidth={true} />
+      ) : (
+        <Kb.Button key={b.label} {...b} fullWidth={true} />
+      )
+    )}
+  </Kb.Box2>
+)
+
+const SignupModalScreen = (props: SignupScreenProps) => {
+  const {banners, buttons, children, containerStyle, contentContainerStyle, footer, modalScroll, waitingOverlay} =
+    props
+  return (
+    <>
+      <Kb.ModalScreen
+        banner={banners}
+        footer={buttons ? <SignupButtons buttons={buttons} /> : undefined}
+        // a colored body (verify phone) already sets the footer apart
+        footerDivider={!containerStyle}
+        padding={modalScroll === false ? 'none' : 'standard'}
+        scroll={modalScroll}
+        style={containerStyle}
+      >
+        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} flex={1} style={contentContainerStyle}>
+          {children}
+        </Kb.Box2>
+        {footer}
+      </Kb.ModalScreen>
+      {waitingOverlay && <ProvisionWaitingOverlay />}
+    </>
+  )
+}
+
+const SignupPageScreen = (props: SignupScreenProps) => {
+  const {banners, buttons, children, containerStyle, contentContainerStyle, footer, noBackground, waitingOverlay} =
+    props
+  const styles = useStyles()
   return (
     <Kb.Box2
       direction="vertical"
@@ -166,54 +136,38 @@ export const SignupScreen = (props: SignupScreenProps) => {
       relative={true}
       style={styles.whiteBackground}
     >
-      {showDesktopHeader && (
-        <Header
-          onBack={props.onBack}
-          title={props.title}
-          titleComponent={props.titleComponent}
-          showInfoIcon={!!props.showHeaderInfoIcon}
-          style={Kb.Styles.collapseStyles([
-            props.noBackground && styles.whiteHeaderContainer,
-            props.headerStyle,
-          ])}
-          negative={!!props.negativeHeader}
-          rightActionLabel={props.rightActionLabel}
-          onRightAction={props.onRightAction}
-        />
-      )}
-      {isMobile && props.header}
       <Kb.Box2
         alignItems="center"
         direction="vertical"
         relative={true}
         flex={1}
         style={Kb.Styles.collapseStyles([
-          props.noBackground ? styles.whiteBackground : styles.blueBackground,
-          props.containerStyle,
+          noBackground ? styles.whiteBackground : styles.blueBackground,
+          containerStyle,
         ])}
         fullWidth={true}
       >
         <Kb.Box2
           alignItems="center"
           direction="vertical"
-          style={Kb.Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+          style={Kb.Styles.collapseStyles([styles.body, contentContainerStyle])}
           fullWidth={true}
         >
-          {props.children}
+          {children}
         </Kb.Box2>
-        {!!props.footer && (
+        {!!footer && (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.footer}>
-            {props.footer}
+            {footer}
           </Kb.Box2>
         )}
-        {!!props.banners && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
-        {!!props.buttons && (
+        {!!banners && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.banners}>{banners}</Kb.Box2>}
+        {!!buttons && (
           <Kb.ButtonBar
             direction="column"
             fullWidth={isMobile && !Kb.Styles.isTablet}
             style={styles.buttonBar}
           >
-            {props.buttons.map(b =>
+            {buttons.map(b =>
               b.waitingKey !== undefined ? (
                 <Kb.WaitingButton
                   key={b.label}
@@ -229,7 +183,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
-      {props.waitingOverlay && <ProvisionWaitingOverlay />}
+      {waitingOverlay && <ProvisionWaitingOverlay />}
     </Kb.Box2>
   )
 }
@@ -244,14 +198,6 @@ export const errorBanner = (error: string) =>
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      backButton: {
-        bottom: Kb.Styles.globalMargins.small,
-        left: Kb.Styles.globalMargins.small,
-        position: 'absolute',
-      },
-      backText: {
-        color: theme.black_50,
-      },
       banners: {
         left: 0,
         position: 'absolute',
@@ -289,39 +235,16 @@ const useStyles = Kb.Styles.createStyleHook(
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
       }),
-      fixIconAlignment: {
-        position: 'relative',
-        top: 2,
-      },
       footer: Kb.Styles.platformStyles({
         isMobile: {
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
       }),
-      headerContainer: Kb.Styles.platformStyles({
-        common: {backgroundColor: theme.white},
-        isElectron: Kb.Styles.desktopStyles.windowDragging,
-      }),
-      infoIconContainer: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
-      },
       opacityNone: {
         opacity: 0,
-      },
-      rightActionButton: Kb.Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          right: Kb.Styles.globalMargins.small,
-          top: 10,
-        },
-        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-      }),
-      titleContainer: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, Kb.Styles.globalMargins.small),
       },
       whiteBackground: {
         backgroundColor: theme.white,
       },
-      whiteHeaderContainer: Kb.Styles.bottomDivider(theme),
     }) as const
 )

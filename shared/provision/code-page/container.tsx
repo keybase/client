@@ -91,6 +91,8 @@ const CodePageContainer = (op: OwnProps) => {
 
   // We're in a modal unless this is a desktop being newly provisioned.
   const inModal = currentDeviceType !== 'desktop' || currentDeviceAlreadyProvisioned
+  // a modal route over the logged-in app (the phone's logged-out flow lays out like one, without the box)
+  const inModalBox = !!Kb.useModalBox()
 
   const body = () => {
     let content: React.ReactNode = null
@@ -260,6 +262,20 @@ const CodePageContainer = (op: OwnProps) => {
     return troubleshootingContent()
   }
   const content = body()
+  if (inModalBox) {
+    const f = footer()
+    return (
+      <Kb.ModalScreen
+        scroll={false}
+        padding="none"
+        footer={f.content}
+        footerDivider={false}
+        style={{backgroundColor: tabBackground}}
+      >
+        {content}
+      </Kb.ModalScreen>
+    )
+  }
   if (inModal) {
     const f = footer()
     return (
