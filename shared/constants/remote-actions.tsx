@@ -6,7 +6,6 @@ import type HiddenString from '@/util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
 export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
-export const engineConnection = 'remote:engineConnection'
 export const inboxRefresh = 'remote:inboxRefresh'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
@@ -55,8 +54,6 @@ export const createCloseUnlockFolders = (payload?: undefined) =>
   ({payload, type: closeUnlockFolders}) as const
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) =>
   ({payload, type: dumpLogs}) as const
-export const createEngineConnection = (payload: {readonly connected: boolean}) =>
-  ({payload, type: engineConnection}) as const
 export const createInboxRefresh = (payload?: undefined) => ({payload, type: inboxRefresh}) as const
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link}) as const
 export const createOpenChatFromWidget = (payload: {readonly conversationIDKey: string}) =>
@@ -106,7 +103,6 @@ export const createUpdateWindowShown = (payload: {readonly component: string}) =
 // Action Payloads
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
-export type EngineConnectionPayload = ReturnType<typeof createEngineConnection>
 export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
@@ -137,7 +133,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 export type Actions =
   | CloseUnlockFoldersPayload
   | DumpLogsPayload
-  | EngineConnectionPayload
   | InboxRefreshPayload
   | InstallerRanPayload
   | LinkPayload

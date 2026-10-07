@@ -9,7 +9,8 @@ import MainWindow from './main-window.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
-import {makeEngine} from '@/engine'
+import {EngineRelay} from './engine-relay.desktop'
+import KB2 from '@/util/electron'
 import {
   installCrashReporter,
   appShouldDieOnStartup,
@@ -84,30 +85,22 @@ const startApp = () => {
   devTools()
   registerPowerMonitorEvents()
 
-  const nodeEngine = makeEngine(
-    () => {},
-    (connected: boolean) => {
-      R.remoteDispatch(RemoteGen.createEngineConnection({connected}))
-    }
-  )
+  const engineRelay = new EngineRelay(data => KB2.functions.mainWindowDispatchEngineIncoming?.(data))
 
   setupIPCHandlers({
     getMainWindow,
     markAppStartedUp: () => {
       if (runtime.appStartedUp) {
-        // Renderer reloaded (e.g. Command+R). Reset the transport so replies
-        // from the old renderer session can't leak into the new one, then
-        // re-notify the renderer so it can complete its handshake and
-        // re-register UIs.
-        console.log('Renderer reload detected; resetting node engine transport')
-        nodeEngine.reset()
-        nodeEngine.listenersAreReady()
+        // Renderer reloaded (e.g. Command+R). The new renderer gets a fresh link, so it can complete
+        // its handshake and re-register UIs.
+        console.log('Renderer reload detected; restarting the engine link')
+        engineRelay.restartLink()
         R.remoteDispatch(RemoteGen.createInstallerRan())
         return
       }
 
       runtime.appStartedUp = true
-      nodeEngine.listenersAreReady()
+      engineRelay.replayLinkState()
       flushDeferredLaunch(runtime, getStartupProcessArgs)
 
       installer(err => {
@@ -117,7 +110,7 @@ const startApp = () => {
         R.remoteDispatch(RemoteGen.createInstallerRan())
       })
     },
-    nodeEngine,
+    engineRelay,
   })
 
   registerOpenHandlers({

@@ -1,12 +1,12 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
-import {errors} from './rpc-transport'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron'
+import {errors as rpcErrors} from './rpc-transport'
+import {isEOFError, isErrorTransient, type RPCError} from '@/util/errors'
 
 afterEach(() => {
   resetAllStores()
@@ -14,13 +14,20 @@ afterEach(() => {
 })
 
 // The transport fails its outstanding invocations before it tells the engine, so the engine's own
-// session cancel on disconnect finds the session already ended and the call sees EOF, not sccanceled.
-test('a call in flight when the link drops rejects with EOF', async () => {
+// session cancel on disconnect finds the session already ended and the call sees the transport's error:
+// an EOF, which the app reads as a service restart rather than as a user cancel or an error to show.
+test('a call in flight when the link drops rejects with the transport EOF error', async () => {
   const fake = installFakeEngine()
   fake.hold('keybase.1.config.getBootstrapStatus')
   const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
   fake.drop()
-  await expect(p).rejects.toMatchObject({code: errors.EOF})
+  const err = await p.then(
+    () => new Error('resolved'),
+    (e: unknown) => e as RPCError
+  )
+  expect(err).toMatchObject({code: rpcErrors.EOF, desc: 'The service connection was lost'})
+  expect(isEOFError(err)).toBe(true)
+  expect(isErrorTransient(err)).toBe(true)
   uninstallFakeEngine()
 })
 
@@ -79,18 +86,10 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
-test('reset rebuilds the link through the injected client, so calls still reach the fake', async () => {
+test('reset restarts the link, so calls still reach the fake', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'after reset'}))
-  const preload = globalThis._fromPreload as KB2
-  const {isRenderer} = preload.constants
-  // node's engine is the one that replaces its client on reset; the renderer's keeps it
-  preload.constants.isRenderer = false
-  try {
-    fake.engine.reset()
-  } finally {
-    preload.constants.isRenderer = isRenderer
-  }
+  fake.engine.reset()
   await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'after reset'})
   expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.getBootstrapStatus'])
   uninstallFakeEngine()

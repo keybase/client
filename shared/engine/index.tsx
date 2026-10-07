@@ -7,7 +7,6 @@ import {inputCanceledError, type SessionID, type MethodKey, type WaitingKey} fro
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
-  resetClient,
   createClient,
   rpcLog,
   type CreateClientType,
@@ -38,15 +37,12 @@ class Engine implements CallPort {
   _globalHeld = new Map<number, () => void>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
-  _makeClient: MakeClient
   _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
     'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
     'keybase.1.config.waitForClient': true,
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
-  // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = isMobile // mobile is always connected
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
@@ -85,7 +81,6 @@ class Engine implements CallPort {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
-    this._makeClient = makeClient
     this._rpcClient = makeClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -131,14 +126,15 @@ class Engine implements CallPort {
 
   _onDisconnect() {
     logger.warn('Engine disconnected', {
-      hasConnected: this._hasConnected,
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
     this._cancelOutstandingSessions('lostLink')
     this._forgetGlobalHeld()
-    // tell renderer we're disconnected
-    this._onConnectedCB(false)
+    // Like a link-up, a link-down is announced only once the app's listeners are ready
+    if (this._listenersAreReady) {
+      this._onConnectedCB(false)
+    }
   }
 
   // Cancel the sessions so their promises reject and flows can react, instead of hanging forever on
@@ -162,27 +158,28 @@ class Engine implements CallPort {
     }
   }
 
-  // We want to dispatch the connect action but only after listeners boot up
+  // The app is told the link is up once its listeners are ready, and once per link-up after that. A
+  // repeat call is a store re-init (mobile fast refresh, desktop HMR) whose fresh stores have heard
+  // nothing, so a link that is up is announced to them again.
   listenersAreReady = () => {
     this._listenersAreReady = true
     logger.info('Engine listenersAreReady', {
-      hasConnected: this._hasConnected,
+      linkUp: this._rpcClient.transport.isLinkUp,
       sessions: this._sessionSummary(),
     })
-    if (this._hasConnected) {
+    if (this._rpcClient.transport.isLinkUp) {
       this._onConnectedCB(true)
     }
   }
 
-  // Called when we reconnect to the server. This only happens in node in the electron side.
-  // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
-    this._hasConnected = true
     logger.info('Engine connected', {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._onConnectedCB(true)
+    if (this._listenersAreReady) {
+      this._onConnectedCB(true)
+    }
   }
 
   // Create and return the next unique session id
@@ -421,29 +418,12 @@ class Engine implements CallPort {
       return
     }
     logger.warn('Engine reset requested', {
-      hasConnected: this._hasConnected,
+      linkUp: this._rpcClient.transport.isLinkUp,
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions('lostLink')
-    // Dangling sessions survive a cancel; ending them drops their held prompts with the old link
-    for (const session of [...this._sessionsMap.values()]) {
-      session.end()
-    }
-    this._sessionsMap.clear()
-    this._forgetGlobalHeld()
-    this._queuedChanges = []
-    this._hasConnected = false
-    this._listenersAreReady = false
-    const incoming = (payload: PayloadType) => this._rpcIncoming(payload)
-    const connect = () => this._onConnected()
-    const disconnect = () => this._onDisconnect()
-    if (this._makeClient === createClient) {
-      this._rpcClient = resetClient(this._rpcClient, incoming, connect, disconnect)
-    } else {
-      this._rpcClient.transport.close()
-      this._rpcClient = this._makeClient(incoming, connect, disconnect)
-    }
+    // The transport restarts the link; its drop settles what was in flight and calls _onDisconnect
+    this._rpcClient.transport.reset()
   }
 }
 
@@ -467,6 +447,12 @@ const makeEngine = (
   if (!engine || typeof reused?.call !== 'function' || typeof reused.listen !== 'function') {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
     engine._setupDebugging()
+    if (reused) {
+      // The old engine stops hearing the service, and the link restarts: the service's calls and
+      // replies in flight carry the old engine's seqids, and the new engine needs a link-up of its own
+      reused._rpcClient?.transport.close()
+      engine._rpcClient.transport.restartLink()
+    }
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
     // pick up listener.tsx edits on HMR

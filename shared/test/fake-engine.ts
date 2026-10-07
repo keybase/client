@@ -38,8 +38,7 @@ export type FakeEngine = {
   // The service cancels every push of `method` the GUI has not answered; each settles as cancelled.
   cancelPush: (method: string) => void
   calls: Array<{method: string; params: any}>
-  // The link died. Models the desktop node-socket transport (onDisconnected), not the mobile JSI
-  // or renderer reset (failAllOutstanding).
+  // The link died: the transport's link-down path, as the renderer and mobile transports take it
   drop: () => void
   restart: () => void // the link came back: transport onConnected
   connected: () => boolean
@@ -63,7 +62,6 @@ const quietly = (f: () => void) => {
 }
 
 class FakeTransport extends TransportShared {
-  linkUp = true
   private _onWrite: (m: RPCMessage) => void
 
   constructor(
@@ -72,12 +70,8 @@ class FakeTransport extends TransportShared {
     connect: ConnectDisconnectCB,
     disconnect: ConnectDisconnectCB
   ) {
-    super(connect, disconnect, incoming)
+    super(incoming, connect, disconnect, true)
     this._onWrite = onWrite
-  }
-
-  protected override isConnected() {
-    return this.linkUp
   }
 
   protected writeMessage(m: RPCMessage) {
@@ -89,13 +83,17 @@ class FakeTransport extends TransportShared {
   }
 
   drop() {
-    this.linkUp = false
-    this.onDisconnected()
+    this.markLinkDown()
   }
 
   restart() {
-    this.linkUp = true
-    this.onConnected()
+    this.markLinkUp()
+  }
+
+  // Engine.reset: the link drops and comes back, as the desktop relay restarts it
+  override reset() {
+    this.drop()
+    this.restart()
   }
 }
 
@@ -139,7 +137,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     const reply = (a: FakeAnswer) => {
       queueMicrotask(() => {
         // The real service forgets its calls when the link dies, so a late reply goes nowhere
-        if (dead || !t.linkUp) return
+        if (dead || !t.isLinkUp) return
         t.deliver(isFakeError(a) ? [MESSAGE_TYPE_RESPONSE, seqid, a.error, null] : [MESSAGE_TYPE_RESPONSE, seqid, null, a])
       })
     }
@@ -220,7 +218,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
         settle?.({error: {code: StatusCode.sccanceled, desc: 'fake engine: the service cancelled it'}})
       }
     },
-    connected: () => getTransport().linkUp,
+    connected: () => getTransport().isLinkUp,
     drop: () => {
       // The GUI's answer to a push can no longer reach the service, so settle those pushes here.
       const settles = [...pushes.values()]
@@ -236,7 +234,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     },
     push: async (method, params, o) => {
       const t = getTransport()
-      if (dead || !t.linkUp) {
+      if (dead || !t.isLinkUp) {
         throw new Error(`fake engine: cannot push ${method} while the link is down`)
       }
       const param = [o?.sessionID === undefined ? params : {...params, sessionID: o.sessionID}]
@@ -255,10 +253,10 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
   }
 
   const shutdown = () => {
-    if (getTransport().linkUp) {
+    if (getTransport().isLinkUp) {
       fake.drop()
     }
-    // Also fails calls queued while the link was down
+    // Refuses any call made after uninstall
     getTransport().close()
     dead = true
     engine._throttledDispatchWaitingAction.flush()

@@ -54,7 +54,7 @@ class TestTransport extends RPCTransport {
 
   dropConnection() {
     this.setConnected(false)
-    this.onDisconnected()
+    this.onLinkDown()
   }
 }
 
@@ -98,14 +98,55 @@ test('invoke queues while disconnected and flushes on connect', () => {
   expect(cb).toHaveBeenCalledWith(null, {done: true})
 })
 
-test('disconnect fails outstanding invocations with EOF', () => {
+const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+
+test('a link drop fails outstanding invocations with the disconnect error', () => {
   const transport = new TestTransport()
   const cb = jest.fn()
 
   transport.invoke('keybase.1.test.hello', [{}], cb)
   transport.dropConnection()
 
-  expect(cb).toHaveBeenCalledWith(expect.objectContaining({code: errors.EOF, desc: 'EOF from server'}), {})
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+})
+
+test('after a link drop, a call made while down is refused at once and never reaches the next link', () => {
+  const transport = new TestTransport()
+  transport.dropConnection()
+  const cb = jest.fn()
+
+  transport.invoke('keybase.1.test.hello', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+
+  transport.flushConnected()
+  expect(transport.sent).toEqual([])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('after a link drop, an answer to the service made while down is dropped, not kept for the next link', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+  })
+  transport.dispatchDecodedMessage([0, 7, 'keybase.1.test.prompt', [{}]])
+  transport.dropConnection()
+
+  // Nothing is logged as a lost write: the link it was for is gone
+  const logged = jest.spyOn(logger, 'error')
+  try {
+    payload?.response?.result?.({ok: true})
+    expect(logged).not.toHaveBeenCalled()
+  } finally {
+    logged.mockRestore()
+  }
+  expect(transport.send([1, 8, null, {}])).toBe(false)
+
+  transport.flushConnected()
+  expect(transport.sent).toEqual([])
 })
 
 test('incoming invoke exposes response handlers', () => {
@@ -159,7 +200,7 @@ test('a failed write leaves no outstanding invocation', () => {
 
   // If the seqid were still outstanding, this would fail the same callback
   // a second time with EOF.
-  transport.failAllOutstanding()
+  transport.dropConnection()
   expect(cb).toHaveBeenCalledTimes(1)
 })
 
@@ -189,23 +230,25 @@ test('send reports failure when the native write throws', () => {
   expect(transport.sent).toEqual([[1, 3, null, {ok: true}]])
 })
 
-test('failAllOutstanding fails every outstanding invocation exactly once', () => {
+test('a link drop fails every outstanding invocation exactly once', () => {
   const transport = new TestTransport()
   const calls: Array<unknown> = []
   transport.invoke('keybase.1.test.a', [{}], err => calls.push(err))
   transport.invoke('keybase.1.test.b', [{}], err => calls.push(err))
 
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
 
   expect(calls).toHaveLength(2)
   expect(calls.every(e => (e as {code?: number} | undefined)?.code === errors.EOF)).toBe(true)
 
   // A second call must not re-fail anything already failed.
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
   expect(calls).toHaveLength(2)
 })
 
-test('a callback that re-enters with a new invoke during failAllOutstanding is not itself failed', () => {
+test('a callback that re-enters with a new invoke during a link drop sees that call refused once', () => {
   const transport = new TestTransport()
   const calls: Array<unknown> = []
   const reentrant = jest.fn()
@@ -216,10 +259,11 @@ test('a callback that re-enters with a new invoke during failAllOutstanding is n
   })
   transport.invoke('keybase.1.test.b', [{}], err => calls.push(err))
 
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
 
   expect(calls).toHaveLength(2)
-  expect(reentrant).not.toHaveBeenCalled()
+  expect(reentrant).toHaveBeenCalledTimes(1)
 })
 
 test('a throwing callback does not stop the remaining outstanding invocations from being failed', () => {
@@ -233,17 +277,18 @@ test('a throwing callback does not stop the remaining outstanding invocations fr
   transport.invoke('keybase.1.test.b', [{}], () => calls.push(2))
   transport.invoke('keybase.1.test.c', [{}], () => calls.push(3))
 
-  expect(() => transport.failAllOutstanding()).not.toThrow()
+  expect(() => transport.dropConnection()).not.toThrow()
 
   expect(calls).toEqual([1, 2, 3])
 })
 
-test('a reset cycle fails outstanding invocations once and a post-reset invocation gets a fresh, non-colliding seqid that dispatches correctly', () => {
+test('a link drop and reconnect fail outstanding invocations once, and a later invocation gets a fresh, non-colliding seqid that dispatches correctly', () => {
   const transport = new TestTransport()
   const preResetCb = jest.fn()
   transport.invoke('keybase.1.test.old', [{}], preResetCb)
 
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
   expect(preResetCb).toHaveBeenCalledTimes(1)
 
   const preResetSeqids = new Set(
@@ -263,13 +308,14 @@ test('a reset cycle fails outstanding invocations once and a post-reset invocati
   expect(postResetCb).toHaveBeenCalledWith(null, {ok: 'post-reset'})
 })
 
-test('a response for a pre-reset seqid arriving after reset is ignored', () => {
+test('a response for a seqid failed by a link drop, arriving later, is ignored', () => {
   const transport = new TestTransport()
   const preResetCb = jest.fn()
   transport.invoke('keybase.1.test.old', [{}], preResetCb)
   const [, preResetSeqid] = transport.sent[0] as [number, number, string, [object]]
 
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
   expect(preResetCb).toHaveBeenCalledTimes(1)
 
   // A stale response for the pre-reset seqid shows up late -- the seqid is
@@ -289,7 +335,8 @@ test('seqids keep advancing after outstanding invocations are failed, so a late 
   const preResetSeqids = new Set(transport.sent.map(m => (m as [number, number, string, [object]])[1]))
   expect(preResetSeqids.size).toBe(3)
 
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
 
   transport.invoke('keybase.1.test.d', [{}], () => {})
   transport.invoke('keybase.1.test.e', [{}], () => {})
@@ -478,7 +525,7 @@ test('a frame split at every possible byte boundary across two packetizeData cal
   }
 })
 
-test('failAllOutstanding clears buffered frame bytes', () => {
+test('a link drop clears buffered frame bytes', () => {
   const delivered: Array<unknown> = []
   const transport = new TestTransport({
     incomingRPCCallback: incoming => {
@@ -489,7 +536,8 @@ test('failAllOutstanding clears buffered frame bytes', () => {
   // Feed half a frame -- the packetizer buffers a partial header+payload.
   const first = encodeFrame([2, 'keybase.1.test.first', [{}]])
   transport.packetizeData(first.slice(0, first.length - 2))
-  transport.failAllOutstanding()
+  transport.dropConnection()
+  transport.flushConnected()
 
   // A complete, unrelated frame arrives next. If the stale half-frame was not
   // dropped, it prefixes these bytes and corrupts the decode.

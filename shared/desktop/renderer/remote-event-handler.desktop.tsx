@@ -5,7 +5,6 @@ import * as Tabs from '@/constants/tabs'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {navigateAppend, navigateToThread, previewConversation, switchTab} from '@/constants/router'
-import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index'
 import {emitDeepLink} from '@/router-v2/linking'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
@@ -111,15 +110,6 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     }
     case RemoteGen.inboxRefresh: {
       ignorePromise(useInboxLayoutState.getState().dispatch.refresh('widgetRefresh'))
-      break
-    }
-    case RemoteGen.engineConnection: {
-      logger.info('remote engineConnection', {connected: action.payload.connected})
-      if (action.payload.connected) {
-        onEngineConnected()
-      } else {
-        onEngineDisconnected()
-      }
       break
     }
     case RemoteGen.switchTab: {
