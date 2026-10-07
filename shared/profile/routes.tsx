@@ -155,7 +155,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {modalSize: 'medium', title: 'Prove your...'},
   }),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
-    getOptions: {modalSize: 'medium'},
+    getOptions: ({route}) => ({title: route.params.platform === 'pgp' ? 'Drop PGP key' : 'Revoke proof'}),
   }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
     getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'medium'},

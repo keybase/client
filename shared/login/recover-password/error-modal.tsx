@@ -16,16 +16,11 @@ const ErrorModal = ({route}: Props) => {
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} padding="small">
-        <Kb.Text type="Body" center={true}>
-          {error}
-        </Kb.Text>
-      </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.Button label="Back" onClick={onBack} fullWidth={true} />
-      </Kb.ModalFooter>
-    </>
+    <Kb.ModalScreen centered={true} footer={<Kb.Button label="Back" onClick={onBack} fullWidth={true} />}>
+      <Kb.Text type="Body" center={true}>
+        {error}
+      </Kb.Text>
+    </Kb.ModalScreen>
   )
 }
 export default ErrorModal

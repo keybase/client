@@ -56,11 +56,7 @@ const ReallyLeaveTeam = (props: Props) => {
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={onLeave}
-      prompt={
-        <Kb.Text type="Header" center={true} style={styles.prompt}>
-          Leave {props.name}?
-        </Kb.Text>
-      }
+      prompt={`Leave ${props.name}?`}
       waitingKey={C.waitingKeyTeamsLeaveTeam(props.name)}
     />
   )
@@ -69,19 +65,7 @@ const ReallyLeaveTeam = (props: Props) => {
 const useStyles = Kb.Styles.createStyleHook(
   () =>
     ({
-      checkBox: Kb.Styles.platformStyles({
-        common: {
-          marginBottom: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          ...Kb.Styles.marginH(48),
-        },
-        isMobile: {
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
-          marginTop: 12,
-        },
-      }),
+      checkBox: {marginTop: Kb.Styles.globalMargins.tiny},
       headerIcon: {
         position: 'relative',
         top: 1,
@@ -91,7 +75,6 @@ const useStyles = Kb.Styles.createStyleHook(
         marginTop: -20,
         zIndex: 1,
       },
-      prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
     }) as const
 )
 

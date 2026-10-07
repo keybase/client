@@ -125,7 +125,9 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
+  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete')), {
+    getOptions: {title: 'Delete'},
+  }),
   destinationPicker: C.makeScreen(
     React.lazy(async () => import('./browser/destination-picker')),
     {

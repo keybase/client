@@ -222,11 +222,11 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatConfirmNavigateExternal: makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
-    {skipProvider: true}
+    {getOptions: {title: 'Open link?'}, skipProvider: true}
   ),
   chatConfirmRemoveBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
-    {canBeNullConvoID: true}
+    {canBeNullConvoID: true, getOptions: {title: 'Uninstall bot'}}
   ),
   chatCreateChannel: makeChatScreen(
     React.lazy(async () => import('./create-channel')),
@@ -236,7 +236,9 @@ export const newModalRoutes = defineRouteMap({
       skipProvider: true,
     }
   ),
-  chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
+  chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning')), {
+    getOptions: {title: 'Clear history'},
+  }),
   chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {

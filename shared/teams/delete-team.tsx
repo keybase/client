@@ -68,11 +68,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
           </Kb.Text>
         }
         header={<Header teamname={teamname} />}
-        prompt={
-          <Kb.Text type="Header" center={true} style={Kb.Styles.padding(0, Kb.Styles.globalMargins.small)}>
-            {`You can't delete ${teamname} because it has subteams.`}
-          </Kb.Text>
-        }
+        prompt={`You can't delete ${teamname} because it has subteams.`}
         onCancel={onBack}
       />
     )

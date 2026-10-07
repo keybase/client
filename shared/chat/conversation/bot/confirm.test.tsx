@@ -106,7 +106,7 @@ describe('ConfirmBotRemove', () => {
     rpc.on('previewConversation', () => previewResult(['testuser', 'testuser-mac']))
 
     renderConfirm()
-    expect(screen.getByText('Are you sure you want to uninstall helperbot?')).toBeTruthy()
+    expect(screen.getByText('Uninstall helperbot?')).toBeTruthy()
     await clickConfirm()
 
     expect(rpc.calls('removeBotMember')).toEqual([
