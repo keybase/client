@@ -61,12 +61,9 @@ const EditAvatarHeaderTitle = ({
 }) => {
   if (teamID) {
     const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-    if (isMobile) {
-      return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
-    }
-    return <Kb.Text type="BodyBig">{title}</Kb.Text>
+    return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
   }
-  return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
+  return <Kb.ModalHeaderTitle title="Upload an avatar" />
 }
 
 const EditAvatarWizardHeaderRight = ({
@@ -107,10 +104,7 @@ export const newModalRoutes = defineRouteMap({
   profileAddToTeam: C.makeScreen(
     React.lazy(async () => import('./add-to-team')),
     {
-      getOptions: {
-        modalSize: 'medium',
-        overlayTransparent: false,
-      },
+      getOptions: ({route}) => ({modalSize: 'medium', title: `Add ${route.params.username} to...`}),
     }
   ),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
@@ -143,13 +137,14 @@ export const newModalRoutes = defineRouteMap({
           wizard={route.params.wizard}
         />
       ),
+      modalSize: 'medium',
     }),
   }),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import')), {
-    getOptions: Kb.doneModalOptions(''),
+    getOptions: Kb.doneModalOptions('Import a PGP key'),
   }),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
-    getOptions: {modalSize: 'medium'},
+    getOptions: {title: 'Add a PGP key'},
   }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalSize: 'medium', title: 'Prove your...'},

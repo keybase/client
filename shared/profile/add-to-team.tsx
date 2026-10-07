@@ -208,101 +208,78 @@ const AddToTeam = (ownProps: OwnProps) => {
   const selectedTeamCount = selectedTeams.size
 
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        alignItems="center"
-        fullWidth={true}
-        fullHeight={true}
-        style={styles.container}
-        gap="xsmall"
-        gapStart={true}
-      >
-        {addUserToTeamsState === 'failed' && (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            noShrink={true}
-            style={styles.addUserToTeamsResultsBox}
-          >
+    <Kb.ModalScreen
+      padding="none"
+      banner={
+        addUserToTeamsState === 'failed' ? (
+          <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true} style={styles.addUserToTeamsResultsBox}>
             <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
               {addUserToTeamsResults}
             </Kb.Text>
           </Kb.Box2>
-        )}
-        <Kb.Box2 direction="horizontal">
-          <Kb.Text type="Header">Add</Kb.Text>
-          <Kb.Avatar isTeam={false} size={16} style={styles.headerAvatar} username={them} />
-          <Kb.Text type="Header">{them} to...</Kb.Text>
-        </Kb.Box2>
-        <Kb.BoxGrow style={styles.boxGrow}>
-          <Kb.ScrollView style={Kb.Styles.size('100%')}>
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamListInner}>
-              {!waiting ? (
-                teamProfileAddList.length > 0 ? (
-                  teamProfileAddList.map(team => (
-                    <TeamRow
-                      canAddThem={!team.disabledReason}
-                      checked={selectedTeams.has(team.teamName)}
-                      disabledReason={team.disabledReason}
-                      key={team.teamName}
-                      name={team.teamName}
-                      isOpen={team.open}
-                      onCheck={selected => {
-                        toggleTeamSelected(team.teamName, selected)
-                      }}
-                      them={them}
-                    />
-                  ))
-                ) : (
-                  <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
-                    <Kb.Text center={true} type="Body">
-                      {"Looks like you haven't joined any teams yet yourself!"}
-                    </Kb.Text>
-                    <Kb.Text center={true} type="Body">
-                      You can join teams over in the Teams tab.
-                    </Kb.Text>
-                  </Kb.Box2>
-                )
-              ) : (
-                <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
-                  <Kb.ProgressIndicator style={styles.progress} />
-                </Kb.Box2>
-              )}
-            </Kb.Box2>
-          </Kb.ScrollView>
-        </Kb.BoxGrow>
-        <Kb.Box2 direction="horizontal" noShrink={true} alignItems="center" style={styles.addToTeam}>
-          <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
-            {them} will be added as a
-          </Kb.Text>
-          <FloatingRolePicker
-            presetRole={selectedRole}
-            footerComponent={footerComponent}
-            onConfirm={onConfirmRolePicker}
-            onCancel={onCancelRolePicker}
-            position="top center"
-            open={rolePickerOpen}
-            disabledRoles={disabledReasonsForRolePicker}
-          >
-            <InlineDropdown textWrapperType="BodySmall" label={selectedRole} onPress={onOpenRolePicker} />
-          </FloatingRolePicker>
-        </Kb.Box2>
-      </Kb.Box2>
-      <Kb.ModalFooter>
-        <Kb.ButtonBar small={true} fullWidth={true} style={styles.buttonBar}>
-          {!isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
-          <Kb.WaitingButton
-            disabled={selectedTeamCount === 0}
-            fullWidth={isMobile}
-            style={styles.addButton}
-            onClick={onSave}
-            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+        ) : undefined
+      }
+      footer={
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall">
+          <Kb.Box2 direction="horizontal" alignItems="center" style={styles.addToTeam}>
+            <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
+              {them} will be added as a
+            </Kb.Text>
+            <FloatingRolePicker
+              presetRole={selectedRole}
+              footerComponent={footerComponent}
+              onConfirm={onConfirmRolePicker}
+              onCancel={onCancelRolePicker}
+              position="top center"
+              open={rolePickerOpen}
+              disabledRoles={disabledReasonsForRolePicker}
+            >
+              <InlineDropdown textWrapperType="BodySmall" label={selectedRole} onPress={onOpenRolePicker} />
+            </FloatingRolePicker>
+          </Kb.Box2>
+          <Kb.ConfirmButtons
+            split={true}
+            onCancel={onBack}
+            onConfirm={onSave}
+            confirmLabel={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+            confirmDisabled={selectedTeamCount === 0}
             waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
           />
-        </Kb.ButtonBar>
-      </Kb.ModalFooter>
-    </>
+        </Kb.Box2>
+      }
+    >
+      {!waiting ? (
+        teamProfileAddList.length > 0 ? (
+          teamProfileAddList.map(team => (
+            <TeamRow
+              canAddThem={!team.disabledReason}
+              checked={selectedTeams.has(team.teamName)}
+              disabledReason={team.disabledReason}
+              key={team.teamName}
+              name={team.teamName}
+              isOpen={team.open}
+              onCheck={selected => {
+                toggleTeamSelected(team.teamName, selected)
+              }}
+              them={them}
+            />
+          ))
+        ) : (
+          <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} padding="small">
+            <Kb.Text center={true} type="Body">
+              {"Looks like you haven't joined any teams yet yourself!"}
+            </Kb.Text>
+            <Kb.Text center={true} type="Body">
+              You can join teams over in the Teams tab.
+            </Kb.Text>
+          </Kb.Box2>
+        )
+      ) : (
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} padding="small">
+          <Kb.ProgressIndicator style={styles.progress} />
+        </Kb.Box2>
+      )}
+    </Kb.ModalScreen>
   )
 }
 
@@ -354,53 +331,21 @@ const TeamRow = (props: RowProps) => {
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      addButton: Kb.Styles.platformStyles({
-        isMobile: {width: '100%'},
-      }),
-      boxGrow: {width: '100%'},
       progress: {width: 64},
-      teamListInner: {flexShrink: 1},
-      addToTeam: Kb.Styles.platformStyles({
-        common: {
-          flexWrap: 'wrap',
-          marginBottom: Kb.Styles.globalMargins.small,
-          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
-        },
-        isElectron: {marginTop: Kb.Styles.globalMargins.small},
-      }),
+      addToTeam: {flexWrap: 'wrap'},
       addToTeamTitle: Kb.Styles.platformStyles({
         common: {marginRight: Kb.Styles.globalMargins.tiny},
         isMobile: {
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         },
       }),
-      addUserToTeamsResultsBox: {
-        backgroundColor: theme.red,
-        marginBottom: Kb.Styles.globalMargins.small,
-      },
+      addUserToTeamsResultsBox: {backgroundColor: theme.red},
       addUserToTeamsResultsText: {
         margin: Kb.Styles.globalMargins.tiny,
         textAlign: 'center',
         width: '100%',
       },
-      buttonBar: Kb.Styles.platformStyles({
-        isMobile: {
-          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
-        },
-      }),
-      container: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: theme.white,
-          flexGrow: 1,
-          flexShrink: 1,
-        },
-        isElectron: {maxHeight: '100%'},
-      }),
       divider: {marginLeft: 69},
-      headerAvatar: Kb.Styles.platformStyles({
-        isElectron: {...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny)},
-        isMobile: {marginLeft: Kb.Styles.globalMargins.xxtiny, marginRight: Kb.Styles.globalMargins.tiny},
-      }),
       meta: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,

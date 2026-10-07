@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {produce} from 'immer'
 import {RPCError} from '@/util/errors'
-import Modal from '@/profile/modal'
 import * as Validators from '@/util/simple-validators'
 
 type GeneratePgpArgs = {
@@ -106,20 +105,18 @@ const generatePgp = async (
   }
 }
 
-export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
-  <Modal onCancel={onCancel}>
-    <Kb.Box2 alignSelf="center" direction="vertical" gap="small" gapEnd={true}>
-      <Kb.Text center={true} type="Header">
-        Add a PGP key
-      </Kb.Text>
-      <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
-    </Kb.Box2>
-  </Modal>
+// phone: the header's Cancel closes it
+export const PgpMobileUnsupported = () => (
+  <Kb.ModalScreen centered={true}>
+    <Kb.Text type="Body" center={true}>
+      For now, please use our desktop app to create PGP keys.
+    </Kb.Text>
+  </Kb.ModalScreen>
 )
 
 export default function Choice() {
   const styles = useStyles()
-  const {clearModals, navigateAppend, navigateUp} = C.Router2
+  const {clearModals, navigateAppend} = C.Router2
   const mountedRef = React.useRef(true)
   const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
   const finishCurrentRef = React.useRef<undefined | ((shouldStoreKeyOnServer: boolean) => void)>(undefined)
@@ -138,7 +135,7 @@ export default function Choice() {
   }, [])
 
   if (isMobile) {
-    return <PgpMobileUnsupported onCancel={() => navigateUp()} />
+    return <PgpMobileUnsupported />
   }
 
   const setStepSafe = (next: Step) => {
@@ -190,97 +187,83 @@ export default function Choice() {
     switch (step.kind) {
       case 'choice':
         return (
-          <Kb.Box2 direction="vertical" gap="small">
-            <Kb.Text type="Header">Add a PGP key</Kb.Text>
-            <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
-              <Kb.ListItem
-                type="Card"
-                firstItem={true}
-                icon={<Kb.IconAuto type="icon-pgp-key-new-48" />}
-                body={
-                  <Kb.Box2 direction="vertical" fullWidth={true}>
-                    <Kb.Text type="BodyBigLink">Get a new PGP key</Kb.Text>
-                    <Kb.Text type="Body">
-                      Keybase will generate a new PGP key and add it to your profile.
-                    </Kb.Text>
-                  </Kb.Box2>
-                }
-                onClick={onShowGetNew}
-              />
-              <Kb.ListItem
-                type="Card"
-                firstItem={true}
-                icon={<Kb.IconAuto type="icon-pgp-key-import-48" />}
-                body={
-                  <Kb.Box2 direction="vertical" fullWidth={true}>
-                    <Kb.Text type="BodyBigLink">I have one already</Kb.Text>
-                    <Kb.Text type="Body">Import an existing PGP key to your Keybase profile.</Kb.Text>
-                  </Kb.Box2>
-                }
-                onClick={onShowImport}
-              />
-            </Kb.Box2>
+          <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+            <Kb.ListItem
+              type="Card"
+              firstItem={true}
+              icon={<Kb.IconAuto type="icon-pgp-key-new-48" />}
+              body={
+                <Kb.Box2 direction="vertical" fullWidth={true}>
+                  <Kb.Text type="BodyBigLink">Get a new PGP key</Kb.Text>
+                  <Kb.Text type="Body">
+                    Keybase will generate a new PGP key and add it to your profile.
+                  </Kb.Text>
+                </Kb.Box2>
+              }
+              onClick={onShowGetNew}
+            />
+            <Kb.ListItem
+              type="Card"
+              firstItem={true}
+              icon={<Kb.IconAuto type="icon-pgp-key-import-48" />}
+              body={
+                <Kb.Box2 direction="vertical" fullWidth={true}>
+                  <Kb.Text type="BodyBigLink">I have one already</Kb.Text>
+                  <Kb.Text type="Body">Import an existing PGP key to your Keybase profile.</Kb.Text>
+                </Kb.Box2>
+              }
+              onClick={onShowImport}
+            />
           </Kb.Box2>
         )
       case 'info':
         return (
-          <>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
-              <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
-              <Kb.Text type="BodySemibold" style={styles.centered}>
-                Fill in your public info.
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
+            <Kb.Text type="BodySemibold" style={styles.centered}>
+              Fill in your public info.
+            </Kb.Text>
+            <Kb.Input3
+              textType="BodySemibold"
+              autoFocus={true}
+              placeholder="Your full name"
+              value={data.pgpFullName}
+              onChangeText={pgpFullName => onUpdate({pgpFullName})}
+            />
+            <Kb.Input3
+              textType="BodySemibold"
+              placeholder="Email 1"
+              onChangeText={pgpEmail1 => onUpdate({pgpEmail1})}
+              onEnterKeyDown={onGenerate}
+              value={data.pgpEmail1}
+              error={data.pgpErrorEmail1}
+            />
+            <Kb.Input3
+              textType="BodySemibold"
+              placeholder="Email 2 (optional)"
+              onChangeText={pgpEmail2 => onUpdate({pgpEmail2})}
+              onEnterKeyDown={onGenerate}
+              value={data.pgpEmail2}
+              error={data.pgpErrorEmail2}
+            />
+            <Kb.Input3
+              textType="BodySemibold"
+              placeholder="Email 3 (optional)"
+              onChangeText={pgpEmail3 => onUpdate({pgpEmail3})}
+              onEnterKeyDown={onGenerate}
+              value={data.pgpEmail3}
+              error={data.pgpErrorEmail3}
+            />
+            <Kb.Text type={data.pgpErrorText ? 'BodySmallError' : 'BodySmall'}>
+              {data.pgpErrorText || 'Include any addresses you plan to use for PGP encrypted email.'}
               </Kb.Text>
-              <Kb.Input3
-                textType="BodySemibold"
-                autoFocus={true}
-                placeholder="Your full name"
-                value={data.pgpFullName}
-                onChangeText={pgpFullName => onUpdate({pgpFullName})}
-              />
-              <Kb.Input3
-                textType="BodySemibold"
-                placeholder="Email 1"
-                onChangeText={pgpEmail1 => onUpdate({pgpEmail1})}
-                onEnterKeyDown={onGenerate}
-                value={data.pgpEmail1}
-                error={data.pgpErrorEmail1}
-              />
-              <Kb.Input3
-                textType="BodySemibold"
-                placeholder="Email 2 (optional)"
-                onChangeText={pgpEmail2 => onUpdate({pgpEmail2})}
-                onEnterKeyDown={onGenerate}
-                value={data.pgpEmail2}
-                error={data.pgpErrorEmail2}
-              />
-              <Kb.Input3
-                textType="BodySemibold"
-                placeholder="Email 3 (optional)"
-                onChangeText={pgpEmail3 => onUpdate({pgpEmail3})}
-                onEnterKeyDown={onGenerate}
-                value={data.pgpEmail3}
-                error={data.pgpErrorEmail3}
-              />
-              <Kb.Text type={data.pgpErrorText ? 'BodySmallError' : 'BodySmall'}>
-                {data.pgpErrorText || 'Include any addresses you plan to use for PGP encrypted email.'}
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 fullWidth={true} direction="horizontal" gap="small">
-              <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-              <Kb.Button
-                label="Let the math begin"
-                disabled={nextDisabled}
-                onClick={onGenerate}
-                style={styles.math}
-              />
-            </Kb.Box2>
-          </>
+          </Kb.Box2>
         )
       case 'generate':
         return (
           <Kb.Box2 alignSelf="center" direction="vertical" gap="small" alignItems="center">
             <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
-            <Kb.Text type="Header">Generating your unique key...</Kb.Text>
+            <Kb.Text type="BodyBig">Generating your unique key...</Kb.Text>
             <Kb.Text type="Body">
               Math time! You are about to discover a 4096-bit key pair.
               <br />
@@ -290,26 +273,43 @@ export default function Choice() {
           </Kb.Box2>
         )
       case 'finished':
-        return (
-          <Finished
-            onDone={shouldStoreKeyOnServer => {
-              const finish = finishCurrentRef.current
-              finishCurrentRef.current = undefined
-              finish?.(shouldStoreKeyOnServer)
-              clearModals()
-            }}
-            pgpKeyString={step.pgpKeyString}
-            promptShouldStoreKeyOnServer={step.promptShouldStoreKeyOnServer}
-          />
-        )
+        return null
     }
   })()
 
-  const skipButton = step.kind === 'info' || step.kind === 'finished'
+  if (step.kind === 'finished') {
+    return (
+      <Finished
+        onDone={shouldStoreKeyOnServer => {
+          const finish = finishCurrentRef.current
+          finishCurrentRef.current = undefined
+          finish?.(shouldStoreKeyOnServer)
+          clearModals()
+        }}
+        pgpKeyString={step.pgpKeyString}
+        promptShouldStoreKeyOnServer={step.promptShouldStoreKeyOnServer}
+      />
+    )
+  }
+
   return (
-    <Modal onCancel={onCancel} skipButton={skipButton}>
+    <Kb.ModalScreen
+      footer={
+        step.kind === 'info' ? (
+          <Kb.ConfirmButtons
+            split={true}
+            onCancel={onCancel}
+            onConfirm={onGenerate}
+            confirmLabel="Let the math begin"
+            confirmDisabled={nextDisabled}
+          />
+        ) : (
+          <Kb.Button type="Dim" label="Cancel" onClick={onCancel} fullWidth={true} />
+        )
+      }
+    >
       {content}
-    </Modal>
+    </Kb.ModalScreen>
   )
 }
 
@@ -323,39 +323,45 @@ const Finished = (props: {
   const [shouldStoreKeyOnServer, setShouldStoreKeyOnServer] = React.useState(false)
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" gap="tiny">
-      <PlatformIcon platform="pgp" overlay="icon-proof-success" />
-      <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
-      <Kb.Text type="Body">
-        {
-          "Your private key has been written to Keybase's local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG's keychain."
-        }
-      </Kb.Text>
-      {isMobile ? null : (
-        <textarea
-          style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)}
-          readOnly={true}
-          value={props.pgpKeyString}
+    <Kb.ModalScreen
+      footer={
+        <Kb.Button
+          fullWidth={true}
+          onClick={() => onDone(shouldStoreKeyOnServer)}
+          label={shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
         />
-      )}
-      {props.promptShouldStoreKeyOnServer && (
-        <Kb.Box2 direction="vertical">
-          <Kb.Checkbox
-            onCheck={setShouldStoreKeyOnServer}
-            checked={shouldStoreKeyOnServer}
-            label="Store encrypted private key on Keybase's server"
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" gap="tiny" fullWidth={true}>
+        <PlatformIcon platform="pgp" overlay="icon-proof-success" />
+        <Kb.Text type="BodyBig">Here is your unique public key!</Kb.Text>
+        <Kb.Text type="Body">
+          {
+            "Your private key has been written to Keybase's local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG's keychain."
+          }
+        </Kb.Text>
+        {isMobile ? null : (
+          <textarea
+            style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)}
+            readOnly={true}
+            value={props.pgpKeyString}
           />
-          <Kb.Text type="BodySmall">
-            Allows you to download & import your key to other devices. You might need to enter your Keybase
-            password.{' '}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
-      <Kb.Button
-        onClick={() => onDone(shouldStoreKeyOnServer)}
-        label={shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
-      />
-    </Kb.Box2>
+        )}
+        {props.promptShouldStoreKeyOnServer && (
+          <Kb.Box2 direction="vertical">
+            <Kb.Checkbox
+              onCheck={setShouldStoreKeyOnServer}
+              checked={shouldStoreKeyOnServer}
+              label="Store encrypted private key on Keybase's server"
+            />
+            <Kb.Text type="BodySmall">
+              Allows you to download & import your key to other devices. You might need to enter your Keybase
+              password.{' '}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -363,7 +369,6 @@ const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
       centered: {alignSelf: 'center'},
-      math: {flexGrow: 1},
       pgpKeyString: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fontTerminal,

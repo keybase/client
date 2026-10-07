@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
-import Modal from '../modal'
 import {SiteIcon} from './site-icon'
 import {normalizeProofUsername} from '../proof-utils'
 import {openURL as openUrl} from '@/util/misc'
@@ -533,18 +532,20 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
     switch (step.kind) {
       case 'loading':
         return (
-          <Modal onCancel={closeModal} skipButton={true}>
+          <Kb.ModalScreen centered={true}>
             <Kb.Box2 direction="vertical" alignItems="center" gap="small" fullWidth={true}>
               <Kb.ProgressIndicator />
               <Kb.Text center={true} type="Body">
                 Starting proof...
               </Kb.Text>
             </Kb.Box2>
-          </Modal>
+          </Kb.ModalScreen>
         )
       case 'websiteChoice':
         return (
-          <Modal onCancel={closeModal}>
+          <Kb.ModalScreen
+            footer={isMobile ? undefined : <Kb.Button type="Dim" label="Cancel" onClick={closeModal} fullWidth={true} />}
+          >
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text center={true} type="Header">
                 Prove your website in two ways:
@@ -578,7 +579,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
                 />
               </Kb.Box2>
             </Kb.Box2>
-          </Modal>
+          </Kb.ModalScreen>
         )
       case 'enterUsername':
         return (
@@ -696,7 +697,11 @@ const ProviderPicker = ({
   })()
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={isMobile ? undefined : <Kb.Button type="Dim" label="Cancel" onClick={onCancel} fullWidth={true} />}
+    >
       <Kb.Input3
         autoFocus={true}
         containerStyle={styles.inputContainer}
@@ -707,61 +712,56 @@ const ProviderPicker = ({
         placeholder={`Search ${providers.length} platforms`}
         value={filter}
       />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <Kb.BoxGrow2>
-          <Kb.List
-            itemHeight={itemHeight}
-            items={items}
-            keyProperty="key"
-            renderItem={(_: unknown, provider: Provider) => (
-              <React.Fragment key={provider.name}>
-                <Kb.Divider />
-                <Kb.ClickableBox
-                  direction="horizontal"
-                  alignItems="center"
-                  justifyContent="flex-start"
-                  fullWidth={true}
-                  className="hover_background_color_blueLighter2"
-                  onClick={() => onSelect(provider.key)}
-                  style={styles.containerBox}
-                >
-                  <SiteIcon full={true} set={provider.icon} style={styles.icon} />
-                  <Kb.Box2 direction="vertical" fullWidth={true}>
-                    <Kb.Text type="BodySemibold" style={styles.title}>
-                      {provider.name}
-                    </Kb.Text>
-                    {(provider.new || !!provider.desc) && (
-                      <Kb.Box2 direction="horizontal" alignItems="flex-start">
-                        {provider.new && (
-                          <Kb.Meta
-                            title="NEW"
-                            backgroundColor={theme.blue}
-                            style={styles.new}
-                          />
-                        )}
-                        <Kb.Text type="BodySmall" style={styles.description}>
-                          {provider.desc}
-                        </Kb.Text>
-                      </Kb.Box2>
-                    )}
-                  </Kb.Box2>
-                  <Kb.Icon
-                    color={theme.black_50}
-                    fontSize={isMobile ? 20 : 16}
-                    style={styles.iconArrow}
-                    type="iconfont-arrow-right"
-                  />
-                </Kb.ClickableBox>
-              </React.Fragment>
-            )}
-          />
-        </Kb.BoxGrow2>
-        <Kb.Divider />
-        <Kb.Box2 direction="horizontal" justifyContent="center" padding="medium">
-          <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-        </Kb.Box2>
-      </Kb.Box2>
-    </Kb.Box2>
+      <Kb.BoxGrow2>
+        <Kb.List
+          itemHeight={itemHeight}
+          items={items}
+          keyProperty="key"
+          renderItem={(_: unknown, provider: Provider) => (
+            <React.Fragment key={provider.name}>
+              <Kb.Divider />
+              <Kb.ClickableBox
+                direction="horizontal"
+                alignItems="center"
+                justifyContent="flex-start"
+                fullWidth={true}
+                className="hover_background_color_blueLighter2"
+                onClick={() => onSelect(provider.key)}
+                style={styles.containerBox}
+              >
+                <SiteIcon full={true} set={provider.icon} style={styles.icon} />
+                <Kb.Box2 direction="vertical" fullWidth={true}>
+                  <Kb.Text type="BodySemibold" style={styles.title}>
+                    {provider.name}
+                  </Kb.Text>
+                  {(provider.new || !!provider.desc) && (
+                    <Kb.Box2 direction="horizontal" alignItems="flex-start">
+                      {provider.new && (
+                        <Kb.Meta
+                          title="NEW"
+                          backgroundColor={theme.blue}
+                          style={styles.new}
+                        />
+                      )}
+                      <Kb.Text type="BodySmall" style={styles.description}>
+                        {provider.desc}
+                      </Kb.Text>
+                    </Kb.Box2>
+                  )}
+                </Kb.Box2>
+                <Kb.Icon
+                  color={theme.black_50}
+                  fontSize={isMobile ? 20 : 16}
+                  style={styles.iconArrow}
+                  type="iconfont-arrow-right"
+                />
+              </Kb.ClickableBox>
+            </React.Fragment>
+          )}
+        />
+      </Kb.BoxGrow2>
+      <Kb.Divider />
+    </Kb.ModalScreen>
   )
 }
 
@@ -825,7 +825,18 @@ const EnterUsername = ({
   }
 
   return (
-    <Modal onCancel={onCancel} skipButton={true}>
+    <Kb.ModalScreen
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waitingKey={C.waitingKeyProfile}
+          onCancel={onCancel}
+          onConfirm={submit}
+          confirmLabel="Continue"
+          confirmDisabled={!canSubmit}
+        />
+      }
+    >
       {!!errorText && <ErrorBanner>{errorText}</ErrorBanner>}
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
         {isMobile ? null : (
@@ -847,15 +858,8 @@ const EnterUsername = ({
           value={username}
         />
         <UsernameTips platform={platform} />
-        <Kb.ConfirmButtons
-          waitingKey={C.waitingKeyProfile}
-          onCancel={onCancel}
-          onConfirm={submit}
-          confirmLabel="Continue"
-          confirmDisabled={!canSubmit}
-        />
       </Kb.Box2>
-    </Modal>
+    </Kb.ModalScreen>
   )
 }
 
@@ -887,8 +891,7 @@ const GenericEnterUsername = ({
     )
   const unreachable = !!step.proofUrl
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {!unreachable && !isMobile && <Kb.BackButton onClick={onCancel} style={styles.backButton} />}
+    <Kb.ModalScreen scroll={false} padding="none">
       <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
         <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={step.genericParams.logoFull} full={true} style={styles.serviceIconFull} />
@@ -976,7 +979,7 @@ const GenericEnterUsername = ({
           )}
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -1027,65 +1030,59 @@ const PostProof = ({
   const DescriptionView = descriptionMap[step.platform] ?? EmptyDescription
 
   return (
-    <Modal onCancel={onCancel} skipButton={true}>
-      <Kb.ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        key={step.error || 'scroll'}
+    <Kb.ModalScreen>
+      <Kb.Box2 alignSelf="center"
+        direction="vertical"
+        gap="small"
+        onCopyCapture={e => {
+          e.preventDefault()
+          if (proofText) {
+            copyToClipboard(proofText)
+          }
+        }}
       >
-        <Kb.Box2 alignSelf="center"
-          direction="vertical"
-          gap="small"
-          onCopyCapture={e => {
-            e.preventDefault()
-            if (proofText) {
-              copyToClipboard(proofText)
-            }
-          }}
-        >
-          {!!step.error && <ErrorBanner>{step.error}</ErrorBanner>}
-          <PlatformIcon
-            platform={step.platform}
-            style={styles.center}
-            overlay="icon-proof-unfinished"
-            overlayColor={theme.greyDark}
-          />
-          <>
-            <Kb.Text center={true} style={styles.blue} type="Header">
-              {step.username}
-            </Kb.Text>
-            {!!platformSubtitle && (
-              <Kb.Text center={true} style={styles.grey} type="Body">
-                {platformSubtitle}
-              </Kb.Text>
-            )}
-          </>
-          <DescriptionView platformUserName={step.username} />
-          {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
-          {!!noteText && (
-            <Kb.Text center={true} type="Body">
-              {noteText}
+        {!!step.error && <ErrorBanner>{step.error}</ErrorBanner>}
+        <PlatformIcon
+          platform={step.platform}
+          style={styles.center}
+          overlay="icon-proof-unfinished"
+          overlayColor={theme.greyDark}
+        />
+        <>
+          <Kb.Text center={true} style={styles.blue} type="Header">
+            {step.username}
+          </Kb.Text>
+          {!!platformSubtitle && (
+            <Kb.Text center={true} style={styles.grey} type="Body">
+              {platformSubtitle}
             </Kb.Text>
           )}
-          <Kb.Box2 alignSelf="center" direction={isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
-            <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
-            {showSubmit ? (
-              <Kb.WaitingButton onClick={onSubmit} label={onCompleteText} waitingKey={C.waitingKeyProfile} />
-            ) : (
-              <Kb.Button
-                onClick={() => {
-                  setShowSubmit(true)
-                  if (url) {
-                    void openUrl(url)
-                  }
-                }}
-                label={proofActionText}
-              />
-            )}
-          </Kb.Box2>
+        </>
+        <DescriptionView platformUserName={step.username} />
+        {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
+        {!!noteText && (
+          <Kb.Text center={true} type="Body">
+            {noteText}
+          </Kb.Text>
+        )}
+        <Kb.Box2 alignSelf="center" direction={isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
+          <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
+          {showSubmit ? (
+            <Kb.WaitingButton onClick={onSubmit} label={onCompleteText} waitingKey={C.waitingKeyProfile} />
+          ) : (
+            <Kb.Button
+              onClick={() => {
+                setShowSubmit(true)
+                if (url) {
+                  void openUrl(url)
+                }
+              }}
+              label={proofActionText}
+            />
+          )}
         </Kb.Box2>
-      </Kb.ScrollView>
-    </Modal>
+      </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -1109,7 +1106,7 @@ const ConfirmOrPending = ({onClose, step}: {onClose: () => void; step: ConfirmOr
       : 'Leave your proof up so other users can identify you!')
 
   return (
-    <Modal onCancel={onClose} skipButton={true}>
+    <Kb.ModalScreen>
       <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
         <Kb.Text negative={true} type="BodySemibold">
           {title}
@@ -1141,7 +1138,7 @@ const ConfirmOrPending = ({onClose, step}: {onClose: () => void; step: ConfirmOr
         )}
         <Kb.Button onClick={onClose} label="Reload profile" />
       </Kb.Box2>
-    </Modal>
+    </Kb.ModalScreen>
   )
 }
 
@@ -1151,7 +1148,7 @@ const GenericResult = ({onClose, step}: {onClose: () => void; step: GenericResul
   const success = !step.error
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Kb.ModalScreen scroll={false} padding="none">
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
@@ -1177,7 +1174,7 @@ const GenericResult = ({onClose, step}: {onClose: () => void; step: GenericResul
       <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
         <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
@@ -1368,11 +1365,6 @@ const rowHeight = isMobile ? 56 : 48
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      backButton: {
-        left: Kb.Styles.globalMargins.small,
-        position: 'absolute',
-        top: Kb.Styles.globalMargins.small,
-      },
       blue: Kb.Styles.platformStyles({
         common: {color: theme.blueDark},
         isElectron: {wordBreak: 'break-all'},
@@ -1390,13 +1382,6 @@ const useStyles = Kb.Styles.createStyleHook(
       buttonSmall: {flex: 1},
       center: {alignSelf: 'center'},
       colorRed: {color: theme.redDark},
-      container: Kb.Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: {
-          borderRadius: Kb.Styles.borderRadius,
-          overflow: 'hidden',
-        },
-      }),
       containerBox: {
         height: rowHeight,
       },
@@ -1435,7 +1420,6 @@ const useStyles = Kb.Styles.createStyleHook(
         padding: Kb.Styles.globalMargins.tiny,
         width: 'auto',
       },
-      listContainer: {flex: 1},
       marginLeftAuto: {marginLeft: 'auto'},
       new: {
         marginRight: Kb.Styles.globalMargins.xtiny,
@@ -1448,10 +1432,6 @@ const useStyles = Kb.Styles.createStyleHook(
       },
       proof: {
         maxWidth: '100%',
-      },
-      scroll: {maxWidth: '100%'},
-      scrollContent: {
-        paddingBottom: Kb.Styles.globalMargins.small,
       },
       serviceIconContainer: {
         marginBottom: Kb.Styles.globalMargins.tiny,

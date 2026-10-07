@@ -124,13 +124,29 @@ const DesktopEditAvatar = (_p: Props) => {
   }
 
   return (
-    <>
-      <Kb.ErrorBanner error={error} />
-      {serror ? (
-        <Kb.Banner color="red" key="stateError">
-          The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
-        </Kb.Banner>
-      ) : null}
+    <Kb.ModalScreen
+      // no scroller: dragging the crop must not scroll the body
+      scroll={false}
+      banner={
+        <>
+          <Kb.ErrorBanner error={error} />
+          {serror ? (
+            <Kb.Banner color="red">
+              The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
+      footer={
+        <Kb.WaitingButton
+          fullWidth={true}
+          label={wizard ? 'Continue' : 'Save'}
+          onClick={onSave}
+          disabled={loading !== 'loaded'}
+          waitingKey={p.waitingKey}
+        />
+      }
+    >
       <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
@@ -189,16 +205,7 @@ const DesktopEditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-      <Kb.ModalFooter>
-        <Kb.WaitingButton
-          fullWidth={true}
-          label={wizard ? 'Continue' : 'Save'}
-          onClick={onSave}
-          disabled={loading !== 'loaded'}
-          waitingKey={p.waitingKey}
-        />
-      </Kb.ModalFooter>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
@@ -325,30 +332,38 @@ const NativeAvatarUploadWrapper = (p: Props) => {
     ) : null
   }
 
+  // a team's title follows the image picked here, which the route's options can't see
+  const hasImage = !!selectedImage
   React.useEffect(() => {
-    const hasImage = !!selectedImage
+    if (!teamID) return
+    const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
     navigation.setOptions({
-      headerTitle: () => {
-        if (teamID) {
-          const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-          if (isMobile) {
-            return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
-          }
-          return <Kb.Text type="BodyBig">{title}</Kb.Text>
-        }
-        return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
-      },
+      headerTitle: () => <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />,
     })
-  }, [navigation, newTeamWizard, selectedImage, teamID, wizard])
+  }, [navigation, newTeamWizard, hasImage, teamID, wizard])
 
   if (type === 'team') {
     return (
-      <>
-        {error ? (
-          <Kb.Banner key="err" color="red">
-            <Kb.Text type="Body">{error}</Kb.Text>
-          </Kb.Banner>
-        ) : null}
+      <Kb.ModalScreen
+        scroll={false}
+        padding="none"
+        banner={
+          error ? (
+            <Kb.Banner color="red">
+              <Kb.Text type="Body">{error}</Kb.Text>
+            </Kb.Banner>
+          ) : undefined
+        }
+        footer={
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={!selectedImage}
+            waitingKey={waitingKey}
+          />
+        }
+      >
         <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 alignSelf="center" direction="vertical" style={styles.flexReallyGrow} />
@@ -358,38 +373,26 @@ const NativeAvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-        <Kb.ModalFooter>
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={wizard ? 'Continue' : 'Save'}
-            onClick={onSave}
-            disabled={!selectedImage}
-            waitingKey={waitingKey}
-          />
-        </Kb.ModalFooter>
-      </>
+      </Kb.ModalScreen>
     )
   }
   return (
-    <>
-      {error ? (
-        <Kb.Banner color="red">
-          <Kb.Text type="Body">{error}</Kb.Text>
-        </Kb.Banner>
-      ) : null}
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      banner={
+        error ? (
+          <Kb.Banner color="red">
+            <Kb.Text type="Body">{error}</Kb.Text>
+          </Kb.Banner>
+        ) : undefined
+      }
+      footer={<Kb.WaitingButton fullWidth={true} label="Save" onClick={onSave} waitingKey={waitingKey} />}
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
         {renderImageZoomer()}
-        <Kb.ButtonBar direction="column">
-          <Kb.WaitingButton
-            fullWidth={true}
-            label="Save"
-            onClick={onSave}
-            style={styles.button}
-            waitingKey={waitingKey}
-          />
-        </Kb.ButtonBar>
       </Kb.Box2>
-    </>
+    </Kb.ModalScreen>
   )
 }
 
@@ -479,9 +482,6 @@ const useHoverStyles = Kb.Styles.createStyleHook(
 )
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  button: {
-    marginTop: Kb.Styles.globalMargins.tiny,
-  },
   container: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
