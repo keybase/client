@@ -1,0 +1,14 @@
+go/go.mod
+  h_f21e4bfbe3ac62 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fc7a2e868ec3cf99ad169f7abffb03e05323be4d",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
