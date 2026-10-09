@@ -374,9 +374,9 @@ func TestPrepareShareConversations(t *testing.T) {
 	ctx := ctc.as(t, users[0]).startCtx
 	tc := ctc.world.Tcs[users[0].Username]
 	// Build a context that has ShareIntentDonator and an avatar loader so prepareShareConversations runs fully.
+	// ChatContext contains a mutex, so construct a new one instead of copying tc.ChatG.
 	donator := &mockShareDonator{}
-	chatG := *tc.ChatG
-	chatG.ShareIntentDonator = donator
+	chatG := globals.ChatContext{ShareIntentDonator: donator}
 	g := globals.NewContext(tc.G, &chatG)
 	tc.G.SetAvatarLoader(noopAvatarLoader{})
 
