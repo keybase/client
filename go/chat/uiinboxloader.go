@@ -29,10 +29,11 @@ type UIInboxLoader struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	uid     gregor1.UID
-	stopCh  chan struct{}
-	started bool
-	eg      errgroup.Group
+	uid        gregor1.UID
+	stopCh     chan struct{}
+	workCancel context.CancelFunc
+	started    bool
+	eg         errgroup.Group
 
 	clock                 clockwork.Clock
 	transmitCh            chan any
@@ -84,15 +85,17 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1000)
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
+	workCtx, cancel := context.WithCancel(h.G().SessionContext())
+	h.workCancel = cancel
 	h.started = true
 	h.uid = uid
 	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 	stopCh := h.stopCh
 	h.Unlock()
 	h.setLastLayout(nil)
-	h.eg.Go(func() error { return h.transmitLoop(stopCh) })
-	h.eg.Go(func() error { return h.layoutLoop(stopCh) })
-	h.eg.Go(func() error { return h.bigTeamUnboxLoop(stopCh) })
+	h.eg.Go(func() error { return h.transmitLoop(workCtx, stopCh) })
+	h.eg.Go(func() error { return h.layoutLoop(workCtx, stopCh) })
+	h.eg.Go(func() error { return h.bigTeamUnboxLoop(workCtx, stopCh) })
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
@@ -105,6 +108,10 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if h.started {
+		if h.workCancel != nil {
+			h.workCancel()
+			h.workCancel = nil
+		}
 		close(h.stopCh)
 		h.started = false
 		h.uid = nil
@@ -177,11 +184,11 @@ type failedResponse struct {
 	Conv chat1.ConversationLocal
 }
 
-func (h *UIInboxLoader) flushConvBatch() (err error) {
+func (h *UIInboxLoader) flushConvBatch(ctx context.Context) (err error) {
 	if len(h.convTransmitBatch) == 0 {
 		return nil
 	}
-	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "flushConvBatch")()
 	uid, sessErr := h.sessionUID(ctx)
 	var convs []chat1.ConversationLocal
@@ -229,8 +236,7 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	return err
 }
 
-func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
-	ctx := context.Background()
+func (h *UIInboxLoader) flushUnverified(ctx context.Context, r unverifiedResponse) (err error) {
 	uid, sessErr := h.sessionUID(ctx)
 	if sessErr != nil {
 		return sessErr
@@ -272,8 +278,7 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 	return nil
 }
 
-func (h *UIInboxLoader) flushFailed(r failedResponse) {
-	ctx := context.Background()
+func (h *UIInboxLoader) flushFailed(ctx context.Context, r failedResponse) {
 	uid, sessErr := h.sessionUID(ctx)
 	if sessErr != nil {
 		return
@@ -297,29 +302,29 @@ func (h *UIInboxLoader) flushFailed(r failedResponse) {
 	}
 }
 
-func (h *UIInboxLoader) transmitOnce(imsg any) {
+func (h *UIInboxLoader) transmitOnce(ctx context.Context, imsg any) {
 	switch msg := imsg.(type) {
 	case unverifiedResponse:
-		_ = h.flushConvBatch()
-		_ = h.flushUnverified(msg)
+		_ = h.flushConvBatch(ctx)
+		_ = h.flushUnverified(ctx, msg)
 	case failedResponse:
-		_ = h.flushConvBatch()
-		h.flushFailed(msg)
+		_ = h.flushConvBatch(ctx)
+		h.flushFailed(ctx, msg)
 	case conversationResponse:
 		h.convTransmitBatch[msg.Conv.GetConvID().ConvIDStr()] = msg.Conv
 		if h.clock.Since(h.lastBatchFlush) > h.batchDelay {
-			_ = h.flushConvBatch()
+			_ = h.flushConvBatch(ctx)
 		}
 	}
 }
 
-func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
+func (h *UIInboxLoader) transmitLoop(ctx context.Context, shutdownCh chan struct{}) error {
 	for {
 		select {
 		case msg := <-h.transmitCh:
-			h.transmitOnce(msg)
+			h.transmitOnce(ctx, msg)
 		case <-h.clock.After(h.batchDelay):
-			_ = h.flushConvBatch()
+			_ = h.flushConvBatch(ctx)
 		case <-shutdownCh:
 			h.Debug(context.Background(), "transmitLoop: shutting down")
 			return nil
@@ -756,8 +761,8 @@ func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbo
 	return h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, rquery)
 }
 
-func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) (err error) {
-	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+func (h *UIInboxLoader) flushLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "flushLayout")()
 	uid, err := h.sessionUID(ctx)
 	if err != nil {
@@ -801,8 +806,8 @@ func (h *UIInboxLoader) queueBigTeamUnbox(convIDs []chat1.ConversationID) {
 	}
 }
 
-func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
-	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+func (h *UIInboxLoader) bigTeamUnboxLoop(ctx context.Context, shutdownCh chan struct{}) error {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	for {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
@@ -821,6 +826,8 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 			case <-doneCh:
 			case <-shutdownCh:
 				h.Debug(ctx, "bigTeamUnboxLoop: shutdown during unboxing, going down")
+				cancel()
+				return nil
 			}
 			cancel()
 		case <-shutdownCh:
@@ -830,7 +837,7 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
+func (h *UIInboxLoader) layoutLoop(ctx context.Context, shutdownCh chan struct{}) error {
 	var shouldFlush bool
 	var lastReselectMode chat1.InboxLayoutReselectMode
 	reset := func() {
@@ -845,14 +852,14 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 				lastReselectMode = reselectMode
 			}
 			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {
-				_ = h.flushLayout(lastReselectMode)
+				_ = h.flushLayout(ctx, lastReselectMode)
 				reset()
 			} else {
 				shouldFlush = true
 			}
 		case <-h.clock.After(h.batchDelay):
 			if shouldFlush {
-				_ = h.flushLayout(lastReselectMode)
+				_ = h.flushLayout(ctx, lastReselectMode)
 				reset()
 			}
 		case <-shutdownCh:

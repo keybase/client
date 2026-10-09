@@ -474,7 +474,9 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// Create the errgroup first so we can register the context in the upload map
 	var g *errgroup.Group
 	var cancelFn context.CancelFunc
-	bgctx := libkb.CopyTagsToBackground(ctx)
+	// Detach from the caller so the RPC ending does not kill the upload, and
+	// cancel it when the chat session ends.
+	bgctx := globals.WithStop(libkb.CopyTagsToBackground(ctx), u.G().SessionContext())
 	g, bgctx = errgroup.WithContext(bgctx)
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		bgctx = s3.NewFakeS3Context(bgctx)

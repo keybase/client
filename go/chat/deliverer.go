@@ -73,6 +73,8 @@ type Deliverer struct {
 	outbox           *storage.Outbox
 	identNotifier    types.IdentifyNotifier
 	shutdownCh       chan struct{}
+	workCtx          context.Context
+	workCancel       context.CancelFunc
 	msgSentCh        chan struct{}
 	reconnectCh      chan struct{}
 	kbfsDeliverQueue chan chat1.OutboxRecord
@@ -161,9 +163,11 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.outbox.SetClock(s.clock)
 
 	s.delivering = true
+	s.workCtx, s.workCancel = context.WithCancel(s.G().SessionContext())
 	s.shutdownCh = make(chan struct{})
-	s.eg.Go(func() error { return s.deliverLoop(s.shutdownCh) })
-	s.eg.Go(func() error { return s.kbfsDeliverLoop(s.shutdownCh) })
+	workCtx := s.workCtx
+	s.eg.Go(func() error { return s.deliverLoop(workCtx, s.shutdownCh) })
+	s.eg.Go(func() error { return s.kbfsDeliverLoop(workCtx, s.shutdownCh) })
 }
 
 func (s *Deliverer) Stop(ctx context.Context) chan struct{} {
@@ -176,6 +180,10 @@ func (s *Deliverer) doStop(ctx context.Context) chan struct{} {
 	cb := make(chan struct{})
 	if s.delivering {
 		s.Debug(ctx, "stopping")
+		if s.workCancel != nil {
+			s.workCancel()
+			s.workCancel = nil
+		}
 		close(s.shutdownCh)
 		s.delivering = false
 		go func() {
@@ -655,21 +663,25 @@ func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord)
 	return true
 }
 
-func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
+func (s *Deliverer) kbfsDeliverLoop(ctx context.Context, shutdownCh chan struct{}) error {
 	// ChatCtx records the session epoch on the context it returns, and this
 	// loop is running before MarkChatReady bumps that epoch. Stamp on each
 	// flush, as deliverForConv does, so a send after the session is ready is
-	// not stuck on the pre-ready epoch.
-	ctx := libkb.WithLogTag(context.Background(), "KDELV")
+	// not stuck on the pre-ready epoch. Parent the stamp on ctx so logout
+	// cancels the send.
+	ctx = libkb.WithLogTag(ctx, "KDELV")
 	s.Debug(ctx, "deliverLoop: starting non blocking sender kbfs deliver loop: uid: %s",
 		s.outbox.GetUID())
 	for {
 		select {
+		case <-ctx.Done():
+			s.Debug(ctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			return nil
 		case <-shutdownCh:
 			s.Debug(ctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return nil
 		case obr := <-s.kbfsDeliverQueue:
-			bgctx := globals.ChatCtx(context.Background(), s.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
+			bgctx := globals.ChatCtx(ctx, s.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
 			bgctx = libkb.WithLogTag(bgctx, "KDELV")
 			s.Debug(bgctx, "deliverLoop: flushing record obr for %v", obr.ConvID)
 			if _, _, err := s.sender.Send(bgctx, obr.ConvID, obr.Msg, 0, nil, nil, nil); err != nil {
@@ -679,8 +691,8 @@ func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (s *Deliverer) deliverLoop(shutdownCh chan struct{}) error {
-	bgctx := libkb.WithLogTag(context.Background(), "DELV")
+func (s *Deliverer) deliverLoop(ctx context.Context, shutdownCh chan struct{}) error {
+	bgctx := libkb.WithLogTag(ctx, "DELV")
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender deliver loop: uid: %s duration: %v",
 		s.outbox.GetUID(), s.G().Env.GetChatDelivererInterval())
 	for {
@@ -733,7 +745,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
 	for _, obr := range obrs {
-		bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
+		bctx := globals.ChatCtx(ctx, s.G(), obr.IdentifyBehavior, &breaks,
 			s.identNotifier)
 
 		if s.testingNameInfoSource != nil {

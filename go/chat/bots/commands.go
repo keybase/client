@@ -68,10 +68,12 @@ type CachingBotCommandManager struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	uid     gregor1.UID
-	started bool
-	eg      errgroup.Group
-	stopCh  chan struct{}
+	uid        gregor1.UID
+	started    bool
+	eg         errgroup.Group
+	stopCh     chan struct{}
+	workCtx    context.Context
+	workCancel context.CancelFunc
 
 	ri              func() chat1.RemoteInterface
 	nameInfoSource  nameInfoSourceFn
@@ -109,9 +111,12 @@ func (b *CachingBotCommandManager) Start(ctx context.Context, uid gregor1.UID) {
 		return
 	}
 	b.stopCh = make(chan struct{})
+	b.workCtx, b.workCancel = context.WithCancel(b.G().SessionContext())
 	b.started = true
 	b.uid = uid
-	b.eg.Go(func() error { return b.commandUpdateLoop(b.stopCh) })
+	stopCh := b.stopCh
+	workCtx := b.workCtx
+	b.eg.Go(func() error { return b.commandUpdateLoop(workCtx, stopCh) })
 }
 
 func (b *CachingBotCommandManager) Stop(ctx context.Context) chan struct{} {
@@ -123,6 +128,11 @@ func (b *CachingBotCommandManager) Stop(ctx context.Context) chan struct{} {
 		close(b.stopCh)
 		b.started = false
 		b.uid = nil
+		cancel := b.workCancel
+		b.workCancel = nil
+		if cancel != nil {
+			cancel()
+		}
 		go func() {
 			err := b.eg.Wait()
 			if err != nil {
@@ -627,8 +637,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 	return eg.Wait()
 }
 
-func (b *CachingBotCommandManager) commandUpdateLoop(stopCh chan struct{}) error {
-	ctx := context.Background()
+func (b *CachingBotCommandManager) commandUpdateLoop(ctx context.Context, stopCh chan struct{}) error {
 	for {
 		select {
 		case job := <-b.commandUpdateCh:

@@ -72,7 +72,7 @@ func TestKBFSDeliverLoopStampsSessionPerSend(t *testing.T) {
 	shutdownCh := make(chan struct{})
 	loopDone := make(chan struct{})
 	go func() {
-		_ = d.kbfsDeliverLoop(shutdownCh)
+		_ = d.kbfsDeliverLoop(context.Background(), shutdownCh)
 		close(loopDone)
 	}()
 	t.Cleanup(func() {

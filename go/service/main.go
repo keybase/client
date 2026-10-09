@@ -468,6 +468,9 @@ func (d *Service) startChatModules() {
 	if !kuid.IsNil() {
 		uid := kuid.ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
+		// Fresh context before modules start, so their background work is not
+		// parented on the context BeginChatLogout just cancelled.
+		g.PrepareChatSession()
 		g.PushHandler.Start(context.Background(), uid)
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
@@ -492,21 +495,30 @@ func (d *Service) startChatModules() {
 }
 
 func (d *Service) stopChatModules(m libkb.MetaContext) error {
-	<-d.ChatG().PushHandler.Stop(m.Ctx())
-	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
-	<-d.ChatG().ConvLoader.Stop(m.Ctx())
-	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
-	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
-	<-d.ChatG().EphemeralTracker.Stop(m.Ctx())
-	<-d.ChatG().InboxSource.Stop(m.Ctx())
-	<-d.ChatG().Indexer.Stop(m.Ctx())
-	<-d.ChatG().ArchiveRegistry.Stop(m.Ctx())
-	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
-	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
-	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
-	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
-	<-d.ChatG().UIInboxLoader.Stop(m.Ctx())
-	<-d.ChatG().JourneyCardManager.Stop(m.Ctx())
+	stops := []func(context.Context) chan struct{}{
+		d.ChatG().PushHandler.Stop,
+		d.ChatG().MessageDeliverer.Stop,
+		d.ChatG().ConvLoader.Stop,
+		d.ChatG().FetchRetrier.Stop,
+		d.ChatG().EphemeralPurger.Stop,
+		d.ChatG().EphemeralTracker.Stop,
+		d.ChatG().InboxSource.Stop,
+		d.ChatG().Indexer.Stop,
+		d.ChatG().ArchiveRegistry.Stop,
+		d.ChatG().CoinFlipManager.Stop,
+		d.ChatG().TeamMentionLoader.Stop,
+		d.ChatG().LiveLocationTracker.Stop,
+		d.ChatG().BotCommandManager.Stop,
+		d.ChatG().UIInboxLoader.Stop,
+		d.ChatG().JourneyCardManager.Stop,
+	}
+	var wg sync.WaitGroup
+	for _, stop := range stops {
+		wg.Go(func() {
+			<-stop(m.Ctx())
+		})
+	}
+	wg.Wait()
 	return nil
 }
 

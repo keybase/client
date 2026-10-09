@@ -29,6 +29,8 @@ type TeamMentionLoader struct {
 	started    bool
 	jobCh      chan teamMentionJob
 	shutdownCh chan chan struct{}
+	workCtx    context.Context
+	workCancel context.CancelFunc
 }
 
 func NewTeamMentionLoader(g *globals.Context) *TeamMentionLoader {
@@ -47,8 +49,9 @@ func (l *TeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {
 	if l.started {
 		return
 	}
+	l.workCtx, l.workCancel = context.WithCancel(l.G().SessionContext())
 	l.started = true
-	go l.loadLoop()
+	go l.loadLoop(l.workCtx)
 }
 
 func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
@@ -57,6 +60,11 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	if l.started {
+		cancel := l.workCancel
+		l.workCancel = nil
+		if cancel != nil {
+			cancel()
+		}
 		l.shutdownCh <- ch
 		l.started = false
 		return ch
@@ -194,8 +202,7 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 		chat1.NewUIMaybeMentionInfoWithTeam(info))
 }
 
-func (l *TeamMentionLoader) loadLoop() {
-	ctx := context.Background()
+func (l *TeamMentionLoader) loadLoop(ctx context.Context) {
 	for {
 		select {
 		case job := <-l.jobCh:
