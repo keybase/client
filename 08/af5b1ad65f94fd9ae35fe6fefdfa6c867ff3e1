@@ -1,0 +1,19 @@
+go/chat/uiinboxloader_test.go
+  s_41c1006513d990::t_ae51bcbea1c561 377,379
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "08af5b1ad65f94fd9ae35fe6fefdfa6c867ff3e1",
+  "prompts": {},
+  "sessions": {
+    "s_41c1006513d990": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1b1e4b10-5097-4ca0-94e5-3d47878d9441",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
