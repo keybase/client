@@ -301,9 +301,11 @@ helpers.rootLinuxNode(env, {
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
                         kbfsfuseImage.push(env.BUILD_TAG)
                       }
-                      if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                      // That job builds mdserver and bserver itself. This branch
+                      // builds them with public reads and writes disabled.
+                      if (cause != "upstream") {
                         build([
-                          job: "/kbfs-server/master",
+                          job: "/kbfs-server/joshblum%2Fpublic-folders-disabled",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
