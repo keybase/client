@@ -1,6 +1,10 @@
 /**
  * Builds storybook statically, serves it, screenshots every story, saves PNGs
  * to tests/results/storybook-desktop/. Self-contained — no running dev server needed.
+ *
+ *   --only <titlePrefix>  screenshot only the stories whose title starts with the prefix
+ *   --compare <dir>       compare every PNG against the same path under <dir>, exactly; print the
+ *                         differing ones and exit 1 on any difference
  */
 import {chromium} from '@playwright/test'
 import {execSync} from 'child_process'
@@ -8,6 +12,8 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import {fileURLToPath, URL as NodeURL} from 'url'
+import {parseArgs} from 'util'
+import {comparePng} from '../tests/e2e/visual/compare.mts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const sharedDir = path.resolve(__dirname, '..')
@@ -15,6 +21,17 @@ const buildDir = '/tmp/storybook-static'
 const outputDir = path.resolve(__dirname, '../tests/results/storybook-desktop')
 const PORT = 6007
 const CONCURRENCY = 6
+
+const {values: args} = parseArgs({
+  options: {compare: {type: 'string'}, only: {type: 'string'}},
+})
+const compareDir = args.compare ? path.resolve(args.compare) : undefined
+if (compareDir && (compareDir === outputDir || compareDir.startsWith(outputDir + path.sep))) {
+  throw new Error(`--compare ${compareDir} is inside ${outputDir}, which every run deletes`)
+}
+if (compareDir && !fs.existsSync(compareDir)) throw new Error(`--compare ${compareDir} does not exist`)
+const strict = args.only !== undefined || compareDir !== undefined
+const PLAIN_GRACE_MS = 2000
 
 // Build storybook to a static directory
 console.log('Building storybook (this compiles everything upfront)...')
@@ -62,14 +79,19 @@ console.log(`Serving static build at ${storybookUrl}`)
 const {entries} = (await (await fetch(`${storybookUrl}/index.json`)).json()) as {
   entries: Record<string, {type: string; title: string; name: string}>
 }
-const stories = Object.entries(entries).filter(([, e]) => e.type === 'story')
+const {only} = args
+const stories = Object.entries(entries).filter(
+  ([, e]) => e.type === 'story' && (only === undefined || e.title.startsWith(only))
+)
+if (only !== undefined && !stories.length) throw new Error(`no story title starts with ${only}`)
 console.log(`Found ${stories.length} stories — concurrency ${CONCURRENCY}`)
 
 fs.rmSync(outputDir, {recursive: true, force: true})
 fs.mkdirSync(outputDir, {recursive: true})
 
 const executablePath = process.env['CHROME_PATH']
-const launchOpts = executablePath ? {executablePath} : {}
+// Without a fixed color profile chromium converts every pixel to the display's profile.
+const launchOpts = {args: ['--force-color-profile=srgb'], ...(executablePath ? {executablePath} : {})}
 // Playwright bundles a browser keyed to its exact version. Our install path uses
 // `--ignore-scripts`, so the browser is never auto-downloaded and a `@playwright/test`
 // bump silently leaves the old revision behind. Self-heal: install on first launch failure.
@@ -81,6 +103,15 @@ try {
   console.log('Chromium not installed for this Playwright version — installing...')
   execSync('node_modules/.bin/playwright install chromium-headless-shell', {cwd: sharedDir, stdio: 'inherit'})
   browser = await chromium.launch(launchOpts)
+}
+
+// The page side of the evaluations below; this script is typed without the DOM lib.
+type PageWindow = {
+  document: {
+    body: {classList: {contains: (c: string) => boolean}}
+    fonts: {ready: Promise<unknown>}
+    querySelector: (s: string) => {childElementCount: number} | null
+  }
 }
 
 const queue = [...stories]
@@ -103,21 +134,39 @@ await Promise.all(
         fs.mkdirSync(storyDir, {recursive: true})
         const slug = name.replaceAll(/\s+/g, '-')
 
+        // 'load' fires while storybook still shows its preparing spinner; the body only gets
+        // sb-show-main once the story has rendered. With --only or --compare a story must render
+        // into #storybook-root or it is skipped, so a spinner is never captured as the story. A
+        // plain run captures every story as before: a story that renders into a portal (empty
+        // root) or shows an error is captured after a short grace rather than skipped.
+        const rendered = async (timeout: number) =>
+          page
+            .waitForFunction(
+              () => {
+                const {document: d} = globalThis as unknown as PageWindow
+                return d.body.classList.contains('sb-show-main') && !!d.querySelector('#storybook-root')?.childElementCount
+              },
+              undefined,
+              {timeout}
+            )
+            .then(() => true)
+        const capture = async (url: string, file: string) => {
+          await page.goto(url, {timeout: 10000, waitUntil: 'load'})
+          if (strict) await rendered(10000)
+          else await rendered(PLAIN_GRACE_MS).catch(() => false)
+          await page.evaluate(async () => {
+            await (globalThis as unknown as PageWindow).document.fonts.ready
+          })
+          await page.screenshot({animations: 'disabled', path: path.join(storyDir, file)})
+        }
+
         await page.emulateMedia({colorScheme: 'light'})
-        await page.goto(`${storybookUrl}/iframe.html?id=${id}&viewMode=story`, {
-          waitUntil: 'load',
-          timeout: 10000,
-        })
-        await page.screenshot({path: path.join(storyDir, `${slug}.png`)})
+        await capture(`${storybookUrl}/iframe.html?id=${id}&viewMode=story`, `${slug}.png`)
         done++
         console.log(`  [${done}/${total}] ${title}/${name} (light)`)
 
         await page.emulateMedia({colorScheme: 'dark'})
-        await page.goto(`${storybookUrl}/iframe.html?id=${id}&viewMode=story&globals=darkMode:true`, {
-          waitUntil: 'load',
-          timeout: 10000,
-        })
-        await page.screenshot({path: path.join(storyDir, `${slug}-dark.png`)})
+        await capture(`${storybookUrl}/iframe.html?id=${id}&viewMode=story&globals=darkMode:true`, `${slug}-dark.png`)
         done++
         console.log(`  [${done}/${total}] ${title}/${name} (dark)`)
       } catch (err) {
@@ -131,3 +180,31 @@ await Promise.all(
 await browser.close()
 server.close()
 console.log(`\nDone — ${done}/${total} screenshots in ${outputDir}`)
+
+if (compareDir) {
+  const listPngs = (root: string) =>
+    fs
+      .readdirSync(root, {recursive: true})
+      .map(String)
+      .filter(f => f.endsWith('.png'))
+      .sort()
+  const now = listPngs(outputDir)
+  const base = new Set(listPngs(compareDir))
+  const differing: Array<string> = []
+  for (const rel of now) {
+    if (!base.delete(rel)) {
+      differing.push(`${rel}: not in ${compareDir}`)
+      continue
+    }
+    const r = comparePng(path.join(compareDir, rel), path.join(outputDir, rel), {masks: []})
+    if (r.sizeMismatch) differing.push(`${rel}: size differs`)
+    else if (!r.equal) differing.push(`${rel}: ${r.changed} px differ`)
+  }
+  // A story skipped here is a difference only if the baseline captured it (listed above as
+  // missing); one skipped in both runs alike is not.
+  for (const rel of base) differing.push(`${rel}: missing from this run`)
+  if (done !== total) console.log(`\n${total - done} screenshots were skipped (see SKIP lines)`)
+  console.log(`\nCompared ${now.length} screenshots against ${compareDir}: ${differing.length} differences`)
+  for (const d of differing) console.log(`  ${d}`)
+  if (differing.length) process.exit(1)
+}

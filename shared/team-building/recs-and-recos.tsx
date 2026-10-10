@@ -6,6 +6,7 @@ import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
 type TeamSoFar = ReadonlyArray<{userId: string}>
@@ -128,6 +129,7 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.listContainer}>
         <Kb.SectionList
           ref={sectionListRef}
+          testID={TestIDs.TEAM_BUILDING_RECS}
           contentContainerStyle={contentContainerStyle}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"

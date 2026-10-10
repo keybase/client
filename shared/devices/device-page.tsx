@@ -26,11 +26,12 @@ const TimelineLabel = (p: {
   subDesc: string
   subDescIsName: boolean
   spacerOnBottom: boolean
+  testID?: string
 }) => {
   const styles = useStyles()
-  const {desc, subDesc, subDescIsName, spacerOnBottom} = p
+  const {desc, subDesc, subDescIsName, spacerOnBottom, testID} = p
   return (
-    <Kb.Box2 direction="vertical" alignItems="flex-start">
+    <Kb.Box2 direction="vertical" alignItems="flex-start" testID={testID}>
       <Kb.Text type="Body">{desc}</Kb.Text>
       {!!subDesc && subDescIsName && (
         <Kb.Text type="BodySmall">
@@ -90,6 +91,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
             desc={desc}
             subDesc={subDesc}
             subDescIsName={['Added', 'Revoked'].includes(type)}
+            testID={type === 'LastUsed' ? TestIDs.DEVICE_PAGE_LAST_USED : undefined}
           />
         </Kb.Box2>
       ))}

@@ -7,6 +7,7 @@ import AddPeople from './add-people'
 import {useChatTeam} from '../team-hooks'
 import {joinConversation} from '../status-actions'
 import {useConversationMetadata} from '../data-hooks'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const gearIconSize = isMobile ? 24 : 16
 
@@ -114,6 +115,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
           <Kb.Icon
             type="iconfont-gear"
             onClick={showPopup}
+            testID={TestIDs.CHAT_INFO_PANEL_MENU_BUTTON}
             fontSize={gearIconSize}
           />
         </Kb.Box2>

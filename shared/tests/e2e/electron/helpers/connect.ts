@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import {chromium, type Browser, type ConsoleMessage, type Page} from '@playwright/test'
-import {NAV_TAB_CHAT} from '../../shared/test-ids'
+import {NAV_TAB_CHAT} from '../../shared/test-ids.ts'
 
 const CDP_ENDPOINT = 'http://localhost:9222'
 const connectTimeoutMs = 5_000

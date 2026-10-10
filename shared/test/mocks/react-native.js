@@ -10,8 +10,23 @@ exports.Platform = {
   select: spec => spec?.default,
 }
 
+// flatten mirrors react-native/Libraries/StyleSheet/flattenStyle.js, which is Flow and cannot load here.
+const flatten = style => {
+  if (style === null || typeof style !== 'object') return undefined
+  if (!Array.isArray(style)) return style
+  const result = {}
+  for (const s of style) {
+    const computed = flatten(s)
+    if (computed) {
+      for (const key in computed) result[key] = computed[key]
+    }
+  }
+  return result
+}
+
 exports.StyleSheet = {
   create: styles => styles,
+  flatten,
   hairlineWidth: 1,
 }
 

@@ -19,17 +19,19 @@ const TeamTabs = (props: TeamTabsProps) => {
   const styles = useStyles()
   const tabs: Array<TabType<T.Teams.TabKey>> = [
     {badgeNumber: props.resetUserCount, testID: TestIDs.TEAMS_TAB_MEMBERS_BUTTON, title: 'members' as const},
-    ...(!props.isBig ? [{title: 'emoji' as const}] : []),
-    ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
-    ...(props.isBig ? [{title: 'emoji' as const}] : []),
+    ...(!props.isBig ? [{testID: TestIDs.TEAMS_TAB_EMOJI_BUTTON, title: 'emoji' as const}] : []),
+    ...(props.isBig || props.admin ? [{testID: TestIDs.TEAMS_TAB_CHANNELS_BUTTON, title: 'channels' as const}] : []),
+    ...(props.isBig ? [{testID: TestIDs.TEAMS_TAB_EMOJI_BUTTON, title: 'emoji' as const}] : []),
     {
       icon: Kb.Styles.isPhone ? 'iconfont-gear' : undefined,
       testID: TestIDs.TEAMS_TAB_SETTINGS_BUTTON,
       title: 'settings' as const,
     },
     // TODO: should we not show bots if there are no bots and you have no permissions?
-    {title: 'bots' as const},
-    ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
+    {testID: TestIDs.TEAMS_TAB_BOTS_BUTTON, title: 'bots' as const},
+    ...(props.numSubteams > 0 || props.showSubteams
+      ? [{testID: TestIDs.TEAMS_TAB_SUBTEAMS_BUTTON, title: 'subteams' as const}]
+      : []),
   ]
 
   const tabContent = (
