@@ -45,7 +45,7 @@ const YouRekey = (p: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical">
       <Kb.Banner color="red">
         <Kb.BannerParagraph bannerColor="red" content="This conversation needs to be rekeyed." />
       </Kb.Banner>

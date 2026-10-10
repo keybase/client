@@ -134,7 +134,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         <Kb.Box2 direction="horizontal" alignSelf="flex-start">
           <Activity level={activityLevel} />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {yourOperations.chat && <Kb.Button label="View" onClick={onChat} small={true} />}
           {canEdit && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />

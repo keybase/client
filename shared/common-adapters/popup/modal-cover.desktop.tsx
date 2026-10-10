@@ -20,7 +20,7 @@ export function ModalCover(props: ModalCoverProps) {
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
     <EscapeHandler onESC={onHidden ?? noop}>
-      <Box2
+      <Box2 alignSelf="center"
         direction="vertical"
         centerChildren={true}
         style={Styles.collapseStyles([styles.cover, style])}
@@ -33,7 +33,7 @@ export function ModalCover(props: ModalCoverProps) {
           setMouseDownOnCover(true)
         }}
       >
-        <Box2
+        <Box2 alignSelf="center"
           direction="horizontal"
           relative={true}
           style={styles.centeredContainer}

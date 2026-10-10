@@ -40,7 +40,7 @@ const HeaderRightActions = () => {
   const styles = useStyles()
   const {onCreateTeam, onJoinTeam} = useHeaderActions()
   return (
-    <Kb.Box2 gap="tiny" direction="horizontal" alignItems="center" style={styles.headerActions}>
+    <Kb.Box2 alignSelf="center" gap="tiny" direction="horizontal" alignItems="center" style={styles.headerActions}>
       <Kb.Button label="Create a team" onClick={onCreateTeam} small={true} />
       <Kb.Button label="Join a team" onClick={onJoinTeam} small={true} type="Default" mode="Secondary" />
     </Kb.Box2>

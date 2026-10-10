@@ -53,7 +53,7 @@ export const newRoutes = defineRouteMap({
     getOptions: {
       ...(isMobile ? {headerLeft: undefined} : {headerLeft: () => <UsernameHeaderLeft />}),
       headerRightActions: () => (
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction="horizontal"
           style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
         >

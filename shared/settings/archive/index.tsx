@@ -190,7 +190,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
   let actions: React.ReactNode
   if (done) {
     actions = (
-      <Kb.Box2 direction="vertical" noShrink={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" noShrink={true}>
         <Kb.Text type="BodySmall">{started}</Kb.Text>
         {isMobile ? (
           <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
@@ -225,7 +225,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     }
 
     actions = (
-      <Kb.Box2 direction="horizontal" noShrink={true} gap="tiny">
+      <Kb.Box2 alignSelf="center" direction="horizontal" noShrink={true} gap="tiny">
         {pauseOrResume}
         {isMobile ? (
           <Kb.Icon color={theme.red} type="iconfont-remove" onClick={onCancel} />
@@ -240,7 +240,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     <JobWrapper
       index={index}
       icon={
-        <Kb.Box2 direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
           <Kb.Icon type="iconfont-chat" />
         </Kb.Box2>
       }
@@ -337,9 +337,9 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
       }
       actions={
         <>
-          <Kb.Box2 direction="vertical" alignItems="flex-end" noShrink={true}>
+          <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-end" noShrink={true}>
             {isMobile ? (
-              <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
+              <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={{padding: 8}}>
                 {job.phase === 'Done' ? (
                   <Kb.Icon onClick={showPopup} type="iconfont-ellipsis" />
                 ) : (
@@ -378,7 +378,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
           <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
             {job.gitRepo ?? job.kbfsPath}
           </Kb.Text>
-          {isMobile ? null : <Kb.Box2 direction="horizontal" flex={1} />}
+          {isMobile ? null : <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />}
           {isMobile ? null : job.bytesTotal ? (
             <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
           ) : null}
@@ -397,7 +397,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
         >
           <Kb.ProgressBar ratio={progress} />
           <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
-          <Kb.Box2 direction="horizontal" flex={1} />
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />
           {errorStr && <JobError error={errorStr} fontSize={14} />}
           {!isMobile && revisionBehindStr && (
             <Kb.WithTooltip tooltip={revisionBehindStr}>
@@ -488,7 +488,7 @@ const Archive = () => {
   return (
     <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_ARCHIVE}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           {isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
           <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall">
@@ -515,7 +515,7 @@ const Archive = () => {
             </ArchiveButtonRow>
           )}
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="Header">Active backup jobs</Kb.Text>
           {chatJobsList.length + kbfsJobsList.length ? (
             <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true}>

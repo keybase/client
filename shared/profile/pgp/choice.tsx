@@ -95,7 +95,7 @@ export const generatePgp = (args: GeneratePgpArgs, onFinished: (next: FinishedSt
 
 export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
   <Modal onCancel={onCancel}>
-    <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
+    <Kb.Box2 alignSelf="center" direction="vertical" gap="small" gapEnd={true}>
       <Kb.Text center={true} type="Header">
         Add a PGP key
       </Kb.Text>
@@ -165,7 +165,7 @@ export default function Choice() {
     switch (step.kind) {
       case 'choice':
         return (
-          <Kb.Box2 direction="vertical" gap="small">
+          <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
             <Kb.Text type="Header">Add a PGP key</Kb.Text>
             <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
               <Kb.ListItem
@@ -253,7 +253,7 @@ export default function Choice() {
         )
       case 'generate':
         return (
-          <Kb.Box2 direction="vertical" gap="small" alignItems="center">
+          <Kb.Box2 alignSelf="center" direction="vertical" gap="small" alignItems="center">
             <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
             <Kb.Text type="Header">Generating your unique key...</Kb.Text>
             <Kb.Text type="Body">
@@ -299,7 +299,7 @@ const Finished = (props: {
   const [shouldStoreKeyOnServer, setShouldStoreKeyOnServer] = React.useState(false)
 
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" gap="tiny">
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" gap="tiny">
       <PlatformIcon platform="pgp" overlay="icon-proof-success" />
       <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
       <Kb.Text type="Body">
@@ -315,7 +315,7 @@ const Finished = (props: {
         />
       )}
       {props.promptShouldStoreKeyOnServer && (
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Checkbox
             onCheck={setShouldStoreKeyOnServer}
             checked={shouldStoreKeyOnServer}

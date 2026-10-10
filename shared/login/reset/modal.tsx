@@ -107,7 +107,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
     return (
       // no onHidden: the reset countdown can't be dismissed by escape or a click away
       <Kb.ModalCover style={styles.desktopCover}>
-        <Kb.Box2 direction="vertical" style={styles.desktopModal}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.desktopModal}>
           {content}
         </Kb.Box2>
       </Kb.ModalCover>
@@ -115,7 +115,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileOverlay}>
+    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.mobileOverlay}>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.mobileModal}>
         {content}
       </Kb.Box2>

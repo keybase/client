@@ -463,8 +463,8 @@ const Links = () => {
               const wlremoved = unfurlWhitelistRemoved[w]
               return (
                 <React.Fragment key={w}>
-                  {idx === 0 && <Kb.Box2 direction="vertical" style={styles.whitelistOuter} />}
-                  <Kb.Box2
+                  {idx === 0 && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.whitelistOuter} />}
+                  <Kb.Box2 alignSelf="center"
                     direction="horizontal"
                     justifyContent="space-between"
                     noShrink={true}

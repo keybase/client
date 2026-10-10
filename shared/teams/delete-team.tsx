@@ -124,7 +124,7 @@ type CheckboxesProps = {
 const Checkboxes = (props: CheckboxesProps) => {
   const {onSetCheckChats, onSetCheckFolder, onSetCheckNotify} = props
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical">
       <Kb.Checkbox
         checked={props.checkChats}
         label="Team chats will be lost"

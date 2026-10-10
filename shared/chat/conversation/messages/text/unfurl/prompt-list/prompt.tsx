@@ -20,7 +20,7 @@ const UnfurlPrompt = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true}>
       {!isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
-      <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>

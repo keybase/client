@@ -79,7 +79,7 @@ function PathStatusIcon(props: Props) {
       showOnPressMobile={props.showTooltipOnPressMobile}
     >
       {typeof props.statusIcon === 'number' ? (
-        <Kb.Box2 direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>
           <PieSlice degrees={360 * props.statusIcon} />
         </Kb.Box2>
       ) : props.statusIcon === T.FS.UploadIcon.AwaitingToUpload ||
@@ -98,7 +98,7 @@ function PathStatusIcon(props: Props) {
   ) : props.isTlfType ? (
     <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
-    <Kb.Box2 direction="vertical" style={styles.placeholder} />
+    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.placeholder} />
   )
 }
 

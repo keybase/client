@@ -7,7 +7,7 @@ type Props = {style?: StylesCrossPlatform; vertical?: boolean}
 const Divider = (props: Props) => {
   const styles = useStyles()
   return (
-    <Box2
+    <Box2 alignSelf="center"
       direction="vertical"
       flex={1}
       style={Styles.collapseStyles([

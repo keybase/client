@@ -153,7 +153,7 @@ const DesktopEditAvatar = (_p: Props) => {
           </Kb.Text>{' '}
           for one.
         </Kb.Text>
-        <Kb.ClickableBox
+        <Kb.ClickableBox alignSelf="center"
           direction="vertical"
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
@@ -305,7 +305,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
   const renderImageZoomer = () => {
     if (type === 'team' && !selectedImage) {
       return (
-        <Kb.ClickableBox
+        <Kb.ClickableBox alignSelf="center"
           direction="vertical"
           centerChildren={true}
           style={Kb.Styles.collapseStyles([styles.placeholder, getImageStyle()])}
@@ -349,9 +349,9 @@ const NativeAvatarUploadWrapper = (p: Props) => {
             <Kb.Text type="Body">{error}</Kb.Text>
           </Kb.Banner>
         ) : null}
-        <Kb.Box2 direction="vertical" flex={1} style={styles.wizardContainer} gap="small">
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
-          <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
             label={selectedImage ? 'Pick a new avatar' : 'Pick an avatar'}
             mode="Secondary"
@@ -435,7 +435,7 @@ function NativeAvatarZoom(p: {src?: string; width: number; height: number; ref?:
       }
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       overflow="hidden"
       style={{

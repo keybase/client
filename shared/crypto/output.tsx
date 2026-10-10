@@ -74,7 +74,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
           <>
             <Kb.Avatar size={avatarSize} username={signedByUsername} />
             {isSelfSigned ? (
-              <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>
+              <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.signedByText}>
                 <Kb.Text type="BodySmall">{signedByText}</Kb.Text>
                 <Kb.ConnectedUsernames
                   type={usernameType}
@@ -84,7 +84,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
                 />
               </Kb.Box2>
             ) : (
-              <Kb.Box2 direction="vertical">
+              <Kb.Box2 alignSelf="center" direction="vertical">
                 <Kb.ConnectedUsernames
                   type={usernameType}
                   usernames={[signedByUsername]}
@@ -215,7 +215,7 @@ export const CryptoOutputActionsBar = ({
               onClick={() => onReplyInChat(state.outputSenderUsername ?? '')}
             />
           ) : null}
-          <Kb.Box2 direction="horizontal" ref={popupAnchor}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" ref={popupAnchor}>
             <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
                 Copied to clipboard

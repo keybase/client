@@ -24,7 +24,7 @@ const LeftAction = (p: {
   const styles = useStyles()
   const theme = Styles.useTheme()
   return (
-    <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={styles.leftAction}>
       {p.mode === 'cancel' ? (
         <Text type="BodyBigLink" style={styles.action} onClick={p.onAction}>
           Cancel
@@ -175,7 +175,7 @@ export function HeaderRightButton(hp: {onPress?: () => void}) {
   const styles = useStyles()
   const nav = useNavigation()
   return (
-    <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.rightAction}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-end" style={styles.rightAction}>
       <Text type="BodyBigLink" style={styles.action} onClick={hp.onPress ?? nav.goBack}>
         Done
       </Text>

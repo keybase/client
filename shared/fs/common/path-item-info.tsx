@@ -89,7 +89,7 @@ const PathItemInfo = (props: Props) => {
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        <Kb.Box2 direction="horizontal" style={styles.nameTextBox} justifyContent="center">{name}</Kb.Box2>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.nameTextBox} justifyContent="center">{name}</Kb.Box2>
         {pathItem.type === T.FS.PathType.File && (
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}

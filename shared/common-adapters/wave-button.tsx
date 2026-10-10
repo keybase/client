@@ -79,9 +79,9 @@ const WaveButton = (props: Props) => {
 
   const hideButton = waved && !waving
   return (
-    <Kb.Box2 direction="vertical" noShrink={true} style={style}>
+    <Kb.Box2 alignSelf="center" direction="vertical" noShrink={true} style={style}>
       {hideButton && (
-        <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
+        <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
           <Kb.Icon type="iconfont-check" color={theme.black_50} sizeType="Tiny" />
           <Kb.Text type="BodySmall"> Waved</Kb.Text>
         </Kb.Box2>

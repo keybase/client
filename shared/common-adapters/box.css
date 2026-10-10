@@ -186,9 +186,6 @@
     padding-right: var(--size-xlarge);
   }
 }
-.box2_centered {
-  align-self: center;
-}
 .box2_centeredChildren {
   align-items: center;
   justify-content: center;

@@ -45,7 +45,7 @@ const Notifications = (props: Props) => {
   const hasLoadedGroups = props.groups.size > 0
   const emailGroup = props.groups.get('email')
   return !hasLoadedGroups ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} flex={1}>
+    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} flex={1}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (

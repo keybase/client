@@ -23,7 +23,7 @@ const SyncNotificationSetting = (
   const onChangedSyncNotifications = (selectedIdx: number) =>
     setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
       <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
       <Kb.Dropdown
         items={allowedNotificationThresholds.map(i => (
@@ -34,7 +34,7 @@ const SyncNotificationSetting = (
         onChangedIdx={onChangedSyncNotifications}
         overlayStyle={styles.syncNotificationDropdownOverlay}
         selected={
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="horizontal"
             key={spaceAvailableNotificationThreshold || defaultNotificationThreshold}
           >
@@ -79,7 +79,7 @@ const FinderIntegration = () => {
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
-              <Kb.ClickableBox direction="vertical" style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
+              <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
                 <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
                   Action needed!
                 </Kb.Text>

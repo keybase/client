@@ -13,9 +13,9 @@ export type Props = {
 
 const getProgress = (dlState: T.FS.DownloadState, styles: ReturnType<typeof useStyles>) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
-    <Kb.Box2 direction="vertical" flex={1} relative={true}>
-      <Kb.Box2 direction="vertical" style={styles.tube} />
-      <Kb.Box2
+    <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.tube} />
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.tube,
@@ -45,7 +45,7 @@ const Download = (props: Props) => {
   Kbfs.useFsWatchDownloadForMobile(props.downloadID, T.FS.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="horizontal"
         centerChildren={true}
         style={Kb.Styles.collapseStyles([styles.download, !!dlState.error && styles.red])}
@@ -59,7 +59,7 @@ const Download = (props: Props) => {
             color={theme.black_20}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
             onClick={isMobile ? undefined : open}

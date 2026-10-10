@@ -153,7 +153,7 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.containerOuterTablet}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.containerBorder}></Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.container}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
           {sectionList}
         </Kb.Box2>
       </Kb.Box2>

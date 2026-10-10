@@ -33,7 +33,7 @@ const FollowButton = (props: Props) => {
       return button
     }
     return (
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         onMouseEnter={() => setMouseover(true)}
         onMouseLeave={() => setMouseover(false)}

@@ -87,7 +87,7 @@ function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 alignSelf="center" direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       <ReactButton
         className={btnClassName}
         emoji={emoji}

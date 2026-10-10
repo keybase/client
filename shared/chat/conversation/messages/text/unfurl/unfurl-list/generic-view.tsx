@@ -86,7 +86,7 @@ export default function UnfurlGenericView(p: UnfurlGenericViewProps) {
 
   const rightImage =
     imageLocation === 'side' && mediaUrl ? (
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="vertical">
         <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null

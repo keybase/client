@@ -5,13 +5,13 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.ClickableBox direction="horizontal" alignItems={isMobile ? 'center' : undefined} style={styles.row} onClick={() => onUsernameClicked(username)}>
+    <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems={isMobile ? 'center' : undefined} style={styles.row} onClick={() => onUsernameClicked(username)}>
       <Kb.Avatar
         username={username}
         size={48}
         style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
       />
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         justifyContent={isMobile ? 'center' : undefined}
         flex={isMobile ? 1 : undefined}

@@ -42,7 +42,7 @@ const TextView = (props: Props) => {
   if (!isMobile) {
     return (
       <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" padding="small" style={styles.container}>
-        <Kb.Box2 style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
+        <Kb.Box2 alignSelf="center" style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
           <Kb.Text type="Terminal" selectable={true} style={styles.text}>
             {content}
           </Kb.Text>

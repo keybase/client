@@ -27,7 +27,7 @@ const OverlayIcon = function OverlayIcon(p: {
   if (!type) return null
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.mutedIcon}>
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
@@ -83,7 +83,7 @@ const Avatars = function Avatars(p: Props) {
 
   if (!participantTwo) {
     return (
-      <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
+      <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={containerStyle}>
         <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
         <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
       </Kb.Box2>
@@ -91,7 +91,7 @@ const Avatars = function Avatars(p: Props) {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
       <Kb.Avatar username={participantTwo} size={32} style={leftStyle} />
       <Kb.Avatar username={participantOne} size={32} style={rightStyle} />
       <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
@@ -122,7 +122,7 @@ const TeamAvatar = function TeamAvatar(p: {
   const styles = useStyles()
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
-    <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
+    <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
       <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
     </Kb.Box2>

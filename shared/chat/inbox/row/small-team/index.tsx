@@ -133,7 +133,7 @@ const SmallTeam = (p: Props) => {
       {showingPopup && popup}
       <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation} onLongPress={onLongPress}>
         {isMobile ? (
-          <Kb.Box2 direction="vertical" style={containerStyle}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={containerStyle}>
             {rowContents}
           </Kb.Box2>
         ) : (
@@ -193,8 +193,8 @@ const TopLine = (p: TopLineProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" style={styles.insideContainer} relative={true}>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.insideContainer} relative={true}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
             <Kb.Text type="BodySemibold" style={teamContainerStyle} lineClamp={1}>
               {teamDisplayName}
@@ -223,7 +223,7 @@ const TopLine = (p: TopLineProps) => {
       {!isMobile && (
         <TopLineGear subColor={subColor} isSelected={isSelected} showPopup={showPopup} popupAnchor={popupAnchor} />
       )}
-      {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
+      {hasBadge ? <Kb.Box2 alignSelf="center" direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
     </Kb.Box2>
   )
 }
@@ -241,7 +241,7 @@ const TopLineGear = (p: TopLineGearProps) => {
   const {subColor, isSelected, showPopup, popupAnchor} = p
   const iconHoverColor = isSelected ? theme.white_75 : theme.black
   return (
-    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.icon}>
+    <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.icon}>
       <Kb.Icon
         type="iconfont-gear"
         className="conversation-gear"
@@ -308,7 +308,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else if (draft) {
     content = (
-      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <Kb.Text
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
@@ -329,7 +329,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else {
     content = (
-      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <SnippetContent snippet={snippet} snippetDecoration={snippetDecoration} isSelected={isSelected} style={style} />
       </Kb.Box2>
     )
@@ -347,7 +347,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
           backgroundColor={theme.red}
         />
       )}
-      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
+      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -460,7 +460,7 @@ const SnippetContent = (p: {
   return (
     <>
       {!!decorationNode && (
-        <Kb.Box2 direction="vertical" centerChildren={true} tooltip={tooltip}>
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} tooltip={tooltip}>
           {decorationNode}
         </Kb.Box2>
       )}

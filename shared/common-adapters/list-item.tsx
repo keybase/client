@@ -87,7 +87,7 @@ const ListItem = (props: Props) => {
           {props.icon}
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" relative={true} style={getContainerStyles(props, styles)}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" relative={true} style={getContainerStyles(props, styles)}>
         {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>

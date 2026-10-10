@@ -31,7 +31,7 @@ const LoginHeaderRight = () => {
   const requestAutoInvite = useRequestAutoInvite()
   if (!showRelogin) return null
   return (
-    <Kb.Box2 direction="horizontal" style={styles.createAccount}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.createAccount}>
       <Kb.Text type="BodyBigLink" onClick={() => requestAutoInvite('')}>
         Create account
       </Kb.Text>
@@ -93,7 +93,7 @@ const styles = {
 } as const
 
 const headerRightActions = () => (
-  <Kb.Box2 direction="horizontal" style={styles.questionBox}>
+  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.questionBox}>
     <InfoIcon />
   </Kb.Box2>
 )

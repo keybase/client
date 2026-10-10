@@ -246,7 +246,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   return (
     <Common.ActivityLevelsProvider>
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} centerChildren={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne} centerChildren={true}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
       ) : (
@@ -311,7 +311,7 @@ const HeaderRow = function HeaderRow(p: {
         <Kb.Icon type="iconfont-new" sizeType="Small" color={theme.blueDark} />
       </Kb.Button>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
-        <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
+        <Kb.Box2 alignSelf="center" direction="vertical" /> // box so that the other item aligns to the left
       ) : (
         <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
           {onSelectAll ? 'Select all' : 'Clear'}

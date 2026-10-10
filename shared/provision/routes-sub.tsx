@@ -20,7 +20,7 @@ const UsernameHeaderRight = ({username}: {username: string}) => {
   const styles = useStyles()
   const requestAutoInvite = useRequestAutoInvite()
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.headerRight}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.headerRight}>
       <Kb.Text type="BodyBigLink" onClick={() => requestAutoInvite(username)}>
         Create account
       </Kb.Text>

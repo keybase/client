@@ -88,7 +88,7 @@ const ChannelMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={username} size={32} />
 
-      <Kb.Box2 direction="vertical" flex={1} style={selectionStyles.nameContainer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={selectionStyles.nameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box2>

@@ -32,17 +32,17 @@ const InstallSecurityPrefs = () => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" centerChildren={true} style={styles.container}>
         <Kb.Text type="HeaderBig" style={styles.title}>
           You need to change your system security preferences.
         </Kb.Text>
         <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
-        <Kb.Box2 direction="horizontal">
-          <Kb.Box2 direction="vertical" relative={true}>
+        <Kb.Box2 alignSelf="center" direction="horizontal">
+          <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
             <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
-            <Kb.Box2 direction="horizontal">
+            <Kb.Box2 alignSelf="center" direction="horizontal">
               <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
                 •
               </Kb.Text>
@@ -57,7 +57,7 @@ const InstallSecurityPrefs = () => {
         </Kb.Text>
       </Kb.Box2>
       {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
-        <Kb.Box2 direction="vertical" style={styles.enablingContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.enablingContainer}>
           <Kb.Box2
             direction="vertical"
             gap="small"

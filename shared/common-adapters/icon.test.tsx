@@ -88,7 +88,7 @@ describe('Icon (desktop)', () => {
     const onClick = jest.fn()
     const onOuter = jest.fn()
     const {container} = render(
-      <ClickableBox direction="vertical" onClick={onOuter}>
+      <ClickableBox alignSelf="center" direction="vertical" onClick={onOuter}>
         <Icon type="iconfont-add" onClick={onClick} />
       </ClickableBox>
     )

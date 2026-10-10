@@ -48,7 +48,7 @@ export const InfoIcon = (props: InfoIconProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}>
+      <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}>
         <Kb.Icon
           type="iconfont-question-mark"
           onClick={props.invisible ? undefined : showPopup}
@@ -89,7 +89,7 @@ const Header = (props: HeaderProps) => {
       )}
       <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
         {props.onBack && (
-          <Kb.ClickableBox onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
+          <Kb.ClickableBox alignSelf="center" onClick={props.onBack} direction="horizontal" alignItems="center" gap="xtiny" style={styles.backButton}>
               <Kb.Icon
                 type="iconfont-arrow-left"
                 color={props.negative ? theme.white : theme.black_50}
@@ -210,7 +210,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
             {props.footer}
           </Kb.Box2>
         )}
-        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
+        {!!props.banners && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
         {!!props.buttons && (
           <Kb.ButtonBar
             direction="column"

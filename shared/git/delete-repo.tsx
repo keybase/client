@@ -65,7 +65,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
           repository?
         </Kb.Text>
         <Kb.ImageIcon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny">
           {!!teamname && <Kb.Avatar isTeam={true} teamname={teamname} size={16} />}
           <Kb.Text type="BodySemibold" style={styles.repoName}>
             {teamname ? `${teamname}/${_name}` : _name}

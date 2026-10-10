@@ -153,7 +153,7 @@ const NativeVideo = (props: Props) => {
 
   const content = (
     <DelayMount>
-      <Box2 direction="horizontal" centerChildren={true} style={styles.container}>
+      <Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.container}>
         <VideoView
           player={player}
           nativeControls={true}

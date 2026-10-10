@@ -85,7 +85,7 @@ const TeamBox = (props: Props) => {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" style={styles.bubbles}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.bubbles}>
         <Kb.ScrollView
           horizontal={true}
           ref={scrollViewRef}

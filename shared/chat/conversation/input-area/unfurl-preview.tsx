@@ -78,7 +78,7 @@ const UnfurlPreview = (p: Props) => {
     />
   )
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start" style={styles.container}>
+    <Kb.Box2 alignSelf="center" direction="vertical" gap="xtiny" alignItems="flex-start" style={styles.container}>
       {pager}
       {/* the card area is a fixed size, so paging between cards never resizes the panel.
           only this part scrolls; the pager above it stays put */}
@@ -86,7 +86,7 @@ const UnfurlPreview = (p: Props) => {
         // native clips at a fixed height rather than scrolling, so it needs a real scroller
         <Kb.ScrollView style={styles.cardArea}>{card}</Kb.ScrollView>
       ) : (
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.cardArea}>
+        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={styles.cardArea}>
           {card}
         </Kb.Box2>
       )}

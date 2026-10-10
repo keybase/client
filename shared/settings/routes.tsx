@@ -21,7 +21,7 @@ const onPushPromptSkip = () => {
 }
 
 const PushPromptSkipButton = () => (
-  <Kb.ClickableBox onClick={onPushPromptSkip} direction="vertical">
+  <Kb.ClickableBox alignSelf="center" onClick={onPushPromptSkip} direction="vertical">
     <Kb.Text type="BodyBig" negative={true}>
       Skip
     </Kb.Text>

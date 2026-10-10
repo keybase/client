@@ -26,9 +26,9 @@ const UserBubble = (props: Props) => {
     }
   }
   return (
-    <Kb.Box2 direction="vertical" className="hover-container" relative={true} style={styles.bubbleContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" className="hover-container" relative={true} style={styles.bubbleContainer}>
       <Kb.WithTooltip tooltip={props.tooltip} position="top center">
-        <Kb.Box2 direction="horizontal" style={styles.bubble}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.bubble}>
           <Kb.NameWithIcon
             colorFollowing={true}
             hideFollowingOverlay={true}
@@ -42,7 +42,7 @@ const UserBubble = (props: Props) => {
             titleStyle={styles.userBubbleTitle}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" className="hover-visible" alignItems="center" style={styles.remove} justifyContent="center">
+        <Kb.Box2 alignSelf="center" direction="horizontal" className="hover-visible" alignItems="center" style={styles.remove} justifyContent="center">
           <RemoveBubble onRemove={props.onRemove} />
         </Kb.Box2>
       </Kb.WithTooltip>
@@ -54,7 +54,7 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.ClickableBox onClick={onRemove} direction="vertical">
+    <Kb.ClickableBox alignSelf="center" onClick={onRemove} direction="vertical">
       <Kb.Icon
         type="iconfont-close"
         color={theme.black_50_on_white}

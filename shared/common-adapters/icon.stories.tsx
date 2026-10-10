@@ -46,9 +46,9 @@ export const Clickable: Story = {
 
 export const Showcase: Story = {
   render: () => (
-    <Box2 direction="horizontal" gap="medium" style={{flexWrap: 'wrap', padding: Styles.globalMargins.medium}}>
+    <Box2 alignSelf="center" direction="horizontal" gap="medium" style={{flexWrap: 'wrap', padding: Styles.globalMargins.medium}}>
       {iconShowcase.map(({type, label}) => (
-        <Box2 key={type} direction="vertical" centerChildren={true} gap="xtiny">
+        <Box2 alignSelf="center" key={type} direction="vertical" centerChildren={true} gap="xtiny">
           <Icon type={type} />
           <span style={{fontSize: 10, color: '#666'}}>{label}</span>
         </Box2>

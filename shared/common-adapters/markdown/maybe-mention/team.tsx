@@ -112,7 +112,7 @@ const TeamMention = (ownProps: OwnProps) => {
         {popups}
       </>
     ) : (
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="horizontal"
         style={styles.container}
         onMouseOver={handleMouseOver}
