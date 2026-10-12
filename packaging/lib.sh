@@ -86,7 +86,7 @@ kb_sign_binary() {
       echo "Signing $*"
       local path
       for path in "$@"; do
-        codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$path"
+        codesign --verbose --force --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$path"
       done
       ;;
     linux) echo "No codesigning for Linux" ;;
@@ -96,6 +96,75 @@ kb_sign_binary() {
       return 1
       ;;
   esac
+}
+
+# kb_sign_app_inside_out <app> <entitlements>
+# Signs the Electron code in <app> one item at a time, innermost first, then the
+# app itself; Apple deprecates `codesign --deep` for signing. Code is found by
+# looking for Mach-O files, so Electron upgrades that add or drop helpers and
+# dylibs need no edits.
+#   - Contents/Resources and Contents/SharedSupport are left alone: their code
+#     arrives already signed (KeybaseInstaller.app and KeybaseUpdater.app by
+#     Keybase, SharedSupport/bin by kb_sign_binary) with its own entitlements.
+#   - Executables and helper apps get <entitlements>, except executables inside
+#     a framework's Resources (Squirrel's ShipIt), which only need the runtime.
+#   - Dylibs and frameworks get no entitlements.
+kb_sign_app_inside_out() {
+  local app="${1%/}" entitlements="$2"
+  local base_args=(--verbose --force --options runtime --sign "$KB_CODESIGN_IDENTITY")
+  # An ad-hoc signature (identity "-") can't be timestamped.
+  if [ "$KB_CODESIGN_IDENTITY" != "-" ]; then
+    base_args+=(--timestamp)
+  fi
+
+  # Collect nested code: loose Mach-O files plus .app/.framework/.xpc bundles.
+  # A bundle's own main binary is signed with its bundle, not on its own.
+  local items=() path
+  while IFS= read -r -d '' path; do
+    case "$path" in
+      "$app"/Contents/Resources/*|"$app"/Contents/SharedSupport/*|"$app"/Contents/MacOS/*) continue ;;
+      *.app/Contents/MacOS/*) continue ;;
+    esac
+    if [ -d "$path" ]; then
+      items+=("$path")
+    elif [ ! -L "$path" ]; then
+      case "$(file -b "$path")" in
+        *Mach-O*) ;;
+        *) continue ;;
+      esac
+      # Versions/<v>/<binary> is the framework's main binary.
+      case "$(dirname "$(dirname "$path")")" in
+        *.framework/Versions) continue ;;
+      esac
+      items+=("$path")
+    fi
+  done < <(find "$app/Contents" \( -type d \( -name '*.app' -o -name '*.framework' -o -name '*.xpc' \) \) -print0 -o \( -type f -print0 \))
+
+  # Deepest paths first, so everything inside a bundle is signed before it.
+  local sorted=()
+  while IFS= read -r path; do
+    sorted+=("$path")
+  done < <(for path in ${items[@]+"${items[@]}"}; do
+    printf '%s\t%s\n' "$(printf '%s' "$path" | tr -cd '/' | wc -c | tr -d ' ')" "$path"
+  done | sort -t "$(printf '\t')" -k1,1nr -k2,2 | cut -f2-)
+
+  local args
+  for path in ${sorted[@]+"${sorted[@]}"}; do
+    args=("${base_args[@]}")
+    case "$path" in
+      *.framework) ;;
+      *.framework/Versions/*/Resources/*) ;;
+      *.app|*.xpc) args+=(--entitlements "$entitlements") ;;
+      *)
+        case "$(file -b "$path")" in
+          *executable*) args+=(--entitlements "$entitlements") ;;
+        esac
+        ;;
+    esac
+    codesign "${args[@]}" "$path"
+  done
+
+  codesign "${base_args[@]}" --entitlements "$entitlements" "$app"
 }
 
 # kb_release_bin

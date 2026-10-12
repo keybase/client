@@ -44,6 +44,7 @@ copy calls must exist in any commit it can be asked to build.
 | `kb_lib_version` | the version in `go/libkb/version.go` |
 | `kb_build_id` | a new `<UTC timestamp>+<short commit>` build id; compute once per build and pass it down as `KEYBASE_BUILD`/`KBFS_BUILD` |
 | `kb_sign_binary <path>...` | signs binaries for `$PLATFORM` (macOS only) |
+| `kb_sign_app_inside_out <app> <entitlements>` | signs the Electron code in an app innermost first, then the app, without `codesign --deep`; finds code by Mach-O type, so Electron upgrades need no edits. Leaves `Contents/Resources` and `Contents/SharedSupport` (already signed) alone |
 | `kb_release_bin` | builds the `release` tool once and exports its path as `KB_RELEASE_BIN`, which child scripts reuse |
 | `kb_clean_caches` | true when `CLEAN_CACHES=1`; the three cache helpers below then always clear |
 | `kb_prune_yarn_cache` | cleans the yarn cache only when its volume has less than `KB_MIN_FREE_GB` (default 30) free |

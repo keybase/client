@@ -166,27 +166,10 @@ update_plist() { (
 
 sign() { (
 	cd "$out_dir"
-	# need to sign some stuff from electron that doesn't get picked up for some reason.
-	# Which of these ship varies by electron version (44 dropped libEGL/libGLESv2), so
-	# warn instead of failing the build when one isn't there.
-	sign_if_present() {
-		if [ -e "$1" ]; then
-			codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$1"
-		else
-			echo "WARNING: skipping codesign, file not found: $1"
-		fi
-	}
-	electron_libs_dir="$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries"
-	sign_if_present "$electron_libs_dir/libffmpeg.dylib"
-	sign_if_present "$electron_libs_dir/libEGL.dylib"
-	sign_if_present "$electron_libs_dir/libGLESv2.dylib"
-	sign_if_present "$electron_libs_dir/libvk_swiftshader.dylib"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
-
-	codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$KB_CODESIGN_IDENTITY" "$app_name.app"
+	kb_sign_app_inside_out "$app_name.app" "$client_dir/osx/Keybase.entitlements"
 
 	echo "Verify codesigning..."
-	codesign --verify --verbose=4 "$app_name.app"
+	codesign --verify --deep --strict --verbose=4 "$app_name.app"
 	spctl --assess --verbose=4 "$app_name.app"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
