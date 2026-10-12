@@ -129,7 +129,7 @@ export const niceError = (e: RPCError) => {
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
     default: {
       const caps = capitalize(e.desc || e.message || 'Unknown error')
-      return caps.endsWith('.') ? `${caps}.` : caps
+      return caps.endsWith('.') ? caps : `${caps}.`
     }
   }
 }

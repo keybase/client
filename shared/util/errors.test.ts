@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {convertToError, ensureError, errorKind, isCancelled, isLoginRequired, isQuietCancel, RPCError} from './errors'
+import {convertToError, ensureError, errorKind, isCancelled, isLoginRequired, isQuietCancel, niceError, RPCError} from './errors'
 
 const S = T.RPCGen.StatusCode
 
@@ -71,4 +71,11 @@ test('login-required reads by its kind, also on the Error a listener wraps it in
   expect(isLoginRequired(ensureError(e))).toBe(true)
   expect(isLoginRequired(new RPCError('x', S.scgeneric))).toBe(false)
   expect(isLoginRequired(new Error('boom'))).toBe(false)
+})
+
+describe('niceError for a code it has no message for', () => {
+  test('ends the service message with one period', () => {
+    expect(niceError(new RPCError('team is full', S.scgeneric))).toBe('Team is full.')
+    expect(niceError(new RPCError('team is full.', S.scgeneric))).toBe('Team is full.')
+  })
 })
