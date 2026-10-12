@@ -4,7 +4,7 @@ import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
 const DesktopFloatingBox = (props: Props) => {
   const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
-  const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
+  const {onHidden, propagateOutsideClicks, containerStyle, matchDimension} = props
 
   return (
     <RelativeFloatingBox
@@ -14,7 +14,6 @@ const DesktopFloatingBox = (props: Props) => {
       positionFallbacks={positionFallbacks}
       matchDimension={!!matchDimension}
       onClosePopup={onHidden || noop}
-      remeasureHint={remeasureHint}
       propagateOutsideClicks={propagateOutsideClicks}
       style={containerStyle}
       offset={offset}

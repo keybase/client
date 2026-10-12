@@ -22,7 +22,6 @@ export type Props = {
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean
-  remeasureHint?: number
   textColor?: Styles.Color
   visible: boolean
   offset?: number
@@ -83,7 +82,6 @@ function FloatingMenu(props: Props) {
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
-      remeasureHint={props.remeasureHint}
       offset={props.offset}
       style={props.containerStyle}
       snapPoints={props.snapPoints}

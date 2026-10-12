@@ -6,7 +6,7 @@ export type {AnchoredPopupProps} from './index.shared'
 
 export const AnchoredPopup = (props: AnchoredPopupProps) => {
   const {attachTo, children, containerStyle, hideKeyboard, matchDimension, offset, onHidden} = props
-  const {position, positionFallbacks, propagateOutsideClicks, remeasureHint, style} = props
+  const {position, positionFallbacks, propagateOutsideClicks, style} = props
   const styles = useStyles()
 
   if (isMobile) {
@@ -25,7 +25,6 @@ export const AnchoredPopup = (props: AnchoredPopupProps) => {
       containerStyle={containerStyle}
       matchDimension={!!matchDimension}
       onHidden={onHidden}
-      remeasureHint={remeasureHint}
       position={position}
       positionFallbacks={positionFallbacks}
       propagateOutsideClicks={propagateOutsideClicks}

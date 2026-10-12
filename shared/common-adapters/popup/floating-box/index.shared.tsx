@@ -10,7 +10,6 @@ export type Props = {
   propagateOutsideClicks?: boolean
   containerStyle?: Styles.StylesCrossPlatform
   matchDimension?: boolean
-  remeasureHint?: number
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   hideKeyboard?: boolean

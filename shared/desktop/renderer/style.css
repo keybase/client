@@ -403,17 +403,36 @@ body {
   vertical-align: middle;
 }
 
-@keyframes fadeInGeneric {
-  0% {
+/* a popup placed by relative-floating-box: a manual popover in the top layer, anchored with CSS */
+.floating-box {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  margin: 0;
+  max-width: 100%;
+  overflow: visible;
+  padding: 0;
+  /* only the content takes clicks, never the box around it */
+  pointer-events: none;
+  /* stays shown when its anchor is scrolled out of view */
+  position-visibility: always;
+
+  &[data-unanchored] {
     opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }
 
-.fade-in-generic {
-  animation: fadeInGeneric 0.25s;
+.floating-box-content {
+  pointer-events: auto;
+  transition: opacity 0.25s;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  .floating-box[data-unanchored] & {
+    pointer-events: none;
+  }
 }
 
 body {
