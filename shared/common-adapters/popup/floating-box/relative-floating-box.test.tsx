@@ -5,7 +5,9 @@ import type * as React from 'react'
 import {cleanup, fireEvent, render} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
+import {EscapeHandler, GlobalKeyEventHandler} from '../../key-event-handler.desktop'
 import {ModalDialog} from '../modal-dialog.desktop'
+import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
 // jsdom has neither the Popover API, showModal nor ResizeObserver
@@ -176,6 +178,35 @@ describe('RelativeFloatingBox', () => {
     expect(popup).toBeTruthy()
     expect(popups()).toEqual([])
     expect(shown).toEqual([dialog, popup])
+  })
+
+  test('a popup with no onHidden leaves escape to what is under it', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const Screen = (p: {popup?: React.ReactNode}) => (
+      <GlobalKeyEventHandler>
+        <EscapeHandler onESC={under}>{p.popup}</EscapeHandler>
+      </GlobalKeyEventHandler>
+    )
+    const {rerender} = render(<Screen />)
+    // mounted after, so on top of the stack
+    rerender(<Screen popup={<FloatingBox attachTo={refTo(anchorElement())}>tooltip</FloatingBox>} />)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(under).toHaveBeenCalledTimes(1)
+
+    rerender(<Screen />)
+    rerender(
+      <Screen
+        popup={
+          <FloatingBox attachTo={refTo(anchorElement())} onHidden={onHidden}>
+            menu
+          </FloatingBox>
+        }
+      />
+    )
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).toHaveBeenCalledTimes(1)
   })
 
   test('renders nothing when there is no modal root', () => {

@@ -9,7 +9,8 @@ const DesktopFloatingBox = (props: Props) => {
   return (
     <RelativeFloatingBox
       attachTo={attachTo}
-      disableEscapeKey={disableEscapeKey}
+      // with nothing to call on Escape, a popup like a tooltip must not take it from what is under it
+      disableEscapeKey={disableEscapeKey || !onHidden}
       position={position || 'bottom center'}
       positionFallbacks={positionFallbacks}
       matchDimension={!!matchDimension}
