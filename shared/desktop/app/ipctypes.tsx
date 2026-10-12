@@ -18,8 +18,10 @@ export type Action =
         windowComponent: string
         windowParam?: string
         windowOpts: {
-          width: number
+          hasShadow?: boolean
           height: number
+          transparent?: boolean
+          width: number
         }
         windowPositionBottomRight?: boolean
       }

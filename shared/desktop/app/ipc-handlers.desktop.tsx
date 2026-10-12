@@ -519,12 +519,15 @@ export const setupIPCHandlers = (deps: {
         break
       }
       case 'makeRenderer': {
-        const opts = {
+        // only take the size/appearance keys from the renderer, never webPreferences
+        const {hasShadow, height, transparent, width} = action.payload.windowOpts
+        const opts: Electron.BrowserWindowConstructorOptions = {
           frame: false,
           fullscreen: false,
+          height,
           resizable: false,
           show: false, // Start hidden and show when we actually get props
-          titleBarStyle: 'customButtonsOnHover' as const,
+          titleBarStyle: 'customButtonsOnHover',
           webPreferences: {
             contextIsolation: true,
             nodeIntegration: false,
@@ -532,7 +535,9 @@ export const setupIPCHandlers = (deps: {
             preload: preloadPath,
             sandbox: true,
           },
-          ...action.payload.windowOpts,
+          width,
+          ...(hasShadow === undefined ? {} : {hasShadow}),
+          ...(transparent === undefined ? {} : {transparent}),
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
@@ -544,10 +549,10 @@ export const setupIPCHandlers = (deps: {
         })
 
         if (action.payload.windowPositionBottomRight) {
-          const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
+          const {width: screenWidth, height: screenHeight} = Electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
-            width - action.payload.windowOpts.width - 100,
-            height - action.payload.windowOpts.height - 100,
+            screenWidth - width - 100,
+            screenHeight - height - 100,
             false
           )
         }
