@@ -82,20 +82,12 @@ function ScrollView(props: Props) {
 
   if (!isMobile) {
     const {className, contentContainerStyle, onScroll, style, children, testID} = rest
-    const {showsHorizontalScrollIndicator, showsVerticalScrollIndicator} = rest
-    const hideScroll =
-      showsVerticalScrollIndicator === false && showsHorizontalScrollIndicator === false
-    const cn = Styles.classNames(
-      {'hide-scrollbar': hideScroll},
-      {'scroll-container': hideScroll},
-      className
-    )
     const onScroll_ = (e: {currentTarget: DivScrollable}) => {
       onScroll?.({currentTarget: e.currentTarget as never})
     }
     return (
       <div
-        className={cn}
+        className={className}
         data-testid={testID}
         style={Styles.collapseStylesDesktop([styles.overflowAuto, style]) as React.CSSProperties}
         onScroll={onScroll_ as never}

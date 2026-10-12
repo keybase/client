@@ -251,47 +251,13 @@ body {
 }
 
 :root {
-  --scrollbar-size: 0.375rem;
-  --scrollbar-minlength: 0.5rem;
-  --scrollbar-ff-width: thin;
   --scrollbar-track-color: transparent;
   --scrollbar-color: light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.2));
-  --scrollbar-color-hover: light-dark(rgba(0, 0, 0, 0.3), rgba(255, 255, 255, 0.3));
-  --scrollbar-color-active: light-dark(rgb(0, 0, 0), rgb(255, 255, 255, 0.5));
 }
 
-/* Used to customize scrollbars and enable testing the auto hide behavior on os x */
+/* Inherited by every scroller. It also makes Chromium ignore any ::-webkit-scrollbar rule */
 body {
   scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
-}
-.layout-scrollbar-obtrusive ::-webkit-scrollbar {
-  height: var(--scrollbar-size);
-  width: var(--scrollbar-size);
-}
-.scrollbar-test {
-  overscroll-behavior: contain;
-  overflow-y: auto;
-  scrollbar-width: var(--scrollbar-ff-width);
-}
-
-::-webkit-scrollbar-track {
-  background-color: var(--scrollbar-track-color);
-}
-::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-color);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-color-hover);
-}
-::-webkit-scrollbar-thumb:active {
-  background-color: var(--scrollbar-color-active);
-}
-::-webkit-scrollbar-thumb:vertical {
-  min-height: var(--scrollbar-minlength);
-}
-::-webkit-scrollbar-thumb:horizontal {
-  min-width: var(--scrollbar-minlength);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -381,12 +347,6 @@ body {
 
 .underline {
   text-decoration: underline;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-  height: 0;
-  width: 0;
 }
 
 .fade-anim-enter {
