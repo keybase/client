@@ -3,7 +3,7 @@ import type {KB2} from '@/util/electron'
 import type {ConnectionType} from '@/stores/shell'
 
 export type ExpoLocationObject = {coords: {accuracy: number | null; latitude: number; longitude: number}}
-export type ExpoLocationModule = {
+type ExpoLocationModule = {
   startLocationUpdatesAsync: (taskName: string, options: object) => Promise<void>
   stopLocationUpdatesAsync: (taskName: string) => Promise<void>
 }

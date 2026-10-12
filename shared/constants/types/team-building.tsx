@@ -6,7 +6,7 @@ export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = _ServiceId
 
 export type GoButtonLabel = 'Start' | 'Add'
-export type ContactServiceId = 'email' | 'phone'
+type ContactServiceId = 'email' | 'phone'
 // These are the possible tabs in team building, and also consts that can be
 // passed as `service` to search RPC (`userSearch.UserSearch`).
 export type ServiceIdWithContact = _ServiceId | ContactServiceId
@@ -30,7 +30,7 @@ export type User = {
 
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
-export type Query = string
+type Query = string
 
 export type SearchResults = Map<Query, Map<ServiceIdWithContact, ReadonlyArray<User>>>
 

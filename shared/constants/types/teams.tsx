@@ -33,7 +33,7 @@ export type TreeloaderSparseMemberInfo = {
   joinTime?: number
   type: MaybeTeamRoleType
 }
-export type SparseMemberInfo = {
+type SparseMemberInfo = {
   joinTime?: number
   type: TeamRoleType
 }
@@ -59,7 +59,7 @@ export type TypeMap = {[K in TeamRoleType]: string}
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type JoinRequest = {
+type JoinRequest = {
   ctime: number
   fullName: string
   username: string
@@ -99,7 +99,7 @@ export type TeamDetails = {
   description: string
 }
 
-export type TeamSettings2 = {
+type TeamSettings2 = {
   open: boolean
   openJoinAs: TeamRoleType
   tarsDisabled: boolean

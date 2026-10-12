@@ -15,7 +15,7 @@ export type Device = {
   type: DeviceType
 }
 
-export const numBackgrounds = 10
+const numBackgrounds = 10
 export const deviceNumberToIconNumber = (deviceNumberOfType: number) =>
   (((deviceNumberOfType % numBackgrounds) + 1) as IconNumber)
 

@@ -104,7 +104,7 @@ export const teamRoleByEnum = invert(T.RPCGen.TeamRole) as unknown as {
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
-export const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unknown as {
+const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unknown as {
   [K in keyof typeof T.RPCGen.TeamMemberStatus as (typeof T.RPCGen.TeamMemberStatus)[K]]: K
 }
 

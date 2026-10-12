@@ -11,7 +11,7 @@ export type TeamShowcase = {
 export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked' | 'suggestion'
 export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
 
-export type AssertionMeta = {
+type AssertionMeta = {
   color: AssertionColor
   label: string // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
 }

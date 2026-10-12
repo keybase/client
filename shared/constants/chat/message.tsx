@@ -385,7 +385,7 @@ const makeMessageSystemInviteAccepted = (
   ...m,
 })
 
-export const makeMessageSystemSBSResolved = (
+const makeMessageSystemSBSResolved = (
   m?: Partial<MessageTypes.MessageSystemSBSResolved>
 ): MessageTypes.MessageSystemSBSResolved => ({
   ...makeMessageCommonNoDeleteNoEdit,
@@ -416,7 +416,7 @@ export const makeMessageSystemText = (
   ...m,
 })
 
-export const makeMessageSystemCreateTeam = (
+const makeMessageSystemCreateTeam = (
   m?: Partial<MessageTypes.MessageSystemCreateTeam>
 ): MessageTypes.MessageSystemCreateTeam => ({
   ...makeMessageCommonNoDeleteNoEdit,
@@ -433,7 +433,7 @@ export const systemGitBranchName = (ref: T.RPCGen.GitRefMetadata) => {
   return refName.startsWith(branchRefPrefix) ? refName.substring(branchRefPrefix.length) : refName
 }
 
-export const makeMessageSystemGitPush = (
+const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
 ): MessageTypes.MessageSystemGitPush => ({
   ...makeMessageCommonNoDeleteNoEdit,

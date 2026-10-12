@@ -204,13 +204,13 @@ export const navToProfile = (username: string) => {
 }
 
 // prettier-ignore
-export type PreviewReason =
+type PreviewReason =
   | 'appLink' | 'channelHeader' | 'convertAdHoc' | 'files' | 'forward' | 'fromAReset'
   | 'journeyCardPopular' | 'manageView' | 'memberView' | 'messageLink' | 'newChannel'
   | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
-export type PreviewConversationParams = {
+type PreviewConversationParams = {
   participants?: ReadonlyArray<string>
   teamname?: string
   channelname?: string
@@ -492,7 +492,7 @@ type ThreadNavParams = {
   threadSearch?: {query?: string}
 }
 
-export type NavigateToThreadReason =
+type NavigateToThreadReason =
   | 'focused'
   | 'clearSelected'
   | 'desktopNotification'
