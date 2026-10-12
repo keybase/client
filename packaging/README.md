@@ -52,8 +52,7 @@ don't run a Metro server.
 ## Linting
 
 The `Shellcheck` stage in the `Jenkinsfile` runs `shellcheck -S warning -x` over
-every `.sh` file here plus `shared/react-native/gobuild.sh` and
-`shared/react-native/packageAndBuild.sh`, whenever one of them (or the
-`Jenkinsfile`) changes. The Jenkins setup step installs a pinned, checksummed
-shellcheck (v0.11.0). Run it from the repo root so the `# shellcheck source=`
-directives resolve.
+every `.sh` file here plus `shared/react-native/gobuild.sh`, whenever one of them
+(or the `Jenkinsfile`) changes. The Jenkins setup step installs a pinned,
+checksummed shellcheck (v0.11.0). Run it from the repo root so the
+`# shellcheck source=` directives resolve.
