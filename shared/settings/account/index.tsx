@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import EmailPhoneRow from './email-phone-row'
@@ -299,7 +300,7 @@ const AccountSettings = ({route}: Props) => {
 
   return (
     <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={[C.waitingKeySettingsLoadSettings]}>
-      <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
+      <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_ACCOUNT_PAGE}>
         {addedEmail && (
           <Kb.Banner key="clearAdded" color="yellow" onClose={onClearAddedEmail}>
             <Kb.BannerParagraph

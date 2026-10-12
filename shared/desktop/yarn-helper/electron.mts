@@ -19,6 +19,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const isLinux = process.platform === 'linux'
 const debugInNode = (false as boolean) ? '--inspect-brk' : ''
 const remoteDebug = process.env['KB_ENABLE_REMOTE_DEBUG'] === '1' ? '--remote-debugging-port=9222' : ''
+// Extra Chromium switches, space separated (launch-app.mts --visual sets these)
+const extraArgs = (process.env['KB_ELECTRON_EXTRA_ARGS'] ?? '').split(' ').filter(Boolean)
 const devServerPort = 4000
 const hotServerURL = `http://localhost:${devServerPort}`
 
@@ -59,6 +61,7 @@ function startElectron(): ChildProcess {
     ...(debugInNode ? [debugInNode] : []),
     ...(remoteDebug ? [remoteDebug] : []),
     ...(isLinux ? ['--disable-gpu'] : []),
+    ...extraArgs,
     appEntry,
   ]
 

@@ -4,6 +4,7 @@ import {homedir} from 'os'
 import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
 import {consumeArtifactSkip} from './helpers/artifact'
+import {assertNotLocked} from '../visual/lock.mts'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
@@ -42,6 +43,9 @@ export const config: WebdriverIO.Config = {
   // KB_IOS_SPEC overrides for fast single-flow iteration during development.
   specs: [process.env['KB_IOS_SPEC'] ?? './all.test.ts'],
   maxInstances: 1,
+  onPrepare: () => {
+    assertNotLocked('iOS e2e')
+  },
   capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',
   framework: 'mocha',

@@ -7,6 +7,7 @@ import {HeaderHeightContext} from '@react-navigation/elements'
 import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 
 type LayoutProps = {
@@ -118,6 +119,7 @@ const ModalScreenWrapper = ({
           'padding' composes with those and is what iOS already uses. */}
       <Kb.KeyboardAvoidingView2
         behavior="padding"
+        testID={TestIDs.MODAL_SCREEN}
         extraOffset={isIOS ? 40 : 0}
         compensateNotBeingOnBottom={isTablet}
       >

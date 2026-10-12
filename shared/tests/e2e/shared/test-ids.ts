@@ -35,6 +35,7 @@ export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+export const CHAT_INFO_PANEL_MENU_BUTTON = 'chat-info-panel-menu-button'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
@@ -53,6 +54,9 @@ export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
 export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
 export const CHAT_EDIT_CANCEL         = 'chat-edit-cancel'
+// desktop message hover bar and ... menu
+export const CHAT_MESSAGE_REACT_BUTTON = 'chat-message-react-button'
+export const CHAT_MESSAGE_MENU_BUTTON  = 'chat-message-menu-button'
 // a suggestion row carries the _SELECTED id while it is the highlighted one
 export const CHAT_SUGGESTION_ROW          = 'chat-suggestion-row'
 export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
@@ -70,22 +74,36 @@ export const TEAMS_BODY         = 'teams-body'
 export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
+export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
+export const TEAMS_ROLE_PICKER = 'teams-role-picker'
+export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
+export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
+export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
 // which marks the settings tab's content).
 export const TEAMS_TAB_SETTINGS_BUTTON = 'teams-tab-settings-button'
 export const TEAMS_TAB_MEMBERS_BUTTON  = 'teams-tab-members-button'
+export const TEAMS_TAB_CHANNELS_BUTTON = 'teams-tab-channels-button'
+export const TEAMS_TAB_EMOJI_BUTTON = 'teams-tab-emoji-button'
+export const TEAMS_TAB_BOTS_BUTTON = 'teams-tab-bots-button'
+export const TEAMS_TAB_SUBTEAMS_BUTTON = 'teams-tab-subteams-button'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
 export const DEVICES_ROW  = 'devices-row'
 export const DEVICE_PAGE  = 'device-page'
+// last-used times: the service updates them while a device is in use
+export const DEVICES_ROW_LAST_USED = 'devices-row-last-used'
+export const DEVICE_PAGE_LAST_USED = 'device-page-last-used'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
+// the account sub-page itself (SETTINGS_ACCOUNT is the settings nav that holds it)
+export const SETTINGS_ACCOUNT_PAGE = 'settings-account-page'
 export const SETTINGS_ADVANCED          = 'settings-advanced'
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
@@ -98,15 +116,32 @@ export const SETTINGS_FILES             = 'settings-files'
 // "Chat"/"Files" tabs, making a text match ambiguous.
 export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
 export const SETTINGS_ROW_FILES         = 'settings-row-files'
+// the desktop left nav's other rows
+export const SETTINGS_ROW_ACCOUNT = 'settings-row-account'
+export const SETTINGS_ROW_ADVANCED = 'settings-row-advanced'
+export const SETTINGS_ROW_ARCHIVE = 'settings-row-archive'
+export const SETTINGS_ROW_DISPLAY = 'settings-row-display'
+export const SETTINGS_ROW_FEEDBACK = 'settings-row-feedback'
+export const SETTINGS_ROW_NOTIFICATIONS = 'settings-row-notifications'
+export const SETTINGS_ROW_SCREENPROTECTOR = 'settings-row-screenprotector'
+export const SETTINGS_ROW_WALLET = 'settings-row-wallet'
+export const SETTINGS_ROW_TYPOGRAPHY = 'settings-row-typography'
+export const SETTINGS_ROW_ICONS = 'settings-row-icons'
+export const SETTINGS_ROW_MARKDOWN = 'settings-row-markdown'
+export const SETTINGS_ROW_ABOUT = 'settings-row-about'
 export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
 export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
+export const SETTINGS_WALLET = 'settings-wallet'
 // Dev-only debug pages (gated by __DEV__ in nav + routes)
 export const SETTINGS_TYPOGRAPHY        = 'settings-typography'
 export const SETTINGS_MARKDOWN          = 'settings-markdown'
+export const SETTINGS_ICONS = 'settings-icons'
 
 // People
 export const PEOPLE_FEED = 'people-feed'
 export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
+// the server-picked "Consider following..." users
+export const PEOPLE_FOLLOW_SUGGESTIONS = 'people-follow-suggestions'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
@@ -140,3 +175,7 @@ export const COMMON_BACK_BUTTON = 'backButton'
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.
 export const MODAL_CLOSE = 'modal-close'
+// a phone modal screen's container
+export const MODAL_SCREEN = 'modal-screen'
+// the team builder's recommendation list
+export const TEAM_BUILDING_RECS = 'team-building-recs'

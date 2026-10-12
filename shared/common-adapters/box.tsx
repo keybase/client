@@ -184,6 +184,8 @@ const box2SharedProps = (p: Box2Props) => {
   }
 }
 
+export const box2SharedPropsForTest = box2SharedProps
+
 // Shared className generator used by Box2 and ClickableBox.
 const box2ClassNames = (p: Box2Props, extra?: string): string => {
   const {direction, alignItems, alignSelf, gap, gapStart, gapEnd, justifyContent, overflow} = p

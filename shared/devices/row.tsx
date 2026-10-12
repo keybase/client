@@ -48,13 +48,15 @@ function DeviceRow(ownProps: OwnProps) {
             </Kb.Text>
             {isNew && !currentDevice && <Kb.Meta variant="new" style={styles.meta} />}
           </Kb.Box2>
-          <Kb.Text type="BodySmall">
-            {isRevoked
-              ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
-              : lastUsed
-                ? `Last used ${formatTimeRelativeToNow(lastUsed)}`
-                : 'Last used unknown'}
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" testID={TestIDs.DEVICES_ROW_LAST_USED}>
+            <Kb.Text type="BodySmall">
+              {isRevoked
+                ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
+                : lastUsed
+                  ? `Last used ${formatTimeRelativeToNow(lastUsed)}`
+                  : 'Last used unknown'}
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
       }
     />
