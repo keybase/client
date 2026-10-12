@@ -32,20 +32,22 @@ const setupDefaultSession = () => {
   ds.on('will-download', event => event.preventDefault())
 
   // Disallow any permissions requests except for notifications and fullscreen
-  ds.setPermissionRequestHandler((webContents, permission, callback) => {
+  ds.setPermissionRequestHandler((_webContents, permission, callback, details) => {
     // allow fullscreen
     if (permission === 'fullscreen') {
       return callback(true)
     }
 
+    // Match the requesting frame itself, not its top-level page, so a subframe can't borrow the
+    // main window's grant.
     let requestPageKey: string
     try {
-      requestPageKey = pageKey(webContents.getURL())
+      requestPageKey = pageKey(details.requestingUrl)
     } catch {
       return callback(false)
     }
 
-    if (permission === 'notifications' && requestPageKey === mainPageKey) {
+    if (permission === 'notifications' && details.isMainFrame && requestPageKey === mainPageKey) {
       // Allow notifications
       return callback(true)
     }
