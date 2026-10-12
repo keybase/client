@@ -174,7 +174,8 @@ export const setupIPCHandlers = (deps: {
   })
 
   Electron.ipcMain.on('KBsetupPreloadKB2', event => {
-    event.returnValue = KB2.constants
+    // read at window load so it reflects the saved preference (applied as themeSource) or the OS
+    event.returnValue = {...KB2.constants, startDarkMode: Electron.nativeTheme.shouldUseDarkColors}
   })
 
   Electron.ipcMain.on('engineSend', (_event, send: unknown) => {

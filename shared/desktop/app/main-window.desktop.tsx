@@ -13,7 +13,7 @@ import {setMainWindow} from './main-window-ref.desktop'
 
 const {env} = KB2.constants
 
-let htmlFile = htmlURL('main')
+const htmlFile = htmlURL('main')
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -136,7 +136,6 @@ export const showDockIcon = () => changeDock(true)
 export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
-let isDarkMode = false
 let disableSpellCheck = false
 let disableScreenshot = false
 
@@ -181,24 +180,19 @@ const loadWindowState = () => {
       disableSpellCheck = typeof _disableSpellCheck === 'boolean' ? _disableSpellCheck : disableSpellCheck
       disableScreenshot = typeof _disableScreenshot === 'boolean' ? _disableScreenshot : disableScreenshot
 
-      if (typeof _darkMode === 'string') {
-        switch (_darkMode) {
-          case 'system':
-            isDarkMode = KB2.constants.startDarkMode
-            Electron.nativeTheme.themeSource = 'system'
-            break
-          case 'alwaysDark':
-            isDarkMode = true
-            Electron.nativeTheme.themeSource = 'dark'
-            break
-          case 'alwaysLight':
-            isDarkMode = false
-            Electron.nativeTheme.themeSource = 'light'
-            break
-        }
+      // nativeTheme.shouldUseDarkColors then answers for every window, falling back to the OS when unset
+      switch (_darkMode) {
+        case 'system':
+          Electron.nativeTheme.themeSource = 'system'
+          break
+        case 'alwaysDark':
+          Electron.nativeTheme.themeSource = 'dark'
+          break
+        case 'alwaysLight':
+          Electron.nativeTheme.themeSource = 'light'
+          break
+        default:
       }
-    } else {
-      isDarkMode = KB2.constants.startDarkMode
     }
 
     const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
@@ -328,10 +322,8 @@ const MainWindow = () => {
   setupDefaultSession()
   loadWindowState()
 
-  // pass to main window
-  htmlFile = htmlFile + `?darkMode=${isDarkMode ? 'dark' : 'light'}`
   const win = new Electron.BrowserWindow({
-    backgroundColor: backgroundColor(isDarkMode),
+    backgroundColor: backgroundColor(Electron.nativeTheme.shouldUseDarkColors),
     frame: useNativeFrame,
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,

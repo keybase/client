@@ -27,23 +27,6 @@ setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
-// node side plumbs through initial pref so we avoid flashes
-const darkModeFromNode = window.location.search.match(/darkMode=(light|dark)/)
-const setSystemDarkMode = useDarkModeState.getState().dispatch.setSystemDarkMode
-
-if (darkModeFromNode) {
-  const dm = darkModeFromNode[1]
-  switch (dm) {
-    case 'light':
-      setSystemDarkMode(false)
-      break
-    case 'dark':
-      setSystemDarkMode(true)
-      break
-    default:
-  }
-}
-
 // Top level HMR accept
 if (import.meta.hot) {
   import.meta.hot.accept()
