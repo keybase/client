@@ -61,6 +61,9 @@ fi
 # Build and publish the apk
 cd "$android_dir"
 rm -rf app/.cxx
+# node_modules is kept between builds now, so drop the native modules' CMake
+# caches too; they pin NDK and prefab paths.
+find "$shared_dir/node_modules" -type d -path '*/android/.cxx' -prune -exec rm -rf {} +
 rm -rf app/build
 ./gradlew clean
 # yarn jetify

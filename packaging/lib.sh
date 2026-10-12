@@ -148,20 +148,54 @@ kb_prune_yarn_cache() {
 
 # kb_yarn_modules <shared_dir>
 # Installs JS dependencies with `yarn modules`, keeping node_modules between
-# builds. node_modules is deleted first only when yarn.lock, package.json or a
-# patch-package patch changed since the last install there: yarn skips an
-# unchanged lockfile, so an edited patch would otherwise meet the old one
-# already applied.
+# builds. node_modules is deleted first only when yarn.lock, package.json, a
+# patch-package patch (name or contents) or the node/yarn version changed since
+# the last install there: yarn skips an unchanged lockfile, so an edited patch
+# would otherwise meet the old one already applied. The stamp is removed while
+# installing, so an install that fails or is killed is never reused.
 kb_yarn_modules() {
   local shared_dir="$1" stamp_file stamp
   stamp_file="$shared_dir/node_modules/.kb-modules-stamp"
-  stamp="$(cd "$shared_dir" && { cat yarn.lock package.json; cat patches/* 2>/dev/null || true; } | shasum -a 256 | cut -d' ' -f1)"
+  stamp="$(cd "$shared_dir" && {
+    node --version
+    yarn --version
+    cat yarn.lock package.json
+    ls patches 2>/dev/null || true
+    cat patches/* 2>/dev/null || true
+  } | shasum -a 256 | cut -d' ' -f1)"
   if [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$stamp" ]; then
     echo "Dependencies unchanged; reusing node_modules"
   else
     echo "Dependencies or patches changed; removing node_modules"
     rm -rf "$shared_dir/node_modules"
   fi
+  rm -f "$stamp_file"
   (cd "$shared_dir" && yarn modules) || return 1
   echo "$stamp" > "$stamp_file"
+}
+
+# kb_guard_go_cache
+# The release builds reuse the Go build cache (no `go build -a`), but the cache
+# doesn't key cgo objects on the macOS SDK headers and libraries. So on macOS,
+# clear it whenever the SDK or clang changes. Never fails the build.
+kb_guard_go_cache() {
+  if [ "$(uname)" != "Darwin" ]; then
+    return 0
+  fi
+  local gocache fingerprint stamp_file
+  gocache="$(go env GOCACHE 2>/dev/null)" || gocache=""
+  fingerprint="$(xcrun --show-sdk-version 2>/dev/null && xcrun --show-sdk-build-version 2>/dev/null && clang --version 2>/dev/null | head -1 && echo "${MACOSX_DEPLOYMENT_TARGET:-}")" || fingerprint=""
+  if [ -z "$gocache" ] || [ -z "$fingerprint" ]; then
+    echo "Couldn't fingerprint the Go cache or toolchain; leaving the Go cache as is"
+    return 0
+  fi
+  stamp_file="$gocache/.kb-toolchain"
+  if [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$fingerprint" ]; then
+    echo "macOS SDK and clang unchanged; keeping the Go build cache"
+    return 0
+  fi
+  echo "macOS SDK or clang changed; clearing the Go build cache"
+  go clean -cache || { echo "go clean -cache failed; continuing"; return 0; }
+  mkdir -p "$gocache" && echo "$fingerprint" > "$stamp_file" || true
+  return 0
 }

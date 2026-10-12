@@ -81,6 +81,10 @@ if [ ! "$nowait" = "1" ]; then
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
 
+if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
+  kb_guard_go_cache
+fi
+
 number_of_builds=1
 build_a=""
 build_b=""
