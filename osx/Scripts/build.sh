@@ -18,8 +18,8 @@ xcode_configuration="Release"
 code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 echo "Plist: $plist"
-app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
-#app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
+app_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+#app_build="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $plist`"
 
 #echo "Cleaning..."
 #set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c

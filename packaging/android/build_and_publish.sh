@@ -15,7 +15,7 @@ check_ci=${CHECK_CI:-1}
 # Notify Slack on failure
 function notify_slack {
 	if [ -n "$automated_build" ]; then
-		"$client_dir/packaging/slack/send.sh" "<@channel> Automated Android build failed, please check out the log."
+		"$client_dir/packaging/notify/send.sh" "<@channel> Automated Android build failed, please check out the log."
 	fi
 }
 trap notify_slack ERR
@@ -77,6 +77,6 @@ rm -rf app/build
 # yarn jetify
 ./gradlew publishReleaseBundle
 
-"$client_dir/packaging/slack/send.sh" "Finished releasing android"
+"$client_dir/packaging/notify/send.sh" "Finished releasing android"
 
 echo "Done"

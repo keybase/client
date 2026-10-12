@@ -17,7 +17,7 @@ mkdir -p "$build_dir"
 archive_path="$build_dir/$app_name.xcarchive"
 
 echo "Plist: $plist"
-app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+app_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 
 echo "Archiving"
 xcodebuild archive -scheme "$scheme" -project "$dir/Updater.xcodeproj" -configuration "$xcode_configuration" -archivePath "$archive_path" ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO | xcpretty -c

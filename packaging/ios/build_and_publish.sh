@@ -3,10 +3,10 @@
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
 automated_build=${AUTOMATED_BUILD:-}
-gopath=${GOPATH:-}
-client_dir="$gopath/src/github.com/keybase/client"
-shared_dir="$gopath/src/github.com/keybase/client/shared"
-ios_dir="$gopath/src/github.com/keybase/client/shared/ios"
+dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+client_dir="$(cd "$dir/../.." && pwd)"
+shared_dir="$client_dir/shared"
+ios_dir="$shared_dir/ios"
 clean=${CLEAN:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
@@ -15,7 +15,7 @@ check_ci=${CHECK_CI:-1}
 # Notify Slack on failure
 function notify_slack {
 	if [ -n "$automated_build" ]; then
-		"$client_dir/packaging/slack/send.sh" "<@channel> Automated iOS build failed, please check out the log."
+		"$client_dir/packaging/notify/send.sh" "<@channel> Automated iOS build failed, please check out the log."
 	fi
 }
 trap notify_slack ERR
@@ -101,4 +101,4 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 fastlane ios beta
 
-"$client_dir/packaging/slack/send.sh" "Finished releasing ios"
+"$client_dir/packaging/notify/send.sh" "Finished releasing ios"

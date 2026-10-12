@@ -3,6 +3,12 @@
 # The variables here are read by the scripts that source this file.
 # shellcheck disable=SC2034
 
+# Root of the client checkout this file lives in.
+KB_CLIENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+KB_CODESIGN_IDENTITY="90524F7BEAEACD94C7B473787F4949582F904104"
+
 # Native macOS apps bundled into Keybase.app. Bump the version and the sha256
 # together: `shasum -a 256` of the tgz at the URL below.
 KB_INSTALLER_VERSION=1.1.94
@@ -37,4 +43,70 @@ kb_fetch_verified() {
   tar zxf "$archive" -C "$dest" || rc=$?
   rm -f "$archive"
   return "$rc"
+}
+
+# kb_lib_version
+# Prints the version in go/libkb/version.go, e.g. 6.7.0.
+# packaging/windows/dorelease.cmd parses the same file on its own.
+kb_lib_version() {
+  local version
+  version="$(grep 'Version = ' "$KB_CLIENT_DIR/go/libkb/version.go" | sed 's/.*Version = "\(.*\)"/\1/')"
+  if [ -z "$version" ]; then
+    echo "No Version in go/libkb/version.go" >&2
+    return 1
+  fi
+  echo "$version"
+}
+
+# kb_build_id
+# Prints a new build id, <UTC timestamp>+<short commit>. Each call stamps the
+# current time, so compute it once per build and pass it down (KEYBASE_BUILD,
+# KBFS_BUILD) so every binary and file name in that build agrees. Outside a git
+# checkout (the Linux docker build) the commit comes from SOURCE_COMMIT.
+kb_build_id() {
+  local commit source_commit="${SOURCE_COMMIT:-}"
+  commit="$(git -C "$KB_CLIENT_DIR" log -1 --pretty=format:%h 2>/dev/null)" || commit="${source_commit:0:10}"
+  if [ -z "$commit" ]; then
+    echo "No git commit and no SOURCE_COMMIT for the build id" >&2
+    return 1
+  fi
+  echo "$(date -u +%Y%m%d%H%M%S)+$commit"
+}
+
+# kb_sign_binary <path>...
+# Code signs the binaries for $PLATFORM. Only macOS binaries get signed here.
+kb_sign_binary() {
+  case "${PLATFORM:-}" in
+    darwin|darwin-arm64)
+      echo "Signing $*"
+      local path
+      for path in "$@"; do
+        codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$path"
+      done
+      ;;
+    linux) echo "No codesigning for Linux" ;;
+    windows) echo "No codesigning for Windows" ;;
+    *)
+      echo "Invalid PLATFORM: ${PLATFORM:-}" >&2
+      return 1
+      ;;
+  esac
+}
+
+# kb_release_bin
+# Builds the `release` tool into $GOPATH/bin and sets KB_RELEASE_BIN to it.
+# KB_RELEASE_BIN is exported, so scripts this one runs reuse the binary instead
+# of rebuilding it. Call it directly, not inside $(...): a subshell would lose
+# the export.
+kb_release_bin() {
+  if [ -n "${KB_RELEASE_BIN:-}" ] && [ -x "$KB_RELEASE_BIN" ]; then
+    return 0
+  fi
+  local gopath="${GOPATH:-}"
+  if [ -z "$gopath" ]; then
+    gopath="$(go env GOPATH)"
+  fi
+  echo "Loading release tool"
+  (cd "$KB_CLIENT_DIR/go" && GOPATH="$gopath" go install "github.com/keybase/client/go/release")
+  export KB_RELEASE_BIN="$gopath/bin/release"
 }

@@ -7,7 +7,7 @@ client_dir="$gopath/src/github.com/keybase/client"
 
 step="setup"
 notify_failure() {
-  "$client_dir/packaging/slack/send.sh" "build_darwin.sh stopped: $step failed" || true
+  "$client_dir/packaging/notify/send.sh" "build_darwin.sh stopped: $step failed" || true
 }
 trap notify_failure ERR
 
@@ -19,20 +19,20 @@ if [[ -n "$arch" ]]; then
   # If ARCH is specified, only build that one
   if [[ "$arch" == "amd64" ]]; then
     step="darwin build"
-    "$client_dir/packaging/slack/send.sh" "Starting darwin build" || true
+    "$client_dir/packaging/notify/send.sh" "Starting darwin build" || true
     ARCH="amd64" PLATFORM="darwin" "$client_dir/packaging/prerelease/pull_build.sh"
   elif [[ "$arch" == "arm64" ]]; then
     step="darwin-arm64 build"
-    "$client_dir/packaging/slack/send.sh" "Starting darwin-arm64 build" || true
+    "$client_dir/packaging/notify/send.sh" "Starting darwin-arm64 build" || true
     ARCH="arm64" PLATFORM="darwin-arm64" "$client_dir/packaging/prerelease/pull_build.sh"
   else
-    "$client_dir/packaging/slack/send.sh" "build_darwin.sh stopped: unknown ARCH $arch (expected amd64 or arm64)" || true
+    "$client_dir/packaging/notify/send.sh" "build_darwin.sh stopped: unknown ARCH $arch (expected amd64 or arm64)" || true
     exit 1
   fi
 else
   # Build both architectures
   step="darwin build"
-  "$client_dir/packaging/slack/send.sh" "Starting darwin build" || true
+  "$client_dir/packaging/notify/send.sh" "Starting darwin build" || true
   ARCH="amd64" PLATFORM="darwin" "$client_dir/packaging/prerelease/pull_build.sh"
 
   # Clean repo between arch builds
@@ -47,6 +47,6 @@ else
   # be presented as a later version to your updater. This allows the one-time
   # upgrading from the x86 build to the arm64 one.
   step="darwin-arm64 build"
-  "$client_dir/packaging/slack/send.sh" "Starting darwin-arm64 build" || true
+  "$client_dir/packaging/notify/send.sh" "Starting darwin-arm64 build" || true
   ARCH="arm64" PLATFORM="darwin-arm64" "$client_dir/packaging/prerelease/pull_build.sh"
 fi

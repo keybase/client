@@ -49,12 +49,7 @@ redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$kbfs_binpath")/keybase-redi
 icon_path="$client_dir/media/icons/Keybase.icns"
 saltpack_icon="$client_dir/media/icons/saltpack.icns"
 
-echo "Loading release tool"
-(
-	cd "$client_dir/go/buildtools"
-	go install "github.com/keybase/client/go/release"
-)
-release_bin="$GOPATH/bin/release"
+kb_release_bin
 echo "$(go version)"
 
 if [ "$keybase_version" = "" ]; then
@@ -169,18 +164,17 @@ package_app() { (
 update_plist() { (
 	cd "$out_dir"
 	# App shouldn't display dock icon on startup
-	/usr/libexec/plistBuddy -c "Add :LSUIElement bool true" "$app_name.app/Contents/Info.plist"
+	/usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$app_name.app/Contents/Info.plist"
 ); }
 
 sign() { (
 	cd "$out_dir"
-	code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 	# need to sign some stuff from electron that doesn't get picked up for some reason.
 	# Which of these ship varies by electron version (44 dropped libEGL/libGLESv2), so
 	# warn instead of failing the build when one isn't there.
 	sign_if_present() {
 		if [ -e "$1" ]; then
-			codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$1"
+			codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$1"
 		else
 			echo "WARNING: skipping codesign, file not found: $1"
 		fi
@@ -190,9 +184,9 @@ sign() { (
 	sign_if_present "$electron_libs_dir/libEGL.dylib"
 	sign_if_present "$electron_libs_dir/libGLESv2.dylib"
 	sign_if_present "$electron_libs_dir/libvk_swiftshader.dylib"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
+	codesign --verbose --force --deep --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
 
-	codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
+	codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$KB_CODESIGN_IDENTITY" "$app_name.app"
 
 	echo "Verify codesigning..."
 	codesign --verify --verbose=4 "$app_name.app"
@@ -255,7 +249,7 @@ update_json() { (
 	cd "$out_dir"
 	if [ -n "$s3host" ]; then
 		echo "Generating $update_json_name"
-		"$release_bin" update-json --version="$app_version" --src="$zip_name" \
+		"$KB_RELEASE_BIN" update-json --version="$app_version" --src="$zip_name" \
 			--uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$desktop_dir/CHANGELOG.txt" >"$update_json_name"
 	fi
 ); }

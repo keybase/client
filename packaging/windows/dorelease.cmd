@@ -23,6 +23,7 @@ IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
 :done_ci
 
+:: Same parse as kb_lib_version in packaging/lib.sh
 for /F delims^=^"^ tokens^=2 %%x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%%x
 
 :: release

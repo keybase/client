@@ -22,15 +22,24 @@ variable it reads.
 
 keybot also passes `KBFS_COMMIT` to `build_darwin.sh`; nothing reads it.
 
-Chat notifications go through `slack/send.sh`, which posts to Keybase chat when
+Chat notifications go through `notify/send.sh`, which posts to Keybase chat when
 `KEYBASE_CHAT_CONVID` is set (`KEYBASE_LOCATION` and `KEYBASE_HOME` pick the
 binary and home dir).
 
 ## Shared code
 
-`lib.sh` is sourced by the build scripts. It holds the pinned
-KeybaseInstaller/KeybaseUpdater versions and checksums, `kb_fetch_verified`,
-and the CI checks the release `wait-ci` gate waits for.
+`lib.sh` is sourced by the build scripts. It holds:
+
+| Name | What |
+|------|------|
+| `KB_CLIENT_DIR` | root of the checkout `lib.sh` is in |
+| `KB_CODESIGN_IDENTITY` | the Developer ID that signs macOS binaries and the app |
+| `KB_INSTALLER_*`, `KB_UPDATER_*`, `kb_fetch_verified` | pinned KeybaseInstaller/KeybaseUpdater versions and checksums, and the verified download |
+| `KB_CI_CONTEXTS` | the CI checks the release `wait-ci` gate waits for |
+| `kb_lib_version` | the version in `go/libkb/version.go` |
+| `kb_build_id` | a new `<UTC timestamp>+<short commit>` build id; compute once per build and pass it down as `KEYBASE_BUILD`/`KBFS_BUILD` |
+| `kb_sign_binary <path>...` | signs binaries for `$PLATFORM` (macOS only) |
+| `kb_release_bin` | builds the `release` tool once and exports its path as `KB_RELEASE_BIN`, which child scripts reuse |
 
 ## Linting
 
