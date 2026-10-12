@@ -16,7 +16,7 @@ variable it reads.
 | `build_darwin.sh` → `prerelease/pull_build.sh` → `prerelease/build_app.sh` | keybot, macOS build machine | `ARCH` (`amd64`/`arm64`, both if unset), `CLIENT_COMMIT`, `TEST`, `SMOKE_TEST`, `NOWAIT` (skip the CI gate), `NOPULL`, `NOS3`, `NONOTARIZE`, `NOBUILD`, `GOPATH` |
 | `build_mobile.sh` | keybot, mobile build machine | runs the Android then the iOS script below |
 | `android/build_and_publish.sh` | keybot (directly or via `build_mobile.sh`) | `CLIENT_COMMIT`, `CHECK_CI`, `AUTOMATED_BUILD`, `CACHE_NPM`, `CACHE_GO_LIB`, `ANDROID_*`/NDK paths |
-| `ios/build_and_publish.sh` | keybot (directly or via `build_mobile.sh`) | `CLIENT_COMMIT`, `CHECK_CI`, `AUTOMATED_BUILD`, `CLEAN`, `CACHE_GO_LIB`, `GOPATH` |
+| `ios/build_and_publish.sh` | keybot (directly or via `build_mobile.sh`) | `CLIENT_COMMIT`, `CHECK_CI`, `AUTOMATED_BUILD`, `CLEAN`, `CACHE_GO_LIB` |
 | `windows/dorelease.cmd` | winbot, Windows build machine | see the script header |
 | `linux/docker_build.sh MODE COMMIT` | Linux build host | `KEYBASE_RELEASE` / `KEYBASE_NIGHTLY` / `KEYBASE_TEST`, `KEYBASE_TEST_CODE_SIGNING_KEY`, `BUCKET_NAME`, `SECRETS_TEAM`, `SECRETS_REPO` |
 

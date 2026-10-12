@@ -43,6 +43,8 @@ build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 build_dir_updater="/tmp/build_updater"
 client_dir=${CLIENT_DIR:-"$gopath/src/github.com/keybase/client"}
+# The lib.sh helpers (version, build id, release tool) work on this checkout.
+KB_CLIENT_DIR="$client_dir"
 kbfs_dir="$client_dir/go/kbfs"
 updater_dir=${UPDATER_DIR:-"$gopath/src/github.com/keybase/client/go/updater"}
 echo "client_dir: $client_dir"

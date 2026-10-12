@@ -4,7 +4,7 @@
 # shellcheck disable=SC2034
 
 # Root of the client checkout this file lives in.
-KB_CLIENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+KB_CLIENT_DIR="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 KB_CODESIGN_IDENTITY="90524F7BEAEACD94C7B473787F4949582F904104"
@@ -64,8 +64,13 @@ kb_lib_version() {
 # KBFS_BUILD) so every binary and file name in that build agrees. Outside a git
 # checkout (the Linux docker build) the commit comes from SOURCE_COMMIT.
 kb_build_id() {
-  local commit source_commit="${SOURCE_COMMIT:-}"
-  commit="$(git -C "$KB_CLIENT_DIR" log -1 --pretty=format:%h 2>/dev/null)" || commit="${source_commit:0:10}"
+  local commit
+  if [ -e "$KB_CLIENT_DIR/.git" ]; then
+    commit="$(git -C "$KB_CLIENT_DIR" log -1 --pretty=format:%h)" || return 1
+  else
+    local source_commit="${SOURCE_COMMIT:-}"
+    commit="${source_commit:0:10}"
+  fi
   if [ -z "$commit" ]; then
     echo "No git commit and no SOURCE_COMMIT for the build id" >&2
     return 1
@@ -96,17 +101,21 @@ kb_sign_binary() {
 # kb_release_bin
 # Builds the `release` tool into $GOPATH/bin and sets KB_RELEASE_BIN to it.
 # KB_RELEASE_BIN is exported, so scripts this one runs reuse the binary instead
-# of rebuilding it. Call it directly, not inside $(...): a subshell would lose
-# the export.
+# of rebuilding it. The reuse is keyed on GOPATH and the checkout's commit, so a
+# value inherited from another build or GOPATH is rebuilt. Call it directly, not
+# inside $(...): a subshell would lose the export.
 kb_release_bin() {
-  if [ -n "${KB_RELEASE_BIN:-}" ] && [ -x "$KB_RELEASE_BIN" ]; then
-    return 0
-  fi
   local gopath="${GOPATH:-}"
   if [ -z "$gopath" ]; then
     gopath="$(go env GOPATH)"
   fi
+  local key
+  key="$gopath:$(git -C "$KB_CLIENT_DIR" rev-parse HEAD 2>/dev/null || echo "${SOURCE_COMMIT:-}")"
+  if [ "${KB_RELEASE_BIN_KEY:-}" = "$key" ] && [ -x "${KB_RELEASE_BIN:-}" ]; then
+    return 0
+  fi
   echo "Loading release tool"
-  (cd "$KB_CLIENT_DIR/go" && GOPATH="$gopath" go install "github.com/keybase/client/go/release")
+  (cd "$KB_CLIENT_DIR/go" && GOPATH="$gopath" GOBIN="$gopath/bin" go install "github.com/keybase/client/go/release")
   export KB_RELEASE_BIN="$gopath/bin/release"
+  export KB_RELEASE_BIN_KEY="$key"
 }
