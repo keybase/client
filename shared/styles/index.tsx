@@ -293,7 +293,7 @@ export const initDesktopStyles = () => {
   // Generate background-image CSS classes with dark mode variants
   const makeImgSet = (dir: string, name: string) => {
     const url = getAssetPath('images', dir, name)
-    return `-webkit-image-set(url('${url}') 1x)`
+    return `image-set(url('${url}') 1x)`
   }
   const makeMultiResImgSet = (baseName: string) => {
     const ext = baseName.slice(baseName.lastIndexOf('.'))
@@ -301,7 +301,7 @@ export const initDesktopStyles = () => {
     const images = [1, 2, 3].map(
       mult => `url('${getAssetPath('images', base)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
-    return `-webkit-image-set(${images.join(', ')})`
+    return `image-set(${images.join(', ')})`
   }
   const imageCss =
     `.ashes-bg { background-image: ${makeImgSet('icons', 'pattern-ashes-desktop-400-68.png')}; }\n` +

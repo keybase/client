@@ -101,7 +101,7 @@ function iconTypeToImgSetDesktop(imgMap: {[key: string]: IconType}, targetSize: 
     })
     .filter(Boolean)
     .join(', ')
-  return sets ? `-webkit-image-set(${sets})` : ''
+  return sets ? `image-set(${sets})` : ''
 }
 
 function iconTypeToImgSetNative(imgMap: {[key: string]: IconType}, targetSize: number) {

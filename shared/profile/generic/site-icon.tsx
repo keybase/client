@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 
 const siteIconToSrcSet = (siteIcon: T.Tracker.SiteIconSet) =>
-  `-webkit-image-set(${siteIcon
+  `image-set(${siteIcon
     .slice()
     .sort((a, b) => a.width - b.width)
     .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
