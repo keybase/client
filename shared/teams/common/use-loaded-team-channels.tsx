@@ -37,7 +37,7 @@ type LoadedTeamChannelsCacheMap = Map<
   CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
 >
 
-const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
+export const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
 const loadedTeamChannelsReloadStaleMs = 5_000
 
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
