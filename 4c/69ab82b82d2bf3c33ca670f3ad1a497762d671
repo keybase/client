@@ -72,6 +72,7 @@ go/chat/deliverer.go
   s_2362ee39f9795e::t_1c145f4084a99e 183-186
   s_2362ee39f9795e::t_88dbb679564274 166,168-170
   s_2362ee39f9795e::t_6e096416176d20 666
+  s_2362ee39f9795e::t_7fbb7ae2cdb0a9 670-672,677-679,684
 go/chat/logout_stop_test.go
   s_2362ee39f9795e::t_a99d1f02b58eb3 1-167
 go/chat/uiinboxloader.go
@@ -100,6 +101,8 @@ go/chat/inboxsource.go
   s_2362ee39f9795e::t_6c71b2a774d413 697-700
   s_2362ee39f9795e::t_392105f714ebd0 678,682-683
   s_2362ee39f9795e::t_6c392786292bdb 760,771-772
+go/chat/deliverer_session_test.go
+  s_2362ee39f9795e::t_57e7bfc193dfb9 75
 ---
 {
   "schema_version": "authorship/3.0.0",
