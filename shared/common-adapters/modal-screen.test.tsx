@@ -53,7 +53,7 @@ describe('ModalScreen', () => {
         body
       </ModalScreen>
     )
-    const text = container.textContent ?? ''
+    const text = container.textContent
     expect(text.indexOf('banner')).toBeLessThan(text.indexOf('body'))
     expect(text.indexOf('body')).toBeLessThan(text.indexOf('footer'))
   })
