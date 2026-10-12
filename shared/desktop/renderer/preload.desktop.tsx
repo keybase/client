@@ -36,9 +36,6 @@ if (isRenderer) {
       ignorePromise(invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'}))
     },
     appStartedUp: async () => invoke({type: 'appStartedUp'}),
-    clipboardAvailableFormats: async () => {
-      return invoke({type: 'clipboardAvailableFormats'})
-    },
     closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
       const {windowComponent, windowParam} = options
       ignorePromise(invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'}))

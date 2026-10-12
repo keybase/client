@@ -210,10 +210,6 @@ export const setupIPCHandlers = (deps: {
         spawn(rqPath, args, {detached: true, stdio: 'ignore'})
         return
       }
-      case 'clipboardAvailableFormats': {
-        const items = await Electron.clipboard.read()
-        return [...new Set(items.flatMap(i => i.types))]
-      }
       case 'readImageFromClipboard': {
         const items = await Electron.clipboard.read()
         // nativeImage only decodes png/jpeg, which is also all chromium normalizes clipboard
