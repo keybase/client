@@ -476,7 +476,7 @@ body {
 }
 .headerTitle:hover {
   .addInviteAndLinkBox {
-    box-shadow: light-dark(0 2px 5px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.8));
+    box-shadow: 0 2px 5px light-dark(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.8));
   }
 }
 
