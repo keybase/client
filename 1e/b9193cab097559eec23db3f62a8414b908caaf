@@ -1,0 +1,20 @@
+Jenkinsfile
+  s_8e5d6a40361ed4::t_f4e6cbbacc2b3c 304-305
+  s_8e5d6a40361ed4::t_fc3047b5ae0534 306,308
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1eb9193cab097559eec23db3f62a8414b908caaf",
+  "prompts": {},
+  "sessions": {
+    "s_8e5d6a40361ed4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d2ab117d-1f5f-4c3b-8389-eecc24ff7a09",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
