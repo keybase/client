@@ -3,7 +3,7 @@
 
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {EscapeHandler, GlobalKeyEventHandler} from '../key-event-handler.desktop'
+import {EscapeHandler, GlobalKeyEventHandler, KeyEventHandler} from '../key-event-handler.desktop'
 import {AboveModalDialogs} from './above-modal-dialogs.desktop'
 import {ModalDialog, useTopModalDialog} from './modal-dialog.desktop'
 
@@ -139,6 +139,48 @@ describe('ModalDialog', () => {
     )
     pressEscape()
     expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  // e.g. a chat input inside the dialog listens for keys but leaves Escape alone
+  test('a handler inside the dialog that leaves escape alone does not keep the dialog open', () => {
+    const onEscape = jest.fn()
+    const onKeyDown = jest.fn()
+    render(
+      <GlobalKeyEventHandler>
+        <ModalDialog onEscape={onEscape}>
+          <KeyEventHandler onKeyDown={onKeyDown}>content</KeyEventHandler>
+        </ModalDialog>
+      </GlobalKeyEventHandler>
+    )
+    expect(pressEscape().defaultPrevented).toBe(true)
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
+    expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  test('a handler inside the dialog takes escape by preventing its default', () => {
+    const onEscape = jest.fn()
+    render(
+      <GlobalKeyEventHandler>
+        <ModalDialog onEscape={onEscape}>
+          <KeyEventHandler onKeyDown={ev => ev.preventDefault()}>content</KeyEventHandler>
+        </ModalDialog>
+      </GlobalKeyEventHandler>
+    )
+    pressEscape()
+    expect(onEscape).not.toHaveBeenCalled()
+  })
+
+  test('a dialog inside another without onEscape keeps escape from the outer one', () => {
+    const outer = jest.fn()
+    render(
+      <GlobalKeyEventHandler>
+        <ModalDialog onEscape={outer}>
+          <ModalDialog>inner</ModalDialog>
+        </ModalDialog>
+      </GlobalKeyEventHandler>
+    )
+    pressEscape()
+    expect(outer).not.toHaveBeenCalled()
   })
 
   test('without onEscape, escape is still kept from the handlers outside', () => {

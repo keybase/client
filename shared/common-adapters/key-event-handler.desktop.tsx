@@ -4,9 +4,10 @@ type GlobalProps = {
   children: React.ReactNode
 }
 
+// a handler takes a key by returning true or preventing its default
 type Props = {
-  onKeyDown?: (ev: KeyboardEvent) => void
-  onKeyPress?: (ev: KeyboardEvent) => void
+  onKeyDown?: (ev: KeyboardEvent) => unknown
+  onKeyPress?: (ev: KeyboardEvent) => unknown
   children: React.ReactNode
 }
 
@@ -14,7 +15,8 @@ type KeyType = 'keydown' | 'keypress'
 
 type Receiver = {
   isLayer: boolean
-  dispatch: (type: KeyType, ev: KeyboardEvent) => void
+  // whether it took the key
+  dispatch: (type: KeyType, ev: KeyboardEvent) => boolean
 }
 
 type Layer = Receiver & {
@@ -25,7 +27,7 @@ type Layer = Receiver & {
 
 // Only the most recently registered handler gets a key. A layer is a modal dialog: everything outside
 // it is inert, so while one is registered it gets every key, and passes it to the handlers registered
-// inside it, or to its own Escape handler when there are none.
+// inside it. An Escape none of them takes goes to its own Escape handler.
 const makeLayer = (): Layer => {
   let stack: Array<Receiver> = []
   let onEscape: (() => void) | undefined
@@ -35,15 +37,17 @@ const makeLayer = (): Layer => {
     },
     dispatch: (type, ev) => {
       const top = stack.findLast(r => r.isLayer) ?? stack.at(-1)
-      if (top) {
-        if (top.isLayer && ev.key === 'Escape') {
-          // the dialog handles its own Escape, so the browser must not also close it
-          ev.preventDefault()
-        }
-        top.dispatch(type, ev)
-      } else if (type === 'keydown' && ev.key === 'Escape') {
-        onEscape?.()
+      const took = top?.dispatch(type, ev) ?? false
+      if (top?.isLayer && ev.key === 'Escape') {
+        // the dialog handles its own Escape, so the browser must not also close it
+        ev.preventDefault()
       }
+      if (took || type !== 'keydown' || ev.key !== 'Escape') {
+        return took
+      }
+      onEscape?.()
+      // everything outside is inert, so an Escape stops here even with no handler for it
+      return true
     },
     isLayer: true,
     remove: receiver => {
@@ -70,11 +74,9 @@ const KeyEventHandler = (props: Props): React.ReactNode => {
   React.useEffect(() => {
     const receiver: Receiver = {
       dispatch: (type, ev) => {
-        if (type === 'keydown') {
-          onKeyDown?.(ev)
-        } else {
-          onKeyPress?.(ev)
-        }
+        const prevented = ev.defaultPrevented
+        const handler = type === 'keydown' ? onKeyDown : onKeyPress
+        return handler?.(ev) === true || (!prevented && ev.defaultPrevented)
       },
       isLayer: false,
     }
@@ -150,17 +152,16 @@ type EscapeHandlerProps = {
 }
 
 const handleESC = (onESC: (() => void) | undefined, ev: KeyboardEvent) => {
-  if (ev.key !== 'Escape') {
-    return
+  if (ev.key !== 'Escape' || !onESC) {
+    return false
   }
-  onESC?.()
+  onESC()
+  return true
 }
 
 const EscapeHandler = (props: EscapeHandlerProps) => {
   const {onESC} = props
-  const onKeyDown = (ev: KeyboardEvent) => {
-    handleESC(onESC, ev)
-  }
+  const onKeyDown = (ev: KeyboardEvent) => handleESC(onESC, ev)
   return <KeyEventHandler onKeyDown={onKeyDown} children={props.children} />
 }
 
