@@ -18,6 +18,8 @@ import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {useNavigation} from '@react-navigation/native'
 
 type ProveGenericParams = {
   buttonLabel: string
@@ -189,13 +191,14 @@ const runProofFlow = async (p: {
     desc: 'Cancel Add Proof',
   }
 
-  let canceled = false
+  // set from the RPC's callbacks, so a plain let would narrow to its initial value
+  const flow = {canceled: false}
   let proofText = ''
   currentUsernameRef.current = ''
   currentGenericParamsRef.current = makeProveGenericParams()
 
   const failIfCanceled = (response: {error: (arg0: {code: number; desc: string}) => void}) => {
-    if (canceled || !mountedRef.current) {
+    if (flow.canceled || !mountedRef.current) {
       response.error(inputCancelError)
       return true
     }
@@ -212,7 +215,7 @@ const runProofFlow = async (p: {
           response.result()
         },
         'keybase.1.proveUi.continueChecking': (_, response) =>
-          response.result(!(canceled || !mountedRef.current)),
+          response.result(!(flow.canceled || !mountedRef.current)),
         'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
         'keybase.1.proveUi.outputInstructions': ({proof}, response) => {
           if (failIfCanceled(response)) {
@@ -223,7 +226,7 @@ const runProofFlow = async (p: {
             response.result()
           }
           cancelCurrentRef.current = () => {
-            canceled = true
+            flow.canceled = true
             response.error(inputCancelError)
           }
 
@@ -258,7 +261,7 @@ const runProofFlow = async (p: {
           }
           const {parameters, prevError} = args
           cancelCurrentRef.current = () => {
-            canceled = true
+            flow.canceled = true
             response.error(inputCancelError)
           }
           submitUsernameRef.current = (username: string) => {
@@ -319,7 +322,8 @@ const runProofFlow = async (p: {
     }
   } catch (_error) {
     loadCurrentProfile()
-    if (!(_error instanceof RPCError)) {
+    // the user left this flow (Back to the picker, or closed the modal)
+    if (flow.canceled || !(_error instanceof RPCError)) {
       return
     }
     const error = _error
@@ -343,7 +347,10 @@ const runProofFlow = async (p: {
       })
     }
   } finally {
-    resetSession()
+    // a cancel already reset the session, and a flow started since then owns it now
+    if (!flow.canceled) {
+      resetSession()
+    }
   }
 }
 
@@ -374,25 +381,25 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
   const submitUsernameRef = React.useRef<undefined | ((username: string) => void)>(undefined)
   const [step, setStep] = React.useState<Step>(platform ? {kind: 'loading'} : {kind: 'pick'})
 
-  const setStepSafe = (next: Step) => {
+  const setStepSafe = React.useCallback((next: Step) => {
     if (mountedRef.current) {
       setStep(next)
     }
-  }
+  }, [])
 
-  const resetSession = () => {
+  const resetSession = React.useCallback(() => {
     afterCheckProofRef.current = undefined
     cancelCurrentRef.current = undefined
     submitUsernameRef.current = undefined
     currentGenericParamsRef.current = makeProveGenericParams()
     currentUsernameRef.current = ''
-  }
+  }, [])
 
-  const cancelSession = () => {
+  const cancelSession = React.useCallback(() => {
     const cancel = cancelCurrentRef.current
     resetSession()
     cancel?.()
-  }
+  }, [resetSession])
 
   React.useEffect(() => {
     mountedRef.current = true
@@ -412,6 +419,12 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
     cancelSession()
     navigateUp()
   }
+
+  // only a flow started from the picker has a step to go back to
+  const backToPicker = React.useCallback(() => {
+    cancelSession()
+    setStepSafe({kind: 'pick'})
+  }, [cancelSession, setStepSafe])
 
   const closeToProfile = () => {
     cancelSession()
@@ -522,6 +535,23 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
 
   const startProofEvent = React.useEffectEvent(startProof)
 
+  const navigation = useNavigation()
+  const title =
+    step.kind === 'websiteChoice'
+      ? 'Prove your website'
+      : step.kind === 'enterUsername'
+        ? platformText[step.platform].headerText
+        : defaultTitle
+  React.useEffect(() => {
+    navigation.setOptions({title})
+  }, [navigation, title])
+
+  const showBack = !platform && step.kind === 'genericEnterUsername' && !step.proofUrl
+  React.useEffect(() => {
+    if (isMobile) return
+    navigation.setOptions({headerLeft: showBack ? () => <HeaderLeftButton onPress={backToPicker} /> : undefined})
+  }, [navigation, showBack, backToPicker])
+
   React.useEffect(() => {
     const {platform: initialPlatform, reason: initialReason} = initialRouteRef.current
     if (initialPlatform && !initialProofStartedRef.current) {
@@ -548,38 +578,33 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
           <Kb.ModalScreen
             footer={isMobile ? undefined : <Kb.Button type="Dim" label="Cancel" onClick={closeModal} fullWidth={true} />}
           >
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text center={true} type="Header">
-                Prove your website in two ways:
-              </Kb.Text>
-              <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
-                <Kb.ListItem
-                  type="Card"
-                  firstItem={true}
-                  icon={<Kb.IconAuto type="icon-file-txt-48" />}
-                  body={
-                    <Kb.Box2 direction="vertical" fullWidth={true}>
-                      <Kb.Text type="BodyBigLink">Host a TXT file</Kb.Text>
-                      <Kb.Text type="Body">
-                        Host a text file on your site, such as yoursite.com/keybase.txt.
-                      </Kb.Text>
-                    </Kb.Box2>
-                  }
-                  onClick={() => startProof('web', 'profile')}
-                />
-                <Kb.ListItem
-                  type="Card"
-                  firstItem={true}
-                  icon={<Kb.IconAuto type="icon-dns-48" />}
-                  body={
-                    <Kb.Box2 direction="vertical" fullWidth={true}>
-                      <Kb.Text type="BodyBigLink">Set a DNS</Kb.Text>
-                      <Kb.Text type="Body">Place a Keybase proof in your DNS records.</Kb.Text>
-                    </Kb.Box2>
-                  }
-                  onClick={() => startProof('dns', 'profile')}
-                />
-              </Kb.Box2>
+            <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+              <Kb.ListItem
+                type="Card"
+                firstItem={true}
+                icon={<Kb.IconAuto type="icon-file-txt-48" />}
+                body={
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodyBigLink">Host a TXT file</Kb.Text>
+                    <Kb.Text type="Body">
+                      Host a text file on your site, such as yoursite.com/keybase.txt.
+                    </Kb.Text>
+                  </Kb.Box2>
+                }
+                onClick={() => startProof('web', 'profile')}
+              />
+              <Kb.ListItem
+                type="Card"
+                firstItem={true}
+                icon={<Kb.IconAuto type="icon-dns-48" />}
+                body={
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodyBigLink">Set a DNS</Kb.Text>
+                    <Kb.Text type="Body">Place a Keybase proof in your DNS records.</Kb.Text>
+                  </Kb.Box2>
+                }
+                onClick={() => startProof('dns', 'profile')}
+              />
             </Kb.Box2>
           </Kb.ModalScreen>
         )
@@ -841,11 +866,6 @@ const EnterUsername = ({
     >
       {!!errorText && <ErrorBanner>{errorText}</ErrorBanner>}
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-        {isMobile ? null : (
-          <Kb.Text center={true} type="Header">
-            {pt.headerText}
-          </Kb.Text>
-        )}
         <PlatformIcon
           style={styles.center}
           platform={platform}
@@ -892,8 +912,36 @@ const GenericEnterUsername = ({
       })
     )
   const unreachable = !!step.proofUrl
+  const submit = () => onSubmit(username)
   return (
-    <Kb.ModalScreen scroll={false} padding="none">
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      banner={
+        unreachable ? (
+          <Kb.Banner color="yellow">
+            <Kb.BannerParagraph
+              bannerColor="yellow"
+              content={`You need to authorize your proof on ${step.genericParams.title}.`}
+            />
+          </Kb.Banner>
+        ) : undefined
+      }
+      footer={
+        unreachable ? (
+          <Kb.Button type="Success" onClick={submit} label={step.genericParams.buttonLabel} fullWidth={true} />
+        ) : (
+          <Kb.ConfirmButtons
+            split={true}
+            waitingKey={C.waitingKeyProfile}
+            onCancel={onCancel}
+            onConfirm={submit}
+            confirmLabel={step.genericParams.buttonLabel}
+            confirmType="Success"
+          />
+        )
+      }
+    >
       <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
         <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={step.genericParams.logoFull} full={true} style={styles.serviceIconFull} />
@@ -940,46 +988,13 @@ const GenericEnterUsername = ({
               }
               error={!!step.error}
               onChangeText={setUsername}
-              onEnterKeyDown={() => onSubmit(username)}
+              onEnterKeyDown={submit}
               placeholder={step.genericParams.suffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'}
               value={username}
             />
           </Kb.Box2>
         )}
         {!!step.error && <Kb.Text type="BodySmallError">{step.error}</Kb.Text>}
-      </Kb.Box2>
-      <Kb.Box2
-        alignItems="center"
-        fullWidth={true}
-        direction="vertical"
-        style={unreachable ? styles.buttonBarWarning : null}
-      >
-        {unreachable && (
-          <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
-            You need to authorize your proof on {step.genericParams.title}.
-          </Kb.Text>
-        )}
-        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!isMobile && !unreachable && (
-            <Kb.Button type="Dim" onClick={onCancel} label="Cancel" style={styles.buttonSmall} />
-          )}
-          {unreachable ? (
-            <Kb.Button
-              type="Success"
-              onClick={() => onSubmit(username)}
-              label={step.genericParams.buttonLabel}
-              style={styles.buttonBig}
-            />
-          ) : (
-            <Kb.WaitingButton
-              type="Success"
-              onClick={() => onSubmit(username)}
-              label={step.genericParams.buttonLabel}
-              style={styles.buttonBig}
-              waitingKey={C.waitingKeyProfile}
-            />
-          )}
-        </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.ModalScreen>
   )
@@ -1231,6 +1246,8 @@ const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
     </Kb.Box2>
   ) : null
 
+const defaultTitle = 'Prove your...'
+
 const standardText = (name: string) => ({
   headerText: isMobile ? `Prove ${name}` : `Prove your ${name} identity`,
   hintText: `Your ${name} username`,
@@ -1372,16 +1389,6 @@ const useStyles = Kb.Styles.createStyleHook(
         isElectron: {wordBreak: 'break-all'},
       }),
       bottomContainer: {height: 80},
-      buttonBar: {
-        ...Kb.Styles.padding(
-          Kb.Styles.globalMargins.small,
-          Kb.Styles.globalMargins.medium,
-          Kb.Styles.globalMargins.medium
-        ),
-      },
-      buttonBarWarning: {backgroundColor: theme.yellow},
-      buttonBig: {flex: 2.5},
-      buttonSmall: {flex: 1},
       center: {alignSelf: 'center'},
       colorRed: {color: theme.redDark},
       containerBox: {
@@ -1469,9 +1476,6 @@ const useStyles = Kb.Styles.createStyleHook(
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: Kb.Styles.globalMargins.xtiny,
-      },
-      warningText: {
-        ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium, 0),
       },
       webLink: {color: theme.blueDark},
       webLinkFirst: {marginTop: Kb.Styles.globalMargins.tiny},
