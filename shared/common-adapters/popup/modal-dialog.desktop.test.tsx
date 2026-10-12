@@ -23,6 +23,14 @@ beforeAll(() => {
   }
 })
 
+const MountCounter = (p: {onMount: () => void}) => {
+  const {onMount} = p
+  React.useEffect(() => {
+    onMount()
+  }, [onMount])
+  return <div>banner</div>
+}
+
 const dialogs = () => [...document.querySelectorAll('dialog')]
 
 const pressEscape = (target: Element = document.body) => {
@@ -295,14 +303,33 @@ describe('ModalDialog', () => {
         </AboveModalDialogs>
       </>
     )
-    const {container, rerender} = render(<App modals={0} />)
-    expect(screen.getByText('banner').parentElement).toBe(container)
+    const {rerender} = render(<App modals={0} />)
+    const banner = () => screen.getByText('banner')
+    expect(banner().closest('dialog')).toBeNull()
     rerender(<App modals={2} />)
-    expect(screen.getByText('banner').parentElement).toBe(dialogs()[1])
+    expect(banner().closest('dialog')).toBe(dialogs()[1])
     rerender(<App modals={1} />)
-    expect(screen.getByText('banner').parentElement).toBe(dialogs()[0])
+    expect(banner().closest('dialog')).toBe(dialogs()[0])
     rerender(<App modals={0} />)
-    expect(screen.getByText('banner').parentElement).toBe(container)
+    expect(banner().closest('dialog')).toBeNull()
+  })
+
+  // the global error banner keeps whether it is expanded and its dismiss timer
+  test('app-wide overlays keep their state as dialogs open and close', () => {
+    const onMount = jest.fn()
+    const App = (p: {modal: boolean}) => (
+      <>
+        {p.modal ? <ModalDialog>modal</ModalDialog> : null}
+        <AboveModalDialogs>
+          <MountCounter onMount={onMount} />
+        </AboveModalDialogs>
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    rerender(<App modal={true} />)
+    expect(screen.getByText('banner').closest('dialog')).toBe(dialogs()[0])
+    rerender(<App modal={false} />)
+    expect(onMount).toHaveBeenCalledTimes(1)
   })
 
   // showModal would focus the first focusable thing in a dialog that already has content
