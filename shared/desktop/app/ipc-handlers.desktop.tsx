@@ -151,18 +151,16 @@ const openInDefaultDirectory = async (openPath: string) => {
   }
 }
 
-// Writes are chained so they land in order and the file always ends at the latest state
-let appStateWrite = Promise.resolve()
+// Sync so the last state lands before quit; written aside and renamed over so the updater never reads partial JSON
 const writeAppState = (contents: string) => {
-  appStateWrite = appStateWrite
-    .then(async () =>
-      fs.promises.writeFile(path.join(Electron.app.getPath('userData'), 'app-state.json'), contents, {
-        encoding: 'utf8',
-      })
-    )
-    .catch((e: unknown) => {
-      console.warn('update app state failed' + String(e))
-    })
+  try {
+    const target = path.join(Electron.app.getPath('userData'), 'app-state.json')
+    const tmp = `${target}.tmp`
+    fs.writeFileSync(tmp, contents, {encoding: 'utf8'})
+    fs.renameSync(tmp, target)
+  } catch (e) {
+    console.warn('update app state failed' + String(e))
+  }
 }
 
 export const setupIPCHandlers = (deps: {
