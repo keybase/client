@@ -13,9 +13,33 @@ const readImageFromMain = async () => {
   return KB2.functions.readImageFromClipboard?.() ?? undefined
 }
 
+// Decoding and re-encoding validates the image and strips its metadata (GPS, author, etc.).
+const reencodePNG = async (file: Blob): Promise<Uint8Array | undefined> => {
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(file)
+  } catch {
+    return undefined
+  }
+  try {
+    if (bitmap.width === 0 || bitmap.height === 0) return undefined
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return undefined
+    ctx.drawImage(bitmap, 0, 0)
+    const blob = await canvas.convertToBlob({type: 'image/png'})
+    return new Uint8Array(await blob.arrayBuffer())
+  } catch {
+    return undefined
+  } finally {
+    bitmap.close()
+  }
+}
+
 // Call from the paste handler itself: clipboardData is emptied once the handler returns, so the
 // files are picked before the first await.
 export const readImageFromPaste = async (event: React.ClipboardEvent): Promise<Uint8Array | undefined> => {
   const file = pickPastedPNG(event.clipboardData.files)
-  return file ? file.bytes() : readImageFromMain()
+  const png = file ? await reencodePNG(file) : undefined
+  return png ?? readImageFromMain()
 }
