@@ -1,0 +1,24 @@
+go/chat/deliverer_session_test.go
+  s_599fa7638df433::t_95548477690a6a 1-151
+go/chat/localizer.go
+  s_599fa7638df433::t_d92ba94b48a778 512-516
+  s_599fa7638df433::t_18493a76c2500d 517
+go/chat/deliverer.go
+  s_599fa7638df433::t_8d49ce51847f8c 659-664,669,672-673
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0411474ad9fd019699d78ef5a52aa5935e83929a",
+  "prompts": {},
+  "sessions": {
+    "s_599fa7638df433": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1df42056-5a64-4673-ab39-61481cf9478a",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
