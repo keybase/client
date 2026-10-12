@@ -339,6 +339,7 @@ const NativeMenuLayout = (props: MenuLayoutProps) => {
           {backgroundColor: Styles.undynamicColor(theme.black_05OrBlack)},
           nativeStyles.bottomSheetOuter,
         ])}
+        testID={TestIDs.FLOATING_MENU}
       >
         <Box2 style={nativeStyles.bottomSheetContainer} direction="vertical" fullWidth={true}>
           {props.header}

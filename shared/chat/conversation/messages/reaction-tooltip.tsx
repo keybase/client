@@ -164,7 +164,7 @@ const ReactionTooltip = (p: OwnProps) => {
         }
       >
         <MessageContext value={messageContext}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sheetContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sheetContainer} testID={TestIDs.CHAT_REACTION_TOOLTIP}>
             {sections.map(section => (
               <React.Fragment key={section.key}>
                 {renderSectionHeader({section})}

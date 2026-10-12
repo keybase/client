@@ -100,6 +100,8 @@ const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
 const CAPTURE_SETTLE = {deadlineMs: 8_000, intervalMs: 1_000}
 const SCROLL_ATTEMPTS = 4
 const TARGET_QUIET_MS = 300
+// Longer than a Pressable's 500ms long press delay.
+const LONG_PRESS_S = 1
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -561,7 +563,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         await withDeadline(byTestID(CHAT_MESSAGE_LIST).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, 'the conversation')
         const ok = await appEval<boolean>(
           `${ROUTER} const v = r.getVisibleScreen()
-           return !!v?.params?.conversationIDKey && r.setRouteParams(v.key, {threadSearch: {query: ${JSON.stringify(s.query)}}})`,
+           return !!v?.params?.conversationIDKey && r.setRouteParams(v.key, {threadSearch: ${JSON.stringify(s.query ? {query: s.query} : {})}})`,
           'opening thread search'
         )
         if (!ok) throw new Error('searchThread: no open conversation to search')
@@ -600,6 +602,16 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
       case 'hover':
         throw new Error(`hover ${s.testID}: hover is desktop only`)
+      case 'longPress': {
+        // pressed at its centre in window points, so it is the focused screen's view (Appium's
+        // ~testID would also find another screen's)
+        if (!(await waitForTarget(s.testID))) throw new Error(`longPress ${s.testID}: not all of it shows; scroll it into view first`)
+        const box = await appEval<{bottom: number; left: number; right: number; top: number} | null>(targetBox(s.testID), `measuring ${s.testID}`)
+        if (!box) throw new Error(`longPress ${s.testID}: it went before it could be pressed`)
+        const at = {x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2}
+        await withDeadline(browser.execute('mobile: touchAndHold', {...at, duration: LONG_PRESS_S}), SETUP_MS, `long pressing ${s.testID}`)
+        return
+      }
     }
   }
 

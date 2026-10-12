@@ -9,13 +9,16 @@ export type SetupStep =
   | {kind: 'switchSubTab'; testID: string}
   | {kind: 'scrollIntoView'; testID: string}
   | {kind: 'hover'; testID: string} // desktop only
+  // presses and holds, as a finger does for a message's or a reaction's popup; phone only
+  | {kind: 'longPress'; testID: string}
   // presses a control that only changes what this screen shows (CLICK_TARGETS)
   | {kind: 'click'; testID: string}
   // types into a local input (TYPE_TARGETS); `enter` presses Enter after it, only where Enter
   // stays local (ENTER_TARGETS)
   | {kind: 'type'; testID: string; text: string; enter?: true}
   // opens the open conversation's thread search on a query, as its search field would: a route
-  // param, the way the app opens it
+  // param, the way the app opens it. An empty query opens the empty search bar, as the header's
+  // search button does.
   | {kind: 'searchThread'; query: string}
 
 // The tour never sends, saves, confirms or deletes anything. A click or type step may only target a
@@ -145,12 +148,20 @@ export const fixtureOrderProblems = (entries: ReadonlyArray<TourEntry>): Array<s
   return problems
 }
 
-export const SETUP_KINDS: ReadonlySet<string> = new Set(['openPopup', 'switchSubTab', 'scrollIntoView', 'hover', 'click', 'type', 'searchThread'])
+export const SETUP_KINDS: ReadonlySet<string> = new Set([
+  'openPopup',
+  'switchSubTab',
+  'scrollIntoView',
+  'hover',
+  'longPress',
+  'click',
+  'type',
+  'searchThread',
+])
 
 const stepProblems = (e: TourEntry, s: SetupStep): Array<string> => {
   switch (s.kind) {
     case 'searchThread':
-      if (!s.query) return [`${e.id}: searchThread needs a query`]
       if (!e.nav.thread) return [`${e.id}: searchThread needs a conversation opened with nav.thread`]
       return []
     case 'click':
@@ -165,6 +176,8 @@ const stepProblems = (e: TourEntry, s: SetupStep): Array<string> => {
     }
     case 'hover':
       return e.platforms.includes('phone') ? [`${e.id}: hover is desktop only`] : []
+    case 'longPress':
+      return e.platforms.includes('desktop') ? [`${e.id}: longPress is phone only`] : []
     case 'openPopup':
     case 'switchSubTab':
     case 'scrollIntoView':
