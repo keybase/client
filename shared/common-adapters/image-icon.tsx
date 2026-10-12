@@ -25,6 +25,7 @@ const makeSrcSet = (name: IconType) => {
 }
 
 const pictureStyle = {display: 'contents'} as const
+const sourceStyle = {display: 'none'} as const
 
 const ImageIconDesktop = (props: ImageIconProps) => {
   const {type, style, className, allowLazy = true} = props
@@ -46,10 +47,11 @@ const ImageIconDesktop = (props: ImageIconProps) => {
     const darkName = iconMeta[type].nameDark!
     const darkSrcSet = makeSrcSet(darkName)
 
-    // display: contents so the img, not the picture, is the flex item its layout style targets
+    // display: contents so the img, not the picture, is the flex item its layout style targets; the
+    // source is not hidden by default, so without display: none it would be a flex item too (and take a gap)
     return (
       <picture style={pictureStyle}>
-        <source srcSet={darkSrcSet} media="(prefers-color-scheme: dark)" />
+        <source srcSet={darkSrcSet} media="(prefers-color-scheme: dark)" style={sourceStyle} />
         {img}
       </picture>
     )
