@@ -4,6 +4,7 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, servi
 import difference from 'lodash/difference'
 import {ScrollView} from 'react-native'
 import type * as T from '@/constants/types'
+import './service-tab-bar.css'
 
 type IconProps = {
   service: T.TB.ServiceIdWithContact
@@ -312,20 +313,19 @@ const MoreNetworksButton = (props: {
 
 const ServiceIconDesktop = (props: IconProps) => {
   const desktopStyles = useDesktopStyles()
-  const theme = Kb.Styles.useTheme()
-  const [hover, setHover] = React.useState(false)
   const isDarkMode = useColorScheme() === 'dark'
-  const {onClick, service} = props
-  const color =
-    props.isActive || hover ? serviceIdToAccentColor(service, isDarkMode) : theme.black
+  const {isActive, label, minimalBorder, onClick, service} = props
+  const accentColor = serviceIdToAccentColor(service, isDarkMode)
   return (
     <Kb.ClickableBox
       onClick={() => onClick(service)}
-      onMouseOver={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       direction="vertical"
       flex={1}
-      style={desktopStyles.serviceIconFlex}
+      className={Kb.Styles.classNames('service-tab', {active: isActive})}
+      style={Kb.Styles.collapseStyles([
+        desktopStyles.serviceIconFlex,
+        {'--service-accent': accentColor} as Kb.Styles.StylesCrossPlatform,
+      ])}
     >
       <Kb.Box2 alignSelf="center"
         direction="vertical"
@@ -345,13 +345,13 @@ const ServiceIconDesktop = (props: IconProps) => {
             />
           )}
           <Kb.Box2 direction="vertical" style={desktopStyles.serviceIconBox}>
-            <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(service)} />
+            <Kb.Icon className="service-tab-color" fontSize={16} type={serviceIdToIconFont(service)} />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={desktopStyles.label}>
-          {props.label.map((label, i) => (
-            <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
-              {label}
+          {label.map((l, i) => (
+            <Kb.Text key={i} center={true} type="BodyTiny" className="service-tab-color">
+              {l}
             </Kb.Text>
           ))}
         </Kb.Box2>
@@ -360,13 +360,13 @@ const ServiceIconDesktop = (props: IconProps) => {
         direction="horizontal"
         fullWidth={true}
         style={Kb.Styles.collapseStyles([
-          props.isActive
+          isActive
             ? desktopStyles.activeTabBar
             : {
                 ...desktopStyles.inactiveTabBar,
-                ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined),
+                ...(minimalBorder ? {borderBottomWidth: 0} : undefined),
               },
-          props.isActive && {backgroundColor: serviceIdToAccentColor(service, isDarkMode)},
+          isActive && {backgroundColor: accentColor},
         ])}
       />
     </Kb.ClickableBox>
