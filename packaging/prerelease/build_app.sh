@@ -4,6 +4,8 @@ set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
+# shellcheck source=packaging/lib.sh
+source "$dir/../lib.sh"
 
 gopath=${GOPATH:-}
 nobuild=${NOBUILD:-} # Don't build go binaries
@@ -69,10 +71,9 @@ if [ -n "$client_commit" ]; then
   git pull || true
 fi
 
-# NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit=$(git -C "$client_dir" log -1 --pretty=format:%h) --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit=$(git -C "$client_dir" log -1 --pretty=format:%h) "${KB_CI_CONTEXTS[@]}"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi

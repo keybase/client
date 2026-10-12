@@ -13,10 +13,11 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 client_dir="$dir/../.."
+# shellcheck source=packaging/lib.sh
+source "$client_dir/packaging/lib.sh"
 fuse_dir="$client_dir/osx/Fuse"
 tmp_dir="/tmp/desktop-kbfuse"
 # TODO build and publish arm64 version
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.93-darwin.tgz"
 
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
@@ -28,8 +29,8 @@ rm -rf "$tmp_dir"
 mkdir -p "$tmp_dir"
 cd "$tmp_dir"
 
-echo "Downloading installer from $installer_url"
-curl -J -L -Ss "$installer_url" | tar zx
+echo "Downloading installer from $KB_INSTALLER_URL"
+kb_fetch_verified "$KB_INSTALLER_URL" "$KB_INSTALLER_SHA256" .
 
 echo "Installing KBFuse..."
 bundle="$tmp_dir/KeybaseInstaller.app/Contents/Resources/kbfuse.bundle"
