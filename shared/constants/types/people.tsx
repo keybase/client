@@ -4,16 +4,16 @@ import type {IconType} from '@/common-adapters/icon.constants-gen'
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 
-export type TodoMetaEmail = {
+type TodoMetaEmail = {
   type: 'email'
   email: string
   lastVerifyEmailDate: number // unix time in seconds
 }
-export type TodoMetaPhone = {type: 'phone'; phone: string}
+type TodoMetaPhone = {type: 'phone'; phone: string}
 
 export type TodoMeta = TodoMetaEmail | TodoMetaPhone | undefined
 
-export type Todo = {
+type Todo = {
   type: 'todo'
   badged: boolean
   todoType: TodoType
@@ -37,7 +37,7 @@ export type FollowedNotificationItem = {
   numAdditional?: number
 }
 
-export type Announcement = {
+type Announcement = {
   appLink?: RPCTypes.AppLinkType
   badged: boolean
   confirmLabel?: string

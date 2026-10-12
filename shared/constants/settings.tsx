@@ -6,7 +6,6 @@ export const settingsCryptoTab = 'settingsTabs.cryptoTab'
 export const settingsDevicesTab = 'settingsTabs.devicesTab'
 export const settingsDisplayTab = 'settingsTabs.displayTab'
 export const settingsFeedbackTab = 'settingsTabs.feedbackTab'
-export const settingsFoldersTab = 'settingsTabs.foldersTab'
 export const settingsFsTab = 'settingsTabs.fsTab'
 export const settingsGitTab = 'settingsTabs.gitTab'
 export const settingsAccountTab = 'settingsTabs.accountTab'
@@ -14,7 +13,6 @@ export const settingsNotificationsTab = 'settingsTabs.notificationsTab'
 export const settingsPasswordTab = 'settingsTabs.password'
 export const settingsScreenprotectorTab = 'settingsTabs.screenprotector'
 export const settingsLogOutTab = 'settingsTabs.logOutTab'
-export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const settingsWalletsTab = 'settingsTabs.walletsTab'
 export const settingsContactsTab = 'settingsTabs.contactsTab'
 export const settingsTypographyTab = 'settingsTabs.typographyTab'
@@ -23,7 +21,6 @@ export const settingsMarkdownTab = 'settingsTabs.markdownTab'
 
 export type SettingsTab =
   | typeof settingsAccountTab
-  | typeof settingsUpdatePaymentTab
   | typeof settingsNotificationsTab
   | typeof settingsAdvancedTab
   | typeof settingsFeedbackTab
@@ -31,7 +28,6 @@ export type SettingsTab =
   | typeof settingsDevicesTab
   | typeof settingsDisplayTab
   | typeof settingsGitTab
-  | typeof settingsFoldersTab
   | typeof settingsFsTab
   | typeof settingsLogOutTab
   | typeof settingsScreenprotectorTab

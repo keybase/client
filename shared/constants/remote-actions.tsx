@@ -101,32 +101,32 @@ export const createUpdateWindowShown = (payload: {readonly component: string}) =
   ({payload, type: updateWindowShown}) as const
 
 // Action Payloads
-export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
-export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
-export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
-export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
-export type LinkPayload = ReturnType<typeof createLink>
-export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
-export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
-export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
+type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
+type DumpLogsPayload = ReturnType<typeof createDumpLogs>
+type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
+type InstallerRanPayload = ReturnType<typeof createInstallerRan>
+type LinkPayload = ReturnType<typeof createLink>
+type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
+type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
+type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
-export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
-export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
-export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
-export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
-export type ShowMainPayload = ReturnType<typeof createShowMain>
-export type StopPayload = ReturnType<typeof createStop>
-export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
+type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
+type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
+type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
+type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
+type ShowMainPayload = ReturnType<typeof createShowMain>
+type StopPayload = ReturnType<typeof createStop>
+type SwitchTabPayload = ReturnType<typeof createSwitchTab>
 export type TrackerChangeFollowPayload = ReturnType<typeof createTrackerChangeFollow>
 export type TrackerCloseTrackerPayload = ReturnType<typeof createTrackerCloseTracker>
 export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
 export type TrackerLoadPayload = ReturnType<typeof createTrackerLoad>
-export type UnlockFoldersSubmitPaperKeyPayload = ReturnType<typeof createUnlockFoldersSubmitPaperKey>
-export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
-export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
-export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
-export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
+type UnlockFoldersSubmitPaperKeyPayload = ReturnType<typeof createUnlockFoldersSubmitPaperKey>
+type UpdateNowPayload = ReturnType<typeof createUpdateNow>
+type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
+type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
+type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
 
 // All Actions
 // prettier-ignore

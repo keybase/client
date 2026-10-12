@@ -1,6 +1,4 @@
 // helpers for zustand
-import * as React from 'react'
-import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
@@ -106,12 +104,3 @@ export const resetAllStores = (isDebug?: boolean) => {
 
 export type ImmerStateCreator<T extends HasReset> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
-
-export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {
-  const prev = React.useRef<U>(undefined)
-
-  return state => {
-    const next = selector(state)
-    return isEqual(prev.current, next) ? (prev.current as U) : (prev.current = next)
-  }
-}

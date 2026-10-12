@@ -9,5 +9,3 @@ export type BlockState = {
   chatBlocked: boolean
   followBlocked: boolean
 }
-
-export type State = object

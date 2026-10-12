@@ -28,22 +28,12 @@ export type TeamProfileAddList = {
   teamName: Teamname
   open: boolean
 }
-export type _PublicitySettings = {
-  anyMemberShowcase: boolean
-  description: string
-  ignoreAccessRequests: boolean
-  member: boolean
-  team: boolean
-}
-
-export type TeamSettings = {} & RPCTypes.TeamSettings
-
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type TreeloaderSparseMemberInfo = {
   joinTime?: number
   type: MaybeTeamRoleType
 }
-export type SparseMemberInfo = {
+type SparseMemberInfo = {
   joinTime?: number
   type: TeamRoleType
 }
@@ -69,7 +59,7 @@ export type TypeMap = {[K in TeamRoleType]: string}
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type JoinRequest = {
+type JoinRequest = {
   ctime: number
   fullName: string
   username: string
@@ -109,7 +99,7 @@ export type TeamDetails = {
   description: string
 }
 
-export type TeamSettings2 = {
+type TeamSettings2 = {
   open: boolean
   openJoinAs: TeamRoleType
   tarsDisabled: boolean

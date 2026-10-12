@@ -107,7 +107,7 @@ export const emptyNewFolder = {
   type: T.FS.EditType.NewFolder,
 } satisfies T.FS.Edit
 
-export const emptySyncingFoldersProgress = {
+const emptySyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
@@ -156,7 +156,7 @@ export const emptyFileContext: T.FS.FileContext = {
 }
 
 // Driver Status Constants
-export const driverStatusUnknown = {
+const driverStatusUnknown = {
   type: T.FS.DriverStatusType.Unknown,
 } as const satisfies T.FS.DriverStatusUnknown
 
@@ -354,7 +354,7 @@ export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
 export const computeBadgeNumberForTlfList = (tlfList: T.Immutable<T.FS.TlfList>): number =>
   [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
-export const tlfIsBadged = (tlf: T.FS.Tlf) => !tlf.isIgnored && tlf.isNew
+const tlfIsBadged = (tlf: T.FS.Tlf) => !tlf.isIgnored && tlf.isNew
 
 // Path Parsing
 export const parsePath = (path: T.FS.Path): T.FS.ParsedPath => {
@@ -602,7 +602,7 @@ export const getUploadIconForTlfType = (
   return undefined
 }
 
-export const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
+const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
   switch (syncConfig.mode) {
     case T.FS.TlfSyncMode.Disabled:
       return false

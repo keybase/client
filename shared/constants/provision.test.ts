@@ -5,7 +5,7 @@ import {
   cleanDeviceName,
   goodDeviceRE,
   normalizeDeviceRE,
-} from '../provision'
+} from './provision'
 
 test('device name helpers sanitize punctuation and match the expected validation regexes', () => {
   expect(cleanDeviceName("Chris’s Phone")).toBe("Chris's Phone")

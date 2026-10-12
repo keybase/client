@@ -27,7 +27,7 @@ import {shallowEqual} from './utils'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
 
 type ContainerRef = NavigationContainerRef<RootParamList>
-export type NavAction = Parameters<ContainerRef['dispatch']>[0]
+type NavAction = Parameters<ContainerRef['dispatch']>[0]
 
 // What an adapter has to provide. Deliberately the smallest surface that the
 // operations below need, so a fake is a handful of lines rather than a mock of

@@ -143,14 +143,14 @@ export type ParsedPathGroupTlf = Readonly<{
   readers?: ReadonlyArray<string>
 }>
 
-export type ParsedPathTeamTlf = Readonly<{
+type ParsedPathTeamTlf = Readonly<{
   kind: PathKind.TeamTlf
   tlfName: string
   tlfType: TlfType.Team
   team: string
 }>
 
-export type ParsedPathInGroupTlf = Readonly<{
+type ParsedPathInGroupTlf = Readonly<{
   kind: PathKind.InGroupTlf
   tlfName: string
   tlfType: TlfType.Private | TlfType.Public
@@ -159,7 +159,7 @@ export type ParsedPathInGroupTlf = Readonly<{
   rest: ReadonlyArray<string>
 }>
 
-export type ParsedPathInTeamTlf = Readonly<{
+type ParsedPathInTeamTlf = Readonly<{
   kind: PathKind.InTeamTlf
   tlfName: string
   tlfType: TlfType.Team
@@ -197,7 +197,7 @@ export type PrefetchComplete = Readonly<{
   state: PrefetchState.Complete
 }>
 
-export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
+type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
 
 type _PathItemMetadata = {
   name: string
@@ -246,7 +246,7 @@ export enum NonUploadStaticSyncStatus {
   Synced = 'synced', // sync enabled and fully synced
   SyncError = 'sync-error', // uh oh
 }
-export type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
+type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
 export const LocalConflictStatus = 'local-conflict'
 export type LocalConflictStatusType = typeof LocalConflictStatus
 export type PathStatusIcon = LocalConflictStatusType | SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
@@ -334,7 +334,7 @@ export enum FileEditType {
   Unknown = 'unknown',
 }
 
-export type TlfEdit = Readonly<{
+type TlfEdit = Readonly<{
   filename: string
   serverTime: number
   editType: FileEditType
@@ -588,10 +588,6 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 // TODO: move this conversion to Go side
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
-
-export enum NonUploadPathItemBadgeType {
-  Download = 'download',
-}
 
 export enum ResetBannerNoOthersType {
   None = 'none',

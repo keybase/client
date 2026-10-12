@@ -14,7 +14,7 @@ export type PlatformsExpandedType =
   | 'zcash'
   | 'rooter'
 
-export const PlatformsExpanded = [
+const PlatformsExpanded = [
   'btc',
   'dns',
   'dnsOrGenericWebSite',
