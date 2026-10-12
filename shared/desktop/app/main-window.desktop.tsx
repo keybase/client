@@ -9,6 +9,7 @@ import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
+import {setMainWindow} from './main-window-ref.desktop'
 
 const {env} = KB2.constants
 
@@ -375,11 +376,7 @@ const MainWindow = () => {
   maybeShowWindowOrDock(win)
 
   setupWindowEvents(win)
-  return win
+  setMainWindow(win)
 }
 
-export const getMainWindow = (): Electron.BrowserWindow | undefined => {
-  const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
-  return w
-}
 export default MainWindow

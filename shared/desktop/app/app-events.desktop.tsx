@@ -113,7 +113,7 @@ export const registerNavigationGuards = () => {
 }
 
 const focusSelfOnAnotherInstanceLaunching = (
-  getMainWindow: () => Electron.BrowserWindow | null,
+  getMainWindow: () => Electron.BrowserWindow | undefined,
   commandLine: Array<string>
 ) => {
   const mw = getMainWindow()
@@ -145,7 +145,7 @@ const focusSelfOnAnotherInstanceLaunching = (
 }
 
 export const registerSecondInstanceHandler = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
+  getMainWindow: () => Electron.BrowserWindow | undefined
 }) => {
   Electron.app.on('second-instance', (_, commandLine) =>
     focusSelfOnAnotherInstanceLaunching(deps.getMainWindow, commandLine)
@@ -186,7 +186,7 @@ export const getStartupProcessArgs = () => {
   }
 }
 
-const handleActivate = (getMainWindow: () => Electron.BrowserWindow | null) => {
+const handleActivate = (getMainWindow: () => Electron.BrowserWindow | undefined) => {
   getMainWindow()?.show()
   showDockIcon()
 }
@@ -198,7 +198,7 @@ const handleQuitting = (event: Electron.Event) => {
 }
 
 export const registerLifecycleHandlers = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
+  getMainWindow: () => Electron.BrowserWindow | undefined
 }) => {
   Electron.app.on('activate', () => handleActivate(deps.getMainWindow))
   Electron.app.once('before-quit', handleQuitting)

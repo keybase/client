@@ -1,5 +1,6 @@
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
-import {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
+import {showDockIcon, closeWindows} from './main-window.desktop'
+import {getMainWindow} from './main-window-ref.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
@@ -165,12 +166,11 @@ const writeAppState = (contents: string) => {
 }
 
 export const setupIPCHandlers = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
   Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
-    deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
+    getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
   Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
@@ -476,7 +476,7 @@ export const setupIPCHandlers = (deps: {
             logger.error('launch fail', e)
           }
         } else {
-          deps.getMainWindow()?.show()
+          getMainWindow()?.show()
         }
         showDockIcon()
         break
