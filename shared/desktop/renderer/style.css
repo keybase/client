@@ -449,6 +449,8 @@ body {
   outline: none;
   overflow: hidden;
   padding: 0;
+  /* never inherited none from where it is rendered: everything else is inert while it is open */
+  pointer-events: auto;
   width: 100%;
 
   &::backdrop {
