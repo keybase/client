@@ -32,14 +32,19 @@ fi
 
 app_name=Keybase
 keybase_version=${KEYBASE_VERSION:-}
-kbfs_version=${KBFS_VERSION:-}
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
-redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$KBFS_BINPATH")/keybase-redirector}
 updater_binpath=${UPDATER_BINPATH:-}
+for required in KEYBASE_BINPATH GIT_REMOTE_KEYBASE_BINPATH KBFS_BINPATH UPDATER_BINPATH; do
+	if [ -z "${!required:-}" ]; then
+		echo "$required is required: package_darwin.sh packages locally built binaries (see prerelease/build_app.sh)"
+		exit 1
+	fi
+done
+redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$kbfs_binpath")/keybase-redirector}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 saltpack_icon="$client_dir/media/icons/saltpack.icns"
@@ -53,27 +58,8 @@ release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 
 if [ "$keybase_version" = "" ]; then
-	if [ ! "$keybase_binpath" = "" ]; then
-		keybase_version=$($keybase_binpath version -S)
-		echo "Using keybase (bin) version: $keybase_version"
-	fi
-fi
-
-if [ "$kbfs_version" = "" ]; then
-	if [ ! "$kbfs_binpath" = "" ]; then
-		kbfs_version=$($kbfs_binpath -version)
-		echo "Using kbfs (bin) version: $kbfs_version"
-	fi
-fi
-
-if [ "$keybase_version" = "" ]; then
-	echo "Specify KEYBASE_VERSION to use (Github release/tag)"
-	exit 1
-fi
-
-if [ "$kbfs_version" = "" ]; then
-	echo "Specify KBFS_VERSION for use (Github release/tag)"
-	exit 1
+	keybase_version=$("$keybase_binpath" version -S)
+	echo "Using keybase (bin) version: $keybase_version"
 fi
 
 if [ "$arch" = "amd64" ]; then
@@ -114,42 +100,18 @@ clean() {
 	mkdir -p "$tmp_dir"
 }
 
-ensure_url() {
-	url="$1"
-	msg="$2"
-	if ! curl --output /dev/null --silent --head --fail "$url"; then
-		echo "URL doesn't exist: $url"
-		echo "$msg"
-		exit 1
-	fi
-}
-
 get_deps() { (
 	cd "$tmp_dir"
 	echo "Downloading dependencies"
 
-	if [ ! "$keybase_binpath" = "" ]; then
-		echo "Using local keybase binpath: $keybase_binpath"
-		cp "$keybase_binpath" .
-	else
-		keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-$platform.tgz"
-		echo "Getting $keybase_url"
-		ensure_url "$keybase_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
-		curl -J -L -Ss "$keybase_url" | tar zx
-	fi
+	echo "Using local keybase binpath: $keybase_binpath"
+	cp "$keybase_binpath" .
 
-	if [ ! "$kbfs_binpath" = "" ]; then
-		echo "Using local kbfs binpath: $kbfs_binpath"
-		cp "$kbfs_binpath" .
-		cp "$git_remote_keybase_binpath" .
-		echo "Using local redirector binpath: $redirector_binpath"
-		cp "$redirector_binpath" .
-	else
-		kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-$platform.tgz"
-		echo "Getting $kbfs_url"
-		ensure_url "$kbfs_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
-		curl -J -L -Ss "$kbfs_url" | tar zx
-	fi
+	echo "Using local kbfs binpath: $kbfs_binpath"
+	cp "$kbfs_binpath" .
+	cp "$git_remote_keybase_binpath" .
+	echo "Using local redirector binpath: $redirector_binpath"
+	cp "$redirector_binpath" .
 
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
@@ -325,14 +287,6 @@ save() { (
 	mv "$out_dir/$update_json_name" "$platform_dir-support"
 ); }
 
-# Build cleanup tool
-echo "Loading cleanup tool"
-(
-	cd "$client_dir/go/buildtools/cleanup"
-	go install "github.com/keybase/client/go/buildtools/cleanup"
-)
-cleanup_bin="$GOPATH/bin/cleanup"
-
 s3sync() {
 	if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
 		s3cmd sync --acl-public --disable-multipart "$save_dir"/* s3://"$bucket_name"/
@@ -354,21 +308,5 @@ create_zip
 kbsign
 update_json
 save
-
-# Cleanup old packages before syncing new ones
-#if [ ! "$bucket_name" = "" ]; then
-	#echo "Cleaning up old packages from S3..."
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-updates/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-updates/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="windows/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="linux_binaries/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="electron-sourcemaps/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test-updates/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-test/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test-updates/"
-	#"$cleanup_bin" -bucket="$bucket_name" -prefix="darwin-arm64-test/"
-#fi
 
 s3sync
