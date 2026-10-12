@@ -1,5 +1,5 @@
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
-import {showDockIcon, closeWindows} from './main-window.desktop'
+import {showDockIcon, closeWindows, isScreenshotDisabled} from './main-window.desktop'
 import {getMainWindow} from './main-window-ref.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
@@ -530,11 +530,13 @@ export const setupIPCHandlers = (deps: {
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: preloadPath,
+            sandbox: true,
           },
           ...action.payload.windowOpts,
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+        remoteWindow.setContentProtection(isScreenshotDisabled())
         registerRemoteWindow(action.payload.windowComponent, action.payload.windowParam ?? '', remoteWindow)
 
         remoteWindow.on('show', () => {

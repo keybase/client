@@ -75,6 +75,7 @@ const MenuBar = () => {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
         preload: preloadPath,
+        sandbox: true,
       },
       width: 360,
     },

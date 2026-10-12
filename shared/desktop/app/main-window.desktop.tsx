@@ -140,6 +140,10 @@ let isDarkMode = false
 let disableSpellCheck = false
 let disableScreenshot = false
 
+export const isScreenshotDisabled = () => disableScreenshot
+
+const backgroundColor = (dark: boolean) => (dark ? '#191919' : '#ffffff')
+
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
  * node never writes to it, only the renderer does
@@ -327,7 +331,7 @@ const MainWindow = () => {
   // pass to main window
   htmlFile = htmlFile + `?darkMode=${isDarkMode ? 'dark' : 'light'}`
   const win = new Electron.BrowserWindow({
-    backgroundColor: isDarkMode ? '#191919' : '#ffffff',
+    backgroundColor: backgroundColor(isDarkMode),
     frame: useNativeFrame,
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
@@ -340,6 +344,7 @@ const MainWindow = () => {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: preloadPath,
+      sandbox: true,
       spellcheck: !disableSpellCheck,
     },
     useContentSize: !!visualContentSize,
@@ -350,6 +355,11 @@ const MainWindow = () => {
   })
 
   win.setContentProtection(disableScreenshot)
+  Electron.nativeTheme.on('updated', () => {
+    if (!win.isDestroyed()) {
+      win.setBackgroundColor(backgroundColor(Electron.nativeTheme.shouldUseDarkColors))
+    }
+  })
 
   win
     .loadURL(htmlFile)
