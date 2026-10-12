@@ -12,8 +12,8 @@ notify_failure() {
 trap notify_failure ERR
 
 step="Android build"
-"$client_dir/packaging/slack/send.sh" "Starting Android build"
+"$client_dir/packaging/slack/send.sh" "Starting Android build" || true
 "$client_dir/packaging/android/build_and_publish.sh"
 step="iOS build"
-"$client_dir/packaging/slack/send.sh" "Starting iOS build"
+"$client_dir/packaging/slack/send.sh" "Starting iOS build" || true
 "$client_dir/packaging/ios/build_and_publish.sh"

@@ -31,6 +31,8 @@ kb_fetch_verified() {
     echo "Checksum mismatch for $url (expected $sha)" >&2
     return 1
   fi
-  tar zxf "$archive" -C "$dest"
+  local rc=0
+  tar zxf "$archive" -C "$dest" || rc=$?
   rm -f "$archive"
+  return "$rc"
 }
