@@ -537,13 +537,19 @@ export const tour: ReadonlyArray<TourEntry> = [
     leavesPopup: true,
   },
   // The phone's message menu is the sheet a long press opens, with the quick reactions on top.
+  // Appium does not reliably see inside the sheet, so ready is the image under it and the last step
+  // waits for the sheet through the app (as chat/reaction-tooltip does).
   {
     id: 'chat/message-menu',
     nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
     platforms: ['phone'],
-    ready: T.FLOATING_MENU,
+    ready: T.CHAT_ATTACHMENT_IMAGE,
     seal: ['inbox'],
-    setup: [{kind: 'longPress', testID: T.CHAT_ATTACHMENT_IMAGE}],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'longPress', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'scrollIntoView', testID: T.FLOATING_MENU},
+    ],
   },
   // Thread search opened with nothing typed. The phone's search button is a native header bar
   // item with no testID, so the phone opens it as that button does, through its route param.
