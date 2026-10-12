@@ -30,6 +30,12 @@ export type EngineLinkFrame = {type: 'link'; up: boolean; epoch: number}
 // A renderer write, stamped with the connection it was made on
 export type EngineSend = {epoch: number; message: EngineRPCMessage}
 
+// The channels main sends to a renderer; the preload refuses to subscribe to any other
+export const rendererChannels = ['KBdispatchAction', 'KBprops', 'engineIncoming'] as const
+export type RendererChannel = (typeof rendererChannels)[number]
+export const isRendererChannel = (channel: unknown): channel is RendererChannel =>
+  rendererChannels.some(c => c === channel)
+
 export type KB2 = {
   constants: {
     assetRoot: string
@@ -84,7 +90,7 @@ export type KB2 = {
     installCachedDokan?: () => Promise<void>
     uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<void>
-    ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => (() => void) | undefined
+    ipcRendererOn?: (channel: RendererChannel, cb: (data: unknown) => void) => (() => void) | undefined
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<string>

@@ -16,7 +16,7 @@ const getPreload = () => globalThis._fromPreload as KB2
 const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingRPCCallbackType}) => {
   const preload = getPreload()
   const sent = new Array<EngineSend>()
-  let incoming: ((e: unknown, data: unknown) => void) | undefined
+  let incoming: ((data: unknown) => void) | undefined
   preload.functions.ipcRendererOn = (channel, cb) => {
     if (channel === 'engineIncoming') {
       incoming = cb
@@ -31,7 +31,7 @@ const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingR
   const connected = jest.fn()
   const disconnected = jest.fn()
   const client = createClient(opts?.incoming ?? (() => {}), connected, disconnected)
-  const fromRelay = (data: Uint8Array | EngineLinkFrame) => incoming?.(undefined, data)
+  const fromRelay = (data: Uint8Array | EngineLinkFrame) => incoming?.(data)
   return {client, connected, disconnected, fromRelay, sent}
 }
 const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
@@ -236,7 +236,7 @@ test('reset asks the relay to drop the link, and the link frames, not the reset,
 
 // Stands in for Electron's ipcRenderer: every 'engineIncoming' listener hears each frame until removed
 const makeRelayChannel = () => {
-  const listeners = new Set<(e: unknown, data: unknown) => void>()
+  const listeners = new Set<(data: unknown) => void>()
   const restarts = jest.fn()
   const {functions} = getPreload()
   functions.engineSend = () => {}
@@ -248,7 +248,7 @@ const makeRelayChannel = () => {
       listeners.delete(cb)
     }
   }
-  const fromRelay = (data: Uint8Array | EngineLinkFrame) => listeners.forEach(cb => cb(undefined, data))
+  const fromRelay = (data: Uint8Array | EngineLinkFrame) => listeners.forEach(cb => cb(data))
   return {fromRelay, listeners, restarts}
 }
 

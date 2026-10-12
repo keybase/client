@@ -63,7 +63,7 @@ const setupApp = async () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, onEngineLink, onEngineIncoming)
 
-  ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
+  ipcRendererOn?.('KBdispatchAction', (action: unknown) => {
     setTimeout(() => {
       try {
         eventFromRemoteWindows(action as RemoteGen.Actions)

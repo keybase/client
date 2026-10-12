@@ -46,7 +46,7 @@ export const useRemotePropsReceiver = <P,>(options: UseRemotePropsReceiverOption
     }
 
     // subscribe before pulling so an update can't slip between the two
-    const unsubscribe = ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
+    const unsubscribe = ipcRendererOn?.('KBprops', (raw: unknown) => {
       onProps(raw as string)
     })
     getRemoteProps?.(component, param)

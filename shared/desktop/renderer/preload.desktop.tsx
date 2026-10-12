@@ -4,6 +4,7 @@ import {
   type EngineLinkFrame,
   type EngineSend,
   injectPreload,
+  isRendererChannel,
   type KB2,
   type OpenDialogOptions,
   type SaveDialogOptions,
@@ -109,10 +110,15 @@ if (isRenderer) {
             throw new Error('installCachedDokan fail')
           }
         },
-        ipcRendererOn: (channel: string, cb: (event: unknown, action: unknown) => void) => {
-          Electron.ipcRenderer.on(channel, cb)
+        ipcRendererOn: (channel: unknown, cb: (data: unknown) => void) => {
+          if (!isRendererChannel(channel)) {
+            throw new Error(`ipcRendererOn: channel not allowed: ${String(channel)}`)
+          }
+          // forward only the payload; the event exposes the sender and ports
+          const listener = (_event: Electron.IpcRendererEvent, data: unknown) => cb(data)
+          Electron.ipcRenderer.on(channel, listener)
           return () => {
-            Electron.ipcRenderer.removeListener(channel, cb)
+            Electron.ipcRenderer.removeListener(channel, listener)
           }
         },
         isDirectory: async (path: string) => {

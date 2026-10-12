@@ -107,10 +107,10 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     }
   }
 
-  let rendererIncoming: ((e: unknown, data: unknown) => void) | undefined
+  let rendererIncoming: ((data: unknown) => void) | undefined
   // preload: node forwards the service's bytes and the relay's link frames to the main window's
   // 'engineIncoming'
-  const relay = new EngineRelay(data => overIPC(() => rendererIncoming?.(undefined, data)))
+  const relay = new EngineRelay(data => overIPC(() => rendererIncoming?.(data)))
 
   preload.functions = {
     ...functions,
