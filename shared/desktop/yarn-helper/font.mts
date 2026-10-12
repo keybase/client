@@ -269,7 +269,6 @@ ${Object.keys(icons)
     font-variant: normal;
     font-weight: normal;
     line-height: 1;
-    speak: none;
     text-transform: none;
     user-select: none;
 }

@@ -149,15 +149,6 @@
   }
 }
 
-.react-button {
-  &.border {
-    &:hover {
-      backgroundcolor: var(--color-blueLighter2);
-      bordercolor: var(--color-blue);
-    }
-  }
-}
-
 .ashbox {
   overflow: hidden;
   transition: width 0s;
