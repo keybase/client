@@ -34,10 +34,13 @@ test('an inbox search the service fails shows the text results as errored', asyn
   expect(result.current.searchInfo.textStatus).toBe('error')
 })
 
-test('a cancelled inbox search is not an error', async () => {
+test.each([
+  ['a session cancel', T.RPCGen.StatusCode.sccanceled],
+  ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
+])('%s of an inbox search is not an error', async (_, code) => {
   const {fail, result} = await startSearch()
 
-  fail(T.RPCGen.StatusCode.sccanceled, 'canceled')
+  fail(code, 'canceled')
   await flush()
 
   expect(result.current.searchInfo.textStatus).not.toBe('error')

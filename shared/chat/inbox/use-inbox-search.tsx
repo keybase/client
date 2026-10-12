@@ -3,7 +3,7 @@ import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useShellState} from '@/stores/shell'
-import {RPCError} from '@/util/errors'
+import {isQuietCancel, RPCError} from '@/util/errors'
 import * as React from 'react'
 import {ensureInboxSearchMetas} from './metadata'
 import {cancelActiveInboxSearchRPC, searchInboxRPC} from '../search-rpc'
@@ -357,7 +357,7 @@ export function useInboxSearch(): InboxSearchController {
             query,
           })
         } catch (error) {
-          if (error instanceof RPCError && error.code !== T.RPCGen.StatusCode.sccanceled) {
+          if (error instanceof RPCError && !isQuietCancel(error)) {
             logger.error('search failed: ' + error.message)
             updateIfActive(prev => ({...prev, textStatus: 'error'}))
           }
