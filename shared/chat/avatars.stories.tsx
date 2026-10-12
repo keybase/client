@@ -40,18 +40,18 @@ type TeamStory = StoryObj<typeof TeamAvatar>
 
 export const Team: TeamStory = {
   render: () => (
-    <TeamAvatar teamname="keybase" isMuted={false} isSelected={false} isHovered={false} />
+    <TeamAvatar teamname="keybase" isMuted={false} isSelected={false} />
   ),
 }
 
 export const TeamMuted: TeamStory = {
   render: () => (
-    <TeamAvatar teamname="keybase" isMuted={true} isSelected={false} isHovered={false} />
+    <TeamAvatar teamname="keybase" isMuted={true} isSelected={false} />
   ),
 }
 
 export const TeamSelected: TeamStory = {
   render: () => (
-    <TeamAvatar teamname="keybase" isMuted={false} isSelected={true} isHovered={false} />
+    <TeamAvatar teamname="keybase" isMuted={false} isSelected={true} />
   ),
 }

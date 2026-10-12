@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
@@ -48,10 +47,6 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
     teamname,
   }
 
-  const [isHovered, setIsHovered] = React.useState(false)
-
-  const _onMouseLeave = () => setIsHovered(false)
-  const _onMouseOver = () => setIsHovered(true)
   const _getSearchHits = () => {
     if (!props.numSearchHits) {
       return ''
@@ -65,7 +60,7 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
   const boldOverride = props.showBold ? Kb.Styles.globalStyles.fontBold : null
   const rowLoadedContent = (
     <>
-      <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
+      <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} />
       <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.textContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Text
@@ -129,8 +124,6 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
           backgroundColor: props.isSelected ? theme.blue : theme.white,
         },
       ])}
-      onMouseLeave={_onMouseLeave}
-      onMouseOver={_onMouseOver}
     >
       {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
     </Kb.ClickableBox>

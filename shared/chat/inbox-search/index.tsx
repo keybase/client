@@ -487,7 +487,6 @@ type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
 const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
 
@@ -547,10 +546,8 @@ const OpenTeamRow = React.memo(function OpenTeamRow(p: OpenTeamProps) {
             height: rowHeight,
           },
         ])}
-        onMouseLeave={() => setHovering(false)}
-        onMouseOver={() => setHovering(true)}
       >
-        <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
+        <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} />
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Text
             type="BodySemibold"

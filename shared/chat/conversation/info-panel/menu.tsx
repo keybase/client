@@ -494,7 +494,6 @@ const TeamHeader = (props: TeamHeaderProps) => {
         teamname={props.teamname}
         isMuted={props.isMuted}
         isSelected={false}
-        isHovered={false}
         size={32}
       />
       <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>

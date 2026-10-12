@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team'
@@ -62,10 +61,6 @@ const SelectableSmallTeam = (props: Props) => {
     })
   }
 
-  const [isHovered, setIsHovered] = React.useState(false)
-  const _onMouseLeave = () => setIsHovered(false)
-  const _onMouseOver = () => setIsHovered(true)
-
   if (!teamname && participants.length === 0) {
     return (
       <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.container} centerChildren={true} onClick={onSelectConversation}>
@@ -79,7 +74,7 @@ const SelectableSmallTeam = (props: Props) => {
       alignItems="center"
       fullWidth={true}
       fullHeight={true}
-      className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
+      className={Kb.Styles.classNames('hover_background_color_blueGreyDark', 'overlay-icon-row', {
         background_color_blue: isSelected,
       })}
       onClick={onSelectConversation}
@@ -90,15 +85,12 @@ const SelectableSmallTeam = (props: Props) => {
           backgroundColor: isSelected ? theme.blue : theme.white,
         },
       ])}
-      onMouseLeave={_onMouseLeave}
-      onMouseOver={_onMouseOver}
     >
         {teamname ? (
-          <TeamAvatar teamname={teamname} isHovered={isHovered} isMuted={isMuted} isSelected={isSelected} />
+          <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} />
         ) : (
           <Avatars
             backgroundColor={backgroundColor}
-            isHovered={isHovered}
             isMuted={isMuted}
             isSelected={isSelected}
             isLocked={isLocked}

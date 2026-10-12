@@ -2,13 +2,12 @@ import * as Kb from '@/common-adapters'
 import './chat.css'
 
 const OverlayIcon = function OverlayIcon(p: {
-  isHovered: boolean
   isMuted: boolean
   isSelected: boolean
   isLocked: boolean
 }) {
   const styles = useStyles()
-  const {isHovered, isMuted, isSelected, isLocked} = p
+  const {isMuted, isSelected, isLocked} = p
 
   if (isMobile) {
     const type = isMuted
@@ -30,7 +29,6 @@ const OverlayIcon = function OverlayIcon(p: {
     <Kb.Box2 alignSelf="center" direction="vertical" style={styles.mutedIcon}>
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
-          hovered: isHovered,
           locked: isLocked,
           muted: isMuted,
           selected: isSelected,
@@ -40,7 +38,6 @@ const OverlayIcon = function OverlayIcon(p: {
       />
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', {
-          hovered: isHovered,
           locked: isLocked,
           muted: isMuted,
           selected: isSelected,
@@ -55,7 +52,6 @@ const OverlayIcon = function OverlayIcon(p: {
 type Props = {
   participantOne?: string
   participantTwo?: string
-  isHovered?: boolean
   isLocked?: boolean
   isMuted?: boolean
   isSelected?: boolean
@@ -67,7 +63,6 @@ const Avatars = function Avatars(p: Props) {
   const styles = useStyles()
   const {participantOne, participantTwo, backgroundColor} = p
   const {singleSize = 48} = p
-  const {isHovered = false} = p
   const {isLocked = false} = p
   const {isMuted = false} = p
   const {isSelected = false} = p
@@ -85,7 +80,7 @@ const Avatars = function Avatars(p: Props) {
     return (
       <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
         <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
-        <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+        <OverlayIcon isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
       </Kb.Box2>
     )
   }
@@ -94,7 +89,7 @@ const Avatars = function Avatars(p: Props) {
     <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
       <Kb.Avatar username={participantTwo} size={32} style={leftStyle} />
       <Kb.Avatar username={participantOne} size={32} style={rightStyle} />
-      <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+      <OverlayIcon isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
     </Kb.Box2>
   )
 }
@@ -114,17 +109,16 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
 
 const TeamAvatar = function TeamAvatar(p: {
   teamname: string
-  isHovered: boolean
   isMuted: boolean
   isSelected: boolean
   size?: 128 | 96 | 64 | 48 | 32 | 24 | 16
 }) {
   const styles = useStyles()
-  const {teamname, size, isSelected, isMuted, isHovered} = p
+  const {teamname, size, isSelected, isMuted} = p
   return (
     <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
-      <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
+      <OverlayIcon isSelected={isSelected} isMuted={isMuted} isLocked={false} />
     </Kb.Box2>
   )
 }

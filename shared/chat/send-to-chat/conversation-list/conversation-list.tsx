@@ -41,7 +41,7 @@ const Row = React.memo(function Row(p: RowProps) {
       ])}
     >
       {item.isTeam ? (
-        <TeamAvatar isHovered={false} isMuted={false} isSelected={isSelected} teamname={item.tlfName} />
+        <TeamAvatar isMuted={false} isSelected={isSelected} teamname={item.tlfName} />
       ) : (
         <Avatars isSelected={isSelected} participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
       )}

@@ -86,7 +86,7 @@ const SmallTeam = (p: Props) => {
         />
       )}
       {teamDisplayName ? (
-        <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+        <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} />
       ) : (
         <Avatars
           backgroundColor={backgroundColor}
