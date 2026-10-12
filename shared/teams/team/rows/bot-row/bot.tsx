@@ -86,22 +86,18 @@ const TeamBotRow = (props: Props) => {
             size={isMobile ? 48 : 32}
             onClick={props.onOpenProfile}
           />
-          <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+          <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer}>
             {usernameDisplay}
             {descriptionLabel}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.menuIconContainer} ref={popupAnchor}>
+        <Kb.Box2 direction="vertical" noShrink={true} ref={popupAnchor}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
             <Kb.Icon
               onClick={onShowMenu}
-              style={
-                isMobile
-                  ? Kb.Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
-                  : styles.menuButtonDesktop
-              }
+              style={isMobile ? styles.menuButtonMobile : styles.menuButtonDesktop}
               fontSize={isMobile ? 20 : 16}
               type="iconfont-ellipsis"
             />
@@ -134,18 +130,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     marginRight: Kb.Styles.globalMargins.tiny,
     padding: Kb.Styles.globalMargins.tiny,
   },
-  menuButtonMobile: {
-    position: 'absolute',
-    right: 16,
-    top: 24,
-  },
-  menuButtonMobileSmallTop: {
-    top: 12,
-  },
-  menuIconContainer: {
-    flexShrink: 1,
-  },
-  nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
+  menuButtonMobile: {marginLeft: Kb.Styles.globalMargins.small},
+  nameContainer: {marginLeft: Kb.Styles.globalMargins.small, minWidth: 0},
 }))
 
 type OwnProps = {
