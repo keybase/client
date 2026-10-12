@@ -363,8 +363,17 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             error.desc !== cancelDesc &&
             !isQuietCancel(error)
           ) {
-            error.desc = niceError(error);
-            get().dispatch.setLoginError(error);
+            // A copy: the engine hands the same error to the waiting key
+            get().dispatch.setLoginError(
+              new RPCError(
+                niceError(error),
+                error.code,
+                error.fields,
+                error.name,
+                undefined,
+                error.kind,
+              ),
+            );
           }
         } finally {
           // After the switch ends: a failed switch must apply a logged-out session.

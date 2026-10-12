@@ -12,6 +12,8 @@ import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
+import {useWaitingState} from '../waiting'
+import {waitingKeyConfigLogin} from '../../constants/strings'
 import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 
 const resetConfigState = () => {
@@ -345,6 +347,8 @@ describe('login', () => {
       const state = useConfigState.getState()
       expect(state.userSwitching).toBe(false)
       expect(state.loginError?.desc).toBe('Looks like a bad password.')
+      // the engine's error, which the waiting key also holds, keeps the service's message
+      expect(useWaitingState.getState().errors.get(waitingKeyConfigLogin)?.desc).toBe('bad password')
     })
 
     test('already logged in ends the switch without a login error', async () => {
