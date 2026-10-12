@@ -19,6 +19,13 @@ jest.mock('@/common-adapters', () => {
     Box2: passThrough,
     Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
       React.createElement('button', {onClick, type: 'button'}, label),
+    ConfirmButtons: ({confirmLabel, onCancel, onConfirm}: {confirmLabel: string; onCancel: () => void; onConfirm: () => void}) =>
+      React.createElement(
+        'div',
+        null,
+        React.createElement('button', {onClick: onCancel, type: 'button'}, 'Cancel'),
+        React.createElement('button', {onClick: onConfirm, type: 'button'}, confirmLabel)
+      ),
     Checkbox: ({checked, label, onCheck}: {checked: boolean; label: string; onCheck: (c: boolean) => void}) =>
       React.createElement('button', {onClick: () => onCheck(!checked), type: 'button'}, label),
     IconAuto: () => null,
@@ -26,6 +33,8 @@ jest.mock('@/common-adapters', () => {
       React.createElement('input', {onChange: (e: {target: {value: string}}) => onChangeText(e.target.value), placeholder, value}),
     ListItem: ({body, onClick}: {body: React.ReactNode; onClick: () => void}) =>
       React.createElement('div', {onClick}, body),
+    ModalScreen: ({children, footer}: {children?: React.ReactNode; footer?: React.ReactNode}) =>
+      React.createElement('div', null, children, footer),
     ScrollView: passThrough,
     Styles: {
       castStyleDesktop: (s: unknown) => s,
