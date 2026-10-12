@@ -271,6 +271,7 @@ const Header = () => {
           style={styles.clickable}
           type="iconfont-info"
           onClick={onToggleInfoPanel}
+          testID={TestIDs.CHAT_HEADER_INFO_BUTTON}
         />
       </Kb.Box2>
     </Kb.Box2>

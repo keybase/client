@@ -8,6 +8,7 @@ import {pluralize} from '@/util/string'
 import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
 import {useConversationSendActions} from '../../../send-actions'
 import {useSyncRowLayout} from '../../use-sync-row-layout'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // The flip result arrives via a separate status notification, not with the thread, so on initial
 // load (an already-finished flip) the card first-paints with no result and then grows when the
@@ -75,7 +76,7 @@ function CoinFlipContainer() {
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor} testID={TestIDs.CHAT_COINFLIP_PARTICIPANTS}>
       {!isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
@@ -87,7 +88,7 @@ function CoinFlipContainer() {
       {popup}
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical">
+    <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
           {!isMobile && 'Collecting '}commitments: {numParticipants}
@@ -113,27 +114,28 @@ function CoinFlipContainer() {
       direction="vertical"
       style={Kb.Styles.collapseStyles([!errorInfo && styles.container])}
       fullWidth={true}
+      testID={TestIDs.CHAT_COINFLIP}
     >
       {errorInfo ? (
         <CoinFlipError error={errorInfo} />
       ) : (
         <>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.Box2 alignSelf="center" direction="vertical">
+          <Kb.Box2 direction="horizontal" gap="tiny">
+            <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
                 <Kb.Image src={commitSrc} style={styles.progressVis} />
               ) : (
-                <Kb.Box2 alignSelf="center"
+                <Kb.Box2
                   direction="vertical"
                   style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center" direction="vertical">
+            <Kb.Box2 direction="vertical">
               {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
                 <Kb.Image src={revealSrc} style={styles.progressVis} />
               ) : (
-                <Kb.Box2 alignSelf="center"
+                <Kb.Box2
                   direction="vertical"
                   style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />

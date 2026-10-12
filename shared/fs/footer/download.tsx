@@ -59,7 +59,7 @@ const Download = (props: Props) => {
             color={theme.black_20}
           />
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.nameAndProgress}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
             onClick={isMobile ? undefined : open}

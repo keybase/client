@@ -15,7 +15,7 @@ const NativeFloatingBox = (p: Props) => {
 
   return (
     <Portal hostName="popup-root">
-      <Box2 alignSelf="center"
+      <Box2
         direction="vertical"
         pointerEvents="box-none"
         style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, containerStyle])}

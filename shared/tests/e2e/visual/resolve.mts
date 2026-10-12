@@ -2,14 +2,18 @@
 //   teamname           KB_E2E_TEAM
 //   teamFolder         /keybase/team/<KB_E2E_TEAM>
 //   privateFolder      /keybase/private/<KB_SMOKE_USER>
+//   otherPrivateFolder /keybase/private/<KB_SECOND_USER>, a folder the smoke account can't read
 //   username           KB_SMOKE_USER
 //   secondUser         KB_SECOND_USER
 //   teamID             `team list-memberships --json` -> {teams: [{team_id, fq_name, ...}]}
+//   deviceID           `device list` (a text table) -> the ID that sorts first: any one device,
+//                      the same one every run
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
 import {execFile} from 'child_process'
-import type {Nav, ParamRef} from './tour-types.ts'
+import {normalizeDevices} from './seal.mts'
+import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
 
@@ -57,6 +61,12 @@ const smokeUser = () => {
   return u
 }
 
+const secondUser = () => {
+  const u = process.env['KB_SECOND_USER']
+  if (!u) throw new Error('resolving a secondUser param needs KB_SECOND_USER set in the environment')
+  return u
+}
+
 const inFolder = (folder: string, sub: string | undefined) => (sub ? `${folder}/${sub}` : folder)
 
 const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
@@ -67,13 +77,12 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
       return inFolder(`/keybase/team/${teamname()}`, ref.sub)
     case 'privateFolder':
       return inFolder(`/keybase/private/${smokeUser()}`, ref.sub)
+    case 'otherPrivateFolder':
+      return inFolder(`/keybase/private/${secondUser()}`, ref.sub)
     case 'username':
       return smokeUser()
-    case 'secondUser': {
-      const u = process.env['KB_SECOND_USER']
-      if (!u) throw new Error('resolving a secondUser param needs KB_SECOND_USER set in the environment')
-      return u
-    }
+    case 'secondUser':
+      return secondUser()
     case 'teamID': {
       const team = teamname()
       return cached(`teamID:${team}`, async () => {
@@ -84,6 +93,12 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
         return id
       })
     }
+    case 'deviceID':
+      return cached('deviceID', async () => {
+        const [first] = normalizeDevices(await run(['device', 'list'])).map(d => d.id).sort()
+        if (!first) throw new Error('device list has no devices')
+        return first
+      })
     case 'conversationIDKey': {
       const team = teamname()
       const channel = ref.channel ?? 'general'
@@ -102,22 +117,34 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
   }
 }
 
-const isRef = (v: unknown): v is ParamRef => !!v && typeof v === 'object' && 'ref' in v
+export const isRef = (v: unknown): v is ParamRef =>
+  !!v && typeof v === 'object' && !Array.isArray(v) && typeof (v as {ref?: unknown}).ref === 'string'
+
+export type Resolved = string | number | boolean | null | Array<Resolved> | {[k: string]: Resolved}
+
+export const resolveValue = async (v: ParamValue, run: CliRunner = runCli): Promise<Resolved> => {
+  if (isRef(v)) return resolveRef(v, run)
+  if (Array.isArray(v)) return Promise.all(v.map(async x => resolveValue(x as ParamValue, run)))
+  if (v && typeof v === 'object') {
+    const out: {[k: string]: Resolved} = {}
+    for (const [k, x] of Object.entries(v as {[k: string]: ParamValue})) out[k] = await resolveValue(x, run)
+    return out
+  }
+  return v as string | number | boolean | null
+}
 
 export type ResolvedNav = {
   tab: string
-  append?: {name: string; params?: Record<string, string | number | boolean>}
+  append?: {name: string; params?: Record<string, Resolved>}
   thread?: string
 }
 
 export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<ResolvedNav> {
   const {append, thread} = nav
-  let params: Record<string, string | number | boolean> | undefined
+  let params: Record<string, Resolved> | undefined
   if (append?.params) {
     params = {}
-    for (const [k, v] of Object.entries(append.params)) {
-      params[k] = isRef(v) ? await resolveRef(v, run) : v
-    }
+    for (const [k, v] of Object.entries(append.params)) params[k] = await resolveValue(v, run)
   }
   return {
     tab: nav.tab,

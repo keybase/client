@@ -5,7 +5,9 @@
 //   modal      the map's export name contains "modal"
 //   hasParams  approximation: the entry is a `makeScreen(...)` call, which is how a screen with
 //              typed route params is declared; a plain `{screen}` object takes none
-// Spread entries are skipped: the spread map is listed from the file that defines it.
+// A spread of a map defined in the same file without an export (`...sharedNewModalRoutes`), or of an
+// inline conditional (`...(__DEV__ ? {...} : {})`), is listed with the map it is spread into; a
+// spread of an exported or imported map is listed from where that map is defined.
 import {readdirSync, readFileSync, existsSync} from 'fs'
 import path from 'path'
 import {fileURLToPath} from 'url'
@@ -85,25 +87,50 @@ const mapArg = (n: Node | null | undefined): ObjectExpression | undefined => {
   return arg?.type === 'ObjectExpression' ? arg : undefined
 }
 
+// The object literals a spread argument stands for: a local unexported const's initializer, or the
+// object branches of a conditional.
+const spreadObjects = (n: Node, locals: Map<string, ObjectExpression>): Array<ObjectExpression> => {
+  if (n.type === 'ObjectExpression') return [n]
+  if (n.type === 'Identifier') {
+    const o = locals.get(n.name)
+    return o ? [o] : []
+  }
+  if (n.type === 'ConditionalExpression') return [...spreadObjects(n.consequent, locals), ...spreadObjects(n.alternate, locals)]
+  return []
+}
+
 export function listRoutes(): Array<RouteInfo> {
   const out: Array<RouteInfo> = []
   const seen = new Set<string>()
   for (const file of [...routeFiles(), 'router-v2/routes.tsx'].filter((f, i, a) => a.indexOf(f) === i)) {
     const ast = parseSrc(readFileSync(path.join(sharedDir, file), 'utf8'))
+    const locals = new Map<string, ObjectExpression>()
+    for (const stmt of ast.program.body) {
+      if (stmt.type !== 'VariableDeclaration') continue
+      for (const decl of stmt.declarations) {
+        if (decl.id.type !== 'Identifier') continue
+        const obj = decl.init?.type === 'ObjectExpression' ? decl.init : mapArg(decl.init)
+        if (obj) locals.set(decl.id.name, obj)
+      }
+    }
+    const addMap = (obj: ObjectExpression, modal: boolean) => {
+      for (const p of obj.properties) {
+        if (p.type === 'SpreadElement') {
+          for (const o of spreadObjects(p.argument, locals)) addMap(o, modal)
+          continue
+        }
+        const name = keyName(p)
+        if (!name || seen.has(`${file}:${name}`)) continue
+        seen.add(`${file}:${name}`)
+        out.push({name, file, modal, hasParams: p.type === 'ObjectProperty' && valueHasParams(p.value)})
+      }
+    }
     for (const stmt of ast.program.body) {
       if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration') continue
       for (const decl of stmt.declaration.declarations) {
         if (decl.id.type !== 'Identifier') continue
         const obj = mapArg(decl.init)
-        if (!obj) continue
-        const modal = /modal/i.test(decl.id.name)
-        for (const p of obj.properties) {
-          if (p.type === 'SpreadElement') continue
-          const name = keyName(p)
-          if (!name || seen.has(`${file}:${name}`)) continue
-          seen.add(`${file}:${name}`)
-          out.push({name, file, modal, hasParams: p.type === 'ObjectProperty' && valueHasParams(p.value)})
-        }
+        if (obj) addMap(obj, /modal/i.test(decl.id.name))
       }
     }
   }

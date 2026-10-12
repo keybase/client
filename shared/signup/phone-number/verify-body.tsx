@@ -38,12 +38,12 @@ const VerifyBody = (props: BodyProps) => {
         containerStyle={styles.inputContainer2}
         inputStyle={styles.inputText2}
       />
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
         direction="vertical"
         relative={true}
       >
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           alignItems="center"
           direction="horizontal"
           gap="tiny"

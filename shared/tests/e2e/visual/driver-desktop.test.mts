@@ -2,7 +2,7 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {createRequire} from 'module'
-import {settle, waitForQuiet} from './driver-desktop.mts'
+import {settle, waitForQuiet, waitsAtTabRoot} from './driver-desktop.mts'
 import {makePng, type PNGData} from './compare.mts'
 
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: PNGData) => Buffer}}}
@@ -53,4 +53,14 @@ test('a quiet wait that never settles fails at its deadline', async () => {
     waitForQuiet('idle', 300, 200, async () => Promise.resolve(n++ % 2 === 0)),
     /timed out after 0.3s waiting for idle/
   )
+})
+
+test('a capture waits at its tab root only when it leaves it, acts on it, or has a fixture', () => {
+  const tab = 'tabs.peopleTab'
+  assert.equal(waitsAtTabRoot({nav: {tab}}), false)
+  assert.equal(waitsAtTabRoot({nav: {append: {name: 'x'}, tab}}), true)
+  assert.equal(waitsAtTabRoot({nav: {tab, thread: {ref: 'conv'}}} as never), true)
+  assert.equal(waitsAtTabRoot({nav: {tab}, setup: [{kind: 'click', testID: 'x'}]} as never), true)
+  assert.equal(waitsAtTabRoot({nav: {tab}, setup: []}), false)
+  assert.equal(waitsAtTabRoot({fixture: {name: 'people-suggestions'}, nav: {tab}} as never), true)
 })

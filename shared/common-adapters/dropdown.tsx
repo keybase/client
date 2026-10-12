@@ -36,7 +36,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
   const styles = useStyles()
   const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
   return (
-    <Kb.ClickableBox alignSelf={(!inline) ? undefined : 'center'}
+    <Kb.ClickableBox
       onClick={!disabled ? toggleOpen : undefined}
       direction="horizontal"
       alignItems="center"
@@ -136,7 +136,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={Styles.collapseStyles([styles.overlayContainer, style])}>
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.overlayContainer, style])}>
       <DropdownButton
         disabled={disabled}
         selected={selected}
@@ -171,7 +171,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   const {containerStyle, label, loading, onPress, selectedStyle, style, textWrapperType} = props
 
   const selected = (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       alignItems="center"
       noShrink={true}

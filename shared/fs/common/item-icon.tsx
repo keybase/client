@@ -78,7 +78,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
   const badgeCount = FS.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={props.style}>
+    <Kb.Box2 direction="vertical" style={props.style}>
       {getTlfTypeIcon(props.size, props.tlfType)}
       {!!badgeCount && (
         <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={styles.badgeContainer}>
@@ -97,7 +97,7 @@ type TlfIconProps = {
 
 const TlfIcon = (props: TlfIconProps) => {
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={props.style}>
+    <Kb.Box2 direction="vertical" style={props.style}>
       {props.tlfTypeForFolderIconOverride ? (
         getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
       ) : (
@@ -123,7 +123,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = downloadIntent && 'icon-addon-file-downloading'
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={props.style}>
+    <Kb.Box2 direction="vertical" style={props.style}>
       {pathItem.type === T.FS.PathType.Folder ? (
         props.tlfTypeForFolderIconOverride ? (
           getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)

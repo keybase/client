@@ -7,6 +7,7 @@
     "outDir": "./.tsOuts/.tsOut-native/emit",
     "tsBuildInfoFile": "./.tsOuts/.tsOut-native/cache"
   },
+  "files": ["./globals.d.ts"],
   "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
   "exclude": [
     "**/node_modules",

@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type KeybaseLinkErrorBodyProps = {
   message: string
@@ -9,7 +10,7 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   const styles = useStyles()
   const bannerColor = props.isError ? 'red' : 'green'
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} testID={TestIDs.KEYBASE_LINK_ERROR}>
       <Kb.Banner color={bannerColor}>
         <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
       </Kb.Banner>

@@ -26,7 +26,7 @@ const Preview = () => {
         Would you like to join #{channelname}?
       </Kb.Text>
       {!clicked && (
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+        <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => _onClick(true)}>
             Yes, join
           </Kb.Text>

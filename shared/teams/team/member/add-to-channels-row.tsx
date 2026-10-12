@@ -136,7 +136,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       centerChildren={true}
     >
       {popup}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="horizontal"
         onMouseOver={() => setMouseover(true)}
         onMouseLeave={() => setMouseover(false)}
@@ -264,7 +264,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
       action={
         selfMode ? (
           <Kb.Box2 direction="horizontal" gap="tiny" fullHeight={true}>
-            <Kb.Box2 direction="horizontal" alignSelf="stretch">
+            <Kb.Box2 direction="horizontal">
               <Common.Activity level={activityLevel} />
             </Kb.Box2>
             <Kb.Box2 alignSelf="center" direction="horizontal">
@@ -295,7 +295,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
       }
       firstItem={false}
       body={
-        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="stretch">
+        <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
             <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}

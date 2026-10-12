@@ -16,6 +16,7 @@ import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 import {useDarkModeState} from '@/stores/darkmode'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -86,7 +87,7 @@ const ArrowTick = () => {
   const theme = Kb.Styles.useTheme()
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.arrowTick,
@@ -135,13 +136,13 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
         httpSrvAddress={httpSrvAddress}
         httpSrvToken={httpSrvToken}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} overflow="hidden">
+      <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
-          <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
             <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
               {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
             </Kb.Text>
-            {conv.hasBadge && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.chatBadge} />}
+            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
           </Kb.Box2>
           {!!timestamp && (
             <Kb.Text
@@ -262,7 +263,14 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
           const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
           return (
-            <Kb.Box2 key={tlf + update.writer + String(update.timestamp)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.tlfRowContainer}>
+            <Kb.Box2
+              key={tlf + update.writer + String(update.timestamp)}
+              direction="horizontal"
+              fullWidth={true}
+              gap="tiny"
+              style={styles.tlfRowContainer}
+              testID={TestIDs.MENUBAR_TLF_ROW}
+            >
               <HttpAvatar
                 name={update.writer}
                 size={32}
@@ -270,7 +278,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                 httpSrvToken={httpSrvToken}
               />
               <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
+                <Kb.Box2 direction="horizontal" justifyContent="space-between">
                   <Kb.Text
                     type="BodyBold"
                     style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : styles.tlfWriterNotFollowing}
@@ -282,7 +290,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                     {TimestampUtil.formatTimeForConversationList(update.timestamp)}
                   </Kb.Text>
                 </Kb.Box2>
-                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Box2 direction="horizontal">
                   <Kb.Text type="BodySmall" style={styles.tlfParticipants}>in&nbsp;</Kb.Text>
                   <Kb.Text
                     className="hover-underline"
@@ -436,20 +444,21 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         {backgroundColor: isDarkMode ? '#2d2d2d' : theme.blueDark},
       ])}
     >
-      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />
             ))
           : null}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
+      <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
         <Kb.Icon
           color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
           hoverColor={theme.whiteOrWhite}
           onClick={showPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
+          testID={TestIDs.MENUBAR_MENU_BUTTON}
         />
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box2>
@@ -560,7 +569,7 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
       {isDarwin && <ArrowTick />}
       <IconBar {...p} showBadges={loggedIn} />
       {content}
@@ -574,7 +583,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-      <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+      <Kb.Box2 direction="vertical" relative={true}>
         <Kb.Icon type={iconType} color={theme.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
@@ -610,7 +619,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.badgeIconContainer}>
+    <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
       <Kb.Icon
         color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
         hoverColor={theme.whiteOrWhite}

@@ -43,7 +43,7 @@ const TeamMenu = (props: Props) => {
         </Kb.Text>
       }
       metaTwo={
-        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="flex-start" gap="xtiny">
+        <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
           <RoleCrown role={role} fontSize={10} />
           <Kb.Text type="BodySmall">{capitalize(role)}</Kb.Text>
         </Kb.Box2>

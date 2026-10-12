@@ -25,6 +25,12 @@ export const CHAT_BOT_ROW               = 'chat-bot-row'
 // the install modal's footer button varies with the bot's state (Install /
 // Review / Edit settings / Uninstall), so tests key off the modal itself
 export const CHAT_BOT_INSTALL           = 'chat-bot-install'
+// an installed restricted bot's permissions list, its Edit settings button, the edit screen's
+// channel dropdown, and the channel picker it opens
+export const CHAT_BOT_PERMS             = 'chat-bot-perms'
+export const CHAT_BOT_EDIT_BUTTON       = 'chat-bot-edit-button'
+export const CHAT_BOT_CHANNELS_DROPDOWN = 'chat-bot-channels-dropdown'
+export const CHAT_BOT_CHANNEL_PICKER    = 'chat-bot-channel-picker'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 // a bot command's help, shown over the composer once its text names the command
 export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
@@ -35,8 +41,15 @@ export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+export const CHAT_INFO_PANEL_MEMBERS_TAB = 'chat-info-panel-members-tab'
+export const CHAT_INFO_PANEL_ATTACHMENTS_TAB = 'chat-info-panel-attachments-tab'
+export const CHAT_INFO_PANEL_BOTS_TAB = 'chat-info-panel-bots-tab'
+// the attachments tab's Media / Docs / Links selector
+export const CHAT_INFO_PANEL_MEDIA = 'chat-info-panel-media'
+export const CHAT_INFO_PANEL_DOCS = 'chat-info-panel-docs'
+export const CHAT_INFO_PANEL_LINKS = 'chat-info-panel-links'
 export const CHAT_INFO_PANEL_MENU_BUTTON = 'chat-info-panel-menu-button'
-// Android only: iOS 26 folds Search/Info into one native "More" header menu,
+// Desktop and Android: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
 // Desktop conversation header: the title row (team#channel, or the participants) and the search
@@ -48,10 +61,42 @@ export const CHAT_HEADER_SEARCH_BUTTON = 'chat-header-search-button'
 export const CHAT_THREAD_SEARCH       = 'chat-thread-search'
 export const CHAT_THREAD_SEARCH_INPUT = 'chat-thread-search-input'
 export const CHAT_THREAD_SEARCH_HIT   = 'chat-thread-search-hit'
+// the hit count (or "No results") once a search has run
+export const CHAT_THREAD_SEARCH_STATUS = 'chat-thread-search-status'
 export const CHAT_JUMP_TO_RECENT      = 'chat-jump-to-recent'
 export const CHAT_CATCH_UP            = 'chat-catch-up'
 export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
 export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
+// a message's row of reactions
+export const CHAT_REACTIONS_ROW       = 'chat-reactions-row'
+// one reaction in that row (desktop: hovering it shows who reacted) and that tooltip
+export const CHAT_REACTION_ITEM       = 'chat-reaction-item'
+export const CHAT_REACTION_TOOLTIP    = 'chat-reaction-tooltip'
+// the pinned banner's close icon, only while it would ask before unpinning, and that prompt
+export const CHAT_PINNED_UNPIN        = 'chat-pinned-unpin'
+export const CHAT_UNPIN_PROMPT        = 'chat-unpin-prompt'
+// Message kinds the gate's chat-thread-content fixture supplies (tests/e2e/visual/fixtures)
+export const CHAT_ADDED_TO_TEAM       = 'chat-added-to-team'
+export const CHAT_AUDIO_PLAYER        = 'chat-audio-player'
+export const CHAT_MAP_UNFURL          = 'chat-map-unfurl'
+export const CHAT_UNFURL_PROMPT       = 'chat-unfurl-prompt'
+export const CHAT_PAYMENT             = 'chat-payment'
+export const CHAT_JOURNEY_CARD        = 'chat-journey-card'
+export const CHAT_EXPLODING_META      = 'chat-exploding-meta'
+// the exploding message's header in its message menu
+export const CHAT_EXPLODING_HEADER    = 'chat-exploding-header'
+export const CHAT_COINFLIP            = 'chat-coinflip'
+// a finished flip's participant count (desktop: hovering it lists them) and that list
+export const CHAT_COINFLIP_PARTICIPANTS = 'chat-coinflip-participants'
+export const CHAT_COINFLIP_PARTICIPANT_LIST = 'chat-coinflip-participant-list'
+// the composer's typing indicator, and the unread line above the first unread message
+export const CHAT_TYPING              = 'chat-typing'
+export const CHAT_ORANGE_LINE         = 'chat-orange-line'
+// the emoji picker's skin tone button, and the tones it expands to
+export const CHAT_SKIN_TONE_BUTTON    = 'chat-skin-tone-button'
+export const CHAT_SKIN_TONE_OPTIONS   = 'chat-skin-tone-options'
+// a git push system message's body
+export const CHAT_GIT_PUSH            = 'chat-git-push'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
 export const CHAT_EDIT_CANCEL         = 'chat-edit-cancel'
 // desktop message hover bar and ... menu
@@ -65,7 +110,14 @@ export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
+// a path the account can't read, or that doesn't exist
+export const FILES_OOPS = 'files-oops'
 export const FILES_TLF_ROW = 'files-tlf-row'
+// a text file's preview; on desktop only once its content has loaded
+export const FILES_TEXT_PREVIEW = 'files-text-preview'
+// the destination picker's new folder button, and the unsaved name row it adds
+export const FILES_NEW_FOLDER = 'files-new-folder'
+export const FILES_EDITING_ROW = 'files-editing-row'
 
 // Teams
 export const TEAMS_LIST         = 'teams-list'
@@ -75,6 +127,9 @@ export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
+// a member row's selection circle, and the bar that shows while any member is selected
+export const TEAMS_MEMBER_CHECK = 'teams-member-check'
+export const TEAMS_SELECTION_POPUP = 'teams-selection-popup'
 export const TEAMS_ROLE_PICKER = 'teams-role-picker'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
@@ -91,6 +146,12 @@ export const TEAMS_TAB_CHANNELS_BUTTON = 'teams-tab-channels-button'
 export const TEAMS_TAB_EMOJI_BUTTON = 'teams-tab-emoji-button'
 export const TEAMS_TAB_BOTS_BUTTON = 'teams-tab-bots-button'
 export const TEAMS_TAB_SUBTEAMS_BUTTON = 'teams-tab-subteams-button'
+export const TEAMS_SUBTEAMS_TAB = 'teams-subteams-tab'
+// a team row on a member's page: its expand caret, and the last-activity line it reveals
+export const TEAMS_MEMBER_TEAM_EXPAND = 'teams-member-team-expand'
+export const TEAMS_MEMBER_TEAM_ACTIVITY = 'teams-member-team-activity'
+// an external team's page once its public info (or the error saying there is none) has loaded
+export const TEAMS_EXTERNAL_TEAM = 'teams-external-team'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
@@ -142,6 +203,7 @@ export const PEOPLE_FEED = 'people-feed'
 export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
 // the server-picked "Consider following..." users
 export const PEOPLE_FOLLOW_SUGGESTIONS = 'people-follow-suggestions'
+export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
@@ -169,13 +231,40 @@ export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 // A desktop floating menu (message "..." menu, header menus); mobile menus are bottom sheets
 export const FLOATING_MENU = 'floating-menu'
 
+// The desktop app's other windows (desktop/remote)
+export const MENUBAR_MENU_BUTTON = 'menubar-menu-button'
+// a folder's row in the widget's recent files, there once its edit history has loaded
+export const MENUBAR_TLF_ROW = 'menubar-tlf-row'
+export const PINENTRY = 'pinentry'
+// the tracker popup's buttons, there once the identify has a result (for yourself, at once)
+export const TRACKER_BUTTONS = 'tracker-buttons'
+export const UNLOCK_FOLDERS_DEVICES = 'unlock-folders-devices'
+export const UNLOCK_FOLDERS_PAPER_KEY_BUTTON = 'unlock-folders-paper-key-button'
+export const UNLOCK_FOLDERS_PAPER_KEY_INPUT = 'unlock-folders-paper-key-input'
+
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
 // The X on a desktop modal route. Needed because a page-wide search for the
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.
+// the add-device modal once its illustrations are final
+export const DEVICES_ADD_DEVICE = 'devices-add-device'
 export const MODAL_CLOSE = 'modal-close'
 // a phone modal screen's container
 export const MODAL_SCREEN = 'modal-screen'
 // the team builder's recommendation list
 export const TEAM_BUILDING_RECS = 'team-building-recs'
+// a person row in the team builder's recommendations or search results
+export const TEAM_BUILDING_RESULT_ROW = 'team-building-result-row'
+// the bot search's results: the users it found and the featured bots
+export const CHAT_BOT_SEARCH_RESULTS = 'chat-bot-search-results'
+// the local database nuke confirmation (a debug page in settings)
+export const SETTINGS_DB_NUKE_CONFIRM = 'settings-db-nuke-confirm'
+// the page a bad keybase:// link opens
+export const KEYBASE_LINK_ERROR = 'keybase-link-error'
+// the paper key form (chat's rekey prompt and provisioning)
+export const PAPER_KEY_FORM = 'paper-key-form'
+
+// Debug overlays: the global error bar and the runtime stats the service sends when turned on
+export const GLOBAL_ERROR = 'global-error'
+export const RUNTIME_STATS = 'runtime-stats'

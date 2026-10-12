@@ -64,11 +64,11 @@ const NavMobileHeaderInner = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rootContainer}>
           <AccountSwitchHeaderAvatar />
-          <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} flex={1} gap="xtiny">
+          <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} gap="xtiny">
             <Kb.Text type="BodyBig">Files</Kb.Text>
             <FilesTabStatusIcon />
           </Kb.Box2>
-          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.rootSpacer} />
+          <Kb.Box2 direction="vertical" style={styles.rootSpacer} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.SafeAreaViewTop>
@@ -82,7 +82,7 @@ const NavMobileHeaderInner = (props: Props) => {
             {pop ? (
               <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
             ) : null}
-            <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />
+            <Kb.Box2 direction="horizontal" flex={1} />
             <FilesTabStatusIcon />
             <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
           </Kb.Box2>

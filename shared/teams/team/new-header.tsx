@@ -188,7 +188,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           </Kb.Text>
         )}
         <Activity level={activityLevel} style={styles.alignSelfFlexStart} />
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
           {yourOperations.editTeamDescription && (
             <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
@@ -227,13 +227,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backgroundWhite}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" gap="tiny">
             {avatar}
             {topDescriptors}
           </Kb.Box2>
           {bottomDescriptorsAndButtons}
           {yourOperations.manageMembers && (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal">
               {addInviteAndLinkBox}
             </Kb.Box2>
           )}

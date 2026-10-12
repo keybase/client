@@ -267,7 +267,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
     Role<IncludeSetIndividually>
   >
   return (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile} testID={TestIDs.TEAMS_ROLE_PICKER}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullHeight={isMobile} testID={TestIDs.TEAMS_ROLE_PICKER}>
       {!isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
@@ -410,7 +410,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
           hideKeyboard={true}
         >
           <Kb.SafeAreaView>
-            <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="vertical" fullHeight={isMobile} style={styles.opaqueContainer}>
+            <Kb.Box2 direction="vertical" fullHeight={isMobile} style={styles.opaqueContainer}>
               {isMobile && (
                 <Kb.Box2
                   direction="horizontal"
@@ -422,7 +422,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
                     Cancel
                   </Kb.Text>
                   <Kb.Text type="BodyBig">Pick a role</Kb.Text>
-                  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.popupHeaderSide} />
+                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
                 </Kb.Box2>
               )}
               {picker}

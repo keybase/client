@@ -88,7 +88,7 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
       <Kb.Icon type="iconfont-check" sizeType="Tiny" color={theme.greenDark} />
       <Kb.Text type="BodySmall">
         {"Great! That's "}

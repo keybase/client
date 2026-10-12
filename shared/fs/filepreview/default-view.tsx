@@ -66,7 +66,7 @@ const Container = (ownProps: OwnProps) => {
           // Enable this button for desktop when we have in-app sharing.
           hasShare('screen', path, pathItem, fileContext) && (
             <>
-              <Kb.Box2 alignSelf="center" direction="vertical" gap="medium" gapStart={true} />
+              <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
               <PathItemAction
                 clickable={{
                   component: Share,

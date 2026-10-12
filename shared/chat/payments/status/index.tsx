@@ -103,7 +103,7 @@ const PaymentStatus = (props: Props) => {
       {popups}
     </>
   ) : (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       style={styles.container}
       direction="horizontal"
       onMouseOver={showPopupIfAllowed}

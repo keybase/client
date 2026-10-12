@@ -8,6 +8,7 @@ import {createRequire} from 'module'
 import type {TourEntry} from './tour-types.ts'
 import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
+import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
 const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
   await import('./cli.mts')
@@ -28,6 +29,7 @@ const deps = (over = {}) => ({
   closeCapture: async () => {},
   currentShared: '/tree/shared',
   entries,
+  fixtureHash: (name: string) => `hash-of-${name}`,
   hasBasePng: () => true,
   log: () => {},
   openReport: () => {},
@@ -80,7 +82,7 @@ test('an entry not on the platform does not match it', async () => {
   await assert.rejects(runCheck(deps(), ['tab/git', '--ios']), /no tour entry matches tab\/git on ios/)
 })
 
-test('captures with the base frozen instant, every theme on desktop and light only on iOS', async () => {
+test('captures with the base frozen instant, light by default and dark on request', async () => {
   const seen: Array<string> = []
   const capture = async (e: TourEntry, o: {frozenAt: number; theme: string; platform: string}) => {
     seen.push(`${e.id} ${o.platform} ${o.theme} ${o.frozenAt}`)
@@ -91,7 +93,6 @@ test('captures with the base frozen instant, every theme on desktop and light on
   assert.equal(await runCheck(deps({capture}), ['tab/chat', '--theme', 'dark']), 1)
   assert.deepEqual(seen, [
     'tab/chat desktop light 1000',
-    'tab/chat desktop dark 1000',
     'tab/chat ios light 1000',
     'tab/chat desktop dark 1000',
   ])
@@ -120,7 +121,7 @@ test('parseCommand: flags, themes and refusals', () => {
   assert.deepEqual(parseCommand(['tab/*', '--ios']), {base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
   assert.deepEqual(parseCommand(['--themes', 'dark', 'a', 'b']).themes, ['dark'])
   assert.deepEqual(parseCommand(['--theme', 'dark']).themes, ['dark'])
-  assert.deepEqual(parseCommand([]).themes, ['light', 'dark'])
+  assert.deepEqual(parseCommand([]).themes, ['light'])
   assert.equal(parseCommand(['--base', 'HEAD~1']).base, 'HEAD~1')
   assert.equal(parseCommand(['--base=HEAD~1']).base, 'HEAD~1')
   assert.throws(() => parseCommand(['--ios', '--theme', 'dark']), /iOS captures are light only/)
@@ -138,15 +139,37 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
   const files = (m: Record<string, string>) => (p: string) => m[p]
   const launch = 'shared/tests/e2e/electron/launch-app.mts'
   const driver = 'shared/tests/e2e/visual/driver-desktop.mts'
-  const ok = {[driver]: 'x', [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')"}
+  const mark = 'shared/tests/e2e/visual/coverage/src-mark.tsx'
+  const ok = {
+    [driver]: 'x',
+    [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')",
+    [mark]: 'Object.assign(KbSrcMark, {__kbVisualSrcMark: true})',
+  }
   const desktop = (coverage: boolean) => ({coverage, ios: false})
   assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), desktop(true)))
   assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), desktop(false)), /abc has no visual gate .*--base <ref>/s)
   assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), desktop(false)), /--base <ref>/)
+  assert.throws(() => checkBaseInfra('abc', files({...ok, [launch]: "process.argv.includes('--visual')"}), desktop(true)), /--coverage/)
+  // a base whose marks record their mounts instead of carrying the flag the driver finds them by
+  assert.throws(() => checkBaseInfra('abc', files({...ok, [mark]: 'React.useLayoutEffect(() => coverage.mount(id), [id])'}), desktop(true)), /coverage marks the driver cannot find/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: ok[launch]!}), desktop(false)))
+})
+
+test('checkBaseInfra refuses fixture entries from a base without the fixture runtime, or with another version of it', () => {
+  const files = (m: Record<string, string>) => (p: string) => m[p]
+  const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
+  const runtime = 'shared/tests/e2e/visual/fixtures/runtime.ts'
+  const names = 'shared/tests/e2e/visual/fixtures/names.ts'
+  const ios = {coverage: false, fixtures: true, ios: true}
+  const version = (v: number) => `export const FIXTURE_RUNTIME_VERSION = ${v}\n`
+  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios), /abc has no fixture runtime/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION), [runtime]: 'x'}), ios))
   assert.throws(
-    () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')"}), desktop(true)),
-    /--coverage/
+    () => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION - 1), [runtime]: 'x'}), ios),
+    new RegExp(`abc has fixture runtime version ${FIXTURE_RUNTIME_VERSION - 1} .*this driver speaks ${FIXTURE_RUNTIME_VERSION}`)
   )
+  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [runtime]: 'x'}), ios), /fixture runtime version unknown/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {...ios, fixtures: false}))
 })
 
 test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook for --coverage', () => {
@@ -157,8 +180,10 @@ test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook fo
   // the desktop pieces are not what iOS needs
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios(false)))
   assert.throws(() => checkBaseInfra('abc', files({}), ios(false)), /abc has no visual gate infra \(.*driver-ios\.mts\).*--base <ref>/)
-  assert.doesNotThrow(() => checkBaseInfra('abc', files({[babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)))
-  assert.throws(() => checkBaseInfra('abc', files({[babel]: 'module.exports = {}', [iosDriver]: 'x'}), ios(true)), /coverage hook in shared\/babel\.config\.js.*--coverage/)
+  const mark = {'shared/tests/e2e/visual/coverage/src-mark.tsx': '__kbVisualSrcMark'}
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({...mark, [babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)))
+  assert.throws(() => checkBaseInfra('abc', files({[babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)), /coverage marks the driver cannot find/)
+  assert.throws(() => checkBaseInfra('abc', files({...mark, [babel]: 'module.exports = {}', [iosDriver]: 'x'}), ios(true)), /coverage hook in shared\/babel\.config\.js.*--coverage/)
 })
 
 test('aa: an unstable first capture fails the pair even when the second matches it', async () => {
@@ -317,4 +342,78 @@ test('selecting a desktop entry that leaves a popup open brings the entry after 
   ]
   assert.deepEqual(selectEntries(es, ['team/menu'], 'desktop').map(e => e.id), ['team/menu', 'team/next'])
   assert.deepEqual(selectEntries(es, ['team/menu'], 'ios').map(e => e.id), ['team/menu'])
+})
+
+test('a fixture entry needs a base that ran the fixture as this tree defines it', async () => {
+  const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
+  const meta = (fixtures?: Record<string, string>) => () => ({createdAt: 0, fixtures, frozenAt: 1000, seal: {fields: {}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
+  await assert.rejects(runCheck(deps({entries: [fx], readBaseMeta: meta()}), ['modal/bots']), /fixture featured-bots was not run since the base at abc/)
+  await assert.rejects(
+    runCheck(deps({entries: [fx], readBaseMeta: meta({'featured-bots': 'older'})}), ['modal/bots']),
+    /fixture featured-bots changed since the base at abc; retake the base/
+  )
+  const ran: Array<string> = []
+  await runCheck(
+    deps({
+      capture: async (e: TourEntry) => {
+        ran.push(e.id)
+        return failed
+      },
+      entries: [fx],
+      readBaseMeta: meta({'featured-bots': 'hash-of-featured-bots'}),
+    }),
+    ['modal/bots']
+  )
+  assert.deepEqual(ran, ['modal/bots'])
+})
+
+// The capture dep prepares (a reload) whenever the theme changes, and again after closeCapture; a
+// live capture may only follow a fixture capture across one of those.
+const liveAfterFixture = (events: ReadonlyArray<{kind: 'close'} | {kind: 'capture'; e: TourEntry; theme: string}>) => {
+  const problems: Array<string> = []
+  let theme: string | undefined
+  let fixtureSince = false
+  for (const ev of events) {
+    if (ev.kind === 'close') {
+      theme = undefined
+      fixtureSince = false
+      continue
+    }
+    if (ev.theme !== theme) {
+      theme = ev.theme
+      fixtureSince = false
+    }
+    if (ev.e.fixture) fixtureSince = true
+    else if (fixtureSince) problems.push(`${ev.e.id} ${ev.theme}`)
+  }
+  return problems
+}
+
+test('aa, check and gate never capture a live entry after a fixture entry without a fresh prepare', async () => {
+  const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
+  const es = [...entries, fx]
+  const meta = () => ({createdAt: 0, fixtures: {'featured-bots': 'hash-of-featured-bots'}, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
+  const events: Array<{kind: 'close'} | {kind: 'capture'; e: TourEntry; theme: string}> = []
+  // aa compares its own pairs; check and gate get failed captures, so they read no base PNG
+  let result: Capture = {coverage: null, masks: [], png: pngOf(false), status: 'ok'}
+  const recording = deps({
+    capture: async (e: TourEntry, o: {theme: string}): Promise<Capture> => {
+      events.push({e, kind: 'capture', theme: o.theme})
+      return result
+    },
+    closeCapture: async () => {
+      events.push({kind: 'close'})
+    },
+    entries: es,
+    readBaseMeta: meta,
+  })
+  await runAa(recording, ['*', '--themes', 'light,dark'])
+  assert.ok(events.some(ev => ev.kind === 'capture' && ev.e.fixture), 'the fixture entry ran')
+  assert.deepEqual(liveAfterFixture(events), [])
+  events.length = 0
+  result = failed
+  await runCheck(recording, ['*', '--themes', 'light,dark'])
+  await runGate(recording, ['--themes', 'light,dark'])
+  assert.ok(events.some(ev => ev.kind === 'capture' && ev.e.fixture), 'the fixture entry ran')
+  assert.deepEqual(liveAfterFixture(events), [])
 })

@@ -12,6 +12,7 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {dismissJourneycard, useThreadMessageTarget} from '../../../message-commands'
 import {useConversationSendActions} from '../../../send-actions'
 import {useConversationThreadMessage, useThreadMeta} from '../../../thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -95,7 +96,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
           onClick: () => onGoToChannel(chan),
         }))
         textComponent = (
-          <Kb.Box2 alignSelf="center" direction="vertical">
+          <Kb.Box2 direction="vertical" testID={TestIDs.CHAT_JOURNEY_CARD}>
             <Kb.Text type="BodySmall">
               You are in <Kb.Text type="BodySmallBold">#{channelname}</Kb.Text>.
             </Kb.Text>

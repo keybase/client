@@ -95,7 +95,7 @@ const KbfsPath = (props: Props) => {
       {popup}
     </>
   ) : (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={styles.textContainer}
       onMouseOver={() => setShowing(true)}

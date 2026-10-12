@@ -133,13 +133,13 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <AddingMembers
             disabledRoles={disabledRoles}
             updateWizard={updateWizard}
             wizard={wizard}
           />
-          <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
+          <Kb.Box2 direction="horizontal" justifyContent="space-between">
             <AddMoreMembers wizard={wizard} />
             <RoleSelector
               memberCount={addingMembers.length}
@@ -292,7 +292,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
     updateWizard(setWizardRole(wizard, newRole))
   }
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center">
+    <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker<true>
         open={showingMenu}

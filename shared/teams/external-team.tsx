@@ -9,6 +9,7 @@ import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {navToProfile} from '@/constants/router'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {teamname: string}
 type TeamInfoResult = {teamname: string; info?: T.RPCGen.UntrustedTeamInfo}
@@ -50,14 +51,20 @@ const ExternalTeam = (props: Props) => {
 
   if (teamInfo) {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.TEAMS_EXTERNAL_TEAM}>
         <ExternalTeamInfo info={teamInfo} />
       </Kb.Box2>
     )
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap="small" padding="small" fullWidth={true}>
+    <Kb.Box2
+      direction="vertical"
+      gap="small"
+      padding="small"
+      fullWidth={true}
+      testID={waiting ? undefined : TestIDs.TEAMS_EXTERNAL_TEAM}
+    >
       {waiting ? (
         <Kb.Box2
           direction="horizontal"
@@ -153,14 +160,14 @@ const Header = ({info}: ExternalTeamProps) => {
 
   const metaInfo = (
     <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'xtiny' : 'xxtiny'}>
+      <Kb.Box2 direction="vertical" gap={isMobile ? 'xtiny' : 'xxtiny'}>
         {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
         </Kb.Text>
         {/* TODO add activity */}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
         <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
         <Kb.Button mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
         {popup}
@@ -170,7 +177,7 @@ const Header = ({info}: ExternalTeamProps) => {
   const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={theme.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
-      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
+      <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-start">
         <Kb.Avatar size={96} teamname={teamname} />
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>

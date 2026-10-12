@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters/index'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   domain: string
@@ -18,9 +19,9 @@ const UnfurlPrompt = (p: Props) => {
   const theme = Kb.Styles.useTheme()
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
-    <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true} testID={TestIDs.CHAT_UNFURL_PROMPT}>
       {!isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.choiceContainer} gap="xtiny">
+      <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>

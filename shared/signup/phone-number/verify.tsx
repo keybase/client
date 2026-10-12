@@ -57,7 +57,7 @@ const VerifyPhoneNumber = ({route}: Props) => {
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {displayPhone}
           </Kb.Text>
-          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />
+          <Kb.Box2 direction="horizontal" flex={1} />
         </Kb.Box2>
       }
       negativeHeader={true}

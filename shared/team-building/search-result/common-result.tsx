@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {
@@ -103,13 +104,14 @@ const CommonResult = (props: CommonResultProps) => {
         props.rowStyle,
         props.highlight ? styles.highlighted : undefined,
       ])}
+      testID={TestIDs.TEAM_BUILDING_RESULT_ROW}
     >
       <Avatar
         resultForService={props.resultForService}
         keybaseUsername={keybaseUsername}
         pictureUrl={props.pictureUrl}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.username}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
         {serviceUsername ? (
           <>
             <Username
@@ -135,7 +137,7 @@ const CommonResult = (props: CommonResultProps) => {
           <FallbackResultInfo displayLabel={props.displayLabel} prettyName={props.prettyName} />
         )}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         gap="tiny"
         centerChildren={true}
         direction="horizontal"
@@ -209,7 +211,7 @@ const ServicesIcons = (props: ServicesIconsProps) => {
   const serviceIds = serviceMapToArray(props.services)
   const firstIconNoMargin = shouldOmitFirstIconMargin(props)
   return (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="horizontal" fullWidth={isMobile} justifyContent="flex-start">
+    <Kb.Box2 direction="horizontal" alignSelf={isMobile ? undefined : 'center'} fullWidth={isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
@@ -217,7 +219,7 @@ const ServicesIcons = (props: ServicesIconsProps) => {
             : styles.serviceIcon
         // On desktop the styles need to be applied to the box parent if they are to work correctly
         return (
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             key={serviceName}
             tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}

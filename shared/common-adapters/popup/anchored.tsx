@@ -32,7 +32,7 @@ export const AnchoredPopup = (props: AnchoredPopupProps) => {
       offset={offset}
     >
       {onHidden ? (
-        <Box2 alignSelf="center" direction="vertical" style={Styles.collapseStyles([styles.positioned, style])}>
+        <Box2 direction="vertical" style={Styles.collapseStyles([styles.positioned, style])}>
           {children}
         </Box2>
       ) : (

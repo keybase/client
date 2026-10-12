@@ -69,7 +69,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
             />
           </>
         ) : (
-          <Kb.Box2 alignSelf="center" direction="vertical" gap="xxtiny" flex={1}>
+          <Kb.Box2 direction="vertical" gap="xxtiny" flex={1}>
             <Kb.Box2
               alignSelf="flex-start"
               direction="horizontal"
@@ -97,7 +97,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
               flex={1}
               justifyContent="space-between"
             >
-              <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny">
+              <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Avatar teamname={teamname} size={16} />
                 <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
               </Kb.Box2>
@@ -111,7 +111,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.gear}>
+        <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.gear}>
           <Kb.Icon
             type="iconfont-gear"
             onClick={showPopup}
@@ -121,7 +121,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
         </Kb.Box2>
       </Kb.Box2>
       {!!description && (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.description}>
+        <Kb.Box2 direction="horizontal" style={styles.description}>
           <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
             {description}
           </Kb.Markdown>

@@ -271,7 +271,7 @@ const ProxySettingsPopup = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.popupBox}>
       {!isMobile && <Kb.BackButton onClick={props.onBack} />}
-      <Kb.Box2 direction="vertical" fullWidth={true} padding="xlarge">
+      <Kb.Box2 direction="vertical" padding="xlarge">
         <ProxySettingsComponent {...props} />
       </Kb.Box2>
     </Kb.Box2>

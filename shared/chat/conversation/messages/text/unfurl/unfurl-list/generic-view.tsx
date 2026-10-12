@@ -93,7 +93,7 @@ export default function UnfurlGenericView(p: UnfurlGenericViewProps) {
 
   return (
     <Kb.Box2 alignSelf="flex-start" gap="tiny" direction="horizontal" style={styles.container}>
-      {!isMobile && <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />}
+      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 alignSelf="flex-start" gap="xxtiny" direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {publisher}
         <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>

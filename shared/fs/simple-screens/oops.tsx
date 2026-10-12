@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
@@ -22,7 +23,7 @@ const Explain = (props: Props) => {
       return null
     case 'private':
       return (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.explainBox}>
+        <Kb.Box2 direction="horizontal" style={styles.explainBox}>
           <Kb.Text center={true} type="Body">
             Only people in the private folder can access this.
           </Kb.Text>
@@ -50,7 +51,7 @@ const Explain = (props: Props) => {
 const NoAccess = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true} testID={TestIDs.FILES_OOPS}>
       <Kb.EmptyState
         illustration={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
         action={{label: 'Go to parent folder', onClick: props.openParent}}
@@ -67,7 +68,7 @@ const NoAccess = (props: Props) => {
 const NonExistent = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true} testID={TestIDs.FILES_OOPS}>
       <Kb.EmptyState
         illustration={
           isMobile
@@ -79,7 +80,7 @@ const NonExistent = (props: Props) => {
         <Kb.Text type="Header" style={styles.textYouDontHave}>
           {"This file or folder doesn't exist."}
         </Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.explainBox}>
+        <Kb.Box2 direction="horizontal" style={styles.explainBox}>
           <Kb.Text center={true} type="Body">
             Either it was deleted, or the path is incorrect.
           </Kb.Text>

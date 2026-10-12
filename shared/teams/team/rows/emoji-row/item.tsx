@@ -102,7 +102,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               containerStyle={styles.username}
             />
           )}
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="horizontal"
             style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
           >

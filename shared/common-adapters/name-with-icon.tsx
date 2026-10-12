@@ -54,6 +54,7 @@ export type NameWithIconProps = {
   selectable?: boolean
   size?: Size
   teamname?: string
+  testID?: string
   channelname?: string
   // for non-users
   title?: string | React.ReactNode
@@ -120,7 +121,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     )
   } else if (props.icon) {
     avatarOrIcon = (
-      <Box2 alignSelf="center" direction="vertical" style={props.iconBoxStyle}>
+      <Box2 direction="vertical" style={props.iconBoxStyle}>
         <IconAuto
           type={props.icon}
           style={
@@ -216,7 +217,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   const children = (
     <>
       {avatarOrIcon}
-      <Box2 alignSelf="center" direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
+      <Box2 direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
         {botAlias}
         {usernameOrTitle}
         {metas}
@@ -229,6 +230,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     alignSelf: 'center',
     direction: props.horizontal ? 'horizontal' : 'vertical',
     style: containerStyle,
+    testID: props.testID,
   } as const
 
   // ClickableBox only when clickable: it renders Pressable/clickable-box2 with different semantics

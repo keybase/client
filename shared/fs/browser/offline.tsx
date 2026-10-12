@@ -12,7 +12,7 @@ const OfflineFolder = ({path}: Props) => {
   const theme = Kb.Styles.useTheme()
   const syncEnabled = useFsTlf(path).syncConfig.mode === T.FS.TlfSyncMode.Enabled
   return (
-    <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="stretch">
+    <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>
       <TopBar path={path} />
       <Kb.Box2 direction="vertical" flex={1} style={styles.emptyContainer} fullWidth={true} centerChildren={true}>
         <Kb.Icon

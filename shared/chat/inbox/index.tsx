@@ -212,7 +212,7 @@ const DesktopDragLine = (p: {
               <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.spacer} />
+          <Kb.Box2 direction="vertical" style={desktopStyles.spacer} />
         </>
       )}
       <ConnectedTeamsDivider
@@ -244,7 +244,7 @@ const NativeNoChats = (props: {onNewChat: () => void}) => {
         style={nativeStyles.noChatsContainer}
       >
         <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall" center={true}>
             All conversations are
           </Kb.Text>

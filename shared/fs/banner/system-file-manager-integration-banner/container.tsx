@@ -171,7 +171,7 @@ const Banner = (props: BannerProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
       {!!props.onDismiss && (
         <Kb.Box2 direction="vertical" alignSelf="flex-start">
           <Kb.Icon

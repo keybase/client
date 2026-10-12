@@ -43,7 +43,6 @@ const DesktopGiphySearch = () => {
     <Kb.Box2 direction="vertical" alignSelf="stretch" relative={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="vertical"
-        alignSelf="stretch"
         ref={divRef as React.RefObject<DivRef>}
         style={Kb.Styles.collapseStyles([
           styles.scrollContainer,
@@ -68,7 +67,7 @@ const DesktopGiphySearch = () => {
               {props.previews.map((p, index) => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
-                  <Kb.Box2 alignSelf="center" key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer}>
+                  <Kb.Box2 key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer}>
                     <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.marginH(margin)}>
                       <UnfurlImage
                         autoplayVideo={true}

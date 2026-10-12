@@ -195,7 +195,7 @@ const Tabs = (p: TabsProps) => {
   const onClickFollowing = () => onSelectTab('following')
   const onClickFollowers = () => onSelectTab('followers')
   const tab = (tab: Tab) => (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       direction="horizontal"
       gap="xtiny"
       onClick={tab === 'following' ? onClickFollowing : onClickFollowers}
@@ -354,7 +354,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           style={styles.bioAndProofs}
         >
           <BioLayout {...props} />
-          <Kb.Box2 alignSelf="center" direction="vertical" noShrink={true} style={styles.proofs}>
+          <Kb.Box2 direction="vertical" noShrink={true} style={styles.proofs}>
             <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
               {props.reason}
             </Kb.Text>

@@ -36,13 +36,13 @@ const useMaxWidthStyle = () => {
 const TitleInner = ({path}: {path: T.FS.Path}) => {
   const maxWidthStyle = useMaxWidthStyle()
   return path === FS.defaultPath ? (
-    <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} gap="xtiny">
+    <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
       <Kb.Text type="BodyBig">Files</Kb.Text>
       <FilesTabStatusIcon />
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={maxWidthStyle}>
-      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} gap="xxtiny">
+    <Kb.Box2 direction="vertical" centerChildren={true} style={maxWidthStyle}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} gap="xxtiny">
         <Kbfs.PathStatusIcon path={path} showTooltipOnPressMobile={true} />
         <Kbfs.Filename path={path} selectable={true} type="BodyBig" />
       </Kb.Box2>

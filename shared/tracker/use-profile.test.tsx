@@ -11,7 +11,14 @@ let identifySpy: jest.SpyInstance
 beforeEach(() => {
   identifySpy = jest
     .spyOn(T.RPCGen, 'identify3Identify3RpcListener')
-    .mockImplementation(async () => Promise.resolve() as unknown as Promise<never>)
+    .mockImplementation((async (p: {params: {guiID: string}}) => {
+      // like the service, report a result before the call returns
+      await Promise.resolve()
+      notifyEngineActionListeners({
+        payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+        type: 'keybase.1.identify3Ui.identify3Result',
+      } as never)
+    }) as never)
   jest
     .spyOn(T.RPCGen, 'userListTrackersUnverifiedRpcPromise')
     .mockImplementation(async () => Promise.resolve({users: []} as never))
@@ -27,6 +34,7 @@ afterEach(() => {
 })
 
 test('mounting a profile forces a remote identify by default', async () => {
+  identifySpy.mockImplementationOnce(async () => new Promise(() => {}))
   const {result} = renderHook(() => useTrackerProfile('testuser'))
 
   await waitFor(() => expect(identifySpy).toHaveBeenCalledTimes(1))

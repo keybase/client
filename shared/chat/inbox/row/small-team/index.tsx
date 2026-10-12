@@ -133,7 +133,7 @@ const SmallTeam = (p: Props) => {
       {showingPopup && popup}
       <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation} onLongPress={onLongPress}>
         {isMobile ? (
-          <Kb.Box2 alignSelf="center" direction="vertical" style={containerStyle}>
+          <Kb.Box2 direction="vertical" style={containerStyle}>
             {rowContents}
           </Kb.Box2>
         ) : (
@@ -193,7 +193,7 @@ const TopLine = (p: TopLineProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.insideContainer} relative={true}>
+      <Kb.Box2 direction="horizontal" style={styles.insideContainer} relative={true}>
         <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
             <Kb.Text type="BodySemibold" style={teamContainerStyle} lineClamp={1}>
@@ -223,7 +223,7 @@ const TopLine = (p: TopLineProps) => {
       {!isMobile && (
         <TopLineGear subColor={subColor} isSelected={isSelected} showPopup={showPopup} popupAnchor={popupAnchor} />
       )}
-      {hasBadge ? <Kb.Box2 alignSelf="center" direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
+      {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
     </Kb.Box2>
   )
 }
@@ -329,7 +329,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else {
     content = (
-      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.contentBox}>
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <SnippetContent snippet={snippet} snippetDecoration={snippetDecoration} isSelected={isSelected} style={style} />
       </Kb.Box2>
     )
@@ -347,7 +347,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
           backgroundColor={theme.red}
         />
       )}
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
     </Kb.Box2>
   )
 }

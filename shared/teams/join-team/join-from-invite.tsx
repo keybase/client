@@ -127,7 +127,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
         gap="xtiny"
         style={styles.body}
       >
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.avatar}>
+        <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
             teamname={teamname}
@@ -135,9 +135,10 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
             imageOverrideUrl={details.teamAvatars?.['square_192']}
           />
           {details.teamIsOpen && (
-            <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+            <Kb.Box2
               direction="horizontal"
               style={styles.meta}
+              alignSelf={isMobile ? 'center' : undefined}
               fullWidth={!isMobile}
               centerChildren={true}
             >
@@ -168,8 +169,8 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!(error || missingInviteKeyError) && <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>}
-        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.inviterBox}>
+        <Kb.Box2 direction="vertical" flex={1} />
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar size={16} username={details.inviterUsername} />
           <Kb.ConnectedUsernames
             type="BodySmallBold"

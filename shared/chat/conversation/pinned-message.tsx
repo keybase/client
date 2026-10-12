@@ -92,7 +92,7 @@ const PinnedMessage = function PinnedMessage() {
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Text type="BodyTinyBold" style={styles.author}>
             {author}
           </Kb.Text>
@@ -109,9 +109,11 @@ const PinnedMessage = function PinnedMessage() {
           <Kb.ProgressIndicator type="Small" />
         </Kb.Box2>
       ) : (
-        <Kb.Box2 alignSelf="center" direction="vertical" ref={closeref} style={styles.close}>
+        <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
           <Kb.Icon
             onClick={onIconClick}
+            // only while the click asks first: without the prompt it hides the pin for you at once
+            testID={dismissUnpins ? TestIDs.CHAT_PINNED_UNPIN : undefined}
             type="iconfont-close"
             sizeType="Small"
             color={theme.black_20}
@@ -146,9 +148,9 @@ type UnpinProps = {
 const UnpinPrompt = (props: UnpinProps) => {
   const styles = useStyles()
   const header = (
-    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} gap="xsmall" style={styles.popup}>
+    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} gap="xsmall" style={styles.popup} testID={TestIDs.CHAT_UNPIN_PROMPT}>
       <Kb.Text type="BodyBig">Unpin this message?</Kb.Text>
-      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
+      <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodySmall">This will remove the pin from</Kb.Text>
         <Kb.Text type="BodySmall">{"everyone's view."}</Kb.Text>
       </Kb.Box2>

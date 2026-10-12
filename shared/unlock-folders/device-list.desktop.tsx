@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type {UnlockFolderDevice} from './store'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   devices: ReadonlyArray<UnlockFolderDevice>
@@ -29,22 +30,23 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
 const DeviceList = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
+    <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text center={true} type="Body" style={styles.infoText}>
         This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
         please turn on one of the devices below:
       </Kb.Text>
-      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" style={styles.devicesContainer}>
+      <Kb.Box2 direction="vertical" gap="small" style={styles.devicesContainer} testID={TestIDs.UNLOCK_FOLDERS_DEVICES}>
         {props.devices.map(d => (
           <DeviceRow key={d.deviceID} device={d} />
         ))}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.buttonsContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
         <Kb.Button
           type="Dim"
           label="Enter a paper key instead"
           style={styles.enterPaperKey}
           onClick={props.toPaperKeyInput}
+          testID={TestIDs.UNLOCK_FOLDERS_PAPER_KEY_BUTTON}
         />
       </Kb.Box2>
     </Kb.Box2>

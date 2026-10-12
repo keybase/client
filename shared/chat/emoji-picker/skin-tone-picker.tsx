@@ -2,12 +2,13 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {emojiData} from '@/common-adapters/emoji'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean, styles: ReturnType<typeof useStyles>) => {
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical" relative={true}>
       {outerCircle && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.circleOuter} />}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
@@ -44,7 +45,7 @@ function SkinTonePicker(props: Props) {
     onExpandChange?.(toSet)
   }
   const optionSkinTones = reorderedSkinTones(currentSkinTone).map((skinTone, index) => (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}
@@ -64,29 +65,30 @@ function SkinTonePicker(props: Props) {
         fullWidth={true}
         alignItems="center"
         justifyContent="space-between"
+        testID={TestIDs.CHAT_SKIN_TONE_OPTIONS}
       >
         {optionSkinTones}
       </Kb.Box2>
     ) : (
-      <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)} testID={TestIDs.CHAT_SKIN_TONE_BUTTON}>
         {circle(currentSkinTone, false, false, styles)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
     )
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical" relative={true}>
       {expanded ? (
-        <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer} testID={TestIDs.CHAT_SKIN_TONE_OPTIONS}>
           {optionSkinTones}
         </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)} testID={TestIDs.CHAT_SKIN_TONE_BUTTON}>
             {circle(currentSkinTone, false, false, styles)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.dotPlaceholder} />
+      <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />
     </Kb.Box2>
   )
 }

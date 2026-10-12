@@ -9,11 +9,11 @@ export const useTeamLinkPopup = (teamname: string) => {
       const content = (
         <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
           <Kb.Text type="Header">Share a link to this team</Kb.Text>
-          <Kb.Box2 direction="vertical" gap="tiny" alignSelf="stretch" alignItems="stretch">
+          <Kb.Box2 direction="vertical" gap="tiny">
             <Kb.Text type="Body">In the Keybase app:</Kb.Text>
             <Kb.CopyText text={shareURLApp} shareSheet={true} />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" gap="tiny" alignSelf="stretch" alignItems="stretch">
+          <Kb.Box2 direction="vertical" gap="tiny">
             <Kb.Text type="Body">On the web:</Kb.Text>
             <Kb.CopyText text={shareURLWeb} shareSheet={true} />
           </Kb.Box2>

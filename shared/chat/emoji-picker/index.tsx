@@ -233,7 +233,7 @@ function EmojiPicker(props: Props) {
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         className="emoji-picker-emoji-box"
         onClick={() => {

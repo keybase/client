@@ -31,7 +31,7 @@ const CustomEmoji = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       centerChildren={true}
       style={Kb.Styles.collapseStyles([

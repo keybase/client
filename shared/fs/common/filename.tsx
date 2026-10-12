@@ -26,7 +26,7 @@ const Filename = (props: Props) => {
     props.path ? T.FS.getPathName(props.path) : props.filename || ''
   )
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" style={props.style}>
+    <Kb.Box2 direction="horizontal" style={props.style}>
       <Kb.Text
         className="hover-underline-child"
         type={props.type}

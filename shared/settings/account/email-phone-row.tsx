@@ -12,7 +12,7 @@ const addSpacer = (into: string, add: string) => {
 const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.badge,
@@ -139,7 +139,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignSelf="center" alignItems="flex-start" direction="vertical" flex={1}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
         </Kb.Text>
@@ -152,7 +152,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
       </Kb.Box2>
       {!!menuItems.length && (
         <>
-          <Kb.ClickableBox alignSelf="center"
+          <Kb.ClickableBox
             className="hover_container"
             onClick={showPopup}
             ref={popupAnchor}

@@ -89,8 +89,8 @@ export const CatchUp = (p: {onClick: () => void}) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container} pointerEvents="box-none">
-      <Kb.ClickableBox alignSelf="center"
+    <Kb.Box2 direction="vertical" style={styles.container} pointerEvents="box-none">
+      <Kb.ClickableBox
         asButton={true}
         direction="horizontal"
         alignItems="center"

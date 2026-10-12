@@ -40,7 +40,7 @@ const TeamMember = (props: Props) => {
 
   const makeTitle = (label: string) => {
     return (
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="small">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
@@ -179,7 +179,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        alignItems="stretch"
         style={Kb.Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
       >
         <Kb.Box2
@@ -194,7 +193,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           ] as const)}
         >
           <Kb.Avatar teamname={props.node.teamname} size={32} />
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
             style={Kb.Styles.collapseStyles([
@@ -372,10 +371,10 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.expandIcon}>
+            <Kb.Box2 direction="horizontal" style={styles.expandIcon} testID={TestIDs.TEAMS_MEMBER_TEAM_EXPAND}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center"
+            <Kb.Box2
               direction="horizontal"
               style={Kb.Styles.collapseStyles([
                 {flexGrow: 1, flexShrink: 1},
@@ -401,7 +400,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   ] as const)}
                 >
                   <Kb.Avatar teamname={props.node.teamname} size={32} />
-                  <Kb.Box2 alignSelf="center"
+                  <Kb.Box2
                     direction="vertical"
                     alignItems="flex-start"
                     style={Kb.Styles.collapseStyles([
@@ -426,7 +425,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    alignItems="center"
+                    testID={TestIDs.TEAMS_MEMBER_TEAM_ACTIVITY}
+                  >
                     <Kb.Icon
                       type="iconfont-typing"
                       sizeType="Small"
@@ -436,7 +441,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && !isSmallTeam && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
+                  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                     <Kb.Icon type="iconfont-hash" sizeType="Small" color={theme.black_20} />
                     <Kb.Text
                       type="BodySmall"

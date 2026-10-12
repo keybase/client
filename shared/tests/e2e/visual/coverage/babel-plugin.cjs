@@ -1,6 +1,6 @@
 // Visual-gate coverage (opt-in, KB_VISUAL_COVERAGE=1): wraps every Box2 / ClickableBox JSX call
-// site in <__KbSrcMark id="<file relative to root>:<line>">, which records that it mounted. The
-// element's key moves to the wrapper so lists keep their identity.
+// site in <__KbSrcMark id="<file relative to root>:<line>">, which the driver finds at capture
+// (src-mark.tsx). The element's key moves to the wrapper so lists keep their identity.
 //
 // It runs from the `pre` hook, before the main traversal, so it sees the source as written:
 // plugins listed ahead of it (the react compiler must stay first) have not rewritten it yet.
@@ -17,7 +17,8 @@ const isTarget = name =>
     name.object.name === 'Kb' &&
     TAGS.has(name.property.name))
 
-const skipped = rel => rel.startsWith('..') || /(^|\/)(node_modules|common-adapters)\//.test(rel)
+// Box2 itself is covered by its own tests (README: Coverage), so box.tsx stays unmarked.
+const skipped = rel => rel.startsWith('..') || /(^|\/)node_modules\//.test(rel) || rel === 'common-adapters/box.tsx'
 
 module.exports = function kbVisualCoverage({types: t}) {
   return {
