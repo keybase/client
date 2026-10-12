@@ -306,7 +306,6 @@ export default defineConfig(({mode}) => {
       outDir: distDir,
       emptyOutDir: true,
       target: `chrome${chromiumVersion}`,
-      cssMinify: 'lightningcss',
       sourcemap: true,
       minify: !isDev,
       rollupOptions: {
