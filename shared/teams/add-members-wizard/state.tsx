@@ -1,6 +1,7 @@
 import {isPhone} from '@/constants/platform'
 import {navUpToScreen} from '@/constants/router'
 import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
 
 export type AddMembersWizard = Pick<
   T.Teams.AddMembersWizardState,
@@ -92,6 +93,10 @@ export const searchResultsToMembers = (
     role: 'writer' as const,
   }))
 
+// A service error's own message; an RPCError is no Error, so String() would print [object Object]
+export const addMembersErrorText = (err: unknown) =>
+  err instanceof RPCError ? err.desc : err instanceof Error ? err.message : String(err)
+
 // add members to the wizard then jump back to the confirm screen; failures go
 // to onError
 export const addMembersToWizardAndNav = async (
@@ -103,7 +108,7 @@ export const addMembersToWizardAndNav = async (
     const nextWizard = await addMembersToWizard(wizard, members)
     navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
   } catch (err) {
-    onError(err instanceof Error ? err.message : String(err))
+    onError(addMembersErrorText(err))
   }
 }
 

@@ -3,7 +3,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
-import {addMembersToWizard, makeAddMembersWizard, type AddMembersWizard} from './add-members-wizard/state'
+import {
+  addMembersErrorText,
+  addMembersToWizard,
+  makeAddMembersWizard,
+  type AddMembersWizard,
+} from './add-members-wizard/state'
 import {ModalTitle} from './common'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import contactRestricted from '../team-building/contact-restricted.page'
@@ -33,7 +38,7 @@ const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
           C.Router2.navigateAppend(
             {
               name: 'teamsTeamBuilder',
-              params: {...p.route.params, initialError: err instanceof Error ? err.message : String(err)},
+              params: {...p.route.params, initialError: addMembersErrorText(err)},
             },
             true
           )
