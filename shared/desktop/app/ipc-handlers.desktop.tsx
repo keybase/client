@@ -370,8 +370,7 @@ export const setupIPCHandlers = (deps: {
               await Electron.shell.openPath(path)
               return true
             } else {
-              await openInDefaultDirectory(path)
-              return true
+              return await openInDefaultDirectory(path)
             }
           } else {
             Electron.shell.showItemInFolder(path)
