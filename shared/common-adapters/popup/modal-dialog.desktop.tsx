@@ -7,6 +7,9 @@ type Props = {
   open?: boolean
   // Escape when nothing inside the dialog handles it
   onEscape?: () => void
+  // false: an Escape an input already handled and stopped does nothing more. By default it still
+  // reaches the dialog, as the browser's cancel
+  stoppedEscapeReachesDialog?: boolean
 }
 
 // A modal dialog makes everything outside it inert, so popups opened inside one portal into it.
@@ -42,7 +45,7 @@ export const useTopModalDialog = () =>
 // draws its own cover. Escape goes through the key event handlers, so a popup open inside the dialog
 // closes before the dialog does.
 export function ModalDialog(props: Props) {
-  const {children, onEscape, open = true} = props
+  const {children, onEscape, open = true, stoppedEscapeReachesDialog = true} = props
   const parentOpen = React.use(ParentOpenContext)
   const dispatchKey = useDispatchKey()
   const [dialog, setDialog] = React.useState<HTMLDialogElement | null>(null)
@@ -65,7 +68,9 @@ export function ModalDialog(props: Props) {
       // an Escape no handler took, e.g. one an input stopped, arrives as the dialog's cancel
       const onCancel = (e: Event) => {
         e.preventDefault()
-        dispatchKey('keydown', new KeyboardEvent('keydown', {cancelable: true, key: 'Escape'}))
+        if (stoppedEscapeReachesDialog) {
+          dispatchKey('keydown', new KeyboardEvent('keydown', {cancelable: true, key: 'Escape'}))
+        }
       }
       // Chromium lets a page cancel only so many close requests without user activation in between,
       // after which the dialog closes anyway
@@ -103,7 +108,7 @@ export function ModalDialog(props: Props) {
         setDialog(null)
       }
     },
-    [dispatchKey, shouldOpen]
+    [dispatchKey, shouldOpen, stoppedEscapeReachesDialog]
   )
 
   return (

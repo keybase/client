@@ -87,6 +87,16 @@ describe('ModalCover', () => {
     expect(onHidden).toHaveBeenCalledTimes(1)
   })
 
+  // an input that handles Escape stops it, and Chromium then fires cancel on the dialog
+  test('an escape an input already handled does not dismiss', () => {
+    const onHidden = jest.fn()
+    const {dialog} = renderCover(onHidden)
+    const cancel = new Event('cancel', {cancelable: true})
+    dialog?.dispatchEvent(cancel)
+    expect(cancel.defaultPrevented).toBe(true)
+    expect(onHidden).not.toHaveBeenCalled()
+  })
+
   test('other keys do not dismiss', () => {
     const onHidden = jest.fn()
     renderCover(onHidden)

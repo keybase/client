@@ -17,7 +17,7 @@ export function ModalCover(props: ModalCoverProps) {
   // so the cover only closes when its own mousedown was the one that opened
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <ModalDialog onEscape={onHidden}>
+    <ModalDialog onEscape={onHidden} stoppedEscapeReachesDialog={false}>
       <Box2 alignSelf="center"
         direction="vertical"
         centerChildren={true}
