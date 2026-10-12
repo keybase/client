@@ -25,6 +25,8 @@ const ignoredModules = require('./ignored-modules') as Array<string>
 export const devServerPort = 4000
 export const devOrigin = `http://localhost:${devServerPort}`
 const remoteDebugURL = 'http://localhost:8097'
+// Chromium major shipped with our Electron; bump it with electron.
+const chromiumVersion = 152
 
 // Packages in ignored-modules that need a REAL desktop stub (not an empty module),
 // because renderer code imports their exports (e.g. @react-navigation/elements).
@@ -298,10 +300,15 @@ export default defineConfig(({mode}) => {
     optimizeDeps: {
       include: optimizeIncludes,
     },
+    css: {
+      transformer: 'lightningcss',
+      lightningcss: {targets: {chrome: chromiumVersion << 16}},
+    },
     build: {
       outDir: distDir,
       emptyOutDir: true,
-      target: 'esnext',
+      target: `chrome${chromiumVersion}`,
+      cssMinify: 'lightningcss',
       sourcemap: true,
       minify: !isDev,
       rollupOptions: {
