@@ -141,7 +141,20 @@ let disableScreenshot = false
 
 export const isScreenshotDisabled = () => disableScreenshot
 
-const backgroundColor = (dark: boolean) => (dark ? '#191919' : '#ffffff')
+const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
+// windows created with themeBackgroundColor; transparent ones (menubar, tracker) are never added
+const themedWindows = new WeakSet<Electron.BrowserWindow>()
+
+export const registerThemeBackgrounds = () => {
+  Electron.nativeTheme.on('updated', () => {
+    const color = themeBackgroundColor()
+    for (const w of Electron.BrowserWindow.getAllWindows()) {
+      if (themedWindows.has(w)) {
+        w.setBackgroundColor(color)
+      }
+    }
+  })
+}
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
@@ -323,7 +336,7 @@ const MainWindow = () => {
   loadWindowState()
 
   const win = new Electron.BrowserWindow({
-    backgroundColor: backgroundColor(Electron.nativeTheme.shouldUseDarkColors),
+    backgroundColor: themeBackgroundColor(),
     frame: useNativeFrame,
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
@@ -347,11 +360,7 @@ const MainWindow = () => {
   })
 
   win.setContentProtection(disableScreenshot)
-  Electron.nativeTheme.on('updated', () => {
-    if (!win.isDestroyed()) {
-      win.setBackgroundColor(backgroundColor(Electron.nativeTheme.shouldUseDarkColors))
-    }
-  })
+  themedWindows.add(win)
 
   win
     .loadURL(htmlFile)

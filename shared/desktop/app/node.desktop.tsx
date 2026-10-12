@@ -5,7 +5,7 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform'
 import './dynamic-config'
-import MainWindow from './main-window.desktop'
+import MainWindow, {registerThemeBackgrounds} from './main-window.desktop'
 import {getMainWindow} from './main-window-ref.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -126,6 +126,7 @@ const startApp = () => {
     .whenReady()
     .then(() => {
       registerPowerMonitorEvents()
+      registerThemeBackgrounds()
       // See registerSchemesAsPrivileged below.
       if (__HOT__) {
         Electron.protocol.handle(localFileScheme, async req => {
