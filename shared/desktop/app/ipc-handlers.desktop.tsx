@@ -503,15 +503,15 @@ export const setupIPCHandlers = (deps: {
         break
       }
       case 'rendererNewProps': {
-        const {windowComponent, windowParam, props} = action.payload
+        const {windowComponent, windowParam, propsStr} = action.payload
         // cache so a window that hasn't finished loading can pull these when it's ready
-        const remoteProps = cacheRemoteProps(windowComponent, windowParam, props)
-        getRemoteWindow(windowComponent, windowParam)?.webContents.send('KBprops', remoteProps)
+        cacheRemoteProps(windowComponent, windowParam, propsStr)
+        getRemoteWindow(windowComponent, windowParam)?.webContents.send('KBprops', propsStr)
         break
       }
       case 'getRemoteProps': {
         const {windowComponent, windowParam} = action.payload
-        return getCachedRemoteProps(windowComponent, windowParam)
+        return getCachedRemoteProps(windowComponent, windowParam) ?? ''
       }
       case 'closeRenderer': {
         const w = getRemoteWindow(action.payload.windowComponent ?? '', action.payload.windowParam ?? '')

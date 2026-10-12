@@ -1,4 +1,4 @@
-import type {OpenDialogOptions, RemotePropsObject, SaveDialogOptions} from '@/util/electron'
+import type {OpenDialogOptions, SaveDialogOptions} from '@/util/electron'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
 export type Action =
@@ -36,7 +36,7 @@ export type Action =
   | {
       type: 'rendererNewProps'
       payload: {
-        props: RemotePropsObject
+        propsStr: string
         windowComponent: string
         windowParam: string
       }
