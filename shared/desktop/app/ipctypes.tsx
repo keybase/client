@@ -81,6 +81,7 @@ export type Action =
       }
     }
   | {type: 'isDirectory'; payload: {path: string}}
+  | {type: 'copyToClipboard'; payload: {text: string}}
   | {type: 'DEVwriteMenuIcons'}
   | {type: 'readImageFromClipboard'}
   | {type: 'clipboardAvailableFormats'}
