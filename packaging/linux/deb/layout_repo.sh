@@ -41,6 +41,8 @@ Architectures: amd64
 SignWith: $code_signing_fingerprint
 END
 
+# One arch today; the loop keeps room for more.
+# shellcheck disable=SC2043
 for debian_arch in amd64 ; do
   echo Creating the Debian repo hierarchy.
   # Create/update the Debian repository hierarchy. The layout of this is
