@@ -6,7 +6,6 @@
 package install
 
 import (
-	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -14,11 +13,6 @@ import (
 func StopAllButService(mctx libkb.MetaContext, _ keybase1.ExitCode) {
 	g := mctx.G()
 	mctx.Debug("+ StopAllButService")
-	if libkb.IsBrewBuild {
-		if _, err := launchd.Stop(DefaultServiceLabel(g.Env.GetRunMode()), defaultLaunchdWait, g.Log); err != nil {
-			mctx.Debug(err.Error())
-		}
-	}
 	mctx.Debug("StopAllButService: Terminating app")
 	err := TerminateApp(g, g.Log)
 	if err != nil {

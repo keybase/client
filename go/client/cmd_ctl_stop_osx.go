@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -63,15 +62,7 @@ func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func ctlBrewStop(g *libkb.GlobalContext) error {
-	_, err := launchd.Stop(install.DefaultServiceLabel(g.Env.GetRunMode()), defaultLaunchdWait, g.Log)
-	return err
-}
-
 func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
-	if libkb.IsBrewBuild {
-		return ctlBrewStop(g)
-	}
 	g.Log.Debug("ctlStop: Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameApp.String()]; ok {

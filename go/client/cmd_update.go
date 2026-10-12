@@ -35,11 +35,6 @@ func newCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Name:  "check",
 		Usage: "Check for update",
 		Action: func(c *cli.Context) {
-			if libkb.IsBrewBuild {
-				g.Log.Errorf("\nTo update, run:\n\n\tbrew upgrade keybase")
-				return
-			}
-
 			updaterPath, err := install.UpdaterBinPath()
 			if err != nil {
 				g.Log.Errorf("Error finding updater path: %s", err)

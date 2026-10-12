@@ -74,14 +74,7 @@ func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func ctlBrewStart(g *libkb.GlobalContext) error {
-	return startLaunchdService(g, install.DefaultServiceLabel(g.Env.GetRunMode()), g.Env.GetServiceInfoPath(), true)
-}
-
 func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
-	if libkb.IsBrewBuild {
-		return ctlBrewStart(g)
-	}
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameService.String()]; ok {
