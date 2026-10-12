@@ -173,6 +173,10 @@ export const setupIPCHandlers = (deps: {
     getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
+  Electron.ipcMain.on('KBsetupPreloadKB2', event => {
+    event.returnValue = KB2.constants
+  })
+
   Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
     deps.engineRelay.send(send)
   })
@@ -463,8 +467,6 @@ export const setupIPCHandlers = (deps: {
           return false
         }
       }
-      case 'setupPreloadKB2':
-        return KB2.constants
       case 'showMainWindow':
         if (isDarwin && !allowMultipleInstances) {
           // launch the app explicitly so we can switch workspaces
