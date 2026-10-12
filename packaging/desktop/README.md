@@ -2,19 +2,18 @@
 
 Install script dependencies:
 
-    		npm install
+    		yarn
 
-To build from a Github release/version, specify versions:
+package_darwin.sh packages locally built binaries. Specify their paths:
 
-    		KEYBASE_VERSION=1.0.9-0 KBFS_VERSION=1.0.0 ./package_darwin.sh
+    		KEYBASE_BINPATH=/path/to/keybase KBFS_BINPATH=/path/to/kbfs GIT_REMOTE_KEYBASE_BINPATH=/path/to/git-remote-keybase UPDATER_BINPATH=/path/to/updater ./package_darwin.sh
 
-To build from existing binaries, specify binpaths:
-
-    		KEYBASE_BINPATH=/path/to/keybase KBFS_BINPATH=/path/to/kbfs ./package_darwin.sh
+REDIRECTOR_BINPATH defaults to keybase-redirector next to KBFS_BINPATH.
 
 To re-package app from existing binaries from an installed app bundle:
 
-    		KEYBASE_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/keybase KBFS_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/kbfs ./package_darwin.sh
+    		bin=/Applications/Keybase.app/Contents/SharedSupport/bin
+    		KEYBASE_BINPATH=$bin/keybase KBFS_BINPATH=$bin/kbfs GIT_REMOTE_KEYBASE_BINPATH=$bin/git-remote-keybase UPDATER_BINPATH=$bin/updater ./package_darwin.sh
 
 ## Prerelease
 

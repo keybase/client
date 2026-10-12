@@ -126,7 +126,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
   if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" \
-      KEYBASE_VERSION="$KEYBASE_VERSION" KBFS_VERSION="$KBFS_VERSION" "$dir/../desktop/package_darwin.sh"
+      KEYBASE_VERSION="$KEYBASE_VERSION" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"
