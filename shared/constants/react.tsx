@@ -1,14 +1,5 @@
 import * as React from 'react'
 
-export const useLogMount = () => {
-  React.useEffect(() => {
-    console.log('aaaa mounted')
-    return () => {
-      console.log('aaaa UNmounted')
-    }
-  }, [])
-}
-
 export const useOnMountOnce = (fn: () => void, timeout = 1) => {
   const hasCalledRef = React.useRef(false)
   const timeoutIdRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)

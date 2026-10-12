@@ -28,16 +28,6 @@ export type TeamProfileAddList = {
   teamName: Teamname
   open: boolean
 }
-export type _PublicitySettings = {
-  anyMemberShowcase: boolean
-  description: string
-  ignoreAccessRequests: boolean
-  member: boolean
-  team: boolean
-}
-
-export type TeamSettings = {} & RPCTypes.TeamSettings
-
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type TreeloaderSparseMemberInfo = {
   joinTime?: number

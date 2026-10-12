@@ -589,10 +589,6 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
-export enum NonUploadPathItemBadgeType {
-  Download = 'download',
-}
-
 export enum ResetBannerNoOthersType {
   None = 'none',
   Self = 'self',
