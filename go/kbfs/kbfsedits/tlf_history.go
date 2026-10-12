@@ -7,6 +7,7 @@ package kbfsedits
 import (
 	"container/heap"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path"
 	"slices"
@@ -16,6 +17,13 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
+
+// ErrUnflushedUserMismatch means unflushed edits were recorded for a
+// different user than the one now logged in. The stale unflushed
+// edits are discarded. Callers must not attribute the rejected batch
+// to the new user.
+var ErrUnflushedUserMismatch = errors.New(
+	"logged-in user doesn't match unflushed user")
 
 const (
 	// The max number of edits needed for each writer.
@@ -177,21 +185,39 @@ func (th *TlfHistory) AddNotifications(
 	return maxRev, nil
 }
 
+// clearUnflushedLocked drops unflushed notifications. The caller holds
+// th.lock.
+func (th *TlfHistory) clearUnflushedLocked() {
+	if th.unflushed == nil {
+		return
+	}
+	th.unflushed = nil
+	th.computed = false
+	th.cachedLoggedInUser = ""
+}
+
 // AddUnflushedNotifications adds notifications to a special
 // "unflushed" list that takes precedences over the regular
 // notifications with revision numbers equal or greater to the minimum
 // unflushed revision.
+//
+// A user switch can deliver a batch for a different user while the
+// previous user's journal sync is still finalizing. That used to
+// panic. The stale unflushed edits are discarded and the new batch is
+// rejected, so it is not stored under the wrong username.
 func (th *TlfHistory) AddUnflushedNotifications(
 	loggedInUser string, msgs []NotificationMessage,
-) {
+) error {
 	th.lock.Lock()
 	defer th.lock.Unlock()
+	if th.unflushed != nil && th.unflushed.writerName != loggedInUser {
+		prev := th.unflushed.writerName
+		th.clearUnflushedLocked()
+		return fmt.Errorf("logged-in user %s doesn't match unflushed user %s: %w",
+			loggedInUser, prev, ErrUnflushedUserMismatch)
+	}
 	if th.unflushed == nil {
 		th.unflushed = &writerNotifications{loggedInUser, nil, nil}
-	}
-	if th.unflushed.writerName != loggedInUser {
-		panic(fmt.Sprintf("Logged-in user %s doesn't match unflushed user %s",
-			loggedInUser, th.unflushed.writerName))
 	}
 	newEdits := append(
 		notificationsByRevision(msgs), th.unflushed.notifications...)
@@ -200,6 +226,7 @@ func (th *TlfHistory) AddUnflushedNotifications(
 	// Invalidate the cached results.
 	th.computed = false
 	th.cachedLoggedInUser = ""
+	return nil
 }
 
 // FlushRevision clears all any unflushed notifications with a
@@ -228,12 +255,7 @@ func (th *TlfHistory) FlushRevision(rev kbfsmd.Revision) {
 func (th *TlfHistory) ClearAllUnflushed() {
 	th.lock.Lock()
 	defer th.lock.Unlock()
-	if th.unflushed != nil {
-		// Invalidate the cached results.
-		th.computed = false
-		th.cachedLoggedInUser = ""
-	}
-	th.unflushed = nil
+	th.clearUnflushedLocked()
 }
 
 type fileEvent struct {
@@ -489,12 +511,12 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 	// writer.
 	skipLoggedIn := false
 	loggedInProcessed := 0
+	if th.unflushed != nil && th.unflushed.writerName != loggedInUser {
+		// Same user-switch race as AddUnflushedNotifications. Drop the
+		// previous user's unflushed edits instead of panicking.
+		th.clearUnflushedLocked()
+	}
 	if th.unflushed != nil {
-		if th.unflushed.writerName != loggedInUser {
-			panic(fmt.Sprintf(
-				"Logged-in user %s doesn't match unflushed user %s",
-				loggedInUser, th.unflushed.writerName))
-		}
 		for _, n := range th.unflushed.notifications {
 			doTrim := r.processNotification(th.unflushed.writerName, n)
 			if doTrim {

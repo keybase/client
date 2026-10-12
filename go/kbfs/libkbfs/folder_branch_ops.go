@@ -4224,6 +4224,23 @@ func (fbo *folderBranchOps) handleEditNotifications(
 	return fbo.sendEditNotifications(ctx, rmd, body)
 }
 
+// unflushedEditUser is the username unflushed edit notifications
+// should be stored under. It is empty when the revision was written
+// by someone other than the logged-in user, which happens when an
+// account switch races a journal sync. The caller drops the
+// notifications in that case rather than recording them for the new
+// user. The check is on UIDs so it does not depend on a username
+// lookup.
+func unflushedEditUser(
+	sessionUID keybase1.UID, sessionName string, writer keybase1.UID,
+) string {
+	if sessionUID == keybase1.UID("") || sessionName == "" ||
+		writer == keybase1.UID("") || sessionUID != writer {
+		return ""
+	}
+	return sessionName
+}
+
 func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 	ctx context.Context, rmd ImmutableRootMetadata,
 ) error {
@@ -4241,11 +4258,27 @@ func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 	if err != nil {
 		return err
 	}
-	fbo.editHistory.AddUnflushedNotifications(string(session.Name), edits)
+	// The revision writer, not the ambient session, owns these edits.
+	// If they differ, the session changed mid-sync; keep the
+	// notifications out of the new user's history.
+	writer := rmd.LastModifyingWriter()
+	user := unflushedEditUser(session.UID, string(session.Name), writer)
+	if user == "" {
+		fbo.log.CDebugf(ctx,
+			"Dropping unflushed edit notifications for revision %d; "+
+				"session %s (%q) does not match revision writer %s",
+			rmd.Revision(), session.UID, session.Name, writer)
+		return nil
+	}
+	if err := fbo.editHistory.AddUnflushedNotifications(user, edits); err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't record unflushed edit "+
+			"notifications for revision %d: %+v", rmd.Revision(), err)
+		return nil
+	}
 
 	tlfName := rmd.GetTlfHandle().GetCanonicalName()
 	fbo.config.UserHistory().UpdateHistory(
-		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name),
+		tlfName, fbo.id().Type(), fbo.editHistory, user,
 	)
 	return nil
 }

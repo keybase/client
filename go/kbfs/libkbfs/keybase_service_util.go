@@ -160,7 +160,7 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	config.KBFSOps().PushStatusChange()
 
 	// Clear any cached MD for all private TLFs, as they shouldn't be
-	// readable by a logged out user.  We assume that a logged-out
-	// call always comes before a logged-in call.
+	// readable by a logged out user. LoggedIn waits until this returns
+	// before starting the next user's logged-in flow.
 	config.KBFSOps().ClearPrivateFolderMD(ctx)
 }
