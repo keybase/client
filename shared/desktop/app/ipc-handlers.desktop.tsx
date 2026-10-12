@@ -247,9 +247,6 @@ export const setupIPCHandlers = (deps: {
         }
         return
       }
-      case 'copyToClipboard': {
-        return Electron.clipboard.writeText(action.payload.text)
-      }
       case 'isDirectory': {
         try {
           return (await fs.promises.lstat(action.payload.path)).isDirectory()

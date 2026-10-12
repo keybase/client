@@ -131,7 +131,6 @@ export type KB2 = {
     ) => Promise<RPCTypes.FuseStatus>
     quitApp?: () => void
     exitApp?: (code: number) => void
-    copyToClipboard?: (text: string) => void
     DEVwriteMenuIcons?: () => void
     clipboardAvailableFormats?: () => Promise<Array<string>>
     ctlQuit?: () => void

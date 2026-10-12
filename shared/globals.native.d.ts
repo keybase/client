@@ -21,8 +21,8 @@ declare class Notification {
   constructor(title: string, options?: {body?: string; silent?: boolean})
 }
 
-// Stub for navigator.onLine used in merged desktop-only init code (guarded by !isMobile)
-declare var navigator: {onLine: boolean}
+// Stubs for navigator APIs used in desktop-only branches of shared code (guarded by !isMobile)
+declare var navigator: {onLine: boolean; clipboard: {writeText(text: string): Promise<void>}}
 
 // Minimal File/DataTransfer stubs for shared files that use these types
 // (actual drag-and-drop only runs on desktop, but the code is in shared files)

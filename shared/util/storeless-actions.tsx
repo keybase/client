@@ -15,7 +15,9 @@ export const copyToClipboard = (text: string) => {
       .then(() => {})
       .catch(() => {})
   } else {
-    KB2.functions.copyToClipboard?.(text)
+    navigator.clipboard.writeText(text).catch((e: unknown) => {
+      logger.warn('copyToClipboard failed', e)
+    })
   }
 }
 

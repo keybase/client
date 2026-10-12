@@ -46,9 +46,6 @@ if (isRenderer) {
     closeWindow: () => {
       ignorePromise(invoke({type: 'closeWindow'}))
     },
-    copyToClipboard: (text: string) => {
-      ignorePromise(invoke({payload: {text}, type: 'copyToClipboard'}))
-    },
     ctlQuit: () => {
       ignorePromise(invoke({type: 'ctlQuit'}))
     },

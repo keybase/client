@@ -14,6 +14,8 @@ import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
 const {env} = KB2.constants
 
 const htmlFile = htmlURL('main')
+const mainPathname = new URL(htmlFile).pathname.toLowerCase()
+const remotePathname = new URL(htmlURL('remote')).pathname.toLowerCase()
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -23,27 +25,28 @@ const setupDefaultSession = () => {
   // webviews, we should make sure to attach this to those partitions too.
   ds.on('will-download', event => event.preventDefault())
 
-  // Disallow any permissions requests except for notifications and fullscreen
+  // Disallow any permissions requests except for notifications, clipboard writes and fullscreen.
+  // No permission check handler is set, so Electron answers every check with granted.
   ds.setPermissionRequestHandler((webContents, permission, callback) => {
     // allow fullscreen
     if (permission === 'fullscreen') {
       return callback(true)
     }
 
-    let ourPathname: string
     let requestPathname: string
     try {
-      ourPathname = new URL(htmlFile).pathname
-      requestPathname = new URL(webContents.getURL()).pathname
+      requestPathname = new URL(webContents.getURL()).pathname.toLowerCase()
     } catch {
       return callback(false)
     }
+    const isMain = requestPathname === mainPathname
+    const isRemote = requestPathname === remotePathname
 
-    if (
-      permission === 'notifications' &&
-      requestPathname.toLowerCase() === ourPathname.toLowerCase()
-    ) {
-      // Allow notifications
+    if (permission === 'notifications' && isMain) {
+      return callback(true)
+    }
+    // navigator.clipboard.writeText, from our own windows only (not webviews)
+    if (permission === 'clipboard-sanitized-write' && (isMain || isRemote)) {
       return callback(true)
     }
     return callback(false)
