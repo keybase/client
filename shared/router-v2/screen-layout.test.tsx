@@ -4,6 +4,18 @@
 import {cleanup, render} from '@testing-library/react'
 import {desktopMakeLayout, nativeMakeLayout} from './screen-layout'
 
+// jsdom has no showModal; this file is also typechecked without the DOM lib
+type Dialog = {open: boolean; showModal: () => void; close: () => void}
+beforeAll(() => {
+  const dialog = (globalThis as unknown as {HTMLDialogElement: {prototype: Dialog}}).HTMLDialogElement.prototype
+  dialog.showModal = function (this: Dialog) {
+    this.open = true
+  }
+  dialog.close = function (this: Dialog) {
+    this.open = false
+  }
+})
+
 // react-navigation calls a screen's `layout` as a plain function from inside the
 // navigator's own render (useDescriptors builds every descriptor eagerly), NOT as a
 // component. Any hook a layout calls therefore lands in NativeStackNavigator's hook
