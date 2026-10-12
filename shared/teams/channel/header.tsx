@@ -190,7 +190,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       gap="small"
       gapStart={true}
       fullWidth={true}
-      className="headerTitle"
     >
       <Kb.Box2
         direction="vertical"

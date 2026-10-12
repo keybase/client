@@ -44,7 +44,6 @@ const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
       direction="vertical"
       gap={Kb.Styles.isPhone ? 'xtiny' : 'tiny'}
       style={styles.addInviteAsFeatureTeamBox}
-      className="addInviteAndLinkBox"
       alignItems="flex-start"
       alignSelf="flex-end"
       fullWidth={true}
@@ -215,7 +214,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         gap={Kb.Styles.isPhone ? 'xtiny' : 'tiny'}
         style={styles.addInviteAndLinkBox}
-        className="addInviteAndLinkBox"
         alignItems="center"
         alignSelf="flex-end"
       >
@@ -249,7 +247,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       gap="small"
       gapStart={true}
       fullWidth={true}
-      className="headerTitle"
       style={styles.backgroundWhite}
     >
       {avatar}
