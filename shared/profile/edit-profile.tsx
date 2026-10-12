@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
 const EditProfile = () => {
-  const styles = useStyles()
   const username = useCurrentUserState(s => s.username)
   const {details: d, loadProfile} = useTrackerProfile(username)
   const _bio = d.bio || ''
@@ -62,8 +61,18 @@ const EditProfile = () => {
   }
 
   return (
-    <Kb.ScrollView>
-      <Kb.Box2 fullWidth={true} direction="vertical" padding="small" style={styles.container}>
+    <Kb.ModalScreen
+      footer={
+        <Kb.WaitingButton
+          fullWidth={true}
+          waitingKey={C.waitingKeyTracker}
+          label="Save"
+          disabled={disabled()}
+          onClick={submit}
+        />
+      }
+    >
+      <Kb.Box2 fullWidth={true} direction="vertical">
         <Kb.RoundedBox side="top">
           <Kb.Input3
             value={fullname}
@@ -93,28 +102,12 @@ const EditProfile = () => {
             hideBorder={true}
           />
         </Kb.RoundedBox>
-        <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
-        <Kb.WaitingButton
-          waitingKey={C.waitingKeyTracker}
-          label="Save"
-          disabled={disabled()}
-          onClick={submit}
-        />
         {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.ModalScreen>
   )
 }
 
 const maxBio = 255
-
-const useStyles = Kb.Styles.createStyleHook(() => ({
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 350,
-    },
-  }),
-  gap: {minHeight: Kb.Styles.globalMargins.small},
-}))
 
 export default EditProfile

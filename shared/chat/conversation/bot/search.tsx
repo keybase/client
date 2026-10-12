@@ -193,35 +193,30 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
     title: 'Users',
   } satisfies Section
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-          <Kb.SearchFilter
-            size="full-width"
-            focusOnMount={true}
-            onChange={query => onSearch(query)}
-            placeholderText="Search featured bots or users..."
-            waiting={waiting}
-          />
-        </Kb.Box2>
-        <Kb.SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={true}
-          sections={[usersSection, botSection]}
-          style={{flexGrow: 1}}
-          testID={TestIDs.CHAT_BOT_SEARCH_RESULTS}
+    <Kb.ModalScreen scroll={false} padding="none">
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+        <Kb.SearchFilter
+          size="full-width"
+          focusOnMount={true}
+          onChange={query => onSearch(query)}
+          placeholderText="Search featured bots or users..."
+          waiting={waiting}
         />
       </Kb.Box2>
-    </>
+      <Kb.SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={true}
+        sections={[usersSection, botSection]}
+        style={{flexGrow: 1}}
+        testID={TestIDs.CHAT_BOT_SEARCH_RESULTS}
+      />
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
   inputContainer: Kb.Styles.platformStyles({
     isElectron: {padding: Kb.Styles.globalMargins.tiny},
-  }),
-  modal: Kb.Styles.platformStyles({
-    isElectron: {height: 500},
   }),
   paddedItem: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))

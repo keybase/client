@@ -7,77 +7,52 @@ type Props = {
   // on mobile the confirm button always reads "Confirm"
   confirmLabel: string
   icon: React.ReactNode
-  header: React.ReactNode
   onCancel: () => void
   onConfirm: () => void
 }
 
-// destructive-settings warning: icon, header, body, an "I understand" checkbox
-// gating the confirm button
+// destructive-settings warning: icon, body, an "I understand" checkbox gating the confirm button.
+// The route's title asks the question.
 const ConfirmWarning = (props: Props) => {
+  const {body, checkboxLabel, confirmLabel, icon, onCancel, onConfirm} = props
   const styles = useStyles()
   const [enabled, setEnabled] = React.useState(false)
-
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
-      <Kb.Box2 direction="vertical" style={styles.iconBox}>
-        {props.icon}
+    <Kb.ModalScreen
+      centered={true}
+      footer={
+        <Kb.ConfirmButtons
+          onCancel={onCancel}
+          onConfirm={onConfirm}
+          confirmLabel={isMobile ? 'Confirm' : confirmLabel}
+          confirmType="Danger"
+          confirmDisabled={!enabled}
+          split={true}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="small" style={styles.container}>
+        {icon}
+        <Kb.Text center={true} type="Body">
+          {body}
+        </Kb.Text>
+        <Kb.Checkbox
+          checked={enabled}
+          onCheck={setEnabled}
+          label=""
+          labelComponent={
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
+              {checkboxLabel}
+            </Kb.Box2>
+          }
+        />
       </Kb.Box2>
-      <Kb.Text center={true} type="Header" style={styles.header}>
-        {props.header}
-      </Kb.Text>
-      <Kb.Text center={true} type="Body" style={styles.body}>
-        {props.body}
-      </Kb.Text>
-      <Kb.Checkbox
-        checked={enabled}
-        onCheck={setEnabled}
-        style={styles.checkbox}
-        label=""
-        labelComponent={
-          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-            {props.checkboxLabel}
-          </Kb.Box2>
-        }
-      />
-      <Kb.ConfirmButtons
-        onCancel={props.onCancel}
-        onConfirm={props.onConfirm}
-        confirmLabel={isMobile ? 'Confirm' : props.confirmLabel}
-        confirmType="Danger"
-        confirmDisabled={!enabled}
-      />
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  body: {marginBottom: Kb.Styles.globalMargins.small},
-  checkbox: Kb.Styles.platformStyles({
-    isElectron: {
-      marginBottom: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      marginBottom: Kb.Styles.globalMargins.small,
-    },
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      paddingBottom: Kb.Styles.globalMargins.large,
-    },
-    isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.xlarge,
-      paddingRight: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
-    },
-  }),
-  header: {marginBottom: Kb.Styles.globalMargins.small},
-  iconBox: {marginBottom: 20},
+  container: {paddingTop: Kb.Styles.globalMargins.small},
   label: {flexShrink: 1},
 }))
 

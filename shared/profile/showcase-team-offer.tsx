@@ -21,7 +21,7 @@ const ShowcaseTeamOffer = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
+    <Kb.ModalScreen scroll={false} padding="none">
       {!isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {isMobile && <ShowcaseTeamOfferHeader />}
@@ -41,7 +41,7 @@ const ShowcaseTeamOffer = () => {
           />
         ))}
       </Kb.ScrollView>
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 

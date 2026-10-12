@@ -1,7 +1,6 @@
 import SelectOtherDevice from '@/provision/select-other-device'
 import type {Device} from '@/constants/provision'
 import {
-  cancelRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
 } from './flow'
@@ -13,7 +12,6 @@ const RecoverPasswordDeviceSelector = ({route}: Props) => {
   return (
     <SelectOtherDevice
       devices={devices}
-      onBack={cancelRecoverPassword}
       onResetAccount={submitRecoverPasswordNoDevice}
       onSelect={(name: string) => submitRecoverPasswordDeviceSelect(devices.find(d => d.name === name)?.id)}
       passwordRecovery={true}

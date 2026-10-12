@@ -330,7 +330,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const featuredContent = !!featured && (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="vertical" gap="small">
         <Kb.NameWithIcon
           botAlias={featured.botAlias}
@@ -366,7 +366,7 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
   const usernameContent = !featured && (
-    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.NameWithIcon horizontal={true} onClick="profile" username={botUsername} size="big" />
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
@@ -382,7 +382,7 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
   const installContent = installScreen && (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.NameWithIcon
         botAlias={featured?.botAlias}
         horizontal={true}
@@ -466,20 +466,18 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const channelPickerContent = channelPickerScreen && teamID && teamname && (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.pickerContainer}>
-      <ChannelPicker
-        allSelected={installInAllConvs}
-        channelMetas={channelMetas}
-        channelsKnown={channelsKnown}
-        installInConvs={installInConvs}
-        setAllSelected={setInstallInAllConvs}
-        setChannelPickerScreen={setChannelPickerScreen}
-        setDisableDone={setDisableDone}
-        setInstallInConvs={setInstallInConvs}
-        teamID={teamID}
-        teamName={teamname}
-      />
-    </Kb.Box2>
+    <ChannelPicker
+      allSelected={installInAllConvs}
+      channelMetas={channelMetas}
+      channelsKnown={channelsKnown}
+      installInConvs={installInConvs}
+      setAllSelected={setInstallInAllConvs}
+      setChannelPickerScreen={setChannelPickerScreen}
+      setDisableDone={setDisableDone}
+      setInstallInConvs={setInstallInConvs}
+      teamID={teamID}
+      teamName={teamname}
+    />
   )
 
   const content = channelPickerScreen
@@ -621,29 +619,14 @@ const InstallBotPopup = (props: Props) => {
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
 
   const enabled = !!conversationIDKey
-  const bodyContent =
-    enabled && !channelPickerScreen ? (
-      <Kb.ScrollView style={styles.bodyScroll} contentContainerStyle={styles.bodyScrollContent}>
-        {content}
-      </Kb.ScrollView>
-    ) : enabled ? (
-      content
-    ) : (
-      <Kb.LoadingScreen type="Large" />
-    )
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        flex={1}
-        style={styles.outerContainer}
-        fullWidth={true}
-        testID={TestIDs.CHAT_BOT_INSTALL}
-      >
-        {bodyContent}
-      </Kb.Box2>
-      {enabled && (!readOnly || showReviewButton) ? (
-        <Kb.ModalFooter>
+    <Kb.ModalScreen
+      // the channel picker scrolls its rows under a fixed search field
+      scroll={enabled && !channelPickerScreen}
+      padding={enabled && !channelPickerScreen ? 'standard' : 'none'}
+      testID={TestIDs.CHAT_BOT_INSTALL}
+      footer={
+        enabled && (!readOnly || showReviewButton) ? (
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
             <Kb.ButtonBar direction="column">
               {doneButton}
@@ -667,9 +650,11 @@ const InstallBotPopup = (props: Props) => {
               </Kb.Text>
             )}
           </Kb.Box2>
-        </Kb.ModalFooter>
-      ) : null}
-    </>
+        ) : undefined
+      }
+    >
+      {enabled ? content : <Kb.LoadingScreen type="Large" />}
+    </Kb.ModalScreen>
   )
 }
 
@@ -797,38 +782,12 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  // the picker brings its own scroller, so it has to be able to shrink to the modal
-  pickerContainer: {
-    flexGrow: 1,
-    flexShrink: 1,
-    minHeight: 0,
-  },
-  bodyScroll: {
-    flex: 1,
-    minHeight: 0,
-    position: 'relative',
-  },
-  bodyScrollContent: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      flexGrow: 1,
-      width: '100%',
-    },
-  }),
-  container: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-  },
   dropdown: {
     width: '100%',
   },
   dropdownButton: {
     padding: Kb.Styles.globalMargins.tiny,
   },
-  outerContainer: Kb.Styles.platformStyles({
-    common: {
-      minHeight: 0,
-    },
-  }),
   reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},
 }))
 

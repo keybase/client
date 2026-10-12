@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import Modal from '@/profile/modal'
 import {PgpMobileUnsupported} from './choice'
 
 export default function Import() {
@@ -11,15 +10,12 @@ export default function Import() {
   }
 
   if (isMobile) {
-    return <PgpMobileUnsupported onCancel={onCancel} />
+    return <PgpMobileUnsupported />
   }
 
   return (
-    <Modal onCancel={onCancel}>
-      <Kb.ImageIcon type="icon-pgp-key-import-48" />
-      <Kb.Text style={styles.header} type="Header">
-        Import a PGP key
-      </Kb.Text>
+    <Kb.ModalScreen footer={<Kb.Button type="Dim" label="Cancel" onClick={onCancel} fullWidth={true} />}>
+      <Kb.ImageIcon type="icon-pgp-key-import-48" style={styles.icon} />
       <Kb.Text style={styles.body} type="Body">
         To register your existing PGP public key on Keybase, please run the following command from your
         terminal:
@@ -31,7 +27,7 @@ export default function Import() {
         <Kb.Text type="TerminalComment"># for more options</Kb.Text>
         <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
       </Kb.Box2>
-    </Modal>
+    </Kb.ModalScreen>
   )
 }
 
@@ -41,17 +37,13 @@ const useStyles = Kb.Styles.createStyleHook(
       body: {
         ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
       },
-      header: {
-        marginTop: Kb.Styles.globalMargins.medium,
-      },
+      icon: {alignSelf: 'center'},
       terminal: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: theme.blueDarker2,
           borderRadius: Kb.Styles.borderRadius,
-          boxSizing: 'content-box',
           color: theme.white,
-          ...Kb.Styles.marginH(-Kb.Styles.globalMargins.medium),
-          padding: Kb.Styles.globalMargins.medium,
+          padding: Kb.Styles.globalMargins.small,
           textAlign: 'left',
         } as const,
       }),

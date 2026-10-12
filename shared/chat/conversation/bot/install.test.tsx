@@ -29,6 +29,8 @@ jest.mock('@/common-adapters', () => {
         p.items.map((item, i) => R.createElement('button', {key: i, onClick: () => p.onChangedIdx(i)}, item))
       ),
     LoadingScreen: () => R.createElement('span', null, 'loading'),
+    ModalScreen: (p: {children?: React.ReactNode; footer?: React.ReactNode}) =>
+      R.createElement('div', null, p.children, p.footer),
     NameWithIcon: (p: {username: string}) => R.createElement('span', null, p.username),
     ProgressIndicator: () => R.createElement('span', null, 'progress'),
     Styles: anyStyle,

@@ -100,6 +100,8 @@ const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
 const CAPTURE_SETTLE = {deadlineMs: 8_000, intervalMs: 1_000}
 const SCROLL_ATTEMPTS = 4
 const TARGET_QUIET_MS = 300
+// Longer than a Pressable's 500ms long press delay.
+const LONG_PRESS_S = 1
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -485,12 +487,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   // The switch back settles on screen before the capture goes on: a tab root captured right after
   // it drew its header title and the tab bar a little differently from one captured later.
   const toTabRoot = async (tab: string) => {
+    let popped = !(await routerAt()).atRoot
     await appEval(`${ROUTER} r.clearModals()`, 'clearModals')
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
     await switchTo(tab)
+    popped ||= !(await routerAt()).atRoot
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt()).atRoot)
+    // The router is at the root at once, but a native pop or modal dismissal runs on after it, and
+    // the native tab bar drops a tab switch made while one runs (seen after
+    // chat/attachment-fullscreen's modal: the hop's switch never took), so it ends before the hop.
+    if (popped) await settle(screenshot, SETTLE)
   }
   const hopBack = async (tab: string) => {
     await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
@@ -555,7 +563,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         await withDeadline(byTestID(CHAT_MESSAGE_LIST).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, 'the conversation')
         const ok = await appEval<boolean>(
           `${ROUTER} const v = r.getVisibleScreen()
-           return !!v?.params?.conversationIDKey && r.setRouteParams(v.key, {threadSearch: {query: ${JSON.stringify(s.query)}}})`,
+           return !!v?.params?.conversationIDKey && r.setRouteParams(v.key, {threadSearch: ${JSON.stringify(s.query ? {query: s.query} : {})}})`,
           'opening thread search'
         )
         if (!ok) throw new Error('searchThread: no open conversation to search')
@@ -594,6 +602,16 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
       case 'hover':
         throw new Error(`hover ${s.testID}: hover is desktop only`)
+      case 'longPress': {
+        // pressed at its centre in window points, so it is the focused screen's view (Appium's
+        // ~testID would also find another screen's)
+        if (!(await waitForTarget(s.testID))) throw new Error(`longPress ${s.testID}: not all of it shows; scroll it into view first`)
+        const box = await appEval<{bottom: number; left: number; right: number; top: number} | null>(targetBox(s.testID), `measuring ${s.testID}`)
+        if (!box) throw new Error(`longPress ${s.testID}: it went before it could be pressed`)
+        const at = {x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2}
+        await withDeadline(browser.execute('mobile: touchAndHold', {...at, duration: LONG_PRESS_S}), SETUP_MS, `long pressing ${s.testID}`)
+        return
+      }
     }
   }
 
@@ -726,6 +744,32 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     prepared = true
   }
 
+  // A fresh JS runtime set up as prepare left it.
+  const reloadPrepared = async (at: number) => {
+    await reloadJs()
+    await appEval(`(${fixDate.toString()})(${at})`, 'fixing Date')
+    await applyLight()
+    await remountScreens()
+    await warmTabs()
+  }
+  // A screen that throws takes the navigator down with it (no navigation state), and every later
+  // capture would fail on that; so a capture that left the app without one reloads it.
+  const recoverIfBroken = async (): Promise<string | undefined> => {
+    if (frozenAt === undefined) return undefined
+    try {
+      await routerAt()
+      return undefined
+    } catch (e) {
+      const why = (e as Error).message
+      try {
+        await reloadPrepared(frozenAt)
+        return `the app was left broken (${why}) and was reloaded`
+      } catch (e2) {
+        return `the app was left broken (${why}) and the reload failed: ${(e2 as Error).message}`
+      }
+    }
+  }
+
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
 
   // How a capture's fixture (fixtures/drive.mts) reaches the app and puts it back after end().
@@ -733,11 +777,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     evalApp: appEval,
     reload: async () => {
       if (frozenAt === undefined) throw new Error('a fixture ended before prepare')
-      await reloadJs()
-      await appEval(`(${fixDate.toString()})(${frozenAt})`, 'fixing Date')
-      await applyLight()
-      await remountScreens()
-      await warmTabs()
+      await reloadPrepared(frozenAt)
     },
     remount: async () => {
       // remounting a state that holds a pushed screen can leave the navigator with no state at all
@@ -818,7 +858,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
-    const problems = await fixture.end()
+    const problems = [...(await fixture.end())]
+    // a fixture's end can leave the navigator without state too, so this runs after every capture
+    const recovered = await recoverIfBroken()
+    if (recovered) problems.push(recovered)
     if (problems.length) {
       const why = problems.join('; ')
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}

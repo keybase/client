@@ -59,18 +59,7 @@ const DeleteModal = (props: OwnProps) => {
         ? 'icon-phone-number-remove-96'
         : 'icon-phone-number-remove-64'
 
-  const prompt =
-    itemType === 'email' ? (
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="HeaderBig">Delete email</Kb.Text>
-        <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
-        <Kb.Text type="HeaderBig">Delete number</Kb.Text>
-        <Kb.Text type="HeaderBig">{PhoneUtil.e164ToDisplay(props.address)}?</Kb.Text>
-      </Kb.Box2>
-    )
+  const prompt = `Delete ${itemType === 'email' ? props.address : PhoneUtil.e164ToDisplay(props.address)}?`
 
   const description = [
     ...(lastEmail

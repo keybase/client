@@ -78,8 +78,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
   })
 
   return (
-    <>
-      <Kb.ErrorBanner error={error} />
+    <Kb.ModalScreen scroll={false} padding="none" banner={<Kb.ErrorBanner error={error} />}>
       <Kb.SearchFilter
         size="small"
         onChange={setSearch}
@@ -95,7 +94,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
         selectedPhones={selectedPhones}
       />
       <EnableContactsPopup noAccess={noAccessPermanent} onClose={onBack} />
-    </>
+    </Kb.ModalScreen>
   )
 }
 

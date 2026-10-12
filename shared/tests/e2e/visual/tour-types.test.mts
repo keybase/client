@@ -28,15 +28,20 @@ test('a type step types into a listed input and presses Enter only where Enter s
   assert.match(validateEntry(step({enter: true, testID: T.FILES_EDITING_ROW, text: 'x'})).join(), /not in ENTER_TARGETS/)
   assert.match(validateEntry(step({testID: T.FILES_EDITING_ROW, text: 'x\n'})).join(), /line break/)
 })
-test('searchThread needs a query and an open conversation', () => {
+test('searchThread needs an open conversation; an empty query opens the empty search', () => {
   const thread = {tab: 't', thread: {ref: 'conversationIDKey'}} as const
   assert.deepEqual(validateEntry({...base, nav: thread, setup: [{kind: 'searchThread', query: 'q'}]}), [])
+  assert.deepEqual(validateEntry({...base, nav: thread, setup: [{kind: 'searchThread', query: ''}]}), [])
   assert.match(validateEntry({...base, setup: [{kind: 'searchThread', query: 'q'}]}).join(), /needs a conversation/)
-  assert.match(validateEntry({...base, nav: thread, setup: [{kind: 'searchThread', query: ''}]}).join(), /needs a query/)
 })
 test('hover on phone is refused', () => {
   const bad: TourEntry = {...base, platforms: ['phone'], setup: [{kind: 'hover', testID: 'a'}]}
   assert.match(validateEntry(bad).join(), /hover is desktop only/)
+})
+test('longPress on desktop is refused', () => {
+  const step = [{kind: 'longPress', testID: 'a'}] as const
+  assert.deepEqual(validateEntry({...base, platforms: ['phone'], setup: step}), [])
+  assert.match(validateEntry({...base, platforms: ['desktop', 'phone'], setup: step}).join(), /longPress is phone only/)
 })
 test('mask without reason is refused', () => {
   const bad = {...base, masks: [{testID: 'a', reason: ''}]}

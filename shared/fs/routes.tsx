@@ -125,7 +125,9 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
+  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete')), {
+    getOptions: {title: 'Delete'},
+  }),
   destinationPicker: C.makeScreen(
     React.lazy(async () => import('./browser/destination-picker')),
     {
@@ -141,12 +143,12 @@ export const newModalRoutes = defineRouteMap({
         headerTitle: () => (
           <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />
         ),
-        modalSize: 'wide',
+        modalSize: 'medium',
       }),
     }
   ),
   kextPermission: {
-    getOptions: {modalSize: 'wide'},
+    getOptions: {modalSize: 'medium', title: 'Change your security preferences'},
     screen: React.lazy(
       async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
     ),

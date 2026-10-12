@@ -3,16 +3,13 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
+import {submitRecoverPasswordPaperKey} from './flow'
 
 type Props = {route: {params: {error?: string}}}
 
 const PaperKey = ({route}: Props) => {
   const styles = useStyles()
   const {error} = route.params
-  const onBack = () => {
-    cancelRecoverPassword()
-  }
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = () => {
     if (paperKey) {
@@ -31,8 +28,6 @@ const PaperKey = ({route}: Props) => {
           waitingKey: C.waitingKeyRecoverPassword,
         },
       ]}
-      onBack={onBack}
-      title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
         <Kb.Box2

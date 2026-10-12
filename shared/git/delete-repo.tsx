@@ -57,13 +57,21 @@ const DeleteRepo = (ownProps: OwnProps) => {
     }
   }
   return (
-    <Kb.ScrollView>
-      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true} flex={1} gap="medium" style={styles.container}>
-        <Kb.ErrorBanner error={error} />
-        <Kb.Text center={true} type="Header">
-          Are you sure you want to delete this {teamname ? 'team ' : ''}
-          repository?
-        </Kb.Text>
+    <Kb.ModalScreen
+      banner={error ? <Kb.ErrorBanner error={error} /> : undefined}
+      footer={
+        <Kb.ConfirmButtons
+          split={true}
+          waitingKey={waitingKey}
+          onCancel={navigateUp}
+          onConfirm={onSubmit}
+          confirmLabel={isMobile ? 'Delete' : 'Delete this repository'}
+          confirmType="Danger"
+          confirmDisabled={!matchesName()}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium">
         <Kb.ImageIcon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
           {!!teamname && <Kb.Avatar isTeam={true} teamname={teamname} size={16} />}
@@ -95,32 +103,13 @@ const DeleteRepo = (ownProps: OwnProps) => {
             />
           )}
         </Kb.Box2>
-        <Kb.ConfirmButtons
-          waitingKey={waitingKey}
-          onCancel={navigateUp}
-          onConfirm={onSubmit}
-          confirmLabel={isMobile ? 'Delete' : 'Delete this repository'}
-          confirmType="Danger"
-          confirmDisabled={!matchesName()}
-        />
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.ModalScreen>
   )
 }
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
   checkbox: {alignSelf: 'flex-start'},
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      maxHeight: 560,
-      padding: Kb.Styles.globalMargins.large,
-      paddingBottom: Kb.Styles.globalMargins.small,
-      width: 400,
-    },
-    isMobile: {
-      padding: Kb.Styles.globalMargins.small,
-    },
-  }),
   repoName: {color: theme.redDark, textDecorationLine: 'line-through'},
 }))
 

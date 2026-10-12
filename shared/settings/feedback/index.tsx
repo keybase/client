@@ -3,6 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
+  // in a modal: more banners over the form's own (the signup screen's sent / error notices)
+  banner?: React.ReactNode
   feedback?: string
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
@@ -17,6 +19,7 @@ const clickThreshold = 7
 const Feedback = (props: Props) => {
   const styles = useStyles()
   const {
+    banner,
     sending,
     sendError,
     onFeedbackDone,
@@ -64,68 +67,93 @@ const Feedback = (props: Props) => {
     onSendFeedback(email ? `${feedback} (email: ${email || ''} )` : feedback, sendLogs, sendMaxBytes)
   }
 
+  const inModal = !!Kb.useModalBox()
+  const successBanner = showSuccessBanner ? (
+    <Kb.Banner color="green">
+      <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+    </Kb.Banner>
+  ) : null
+  const sendButton = (
+    <Kb.Button label="Send" onClick={_onSendFeedback} waiting={sending} fullWidth={inModal || !Kb.Styles.isTablet} />
+  )
+  const fields = (
+    <>
+      <Kb.Input3
+        textType="BodySemibold"
+        autoCapitalize="sentences"
+        autoCorrect={true}
+        autoFocus={true}
+        containerStyle={styles.input}
+        inputStyle={styles.inputResize}
+        multiline={true}
+        onChangeText={setFeedback}
+        placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
+        rowsMin={4}
+        rowsMax={isMobile ? 4 : 10}
+        value={feedback}
+      />
+      {_sendMaxBytes() && (
+        <Kb.Banner color="green">
+          <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
+        </Kb.Banner>
+      )}
+      <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
+        <Kb.Checkbox
+          label="Include your logs"
+          labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
+          checked={sendLogs}
+          onCheck={setSendLogs}
+        />
+      </Kb.ClickableBox>
+      {loggedOut && (
+        <Kb.Input3
+          textType="BodySemibold"
+          containerStyle={styles.input}
+          placeholder="Your email address"
+          onChangeText={setEmail}
+        />
+      )}
+    </>
+  )
+  const errorNotice = sendError ? (
+    <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
+      <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
+      <Kb.Text type="BodySmall" selectable={true}>
+        {sendError}
+      </Kb.Text>
+    </Kb.Box2>
+  ) : null
+
+  if (inModal) {
+    return (
+      <Kb.ModalScreen
+        banner={
+          <>
+            {banner}
+            {successBanner}
+          </>
+        }
+        footer={sendButton}
+        testID={TestIDs.SETTINGS_FEEDBACK}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall">
+          {fields}
+          {errorNotice}
+        </Kb.Box2>
+      </Kb.ModalScreen>
+    )
+  }
+
   return (
     <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        {showSuccessBanner && (
-          <Kb.Banner color="green">
-            <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
-          </Kb.Banner>
-        )}
+        {successBanner}
         <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
-          <Kb.Input3
-            textType="BodySemibold"
-            autoCapitalize="sentences"
-            autoCorrect={true}
-            autoFocus={true}
-            containerStyle={styles.input}
-            inputStyle={styles.inputResize}
-            multiline={true}
-            onChangeText={setFeedback}
-            placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-            rowsMin={4}
-            rowsMax={isMobile ? 4 : 10}
-            value={feedback}
-          />
-          {_sendMaxBytes() && (
-            <Kb.Banner color="green">
-              <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
-            </Kb.Banner>
-          )}
-          <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
-            <Kb.Checkbox
-              label="Include your logs"
-              labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
-              checked={sendLogs}
-              onCheck={setSendLogs}
-            />
-          </Kb.ClickableBox>
-          {loggedOut && (
-            <Kb.Input3
-              textType="BodySemibold"
-              containerStyle={styles.input}
-              placeholder="Your email address"
-              onChangeText={setEmail}
-            />
-          )}
+          {fields}
           <Kb.Box2 alignSelf={loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
-            <Kb.ButtonBar>
-              <Kb.Button
-                label="Send"
-                onClick={_onSendFeedback}
-                waiting={sending}
-                fullWidth={!Kb.Styles.isTablet}
-              />
-            </Kb.ButtonBar>
+            <Kb.ButtonBar>{sendButton}</Kb.ButtonBar>
           </Kb.Box2>
-          {sendError && (
-            <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
-              <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
-              <Kb.Text type="BodySmall" selectable={true}>
-                {sendError}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+          {errorNotice}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ScrollView>

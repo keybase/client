@@ -351,53 +351,18 @@ const ContainerInner = (ownProps: OwnProps) => {
   const multiUpload = pathAndInfos.length > 1
 
   return (
-    <>
-      <Kb.ErrorBanner
-        error={error}
-        onClose={() => {
-          setError(undefined)
-        }}
-      />
-      <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
-          <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-          {pathAndInfos.length > 0 && !isMobile && (
-            <Kb.Box2 direction="vertical" style={styles.filename}>
-              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-              <Kb.Text type="BodySmall" center={true}>
-                {info.filename} ({index + 1} of {pathAndInfos.length})
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-            <Kb.Input3
-              ref={inputRef}
-              autoFocus={!isMobile}
-              onClick={(e: React.BaseSyntheticEvent) => {
-                e.stopPropagation()
-              }}
-              autoCorrect={true}
-              disabled={!!progress}
-              placeholder={titleHint}
-              multiline={true}
-              rowsMin={2}
-              value={titles[index]}
-              onEnterKeyDown={onNext}
-              onChangeText={updateTitle}
-              hideBorder={true}
-              containerStyle={styles.inputBare}
-              inputStyle={styles.input}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        {progress ? (
-          <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
-            <Kb.ProgressIndicator />
-            {/* done counts completed items; the label names the one in flight */}
-            <Kb.Text type="BodySmall">{`Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}...`}</Kb.Text>
-          </Kb.Box2>
-        ) : null}
-        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+    <Kb.ModalScreen
+      scroll={false}
+      banner={
+        <Kb.ErrorBanner
+          error={error}
+          onClose={() => {
+            setError(undefined)
+          }}
+        />
+      }
+      footer={
+        <Kb.ButtonBar fullWidth={true} small={true}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.WaitingButton
@@ -422,8 +387,47 @@ const ContainerInner = (ownProps: OwnProps) => {
             />
           ) : null}
         </Kb.ButtonBar>
-      </Kb.Box2>
-    </>
+      }
+    >
+      <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container} onClick={() => inputRef.current?.blur()}>
+        <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
+        {pathAndInfos.length > 0 && !isMobile && (
+          <Kb.Box2 direction="vertical" style={styles.filename}>
+            <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {info.filename} ({index + 1} of {pathAndInfos.length})
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+          <Kb.Input3
+            ref={inputRef}
+            autoFocus={!isMobile}
+            onClick={(e: React.BaseSyntheticEvent) => {
+              e.stopPropagation()
+            }}
+            autoCorrect={true}
+            disabled={!!progress}
+            placeholder={titleHint}
+            multiline={true}
+            rowsMin={2}
+            value={titles[index]}
+            onEnterKeyDown={onNext}
+            onChangeText={updateTitle}
+            hideBorder={true}
+            containerStyle={styles.inputBare}
+            inputStyle={styles.input}
+          />
+        </Kb.Box2>
+      </Kb.ClickableBox>
+      {progress ? (
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
+          <Kb.ProgressIndicator />
+          {/* done counts completed items; the label names the one in flight */}
+          <Kb.Text type="BodySmall">{`Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}...`}</Kb.Text>
+        </Kb.Box2>
+      ) : null}
+    </Kb.ModalScreen>
   )
 }
 
@@ -435,30 +439,9 @@ const useStyles = Kb.Styles.createStyleHook(
         marginBottom: isMobile ? Kb.Styles.globalMargins.small : 0,
         width: '100%',
       },
-      buttonContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'flex-end',
-          borderStyle: 'solid',
-          borderTopColor: theme.black_10,
-          borderTopWidth: 1,
-          flexShrink: 0,
-          padding: Kb.Styles.globalMargins.small,
-        },
-        isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
-      }),
       container: Kb.Styles.platformStyles({
-        common: {
-          flexGrow: 1,
-          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-          width: '100%',
-        },
-        isElectron: {paddingTop: Kb.Styles.globalMargins.small},
-        isMobile: {flexShrink: 1},
-      }),
-      container2: Kb.Styles.platformStyles({
-        common: {flexGrow: 1},
-        isElectron: {height: '100%', overflow: 'hidden'},
-        isMobile: {flexShrink: 1, flexGrow: 1},
+        common: {flexGrow: 1, flexShrink: 1, minHeight: 0},
+        isElectron: {overflow: 'hidden'},
       }),
       filename: Kb.Styles.platformStyles({
         isElectron: {
@@ -472,19 +455,13 @@ const useStyles = Kb.Styles.createStyleHook(
         maxWidth: '100%',
         width: '100%',
       },
-      input: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.border(theme.blue, 1, Kb.Styles.borderRadius),
-          maxHeight: 42,
-          minHeight: 42,
-          padding: Kb.Styles.globalMargins.tiny,
-          width: '100%',
-        },
-        isTablet: {
-          alignSelf: 'center',
-          maxWidth: 460,
-        },
-      }),
+      input: {
+        ...Kb.Styles.border(theme.blue, 1, Kb.Styles.borderRadius),
+        maxHeight: 42,
+        minHeight: 42,
+        padding: Kb.Styles.globalMargins.tiny,
+        width: '100%',
+      },
       inputBare: {
         backgroundColor: theme.transparent,
         marginBottom: Kb.Styles.globalMargins.tiny,

@@ -79,6 +79,5 @@ export default (p: Props) => {
     onDescriptionChange,
     onSubmit,
     teamID,
-    teamname,
   }
 }

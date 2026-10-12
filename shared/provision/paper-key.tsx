@@ -22,7 +22,6 @@ const Container = ({route}: RouteProps) => {
     <PaperKey
       error={error}
       hint={hint}
-      onBack={C.Router2.navigateUp}
       onSubmit={(paperkey: string) => !waiting && submitProvisionPassphrase(paperkey)}
       waiting={waiting}
     />
@@ -30,7 +29,6 @@ const Container = ({route}: RouteProps) => {
 }
 
 type Props = {
-  onBack?: () => void
   onSubmit: (paperKey: string) => void
   hint: string
   error: string
@@ -45,7 +43,6 @@ export const PaperKey = (props: Props) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!isMobile}
       waitingOverlay={true}
       banners={errorBanner(props.error)}
       buttons={[
@@ -58,8 +55,6 @@ export const PaperKey = (props: Props) => {
         },
       ]}
       noBackground={true}
-      onBack={props.onBack}
-      title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2
         direction="vertical"

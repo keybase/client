@@ -19,6 +19,8 @@ import {useConversationMessage, useConversationMeta} from '@/chat/conversation/d
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
   disableCustomEmoji?: boolean
+  // desktop: fill a medium modal instead of the popup's fixed size
+  fill?: boolean
   hideFrequentEmoji?: boolean
   small?: boolean
   onlyTeamCustomEmoji?: boolean
@@ -195,7 +197,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
     <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
-        styles.containerDesktop,
+        props.fill ? styles.containerFill : styles.containerDesktop,
         styles.contain,
         props.small && styles.containerDesktopSmall,
       ])}
@@ -224,7 +226,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
         filter={filter}
         onChoose={onChoose}
         onHover={setHoveredEmoji}
-        width={336}
+        width={props.fill ? mediumModalWidth : 336}
         skinTone={currentSkinTone}
         customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
@@ -275,6 +277,9 @@ const EmojiPickerDesktopInner = (props: Props) => {
 
 export const EmojiPickerDesktop = EmojiPickerDesktopInner
 
+// the desktop modal's 'medium' width
+const mediumModalWidth = 560
+
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
@@ -298,6 +303,12 @@ const useStyles = Kb.Styles.createStyleHook(
         maxWidth: 336,
         minHeight: 561,
         width: 336,
+      },
+      containerFill: {
+        backgroundColor: theme.white,
+        flex: 1,
+        minHeight: 0,
+        width: '100%',
       },
       containerDesktopSmall: {
         height: 250,
@@ -337,6 +348,23 @@ const Routable = (props: RoutableProps) => {
   C.useOnMountOnce(() => {
     Keyboard.dismiss()
   })
+
+  if (!isMobile) {
+    return (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <EmojiPickerDesktop
+          fill={true}
+          conversationIDKey={props.conversationIDKey}
+          small={small}
+          onPickAction={onPickAction}
+          onPickAddToMessageID={onPickAddToMessageID}
+          onDidPick={onDidPick}
+          hideFrequentEmoji={hideFrequentEmoji}
+          onlyTeamCustomEmoji={onlyTeamCustomEmoji}
+        />
+      </Kb.ModalScreen>
+    )
+  }
 
   return (
     <WrapperMobile

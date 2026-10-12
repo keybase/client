@@ -5,9 +5,9 @@ import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {FloatingRolePicker} from '../role-picker'
 import {getRolePickerDisabledReasons} from '../role-picker-utils'
-import {useIsBigTeam, useLoadedTeamChannels} from './use-loaded-team-channels'
+import {LoadedTeamChannelsContext, useIsBigTeam, useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
-import {useLoadedTeam} from '../team/use-loaded-team'
+import {LoadedTeamContext, useLoadedTeam} from '../team/use-loaded-team'
 import {pluralize} from '@/util/string'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
@@ -17,6 +17,12 @@ type ChannelSelectableTab = 'channelMembers'
 
 type TeamActionsProps = {
   teamID: T.Teams.TeamID
+}
+// The selection reaches the actions as props: on mobile they render through a portal, outside the
+// selection provider.
+type TeamActionsSelection = TeamActionsProps & {
+  selectedChannels: ReadonlySet<T.Chat.ConversationIDKey>
+  selectedMembers: ReadonlySet<string>
 }
 type TeamProps = TeamActionsProps & {
   selectedTab: TeamSelectableTab
@@ -62,6 +68,10 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   const styles = useStyles()
   const {onCancel, selectableTabName, selectedCount, children} = props
   const onSelectableTab = !!selectableTabName
+  // The phone portal renders outside the screen's team providers; carried across, the actions read
+  // the screen's loads instead of starting their own.
+  const loadedTeam = React.useContext(LoadedTeamContext)
+  const loadedTeamChannels = React.useContext(LoadedTeamChannelsContext)
 
   // This is a bit of a hack to work around the floating box displaying above modals on mobile.
   // Probably it's not worth thinking about the root problem until we're on nav 5.
@@ -117,7 +127,11 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   return isMobile ? (
     <>
       {<Kb.Box2 alignSelf="center" direction="vertical" style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
-      <Kb.Portal hostName="popup-root">{popup}</Kb.Portal>
+      <Kb.Portal hostName="popup-root">
+        <LoadedTeamContext value={loadedTeam}>
+          <LoadedTeamChannelsContext value={loadedTeamChannels}>{popup}</LoadedTeamChannelsContext>
+        </LoadedTeamContext>
+      </Kb.Portal>
     </>
   ) : (
     popup
@@ -149,7 +163,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
       selectedCount={selectedCount}
       onCancel={onCancel}
     >
-      <Actions teamID={teamID} />
+      <Actions teamID={teamID} selectedChannels={selectedChannels} selectedMembers={selectedMembers} />
     </JointSelectionPopup>
   )
 }
@@ -165,7 +179,11 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
       selectedCount={selectedCount}
       onCancel={clearSelectedMembers}
     >
-      <ChannelMembersActions conversationIDKey={conversationIDKey} teamID={teamID} />
+      <ChannelMembersActions
+        conversationIDKey={conversationIDKey}
+        teamID={teamID}
+        selectedMembers={selectedMembers}
+      />
     </JointSelectionPopup>
   )
 }
@@ -182,8 +200,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const {selectedMembers} = useTeamSelectionState()
+const TeamMembersActions = ({teamID, selectedMembers}: TeamActionsSelection) => {
   const isBigTeam = useIsBigTeam(teamID)
   const navigateAppend = C.Router2.navigateAppend
   if (!selectedMembers.size) {
@@ -303,8 +320,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   )
 }
 
-const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
-  const {selectedChannels} = useTeamSelectionState()
+const TeamChannelsActions = ({teamID, selectedChannels}: TeamActionsSelection) => {
   // Channels tab functions
   const navigateAppend = C.Router2.navigateAppend
   const onDelete = () =>
@@ -319,10 +335,13 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
     </ActionsWrapper>
   )
 }
-const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
+const ChannelMembersActions = ({
+  conversationIDKey,
+  teamID,
+  selectedMembers,
+}: ChannelActionsProps & {selectedMembers: ReadonlySet<string>}) => {
   const {channels} = useLoadedTeamChannels(teamID)
   const channelInfo = channels.get(conversationIDKey)
-  const {selectedMembers} = useChannelSelectionState()
   const channelname = channelInfo?.channelname ?? ''
   const navigateAppend = C.Router2.navigateAppend
 
@@ -362,7 +381,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   )
 }
 
-const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsProps>} = {
+const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamActionsSelection>} = {
   teamChannels: TeamChannelsActions,
   teamMembers: TeamMembersActions,
 }

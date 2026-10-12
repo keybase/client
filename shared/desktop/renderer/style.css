@@ -241,7 +241,10 @@ html {
   width: 100%;
 }
 
+/* Text that isn't inside a Kb.Text inherits this instead of the browser default serif.
+   Form controls don't inherit font-family, so inputs are unaffected. */
 body {
+  font-family: Keybase, sans-serif;
   height: 100%;
   width: 100%;
   scrollbar-gutter: stable;

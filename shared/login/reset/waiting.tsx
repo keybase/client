@@ -62,7 +62,6 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
 
   return (
     <SignupScreen
-      title="Account reset"
       noBackground={true}
       banners={
         sendAgainSuccess ? (

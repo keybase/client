@@ -16,10 +16,9 @@ type CheckboxesProps = {
 }
 
 const Checkboxes = (props: CheckboxesProps) => {
-  const styles = useStyles()
   const {onCheckUsername, onCheckData, onCheckTeams} = props
   return (
-    <Kb.Box2 direction="vertical" style={styles.checkbox} fullWidth={true} gap="tiny">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Checkbox
         checked={props.checkUsername}
         label="No one will be able to use this username ever, including yourself."
@@ -104,11 +103,6 @@ const DeleteConfirm = () => {
 }
 
 const useStyles = Kb.Styles.createStyleHook(() => ({
-  checkbox: Kb.Styles.platformStyles({
-    isMobile: {
-      padding: Kb.Styles.globalMargins.mediumLarge,
-    },
-  }),
   deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},
   randomPWStatus: {
     padding: Kb.Styles.globalMargins.small,

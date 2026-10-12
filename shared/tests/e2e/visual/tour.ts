@@ -120,11 +120,11 @@ const desktopInfoPanel = (
 })
 
 // The attachments tab of e2e-media, which holds an image, two videos and a text file, on one of
-// its Media / Docs / Links views. Desktop only: on the phone the sheet's top-right corner shadow
-// draws one level off in one channel in the first capture of e2e-media's panel after another
-// conversation's entry (aa), which no ready state settles.
-const attachmentsView = (id: string, view: string, ready: string): TourEntry =>
-  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}])
+// its Media / Docs / Links views.
+const attachmentsView = (id: string, view: string, ready: string): Array<TourEntry> => [
+  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
+  {...infoPanel('attachments', 'e2e-media'), id: `chat/info-panel-${id}`, ready, setup: [{kind: 'switchSubTab', testID: view}]},
+]
 
 // The team's restricted bot, from its install modal: what it can read, the edit screen (nothing
 // is saved until its Save button), and that screen's channel picker. The permissions list waits
@@ -478,6 +478,21 @@ export const tour: ReadonlyArray<TourEntry> = [
       {kind: 'hover', testID: T.CHAT_REACTION_ITEM},
     ],
   },
+  // The phone's is a bottom sheet a long press opens. Appium sees nothing inside this sheet, so
+  // ready is the row under it and a scrollIntoView, which finds sheets, waits for the sheet.
+  {
+    id: 'chat/reaction-tooltip',
+    nav: {tab: 'tabs.chatTab', thread: kinds},
+    platforms: ['phone'],
+    ready: T.CHAT_REACTIONS_ROW,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_PINNED_BANNER},
+      {kind: 'scrollIntoView', testID: T.CHAT_REACTIONS_ROW},
+      {kind: 'longPress', testID: T.CHAT_REACTION_ITEM},
+      {kind: 'scrollIntoView', testID: T.CHAT_REACTION_TOOLTIP},
+    ],
+  },
   // The prompt the pinned banner's close button asks before unpinning (the account pinned the
   // message, so it asks). Desktop leaves the prompt open (leavesPopup): chat/message-react opens
   // another conversation. On the phone the prompt is a bottom sheet, so ready is the banner.
@@ -521,14 +536,37 @@ export const tour: ReadonlyArray<TourEntry> = [
     ],
     leavesPopup: true,
   },
+  // The phone's message menu is the sheet a long press opens, with the quick reactions on top.
+  // Appium does not reliably see inside the sheet, so ready is the image under it and the last step
+  // waits for the sheet through the app (as chat/reaction-tooltip does).
   {
-    id: 'chat/thread-search',
-    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-long', ref: 'conversationIDKey'}},
-    platforms: ['desktop'],
-    ready: T.CHAT_THREAD_SEARCH,
+    id: 'chat/message-menu',
+    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
+    platforms: ['phone'],
+    ready: T.CHAT_ATTACHMENT_IMAGE,
     seal: ['inbox'],
-    setup: [{kind: 'openPopup', testID: T.CHAT_HEADER_SEARCH_BUTTON}],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'longPress', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'scrollIntoView', testID: T.FLOATING_MENU},
+    ],
   },
+  // Thread search opened with nothing typed. The phone's search button is a native header bar
+  // item with no testID, so the phone opens it as that button does, through its route param.
+  ...(['desktop', 'phone'] as const).map(
+    (platform): TourEntry => ({
+      id: 'chat/thread-search',
+      nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-long', ref: 'conversationIDKey'}},
+      platforms: [platform],
+      ready: T.CHAT_THREAD_SEARCH,
+      seal: ['inbox'],
+      setup: [
+        platform === 'desktop'
+          ? {kind: 'openPopup', testID: T.CHAT_HEADER_SEARCH_BUTTON}
+          : {kind: 'searchThread', query: ''},
+      ],
+    })
+  ),
   // Thread search run on a word no message holds: its "No results" count. A word with a hit
   // centres the thread on it, and opening that same search again (the next capture) leaves the
   // thread at its top instead, every other time.
@@ -561,9 +599,9 @@ export const tour: ReadonlyArray<TourEntry> = [
   },
   // a channel with a description, which the panel's header shows
   desktopInfoPanel('-kinds', 'e2e-kinds', T.CHAT_INFO_PANEL_MEMBERS_TAB, T.CHAT_INFO_PANEL),
-  attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
-  attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
-  attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
+  ...attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
+  ...attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
+  ...attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
   {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
   infoPanel('attachments', 'e2e-short'),
   // a channel with a description, which the panel's header shows
@@ -630,12 +668,9 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['teams'],
   },
   teamTab('members', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST),
-  // A member selected, and the bulk actions bar that shows for it. Desktop only: on the phone the
-  // bar renders through a portal outside the team's selection provider and throws
-  // (TeamSelectionProvider missing).
+  // A member selected, and the bulk actions bar that shows for it.
   {
     ...teamTab('members-selected', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_SELECTION_POPUP),
-    platforms: ['desktop'],
     setup: [
       {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
       {kind: 'click', testID: T.TEAMS_MEMBER_CHECK},
@@ -1089,13 +1124,10 @@ export const tour: ReadonlyArray<TourEntry> = [
 // tab/devices and tab/git open them); makeIcons is a desktop developer tool that renders only in
 // dev builds; kextPermission is macOS only; checkPassphraseBeforeDeleteAccount, settingsPushPrompt
 // and the crypto *Output routes are phone screens (desktop renders nothing, or shows the output
-// beside the input). Desktop-only entries for screens the phone also has: chat/message-react and
-// chat/message-menu (the phone opens them with a long press, which setup can't do),
-// chat/thread-search (its phone button is a native header bar item with no testID; the phone's
-// search opens from its route param in chat/thread-search-no-results), chat/reaction-tooltip (a
-// long press on the phone), team/members-selected (its note), and
-// chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
-// phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
+// beside the input). Desktop-only entries for screens the phone also has: chat/message-react (the
+// phone has no hover bar: a long press opens its message menu, chat/message-menu, whose reaction
+// row's picker is the chatChooseEmoji modal, modal/chat-emoji), files/team (its note), and
+// modal/profile-avatar (the phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
 // pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success
 // step needs a paper key submitted, and the menubar's logged-out views a signed-out app); the
 // global error bar and runtime stats are debug overlays, toured as overlay/* under fixtures (not the

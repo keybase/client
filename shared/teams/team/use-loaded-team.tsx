@@ -28,7 +28,7 @@ type LoadedTeamCacheMap = Map<
   CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
 >
 
-const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
+export const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
 const loadedTeamReloadStaleMs = 5_000
 
 // One map for every consumer, for the same reason as the team channel cache: the

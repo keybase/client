@@ -13,8 +13,6 @@ export const SimpleErrorScreen = (props: Props) => {
   return (
     <SignupScreen
       buttons={[{label: 'Back', onClick: props.onBack, type: 'Default'}]}
-      onBack={props.onBack}
-      title={props.title}
     >
       <Kb.Text center={true} type="Header" style={styles.heading}>
         {props.heading}

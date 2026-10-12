@@ -6,7 +6,7 @@ export const WizardBanner = (props: {icon: Kb.IconType}) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-      <Kb.ImageIcon type={props.icon} />
+      <Kb.ImageIcon type={props.icon} style={styles.bannerImage} />
     </Kb.Box2>
   )
 }
@@ -40,6 +40,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     common: {backgroundColor: theme.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
+  // desktop: fill a medium box wider than the 460px art
+  bannerImage: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.size('100%'), objectFit: 'cover'}}),
 }))
 
 export const wizardInputStyle = {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)}

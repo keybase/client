@@ -28,6 +28,13 @@ const AccountSignOutButton = () => {
   )
 }
 
+const AccountSwitcher = React.lazy(async () => import('../router-v2/account-switcher'))
+const AccountSwitcherScreen = () => (
+  <Kb.ModalScreen scroll={false} padding="none">
+    <AccountSwitcher />
+  </Kb.ModalScreen>
+)
+
 const useStyles = Kb.Styles.createStyleHook(theme => ({
   signOut: {color: theme.red, padding: 8},
 }))
@@ -46,7 +53,7 @@ export const newModalRoutes = defineRouteMap({
           },
         }
       : {headerRight: () => <AccountSignOutButton />},
-    screen: React.lazy(async () => import('../router-v2/account-switcher')),
+    screen: AccountSwitcherScreen,
   },
   peopleTeamBuilder,
 })

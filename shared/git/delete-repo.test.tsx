@@ -53,7 +53,15 @@ jest.mock('@/common-adapters', () => {
         placeholder,
         value,
       }),
-    ScrollView: passThrough,
+    ModalScreen: ({
+      banner,
+      children,
+      footer,
+    }: {
+      banner?: React.ReactNode
+      children?: React.ReactNode
+      footer?: React.ReactNode
+    }) => React.createElement('div', null, banner, children, footer),
     Styles: {
       createStyleHook:
         <S,>(styles: (theme: unknown) => S) =>

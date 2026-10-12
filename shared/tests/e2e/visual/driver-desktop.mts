@@ -129,7 +129,7 @@ type Router = {
   navigateAppend: (p: {name: string; params?: object}) => boolean
   getTab: () => string | undefined
   navigateToThread: (conversationIDKey: string, reason: string) => void
-  setChatRootParams: (p: {conversationIDKey?: string; infoPanel?: undefined; threadSearch?: {query: string} | undefined}) => boolean
+  setChatRootParams: (p: {conversationIDKey?: string; infoPanel?: undefined; threadSearch?: {query?: string} | undefined}) => boolean
   getVisibleScreen: () => {params?: {conversationIDKey?: string}} | undefined
 }
 type NavState = {routes?: Array<{name: string; state?: NavState}>}
@@ -282,7 +282,8 @@ const runStep = async (page: Page, s: SetupStep) => {
         const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
         if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
         const conversationIDKey = r.getVisibleScreen()?.params?.conversationIDKey
-        return !!conversationIDKey && r.setChatRootParams({conversationIDKey, threadSearch: {query}})
+        // an empty query is the header's search button: an open search with nothing in it
+        return !!conversationIDKey && r.setChatRootParams({conversationIDKey, threadSearch: query ? {query} : {}})
       }, s.query),
       EVAL_MS,
       'opening thread search'
@@ -310,6 +311,8 @@ const runStep = async (page: Page, s: SetupStep) => {
     case 'hover':
       await target.hover({timeout: SETUP_MS})
       return
+    case 'longPress':
+      throw new Error(`longPress ${s.testID}: long press is phone only`)
   }
 }
 

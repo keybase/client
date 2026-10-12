@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 173 desktop entries and 160 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 173 desktop entries and 167 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -85,7 +85,9 @@ pinned:
   unfurls) on their first frame, and parks the mouse outside the window.
 - iOS: status bar override (9:41, full signal and battery), Reduce Motion and Reduce Transparency
   on (the app is relaunched to pick them up), auto-focused inputs blurred, video players paused on
-  their first frame, and captures settle on two equal frames a second apart. A `scrollIntoView`
+  their first frame, and captures settle on two equal frames a second apart. A reset that popped a
+  screen or closed a modal settles on screen before its tab hop: the native tab bar drops a
+  switch made while a pop runs. A `scrollIntoView`
   whose target does not show whole (as much of it as fits, for one longer than what scrolls it)
   scrolls it to the middle, as desktop's `scrollIntoViewIfNeeded` does (again once it stops moving,
   up to three times, while a row still laying out leaves it in part), from JS
@@ -237,7 +239,7 @@ change with `--compare <baseline dir>`.
 ## Setup steps
 
 An entry's `setup` runs after navigation, in order: `openPopup` and `switchSubTab` (a click),
-`scrollIntoView`, `hover` (desktop), `click`, `type` and `searchThread`.
+`scrollIntoView`, `hover` (desktop), `longPress` (phone), `click`, `type` and `searchThread`.
 
 - `click` presses only a control in `CLICK_TARGETS` (`tour-types.ts`), and `type` types only into
   an input in `TYPE_TARGETS`: each is listed with what it does, and was checked to change only the
@@ -253,7 +255,11 @@ An entry's `setup` runs after navigation, in order: `openPopup` and `switchSubTa
   else one outside every screen (an overlay or sheet), and wait for it there: Appium's `~testID`
   also finds the views of hidden tabs and screens under the top one.
 - `searchThread` opens the open conversation's thread search on a query by setting its route
-  param, as the header's search button does, and so needs `nav.thread`.
+  param, as the header's search button does, and so needs `nav.thread`. An empty query opens the
+  empty search bar, the button's own route param.
+- `longPress` (phone) waits for the view with the testID in the focused screen or an overlay, as
+  `type` does, and holds a touch at its centre for a second (`mobile: touchAndHold`): a message's
+  or a reaction's popup. It must show whole; scroll it into view first.
 
 ## Known exclusions
 
@@ -266,6 +272,7 @@ Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. N
   switches. An entry that opens one carries `leavesPopup`; `yarn visual:unit` requires the next
   desktop entry to close it (same tab; on chat, another conversation), and selecting the entry by
   id also selects that follower.
-- Phone menus are bottom sheets that expose nothing inside them to Appium: their entries wait on
-  the screen under the sheet.
+- Phone menus are bottom sheets that mostly expose nothing inside them to Appium: their entries
+  wait on the screen under the sheet, and a `scrollIntoView` on a testID in the sheet (which finds
+  sheets) waits for it.
 - Screens that write when opened, need data the account lacks, or wait on a system prompt.

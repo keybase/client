@@ -42,21 +42,18 @@ const ChatPDF = (props: Props) => {
     }
 
     return (
-      <>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          <embed src={url} width="100%" height="100%" />
-        </Kb.Box2>
-        <Kb.ModalFooter>
-          <Kb.ButtonBar small={true}>
-            <Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />
-          </Kb.ButtonBar>
-        </Kb.ModalFooter>
-      </>
+      <Kb.ModalScreen
+        scroll={false}
+        padding="none"
+        footer={<Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />}
+      >
+        <embed src={url} width="100%" height="100%" />
+      </Kb.ModalScreen>
     )
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.ModalScreen scroll={false} padding="none">
       {url && !error ? (
         <Kb.WebView
           originWhitelist={['*']}
@@ -79,7 +76,7 @@ const ChatPDF = (props: Props) => {
       ) : (
         <Kb.Text type="BodySmallError">Can&apos;t load this file {error}</Kb.Text>
       )}
-    </Kb.Box2>
+    </Kb.ModalScreen>
   )
 }
 
