@@ -158,18 +158,6 @@
   inset: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .avatar-border-team {
-    background: rgba(255, 255, 255, 0);
-  }
-}
-
 .avatar-border {
   background: rgba(0, 0, 0, 0);
-}
-
-@media (prefers-color-scheme: dark) {
-  .avatar-border {
-    background: rgba(255, 255, 255, 0);
-  }
 }

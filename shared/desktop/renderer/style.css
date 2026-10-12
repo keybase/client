@@ -294,10 +294,8 @@ body {
   min-width: var(--scrollbar-minlength);
 }
 
-@media (prefers-color-scheme: dark) {
-  input {
-    background-color: #191919;
-  }
+input {
+  background-color: light-dark(Field, #191919);
 }
 
 #root {

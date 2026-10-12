@@ -48,23 +48,21 @@
   font-family: Keybase;
 }
 
-/* Dark mode: primary-color types flip to white */
-@media (prefers-color-scheme: dark) {
-  .text_HeaderBig,
-  .text_HeaderBigExtrabold,
-  .text_Header,
-  .text_HeaderItalic,
-  .text_HeaderExtrabold,
-  .text_BodyBig,
-  .text_BodyBigExtrabold,
-  .text_BodyExtrabold,
-  .text_BodySemiboldItalic,
-  .text_BodyBold,
-  .text_BodySemibold,
-  .text_BodyItalic,
-  .text_Body {
-    color: rgba(255, 255, 255, 0.85);
-  }
+/* Primary-color types flip to white in dark mode */
+.text_HeaderBig,
+.text_HeaderBigExtrabold,
+.text_Header,
+.text_HeaderItalic,
+.text_HeaderExtrabold,
+.text_BodyBig,
+.text_BodyBigExtrabold,
+.text_BodyExtrabold,
+.text_BodySemiboldItalic,
+.text_BodyBold,
+.text_BodySemibold,
+.text_BodyItalic,
+.text_Body {
+  color: light-dark(rgba(0, 0, 0, 0.85), rgba(255, 255, 255, 0.85));
 }
 
 /* Secondary color group */
@@ -270,11 +268,8 @@
   word-wrap: break-word;
 }
 
-/* Dark mode link override */
-@media (prefers-color-scheme: dark) {
-  .text_HeaderLink {
-    color: var(--color-blueDarker2_75);
-  }
+.text_HeaderLink {
+  color: light-dark(var(--color-blueDark), var(--color-blueDarker2_75));
 }
 
 /* Negative: white for most types */
