@@ -435,6 +435,27 @@ body {
   }
 }
 
+/* popup/modal-dialog: a full-window modal <dialog> in the top layer. The content draws its own cover,
+   so the dialog and its backdrop draw nothing */
+.modal-dialog {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  outline: none;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+
+  &::backdrop {
+    background: transparent;
+  }
+}
+
 body {
   background-color: light-dark(#ffffff, #191919);
   &.isWidget {

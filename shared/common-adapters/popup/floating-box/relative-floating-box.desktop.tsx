@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../../key-event-handler.desktop'
 import type {MeasureRef} from '../../measure-ref'
+import {PopupHostContext} from '../modal-dialog.desktop'
 import {heightVar, offsetVar, popupPlacement, widthVar} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
@@ -82,6 +83,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
   const parent = React.use(PopoverParentContext)
+  const popupHost = React.use(PopupHostContext)
   const [popoverParent] = React.useState(makePopoverParent)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
@@ -191,8 +193,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     </div>
   )
 
-  const modalRoot = document.getElementById('modal-root')
-  return modalRoot ? (
+  const host = popupHost ?? document.getElementById('modal-root')
+  return host ? (
     <>
       <style href={placement.tryOptions} precedence="floating-box">
         {placement.rules}
@@ -203,7 +205,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
             {disableEscapeKey ? content : <EscapeHandler onESC={onClosePopup}>{content}</EscapeHandler>}
           </PopoverParentContext>
         </div>,
-        modalRoot
+        host
       )}
     </>
   ) : null

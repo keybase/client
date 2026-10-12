@@ -5,11 +5,20 @@ import type * as React from 'react'
 import {cleanup, fireEvent, render} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
+import {ModalDialog} from '../modal-dialog.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
-// jsdom has neither the Popover API nor ResizeObserver
+// jsdom has neither the Popover API, showModal nor ResizeObserver
 let shown: Array<HTMLElement> = []
 beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+    shown.push(this)
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+    shown = shown.filter(d => d !== this)
+  }
   HTMLElement.prototype.showPopover = function (this: HTMLElement) {
     shown.push(this)
   }
@@ -150,6 +159,23 @@ describe('RelativeFloatingBox', () => {
       fireEvent.mouseUp(content, {clientX: 10, clientY: 10})
       expect(onClosePopup).not.toHaveBeenCalled()
     })
+  })
+
+  // everything outside a modal dialog is inert, so a popup opened inside one has to be inside it
+  test('a popup opened inside a modal dialog portals into it and is shown after it', () => {
+    const anchor = anchorElement()
+    render(
+      <ModalDialog>
+        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+          content
+        </RelativeFloatingBox>
+      </ModalDialog>
+    )
+    const dialog = document.querySelector('dialog')
+    const popup = dialog?.querySelector(':scope > [popover]')
+    expect(popup).toBeTruthy()
+    expect(popups()).toEqual([])
+    expect(shown).toEqual([dialog, popup])
   })
 
   test('renders nothing when there is no modal root', () => {
