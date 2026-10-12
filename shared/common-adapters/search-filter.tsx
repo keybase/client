@@ -311,6 +311,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
         placeholderCentered && styles.containerCenter,
         size === 'small' && styles.containerSmall,
         size === 'full-width' && styles.containerNonSmall,
+        focused && styles.light,
         style,
       ])}
       onClick={onClick || (!focused ? focus : undefined)}
