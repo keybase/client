@@ -324,7 +324,7 @@ const MainWindow = () => {
   loadWindowState()
 
   // pass to main window
-  htmlFile = htmlFile + `?darkMode=${isDarkMode || ''}`
+  htmlFile = htmlFile + `?darkMode=${isDarkMode ? 'dark' : 'light'}`
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,
