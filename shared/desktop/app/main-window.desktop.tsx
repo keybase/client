@@ -15,6 +15,14 @@ const {env} = KB2.constants
 
 const htmlFile = htmlURL('main')
 
+// file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
+// Paths compare case-insensitively, as Windows file paths can differ in case.
+const pageKey = (url: string) => {
+  const u = new URL(url)
+  return `${u.protocol}//${u.host}${u.pathname.toLowerCase()}`
+}
+const mainPageKey = pageKey(htmlFile)
+
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
 
@@ -30,19 +38,14 @@ const setupDefaultSession = () => {
       return callback(true)
     }
 
-    let ourPathname: string
-    let requestPathname: string
+    let requestPageKey: string
     try {
-      ourPathname = new URL(htmlFile).pathname
-      requestPathname = new URL(webContents.getURL()).pathname
+      requestPageKey = pageKey(webContents.getURL())
     } catch {
       return callback(false)
     }
 
-    if (
-      permission === 'notifications' &&
-      requestPathname.toLowerCase() === ourPathname.toLowerCase()
-    ) {
+    if (permission === 'notifications' && requestPageKey === mainPageKey) {
       // Allow notifications
       return callback(true)
     }
