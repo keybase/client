@@ -735,7 +735,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     await warmTabs()
   }
   // A screen that throws takes the navigator down with it (no navigation state), and every later
-  // capture would fail on that; so a failed capture that left the app without one reloads it.
+  // capture would fail on that; so a capture that left the app without one reloads it.
   const recoverIfBroken = async (): Promise<string | undefined> => {
     if (frozenAt === undefined) return undefined
     try {
@@ -841,10 +841,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
     const problems = [...(await fixture.end())]
-    if (result.status === 'failed') {
-      const recovered = await recoverIfBroken()
-      if (recovered) problems.push(recovered)
-    }
+    // a fixture's end can leave the navigator without state too, so this runs after every capture
+    const recovered = await recoverIfBroken()
+    if (recovered) problems.push(recovered)
     if (problems.length) {
       const why = problems.join('; ')
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
