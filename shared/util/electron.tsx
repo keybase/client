@@ -35,6 +35,21 @@ export type RendererChannel = (typeof rendererChannels)[number]
 export const isRendererChannel = (channel: unknown): channel is RendererChannel =>
   rendererChannels.some(c => c === channel)
 
+// Remote window props cross IPC as a structured clone, so they must be plain data: no functions,
+// Maps, Sets or class instances
+export type RemotePropsValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ReadonlyArray<RemotePropsValue>
+  | {readonly [key: string]: RemotePropsValue}
+export type RemotePropsObject = {readonly [key: string]: RemotePropsValue}
+// Main stamps each props update with a version that only grows, so a remote window can drop one
+// it has already applied (a pull that raced a push)
+export type RemoteProps = {props: RemotePropsObject; version: number}
+
 export type KB2 = {
   constants: {
     assetRoot: string
@@ -92,7 +107,7 @@ export type KB2 = {
     ipcRendererOn?: (channel: RendererChannel, cb: (data: unknown) => void) => (() => void) | undefined
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
-    getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<string>
+    getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<RemoteProps | undefined>
     // defined for both always
     mainWindowDispatch: (action: Actions) => void
     mainWindowDispatchEngineIncoming?: (data: Uint8Array | EngineLinkFrame) => void
@@ -102,7 +117,11 @@ export type KB2 = {
     openPathInFinder?: (path: string, isFolder: boolean) => Promise<void>
     openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
     requestWindowsStartService?: () => void
-    rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
+    rendererNewProps?: (options: {
+      props: RemotePropsObject
+      windowComponent: string
+      windowParam: string
+    }) => void
     makeRenderer?: (options: {
       windowComponent: string
       windowOpts: {

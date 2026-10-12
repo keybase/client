@@ -1,7 +1,6 @@
 import * as React from 'react'
-import logger from '@/logger'
 import {useDarkModeState} from '@/stores/darkmode'
-import KB2 from '@/util/electron'
+import KB2, {type RemoteProps} from '@/util/electron'
 
 const {getRemoteProps, ipcRendererOn, showInactive} = KB2.functions
 
@@ -16,7 +15,7 @@ type UseRemotePropsReceiverOptions = {
 
 export const getRemoteComponentParam = () => new URLSearchParams(window!.location.search).get('param') ?? ''
 
-// darkMode rides along in the serialized props envelope; undefined until props arrive
+// darkMode rides along in the props; undefined until props arrive
 export const useRemoteDarkModeSync = (darkMode?: boolean) => {
   const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
 
@@ -36,18 +35,16 @@ export const useRemotePropsReceiver = <P,>(options: UseRemotePropsReceiverOption
   const hasShownWindow = React.useRef(false)
 
   React.useEffect(() => {
-    const onProps = (raw: string) => {
-      if (!raw) return
-      try {
-        setValue(JSON.parse(raw) as P & {darkMode: boolean})
-      } catch (error) {
-        logger.error('remote props parse failed', component, param, error)
-      }
+    let lastVersion = 0
+    const onProps = (remoteProps: RemoteProps | undefined) => {
+      if (!remoteProps || remoteProps.version <= lastVersion) return
+      lastVersion = remoteProps.version
+      setValue(remoteProps.props as P & {darkMode: boolean})
     }
 
     // subscribe before pulling so an update can't slip between the two
-    const unsubscribe = ipcRendererOn?.('KBprops', (raw: unknown) => {
-      onProps(raw as string)
+    const unsubscribe = ipcRendererOn?.('KBprops', (remoteProps: unknown) => {
+      onProps(remoteProps as RemoteProps)
     })
     getRemoteProps?.(component, param)
       .then(onProps)

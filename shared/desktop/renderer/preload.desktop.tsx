@@ -6,6 +6,8 @@ import {
   isRendererChannel,
   type KB2,
   type OpenDialogOptions,
+  type RemoteProps,
+  type RemotePropsObject,
   type SaveDialogOptions,
 } from '@/util/electron'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
@@ -89,7 +91,7 @@ if (isRenderer) {
       return Electron.webUtils.getPathForFile(file)
     },
     getRemoteProps: async (windowComponent: string, windowParam: string) => {
-      return invoke<string>({payload: {windowComponent, windowParam}, type: 'getRemoteProps'})
+      return invoke<RemoteProps | undefined>({payload: {windowComponent, windowParam}, type: 'getRemoteProps'})
     },
     getPathType: async (path: string) => {
       return await invoke({
@@ -180,11 +182,11 @@ if (isRenderer) {
     relaunchApp: () => {
       ignorePromise(invoke({type: 'relaunchApp'}))
     },
-    rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
-      const {propsStr, windowComponent, windowParam} = options
+    rendererNewProps: (options: {props: RemotePropsObject; windowComponent: string; windowParam: string}) => {
+      const {props, windowComponent, windowParam} = options
       ignorePromise(
         invoke({
-          payload: {propsStr, windowComponent, windowParam},
+          payload: {props, windowComponent, windowParam},
           type: 'rendererNewProps',
         })
       )

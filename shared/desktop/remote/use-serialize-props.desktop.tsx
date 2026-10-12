@@ -3,32 +3,32 @@
 // itself and no handshake back to this window is needed.
 import * as React from 'react'
 import * as C from '@/constants'
-import KB2 from '@/util/electron'
+import isEqual from 'lodash/isEqual'
+import KB2, {type RemotePropsObject} from '@/util/electron'
 import {useColorScheme} from 'react-native'
 import type {RemoteComponentName} from './remote-component.desktop'
 
 const {rendererNewProps} = KB2.functions
 
-export default function useSerializeProps<P extends object>(
+export default function useSerializeProps<P extends RemotePropsObject>(
   props: P,
   windowComponent: RemoteComponentName,
   windowParam: string
 ) {
-  const lastSent = React.useRef('')
+  const lastSent = React.useRef<RemotePropsObject | undefined>(undefined)
   const darkMode = useColorScheme() === 'dark'
-  const propsStr = JSON.stringify({...props, darkMode})
 
   const throttledSend = C.useThrottledCallback(
-    (nextPropsStr: string) => {
-      if (nextPropsStr === lastSent.current) return
-      rendererNewProps?.({propsStr: nextPropsStr, windowComponent, windowParam})
-      lastSent.current = nextPropsStr
+    (nextProps: RemotePropsObject) => {
+      if (isEqual(nextProps, lastSent.current)) return
+      rendererNewProps?.({props: nextProps, windowComponent, windowParam})
+      lastSent.current = nextProps
     },
     1000,
     {leading: true}
   )
 
   React.useEffect(() => {
-    throttledSend(propsStr)
-  }, [propsStr, throttledSend])
+    throttledSend({...props, darkMode})
+  }, [props, darkMode, throttledSend])
 }

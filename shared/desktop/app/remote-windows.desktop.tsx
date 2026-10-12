@@ -3,9 +3,11 @@
 // and remote windows pull the cached value when they load (or reload), so no
 // handshake back to the main window is needed.
 import type * as Electron from 'electron'
+import type {RemoteProps, RemotePropsObject} from '@/util/electron'
 
 const windows = new Map<string, Electron.BrowserWindow>()
-const propsCache = new Map<string, string>()
+const propsCache = new Map<string, RemoteProps>()
+let lastPropsVersion = 0
 
 const windowKey = (windowComponent: string, windowParam: string) => `${windowComponent}:${windowParam}`
 
@@ -27,8 +29,14 @@ export const registerRemoteWindow = (
 export const getRemoteWindow = (windowComponent: string, windowParam: string) =>
   windows.get(windowKey(windowComponent, windowParam))
 
-export const cacheRemoteProps = (windowComponent: string, windowParam: string, propsStr: string) => {
-  propsCache.set(windowKey(windowComponent, windowParam), propsStr)
+export const cacheRemoteProps = (
+  windowComponent: string,
+  windowParam: string,
+  props: RemotePropsObject
+): RemoteProps => {
+  const remoteProps = {props, version: ++lastPropsVersion}
+  propsCache.set(windowKey(windowComponent, windowParam), remoteProps)
+  return remoteProps
 }
 
 export const getCachedRemoteProps = (windowComponent: string, windowParam: string) =>
