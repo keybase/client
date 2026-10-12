@@ -37,7 +37,7 @@ const kb2: KB2['constants'] = {
     KEYBASE_DEVEL_USE_XDG: (env['KEYBASE_DEVEL_USE_XDG'] as string | undefined) ?? '',
     KEYBASE_RESTORE_UI: (env['KEYBASE_RESTORE_UI'] as string | undefined) ?? '',
     KEYBASE_RUN_MODE: (env['KEYBASE_RUN_MODE'] as string | undefined) || 'prod',
-    KEYBASE_START_UI: (env['KEYBASE_XDG_OVERRIDE'] as string | undefined) ?? '',
+    KEYBASE_START_UI: (env['KEYBASE_START_UI'] as string | undefined) ?? '',
     KEYBASE_XDG_OVERRIDE: (env['KEYBASE_XDG_OVERRIDE'] as string | undefined) ?? '',
     LANG: (env['LANG'] as string | undefined) ?? '',
     LC_ALL: (env['LC_ALL'] as string | undefined) ?? '',
@@ -46,7 +46,7 @@ const kb2: KB2['constants'] = {
     XDG_CACHE_HOME: (env['XDG_CACHE_HOME'] as string | undefined) ?? '',
     XDG_CONFIG_HOME: (env['XDG_CONFIG_HOME'] as string | undefined) ?? '',
     XDG_DATA_HOME: (env['XDG_DATA_HOME'] as string | undefined) ?? '',
-    XDG_DOWNLOAD_DIR: (env['XDG_DOWNLOAD_DIR '] as string | undefined) ?? '',
+    XDG_DOWNLOAD_DIR: (env['XDG_DOWNLOAD_DIR'] as string | undefined) ?? '',
     XDG_RUNTIME_DIR: (env['XDG_RUNTIME_DIR'] as string | undefined) ?? '',
   },
   helloDetails: {
