@@ -202,7 +202,7 @@ export const runProofFlow = async (p: {
   }
   let proofText = ''
   // The service resolves the link's platform before it asks anything, so any prompt means it found one
-  let serviceFound = false
+  const found = {service: false}
   currentUsernameRef.current = ''
   currentGenericParamsRef.current = makeProveGenericParams()
 
@@ -264,11 +264,11 @@ export const runProofFlow = async (p: {
         },
         'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
         'keybase.1.proveUi.promptOverwrite': (_, response) => {
-          serviceFound = true
+          found.service = true
           response.result(true)
         },
         'keybase.1.proveUi.promptUsername': (args, response) => {
-          serviceFound = true
+          found.service = true
           if (failIfCanceled(response)) {
             return
           }
@@ -351,7 +351,7 @@ export const runProofFlow = async (p: {
         kind: 'genericResult',
         username: currentUsernameRef.current,
       })
-    } else if (proofReason === 'appLink' && !serviceFound && error.code === T.RPCGen.StatusCode.scgeneric) {
+    } else if (proofReason === 'appLink' && !found.service && error.code === T.RPCGen.StatusCode.scgeneric) {
       navigateUp()
       navigateAppend({
         name: 'keybaseLinkError',

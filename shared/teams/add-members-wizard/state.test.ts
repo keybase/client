@@ -265,9 +265,7 @@ describe('searchResultsToMembers', () => {
 })
 
 test('a service failure adding members reports the service message, not [object Object]', async () => {
-  findAssertions.mockImplementationOnce(async () => {
-    throw new RPCError('team is locked', T.RPCGen.StatusCode.scgeneric)
-  })
+  findAssertions.mockRejectedValueOnce(new RPCError('team is locked', T.RPCGen.StatusCode.scgeneric))
   const onError = jest.fn()
   await addMembersToWizardAndNav(
     makeAddMembersWizard(teamID),
