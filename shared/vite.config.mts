@@ -52,8 +52,6 @@ export const makeDefines = (isDev: boolean, isHot: boolean, isProfile: boolean, 
   __DEV__: JSON.stringify(isDev),
   __HOT__: JSON.stringify(isHot),
   __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
-  // Platform globals are also inlined by babel.config.js (platformPlugin); defined
-  // here too so any code not run through our babel pass still resolves them.
   isMobile: JSON.stringify(false),
   isElectron: JSON.stringify(true),
   isAndroid: JSON.stringify(false),
