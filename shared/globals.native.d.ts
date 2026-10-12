@@ -35,19 +35,6 @@ interface DataTransfer {
   readonly types: ReadonlyArray<string>
 }
 
-// Stubs for the image re-encode in util/clipboard.desktop.tsx (paste handler, desktop-only at runtime)
-interface ImageBitmap {
-  readonly width: number
-  readonly height: number
-  close(): void
-}
-declare function createImageBitmap(image: Blob): Promise<ImageBitmap>
-declare class OffscreenCanvas {
-  constructor(width: number, height: number)
-  getContext(contextId: '2d'): {drawImage(image: ImageBitmap, dx: number, dy: number): void} | null
-  convertToBlob(options?: {type?: string}): Promise<Blob>
-}
-
 // Stubs for DOM observer/element types used in merged platform files.
 // Desktop build excludes this file so declare class is safe (no conflict with lib.dom).
 interface Element {}
