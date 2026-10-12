@@ -1,0 +1,50 @@
+go/kbfs/kbfsedits/tlf_history_test.go
+  s_9056c23b793e6d::t_303d38048d2dcf 404-472,475-476,485
+  s_9056c23b793e6d::t_ad48f4656f73f1 473-474,477-484
+  s_9056c23b793e6d::t_b75de1502b76e3 486
+  s_9056c23b793e6d::t_4cfab2a3a4f29b 366-367
+go/kbfs/libkbfs/keybase_daemon_rpc_test.go
+  s_9056c23b793e6d::t_1ffb603e4d1ab2 502,510-511
+  s_9056c23b793e6d::t_adf52468c0f737 544,546,555-567,569,572,582-583,586-600,602-668,671-677,681-692,696-697,702-703
+  s_9056c23b793e6d::t_d2ccd0d0ce280d 141-147
+  s_9056c23b793e6d::t_f6a92ac5f23e7f 501,512-543,545,547-554,568,570-571,573-581,584-585,601,669-670,694-695,698-701,704-708
+  s_9056c23b793e6d::t_a1bd4c02e88ae1 678-680,693
+  s_9056c23b793e6d::t_4f5b4209639c05 148-151,154
+  s_9056c23b793e6d::t_ca01daa9982e08 503-509
+  s_9056c23b793e6d::t_3d9749e5f3de3d 119-121
+go/kbfs/kbfsedits/tlf_history.go
+  s_9056c23b793e6d::t_4b11eb2c4a6bca 188-198,203-207,210,213-218,229
+  s_9056c23b793e6d::t_82ea532a846932 514-518
+  s_9056c23b793e6d::t_844815c742a563 10,21-26
+  s_9056c23b793e6d::t_a33fb09174adef 27
+go/kbfs/libkbfs/keybase_service_util.go
+  s_9056c23b793e6d::t_7dd7e5c38e94ff 163-164
+go/kbfs/libkbfs/keybase_service_base.go
+  s_9056c23b793e6d::t_e8dee1e34a38ae 34-46
+  s_9056c23b793e6d::t_44d08080515e12 415-419,424,439-447,449-451,454,460,463,468-469
+  s_9056c23b793e6d::t_7df1601e5e0a55 120
+  s_9056c23b793e6d::t_dc85869ee953be 1270-1272,1274,1277-1279
+  s_9056c23b793e6d::t_415d18f2abb5cd 71-78
+  s_9056c23b793e6d::t_bd623889c7be79 386-414,420-423,425-431,435-438,459,462,470,478-479
+  s_9056c23b793e6d::t_2fe5099b9010a3 1317-1324
+go/kbfs/libkbfs/folder_branch_ops.go
+  s_9056c23b793e6d::t_6fecdb87d54e03 4232-4238,4241
+  s_9056c23b793e6d::t_84e7c1d9ee9193 4227-4231,4239-4240,4242-4243,4261-4263,4266-4268,4271-4277,4281
+  s_9056c23b793e6d::t_fc00d6dc267996 4264-4265,4269-4270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "456811db00992642ae5160ef9195e343a9f53062",
+  "prompts": {},
+  "sessions": {
+    "s_9056c23b793e6d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8d28f485-dcd4-46dd-a127-11d02651a194",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
