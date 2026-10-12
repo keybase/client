@@ -44,7 +44,6 @@ else
   # We don't actually publish devel builds. This URL is a dream within a dream.
   repo_url="http://dist.keybase.io/linux/deb_devel/repo"
 fi
-repo_ssl_url="$(echo "$repo_url" | sed 's|http|https|')"
 
 build_one_architecture() {
   echo "Making .deb package for $debian_arch."

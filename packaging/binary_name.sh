@@ -6,7 +6,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 mode="$("$here/build_mode.sh" "$@")"
 

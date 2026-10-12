@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Shared helpers for the packaging scripts. Source it, don't run it.
+# The variables here are read by the scripts that source this file.
+# shellcheck disable=SC2034
 
 # Native macOS apps bundled into Keybase.app. Bump the version and the sha256
 # together: `shasum -a 256` of the tgz at the URL below.

@@ -32,12 +32,12 @@ requestbundles ()
   fi
   printf "\nRequesting bundles...\n"
   case "ios" in
-    $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.bundle?platform=ios&dev=true&minify=false 2>&1;;
+    "$arg1"|"$arg2")
+      curl -s -o /dev/null "localhost:8081/index.bundle?platform=ios&dev=true&minify=false" 2>&1;;
   esac
   case "android" in
-    $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.bundle?platform=android&dev=true&minify=false 2>&1;;
+    "$arg1"|"$arg2")
+      curl -s -o /dev/null "localhost:8081/index.bundle?platform=android&dev=true&minify=false" 2>&1;;
   esac
 }
 

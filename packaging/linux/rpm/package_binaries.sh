@@ -9,7 +9,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then
@@ -40,7 +40,6 @@ else
   # dream.
   repo_url="http://dist.keybase.io/linux/rpm_devel/repo"
 fi
-repo_ssl_url="$(echo "$repo_url" | sed 's|http|https|')"
 
 build_one_architecture() {
   echo "Making .rpm package for $rpm_arch."

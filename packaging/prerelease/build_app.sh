@@ -10,7 +10,6 @@ source "$dir/../lib.sh"
 gopath=${GOPATH:-}
 nobuild=${NOBUILD:-} # Don't build go binaries
 istest=${TEST:-} # If set to true, only build (for testing)
-nopull=${NOPULL:-} # Don't git pull
 client_commit=${CLIENT_COMMIT:-} # Commit on client to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,darwin-arm64,linux,windows (Only darwin/darwin-arm64 is supported in this script)
@@ -18,7 +17,6 @@ nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
 skip_notarize=${NONOTARIZE:-} # Skip notarize
-arch=${ARCH:-"amd64"} # architecture
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -73,7 +71,7 @@ fi
 
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit=$(git -C "$client_dir" log -1 --pretty=format:%h) "${KB_CI_CONTEXTS[@]}"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)""${KB_CI_CONTEXTS[@]}"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi

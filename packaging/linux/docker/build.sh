@@ -16,7 +16,7 @@ gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Don't store any secrets in the repo dir
-trap "rm -r ""$client_dir/.docker"" || true" ERR
+trap 'rm -r "$client_dir/.docker" || true' ERR
 
 # Load up all the config we need now, the rest will be resolved as needed
 config_file="$client_dir/packaging/linux/docker/config.json"

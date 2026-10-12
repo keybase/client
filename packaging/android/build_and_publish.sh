@@ -3,10 +3,8 @@
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
 automated_build=${AUTOMATED_BUILD:-}
-gopath=${GOPATH:-}
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 client_dir="$dir/../.."
-kbfs_dir="$client_dir/go/kbfs"
 shared_dir="$client_dir/shared"
 android_dir="$shared_dir/android"
 cache_npm=${CACHE_NPM:-}
