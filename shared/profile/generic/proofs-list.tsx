@@ -307,6 +307,8 @@ const runProofFlow = async (p: {
     })
 
     loadCurrentProfile()
+    // the user left this flow while the service finished it
+    if (flow.canceled) return
 
     if (service) {
       ignorePromise(
