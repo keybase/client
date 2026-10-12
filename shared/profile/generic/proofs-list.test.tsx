@@ -105,6 +105,21 @@ test('a proof whose screen closed refuses the next prompt and shows nothing when
   expect(setStepSafe).not.toHaveBeenCalled()
 })
 
+test('an app link to a service the service found leaves the link alone when the proof fails later', async () => {
+  const {done, fail, fake, navigateAppend, navigateUp} = await startFlow({genericService: null, proofReason: 'appLink'})
+  void fake.push(
+    'keybase.1.proveUi.promptUsername',
+    {parameters: null, prevError: null, prompt: ''},
+    {sessionID: sessionOf(fake)}
+  )
+  await settle()
+  fail(T.RPCGen.StatusCode.scgeneric, 'posting the proof failed')
+  await done
+
+  expect(navigateUp).not.toHaveBeenCalled()
+  expect(navigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'keybaseLinkError'}))
+})
+
 test('an app link whose screen closed does not navigate when its RPC fails', async () => {
   const {done, fail, mountedRef, navigateAppend, navigateUp} = await startFlow({
     genericService: null,
