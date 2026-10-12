@@ -4,6 +4,7 @@
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {EscapeHandler, GlobalKeyEventHandler} from '../key-event-handler.desktop'
+import {AboveModalDialogs} from './above-modal-dialogs.desktop'
 import {ModalDialog, useTopModalDialog} from './modal-dialog.desktop'
 
 // jsdom has no showModal, so keep the order dialogs were shown in, which is their top-layer order
@@ -278,5 +279,29 @@ describe('ModalDialog', () => {
     )
     fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
     expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  test('app-wide overlays render inside the topmost dialog while one is open', () => {
+    const App = (p: {modals: number}) => (
+      <>
+        {p.modals > 0 ? (
+          <ModalDialog>
+            outer
+            {p.modals > 1 ? <ModalDialog>inner</ModalDialog> : null}
+          </ModalDialog>
+        ) : null}
+        <AboveModalDialogs>
+          <div>banner</div>
+        </AboveModalDialogs>
+      </>
+    )
+    const {container, rerender} = render(<App modals={0} />)
+    expect(screen.getByText('banner').parentElement).toBe(container)
+    rerender(<App modals={2} />)
+    expect(screen.getByText('banner').parentElement).toBe(dialogs()[1])
+    rerender(<App modals={1} />)
+    expect(screen.getByText('banner').parentElement).toBe(dialogs()[0])
+    rerender(<App modals={0} />)
+    expect(screen.getByText('banner').parentElement).toBe(container)
   })
 })
