@@ -244,7 +244,7 @@ class Engine implements CallPort {
     if (visualRpc) {
       const sessionID = payload.param[0]?.sessionID
       const next = visualRpc.incoming(payload, {
-        customResponse: !!this._customResponseAction[payload.method as MethodKey],
+        customResponse: !!getIncomingAnswerer(payload.method),
         inSession: typeof sessionID === 'number' && this._sessionsMap.has(sessionID),
       })
       if (!next) return
