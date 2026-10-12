@@ -383,10 +383,8 @@ body {
   text-decoration: underline;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-  height: 0;
-  width: 0;
+.hide-scrollbar {
+  scrollbar-width: none;
 }
 
 .fade-anim-enter {
