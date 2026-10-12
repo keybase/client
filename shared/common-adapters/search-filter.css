@@ -1,0 +1,7 @@
+.search-filter {
+  background-color: var(--color-black_10);
+  &:hover,
+  &:focus-within {
+    background-color: var(--color-black_05);
+  }
+}
