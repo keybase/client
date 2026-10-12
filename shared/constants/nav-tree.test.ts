@@ -13,7 +13,7 @@ import {
   tabState,
   visiblePath,
   visibleScreen,
-} from '../nav-tree'
+} from './nav-tree'
 
 // Mirror what router-v2 does at startup: register the modal route names so the tree
 // can tell real modals from genuinely-visible pushed screens (e.g. chatConversation).
