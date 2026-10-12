@@ -42,6 +42,7 @@
     "./common-adapters/banner.test.tsx",
     "./common-adapters/floating-menu/index.test.tsx",
     "./common-adapters/hot-key.test.tsx",
+    "./common-adapters/hot-key-modal-dialog.desktop.test.tsx",
     "./common-adapters/icon.test.tsx",
     "./common-adapters/name-with-icon.test.tsx",
     "./common-adapters/popup/floating-box/relative-floating-box.test.tsx",

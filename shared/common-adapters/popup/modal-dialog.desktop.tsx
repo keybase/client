@@ -38,8 +38,8 @@ const focusBeforeCovered = new WeakMap<HTMLDialogElement, HTMLElement>()
 
 // The topmost open modal dialog: content outside every dialog that has to stay above them and
 // interactive renders into it.
-export const useTopModalDialog = () =>
-  React.useSyncExternalStore(subscribeOpenDialogs, () => openDialogs.at(-1) ?? null)
+export const getTopModalDialog = () => openDialogs.at(-1) ?? null
+export const useTopModalDialog = () => React.useSyncExternalStore(subscribeOpenDialogs, getTopModalDialog)
 
 // A full-window <dialog> shown with showModal(). It and its ::backdrop draw nothing; the content
 // draws its own cover. Escape goes through the key event handlers, so a popup open inside the dialog
