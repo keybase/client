@@ -5,6 +5,8 @@ set -eE -u -o pipefail # Fail on error, call ERR trap
 automated_build=${AUTOMATED_BUILD:-}
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 client_dir="$(cd "$dir/../.." && pwd)"
+# shellcheck source=packaging/lib.sh
+source "$dir/../lib.sh"
 shared_dir="$client_dir/shared"
 ios_dir="$shared_dir/ios"
 clean=${CLEAN:-}
@@ -22,15 +24,9 @@ trap notify_slack ERR
 
 # Reset on exit
 client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
-rn_packager_pid=""
 function reset {
 	(cd "$client_dir" && git checkout "$client_branch")
 	(cd "$client_dir" && git checkout shared/ios/)
-
-	if [ ! "$rn_packager_pid" = "" ]; then
-		echo "Killing packager $rn_packager_pid"
-		pkill -P $rn_packager_pid || true
-	fi
 }
 trap reset EXIT
 
@@ -61,12 +57,8 @@ git log -n 3
 
 cd "$shared_dir"
 
-echo "Cleaning yarn cache to free up disk space"
-yarn cache clean
-
-echo "Cleaning up main node_modules from previous runs"
-rm -rf node_modules
-yarn modules
+kb_prune_yarn_cache
+kb_yarn_modules "$shared_dir"
 yarn ios:pod:clean
 yarn ios:pod:install
 
@@ -74,10 +66,6 @@ if [ ! "$cache_go_lib" = "1" ]; then
 	echo "Building Go library"
 	CHECK_CI="$check_ci" yarn run ios:gobuild
 fi
-
-"$client_dir/packaging/manage_react_native_packager.sh" &
-rn_packager_pid=$!
-echo "Packager running with PID $rn_packager_pid"
 
 # Build and publish the apk
 cd "$ios_dir"

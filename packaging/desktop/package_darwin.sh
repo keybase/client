@@ -124,10 +124,7 @@ get_deps() { (
 package_electron() { (
 	cd "$shared_dir"
 
-	echo "Cleaning up main node_modules from previous runs"
-	rm -rf "$shared_dir/node_modules"
-
-	yarn modules
+	kb_yarn_modules "$shared_dir"
 	yarn run desktop:package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon" --outDir="$build_dir" --arch="$electron_arch"
 
 	# Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/client/go/updater/pull/4

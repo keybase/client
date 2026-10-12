@@ -27,13 +27,13 @@ if [ "$PLATFORM" = "windows" ]; then
 fi
 
 echo "Building $build_dir/kbfs ($kbfs_build) with $(go version) on arch: $arch"
-GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
+GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
 
 echo "Building $build_dir/kbfs/kbfsgit ($kbfs_build) with $(go version) on arch: $arch"
-GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
+GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
 
 echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version) on arch: $arch"
-GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
+GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
 
 kb_sign_binary "$build_dir/kbfs" "$build_dir/git-remote-keybase" "$build_dir/keybase-redirector"
 

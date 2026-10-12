@@ -119,3 +119,49 @@ kb_release_bin() {
   export KB_RELEASE_BIN="$gopath/bin/release"
   export KB_RELEASE_BIN_KEY="$key"
 }
+
+# kb_prune_yarn_cache
+# Runs `yarn cache clean` only when the volume holding the yarn cache has less
+# than KB_MIN_FREE_GB (default 30) free. The build machines are short on disk,
+# but cleaning every build forces a full re-download. Never fails the build.
+kb_prune_yarn_cache() {
+  local min_gb="${KB_MIN_FREE_GB:-30}" cache_dir free_gb
+  cache_dir="$(yarn cache dir 2>/dev/null)" || cache_dir=""
+  if [ -z "$cache_dir" ]; then
+    echo "Couldn't find the yarn cache dir; not pruning it"
+    return 0
+  fi
+  mkdir -p "$cache_dir" 2>/dev/null || true
+  free_gb="$(df -Pk "$cache_dir" 2>/dev/null | awk 'NR==2 {print int($4 / 1024 / 1024)}')" || free_gb=""
+  if [ -z "$free_gb" ]; then
+    echo "Couldn't read free disk space for $cache_dir; not pruning the yarn cache"
+    return 0
+  fi
+  if [ "$free_gb" -lt "$min_gb" ]; then
+    echo "${free_gb}GB free (< ${min_gb}GB); cleaning the yarn cache"
+    yarn cache clean || echo "yarn cache clean failed; continuing"
+  else
+    echo "${free_gb}GB free (>= ${min_gb}GB); keeping the yarn cache"
+  fi
+  return 0
+}
+
+# kb_yarn_modules <shared_dir>
+# Installs JS dependencies with `yarn modules`, keeping node_modules between
+# builds. node_modules is deleted first only when yarn.lock, package.json or a
+# patch-package patch changed since the last install there: yarn skips an
+# unchanged lockfile, so an edited patch would otherwise meet the old one
+# already applied.
+kb_yarn_modules() {
+  local shared_dir="$1" stamp_file stamp
+  stamp_file="$shared_dir/node_modules/.kb-modules-stamp"
+  stamp="$(cd "$shared_dir" && { cat yarn.lock package.json; cat patches/* 2>/dev/null || true; } | shasum -a 256 | cut -d' ' -f1)"
+  if [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$stamp" ]; then
+    echo "Dependencies unchanged; reusing node_modules"
+  else
+    echo "Dependencies or patches changed; removing node_modules"
+    rm -rf "$shared_dir/node_modules"
+  fi
+  (cd "$shared_dir" && yarn modules) || return 1
+  echo "$stamp" > "$stamp_file"
+}

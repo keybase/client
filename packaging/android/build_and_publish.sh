@@ -5,6 +5,8 @@ set -eE -u -o pipefail # Fail on error, call ERR trap
 automated_build=${AUTOMATED_BUILD:-}
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 client_dir="$dir/../.."
+# shellcheck source=packaging/lib.sh
+source "$dir/../lib.sh"
 shared_dir="$client_dir/shared"
 android_dir="$shared_dir/android"
 cache_npm=${CACHE_NPM:-}
@@ -24,14 +26,8 @@ trap notify_slack ERR
 
 # Reset on exit
 client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
-rn_packager_pid=""
 function reset {
 	(cd "$client_dir" && git checkout "$client_branch")
-
-	if [ ! "$rn_packager_pid" = "" ]; then
-		echo "Killing packager $rn_packager_pid"
-		pkill -P $rn_packager_pid || true
-	fi
 }
 trap reset EXIT
 
@@ -48,13 +44,10 @@ git log -n 3
 
 cd "$shared_dir"
 
-echo "Cleaning yarn cache to free up disk space"
-yarn cache clean
+kb_prune_yarn_cache
 
 if [ ! "$cache_npm" = "1" ]; then
-	echo "Cleaning up main node_modules from previous runs"
-	rm -rf node_modules
-	yarn modules
+	kb_yarn_modules "$shared_dir"
 fi
 
 if [ ! "$cache_go_lib" = "1" ]; then
@@ -64,10 +57,6 @@ fi
 
 # We can't currently automate this :(, we used to be able to `echo y | android update ...` but that no longer works
 # android update sdk --all --no-ui --filter "build-tools-23.0.2,android-23,extra-android-support,extra-android-m2repository"
-
-"$client_dir/packaging/manage_react_native_packager.sh" &
-rn_packager_pid=$!
-echo "Packager running with PID $rn_packager_pid"
 
 # Build and publish the apk
 cd "$android_dir"

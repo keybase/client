@@ -26,7 +26,7 @@ for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
 echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
+go build -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
 popd
 
 :: Then build kbfsdokan.
@@ -35,7 +35,7 @@ pushd %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan
 del kbfsdokan.exe
 
 set CGO_ENABLED=1
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
+go build -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -44,7 +44,7 @@ popd
 :: git-remote-keybase
 pushd %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase
 del get-remote-keybase.exe
-go build -a
+go build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -53,7 +53,7 @@ popd
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\client\go\updater\service
 del upd.exe
-go build -a -o upd.exe
+go build -o upd.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

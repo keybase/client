@@ -19,7 +19,7 @@ arch=${ARCH:-"amd64"}
 
 echo "------------------ Building go ------------------"
 echo "Building $build_dir/keybase ($keybase_build) with $(go version) on arch: $arch"
-(cd "$client_dir" && GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")
+(cd "$client_dir" && GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")
 echo "------------------ Building go ------------------"
 
 kb_sign_binary "$build_dir/keybase"

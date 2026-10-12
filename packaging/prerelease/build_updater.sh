@@ -20,7 +20,7 @@ mkdir -p "$build_dir"
 
 echo "------------------ Building updater go ------------------"
 echo "Building $build_dir/updater with $(go version) on arch: $arch"
-GOARCH="$arch" go build -a -o "$dest" "$package"
+GOARCH="$arch" go build -o "$dest" "$package"
 echo "------------------ Building updater go ------------------"
 
 kb_sign_binary "$dest"
