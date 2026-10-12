@@ -233,7 +233,7 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
     order: 'pre',
     handler(html, ctx) {
       const isMain = ctx.path.includes('/renderer/') || ctx.filename.includes('renderer')
-      const csp = `<meta charset="utf-8" http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
+      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
       const devtools = isDev && isMain ? `\n    <script src="${remoteDebugURL}"></script>` : ''
       return html.replace('<!--kb-csp-->', csp + devtools)
     },
