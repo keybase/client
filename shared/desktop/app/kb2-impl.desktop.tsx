@@ -63,4 +63,9 @@ const kb2: KB2['constants'] = {
   windowsBinPath: path.resolve((env['LOCALAPPDATA'] as string | undefined) ?? '', 'Keybase', 'keybase.exe'),
 }
 
+// every window's preload refuses constants without it, so fail here once instead of blanking each window
+if (!kb2.assetRoot) {
+  throw new Error('Invalid kb2: no assetRoot')
+}
+
 export default kb2
