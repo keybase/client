@@ -726,6 +726,32 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     prepared = true
   }
 
+  // A fresh JS runtime set up as prepare left it.
+  const reloadPrepared = async (at: number) => {
+    await reloadJs()
+    await appEval(`(${fixDate.toString()})(${at})`, 'fixing Date')
+    await applyLight()
+    await remountScreens()
+    await warmTabs()
+  }
+  // A screen that throws takes the navigator down with it (no navigation state), and every later
+  // capture would fail on that; so a failed capture that left the app without one reloads it.
+  const recoverIfBroken = async (): Promise<string | undefined> => {
+    if (frozenAt === undefined) return undefined
+    try {
+      await routerAt()
+      return undefined
+    } catch (e) {
+      const why = (e as Error).message
+      try {
+        await reloadPrepared(frozenAt)
+        return `the app was left broken (${why}) and was reloaded`
+      } catch (e2) {
+        return `the app was left broken (${why}) and the reload failed: ${(e2 as Error).message}`
+      }
+    }
+  }
+
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
 
   // How a capture's fixture (fixtures/drive.mts) reaches the app and puts it back after end().
@@ -733,11 +759,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     evalApp: appEval,
     reload: async () => {
       if (frozenAt === undefined) throw new Error('a fixture ended before prepare')
-      await reloadJs()
-      await appEval(`(${fixDate.toString()})(${frozenAt})`, 'fixing Date')
-      await applyLight()
-      await remountScreens()
-      await warmTabs()
+      await reloadPrepared(frozenAt)
     },
     remount: async () => {
       // remounting a state that holds a pushed screen can leave the navigator with no state at all
@@ -818,7 +840,11 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
-    const problems = await fixture.end()
+    const problems = [...(await fixture.end())]
+    if (result.status === 'failed') {
+      const recovered = await recoverIfBroken()
+      if (recovered) problems.push(recovered)
+    }
     if (problems.length) {
       const why = problems.join('; ')
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
