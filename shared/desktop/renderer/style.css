@@ -471,6 +471,7 @@ body {
 .tooltip {
   position: relative;
 }
+/* not rendered at all while hidden, so it can never widen a scroll container */
 .tooltip:before {
   transition: opacity 0.2s ease-in-out 0.3s;
   /* body small text */
@@ -482,8 +483,7 @@ body {
   color: rgba(0, 0, 0, 0.85);
   color: var(--color-white);
   content: attr(data-tooltip);
-  display: inline-flex;
-  opacity: 0;
+  display: none;
   flex-grow: 1;
   flex-shrink: 0;
   font-family: Keybase;
@@ -497,58 +497,46 @@ body {
   text-rendering: optimizeLegibility;
   white-space: nowrap;
   z-index: 999;
+  left: 50%;
   transform: translate(-50%, -100%);
-  /* parked off the top-left while hidden: an offset to the right or bottom would still widen its
-     scroll container, and focusing an input then scrolls even an overflow:hidden ancestor */
-  left: -99999px;
-  top: -99999px;
 }
 
 .tooltip:hover:before {
+  display: inline-flex;
   opacity: 1;
-  left: 50%;
-  top: initial;
+
+  @starting-style {
+    opacity: 0;
+  }
 }
 
 .tooltip-bottom-center:hover:before {
-  opacity: 1;
-  top: initial;
   transform: translate(-50%, 100%);
 }
 
 .tooltip-top-left:hover:before {
-  opacity: 1;
-  top: initial;
   transform: translate(-100%, -100%);
 }
 
 .tooltip-top-right:hover:before {
-  opacity: 1;
-  top: initial;
   transform: translate(0%, -100%);
 }
 
 .tooltip-bottom-left:hover:before {
-  opacity: 1;
-  top: initial;
   transform: translate(-100%, 100%);
 }
 
 .tooltip-bottom-right:hover:before {
-  opacity: 1;
-  top: initial;
   transform: translate(0%, 100%);
 }
 
 .tooltip-right:hover:before {
-  opacity: 1;
   transform: translate(5px, -50%);
   top: 50%;
   left: 100%;
 }
 
 .tooltip-left:hover:before {
-  opacity: 1;
   transform: translate(-5px, -50%);
   top: 50%;
   left: initial;
