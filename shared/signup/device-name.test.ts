@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {checkDeviceNameAndSignup, isDeviceNameDisabled, makeCleanDeviceName} from './device-name'
 
@@ -229,5 +229,43 @@ describe('checkDeviceNameAndSignup through the engine listener', () => {
       name: 'signupError',
       params: {errorCode: T.RPCGen.StatusCode.scbadsignupusernametaken, errorMessage: 'username taken'},
     })
+  })
+
+  const failSignup = async (fail: (held: ReturnType<FakeEngine['hold']>, fake: FakeEngine) => void) => {
+    const fake = installFakeEngine()
+    fake.answer('keybase.1.device.checkDeviceNameFormat', () => true)
+    const held = fake.hold('keybase.1.signup.signup')
+    const showPermissionsPrompt = jest.fn()
+    const navigateAppend = jest.fn()
+    const done = checkDeviceNameAndSignup(
+      'testuser mac',
+      'testuser',
+      '',
+      jest.fn(),
+      showPermissionsPrompt,
+      navigateAppend as never
+    )
+    await tick()
+    fail(held, fake)
+    await done
+    return {navigateAppend, showPermissionsPrompt}
+  }
+
+  test.each([
+    ['a session cancel', T.RPCGen.StatusCode.sccanceled],
+    ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
+  ])('%s withdraws the just-signed-up prompt and shows no signup error', async (_, code) => {
+    const {navigateAppend, showPermissionsPrompt} = await failSignup(held =>
+      held[0]!.reply(fakeError(code, 'canceled'))
+    )
+
+    expect(showPermissionsPrompt.mock.calls).toEqual([[{justSignedUp: true}], [{justSignedUp: false}]])
+    expect(navigateAppend).not.toHaveBeenCalled()
+  })
+
+  test('a lost link shows the signup error: the signup may not have happened', async () => {
+    const {navigateAppend} = await failSignup((_, fake) => fake.drop())
+
+    expect(navigateAppend).toHaveBeenCalledWith(expect.objectContaining({name: 'signupError'}))
   })
 })

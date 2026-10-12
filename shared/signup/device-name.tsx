@@ -5,7 +5,7 @@ import {SignupScreen, errorBanner, desktopInputWidth} from './common'
 import * as Provision from '@/constants/provision'
 import {usePushState} from '@/stores/push'
 import * as T from '@/constants/types'
-import {RPCError} from '@/util/errors'
+import {isQuietCancel, RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import type {StaticScreenProps} from '@react-navigation/core'
@@ -72,6 +72,10 @@ export const checkDeviceNameAndSignup = async (
   } catch (error_) {
     if (error_ instanceof RPCError) {
       showPermissionsPrompt({justSignedUp: false})
+      // A cancel (an account switch, the service's own) is no failure to show; a lost link is
+      if (isQuietCancel(error_)) {
+        return
+      }
       navigateAppend({
         name: 'signupError',
         params: {errorCode: error_.code, errorMessage: error_.desc},
