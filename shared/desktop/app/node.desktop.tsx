@@ -81,7 +81,6 @@ const startApp = () => {
   fixWindowsNotifications()
   changeCommandLineSwitches()
   devTools()
-  registerPowerMonitorEvents()
 
   const engineRelay = new EngineRelay(data => KB2.functions.mainWindowDispatchEngineIncoming?.(data))
 
@@ -126,6 +125,7 @@ const startApp = () => {
   Electron.app
     .whenReady()
     .then(() => {
+      registerPowerMonitorEvents()
       // See registerSchemesAsPrivileged below.
       if (__HOT__) {
         Electron.protocol.handle(localFileScheme, async req => {

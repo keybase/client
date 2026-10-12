@@ -3,7 +3,7 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
-import {isLinux, isWindows, cacheRoot} from '@/constants/platform'
+import {isWindows, cacheRoot} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import {showDockIcon} from './main-window.desktop'
 import {allowMultipleInstances} from '@/local-debug'
@@ -233,10 +233,6 @@ export const registerOpenHandlers = (deps: {
 }
 
 export const registerPowerMonitorEvents = () => {
-  if (isLinux) {
-    return
-  }
-
   Electron.powerMonitor.on('suspend', () => {
     R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
   })
