@@ -133,8 +133,8 @@ kb_sign_app_inside_out() {
       continue
     else
       case "$(file -b "$path")" in
-        *Mach-O*executable*) kind=exec ;;
-        *Mach-O*) kind=lib ;;
+        *Mach-O*executable*) kind="exec" ;;
+        *Mach-O*) kind="lib" ;;
         *) continue ;;
       esac
       # Versions/<v>/<binary> is the framework's main binary.
