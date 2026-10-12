@@ -14,6 +14,7 @@ import {
   RPCError,
   convertToError,
   isErrorTransient,
+  isQuietCancel,
   niceError,
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
@@ -359,7 +360,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           // Already logged in: the daemon's session says so. Canceling: nothing to report.
           if (
             error.code !== T.RPCGen.StatusCode.scalreadyloggedin &&
-            error.desc !== cancelDesc
+            error.desc !== cancelDesc &&
+            !isQuietCancel(error)
           ) {
             error.desc = niceError(error);
             get().dispatch.setLoginError(error);

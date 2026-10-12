@@ -356,6 +356,17 @@ describe('login', () => {
       expect(refresh).toHaveBeenCalledTimes(1)
     })
 
+    test.each([
+      ['a session cancel', T.RPCGen.StatusCode.sccanceled],
+      ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
+    ])('%s from the service ends the switch without a login error', async (_, code) => {
+      await switchFailingWith(code, 'canceled by the service')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError).toBeUndefined()
+    })
+
     test('a login that cancelled its own prompt ends the switch without a login error', async () => {
       await switchFailingWith(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC')
 
