@@ -29,6 +29,10 @@ const subscribeOpenDialogs = (listener: () => void) => {
   }
 }
 
+// What had focus in a dialog when another opened above it. Closing that one restores focus there
+// natively, unless this dialog was closed meanwhile (a router modal under the topmost one is).
+const focusBeforeCovered = new WeakMap<HTMLDialogElement, HTMLElement>()
+
 // The topmost open modal dialog: content outside every dialog that has to stay above them and
 // interactive renders into it.
 export const useTopModalDialog = () =>
@@ -45,6 +49,7 @@ export function ModalDialog(props: Props) {
   const [isOpen, setIsOpen] = React.useState(false)
   // the content first mounts in an open dialog, so focusing on mount works
   const [hasOpened, setHasOpened] = React.useState(false)
+  const openedBeforeRef = React.useRef(false)
   const shouldOpen = parentOpen && open
 
   // A ref callback rather than an effect, so it runs again whenever shouldOpen changes. It runs after
@@ -71,7 +76,21 @@ export function ModalDialog(props: Props) {
       }
       el.addEventListener('cancel', onCancel)
       el.addEventListener('close', onClose)
+      const covered = openDialogs.at(-1)
+      const active = document.activeElement
+      if (covered && active instanceof HTMLElement && covered.contains(active)) {
+        focusBeforeCovered.set(covered, active)
+      }
       el.showModal()
+      // Opening, showModal focuses the dialog itself, as the content is not mounted yet. Reopening,
+      // it would focus the first focusable thing in it, so put focus back where it was instead.
+      if (openedBeforeRef.current) {
+        const saved = focusBeforeCovered.get(el)
+        const target = saved && el.contains(saved) ? saved : el
+        target.focus()
+      }
+      focusBeforeCovered.delete(el)
+      openedBeforeRef.current = true
       setOpenDialogs([...openDialogs, el])
       setIsOpen(true)
       setHasOpened(true)
@@ -88,7 +107,7 @@ export function ModalDialog(props: Props) {
   )
 
   return (
-    <dialog className="modal-dialog" ref={dialogRef}>
+    <dialog className="modal-dialog" ref={dialogRef} tabIndex={-1}>
       {hasOpened ? (
         <ParentOpenContext value={isOpen}>
           <PopupHostContext value={dialog}>

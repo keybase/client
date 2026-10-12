@@ -304,4 +304,31 @@ describe('ModalDialog', () => {
     rerender(<App modals={0} />)
     expect(screen.getByText('banner').parentElement).toBe(container)
   })
+
+  // showModal would focus the first focusable thing in a dialog that already has content
+  test('a reopened dialog puts focus back where it was when another opened over it', () => {
+    const Stack = (p: {firstOpen: boolean; second: boolean}) => (
+      <>
+        <ModalDialog open={p.firstOpen}>
+          <input aria-label="first field" />
+          <input aria-label="second field" />
+        </ModalDialog>
+        {p.second ? <ModalDialog>second</ModalDialog> : null}
+      </>
+    )
+    const {rerender} = render(<Stack firstOpen={true} second={false} />)
+    const field = screen.getByLabelText('second field')
+    field.focus()
+    rerender(<Stack firstOpen={true} second={true} />)
+    rerender(<Stack firstOpen={false} second={true} />)
+    document.body.focus()
+    rerender(<Stack firstOpen={false} second={false} />)
+    rerender(<Stack firstOpen={true} second={false} />)
+    expect(document.activeElement).toBe(field)
+
+    // with nothing saved, the dialog itself
+    rerender(<Stack firstOpen={false} second={false} />)
+    rerender(<Stack firstOpen={true} second={false} />)
+    expect(document.activeElement).toBe(dialogs()[0])
+  })
 })
