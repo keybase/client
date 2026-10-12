@@ -136,6 +136,7 @@ function DesktopInput(p: InputLowLevelProps) {
   React.useImperativeHandle(ref, () => {
     const i = multiline ? inputMultiRef.current : inputSingleRef.current
     return {
+      anchor: i,
       blur: () => {
         i?.blur()
       },
@@ -147,9 +148,6 @@ function DesktopInput(p: InputLowLevelProps) {
       },
       focus: () => {
         i?.focus()
-      },
-      getBoundingClientRect: () => {
-        return i?.getBoundingClientRect()
       },
       getSelection: () => {
         return selectionRef.current
@@ -777,9 +775,9 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
     htmlInputRef.current = i
   }
   // the suggestion list is placed against the textarea
-  const popupAnchorRef = React.useRef<RefType | null>(null)
+  const popupAnchorRef = React.useRef<Kb.MeasureRef | null>(null)
   const setInput = (r: RefType | null) => {
-    popupAnchorRef.current = r
+    popupAnchorRef.current = r?.anchor ?? null
     setInputRef(r)
   }
 
