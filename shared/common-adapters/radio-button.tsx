@@ -40,7 +40,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
     )
   }
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="horizontal"
       alignItems="center"
       gap="tiny"

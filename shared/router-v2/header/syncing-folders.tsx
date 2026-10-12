@@ -18,7 +18,7 @@ const SyncingFolders = (props: Props) => {
   const styles = useStyles()
   return props.show && props.progress !== 1.0 ? (
       <Kb.WithTooltip tooltip={props.tooltip} containerStyle={styles.tooltipContainer}>
-        <Kb.Box2 direction="horizontal" alignItems="center">
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
           <PieSlice degrees={props.progress * 360} animated={true} negative={props.negative} />
           <Kb.Text type="BodyTiny" negative={props.negative} style={styles.text}>
             Syncing folders...

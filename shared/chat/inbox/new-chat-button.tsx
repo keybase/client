@@ -28,7 +28,7 @@ const HeaderNewChatButton = () => {
   if (hide) return null
 
   const rainbowButton = (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={styles.rainbowButtonContainer}
       tooltip={`(${C.shortcutSymbol}N)`}
@@ -38,10 +38,10 @@ const HeaderNewChatButton = () => {
       overflow="hidden"
       relative={true}
     >
-      <Kb.Box2 direction="vertical" style={styles.gradientRed} />
-      <Kb.Box2 direction="vertical" style={styles.gradientOrange} />
-      <Kb.Box2 direction="vertical" style={styles.gradientYellow} />
-      <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.gradientRed} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.gradientOrange} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.gradientYellow} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.gradientGreen} />
       <Kb.Button
         label="New chat"
         mode="Primary"

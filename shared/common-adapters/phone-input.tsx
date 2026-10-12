@@ -546,14 +546,14 @@ const PhoneInput = (p: Props) => {
         isSmall && focused && styles.highlight,
       ])}
     >
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         alignItems="center"
         direction="horizontal"
         style={
           isSmall ? undefined : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
         }
       >
-        <Kb.ClickableBox
+        <Kb.ClickableBox alignSelf={(!isSmall) ? undefined : 'center'}
           onClick={toggleShowingMenu}
           direction="horizontal"
           fullWidth={!isSmall}
@@ -576,7 +576,7 @@ const PhoneInput = (p: Props) => {
         style={isSmall ? Styles.globalStyles.flexOne : undefined}
       >
         {!isSmall && (
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             alignItems="center"
             direction="horizontal"
             style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInputBig])}
@@ -614,7 +614,7 @@ const PhoneInput = (p: Props) => {
             />
           </Kb.Box2>
         )}
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           alignItems="center"
           direction="horizontal"
           style={Styles.collapseStyles([

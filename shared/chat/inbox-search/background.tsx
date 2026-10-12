@@ -53,7 +53,7 @@ const RoverDesktop = () => {
 const RoverNative = () => {
   const nativeStyles = useNativeStyles()
   return (
-    <Kb.Box2 direction="vertical" style={nativeStyles.container}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={nativeStyles.container}>
       <Kb.ImageIcon style={nativeStyles.background} type="icon-illustration-mars-rover-background" />
       <Kb.ImageIcon style={nativeStyles.rover} type="icon-illustration-mars-rover" />
       <Kb.ImageIcon style={nativeStyles.foreground} type="icon-illustration-mars-rover-foreground" />

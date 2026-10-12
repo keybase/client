@@ -5,9 +5,9 @@ import {emojiData} from '@/common-adapters/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean, styles: ReturnType<typeof useStyles>) => {
   return (
-    <Kb.Box2 direction="vertical" relative={true}>
-      {outerCircle && <Kb.Box2 direction="vertical" style={styles.circleOuter} />}
-      <Kb.Box2
+    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+      {outerCircle && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.circleOuter} />}
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
@@ -44,7 +44,7 @@ function SkinTonePicker(props: Props) {
     onExpandChange?.(toSet)
   }
   const optionSkinTones = reorderedSkinTones(currentSkinTone).map((skinTone, index) => (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}
@@ -68,25 +68,25 @@ function SkinTonePicker(props: Props) {
         {optionSkinTones}
       </Kb.Box2>
     ) : (
-      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
+      <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
         {circle(currentSkinTone, false, false, styles)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
     )
   ) : (
-    <Kb.Box2 direction="vertical" relative={true}>
+    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
       {expanded ? (
-        <Kb.Box2 direction="vertical" overflow="hidden" style={styles.popupContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer}>
           {optionSkinTones}
         </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+          <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
             {circle(currentSkinTone, false, false, styles)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
-      <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.dotPlaceholder} />
     </Kb.Box2>
   )
 }

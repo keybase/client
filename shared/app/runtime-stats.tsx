@@ -327,18 +327,18 @@ const RuntimeStatsMobile = ({stats}: Props) => {
   const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
     <>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={showLogs ? styles.modalLogStats : styles.modalLogStatsHidden}
         gap="xtiny"
       >
-        <Kb.ClickableBox onClick={() => setShowLogs(s => !s)} direction="vertical">
+        <Kb.ClickableBox alignSelf="center" onClick={() => setShowLogs(s => !s)} direction="vertical">
           <LogStats />
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
         {processStat && (
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 alignSelf="center" direction="vertical">
             <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
               <Kb.Text
                 style={Kb.Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity, styles)])}
@@ -358,7 +358,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,
@@ -374,7 +374,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
             type="BodyTiny"
           >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Text
             style={Kb.Styles.collapseStyles([
               styles.stat,

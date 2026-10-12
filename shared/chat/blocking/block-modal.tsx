@@ -59,7 +59,7 @@ const CheckboxRow = (props: CheckboxRowProps) => {
         onClick={() => onCheck(!checked)}
         style={styles.shrink}
       />
-      <Kb.Box2 direction="vertical" flex={1} style={styles.iconBox} />
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.iconBox} />
       {props.info && (
         <Kb.WithTooltip
           tooltip={props.info}

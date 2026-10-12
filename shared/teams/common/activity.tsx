@@ -112,7 +112,7 @@ const Activity = (p: Props) => {
   const theme = Kb.Styles.useTheme()
   const {level, style, iconOnly = false} = p
   return level === 'none' ? null : (
-    <Kb.Box2
+    <Kb.Box2 alignSelf={(isMobile && !iconOnly) ? undefined : 'center'}
       direction="horizontal"
       gap="xtiny"
       alignItems="center"

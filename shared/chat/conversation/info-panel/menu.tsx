@@ -224,7 +224,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
         key="teamHeader"
         style={Kb.Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
           <Kb.Avatar teamname={teamname} size={16} />
           <Kb.Text type="BodyBold">{teamname}</Kb.Text>
         </Kb.Box2>
@@ -459,7 +459,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
         participantTwo={channelHumans[1]}
         singleSize={isMobile ? 48 : 32}
       />
-      <Kb.Box2 alignItems="flex-start" direction="vertical">
+      <Kb.Box2 alignSelf="center" alignItems="flex-start" direction="vertical">
         <Kb.ConnectedUsernames
           colorFollowing={true}
           commaColor={theme.black_50}
@@ -489,7 +489,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
   // TODO: revert this back to memberCount if we can get one without bots cheaply.
   const {teamHumanCount} = InfoPanelCommon.useTeamHumans(props.teamID)
   return (
-    <Kb.Box2 alignItems="center" direction="horizontal" style={styles.headerContainer}>
+    <Kb.Box2 alignSelf="center" alignItems="center" direction="horizontal" style={styles.headerContainer}>
       <TeamAvatar
         teamname={props.teamname}
         isMuted={props.isMuted}

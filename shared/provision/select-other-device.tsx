@@ -32,7 +32,7 @@ const SelectOtherDevice = (props: Props) => {
     switch (item.type) {
       case 'header':
         return (
-          <Kb.Box2 direction="vertical" style={styles.headerText}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.headerText}>
             {!passwordRecovery && (
               <Kb.Text center={true} type="Body">
                 For security reasons, you need to authorize this{' '}
@@ -78,7 +78,7 @@ const SelectOtherDevice = (props: Props) => {
             icon={<DeviceIcon device={item.device} size={32} />}
             body={
               <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                   <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
                   <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
                 </Kb.Box2>

@@ -3,9 +3,9 @@ import * as Kb from '@/common-adapters'
 const Success = ({onClose}: {onClose: () => void}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" justifyContent="space-between" style={styles.container}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" justifyContent="space-between" style={styles.container}>
       <Kb.ImageIcon type="icon-folder-success-48" />
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="vertical">
         <Kb.Text center={true} type="BodySemibold">
           Success!
         </Kb.Text>

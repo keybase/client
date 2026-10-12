@@ -122,8 +122,8 @@ const WrapperMobile = (props: Props) => {
       testID={TestIDs.CHAT_EMOJI_PICKER}
       collapsable={false}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.ClickableBox direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
+      <Kb.Box2 direction="horizontal" alignItems="center">
+        <Kb.ClickableBox alignSelf="center" direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
         </Kb.ClickableBox>
         <Kb.SearchFilter
@@ -152,7 +152,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box2 direction="vertical" flex={1} />
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
@@ -192,7 +192,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
   const setFilter = C.useThrottledCallback(_setFilter, 200)
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.containerDesktop,
@@ -246,7 +246,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
             size={36}
           />
           {hoveredEmoji.teamname ? (
-            <Kb.Box2 direction="vertical" flex={1}>
+            <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {':' + hoveredEmoji.short_name + ':'}
               </Kb.Text>
@@ -255,7 +255,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
               </Kb.Text>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" flex={1}>
+            <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name)}
               </Kb.Text>

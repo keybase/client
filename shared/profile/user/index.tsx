@@ -47,7 +47,7 @@ type SbsTitleProps = {
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
-  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
+  <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center">
     {p.serviceIcon && <SiteIcon set={p.serviceIcon} full={false} />}
     <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
   </Kb.Box2>
@@ -195,7 +195,7 @@ const Tabs = (p: TabsProps) => {
   const onClickFollowing = () => onSelectTab('following')
   const onClickFollowers = () => onSelectTab('followers')
   const tab = (tab: Tab) => (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="horizontal"
       gap="xtiny"
       onClick={tab === 'following' ? onClickFollowing : onClickFollowers}
@@ -354,7 +354,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           style={styles.bioAndProofs}
         >
           <BioLayout {...props} />
-          <Kb.Box2 direction="vertical" noShrink={true} style={styles.proofs}>
+          <Kb.Box2 alignSelf="center" direction="vertical" noShrink={true} style={styles.proofs}>
             <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
               {props.reason}
             </Kb.Text>
@@ -511,7 +511,7 @@ const User = (props: {username: string}) => {
               )
             }
             return p.notAUser ? null : (
-              <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+              <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.textEmpty} centerChildren={true}>
                 <Kb.Text type="BodySmall">{item.text}</Kb.Text>
               </Kb.Box2>
             )

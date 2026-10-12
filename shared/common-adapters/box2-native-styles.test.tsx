@@ -14,7 +14,7 @@ g.isAndroid = false
 g.isElectron = false
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const {box2SharedPropsForTest} = require('./box') as typeof BoxModule
+const {box2ClassNamesForTest, box2SharedPropsForTest} = require('./box') as typeof BoxModule
 const {StyleSheet} = require('react-native') as typeof RN
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -55,11 +55,17 @@ const comboKey = (c: Combo) =>
 const sortKeys = (s: Style): Style =>
   Object.fromEntries(Object.keys(s).sort().map(k => [k, s[k]]))
 
+// The fixture holds the outputs of a Box2 that centered itself whenever fullWidth, fullHeight and
+// alignSelf were all unset. Inputs here carry the alignSelf="center" pin that reproduces those
+// outputs, so the fixture checks every other prop combination against them.
+const pinned = (c: Combo): Combo =>
+  !c.fullWidth && !c.fullHeight && c.alignSelf === undefined ? {...c, alignSelf: 'center'} : c
+
 // Undefined values are dropped, as JSON would drop them.
 const flatStyle = (c: Combo): Style => {
   // flatten returns undefined when every style entry is empty, which its typing omits
   const flat =
-    (StyleSheet.flatten(box2SharedPropsForTest(c as Props).style as RN.StyleProp<RN.ViewStyle>) as
+    (StyleSheet.flatten(box2SharedPropsForTest(pinned(c) as Props).style as RN.StyleProp<RN.ViewStyle>) as
       | Style
       | undefined) ?? {}
   return sortKeys(Object.fromEntries(Object.entries(flat).filter(([, v]) => v !== undefined)))
@@ -167,6 +173,13 @@ test('Box2 native styles match the committed fixture for every prop combination'
     const shown = changed.slice(0, 20).join('\n')
     throw new Error(`${changed.length} of ${combos.length} combinations changed:\n${shown}`)
   }
+})
+
+test('a box without fullWidth, fullHeight or alignSelf is not centered', () => {
+  const p: Props = {direction: 'vertical'}
+  const flat = StyleSheet.flatten(box2SharedPropsForTest(p).style as RN.StyleProp<RN.ViewStyle>) as Style | undefined
+  expect(flat?.['alignSelf']).toBeUndefined()
+  expect(box2ClassNamesForTest(p)).toBe('box2_vertical')
 })
 
 test('the matrix runs the native style path', () => {

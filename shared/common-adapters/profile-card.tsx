@@ -126,7 +126,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
         )
       })}
       {!!expandLabel && (
-        <Kb.ClickableBox onClick={() => setExpanded(true)} direction="vertical" style={styles.expand}>
+        <Kb.ClickableBox alignSelf="center" onClick={() => setExpanded(true)} direction="vertical" style={styles.expand}>
           <Kb.Meta title={expandLabel} backgroundColor={theme.greyDark} />
         </Kb.ClickableBox>
       )}
@@ -193,7 +193,7 @@ const ProfileCard = ({
   }
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       alignItems="center"
       relative={true}
@@ -305,7 +305,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       {popup}
     </>
   ) : (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}

@@ -19,7 +19,7 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
     width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
   } as const
   return (
-    <Box2
+    <Box2 alignSelf="center"
       direction="vertical"
       style={Styles.collapseStyles([
         styles.outer,
@@ -28,7 +28,7 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
         flatRight ? styles.flatRight : {},
       ])}
     >
-      <Box2 direction="vertical" style={animatedStyles} />
+      <Box2 alignSelf="center" direction="vertical" style={animatedStyles} />
     </Box2>
   )
 }

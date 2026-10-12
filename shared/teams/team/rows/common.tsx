@@ -113,7 +113,7 @@ export const MemberActions = (props: MemberMenuProps) => {
         username={username}
         fullName={fullName}
         label={
-          <Kb.Box2 direction="horizontal">
+          <Kb.Box2 alignSelf="center" direction="horizontal">
             <Kb.Text type="BodySmall">{crown}</Kb.Text>
             <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
           </Kb.Box2>
@@ -173,7 +173,7 @@ export const MemberActions = (props: MemberMenuProps) => {
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       gap="tiny"
       style={youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}

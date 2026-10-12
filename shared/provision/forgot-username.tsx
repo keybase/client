@@ -80,7 +80,7 @@ const ForgotUsername = () => {
       onBack={onBack}
       title="Recover username"
     >
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.wrapper}>
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" style={styles.wrapper}>
         <Kb.RadioButton
           label="Recover with email"
           onSelect={() => setEmailSelected(true)}

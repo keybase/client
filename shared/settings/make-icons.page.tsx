@@ -65,7 +65,7 @@ const Screen = __DEV__
           >
             {icons}
           </div>
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="horizontal"
             style={Kb.Styles.platformStyles({
               isElectron: {

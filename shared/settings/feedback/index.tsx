@@ -72,7 +72,7 @@ const Feedback = (props: Props) => {
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
           </Kb.Banner>
         )}
-        <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
+        <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
           <Kb.Input3
             textType="BodySemibold"
             autoCapitalize="sentences"
@@ -119,7 +119,7 @@ const Feedback = (props: Props) => {
             </Kb.ButtonBar>
           </Kb.Box2>
           {sendError && (
-            <Kb.Box2 direction="vertical" gap="small">
+            <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
               <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
               <Kb.Text type="BodySmall" selectable={true}>
                 {sendError}

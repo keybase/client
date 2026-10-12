@@ -140,7 +140,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const {action, amount, approxWorth, balanceChange, balanceChangeColor} = stateProps
   const {canceled, icon, loading, memo, pending, showCoinsIcon} = stateProps
   const balanceChangeBox = (
-    <Kb.Box2
+    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
       direction="horizontal"
       fullWidth={isMobile}
       style={styles.amountContainer}
@@ -170,7 +170,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {marginBottom: Kb.Styles.globalMargins.xtiny},
         ])}
       >
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center">
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapEnd={true} alignItems="center">
           {!!icon && (
             <Kb.Icon
               type={icon}

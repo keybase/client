@@ -156,7 +156,6 @@ const box2SharedProps = (p: Box2Props) => {
     directionStyle,
     fullHeight && nativeStyles.fullHeight,
     fullWidth && nativeStyles.fullWidth,
-    !fullHeight && !fullWidth && nativeStyles.centered,
     centerChildren && nativeStyles.centeredChildren,
     alignSelfStyle,
     alignItemsStyle,
@@ -203,7 +202,6 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
       [`box2_justifyContent_${justifyContent ?? ''}`]: justifyContent,
       [`box2_overflow_${overflow ?? ''}`]: overflow,
       [`box2_padding_${padding ?? ''}`]: padding,
-      box2_centered: !fullHeight && !fullWidth,
       box2_centeredChildren: centerChildren,
       box2_flex1: flex === 1,
       box2_fullHeight: fullHeight,
@@ -219,6 +217,8 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
     className
   )
 }
+
+export const box2ClassNamesForTest = box2ClassNames
 
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
@@ -276,7 +276,6 @@ const nativeStyles = {
   alignSelfEnd: {alignSelf: 'flex-end'},
   alignSelfStart: {alignSelf: 'flex-start'},
   alignSelfStretch: {alignSelf: 'stretch'},
-  centered: {alignSelf: 'center'},
   centeredChildren: Styles.centered(),
   flex1: {flex: 1},
   fullHeight: {height: '100%', maxHeight: '100%'},

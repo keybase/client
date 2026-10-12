@@ -5,7 +5,7 @@ export const HeaderTitle = () => {
   const styles = useStyles()
   const readHowUrlProps = Kb.useClickURL('https://keybase.io/blog/encrypted-git-for-everyone')
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       alignItems="flex-start"
       flex={1}

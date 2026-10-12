@@ -47,7 +47,7 @@ export const Negative: Story = {
   args: {type: 'Body', children: 'Negative (light text for dark backgrounds)', negative: true},
   decorators: [
     Story => (
-      <Box2 direction="vertical" style={{backgroundColor: Styles.getTheme().black, padding: Styles.globalMargins.medium}}>
+      <Box2 alignSelf="center" direction="vertical" style={{backgroundColor: Styles.getTheme().black, padding: Styles.globalMargins.medium}}>
         <Story />
       </Box2>
     ),
@@ -65,7 +65,7 @@ export const LineClamp: Story = {
 
 export const TypeShowcase: Story = {
   render: () => (
-    <Box2 direction="vertical" gap="small" style={{padding: Styles.globalMargins.medium}}>
+    <Box2 alignSelf="center" direction="vertical" gap="small" style={{padding: Styles.globalMargins.medium}}>
       {(['HeaderBig', 'Header', 'Body', 'BodySemibold', 'BodySmall', 'BodyTiny'] as const).map(type => (
         <Text key={type} type={type}>{type}: The quick brown fox</Text>
       ))}

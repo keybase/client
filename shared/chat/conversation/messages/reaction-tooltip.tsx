@@ -188,7 +188,7 @@ const ReactionTooltip = (p: OwnProps) => {
       style={styles.overlay}
     >
       <MessageContext value={messageContext}>
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           onMouseLeave={onMouseLeave}
           onMouseOver={onMouseOver}
           direction="vertical"

@@ -173,7 +173,7 @@ const Header = () => {
   }
 
   const leftSide = (
-    <Kb.Box2 direction="horizontal" style={styles.left}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.left}>
       {C.isTablet ? (
         <>
           <AccountSwitchHeaderAvatar />
@@ -202,7 +202,7 @@ const Header = () => {
           {fullName}
         </Kb.Text>
       ) : showActions && withoutSelf ? (
-        <Kb.Box2 direction="horizontal" flex={1}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" flex={1}>
           <Kb.Text type="Header" lineClamp={1}>
             {withoutSelf.map((part, i) => (
               <Kb.Text type="Header" key={part}>
@@ -241,7 +241,7 @@ const Header = () => {
       alignSelf="flex-end"
       style={styles.actionIcons}
     >
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         className="tooltip-left"
         direction="vertical"
         tooltip={`Search in this chat (${C.shortcutSymbol}F)`}
@@ -253,7 +253,7 @@ const Header = () => {
           testID={TestIDs.CHAT_HEADER_SEARCH_BUTTON}
         />
       </Kb.Box2>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         className="tooltip-left"
         direction="vertical"
         tooltip={folderPath ? 'Open folder' : 'Folder unavailable'}
@@ -265,7 +265,7 @@ const Header = () => {
           onClick={folderPath ? onOpenFolder : undefined}
         />
       </Kb.Box2>
-      <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
+      <Kb.Box2 alignSelf="center" className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
         <Kb.Icon
           color={infoPanelShowing ? theme.blue : undefined}
           style={styles.clickable}
@@ -307,7 +307,7 @@ const Header = () => {
   ) : null
 
   return (
-    <Kb.Box2 direction="horizontal" flex={1} style={styles.container}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.container}>
       {leftSide}
       <Kb.Box2
         direction="horizontal"
@@ -318,7 +318,7 @@ const Header = () => {
         alignSelf="flex-end"
       >
         <Kb.BoxGrow2 style={{height: '100%'}}>
-          <Kb.Box2 direction="vertical" style={styles.headerTitle}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.headerTitle}>
             {topRow}
             {bottomRow}
           </Kb.Box2>

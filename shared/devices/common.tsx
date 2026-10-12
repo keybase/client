@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => {
   const headerStyles = useHeaderStyles()
   return (
-    <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={headerStyles.headerTitle}>
       <Kb.Text type="Header">Devices</Kb.Text>
       <Kb.Text type="BodySmall">
         {activeCount} Active • {revokedCount} Revoked

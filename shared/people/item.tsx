@@ -29,12 +29,12 @@ const PeopleItem = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
       {!!props.icon && (
-        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
           {props.icon}
         </Kb.Box2>
       )}
 
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         flex={1}
         gap="xtiny"
@@ -47,7 +47,7 @@ const PeopleItem = (props: Props) => {
             props.buttons.length > 0 &&
             props.buttons.map((b, idx) =>
               React.isValidElement(b) ? (
-                <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
+                <Kb.Box2 alignSelf="center" key={idx} direction="vertical" style={styles.button}>
                   {b}
                 </Kb.Box2>
               ) : (
@@ -56,7 +56,7 @@ const PeopleItem = (props: Props) => {
             )}
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="horizontal"
         alignItems="center"
         style={Kb.Styles.collapseStyles([

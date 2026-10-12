@@ -5,7 +5,7 @@ import {useSafeAreaFrame} from 'react-native-safe-area-context'
 function TabletHeader() {
   const {width} = useSafeAreaFrame()
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       // ios only allows centered so we do some margin to help spread it out
       style={{height: 48, marginLeft: -20, width}}

@@ -84,7 +84,7 @@ const ContactRow = function ContactRow({
       type="Small"
       firstItem={index === 0}
       body={
-        <Kb.Box2 direction="vertical" alignItems="flex-start">
+        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start">
           <Kb.Text type="BodySemibold">{topText}</Kb.Text>
           {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
         </Kb.Box2>

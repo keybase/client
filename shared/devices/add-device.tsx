@@ -47,7 +47,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
   }
   return (
     <Kb.ScrollView alwaysBounceVertical={false}>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         gap="medium"
         alignItems="center"
@@ -58,7 +58,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
         <Kb.Text type="Body" center={true}>
           Protect your account by having more devices and paper keys.
         </Kb.Text>
-        <Kb.Box2 direction="vertical" gap="mediumLarge" style={styles.deviceOptions} gapEnd={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" gap="mediumLarge" style={styles.deviceOptions} gapEnd={true}>
           <DeviceOption
             iconNumber={iconNumbers.desktop}
             onClick={onAddComputer}
@@ -97,7 +97,7 @@ const deviceOptionTypeMap = {
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => {
   const styles = useStyles()
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       onClick={onClick}
       className="hover_background_color_blueLighter2"
       style={Kb.Styles.collapseStyles([

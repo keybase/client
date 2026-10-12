@@ -30,9 +30,9 @@ const AvatarLine = (props: Props) => {
   const styles = useStyleMap().get(props.size)?.[props.layout]
   if (!styles) return null
   return (
-    <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
+    <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf ?? 'center'}>
       {!!extra && (
-        <Kb.Box2 direction={props.layout} alignItems="center" justifyContent="flex-end" style={styles.overflowBox}>
+        <Kb.Box2 alignSelf="center" direction={props.layout} alignItems="center" justifyContent="flex-end" style={styles.overflowBox}>
           <Kb.Text type={getTextSize(props.size)} style={styles.text}>
             +{extra}
           </Kb.Text>

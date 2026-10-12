@@ -57,9 +57,9 @@ const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 const DesktopFakeRow = ({idx}: {idx: number}) => {
   const desktopStyles = useDesktopStyles()
   return (
-    <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRow}>
-      <Kb.Box2 direction="vertical" style={desktopStyles.fakeAvatar} />
-      <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={desktopStyles.fakeText}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.fakeRow}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.fakeAvatar} />
+      <Kb.Box2 alignSelf="center" direction="vertical" justifyContent="space-around" flex={1} style={desktopStyles.fakeText}>
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([desktopStyles.fakeTextTop, {width: stableWidth(idx) / 4}])}
@@ -77,7 +77,7 @@ const DesktopFakeRow = ({idx}: {idx: number}) => {
 
 const DesktopFakeRemovingRow = () => {
   const desktopStyles = useDesktopStyles()
-  return <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRemovingRow} />
+  return <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.fakeRemovingRow} />
 }
 
 const dragKey = 'application/keybase_inbox'
@@ -174,7 +174,7 @@ const DesktopDragLine = (p: {
   const overlay =
     dragY !== -1 && (expandingRows.length > 0 || removingRows.length > 0) && scrollDiv.current
       ? createPortal(
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="vertical"
             style={Kb.Styles.collapseStyles([
               desktopStyles.fakeRowContainer,
@@ -206,13 +206,13 @@ const DesktopDragLine = (p: {
             onDragEnd={onDragEnd}
             style={Kb.Styles.castStyleDesktop(desktopStyles.grabber)}
           >
-            <Kb.Box2 className="grabLines" direction="vertical" style={desktopStyles.grabberLineContainer}>
-              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
-              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
-              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
+            <Kb.Box2 alignSelf="center" className="grabLines" direction="vertical" style={desktopStyles.grabberLineContainer}>
+              <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.grabberLine} />
+              <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.grabberLine} />
+              <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box2 direction="vertical" style={desktopStyles.spacer} />
+          <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.spacer} />
         </>
       )}
       <ConnectedTeamsDivider
@@ -244,7 +244,7 @@ const NativeNoChats = (props: {onNewChat: () => void}) => {
         style={nativeStyles.noChatsContainer}
       >
         <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Text type="BodySmall" center={true}>
             All conversations are
           </Kb.Text>
@@ -272,7 +272,7 @@ const NativeNoChatsWrapper = ({children}: {children: React.ReactNode}) => {
         {children}
       </ScreensSafeAreaView>
     ) : (
-      <Kb.Box2 direction="vertical" style={nativeStyles.noChatsWrapper}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={nativeStyles.noChatsWrapper}>
         {children}
       </Kb.Box2>
     )
@@ -302,7 +302,7 @@ const NativeLoadingLine = () => {
   const nativeStyles = useNativeStyles()
   const isLoading = C.Waiting.useAnyWaiting([C.waitingKeyChatInboxRefresh, C.waitingKeyChatInboxSyncStarted])
   return isLoading ? (
-    <Kb.Box2 direction="vertical" style={nativeStyles.loadingContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={nativeStyles.loadingContainer}>
       <Kb.LoadingLine />
     </Kb.Box2>
   ) : null

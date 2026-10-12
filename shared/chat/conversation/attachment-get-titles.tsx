@@ -362,7 +362,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         <Kb.ClickableBox direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
           {pathAndInfos.length > 0 && !isMobile && (
-            <Kb.Box2 direction="vertical" style={styles.filename}>
+            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.filename}>
               <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
               <Kb.Text type="BodySmall" center={true}>
                 {info.filename} ({index + 1} of {pathAndInfos.length})
@@ -391,7 +391,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           </Kb.Box2>
         </Kb.ClickableBox>
         {progress ? (
-          <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
             <Kb.ProgressIndicator />
             {/* done counts completed items; the label names the one in flight */}
             <Kb.Text type="BodySmall">{`Processing ${Math.min(progress.done + 1, progress.total)} of ${progress.total}...`}</Kb.Text>

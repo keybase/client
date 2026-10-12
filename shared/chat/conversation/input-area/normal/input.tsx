@@ -489,7 +489,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="vertical"
       alignItems="center"
       justifyContent="flex-end"
@@ -504,7 +504,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
       ])}
     >
       {popup}
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         alignItems="center"
         style={desktopStyles.explodingInsideWrapper}
@@ -555,7 +555,7 @@ const EmojiButton = function EmojiButton() {
 
   return (
     <>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={desktopStyles.icon}
         ref={popupAnchor}
@@ -578,7 +578,7 @@ const GiphyButton = function GiphyButton() {
   const toggleGiphyPrefill = InputState.useConversationInputDispatch(s => s.toggleGiphyPrefill)
 
   return (
-    <Kb.Box2 direction="vertical" style={desktopStyles.icon} tooltip="GIF" className="tooltip-top-left">
+    <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.icon} tooltip="GIF" className="tooltip-top-left">
       <Kb.Icon onClick={toggleGiphyPrefill} type="iconfont-gif" />
     </Kb.Box2>
   )
@@ -624,7 +624,7 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HtmlInputRef | n
   }
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={desktopStyles.icon}
       tooltip="Attachment"
@@ -755,7 +755,7 @@ const SideButtons = (p: SideButtonsProps) => {
   const desktopStyles = useDesktopStyles()
   const {setHtmlInputRef, cannotWrite} = p
   return (
-    <Kb.Box2 direction="horizontal" style={desktopStyles.sideButtons}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
@@ -817,7 +817,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
         onKeyPress={globalKeyDownPressHandler as never}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.container}>
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="horizontal"
             alignItems="flex-end"
             style={Kb.Styles.collapseStyles([
@@ -843,7 +843,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={desktopStyles.inputBox}>
+            <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} overflow="hidden" style={desktopStyles.inputBox}>
               <DesktopInput
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
@@ -1006,9 +1006,9 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.ClickableBox direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
+    <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
-        <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>
             {formatDurationShort(explodingModeSeconds * 1000)}
           </Kb.Text>
@@ -1038,9 +1038,9 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" testID={TestIDs.CHAT_MENTION_BUTTON} />
         </>
       )}
-      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && !cannotWrite && (
-        <Kb.Box2 direction="horizontal" alignItems="flex-end">
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" testID={TestIDs.CHAT_CAMERA_BUTTON} />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" testID={TestIDs.CHAT_MORE_BUTTON} />

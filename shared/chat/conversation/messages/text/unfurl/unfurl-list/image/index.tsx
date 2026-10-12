@@ -50,7 +50,7 @@ const UnfurlImage = (p: Props) => {
       width={width}
     />
   ) : (
-    <Kb.ClickableBox direction="vertical" onClick={onClick || onOpenURL}>
+    <Kb.ClickableBox alignSelf="center" direction="vertical" onClick={onClick || onOpenURL}>
       <Kb.Image
         src={url}
         style={Kb.Styles.collapseStyles([

@@ -9,7 +9,7 @@ const AddBotRow = (props: Props) => {
   const {teamID} = props
 
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.container}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.container}>
       <Kb.Button
         type="Default"
         mode="Secondary"

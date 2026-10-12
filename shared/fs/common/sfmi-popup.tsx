@@ -38,7 +38,7 @@ const SFMIPopup = (props: Props) => {
           fullWidth={true}
           onClick={e => e?.stopPropagation()}
         >
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
             <Kb.ImageIcon type="icon-fancy-finder-132-96" />
           </Kb.Box2>
           <Kb.Text type="BodyBig" style={styles.text}>
@@ -72,7 +72,7 @@ const SFMIPopup = (props: Props) => {
     <>
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
-          <Kb.Box2 direction="vertical" ref={popupAnchor}>
+          <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor}>
             <Kb.Icon
               type="iconfont-finder"
               padding="tiny"

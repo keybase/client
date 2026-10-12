@@ -46,7 +46,7 @@ const LabelContainer = (props: Props) =>
         {props.children}
       </Kb.WithTooltip>
     ) : (
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         onClick={props.allowLabelClick ? props.onClick : undefined}
         direction="vertical"
         style={styles.labelContainer}
@@ -68,7 +68,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   const {ref} = props
   const content = (
     <>
-      <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical">
+      <Kb.ClickableBox alignSelf="center" onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical">
         <SwitchToggle
           on={props.on}
           color={props.color || 'blue'}
@@ -80,8 +80,8 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
           ] as const)}
         />
       </Kb.ClickableBox>
-      {!!props.gapInBetween && <Kb.Box2 direction="vertical" flex={1} />}
-      {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
+      {!!props.gapInBetween && <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />}
+      {!!props.gapSize && <Kb.Box2 alignSelf="center" direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
           <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
@@ -99,7 +99,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   )
 
   return isMobile || !props.labelTooltip ? (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'}
       style={Styles.collapseStyles([styles.autoAlignSelf, styles.container, props.style])}
     >

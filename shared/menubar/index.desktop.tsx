@@ -86,7 +86,7 @@ const ArrowTick = () => {
   const theme = Kb.Styles.useTheme()
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.arrowTick,
@@ -135,13 +135,13 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
         httpSrvAddress={httpSrvAddress}
         httpSrvToken={httpSrvToken}
       />
-      <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
             <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
               {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
             </Kb.Text>
-            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
+            {conv.hasBadge && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.chatBadge} />}
           </Kb.Box2>
           {!!timestamp && (
             <Kb.Text
@@ -208,7 +208,7 @@ const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void
     >
       <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
       {p.uploading && (
-        <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.fileIconBadgeBox}>
           <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
         </Kb.Box2>
       )}
@@ -436,14 +436,14 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         {backgroundColor: isDarkMode ? '#2d2d2d' : theme.blueDark},
       ])}
     >
-      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />
             ))
           : null}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
         <Kb.Icon
           color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
           hoverColor={theme.whiteOrWhite}
@@ -490,7 +490,7 @@ const LoggedIn = (p: Props) => {
           </Kb.Box2>
         )}
       </Kb.ScrollView>
-      <Kb.Box2 direction="vertical" style={styles.footer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
           isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}
@@ -560,7 +560,7 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
       {isDarwin && <ArrowTick />}
       <IconBar {...p} showBadges={loggedIn} />
       {content}
@@ -574,7 +574,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-      <Kb.Box2 direction="vertical" relative={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
         <Kb.Icon type={iconType} color={theme.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
@@ -610,7 +610,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.badgeIconContainer}>
       <Kb.Icon
         color={isDarkMode ? theme.black_50OrBlack_60 : theme.blueDarker}
         hoverColor={theme.whiteOrWhite}

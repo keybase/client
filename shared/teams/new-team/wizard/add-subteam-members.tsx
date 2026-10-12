@@ -71,7 +71,7 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
         type="Small"
         icon={<Kb.Avatar username={m.username} size={32} />}
         body={
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 alignSelf="center" direction="vertical">
             <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />
             <Kb.Text type="BodySmall" lineClamp={1}>
               {m.fullName}

@@ -198,7 +198,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
       icon={<Kb.Avatar size={32} username={member.username} />}
       onClick={() => navToProfile(member.username)}
       body={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
+        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (

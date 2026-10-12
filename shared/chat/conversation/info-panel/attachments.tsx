@@ -201,11 +201,11 @@ const MediaThumb = React.memo(function MediaThumb(props: MediaThumbProps) {
   const theme = Kb.Styles.useTheme()
   const {sizing, thumb} = props
   return (
-    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
-      <Kb.ClickableBox direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
+    <Kb.Box2 alignSelf="center" direction="vertical" relative={true} overflow="hidden">
+      <Kb.ClickableBox alignSelf="center" direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
-          <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
-            <Kb.Box2 direction="vertical" centerChildren={true} padding="tiny" style={styles.audioBackground}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
+            <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} padding="tiny" style={styles.audioBackground}>
               <Kb.Icon
                 type="iconfont-mic"
                 style={{marginLeft: 2}}
@@ -303,7 +303,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
       style={styles.selectorContainer}
       fullWidth={true}
     >
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         direction="vertical"
         centerChildren={true}
         flex={1}
@@ -318,7 +318,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Media
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         direction="vertical"
         centerChildren={true}
         flex={1}
@@ -333,7 +333,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Docs
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         direction="vertical"
         centerChildren={true}
         flex={1}
