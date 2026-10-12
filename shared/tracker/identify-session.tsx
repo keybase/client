@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import {isQuietCancel, RPCError} from '@/util/errors'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
 import {getVisibleScreen, navigateAppend, navigateUp} from '@/constants/router'
 import {produce} from 'immer'
@@ -215,7 +215,8 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
       waitingKey: C.waitingKeyTrackerProfileLoad,
     })
   } catch (error) {
-    if (!(error instanceof RPCError) || s.generation !== generation) {
+    // A cancel (an account switch, the session going away) is no failure of this user's identify
+    if (!(error instanceof RPCError) || s.generation !== generation || isQuietCancel(error)) {
       return
     }
     if (error.code === T.RPCGen.StatusCode.scresolutionfailed) {

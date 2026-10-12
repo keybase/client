@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import logger from '@/logger'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {settle} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
@@ -439,6 +440,18 @@ describe('identify failures through the engine listener', () => {
     expect(nav.types()[0]).toBe('GO_BACK')
     expect(nav.navigations()).toEqual([expect.objectContaining({name: 'keybaseLinkError'})])
     expect(getProfileDetails('testuser')?.state).toBe('error')
+  })
+
+  test.each([
+    ['a session cancel', T.RPCGen.StatusCode.sccanceled],
+    ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
+  ])('%s logs no error and navigates nowhere', async (_, code) => {
+    const errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    await failIdentify(code)
+
+    expect(errorLog).not.toHaveBeenCalled()
+    expect(nav.types()).toEqual([])
   })
 
   test('a user that does not exist leaves the screen alone when the profile is not showing', async () => {
