@@ -35,6 +35,7 @@ const SetPublicName = ({route}: Props) => {
   const onSubmit = () => {
     if (!waiting) submitProvisionDeviceName(cleanDeviceName)
   }
+  const inModal = !!Kb.useModalBox()
   const onChangeDeviceName = (name: string) => {
     setReadyToShowError(false)
     setDeviceName(makeCleanDeviceName(name))
@@ -69,7 +70,11 @@ const SetPublicName = ({route}: Props) => {
     >
       <Kb.Box2 alignSelf="center" direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
-        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([styles.wrapper, inModal && styles.wrapperModal])}
+          gap="xsmall"
+        >
           <Kb.Input3
             textType="BodySemibold"
             autoFocus={true}
@@ -111,6 +116,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     isElectron: {width: 400},
     isMobile: {width: '100%'},
   }),
+  // a fixed width overflows the desktop modal box
+  wrapperModal: Kb.Styles.platformStyles({isElectron: {maxWidth: 400, width: '100%'}}),
 }))
 
 export default SetPublicName

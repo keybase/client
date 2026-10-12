@@ -54,6 +54,37 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const onGoToSignup = () => {
     requestAutoInvite(username)
   }
+  // in a modal the box already scrolls
+  const inModal = !!Kb.useModalBox()
+
+  const card = (
+    <UserCard
+      style={styles.card}
+      avatarBackgroundStyle={styles.outerCardAvatar}
+      outerStyle={Kb.Styles.collapseStyles([styles.outerCard, inModal && styles.outerCardModal])}
+      avatarSize={96}
+    >
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([styles.wrapper, inModal && styles.wrapperModal])}
+        gap="xsmall"
+      >
+        <Kb.Input3
+          autoFocus={true}
+          placeholder="Username"
+          maxLength={C.maxUsernameLength}
+          onEnterKeyDown={onSubmit}
+          onChangeText={setUsername}
+          value={username}
+          textType="BodySemibold"
+        />
+        <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
+          Forgot username?
+        </Kb.Text>
+      </Kb.Box2>
+    </UserCard>
+  )
 
   return (
     <SignupScreen
@@ -97,33 +128,17 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
       ]}
       contentContainerStyle={styles.contentContainer}
     >
-      <Kb.ScrollView
-        alwaysBounceVertical={false}
-        style={styles.fill}
-        contentContainerStyle={styles.scrollContentContainer}
-      >
-        <UserCard
-          style={styles.card}
-          avatarBackgroundStyle={styles.outerCardAvatar}
-          outerStyle={styles.outerCard}
-          avatarSize={96}
+      {inModal ? (
+        card
+      ) : (
+        <Kb.ScrollView
+          alwaysBounceVertical={false}
+          style={styles.fill}
+          contentContainerStyle={styles.scrollContentContainer}
         >
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.Input3
-              autoFocus={true}
-              placeholder="Username"
-              maxLength={C.maxUsernameLength}
-              onEnterKeyDown={onSubmit}
-              onChangeText={setUsername}
-              value={username}
-              textType="BodySemibold"
-            />
-            <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
-              Forgot username?
-            </Kb.Text>
-          </Kb.Box2>
-        </UserCard>
-      </Kb.ScrollView>
+          {card}
+        </Kb.ScrollView>
+      )}
     </SignupScreen>
   )
 }
@@ -152,11 +167,14 @@ const useStyles = Kb.Styles.createStyleHook(
         isElectron: {height: 'unset'},
       }),
       outerCardAvatar: {backgroundColor: theme.transparent},
+      // UserCard is a fixed 410 wide on desktop, wider than a small modal box
+      outerCardModal: Kb.Styles.platformStyles({isElectron: {maxWidth: 410, width: '100%'}}),
       scrollContentContainer: Kb.Styles.platformStyles({
         isElectron: {margin: 'auto'},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
       }),
       wrapper: {width: Kb.Styles.globalStyles.mediumWidth},
+      wrapperModal: Kb.Styles.platformStyles({isElectron: {width: '100%'}}),
     }) as const
 )
 

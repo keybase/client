@@ -53,6 +53,7 @@ const ForgotUsername = () => {
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === undefined) || (emailSelected && !email)
+  const inModal = !!Kb.useModalBox()
 
   return (
     <SignupScreen
@@ -76,7 +77,12 @@ const ForgotUsername = () => {
         },
       ]}
     >
-      <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" style={styles.wrapper}>
+      <Kb.Box2
+        alignSelf="center"
+        direction="vertical"
+        gap="tiny"
+        style={Kb.Styles.collapseStyles([styles.wrapper, inModal && styles.wrapperModal])}
+      >
         <Kb.RadioButton
           label="Recover with email"
           onSelect={() => setEmailSelected(true)}
@@ -137,6 +143,8 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
       width: '100%',
     },
   }),
+  // a fixed width overflows the desktop modal box
+  wrapperModal: Kb.Styles.platformStyles({isElectron: {maxWidth: 400, width: '100%'}}),
 }))
 
 export default ForgotUsername

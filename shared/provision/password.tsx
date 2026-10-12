@@ -26,6 +26,38 @@ const Password = ({route}: Props) => {
   }
   const [password, setPassword] = React.useState('')
   const onSubmit = () => !waiting && submitProvisionPassphrase(password)
+  // in a modal the box already scrolls
+  const inModal = !!Kb.useModalBox()
+
+  const card = (
+    <UserCard
+      style={styles.card}
+      username={username}
+      avatarBackgroundStyle={styles.outerCardAvatar}
+      outerStyle={Kb.Styles.collapseStyles([styles.outerCard, inModal && styles.outerCardModal])}
+      avatarSize={96}
+    >
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([styles.wrapper, inModal && styles.wrapperModal])}
+        gap="xsmall"
+      >
+        <Kb.Input3
+          autoFocus={true}
+          placeholder="Password"
+          onEnterKeyDown={onSubmit}
+          onChangeText={setPassword}
+          value={password}
+          textType="BodySemibold"
+          secureTextEntry={true}
+        />
+        <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={onForgotPassword}>
+          Forgot password?
+        </Kb.Text>
+      </Kb.Box2>
+    </UserCard>
+  )
 
   return (
     <SignupScreen
@@ -54,34 +86,17 @@ const Password = ({route}: Props) => {
       ]}
       contentContainerStyle={styles.contentContainer}
     >
-      <Kb.ScrollView
-        alwaysBounceVertical={false}
-        style={styles.fill}
-        contentContainerStyle={styles.scrollContentContainer}
-      >
-        <UserCard
-          style={styles.card}
-          username={username}
-          avatarBackgroundStyle={styles.outerCardAvatar}
-          outerStyle={styles.outerCard}
-          avatarSize={96}
+      {inModal ? (
+        card
+      ) : (
+        <Kb.ScrollView
+          alwaysBounceVertical={false}
+          style={styles.fill}
+          contentContainerStyle={styles.scrollContentContainer}
         >
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.Input3
-              autoFocus={true}
-              placeholder="Password"
-              onEnterKeyDown={onSubmit}
-              onChangeText={setPassword}
-              value={password}
-              textType="BodySemibold"
-              secureTextEntry={true}
-            />
-            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={onForgotPassword}>
-              Forgot password?
-            </Kb.Text>
-          </Kb.Box2>
-        </UserCard>
-      </Kb.ScrollView>
+          {card}
+        </Kb.ScrollView>
+      )}
     </SignupScreen>
   )
 }
@@ -111,6 +126,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   outerCardAvatar: {
     backgroundColor: theme.transparent,
   },
+  // UserCard is a fixed 410 wide on desktop, wider than a small modal box
+  outerCardModal: Kb.Styles.platformStyles({isElectron: {maxWidth: 410, width: '100%'}}),
   scrollContentContainer: Kb.Styles.platformStyles({
     isElectron: {
       margin: 'auto',
@@ -125,6 +142,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       width: '100%',
     },
   }),
+  wrapperModal: Kb.Styles.platformStyles({isElectron: {width: '100%'}}),
 }))
 
 export default Password
