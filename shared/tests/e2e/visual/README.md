@@ -85,7 +85,9 @@ pinned:
   unfurls) on their first frame, and parks the mouse outside the window.
 - iOS: status bar override (9:41, full signal and battery), Reduce Motion and Reduce Transparency
   on (the app is relaunched to pick them up), auto-focused inputs blurred, video players paused on
-  their first frame, and captures settle on two equal frames a second apart. A `scrollIntoView`
+  their first frame, and captures settle on two equal frames a second apart. A reset that popped a
+  screen or closed a modal settles on screen before its tab hop: the native tab bar drops a
+  switch made while a pop runs. A `scrollIntoView`
   whose target does not show whole (as much of it as fits, for one longer than what scrolls it)
   scrolls it to the middle, as desktop's `scrollIntoViewIfNeeded` does (again once it stops moving,
   up to three times, while a row still laying out leaves it in part), from JS

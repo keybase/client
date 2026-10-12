@@ -485,12 +485,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   // The switch back settles on screen before the capture goes on: a tab root captured right after
   // it drew its header title and the tab bar a little differently from one captured later.
   const toTabRoot = async (tab: string) => {
+    let popped = !(await routerAt()).atRoot
     await appEval(`${ROUTER} r.clearModals()`, 'clearModals')
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
     await switchTo(tab)
+    popped ||= !(await routerAt()).atRoot
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt()).atRoot)
+    // The router is at the root at once, but a native pop or modal dismissal runs on after it, and
+    // the native tab bar drops a tab switch made while one runs (seen after
+    // chat/attachment-fullscreen's modal: the hop's switch never took), so it ends before the hop.
+    if (popped) await settle(screenshot, SETTLE)
   }
   const hopBack = async (tab: string) => {
     await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
