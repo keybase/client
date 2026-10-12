@@ -4,7 +4,7 @@
 # shellcheck disable=SC2034
 
 # Root of the client checkout this file lives in.
-KB_CLIENT_DIR="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+KB_CLIENT_DIR="$(CDPATH='' cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 KB_CODESIGN_IDENTITY="90524F7BEAEACD94C7B473787F4949582F904104"

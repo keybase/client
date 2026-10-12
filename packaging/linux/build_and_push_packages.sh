@@ -15,7 +15,6 @@ build_dir="$2"
 here="$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck source=packaging/lib.sh
 source "$here/../lib.sh"
-client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 
 echo "================================="
 echo "================================="
