@@ -10,7 +10,7 @@ set -e -u -o pipefail
 here="$(dirname "${BASH_SOURCE[0]}")"
 mode="$("$here/build_mode.sh" "$@")"
 
-version_file="$(dirname "${BASH_SOURCE[0]}")/../go/libkb/version.go"
+version_file="$here/../go/libkb/version.go"
 version="$(cat "$version_file" | grep 'Version =' | grep -oE '[0-9]+(.[0-9]+)+')"
 build=""
 

@@ -71,7 +71,7 @@ fi
 
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)""${KB_CI_CONTEXTS[@]}"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)" "${KB_CI_CONTEXTS[@]}"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
