@@ -656,16 +656,21 @@ func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord)
 }
 
 func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
-	bgctx := globals.ChatCtx(context.Background(), s.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
-	bgctx = libkb.WithLogTag(bgctx, "KDELV")
-	s.Debug(bgctx, "deliverLoop: starting non blocking sender kbfs deliver loop: uid: %s",
+	// ChatCtx records the session epoch on the context it returns, and this
+	// loop is running before MarkChatReady bumps that epoch. Stamp on each
+	// flush, as deliverForConv does, so a send after the session is ready is
+	// not stuck on the pre-ready epoch.
+	ctx := libkb.WithLogTag(context.Background(), "KDELV")
+	s.Debug(ctx, "deliverLoop: starting non blocking sender kbfs deliver loop: uid: %s",
 		s.outbox.GetUID())
 	for {
 		select {
 		case <-shutdownCh:
-			s.Debug(bgctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			s.Debug(ctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return nil
 		case obr := <-s.kbfsDeliverQueue:
+			bgctx := globals.ChatCtx(context.Background(), s.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
+			bgctx = libkb.WithLogTag(bgctx, "KDELV")
 			s.Debug(bgctx, "deliverLoop: flushing record obr for %v", obr.ConvID)
 			if _, _, err := s.sender.Send(bgctx, obr.ConvID, obr.Msg, 0, nil, nil, nil); err != nil {
 				s.Debug(bgctx, "Unable to deliver msg: %v", err)

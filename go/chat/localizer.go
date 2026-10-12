@@ -109,6 +109,15 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	case <-ctx.Done():
 		return res, ctx.Err()
 	}
+	for _, conv := range res {
+		if conv.GetConvID().IsNil() {
+			// The pipeline closed the result channel without a conversation.
+			// A stale session does that: localizeConversations returns
+			// AbortedError, which is not context.Canceled, so the job is not
+			// retried. Waiting here would leave BlockingSender.Send stuck.
+			return res, storage.NewAbortedError()
+		}
+	}
 	return res, nil
 }
 
@@ -217,6 +226,12 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	res.gateCh = make(chan struct{})
 	copy(res.pending, l.pending)
 	return res
+}
+
+func (l *localizerPipelineJob) abandonPending() {
+	l.Lock()
+	defer l.Unlock()
+	l.pending = nil
 }
 
 func (l *localizerPipelineJob) closeIfDone() bool {
@@ -489,10 +504,17 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		if err := s.localizeConversations(job); errors.Is(err, context.Canceled) {
+		err := s.localizeConversations(job)
+		if errors.Is(err, context.Canceled) {
 			// just put this right back if we canceled it
 			s.Debug(job.ctx, "localizeJobPulled[%s]: re-enqueuing canceled job", id)
 			s.jobQueue <- job.retry(s.G())
+		} else if _, ok := err.(storage.AbortedError); ok {
+			// Stale session, returned before any conv is delivered. Pending is
+			// still full, so closeIfDone would leave retCh open and the
+			// blocking localizer would wait forever.
+			s.Debug(job.ctx, "localizeJobPulled[%s]: abandoning aborted job: %v", id, err)
+			job.abandonPending()
 		}
 		if job.closeIfDone() {
 			s.Debug(job.ctx, "localizeJobPulled[%s]: all job tasks complete", id)
