@@ -2,8 +2,7 @@ import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as React from 'react'
 import type * as Styles from '@/styles'
 
-// Anchored to an on-screen element. Desktop measures the anchor and positions
-// against it; mobile has no positioner and only covers the screen, so it reads
+// Anchored to an on-screen element. Desktop positions against the anchor; mobile has no positioner and only covers the screen, so it reads
 // none of the placement props.
 export type AnchoredPopupProps = {
   children: React.ReactNode
@@ -13,7 +12,6 @@ export type AnchoredPopupProps = {
   positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean
   matchDimension?: boolean
-  remeasureHint?: number
   offset?: number
   containerStyle?: Styles.StylesCrossPlatform
   // desktop only: styles the shadowed box drawn around the content, which only
@@ -59,7 +57,6 @@ export type PopupProps = SharedPopupProps &
         | 'position'
         | 'positionFallbacks'
         | 'propagateOutsideClicks'
-        | 'remeasureHint'
       >)
     | {intent: 'dialog'}
   )

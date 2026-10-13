@@ -6,6 +6,16 @@ import {Box2} from '../box'
 import {GlobalKeyEventHandler} from '../key-event-handler.desktop'
 import {ModalCover} from './modal-cover.desktop'
 
+// jsdom has no showModal
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+  }
+})
+
 const renderCover = (onHidden?: () => void) => {
   const {container} = render(
     <GlobalKeyEventHandler>
@@ -14,9 +24,11 @@ const renderCover = (onHidden?: () => void) => {
       </ModalCover>
     </GlobalKeyEventHandler>
   )
+  const dialog = container.querySelector('dialog')
   return {
     content: screen.getByText('content'),
-    cover: container.firstElementChild as HTMLElement,
+    cover: dialog?.firstElementChild as HTMLElement,
+    dialog,
   }
 }
 
@@ -29,8 +41,9 @@ describe('ModalCover', () => {
     cleanup()
   })
 
-  test('renders its children on the cover', () => {
-    const {content, cover} = renderCover(() => {})
+  test('renders its children on the cover, in a modal dialog', () => {
+    const {content, cover, dialog} = renderCover(() => {})
+    expect(dialog?.open).toBe(true)
     expect(cover.contains(content)).toBe(true)
   })
 
@@ -72,6 +85,16 @@ describe('ModalCover', () => {
     renderCover(onHidden)
     pressEscape()
     expect(onHidden).toHaveBeenCalledTimes(1)
+  })
+
+  // an input that handles Escape stops it, and Chromium then fires cancel on the dialog
+  test('an escape an input already handled does not dismiss', () => {
+    const onHidden = jest.fn()
+    const {dialog} = renderCover(onHidden)
+    const cancel = new Event('cancel', {cancelable: true})
+    dialog?.dispatchEvent(cancel)
+    expect(cancel.defaultPrevented).toBe(true)
+    expect(onHidden).not.toHaveBeenCalled()
   })
 
   test('other keys do not dismiss', () => {

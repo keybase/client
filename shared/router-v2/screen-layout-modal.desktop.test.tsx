@@ -7,6 +7,16 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
 
+// jsdom has no showModal
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+  }
+})
+
 // A headerTitle component that forgets its Kb.Text renders bare text into the header.
 // It must still come out in the Header style, not the browser default.
 const BareTitle = () => <>Join a team</>

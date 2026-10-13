@@ -6,6 +6,7 @@ import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getTextStyle} from '@/common-adapters/text.styles'
+import {ModalDialog} from '@/common-adapters/popup/modal-dialog.desktop'
 
 type ModalHeaderProps = {
   // the route's headerStyle, for a colored header
@@ -120,17 +121,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
     }, [])
   )
 
-  React.useEffect(() => {
-    if (!topMostModal || overlayNoClose) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopImmediatePropagation()
-        navigation.pop()
-      }
-    }
-    window.addEventListener('keydown', handler, true)
-    return () => window.removeEventListener('keydown', handler, true)
-  }, [topMostModal, overlayNoClose, navigation])
+  const onEscape = overlayNoClose ? undefined : () => navigation.pop()
 
   const modalBox = {size: modalSize}
 
@@ -145,60 +136,62 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack}) : undefined
   const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
+  // a modal under the topmost one is closed, which hides it and keeps it out of the top layer
   return (
-    <Kb.Box2
-      key="background"
-      direction="horizontal"
-      fullHeight={true}
-      ref={backgroundRef}
-      style={Kb.Styles.collapseStyles([
-        styles.overlayContainer,
-        overlayTransparent && styles.overlayTransparent,
-        !topMostModal && styles.hidden,
-      ])}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-    >
-      {overlayAvoidTabs && (
-        <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
-      )}
+    <ModalDialog open={topMostModal} onEscape={onEscape}>
       <Kb.Box2
-        alignSelf="center"
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.overlayStyle, modalSize === 'large' && styles.overlayStretch])}
+        key="background"
+        direction="horizontal"
+        fullHeight={true}
+        ref={backgroundRef}
+        style={Kb.Styles.collapseStyles([
+          styles.overlayContainer,
+          overlayTransparent && styles.overlayTransparent,
+        ])}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
       >
+        {overlayAvoidTabs && (
+          <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
+        )}
         <Kb.Box2
+          alignSelf="center"
           direction="vertical"
-          style={Kb.Styles.collapseStyles([styles.modalFrame, modalSizeStyles[modalSize]])}
+          style={Kb.Styles.collapseStyles([styles.overlayStyle, modalSize === 'large' && styles.overlayStretch])}
         >
-          {/* clips the body to the rounded box; the close X sits outside the box, so it's a sibling */}
-          <Kb.Box2 direction="vertical" style={styles.modalClip}>
-            {hasHeader ? (
-              <ModalHeader
-                style={navigationOptions?.headerStyle}
-                title={titleNode}
-                leftButton={leftNode}
-                rightButton={rightNode}
-              />
-            ) : null}
-            {/* the area under the header, so a screen's 100% height is the body, not the whole box */}
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modalBody}>
-              <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
+          <Kb.Box2
+            direction="vertical"
+            style={Kb.Styles.collapseStyles([styles.modalFrame, modalSizeStyles[modalSize]])}
+          >
+            {/* clips the body to the rounded box; the close X sits outside the box, so it's a sibling */}
+            <Kb.Box2 direction="vertical" style={styles.modalClip}>
+              {hasHeader ? (
+                <ModalHeader
+                  style={navigationOptions?.headerStyle}
+                  title={titleNode}
+                  leftButton={leftNode}
+                  rightButton={rightNode}
+                />
+              ) : null}
+              {/* the area under the header, so a screen's 100% height is the body, not the whole box */}
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modalBody}>
+                <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
+              </Kb.Box2>
             </Kb.Box2>
+            {!overlayTransparent && !overlayNoClose && (
+              <Kb.Icon
+                type="iconfont-close"
+                testID={TestIDs.MODAL_CLOSE}
+                onClick={() => navigation.pop()}
+                color={theme.whiteOrWhite_75}
+                hoverColor={theme.white_40OrWhite_40}
+                style={styles.closeIcon}
+              />
+            )}
           </Kb.Box2>
-          {!overlayTransparent && !overlayNoClose && (
-            <Kb.Icon
-              type="iconfont-close"
-              testID={TestIDs.MODAL_CLOSE}
-              onClick={() => navigation.pop()}
-              color={theme.whiteOrWhite_75}
-              hoverColor={theme.white_40OrWhite_40}
-              style={styles.closeIcon}
-            />
-          )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </ModalDialog>
   )
 }
 
@@ -225,7 +218,6 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     justifyContent: 'flex-end',
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
-  hidden: {display: 'none'},
   modalBody: {flexGrow: 1, flexShrink: 1, minHeight: 0},
   modalClip: Kb.Styles.platformStyles({
     isElectron: {

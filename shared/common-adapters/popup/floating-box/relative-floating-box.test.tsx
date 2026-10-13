@@ -2,178 +2,221 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
-import {cleanup, render} from '@testing-library/react'
+import {cleanup, fireEvent, render} from '@testing-library/react'
 import {Box2} from '../../box'
-import type * as Styles from '@/styles'
 import type {MeasureRef} from '../../measure-ref'
+import {EscapeHandler, GlobalKeyEventHandler} from '../../key-event-handler.desktop'
+import {ModalDialog} from '../modal-dialog.desktop'
+import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
-const VIEWPORT = 1000
-
-const makeRect = (left: number, top: number, width: number, height: number): DOMRect =>
-  ({
-    bottom: top + height,
-    height,
-    left,
-    right: left + width,
-    top,
-    width,
-    x: left,
-    y: top,
-  }) as DOMRect
-
-// the popup box itself; jsdom always measures 0x0 so we stub the measurement
-let popupRect = makeRect(0, 0, 100, 60)
-
-const makeAttachTo = (rect: DOMRect): React.RefObject<MeasureRef | null> => ({
-  current: {
-    divRef: {current: null},
-    getBoundingClientRect: () => rect,
-    measure: () => undefined,
-  } as unknown as MeasureRef,
+// jsdom has neither the Popover API, showModal nor ResizeObserver
+let shown: Array<HTMLElement> = []
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+    shown.push(this)
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+    shown = shown.filter(d => d !== this)
+  }
+  HTMLElement.prototype.showPopover = function (this: HTMLElement) {
+    shown.push(this)
+  }
+  HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
+    shown = shown.filter(p => p !== this)
+  }
+  globalThis.ResizeObserver = class {
+    observe() {}
+    disconnect() {}
+    unobserve() {}
+  }
 })
 
-type Positioned = {top: string; left: string; right: string; bottom: string; opacity: string}
-
-const positionOf = (
-  position: Styles.Position,
-  attachRect: DOMRect,
-  extra: {
-    matchDimension?: boolean
-    offset?: number
-    positionFallbacks?: ReadonlyArray<Styles.Position>
-    attach?: boolean
-  } = {}
-): Positioned => {
-  const {attach = true, ...rest} = extra
-  render(
-    <RelativeFloatingBox
-      attachTo={attach ? makeAttachTo(attachRect) : undefined}
-      onClosePopup={() => {}}
-      position={position}
-      {...rest}
-    >
-      <Box2 alignSelf="center" direction="vertical">content</Box2>
-    </RelativeFloatingBox>
-  )
-  const modalRoot = document.getElementById('modal-root')!
-  const node = modalRoot.lastElementChild as HTMLElement
-  const {top, left, right, bottom, opacity} = node.style
-  return {bottom, left, opacity, right, top}
+const anchorElement = () => {
+  const element = document.createElement('div')
+  document.body.appendChild(element)
+  return element
 }
 
-describe('RelativeFloatingBox positioning', () => {
+const refTo = (element: HTMLElement | null): React.RefObject<MeasureRef | null> => ({current: element})
+
+const popups = () => [...document.querySelectorAll<HTMLElement>('#modal-root > [popover]')]
+
+describe('RelativeFloatingBox', () => {
   beforeEach(() => {
-    popupRect = makeRect(0, 0, 100, 60)
+    shown = []
     const modalRoot = document.createElement('div')
     modalRoot.id = 'modal-root'
     document.body.appendChild(modalRoot)
-    Object.defineProperty(document.documentElement, 'clientWidth', {configurable: true, value: VIEWPORT})
-    Object.defineProperty(document.documentElement, 'clientHeight', {configurable: true, value: VIEWPORT})
-    jest
-      .spyOn(Element.prototype, 'getBoundingClientRect')
-      .mockImplementation(() => popupRect)
   })
   afterEach(() => {
     cleanup()
-    jest.restoreAllMocks()
-    document.getElementById('modal-root')?.remove()
+    document.body.innerHTML = ''
   })
 
-  test('bottom left anchors the popup under the left edge of the target', () => {
-    const style = positionOf('bottom left', makeRect(200, 300, 50, 20))
-    expect(style.left).toBe('200px')
-    expect(style.top).toBe('320px')
-    expect(style.right).toBe('auto')
-    expect(style.bottom).toBe('auto')
+  test('shows a manual popover anchored to the attachTo element', () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+        <Box2 direction="vertical">content</Box2>
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    expect(popup?.getAttribute('popover')).toBe('manual')
+    expect(shown).toEqual([popup])
+    expect(popup?.hasAttribute('data-unanchored')).toBe(false)
+    expect(anchor.style.getPropertyValue('anchor-name')).toMatch(/^--kb-anchor-\w+$/)
   })
 
-  test('top right anchors off the far edges', () => {
-    const style = positionOf('top right', makeRect(200, 300, 50, 20))
-    // right is measured from the viewport's right edge to the target's right edge
-    expect(style.right).toBe(`${VIEWPORT - 250}px`)
-    expect(style.bottom).toBe(`${VIEWPORT - 300}px`)
-    expect(style.left).toBe('auto')
-    expect(style.top).toBe('auto')
+  test('removes its anchor name on unmount, leaving any other popup anchored there', () => {
+    const anchor = anchorElement()
+    anchor.style.setProperty('anchor-name', '--other')
+    const {unmount} = render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(anchor.style.getPropertyValue('anchor-name')).toMatch(/^--other, --kb-anchor-\w+$/)
+    unmount()
+    expect(anchor.style.getPropertyValue('anchor-name')).toBe('--other')
+    expect(shown).toEqual([])
   })
 
-  test('bottom center horizontally centers the popup on the target', () => {
-    const style = positionOf('bottom center', makeRect(200, 300, 50, 20))
-    // (targetWidth - popupWidth) / 2 = (50 - 100) / 2 = -25
-    expect(style.left).toBe('175px')
-    expect(style.top).toBe('320px')
+  test('moves its anchor name when attachTo points somewhere else', () => {
+    const first = anchorElement()
+    const second = anchorElement()
+    const attachTo = refTo(first)
+    const {rerender} = render(
+      <RelativeFloatingBox attachTo={attachTo} onClosePopup={() => {}} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    const name = first.style.getPropertyValue('anchor-name')
+    attachTo.current = second
+    rerender(
+      <RelativeFloatingBox attachTo={attachTo} onClosePopup={() => {}} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(first.style.getPropertyValue('anchor-name')).toBe('')
+    expect(second.style.getPropertyValue('anchor-name')).toBe(name)
   })
 
-  test('matchDimension pins both horizontal edges to the target', () => {
-    const style = positionOf('bottom center', makeRect(200, 300, 50, 20), {matchDimension: true})
-    expect(style.left).toBe('200px')
-    expect(style.right).toBe(`${VIEWPORT - 250}px`)
+  test('stays hidden with nothing to anchor to', () => {
+    render(
+      <RelativeFloatingBox attachTo={refTo(null)} onClosePopup={() => {}} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(popups()[0]?.hasAttribute('data-unanchored')).toBe(true)
   })
 
-  test('offset insets the popup toward the target on both axes', () => {
-    const target = makeRect(200, 300, 50, 20)
-
-    // 'bottom left': the popup hangs below the target with their left edges aligned
-    const plainBL = positionOf('bottom left', target)
-    const offsetBL = positionOf('bottom left', target, {offset: 8})
-    expect(plainBL.left).toBe('200px')
-    expect(plainBL.top).toBe('320px')
-    // left grows -> popup moves right, off the target's left edge
-    expect(offsetBL.left).toBe('208px')
-    // top shrinks -> popup moves up, closing the gap under the target
-    expect(offsetBL.top).toBe('312px')
-
-    // 'top right' is the mirror image. right/bottom are distances measured from the
-    // viewport's far edges, so growing right moves the popup left and shrinking
-    // bottom moves it down: both again toward the target.
-    const plainTR = positionOf('top right', target)
-    const offsetTR = positionOf('top right', target, {offset: 8})
-    expect(plainTR.right).toBe(`${VIEWPORT - 250}px`)
-    expect(plainTR.bottom).toBe(`${VIEWPORT - 300}px`)
-    expect(offsetTR.right).toBe(`${VIEWPORT - 250 + 8}px`)
-    expect(offsetTR.bottom).toBe(`${VIEWPORT - 300 - 8}px`)
+  test('a popup inside another is shown after it, so it stacks above it', () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="top left">
+          inner
+        </RelativeFloatingBox>
+      </RelativeFloatingBox>
+    )
+    // the inner popup is portaled out of the outer one, so the outer one holds no text of its own
+    const outer = popups().find(p => p.textContent === '')
+    const inner = popups().find(p => p.textContent === 'inner')
+    expect(outer).toBeDefined()
+    expect(shown).toEqual([outer, inner])
   })
 
-  test('a position that would run off the bottom falls back to another position', () => {
-    // target near the bottom: 'bottom left' would put the popup below the viewport
-    const style = positionOf('bottom left', makeRect(200, 980, 50, 20))
-    expect(style.top).toBe('auto')
-    expect(style.bottom).toBe(`${VIEWPORT - 980}px`)
-  })
+  describe('closing on outside clicks', () => {
+    const setup = () => {
+      const onClosePopup = jest.fn()
+      const anchor = anchorElement()
+      render(
+        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={onClosePopup} position="bottom left">
+          <Box2 direction="vertical">content</Box2>
+        </RelativeFloatingBox>
+      )
+      return {anchor, content: popups()[0]?.firstElementChild as HTMLElement, onClosePopup}
+    }
 
-  test('with only an unusable fallback the popup is pushed back into the viewport', () => {
-    const style = positionOf('bottom left', makeRect(200, 980, 50, 20), {
-      positionFallbacks: ['bottom left'],
+    test('a click outside closes it', () => {
+      const {anchor, onClosePopup} = setup()
+      fireEvent.mouseDown(anchor, {clientX: 10, clientY: 10})
+      fireEvent.mouseUp(anchor, {clientX: 12, clientY: 12})
+      expect(onClosePopup).toHaveBeenCalledTimes(1)
     })
-    // 1000 (target bottom) + 60 (popup height) overflows by 60, so it is pushed up
-    expect(style.top).toBe('940px')
-  })
 
-  test('a popup running off the right edge is pushed left', () => {
-    const style = positionOf('bottom left', makeRect(960, 300, 20, 20), {
-      positionFallbacks: ['bottom left'],
+    test('a drag that ends outside, like selecting text in it, does not', () => {
+      const {content, onClosePopup} = setup()
+      fireEvent.mouseDown(content, {clientX: 10, clientY: 10})
+      fireEvent.mouseUp(document.body, {clientX: 60, clientY: 10})
+      expect(onClosePopup).not.toHaveBeenCalled()
     })
-    expect(style.left).toBe('900px')
+
+    test('a click inside does not', () => {
+      const {content, onClosePopup} = setup()
+      fireEvent.mouseDown(content, {clientX: 10, clientY: 10})
+      fireEvent.mouseUp(content, {clientX: 10, clientY: 10})
+      expect(onClosePopup).not.toHaveBeenCalled()
+    })
   })
 
-  test('no attach target renders hidden instead of mispositioned', () => {
-    const style = positionOf('bottom left', makeRect(0, 0, 0, 0), {attach: false})
-    expect(style.opacity).toBe('0')
-    expect(style.top).toBe('')
-    expect(style.left).toBe('')
+  // everything outside a modal dialog is inert, so a popup opened inside one has to be inside it
+  test('a popup opened inside a modal dialog portals into it and is shown after it', () => {
+    const anchor = anchorElement()
+    render(
+      <ModalDialog>
+        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+          content
+        </RelativeFloatingBox>
+      </ModalDialog>
+    )
+    const dialog = document.querySelector('dialog')
+    const popup = dialog?.querySelector(':scope > [popover]')
+    expect(popup).toBeTruthy()
+    expect(popups()).toEqual([])
+    expect(shown).toEqual([dialog, popup])
+  })
+
+  test('a popup with no onHidden leaves escape to what is under it', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const Screen = (p: {popup?: React.ReactNode}) => (
+      <GlobalKeyEventHandler>
+        <EscapeHandler onESC={under}>{p.popup}</EscapeHandler>
+      </GlobalKeyEventHandler>
+    )
+    const {rerender} = render(<Screen />)
+    // mounted after, so on top of the stack
+    rerender(<Screen popup={<FloatingBox attachTo={refTo(anchorElement())}>tooltip</FloatingBox>} />)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(under).toHaveBeenCalledTimes(1)
+
+    rerender(<Screen />)
+    rerender(
+      <Screen
+        popup={
+          <FloatingBox attachTo={refTo(anchorElement())} onHidden={onHidden}>
+            menu
+          </FloatingBox>
+        }
+      />
+    )
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).toHaveBeenCalledTimes(1)
   })
 
   test('renders nothing when there is no modal root', () => {
     document.getElementById('modal-root')?.remove()
     const {container} = render(
-      <RelativeFloatingBox
-        attachTo={makeAttachTo(makeRect(200, 300, 50, 20))}
-        onClosePopup={() => {}}
-        position="bottom left"
-      >
-        <Box2 alignSelf="center" direction="vertical">content</Box2>
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} onClosePopup={() => {}} position="bottom left">
+        content
       </RelativeFloatingBox>
     )
     expect(container.innerHTML).toBe('')
+    expect(shown).toEqual([])
   })
 })

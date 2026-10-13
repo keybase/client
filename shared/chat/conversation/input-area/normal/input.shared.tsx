@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import type * as Styles from '@/styles'
 import type {TextType} from '@/common-adapters/text.shared'
 import type {TextInputProps} from 'react-native'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {ComposerInput} from '../composer'
 
 export type Selection = {
@@ -12,18 +13,8 @@ export type Selection = {
 
 export type RefType = ComposerInput & {
   blur: () => void
-  getBoundingClientRect?: () =>
-    | undefined
-    | {
-        x: number
-        y: number
-        width: number
-        height: number
-        left: number
-        top: number
-        right: number
-        bottom: number
-      }
+  // desktop: the text field itself, for popups placed against it
+  anchor?: MeasureRef | null
 }
 
 export type TextInfo = {

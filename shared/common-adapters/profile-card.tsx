@@ -48,7 +48,6 @@ type Props = {
   clickToProfile?: true
   containerStyle?: Styles.StylesCrossPlatform
   onHide?: () => void
-  onLayoutChange?: () => void
   showClose?: true
   username: string
 }
@@ -139,7 +138,6 @@ const ProfileCard = ({
   onHide,
   showClose,
   containerStyle,
-  onLayoutChange,
   username,
 }: Props) => {
   const styles = useStyles()
@@ -164,24 +162,6 @@ const ProfileCard = ({
       setShowFollowButton(true)
     }
   }
-
-  const {
-    state: userDetailsState,
-    assertions: userDetailsAssertions,
-    bio: userDetailsBio,
-    fullname: userDetailsFullname,
-  } = userDetails
-  // signal layout change when it happens, to prevent popup cutoff.
-  React.useEffect(() => {
-    onLayoutChange?.()
-  }, [
-    onLayoutChange,
-    userDetailsAssertions,
-    userDetailsBio,
-    userDetailsFullname,
-    userDetailsState,
-    showFollowButton,
-  ])
 
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
   const _changeFollow = (follow: boolean) =>
@@ -214,7 +194,7 @@ const ProfileCard = ({
         <Kb.ProgressIndicator type="Large" />
       ) : (
         <>
-          <ServiceIcons userDetailsAssertions={userDetailsAssertions} />
+          <ServiceIcons userDetailsAssertions={userDetails.assertions} />
           {!!userDetails.bio && (
             <Kb.Text type="Body" center={true} lineClamp={4} ellipsizeMode="tail">
               {(userDetails.bio || '').replace(/\s/g, ' ')}
@@ -258,8 +238,6 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const styles = useStyles()
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [showing, setShowing] = React.useState(false)
-  const [remeasureHint, setRemeasureHint] = React.useState(0)
-  const onLayoutChange = () => setRemeasureHint(Date.now())
   const you = useCurrentUserState(s => s.username)
   const isSelf = you === username
   const onShow = C.useDebouncedCallback(() => {
@@ -284,14 +262,12 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
         offset={isMobile ? 0 : 10}
         positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!isMobile}
-        remeasureHint={remeasureHint}
         visible={showing}
         header={
           <ProfileCard
             containerStyle={styles.profileCardPopup}
             username={username}
             clickToProfile={true}
-            onLayoutChange={onLayoutChange}
             onHide={onHide}
           />
         }

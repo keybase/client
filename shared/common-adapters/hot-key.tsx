@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import {isMac} from '@/constants/platform'
+import {getTopModalDialog, PopupHostContext} from './popup/modal-dialog'
 
 // Desktop-only keyboard shortcut system. On mobile, useHotKey is a no-op.
 
@@ -21,6 +22,9 @@ type DocEventTarget = {
 }
 
 const keyToCBStack = new Map<string, Array<(cmd: string) => void>>()
+// The modal dialog each callback was registered inside, or null. While a modal dialog is open
+// everything outside it is inert, so only callbacks registered inside the topmost one fire.
+const cbHost = new WeakMap<(cmd: string) => void, unknown>()
 
 const normalizeKey = (key: string): string => {
   const lower = key.toLowerCase()
@@ -143,7 +147,8 @@ const handleKeyDown = (e: KeyEvent): void => {
     }
     const combo = parseKeyCombo(comboStr)
     if (matchesCombo(e, combo)) {
-      const lastCallback = callbacks[callbacks.length - 1]
+      const top = getTopModalDialog()
+      const lastCallback = callbacks.findLast(cb => (cbHost.get(cb) ?? null) === top)
       if (lastCallback) {
         e.preventDefault()
         e.stopPropagation()
@@ -172,8 +177,9 @@ const removeGlobalHandler = (): void => {
   }
 }
 
-const registerKeys = (keysArr: Array<string>, cb: (key: string) => void) => {
+const registerKeys = (keysArr: Array<string>, cb: (key: string) => void, host: unknown) => {
   ensureGlobalHandler()
+  cbHost.set(cb, host)
   keysArr.forEach(key => {
     const normalizedKey = key.toLowerCase().trim()
     let cbs = keyToCBStack.get(normalizedKey)
@@ -213,20 +219,21 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
     cbRef.current = cb
   })
   const [stableCB] = React.useState(() => (key: string) => cbRef.current(key))
+  const host = React.use(PopupHostContext)
 
   // registering again on focus re-pushes us to the top of the stack so the
   // focused screen wins the key over screens that merely stayed mounted
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       if (isMobile || keysArr.length === 0) return
-      registerKeys(keysArr, stableCB)
+      registerKeys(keysArr, stableCB, host)
       return () => unregisterKeys(keysArr, stableCB)
-    }, [keysArr, stableCB])
+    }, [host, keysArr, stableCB])
   )
 
   React.useEffect(() => {
     if (isMobile || keysArr.length === 0) return
-    registerKeys(keysArr, stableCB)
+    registerKeys(keysArr, stableCB, host)
     return () => unregisterKeys(keysArr, stableCB)
-  }, [keysArr, stableCB])
+  }, [host, keysArr, stableCB])
 }

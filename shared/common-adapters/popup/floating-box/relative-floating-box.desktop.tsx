@@ -3,216 +3,8 @@ import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../../key-event-handler.desktop'
 import type {MeasureRef} from '../../measure-ref'
-
-type ComputedStyle = {
-  position: Styles._StylesCrossPlatform['position']
-  top?: number | 'auto'
-  left?: number | 'auto'
-  right?: number | 'auto'
-  bottom?: number | 'auto'
-}
-
-// Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
-function _computePopupStyle(
-  position: Styles.Position,
-  coords: DOMRect,
-  popupCoords: DOMRect,
-  matchDimension: boolean,
-  offset: number
-): ComputedStyle {
-  const style: ComputedStyle = {position: 'absolute'}
-
-  const {
-    pageYOffset,
-    pageXOffset,
-  }: {
-    pageYOffset: number
-    pageXOffset: number
-  } = window
-  const {clientWidth, clientHeight} = document.documentElement
-
-  if (position.includes('right')) {
-    style.right = Math.round(clientWidth - (coords.right + pageXOffset) + offset)
-    style.left = 'auto'
-  } else if (position.includes('left')) {
-    style.left = Math.round(coords.left + pageXOffset + offset)
-    style.right = 'auto'
-  } else if (matchDimension) {
-    style.left = Math.round(coords.left + pageXOffset)
-    style.right = Math.round(clientWidth - (coords.right + pageXOffset))
-  } else {
-    // if not left nor right, we are horizontally centering the element
-    const xOffset = (coords.width - popupCoords.width) / 2
-    style.left = Math.round(coords.left + xOffset + pageXOffset)
-    style.right = 'auto'
-  }
-
-  if (position.includes('top')) {
-    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset) - offset)
-    style.top = 'auto'
-  } else if (position.includes('bottom')) {
-    style.top = Math.round(coords.bottom + pageYOffset - offset)
-    style.bottom = 'auto'
-  } else if (matchDimension) {
-    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset))
-    style.top = Math.round(coords.bottom + pageYOffset)
-  } else {
-    // if not top nor bottom, we are vertically centering the element
-    const yOffset = (coords.height + popupCoords.height) / 2
-    style.top = Math.round(coords.bottom + pageYOffset - yOffset)
-    style.bottom = 'auto'
-
-    const xOffset = popupCoords.width + 8
-    if (position.includes('right') && typeof style.right === 'number') {
-      style.right -= xOffset
-    } else if (position.includes('left') && typeof style.left === 'number') {
-      style.left -= xOffset
-    }
-  }
-
-  return style
-}
-
-function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean {
-  const {
-    pageYOffset,
-    pageXOffset,
-  }: {
-    pageYOffset: number
-    pageXOffset: number
-  } = window
-  const {clientWidth, clientHeight} = document.documentElement
-
-  const element = {
-    height: popupCoords.height,
-    left: style.left,
-    top: style.top,
-    width: popupCoords.width,
-  }
-  if (typeof style.right === 'number') {
-    element.left = clientWidth - style.right - element.width
-  }
-  if (typeof style.bottom === 'number') {
-    element.top = clientHeight - style.bottom - element.height
-  }
-
-  // hidden on top
-  if (typeof element.top === 'number' && element.top < pageYOffset) {
-    return false
-  }
-  // hidden on the bottom
-  if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight)
-    return false
-  // hidden the left
-  if (typeof element.left === 'number' && element.left < pageXOffset) {
-    return false
-  }
-  // hidden on the right
-  if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth)
-    return false
-
-  return true
-}
-
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect, offset: number) {
-  const {
-    pageYOffset,
-    pageXOffset,
-  }: {
-    pageYOffset: number
-    pageXOffset: number
-  } = window
-  const {clientWidth, clientHeight} = document.documentElement
-
-  const element = {
-    height: popupCoords.height,
-    left: style.left,
-    top: style.top,
-    width: popupCoords.width,
-  }
-  if (typeof style.right === 'number') {
-    element.left = clientWidth - style.right - element.width
-  }
-  if (typeof style.bottom === 'number') {
-    element.top = clientHeight - style.bottom - element.height
-  }
-
-  if (typeof element.top === 'number' && element.top < pageYOffset) {
-    // push down
-    const off = pageYOffset - element.top
-    if (typeof style.top === 'number') {
-      style.top += off + offset
-    }
-    if (typeof style.bottom === 'number') {
-      style.bottom -= off + offset
-    }
-  } else if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight) {
-    // push up
-    const off = element.top + element.height - (pageYOffset + clientHeight)
-    if (typeof style.top === 'number') {
-      style.top -= off + offset
-    }
-    if (typeof style.bottom === 'number') {
-      style.bottom += off + offset
-    }
-  }
-
-  if (typeof element.left === 'number' && element.left < pageXOffset) {
-    // push right
-    const off = pageXOffset - element.left
-    if (typeof style.left === 'number') {
-      style.left += off + offset
-    }
-    if (typeof style.right === 'number') {
-      style.right -= off + offset
-    }
-  } else if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth) {
-    // push left
-    const off = element.left + element.width - (pageXOffset + clientWidth)
-    if (typeof style.left === 'number') {
-      style.left -= off + offset
-    }
-    if (typeof style.right === 'number') {
-      style.right += off + offset
-    }
-  }
-
-  return style
-}
-
-const allPositions: Array<Styles.Position> = [
-  'top left',
-  'top right',
-  'bottom right',
-  'bottom left',
-  'right center',
-  'left center',
-  'top center',
-  'bottom center',
-  'center center',
-]
-
-function computePopupStyle(
-  position: Styles.Position,
-  coords: DOMRect,
-  popupCoords: DOMRect,
-  matchDimension: boolean,
-  // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: ReadonlyArray<Styles.Position>,
-  _offset?: number
-): ComputedStyle {
-  const offset = _offset ?? 0
-  let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
-
-  const positionsShuffled = positionFallbacks ?? allPositions
-  for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i]!, coords, popupCoords, matchDimension, offset)
-  }
-  if (!isStyleInViewport(style, popupCoords)) {
-    style = pushStyleIntoViewport(style, popupCoords, offset * 2) // *2 since we included the offset already so we need to move twice that
-  }
-  return style
-}
+import {PopupHostContext} from '../modal-dialog.desktop'
+import {heightVar, offsetVar, popupPlacement, widthVar} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -221,98 +13,128 @@ type ModalPositionRelativeProps = {
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
-  remeasureHint?: number
   style?: Styles.StylesCrossPlatform
   children: React.ReactNode
   disableEscapeKey?: boolean // if true, ignore keys
   offset?: number // offset in pixels from edge
 }
 
-const hiddenStyle = {opacity: 0, pointerEvents: 'none'} as const
-
-type PopupState = {
-  node: HTMLDivElement
-  style: Styles.StylesCrossPlatform
+// The top layer stacks popovers in the order they were shown, so a popup opened inside another
+// must be shown after it. Effects run children first, so a popup mounted in the same commit as
+// the one it is inside waits for that one to be shown.
+type PopoverParent = {
+  whenShown: (show: () => void) => () => void
 }
 
-const stylesEqual = (left: Styles.StylesCrossPlatform, right: Styles.StylesCrossPlatform) => {
-  if (left === right) {
-    return true
+const makePopoverParent = () => {
+  let shown = false
+  const waiting = new Set<() => void>()
+  return {
+    setShown: (next: boolean) => {
+      shown = next
+      if (shown) {
+        waiting.forEach(show => show())
+        waiting.clear()
+      }
+    },
+    whenShown: (show: () => void) => {
+      if (shown) {
+        show()
+        return () => {}
+      }
+      waiting.add(show)
+      return () => {
+        waiting.delete(show)
+      }
+    },
   }
-  const leftRecord = left as Record<string, unknown>
-  const rightRecord = right as Record<string, unknown>
-  const leftKeys = Object.keys(leftRecord)
-  const rightKeys = Object.keys(rightRecord)
-  return (
-    leftKeys.length === rightKeys.length &&
-    leftKeys.every(key => Object.is(leftRecord[key], rightRecord[key]))
-  )
 }
 
-const popupStatesEqual = (left: PopupState | undefined, right: PopupState) =>
-  !!left && left.node === right.node && stylesEqual(left.style, right.style)
+const shownParent: PopoverParent = {
+  whenShown: show => {
+    show()
+    return () => {}
+  },
+}
+const PopoverParentContext = React.createContext<PopoverParent>(shownParent)
 
-const makePopupState = (
-  node: HTMLDivElement,
-  attachTo: React.RefObject<MeasureRef | null> | undefined,
-  position: Styles.Position,
-  matchDimension: boolean | undefined,
-  positionFallbacks: ReadonlyArray<Styles.Position> | undefined,
-  offset: number,
-  style: Styles.StylesCrossPlatform | undefined
-): PopupState => {
-  const targetRect = attachTo?.current?.getBoundingClientRect()
-  const popupStyle = targetRect
-    ? Styles.collapseStyles([
-        computePopupStyle(
-          position,
-          targetRect,
-          node.getBoundingClientRect(),
-          !!matchDimension,
-          positionFallbacks,
-          offset
-        ),
-        style,
-      ])
-    : hiddenStyle
-  return {node, style: popupStyle}
+// anchor-name takes a list, so one element can anchor several popups
+const setAnchorName = (element: HTMLElement | null | undefined, name: string, on: boolean) => {
+  if (!element) {
+    return
+  }
+  const names = element.style.getPropertyValue('anchor-name').split(',').map(n => n.trim())
+  const next = names.filter(n => n && n !== name)
+  if (on) {
+    next.push(name)
+  }
+  if (next.length) {
+    element.style.setProperty('anchor-name', next.join(', '))
+  } else {
+    element.style.removeProperty('anchor-name')
+  }
 }
 
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
-  const [popupState, setPopupState] = React.useState<PopupState>()
+  const {attachTo, children, propagateOutsideClicks, onClosePopup, style} = props
+  const {position, matchDimension = false, positionFallbacks, disableEscapeKey, offset = 0} = props
+  const popupRef = React.useRef<HTMLDivElement>(null)
+  // undefined until the first check, so a popup with nothing to anchor to starts hidden
+  const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
-  const {attachTo, children, propagateOutsideClicks, onClosePopup, style: _style} = props
-  const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0, remeasureHint} = props
-  const popupNode = popupState?.node
+  const parent = React.use(PopoverParentContext)
+  const popupHost = React.use(PopupHostContext)
+  const [popoverParent] = React.useState(makePopoverParent)
+  const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
+  const placement = popupPlacement(position, matchDimension, positionFallbacks)
 
-  const setPopupRef = (node: HTMLDivElement | null) => {
-    if (!node) {
+  // attachTo's element can change from one render to the next, so check it on every one
+  React.useLayoutEffect(() => {
+    const current = attachTo?.current
+    const anchor = current instanceof HTMLElement ? current : null
+    if (anchor === anchorRef.current) {
       return
     }
-    const nextState = makePopupState(node, attachTo, position, matchDimension, positionFallbacks, offset, _style)
-    setPopupState(prev => (popupStatesEqual(prev, nextState) ? prev : nextState))
-  }
+    setAnchorName(anchorRef.current, anchorName, false)
+    setAnchorName(anchor, anchorName, true)
+    anchorRef.current = anchor
+    // with nothing to anchor to the popup would be misplaced, so it stays hidden
+    popupRef.current?.toggleAttribute('data-unanchored', !anchor)
+  })
 
-  React.useEffect(() => {
-    if (!popupNode) {
+  React.useLayoutEffect(
+    () => () => {
+      setAnchorName(anchorRef.current, anchorName, false)
+      anchorRef.current = undefined
+    },
+    [anchorName]
+  )
+
+  React.useLayoutEffect(() => {
+    const popup = popupRef.current
+    if (!popup) {
       return undefined
     }
-    const frameID = requestAnimationFrame(() => {
-      const nextState = makePopupState(
-        popupNode,
-        attachTo,
-        position,
-        matchDimension,
-        positionFallbacks,
-        offset,
-        _style
-      )
-      setPopupState(prev => (popupStatesEqual(prev, nextState) ? prev : nextState))
+    // fitting a popup into the viewport needs its size, which CSS can't read in its own insets
+    const observer = new ResizeObserver(([entry]) => {
+      const size = entry?.borderBoxSize[0]
+      if (size) {
+        popup.style.setProperty(widthVar, `${size.inlineSize}px`)
+        popup.style.setProperty(heightVar, `${size.blockSize}px`)
+      }
+    })
+    observer.observe(popup)
+    const cancel = parent.whenShown(() => {
+      popup.showPopover()
+      popoverParent.setShown(true)
     })
     return () => {
-      cancelAnimationFrame(frameID)
+      cancel()
+      observer.disconnect()
+      popoverParent.setShown(false)
+      popup.hidePopover()
     }
-  }, [attachTo, matchDimension, offset, popupNode, position, positionFallbacks, remeasureHint, _style])
+  }, [parent, popoverParent])
 
   React.useEffect(() => {
     const handleDown = (e: MouseEvent) => {
@@ -320,7 +142,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     }
 
     const handleClick = (e: MouseEvent) => {
-      if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
+      const popup = popupRef.current
+      if (popup && e.target instanceof HTMLElement && !popup.contains(e.target)) {
         if (!propagateOutsideClicks) {
           e.stopPropagation()
         }
@@ -348,21 +171,42 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       node.removeEventListener('mousedown', handleDown, {capture: true})
       node.removeEventListener('mouseup', handleUp, {capture: true})
     }
-  }, [onClosePopup, popupNode, propagateOutsideClicks])
+  }, [onClosePopup, propagateOutsideClicks])
 
-  const modalRoot = document.getElementById('modal-root')
-  return modalRoot
-    ? ReactDOM.createPortal(
-        <div style={Styles.castStyleDesktop(popupState?.style ?? hiddenStyle)} ref={setPopupRef}>
-          {disableEscapeKey ? (
-            <div className="fade-in-generic">{children}</div>
-          ) : (
-            <EscapeHandler onESC={onClosePopup}>
-              <div className="fade-in-generic">{children}</div>
-            </EscapeHandler>
-          )}
+  const {base} = placement
+  const popupStyle = {
+    [offsetVar]: `${offset}px`,
+    alignSelf: base.alignSelf,
+    bottom: base.bottom,
+    justifySelf: base.justifySelf,
+    left: base.left,
+    positionAnchor: anchorName,
+    positionTryFallbacks: placement.tryOptions,
+    right: base.right,
+    top: base.top,
+    width: base.width,
+  } as React.CSSProperties
+
+  const content = (
+    <div className="floating-box-content" style={Styles.castStyleDesktop(style)}>
+      {children}
+    </div>
+  )
+
+  const host = popupHost ?? document.getElementById('modal-root')
+  return host ? (
+    <>
+      <style href={placement.tryOptions} precedence="floating-box">
+        {placement.rules}
+      </style>
+      {ReactDOM.createPortal(
+        <div popover="manual" className="floating-box" style={popupStyle} ref={popupRef}>
+          <PopoverParentContext value={popoverParent}>
+            {disableEscapeKey ? content : <EscapeHandler onESC={onClosePopup}>{content}</EscapeHandler>}
+          </PopoverParentContext>
         </div>,
-        modalRoot
-      )
-    : null
+        host
+      )}
+    </>
+  ) : null
 }

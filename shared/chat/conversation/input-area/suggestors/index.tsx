@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
-import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
+import type {PlatformInputProps as Props} from '../normal/input.shared'
 import {useComposer, type Composer} from '../composer'
 import type {Suggestions} from '../composer-keys'
 import {useConversationThreadID} from '../../thread-context'
@@ -76,7 +76,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   // what the desktop list is placed against; phones show it above the keyboard instead
-  popupAnchorRef?: React.RefObject<InputRef | null>
+  popupAnchorRef?: React.RefObject<Kb.MeasureRef | null>
 }
 
 // nasty to mix these types but keeping this for now
@@ -399,7 +399,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  anchorRef?: React.RefObject<InputRef | null>
+  anchorRef?: React.RefObject<Kb.MeasureRef | null>
   children: React.ReactNode
 }
 const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
@@ -422,12 +422,12 @@ const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
 }
 
 // phones place the list above the keyboard, not against an anchor
-const unanchored: React.RefObject<InputRef | null> = {current: null}
+const unanchored: React.RefObject<Kb.MeasureRef | null> = {current: null}
 
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, anchorRef} = p
 
-  const attachRef = (anchorRef ?? unanchored) as React.RefObject<Kb.MeasureRef | null>
+  const attachRef = anchorRef ?? unanchored
 
   return (
     <Kb.AnchoredPopup
