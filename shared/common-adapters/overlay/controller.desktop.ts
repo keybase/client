@@ -1,4 +1,4 @@
-import {rootEntryId} from './context'
+import {rootEntryId, type Tier} from './context'
 import {matchesCombo, parseKeyCombo, shouldIgnoreEvent, type KeyCombo} from './key-combo.desktop'
 import {
   coveredIds,
@@ -13,7 +13,6 @@ import {
   topLayerOrder,
   type EntryKind,
   type StackEntry,
-  type Tier,
 } from './stack.desktop'
 
 // The one desktop overlay stack of this window. Every overlay registers here, and everything that

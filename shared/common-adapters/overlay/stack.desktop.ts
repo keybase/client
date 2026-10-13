@@ -1,18 +1,7 @@
-import {rootEntryId} from './context'
+import {rootEntryId, tiers, type Tier} from './context'
 
 // The desktop overlay stack as data: which overlay is above which, which are covered, and which one
 // gets keys and outside clicks. No DOM here; the controller applies the answers.
-
-// Paint order, low to high. An entry is never below the entry it was opened from.
-export const tiers = {
-  app: 0,
-  modal: 1,
-  accountReset: 2,
-  globalError: 3,
-  disconnect: 4,
-  outOfDate: 5,
-} as const
-export type Tier = keyof typeof tiers
 
 export type EntryKind = 'root' | 'modal' | 'popup' | 'global'
 

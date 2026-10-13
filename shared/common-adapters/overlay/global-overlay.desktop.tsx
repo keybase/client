@@ -1,8 +1,6 @@
 import type * as React from 'react'
 import {OverlayEntry} from './entry.desktop'
-import type {Tier} from './stack.desktop'
-
-type GlobalTier = Exclude<Tier, 'app' | 'modal'>
+import type {GlobalTier} from './context'
 
 // An app-wide overlay in its fixed tier, above every modal and popup in a lower one, whatever opened
 // first. The daemon-disconnect overlay blocks everything under it; the others only paint above it and
