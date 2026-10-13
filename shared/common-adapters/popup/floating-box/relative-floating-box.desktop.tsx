@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntryContext} from '../../overlay/context'
+import {setEntryDormant} from '../../overlay/controller.desktop'
 import {EntryContent, useOverlayEntry} from '../../overlay/entry.desktop'
 import {heightVar, offsetVar, popupMaxWidth, popupPlacement, widthVar} from './placement.desktop'
 
@@ -53,13 +54,15 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const syncAnchor = () => {
     const current = attachTo?.current
     const anchor = current instanceof HTMLElement && current.isConnected ? current : null
+    // with nothing to anchor to the popup would be misplaced, so it stays hidden until there is, and
+    // keys and clicks go to what is under it
+    setEntryDormant(id, !anchor)
     if (anchor === anchorRef.current) {
       return
     }
     setAnchorName(anchorRef.current, anchorName, false)
     setAnchorName(anchor, anchorName, true)
     anchorRef.current = anchor
-    // with nothing to anchor to the popup would be misplaced, so it stays hidden until there is
     popupRef.current?.toggleAttribute('data-unanchored', !anchor)
     anchorObserverRef.current?.disconnect()
     if (anchor) {

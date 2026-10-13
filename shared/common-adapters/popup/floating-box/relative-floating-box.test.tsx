@@ -200,6 +200,37 @@ describe('RelativeFloatingBox', () => {
     })
   })
 
+  test('while it has no anchor, keys and clicks go to what is under it', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const first = anchorElement()
+    const attachTo = refTo(first)
+    render(
+      <EscapeHandler onESC={under}>
+        <RelativeFloatingBox attachTo={attachTo} onHidden={onHidden} position="bottom left">
+          menu
+        </RelativeFloatingBox>
+      </EscapeHandler>
+    )
+    first.remove()
+    resized(first)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    click(document.body)
+    expect(under).toHaveBeenCalledTimes(1)
+    expect(onHidden).not.toHaveBeenCalled()
+
+    // anchored again once the stack next changes, e.g. a tooltip opening
+    attachTo.current = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} position="top left">
+        tooltip
+      </RelativeFloatingBox>
+    )
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).toHaveBeenCalledTimes(1)
+  })
+
   test('a popup inside another is shown after it, so it stacks above it', () => {
     const anchor = anchorElement()
     render(

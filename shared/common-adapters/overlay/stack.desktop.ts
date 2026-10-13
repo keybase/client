@@ -31,6 +31,8 @@ export type StackEntry = {
   acceptsKeys: boolean
   // closes on a click outside it
   dismissable: boolean
+  // open but not drawn, like a popup with nothing to anchor to: takes neither keys nor clicks
+  dormant: boolean
 }
 
 type Entries = ReadonlyMap<string, StackEntry>
@@ -94,9 +96,9 @@ export const coveredIds = (order: ReadonlyArray<StackEntry>): ReadonlySet<string
   return covered
 }
 
-// The entry keys go to: the topmost one that takes keys and is not covered.
+// The entry keys go to: the topmost one that takes keys and is neither covered nor dormant.
 export const topKeyEntry = (order: ReadonlyArray<StackEntry>, covered: ReadonlySet<string>) =>
-  order.findLast(e => e.acceptsKeys && !covered.has(e.id))?.id ?? rootEntryId
+  order.findLast(e => e.acceptsKeys && !e.dormant && !covered.has(e.id))?.id ?? rootEntryId
 
 const isScope = (entry: StackEntry) => entry.kind !== 'popup' && (entry.kind !== 'global' || entry.blocking)
 
@@ -142,9 +144,9 @@ const isDescendant = (entries: Entries, id: string, ancestor: string) => {
   return false
 }
 
-// The one entry a click outside can close: the topmost dismissable one that is not covered.
+// The one entry a click outside can close: the topmost dismissable one neither covered nor dormant.
 export const outsideClickEntry = (order: ReadonlyArray<StackEntry>, covered: ReadonlySet<string>) =>
-  order.findLast(e => e.dismissable && !covered.has(e.id))?.id
+  order.findLast(e => e.dismissable && !e.dormant && !covered.has(e.id))?.id
 
 type Hit = {entry: string; inContent: boolean}
 

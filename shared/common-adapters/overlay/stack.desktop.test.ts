@@ -47,6 +47,7 @@ const stackOf = (...specs: ReadonlyArray<Spec>) => {
       acceptsKeys: false,
       blocking: false,
       dismissable: false,
+      dormant: false,
       parent: undefined,
       seq,
       tier: s.kind === 'modal' ? 'modal' : 'app',
@@ -155,6 +156,12 @@ describe('overlay stack', () => {
     const s = stackOf(modal('m'), popup('tooltip', 'm', false))
     expect(s.top).toBe('m')
     expect(keyHomeOf(s.entries, 'tooltip')).toBe('m')
+  })
+
+  test('a dormant popup takes neither keys nor outside clicks', () => {
+    const s = stackOf(modal('m'), {...popup('menu', 'm'), dormant: true})
+    expect(s.top).toBe('m')
+    expect(outsideClickEntry(s.order, s.covered)).toBe('m')
   })
 
   test('an entry that is not registered has no key home or scope', () => {

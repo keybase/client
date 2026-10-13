@@ -59,6 +59,7 @@ const makeRoot = (): Entry => ({
   anchor: undefined,
   blocking: false,
   dismissable: false,
+  dormant: false,
   element: null,
   id: rootEntryId,
   kind: 'root',
@@ -185,6 +186,7 @@ export const registerEntry = (
     ...behavior,
     blocking,
     dismissable: !!behavior.outside,
+    dormant: false,
     element,
     id,
     kind,
@@ -212,6 +214,16 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   entry.anchor = behavior.anchor
   if (changed) {
     restack()
+  }
+}
+
+// A popup that lost its anchor stays open but is not drawn, so it gives up keys and outside clicks
+// to what is under it until it has one again.
+export const setEntryDormant = (id: string, dormant: boolean) => {
+  const entry = entries.get(id)
+  if (entry && entry.dormant !== dormant) {
+    entry.dormant = dormant
+    derived = undefined
   }
 }
 
