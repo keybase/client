@@ -16,6 +16,10 @@ import type * as Styles from '@/styles'
 export const offsetVar = '--kb-popup-offset'
 export const widthVar = '--kb-popup-width'
 export const heightVar = '--kb-popup-height'
+// where a popup whose anchor is not rendered stays (data-held), in px from the viewport
+export const heldLeftVar = '--kb-popup-held-left'
+export const heldTopVar = '--kb-popup-held-top'
+export const heldWidthVar = '--kb-popup-held-width'
 
 const offset = `var(${offsetVar}, 0px)`
 // Text in a popup with no width of its own wraps at the window's width, less the gap the last

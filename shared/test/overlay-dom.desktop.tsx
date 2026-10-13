@@ -23,6 +23,12 @@ export const setupOverlayDom = () => {
     HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
       state.hide(this)
     }
+    // jsdom has no checkVisibility: an element is rendered unless it or an ancestor is display:none
+    const displayed = (e: Element | null): boolean =>
+      !e || (getComputedStyle(e).display !== 'none' && displayed(e.parentElement))
+    HTMLElement.prototype.checkVisibility = function (this: HTMLElement) {
+      return displayed(this)
+    }
     // as in a browser, nothing in a popover that is not shown can take focus
     const {focus} = Object.getOwnPropertyDescriptors(HTMLElement.prototype)
     HTMLElement.prototype.focus = function (this: HTMLElement, options?: FocusOptions) {

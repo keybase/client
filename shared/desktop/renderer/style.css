@@ -419,6 +419,16 @@ body {
   &[data-unanchored] {
     opacity: 0;
   }
+
+  /* its anchor is there but not rendered (a hover toolbar once the pointer left its row): anchor()
+     no longer resolves, so it stays where it last was. Over the inline anchored placement */
+  &[data-held] {
+    inset: var(--kb-popup-held-top) auto auto var(--kb-popup-held-left) !important;
+    align-self: start !important;
+    justify-self: start !important;
+    position-try-fallbacks: none !important;
+    width: var(--kb-popup-held-width) !important;
+  }
 }
 
 .floating-box-content {

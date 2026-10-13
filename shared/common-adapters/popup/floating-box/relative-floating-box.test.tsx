@@ -14,11 +14,11 @@ import {EscapeHandler, overlayEntries, setupOverlayDom} from '@/test/overlay-dom
 const overlay = setupOverlayDom()
 
 // jsdom has no ResizeObserver: keep the observers, so a test can report a size change
-let observers: Array<{cb: () => void; targets: Set<Element>}> = []
+let observers: Array<{cb: (entries: Array<unknown>) => void; targets: Set<Element>}> = []
 beforeAll(() => {
   globalThis.ResizeObserver = class {
-    private o: {cb: () => void; targets: Set<Element>}
-    constructor(cb: () => void) {
+    private o: {cb: (entries: Array<unknown>) => void; targets: Set<Element>}
+    constructor(cb: (entries: Array<unknown>) => void) {
       this.o = {cb, targets: new Set()}
       observers.push(this.o)
     }
@@ -35,7 +35,7 @@ beforeAll(() => {
 })
 const resized = (target: Element) => {
   act(() => {
-    observers.filter(o => o.targets.has(target)).forEach(o => o.cb())
+    observers.filter(o => o.targets.has(target)).forEach(o => o.cb([]))
   })
 }
 
@@ -229,6 +229,44 @@ describe('RelativeFloatingBox', () => {
     fireEvent.keyDown(document.body, {key: 'Escape'})
     expect(onHidden).toHaveBeenCalledTimes(1)
     expect(under).toHaveBeenCalledTimes(1)
+  })
+
+  // a message menu opened from the hover toolbar, which hides once the pointer leaves the row
+  test('while its anchor is there but not rendered, it stays where it was, visible and usable', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const anchor = anchorElement()
+    render(
+      <EscapeHandler onESC={under}>
+        <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={onHidden} position="bottom left">
+          menu
+        </RelativeFloatingBox>
+      </EscapeHandler>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    // where the browser placed it on its anchor
+    popup.getBoundingClientRect = () => ({left: 40, top: 60, width: 120}) as DOMRect
+    resized(popup)
+
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.hasAttribute('data-unanchored')).toBe(false)
+    expect(popup.style.getPropertyValue('--kb-popup-held-left')).toBe('40px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('60px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-width')).toBe('120px')
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).not.toHaveBeenCalled()
+
+    // back on its anchor once it is rendered again
+    anchor.style.display = ''
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(false)
+    expect(popup.hasAttribute('data-unanchored')).toBe(false)
   })
 
   test('a popup inside another is shown after it, so it stacks above it', () => {

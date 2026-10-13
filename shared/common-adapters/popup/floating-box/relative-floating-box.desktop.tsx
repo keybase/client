@@ -5,7 +5,16 @@ import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntryContext} from '../../overlay/context'
 import {setEntryDormant} from '../../overlay/controller.desktop'
 import {EntryContent, useOverlayEntry} from '../../overlay/entry.desktop'
-import {heightVar, offsetVar, popupMaxWidth, popupPlacement, widthVar} from './placement.desktop'
+import {
+  heightVar,
+  heldLeftVar,
+  heldTopVar,
+  heldWidthVar,
+  offsetVar,
+  popupMaxWidth,
+  popupPlacement,
+  widthVar,
+} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -46,31 +55,49 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   // undefined until the first check, so a popup with nothing to anchor to starts hidden
   const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
   const anchorObserverRef = React.useRef<ResizeObserver | null>(null)
+  // where the popup last was while its anchor was rendered
+  const lastPlaceRef = React.useRef<{left: number; top: number; width: number} | undefined>(undefined)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
 
-  // The anchor can be replaced or removed without this re-rendering, e.g. a list row re-rendering
-  // on its own. Watching its size catches that: a detached element reports 0x0.
+  // The anchor can be replaced, removed or hidden without this re-rendering, e.g. a list row
+  // re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row. Watching its
+  // size catches all three: a detached or undisplayed element reports 0x0.
+  //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
+  //     and keys and clicks go to what is under it
+  //   - there but not rendered: it stays open and usable where it last was (master placed a popup
+  //     once and left it there), and follows the anchor again once it is rendered
   const syncAnchor = () => {
     const current = attachTo?.current
     const anchor = current instanceof HTMLElement && current.isConnected ? current : null
-    // with nothing to anchor to the popup would be misplaced, so it stays hidden until there is, and
-    // keys and clicks go to what is under it
-    setEntryDormant(id, !anchor)
-    if (anchor === anchorRef.current) {
-      return
-    }
-    setAnchorName(anchorRef.current, anchorName, false)
-    setAnchorName(anchor, anchorName, true)
-    anchorRef.current = anchor
-    popupRef.current?.toggleAttribute('data-unanchored', !anchor)
-    anchorObserverRef.current?.disconnect()
-    if (anchor) {
-      if (!anchorObserverRef.current) {
-        anchorObserverRef.current = new ResizeObserver(() => syncAnchorRef.current())
+    if (anchor !== anchorRef.current) {
+      setAnchorName(anchorRef.current, anchorName, false)
+      setAnchorName(anchor, anchorName, true)
+      anchorRef.current = anchor
+      anchorObserverRef.current?.disconnect()
+      if (anchor) {
+        if (!anchorObserverRef.current) {
+          anchorObserverRef.current = new ResizeObserver(() => syncAnchorRef.current())
+        }
+        anchorObserverRef.current.observe(anchor)
       }
-      anchorObserverRef.current.observe(anchor)
     }
+    const popup = popupRef.current
+    const rendered = !!anchor && anchor.checkVisibility()
+    const last = lastPlaceRef.current
+    const held = !!anchor && !rendered && !!last
+    if (popup && rendered) {
+      popup.removeAttribute('data-held')
+      const {left, top, width} = popup.getBoundingClientRect()
+      lastPlaceRef.current = {left, top, width}
+    } else if (popup && held && !popup.hasAttribute('data-held')) {
+      popup.style.setProperty(heldLeftVar, `${last.left}px`)
+      popup.style.setProperty(heldTopVar, `${last.top}px`)
+      popup.style.setProperty(heldWidthVar, `${last.width}px`)
+      popup.setAttribute('data-held', '')
+    }
+    popup?.toggleAttribute('data-unanchored', !rendered && !held)
+    setEntryDormant(id, !rendered && !held)
   }
   const syncAnchorRef = React.useRef(syncAnchor)
 
@@ -117,16 +144,21 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
           popup.style.setProperty(widthVar, `${size.inlineSize}px`)
           popup.style.setProperty(heightVar, `${size.blockSize}px`)
         }
+        syncAnchorRef.current()
       })
       observer.observe(popup)
+      // keeps where it last was current while the anchor scrolls, in case it is about to hide
+      const onScroll = () => syncAnchorRef.current()
+      window.addEventListener('scroll', onScroll, {capture: true, passive: true})
       const cleanup = ref(popup)
       return () => {
         observer.disconnect()
+        window.removeEventListener('scroll', onScroll, {capture: true})
         cleanup?.()
         popupRef.current = null
       }
     },
-    [ref]
+    [ref, syncAnchorRef]
   )
 
   const {base} = placement
