@@ -114,6 +114,18 @@ describe('RelativeFloatingBox', () => {
     expect(anchorNameOf(second)).toBe(name)
   })
 
+  // a popup sizes to its content, so long text with no width set would grow to the window's width
+  test('is no wider than the window less the gap kept at its edges, so long text wraps', () => {
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} offset={4} position="bottom left">
+        a long line of text
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    expect(popup?.style.maxWidth).toBe('calc(100% - 4 * var(--kb-popup-offset, 0px))')
+    expect(popup?.style.getPropertyValue('--kb-popup-offset')).toBe('4px')
+  })
+
   test('stays hidden with nothing to anchor to', () => {
     render(
       <RelativeFloatingBox attachTo={refTo(null)} position="bottom left">

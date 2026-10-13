@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntryContext} from '../../overlay/context'
 import {EntryContent, useOverlayEntry} from '../../overlay/entry.desktop'
-import {heightVar, offsetVar, popupPlacement, widthVar} from './placement.desktop'
+import {heightVar, offsetVar, popupMaxWidth, popupPlacement, widthVar} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -133,6 +133,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     bottom: base.bottom,
     justifySelf: base.justifySelf,
     left: base.left,
+    maxWidth: popupMaxWidth,
     positionAnchor: anchorName,
     positionTryFallbacks: placement.tryOptions,
     right: base.right,

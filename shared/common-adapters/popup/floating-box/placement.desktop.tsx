@@ -18,6 +18,9 @@ export const widthVar = '--kb-popup-width'
 export const heightVar = '--kb-popup-height'
 
 const offset = `var(${offsetVar}, 0px)`
+// Text in a popup with no width of its own wraps at the window's width, less the gap the last
+// position pushed into the window keeps on each side, so it always fits.
+export const popupMaxWidth = `calc(100% - 4 * ${offset})`
 const width = `var(${widthVar}, 0px)`
 const height = `var(${heightVar}, 0px)`
 // the gap between the anchor and a popup beside it ('left center', 'right center')

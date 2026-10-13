@@ -409,7 +409,6 @@ body {
   border: 0;
   color: inherit;
   margin: 0;
-  max-width: 100%;
   overflow: visible;
   padding: 0;
   /* only the content takes clicks, never the box around it */
