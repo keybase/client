@@ -444,8 +444,12 @@ body {
 }
 
 .floating-box-content {
-  animation: floating-box-fade-in 0.25s;
   pointer-events: auto;
+
+  /* from when it is first drawn where it goes, which may be after it mounts */
+  .floating-box:not([data-unsized], [data-unanchored]) & {
+    animation: floating-box-fade-in 0.25s;
+  }
 
   .floating-box[data-unanchored] & {
     pointer-events: none;
