@@ -110,6 +110,39 @@ describe('GlobalOverlay', () => {
     expect(onMount).toHaveBeenCalledTimes(1)
   })
 
+  test('a click on the banner does not close the modal under it', () => {
+    const onOutside = jest.fn()
+    const content = {current: null as HTMLDivElement | null}
+    const setContent = (el: HTMLDivElement | null) => {
+      content.current = el
+    }
+    render(
+      <>
+        <OverlayEntry
+          acceptsKeys={true}
+          blocking={true}
+          kind="modal"
+          outside={{content: () => content.current, onOutside, propagate: true}}
+          stoppedEscapeCloses={true}
+        >
+          <div ref={setContent}>modal</div>
+        </OverlayEntry>
+        <GlobalOverlay tier="globalError">
+          <button>banner</button>
+        </GlobalOverlay>
+      </>
+    )
+    const click = (target: Element) => {
+      fireEvent.mouseDown(target, {clientX: 10, clientY: 10})
+      fireEvent.mouseUp(target, {clientX: 10, clientY: 10})
+    }
+    click(screen.getByText('banner'))
+    expect(onOutside).not.toHaveBeenCalled()
+    // still closes on a click outside it that is not on the banner
+    click(document.getElementById('root')!)
+    expect(onOutside).toHaveBeenCalledTimes(1)
+  })
+
   test('a popup opened from the banner is in the banner’s tier, above modals', () => {
     const App = (p: {modal: boolean}) => (
       <>

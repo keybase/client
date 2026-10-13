@@ -146,13 +146,22 @@ const isDescendant = (entries: Entries, id: string, ancestor: string) => {
 export const outsideClickEntry = (order: ReadonlyArray<StackEntry>, covered: ReadonlySet<string>) =>
   order.findLast(e => e.dismissable && !covered.has(e.id))?.id
 
+type Hit = {entry: string; inContent: boolean}
+
 // A press is inside an entry when it lands in its content, or in any entry opened from it, wherever
 // that is in the DOM.
-export const isInsideEntry = (
-  entries: Entries,
-  id: string,
-  hit: {entry: string; inContent: boolean}
-) => (hit.entry === id ? hit.inContent : isDescendant(entries, hit.entry, id))
+export const isInsideEntry = (entries: Entries, id: string, hit: Hit) =>
+  hit.entry === id ? hit.inContent : isDescendant(entries, hit.entry, id)
+
+// Where a press lands for the entry a click outside would close. One on something drawn above it (an
+// app-wide banner, or a popup opened from one) is that thing's, not a click outside.
+export const pressOn = (entries: Entries, order: ReadonlyArray<StackEntry>, id: string, hit: Hit) => {
+  if (isInsideEntry(entries, id, hit)) {
+    return 'inside'
+  }
+  const index = (entry: string) => order.findIndex(e => e.id === entry)
+  return index(hit.entry) > index(id) ? 'above' : 'outside'
+}
 
 // The top layer stacks in show order. To make it match `desired`, hide everything from the first
 // difference up and show the rest of `desired` in order.

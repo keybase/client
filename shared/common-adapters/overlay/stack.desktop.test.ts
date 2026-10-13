@@ -5,6 +5,7 @@ import {
   keyHomeOf,
   outsideClickEntry,
   planTopLayer,
+  pressOn,
   scopeOf,
   stackOrder,
   topKeyEntry,
@@ -177,6 +178,22 @@ describe('overlay stack', () => {
       expect(isInsideEntry(s.entries, 'menu', {entry: 'menu', inContent: false})).toBe(false)
       expect(isInsideEntry(s.entries, 'submenu', {entry: 'menu', inContent: true})).toBe(false)
       expect(isInsideEntry(s.entries, 'menu', {entry: rootEntryId, inContent: true})).toBe(false)
+    })
+
+    test('a press on something above the entry, like a banner, is not outside it', () => {
+      const s = stackOf(
+        modal('m'),
+        global('banner', 'globalError', false),
+        popup('bannerMenu', 'banner'),
+        popup('menu', 'm')
+      )
+      expect(s.ids).toEqual([rootEntryId, 'm', 'menu', 'banner', 'bannerMenu'])
+      const on = (id: string, entry: string) => pressOn(s.entries, s.order, id, {entry, inContent: false})
+      expect(on('m', 'banner')).toBe('above')
+      expect(on('m', 'bannerMenu')).toBe('above')
+      expect(on('m', 'menu')).toBe('inside')
+      expect(on('m', rootEntryId)).toBe('outside')
+      expect(on('menu', 'm')).toBe('outside')
     })
   })
 
