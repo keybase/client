@@ -10,40 +10,45 @@ type KeyReceiver = (type: KeyType, ev: KeyboardEvent) => boolean
 
 const receivers: Array<{entry: string; receive: KeyReceiver}> = []
 
-export const addKeyReceiver = (entry: string, receive: KeyReceiver) => {
-  const item = {entry, receive}
-  receivers.push(item)
-  return () => {
-    const i = receivers.indexOf(item)
-    if (i !== -1) {
-      receivers.splice(i, 1)
-    }
-  }
-}
-
 type HotKey = {cb: (combo: string) => void; entry: string}
 // each combo is parsed once, when it is first registered
 const hotKeys = new Map<string, {combo: KeyCombo; list: ReadonlyArray<HotKey>}>()
 
-export const registerHotKeys = (keys: ReadonlyArray<string>, cb: (combo: string) => void, entry: string) => {
-  const item = {cb, entry}
-  const combos = keys.map(k => k.toLowerCase().trim())
-  combos.forEach(key => {
-    const registered = hotKeys.get(key)
-    hotKeys.set(key, {combo: registered?.combo ?? parseKeyCombo(key), list: [...(registered?.list ?? []), item]})
-  })
-  return () => {
+// Keys only reach these once the window listeners are on, so they are handed out together with
+// what turns those on.
+export const keyRegistration = (listen: () => void) => ({
+  addKeyReceiver: (entry: string, receive: KeyReceiver) => {
+    listen()
+    const item = {entry, receive}
+    receivers.push(item)
+    return () => {
+      const i = receivers.indexOf(item)
+      if (i !== -1) {
+        receivers.splice(i, 1)
+      }
+    }
+  },
+  registerHotKeys: (keys: ReadonlyArray<string>, cb: (combo: string) => void, entry: string) => {
+    listen()
+    const item = {cb, entry}
+    const combos = keys.map(k => k.toLowerCase().trim())
     combos.forEach(key => {
       const registered = hotKeys.get(key)
-      const rest = registered?.list.filter(h => h !== item) ?? []
-      if (registered && rest.length) {
-        hotKeys.set(key, {combo: registered.combo, list: rest})
-      } else {
-        hotKeys.delete(key)
-      }
+      hotKeys.set(key, {combo: registered?.combo ?? parseKeyCombo(key), list: [...(registered?.list ?? []), item]})
     })
-  }
-}
+    return () => {
+      combos.forEach(key => {
+        const registered = hotKeys.get(key)
+        const rest = registered?.list.filter(h => h !== item) ?? []
+        if (registered && rest.length) {
+          hotKeys.set(key, {combo: registered.combo, list: rest})
+        } else {
+          hotKeys.delete(key)
+        }
+      })
+    }
+  },
+})
 
 // Hot keys registered in the modal (or the app root) that has the keys, the newest first.
 const fireHotKey = (ev: KeyboardEvent, top: string) => {

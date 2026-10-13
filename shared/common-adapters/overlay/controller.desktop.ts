@@ -157,16 +157,6 @@ export const unregisterEntry = (id: string) => {
   }
 }
 
-export const addKeyReceiver: typeof Keys.addKeyReceiver = (entry, receive) => {
-  listen()
-  return Keys.addKeyReceiver(entry, receive)
-}
-
-export const registerHotKeys: typeof Keys.registerHotKeys = (keys, cb, entry) => {
-  listen()
-  return Keys.registerHotKeys(keys, cb, entry)
-}
-
 let listening = false
 const listen = () => {
   if (listening) {
@@ -180,3 +170,5 @@ const listen = () => {
   window.addEventListener('keydown', Keys.onKeyDown)
   window.addEventListener('keypress', Keys.onKeyPress)
 }
+
+export const {addKeyReceiver, registerHotKeys} = Keys.keyRegistration(listen)
