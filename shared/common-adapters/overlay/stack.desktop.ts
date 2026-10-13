@@ -189,30 +189,3 @@ export const pressOn = (entries: Entries, order: ReadonlyArray<StackEntry>, id: 
   const index = (entry: string) => order.findIndex(e => e.id === entry)
   return index(hit.entry) > index(id) ? 'above' : 'outside'
 }
-
-// Tooltips and toasts take no keys and no clicks outside, so nothing depends on what they are under:
-// in the top layer they go above everything else, in stack order among themselves, and showing one
-// never re-shows what should be above it. Covering still follows the stack (a tooltip in a covered
-// modal is hidden), and so does what is opened from one.
-const isPassive = (e: StackEntry) => e.kind === 'popup' && !e.acceptsKeys && !e.dismissable && !e.blocking
-
-// The order the top layer should be in: the stack, with passive entries and what was opened from
-// them lifted to the end.
-export const topLayerOrder = (entries: Entries, order: ReadonlyArray<StackEntry>) => {
-  const lifted = (e: StackEntry): boolean => {
-    const parent = parentOf(entries, e)
-    return isPassive(e) || (!!parent && parent !== e && lifted(parent))
-  }
-  const top = order.filter(lifted)
-  return [...order.filter(e => !top.includes(e)), ...top]
-}
-
-// The top layer stacks in show order. To make it match `desired`, hide everything from the first
-// difference up and show the rest of `desired` in order.
-export const planTopLayer = <T>(shown: ReadonlyArray<T>, desired: ReadonlyArray<T>) => {
-  let same = 0
-  while (same < shown.length && same < desired.length && shown[same] === desired[same]) {
-    ++same
-  }
-  return {hide: shown.slice(same).reverse(), show: desired.slice(same)}
-}

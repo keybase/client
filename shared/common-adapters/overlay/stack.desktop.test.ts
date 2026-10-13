@@ -4,12 +4,10 @@ import {
   isInsideEntry,
   keyHomeOf,
   outsideClickEntry,
-  planTopLayer,
   pressOn,
   scopeOf,
   stackOrder,
   topKeyEntry,
-  topLayerOrder,
   type StackEntry,
 } from './stack.desktop'
 import {rootEntryId} from './context'
@@ -77,8 +75,7 @@ describe('overlay stack', () => {
     expect(s.top).toBe('m')
   })
 
-  // a covered modal is never re-shown, so its popups stay above it
-  test('a popup in a covered modal stays above it, and uncovering re-shows nothing', () => {
+  test('a popup in a covered modal stays above it', () => {
     const covered = stackOf(modal('a'), popup('menu', 'a'), modal('b'))
     expect(covered.ids).toEqual([rootEntryId, 'a', 'menu', 'b'])
     expect(covered.covered.has('menu')).toBe(true)
@@ -86,7 +83,6 @@ describe('overlay stack', () => {
 
     const uncovered = stackOf(modal('a'), popup('menu', 'a'))
     expect(uncovered.top).toBe('menu')
-    expect(planTopLayer(['a', 'menu', 'b'], uncovered.ids.slice(1))).toEqual({hide: ['b'], show: []})
   })
 
   // a lower modal's popup opened after a later modal is still below that modal
@@ -103,11 +99,6 @@ describe('overlay stack', () => {
     expect(s.covered.has('feedback')).toBe(true)
     expect(s.top).toBe('resetCover')
     expect(scopeOf(s.entries, s.top)).toBe('resetCover')
-    // the cover is re-shown above the modal inserted under it
-    expect(planTopLayer(['reset', 'resetCover', 'feedback'], s.ids.slice(1))).toEqual({
-      hide: ['feedback', 'resetCover', 'reset'],
-      show: ['feedback', 'reset', 'resetCover'],
-    })
   })
 
   test('global tiers keep their order whatever order they opened in', () => {
@@ -203,40 +194,6 @@ describe('overlay stack', () => {
       expect(on('m', 'menu')).toBe('inside')
       expect(on('m', rootEntryId)).toBe('outside')
       expect(on('menu', 'm')).toBe('outside')
-    })
-  })
-
-  test('in the top layer, tooltips and what opened from them go on top', () => {
-    const s = stackOf(
-      modal('m'),
-      popup('menu', 'm'),
-      popup('tip', 'menu', false),
-      modal('fromTip', 'tip'),
-      global('banner', 'globalError', false)
-    )
-    expect(s.ids).toEqual([rootEntryId, 'm', 'menu', 'tip', 'fromTip', 'banner'])
-    expect(topLayerOrder(s.entries, s.order).map(e => e.id)).toEqual([
-      rootEntryId,
-      'm',
-      'menu',
-      'banner',
-      'tip',
-      'fromTip',
-    ])
-  })
-
-  describe('planTopLayer', () => {
-    test('opening on top shows only the new entry', () => {
-      expect(planTopLayer(['a'], ['a', 'b'])).toEqual({hide: [], show: ['b']})
-    })
-    test('a stack that already matches needs nothing', () => {
-      expect(planTopLayer(['a', 'c'], ['a', 'c'])).toEqual({hide: [], show: []})
-    })
-    test('an insert below re-shows everything above it', () => {
-      expect(planTopLayer(['a', 'banner'], ['a', 'b', 'banner'])).toEqual({
-        hide: ['banner'],
-        show: ['b', 'banner'],
-      })
     })
   })
 })

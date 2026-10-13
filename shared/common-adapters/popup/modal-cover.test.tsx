@@ -5,9 +5,9 @@ import type * as React from 'react'
 import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
 import {ModalCover} from './modal-cover.desktop'
-import {overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-const overlay = setupOverlayDom()
+setupOverlayDom()
 
 const renderCover = (onHidden?: () => void) => {
   render(
@@ -33,7 +33,7 @@ describe('ModalCover', () => {
 
   test('renders its children on the cover, in a modal overlay', () => {
     const {content, cover, entry} = renderCover(() => {})
-    expect(overlay.shown).toEqual([entry])
+    expect(paintOrder()).toEqual([entry])
     expect(cover.contains(content)).toBe(true)
   })
 

@@ -17,8 +17,8 @@ type HookProps = Omit<EntryStructure, 'parent'> &
   Partial<Pick<EntryBehavior, 'anchoredWithin' | 'closing' | 'outside' | 'syncAnchor'>>
 
 // Registers an entry in the overlay stack under the entry it is rendered in, once `ref` is attached
-// to its manual popover, which the stack then shows in its place. Render what is inside only once
-// `shown`, and provide `id` to it as OverlayEntryContext.
+// to its element in #modal-root, which the stack then draws in its place. Render what is inside only
+// once `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
   const {acceptsKeys, anchoredWithin, blocking, closing, kind, onEscape, outside, route} = p
   const {stoppedEscapeCloses, syncAnchor, tier} = p
@@ -42,8 +42,9 @@ export const useOverlayEntry = (p: HookProps) => {
     updateEntry(id, behavior)
   })
 
-  // Shown first, then what is inside mounts in a follow-up commit before paint: focusing on mount
-  // works, and anything opened from inside registers after this one, so it stacks above it.
+  // Registered first, then what is inside mounts in a follow-up commit before paint: anything opened
+  // from inside registers after this one, so it stacks above it, and its element goes after this one
+  // in #modal-root, which CSS anchor positioning needs to anchor it to something in here.
   const ref = React.useCallback(
     (element: HTMLElement | null) => {
       if (!element) {
@@ -75,10 +76,10 @@ export const useOverlayEntry = (p: HookProps) => {
 // shown again, where nothing can take focus.
 const EntryContent = (p: {children: React.ReactNode}) => <React.Suspense>{p.children}</React.Suspense>
 
-type EntryPopoverProps = {
+type EntryElementProps = {
   id: string
   shown: boolean
-  popoverRef: React.Ref<HTMLDivElement>
+  elementRef: React.Ref<HTMLDivElement>
   className: string
   style?: React.CSSProperties
   tabIndex?: number
@@ -91,10 +92,10 @@ type EntryPopoverProps = {
   children: React.ReactNode
 }
 
-// An entry's manual popover in the modal root, holding what is inside once the stack has shown it.
-export const EntryPopover = (p: EntryPopoverProps) => {
+// An entry's element in the modal root, holding what is inside once the stack has it.
+export const EntryElement = (p: EntryElementProps) => {
   const {beforeContent, children, className, contentClassName, contentRef, contentStyle, id} = p
-  const {popoverRef, shown, style, tabIndex} = p
+  const {elementRef, shown, style, tabIndex} = p
   const host = document.getElementById('modal-root')
   if (!host) {
     return null
@@ -107,8 +108,7 @@ export const EntryPopover = (p: EntryPopoverProps) => {
   )
   return ReactDOM.createPortal(
     <div
-      popover="manual"
-      ref={popoverRef}
+      ref={elementRef}
       data-overlay-entry={id}
       className={className}
       style={style}
@@ -136,7 +136,7 @@ type Props = HookProps & {
   passthrough?: boolean
 }
 
-// A full-window overlay in the top layer, in its place in the overlay stack.
+// A full-window overlay, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
   const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, route} = p
   const {stoppedEscapeCloses, tier} = p
@@ -152,14 +152,14 @@ export const OverlayEntry = (p: Props) => {
     tier,
   })
   return (
-    <EntryPopover
+    <EntryElement
       id={id}
       shown={shown}
-      popoverRef={ref}
+      elementRef={ref}
       className={passthrough ? 'overlay-entry overlay-entry-passthrough' : 'overlay-entry'}
       tabIndex={-1}
     >
       {children}
-    </EntryPopover>
+    </EntryElement>
   )
 }

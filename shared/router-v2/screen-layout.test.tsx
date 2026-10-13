@@ -4,19 +4,12 @@
 import {cleanup, render} from '@testing-library/react'
 import {desktopMakeLayout, nativeMakeLayout} from './screen-layout'
 
-// Desktop modals are popovers in #modal-root, and jsdom has no Popover API. This file is also
-// typechecked without the DOM lib.
-type Popover = {showPopover: () => void; hidePopover: () => void}
+// Desktop modals are portaled into #modal-root. This file is also typechecked without the DOM lib.
 type Doc = {
   body: {append: (n: unknown) => void}
   createElement: (tag: string) => {id: string; remove: () => void}
 }
 const doc = (globalThis as unknown as {document: Doc}).document
-beforeAll(() => {
-  const popover = (globalThis as unknown as {HTMLElement: {prototype: Popover}}).HTMLElement.prototype
-  popover.showPopover = () => {}
-  popover.hidePopover = () => {}
-})
 let modalRoot: ReturnType<Doc['createElement']> | undefined
 beforeEach(() => {
   modalRoot = doc.createElement('div')

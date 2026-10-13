@@ -10,9 +10,9 @@ import {GlobalOverlay} from '../../overlay/global-overlay.desktop'
 import {ModalCover} from '../modal-cover.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
-import {EscapeHandler, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {EscapeHandler, overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-const overlay = setupOverlayDom()
+setupOverlayDom()
 
 // jsdom has no ResizeObserver: keep the observers, so a test can report a size change
 let observers: Array<{cb: (entries: Array<unknown>) => void; targets: Set<Element>}> = []
@@ -69,7 +69,7 @@ describe('RelativeFloatingBox', () => {
     anchors.splice(0).forEach(a => a.remove())
   })
 
-  test('shows a manual popover anchored to the attachTo element', () => {
+  test('draws a popup in the modal root anchored to the attachTo element', () => {
     const anchor = anchorElement()
     render(
       <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
@@ -77,8 +77,8 @@ describe('RelativeFloatingBox', () => {
       </RelativeFloatingBox>
     )
     const [popup] = popups()
-    expect(popup?.getAttribute('popover')).toBe('manual')
-    expect(overlay.shown).toEqual([popup])
+    expect(popup?.parentElement?.id).toBe('modal-root')
+    expect(paintOrder()).toEqual([popup])
     expect(popup?.hasAttribute('data-unanchored')).toBe(false)
     expect(anchorNameOf(anchor)).toMatch(/^--kb-anchor-\w+$/)
   })
@@ -94,7 +94,7 @@ describe('RelativeFloatingBox', () => {
     expect(anchorNameOf(anchor)).toMatch(/^--other, --kb-anchor-\w+$/)
     unmount()
     expect(anchorNameOf(anchor)).toBe('--other')
-    expect(overlay.shown).toEqual([])
+    expect(paintOrder()).toEqual([])
   })
 
   test('moves its anchor name when attachTo points somewhere else', () => {
@@ -188,7 +188,7 @@ describe('RelativeFloatingBox', () => {
       const [popup] = popups()
       expect(popup?.hasAttribute('data-unanchored')).toBe(true)
       // still open
-      expect(overlay.shown).toEqual([popup])
+      expect(paintOrder()).toEqual([popup])
 
       // re-checked whenever the stack changes, e.g. a tooltip opening
       const second = anchorElement()
@@ -375,7 +375,7 @@ describe('RelativeFloatingBox', () => {
     expect(popup.hasAttribute('data-unanchored')).toBe(false)
   })
 
-  test('a popup inside another is shown after it, so it stacks above it', () => {
+  test('a popup inside another goes after it, so it stacks above it', () => {
     const anchor = anchorElement()
     render(
       <RelativeFloatingBox attachTo={refTo(anchor)} position="bottom left">
@@ -386,10 +386,10 @@ describe('RelativeFloatingBox', () => {
     )
     const [outer, inner] = popups()
     expect(inner?.textContent).toBe('inner')
-    expect(overlay.shown).toEqual([outer, inner])
+    expect(paintOrder()).toEqual([outer, inner])
   })
 
-  test('a popup opened inside a modal is shown after it, so it stacks above it', () => {
+  test('a popup opened inside a modal goes after it, so it stacks above it and can anchor in it', () => {
     const anchor = anchorElement()
     render(
       <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
@@ -400,11 +400,11 @@ describe('RelativeFloatingBox', () => {
     )
     const [modal, popup] = popups()
     expect(popup?.textContent).toBe('content')
-    expect(overlay.shown).toEqual([modal, popup])
+    expect(paintOrder()).toEqual([modal, popup])
   })
 
   // a modal mounted in the same commit as the popup it is in
-  test('a modal opened inside a popup is shown after it and covers it', () => {
+  test('a modal opened inside a popup goes after it and covers it', () => {
     const anchor = anchorElement()
     render(
       <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
@@ -413,7 +413,7 @@ describe('RelativeFloatingBox', () => {
     )
     const [popup, modal] = popups()
     expect(modal?.textContent).toBe('dialog')
-    expect(overlay.shown).toEqual([popup, modal])
+    expect(paintOrder()).toEqual([popup, modal])
     expect(popup?.hasAttribute('data-hidden')).toBe(true)
     expect(popup?.hasAttribute('inert')).toBe(true)
   })
@@ -535,7 +535,7 @@ describe('RelativeFloatingBox', () => {
     expect(outer).not.toHaveBeenCalled()
   })
 
-  describe('a tooltip opening re-shows nothing', () => {
+  describe('a tooltip opening changes nothing else', () => {
     const tooltip = (show: boolean) =>
       show ? (
         <FloatingBox attachTo={refTo(anchorElement())} position="top center">
@@ -560,17 +560,13 @@ describe('RelativeFloatingBox', () => {
       const [modal, banner] = popups()
       const refocused = jest.fn()
       field.addEventListener('focus', refocused)
-      const showPopover = jest.spyOn(HTMLElement.prototype, 'showPopover')
-      try {
-        rerender(<App tip={true} />)
-        const tip = popups().find(e => e.textContent === 'tooltip')
-        expect(showPopover.mock.contexts).toEqual([tip])
-        expect(overlay.shown).toEqual([modal, banner, tip])
-        expect(refocused).not.toHaveBeenCalled()
-        expect(document.activeElement).toBe(field)
-      } finally {
-        showPopover.mockRestore()
-      }
+      rerender(<App tip={true} />)
+      const tip = popups().find(e => e.textContent === 'tooltip')
+      // in its place in the stack: with the modal, under the banner
+      expect(paintOrder()).toEqual([modal, tip, banner])
+      expect(popups()).toEqual([modal, banner, tip])
+      expect(refocused).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
     })
 
     test('in a popup while a later popup is open', () => {
@@ -580,43 +576,21 @@ describe('RelativeFloatingBox', () => {
             first{tooltip(p.tip)}
           </RelativeFloatingBox>
           <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
-            second
+            <div data-testid="scroller">second</div>
           </RelativeFloatingBox>
         </>
       )
       const {rerender} = render(<App tip={false} />)
       const [first, second] = popups()
+      const scroller = screen.getByTestId('scroller')
+      scroller.scrollTop = 40
       rerender(<App tip={true} />)
       const tip = popups().find(e => e.textContent === 'tooltip')
-      expect(overlay.shown).toEqual([first, second, tip])
-      expect(second?.hasAttribute('data-reshown')).toBe(false)
+      expect(paintOrder()).toEqual([first, tip, second])
+      expect(scroller.scrollTop).toBe(40)
+      expect(second?.hasAttribute('data-hidden')).toBe(false)
+      expect(second?.hasAttribute('inert')).toBe(false)
     })
-  })
-
-  test('a popup re-shown above an insert under it does not fade in again', () => {
-    const App = (p: {modal: boolean}) => (
-      <>
-        {p.modal ? (
-          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
-            modal
-          </OverlayEntry>
-        ) : null}
-        <GlobalOverlay tier="globalError">
-          banner
-          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
-            menu
-          </RelativeFloatingBox>
-        </GlobalOverlay>
-      </>
-    )
-    const {rerender} = render(<App modal={false} />)
-    const menu = popups().find(e => e.textContent === 'menu')
-    expect(menu?.hasAttribute('data-reshown')).toBe(false)
-    rerender(<App modal={true} />)
-    const modal = popups().find(e => e.textContent === 'modal')
-    expect(overlay.shown.indexOf(modal!)).toBeLessThan(overlay.shown.indexOf(menu!))
-    expect(menu?.hasAttribute('data-reshown')).toBe(true)
-    expect(modal?.hasAttribute('data-reshown')).toBe(false)
   })
 
   test('a tooltip neither closes on outside clicks nor keeps them from what is under it', () => {
@@ -755,6 +729,6 @@ describe('RelativeFloatingBox', () => {
       </RelativeFloatingBox>
     )
     expect(container.innerHTML).toBe('')
-    expect(overlay.shown).toEqual([])
+    expect(paintOrder()).toEqual([])
   })
 })

@@ -3,50 +3,27 @@ import type * as React from 'react'
 import {cleanup} from '@testing-library/react'
 import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 
-// Desktop overlays are manual popovers portaled into #modal-root, and the app root goes inert under a
-// modal. jsdom has neither root nor the Popover API, so tests that render overlays call this once:
-// it adds both roots around every test and records what is shown, in top-layer order.
+// Desktop overlays are portaled into #modal-root, and the app root goes inert under a modal. jsdom has
+// no such roots, so tests that render overlays call this once: it adds both around every test.
 export const setupOverlayDom = () => {
-  const state = {
-    hide: (element: HTMLElement) => {
-      state.shown = state.shown.filter(p => p !== element)
-      // as in a browser, what was scrolled in a popover is back at the start once it is hidden
-      for (const e of [element, ...element.querySelectorAll('*')]) {
-        e.scrollTop = 0
-        e.scrollLeft = 0
-      }
-    },
-    shown: [] as Array<HTMLElement>,
-  }
   beforeAll(() => {
-    HTMLElement.prototype.showPopover = function (this: HTMLElement) {
-      if (state.shown.includes(this)) {
-        throw new Error('already shown')
-      }
-      state.shown.push(this)
-    }
-    HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-      state.hide(this)
-    }
     // jsdom has no checkVisibility: an element is rendered unless it or an ancestor is display:none
     const displayed = (e: Element | null): boolean =>
       !e || (getComputedStyle(e).display !== 'none' && displayed(e.parentElement))
     HTMLElement.prototype.checkVisibility = function (this: HTMLElement) {
       return displayed(this)
     }
-    // as in a browser, nothing in a popover that is not shown, or in an inert or hidden subtree, can take focus
+    // as in a browser, nothing in an inert subtree, or in a popup not measured yet (visibility:hidden in
+    // style.css), can take focus
     const {focus} = Object.getOwnPropertyDescriptors(HTMLElement.prototype)
     HTMLElement.prototype.focus = function (this: HTMLElement, options?: FocusOptions) {
-      const popover = this.closest<HTMLElement>('[popover]')
-      // a popup not measured yet is visibility:hidden (style.css)
-      if ((popover && !state.shown.includes(popover)) || this.closest('[inert], [data-unsized]')) {
+      if (this.closest('[inert], [data-unsized]')) {
         return
       }
       ;(focus.value as HTMLElement['focus']).call(this, options)
     }
   })
   beforeEach(() => {
-    state.shown = []
     const root = document.createElement('div')
     root.id = 'root'
     const modalRoot = document.createElement('div')
@@ -58,12 +35,15 @@ export const setupOverlayDom = () => {
     document.getElementById('root')?.remove()
     document.getElementById('modal-root')?.remove()
   })
-  return state
 }
 
 export const overlayEntries = () => [
   ...document.querySelectorAll<HTMLElement>('#modal-root > [data-overlay-entry]'),
 ]
+
+// the entries, bottom to top, as they are drawn
+export const paintOrder = () =>
+  overlayEntries().sort((a, b) => Number(a.style.zIndex) - Number(b.style.zIndex))
 
 // a key handler that takes Escape and nothing else, like an open menu
 export const EscapeHandler = (p: {onESC: () => void; children?: React.ReactNode}) => {

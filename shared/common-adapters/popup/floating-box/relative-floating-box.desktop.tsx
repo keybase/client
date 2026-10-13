@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {MeasureRef} from '../../measure-ref'
 import {setEntryDormant} from '../../overlay/controller.desktop'
-import {EntryPopover, useOverlayEntry} from '../../overlay/entry.desktop'
+import {EntryElement, useOverlayEntry} from '../../overlay/entry.desktop'
 import {
   heightVar,
   heldLeftVar,
@@ -220,10 +220,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       <style href={placement.tryOptions} precedence="floating-box">
         {placement.rules}
       </style>
-      <EntryPopover
+      <EntryElement
         id={id}
         shown={shown}
-        popoverRef={setPopup}
+        elementRef={setPopup}
         className="floating-box"
         style={popupStyle}
         contentClassName="floating-box-content"
@@ -233,7 +233,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
         beforeContent={<span hidden={true} ref={measureContent} />}
       >
         {children}
-      </EntryPopover>
+      </EntryElement>
     </>
   ) : null
 }

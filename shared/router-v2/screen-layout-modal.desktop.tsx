@@ -112,7 +112,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack}) : undefined
   const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
-  // a modal under the topmost one is covered: inert and hidden, keeping its place in the top layer
+  // a modal under the topmost one is covered: inert and hidden, keeping its place in the stack
   return (
     <OverlayEntry
       acceptsKeys={true}

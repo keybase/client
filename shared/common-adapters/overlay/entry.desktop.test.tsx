@@ -4,24 +4,8 @@
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {KeyEventHandler} from '../key-event-handler.desktop'
-import {EscapeHandler} from '@/test/overlay-dom.desktop'
+import {EscapeHandler, paintOrder} from '@/test/overlay-dom.desktop'
 import {OverlayEntry} from './entry.desktop'
-
-// jsdom has no Popover API: keep what is shown in the order it was shown, its top-layer order
-let shown: Array<HTMLElement> = []
-let showCalls: Array<HTMLElement> = []
-beforeAll(() => {
-  HTMLElement.prototype.showPopover = function (this: HTMLElement) {
-    if (shown.includes(this)) {
-      throw new Error('already shown')
-    }
-    shown.push(this)
-    showCalls.push(this)
-  }
-  HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-    shown = shown.filter(p => p !== this)
-  }
-})
 
 type ModalProps = {
   children?: React.ReactNode
@@ -58,8 +42,6 @@ const stop = (e: React.KeyboardEvent) => e.stopPropagation()
 
 describe('OverlayEntry', () => {
   beforeEach(() => {
-    shown = []
-    showCalls = []
     const root = document.createElement('div')
     root.id = 'root'
     const modalRoot = document.createElement('div')
@@ -71,31 +53,50 @@ describe('OverlayEntry', () => {
     document.body.innerHTML = ''
   })
 
-  test('is a manual popover in the modal root, shown while mounted and hidden on unmount', () => {
+  test('is drawn in the modal root while mounted, and gone on unmount', () => {
     const {unmount} = render(<Modal>content</Modal>)
     const [entry] = entries()
-    expect(shown).toEqual([entry])
+    expect(paintOrder()).toEqual([entry])
     expect(entry?.textContent).toBe('content')
     unmount()
-    expect(shown).toEqual([])
+    expect(entries()).toEqual([])
+  })
+
+  test('each entry is drawn above the ones under it in the stack, whatever order they mounted in', () => {
+    const Stack = (p: {second: boolean}) => (
+      <>
+        {p.second ? <Modal>second</Modal> : null}
+        <OverlayEntry acceptsKeys={false} blocking={false} kind="global" stoppedEscapeCloses={false} tier="globalError">
+          banner
+        </OverlayEntry>
+        <Modal>
+          first<Modal>child</Modal>
+        </Modal>
+      </>
+    )
+    const {rerender} = render(<Stack second={false} />)
+    rerender(<Stack second={true} />)
+    const zIndexes = paintOrder().map(e => Number(e.style.zIndex))
+    expect(paintOrder().map(e => e.textContent)).toEqual(['first', 'child', 'second', 'banner'])
+    expect(zIndexes).toEqual([...zIndexes].sort((a, b) => a - b))
+    expect(new Set(zIndexes).size).toBe(zIndexes.length)
   })
 
   // a <dialog> shown with showModal is a close watcher, which Chromium closes after enough Escapes
   test('is not a dialog, so nothing but the overlay stack closes it', () => {
     render(<Modal>content</Modal>)
     const [entry] = entries()
-    expect(entry?.getAttribute('popover')).toBe('manual')
     expect(entry?.tagName).toBe('DIV')
     expect(document.querySelector('dialog')).toBeNull()
   })
 
-  test('mounts its content into an already shown popover, so autoFocus works', () => {
-    let shownWhenMounted: boolean | undefined
+  test('mounts its content once the entry is in the stack, so what opens from it stacks above it', () => {
+    let inStackWhenMounted: boolean | undefined
     const Content = () => {
       const ref = React.useRef<HTMLDivElement>(null)
       React.useLayoutEffect(() => {
         const entry = ref.current?.closest<HTMLElement>('[data-overlay-entry]')
-        shownWhenMounted = !!entry && shown.includes(entry)
+        inStackWhenMounted = !!entry && entry.style.zIndex !== ''
       }, [])
       return <div ref={ref}>content</div>
     }
@@ -105,7 +106,7 @@ describe('OverlayEntry', () => {
         <input aria-label="field" autoFocus={true} />
       </Modal>
     )
-    expect(shownWhenMounted).toBe(true)
+    expect(inStackWhenMounted).toBe(true)
     expect(document.activeElement).toBe(screen.getByLabelText('field'))
   })
 
@@ -192,8 +193,7 @@ describe('OverlayEntry', () => {
     })
   })
 
-  // re-showing a covered modal would put it above the popups open in it
-  test('a covered modal keeps its place and content, and is never shown again', () => {
+  test('a covered modal keeps its place and content', () => {
     const Stack = (p: {second: boolean}) => (
       <>
         <Modal>
@@ -206,10 +206,9 @@ describe('OverlayEntry', () => {
     const {rerender} = render(<Stack second={false} />)
     const [outer, inner] = entries()
     rerender(<Stack second={true} />)
-    expect(shown).toEqual([outer, inner, entries()[2]])
+    expect(paintOrder()).toEqual([outer, inner, entries()[2]])
     rerender(<Stack second={false} />)
-    expect(shown).toEqual([outer, inner])
-    expect(showCalls.filter(e => e === outer || e === inner)).toEqual([outer, inner])
+    expect(paintOrder()).toEqual([outer, inner])
     expect(screen.getByLabelText<HTMLInputElement>('kept').value).toBe('typed')
   })
 
@@ -236,8 +235,7 @@ describe('OverlayEntry', () => {
     const refocused = jest.fn()
     field.addEventListener('focus', refocused)
     rerender(<Stack second={false} />)
-    expect(shown).toEqual([first])
-    expect(showCalls.filter(e => e === first)).toHaveLength(1)
+    expect(paintOrder()).toEqual([first])
     expect(document.activeElement).toBe(field)
     expect(refocused).toHaveBeenCalledTimes(1)
   })
@@ -530,6 +528,5 @@ describe('OverlayEntry', () => {
     document.getElementById('modal-root')?.remove()
     const {container} = render(<Modal>content</Modal>)
     expect(container.innerHTML).toBe('')
-    expect(shown).toEqual([])
   })
 })

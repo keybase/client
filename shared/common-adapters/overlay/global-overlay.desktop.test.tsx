@@ -6,7 +6,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react'
 import {ModalCover} from '../popup/modal-cover.desktop'
 import {OverlayEntry} from './entry.desktop'
 import {GlobalOverlay} from './global-overlay.desktop'
-import {EscapeHandler, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {EscapeHandler, overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 jest.mock('@/constants', () => ({
   Router2: {
@@ -17,7 +17,7 @@ jest.mock('@/constants/platform', () => ({isMac: true}))
 
 import {useHotKey} from '../hot-key'
 
-const overlay = setupOverlayDom()
+setupOverlayDom()
 
 const RouterModal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
   <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape} stoppedEscapeCloses={true}>
@@ -69,8 +69,7 @@ describe('GlobalOverlay', () => {
     rerender(<App modal={true} />)
     const feedback = entryHolding('feedback')
     const cover = entryHolding('reset')
-    // the cover was shown again above the modal inserted under it
-    expect(overlay.shown.indexOf(feedback!)).toBeLessThan(overlay.shown.indexOf(cover!))
+    expect(paintOrder().indexOf(feedback!)).toBeLessThan(paintOrder().indexOf(cover!))
     expect(feedback?.hasAttribute('inert')).toBe(true)
     // still drawn under the cover
     expect(feedback?.hasAttribute('data-hidden')).toBe(false)
@@ -101,7 +100,7 @@ describe('GlobalOverlay', () => {
     screen.getByText('banner').addEventListener('click', onClick)
     rerender(<App modal={true} />)
     const modal = entryHolding('modal')
-    expect(overlay.shown).toEqual([modal, banner])
+    expect(paintOrder()).toEqual([modal, banner])
     expect(banner?.hasAttribute('inert')).toBe(false)
     expect(banner?.classList.contains('overlay-entry-passthrough')).toBe(true)
     fireEvent.click(screen.getByText('banner'))
@@ -172,7 +171,7 @@ describe('GlobalOverlay', () => {
     )
     const {rerender} = render(<App disconnected={false} />)
     rerender(<App disconnected={true} />)
-    expect(overlay.shown.map(e => e.textContent)).toEqual(['modal', 'banner', 'disconnected', 'update'])
+    expect(paintOrder().map(e => e.textContent)).toEqual(['modal', 'banner', 'disconnected', 'update'])
     expect(entryHolding('banner')?.hasAttribute('inert')).toBe(true)
     expect(entryHolding('modal')?.hasAttribute('inert')).toBe(true)
     expect(entryHolding('update')?.hasAttribute('inert')).toBe(false)
@@ -208,7 +207,7 @@ describe('GlobalOverlay', () => {
   })
 
   // the expanded error banner's details scroll
-  test('re-showing overlays above an insert keeps them scrolled where they were', () => {
+  test('a modal opening under the banner leaves it scrolled where it was', () => {
     const App = (p: {modal: boolean}) => (
       <>
         {p.modal ? <RouterModal>modal</RouterModal> : null}
@@ -221,20 +220,11 @@ describe('GlobalOverlay', () => {
     const details = screen.getByTestId('details')
     details.scrollTop = 120
     rerender(<App modal={true} />)
-    // the banner was hidden and shown again above the modal
-    expect(overlay.shown.map(e => e.textContent)).toEqual(['modal', 'details'])
+    expect(paintOrder().map(e => e.textContent)).toEqual(['modal', 'details'])
     expect(details.scrollTop).toBe(120)
   })
 
-  test('re-showing overlays above an insert keeps focus and the selection where they were', () => {
-    // Chromium can drop focus from a popover while it is hidden
-    const hide = overlay.hide
-    HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-      if (this.contains(document.activeElement)) {
-        ;(document.activeElement as HTMLElement).blur()
-      }
-      hide(this)
-    }
+  test('an overlay opening under another leaves focus and the selection in it where they were', () => {
     const App = (p: {banner: boolean}) => (
       <>
         {p.banner ? <GlobalOverlay tier="globalError">banner</GlobalOverlay> : null}
@@ -243,19 +233,16 @@ describe('GlobalOverlay', () => {
         </GlobalOverlay>
       </>
     )
-    try {
-      const {rerender} = render(<App banner={false} />)
-      const field = screen.getByLabelText<HTMLInputElement>('field')
-      field.focus()
-      field.setSelectionRange(2, 5)
-      rerender(<App banner={true} />)
-      expect(overlay.shown.map(e => e.textContent)).toEqual(['banner', ''])
-      expect(document.activeElement).toBe(field)
-      expect([field.selectionStart, field.selectionEnd]).toEqual([2, 5])
-    } finally {
-      HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-        hide(this)
-      }
-    }
+    const {rerender} = render(<App banner={false} />)
+    const field = screen.getByLabelText<HTMLInputElement>('field')
+    field.focus()
+    field.setSelectionRange(2, 5)
+    const refocused = jest.fn()
+    field.addEventListener('focus', refocused)
+    rerender(<App banner={true} />)
+    expect(paintOrder().map(e => e.textContent)).toEqual(['banner', ''])
+    expect(document.activeElement).toBe(field)
+    expect(refocused).not.toHaveBeenCalled()
+    expect([field.selectionStart, field.selectionEnd]).toEqual([2, 5])
   })
 })

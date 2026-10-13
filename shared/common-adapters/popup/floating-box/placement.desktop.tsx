@@ -1,8 +1,8 @@
 import type * as Styles from '@/styles'
 
-// Popups are placed with CSS anchor positioning: the popup is in the top layer and the browser keeps
-// it on its anchor through scrolling and layout changes. The browser tries the base position, then
-// the @position-try options in order, and keeps the first that fits in the viewport.
+// Popups are placed with CSS anchor positioning: the popup is fixed-position in #modal-root and the
+// browser keeps it on its anchor through scrolling and layout changes. The browser tries the base
+// position, then the @position-try options in order, and keeps the first that fits in the viewport.
 //
 // Each option pins the popup's box exactly, so "fits" means the whole popup is in the viewport, and
 // that needs the popup's own size, which CSS can't read from inside the popup's insets: the

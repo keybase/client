@@ -266,15 +266,19 @@ body {
   }
 }
 
+/* Overlays are drawn over the app: nothing in the app, whatever its z-index, goes above them */
 #root {
   position: absolute;
   display: flex;
   inset: 0;
   overflow: hidden;
+  isolation: isolate;
 }
 
+/* overlay entries, drawn in stack order by the z-index the overlay stack gives each */
 #modal-root {
   display: inline-block;
+  isolation: isolate;
 }
 
 .underline-hover-no-underline {
@@ -403,14 +407,9 @@ body {
   vertical-align: middle;
 }
 
-/* a popup placed by relative-floating-box: a manual popover in the top layer, anchored with CSS */
+/* a popup placed by relative-floating-box, anchored with CSS */
 .floating-box {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  margin: 0;
-  overflow: visible;
-  padding: 0;
+  position: fixed;
   /* only the content takes clicks, never the box around it */
   pointer-events: none;
   /* stays shown when its anchor is scrolled out of view */
@@ -440,11 +439,8 @@ body {
   pointer-events: auto;
   transition: opacity 0.25s;
 
-  /* fades in when it opens, not when the overlay stack re-shows it to restack */
-  .floating-box:not([data-reshown]) > & {
-    @starting-style {
-      opacity: 0;
-    }
+  @starting-style {
+    opacity: 0;
   }
 
   .floating-box[data-unanchored] & {
@@ -452,21 +448,12 @@ body {
   }
 }
 
-/* overlay/entry: a full-window manual popover in the top layer, shown by the overlay stack. The
-   content draws its own cover, so the popover draws nothing */
+/* overlay/entry: a full-window overlay. The content draws its own cover, so the entry draws nothing */
 .overlay-entry {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  height: 100%;
   inset: 0;
-  margin: 0;
-  max-height: none;
-  max-width: none;
   outline: none;
   overflow: hidden;
-  padding: 0;
-  width: 100%;
+  position: fixed;
 
   /* an app-wide banner: only what it draws takes clicks */
   &.overlay-entry-passthrough {
