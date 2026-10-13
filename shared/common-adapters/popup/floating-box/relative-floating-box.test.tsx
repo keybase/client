@@ -6,6 +6,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntry} from '../../overlay/entry.desktop'
+import {GlobalOverlay} from '../../overlay/global-overlay.desktop'
 import {ModalCover} from '../modal-cover.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
@@ -427,6 +428,90 @@ describe('RelativeFloatingBox', () => {
     click(screen.getByText('menu'))
     expect(inner).toHaveBeenCalledTimes(2)
     expect(outer).not.toHaveBeenCalled()
+  })
+
+  describe('a tooltip opening re-shows nothing', () => {
+    const tooltip = (show: boolean) =>
+      show ? (
+        <FloatingBox attachTo={refTo(anchorElement())} position="top center">
+          tooltip
+        </FloatingBox>
+      ) : null
+
+    test('in a modal while the banner is up', () => {
+      const App = (p: {tip: boolean}) => (
+        <>
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+            modal{tooltip(p.tip)}
+          </OverlayEntry>
+          <GlobalOverlay tier="globalError">
+            <input aria-label="field" />
+          </GlobalOverlay>
+        </>
+      )
+      const {rerender} = render(<App tip={false} />)
+      const field = screen.getByLabelText('field')
+      field.focus()
+      const [modal, banner] = popups()
+      const refocused = jest.fn()
+      field.addEventListener('focus', refocused)
+      const showPopover = jest.spyOn(HTMLElement.prototype, 'showPopover')
+      try {
+        rerender(<App tip={true} />)
+        const tip = popups().find(e => e.textContent === 'tooltip')
+        expect(showPopover.mock.contexts).toEqual([tip])
+        expect(overlay.shown).toEqual([modal, banner, tip])
+        expect(refocused).not.toHaveBeenCalled()
+        expect(document.activeElement).toBe(field)
+      } finally {
+        showPopover.mockRestore()
+      }
+    })
+
+    test('in a popup while a later popup is open', () => {
+      const App = (p: {tip: boolean}) => (
+        <>
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            first{tooltip(p.tip)}
+          </RelativeFloatingBox>
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            second
+          </RelativeFloatingBox>
+        </>
+      )
+      const {rerender} = render(<App tip={false} />)
+      const [first, second] = popups()
+      rerender(<App tip={true} />)
+      const tip = popups().find(e => e.textContent === 'tooltip')
+      expect(overlay.shown).toEqual([first, second, tip])
+      expect(second?.hasAttribute('data-reshown')).toBe(false)
+    })
+  })
+
+  test('a popup re-shown above an insert under it does not fade in again', () => {
+    const App = (p: {modal: boolean}) => (
+      <>
+        {p.modal ? (
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+            modal
+          </OverlayEntry>
+        ) : null}
+        <GlobalOverlay tier="globalError">
+          banner
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            menu
+          </RelativeFloatingBox>
+        </GlobalOverlay>
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    const menu = popups().find(e => e.textContent === 'menu')
+    expect(menu?.hasAttribute('data-reshown')).toBe(false)
+    rerender(<App modal={true} />)
+    const modal = popups().find(e => e.textContent === 'modal')
+    expect(overlay.shown.indexOf(modal!)).toBeLessThan(overlay.shown.indexOf(menu!))
+    expect(menu?.hasAttribute('data-reshown')).toBe(true)
+    expect(modal?.hasAttribute('data-reshown')).toBe(false)
   })
 
   test('a tooltip neither closes on outside clicks nor keeps them from what is under it', () => {

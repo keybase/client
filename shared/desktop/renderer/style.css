@@ -435,8 +435,11 @@ body {
   pointer-events: auto;
   transition: opacity 0.25s;
 
-  @starting-style {
-    opacity: 0;
+  /* fades in when it opens, not when the overlay stack re-shows it to restack */
+  .floating-box:not([data-reshown]) > & {
+    @starting-style {
+      opacity: 0;
+    }
   }
 
   .floating-box[data-unanchored] & {

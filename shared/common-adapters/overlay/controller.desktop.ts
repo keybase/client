@@ -10,6 +10,7 @@ import {
   scopeOf,
   stackOrder,
   topKeyEntry,
+  topLayerOrder,
   type EntryKind,
   type StackEntry,
   type Tier,
@@ -127,8 +128,9 @@ const elementOf = (entry: StackEntry) =>
   entry.kind === 'root' ? document.getElementById('root') : (entries.get(entry.id)?.element ?? null)
 
 // Applies the stack: covered entries (and the app root, under any blocking entry) are inert and
-// covered overlays are hidden, and the top layer is put in stack order. Only something inserted under
-// an entry that is already shown re-shows anything: what is above it.
+// covered overlays are hidden, and the top layer is put in stack order (tooltips and toasts on top,
+// see topLayerOrder). Only something inserted under an entry that is already shown re-shows
+// anything: what is above it.
 const reconcile = () => {
   derived = undefined
   const {covered, order} = derive()
@@ -143,7 +145,7 @@ const reconcile = () => {
       element.toggleAttribute('data-covered', isCovered)
     }
   }
-  const desired = order.flatMap(e => {
+  const desired = topLayerOrder(entries, order).flatMap(e => {
     const element = e.kind === 'root' ? null : elementOf(e)
     return element ? [element] : []
   })
@@ -158,6 +160,10 @@ const reconcile = () => {
     }
   })
   show.forEach(element => {
+    // shown again only to restack: it must not fade in a second time
+    if (hide.includes(element)) {
+      element.setAttribute('data-reshown', '')
+    }
     element.showPopover()
   })
   shown = desired

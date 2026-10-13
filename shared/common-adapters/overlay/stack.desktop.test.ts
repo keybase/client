@@ -9,6 +9,7 @@ import {
   scopeOf,
   stackOrder,
   topKeyEntry,
+  topLayerOrder,
   type StackEntry,
 } from './stack.desktop'
 import {rootEntryId} from './context'
@@ -202,6 +203,25 @@ describe('overlay stack', () => {
       expect(on('m', rootEntryId)).toBe('outside')
       expect(on('menu', 'm')).toBe('outside')
     })
+  })
+
+  test('in the top layer, tooltips and what opened from them go on top', () => {
+    const s = stackOf(
+      modal('m'),
+      popup('menu', 'm'),
+      popup('tip', 'menu', false),
+      modal('fromTip', 'tip'),
+      global('banner', 'globalError', false)
+    )
+    expect(s.ids).toEqual([rootEntryId, 'm', 'menu', 'tip', 'fromTip', 'banner'])
+    expect(topLayerOrder(s.entries, s.order).map(e => e.id)).toEqual([
+      rootEntryId,
+      'm',
+      'menu',
+      'banner',
+      'tip',
+      'fromTip',
+    ])
   })
 
   describe('planTopLayer', () => {
