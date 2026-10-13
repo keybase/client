@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import ReactDOM from 'react-dom'
 import type {MeasureRef} from '../../measure-ref'
-import {OverlayEntryContext} from '../../overlay/context'
 import {setEntryDormant} from '../../overlay/controller.desktop'
-import {EntryContent, useOverlayEntry} from '../../overlay/entry.desktop'
+import {EntryPopover, useOverlayEntry} from '../../overlay/entry.desktop'
 import {
   heightVar,
   heldLeftVar,
@@ -222,29 +220,20 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       <style href={placement.tryOptions} precedence="floating-box">
         {placement.rules}
       </style>
-      {ReactDOM.createPortal(
-        <div
-          popover="manual"
-          className="floating-box"
-          data-overlay-entry={id}
-          style={popupStyle}
-          ref={setPopup}
-        >
-          {shown ? (
-            <OverlayEntryContext value={id}>
-              <div className="floating-box-content" ref={contentRef} style={Styles.castStyleDesktop(style)}>
-                <EntryContent>
-                  {/* first, so it runs before what follows; inside the Suspense, so it runs when
-                      lazily loaded content is shown */}
-                  <span hidden={true} ref={measureContent} />
-                  {children}
-                </EntryContent>
-              </div>
-            </OverlayEntryContext>
-          ) : null}
-        </div>,
-        host
-      )}
+      <EntryPopover
+        id={id}
+        shown={shown}
+        popoverRef={setPopup}
+        className="floating-box"
+        style={popupStyle}
+        contentClassName="floating-box-content"
+        contentRef={contentRef}
+        contentStyle={Styles.castStyleDesktop(style)}
+        // inside the Suspense, so it also runs when lazily loaded content is shown
+        beforeContent={<span hidden={true} ref={measureContent} />}
+      >
+        {children}
+      </EntryPopover>
     </>
   ) : null
 }

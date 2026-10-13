@@ -268,14 +268,7 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
     return
   }
   const changed = entry.acceptsKeys !== behavior.acceptsKeys || entry.dismissable !== !!behavior.outside
-  entry.acceptsKeys = behavior.acceptsKeys
-  entry.onEscape = behavior.onEscape
-  entry.stoppedEscapeCloses = behavior.stoppedEscapeCloses
-  entry.outside = behavior.outside
-  entry.dismissable = !!behavior.outside
-  entry.syncAnchor = behavior.syncAnchor
-  entry.anchoredWithin = behavior.anchoredWithin
-  entry.closing = behavior.closing
+  Object.assign(entry, behavior, {dismissable: !!behavior.outside})
   if (changed) {
     restack()
   }

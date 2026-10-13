@@ -73,7 +73,62 @@ export const useOverlayEntry = (p: HookProps) => {
 // What is inside an entry waits here while it loads (a lazy route screen), so the entry stays shown.
 // A Suspense outside would hide and unregister the entry, then mount the content before the entry was
 // shown again, where nothing can take focus.
-export const EntryContent = (p: {children: React.ReactNode}) => <React.Suspense>{p.children}</React.Suspense>
+const EntryContent = (p: {children: React.ReactNode}) => <React.Suspense>{p.children}</React.Suspense>
+
+type EntryPopoverProps = {
+  id: string
+  shown: boolean
+  popoverRef: React.Ref<HTMLDivElement>
+  className: string
+  style?: React.CSSProperties
+  tabIndex?: number
+  // a box around what is inside
+  contentClassName?: string
+  contentRef?: React.Ref<HTMLDivElement>
+  contentStyle?: React.CSSProperties
+  // committed with what is inside, ahead of it, so it runs before anything in it does
+  beforeContent?: React.ReactNode
+  children: React.ReactNode
+}
+
+// An entry's manual popover in the modal root, holding what is inside once the stack has shown it.
+export const EntryPopover = (p: EntryPopoverProps) => {
+  const {beforeContent, children, className, contentClassName, contentRef, contentStyle, id} = p
+  const {popoverRef, shown, style, tabIndex} = p
+  const host = document.getElementById('modal-root')
+  if (!host) {
+    return null
+  }
+  const inside = (
+    <EntryContent>
+      {beforeContent}
+      {children}
+    </EntryContent>
+  )
+  return ReactDOM.createPortal(
+    <div
+      popover="manual"
+      ref={popoverRef}
+      data-overlay-entry={id}
+      className={className}
+      style={style}
+      tabIndex={tabIndex}
+    >
+      {shown ? (
+        <OverlayEntryContext value={id}>
+          {contentClassName ? (
+            <div className={contentClassName} ref={contentRef} style={contentStyle}>
+              {inside}
+            </div>
+          ) : (
+            inside
+          )}
+        </OverlayEntryContext>
+      ) : null}
+    </div>,
+    host
+  )
+}
 
 type Props = HookProps & {
   children: React.ReactNode
@@ -96,23 +151,15 @@ export const OverlayEntry = (p: Props) => {
     stoppedEscapeCloses,
     tier,
   })
-  const host = document.getElementById('modal-root')
-  return host
-    ? ReactDOM.createPortal(
-        <div
-          popover="manual"
-          ref={ref}
-          data-overlay-entry={id}
-          className={passthrough ? 'overlay-entry overlay-entry-passthrough' : 'overlay-entry'}
-          tabIndex={-1}
-        >
-          {shown ? (
-            <OverlayEntryContext value={id}>
-              <EntryContent>{children}</EntryContent>
-            </OverlayEntryContext>
-          ) : null}
-        </div>,
-        host
-      )
-    : null
+  return (
+    <EntryPopover
+      id={id}
+      shown={shown}
+      popoverRef={ref}
+      className={passthrough ? 'overlay-entry overlay-entry-passthrough' : 'overlay-entry'}
+      tabIndex={-1}
+    >
+      {children}
+    </EntryPopover>
+  )
 }
