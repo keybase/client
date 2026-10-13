@@ -13,7 +13,7 @@ import {useConversationThreadCloseSearch, useConversationThreadToggleSearch} fro
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {useConversationAttachmentActions} from '../attachment-actions'
-import {readImageFromClipboard} from '@/util/clipboard.desktop'
+import {readImageFromPaste} from '@/util/clipboard.desktop'
 import ThreadSearch from '../search'
 import '../conversation.css'
 import {PortalHost} from '@/common-adapters/portal.native'
@@ -62,8 +62,8 @@ const DesktopConversation = function DesktopConversation() {
     ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
     : undefined
   const {pasteAttachment} = useConversationAttachmentActions()
-  const onPaste = (e: React.SyntheticEvent) => {
-    readImageFromClipboard(e)
+  const onPaste = (e: React.ClipboardEvent) => {
+    readImageFromPaste(e)
       .then(clipboardData => {
         if (clipboardData) {
           pasteAttachment(clipboardData)

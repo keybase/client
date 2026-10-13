@@ -60,9 +60,28 @@ export const LOADING_SELECTORS: ReadonlyArray<string> = ['.loading-line']
 
 // macOS overlay scrollbars fade in and out with scrolling (the chat thread scrolls itself to the end
 // as it loads), so a screenshot can catch the thumb at any opacity. Overlay scrollbars take no
-// layout space, so hiding them changes nothing else. Classic scrollbars (the app marks the body
-// layout-scrollbar-obtrusive) take space and don't fade; they stay in the capture.
+// layout space, so hiding them changes nothing else. Classic scrollbars (detected by
+// hasClassicScrollbars below) take space and don't fade; they stay in the capture.
 const HIDE_OVERLAY_SCROLLBARS = '* { scrollbar-width: none !important; }'
+
+// Runs in the page: a 30px scroller whose 40px-tall child overflows it. A classic scrollbar takes
+// width from the child; an overlay one takes none.
+// https://www.filamentgroup.com/lab/scrollbars/
+const hasClassicScrollbars = () => {
+  const {document} = globalThis as unknown as PageWindow
+  const parent = document.createElement('div')
+  parent.setAttribute(
+    'style',
+    'width:30px;height:30px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin'
+  )
+  const child = document.createElement('div')
+  child.setAttribute('style', 'width:100%;height:40px')
+  parent.appendChild(child)
+  document.body.appendChild(parent)
+  const classic = child.clientWidth !== 30
+  document.body.removeChild(parent)
+  return classic
+}
 
 export const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -153,9 +172,15 @@ type PageVideo = {
   pause: () => void
   addEventListener: (event: 'loadeddata' | 'seeked', f: () => void, o: {once: true}) => void
 }
+type PageDiv = {
+  appendChild: (el: PageDiv) => void
+  clientWidth: number
+  setAttribute: (name: 'style', value: string) => void
+}
 type PageWindow = {
   document: {
-    body: {classList: {contains: (c: string) => boolean}}
+    body: {appendChild: (el: PageDiv) => void; removeChild: (el: PageDiv) => void}
+    createElement: (tag: 'div') => PageDiv
     querySelectorAll: (sel: 'video') => ArrayLike<PageVideo>
     fonts: {ready: Promise<unknown>}
     images: ArrayLike<PageImage>
@@ -755,14 +780,8 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       await waitForNoLoading(page, shown)
       await waitForAssets(shown)
       await stillVideos(shown)
-      const obtrusive = await withDeadline(
-        shown.evaluate(() =>
-          (globalThis as unknown as PageWindow).document.body.classList.contains('layout-scrollbar-obtrusive')
-        ),
-        EVAL_MS,
-        'reading the scrollbar kind'
-      )
-      const style = obtrusive ? undefined : HIDE_OVERLAY_SCROLLBARS
+      const classic = await withDeadline(shown.evaluate(hasClassicScrollbars), EVAL_MS, 'reading the scrollbar kind')
+      const style = classic ? undefined : HIDE_OVERLAY_SCROLLBARS
       const settled = await settle(async () => {
         png = await shown.screenshot({animations: 'disabled', caret: 'hide', style, timeout: EVAL_MS})
         return png

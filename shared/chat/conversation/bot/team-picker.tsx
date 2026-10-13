@@ -48,7 +48,7 @@ const BotTeamPicker = (props: Props) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
         {item.isTeam ? (
-          <TeamAvatar isHovered={false} isMuted={false} isSelected={false} teamname={item.name} />
+          <TeamAvatar isMuted={false} isSelected={false} teamname={item.name} />
         ) : (
           <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
         )}

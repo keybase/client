@@ -16,7 +16,7 @@ type IconMeta = {
 export const iconMeta = _iconMeta as unknown as {[k in IconType]: IconMeta}
 
 // Which @Nx variants exist on disk for this asset. Callers must not offer a density with no
-// file behind it: both srcSet and -webkit-image-set pick one candidate up front and render
+// file behind it: both srcSet and image-set pick one candidate up front and render
 // nothing if it 404s, they never fall back. Recorded by the generator only for the ~23 icons
 // that don't ship all three.
 const defaultMults: ReadonlyArray<number> = [1, 2, 3]

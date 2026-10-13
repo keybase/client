@@ -293,7 +293,7 @@ export const initDesktopStyles = () => {
   // Generate background-image CSS classes with dark mode variants
   const makeImgSet = (dir: string, name: string) => {
     const url = getAssetPath('images', dir, name)
-    return `-webkit-image-set(url('${url}') 1x)`
+    return `image-set(url('${url}') 1x)`
   }
   const makeMultiResImgSet = (baseName: string) => {
     const ext = baseName.slice(baseName.lastIndexOf('.'))
@@ -301,7 +301,7 @@ export const initDesktopStyles = () => {
     const images = [1, 2, 3].map(
       mult => `url('${getAssetPath('images', base)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
-    return `-webkit-image-set(${images.join(', ')})`
+    return `image-set(${images.join(', ')})`
   }
   const imageCss =
     `.ashes-bg { background-image: ${makeImgSet('icons', 'pattern-ashes-desktop-400-68.png')}; }\n` +
@@ -311,25 +311,6 @@ export const initDesktopStyles = () => {
   const imageStyle = document.createElement('style')
   imageStyle.appendChild(document.createTextNode(imageCss))
   head.appendChild(imageStyle)
-
-  // https://www.filamentgroup.com/lab/scrollbars/
-  const parent = document.createElement('div')
-  parent.setAttribute('style', 'width:30px;height:30px;')
-  parent.classList.add('scrollbar-test')
-
-  const child = document.createElement('div')
-  child.setAttribute('style', 'width:100%;height:40px')
-  parent.appendChild(child)
-  document.body.appendChild(parent)
-
-  // Measure the child element, if it is not
-  // 30px wide the scrollbars are obtrusive.
-  const scrollbarWidth = 30 - ((parent.firstChild as unknown as HTMLDivElement).clientWidth ?? 0)
-  if (scrollbarWidth) {
-    document.body.classList.add('layout-scrollbar-obtrusive')
-  }
-
-  document.body.removeChild(parent)
 }
 
 // ─── hairlineWidth ────────────────────────────────────────────────────────────

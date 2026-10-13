@@ -85,7 +85,7 @@
 
   &:hover {
     .WrapperMessage-emojiButton {
-      box-shadow: 0 1px 1px 0 var(--color-black_10);
+      box-shadow: 0 1px 1px 0 light-dark(var(--color-black_10), transparent);
       &.noShadow,
       &:active {
         box-shadow: none;
@@ -115,17 +115,7 @@
 }
 .WrapperMessage-hoverColor {
   &:hover {
-    background-color: var(--color-blueLighter2);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .WrapperMessage-hoverColor:hover {
-    background-color: var(--color-blueLighter3);
-  }
-
-  .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-    box-shadow: none;
+    background-color: light-dark(var(--color-blueLighter2), var(--color-blueLighter3));
   }
 }
 
@@ -141,13 +131,7 @@
 .WrapperMessage-decorated {
   min-height: 26px;
   &.active {
-    background-color: var(--color-blueLighter2);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .WrapperMessage-decorated.active {
-    background-color: var(--color-blueLighter3);
+    background-color: light-dark(var(--color-blueLighter2), var(--color-blueLighter3));
   }
 }
 
@@ -158,28 +142,9 @@
 
 .ReplyBox {
   &:hover {
-    background-color: white;
+    background-color: light-dark(white, var(--color-blackOrBlack));
     .text_BodySmall {
-      color: var(--color-blackOrBlack) !important;
-    }
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .ReplyBox:hover {
-    background-color: var(--color-blackOrBlack);
-  }
-
-  .ReplyBox:hover .text_BodySmall {
-    color: var(--color-whiteOrWhite) !important;
-  }
-}
-
-.react-button {
-  &.border {
-    &:hover {
-      backgroundcolor: var(--color-blueLighter2);
-      bordercolor: var(--color-blue);
+      color: light-dark(var(--color-blackOrBlack), var(--color-whiteOrWhite)) !important;
     }
   }
 }

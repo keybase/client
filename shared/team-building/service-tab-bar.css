@@ -1,0 +1,11 @@
+.service-tab {
+  .service-tab-color {
+    color: var(--color-black);
+  }
+  &:hover,
+  &.active {
+    .service-tab-color {
+      color: var(--service-accent);
+    }
+  }
+}

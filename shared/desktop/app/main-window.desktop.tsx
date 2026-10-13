@@ -15,6 +15,14 @@ const {env} = KB2.constants
 
 const htmlFile = htmlURL('main')
 
+// file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
+// Paths compare case-insensitively, as Windows file paths can differ in case.
+const pageKey = (url: string) => {
+  const u = new URL(url)
+  return `${u.protocol}//${u.host}${u.pathname.toLowerCase()}`
+}
+const mainPageKey = pageKey(htmlFile)
+
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
 
@@ -24,25 +32,22 @@ const setupDefaultSession = () => {
   ds.on('will-download', event => event.preventDefault())
 
   // Disallow any permissions requests except for notifications and fullscreen
-  ds.setPermissionRequestHandler((webContents, permission, callback) => {
+  ds.setPermissionRequestHandler((_webContents, permission, callback, details) => {
     // allow fullscreen
     if (permission === 'fullscreen') {
       return callback(true)
     }
 
-    let ourPathname: string
-    let requestPathname: string
+    // Match the requesting frame itself, not its top-level page, so a subframe can't borrow the
+    // main window's grant.
+    let requestPageKey: string
     try {
-      ourPathname = new URL(htmlFile).pathname
-      requestPathname = new URL(webContents.getURL()).pathname
+      requestPageKey = pageKey(details.requestingUrl)
     } catch {
       return callback(false)
     }
 
-    if (
-      permission === 'notifications' &&
-      requestPathname.toLowerCase() === ourPathname.toLowerCase()
-    ) {
+    if (permission === 'notifications' && details.isMainFrame && requestPageKey === mainPageKey) {
       // Allow notifications
       return callback(true)
     }

@@ -5,14 +5,6 @@
   right: 0;
   bottom: 0;
 
-  &.hovered {
-    color: var(--color-black_20);
-    &.stroked {
-      -webkit-text-stroke: 2px var(--color-blueGreyDark);
-      color: var(--color-blueGreyDark);
-    }
-  }
-
   &.selected {
     color: var(--color-white);
     &.stroked {
@@ -26,6 +18,12 @@
     color: var(--color-blueGrey);
     right: -1px;
   }
+}
+
+/* The stroke matches the row's hover background. :where() keeps this below .selected.stroked */
+:where(.overlay-icon-row:hover) .overlay-icon.stroked {
+  -webkit-text-stroke: 2px var(--color-blueGreyDark);
+  color: var(--color-blueGreyDark);
 }
 
 .scroll-ignore-pointer .WrapperMessage-hoverBox {

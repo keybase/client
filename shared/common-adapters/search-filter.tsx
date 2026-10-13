@@ -13,6 +13,7 @@ import Icon from './icon'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
 import type {MeasureRef} from './measure-ref'
+import './search-filter.css'
 
 const Kb = {
   Animation,
@@ -83,7 +84,6 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   } = props
   const {onKeyDown: _onKeyDown, onCancel, measureRef, ref} = props
   const [focused, setFocused] = React.useState(focusOnMount || false)
-  const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
   const inputRef = React.useRef<Input3Ref>(null)
   const mounted = React.useRef(false)
@@ -147,9 +147,6 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     e?.stopPropagation()
   }
-
-  const mouseOver = () => setHover(true)
-  const mouseLeave = () => setHover(false)
 
   const onHotkey = (cmd: string) => {
     if (hotkey && cmd.endsWith('+' + hotkey)) {
@@ -297,7 +294,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
         styles.container,
         placeholderCentered && styles.containerCenter,
         styles.containerNonSmall,
-        focused || hover ? styles.light : styles.dark,
+        focused ? styles.light : styles.dark,
       ])}
       onClick={onClick || focus}
     >
@@ -308,16 +305,15 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       data-search-filter={true}
       direction="horizontal"
       alignSelf={size === 'full-width' ? 'stretch' : 'center'}
+      className="search-filter"
       style={Styles.collapseStyles([
         styles.container,
         placeholderCentered && styles.containerCenter,
         size === 'small' && styles.containerSmall,
         size === 'full-width' && styles.containerNonSmall,
-        focused || hover ? styles.light : styles.dark,
+        focused && styles.light,
         style,
       ])}
-      onMouseOver={mouseOver}
-      onMouseLeave={mouseLeave}
       onClick={onClick || (!focused ? focus : undefined)}
     >
       {inside}

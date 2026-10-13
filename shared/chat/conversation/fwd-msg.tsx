@@ -157,7 +157,6 @@ const TeamPickerInner = (props: Props) => {
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
         {item.isTeam ? (
           <TeamAvatar
-            isHovered={false}
             isMuted={false}
             isSelected={false}
             teamname={item.name.split('#')[0] ?? ''}

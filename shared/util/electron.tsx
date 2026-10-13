@@ -133,7 +133,6 @@ export type KB2 = {
     exitApp?: (code: number) => void
     copyToClipboard?: (text: string) => void
     DEVwriteMenuIcons?: () => void
-    clipboardAvailableFormats?: () => Promise<Array<string>>
     ctlQuit?: () => void
     relaunchApp?: () => void
     uninstallKBFSDialog?: () => Promise<boolean>
