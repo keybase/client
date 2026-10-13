@@ -18,20 +18,60 @@ func chatSessionNotReadyErr() error {
 
 // Chat session gate: account switch is a logout barrier + login barrier.
 // Zero value is ready so unit tests that never login still work. The service
-// calls BeginChatLogout / MarkChatReady around stop/start of chat modules.
-func (c *ChatContext) setChatSession(blocked bool) {
+// calls BeginChatLogout, then PrepareChatSession before the next account's
+// modules start, then MarkChatReady once they are up.
+//
+// BeginChatLogout also cancels the session context. Background work parented
+// on it (see BackgroundChatCtx) returns instead of holding Stop.
+
+func (c *ChatContext) BeginChatLogout() {
 	c.sessionMu.Lock()
 	defer c.sessionMu.Unlock()
 	c.sessionEpoch++
-	c.sessionBlocked = blocked
+	c.sessionBlocked = true
+	c.cancelSessionLocked()
+	// Keep a cancelled context so work started before PrepareChatSession
+	// observes logout instead of lazily attaching to a live one.
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+	c.sessionCtx = cancelled
 }
 
-func (c *ChatContext) BeginChatLogout() {
-	c.setChatSession(true)
+// PrepareChatSession installs a live context for the next account's background
+// work. The session stays blocked until MarkChatReady.
+func (c *ChatContext) PrepareChatSession() {
+	c.sessionMu.Lock()
+	defer c.sessionMu.Unlock()
+	c.cancelSessionLocked()
+	c.sessionCtx, c.sessionCancel = context.WithCancel(context.Background())
 }
 
 func (c *ChatContext) MarkChatReady() {
-	c.setChatSession(false)
+	c.sessionMu.Lock()
+	defer c.sessionMu.Unlock()
+	c.sessionEpoch++
+	c.sessionBlocked = false
+	if c.sessionCtx == nil || c.sessionCtx.Err() != nil {
+		c.sessionCtx, c.sessionCancel = context.WithCancel(context.Background())
+	}
+}
+
+func (c *ChatContext) cancelSessionLocked() {
+	if c.sessionCancel != nil {
+		c.sessionCancel()
+		c.sessionCancel = nil
+	}
+}
+
+// SessionContext is the parent of background chat work for this account.
+// Cancelled by BeginChatLogout.
+func (c *ChatContext) SessionContext() context.Context {
+	c.sessionMu.Lock()
+	defer c.sessionMu.Unlock()
+	if c.sessionCtx == nil {
+		c.sessionCtx, c.sessionCancel = context.WithCancel(context.Background())
+	}
+	return c.sessionCtx
 }
 
 func (c *ChatContext) chatSessionSnapshot() (epoch uint64, ready bool) {

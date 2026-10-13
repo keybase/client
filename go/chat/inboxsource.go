@@ -529,6 +529,8 @@ type HybridInboxSource struct {
 	uid                   gregor1.UID
 	started               bool
 	stopCh                chan struct{}
+	workCtx               context.Context
+	workCancel            context.CancelFunc
 	eg                    errgroup.Group
 	readOutbox            *storage.ReadOutbox
 	readFlushDelay        time.Duration
@@ -673,10 +675,12 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
 	s.stopCh = make(chan struct{})
+	s.workCtx, s.workCancel = context.WithCancel(s.G().SessionContext())
 	s.started = true
 	s.uid = uid
 	s.readOutbox = storage.NewReadOutbox(s.G(), uid)
-	s.eg.Go(func() error { return s.markAsReadDeliverLoop(uid, s.stopCh) })
+	workCtx := s.workCtx
+	s.eg.Go(func() error { return s.markAsReadDeliverLoop(workCtx, uid, s.stopCh) })
 }
 
 func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
@@ -690,6 +694,10 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 func (s *HybridInboxSource) doStopLocked() chan struct{} {
 	ch := make(chan struct{})
 	if s.started {
+		if s.workCancel != nil {
+			s.workCancel()
+			s.workCancel = nil
+		}
 		close(s.stopCh)
 		s.started = false
 		s.uid = nil
@@ -749,8 +757,7 @@ func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan struct{}) error {
-	ctx := context.Background()
+func (s *HybridInboxSource) markAsReadDeliverLoop(ctx context.Context, uid gregor1.UID, stopCh chan struct{}) error {
 	for {
 		select {
 		case <-s.readFlushCh:
@@ -761,6 +768,8 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 			if err := s.markAsReadDeliver(ctx); err != nil {
 				s.Debug(ctx, "unable to mark as read: %v", err)
 			}
+		case <-ctx.Done():
+			return nil
 		case <-stopCh:
 			return nil
 		}

@@ -57,6 +57,10 @@ type ChatContext struct {
 	sessionMu      sync.Mutex
 	sessionEpoch   uint64
 	sessionBlocked bool
+	// sessionCtx is cancelled on logout so background chat work unblocks Stop.
+	// Nil until first use; tests that never log in get a live context.
+	sessionCtx    context.Context
+	sessionCancel context.CancelFunc
 }
 
 func (c *ChatContext) Describe() string {

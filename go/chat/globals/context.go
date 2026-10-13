@@ -287,5 +287,19 @@ func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	if IsEmojiHarvesterCtx(sourceCtx) {
 		rctx = CtxMakeEmojiHarvester(rctx)
 	}
-	return rctx
+	// Detach from the RPC context (CopyTagsToBackground) but still die on
+	// logout. Otherwise Stop waits out whatever this goroutine already started.
+	return WithStop(rctx, g.SessionContext())
+}
+
+// WithStop returns a context that carries ctx's values and is cancelled when
+// ctx or stop is done. A nil stop returns ctx unchanged.
+func WithStop(ctx, stop context.Context) context.Context {
+	if stop == nil {
+		return ctx
+	}
+	child, cancel := context.WithCancel(ctx)
+	stopAfter := context.AfterFunc(stop, cancel)
+	context.AfterFunc(child, func() { stopAfter() })
+	return child
 }

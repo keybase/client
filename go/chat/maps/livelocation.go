@@ -28,7 +28,10 @@ type LiveLocationTracker struct {
 	storage        *trackStorage
 	updateInterval time.Duration
 	uid            gregor1.UID
+	started        bool
 	eg             errgroup.Group
+	workCtx        context.Context
+	workCancel     context.CancelFunc
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
@@ -55,6 +58,8 @@ func (l *LiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {
 	l.Lock()
 	defer l.Unlock()
 	l.uid = uid
+	l.started = true
+	l.workCtx, l.workCancel = context.WithCancel(l.G().SessionContext())
 	// bring back any trackers that we have stored. This is most relevant when being woken
 	// up on iOS due to a location update. THe app might need to recreate all of its trackers
 	// if the app had been killed.
@@ -66,15 +71,42 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	l.Lock()
 	defer l.Unlock()
 	ch := make(chan struct{})
-	for _, t := range l.trackers {
-		t.Stop()
-	}
-	l.uid = nil
-	go func() {
-		_ = l.eg.Wait()
+	if l.started {
+		l.started = false
+		if l.workCancel != nil {
+			l.workCancel()
+			l.workCancel = nil
+		}
+		l.workCtx = nil
+		for _, t := range l.trackers {
+			t.Stop()
+		}
+		l.uid = nil
+		go func() {
+			_ = l.eg.Wait()
+			close(ch)
+		}()
+	} else {
 		close(ch)
-	}()
+	}
 	return ch
+}
+
+// trackerCtxLocked is the context tracker goroutines run on. Callers hold l's lock.
+func (l *LiveLocationTracker) trackerCtxLocked() context.Context {
+	if l.workCtx == nil || l.workCtx.Err() != nil {
+		l.workCtx, l.workCancel = context.WithCancel(l.G().SessionContext())
+	}
+	return l.workCtx
+}
+
+func (l *LiveLocationTracker) goTrackerLocked(t *locationTrack) {
+	if !l.started {
+		delete(l.trackers, t.Key())
+		return
+	}
+	ctx := l.trackerCtxLocked()
+	l.eg.Go(func() error { return l.tracker(ctx, t) })
 }
 
 func (l *LiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
@@ -109,10 +141,7 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 			continue
 		}
 		l.trackers[t.Key()] = t
-		myT := t
-		l.eg.Go(func() error {
-			return l.tracker(myT)
-		})
+		l.goTrackerLocked(t)
 	}
 }
 
@@ -229,6 +258,8 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg, nil)
 	select {
 	case <-unfurlDoneCh:
+	case <-ctx.Done():
+		l.Debug(ctx, "updateMapUnfurl: context cancelled")
 	case <-time.After(time.Minute):
 		l.Debug(ctx, "updateMapUnfurl: timed out waiting for unfurl callback, charging...")
 	}
@@ -241,6 +272,9 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) 
 	maxWatchAttempts := 20
 	watchAttempts := 0
 	for {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
 		if watchID, err = l.getChatUI(ctx).ChatWatchPosition(ctx, t.convID, t.perm); err != nil {
 			l.Debug(ctx, "startWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
 			if watchAttempts > maxWatchAttempts {
@@ -250,13 +284,16 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) 
 			break
 		}
 		maxWatchAttempts++
-		time.Sleep(time.Second)
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		case <-time.After(time.Second):
+		}
 	}
 	return watchID, nil
 }
 
-func (l *LiveLocationTracker) tracker(t *locationTrack) error {
-	ctx := context.Background()
+func (l *LiveLocationTracker) tracker(ctx context.Context, t *locationTrack) error {
 	// check to see if we are being asked to start a tracker that is already expired
 	if t.endTime.Before(l.clock.Now()) {
 		l.Lock()
@@ -334,11 +371,13 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			return nil
 		case <-t.stopCh:
 			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
-			if t.getCurrentPosition {
-				// don't need to update here
+			if t.getCurrentPosition || ctx.Err() != nil {
 				return nil
 			}
 			_ = l.updateMapUnfurl(ctx, t, true)
+			return nil
+		case <-ctx.Done():
+			l.Debug(ctx, "tracker[%v]: context cancelled", watchID)
 			return nil
 		}
 	}
@@ -355,7 +394,7 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
-	l.eg.Go(func() error { return l.tracker(t) })
+	l.goTrackerLocked(t)
 }
 
 func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
@@ -367,7 +406,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
-	l.eg.Go(func() error { return l.tracker(t) })
+	l.goTrackerLocked(t)
 }
 
 func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Coordinate) {

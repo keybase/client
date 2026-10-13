@@ -177,6 +177,11 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.Lock()
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
+		case <-ctx.Done():
+			g.Debug(ctx, "WaitForTurn: context cancelled: vers: %d", newVers)
+			g.Lock()
+			g.cleanupAfterTimeoutLocked(uid, newVers)
+			g.Unlock()
 		}
 	}(globals.BackgroundChatCtx(ctx, g.G()))
 	return res
@@ -211,6 +216,8 @@ type PushHandler struct {
 	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
+	handlerCtx    context.Context
+	handlerCancel context.CancelFunc
 
 	// testing only
 	testingIgnoreBroadcasts bool
@@ -235,6 +242,7 @@ func (g *PushHandler) Start(ctx context.Context, _ gregor1.UID) {
 	if g.started {
 		return
 	}
+	g.handlerCtx, g.handlerCancel = context.WithCancel(g.G().SessionContext())
 	g.started = true
 }
 
@@ -245,6 +253,11 @@ func (g *PushHandler) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if g.started {
 		g.started = false
+		cancel := g.handlerCancel
+		g.handlerCancel = nil
+		if cancel != nil {
+			cancel()
+		}
 		go func() {
 			_ = g.eg.Wait()
 			close(ch)
@@ -253,6 +266,28 @@ func (g *PushHandler) Stop(ctx context.Context) chan struct{} {
 		close(ch)
 	}
 	return ch
+}
+
+// goHandler runs f on a context cancelled by Stop or logout. Callers must not
+// hold startMu: Stop and goHandler share it so a handler cannot join the
+// errgroup after Wait has started.
+func (g *PushHandler) goHandler(ctx context.Context, f func(context.Context) error) {
+	g.startMu.Lock()
+	defer g.startMu.Unlock()
+	if !g.started {
+		return
+	}
+	bg := globals.WithStop(globals.BackgroundChatCtx(ctx, g.G()), g.handlerCtx)
+	g.eg.Go(func() error { return f(bg) })
+}
+
+func waitForTurnDone(ctx context.Context, turn <-chan struct{}) error {
+	select {
+	case <-turn:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (g *PushHandler) SetClock(clock clockwork.Clock) {
@@ -280,7 +315,9 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "TlfFinalize(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -314,7 +351,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 		}
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -340,7 +377,9 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "TlfResolve(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -369,7 +408,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			update.ConvID, updateConv.GetTopicType(), resolveInfo)
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -539,7 +578,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "Activity(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, gm.InboxVers)
@@ -826,7 +867,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		}
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 	return nil
 }
 
@@ -985,7 +1026,9 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "UpgradeKBFSToImpteam(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1004,7 +1047,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1030,7 +1073,9 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "MembershipUpdate(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1066,7 +1111,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1092,7 +1137,9 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "ConversationsUpdate(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1107,7 +1154,7 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 		g.notifyConversationsStale(ctx, uid, update.ConvUpdates)
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1133,7 +1180,9 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "SetConvRetention(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1154,7 +1203,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 				utils.PresentParticipantsModeSkip))
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1180,7 +1229,9 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "SetTeamRetention(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1209,7 +1260,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		}
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1235,7 +1286,9 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "SetConvSettings(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1256,7 +1309,7 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 				utils.PresentParticipantsModeSkip))
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
@@ -1279,7 +1332,9 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	f := func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, &err, "SubteamRename(goroutine)")()
-		<-cb
+		if err := waitForTurnDone(ctx, cb); err != nil {
+			return err
+		}
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
@@ -1337,20 +1392,21 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		}
 		return nil
 	}
-	g.eg.Go(func() error { return f(globals.BackgroundChatCtx(ctx, g.G())) })
+	g.goHandler(ctx, f)
 
 	return nil
 }
 
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
-	// Don't process messages if we have not started.
+	// Snapshot and unlock before dispatch. The handlers call goHandler, which
+	// locks startMu again.
 	g.startMu.Lock()
-	defer g.startMu.Unlock()
-	if !g.started {
+	started, ignore := g.started, g.testingIgnoreBroadcasts
+	g.startMu.Unlock()
+	if !started {
 		return false, nil
 	}
-
-	if g.testingIgnoreBroadcasts {
+	if ignore {
 		return false, errors.New("ignoring broadcasts for tests")
 	}
 	if obm.System() == nil {

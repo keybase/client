@@ -476,9 +476,10 @@ func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID ch
 			return chat1.Unfurl{}, errors.New(err)
 		}
 	}
-	// keeps the caller's log tags and identify behaviour and drops only the cancellation.
-	// the scraper bounds the work with its own request timeout
-	scrapeCtx := context.WithoutCancel(ctx)
+	// keeps the caller's log tags and identify behaviour and drops only the
+	// caller's cancellation. the scraper bounds the work with its own request
+	// timeout. logout still cancels it.
+	scrapeCtx := globals.WithStop(context.WithoutCancel(ctx), u.G().SessionContext())
 	type scrapeRes struct {
 		unfurl chat1.Unfurl
 		err    error
@@ -619,7 +620,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		u.Debug(ctx, "unfurl: already unfurling outboxID: %s", outboxID)
 		return
 	}
-	ctx = libkb.CopyTagsToBackground(ctx)
+	// Detach from the caller so the RPC ending does not kill the scrape, and
+	// cancel it when the chat session ends.
+	ctx = globals.WithStop(libkb.CopyTagsToBackground(ctx), u.G().SessionContext())
 	f := func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
 		defer func() { u.testingSendUnfurl(unfurl) }()
 		defer u.doneUnfurling(outboxID)

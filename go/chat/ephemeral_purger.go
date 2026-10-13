@@ -120,6 +120,8 @@ type BackgroundEphemeralPurger struct {
 
 	started    bool
 	shutdownCh chan struct{}
+	workCtx    context.Context
+	workCancel context.CancelFunc
 	eg         errgroup.Group
 	delay      time.Duration
 	clock      clockwork.Clock
@@ -155,12 +157,20 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 
 	shutdownCh := make(chan struct{})
 	b.shutdownCh = shutdownCh
+	b.workCtx, b.workCancel = context.WithCancel(b.G().SessionContext())
+	workCtx := b.workCtx
 	b.eg.Go(func() error {
-		ctx = libkb.CopyTagsToBackground(ctx)
+		runCtx := globals.WithStop(libkb.CopyTagsToBackground(ctx), workCtx)
 		// Don't fire immediately on startup
-		time.Sleep(libkb.RandomJitter(time.Second))
-		b.initQueue(ctx)
-		return b.loop(shutdownCh)
+		select {
+		case <-time.After(libkb.RandomJitter(time.Second)):
+		case <-shutdownCh:
+			return nil
+		case <-runCtx.Done():
+			return nil
+		}
+		b.initQueue(runCtx)
+		return b.loop(runCtx, shutdownCh)
 	})
 }
 
@@ -171,6 +181,10 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 
 	ch = make(chan struct{})
 	if b.started {
+		if b.workCancel != nil {
+			b.workCancel()
+			b.workCancel = nil
+		}
 		close(b.shutdownCh)
 		b.started = false
 		b.uid = nil
@@ -274,23 +288,25 @@ func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeIn
 
 // This runs when we are waiting to run a job but will shut itself down if we
 // have no work.
-func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) error {
-	bgctx := context.Background()
-	b.Debug(bgctx, "loop: starting for %s", b.uid)
+func (b *BackgroundEphemeralPurger) loop(ctx context.Context, shutdownCh chan struct{}) error {
+	b.Debug(ctx, "loop: starting for %s", b.uid)
 	suspended := false
 	for {
 		select {
 		case <-b.purgeTimer.C:
-			b.Debug(bgctx, "loop: timer fired %s", b.uid)
-			b.queuePurges(bgctx)
+			b.Debug(ctx, "loop: timer fired %s", b.uid)
+			b.queuePurges(ctx)
 		case <-b.G().DesktopAppState.NextSuspendUpdate(suspended):
 			suspended = b.G().DesktopAppState.Suspended()
 			if !suspended {
-				b.Debug(bgctx, "loop: queuing purges on resume %s", b.uid)
-				b.queuePurges(bgctx)
+				b.Debug(ctx, "loop: queuing purges on resume %s", b.uid)
+				b.queuePurges(ctx)
 			}
+		case <-ctx.Done():
+			b.Debug(ctx, "loop: context cancelled for %s", b.uid)
+			return nil
 		case <-shutdownCh:
-			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
+			b.Debug(ctx, "loop: shutting down for %s", b.uid)
 			return nil
 		}
 	}
@@ -313,11 +329,19 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
 			b.addPurgeToConvLoaderLocked(ctx, purgeInfo)
 			// Don't spam out to the convloader
+			stopped := false
 			if i > 0 {
 				b.Debug(ctx, "queuePurges sleeping for %v", b.delay)
-				b.clock.Sleep(b.delay)
+				select {
+				case <-b.clock.After(b.delay):
+				case <-ctx.Done():
+					stopped = true
+				}
 			}
 			i++
+			if stopped {
+				break
+			}
 		} else {
 			break
 		}

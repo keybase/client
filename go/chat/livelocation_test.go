@@ -185,6 +185,7 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 	livelocation.TestingCoordsAddedCh = coordsCh
 	tc.ChatG.LiveLocationTracker = livelocation
 	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
 
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/location",
@@ -240,6 +241,7 @@ func TestChatSrvLiveLocation(t *testing.T) {
 	livelocation.TestingCoordsAddedCh = coordsCh
 	tc.ChatG.LiveLocationTracker = livelocation
 	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
 
 	// Start up a live location session
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -314,6 +316,7 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	livelocation.TestingCoordsAddedCh = coordsCh
 	tc.ChatG.LiveLocationTracker = livelocation
 	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
 
 	var tracker1, tracker2 chat1.LocationWatchID
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
