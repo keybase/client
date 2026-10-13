@@ -144,6 +144,10 @@ const isDescendant = (entries: Entries, id: string, ancestor: string) => {
   return false
 }
 
+// Every entry opened from this one, at any depth.
+export const descendantsOf = (entries: Entries, id: string) =>
+  [...entries.keys()].filter(other => isDescendant(entries, other, id))
+
 // The one entry a click outside can close: the topmost dismissable one neither covered nor dormant.
 export const outsideClickEntry = (order: ReadonlyArray<StackEntry>, covered: ReadonlySet<string>) =>
   order.findLast(e => e.dismissable && !e.dormant && !covered.has(e.id))?.id

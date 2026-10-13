@@ -2,6 +2,7 @@ import {rootEntryId} from './context'
 import {matchesCombo, parseKeyCombo, shouldIgnoreEvent} from './key-combo.desktop'
 import {
   coveredIds,
+  descendantsOf,
   keyHomeOf,
   outsideClickEntry,
   planTopLayer,
@@ -292,20 +293,25 @@ const returnFocus = (entry: Entry) => {
   }
 }
 
+// What was opened from an entry goes with it. React detaches the entry before what is inside it, so
+// left registered they would drop to the root for a moment, reorder the top layer and move focus.
 export const unregisterEntry = (id: string) => {
   const entry = entries.get(id)
   if (!entry) {
     return
   }
-  const {element} = entry
-  const hadFocus = !!element?.contains(document.activeElement)
-  entries.delete(id)
-  if (element) {
-    shown = shown.filter(e => e !== element)
+  const gone = [...descendantsOf(entries, id).reverse(), id].flatMap(i => {
+    const e = entries.get(i)
+    entries.delete(i)
+    return e?.element ? [e.element] : []
+  })
+  const hadFocus = gone.some(element => element.contains(document.activeElement))
+  shown = shown.filter(e => !gone.includes(e))
+  gone.forEach(element => {
     if (element.isConnected) {
       element.hidePopover()
     }
-  }
+  })
   restack()
   if (hadFocus || (entry.blocking && !activeElement())) {
     returnFocus(entry)

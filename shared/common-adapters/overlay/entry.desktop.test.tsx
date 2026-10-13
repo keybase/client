@@ -153,6 +153,35 @@ describe('OverlayEntry', () => {
     expect(screen.getByLabelText<HTMLInputElement>('kept').value).toBe('typed')
   })
 
+  test('closing a modal with a popup open in it leaves the modal under it alone', () => {
+    const Stack = (p: {second: boolean}) => (
+      <>
+        <Modal>
+          <input aria-label="field" />
+        </Modal>
+        {p.second ? (
+          <Modal>
+            <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" stoppedEscapeCloses={false}>
+              menu
+            </OverlayEntry>
+          </Modal>
+        ) : null}
+      </>
+    )
+    const {rerender} = render(<Stack second={false} />)
+    const [first] = entries()
+    const field = screen.getByLabelText('field')
+    field.focus()
+    rerender(<Stack second={true} />)
+    const refocused = jest.fn()
+    field.addEventListener('focus', refocused)
+    rerender(<Stack second={false} />)
+    expect(shown).toEqual([first])
+    expect(showCalls.filter(e => e === first)).toHaveLength(1)
+    expect(document.activeElement).toBe(field)
+    expect(refocused).toHaveBeenCalledTimes(1)
+  })
+
   describe('focus', () => {
     test('goes back to what opened it when it closes', () => {
       const App = (p: {open: boolean}) => (
