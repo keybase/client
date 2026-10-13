@@ -225,8 +225,7 @@ export type PopupPlacement = {
   rules: string
 }
 
-// With no fallbacks given every position is tried.
-export const popupPlacement = (
+const computePlacement = (
   position: Styles.Position,
   matchDimension: boolean,
   positionFallbacks: ReadonlyArray<Styles.Position> | undefined
@@ -247,4 +246,22 @@ export const popupPlacement = (
     rules: options.map(o => `@position-try ${o.name} { ${placementCSS(o.placement)} }`).join('\n'),
     tryOptions: options.map(o => o.name).join(', '),
   }
+}
+
+// a handful of position lists are ever used, so every placement is built once
+const placements = new Map<string, PopupPlacement>()
+
+// With no fallbacks given every position is tried.
+export const popupPlacement = (
+  position: Styles.Position,
+  matchDimension: boolean,
+  positionFallbacks: ReadonlyArray<Styles.Position> | undefined
+): PopupPlacement => {
+  const key = `${position}|${matchDimension}|${positionFallbacks?.join(',') ?? '*'}`
+  let placement = placements.get(key)
+  if (!placement) {
+    placement = computePlacement(position, matchDimension, positionFallbacks)
+    placements.set(key, placement)
+  }
+  return placement
 }

@@ -257,4 +257,13 @@ describe('popupPlacement', () => {
     )
     expect(popupPlacement('top center', true, []).tryOptions).toBe('--kb-popup-top-center-match-pushed')
   })
+
+  test('builds each placement once', () => {
+    const fallbacks = ['top left', 'bottom left'] as const
+    expect(popupPlacement('top left', false, [...fallbacks])).toBe(popupPlacement('top left', false, [...fallbacks]))
+    expect(popupPlacement('top left', false, undefined)).toBe(popupPlacement('top left', false, undefined))
+    expect(popupPlacement('top left', false, ['top left'])).not.toBe(popupPlacement('top left', false, [...fallbacks]))
+    expect(popupPlacement('top left', false, [])).not.toBe(popupPlacement('top left', false, undefined))
+    expect(popupPlacement('top left', true, undefined)).not.toBe(popupPlacement('top left', false, undefined))
+  })
 })
