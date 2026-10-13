@@ -567,6 +567,21 @@ const onKey = (type: KeyType, ev: KeyboardEvent) => {
 const onKeyDown = (ev: KeyboardEvent) => onKey('keydown', ev)
 const onKeyPress = (ev: KeyboardEvent) => onKey('keypress', ev)
 
+// While something scrolls, each open popup checks its anchor once a frame: where it is drawn is
+// where it stays if its anchor hides.
+let scrollFrame = 0
+const onScroll = () => {
+  if (scrollFrame) {
+    return
+  }
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0
+    for (const entry of entries.values()) {
+      entry.syncAnchor?.()
+    }
+  })
+}
+
 let listening = false
 const listen = () => {
   if (listening) {
@@ -579,4 +594,5 @@ const listen = () => {
   window.addEventListener('keydown', onKeyDownCapture, true)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keypress', onKeyPress)
+  window.addEventListener('scroll', onScroll, {capture: true, passive: true})
 }

@@ -317,6 +317,26 @@ describe('RelativeFloatingBox', () => {
     })
   })
 
+  test('while things scroll, each popup checks its anchor once a frame', async () => {
+    const anchors = [anchorElement(), anchorElement()]
+    render(
+      <>
+        {anchors.map((anchor, i) => (
+          <RelativeFloatingBox key={i} attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
+            menu
+          </RelativeFloatingBox>
+        ))}
+      </>
+    )
+    const checks = anchors.map(anchor => jest.spyOn(anchor, 'checkVisibility'))
+    for (let i = 0; i < 3; ++i) {
+      document.body.dispatchEvent(new Event('scroll'))
+    }
+    expect(checks.map(c => c.mock.calls.length)).toEqual([0, 0])
+    await act(async () => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
+    expect(checks.map(c => c.mock.calls.length)).toEqual([1, 1])
+  })
+
   // a message menu opened from the hover toolbar, which hides once the pointer leaves the row
   test('while its anchor is there but not rendered, it stays where it was, visible and usable', () => {
     const under = jest.fn()

@@ -176,13 +176,9 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
         syncAnchorRef.current()
       })
       observer.observe(popup)
-      // keeps where it last was current while the anchor scrolls, in case it is about to hide
-      const onScroll = () => syncAnchorRef.current()
-      window.addEventListener('scroll', onScroll, {capture: true, passive: true})
       const cleanup = ref(popup)
       return () => {
         observer.disconnect()
-        window.removeEventListener('scroll', onScroll, {capture: true})
         cleanup?.()
         popupRef.current = null
       }
