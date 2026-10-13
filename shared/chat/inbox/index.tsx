@@ -33,6 +33,7 @@ import {useOpenedRowState} from './row/opened-row-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import {Alert} from 'react-native'
 import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
+import {RecycledRow} from '@/common-adapters/overlay/recycled-row'
 
 // Stub types to avoid dom lib dependency in native tsconfig
 type InboxDivRef = {
@@ -426,7 +427,8 @@ function DesktopInboxBody(props: ControlledInboxProps) {
       return <BuildTeam />
     }
     const isSelected = 'conversationIDKey' in item && selectedConversationIDKey === item.conversationIDKey
-    return <>{makeRow(item, isSelected, chosenChannelsTeamnames)}</>
+    const rowKey = 'conversationIDKey' in item ? item.conversationIDKey : item.teamID
+    return <RecycledRow rowKey={rowKey}>{makeRow(item, isSelected, chosenChannelsTeamnames)}</RecycledRow>
   }
 
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (

@@ -40,6 +40,8 @@ export type EntryBehavior = {
   outside: {content: () => Element | null; onOutside: () => void; propagate: boolean} | undefined
   // a popup checks its anchor again
   syncAnchor: (() => void) | undefined
+  // a popup: the element it is anchored to
+  anchor: (() => HTMLElement | null) | undefined
 }
 
 type Entry = StackEntry &
@@ -54,6 +56,7 @@ type Entry = StackEntry &
 
 const makeRoot = (): Entry => ({
   acceptsKeys: true,
+  anchor: undefined,
   blocking: false,
   dismissable: false,
   element: null,
@@ -206,6 +209,7 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   entry.outside = behavior.outside
   entry.dismissable = !!behavior.outside
   entry.syncAnchor = behavior.syncAnchor
+  entry.anchor = behavior.anchor
   if (changed) {
     restack()
   }
@@ -265,6 +269,17 @@ export const unregisterEntry = (id: string) => {
   restack()
   if (hadFocus || (entry.blocking && !activeElement())) {
     returnFocus(entry)
+  }
+}
+
+// A list recycled this row for another item: popups opened on what it showed before must not stay on
+// what it shows now.
+export const closePopupsAnchoredWithin = (row: Element) => {
+  for (const entry of [...entries.values()]) {
+    const anchor = entry.anchor?.()
+    if (entry.kind === 'popup' && anchor && row.contains(anchor)) {
+      entry.outside?.onOutside()
+    }
   }
 }
 

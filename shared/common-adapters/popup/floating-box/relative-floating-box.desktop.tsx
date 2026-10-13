@@ -73,6 +73,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
 
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys: !!onHidden && !disableEscapeKey,
+    anchor: () => anchorRef.current ?? null,
     blocking: false,
     kind: 'popup',
     onEscape: onHidden,
