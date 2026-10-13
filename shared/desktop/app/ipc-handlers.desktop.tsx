@@ -1,11 +1,13 @@
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
-import {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
+import {showDockIcon, closeWindows, isScreenshotDisabled} from './main-window.desktop'
+import {getMainWindow} from './main-window-ref.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import menuHelper from './menu-helper.desktop'
 import fs from 'fs'
 import path from 'path'
+import {promisify} from 'util'
 import {spawn, execFile, exec} from 'child_process'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
@@ -24,6 +26,8 @@ import type {Action} from '../app/ipctypes'
 import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 
+const execFileAsync = promisify(execFile)
+
 const remoteURL = (windowComponent: string, windowParam: string) =>
   htmlURL('remote', `component=${windowComponent}&param=${windowParam}`)
 
@@ -32,22 +36,15 @@ const winCheckRPCOwnership = async () => {
   const localAppData = String(env.LOCALAPPDATA)
   const binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
   const args = ['pipeowner', socketPath]
-  return new Promise<void>((resolve, reject) => {
-    execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
-      if (error) {
-        logger.info(`pipeowner check result: ${stdout.toString()}`)
-        reject(ensureError(error))
-        return
-      }
-      const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
-      if (result?.isOwner) {
-        resolve(undefined)
-        return
-      }
-      logger.info(`pipeowner check result: ${stdout.toString()}`)
-      reject(new Error('pipeowner check failed'))
-    })
+  const {stdout} = await execFileAsync(binPath, args, {windowsHide: true}).catch((error: unknown) => {
+    logger.info(`pipeowner check result: ${(error as {stdout?: string}).stdout ?? ''}`)
+    throw ensureError(error)
   })
+  const result = JSON.parse(stdout) as undefined | {isOwner?: unknown}
+  if (!result?.isOwner) {
+    logger.info(`pipeowner check result: ${stdout}`)
+    throw new Error('pipeowner check failed')
+  }
 }
 
 // Expose native file picker to components.
@@ -134,49 +131,49 @@ const openInDefaultDirectory = async (openPath: string) => {
 
     return encodeURI('file://' + goodPath).replace(/#/g, '%23')
   }
-  const prom = new Promise<void>((resolve, reject) => {
+  try {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
     // For example /keybase/private/gabrielh,chris gets redirected to
     // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
-      if (err) {
-        reject(new Error(`No realpath for ${openPath}`))
-        return
-      }
-      // Convert to URL for openExternal call.
-      // We use openExternal instead of openItem because it
-      // correctly focuses' the Finder, and also uses a newer
-      // native API on macOS.
-      const url = pathToURL(resolvedPath)
-      logger.info('Open URL (directory):', url)
-
-      Electron.shell
-        .openExternal(url, {activate: true})
-        .then(() => {
-          logger.info('Opened directory:', openPath)
-          resolve()
-        })
-        .catch((err: unknown) => {
-          reject(ensureError(err))
-        })
-    })
-  })
-  try {
-    await prom
+    const resolvedPath = await fs.promises.realpath(openPath)
+    // Convert to URL for openExternal call.
+    // We use openExternal instead of openItem because it
+    // correctly focuses' the Finder, and also uses a newer
+    // native API on macOS.
+    const url = pathToURL(resolvedPath)
+    logger.info('Open URL (directory):', url)
+    await Electron.shell.openExternal(url, {activate: true})
+    logger.info('Opened directory:', openPath)
     return true
   } catch {
     return false
   }
 }
 
+// Sync so the last state lands before quit; written aside and renamed over so the updater never reads partial JSON
+const writeAppState = (contents: string) => {
+  try {
+    const target = path.join(Electron.app.getPath('userData'), 'app-state.json')
+    const tmp = `${target}.tmp`
+    fs.writeFileSync(tmp, contents, {encoding: 'utf8'})
+    fs.renameSync(tmp, target)
+  } catch (e) {
+    console.warn('update app state failed' + String(e))
+  }
+}
+
 export const setupIPCHandlers = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
   Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
-    deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
+    getMainWindow()?.webContents.send('KBdispatchAction', action)
+  })
+
+  Electron.ipcMain.on('KBsetupPreloadKB2', event => {
+    // read at window load so it reflects the saved preference (applied as themeSource) or the OS
+    event.returnValue = {...KB2.constants, startDarkMode: Electron.nativeTheme.shouldUseDarkColors}
   })
 
   Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
@@ -204,21 +201,14 @@ export const setupIPCHandlers = (deps: {
         })
       }
       case 'installCachedDokan': {
-        return new Promise<void>((resolve, reject) => {
-          logger.info('Invoking dokan installer')
-          execFile(dokanPath, [], err => {
-            if (err) {
-              reject(ensureError(err))
-              return
-            }
-            // restart the service, particularly kbfsdokan
-            // based on desktop/app/start-win-service.js
-            const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
-            const args = [windowsBinPath, 'ctl', 'restart']
-            spawn(rqPath, args, {detached: true, stdio: 'ignore'})
-            resolve(undefined)
-          })
-        })
+        logger.info('Invoking dokan installer')
+        await execFileAsync(dokanPath, [])
+        // restart the service, particularly kbfsdokan
+        // based on desktop/app/start-win-service.js
+        const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
+        const args = [windowsBinPath, 'ctl', 'restart']
+        spawn(rqPath, args, {detached: true, stdio: 'ignore'})
+        return
       }
       case 'clipboardAvailableFormats': {
         const items = await Electron.clipboard.read()
@@ -249,7 +239,7 @@ export const setupIPCHandlers = (deps: {
           await Promise.all(
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 'many'].map(async (name, idx) => {
               const img = await win.capturePage({height: 22, width: 22, x: idx * 22, y: 0})
-              return fs.writeFile(`/tmp/icon-menubar-${name}@2x.png`, img.toPNG(), 'binary', () => {})
+              return fs.promises.writeFile(`/tmp/icon-menubar-${name}@2x.png`, img.toPNG())
             })
           )
         } catch (e) {
@@ -261,31 +251,26 @@ export const setupIPCHandlers = (deps: {
         return Electron.clipboard.writeText(action.payload.text)
       }
       case 'isDirectory': {
-        return new Promise(resolve => {
-          fs.lstat(action.payload.path, (err, stats) => {
-            if (err) {
-              resolve(false)
-            } else {
-              resolve(stats.isDirectory())
-            }
-          })
-        })
+        try {
+          return (await fs.promises.lstat(action.payload.path)).isDirectory()
+        } catch {
+          return false
+        }
       }
       case 'windowsCheckMountFromOtherDokanInstall': {
         const {mountPoint, status} = action.payload
-        return mountPoint
-          ? new Promise(resolve => {
-              fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))
-            }).then(mountExists =>
-              mountExists
-                ? {
-                    ...status,
-                    installAction: RPCTypes.InstallAction.none,
-                    installStatus: RPCTypes.InstallStatus.installed,
-                    kextStarted: true,
-                  }
-                : status
-            )
+        if (!mountPoint) return status
+        const mountExists = await fs.promises.access(mountPoint, fs.constants.F_OK).then(
+          () => true,
+          () => false
+        )
+        return mountExists
+          ? {
+              ...status,
+              installAction: RPCTypes.InstallAction.none,
+              installStatus: RPCTypes.InstallStatus.installed,
+              kextStarted: true,
+            }
           : status
       }
       case 'ctlQuit': {
@@ -356,21 +341,15 @@ export const setupIPCHandlers = (deps: {
       }
       case 'getPathType': {
         const {path} = action.payload
-        return new Promise((resolve, reject) => {
-          fs.stat(path, (err, stats) => {
-            if (err) {
-              reject(new Error(`Unable to open/stat file: ${path}`))
-              return
-            }
-            if (stats.isFile()) {
-              resolve('file')
-            } else if (stats.isDirectory()) {
-              resolve('directory')
-            } else {
-              reject(new Error(`Unable to open: Not a file or directory`))
-            }
-          })
-        })
+        let stats: fs.Stats
+        try {
+          stats = await fs.promises.stat(path)
+        } catch {
+          throw new Error(`Unable to open/stat file: ${path}`)
+        }
+        if (stats.isFile()) return 'file'
+        if (stats.isDirectory()) return 'directory'
+        throw new Error(`Unable to open: Not a file or directory`)
       }
       case 'openURL': {
         const {url, options} = action.payload
@@ -389,8 +368,7 @@ export const setupIPCHandlers = (deps: {
               await Electron.shell.openPath(path)
               return true
             } else {
-              await openInDefaultDirectory(path)
-              return true
+              return await openInDefaultDirectory(path)
             }
           } else {
             Electron.shell.showItemInFolder(path)
@@ -487,8 +465,6 @@ export const setupIPCHandlers = (deps: {
           return false
         }
       }
-      case 'setupPreloadKB2':
-        return KB2.constants
       case 'showMainWindow':
         if (isDarwin && !allowMultipleInstances) {
           // launch the app explicitly so we can switch workspaces
@@ -500,25 +476,18 @@ export const setupIPCHandlers = (deps: {
             logger.error('launch fail', e)
           }
         } else {
-          deps.getMainWindow()?.show()
+          getMainWindow()?.show()
         }
         showDockIcon()
         break
       case 'activeChanged':
-        // the installer reads this file to understand the gui state to not interrupt
-        // TODO change how this works
-        try {
-          fs.writeFileSync(
-            path.join(Electron.app.getPath('userData'), 'app-state.json'),
-            JSON.stringify({
-              changedAtMs: action.payload.changedAtMs,
-              isUserActive: action.payload.isUserActive,
-            }),
-            {encoding: 'utf8'}
-          )
-        } catch (e) {
-          console.warn('update app state failed' + String(e))
-        }
+        // the updater reads this file so it doesn't interrupt an active user
+        writeAppState(
+          JSON.stringify({
+            changedAtMs: action.payload.changedAtMs,
+            isUserActive: action.payload.isUserActive,
+          })
+        )
         break
       case 'appStartedUp':
         deps.markAppStartedUp()
@@ -550,22 +519,29 @@ export const setupIPCHandlers = (deps: {
         break
       }
       case 'makeRenderer': {
-        const opts = {
+        // only take the size/appearance keys from the renderer, never webPreferences
+        const {hasShadow, height, transparent, width} = action.payload.windowOpts
+        const opts: Electron.BrowserWindowConstructorOptions = {
           frame: false,
           fullscreen: false,
+          height,
           resizable: false,
           show: false, // Start hidden and show when we actually get props
-          titleBarStyle: 'customButtonsOnHover' as const,
+          titleBarStyle: 'customButtonsOnHover',
           webPreferences: {
             contextIsolation: true,
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: preloadPath,
+            sandbox: true,
           },
-          ...action.payload.windowOpts,
+          width,
+          ...(hasShadow === undefined ? {} : {hasShadow}),
+          ...(transparent === undefined ? {} : {transparent}),
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+        remoteWindow.setContentProtection(isScreenshotDisabled())
         registerRemoteWindow(action.payload.windowComponent, action.payload.windowParam ?? '', remoteWindow)
 
         remoteWindow.on('show', () => {
@@ -573,10 +549,10 @@ export const setupIPCHandlers = (deps: {
         })
 
         if (action.payload.windowPositionBottomRight) {
-          const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
+          const {width: screenWidth, height: screenHeight} = Electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
-            width - action.payload.windowOpts.width - 100,
-            height - action.payload.windowOpts.height - 100,
+            screenWidth - width - 100,
+            screenHeight - height - 100,
             false
           )
         }

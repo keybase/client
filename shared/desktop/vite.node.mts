@@ -81,7 +81,7 @@ export const makeNodeConfig = (
     build: {
       outDir: distDir,
       emptyOutDir: false,
-      target: 'node20',
+      target: 'node24',
       ssr: entryFor[target],
       minify: !isDev,
       sourcemap: true,

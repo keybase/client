@@ -39,5 +39,3 @@ const stub: KB2 = {
 }
 
 export default stub
-export const injectPreload = () => {}
-export const waitOnKB2Loaded = (cb: () => void) => cb()

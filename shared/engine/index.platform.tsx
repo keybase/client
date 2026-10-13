@@ -24,7 +24,7 @@ class ProxyNativeTransport extends TransportShared {
 
   // Hears the service's bytes and the link frames from the relay
   listenToRelay() {
-    this._stopListening = KB2.functions.ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
+    this._stopListening = KB2.functions.ipcRendererOn?.('engineIncoming', (data: unknown) => {
       try {
         this.fromRelay(data)
       } catch (e) {

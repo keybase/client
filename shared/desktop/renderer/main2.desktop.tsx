@@ -27,23 +27,6 @@ setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
-// node side plumbs through initial pref so we avoid flashes
-const darkModeFromNode = window.location.search.match(/darkMode=(light|dark)/)
-const setSystemDarkMode = useDarkModeState.getState().dispatch.setSystemDarkMode
-
-if (darkModeFromNode) {
-  const dm = darkModeFromNode[1]
-  switch (dm) {
-    case 'light':
-      setSystemDarkMode(false)
-      break
-    case 'dark':
-      setSystemDarkMode(true)
-      break
-    default:
-  }
-}
-
 // Top level HMR accept
 if (import.meta.hot) {
   import.meta.hot.accept()
@@ -63,7 +46,7 @@ const setupApp = async () => {
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, onEngineLink, onEngineIncoming)
 
-  ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
+  ipcRendererOn?.('KBdispatchAction', (action: unknown) => {
     setTimeout(() => {
       try {
         eventFromRemoteWindows(action as RemoteGen.Actions)

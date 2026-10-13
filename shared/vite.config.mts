@@ -25,6 +25,8 @@ const ignoredModules = require('./ignored-modules') as Array<string>
 export const devServerPort = 4000
 export const devOrigin = `http://localhost:${devServerPort}`
 const remoteDebugURL = 'http://localhost:8097'
+// Chromium major shipped with our Electron; bump it with electron.
+const chromiumVersion = 152
 
 // Packages in ignored-modules that need a REAL desktop stub (not an empty module),
 // because renderer code imports their exports (e.g. @react-navigation/elements).
@@ -50,8 +52,6 @@ export const makeDefines = (isDev: boolean, isHot: boolean, isProfile: boolean, 
   __DEV__: JSON.stringify(isDev),
   __HOT__: JSON.stringify(isHot),
   __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
-  // Platform globals are also inlined by babel.config.js (platformPlugin); defined
-  // here too so any code not run through our babel pass still resolves them.
   isMobile: JSON.stringify(false),
   isElectron: JSON.stringify(true),
   isAndroid: JSON.stringify(false),
@@ -231,7 +231,7 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
     order: 'pre',
     handler(html, ctx) {
       const isMain = ctx.path.includes('/renderer/') || ctx.filename.includes('renderer')
-      const csp = `<meta charset="utf-8" http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
+      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
       const devtools = isDev && isMain ? `\n    <script src="${remoteDebugURL}"></script>` : ''
       return html.replace('<!--kb-csp-->', csp + devtools)
     },
@@ -298,10 +298,14 @@ export default defineConfig(({mode}) => {
     optimizeDeps: {
       include: optimizeIncludes,
     },
+    css: {
+      transformer: 'lightningcss',
+      lightningcss: {targets: {chrome: chromiumVersion << 16}},
+    },
     build: {
       outDir: distDir,
       emptyOutDir: true,
-      target: 'esnext',
+      target: `chrome${chromiumVersion}`,
       sourcemap: true,
       minify: !isDev,
       rollupOptions: {

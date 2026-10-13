@@ -18,8 +18,10 @@ export type Action =
         windowComponent: string
         windowParam?: string
         windowOpts: {
-          width: number
+          hasShadow?: boolean
           height: number
+          transparent?: boolean
+          width: number
         }
         windowPositionBottomRight?: boolean
       }
@@ -48,7 +50,6 @@ export type Action =
     }
   | {type: 'showMainWindow'}
   | {type: 'showContextMenu'; payload: {url: string}}
-  | {type: 'setupPreloadKB2'}
   | {type: 'winCheckRPCOwnership'}
   | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
   | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}

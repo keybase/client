@@ -1,8 +1,20 @@
-import {exec as _exec, type ExecException} from 'child_process'
+import {execFile, type ChildProcess, type ExecException} from 'child_process'
 import fs from 'fs'
 import os from 'os'
 
 import {runMode} from '@/constants/platform'
+
+const killOnExitChildren = new Set<ChildProcess>()
+let exitListenerAdded = false
+const killChildOnExit = (child: ChildProcess) => {
+  killOnExitChildren.add(child)
+  child.once('exit', () => killOnExitChildren.delete(child))
+  if (exitListenerAdded) return
+  exitListenerAdded = true
+  process.on('exit', () => {
+    killOnExitChildren.forEach(c => c.kill())
+  })
+}
 
 // Execute at path with args.
 // If you specify platformOnly or runModeOnly, then callback will be called
@@ -43,10 +55,8 @@ export default function exec(
       return
     }
 
-    args.unshift(`'${path}'`) // protect against spaces in path
-    const cmd = args.join(' ')
-    console.log('Executing:', cmd)
-    const procExec = _exec(cmd, function (execErr, stdout, stderr) {
+    console.log('Executing:', path, args.join(' '))
+    const child = execFile(path, args, function (execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -60,10 +70,7 @@ export default function exec(
     })
 
     if (killOnExit) {
-      // Kill the process if parent process exits
-      process.on('exit', function () {
-        procExec.kill()
-      })
+      killChildOnExit(child)
     }
   })
 }

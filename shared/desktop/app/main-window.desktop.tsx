@@ -9,10 +9,11 @@ import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
+import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
 
 const {env} = KB2.constants
 
-let htmlFile = htmlURL('main')
+const htmlFile = htmlURL('main')
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -135,9 +136,19 @@ export const showDockIcon = () => changeDock(true)
 export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
-let isDarkMode = false
 let disableSpellCheck = false
 let disableScreenshot = false
+
+export const isScreenshotDisabled = () => disableScreenshot
+
+const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
+
+// only the main window uses themeBackgroundColor; the others (menubar, tracker) are transparent
+export const registerThemeBackgrounds = () => {
+  Electron.nativeTheme.on('updated', () => {
+    getMainWindow()?.setBackgroundColor(themeBackgroundColor())
+  })
+}
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
@@ -176,24 +187,19 @@ const loadWindowState = () => {
       disableSpellCheck = typeof _disableSpellCheck === 'boolean' ? _disableSpellCheck : disableSpellCheck
       disableScreenshot = typeof _disableScreenshot === 'boolean' ? _disableScreenshot : disableScreenshot
 
-      if (typeof _darkMode === 'string') {
-        switch (_darkMode) {
-          case 'system':
-            isDarkMode = KB2.constants.startDarkMode
-            Electron.nativeTheme.themeSource = 'system'
-            break
-          case 'alwaysDark':
-            isDarkMode = true
-            Electron.nativeTheme.themeSource = 'dark'
-            break
-          case 'alwaysLight':
-            isDarkMode = false
-            Electron.nativeTheme.themeSource = 'light'
-            break
-        }
+      // nativeTheme.shouldUseDarkColors then answers for every window, falling back to the OS when unset
+      switch (_darkMode) {
+        case 'system':
+          Electron.nativeTheme.themeSource = 'system'
+          break
+        case 'alwaysDark':
+          Electron.nativeTheme.themeSource = 'dark'
+          break
+        case 'alwaysLight':
+          Electron.nativeTheme.themeSource = 'light'
+          break
+        default:
       }
-    } else {
-      isDarkMode = KB2.constants.startDarkMode
     }
 
     const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
@@ -323,10 +329,8 @@ const MainWindow = () => {
   setupDefaultSession()
   loadWindowState()
 
-  // pass to main window
-  htmlFile = htmlFile + `?darkMode=${isDarkMode || ''}`
   const win = new Electron.BrowserWindow({
-    backgroundColor: isDarkMode ? '#191919' : '#ffffff',
+    backgroundColor: themeBackgroundColor(),
     frame: useNativeFrame,
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
@@ -339,6 +343,7 @@ const MainWindow = () => {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: preloadPath,
+      sandbox: true,
       spellcheck: !disableSpellCheck,
     },
     useContentSize: !!visualContentSize,
@@ -375,11 +380,7 @@ const MainWindow = () => {
   maybeShowWindowOrDock(win)
 
   setupWindowEvents(win)
-  return win
+  setMainWindow(win)
 }
 
-export const getMainWindow = (): Electron.BrowserWindow | undefined => {
-  const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
-  return w
-}
 export default MainWindow

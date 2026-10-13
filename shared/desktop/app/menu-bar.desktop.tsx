@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {isDarwin, isWindows, isLinux} from '@/constants/platform'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
-import {getMainWindow} from './main-window.desktop'
+import {getMainWindow} from './main-window-ref.desktop'
 import {htmlURL, preloadPath} from './html-root.desktop'
 import {registerRemoteWindow} from './remote-windows.desktop'
 import path from 'path'
@@ -75,6 +75,7 @@ const MenuBar = () => {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
         preload: preloadPath,
+        sandbox: true,
       },
       width: 360,
     },

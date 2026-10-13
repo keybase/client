@@ -4,8 +4,8 @@ import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import {build} from 'vite'
 import {makeNodeConfig} from './vite.node.mts'
-import {readdir} from 'node:fs/promises'
 import {createRequire} from 'node:module'
+import {parseArgs} from 'node:util'
 import {fileURLToPath} from 'node:url'
 import {electronChecksums} from './electron-sums.mts'
 
@@ -17,32 +17,18 @@ const TEMP_SKIP_BUILD: boolean = false
 // absolute path relative={true} to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
-async function walk(dir: string, onlyExts: Array<string>): Promise<Array<string>> {
-  const dirents = await readdir(dir, {withFileTypes: true})
-  const files = await Promise.all(
-    dirents.map(async dirent => {
-      const res = path.resolve(dir, dirent.name)
-      return dirent.isDirectory() ? [res, ...(await walk(res, onlyExts))] : res
-    })
-  )
-
-  return files.flat().filter(i => onlyExts.includes(path.extname(i)))
-}
-
 // recursively copy a folder over and allow only files with the extensions passed as onlyExts
-const copySyncFolder = async (src: string, target: string, onlyExts: Array<string>) => {
+const copySyncFolder = (src: string, target: string, onlyExts: Array<string>) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
-  const files = await walk(srcRoot, onlyExts)
-
-  const relSrcs = files.map(f => f.substring(srcRoot.length))
-  const dsts = relSrcs.map(f => path.join(dstRoot, f))
-
-  relSrcs.forEach((s, idx) => {
-    const dst = dsts[idx] ?? ''
-    fs.mkdirSync(path.dirname(dst), {recursive: true})
-    fs.cpSync(path.join(srcRoot, s), dst)
-  })
+  fs.readdirSync(srcRoot, {recursive: true, withFileTypes: true})
+    .filter(d => !d.isDirectory() && onlyExts.includes(path.extname(d.name)))
+    .forEach(d => {
+      const from = path.join(d.parentPath, d.name)
+      const dst = path.join(dstRoot, path.relative(srcRoot, from))
+      fs.mkdirSync(path.dirname(dst), {recursive: true})
+      fs.cpSync(from, dst)
+    })
 }
 
 const copySync = (src: string, target: string, options?: fs.CopySyncOptions) => {
@@ -51,47 +37,29 @@ const copySync = (src: string, target: string, options?: fs.CopySyncOptions) => 
   fs.cpSync(desktopPath(src), dst, {...options, dereference: true})
 }
 
-const getArgs = () => {
-  const args = process.argv.slice(2)
-  const ret = {
-    appVersion: '',
-    arch: '',
-    comment: '',
-    icon: '',
-    outDir: '',
-    platform: '',
-    saltpackIcon: '',
-  }
-
-  args.forEach(a => {
-    const [l, r] = a.split('=')
-    if (r === undefined) {
-      // single param?
-    } else {
-      if (l?.startsWith('--')) {
-        const k = l.substring(2)
-
-        if (Object.hasOwn(ret, k)) {
-          ret[k as keyof typeof ret] = r
-        }
-      } else {
-        console.error('Weird argv key', a)
-      }
-    }
-  })
-  return ret
-}
-
-const argv = getArgs()
+// strict: false so extra flags the packaging scripts pass through (e.g. --network-concurrency) are ignored
+const {values} = parseArgs({
+  options: {
+    appVersion: {type: 'string'},
+    arch: {type: 'string'},
+    comment: {type: 'string'},
+    icon: {type: 'string'},
+    outDir: {type: 'string'},
+    platform: {type: 'string'},
+    saltpackIcon: {type: 'string'},
+  },
+  strict: false,
+})
+const stringArg = (v: string | boolean | undefined) => (typeof v === 'string' ? v : '')
 
 const appName = 'Keybase'
 const shouldUseAsar = false
-const arch = argv.arch || os.arch()
-const platform = argv.platform || os.platform()
-const appVersion = argv.appVersion || '0.0.0'
-const comment = argv.comment
-const outDir = argv.outDir
-const saltpackIcon = argv.saltpackIcon
+const arch = stringArg(values.arch) || os.arch()
+const platform = stringArg(values.platform) || os.platform()
+const appVersion = stringArg(values.appVersion) || '0.0.0'
+const comment = stringArg(values.comment)
+const outDir = stringArg(values.outDir)
+const saltpackIcon = stringArg(values.saltpackIcon)
 const appCopyright = 'Copyright (c) 2024, Keybase'
 const companyName = 'Keybase, Inc.'
 const electronVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies
@@ -136,7 +104,7 @@ const packagerOpts: Options = {
   // Any paths placed here will be moved to the final bundle
   extraResource: saltpackIcon ? [saltpackIcon] : undefined,
   helperBundleId: 'keybase.ElectronHelper',
-  icon: argv.icon,
+  icon: stringArg(values.icon),
   ignore: [/\.map/, /\/test($|\/)/, /\/tools($|\/)/, /\/release($|\/)/, /\/node_modules($|\/)/],
   name: appName,
   protocols: [
@@ -166,7 +134,7 @@ async function main() {
 
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
-  await copySyncFolder('../images', 'build/images', ['.gif', '.png'])
+  copySyncFolder('../images', 'build/images', ['.gif', '.png'])
   if (!TEMP_SKIP_BUILD) {
     fs.rmSync(desktopPath('build/images/folders'), {force: true, recursive: true})
     fs.rmSync(desktopPath('build/images/iconfont'), {force: true, recursive: true})
@@ -198,8 +166,8 @@ async function startPack() {
       await build(makeNodeConfig('preload', {isDev: false, isHot: false, isProfile, watch: false}))
     }
 
-    await copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
-    await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.css', '.ttf', '.png', '.gif', '.html'])
+    copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
+    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.css', '.ttf', '.png', '.gif', '.html'])
     fs.rmSync(desktopPath('build/desktop/dist/fonts'), {force: true, recursive: true})
 
     fs.rmSync(desktopPath('release'), {force: true, recursive: true})

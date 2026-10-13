@@ -1,7 +1,6 @@
-// There are capabilities we need from the node process that need to be plumbed through. In order to simplify our code internally
-// instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
-// start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
-// the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
+// Capabilities we need from the node process. The preload fetches the constants synchronously from main and
+// exposes them with the functions as globalThis._fromPreload before any page script runs; in the main process
+// the preload module sets the same global directly.
 import type {Actions} from '../constants/remote-actions'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
@@ -29,6 +28,12 @@ import type {RPCMessage as EngineRPCMessage} from '@/engine/rpc-transport'
 export type EngineLinkFrame = {type: 'link'; up: boolean; epoch: number}
 // A renderer write, stamped with the connection it was made on
 export type EngineSend = {epoch: number; message: EngineRPCMessage}
+
+// The channels main sends to a renderer; the preload refuses to subscribe to any other
+export const rendererChannels = ['KBdispatchAction', 'KBprops', 'engineIncoming'] as const
+export type RendererChannel = (typeof rendererChannels)[number]
+export const isRendererChannel = (channel: unknown): channel is RendererChannel =>
+  rendererChannels.some(c => c === channel)
 
 export type KB2 = {
   constants: {
@@ -84,7 +89,7 @@ export type KB2 = {
     installCachedDokan?: () => Promise<void>
     uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<void>
-    ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => (() => void) | undefined
+    ipcRendererOn?: (channel: RendererChannel, cb: (data: unknown) => void) => (() => void) | undefined
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<string>
@@ -141,31 +146,6 @@ export type KB2 = {
 }
 
 // ─── Desktop implementation ────────────────────────────────────────────────
-
-const kb2Waiters = new Array<() => void>()
-
-export const injectPreload = (kb2: KB2) => {
-  if (!kb2.constants.assetRoot) {
-    throw new Error('Invalid kb2 injected')
-  }
-  if (!isMobile) {
-    while (kb2Waiters.length) {
-      kb2Waiters.shift()?.()
-    }
-  }
-}
-
-export const waitOnKB2Loaded = (cb: () => void) => {
-  if (isMobile) {
-    cb()
-    return
-  }
-  if (globalThis._fromPreload) {
-    cb()
-  } else {
-    kb2Waiters.push(cb)
-  }
-}
 
 const getStashed = (): KB2 => {
   if (!globalThis._fromPreload) throw new Error('KB2 not injected!')

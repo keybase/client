@@ -3,7 +3,7 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
-import {isLinux, isWindows, cacheRoot} from '@/constants/platform'
+import {isWindows, cacheRoot} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import {showDockIcon} from './main-window.desktop'
 import {allowMultipleInstances} from '@/local-debug'
@@ -113,7 +113,7 @@ export const registerNavigationGuards = () => {
 }
 
 const focusSelfOnAnotherInstanceLaunching = (
-  getMainWindow: () => Electron.BrowserWindow | null,
+  getMainWindow: () => Electron.BrowserWindow | undefined,
   commandLine: Array<string>
 ) => {
   const mw = getMainWindow()
@@ -145,7 +145,7 @@ const focusSelfOnAnotherInstanceLaunching = (
 }
 
 export const registerSecondInstanceHandler = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
+  getMainWindow: () => Electron.BrowserWindow | undefined
 }) => {
   Electron.app.on('second-instance', (_, commandLine) =>
     focusSelfOnAnotherInstanceLaunching(deps.getMainWindow, commandLine)
@@ -186,7 +186,7 @@ export const getStartupProcessArgs = () => {
   }
 }
 
-const handleActivate = (getMainWindow: () => Electron.BrowserWindow | null) => {
+const handleActivate = (getMainWindow: () => Electron.BrowserWindow | undefined) => {
   getMainWindow()?.show()
   showDockIcon()
 }
@@ -198,7 +198,7 @@ const handleQuitting = (event: Electron.Event) => {
 }
 
 export const registerLifecycleHandlers = (deps: {
-  getMainWindow: () => Electron.BrowserWindow | null
+  getMainWindow: () => Electron.BrowserWindow | undefined
 }) => {
   Electron.app.on('activate', () => handleActivate(deps.getMainWindow))
   Electron.app.once('before-quit', handleQuitting)
@@ -233,10 +233,6 @@ export const registerOpenHandlers = (deps: {
 }
 
 export const registerPowerMonitorEvents = () => {
-  if (isLinux) {
-    return
-  }
-
   Electron.powerMonitor.on('suspend', () => {
     R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
   })

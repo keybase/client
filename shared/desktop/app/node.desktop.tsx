@@ -5,7 +5,8 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform'
 import './dynamic-config'
-import MainWindow from './main-window.desktop'
+import MainWindow, {registerThemeBackgrounds} from './main-window.desktop'
+import {getMainWindow} from './main-window-ref.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
@@ -36,7 +37,6 @@ type DeferredLaunch = {
 type AppRuntime = {
   appStartedUp: boolean
   deferredLaunch: DeferredLaunch
-  mainWindow: Electron.BrowserWindow | null
 }
 
 const dispatchStartupURL = (link: string) => {
@@ -64,9 +64,7 @@ const startApp = () => {
   const runtime: AppRuntime = {
     appStartedUp: false,
     deferredLaunch: {},
-    mainWindow: null,
   }
-  const getMainWindow = () => runtime.mainWindow
 
   registerCrashHandling()
   registerNavigationGuards()
@@ -83,12 +81,10 @@ const startApp = () => {
   fixWindowsNotifications()
   changeCommandLineSwitches()
   devTools()
-  registerPowerMonitorEvents()
 
   const engineRelay = new EngineRelay(data => KB2.functions.mainWindowDispatchEngineIncoming?.(data))
 
   setupIPCHandlers({
-    getMainWindow,
     markAppStartedUp: () => {
       if (runtime.appStartedUp) {
         // Renderer reloaded (e.g. Command+R). The new renderer gets a fresh link, so it can complete
@@ -129,6 +125,8 @@ const startApp = () => {
   Electron.app
     .whenReady()
     .then(() => {
+      registerPowerMonitorEvents()
+      registerThemeBackgrounds()
       // See registerSchemesAsPrivileged below.
       if (__HOT__) {
         Electron.protocol.handle(localFileScheme, async req => {
@@ -148,7 +146,7 @@ const startApp = () => {
       if (!process.env['KB_E2E_TEST']) {
         menuBar()
       }
-      runtime.mainWindow = MainWindow()
+      MainWindow()
     })
     .catch((err: unknown) => {
       console.log('Electron app failed to initialize:', err)
