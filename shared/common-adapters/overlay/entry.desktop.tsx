@@ -1,38 +1,23 @@
 import * as React from 'react'
 import ReactDOM from 'react-dom'
 import {OverlayEntryContext} from './context'
-import {
-  entryMounted,
-  newEntryId,
-  registerEntry,
-  unregisterEntry,
-  updateEntry,
-  updateEntryStructure,
-  type EntryBehavior,
-  type EntryStructure,
-} from './controller.desktop'
+import {newEntryId, registerEntry, unregisterEntry, updateEntry, updateEntryStructure} from './controller.desktop'
+import {entryMounted} from './focus.desktop'
+import type {EntryBehavior, EntryStructure} from './registry.desktop'
 
 type HookProps = Omit<EntryStructure, 'parent'> &
-  Omit<EntryBehavior, 'anchoredWithin' | 'closing' | 'outside' | 'syncAnchor'> &
-  Partial<Pick<EntryBehavior, 'anchoredWithin' | 'closing' | 'outside' | 'syncAnchor'>>
+  Omit<EntryBehavior, 'closing' | 'outside'> &
+  Partial<Pick<EntryBehavior, 'closing' | 'outside'>>
 
 // Registers an entry in the overlay stack under the entry it is rendered in, once `ref` is attached
 // to its element in #modal-root, which the stack then draws in its place. Render what is inside only
 // once `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
-  const {acceptsKeys, anchoredWithin, blocking, closing, kind, onEscape, outside, route} = p
-  const {syncAnchor, tier} = p
+  const {acceptsKeys, blocking, closing, kind, onEscape, outside, route, tier} = p
   const parent = React.use(OverlayEntryContext)
   const [id] = React.useState(newEntryId)
   const [shown, setShown] = React.useState(false)
-  const behavior: EntryBehavior = {
-    acceptsKeys,
-    anchoredWithin,
-    closing,
-    onEscape,
-    outside,
-    syncAnchor,
-  }
+  const behavior: EntryBehavior = {acceptsKeys, closing, onEscape, outside}
   const behaviorRef = React.useRef(behavior)
   const structureRef = React.useRef<EntryStructure>({blocking, kind, parent, route, tier})
 

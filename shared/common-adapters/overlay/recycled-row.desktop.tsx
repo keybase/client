@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {closePopupsAnchoredWithin} from './controller.desktop'
+import {closePopupsAnchoredWithin} from '../popup/floating-box/anchored-popups.desktop'
 
 // For a row a list recycles: when it starts showing another item, the popups anchored in it close,
 // instead of staying open on the new item. Attach the ref to the row's element. Keyed on the item,

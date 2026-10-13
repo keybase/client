@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import type {MeasureRef} from '../../measure-ref'
 import {setEntryDormant} from '../../overlay/controller.desktop'
 import {EntryElement, useOverlayEntry} from '../../overlay/entry.desktop'
+import {addAnchoredPopup} from './anchored-popups.desktop'
 import {
   heightVar,
   heldLeftVar,
@@ -80,7 +81,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   // list row re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row.
   // Watching its size catches all three: a detached or undisplayed element reports 0x0. It is also
   // checked when the popup is measured, when the overlay stack changes (one popup may have mounted
-  // before what it anchors to) and while anything scrolls (see the controller).
+  // before what it anchors to) and while anything scrolls (see anchored-popups).
   //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
   //     and keys and clicks go to what is under it
   //   - there but not rendered: it stays open and usable where it last was, and follows the anchor
@@ -124,22 +125,19 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     setEntryDormant(id, !rendered && !held)
   }
   const syncAnchorRef = React.useRef(syncAnchor)
+  const onHiddenRef = React.useRef(onHidden)
+  React.useLayoutEffect(() => {
+    onHiddenRef.current = onHidden
+  })
 
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys: !!onHidden && !disableEscapeKey,
-    // once its anchor is gone (maybe not noticed yet), by where that anchor was, so a list row
-    // recycled meanwhile still closes it
-    anchoredWithin: element =>
-      anchorRef.current?.isConnected
-        ? element.contains(anchorRef.current)
-        : anchorPathRef.current.includes(element),
     blocking: false,
     kind: 'popup',
     onEscape: onHidden,
     outside: onHidden
       ? {content: () => contentRef.current, onOutside: onHidden, propagate: !!propagateOutsideClicks}
       : undefined,
-    syncAnchor: () => syncAnchorRef.current(),
   })
 
   React.useLayoutEffect(() => {
@@ -176,14 +174,25 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
         syncAnchorRef.current()
       })
       observer.observe(popup)
+      const removePopup = addAnchoredPopup(id, {
+        // once its anchor is gone (maybe not noticed yet), by where that anchor was, so a list row
+        // recycled meanwhile still closes it
+        anchoredWithin: element =>
+          anchorRef.current?.isConnected
+            ? element.contains(anchorRef.current)
+            : anchorPathRef.current.includes(element),
+        close: () => onHiddenRef.current?.(),
+        syncAnchor: () => syncAnchorRef.current(),
+      })
       const cleanup = ref(popup)
       return () => {
         observer.disconnect()
+        removePopup()
         cleanup?.()
         popupRef.current = null
       }
     },
-    [ref, syncAnchorRef]
+    [id, ref, syncAnchorRef]
   )
 
   // Runs as soon as what is inside is committed, before anything in it focuses itself (autoFocus,
