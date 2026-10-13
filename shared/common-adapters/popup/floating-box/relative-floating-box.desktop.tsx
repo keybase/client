@@ -47,6 +47,14 @@ const setAnchorName = (element: HTMLElement | null | undefined, name: string, on
   }
 }
 
+const ancestorsOf = (element: Element) => {
+  const path: Array<Element> = []
+  for (let e: Element | null = element; e; e = e.parentElement) {
+    path.push(e)
+  }
+  return path
+}
+
 const setSize = (popup: HTMLElement, width: number, height: number) => {
   popup.style.setProperty(widthVar, `${width}px`)
   popup.style.setProperty(heightVar, `${height}px`)
@@ -62,6 +70,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
   const anchorObserverRef = React.useRef<ResizeObserver | null>(null)
   // where the popup last was while its anchor was rendered
+  // the anchor and everything it was in, when it was last there
+  const anchorPathRef = React.useRef<ReadonlyArray<Element>>([])
   const lastPlaceRef = React.useRef<{left: number; top: number; width: number} | undefined>(undefined)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
@@ -80,6 +90,9 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       setAnchorName(anchorRef.current, anchorName, false)
       setAnchorName(anchor, anchorName, true)
       anchorRef.current = anchor
+      if (anchor) {
+        anchorPathRef.current = ancestorsOf(anchor)
+      }
       anchorObserverRef.current?.disconnect()
       if (anchor) {
         if (!anchorObserverRef.current) {
@@ -112,7 +125,12 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
 
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys: !!onHidden && !disableEscapeKey,
-    anchor: () => anchorRef.current ?? null,
+    // once its anchor is gone (maybe not noticed yet), by where that anchor was, so a list row
+    // recycled meanwhile still closes it
+    anchoredWithin: element =>
+      anchorRef.current?.isConnected
+        ? element.contains(anchorRef.current)
+        : anchorPathRef.current.includes(element),
     blocking: false,
     kind: 'popup',
     onEscape: onHidden,

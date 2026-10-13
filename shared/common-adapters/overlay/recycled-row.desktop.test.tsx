@@ -46,3 +46,26 @@ test('popups anchored in a row close when the row is recycled for another item',
   expect(onHidden).toHaveBeenCalledTimes(1)
   elsewhere.remove()
 })
+
+// The chat "…" menu's anchor is the hover toolbar, which goes away when the pointer leaves the row.
+const ToolbarRow = (p: {item: string; toolbar: boolean; onHidden: () => void}) => {
+  const {item, onHidden, toolbar} = p
+  const anchor = React.useRef<HTMLDivElement>(null)
+  return (
+    <RecycledRow rowKey={item}>
+      {toolbar ? <div ref={anchor}>toolbar</div> : null}
+      <RelativeFloatingBox attachTo={anchor} onHidden={onHidden} position="bottom left">
+        menu for the row
+      </RelativeFloatingBox>
+    </RecycledRow>
+  )
+}
+
+test('a popup whose anchor in the row is gone still closes when the row is recycled', () => {
+  const onHidden = jest.fn()
+  const {rerender} = render(<ToolbarRow item="first" toolbar={true} onHidden={onHidden} />)
+  rerender(<ToolbarRow item="first" toolbar={false} onHidden={onHidden} />)
+  expect(onHidden).not.toHaveBeenCalled()
+  rerender(<ToolbarRow item="second" toolbar={false} onHidden={onHidden} />)
+  expect(onHidden).toHaveBeenCalledTimes(1)
+})

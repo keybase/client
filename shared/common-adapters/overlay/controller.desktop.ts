@@ -46,8 +46,8 @@ export type EntryBehavior = {
   syncAnchor: (() => void) | undefined
   // already on its way out (its route is being removed): no Escape or click outside closes it again
   closing: (() => boolean) | undefined
-  // a popup: the element it is anchored to
-  anchor: (() => HTMLElement | null) | undefined
+  // a popup: whether it is anchored in this element, or was, when its anchor was last there
+  anchoredWithin: ((element: Element) => boolean) | undefined
 }
 
 type Entry = StackEntry &
@@ -62,7 +62,7 @@ type Entry = StackEntry &
 
 const makeRoot = (): Entry => ({
   acceptsKeys: true,
-  anchor: undefined,
+  anchoredWithin: undefined,
   blocking: false,
   closing: undefined,
   dismissable: false,
@@ -261,7 +261,7 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   entry.outside = behavior.outside
   entry.dismissable = !!behavior.outside
   entry.syncAnchor = behavior.syncAnchor
-  entry.anchor = behavior.anchor
+  entry.anchoredWithin = behavior.anchoredWithin
   entry.closing = behavior.closing
   if (changed) {
     restack()
@@ -372,8 +372,7 @@ export const unregisterEntry = (id: string) => {
 // what it shows now.
 export const closePopupsAnchoredWithin = (row: Element) => {
   for (const entry of [...entries.values()]) {
-    const anchor = entry.anchor?.()
-    if (entry.kind === 'popup' && anchor && row.contains(anchor)) {
+    if (entry.kind === 'popup' && entry.anchoredWithin?.(row)) {
       entry.outside?.onOutside()
     }
   }
