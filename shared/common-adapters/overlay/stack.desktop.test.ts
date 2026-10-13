@@ -77,7 +77,7 @@ describe('overlay stack', () => {
     expect(s.top).toBe('m')
   })
 
-  // problem 1: a covered modal is never re-shown, so its popups stay above it
+  // a covered modal is never re-shown, so its popups stay above it
   test('a popup in a covered modal stays above it, and uncovering re-shows nothing', () => {
     const covered = stackOf(modal('a'), popup('menu', 'a'), modal('b'))
     expect(covered.ids).toEqual([rootEntryId, 'a', 'menu', 'b'])
@@ -96,7 +96,7 @@ describe('overlay stack', () => {
     expect(s.covered.has('toast')).toBe(true)
   })
 
-  // problem 3: the reset cover is above every router modal, whenever either opened
+  // the reset cover is above every router modal, whenever either opened
   test('a router modal opened while the reset cover is up goes under it and is covered', () => {
     const s = stackOf(global('reset', 'accountReset', false), modal('resetCover', 'reset'), modal('feedback'))
     expect(s.ids).toEqual([rootEntryId, 'feedback', 'reset', 'resetCover'])
@@ -132,7 +132,7 @@ describe('overlay stack', () => {
     expect(s.covered.has('tip')).toBe(false)
   })
 
-  // problem 5: a modal opened from a popup is above it, and the popup is covered
+  // a modal opened from a popup is above it, and the popup is covered
   test('a modal opened from a popup is above it and covers it', () => {
     const s = stackOf(popup('menu', rootEntryId), modal('dialog', 'menu'))
     expect(s.ids).toEqual([rootEntryId, 'menu', 'dialog'])
@@ -145,7 +145,7 @@ describe('overlay stack', () => {
     expect(entries.ids).toEqual([rootEntryId, 'outer', 'inner'])
   })
 
-  // problem 6: the key target and the hot-key scope come from the same stack
+  // the key target and the hot-key scope come from the same stack
   test('a menu in a modal takes keys while the hot keys stay the modal’s', () => {
     const s = stackOf(modal('m'), popup('menu', 'm'))
     expect(s.top).toBe('menu')

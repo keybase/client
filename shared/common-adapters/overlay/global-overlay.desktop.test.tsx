@@ -55,7 +55,6 @@ const pressEscape = () => {
 }
 
 describe('GlobalOverlay', () => {
-  // problem 3: the last shown dialog used to win
   test('a router modal opened while the reset cover is up goes under it and gets nothing', () => {
     const onEscape = jest.fn()
     const newChat = jest.fn()
@@ -73,7 +72,7 @@ describe('GlobalOverlay', () => {
     // the cover was shown again above the modal inserted under it
     expect(overlay.shown.indexOf(feedback!)).toBeLessThan(overlay.shown.indexOf(cover!))
     expect(feedback?.hasAttribute('inert')).toBe(true)
-    // still drawn under the cover, as on master
+    // still drawn under the cover
     expect(feedback?.hasAttribute('data-hidden')).toBe(false)
     expect(cover?.hasAttribute('inert')).toBe(false)
 
@@ -85,7 +84,7 @@ describe('GlobalOverlay', () => {
     expect(newChat).not.toHaveBeenCalled()
   })
 
-  // problem 4: the banner used to be moved into the top dialog, its context left at the root
+  // the banner is its own entry: its DOM, context and state stay its own
   test('the error banner stays above modals, usable, and keeps its state as they open and close', () => {
     const onMount = jest.fn()
     const onClick = jest.fn()

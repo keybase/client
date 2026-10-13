@@ -192,7 +192,7 @@ describe('OverlayEntry', () => {
     })
   })
 
-  // problem 1: re-showing a covered modal put it above the popups open in it
+  // re-showing a covered modal would put it above the popups open in it
   test('a covered modal keeps its place and content, and is never shown again', () => {
     const Stack = (p: {second: boolean}) => (
       <>

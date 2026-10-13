@@ -79,8 +79,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   // size catches all three: a detached or undisplayed element reports 0x0.
   //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
   //     and keys and clicks go to what is under it
-  //   - there but not rendered: it stays open and usable where it last was (master placed a popup
-  //     once and left it there), and follows the anchor again once it is rendered
+  //   - there but not rendered: it stays open and usable where it last was, and follows the anchor
+  //     again once it is rendered
   const syncAnchor = () => {
     const current = attachTo?.current
     const anchor = current instanceof HTMLElement && current.isConnected ? current : null

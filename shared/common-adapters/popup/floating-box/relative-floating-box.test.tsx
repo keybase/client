@@ -138,7 +138,7 @@ describe('RelativeFloatingBox', () => {
     expect(popups()[0]?.hasAttribute('data-unanchored')).toBe(true)
   })
 
-  // problem 7: the chat suggestion list renders before the input it anchors to
+  // e.g. the chat suggestion list, rendered before the input it anchors to
   test('a popup rendered before its anchor ends up anchored to it', () => {
     const App = () => {
       const anchor = React.useRef<HTMLDivElement>(null)
@@ -156,7 +156,7 @@ describe('RelativeFloatingBox', () => {
     expect(anchorNameOf(screen.getByText('input'))).toMatch(/^--kb-anchor-\w+$/)
   })
 
-  // problem 8: a list row re-renders its own anchor element while the popup stays as it is
+  // e.g. a list row re-rendering its own anchor element while the popup stays as it is
   describe('when its anchor is replaced or removed without it re-rendering', () => {
     test('follows the new anchor', () => {
       const first = anchorElement()
@@ -234,8 +234,8 @@ describe('RelativeFloatingBox', () => {
     expect(under).toHaveBeenCalledTimes(1)
   })
 
-  // Placed before its size is known, a menu near the window's corner lands on its pushed fallback,
-  // over its own anchor; the row lost its hover, the toolbar anchor hid, and the menu was held there.
+  // Placed before its size is known, a menu near the window's corner would land on its pushed
+  // fallback, over its own anchor, and be held there once the row's hover toolbar hid.
   test('is not drawn, and holds no place, until what is inside is there to measure', async () => {
     const Menu = () => <>menu</>
     let load: () => void = () => {}
@@ -403,7 +403,7 @@ describe('RelativeFloatingBox', () => {
     expect(overlay.shown).toEqual([modal, popup])
   })
 
-  // problem 5: a modal mounted in the same commit as the popup it is in was shown before it
+  // a modal mounted in the same commit as the popup it is in
   test('a modal opened inside a popup is shown after it and covers it', () => {
     const anchor = anchorElement()
     render(

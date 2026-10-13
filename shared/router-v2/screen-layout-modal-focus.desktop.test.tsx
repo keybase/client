@@ -44,7 +44,7 @@ const blurAndFocus = () => {
   })
 }
 
-// new chat's "Search Keybase" field lost focus to the modal itself this way
+// e.g. new chat's "Search Keybase" field
 test('a field focused on mount keeps focus when the modal screen is blurred and focused again', () => {
   render(
     <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
@@ -57,8 +57,8 @@ test('a field focused on mount keeps focus when the modal screen is blurred and 
   expect(document.activeElement).toBe(search)
 })
 
-// A route's screen loads lazily, under the Suspense the layout puts around the modal. New chat's
-// field lost focus to the modal this way on the first open after a reload.
+// A route's screen loads lazily, under the Suspense the layout puts around the modal, e.g. new chat
+// on the first open after a reload.
 describe('a lazily loaded modal screen', () => {
   const lazyScreen = (Screen: React.ComponentType) => {
     let resolve: () => void = () => {}
