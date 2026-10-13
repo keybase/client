@@ -1,0 +1,19 @@
+Jenkinsfile
+  s_f474146282ac7e::t_350b7f3d0da071 304-307,310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9c4d4b3fc4f61671cd200d13bf1a1e099fab8772",
+  "prompts": {},
+  "sessions": {
+    "s_f474146282ac7e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ffff2429-30b6-48d7-9f94-43530dd7c36f",
+        "model": "unknown"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
