@@ -23,6 +23,15 @@ export const setupOverlayDom = () => {
     HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
       state.hide(this)
     }
+    // as in a browser, nothing in a popover that is not shown can take focus
+    const {focus} = Object.getOwnPropertyDescriptors(HTMLElement.prototype)
+    HTMLElement.prototype.focus = function (this: HTMLElement, options?: FocusOptions) {
+      const popover = this.closest<HTMLElement>('[popover]')
+      if (popover && !state.shown.includes(popover)) {
+        return
+      }
+      ;(focus.value as HTMLElement['focus']).call(this, options)
+    }
   })
   beforeEach(() => {
     state.shown = []

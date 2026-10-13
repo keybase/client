@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
+import * as React from 'react'
 import {act, render, screen} from '@testing-library/react'
 import {setupOverlayDom} from '@/test/overlay-dom.desktop'
 
@@ -55,4 +55,51 @@ test('a field focused on mount keeps focus when the modal screen is blurred and 
   expect(document.activeElement).toBe(search)
   blurAndFocus()
   expect(document.activeElement).toBe(search)
+})
+
+// A route's screen loads lazily, under the Suspense the layout puts around the modal. New chat's
+// field lost focus to the modal this way on the first open after a reload.
+describe('a lazily loaded modal screen', () => {
+  const lazyScreen = (Screen: React.ComponentType) => {
+    let resolve: () => void = () => {}
+    const loaded = new Promise<{default: React.ComponentType}>(_resolve => {
+      resolve = () => _resolve({default: Screen})
+    })
+    return {Lazy: React.lazy(async () => loaded), resolve}
+  }
+  const renderModal = (Lazy: React.ComponentType) =>
+    render(
+      <React.Suspense>
+        <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={{title: 'New chat'}}>
+          <Lazy />
+        </ModalWrapper>
+      </React.Suspense>
+    )
+
+  test('a field focused on mount has focus once it loads', async () => {
+    const {Lazy, resolve} = lazyScreen(() => <input aria-label="search" autoFocus={true} />)
+    renderModal(Lazy)
+    await act(async () => {
+      resolve()
+      await Promise.resolve()
+    })
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
+
+  test('a field focused in an effect has focus once it loads', async () => {
+    const Screen = () => {
+      const ref = React.useRef<HTMLInputElement>(null)
+      React.useEffect(() => {
+        ref.current?.focus()
+      }, [])
+      return <input aria-label="search" ref={ref} />
+    }
+    const {Lazy, resolve} = lazyScreen(Screen)
+    renderModal(Lazy)
+    await act(async () => {
+      resolve()
+      await Promise.resolve()
+    })
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
 })

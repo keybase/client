@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntryContext} from '../../overlay/context'
-import {useOverlayEntry} from '../../overlay/entry.desktop'
+import {EntryContent, useOverlayEntry} from '../../overlay/entry.desktop'
 import {heightVar, offsetVar, popupPlacement, widthVar} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
@@ -156,7 +156,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
           {shown ? (
             <OverlayEntryContext value={id}>
               <div className="floating-box-content" ref={contentRef} style={Styles.castStyleDesktop(style)}>
-                {children}
+                <EntryContent>{children}</EntryContent>
               </div>
             </OverlayEntryContext>
           ) : null}

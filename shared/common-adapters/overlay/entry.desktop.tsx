@@ -56,6 +56,11 @@ export const useOverlayEntry = (p: HookProps) => {
   return {id, ref, shown}
 }
 
+// What is inside an entry waits here while it loads (a lazy route screen), so the entry stays shown.
+// A Suspense outside would hide and unregister the entry, then mount the content before the entry was
+// shown again, where nothing can take focus.
+export const EntryContent = (p: {children: React.ReactNode}) => <React.Suspense>{p.children}</React.Suspense>
+
 type Props = HookProps & {
   children: React.ReactNode
   // only what is inside takes clicks, so what is under it stays usable
@@ -84,7 +89,11 @@ export const OverlayEntry = (p: Props) => {
           className={passthrough ? 'overlay-entry overlay-entry-passthrough' : 'overlay-entry'}
           tabIndex={-1}
         >
-          {shown ? <OverlayEntryContext value={id}>{children}</OverlayEntryContext> : null}
+          {shown ? (
+            <OverlayEntryContext value={id}>
+              <EntryContent>{children}</EntryContent>
+            </OverlayEntryContext>
+          ) : null}
         </div>,
         host
       )
