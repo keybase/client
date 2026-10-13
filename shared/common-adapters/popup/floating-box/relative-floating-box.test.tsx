@@ -113,6 +113,54 @@ describe('RelativeFloatingBox', () => {
     )
     expect(anchorNameOf(first)).toBe('')
     expect(anchorNameOf(second)).toBe(name)
+    // and later checks follow the new one
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    resized(popup)
+    expect(anchorNameOf(first)).toBe('')
+    expect(anchorNameOf(second)).toBe(name)
+  })
+
+  test('moves its anchor name when the attachTo ref holds another element', () => {
+    const first = anchorElement()
+    const second = anchorElement()
+    const attachTo = refTo(first)
+    const {rerender} = render(
+      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    const name = anchorNameOf(first)
+    attachTo.current = second
+    rerender(
+      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(anchorNameOf(first)).toBe('')
+    expect(anchorNameOf(second)).toBe(name)
+  })
+
+  test('anchors once the attachTo ref gets its element after the popup opened', () => {
+    const attachTo = refTo(null)
+    const {rerender} = render(
+      <RelativeFloatingBox attachTo={attachTo} onHidden={noop} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    expect(popup?.hasAttribute('data-unanchored')).toBe(true)
+    const anchor = anchorElement()
+    attachTo.current = anchor
+    rerender(
+      <RelativeFloatingBox attachTo={attachTo} onHidden={noop} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(anchorNameOf(anchor)).toMatch(/^--kb-anchor-\w+$/)
+    expect(popup?.hasAttribute('data-unanchored')).toBe(false)
   })
 
   // a popup sizes to its content, so long text with no width set would grow to the window's width

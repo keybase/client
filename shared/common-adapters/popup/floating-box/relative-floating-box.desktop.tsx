@@ -74,20 +74,23 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const lastPlaceRef = React.useRef<{left: number; top: number; width: number} | undefined>(undefined)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
-  const attachToRef = React.useRef(attachTo)
+  // what attachTo held when the anchor was last checked
+  const checkedTargetRef = React.useRef<MeasureRef | null | undefined>(undefined)
 
   // CSS anchor positioning keeps the popup on its anchor as it moves; this only follows the anchor
   // element itself. That can be replaced, removed or hidden without the popup re-rendering, e.g. a
   // list row re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row.
   // Watching its size catches all three: a detached or undisplayed element reports 0x0. It is also
   // checked when the popup is measured, when the overlay stack changes (one popup may have mounted
-  // before what it anchors to) and while anything scrolls (see anchored-popups).
+  // before what it anchors to), while anything scrolls (see anchored-popups) and after any render in
+  // which attachTo holds something else.
   //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
   //     and keys and clicks go to what is under it
   //   - there but not rendered: it stays open and usable where it last was, and follows the anchor
   //     again once it is rendered
   const syncAnchor = () => {
-    const current = attachToRef.current?.current
+    const current = attachTo?.current
+    checkedTargetRef.current = current
     const anchor = current instanceof HTMLElement && current.isConnected ? current : null
     if (anchor !== anchorRef.current) {
       setAnchorName(anchorRef.current, anchorName, false)
@@ -140,12 +143,15 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       : undefined,
   })
 
+  // A ref's element can be set or replaced without attachTo changing. This runs once the popup's own
+  // commit is done, and the popup renders again once it is shown, after anything rendered later in
+  // that first commit has attached its refs.
   React.useLayoutEffect(() => {
-    if (attachToRef.current !== attachTo) {
-      attachToRef.current = attachTo
-      syncAnchorRef.current()
+    syncAnchorRef.current = syncAnchor
+    if (attachTo?.current !== checkedTargetRef.current) {
+      syncAnchor()
     }
-  }, [attachTo])
+  })
 
   React.useLayoutEffect(
     () => () => {
