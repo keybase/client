@@ -2,11 +2,10 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
-import {act, cleanup, render} from '@testing-library/react'
-import {ModalDialog} from './popup/modal-dialog.desktop'
+import {act, render} from '@testing-library/react'
 import {EscapeHandler} from './key-event-handler.desktop'
-import {OverlayEntryContext} from './overlay/context'
-import {useOverlayEntry} from './overlay/entry.desktop'
+import {OverlayEntry} from './overlay/entry.desktop'
+import {setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 jest.mock('@/constants', () => ({
   Router2: {
@@ -17,15 +16,7 @@ jest.mock('@/constants/platform', () => ({isMac: true}))
 
 import {useHotKey} from './hot-key'
 
-// jsdom has no showModal
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-  }
-})
+setupOverlayDom()
 
 const HotKey = (p: {keys: string; cb: () => void}) => {
   useHotKey(p.keys, p.cb)
@@ -41,29 +32,22 @@ const press = (key: string, metaKey = false) => {
 }
 const pressEscape = () => press('Escape')
 
-// any blocking overlay in the stack, not only a <dialog>
-const Blocking = (p: {children: React.ReactNode; onEscape: () => void}) => {
-  const entry = useOverlayEntry({
-    acceptsKeys: true,
-    blocking: true,
-    kind: 'modal',
-    onEscape: p.onEscape,
-    stoppedEscapeCloses: true,
-  })
-  return <OverlayEntryContext value={entry}>{p.children}</OverlayEntryContext>
-}
+const Modal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
+  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape} stoppedEscapeCloses={true}>
+    {p.children}
+  </OverlayEntry>
+)
 
-describe('useHotKey with modal dialogs', () => {
-  afterEach(cleanup)
+describe('useHotKey with modals', () => {
 
   // e.g. thread search behind a router modal must not take the Escape that closes the modal
-  test('a hot key from under the topmost dialog does not fire, and the dialog gets the key', () => {
+  test('a hot key from under the topmost modal does not fire, and the modal gets the key', () => {
     const behind = jest.fn()
     const onEscape = jest.fn()
     render(
       <>
         <HotKey keys="esc" cb={behind} />
-        <ModalDialog onEscape={onEscape}>modal</ModalDialog>
+        <Modal onEscape={onEscape}>modal</Modal>
       </>
     )
     pressEscape()
@@ -71,14 +55,14 @@ describe('useHotKey with modal dialogs', () => {
     expect(onEscape).toHaveBeenCalledTimes(1)
   })
 
-  test('a hot key from inside the topmost dialog fires', () => {
+  test('a hot key from inside the topmost modal fires', () => {
     const inside = jest.fn()
     const onEscape = jest.fn()
     render(
       <>
-        <ModalDialog onEscape={onEscape}>
+        <Modal onEscape={onEscape}>
           <HotKey keys="esc" cb={inside} />
-        </ModalDialog>
+        </Modal>
       </>
     )
     pressEscape()
@@ -86,14 +70,14 @@ describe('useHotKey with modal dialogs', () => {
     expect(onEscape).not.toHaveBeenCalled()
   })
 
-  test('a hot key from a dialog covered by another does not fire', () => {
+  test('a hot key from a modal covered by another does not fire', () => {
     const covered = jest.fn()
     render(
       <>
-        <ModalDialog>
+        <Modal>
           <HotKey keys="esc" cb={covered} />
-          <ModalDialog>top</ModalDialog>
-        </ModalDialog>
+          <Modal>top</Modal>
+        </Modal>
       </>
     )
     pressEscape()
@@ -110,9 +94,9 @@ describe('useHotKey with modal dialogs', () => {
     const App = (p: {overlay: boolean}) => (
       <>
         {p.overlay ? (
-          <Blocking onEscape={overlayEscape}>
+          <Modal onEscape={overlayEscape}>
             <HotKey keys="mod+k" cb={overlayHotKey} />
-          </Blocking>
+          </Modal>
         ) : null}
         <HotKey keys="mod+k" cb={rootHotKey} />
         <EscapeHandler onESC={rootEscape}>root</EscapeHandler>
@@ -133,7 +117,7 @@ describe('useHotKey with modal dialogs', () => {
     expect(rootEscape).toHaveBeenCalledTimes(1)
   })
 
-  test('with no dialog open hot keys fire as usual', () => {
+  test('with no modal open hot keys fire as usual', () => {
     const cb = jest.fn()
     render(<HotKey keys="esc" cb={cb} />)
     pressEscape()

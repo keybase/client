@@ -6,16 +6,9 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
+import {setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-// jsdom has no showModal
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-  }
-})
+setupOverlayDom()
 
 // A headerTitle component that forgets its Kb.Text renders bare text into the header.
 // It must still come out in the Header style, not the browser default.
@@ -70,21 +63,21 @@ describe('desktop ModalWrapper', () => {
     )
 
   test('the close X sits outside the clip box that holds the header and body', () => {
-    const {container, getByTestId} = renderModal({title: 'Edit team info'})
+    const {getByTestId} = renderModal({title: 'Edit team info'})
     // the body renders bare text, so the element holding it is the body box, inside the clip box
-    const body = elementHolding(container, 'size:small')
+    const body = elementHolding(document.body, 'size:small')
     expect(body.style.minHeight).toBe('0')
     const clip = body.parentElement as HTMLElement
     expect(clip.style.overflow).toBe('hidden')
-    expect(clip.contains(elementHolding(container, 'Edit team info'))).toBe(true)
+    expect(clip.contains(elementHolding(document.body, 'Edit team info'))).toBe(true)
     const close = getByTestId(TestIDs.MODAL_CLOSE)
     expect(clip.contains(close)).toBe(false)
     expect(close.parentElement).toBe(clip.parentElement)
   })
 
   test('the header is a fixed 48px', () => {
-    const {container} = renderModal({title: 'Edit team info'})
-    let header: HTMLElement | null = elementHolding(container, 'Edit team info')
+    renderModal({title: 'Edit team info'})
+    let header: HTMLElement | null = elementHolding(document.body, 'Edit team info')
     while (header && header.style.height !== '48px') header = header.parentElement
     expect(header).not.toBeNull()
   })
@@ -94,7 +87,7 @@ describe('desktop ModalWrapper', () => {
     ['medium', 'medium'],
     ['large', 'large'],
   ] as const)('modalSize %s gives the body a %s box', (modalSize, size) => {
-    const {container} = renderModal(modalSize ? {modalSize} : {})
-    expect(elementHolding(container, `size:${size}`)).toBeTruthy()
+    renderModal(modalSize ? {modalSize} : {})
+    expect(elementHolding(document.body, `size:${size}`)).toBeTruthy()
   })
 })

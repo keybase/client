@@ -3,6 +3,7 @@ import {matchesCombo, parseKeyCombo, shouldIgnoreEvent} from './key-combo.deskto
 import {
   coveredIds,
   keyHomeOf,
+  planTopLayer,
   scopeOf,
   stackOrder,
   topKeyEntry,
@@ -12,7 +13,9 @@ import {
 } from './stack.desktop'
 
 // The one desktop overlay stack of this window. Every overlay registers here, and everything that
-// asks "what is on top" (hot keys, key handlers, Escape) reads the answer from here.
+// asks "what is on top" (paint order, inertness, focus, hot keys, key handlers, Escape) reads the
+// answer from here. Each overlay is a manual popover, and this is the only place that shows or hides
+// one, so the top layer always matches the stack.
 
 type KeyType = 'keydown' | 'keypress'
 // takes a key by returning true
@@ -33,14 +36,25 @@ export type EntryBehavior = {
   stoppedEscapeCloses: boolean
 }
 
-type Entry = StackEntry & EntryBehavior
+type Entry = StackEntry &
+  EntryBehavior & {
+    // the popover; none for the root
+    element: HTMLElement | null
+    // what had focus when it opened
+    opener: HTMLElement | null
+    // what last had focus in it
+    lastFocused: HTMLElement | null
+  }
 
 const makeRoot = (): Entry => ({
   acceptsKeys: true,
   blocking: false,
   dismissable: false,
+  element: null,
   id: rootEntryId,
   kind: 'root',
+  lastFocused: null,
+  opener: null,
   parent: undefined,
   seq: 0,
   stoppedEscapeCloses: false,
@@ -50,36 +64,118 @@ const makeRoot = (): Entry => ({
 const entries = new Map<string, Entry>([[rootEntryId, makeRoot()]])
 let nextSeq = 1
 let nextId = 1
+// the popovers this has shown, in the order it showed them, which is their top-layer order
+let shown: ReadonlyArray<HTMLElement> = []
 
-type Derived = {top: string}
+type Derived = {order: ReadonlyArray<StackEntry>; covered: ReadonlySet<string>; top: string}
 let derived: Derived | undefined
 const derive = (): Derived => {
   if (!derived) {
     const order = stackOrder(entries)
-    derived = {top: topKeyEntry(order, coveredIds(order))}
+    const covered = coveredIds(order)
+    derived = {covered, order, top: topKeyEntry(order, covered)}
   }
   return derived
 }
-const changed = () => {
+
+const activeElement = () => {
+  const active = document.activeElement
+  return active instanceof HTMLElement && active !== document.body ? active : null
+}
+
+// Re-showing a popover must not move the caret, so focus and the selection in a field are put back
+type SavedFocus = {element: HTMLElement; selection?: [number, number, 'forward' | 'backward' | 'none']}
+const saveFocus = (): SavedFocus | undefined => {
+  const element = activeElement()
+  if (!element) {
+    return undefined
+  }
+  if (
+    (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) &&
+    element.selectionStart !== null &&
+    element.selectionEnd !== null
+  ) {
+    return {element, selection: [element.selectionStart, element.selectionEnd, element.selectionDirection ?? 'none']}
+  }
+  return {element}
+}
+const restoreFocus = (saved: SavedFocus | undefined) => {
+  if (!saved || document.activeElement === saved.element || !saved.element.isConnected) {
+    return
+  }
+  saved.element.focus({preventScroll: true})
+  const {element, selection} = saved
+  if (selection && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+    element.setSelectionRange(...selection)
+  }
+}
+
+const elementOf = (entry: StackEntry) =>
+  entry.kind === 'root' ? document.getElementById('root') : (entries.get(entry.id)?.element ?? null)
+
+// Applies the stack: covered entries (and the app root, under any blocking entry) are inert and
+// covered overlays are hidden, and the top layer is put in stack order. Only something inserted under
+// an entry that is already shown re-shows anything: what is above it.
+const reconcile = () => {
   derived = undefined
+  const {covered, order} = derive()
+  for (const entry of order) {
+    const element = elementOf(entry)
+    if (!element) {
+      continue
+    }
+    const isCovered = covered.has(entry.id)
+    element.toggleAttribute('inert', isCovered)
+    if (entry.kind !== 'root') {
+      element.toggleAttribute('data-covered', isCovered)
+    }
+  }
+  const desired = order.flatMap(e => {
+    const element = e.kind === 'root' ? null : elementOf(e)
+    return element ? [element] : []
+  })
+  const {hide, show} = planTopLayer(shown, desired)
+  if (!hide.length && !show.length) {
+    return
+  }
+  const saved = saveFocus()
+  hide.forEach(element => {
+    if (element.isConnected) {
+      element.hidePopover()
+    }
+  })
+  show.forEach(element => {
+    element.showPopover()
+  })
+  shown = desired
+  restoreFocus(saved)
 }
 
 export const newEntryId = () => `overlay-${nextId++}`
 
-export const registerEntry = (id: string, structure: EntryStructure, behavior: EntryBehavior) => {
+// The element is a manual popover; it is shown here, in its place in the stack.
+export const registerEntry = (
+  id: string,
+  structure: EntryStructure,
+  behavior: EntryBehavior,
+  element: HTMLElement
+) => {
   listen()
   const {blocking, kind, parent, tier} = structure
   entries.set(id, {
     ...behavior,
     blocking,
     dismissable: false,
+    element,
     id,
     kind,
+    lastFocused: null,
+    opener: activeElement(),
     parent,
     seq: nextSeq++,
     tier: tier ?? (kind === 'modal' ? 'modal' : 'app'),
   })
-  changed()
+  reconcile()
 }
 
 export const updateEntry = (id: string, behavior: EntryBehavior) => {
@@ -87,15 +183,80 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   if (!entry) {
     return
   }
-  if (entry.acceptsKeys !== behavior.acceptsKeys) {
-    changed()
-  }
+  const restack = entry.acceptsKeys !== behavior.acceptsKeys
   Object.assign(entry, behavior)
+  if (restack) {
+    reconcile()
+  }
+}
+
+// What is inside an entry mounts once it is shown. A blocking entry takes focus if nothing inside
+// it did, so keys reach it and Tab starts in it.
+export const entryMounted = (id: string) => {
+  const entry = entries.get(id)
+  const element = entry?.element
+  if (!entry?.blocking || !element || element.contains(document.activeElement)) {
+    return
+  }
+  element.focus({preventScroll: true})
+}
+
+const focusable = (element: HTMLElement | null | undefined): element is HTMLElement =>
+  !!element?.isConnected && !element.closest('[inert]')
+
+// Focus goes back to what opened the entry, else to where it last was in what is now on top.
+const returnFocus = (entry: Entry) => {
+  const {order, covered} = derive()
+  const blocking = order.findLast(e => e.blocking && !covered.has(e.id))
+  const top = blocking ? entries.get(blocking.id) : undefined
+  const owner = entry.parent === undefined ? undefined : entries.get(entry.parent)
+  const candidates = [
+    entry.opener,
+    owner?.lastFocused,
+    top?.lastFocused,
+    top?.element,
+    entries.get(rootEntryId)?.lastFocused,
+  ]
+  for (const candidate of candidates) {
+    if (focusable(candidate)) {
+      candidate.focus({preventScroll: true})
+      if (document.activeElement === candidate) {
+        return
+      }
+    }
+  }
 }
 
 export const unregisterEntry = (id: string) => {
+  const entry = entries.get(id)
+  if (!entry) {
+    return
+  }
+  const {element} = entry
+  const hadFocus = !!element?.contains(document.activeElement)
   entries.delete(id)
-  changed()
+  if (element) {
+    shown = shown.filter(e => e !== element)
+    if (element.isConnected) {
+      element.hidePopover()
+    }
+  }
+  reconcile()
+  if (hadFocus || (entry.blocking && !activeElement())) {
+    returnFocus(entry)
+  }
+}
+
+const entryAt = (target: EventTarget | null) => {
+  const element = target instanceof Element ? target.closest('[data-overlay-entry]') : null
+  return entries.get(element?.getAttribute('data-overlay-entry') ?? rootEntryId)
+}
+
+const onFocusIn = (ev: FocusEvent) => {
+  const entry = entryAt(ev.target)
+  if (entry && ev.target instanceof HTMLElement) {
+    entry.lastFocused = ev.target
+  }
 }
 
 const receivers: Array<{entry: string; receive: KeyReceiver}> = []
@@ -216,6 +377,7 @@ const listen = () => {
     return
   }
   listening = true
+  window.addEventListener('focusin', onFocusIn, true)
   window.addEventListener('keydown', onKeyDownCapture, true)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keypress', onKeyPress)

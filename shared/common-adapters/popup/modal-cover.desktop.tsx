@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from '../box'
-import {ModalDialog} from './modal-dialog.desktop'
+import {OverlayEntry} from '../overlay/entry.desktop'
 import type {ModalCoverProps} from './index.shared'
 export type {ModalCoverProps} from './index.shared'
 
@@ -17,7 +17,8 @@ export function ModalCover(props: ModalCoverProps) {
   // so the cover only closes when its own mousedown was the one that opened
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <ModalDialog onEscape={onHidden} stoppedEscapeReachesDialog={false}>
+    // an Escape a field in it handled, like the channel picker's filter clearing itself, is left there
+    <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={onHidden} stoppedEscapeCloses={false}>
       <Box2 alignSelf="center"
         direction="vertical"
         centerChildren={true}
@@ -46,7 +47,7 @@ export function ModalCover(props: ModalCoverProps) {
           </div>
         </Box2>
       </Box2>
-    </ModalDialog>
+    </OverlayEntry>
   )
 }
 

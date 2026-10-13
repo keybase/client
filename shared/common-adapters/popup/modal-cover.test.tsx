@@ -2,33 +2,24 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
 import {ModalCover} from './modal-cover.desktop'
+import {overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-// jsdom has no showModal
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-  }
-})
+const overlay = setupOverlayDom()
 
 const renderCover = (onHidden?: () => void) => {
-  const {container} = render(
-    <>
-      <ModalCover onHidden={onHidden}>
-        <Box2 alignSelf="center" direction="vertical">content</Box2>
-      </ModalCover>
-    </>
+  render(
+    <ModalCover onHidden={onHidden}>
+      <Box2 alignSelf="center" direction="vertical">content</Box2>
+    </ModalCover>
   )
-  const dialog = container.querySelector('dialog')
+  const [entry] = overlayEntries()
   return {
     content: screen.getByText('content'),
-    cover: dialog?.firstElementChild as HTMLElement,
-    dialog,
+    cover: entry?.firstElementChild as HTMLElement,
+    entry,
   }
 }
 
@@ -39,13 +30,10 @@ const pressEscape = () => {
 }
 
 describe('ModalCover', () => {
-  afterEach(() => {
-    cleanup()
-  })
 
-  test('renders its children on the cover, in a modal dialog', () => {
-    const {content, cover, dialog} = renderCover(() => {})
-    expect(dialog?.open).toBe(true)
+  test('renders its children on the cover, in a modal overlay', () => {
+    const {content, cover, entry} = renderCover(() => {})
+    expect(overlay.shown).toEqual([entry])
     expect(cover.contains(content)).toBe(true)
   })
 

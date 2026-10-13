@@ -435,9 +435,9 @@ body {
   }
 }
 
-/* popup/modal-dialog: a full-window modal <dialog> in the top layer. The content draws its own cover,
-   so the dialog and its backdrop draw nothing */
-.modal-dialog {
+/* overlay/entry: a full-window manual popover in the top layer, shown by the overlay stack. The
+   content draws its own cover, so the popover draws nothing */
+.overlay-entry {
   background: transparent;
   border: 0;
   color: inherit;
@@ -449,13 +449,12 @@ body {
   outline: none;
   overflow: hidden;
   padding: 0;
-  /* never inherited none from where it is rendered: everything else is inert while it is open */
-  pointer-events: auto;
   width: 100%;
+}
 
-  &::backdrop {
-    background: transparent;
-  }
+/* an overlay under a blocking one keeps its place, scroll and state, but draws nothing */
+[data-overlay-entry][data-covered] {
+  content-visibility: hidden;
 }
 
 body {

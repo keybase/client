@@ -4,16 +4,28 @@
 import {cleanup, render} from '@testing-library/react'
 import {desktopMakeLayout, nativeMakeLayout} from './screen-layout'
 
-// jsdom has no showModal; this file is also typechecked without the DOM lib
-type Dialog = {open: boolean; showModal: () => void; close: () => void}
+// Desktop modals are popovers in #modal-root, and jsdom has no Popover API. This file is also
+// typechecked without the DOM lib.
+type Popover = {showPopover: () => void; hidePopover: () => void}
+type Doc = {
+  body: {append: (n: unknown) => void}
+  createElement: (tag: string) => {id: string; remove: () => void}
+}
+const doc = (globalThis as unknown as {document: Doc}).document
 beforeAll(() => {
-  const dialog = (globalThis as unknown as {HTMLDialogElement: {prototype: Dialog}}).HTMLDialogElement.prototype
-  dialog.showModal = function (this: Dialog) {
-    this.open = true
-  }
-  dialog.close = function (this: Dialog) {
-    this.open = false
-  }
+  const popover = (globalThis as unknown as {HTMLElement: {prototype: Popover}}).HTMLElement.prototype
+  popover.showPopover = () => {}
+  popover.hidePopover = () => {}
+})
+let modalRoot: ReturnType<Doc['createElement']> | undefined
+beforeEach(() => {
+  modalRoot = doc.createElement('div')
+  modalRoot.id = 'modal-root'
+  doc.body.append(modalRoot)
+})
+afterEach(() => {
+  cleanup()
+  modalRoot?.remove()
 })
 
 // react-navigation calls a screen's `layout` as a plain function from inside the

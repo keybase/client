@@ -6,21 +6,13 @@ import {cleanup, fireEvent, render} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
 import {EscapeHandler} from '../../key-event-handler.desktop'
-import {ModalDialog} from '../modal-dialog.desktop'
+import {OverlayEntry} from '../../overlay/entry.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
-// jsdom has neither the Popover API, showModal nor ResizeObserver
+// jsdom has neither the Popover API nor ResizeObserver
 let shown: Array<HTMLElement> = []
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-    shown.push(this)
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-    shown = shown.filter(d => d !== this)
-  }
   HTMLElement.prototype.showPopover = function (this: HTMLElement) {
     shown.push(this)
   }
@@ -163,21 +155,19 @@ describe('RelativeFloatingBox', () => {
     })
   })
 
-  // everything outside a modal dialog is inert, so a popup opened inside one has to be inside it
-  test('a popup opened inside a modal dialog portals into it and is shown after it', () => {
+  test('a popup opened inside a modal is shown after it, so it stacks above it', () => {
     const anchor = anchorElement()
     render(
-      <ModalDialog>
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
         <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
           content
         </RelativeFloatingBox>
-      </ModalDialog>
+      </OverlayEntry>
     )
-    const dialog = document.querySelector('dialog')
-    const popup = dialog?.querySelector(':scope > [popover]')
-    expect(popup).toBeTruthy()
-    expect(popups()).toEqual([])
-    expect(shown).toEqual([dialog, popup])
+    const [modal, popup] = popups()
+    expect(modal?.hasAttribute('data-overlay-entry')).toBe(true)
+    expect(popup?.textContent).toBe('content')
+    expect(shown).toEqual([modal, popup])
   })
 
   test('a popup with no onHidden leaves escape to what is under it', () => {

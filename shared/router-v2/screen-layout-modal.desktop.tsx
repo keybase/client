@@ -1,12 +1,11 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as C from '@/constants'
 import type {GetOptionsRet, ModalSize} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getTextStyle} from '@/common-adapters/text.styles'
-import {ModalDialog} from '@/common-adapters/popup/modal-dialog.desktop'
+import {OverlayEntry} from '@/common-adapters/overlay/entry.desktop'
 
 type ModalHeaderProps = {
   // the route's headerStyle, for a colored header
@@ -110,17 +109,6 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
 
   const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, overlayNoClose)
 
-  const [topMostModal, setTopMostModal] = React.useState(true)
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setTopMostModal(true)
-      return () => {
-        setTopMostModal(false)
-      }
-    }, [])
-  )
-
   const onEscape = overlayNoClose ? undefined : () => navigation.pop()
 
   const modalBox = {size: modalSize}
@@ -136,9 +124,15 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack}) : undefined
   const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
-  // a modal under the topmost one is closed, which hides it and keeps it out of the top layer
+  // a modal under the topmost one is covered: inert and hidden, keeping its place in the top layer
   return (
-    <ModalDialog open={topMostModal} onEscape={onEscape}>
+    <OverlayEntry
+      acceptsKeys={true}
+      blocking={true}
+      kind="modal"
+      onEscape={onEscape}
+      stoppedEscapeCloses={true}
+    >
       <Kb.Box2
         key="background"
         direction="horizontal"
@@ -191,7 +185,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </ModalDialog>
+    </OverlayEntry>
   )
 }
 
