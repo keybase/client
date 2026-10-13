@@ -363,8 +363,8 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 	_ = nn.encode(t)
 	aliceWrite3 := nn.make("d", NotificationCreate, aliceUID, nil, time.Time{})
 	_ = nn.encode(t)
-	th.AddUnflushedNotifications(
-		aliceName, []NotificationMessage{aliceWrite2, aliceWrite3})
+	require.NoError(t, th.AddUnflushedNotifications(
+		aliceName, []NotificationMessage{aliceWrite2, aliceWrite3}))
 
 	expected := writersByRevision{
 		{
@@ -399,6 +399,89 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 		{aliceName, []NotificationMessage{aliceWrite1}, nil},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
+}
+
+// A user switch used to panic when the new user added or recomputed
+// history while the previous user's unflushed edits were still recorded.
+func TestTlfHistoryUnflushedUserSwitch(t *testing.T) {
+	aliceName, bobName := "alice", "bob"
+	aliceUID, bobUID := keybase1.MakeTestUID(1), keybase1.MakeTestUID(2)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	aliceWrite1 := nn.make("a", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessage1 := nn.encode(t)
+	bobWrite2 := nn.make("b", NotificationCreate, bobUID, nil, time.Time{})
+	bobMessage2 := nn.encode(t)
+
+	th := NewTlfHistory()
+	_, err = th.AddNotifications(aliceName, []string{aliceMessage1})
+	require.NoError(t, err)
+	_, err = th.AddNotifications(bobName, []string{bobMessage2})
+	require.NoError(t, err)
+
+	nn.nextRevision--
+	aliceWrite3 := nn.make("c", NotificationCreate, aliceUID, nil, time.Time{})
+	_ = nn.encode(t)
+	require.NoError(t, th.AddUnflushedNotifications(
+		aliceName, []NotificationMessage{aliceWrite3}))
+
+	// Recomputing as the new user must not panic, and must not present
+	// Alice's unflushed edit as Bob's.
+	require.NotPanics(t, func() {
+		_ = th.Recompute(bobName)
+		_ = th.getHistory(bobName)
+	})
+	flushed := writersByRevision{
+		{bobName, []NotificationMessage{bobWrite2}, nil},
+		{aliceName, []NotificationMessage{aliceWrite1}, nil},
+	}
+	checkTlfHistory(t, th, flushed, bobName)
+	checkTlfHistory(t, th, flushed, aliceName)
+
+	bobWrite4 := nn.make("d", NotificationCreate, bobUID, nil, time.Time{})
+	err = th.AddUnflushedNotifications(
+		bobName, []NotificationMessage{bobWrite4})
+	require.NoError(t, err)
+	withBobUnflushed := writersByRevision{
+		{
+			bobName,
+			[]NotificationMessage{bobWrite4, bobWrite2},
+			nil,
+		},
+		{aliceName, []NotificationMessage{aliceWrite1}, nil},
+	}
+	checkTlfHistory(t, th, withBobUnflushed, bobName)
+
+	// A direct add for the new user, while the old user's unflushed
+	// edits are still present, discards the stale batch and rejects
+	// the new one so it is not stored under the wrong name.
+	th = NewTlfHistory()
+	_, err = th.AddNotifications(aliceName, []string{aliceMessage1})
+	require.NoError(t, err)
+	require.NoError(t, th.AddUnflushedNotifications(
+		aliceName, []NotificationMessage{aliceWrite3}))
+	err = th.AddUnflushedNotifications(
+		bobName, []NotificationMessage{bobWrite4})
+	require.ErrorIs(t, err, ErrUnflushedUserMismatch)
+	checkTlfHistory(t, th, writersByRevision{
+		{aliceName, []NotificationMessage{aliceWrite1}, nil},
+	}, aliceName)
+
+	// The next add from the new user starts a fresh unflushed list.
+	// Bob has no flushed edits here, so he is absent from the
+	// "needs more" set that checkTlfHistory requires.
+	require.NoError(t, th.AddUnflushedNotifications(
+		bobName, []NotificationMessage{bobWrite4}))
+	history := th.getHistory(bobName)
+	require.Len(t, history, 2)
+	require.Equal(t, bobName, history[0].writerName)
+	require.Equal(t, []NotificationMessage{bobWrite4},
+		[]NotificationMessage(history[0].notifications))
+	require.Equal(t, aliceName, history[1].writerName)
+	require.Equal(t, []NotificationMessage{aliceWrite1},
+		[]NotificationMessage(history[1].notifications))
 }
 
 func TestTlfHistoryRenameParentSimple(t *testing.T) {

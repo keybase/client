@@ -116,6 +116,9 @@ type fakeKeybaseClient struct {
 	loadUserPlusKeysCalled      bool
 	loadAllPublicKeysUnverified bool
 	editResponse                keybase1.FSEditListArg
+	// currentSessionGate, when set, blocks currentSession until it is
+	// closed. Tests use it to hold a session RPC across login.
+	currentSessionGate chan struct{}
 }
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
@@ -135,9 +138,20 @@ func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args a
 func (c *fakeKeybaseClient) call(ctx context.Context, s string, args any, res any) error {
 	switch s {
 	case "keybase.1.session.currentSession":
+		if c.currentSessionGate != nil {
+			select {
+			case <-c.currentSessionGate:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		username := string(c.session.Name)
+		if username == "" {
+			username = "fake username"
+		}
 		*res.(*keybase1.Session) = keybase1.Session{
 			Uid:             c.session.UID,
-			Username:        "fake username",
+			Username:        username,
 			DeviceSubkeyKid: c.session.CryptPublicKey.KID(),
 			DeviceSibkeyKid: c.session.VerifyingKey.KID(),
 		}
@@ -483,4 +497,212 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	require.NoError(t, err)
 	history := client1.editResponse.Edits
 	require.Equal(t, expectedHistory, history)
+}
+
+func TestUnflushedEditUser(t *testing.T) {
+	atk := keybase1.MakeTestUID(1)
+	vic := keybase1.MakeTestUID(2)
+	require.Equal(t, "atk", unflushedEditUser(atk, "atk", atk))
+	require.Empty(t, unflushedEditUser(vic, "vic", atk))
+	require.Empty(t, unflushedEditUser(keybase1.UID(""), "atk", atk))
+	require.Empty(t, unflushedEditUser(atk, "", atk))
+	require.Empty(t, unflushedEditUser(atk, "atk", keybase1.UID("")))
+}
+
+func journalCurrentUID(j *JournalManager) keybase1.UID {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	return j.currentUID
+}
+
+// Login must not enable the new user's journals while logout is still
+// waiting for the previous user's dirty sync. That overlap panics in
+// the edit history and rejects the in-flight block puts.
+func TestLoggedInWaitsForLoggedOut(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
+
+	user1 := keybase1.MakeTestUID(1)
+	user2Name := kbname.NormalizedUsername("test_user2")
+	user2 := keybase1.MakeTestUID(2)
+	require.Equal(t, user1, journalCurrentUID(jManager))
+
+	tlfID := tlf.FakeID(2, tlf.Private)
+	jManager.dirtyOpStart(tlfID)
+
+	daemon := newKeybaseDaemonRPCWithClient(
+		nil,
+		&fakeKeybaseClient{session: idutil.SessionInfo{
+			Name:           user2Name,
+			UID:            user2,
+			CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(user2Name),
+			VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(user2Name),
+		}},
+		logger.NewTestLogger(t))
+	daemon.config = config
+
+	logoutErr := make(chan error, 1)
+	go func() {
+		logoutErr <- daemon.LoggedOut(ctx)
+	}()
+
+	require.Eventually(t, func() bool {
+		daemon.sessionTransitionLock.Lock()
+		defer daemon.sessionTransitionLock.Unlock()
+		return daemon.sessionPhase == sessionLoggingOut
+	}, 5*time.Second, 5*time.Millisecond)
+
+	// The in-flight sync's session read must not enable the new user's
+	// journals or refresh auth while logout is still waiting.
+	session, err := daemon.CurrentSession(ctx, 0)
+	require.NoError(t, err)
+	require.Equal(t, user2, session.UID)
+	require.Equal(t, user2Name, session.Name)
+	require.Equal(t, user1, journalCurrentUID(jManager))
+	daemon.sessionTransitionLock.Lock()
+	phase := daemon.sessionPhase
+	daemon.sessionTransitionLock.Unlock()
+	require.Equal(t, sessionLoggingOut, phase)
+
+	loginErr := make(chan error, 1)
+	go func() {
+		loginErr <- daemon.LoggedIn(ctx, keybase1.LoggedInArg{
+			Username: string(user2Name),
+			SignedUp: true,
+		})
+	}()
+
+	require.Eventually(t, func() bool {
+		daemon.sessionTransitionLock.Lock()
+		defer daemon.sessionTransitionLock.Unlock()
+		return daemon.sessionPhaseWaiters > 0
+	}, 5*time.Second, 5*time.Millisecond)
+	require.Equal(t, user1, journalCurrentUID(jManager))
+	select {
+	case err := <-loginErr:
+		require.NoError(t, err)
+		t.Fatal("LoggedIn finished while logout was still waiting on a dirty sync")
+	default:
+	}
+
+	jManager.dirtyOpEnd(tlfID)
+
+	select {
+	case err := <-logoutErr:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	select {
+	case err := <-loginErr:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	require.Equal(t, user2, journalCurrentUID(jManager))
+}
+
+// A session RPC that started during logout can finish after login has
+// taken the phase. That call must not run the logged-in flow; LoggedIn
+// owns it until serviceLoggedIn returns.
+func TestCurrentSessionDuringLoginDoesNotEnableJournals(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
+
+	user1 := keybase1.MakeTestUID(1)
+	user2Name := kbname.NormalizedUsername("test_user2")
+	user2 := keybase1.MakeTestUID(2)
+	require.Equal(t, user1, journalCurrentUID(jManager))
+
+	tlfID := tlf.FakeID(2, tlf.Private)
+	jManager.dirtyOpStart(tlfID)
+
+	releaseSession := make(chan struct{})
+	daemon := newKeybaseDaemonRPCWithClient(
+		nil,
+		&fakeKeybaseClient{
+			session: idutil.SessionInfo{
+				Name:           user2Name,
+				UID:            user2,
+				CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(user2Name),
+				VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(user2Name),
+			},
+			currentSessionGate: releaseSession,
+		},
+		logger.NewTestLogger(t))
+	daemon.config = config
+
+	logoutErr := make(chan error, 1)
+	go func() {
+		logoutErr <- daemon.LoggedOut(ctx)
+	}()
+
+	require.Eventually(t, func() bool {
+		daemon.sessionTransitionLock.Lock()
+		defer daemon.sessionTransitionLock.Unlock()
+		return daemon.sessionPhase == sessionLoggingOut
+	}, 5*time.Second, 5*time.Millisecond)
+
+	sessionErr := make(chan error, 1)
+	go func() {
+		_, err := daemon.CurrentSession(ctx, 0)
+		sessionErr <- err
+	}()
+	require.Eventually(t, func() bool {
+		daemon.sessionCacheLock.Lock()
+		defer daemon.sessionCacheLock.Unlock()
+		return daemon.sessionInProgressCh != nil
+	}, 5*time.Second, 5*time.Millisecond)
+
+	loginErr := make(chan error, 1)
+	go func() {
+		loginErr <- daemon.LoggedIn(ctx, keybase1.LoggedInArg{
+			Username: string(user2Name),
+			SignedUp: true,
+		})
+	}()
+	require.Eventually(t, func() bool {
+		daemon.sessionTransitionLock.Lock()
+		defer daemon.sessionTransitionLock.Unlock()
+		return daemon.sessionPhaseWaiters > 0
+	}, 5*time.Second, 5*time.Millisecond)
+
+	jManager.dirtyOpEnd(tlfID)
+	require.Eventually(t, func() bool {
+		daemon.sessionTransitionLock.Lock()
+		defer daemon.sessionTransitionLock.Unlock()
+		return daemon.sessionPhase == sessionLoggingIn
+	}, 5*time.Second, 5*time.Millisecond)
+
+	// Hold the journal lock so LoggedIn's serviceLoggedIn cannot
+	// install the new UID before the assertion. Logout has already
+	// cleared it. CurrentSession itself must return without taking
+	// that lock.
+	jManager.lock.Lock()
+	close(releaseSession)
+	var sessionCallErr error
+	select {
+	case sessionCallErr = <-sessionErr:
+	case <-time.After(5 * time.Second):
+		jManager.lock.Unlock()
+		t.Fatal("CurrentSession during login ran the logged-in flow")
+	}
+	uid := jManager.currentUID
+	jManager.lock.Unlock()
+	require.NoError(t, sessionCallErr)
+	require.Equal(t, keybase1.UID(""), uid)
+
+	select {
+	case err := <-logoutErr:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	select {
+	case err := <-loginErr:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	require.Equal(t, user2, journalCurrentUID(jManager))
 }

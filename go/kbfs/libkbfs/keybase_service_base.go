@@ -31,6 +31,19 @@ const (
 	cacheNotWriterExpiration = 5 * time.Second
 )
 
+// sessionPhase serializes login and logout. A journal sync from the
+// previous user can still be flushing when the service reports a new
+// login; that sync calls CurrentSession, which must not start the new
+// user's logged-in flow (journal enable, auth refresh) until logout
+// has finished waiting for the sync.
+type sessionPhase int
+
+const (
+	sessionIdle sessionPhase = iota
+	sessionLoggingOut
+	sessionLoggingIn
+)
+
 // KeybaseServiceBase implements most of KeybaseService from protocol
 // defined clients.
 type KeybaseServiceBase struct {
@@ -54,6 +67,14 @@ type KeybaseServiceBase struct {
 	// Set to the zero value when invalidated.
 	cachedCurrentSession idutil.SessionInfo
 	sessionInProgressCh  chan struct{}
+
+	sessionTransitionLock sync.Mutex
+	sessionPhase          sessionPhase
+	// sessionPhaseWaiters is how many goroutines are blocked in
+	// beginSessionPhase. Tests use it to observe that login is waiting
+	// for logout without racing the critical section.
+	sessionPhaseWaiters   int
+	sessionTransitionCond *sync.Cond
 
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
@@ -96,6 +117,7 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 		teamCache:      make(map[keybase1.TeamID]idutil.TeamInfo),
 		notWriterCache: make(map[keybase1.TeamID]map[keybase1.UID]time.Time),
 	}
+	k.sessionTransitionCond = sync.NewCond(&k.sessionTransitionLock)
 	if config != nil {
 		k.merkleRoot = NewEventuallyConsistentMerkleRoot(
 			config, &keybaseServiceMerkleGetter{&k})
@@ -361,23 +383,90 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 	k.notWriterCache = make(map[keybase1.TeamID]map[keybase1.UID]time.Time)
 }
 
+// beginSessionPhase waits until no login or logout is in progress,
+// then records phase. The lock is not held while the caller does the
+// work, so a journal sync that calls CurrentSession cannot deadlock
+// on it.
+func (k *KeybaseServiceBase) beginSessionPhase(phase sessionPhase) {
+	k.sessionTransitionLock.Lock()
+	defer k.sessionTransitionLock.Unlock()
+	for k.sessionPhase != sessionIdle {
+		k.sessionPhaseWaiters++
+		k.sessionTransitionCond.Wait()
+		k.sessionPhaseWaiters--
+	}
+	k.sessionPhase = phase
+}
+
+func (k *KeybaseServiceBase) endSessionPhase() {
+	k.sessionTransitionLock.Lock()
+	k.sessionPhase = sessionIdle
+	k.sessionTransitionCond.Broadcast()
+	k.sessionTransitionLock.Unlock()
+}
+
+func (k *KeybaseServiceBase) loggingOut() bool {
+	k.sessionTransitionLock.Lock()
+	defer k.sessionTransitionLock.Unlock()
+	return k.sessionPhase == sessionLoggingOut
+}
+
+// claimLoggedInFlow reports whether this CurrentSession should run
+// serviceLoggedIn. An in-progress logout or login skips it. Logout
+// must finish the previous user's journal flush before auth is
+// refreshed. Login runs serviceLoggedIn itself and holds the phase
+// until that returns; a concurrent CurrentSession only reads the
+// session.
+func (k *KeybaseServiceBase) claimLoggedInFlow() (release func(), ok bool) {
+	k.sessionTransitionLock.Lock()
+	defer k.sessionTransitionLock.Unlock()
+	switch k.sessionPhase {
+	case sessionLoggingOut, sessionLoggingIn:
+		return nil, false
+	default:
+		k.sessionPhase = sessionLoggingIn
+		return func() { k.endSessionPhase() }, true
+	}
+}
+
 // LoggedIn implements keybase1.NotifySessionInterface.
 func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedInArg) error {
 	k.log.CDebugf(ctx, "Current session logged in: %s, signedUp: %t", arg.Username, arg.SignedUp)
+	// Wait out an in-progress logout. Its journal shutdown blocks on
+	// the previous user's dirty sync, and that sync must finish before
+	// this user's journals and auth tokens are installed.
+	k.beginSessionPhase(sessionLoggingIn)
+	// End the phase on every return, including a panic in
+	// CurrentSession. The error path drops ownership before switching
+	// to logout.
+	phaseOwned := true
+	defer func() {
+		if phaseOwned {
+			k.endSessionPhase()
+		}
+	}()
 	// Since we don't have the whole session, just clear the cache and
-	// repopulate it.  The `CurrentSession` call executes the "logged
-	// in" flow.
+	// repopulate it. CurrentSession must not run the logged-in flow
+	// while this phase is held: that caller would not own the phase,
+	// and LoggedIn would clear it before serviceLoggedIn returned.
 	k.setCachedCurrentSession(idutil.SessionInfo{})
 	const sessionID = 0
-	_, err := k.CurrentSession(ctx, sessionID)
+	session, err := k.CurrentSession(ctx, sessionID)
 	if err != nil {
 		k.log.CDebugf(ctx, "Getting current session failed when %s is logged "+
 			"in, so pretending user has logged out: %v",
 			arg.Username, err)
+		k.endSessionPhase()
+		phaseOwned = false
 		if k.config != nil {
+			k.beginSessionPhase(sessionLoggingOut)
+			defer k.endSessionPhase()
 			serviceLoggedOut(ctx, k.config)
 		}
 		return nil
+	}
+	if k.config != nil {
+		_ = serviceLoggedIn(ctx, k.config, session, TLFJournalBackgroundWorkEnabled)
 	}
 
 	return nil
@@ -386,6 +475,8 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedIn
 // LoggedOut implements keybase1.NotifySessionInterface.
 func (k *KeybaseServiceBase) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
+	k.beginSessionPhase(sessionLoggingOut)
+	defer k.endSessionPhase()
 	k.setCachedCurrentSession(idutil.SessionInfo{})
 	if k.config != nil {
 		serviceLoggedOut(ctx, k.config)
@@ -1176,10 +1267,16 @@ func (k *KeybaseServiceBase) getCurrentSession(
 
 	var s idutil.SessionInfo
 	// Close and clear the in-progress channel, even on an error.
+	// Don't cache a session discovered during logout: the daemon may
+	// already be the next user, and caching them would make KBFS treat
+	// that user as logged in before logout finishes.
 	defer func() {
+		cacheSession := !k.loggingOut()
 		k.sessionCacheLock.Lock()
 		defer k.sessionCacheLock.Unlock()
-		k.cachedCurrentSession = s
+		if cacheSession {
+			k.cachedCurrentSession = s
+		}
 		close(k.sessionInProgressCh)
 		k.sessionInProgressCh = nil
 	}()
@@ -1217,8 +1314,14 @@ func (k *KeybaseServiceBase) CurrentSession(
 	}
 
 	if newSession && k.config != nil {
-		// Don't hold the lock while calling `serviceLoggedIn`.
-		_ = serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
+		// Don't hold the transition lock across serviceLoggedIn.
+		// Logout waits for journal syncs, and those syncs call back
+		// into CurrentSession.
+		release, ok := k.claimLoggedInFlow()
+		if ok {
+			defer release()
+			_ = serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
+		}
 	}
 
 	return s, nil
