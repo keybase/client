@@ -71,3 +71,22 @@ export const EscapeHandler = (p: {onESC: () => void; children?: React.ReactNode}
   }
   return <KeyEventHandler onKeyDown={onKeyDown}>{children}</KeyEventHandler>
 }
+
+// A modal route's navigation as ModalWrapper uses it. Like react-navigation, pop announces the
+// route's removal (beforeRemove) at once, while the new state renders later, in a transition: here
+// the modal stays rendered until the test unmounts it.
+export const fakeModalNavigation = (onPop: () => void = () => {}) => {
+  const listeners = new Set<(e: {defaultPrevented: boolean}) => void>()
+  return {
+    addListener: (_event: 'beforeRemove', listener: (e: {defaultPrevented: boolean}) => void) => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    pop: () => {
+      listeners.forEach(listener => listener({defaultPrevented: false}))
+      onPop()
+    },
+  } as never
+}

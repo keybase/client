@@ -2,12 +2,12 @@
 /// <reference types="jest" />
 
 import * as React from 'react'
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
-import {overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {fakeModalNavigation, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 setupOverlayDom()
 
@@ -58,7 +58,7 @@ describe('desktop ModalWrapper', () => {
 
   const renderModal = (options: GetOptionsRet) =>
     render(
-      <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={options}>
+      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={options}>
         <BoxSize />
       </ModalWrapper>
     )
@@ -95,7 +95,7 @@ describe('desktop ModalWrapper', () => {
   const renderWith = (options: GetOptionsRet, children: React.ReactNode) => {
     const pop = jest.fn()
     render(
-      <ModalWrapper canGoBack={false} navigation={{pop} as never} navigationOptions={options}>
+      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation(pop)} navigationOptions={options}>
         {children}
       </ModalWrapper>
     )
@@ -121,17 +121,79 @@ describe('desktop ModalWrapper', () => {
   })
 
   test('Escape and a click on the dim area around the box close it', () => {
-    const pop = renderWith({title: 'Edit team info'}, <>body</>)
+    const escaped = renderWith({title: 'Edit team info'}, <>body</>)
     fireEvent.keyDown(document.body, {key: 'Escape'})
-    expect(pop).toHaveBeenCalledTimes(1)
+    expect(escaped).toHaveBeenCalledTimes(1)
+    cleanup()
+
+    const pop = renderWith({title: 'Edit team info'}, <>body</>)
     const background = overlayEntries()[0]?.firstElementChild as HTMLElement
-    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
-    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
-    expect(pop).toHaveBeenCalledTimes(2)
     // a press in the box that is released outside it is a drag, not a click
     fireEvent.mouseDown(screen.getByText('body'), {clientX: 1, clientY: 1})
     fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
-    expect(pop).toHaveBeenCalledTimes(2)
+    expect(pop).not.toHaveBeenCalled()
+    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).toHaveBeenCalledTimes(1)
+  })
+
+  // people search: its empty search field closes the modal on Escape itself and stops the event
+  describe('a field that closes the modal on Escape', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    const Field = (p: {close: () => void}) => {
+      const {close} = p
+      const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          close()
+          e.stopPropagation()
+        }
+      }
+      return <input aria-label="search" onKeyDown={onKeyDown} />
+    }
+
+    const pressEscapeIn = (field: HTMLElement) => {
+      fireEvent.keyDown(field, {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+    }
+
+    test('closes it once', () => {
+      const pop = jest.fn()
+      const navigation = fakeModalNavigation(pop)
+      render(
+        <ModalWrapper canGoBack={false} navigation={navigation} navigationOptions={{title: 'Search'}}>
+          <Field close={() => (navigation as {pop: () => void}).pop()} />
+        </ModalWrapper>
+      )
+      pressEscapeIn(screen.getByLabelText('search'))
+      expect(pop).toHaveBeenCalledTimes(1)
+    })
+
+    test('leaves the modal under it open', () => {
+      // each pop removes the top route, as an unkeyed pop would
+      const routes = ['lower', 'upper']
+      const lower = fakeModalNavigation(() => routes.pop())
+      const upper = fakeModalNavigation(() => routes.pop())
+      render(
+        <>
+          <ModalWrapper canGoBack={false} navigation={lower} navigationOptions={{title: 'Lower'}}>
+            lower
+          </ModalWrapper>
+          <ModalWrapper canGoBack={true} navigation={upper} navigationOptions={{title: 'Upper'}}>
+            <Field close={() => (upper as {pop: () => void}).pop()} />
+          </ModalWrapper>
+        </>
+      )
+      pressEscapeIn(screen.getByLabelText('search'))
+      expect(routes).toEqual(['lower'])
+    })
   })
 
   test('overlayNoClose keeps it open on Escape and clicks, and keeps Escape from what is under it', () => {

@@ -3,7 +3,7 @@
 
 import * as React from 'react'
 import {act, render, screen} from '@testing-library/react'
-import {setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {fakeModalNavigation, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 // Focus effects run like react-navigation's, which can blur a screen pushed as a modal and focus it
 // again after it mounts.
@@ -47,7 +47,7 @@ const blurAndFocus = () => {
 // new chat's "Search Keybase" field lost focus to the modal itself this way
 test('a field focused on mount keeps focus when the modal screen is blurred and focused again', () => {
   render(
-    <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={{title: 'New chat'}}>
+    <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
       <input aria-label="search" autoFocus={true} />
     </ModalWrapper>
   )
@@ -70,7 +70,7 @@ describe('a lazily loaded modal screen', () => {
   const renderModal = (Lazy: React.ComponentType) =>
     render(
       <React.Suspense>
-        <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={{title: 'New chat'}}>
+        <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
           <Lazy />
         </ModalWrapper>
       </React.Suspense>
@@ -116,7 +116,7 @@ describe('closing gives focus back to what had it', () => {
       </div>
       {p.step !== 'closed' ? (
         <React.StrictMode>
-          <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={{title: 'New chat'}}>
+          <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
             {p.step === 'open' ? <input aria-label="search" autoFocus={true} /> : null}
           </ModalWrapper>
         </React.StrictMode>

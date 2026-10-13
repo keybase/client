@@ -76,6 +76,19 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
 
   const frameRef = React.useRef<Kb.MeasureRef>(null)
 
+  // Its route can be removed by something inside it, like a search field that closes the modal on
+  // Escape. The new state renders later (react-navigation dispatches in a transition), so until then
+  // the modal is still up and must not be closed a second time.
+  const removingRef = React.useRef<{defaultPrevented: boolean} | undefined>(undefined)
+  React.useEffect(
+    () =>
+      navigation.addListener('beforeRemove', e => {
+        removingRef.current = e
+      }),
+    [navigation]
+  )
+  const closing = () => !!removingRef.current && !removingRef.current.defaultPrevented
+
   const onEscape = overlayNoClose ? undefined : () => navigation.pop()
   // a click on the dim area around the box closes it
   const outside = overlayNoClose
@@ -104,6 +117,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
     <OverlayEntry
       acceptsKeys={true}
       blocking={true}
+      closing={closing}
       kind="modal"
       onEscape={onEscape}
       outside={outside}

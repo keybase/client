@@ -41,6 +41,8 @@ export type EntryBehavior = {
   outside: {content: () => Element | null; onOutside: () => void; propagate: boolean} | undefined
   // a popup checks its anchor again
   syncAnchor: (() => void) | undefined
+  // already on its way out (its route is being removed): no Escape or click outside closes it again
+  closing: (() => boolean) | undefined
   // a popup: the element it is anchored to
   anchor: (() => HTMLElement | null) | undefined
 }
@@ -59,6 +61,7 @@ const makeRoot = (): Entry => ({
   acceptsKeys: true,
   anchor: undefined,
   blocking: false,
+  closing: undefined,
   dismissable: false,
   dormant: false,
   element: null,
@@ -122,6 +125,8 @@ const restoreFocus = (saved: SavedFocus | undefined) => {
     element.setSelectionRange(...selection)
   }
 }
+
+const isClosing = (id: string) => !!entries.get(id)?.closing?.()
 
 const elementOf = (entry: StackEntry) =>
   entry.kind === 'root' ? document.getElementById('root') : (entries.get(entry.id)?.element ?? null)
@@ -246,6 +251,7 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   entry.dismissable = !!behavior.outside
   entry.syncAnchor = behavior.syncAnchor
   entry.anchor = behavior.anchor
+  entry.closing = behavior.closing
   if (changed) {
     restack()
   }
@@ -397,7 +403,12 @@ const onMouseUp = (ev: MouseEvent) => {
   }
   const {covered, order} = derive()
   const outside = entries.get(p.entry)?.outside
-  if (!outside || outsideClickEntry(order, covered) !== p.entry || !isOutside(p.entry, ev.target)) {
+  if (
+    !outside ||
+    outsideClickEntry(order, covered) !== p.entry ||
+    !isOutside(p.entry, ev.target) ||
+    isClosing(p.entry)
+  ) {
     return
   }
   if (!outside.propagate) {
@@ -486,7 +497,9 @@ const deliver = (type: KeyType, ev: KeyboardEvent, top: string) => {
   if (entry?.onEscape || entry?.blocking) {
     ev.preventDefault()
   }
-  entry?.onEscape?.()
+  if (!isClosing(top)) {
+    entry?.onEscape?.()
+  }
 }
 
 // An Escape seen on the way down, and the entry that had the keys then. If a field stops it, it
@@ -502,7 +515,8 @@ const onStoppedEscape = (ev: KeyboardEvent) => {
   }
   const {entry} = pendingEscape
   pendingEscape = undefined
-  if (ev.defaultPrevented || derive().top !== entry) {
+  // one the field handled by closing the modal itself must not close it, or what is under it, again
+  if (ev.defaultPrevented || derive().top !== entry || isClosing(entry)) {
     return
   }
   const scope = scopeOf(entries, entry)

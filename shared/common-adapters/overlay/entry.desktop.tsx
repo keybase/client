@@ -13,18 +13,18 @@ import {
 } from './controller.desktop'
 
 type HookProps = Omit<EntryStructure, 'parent'> &
-  Omit<EntryBehavior, 'anchor' | 'outside' | 'syncAnchor'> &
-  Partial<Pick<EntryBehavior, 'anchor' | 'outside' | 'syncAnchor'>>
+  Omit<EntryBehavior, 'anchor' | 'closing' | 'outside' | 'syncAnchor'> &
+  Partial<Pick<EntryBehavior, 'anchor' | 'closing' | 'outside' | 'syncAnchor'>>
 
 // Registers an entry in the overlay stack under the entry it is rendered in, once `ref` is attached
 // to its manual popover, which the stack then shows in its place. Render what is inside only once
 // `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
-  const {acceptsKeys, anchor, blocking, kind, onEscape, outside, stoppedEscapeCloses, syncAnchor, tier} = p
+  const {acceptsKeys, anchor, blocking, closing, kind, onEscape, outside, stoppedEscapeCloses, syncAnchor, tier} = p
   const parent = React.use(OverlayEntryContext)
   const [id] = React.useState(newEntryId)
   const [shown, setShown] = React.useState(false)
-  const behavior: EntryBehavior = {acceptsKeys, anchor, onEscape, outside, stoppedEscapeCloses, syncAnchor}
+  const behavior: EntryBehavior = {acceptsKeys, anchor, closing, onEscape, outside, stoppedEscapeCloses, syncAnchor}
   const behaviorRef = React.useRef(behavior)
   const structureRef = React.useRef<EntryStructure>({blocking, kind, parent, tier})
 
@@ -74,10 +74,11 @@ type Props = HookProps & {
 
 // A full-window overlay in the top layer, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
-  const {acceptsKeys, blocking, children, kind, onEscape, outside, passthrough, stoppedEscapeCloses, tier} = p
+  const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, stoppedEscapeCloses, tier} = p
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys,
     blocking,
+    closing,
     kind,
     onEscape,
     outside,

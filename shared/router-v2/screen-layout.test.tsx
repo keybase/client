@@ -56,7 +56,7 @@ describe('desktop modal layout', () => {
   // anything the screen set through navigation.setOptions. The modal header must show those.
   test('draws the header from the live options, not a fresh getOptions', () => {
     const layout = desktopMakeLayout(true, false, false, () => ({title: 'From getOptions'}))
-    const navigation = {getState: () => ({routes: [{key: 'k', name: 'chatNewChat'}]}), pop: () => {}}
+    const navigation = {addListener: () => () => {}, getState: () => ({routes: [{key: 'k', name: 'chatNewChat'}]}), pop: () => {}}
     const {queryByText} = render(
       <>
         {layout({
