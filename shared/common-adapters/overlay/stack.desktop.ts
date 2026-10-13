@@ -127,7 +127,7 @@ export const keyHomeOf = (entries: Entries, id: string) => {
   return entry?.id ?? rootEntryId
 }
 
-export const isDescendant = (entries: Entries, id: string, ancestor: string) => {
+const isDescendant = (entries: Entries, id: string, ancestor: string) => {
   let entry = entries.get(id)
   while (entry) {
     const parent = parentOf(entries, entry)

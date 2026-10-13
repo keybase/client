@@ -21,7 +21,7 @@ import {
 
 type KeyType = 'keydown' | 'keypress'
 // takes a key by returning true
-export type KeyReceiver = (type: KeyType, ev: KeyboardEvent) => boolean
+type KeyReceiver = (type: KeyType, ev: KeyboardEvent) => boolean
 
 export type EntryStructure = {
   kind: Exclude<EntryKind, 'root'>
