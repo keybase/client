@@ -9,7 +9,7 @@ import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
-import {setMainWindow} from './main-window-ref.desktop'
+import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
 
 const {env} = KB2.constants
 
@@ -142,17 +142,11 @@ let disableScreenshot = false
 export const isScreenshotDisabled = () => disableScreenshot
 
 const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
-// windows created with themeBackgroundColor; transparent ones (menubar, tracker) are never added
-const themedWindows = new WeakSet<Electron.BrowserWindow>()
 
+// only the main window uses themeBackgroundColor; the others (menubar, tracker) are transparent
 export const registerThemeBackgrounds = () => {
   Electron.nativeTheme.on('updated', () => {
-    const color = themeBackgroundColor()
-    for (const w of Electron.BrowserWindow.getAllWindows()) {
-      if (themedWindows.has(w)) {
-        w.setBackgroundColor(color)
-      }
-    }
+    getMainWindow()?.setBackgroundColor(themeBackgroundColor())
   })
 }
 
@@ -360,7 +354,6 @@ const MainWindow = () => {
   })
 
   win.setContentProtection(disableScreenshot)
-  themedWindows.add(win)
 
   win
     .loadURL(htmlFile)
