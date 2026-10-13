@@ -208,6 +208,25 @@ describe('GlobalOverlay', () => {
     expect(document.activeElement).toBe(app)
   })
 
+  // the expanded error banner's details scroll
+  test('re-showing overlays above an insert keeps them scrolled where they were', () => {
+    const App = (p: {modal: boolean}) => (
+      <>
+        {p.modal ? <RouterModal>modal</RouterModal> : null}
+        <GlobalOverlay tier="globalError">
+          <div data-testid="details">details</div>
+        </GlobalOverlay>
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    const details = screen.getByTestId('details')
+    details.scrollTop = 120
+    rerender(<App modal={true} />)
+    // the banner was hidden and shown again above the modal
+    expect(overlay.shown.map(e => e.textContent)).toEqual(['modal', 'details'])
+    expect(details.scrollTop).toBe(120)
+  })
+
   test('re-showing overlays above an insert keeps focus and the selection where they were', () => {
     // Chromium can drop focus from a popover while it is hidden
     const hide = overlay.hide

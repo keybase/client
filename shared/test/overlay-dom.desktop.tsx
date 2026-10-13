@@ -10,6 +10,11 @@ export const setupOverlayDom = () => {
   const state = {
     hide: (element: HTMLElement) => {
       state.shown = state.shown.filter(p => p !== element)
+      // as in a browser, what was scrolled in a popover is back at the start once it is hidden
+      for (const e of [element, ...element.querySelectorAll('*')]) {
+        e.scrollTop = 0
+        e.scrollLeft = 0
+      }
     },
     shown: [] as Array<HTMLElement>,
   }

@@ -132,6 +132,14 @@ const restoreFocus = (saved: SavedFocus | undefined) => {
 
 const isClosing = (id: string) => !!entries.get(id)?.closing?.()
 
+// Hiding a popover loses where everything in it was scrolled to, so a re-show puts that back
+const saveScroll = (elements: ReadonlyArray<HTMLElement>) =>
+  elements.flatMap(element =>
+    [element, ...element.querySelectorAll('*')]
+      .filter(e => e.scrollTop || e.scrollLeft)
+      .map(e => [e, e.scrollTop, e.scrollLeft] as const)
+  )
+
 const elementOf = (entry: StackEntry) =>
   entry.kind === 'root' ? document.getElementById('root') : (entries.get(entry.id)?.element ?? null)
 
@@ -162,6 +170,7 @@ const reconcile = () => {
     return
   }
   const saved = saveFocus()
+  const scrolled = saveScroll(hide.filter(element => show.includes(element)))
   hide.forEach(element => {
     if (element.isConnected) {
       element.hidePopover()
@@ -176,6 +185,10 @@ const reconcile = () => {
   })
   shown = desired
   restoreFocus(saved)
+  scrolled.forEach(([element, top, left]) => {
+    element.scrollTop = top
+    element.scrollLeft = left
+  })
 }
 
 // After any change to the stack: one popup may have mounted before what it anchors to.
