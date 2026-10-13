@@ -23,14 +23,12 @@ export function ModalCover(props: ModalCoverProps) {
       }
     : undefined
   return (
-    // an Escape a field in it handled, like the channel picker's filter clearing itself, is left there
     <OverlayEntry
       acceptsKeys={true}
       blocking={true}
       kind="modal"
       onEscape={onHidden}
       outside={outside}
-      stoppedEscapeCloses={false}
     >
       <Box2 alignSelf="center" direction="vertical" centerChildren={true} style={Styles.collapseStyles([styles.cover, style])}>
         {/* presses inside stay out of the handlers of whatever rendered the cover */}

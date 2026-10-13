@@ -32,7 +32,7 @@ const press = (key: string, metaKey = false) => {
 const pressEscape = () => press('Escape')
 
 const Modal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
-  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape} stoppedEscapeCloses={true}>
+  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape}>
     {p.children}
   </OverlayEntry>
 )

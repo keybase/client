@@ -12,7 +12,6 @@ type ModalProps = {
   onEscape?: () => void
   // a router modal, not a cover or dialog
   route?: boolean
-  stoppedEscapeCloses?: boolean
 }
 const Modal = (p: ModalProps) => (
   <OverlayEntry
@@ -21,7 +20,6 @@ const Modal = (p: ModalProps) => (
     kind="modal"
     onEscape={p.onEscape}
     route={p.route}
-    stoppedEscapeCloses={p.stoppedEscapeCloses ?? true}
   >
     {p.children}
   </OverlayEntry>
@@ -66,7 +64,7 @@ describe('OverlayEntry', () => {
     const Stack = (p: {second: boolean}) => (
       <>
         {p.second ? <Modal>second</Modal> : null}
-        <OverlayEntry acceptsKeys={false} blocking={false} kind="global" stoppedEscapeCloses={false} tier="globalError">
+        <OverlayEntry acceptsKeys={false} blocking={false} kind="global" tier="globalError">
           banner
         </OverlayEntry>
         <Modal>
@@ -136,7 +134,7 @@ describe('OverlayEntry', () => {
 
   describe('what stays drawn under a blocking entry', () => {
     const Menu = (p: {children?: React.ReactNode}) => (
-      <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" stoppedEscapeCloses={false}>
+      <OverlayEntry acceptsKeys={true} blocking={false} kind="popup">
         {p.children}
       </OverlayEntry>
     )
@@ -220,7 +218,7 @@ describe('OverlayEntry', () => {
         </Modal>
         {p.second ? (
           <Modal>
-            <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" stoppedEscapeCloses={false}>
+            <OverlayEntry acceptsKeys={true} blocking={false} kind="popup">
               menu
             </OverlayEntry>
           </Modal>
@@ -477,18 +475,41 @@ describe('OverlayEntry', () => {
         expect(onEscape).not.toHaveBeenCalled()
       })
 
-      test('is left to the field when the modal says so', () => {
+      test('reaches a popup open in the modal, not the modal', () => {
         const onEscape = jest.fn()
+        const onMenuEscape = jest.fn()
         render(
-          <Modal onEscape={onEscape} stoppedEscapeCloses={false}>
-            <input aria-label="field" onKeyDown={stop} />
+          <Modal onEscape={onEscape}>
+            <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" onEscape={onMenuEscape}>
+              <input aria-label="field" onKeyDown={stop} />
+            </OverlayEntry>
           </Modal>
         )
         fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
         act(() => {
           jest.runAllTimers()
         })
+        expect(onMenuEscape).toHaveBeenCalledTimes(1)
         expect(onEscape).not.toHaveBeenCalled()
+      })
+
+      test('stays with the field outside any modal', () => {
+        const onMenuEscape = jest.fn()
+        const atRoot = jest.fn()
+        render(
+          <>
+            <EscapeHandler onESC={atRoot}>root</EscapeHandler>
+            <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" onEscape={onMenuEscape}>
+              <input aria-label="field" onKeyDown={stop} />
+            </OverlayEntry>
+          </>
+        )
+        fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+        act(() => {
+          jest.runAllTimers()
+        })
+        expect(onMenuEscape).not.toHaveBeenCalled()
+        expect(atRoot).not.toHaveBeenCalled()
       })
 
       test('is dropped when another modal took the keys meanwhile', () => {

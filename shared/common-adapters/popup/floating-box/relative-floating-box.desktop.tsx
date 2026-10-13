@@ -135,7 +135,6 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     outside: onHidden
       ? {content: () => contentRef.current, onOutside: onHidden, propagate: !!propagateOutsideClicks}
       : undefined,
-    stoppedEscapeCloses: false,
     syncAnchor: () => syncAnchorRef.current(),
   })
 

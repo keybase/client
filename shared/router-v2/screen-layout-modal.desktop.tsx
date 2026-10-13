@@ -122,7 +122,6 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       route={true}
       onEscape={onEscape}
       outside={outside}
-      stoppedEscapeCloses={true}
     >
       <Kb.Box2
         key="background"

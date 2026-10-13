@@ -392,7 +392,7 @@ describe('RelativeFloatingBox', () => {
   test('a popup opened inside a modal goes after it, so it stacks above it and can anchor in it', () => {
     const anchor = anchorElement()
     render(
-      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
         <RelativeFloatingBox attachTo={refTo(anchor)} position="bottom left">
           content
         </RelativeFloatingBox>
@@ -422,13 +422,13 @@ describe('RelativeFloatingBox', () => {
   test('a popup in a covered modal is hidden until the modal is uncovered', () => {
     const Stack = (p: {second: boolean}) => (
       <>
-        <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+        <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
           <RelativeFloatingBox attachTo={refTo(anchorElement())} position="bottom left">
             tooltip
           </RelativeFloatingBox>
         </OverlayEntry>
         {p.second ? (
-          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
             second
           </OverlayEntry>
         ) : null}
@@ -546,7 +546,7 @@ describe('RelativeFloatingBox', () => {
     test('in a modal while the banner is up', () => {
       const App = (p: {tip: boolean}) => (
         <>
-          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
             modal{tooltip(p.tip)}
           </OverlayEntry>
           <GlobalOverlay tier="globalError">
@@ -619,7 +619,6 @@ describe('RelativeFloatingBox', () => {
         blocking={true}
         kind="modal"
         outside={{content: () => content.current, onOutside: onModal, propagate: true}}
-        stoppedEscapeCloses={true}
       >
         <div ref={setContent}>
           modal
@@ -682,7 +681,7 @@ describe('RelativeFloatingBox', () => {
   // the emoji picker's search field blurs itself on Escape, and then the picker closes
   test('closing after a field in it let go of focus still puts focus back on what opened it', () => {
     const App = (p: {open: boolean}) => (
-      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
         <button>choose emoji</button>
         {p.open ? (
           <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">

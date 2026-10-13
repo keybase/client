@@ -20,7 +20,7 @@ import {useHotKey} from '../hot-key'
 setupOverlayDom()
 
 const RouterModal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
-  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape} stoppedEscapeCloses={true}>
+  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape}>
     {p.children}
   </OverlayEntry>
 )
@@ -122,7 +122,6 @@ describe('GlobalOverlay', () => {
           blocking={true}
           kind="modal"
           outside={{content: () => content.current, onOutside, propagate: true}}
-          stoppedEscapeCloses={true}
         >
           <div ref={setContent}>modal</div>
         </OverlayEntry>

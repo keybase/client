@@ -36,8 +36,6 @@ export type EntryBehavior = {
   acceptsKeys: boolean
   // Escape that nothing inside took
   onEscape?: () => void
-  // for a modal: an Escape a field inside it stopped is still handled, as if it had not been
-  stoppedEscapeCloses: boolean
   // closes on a click outside `content` and every entry opened from it
   outside: {content: () => Element | null; onOutside: () => void; propagate: boolean} | undefined
   // a popup checks its anchor again
@@ -74,7 +72,6 @@ const makeRoot = (): Entry => ({
   parent: undefined,
   route: false,
   seq: 0,
-  stoppedEscapeCloses: false,
   syncAnchor: undefined,
   tier: 'app',
 })
@@ -448,9 +445,9 @@ const deliver = (type: KeyType, ev: KeyboardEvent, top: string) => {
 // never comes back up.
 let pendingEscape: {ev: KeyboardEvent; entry: string} | undefined
 
-// A field that handles Escape stops it. In a modal that wants it anyway it is delivered once the
-// event is done, if the same entry still has the keys. One the field also prevented it handled in
-// full, so it goes no further.
+// A field that handles Escape stops it. In a modal it is still delivered once the event is done, if
+// the same entry still has the keys: only an Escape the field also prevented is handled in full and
+// goes no further. Outside any modal a stopped Escape stays with the field.
 const onStoppedEscape = (ev: KeyboardEvent) => {
   if (pendingEscape?.ev !== ev) {
     return
@@ -462,7 +459,7 @@ const onStoppedEscape = (ev: KeyboardEvent) => {
     return
   }
   const scope = scopeOf(entries, entry)
-  if (scope !== undefined && entries.get(scope)?.stoppedEscapeCloses) {
+  if (scope !== undefined && entries.get(scope)?.kind === 'modal') {
     deliver('keydown', ev, entry)
   }
 }

@@ -14,7 +14,6 @@ export const GlobalOverlay = (p: {tier: GlobalTier; children: React.ReactNode}) 
       blocking={blocking}
       kind="global"
       passthrough={!blocking}
-      stoppedEscapeCloses={false}
       tier={tier}
     >
       {children}

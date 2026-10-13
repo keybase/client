@@ -21,7 +21,7 @@ type HookProps = Omit<EntryStructure, 'parent'> &
 // once `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
   const {acceptsKeys, anchoredWithin, blocking, closing, kind, onEscape, outside, route} = p
-  const {stoppedEscapeCloses, syncAnchor, tier} = p
+  const {syncAnchor, tier} = p
   const parent = React.use(OverlayEntryContext)
   const [id] = React.useState(newEntryId)
   const [shown, setShown] = React.useState(false)
@@ -31,7 +31,6 @@ export const useOverlayEntry = (p: HookProps) => {
     closing,
     onEscape,
     outside,
-    stoppedEscapeCloses,
     syncAnchor,
   }
   const behaviorRef = React.useRef(behavior)
@@ -138,8 +137,7 @@ type Props = HookProps & {
 
 // A full-window overlay, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
-  const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, route} = p
-  const {stoppedEscapeCloses, tier} = p
+  const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, route, tier} = p
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys,
     blocking,
@@ -148,7 +146,6 @@ export const OverlayEntry = (p: Props) => {
     onEscape,
     outside,
     route,
-    stoppedEscapeCloses,
     tier,
   })
   return (

@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
+import * as React from 'react'
 import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
 import {ModalCover} from './modal-cover.desktop'
@@ -22,8 +22,6 @@ const renderCover = (onHidden?: () => void) => {
     entry,
   }
 }
-
-const stopEvent = (e: React.KeyboardEvent) => e.stopPropagation()
 
 const pressEscape = () => {
   fireEvent.keyDown(document.body, {key: 'Escape'})
@@ -77,8 +75,25 @@ describe('ModalCover', () => {
     expect(onHidden).toHaveBeenCalledTimes(1)
   })
 
-  // e.g. the channel picker's filter clears itself on Escape and stops it
-  describe('an escape an input already handled', () => {
+  // like Kb.SearchFilter: Escape clears what was typed and stops there
+  const FilterField = () => {
+    const [text, setText] = React.useState('typed')
+    return (
+      <input
+        aria-label="filter"
+        value={text}
+        onChange={e => setText(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Escape') {
+            setText('')
+            e.stopPropagation()
+          }
+        }}
+      />
+    )
+  }
+
+  describe('an escape a field inside handled', () => {
     beforeEach(() => {
       jest.useFakeTimers()
     })
@@ -86,17 +101,38 @@ describe('ModalCover', () => {
       jest.useRealTimers()
     })
 
-    test('does not dismiss', () => {
-      const onHidden = jest.fn()
-      render(
-        <ModalCover onHidden={onHidden}>
-          <input aria-label="filter" onKeyDown={stopEvent} />
-        </ModalCover>
-      )
-      fireEvent.keyDown(screen.getByLabelText('filter'), {key: 'Escape'})
+    const escapeIn = (field: HTMLElement) => {
+      fireEvent.keyDown(field, {key: 'Escape'})
       act(() => {
         jest.runAllTimers()
       })
+    }
+
+    test('only stopped, still dismisses, after the field took it', () => {
+      const onHidden = jest.fn()
+      render(
+        <ModalCover onHidden={onHidden}>
+          <FilterField />
+        </ModalCover>
+      )
+      const field = screen.getByLabelText<HTMLInputElement>('filter')
+      escapeIn(field)
+      expect(field.value).toBe('')
+      expect(onHidden).toHaveBeenCalledTimes(1)
+    })
+
+    test('also prevented, is left to the field', () => {
+      const onHidden = jest.fn()
+      const handle = (e: React.KeyboardEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      render(
+        <ModalCover onHidden={onHidden}>
+          <input aria-label="filter" onKeyDown={handle} />
+        </ModalCover>
+      )
+      escapeIn(screen.getByLabelText('filter'))
       expect(onHidden).not.toHaveBeenCalled()
     })
   })
