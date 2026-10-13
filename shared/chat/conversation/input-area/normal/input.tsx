@@ -20,7 +20,7 @@ import {TextInput, Keyboard} from 'react-native'
 import {registerPasteImage, removeOnHWKeyPressed, onHWKeyPressed} from 'react-native-kb'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import KB2 from '@/util/electron'
-import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {KeyEventHandler} from '@/common-adapters/key-event-handler'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {

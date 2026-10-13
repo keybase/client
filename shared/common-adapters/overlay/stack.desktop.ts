@@ -1,3 +1,5 @@
+import {rootEntryId} from './context'
+
 // The desktop overlay stack as data: which overlay is above which, which are covered, and which one
 // gets keys and outside clicks. No DOM here; the controller applies the answers.
 
@@ -13,8 +15,6 @@ export const tiers = {
 export type Tier = keyof typeof tiers
 
 export type EntryKind = 'root' | 'modal' | 'popup' | 'global'
-
-export const rootEntryId = 'root'
 
 export type StackEntry = {
   id: string
@@ -102,8 +102,12 @@ const isScope = (entry: StackEntry) => entry.kind !== 'popup' && (entry.kind !==
 
 // The modal, blocking global overlay or root an entry belongs to. Hot keys registered anywhere in it
 // count as its own, so a menu open in a modal leaves the modal's hot keys on.
+// Undefined for an entry that is not registered.
 export const scopeOf = (entries: Entries, id: string) => {
   let entry = entries.get(id)
+  if (!entry) {
+    return undefined
+  }
   while (entry && !isScope(entry)) {
     entry = parentOf(entries, entry)
   }
@@ -111,8 +115,12 @@ export const scopeOf = (entries: Entries, id: string) => {
 }
 
 // The entry a key handler registered in this one listens through: the nearest that takes keys.
+// Undefined for an entry that is not registered.
 export const keyHomeOf = (entries: Entries, id: string) => {
   let entry = entries.get(id)
+  if (!entry) {
+    return undefined
+  }
   while (entry && !entry.acceptsKeys) {
     entry = parentOf(entries, entry)
   }

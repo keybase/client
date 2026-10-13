@@ -5,12 +5,12 @@ import {
   keyHomeOf,
   outsideClickEntry,
   planTopLayer,
-  rootEntryId,
   scopeOf,
   stackOrder,
   topKeyEntry,
   type StackEntry,
 } from './stack.desktop'
+import {rootEntryId} from './context'
 
 type Spec = Partial<StackEntry> & Pick<StackEntry, 'id' | 'kind'>
 
@@ -154,6 +154,12 @@ describe('overlay stack', () => {
     const s = stackOf(modal('m'), popup('tooltip', 'm', false))
     expect(s.top).toBe('m')
     expect(keyHomeOf(s.entries, 'tooltip')).toBe('m')
+  })
+
+  test('an entry that is not registered has no key home or scope', () => {
+    const s = stackOf()
+    expect(keyHomeOf(s.entries, 'gone')).toBeUndefined()
+    expect(scopeOf(s.entries, 'gone')).toBeUndefined()
   })
 
   describe('outside clicks', () => {

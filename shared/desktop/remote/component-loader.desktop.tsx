@@ -3,7 +3,6 @@
 import type * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
-import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import KB2 from '@/util/electron'
@@ -47,9 +46,7 @@ function RemoteComponentLoader<P>(p: Props<P>) {
       style={Kb.Styles.collapseStyles([p.style ?? styles.container])}
     >
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-        <GlobalKeyEventHandler>
-          <Component {...value} />
-        </GlobalKeyEventHandler>
+        <Component {...value} />
       </ErrorBoundary>
     </Kb.Box2>
   )

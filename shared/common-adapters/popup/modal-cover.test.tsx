@@ -1,9 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import type * as React from 'react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
-import {GlobalKeyEventHandler} from '../key-event-handler.desktop'
 import {ModalCover} from './modal-cover.desktop'
 
 // jsdom has no showModal
@@ -18,11 +18,11 @@ beforeAll(() => {
 
 const renderCover = (onHidden?: () => void) => {
   const {container} = render(
-    <GlobalKeyEventHandler>
+    <>
       <ModalCover onHidden={onHidden}>
         <Box2 alignSelf="center" direction="vertical">content</Box2>
       </ModalCover>
-    </GlobalKeyEventHandler>
+    </>
   )
   const dialog = container.querySelector('dialog')
   return {
@@ -31,6 +31,8 @@ const renderCover = (onHidden?: () => void) => {
     dialog,
   }
 }
+
+const stopEvent = (e: React.KeyboardEvent) => e.stopPropagation()
 
 const pressEscape = () => {
   fireEvent.keyDown(document.body, {key: 'Escape'})
@@ -87,14 +89,28 @@ describe('ModalCover', () => {
     expect(onHidden).toHaveBeenCalledTimes(1)
   })
 
-  // an input that handles Escape stops it, and Chromium then fires cancel on the dialog
-  test('an escape an input already handled does not dismiss', () => {
-    const onHidden = jest.fn()
-    const {dialog} = renderCover(onHidden)
-    const cancel = new Event('cancel', {cancelable: true})
-    dialog?.dispatchEvent(cancel)
-    expect(cancel.defaultPrevented).toBe(true)
-    expect(onHidden).not.toHaveBeenCalled()
+  // e.g. the channel picker's filter clears itself on Escape and stops it
+  describe('an escape an input already handled', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    test('does not dismiss', () => {
+      const onHidden = jest.fn()
+      render(
+        <ModalCover onHidden={onHidden}>
+          <input aria-label="filter" onKeyDown={stopEvent} />
+        </ModalCover>
+      )
+      fireEvent.keyDown(screen.getByLabelText('filter'), {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(onHidden).not.toHaveBeenCalled()
+    })
   })
 
   test('other keys do not dismiss', () => {

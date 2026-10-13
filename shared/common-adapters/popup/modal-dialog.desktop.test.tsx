@@ -3,7 +3,7 @@
 
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {EscapeHandler, GlobalKeyEventHandler, KeyEventHandler} from '../key-event-handler.desktop'
+import {EscapeHandler, KeyEventHandler} from '../key-event-handler.desktop'
 import {AboveModalDialogs} from './above-modal-dialogs.desktop'
 import {ModalDialog, useTopModalDialog} from './modal-dialog.desktop'
 
@@ -78,10 +78,10 @@ describe('ModalDialog', () => {
     const onEscape = jest.fn()
     const Outside = () => <EscapeHandler onESC={outside}>outside</EscapeHandler>
     const {rerender} = render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>content</ModalDialog>
         <Outside />
-      </GlobalKeyEventHandler>
+      </>
     )
     const ev = pressEscape()
     expect(onEscape).toHaveBeenCalledTimes(1)
@@ -90,9 +90,9 @@ describe('ModalDialog', () => {
     expect(ev.defaultPrevented).toBe(true)
 
     rerender(
-      <GlobalKeyEventHandler>
+      <>
         <Outside />
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(outside).toHaveBeenCalledTimes(1)
@@ -103,15 +103,15 @@ describe('ModalDialog', () => {
     const outside = jest.fn()
     const onEscape = jest.fn()
     const {rerender} = render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>content</ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     rerender(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>content</ModalDialog>
         <EscapeHandler onESC={outside}>outside</EscapeHandler>
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(onEscape).toHaveBeenCalledTimes(1)
@@ -122,20 +122,20 @@ describe('ModalDialog', () => {
     const onEscape = jest.fn()
     const inside = jest.fn()
     const {rerender} = render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>
           <EscapeHandler onESC={inside}>popup</EscapeHandler>
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(inside).toHaveBeenCalledTimes(1)
     expect(onEscape).not.toHaveBeenCalled()
 
     rerender(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>no popup</ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(onEscape).toHaveBeenCalledTimes(1)
@@ -146,11 +146,11 @@ describe('ModalDialog', () => {
     const onEscape = jest.fn()
     const onKeyDown = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>
           <KeyEventHandler onKeyDown={onKeyDown}>content</KeyEventHandler>
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     expect(pressEscape().defaultPrevented).toBe(true)
     expect(onKeyDown).toHaveBeenCalledTimes(1)
@@ -160,11 +160,11 @@ describe('ModalDialog', () => {
   test('a handler inside the dialog takes escape by preventing its default', () => {
     const onEscape = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>
           <KeyEventHandler onKeyDown={ev => ev.preventDefault()}>content</KeyEventHandler>
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(onEscape).not.toHaveBeenCalled()
@@ -173,11 +173,11 @@ describe('ModalDialog', () => {
   test('a dialog inside another without onEscape keeps escape from the outer one', () => {
     const outer = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={outer}>
           <ModalDialog>inner</ModalDialog>
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     pressEscape()
     expect(outer).not.toHaveBeenCalled()
@@ -186,39 +186,108 @@ describe('ModalDialog', () => {
   test('without onEscape, escape is still kept from the handlers outside', () => {
     const outside = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <EscapeHandler onESC={outside}>outside</EscapeHandler>
         <ModalDialog>content</ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     expect(pressEscape().defaultPrevented).toBe(true)
     expect(outside).not.toHaveBeenCalled()
   })
 
-  test('a cancel is prevented and routed through the handlers', () => {
+  test('the browser cancel is prevented, so only the key handling closes the dialog', () => {
     const onEscape = jest.fn()
-    const inside = jest.fn()
-    const {rerender} = render(
-      <GlobalKeyEventHandler>
-        <ModalDialog onEscape={onEscape}>
-          <EscapeHandler onESC={inside}>popup</EscapeHandler>
-        </ModalDialog>
-      </GlobalKeyEventHandler>
-    )
+    render(<ModalDialog onEscape={onEscape}>content</ModalDialog>)
     const [dialog] = dialogs()
     const cancel = new Event('cancel', {cancelable: true})
     dialog?.dispatchEvent(cancel)
     expect(cancel.defaultPrevented).toBe(true)
-    expect(inside).toHaveBeenCalledTimes(1)
     expect(onEscape).not.toHaveBeenCalled()
+  })
 
-    rerender(
-      <GlobalKeyEventHandler>
-        <ModalDialog onEscape={onEscape}>no popup</ModalDialog>
-      </GlobalKeyEventHandler>
-    )
-    dialog?.dispatchEvent(new Event('cancel', {cancelable: true}))
-    expect(onEscape).toHaveBeenCalledTimes(1)
+  describe('an Escape a field stopped', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+    const stop = (e: React.KeyboardEvent) => e.stopPropagation()
+
+    test('reaches the dialog once the event is done, through the handlers inside it', () => {
+      const onEscape = jest.fn()
+      const inside = jest.fn()
+      const {rerender} = render(
+        <ModalDialog onEscape={onEscape}>
+          <EscapeHandler onESC={inside}>
+            <input aria-label="field" onKeyDown={stop} />
+          </EscapeHandler>
+        </ModalDialog>
+      )
+      fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+      expect(inside).not.toHaveBeenCalled()
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(inside).toHaveBeenCalledTimes(1)
+      expect(onEscape).not.toHaveBeenCalled()
+
+      rerender(
+        <ModalDialog onEscape={onEscape}>
+          <input aria-label="field" onKeyDown={stop} />
+        </ModalDialog>
+      )
+      fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(onEscape).toHaveBeenCalledTimes(1)
+    })
+
+    test('is left to the field when the dialog says so', () => {
+      const onEscape = jest.fn()
+      render(
+        <ModalDialog onEscape={onEscape} stoppedEscapeReachesDialog={false}>
+          <input aria-label="field" onKeyDown={stop} />
+        </ModalDialog>
+      )
+      fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(onEscape).not.toHaveBeenCalled()
+    })
+
+    test('is dropped when another dialog took the keys meanwhile', () => {
+      const first = jest.fn()
+      const second = jest.fn()
+      const Stack = (p: {second: boolean}) => (
+        <>
+          <ModalDialog onEscape={first}>
+            <input aria-label="field" onKeyDown={stop} />
+          </ModalDialog>
+          {p.second ? <ModalDialog onEscape={second}>second</ModalDialog> : null}
+        </>
+      )
+      const {rerender} = render(<Stack second={false} />)
+      fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+      rerender(<Stack second={true} />)
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(first).not.toHaveBeenCalled()
+      expect(second).not.toHaveBeenCalled()
+    })
+
+    test('an Escape nothing stopped is handled once', () => {
+      const onEscape = jest.fn()
+      render(<ModalDialog onEscape={onEscape}>content</ModalDialog>)
+      pressEscape()
+      act(() => {
+        jest.runAllTimers()
+      })
+      expect(onEscape).toHaveBeenCalledTimes(1)
+    })
   })
 
   test('a dialog closed by the browser anyway is shown again', () => {
@@ -235,12 +304,12 @@ describe('ModalDialog', () => {
     const first = jest.fn()
     const second = jest.fn()
     const Stack = (p: {firstOpen: boolean; showSecond: boolean}) => (
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog open={p.firstOpen} onEscape={first}>
           first
         </ModalDialog>
         {p.showSecond ? <ModalDialog onEscape={second}>second</ModalDialog> : null}
-      </GlobalKeyEventHandler>
+      </>
     )
     const {rerender} = render(<Stack firstOpen={true} showSecond={true} />)
     pressEscape()
@@ -259,12 +328,12 @@ describe('ModalDialog', () => {
     const onEscape = jest.fn()
     const outside = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <EscapeHandler onESC={outside}>outside</EscapeHandler>
         <ModalDialog open={false} onEscape={onEscape}>
           content
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     // it was never open, so the content waits for it
     expect(screen.queryByText('content')).toBeNull()
@@ -321,11 +390,11 @@ describe('ModalDialog', () => {
   test('escape from inside the dialog bubbles to the handlers', () => {
     const onEscape = jest.fn()
     render(
-      <GlobalKeyEventHandler>
+      <>
         <ModalDialog onEscape={onEscape}>
           <input aria-label="field" />
         </ModalDialog>
-      </GlobalKeyEventHandler>
+      </>
     )
     fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
     expect(onEscape).toHaveBeenCalledTimes(1)

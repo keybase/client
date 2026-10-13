@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {KeyEventLayer, useDispatchKey} from '../key-event-handler.desktop'
+import {OverlayEntryContext} from '../overlay/context'
+import {useOverlayEntry} from '../overlay/entry.desktop'
 
 type Props = {
   children: React.ReactNode
@@ -8,7 +9,7 @@ type Props = {
   // Escape when nothing inside the dialog handles it
   onEscape?: () => void
   // false: an Escape an input already handled and stopped does nothing more. By default it still
-  // reaches the dialog, as the browser's cancel
+  // reaches the dialog
   stoppedEscapeReachesDialog?: boolean
 }
 
@@ -38,22 +39,29 @@ const focusBeforeCovered = new WeakMap<HTMLDialogElement, HTMLElement>()
 
 // The topmost open modal dialog: content outside every dialog that has to stay above them and
 // interactive renders into it.
-export const getTopModalDialog = () => openDialogs.at(-1) ?? null
+const getTopModalDialog = () => openDialogs.at(-1) ?? null
 export const useTopModalDialog = () => React.useSyncExternalStore(subscribeOpenDialogs, getTopModalDialog)
 
 // A full-window <dialog> shown with showModal(). It and its ::backdrop draw nothing; the content
-// draws its own cover. Escape goes through the key event handlers, so a popup open inside the dialog
-// closes before the dialog does.
+// draws its own cover. It is a modal entry in the overlay stack, which routes keys to it, so a popup
+// open inside the dialog takes Escape before the dialog does.
 export function ModalDialog(props: Props) {
   const {children, onEscape, open = true, stoppedEscapeReachesDialog = true} = props
   const parentOpen = React.use(ParentOpenContext)
-  const dispatchKey = useDispatchKey()
   const [dialog, setDialog] = React.useState<HTMLDialogElement | null>(null)
   const [isOpen, setIsOpen] = React.useState(false)
   // the content first mounts in an open dialog, so focusing on mount works
   const [hasOpened, setHasOpened] = React.useState(false)
   const openedBeforeRef = React.useRef(false)
   const shouldOpen = parentOpen && open
+  const entry = useOverlayEntry({
+    acceptsKeys: true,
+    active: isOpen,
+    blocking: true,
+    kind: 'modal',
+    onEscape,
+    stoppedEscapeCloses: stoppedEscapeReachesDialog,
+  })
 
   // A ref callback rather than an effect, so it runs again whenever shouldOpen changes. It runs after
   // the effects of what is inside, which is why the content waits for the first showModal.
@@ -65,12 +73,10 @@ export function ModalDialog(props: Props) {
           setDialog(null)
         }
       }
-      // an Escape no handler took, e.g. one an input stopped, arrives as the dialog's cancel
+      // the overlay stack handles Escape, including one an input stopped, so the browser must not
+      // close the dialog for it
       const onCancel = (e: Event) => {
         e.preventDefault()
-        if (stoppedEscapeReachesDialog) {
-          dispatchKey('keydown', new KeyboardEvent('keydown', {cancelable: true, key: 'Escape'}))
-        }
       }
       // Chromium lets a page cancel only so many close requests without user activation in between,
       // after which the dialog closes anyway
@@ -108,7 +114,7 @@ export function ModalDialog(props: Props) {
         setDialog(null)
       }
     },
-    [dispatchKey, shouldOpen, stoppedEscapeReachesDialog]
+    [shouldOpen]
   )
 
   return (
@@ -116,9 +122,7 @@ export function ModalDialog(props: Props) {
       {hasOpened ? (
         <ParentOpenContext value={isOpen}>
           <PopupHostContext value={dialog}>
-            <KeyEventLayer active={isOpen} onEscape={onEscape}>
-              {children}
-            </KeyEventLayer>
+            <OverlayEntryContext value={entry}>{children}</OverlayEntryContext>
           </PopupHostContext>
         </ParentOpenContext>
       ) : null}

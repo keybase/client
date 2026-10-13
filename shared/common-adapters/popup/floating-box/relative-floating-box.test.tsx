@@ -5,7 +5,7 @@ import type * as React from 'react'
 import {cleanup, fireEvent, render} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
-import {EscapeHandler, GlobalKeyEventHandler} from '../../key-event-handler.desktop'
+import {EscapeHandler} from '../../key-event-handler.desktop'
 import {ModalDialog} from '../modal-dialog.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
@@ -184,9 +184,9 @@ describe('RelativeFloatingBox', () => {
     const under = jest.fn()
     const onHidden = jest.fn()
     const Screen = (p: {popup?: React.ReactNode}) => (
-      <GlobalKeyEventHandler>
+      <>
         <EscapeHandler onESC={under}>{p.popup}</EscapeHandler>
-      </GlobalKeyEventHandler>
+      </>
     )
     const {rerender} = render(<Screen />)
     // mounted after, so on top of the stack
