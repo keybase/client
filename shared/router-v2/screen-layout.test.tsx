@@ -4,16 +4,21 @@
 import {cleanup, render} from '@testing-library/react'
 import {desktopMakeLayout, nativeMakeLayout} from './screen-layout'
 
-// jsdom has no showModal; this file is also typechecked without the DOM lib
-type Dialog = {open: boolean; showModal: () => void; close: () => void}
-beforeAll(() => {
-  const dialog = (globalThis as unknown as {HTMLDialogElement: {prototype: Dialog}}).HTMLDialogElement.prototype
-  dialog.showModal = function (this: Dialog) {
-    this.open = true
-  }
-  dialog.close = function (this: Dialog) {
-    this.open = false
-  }
+// Desktop modals are portaled into #modal-root. This file is also typechecked without the DOM lib.
+type Doc = {
+  body: {append: (n: unknown) => void}
+  createElement: (tag: string) => {id: string; remove: () => void}
+}
+const doc = (globalThis as unknown as {document: Doc}).document
+let modalRoot: ReturnType<Doc['createElement']> | undefined
+beforeEach(() => {
+  modalRoot = doc.createElement('div')
+  modalRoot.id = 'modal-root'
+  doc.body.append(modalRoot)
+})
+afterEach(() => {
+  cleanup()
+  modalRoot?.remove()
 })
 
 // react-navigation calls a screen's `layout` as a plain function from inside the
@@ -44,7 +49,7 @@ describe('desktop modal layout', () => {
   // anything the screen set through navigation.setOptions. The modal header must show those.
   test('draws the header from the live options, not a fresh getOptions', () => {
     const layout = desktopMakeLayout(true, false, false, () => ({title: 'From getOptions'}))
-    const navigation = {getState: () => ({routes: [{key: 'k', name: 'chatNewChat'}]}), pop: () => {}}
+    const navigation = {addListener: () => () => {}, getState: () => ({routes: [{key: 'k', name: 'chatNewChat'}]}), pop: () => {}}
     const {queryByText} = render(
       <>
         {layout({

@@ -1,195 +1,714 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
-import {cleanup, fireEvent, render} from '@testing-library/react'
+import * as React from 'react'
+import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
-import {EscapeHandler, GlobalKeyEventHandler} from '../../key-event-handler.desktop'
-import {ModalDialog} from '../modal-dialog.desktop'
+import {OverlayEntry} from '../../overlay/entry.desktop'
+import {GlobalOverlay} from '../../overlay/global-overlay.desktop'
+import ScrollView from '../../scroll-view'
+import {ModalCover} from '../modal-cover.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
+import {EscapeHandler, overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-// jsdom has neither the Popover API, showModal nor ResizeObserver
-let shown: Array<HTMLElement> = []
+setupOverlayDom()
+
+// jsdom has no ResizeObserver: keep the observers, so a test can report a size change
+let observers: Array<{cb: (entries: Array<unknown>) => void; targets: Set<Element>}> = []
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-    shown.push(this)
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-    shown = shown.filter(d => d !== this)
-  }
-  HTMLElement.prototype.showPopover = function (this: HTMLElement) {
-    shown.push(this)
-  }
-  HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-    shown = shown.filter(p => p !== this)
-  }
   globalThis.ResizeObserver = class {
-    observe() {}
-    disconnect() {}
-    unobserve() {}
-  }
+    private o: {cb: (entries: Array<unknown>) => void; targets: Set<Element>}
+    constructor(cb: (entries: Array<unknown>) => void) {
+      this.o = {cb, targets: new Set()}
+      observers.push(this.o)
+    }
+    observe(target: Element) {
+      this.o.targets.add(target)
+    }
+    unobserve(target: Element) {
+      this.o.targets.delete(target)
+    }
+    disconnect() {
+      this.o.targets.clear()
+    }
+  } as unknown as typeof ResizeObserver
 })
+// with a size, as the browser reports a box it measured
+const resized = (target: Element, size?: {width: number; height: number}) => {
+  const entries = size ? [{borderBoxSize: [{blockSize: size.height, inlineSize: size.width}], target}] : []
+  act(() => {
+    observers.filter(o => o.targets.has(target)).forEach(o => o.cb(entries))
+  })
+}
 
+const anchors: Array<HTMLElement> = []
 const anchorElement = () => {
   const element = document.createElement('div')
   document.body.appendChild(element)
+  anchors.push(element)
   return element
 }
 
 const refTo = (element: HTMLElement | null): React.RefObject<MeasureRef | null> => ({current: element})
+const noop = () => {}
+const popups = overlayEntries
+const anchorNameOf = (element: HTMLElement) => element.style.getPropertyValue('anchor-name')
 
-const popups = () => [...document.querySelectorAll<HTMLElement>('#modal-root > [popover]')]
+// a click: a press and release that do not move
+const click = (target: Element, x = 10, y = 10) => {
+  fireEvent.mouseDown(target, {clientX: x, clientY: y})
+  return fireEvent.mouseUp(target, {clientX: x, clientY: y})
+}
 
 describe('RelativeFloatingBox', () => {
   beforeEach(() => {
-    shown = []
-    const modalRoot = document.createElement('div')
-    modalRoot.id = 'modal-root'
-    document.body.appendChild(modalRoot)
+    observers = []
   })
   afterEach(() => {
-    cleanup()
-    document.body.innerHTML = ''
+    anchors.splice(0).forEach(a => a.remove())
   })
 
-  test('shows a manual popover anchored to the attachTo element', () => {
+  test('draws a popup in the modal root anchored to the attachTo element', () => {
     const anchor = anchorElement()
     render(
-      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
         <Box2 direction="vertical">content</Box2>
       </RelativeFloatingBox>
     )
     const [popup] = popups()
-    expect(popup?.getAttribute('popover')).toBe('manual')
-    expect(shown).toEqual([popup])
+    expect(popup?.parentElement?.id).toBe('modal-root')
+    expect(paintOrder()).toEqual([popup])
     expect(popup?.hasAttribute('data-unanchored')).toBe(false)
-    expect(anchor.style.getPropertyValue('anchor-name')).toMatch(/^--kb-anchor-\w+$/)
+    expect(anchorNameOf(anchor)).toMatch(/^--kb-anchor-\w+$/)
   })
 
   test('removes its anchor name on unmount, leaving any other popup anchored there', () => {
     const anchor = anchorElement()
     anchor.style.setProperty('anchor-name', '--other')
     const {unmount} = render(
-      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(anchor)} position="bottom left">
         content
       </RelativeFloatingBox>
     )
-    expect(anchor.style.getPropertyValue('anchor-name')).toMatch(/^--other, --kb-anchor-\w+$/)
+    expect(anchorNameOf(anchor)).toMatch(/^--other, --kb-anchor-\w+$/)
     unmount()
-    expect(anchor.style.getPropertyValue('anchor-name')).toBe('--other')
-    expect(shown).toEqual([])
+    expect(anchorNameOf(anchor)).toBe('--other')
+    expect(paintOrder()).toEqual([])
   })
 
   test('moves its anchor name when attachTo points somewhere else', () => {
     const first = anchorElement()
     const second = anchorElement()
+    const {rerender} = render(
+      <RelativeFloatingBox attachTo={refTo(first)} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    const name = anchorNameOf(first)
+    rerender(
+      <RelativeFloatingBox attachTo={refTo(second)} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(anchorNameOf(first)).toBe('')
+    expect(anchorNameOf(second)).toBe(name)
+    // and later checks follow the new one
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    resized(popup)
+    expect(anchorNameOf(first)).toBe('')
+    expect(anchorNameOf(second)).toBe(name)
+  })
+
+  test('moves its anchor name when the attachTo ref holds another element', () => {
+    const first = anchorElement()
+    const second = anchorElement()
     const attachTo = refTo(first)
     const {rerender} = render(
-      <RelativeFloatingBox attachTo={attachTo} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
         content
       </RelativeFloatingBox>
     )
-    const name = first.style.getPropertyValue('anchor-name')
+    const name = anchorNameOf(first)
     attachTo.current = second
     rerender(
-      <RelativeFloatingBox attachTo={attachTo} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
         content
       </RelativeFloatingBox>
     )
-    expect(first.style.getPropertyValue('anchor-name')).toBe('')
-    expect(second.style.getPropertyValue('anchor-name')).toBe(name)
+    expect(anchorNameOf(first)).toBe('')
+    expect(anchorNameOf(second)).toBe(name)
+  })
+
+  test('anchors once the attachTo ref gets its element after the popup opened', () => {
+    const attachTo = refTo(null)
+    const {rerender} = render(
+      <RelativeFloatingBox attachTo={attachTo} onHidden={noop} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    expect(popup?.hasAttribute('data-unanchored')).toBe(true)
+    const anchor = anchorElement()
+    attachTo.current = anchor
+    rerender(
+      <RelativeFloatingBox attachTo={attachTo} onHidden={noop} position="bottom left">
+        content
+      </RelativeFloatingBox>
+    )
+    expect(anchorNameOf(anchor)).toMatch(/^--kb-anchor-\w+$/)
+    expect(popup?.hasAttribute('data-unanchored')).toBe(false)
+  })
+
+  // a popup sizes to its content, so long text with no width set would grow to the window's width
+  test('is no wider than the window less the gap kept at its edges, so long text wraps', () => {
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} offset={4} position="bottom left">
+        a long line of text
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    expect(popup?.style.maxWidth).toBe('calc(100% - 4 * var(--kb-popup-offset, 0px))')
+    expect(popup?.style.getPropertyValue('--kb-popup-offset')).toBe('4px')
   })
 
   test('stays hidden with nothing to anchor to', () => {
     render(
-      <RelativeFloatingBox attachTo={refTo(null)} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(null)} position="bottom left">
         content
       </RelativeFloatingBox>
     )
     expect(popups()[0]?.hasAttribute('data-unanchored')).toBe(true)
   })
 
-  test('a popup inside another is shown after it, so it stacks above it', () => {
+  // e.g. the chat suggestion list, rendered before the input it anchors to
+  test('a popup rendered before its anchor ends up anchored to it', () => {
+    const App = () => {
+      const anchor = React.useRef<HTMLDivElement>(null)
+      return (
+        <>
+          <RelativeFloatingBox attachTo={anchor} position="top left">
+            suggestions
+          </RelativeFloatingBox>
+          <div ref={anchor}>input</div>
+        </>
+      )
+    }
+    render(<App />)
+    expect(popups()[0]?.hasAttribute('data-unanchored')).toBe(false)
+    expect(anchorNameOf(screen.getByText('input'))).toMatch(/^--kb-anchor-\w+$/)
+  })
+
+  // e.g. a list row re-rendering its own anchor element while the popup stays as it is
+  describe('when its anchor is replaced or removed without it re-rendering', () => {
+    test('follows the new anchor', () => {
+      const first = anchorElement()
+      const attachTo = refTo(first)
+      render(
+        <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+          content
+        </RelativeFloatingBox>
+      )
+      const name = anchorNameOf(first)
+      const second = anchorElement()
+      first.remove()
+      attachTo.current = second
+      resized(first)
+      expect(anchorNameOf(second)).toBe(name)
+      expect(popups()[0]?.hasAttribute('data-unanchored')).toBe(false)
+    })
+
+    test('hides while there is none, and shows again on its anchor once there is', () => {
+      const first = anchorElement()
+      const attachTo = refTo(first)
+      render(
+        <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+          content
+        </RelativeFloatingBox>
+      )
+      first.remove()
+      resized(first)
+      const [popup] = popups()
+      expect(popup?.hasAttribute('data-unanchored')).toBe(true)
+      // still open
+      expect(paintOrder()).toEqual([popup])
+
+      // re-checked whenever the stack changes, e.g. a tooltip opening
+      const second = anchorElement()
+      attachTo.current = second
+      render(
+        <RelativeFloatingBox attachTo={refTo(anchorElement())} position="top left">
+          tooltip
+        </RelativeFloatingBox>
+      )
+      expect(popup?.hasAttribute('data-unanchored')).toBe(false)
+      expect(anchorNameOf(second)).toMatch(/^--kb-anchor-\w+$/)
+    })
+  })
+
+  test('while it has no anchor, keys and clicks go to what is under it', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const first = anchorElement()
+    const attachTo = refTo(first)
+    render(
+      <EscapeHandler onESC={under}>
+        <RelativeFloatingBox attachTo={attachTo} onHidden={onHidden} position="bottom left">
+          menu
+        </RelativeFloatingBox>
+      </EscapeHandler>
+    )
+    first.remove()
+    resized(first)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    click(document.body)
+    expect(under).toHaveBeenCalledTimes(1)
+    expect(onHidden).not.toHaveBeenCalled()
+
+    // anchored again once the stack next changes, e.g. a tooltip opening
+    attachTo.current = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} position="top left">
+        tooltip
+      </RelativeFloatingBox>
+    )
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).toHaveBeenCalledTimes(1)
+  })
+
+  // Placed before its size is known, a menu near the window's corner would land on its pushed
+  // fallback, over its own anchor, and be held there once the row's hover toolbar hid.
+  test('is not drawn, and holds no place, until what is inside is there to measure', async () => {
+    const Menu = () => <>menu</>
+    let load: () => void = () => {}
+    const loaded = new Promise<{default: React.ComponentType}>(resolve => {
+      load = () => resolve({default: Menu})
+    })
+    const Lazy = React.lazy(async () => loaded)
     const anchor = anchorElement()
     render(
-      <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
-        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="top left">
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="top right">
+        <Lazy />
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    // where the browser places it: off without its size, right with it
+    popup.getBoundingClientRect = () =>
+      (popup.style.getPropertyValue('--kb-popup-width')
+        ? {height: 382, left: 920, top: 442, width: 256}
+        : {height: 382, left: 952, top: 541, width: 256}) as DOMRect
+    expect(popup.hasAttribute('data-unsized')).toBe(true)
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(false)
+    anchor.style.display = ''
+    resized(anchor)
+
+    await act(async () => {
+      load()
+      await loaded
+    })
+    expect(popup.hasAttribute('data-unsized')).toBe(false)
+    expect(popup.style.getPropertyValue('--kb-popup-width')).toBe('256px')
+    expect(popup.style.getPropertyValue('--kb-popup-height')).toBe('382px')
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.style.getPropertyValue('--kb-popup-held-left')).toBe('920px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('442px')
+  })
+
+  // The composer's emoji picker focuses its search field as it mounts, and once more 20ms later
+  // (SearchFilter). The size observer may not have reported by either time.
+  const SelfFocusingSearch = () => {
+    const ref = React.useRef<HTMLInputElement>(null)
+    React.useEffect(() => {
+      ref.current?.focus()
+      const id = setTimeout(() => ref.current?.focus(), 20)
+      return () => clearTimeout(id)
+    }, [])
+    return <input aria-label="search" ref={ref} />
+  }
+  const PickerApp = (p: {open: 'none' | 'auto' | 'effect'}) =>
+    p.open === 'none' ? null : (
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="top right">
+        {p.open === 'auto' ? <input aria-label="search" autoFocus={true} /> : <SelfFocusingSearch />}
+      </RelativeFloatingBox>
+    )
+
+  describe('what is inside', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    test('can take focus as it mounts', () => {
+      const {rerender} = render(<PickerApp open="auto" />)
+      expect(document.activeElement).toBe(screen.getByLabelText('search'))
+      rerender(<PickerApp open="none" />)
+      rerender(<PickerApp open="effect" />)
+      act(() => {
+        jest.advanceTimersByTime(20)
+      })
+      expect(document.activeElement).toBe(screen.getByLabelText('search'))
+    })
+  })
+
+  test('while things scroll, each popup checks its anchor once a frame', async () => {
+    const anchors = [anchorElement(), anchorElement()]
+    render(
+      <>
+        {anchors.map((anchor, i) => (
+          <RelativeFloatingBox key={i} attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
+            menu
+          </RelativeFloatingBox>
+        ))}
+      </>
+    )
+    const checks = anchors.map(anchor => jest.spyOn(anchor, 'checkVisibility'))
+    for (let i = 0; i < 3; ++i) {
+      document.body.dispatchEvent(new Event('scroll'))
+    }
+    expect(checks.map(c => c.mock.calls.length)).toEqual([0, 0])
+    await act(async () => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
+    expect(checks.map(c => c.mock.calls.length)).toEqual([1, 1])
+  })
+
+  // the hover toolbar hides once the pointer leaves the row, which may be after the list scrolled
+  test('a popup whose anchor hides after it scrolled stays where it was last drawn', async () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
+        menu
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    popup.getBoundingClientRect = () => ({left: 40, top: 60, width: 120}) as DOMRect
+    resized(popup)
+    // the browser moves it with its anchor
+    popup.getBoundingClientRect = () => ({left: 40, top: 10, width: 120}) as DOMRect
+    document.body.dispatchEvent(new Event('scroll'))
+    await act(async () => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('10px')
+  })
+
+  // a message menu opened from the hover toolbar, which hides once the pointer leaves the row
+  test('while its anchor is there but not rendered, it stays where it was, visible and usable', () => {
+    const under = jest.fn()
+    const onHidden = jest.fn()
+    const anchor = anchorElement()
+    render(
+      <EscapeHandler onESC={under}>
+        <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={onHidden} position="bottom left">
+          menu
+        </RelativeFloatingBox>
+      </EscapeHandler>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    // where the browser placed it on its anchor
+    popup.getBoundingClientRect = () => ({left: 40, top: 60, width: 120}) as DOMRect
+    resized(popup, {height: 80, width: 120})
+
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.hasAttribute('data-unanchored')).toBe(false)
+    expect(popup.style.getPropertyValue('--kb-popup-held-left')).toBe('40px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('60px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-width')).toBe('120px')
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(onHidden).toHaveBeenCalledTimes(1)
+    expect(under).not.toHaveBeenCalled()
+
+    // back on its anchor once it is rendered again
+    anchor.style.display = ''
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(false)
+    expect(popup.hasAttribute('data-unanchored')).toBe(false)
+  })
+
+  test('a popup inside another goes after it, so it stacks above it', () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} position="bottom left">
+        <RelativeFloatingBox attachTo={refTo(anchor)} position="top left">
           inner
         </RelativeFloatingBox>
       </RelativeFloatingBox>
     )
-    // the inner popup is portaled out of the outer one, so the outer one holds no text of its own
-    const outer = popups().find(p => p.textContent === '')
-    const inner = popups().find(p => p.textContent === 'inner')
-    expect(outer).toBeDefined()
-    expect(shown).toEqual([outer, inner])
+    const [outer, inner] = popups()
+    expect(inner?.textContent).toBe('inner')
+    expect(paintOrder()).toEqual([outer, inner])
+  })
+
+  test('a popup opened inside a modal goes after it, so it stacks above it and can anchor in it', () => {
+    const anchor = anchorElement()
+    render(
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
+        <RelativeFloatingBox attachTo={refTo(anchor)} position="bottom left">
+          content
+        </RelativeFloatingBox>
+      </OverlayEntry>
+    )
+    const [modal, popup] = popups()
+    expect(popup?.textContent).toBe('content')
+    expect(paintOrder()).toEqual([modal, popup])
+  })
+
+  // a modal mounted in the same commit as the popup it is in
+  test('a modal opened inside a popup goes after it and covers it', () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
+        <ModalCover>dialog</ModalCover>
+      </RelativeFloatingBox>
+    )
+    const [popup, modal] = popups()
+    expect(modal?.textContent).toBe('dialog')
+    expect(paintOrder()).toEqual([popup, modal])
+    expect(popup?.hasAttribute('data-hidden')).toBe(true)
+    expect(popup?.hasAttribute('inert')).toBe(true)
+  })
+
+  // a menu or tooltip in a modal another modal opened over
+  test('a popup in a covered modal is hidden until the modal is uncovered', () => {
+    const Stack = (p: {second: boolean}) => (
+      <>
+        <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} position="bottom left">
+            tooltip
+          </RelativeFloatingBox>
+        </OverlayEntry>
+        {p.second ? (
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
+            second
+          </OverlayEntry>
+        ) : null}
+      </>
+    )
+    const {rerender} = render(<Stack second={false} />)
+    const tooltip = popups()[1]
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(false)
+    rerender(<Stack second={true} />)
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(true)
+    rerender(<Stack second={false} />)
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(false)
   })
 
   describe('closing on outside clicks', () => {
-    const setup = () => {
-      const onClosePopup = jest.fn()
+    const setup = (propagate?: boolean) => {
+      const onHidden = jest.fn()
       const anchor = anchorElement()
       render(
-        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={onClosePopup} position="bottom left">
+        <RelativeFloatingBox
+          attachTo={refTo(anchor)}
+          onHidden={onHidden}
+          position="bottom left"
+          propagateOutsideClicks={propagate}
+        >
           <Box2 direction="vertical">content</Box2>
         </RelativeFloatingBox>
       )
-      return {anchor, content: popups()[0]?.firstElementChild as HTMLElement, onClosePopup}
+      return {anchor, content: screen.getByText('content'), onHidden}
     }
 
-    test('a click outside closes it', () => {
-      const {anchor, onClosePopup} = setup()
+    test('a click outside closes it, and stops there', () => {
+      const {anchor, onHidden} = setup()
+      const reached = jest.fn()
+      anchor.addEventListener('mouseup', reached)
       fireEvent.mouseDown(anchor, {clientX: 10, clientY: 10})
       fireEvent.mouseUp(anchor, {clientX: 12, clientY: 12})
-      expect(onClosePopup).toHaveBeenCalledTimes(1)
+      expect(onHidden).toHaveBeenCalledTimes(1)
+      expect(reached).not.toHaveBeenCalled()
+    })
+
+    test('with propagateOutsideClicks the click goes on to what was clicked', () => {
+      const {anchor, onHidden} = setup(true)
+      const reached = jest.fn()
+      anchor.addEventListener('mouseup', reached)
+      click(anchor)
+      expect(onHidden).toHaveBeenCalledTimes(1)
+      expect(reached).toHaveBeenCalledTimes(1)
     })
 
     test('a drag that ends outside, like selecting text in it, does not', () => {
-      const {content, onClosePopup} = setup()
+      const {content, onHidden} = setup()
       fireEvent.mouseDown(content, {clientX: 10, clientY: 10})
       fireEvent.mouseUp(document.body, {clientX: 60, clientY: 10})
-      expect(onClosePopup).not.toHaveBeenCalled()
+      expect(onHidden).not.toHaveBeenCalled()
+    })
+
+    test('a drag that starts outside does not', () => {
+      const {anchor, onHidden} = setup()
+      fireEvent.mouseDown(anchor, {clientX: 10, clientY: 10})
+      fireEvent.mouseUp(anchor, {clientX: 60, clientY: 10})
+      expect(onHidden).not.toHaveBeenCalled()
     })
 
     test('a click inside does not', () => {
-      const {content, onClosePopup} = setup()
-      fireEvent.mouseDown(content, {clientX: 10, clientY: 10})
-      fireEvent.mouseUp(content, {clientX: 10, clientY: 10})
-      expect(onClosePopup).not.toHaveBeenCalled()
+      const {content, onHidden} = setup()
+      click(content)
+      expect(onHidden).not.toHaveBeenCalled()
     })
   })
 
-  // everything outside a modal dialog is inert, so a popup opened inside one has to be inside it
-  test('a popup opened inside a modal dialog portals into it and is shown after it', () => {
+  // a popup opened from a menu, like a hover card, is a DOM sibling of the menu in #modal-root
+  test('a click in a popup opened from a menu is inside the menu', () => {
+    const menu = jest.fn()
     const anchor = anchorElement()
     render(
-      <ModalDialog>
-        <RelativeFloatingBox attachTo={refTo(anchor)} onClosePopup={() => {}} position="bottom left">
-          content
-        </RelativeFloatingBox>
-      </ModalDialog>
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={menu} position="bottom left">
+        menu
+        <FloatingBox attachTo={refTo(anchor)}>card</FloatingBox>
+      </RelativeFloatingBox>
     )
-    const dialog = document.querySelector('dialog')
-    const popup = dialog?.querySelector(':scope > [popover]')
-    expect(popup).toBeTruthy()
-    expect(popups()).toEqual([])
-    expect(shown).toEqual([dialog, popup])
+    click(screen.getByText('card'))
+    expect(menu).not.toHaveBeenCalled()
+  })
+
+  test('one entry per click: a click outside closes only the topmost popup', () => {
+    const outer = jest.fn()
+    const inner = jest.fn()
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={outer} position="bottom left">
+        menu
+        <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={inner} position="top left">
+          submenu
+        </RelativeFloatingBox>
+      </RelativeFloatingBox>
+    )
+    click(anchor)
+    expect(inner).toHaveBeenCalledTimes(1)
+    expect(outer).not.toHaveBeenCalled()
+    // the menu itself is inside the menu, but outside the submenu
+    click(screen.getByText('menu'))
+    expect(inner).toHaveBeenCalledTimes(2)
+    expect(outer).not.toHaveBeenCalled()
+  })
+
+  describe('a tooltip opening changes nothing else', () => {
+    const tooltip = (show: boolean) =>
+      show ? (
+        <FloatingBox attachTo={refTo(anchorElement())} position="top center">
+          tooltip
+        </FloatingBox>
+      ) : null
+
+    test('in a modal while the banner is up', () => {
+      const App = (p: {tip: boolean}) => (
+        <>
+          <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
+            modal{tooltip(p.tip)}
+          </OverlayEntry>
+          <GlobalOverlay tier="globalError">
+            <input aria-label="field" />
+          </GlobalOverlay>
+        </>
+      )
+      const {rerender} = render(<App tip={false} />)
+      const field = screen.getByLabelText('field')
+      field.focus()
+      const [modal, banner] = popups()
+      const refocused = jest.fn()
+      field.addEventListener('focus', refocused)
+      rerender(<App tip={true} />)
+      const tip = popups().find(e => e.textContent === 'tooltip')
+      // in its place in the stack: with the modal, under the banner
+      expect(paintOrder()).toEqual([modal, tip, banner])
+      expect(popups()).toEqual([modal, banner, tip])
+      expect(refocused).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
+    })
+
+    test('in a popup while a later popup is open', () => {
+      const App = (p: {tip: boolean}) => (
+        <>
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            first{tooltip(p.tip)}
+          </RelativeFloatingBox>
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            <ScrollView testID="scroller">second</ScrollView>
+          </RelativeFloatingBox>
+        </>
+      )
+      const {rerender} = render(<App tip={false} />)
+      const [first, second] = popups()
+      const scroller = screen.getByTestId('scroller')
+      scroller.scrollTop = 40
+      rerender(<App tip={true} />)
+      const tip = popups().find(e => e.textContent === 'tooltip')
+      expect(paintOrder()).toEqual([first, tip, second])
+      expect(scroller.scrollTop).toBe(40)
+      expect(second?.hasAttribute('data-hidden')).toBe(false)
+      expect(second?.hasAttribute('inert')).toBe(false)
+    })
+  })
+
+  test('a tooltip neither closes on outside clicks nor keeps them from what is under it', () => {
+    const onHidden = jest.fn()
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={onHidden} position="bottom left">
+        menu
+        <FloatingBox attachTo={refTo(anchor)}>tooltip</FloatingBox>
+      </RelativeFloatingBox>
+    )
+    click(anchor)
+    expect(onHidden).toHaveBeenCalledTimes(1)
+  })
+
+  test('a click outside a popup in a modal closes the popup, not the modal', () => {
+    const onModal = jest.fn()
+    const onPopup = jest.fn()
+    const content = {current: null as HTMLDivElement | null}
+    const setContent = (el: HTMLDivElement | null) => {
+      content.current = el
+    }
+    render(
+      <OverlayEntry
+        acceptsKeys={true}
+        blocking={true}
+        kind="modal"
+        outside={{content: () => content.current, onOutside: onModal, propagate: true}}
+      >
+        <div ref={setContent}>
+          modal
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={onPopup} position="bottom left">
+            menu
+          </RelativeFloatingBox>
+        </div>
+      </OverlayEntry>
+    )
+    click(screen.getByText('modal'))
+    expect(onPopup).toHaveBeenCalledTimes(1)
+    expect(onModal).not.toHaveBeenCalled()
   })
 
   test('a popup with no onHidden leaves escape to what is under it', () => {
     const under = jest.fn()
     const onHidden = jest.fn()
-    const Screen = (p: {popup?: React.ReactNode}) => (
-      <GlobalKeyEventHandler>
-        <EscapeHandler onESC={under}>{p.popup}</EscapeHandler>
-      </GlobalKeyEventHandler>
-    )
+    const Screen = (p: {popup?: React.ReactNode}) => <EscapeHandler onESC={under}>{p.popup}</EscapeHandler>
     const {rerender} = render(<Screen />)
-    // mounted after, so on top of the stack
     rerender(<Screen popup={<FloatingBox attachTo={refTo(anchorElement())}>tooltip</FloatingBox>} />)
     fireEvent.keyDown(document.body, {key: 'Escape'})
     expect(under).toHaveBeenCalledTimes(1)
@@ -209,14 +728,77 @@ describe('RelativeFloatingBox', () => {
     expect(under).toHaveBeenCalledTimes(1)
   })
 
+  // Q4: focus would otherwise fall to the document
+  test('closing with focus inside puts focus back on what opened it', () => {
+    const App = (p: {open: boolean}) => (
+      <>
+        <button>open menu</button>
+        {p.open ? (
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            <input aria-label="filter" />
+          </RelativeFloatingBox>
+        ) : null}
+      </>
+    )
+    const {rerender} = render(<App open={false} />)
+    const opener = screen.getByText('open menu')
+    opener.focus()
+    rerender(<App open={true} />)
+    screen.getByLabelText('filter').focus()
+    rerender(<App open={false} />)
+    expect(document.activeElement).toBe(opener)
+  })
+
+  // the emoji picker's search field blurs itself on Escape, and then the picker closes
+  test('closing after a field in it let go of focus still puts focus back on what opened it', () => {
+    const App = (p: {open: boolean}) => (
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal">
+        <button>choose emoji</button>
+        {p.open ? (
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            <input aria-label="search" />
+          </RelativeFloatingBox>
+        ) : null}
+      </OverlayEntry>
+    )
+    const {rerender} = render(<App open={false} />)
+    const opener = screen.getByText('choose emoji')
+    opener.focus()
+    rerender(<App open={true} />)
+    const search = screen.getByLabelText('search')
+    search.focus()
+    search.blur()
+    expect(document.activeElement).toBe(document.body)
+    rerender(<App open={false} />)
+    expect(document.activeElement).toBe(opener)
+  })
+
+  test('opening does not move focus', () => {
+    const App = (p: {open: boolean}) => (
+      <>
+        <input aria-label="field" />
+        {p.open ? (
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            menu
+          </RelativeFloatingBox>
+        ) : null}
+      </>
+    )
+    const {rerender} = render(<App open={false} />)
+    const field = screen.getByLabelText('field')
+    field.focus()
+    rerender(<App open={true} />)
+    expect(document.activeElement).toBe(field)
+  })
+
   test('renders nothing when there is no modal root', () => {
     document.getElementById('modal-root')?.remove()
     const {container} = render(
-      <RelativeFloatingBox attachTo={refTo(anchorElement())} onClosePopup={() => {}} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} position="bottom left">
         content
       </RelativeFloatingBox>
     )
     expect(container.innerHTML).toBe('')
-    expect(shown).toEqual([])
+    expect(paintOrder()).toEqual([])
   })
 })

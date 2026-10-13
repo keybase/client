@@ -1,8 +1,8 @@
 import type * as Styles from '@/styles'
 
-// Popups are placed with CSS anchor positioning: the popup is in the top layer and the browser keeps
-// it on its anchor through scrolling and layout changes. The browser tries the base position, then
-// the @position-try options in order, and keeps the first that fits in the viewport.
+// Popups are placed with CSS anchor positioning: the popup is fixed-position in #modal-root and the
+// browser keeps it on its anchor through scrolling and layout changes. The browser tries the base
+// position, then the @position-try options in order, and keeps the first that fits in the viewport.
 //
 // Each option pins the popup's box exactly, so "fits" means the whole popup is in the viewport, and
 // that needs the popup's own size, which CSS can't read from inside the popup's insets: the
@@ -16,8 +16,15 @@ import type * as Styles from '@/styles'
 export const offsetVar = '--kb-popup-offset'
 export const widthVar = '--kb-popup-width'
 export const heightVar = '--kb-popup-height'
+// where a popup whose anchor is not rendered stays (data-held), in px from the viewport
+export const heldLeftVar = '--kb-popup-held-left'
+export const heldTopVar = '--kb-popup-held-top'
+export const heldWidthVar = '--kb-popup-held-width'
 
 const offset = `var(${offsetVar}, 0px)`
+// Text in a popup with no width of its own wraps at the window's width, less the gap the last
+// position pushed into the window keeps on each side, so it always fits.
+export const popupMaxWidth = `calc(100% - 4 * ${offset})`
 const width = `var(${widthVar}, 0px)`
 const height = `var(${heightVar}, 0px)`
 // the gap between the anchor and a popup beside it ('left center', 'right center')
@@ -225,8 +232,7 @@ export type PopupPlacement = {
   rules: string
 }
 
-// With no fallbacks given every position is tried.
-export const popupPlacement = (
+const computePlacement = (
   position: Styles.Position,
   matchDimension: boolean,
   positionFallbacks: ReadonlyArray<Styles.Position> | undefined
@@ -247,4 +253,22 @@ export const popupPlacement = (
     rules: options.map(o => `@position-try ${o.name} { ${placementCSS(o.placement)} }`).join('\n'),
     tryOptions: options.map(o => o.name).join(', '),
   }
+}
+
+// a handful of position lists are ever used, so every placement is built once
+const placements = new Map<string, PopupPlacement>()
+
+// With no fallbacks given every position is tried.
+export const popupPlacement = (
+  position: Styles.Position,
+  matchDimension: boolean,
+  positionFallbacks: ReadonlyArray<Styles.Position> | undefined
+): PopupPlacement => {
+  const key = `${position}|${matchDimension}|${positionFallbacks?.join(',') ?? '*'}`
+  let placement = placements.get(key)
+  if (!placement) {
+    placement = computePlacement(position, matchDimension, positionFallbacks)
+    placements.set(key, placement)
+  }
+  return placement
 }

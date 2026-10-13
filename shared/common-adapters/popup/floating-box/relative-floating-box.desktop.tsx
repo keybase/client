@@ -1,62 +1,33 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import ReactDOM from 'react-dom'
-import {EscapeHandler} from '../../key-event-handler.desktop'
 import type {MeasureRef} from '../../measure-ref'
-import {PopupHostContext} from '../modal-dialog.desktop'
-import {heightVar, offsetVar, popupPlacement, widthVar} from './placement.desktop'
+import {setEntryDormant} from '../../overlay/controller.desktop'
+import {EntryElement, useOverlayEntry} from '../../overlay/entry.desktop'
+import {addAnchoredPopup} from './anchored-popups.desktop'
+import {
+  heightVar,
+  heldLeftVar,
+  heldTopVar,
+  heldWidthVar,
+  offsetVar,
+  popupMaxWidth,
+  popupPlacement,
+  widthVar,
+} from './placement.desktop'
 
 type ModalPositionRelativeProps = {
   attachTo?: React.RefObject<MeasureRef | null>
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
-  onClosePopup: () => void
+  // with none it is a passive popup, like a tooltip: no Escape, and clicks outside leave it open
+  onHidden?: () => void
   propagateOutsideClicks?: boolean
   style?: Styles.StylesCrossPlatform
   children: React.ReactNode
   disableEscapeKey?: boolean // if true, ignore keys
   offset?: number // offset in pixels from edge
 }
-
-// The top layer stacks popovers in the order they were shown, so a popup opened inside another
-// must be shown after it. Effects run children first, so a popup mounted in the same commit as
-// the one it is inside waits for that one to be shown.
-type PopoverParent = {
-  whenShown: (show: () => void) => () => void
-}
-
-const makePopoverParent = () => {
-  let shown = false
-  const waiting = new Set<() => void>()
-  return {
-    setShown: (next: boolean) => {
-      shown = next
-      if (shown) {
-        waiting.forEach(show => show())
-        waiting.clear()
-      }
-    },
-    whenShown: (show: () => void) => {
-      if (shown) {
-        show()
-        return () => {}
-      }
-      waiting.add(show)
-      return () => {
-        waiting.delete(show)
-      }
-    },
-  }
-}
-
-const shownParent: PopoverParent = {
-  whenShown: show => {
-    show()
-    return () => {}
-  },
-}
-const PopoverParentContext = React.createContext<PopoverParent>(shownParent)
 
 // anchor-name takes a list, so one element can anchor several popups
 const setAnchorName = (element: HTMLElement | null | undefined, name: string, on: boolean) => {
@@ -75,103 +46,175 @@ const setAnchorName = (element: HTMLElement | null | undefined, name: string, on
   }
 }
 
+const ancestorsOf = (element: Element) => {
+  const path: Array<Element> = []
+  for (let e: Element | null = element; e; e = e.parentElement) {
+    path.push(e)
+  }
+  return path
+}
+
+const setSize = (popup: HTMLElement, width: number, height: number) => {
+  popup.style.setProperty(widthVar, `${width}px`)
+  popup.style.setProperty(heightVar, `${height}px`)
+  popup.removeAttribute('data-unsized')
+}
+
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
-  const {attachTo, children, propagateOutsideClicks, onClosePopup, style} = props
+  const {attachTo, children, propagateOutsideClicks, onHidden, style} = props
   const {position, matchDimension = false, positionFallbacks, disableEscapeKey, offset = 0} = props
   const popupRef = React.useRef<HTMLDivElement>(null)
+  const contentRef = React.useRef<HTMLDivElement>(null)
   // undefined until the first check, so a popup with nothing to anchor to starts hidden
   const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
-  const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
-  const parent = React.use(PopoverParentContext)
-  const popupHost = React.use(PopupHostContext)
-  const [popoverParent] = React.useState(makePopoverParent)
+  const anchorObserverRef = React.useRef<ResizeObserver | null>(null)
+  // the anchor and everything it was in, when it was last there
+  const anchorPathRef = React.useRef<ReadonlyArray<Element>>([])
+  // where the popup last was while its anchor was rendered
+  const lastPlaceRef = React.useRef<{left: number; top: number; width: number} | undefined>(undefined)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
+  // what attachTo held when the anchor was last checked
+  const checkedTargetRef = React.useRef<MeasureRef | null | undefined>(undefined)
 
-  // attachTo's element can change from one render to the next, so check it on every one
-  React.useLayoutEffect(() => {
+  // CSS anchor positioning keeps the popup on its anchor as it moves; this only follows the anchor
+  // element itself. That can be replaced, removed or hidden without the popup re-rendering, e.g. a
+  // list row re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row.
+  // Watching its size catches all three: a detached or undisplayed element reports 0x0. It is also
+  // checked when the popup is measured, when the overlay stack changes (one popup may have mounted
+  // before what it anchors to), while anything scrolls (see anchored-popups) and after any render in
+  // which attachTo holds something else.
+  //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
+  //     and keys and clicks go to what is under it
+  //   - there but not rendered: it stays open and usable where it last was, and follows the anchor
+  //     again once it is rendered
+  const syncAnchor = () => {
     const current = attachTo?.current
-    const anchor = current instanceof HTMLElement ? current : null
-    if (anchor === anchorRef.current) {
-      return
+    checkedTargetRef.current = current
+    const anchor = current instanceof HTMLElement && current.isConnected ? current : null
+    if (anchor !== anchorRef.current) {
+      setAnchorName(anchorRef.current, anchorName, false)
+      setAnchorName(anchor, anchorName, true)
+      anchorRef.current = anchor
+      if (anchor) {
+        anchorPathRef.current = ancestorsOf(anchor)
+      }
+      anchorObserverRef.current?.disconnect()
+      if (anchor) {
+        if (!anchorObserverRef.current) {
+          anchorObserverRef.current = new ResizeObserver(() => syncAnchorRef.current())
+        }
+        anchorObserverRef.current.observe(anchor)
+      }
     }
-    setAnchorName(anchorRef.current, anchorName, false)
-    setAnchorName(anchor, anchorName, true)
-    anchorRef.current = anchor
-    // with nothing to anchor to the popup would be misplaced, so it stays hidden
-    popupRef.current?.toggleAttribute('data-unanchored', !anchor)
+    const popup = popupRef.current
+    const rendered = !!anchor && anchor.checkVisibility()
+    const last = lastPlaceRef.current
+    const held = !!anchor && !rendered && !!last
+    if (popup && rendered) {
+      popup.removeAttribute('data-held')
+      // only a placement made with its size known is where it really goes
+      if (!popup.hasAttribute('data-unsized')) {
+        const {left, top, width} = popup.getBoundingClientRect()
+        lastPlaceRef.current = {left, top, width}
+      }
+    } else if (popup && held && !popup.hasAttribute('data-held')) {
+      popup.style.setProperty(heldLeftVar, `${last.left}px`)
+      popup.style.setProperty(heldTopVar, `${last.top}px`)
+      popup.style.setProperty(heldWidthVar, `${last.width}px`)
+      popup.setAttribute('data-held', '')
+    }
+    popup?.toggleAttribute('data-unanchored', !rendered && !held)
+    setEntryDormant(id, !rendered && !held)
+  }
+  const syncAnchorRef = React.useRef(syncAnchor)
+  const onHiddenRef = React.useRef(onHidden)
+  React.useLayoutEffect(() => {
+    onHiddenRef.current = onHidden
+  })
+
+  const {id, ref, shown} = useOverlayEntry({
+    acceptsKeys: !!onHidden && !disableEscapeKey,
+    blocking: false,
+    kind: 'popup',
+    onEscape: onHidden,
+    outside: onHidden
+      ? {content: () => contentRef.current, onOutside: onHidden, propagate: !!propagateOutsideClicks}
+      : undefined,
+  })
+
+  // A ref's element can be set or replaced without attachTo changing. This runs once the popup's own
+  // commit is done, and the popup renders again once it is shown, after anything rendered later in
+  // that first commit has attached its refs.
+  React.useLayoutEffect(() => {
+    syncAnchorRef.current = syncAnchor
+    if (attachTo?.current !== checkedTargetRef.current) {
+      syncAnchor()
+    }
   })
 
   React.useLayoutEffect(
     () => () => {
+      anchorObserverRef.current?.disconnect()
       setAnchorName(anchorRef.current, anchorName, false)
       anchorRef.current = undefined
     },
     [anchorName]
   )
 
-  React.useLayoutEffect(() => {
-    const popup = popupRef.current
-    if (!popup) {
-      return undefined
-    }
-    // fitting a popup into the viewport needs its size, which CSS can't read in its own insets
-    const observer = new ResizeObserver(([entry]) => {
-      const size = entry?.borderBoxSize[0]
-      if (size) {
-        popup.style.setProperty(widthVar, `${size.inlineSize}px`)
-        popup.style.setProperty(heightVar, `${size.blockSize}px`)
+  const setPopup = React.useCallback(
+    (popup: HTMLDivElement | null) => {
+      popupRef.current = popup
+      if (!popup) {
+        return undefined
       }
-    })
-    observer.observe(popup)
-    const cancel = parent.whenShown(() => {
-      popup.showPopover()
-      popoverParent.setShown(true)
-    })
-    return () => {
-      cancel()
-      observer.disconnect()
-      popoverParent.setShown(false)
-      popup.hidePopover()
-    }
-  }, [parent, popoverParent])
-
-  React.useEffect(() => {
-    const handleDown = (e: MouseEvent) => {
-      downRef.current = {x: e.clientX, y: e.clientY}
-    }
-
-    const handleClick = (e: MouseEvent) => {
-      const popup = popupRef.current
-      if (popup && e.target instanceof HTMLElement && !popup.contains(e.target)) {
-        if (!propagateOutsideClicks) {
-          e.stopPropagation()
+      // Fitting a popup into the viewport needs its size, which CSS can't read in its own insets.
+      // Until it is measured it would be placed as if it had no size, possibly over its own anchor,
+      // so it is not drawn and takes no clicks (see measureContent).
+      popup.setAttribute('data-unsized', '')
+      const observer = new ResizeObserver(([entry]) => {
+        const size = entry?.borderBoxSize[0]
+        if (size) {
+          setSize(popup, size.inlineSize, size.blockSize)
         }
-        onClosePopup()
+        syncAnchorRef.current()
+      })
+      observer.observe(popup)
+      const removePopup = addAnchoredPopup(id, {
+        // once its anchor is gone (maybe not noticed yet), by where that anchor was, so a list row
+        // recycled meanwhile still closes it
+        anchoredWithin: element =>
+          anchorRef.current?.isConnected
+            ? element.contains(anchorRef.current)
+            : anchorPathRef.current.includes(element),
+        close: () => onHiddenRef.current?.(),
+        syncAnchor: () => syncAnchorRef.current(),
+      })
+      const cleanup = ref(popup)
+      return () => {
+        observer.disconnect()
+        removePopup()
+        cleanup?.()
+        popupRef.current = null
       }
-    }
+    },
+    [id, ref, syncAnchorRef]
+  )
 
-    const handleUp = (e: MouseEvent) => {
-      if (!downRef.current) {
+  // Runs as soon as what is inside is committed, before anything in it focuses itself (autoFocus,
+  // focus in an effect): measured and drawn by then, the popup can take focus.
+  const measureContent = React.useCallback(
+    (probe: HTMLElement | null) => {
+      const popup = popupRef.current
+      if (!probe || !popup) {
         return
       }
-
-      const {x, y} = downRef.current
-      downRef.current = undefined
-      const {clientX, clientY} = e
-      if (Math.abs(x - clientX) < 5 && Math.abs(y - clientY) < 5) {
-        handleClick(e)
-      }
-    }
-
-    const node = document.body
-    node.addEventListener('mousedown', handleDown, {capture: true})
-    node.addEventListener('mouseup', handleUp, {capture: true})
-    return () => {
-      node.removeEventListener('mousedown', handleDown, {capture: true})
-      node.removeEventListener('mouseup', handleUp, {capture: true})
-    }
-  }, [onClosePopup, propagateOutsideClicks])
+      const {height, width} = popup.getBoundingClientRect()
+      setSize(popup, width, height)
+      syncAnchorRef.current()
+    },
+    [syncAnchorRef]
+  )
 
   const {base} = placement
   const popupStyle = {
@@ -180,6 +223,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     bottom: base.bottom,
     justifySelf: base.justifySelf,
     left: base.left,
+    maxWidth: popupMaxWidth,
     positionAnchor: anchorName,
     positionTryFallbacks: placement.tryOptions,
     right: base.right,
@@ -187,26 +231,26 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     width: base.width,
   } as React.CSSProperties
 
-  const content = (
-    <div className="floating-box-content" style={Styles.castStyleDesktop(style)}>
-      {children}
-    </div>
-  )
-
-  const host = popupHost ?? document.getElementById('modal-root')
+  const host = document.getElementById('modal-root')
   return host ? (
     <>
       <style href={placement.tryOptions} precedence="floating-box">
         {placement.rules}
       </style>
-      {ReactDOM.createPortal(
-        <div popover="manual" className="floating-box" style={popupStyle} ref={popupRef}>
-          <PopoverParentContext value={popoverParent}>
-            {disableEscapeKey ? content : <EscapeHandler onESC={onClosePopup}>{content}</EscapeHandler>}
-          </PopoverParentContext>
-        </div>,
-        host
-      )}
+      <EntryElement
+        id={id}
+        shown={shown}
+        elementRef={setPopup}
+        className="floating-box"
+        style={popupStyle}
+        contentClassName="floating-box-content"
+        contentRef={contentRef}
+        contentStyle={Styles.castStyleDesktop(style)}
+        // inside the Suspense, so it also runs when lazily loaded content is shown
+        beforeContent={<span hidden={true} ref={measureContent} />}
+      >
+        {children}
+      </EntryElement>
     </>
   ) : null
 }

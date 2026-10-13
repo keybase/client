@@ -10,7 +10,6 @@ import {resetAllStores} from '@/util/zustand'
 import * as Meta from '@/constants/chat/meta'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {useCurrentUserState} from '@/stores/current-user'
-import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import Input from '.'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
@@ -94,13 +93,13 @@ const threadRefs = {
 }
 
 const Wrapper = (p: React.PropsWithChildren) => (
-  <GlobalKeyEventHandler>
+  <>
     <ThreadRefsContext value={threadRefs}>
       <ConversationThreadProvider id={convID}>
         <ConversationInputProvider id={convID}>{p.children}</ConversationInputProvider>
       </ConversationThreadProvider>
     </ThreadRefsContext>
-  </GlobalKeyEventHandler>
+  </>
 )
 
 const renderComposer = () => {

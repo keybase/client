@@ -7,7 +7,6 @@ import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
 import RemoteProxies from '../desktop/remote/proxies.desktop'
 import {PortalHost} from '@/common-adapters/portal.native'
 import RuntimeStats from './runtime-stats'
-import {AboveModalDialogs} from '@/common-adapters/popup/above-modal-dialogs'
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet'
 
 const DesktopMain = function DesktopMain() {
@@ -17,10 +16,8 @@ const DesktopMain = function DesktopMain() {
         <RemoteProxies />
         <Router />
         <ResetModal />
-        <AboveModalDialogs>
-          <GlobalError />
-          <OutOfDate />
-        </AboveModalDialogs>
+        <GlobalError />
+        <OutOfDate />
       </SystemFileManagerIntegrationProvider>
     </FsStatusProvider>
   )

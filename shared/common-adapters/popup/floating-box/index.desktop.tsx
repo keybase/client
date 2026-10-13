@@ -1,4 +1,3 @@
-import noop from 'lodash/noop'
 import type {Props} from './index.shared'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
@@ -9,12 +8,11 @@ const DesktopFloatingBox = (props: Props) => {
   return (
     <RelativeFloatingBox
       attachTo={attachTo}
-      // with nothing to call on Escape, a popup like a tooltip must not take it from what is under it
-      disableEscapeKey={disableEscapeKey || !onHidden}
+      disableEscapeKey={disableEscapeKey}
       position={position || 'bottom center'}
       positionFallbacks={positionFallbacks}
       matchDimension={!!matchDimension}
-      onClosePopup={onHidden || noop}
+      onHidden={onHidden}
       propagateOutsideClicks={propagateOutsideClicks}
       style={containerStyle}
       offset={offset}

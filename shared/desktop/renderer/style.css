@@ -266,15 +266,19 @@ body {
   }
 }
 
+/* Overlays are drawn over the app: nothing in the app, whatever its z-index, goes above them */
 #root {
   position: absolute;
   display: flex;
   inset: 0;
   overflow: hidden;
+  isolation: isolate;
 }
 
+/* overlay entries, drawn in stack order by the z-index the overlay stack gives each */
 #modal-root {
   display: inline-block;
+  isolation: isolate;
 }
 
 .underline-hover-no-underline {
@@ -403,15 +407,9 @@ body {
   vertical-align: middle;
 }
 
-/* a popup placed by relative-floating-box: a manual popover in the top layer, anchored with CSS */
+/* a popup placed by relative-floating-box, anchored with CSS */
 .floating-box {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  margin: 0;
-  max-width: 100%;
-  overflow: visible;
-  padding: 0;
+  position: fixed;
   /* only the content takes clicks, never the box around it */
   pointer-events: none;
   /* stays shown when its anchor is scrolled out of view */
@@ -420,14 +418,37 @@ body {
   &[data-unanchored] {
     opacity: 0;
   }
+
+  /* not measured yet, so not placed yet (see relative-floating-box) */
+  &[data-unsized] {
+    visibility: hidden;
+  }
+
+  /* its anchor is there but not rendered (a hover toolbar once the pointer left its row): anchor()
+     no longer resolves, so it stays where it last was. Over the inline anchored placement */
+  &[data-held] {
+    inset: var(--kb-popup-held-top) auto auto var(--kb-popup-held-left) !important;
+    align-self: start !important;
+    justify-self: start !important;
+    position-try-fallbacks: none !important;
+    width: var(--kb-popup-held-width) !important;
+  }
+}
+
+/* an animation, not a transition from @starting-style: Chromium starts no transition for content
+   first styled inside an anchor-positioned box */
+@keyframes floating-box-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .floating-box-content {
   pointer-events: auto;
-  transition: opacity 0.25s;
 
-  @starting-style {
-    opacity: 0;
+  /* from when it is first drawn where it goes, which may be after it mounts */
+  .floating-box:not([data-unsized], [data-unanchored]) & {
+    animation: floating-box-fade-in 0.25s;
   }
 
   .floating-box[data-unanchored] & {
@@ -435,27 +456,27 @@ body {
   }
 }
 
-/* popup/modal-dialog: a full-window modal <dialog> in the top layer. The content draws its own cover,
-   so the dialog and its backdrop draw nothing */
-.modal-dialog {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  height: 100%;
+/* overlay/entry: a full-window overlay. The content draws its own cover, so the entry draws nothing */
+.overlay-entry {
   inset: 0;
-  margin: 0;
-  max-height: none;
-  max-width: none;
   outline: none;
   overflow: hidden;
-  padding: 0;
-  /* never inherited none from where it is rendered: everything else is inert while it is open */
-  pointer-events: auto;
-  width: 100%;
+  position: fixed;
 
-  &::backdrop {
-    background: transparent;
+  /* an app-wide banner: only what it draws takes clicks */
+  &.overlay-entry-passthrough {
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
   }
+}
+
+/* an overlay the stack hides (a router modal under another, a covered popup) keeps its place,
+   scroll and state, but draws nothing */
+[data-overlay-entry][data-hidden] {
+  content-visibility: hidden;
 }
 
 body {

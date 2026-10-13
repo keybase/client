@@ -1,52 +1,52 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from '../box'
-import {ModalDialog} from './modal-dialog.desktop'
+import type {MeasureRef} from '../measure-ref'
+import {OverlayEntry} from '../overlay/entry.desktop'
 import type {ModalCoverProps} from './index.shared'
 export type {ModalCoverProps} from './index.shared'
 
-function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
+function stopBubbling(ev: React.SyntheticEvent) {
   ev.stopPropagation()
 }
 
 export function ModalCover(props: ModalCoverProps) {
   const styles = useStyles()
   const {children, onHidden, style} = props
-
-  // a press that starts on the content and ends on the cover must not dismiss,
-  // so the cover only closes when its own mousedown was the one that opened
-  const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
+  const centeredRef = React.useRef<MeasureRef>(null)
+  // a click on the cover around the content closes it
+  const outside = onHidden
+    ? {
+        content: () => (centeredRef.current instanceof Element ? centeredRef.current : null),
+        onOutside: onHidden,
+        propagate: true,
+      }
+    : undefined
   return (
-    <ModalDialog onEscape={onHidden} stoppedEscapeReachesDialog={false}>
-      <Box2 alignSelf="center"
-        direction="vertical"
-        centerChildren={true}
-        style={Styles.collapseStyles([styles.cover, style])}
-        onMouseUp={() => {
-          if (mouseDownOnCover) {
-            onHidden?.()
-          }
-        }}
-        onMouseDown={() => {
-          setMouseDownOnCover(true)
-        }}
-      >
-        <Box2 alignSelf="center"
+    <OverlayEntry
+      acceptsKeys={true}
+      blocking={true}
+      kind="modal"
+      onEscape={onHidden}
+      outside={outside}
+    >
+      <Box2 alignSelf="center" direction="vertical" centerChildren={true} style={Styles.collapseStyles([styles.cover, style])}>
+        {/* presses inside stay out of the handlers of whatever rendered the cover */}
+        <Box2
+          alignSelf="center"
           direction="horizontal"
           relative={true}
+          ref={centeredRef}
           style={styles.centeredContainer}
-          onMouseDown={(e: React.BaseSyntheticEvent) => {
-            setMouseDownOnCover(false)
-            e.stopPropagation()
-          }}
-          onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
+          onMouseDown={stopBubbling}
+          onMouseUp={stopBubbling}
         >
           <div style={styles.clipContainer as React.CSSProperties} onClick={stopBubbling}>
             {children}
           </div>
         </Box2>
       </Box2>
-    </ModalDialog>
+    </OverlayEntry>
   )
 }
 

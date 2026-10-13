@@ -1,21 +1,15 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {cleanup, render} from '@testing-library/react'
+import * as React from 'react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
+import {fakeModalNavigation, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-// jsdom has no showModal
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-  }
-})
+setupOverlayDom()
 
 // A headerTitle component that forgets its Kb.Text renders bare text into the header.
 // It must still come out in the Header style, not the browser default.
@@ -64,27 +58,27 @@ describe('desktop ModalWrapper', () => {
 
   const renderModal = (options: GetOptionsRet) =>
     render(
-      <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={options}>
+      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={options}>
         <BoxSize />
       </ModalWrapper>
     )
 
   test('the close X sits outside the clip box that holds the header and body', () => {
-    const {container, getByTestId} = renderModal({title: 'Edit team info'})
+    const {getByTestId} = renderModal({title: 'Edit team info'})
     // the body renders bare text, so the element holding it is the body box, inside the clip box
-    const body = elementHolding(container, 'size:small')
+    const body = elementHolding(document.body, 'size:small')
     expect(body.style.minHeight).toBe('0')
     const clip = body.parentElement as HTMLElement
     expect(clip.style.overflow).toBe('hidden')
-    expect(clip.contains(elementHolding(container, 'Edit team info'))).toBe(true)
+    expect(clip.contains(elementHolding(document.body, 'Edit team info'))).toBe(true)
     const close = getByTestId(TestIDs.MODAL_CLOSE)
     expect(clip.contains(close)).toBe(false)
     expect(close.parentElement).toBe(clip.parentElement)
   })
 
   test('the header is a fixed 48px', () => {
-    const {container} = renderModal({title: 'Edit team info'})
-    let header: HTMLElement | null = elementHolding(container, 'Edit team info')
+    renderModal({title: 'Edit team info'})
+    let header: HTMLElement | null = elementHolding(document.body, 'Edit team info')
     while (header && header.style.height !== '48px') header = header.parentElement
     expect(header).not.toBeNull()
   })
@@ -94,7 +88,121 @@ describe('desktop ModalWrapper', () => {
     ['medium', 'medium'],
     ['large', 'large'],
   ] as const)('modalSize %s gives the body a %s box', (modalSize, size) => {
-    const {container} = renderModal(modalSize ? {modalSize} : {})
-    expect(elementHolding(container, `size:${size}`)).toBeTruthy()
+    renderModal(modalSize ? {modalSize} : {})
+    expect(elementHolding(document.body, `size:${size}`)).toBeTruthy()
+  })
+
+  const renderWith = (options: GetOptionsRet, children: React.ReactNode) => {
+    const pop = jest.fn()
+    render(
+      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation(pop)} navigationOptions={options}>
+        {children}
+      </ModalWrapper>
+    )
+    return pop
+  }
+
+  // e.g. new chat's "Search Keybase" field
+  test('a field that focuses on mount has focus once the modal is open', () => {
+    renderWith({title: 'New chat'}, <input aria-label="search" autoFocus={true} />)
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
+
+  test('a field that focuses in an effect keeps focus', () => {
+    const Field = () => {
+      const ref = React.useRef<HTMLInputElement>(null)
+      React.useEffect(() => {
+        ref.current?.focus()
+      }, [])
+      return <input aria-label="search" ref={ref} />
+    }
+    renderWith({title: 'New chat'}, <Field />)
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
+
+  test('Escape and a click on the dim area around the box close it', () => {
+    const escaped = renderWith({title: 'Edit team info'}, <>body</>)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(escaped).toHaveBeenCalledTimes(1)
+    cleanup()
+
+    const pop = renderWith({title: 'Edit team info'}, <>body</>)
+    const background = overlayEntries()[0]?.firstElementChild as HTMLElement
+    // a press in the box that is released outside it is a drag, not a click
+    fireEvent.mouseDown(screen.getByText('body'), {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).not.toHaveBeenCalled()
+    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).toHaveBeenCalledTimes(1)
+  })
+
+  // people search: its empty search field closes the modal on Escape itself and stops the event
+  describe('a field that closes the modal on Escape', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    const Field = (p: {close: () => void}) => {
+      const {close} = p
+      const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          close()
+          e.stopPropagation()
+        }
+      }
+      return <input aria-label="search" onKeyDown={onKeyDown} />
+    }
+
+    const pressEscapeIn = (field: HTMLElement) => {
+      fireEvent.keyDown(field, {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+    }
+
+    test('closes it once', () => {
+      const pop = jest.fn()
+      const navigation = fakeModalNavigation(pop)
+      render(
+        <ModalWrapper canGoBack={false} navigation={navigation} navigationOptions={{title: 'Search'}}>
+          <Field close={() => (navigation as {pop: () => void}).pop()} />
+        </ModalWrapper>
+      )
+      pressEscapeIn(screen.getByLabelText('search'))
+      expect(pop).toHaveBeenCalledTimes(1)
+    })
+
+    test('leaves the modal under it open', () => {
+      // each pop removes the top route, as an unkeyed pop would
+      const routes = ['lower', 'upper']
+      const lower = fakeModalNavigation(() => routes.pop())
+      const upper = fakeModalNavigation(() => routes.pop())
+      render(
+        <>
+          <ModalWrapper canGoBack={false} navigation={lower} navigationOptions={{title: 'Lower'}}>
+            lower
+          </ModalWrapper>
+          <ModalWrapper canGoBack={true} navigation={upper} navigationOptions={{title: 'Upper'}}>
+            <Field close={() => (upper as {pop: () => void}).pop()} />
+          </ModalWrapper>
+        </>
+      )
+      pressEscapeIn(screen.getByLabelText('search'))
+      expect(routes).toEqual(['lower'])
+    })
+  })
+
+  test('overlayNoClose keeps it open on Escape and clicks, and keeps Escape from what is under it', () => {
+    const pop = renderWith({overlayNoClose: true, title: 'Must answer'}, <>body</>)
+    const ev = fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(ev).toBe(false)
+    const background = overlayEntries()[0]?.firstElementChild as HTMLElement
+    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).not.toHaveBeenCalled()
   })
 })

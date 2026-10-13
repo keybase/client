@@ -240,8 +240,8 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
 
 // `compiler` runs oxc-transform-react, the Rust port of react-compiler. Metro, jest and
 // lint:bailouts still use babel-plugin-react-compiler, so the two ports must stay in
-// agreement. Without the compiler, un-memoized values cause effect loops
-// (e.g. GlobalKeyEventHandler). Platform globals come from the Vite `define`,
+// agreement. Without the compiler, un-memoized values cause effect loops.
+// Platform globals come from the Vite `define`,
 // '@' from resolve.alias.
 export const makeReactPlugins = () => [react({compiler: true})]
 

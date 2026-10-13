@@ -39,6 +39,7 @@ import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-co
 import Animated, {useAnimatedStyle} from 'react-native-reanimated'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {stickyTranslateY} from '../composer-geometry'
+import {useRecycledRowRef} from '@/common-adapters/overlay/recycled-row'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
@@ -180,9 +181,11 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
     setHoveredFor(undefined)
   }
   const hovered = hoveredFor === ordinal
+  const rowRef = useRecycledRowRef(ordinal)
 
   return (
     <div
+      ref={rowRef}
       data-ordinal={ordinal}
       onAnimationEnd={onAnimationEnd}
       onMouseEnter={hovered ? undefined : () => setHoveredFor(ordinal)}

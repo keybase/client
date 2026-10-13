@@ -6,7 +6,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/constants/remote-actions'
-import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import {initDesktopStyles} from '@/styles'
@@ -100,13 +99,9 @@ const useDarkHookup = () => {
   }, [setSystemDarkMode])
 }
 
-const Root = ({children}: {children: React.ReactNode}) => {
+const Root = ({children}: {children: React.ReactNode}): React.ReactNode => {
   useDarkHookup()
-  return (
-    <GlobalKeyEventHandler>
-      {children}
-    </GlobalKeyEventHandler>
-  )
+  return children
 }
 
 // awaited before first render so text (and canvas measurements of it) always uses real fonts

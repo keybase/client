@@ -33,6 +33,7 @@ import {useOpenedRowState} from './row/opened-row-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import {Alert} from 'react-native'
 import {SafeAreaView as ScreensSafeAreaView} from 'react-native-screens/experimental'
+import {RecycledRow} from '@/common-adapters/overlay/recycled-row'
 
 // Stub types to avoid dom lib dependency in native tsconfig
 type InboxDivRef = {
@@ -407,7 +408,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
     }
   }
 
-  const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
+  const renderItem = (index: number, item: RowItem): React.ReactElement | null => {
     if (item.type === 'divider') {
       return (
         <DesktopDragLine
@@ -426,7 +427,12 @@ function DesktopInboxBody(props: ControlledInboxProps) {
       return <BuildTeam />
     }
     const isSelected = 'conversationIDKey' in item && selectedConversationIDKey === item.conversationIDKey
-    return <>{makeRow(item, isSelected, chosenChannelsTeamnames)}</>
+    // the list's own key for the row, so a recycled row is one the list moved to another item
+    return (
+      <RecycledRow rowKey={keyExtractor(item, index)}>
+        {makeRow(item, isSelected, chosenChannelsTeamnames)}
+      </RecycledRow>
+    )
   }
 
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (

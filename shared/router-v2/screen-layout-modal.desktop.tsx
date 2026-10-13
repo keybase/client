@@ -1,12 +1,11 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as C from '@/constants'
 import type {GetOptionsRet, ModalSize} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getTextStyle} from '@/common-adapters/text.styles'
-import {ModalDialog} from '@/common-adapters/popup/modal-dialog.desktop'
+import {OverlayEntry} from '@/common-adapters/overlay/entry.desktop'
 
 type ModalHeaderProps = {
   // the route's headerStyle, for a colored header
@@ -48,39 +47,6 @@ export const ModalHeader = (props: ModalHeaderProps) => {
   )
 }
 
-const mouseResetValue = -9999
-const mouseDistanceThreshold = 5
-
-const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noClose?: boolean) => {
-  const backgroundRef = React.useRef<HTMLDivElement>(null)
-  const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
-  const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
-  const onMouseDown = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = e.nativeEvent
-    if (target !== backgroundRef.current) {
-      return
-    }
-    setMouseDownX(screenX)
-    setMouseDownY(screenY)
-  }
-  const onMouseUp = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = e.nativeEvent
-    if (target !== backgroundRef.current) {
-      return
-    }
-    const xDist = Math.abs(screenX - mouseDownX)
-    const yDist = Math.abs(screenY - mouseDownY)
-    if (xDist < mouseDistanceThreshold && yDist < mouseDistanceThreshold) {
-      if (!noClose) {
-        navigation.pop()
-      }
-    }
-    setMouseDownX(mouseResetValue)
-    setMouseDownY(mouseResetValue)
-  }
-  return [backgroundRef, onMouseUp, onMouseDown] as const
-}
-
 // small sizes to its content up to the cap; medium and large are fixed, so a list body can fill them
 export const modalSizeStyles = {
   large: {height: '80%', width: '80%'},
@@ -108,20 +74,30 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const headerShown = navigationOptions?.['headerShown'] !== false
   const hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
 
-  const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, overlayNoClose)
+  const frameRef = React.useRef<Kb.MeasureRef>(null)
 
-  const [topMostModal, setTopMostModal] = React.useState(true)
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setTopMostModal(true)
-      return () => {
-        setTopMostModal(false)
-      }
-    }, [])
+  // Its route can be removed by something inside it, like a search field that closes the modal on
+  // Escape. The new state renders later (react-navigation dispatches in a transition), so until then
+  // the modal is still up and must not be closed a second time.
+  const removingRef = React.useRef<{defaultPrevented: boolean} | undefined>(undefined)
+  React.useEffect(
+    () =>
+      navigation.addListener('beforeRemove', e => {
+        removingRef.current = e
+      }),
+    [navigation]
   )
+  const closing = () => !!removingRef.current && !removingRef.current.defaultPrevented
 
   const onEscape = overlayNoClose ? undefined : () => navigation.pop()
+  // a click on the dim area around the box closes it
+  const outside = overlayNoClose
+    ? undefined
+    : {
+        content: () => (frameRef.current instanceof Element ? frameRef.current : null),
+        onOutside: () => navigation.pop(),
+        propagate: true,
+      }
 
   const modalBox = {size: modalSize}
 
@@ -136,20 +112,25 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack}) : undefined
   const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
-  // a modal under the topmost one is closed, which hides it and keeps it out of the top layer
+  // a modal under the topmost one is covered: inert and hidden, keeping its place in the stack
   return (
-    <ModalDialog open={topMostModal} onEscape={onEscape}>
+    <OverlayEntry
+      acceptsKeys={true}
+      blocking={true}
+      closing={closing}
+      kind="modal"
+      route={true}
+      onEscape={onEscape}
+      outside={outside}
+    >
       <Kb.Box2
         key="background"
         direction="horizontal"
         fullHeight={true}
-        ref={backgroundRef}
         style={Kb.Styles.collapseStyles([
           styles.overlayContainer,
           overlayTransparent && styles.overlayTransparent,
         ])}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
       >
         {overlayAvoidTabs && (
           <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
@@ -161,6 +142,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
         >
           <Kb.Box2
             direction="vertical"
+            ref={frameRef}
             style={Kb.Styles.collapseStyles([styles.modalFrame, modalSizeStyles[modalSize]])}
           >
             {/* clips the body to the rounded box; the close X sits outside the box, so it's a sibling */}
@@ -191,7 +173,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </ModalDialog>
+    </OverlayEntry>
   )
 }
 

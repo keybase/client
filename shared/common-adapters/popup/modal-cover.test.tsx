@@ -1,34 +1,26 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import * as React from 'react'
+import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
-import {GlobalKeyEventHandler} from '../key-event-handler.desktop'
+import Input3 from '../input3'
 import {ModalCover} from './modal-cover.desktop'
+import {overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
-// jsdom has no showModal
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.open = true
-  }
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.open = false
-  }
-})
+setupOverlayDom()
 
 const renderCover = (onHidden?: () => void) => {
-  const {container} = render(
-    <GlobalKeyEventHandler>
-      <ModalCover onHidden={onHidden}>
-        <Box2 alignSelf="center" direction="vertical">content</Box2>
-      </ModalCover>
-    </GlobalKeyEventHandler>
+  render(
+    <ModalCover onHidden={onHidden}>
+      <Box2 alignSelf="center" direction="vertical">content</Box2>
+    </ModalCover>
   )
-  const dialog = container.querySelector('dialog')
+  const [entry] = overlayEntries()
   return {
     content: screen.getByText('content'),
-    cover: dialog?.firstElementChild as HTMLElement,
-    dialog,
+    cover: entry?.firstElementChild as HTMLElement,
+    entry,
   }
 }
 
@@ -37,13 +29,10 @@ const pressEscape = () => {
 }
 
 describe('ModalCover', () => {
-  afterEach(() => {
-    cleanup()
-  })
 
-  test('renders its children on the cover, in a modal dialog', () => {
-    const {content, cover, dialog} = renderCover(() => {})
-    expect(dialog?.open).toBe(true)
+  test('renders its children on the cover, in a modal overlay', () => {
+    const {content, cover, entry} = renderCover(() => {})
+    expect(paintOrder()).toEqual([entry])
     expect(cover.contains(content)).toBe(true)
   })
 
@@ -87,14 +76,66 @@ describe('ModalCover', () => {
     expect(onHidden).toHaveBeenCalledTimes(1)
   })
 
-  // an input that handles Escape stops it, and Chromium then fires cancel on the dialog
-  test('an escape an input already handled does not dismiss', () => {
-    const onHidden = jest.fn()
-    const {dialog} = renderCover(onHidden)
-    const cancel = new Event('cancel', {cancelable: true})
-    dialog?.dispatchEvent(cancel)
-    expect(cancel.defaultPrevented).toBe(true)
-    expect(onHidden).not.toHaveBeenCalled()
+  // like Kb.SearchFilter: Escape clears what was typed and stops there
+  const FilterField = () => {
+    const [text, setText] = React.useState('typed')
+    return (
+      <Input3
+        placeholder="filter"
+        value={text}
+        onChangeText={setText}
+        onKeyDown={e => {
+          if (e.key === 'Escape') {
+            setText('')
+            e.stopPropagation()
+          }
+        }}
+      />
+    )
+  }
+
+  describe('an escape a field inside handled', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    const escapeIn = (field: HTMLElement) => {
+      fireEvent.keyDown(field, {key: 'Escape'})
+      act(() => {
+        jest.runAllTimers()
+      })
+    }
+
+    test('only stopped, still dismisses, after the field took it', () => {
+      const onHidden = jest.fn()
+      render(
+        <ModalCover onHidden={onHidden}>
+          <FilterField />
+        </ModalCover>
+      )
+      const field = screen.getByPlaceholderText<HTMLInputElement>('filter')
+      escapeIn(field)
+      expect(field.value).toBe('')
+      expect(onHidden).toHaveBeenCalledTimes(1)
+    })
+
+    test('also prevented, is left to the field', () => {
+      const onHidden = jest.fn()
+      const handle = (e: React.KeyboardEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      render(
+        <ModalCover onHidden={onHidden}>
+          <Input3 placeholder="filter" onKeyDown={handle} />
+        </ModalCover>
+      )
+      escapeIn(screen.getByPlaceholderText('filter'))
+      expect(onHidden).not.toHaveBeenCalled()
+    })
   })
 
   test('other keys do not dismiss', () => {

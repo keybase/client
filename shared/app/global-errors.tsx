@@ -8,6 +8,7 @@ import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useDaemonState} from '@/stores/daemon'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {GlobalOverlay} from '@/common-adapters/overlay/global-overlay'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
@@ -128,16 +129,18 @@ const GlobalError = () => {
 
     const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.containerOverlay}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.overlayRow}>
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
-            {message}
-          </Kb.Text>
+      <GlobalOverlay tier="disconnect">
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.containerOverlay}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.overlayRow}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
+              {message}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} centerChildren={true} style={styles.overlayFill}>
+            <Kb.Animation animationType="disconnected" height={175} width={600} />
+          </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} centerChildren={true} style={styles.overlayFill}>
-          <Kb.Animation animationType="disconnected" height={175} width={600} />
-        </Kb.Box2>
-      </Kb.Box2>
+      </GlobalOverlay>
     )
   }
 
@@ -215,33 +218,35 @@ const GlobalError = () => {
   }
 
   return (
-    <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick} direction="vertical" testID={TestIDs.GLOBAL_ERROR}>
-      <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
-        <Kb.Text center={true} type="BodyBig" style={styles.summary}>
-          {summary}
-        </Kb.Text>
-        <Kb.Button
-          label="Please tell us"
-          onClick={onFeedback}
-          small={true}
-          type="Dim"
+    <GlobalOverlay tier="globalError">
+      <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick} direction="vertical" testID={TestIDs.GLOBAL_ERROR}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
+          <Kb.Text center={true} type="BodyBig" style={styles.summary}>
+            {summary}
+          </Kb.Text>
+          <Kb.Button
+            label="Please tell us"
+            onClick={onFeedback}
+            small={true}
+            type="Dim"
 
-        />
-        {summary && (
-          <Kb.Icon
-            color={theme.white_75}
-            hoverColor={theme.white}
-            onClick={onDismiss}
-            type="iconfont-close"
           />
-        )}
-      </Kb.Box2>
-      <Kb.ScrollView>
-        <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
-          {details}
-        </Kb.Text>
-      </Kb.ScrollView>
-    </Kb.ClickableBox>
+          {summary && (
+            <Kb.Icon
+              color={theme.white_75}
+              hoverColor={theme.white}
+              onClick={onDismiss}
+              type="iconfont-close"
+            />
+          )}
+        </Kb.Box2>
+        <Kb.ScrollView>
+          <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
+            {details}
+          </Kb.Text>
+        </Kb.ScrollView>
+      </Kb.ClickableBox>
+    </GlobalOverlay>
   )
 }
 
@@ -252,7 +257,6 @@ const useStyles = Kb.Styles.createStyleHook(theme => {
     position: 'absolute' as const,
     right: 0,
     top: 40,
-    zIndex: 1000,
     ...Kb.Styles.transition('max-height'),
   }
 
@@ -260,10 +264,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => {
     containerBig: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: maxHeightForSize('Big')},
     }),
-    containerOverlay: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      zIndex: 1000,
-    },
+    containerOverlay: Kb.Styles.globalStyles.fillAbsolute,
     containerSmall: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: maxHeightForSize('Small')},
     }),
