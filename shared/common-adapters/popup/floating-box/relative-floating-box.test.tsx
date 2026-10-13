@@ -7,6 +7,7 @@ import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
 import {OverlayEntry} from '../../overlay/entry.desktop'
 import {GlobalOverlay} from '../../overlay/global-overlay.desktop'
+import ScrollView from '../../scroll-view'
 import {ModalCover} from '../modal-cover.desktop'
 import FloatingBox from './index.desktop'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
@@ -646,7 +647,7 @@ describe('RelativeFloatingBox', () => {
             first{tooltip(p.tip)}
           </RelativeFloatingBox>
           <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
-            <div data-testid="scroller">second</div>
+            <ScrollView testID="scroller">second</ScrollView>
           </RelativeFloatingBox>
         </>
       )

@@ -4,6 +4,7 @@
 import * as React from 'react'
 import {act, fireEvent, render, screen} from '@testing-library/react'
 import {Box2} from '../box'
+import Input3 from '../input3'
 import {ModalCover} from './modal-cover.desktop'
 import {overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
@@ -79,10 +80,10 @@ describe('ModalCover', () => {
   const FilterField = () => {
     const [text, setText] = React.useState('typed')
     return (
-      <input
-        aria-label="filter"
+      <Input3
+        placeholder="filter"
         value={text}
-        onChange={e => setText(e.target.value)}
+        onChangeText={setText}
         onKeyDown={e => {
           if (e.key === 'Escape') {
             setText('')
@@ -115,7 +116,7 @@ describe('ModalCover', () => {
           <FilterField />
         </ModalCover>
       )
-      const field = screen.getByLabelText<HTMLInputElement>('filter')
+      const field = screen.getByPlaceholderText<HTMLInputElement>('filter')
       escapeIn(field)
       expect(field.value).toBe('')
       expect(onHidden).toHaveBeenCalledTimes(1)
@@ -129,10 +130,10 @@ describe('ModalCover', () => {
       }
       render(
         <ModalCover onHidden={onHidden}>
-          <input aria-label="filter" onKeyDown={handle} />
+          <Input3 placeholder="filter" onKeyDown={handle} />
         </ModalCover>
       )
-      escapeIn(screen.getByLabelText('filter'))
+      escapeIn(screen.getByPlaceholderText('filter'))
       expect(onHidden).not.toHaveBeenCalled()
     })
   })
