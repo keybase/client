@@ -435,13 +435,17 @@ body {
   }
 }
 
-.floating-box-content {
-  pointer-events: auto;
-  transition: opacity 0.25s;
-
-  @starting-style {
+/* an animation, not a transition from @starting-style: Chromium starts no transition for content
+   first styled inside an anchor-positioned box */
+@keyframes floating-box-fade-in {
+  from {
     opacity: 0;
   }
+}
+
+.floating-box-content {
+  animation: floating-box-fade-in 0.25s;
+  pointer-events: auto;
 
   .floating-box[data-unanchored] & {
     pointer-events: none;
