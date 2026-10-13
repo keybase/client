@@ -2,7 +2,9 @@ import {rootEntryId} from './context'
 import {matchesCombo, parseKeyCombo, shouldIgnoreEvent} from './key-combo.desktop'
 import {
   coveredIds,
+  isInsideEntry,
   keyHomeOf,
+  outsideClickEntry,
   planTopLayer,
   scopeOf,
   stackOrder,
@@ -34,6 +36,10 @@ export type EntryBehavior = {
   onEscape?: () => void
   // for a modal: an Escape a field inside it stopped is still handled, as if it had not been
   stoppedEscapeCloses: boolean
+  // closes on a click outside `content` and every entry opened from it
+  outside: {content: () => Element | null; onOutside: () => void; propagate: boolean} | undefined
+  // a popup checks its anchor again
+  syncAnchor: (() => void) | undefined
 }
 
 type Entry = StackEntry &
@@ -55,9 +61,11 @@ const makeRoot = (): Entry => ({
   kind: 'root',
   lastFocused: null,
   opener: null,
+  outside: undefined,
   parent: undefined,
   seq: 0,
   stoppedEscapeCloses: false,
+  syncAnchor: undefined,
   tier: 'app',
 })
 
@@ -151,6 +159,14 @@ const reconcile = () => {
   restoreFocus(saved)
 }
 
+// After any change to the stack: one popup may have mounted before what it anchors to.
+const restack = () => {
+  reconcile()
+  for (const entry of entries.values()) {
+    entry.syncAnchor?.()
+  }
+}
+
 export const newEntryId = () => `overlay-${nextId++}`
 
 // The element is a manual popover; it is shown here, in its place in the stack.
@@ -165,7 +181,7 @@ export const registerEntry = (
   entries.set(id, {
     ...behavior,
     blocking,
-    dismissable: false,
+    dismissable: !!behavior.outside,
     element,
     id,
     kind,
@@ -175,7 +191,7 @@ export const registerEntry = (
     seq: nextSeq++,
     tier: tier ?? (kind === 'modal' ? 'modal' : 'app'),
   })
-  reconcile()
+  restack()
 }
 
 export const updateEntry = (id: string, behavior: EntryBehavior) => {
@@ -183,10 +199,15 @@ export const updateEntry = (id: string, behavior: EntryBehavior) => {
   if (!entry) {
     return
   }
-  const restack = entry.acceptsKeys !== behavior.acceptsKeys
-  Object.assign(entry, behavior)
-  if (restack) {
-    reconcile()
+  const changed = entry.acceptsKeys !== behavior.acceptsKeys || entry.dismissable !== !!behavior.outside
+  entry.acceptsKeys = behavior.acceptsKeys
+  entry.onEscape = behavior.onEscape
+  entry.stoppedEscapeCloses = behavior.stoppedEscapeCloses
+  entry.outside = behavior.outside
+  entry.dismissable = !!behavior.outside
+  entry.syncAnchor = behavior.syncAnchor
+  if (changed) {
+    restack()
   }
 }
 
@@ -241,7 +262,7 @@ export const unregisterEntry = (id: string) => {
       element.hidePopover()
     }
   }
-  reconcile()
+  restack()
   if (hadFocus || (entry.blocking && !activeElement())) {
     returnFocus(entry)
   }
@@ -250,6 +271,43 @@ export const unregisterEntry = (id: string) => {
 const entryAt = (target: EventTarget | null) => {
   const element = target instanceof Element ? target.closest('[data-overlay-entry]') : null
   return entries.get(element?.getAttribute('data-overlay-entry') ?? rootEntryId)
+}
+
+// One entry per click: the topmost dismissable one closes when a press both starts and ends outside
+// it, without moving (a drag, like selecting text, is not a click). Inside means in its content or
+// in any entry opened from it, wherever that is in the DOM.
+type Press = {entry: string; inside: boolean; x: number; y: number}
+let press: Press | undefined
+
+const isInside = (id: string, target: EventTarget | null) => {
+  const element = target instanceof Element ? target : null
+  const hit = entryAt(element)?.id ?? rootEntryId
+  const content = entries.get(id)?.outside?.content()
+  return isInsideEntry(entries, id, {entry: hit, inContent: !!element && !!content?.contains(element)})
+}
+
+const onMouseDown = (ev: MouseEvent) => {
+  const {covered, order} = derive()
+  const entry = outsideClickEntry(order, covered)
+  press =
+    entry === undefined ? undefined : {entry, inside: isInside(entry, ev.target), x: ev.clientX, y: ev.clientY}
+}
+
+const onMouseUp = (ev: MouseEvent) => {
+  const p = press
+  press = undefined
+  if (!p || p.inside || Math.abs(ev.clientX - p.x) >= 5 || Math.abs(ev.clientY - p.y) >= 5) {
+    return
+  }
+  const {covered, order} = derive()
+  const outside = entries.get(p.entry)?.outside
+  if (!outside || outsideClickEntry(order, covered) !== p.entry || isInside(p.entry, ev.target)) {
+    return
+  }
+  if (!outside.propagate) {
+    ev.stopPropagation()
+  }
+  outside.onOutside()
 }
 
 const onFocusIn = (ev: FocusEvent) => {
@@ -378,6 +436,8 @@ const listen = () => {
   }
   listening = true
   window.addEventListener('focusin', onFocusIn, true)
+  window.addEventListener('mousedown', onMouseDown, true)
+  window.addEventListener('mouseup', onMouseUp, true)
   window.addEventListener('keydown', onKeyDownCapture, true)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keypress', onKeyPress)

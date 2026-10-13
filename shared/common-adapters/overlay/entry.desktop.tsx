@@ -11,21 +11,24 @@ import {
   type EntryStructure,
 } from './controller.desktop'
 
-type HookProps = Omit<EntryStructure, 'parent'> & EntryBehavior
+type HookProps = Omit<EntryStructure, 'parent'> &
+  Omit<EntryBehavior, 'outside' | 'syncAnchor'> &
+  Partial<Pick<EntryBehavior, 'outside' | 'syncAnchor'>>
 
 // Registers an entry in the overlay stack under the entry it is rendered in, once `ref` is attached
 // to its manual popover, which the stack then shows in its place. Render what is inside only once
 // `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
-  const {acceptsKeys, blocking, kind, onEscape, stoppedEscapeCloses, tier} = p
+  const {acceptsKeys, blocking, kind, onEscape, outside, stoppedEscapeCloses, syncAnchor, tier} = p
   const parent = React.use(OverlayEntryContext)
   const [id] = React.useState(newEntryId)
   const [shown, setShown] = React.useState(false)
-  const behaviorRef = React.useRef<EntryBehavior>({acceptsKeys, onEscape, stoppedEscapeCloses})
+  const behavior: EntryBehavior = {acceptsKeys, onEscape, outside, stoppedEscapeCloses, syncAnchor}
+  const behaviorRef = React.useRef(behavior)
 
   React.useLayoutEffect(() => {
-    behaviorRef.current = {acceptsKeys, onEscape, stoppedEscapeCloses}
-    updateEntry(id, behaviorRef.current)
+    behaviorRef.current = behavior
+    updateEntry(id, behavior)
   })
 
   // Shown first, then what is inside mounts in a follow-up commit before paint: focusing on mount
@@ -59,8 +62,16 @@ type Props = HookProps & {
 
 // A full-window overlay in the top layer, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
-  const {acceptsKeys, blocking, children, kind, onEscape, stoppedEscapeCloses, tier} = p
-  const {id, ref, shown} = useOverlayEntry({acceptsKeys, blocking, kind, onEscape, stoppedEscapeCloses, tier})
+  const {acceptsKeys, blocking, children, kind, onEscape, outside, stoppedEscapeCloses, tier} = p
+  const {id, ref, shown} = useOverlayEntry({
+    acceptsKeys,
+    blocking,
+    kind,
+    onEscape,
+    outside,
+    stoppedEscapeCloses,
+    tier,
+  })
   const host = document.getElementById('modal-root')
   return host
     ? ReactDOM.createPortal(

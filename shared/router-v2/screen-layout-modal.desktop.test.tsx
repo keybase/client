@@ -1,12 +1,13 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {cleanup, render} from '@testing-library/react'
+import * as React from 'react'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
-import {setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 setupOverlayDom()
 
@@ -89,5 +90,57 @@ describe('desktop ModalWrapper', () => {
   ] as const)('modalSize %s gives the body a %s box', (modalSize, size) => {
     renderModal(modalSize ? {modalSize} : {})
     expect(elementHolding(document.body, `size:${size}`)).toBeTruthy()
+  })
+
+  const renderWith = (options: GetOptionsRet, children: React.ReactNode) => {
+    const pop = jest.fn()
+    render(
+      <ModalWrapper canGoBack={false} navigation={{pop} as never} navigationOptions={options}>
+        {children}
+      </ModalWrapper>
+    )
+    return pop
+  }
+
+  // e.g. new chat's "Search Keybase" field
+  test('a field that focuses on mount has focus once the modal is open', () => {
+    renderWith({title: 'New chat'}, <input aria-label="search" autoFocus={true} />)
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
+
+  test('a field that focuses in an effect keeps focus', () => {
+    const Field = () => {
+      const ref = React.useRef<HTMLInputElement>(null)
+      React.useEffect(() => {
+        ref.current?.focus()
+      }, [])
+      return <input aria-label="search" ref={ref} />
+    }
+    renderWith({title: 'New chat'}, <Field />)
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+  })
+
+  test('Escape and a click on the dim area around the box close it', () => {
+    const pop = renderWith({title: 'Edit team info'}, <>body</>)
+    fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(pop).toHaveBeenCalledTimes(1)
+    const background = overlayEntries()[0]?.firstElementChild as HTMLElement
+    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).toHaveBeenCalledTimes(2)
+    // a press in the box that is released outside it is a drag, not a click
+    fireEvent.mouseDown(screen.getByText('body'), {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).toHaveBeenCalledTimes(2)
+  })
+
+  test('overlayNoClose keeps it open on Escape and clicks, and keeps Escape from what is under it', () => {
+    const pop = renderWith({overlayNoClose: true, title: 'Must answer'}, <>body</>)
+    const ev = fireEvent.keyDown(document.body, {key: 'Escape'})
+    expect(ev).toBe(false)
+    const background = overlayEntries()[0]?.firstElementChild as HTMLElement
+    fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
+    fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
+    expect(pop).not.toHaveBeenCalled()
   })
 })

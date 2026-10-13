@@ -47,39 +47,6 @@ export const ModalHeader = (props: ModalHeaderProps) => {
   )
 }
 
-const mouseResetValue = -9999
-const mouseDistanceThreshold = 5
-
-const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noClose?: boolean) => {
-  const backgroundRef = React.useRef<HTMLDivElement>(null)
-  const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
-  const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
-  const onMouseDown = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = e.nativeEvent
-    if (target !== backgroundRef.current) {
-      return
-    }
-    setMouseDownX(screenX)
-    setMouseDownY(screenY)
-  }
-  const onMouseUp = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = e.nativeEvent
-    if (target !== backgroundRef.current) {
-      return
-    }
-    const xDist = Math.abs(screenX - mouseDownX)
-    const yDist = Math.abs(screenY - mouseDownY)
-    if (xDist < mouseDistanceThreshold && yDist < mouseDistanceThreshold) {
-      if (!noClose) {
-        navigation.pop()
-      }
-    }
-    setMouseDownX(mouseResetValue)
-    setMouseDownY(mouseResetValue)
-  }
-  return [backgroundRef, onMouseUp, onMouseDown] as const
-}
-
 // small sizes to its content up to the cap; medium and large are fixed, so a list body can fill them
 export const modalSizeStyles = {
   large: {height: '80%', width: '80%'},
@@ -107,9 +74,17 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
   const headerShown = navigationOptions?.['headerShown'] !== false
   const hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
 
-  const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, overlayNoClose)
+  const frameRef = React.useRef<Kb.MeasureRef>(null)
 
   const onEscape = overlayNoClose ? undefined : () => navigation.pop()
+  // a click on the dim area around the box closes it
+  const outside = overlayNoClose
+    ? undefined
+    : {
+        content: () => (frameRef.current instanceof Element ? frameRef.current : null),
+        onOutside: () => navigation.pop(),
+        propagate: true,
+      }
 
   const modalBox = {size: modalSize}
 
@@ -131,19 +106,17 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       blocking={true}
       kind="modal"
       onEscape={onEscape}
+      outside={outside}
       stoppedEscapeCloses={true}
     >
       <Kb.Box2
         key="background"
         direction="horizontal"
         fullHeight={true}
-        ref={backgroundRef}
         style={Kb.Styles.collapseStyles([
           styles.overlayContainer,
           overlayTransparent && styles.overlayTransparent,
         ])}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
       >
         {overlayAvoidTabs && (
           <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
@@ -155,6 +128,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
         >
           <Kb.Box2
             direction="vertical"
+            ref={frameRef}
             style={Kb.Styles.collapseStyles([styles.modalFrame, modalSizeStyles[modalSize]])}
           >
             {/* clips the body to the rounded box; the close X sits outside the box, so it's a sibling */}

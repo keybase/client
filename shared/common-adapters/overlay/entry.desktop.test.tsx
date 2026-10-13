@@ -3,7 +3,8 @@
 
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {EscapeHandler, KeyEventHandler} from '../key-event-handler.desktop'
+import {KeyEventHandler} from '../key-event-handler.desktop'
+import {EscapeHandler} from '@/test/overlay-dom.desktop'
 import {OverlayEntry} from './entry.desktop'
 
 // jsdom has no Popover API: keep what is shown in the order it was shown, its top-layer order

@@ -58,6 +58,7 @@
     "./settings/password.test.tsx",
     "./provision/waiting-overlay.test.tsx",
     "./router-v2/screen-layout-modal.desktop.test.tsx",
+    "./router-v2/screen-layout-modal-focus.desktop.test.tsx",
     "./tests/e2e/ios-appium"
   ]
 }

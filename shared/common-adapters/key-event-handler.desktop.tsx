@@ -28,23 +28,4 @@ const KeyEventHandler = (props: Props): React.ReactNode => {
   return children
 }
 
-type EscapeHandlerProps = {
-  onESC?: () => void
-  children: React.ReactNode
-}
-
-const handleESC = (onESC: (() => void) | undefined, ev: KeyboardEvent) => {
-  if (ev.key !== 'Escape' || !onESC) {
-    return false
-  }
-  onESC()
-  return true
-}
-
-const EscapeHandler = (props: EscapeHandlerProps) => {
-  const {onESC} = props
-  const onKeyDown = (ev: KeyboardEvent) => handleESC(onESC, ev)
-  return <KeyEventHandler onKeyDown={onKeyDown} children={props.children} />
-}
-
-export {EscapeHandler, KeyEventHandler}
+export {KeyEventHandler}

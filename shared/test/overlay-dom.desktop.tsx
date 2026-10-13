@@ -1,5 +1,7 @@
 /// <reference types="jest" />
+import type * as React from 'react'
 import {cleanup} from '@testing-library/react'
+import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 
 // Desktop overlays are manual popovers portaled into #modal-root, and the app root goes inert under a
 // modal. jsdom has neither root nor the Popover API, so tests that render overlays call this once:
@@ -36,3 +38,16 @@ export const setupOverlayDom = () => {
 export const overlayEntries = () => [
   ...document.querySelectorAll<HTMLElement>('#modal-root > [data-overlay-entry]'),
 ]
+
+// a key handler that takes Escape and nothing else, like an open menu
+export const EscapeHandler = (p: {onESC: () => void; children?: React.ReactNode}) => {
+  const {children, onESC} = p
+  const onKeyDown = (ev: KeyboardEvent) => {
+    if (ev.key !== 'Escape') {
+      return false
+    }
+    onESC()
+    return true
+  }
+  return <KeyEventHandler onKeyDown={onKeyDown}>{children}</KeyEventHandler>
+}

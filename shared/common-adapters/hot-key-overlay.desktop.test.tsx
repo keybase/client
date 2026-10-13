@@ -3,9 +3,8 @@
 
 import type * as React from 'react'
 import {act, render} from '@testing-library/react'
-import {EscapeHandler} from './key-event-handler.desktop'
 import {OverlayEntry} from './overlay/entry.desktop'
-import {setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {EscapeHandler, setupOverlayDom} from '@/test/overlay-dom.desktop'
 
 jest.mock('@/constants', () => ({
   Router2: {
