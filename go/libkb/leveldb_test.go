@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -67,6 +69,34 @@ func doSomeIO() error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o600)
+}
+
+func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
+	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
+		return db.db.Stats(&stats)
+	}))
+	return stats
+}
+
+func levelDbTableCount(t *testing.T, db *LevelDb) (count int) {
+	for _, n := range levelDbStats(t, db).LevelTablesCounts {
+		count += n
+	}
+	return count
+}
+
+// levelDbJournalSize returns the size of the journal (*.log) files, which
+// hold writes not yet flushed to a table.
+func levelDbJournalSize(t *testing.T, db *LevelDb) (size int64) {
+	journals, err := filepath.Glob(filepath.Join(db.GetFilename(), "*.log"))
+	require.NoError(t, err)
+	require.NotEmpty(t, journals)
+	for _, j := range journals {
+		fi, err := os.Stat(j)
+		require.NoError(t, err)
+		size += fi.Size()
+	}
+	return size
 }
 
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {
@@ -138,6 +168,137 @@ func TestLevelDb(t *testing.T) {
 				// Writes still work after a flush.
 				_, err = testLevelDbPut(db)
 				require.NoError(t, err)
+			},
+		},
+		{
+			// A flush must write only the memtable to a new table: it must
+			// not compact away tables that already exist on disk.
+			name: "flush-memtable-only", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-memtable-only", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+				require.NoError(t, db.ForceOpen())
+
+				putAcrossPrefixes := func(round int) {
+					for _, prefix := range []string{"aa", "kv", "lo", "pm", "zz"} {
+						for i := 0; i < 20; i++ {
+							key := []byte(fmt.Sprintf("%s:%d:%d", prefix, round, i))
+							require.NoError(t, db.db.Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
+						}
+					}
+				}
+				// Existing tables spanning the whole key space, so a table
+				// compaction of the flushed memtable would have inputs.
+				for round := 0; round < 2; round++ {
+					putAcrossPrefixes(round)
+					tr, err := db.db.OpenTransaction()
+					require.NoError(t, err)
+					tr.Discard()
+				}
+				putAcrossPrefixes(2)
+				require.NotZero(t, levelDbJournalSize(t, db))
+				before := levelDbStats(t, db).LevelTablesCounts
+				beforeTotal := levelDbTableCount(t, db)
+
+				require.NoError(t, db.Flush())
+
+				after := levelDbStats(t, db).LevelTablesCounts
+				for level, n := range before {
+					require.GreaterOrEqual(t, after[level], n, "no table should be compacted away (level %d)", level)
+				}
+				require.Equal(t, beforeTotal+1, levelDbTableCount(t, db), "flush should add exactly one table")
+				require.Zero(t, levelDbJournalSize(t, db), "the flushed memtable's journal should be gone")
+				val, err := db.db.Get([]byte("zz:2:19"), nil)
+				require.NoError(t, err)
+				require.Equal(t, bytes.Repeat([]byte{19}, 100), val)
+			},
+		},
+		{
+			// OpenTransaction opens the db lazily like every other operation.
+			// It must fail at an assertion, not a panic: a panic here aborts
+			// the whole test binary and every later test never reports.
+			name: "open-transaction-first", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-first", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				var tr LocalDbTransaction
+				require.NotPanics(t, func() {
+					tr, err = db.OpenTransaction()
+				}, "OpenTransaction should lazily open the db instead of panicking")
+				require.NoError(t, err)
+				key := DbKey{Key: "tr-key", Typ: 0}
+				require.NoError(t, tr.Put(key, nil, []byte{1}))
+				require.NoError(t, tr.Commit())
+				_, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.True(t, found)
+			},
+		},
+		{
+			// Same lazy-open bug reported on the closed side: this must fail
+			// at an assertion, not a panic, so later tests still report.
+			name: "open-transaction-after-close", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-closed", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				require.NoError(t, db.ForceOpen())
+				require.NoError(t, db.Close())
+				var openErr error
+				require.NotPanics(t, func() {
+					_, openErr = db.OpenTransaction()
+				}, "OpenTransaction should not panic after Close")
+				require.ErrorAs(t, openErr, &LevelDBOpenClosedError{})
+			},
+		},
+		{
+			// -race only: catches the lazy open assigning db.db while other
+			// operations read it, and a lazy open racing a Nuke.
+			name: "concurrent-open", testBody: func(t *testing.T) {
+				if !raceEnabled {
+					t.Skip("race-only test; run with -race")
+				}
+				tc := SetupTest(t, "LevelDb-concurrent-open", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				var wg sync.WaitGroup
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						_, _, err := db.Get(DbKey{Key: "test-key", Typ: 0})
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						assert.NoError(t, db.Flush())
+					}()
+				}
+				wg.Wait()
+
+				// A lazy open racing a Nuke reopens rather than reporting closed.
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						key := DbKey{Key: "test-key", Typ: 0}
+						assert.NoError(t, db.Put(key, nil, []byte{1}))
+						_, _, err := db.Get(key)
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						_, err := db.Nuke()
+						assert.NoError(t, err)
+					}()
+				}
+				wg.Wait()
 			},
 		},
 		{
@@ -399,4 +560,62 @@ func TestLevelDb(t *testing.T) {
 	}
 
 	td.teardown()
+}
+
+// A failed OpenTransaction must release goleveldb's write lock: an
+// unwritable db directory makes the memtable rotation OpenTransaction does
+// internally fail, and that must not leak the lock forever.
+func TestOpenTransactionReleasesWriteLockOnError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod-based permission test does not apply on windows")
+	}
+	if os.Geteuid() == 0 {
+		t.Skip("running as root ignores permission bits")
+	}
+
+	tc := SetupTest(t, "LevelDb-transaction-lock-leak", 0)
+	// Cleanups run last-registered-first: close the db, then remove its
+	// directory, then tear down tc.
+	t.Cleanup(tc.Cleanup)
+	dir := t.TempDir()
+
+	db := NewLevelDb(tc.G, func() string { return filepath.Join(dir, "test.leveldb") })
+	require.NoError(t, db.ForceOpen())
+	t.Cleanup(func() {
+		// Restore write permission in case the test failed before doing so,
+		// so the directory can be removed.
+		_ = os.Chmod(db.GetFilename(), 0o755)
+		// Close blocks forever behind a leaked write lock, so bound it; the
+		// test has already failed on the leak in that case.
+		closed := make(chan error, 1)
+		go func() { closed <- db.Close() }()
+		select {
+		case err := <-closed:
+			require.NoError(t, err)
+		case <-time.After(5 * time.Second):
+			t.Error("Close blocked behind the leaked write lock")
+		}
+	})
+
+	key := DbKey{Key: "test-key", Typ: 0}
+	require.NoError(t, db.Put(key, nil, []byte{1}))
+
+	// Make the db directory unwritable, so OpenTransaction's internal
+	// memtable rotation (it needs a new journal file) fails while it holds
+	// goleveldb's write lock.
+	require.NoError(t, os.Chmod(db.GetFilename(), 0o555))
+	_, err := db.OpenTransaction()
+	require.Error(t, err)
+	require.NoError(t, os.Chmod(db.GetFilename(), 0o755))
+
+	// A write lock leaked by the failed OpenTransaction blocks every future
+	// writer forever.
+	done := make(chan error, 1)
+	go func() { done <- db.Put(key, nil, []byte{2}) }()
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("write lock leaked")
+	}
 }
