@@ -47,6 +47,12 @@ const setAnchorName = (element: HTMLElement | null | undefined, name: string, on
   }
 }
 
+const setSize = (popup: HTMLElement, width: number, height: number) => {
+  popup.style.setProperty(widthVar, `${width}px`)
+  popup.style.setProperty(heightVar, `${height}px`)
+  popup.removeAttribute('data-unsized')
+}
+
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const {attachTo, children, propagateOutsideClicks, onHidden, style} = props
   const {position, matchDimension = false, positionFallbacks, disableEscapeKey, offset = 0} = props
@@ -140,18 +146,14 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       if (!popup) {
         return undefined
       }
-      // fitting a popup into the viewport needs its size, which CSS can't read in its own insets
-      // Until then it would be placed as if it had no size, possibly over its own anchor, so it is
-      // not drawn and takes no clicks; the size arrives before the first paint.
+      // Fitting a popup into the viewport needs its size, which CSS can't read in its own insets.
+      // Until it is measured it would be placed as if it had no size, possibly over its own anchor,
+      // so it is not drawn and takes no clicks (see measureContent).
       popup.setAttribute('data-unsized', '')
       const observer = new ResizeObserver(([entry]) => {
         const size = entry?.borderBoxSize[0]
         if (size) {
-          popup.style.setProperty(widthVar, `${size.inlineSize}px`)
-          popup.style.setProperty(heightVar, `${size.blockSize}px`)
-          if (size.inlineSize || size.blockSize) {
-            popup.removeAttribute('data-unsized')
-          }
+          setSize(popup, size.inlineSize, size.blockSize)
         }
         syncAnchorRef.current()
       })
@@ -168,6 +170,21 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       }
     },
     [ref, syncAnchorRef]
+  )
+
+  // Runs as soon as what is inside is committed, before anything in it focuses itself (autoFocus,
+  // focus in an effect): measured and drawn by then, the popup can take focus.
+  const measureContent = React.useCallback(
+    (probe: HTMLElement | null) => {
+      const popup = popupRef.current
+      if (!probe || !popup) {
+        return
+      }
+      const {height, width} = popup.getBoundingClientRect()
+      setSize(popup, width, height)
+      syncAnchorRef.current()
+    },
+    [syncAnchorRef]
   )
 
   const {base} = placement
@@ -202,7 +219,12 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
           {shown ? (
             <OverlayEntryContext value={id}>
               <div className="floating-box-content" ref={contentRef} style={Styles.castStyleDesktop(style)}>
-                <EntryContent>{children}</EntryContent>
+                <EntryContent>
+                  {/* first, so it runs before what follows; inside the Suspense, so it runs when
+                      lazily loaded content is shown */}
+                  <span hidden={true} ref={measureContent} />
+                  {children}
+                </EntryContent>
               </div>
             </OverlayEntryContext>
           ) : null}

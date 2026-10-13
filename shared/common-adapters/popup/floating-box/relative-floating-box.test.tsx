@@ -236,36 +236,85 @@ describe('RelativeFloatingBox', () => {
 
   // Placed before its size is known, a menu near the window's corner lands on its pushed fallback,
   // over its own anchor; the row lost its hover, the toolbar anchor hid, and the menu was held there.
-  test('is not drawn, and holds no place, until its size is known', () => {
+  test('is not drawn, and holds no place, until what is inside is there to measure', async () => {
+    const Menu = () => <>menu</>
+    let load: () => void = () => {}
+    const loaded = new Promise<{default: React.ComponentType}>(resolve => {
+      load = () => resolve({default: Menu})
+    })
+    const Lazy = React.lazy(async () => loaded)
     const anchor = anchorElement()
     render(
       <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="top right">
-        menu
+        <Lazy />
       </RelativeFloatingBox>
     )
     const [popup] = popups()
     if (!popup) {
       throw new Error('no popup')
     }
-    // placed with no size: the wrong place
-    popup.getBoundingClientRect = () => ({left: 952, top: 541, width: 256}) as DOMRect
+    // where the browser places it: off without its size, right with it
+    popup.getBoundingClientRect = () =>
+      (popup.style.getPropertyValue('--kb-popup-width')
+        ? {height: 382, left: 920, top: 442, width: 256}
+        : {height: 382, left: 952, top: 541, width: 256}) as DOMRect
     expect(popup.hasAttribute('data-unsized')).toBe(true)
     anchor.style.display = 'none'
     resized(anchor)
     expect(popup.hasAttribute('data-held')).toBe(false)
-
     anchor.style.display = ''
     resized(anchor)
-    // measured, and placed with its size
-    popup.getBoundingClientRect = () => ({left: 920, top: 442, width: 256}) as DOMRect
-    resized(popup, {height: 382, width: 256})
+
+    await act(async () => {
+      load()
+      await loaded
+    })
     expect(popup.hasAttribute('data-unsized')).toBe(false)
     expect(popup.style.getPropertyValue('--kb-popup-width')).toBe('256px')
+    expect(popup.style.getPropertyValue('--kb-popup-height')).toBe('382px')
     anchor.style.display = 'none'
     resized(anchor)
     expect(popup.hasAttribute('data-held')).toBe(true)
     expect(popup.style.getPropertyValue('--kb-popup-held-left')).toBe('920px')
     expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('442px')
+  })
+
+  // The composer's emoji picker focuses its search field as it mounts, and once more 20ms later
+  // (SearchFilter). The size observer may not have reported by either time.
+  const SelfFocusingSearch = () => {
+    const ref = React.useRef<HTMLInputElement>(null)
+    React.useEffect(() => {
+      ref.current?.focus()
+      const id = setTimeout(() => ref.current?.focus(), 20)
+      return () => clearTimeout(id)
+    }, [])
+    return <input aria-label="search" ref={ref} />
+  }
+  const PickerApp = (p: {open: 'none' | 'auto' | 'effect'}) =>
+    p.open === 'none' ? null : (
+      <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="top right">
+        {p.open === 'auto' ? <input aria-label="search" autoFocus={true} /> : <SelfFocusingSearch />}
+      </RelativeFloatingBox>
+    )
+
+  describe('what is inside', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    test('can take focus as it mounts', () => {
+      const {rerender} = render(<PickerApp open="auto" />)
+      expect(document.activeElement).toBe(screen.getByLabelText('search'))
+      rerender(<PickerApp open="none" />)
+      rerender(<PickerApp open="effect" />)
+      act(() => {
+        jest.advanceTimersByTime(20)
+      })
+      expect(document.activeElement).toBe(screen.getByLabelText('search'))
+    })
   })
 
   // a message menu opened from the hover toolbar, which hides once the pointer leaves the row

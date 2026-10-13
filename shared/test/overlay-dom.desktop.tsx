@@ -29,11 +29,12 @@ export const setupOverlayDom = () => {
     HTMLElement.prototype.checkVisibility = function (this: HTMLElement) {
       return displayed(this)
     }
-    // as in a browser, nothing in a popover that is not shown, or in an inert subtree, can take focus
+    // as in a browser, nothing in a popover that is not shown, or in an inert or hidden subtree, can take focus
     const {focus} = Object.getOwnPropertyDescriptors(HTMLElement.prototype)
     HTMLElement.prototype.focus = function (this: HTMLElement, options?: FocusOptions) {
       const popover = this.closest<HTMLElement>('[popover]')
-      if ((popover && !state.shown.includes(popover)) || this.closest('[inert]')) {
+      // a popup not measured yet is visibility:hidden (style.css)
+      if ((popover && !state.shown.includes(popover)) || this.closest('[inert], [data-unsized]')) {
         return
       }
       ;(focus.value as HTMLElement['focus']).call(this, options)
