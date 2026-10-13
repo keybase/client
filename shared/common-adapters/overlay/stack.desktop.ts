@@ -16,6 +16,8 @@ export type StackEntry = {
   seq: number
   // makes everything below it inert
   blocking: boolean
+  // a router modal: one under another is not drawn either
+  route: boolean
   // can be the entry keys go to
   acceptsKeys: boolean
   // closes on a click outside it
@@ -83,6 +85,36 @@ export const coveredIds = (order: ReadonlyArray<StackEntry>): ReadonlySet<string
     blockingAbove = blockingAbove || entry.blocking
   }
   return covered
+}
+
+// Covered entries that are also not drawn: a router modal under another router modal (only the top
+// one shows), a popup of anything covered (a tooltip or menu stays with what it belongs to), and
+// whatever was opened from one of those. Anything else covered stays in sight, only inert, like a
+// router modal under a confirm opened from it.
+export const hiddenIds = (entries: Entries, order: ReadonlyArray<StackEntry>, covered: ReadonlySet<string>) => {
+  const routeAbove = new Set<string>()
+  let seenRoute = false
+  for (let i = order.length - 1; i >= 0; --i) {
+    const entry = order[i]
+    if (!entry) {
+      continue
+    }
+    if (seenRoute) {
+      routeAbove.add(entry.id)
+    }
+    seenRoute = seenRoute || entry.route
+  }
+  const isHidden = (entry: StackEntry): boolean => {
+    if (!covered.has(entry.id)) {
+      return false
+    }
+    if ((entry.route && routeAbove.has(entry.id)) || entry.kind === 'popup') {
+      return true
+    }
+    const parent = parentOf(entries, entry)
+    return !!parent && parent !== entry && isHidden(parent)
+  }
+  return new Set(order.filter(isHidden).map(e => e.id))
 }
 
 // The entry keys go to: the topmost one that takes keys and is neither covered nor dormant.

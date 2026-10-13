@@ -3,6 +3,7 @@ import {matchesCombo, parseKeyCombo, shouldIgnoreEvent, type KeyCombo} from './k
 import {
   coveredIds,
   descendantsOf,
+  hiddenIds,
   keyHomeOf,
   outsideClickEntry,
   planTopLayer,
@@ -29,6 +30,8 @@ export type EntryStructure = {
   parent: string
   tier?: Tier
   blocking: boolean
+  // a router modal
+  route?: boolean
 }
 
 export type EntryBehavior = {
@@ -71,6 +74,7 @@ const makeRoot = (): Entry => ({
   opener: null,
   outside: undefined,
   parent: undefined,
+  route: false,
   seq: 0,
   stoppedEscapeCloses: false,
   syncAnchor: undefined,
@@ -131,22 +135,22 @@ const isClosing = (id: string) => !!entries.get(id)?.closing?.()
 const elementOf = (entry: StackEntry) =>
   entry.kind === 'root' ? document.getElementById('root') : (entries.get(entry.id)?.element ?? null)
 
-// Applies the stack: covered entries (and the app root, under any blocking entry) are inert and
-// covered overlays are hidden, and the top layer is put in stack order (tooltips and toasts on top,
+// Applies the stack: covered entries (and the app root, under any blocking entry) are inert, some of
+// them are also not drawn (see hiddenIds), and the top layer is put in stack order (tooltips and toasts on top,
 // see topLayerOrder). Only something inserted under an entry that is already shown re-shows
 // anything: what is above it.
 const reconcile = () => {
   derived = undefined
   const {covered, order} = derive()
+  const hidden = hiddenIds(entries, order, covered)
   for (const entry of order) {
     const element = elementOf(entry)
     if (!element) {
       continue
     }
-    const isCovered = covered.has(entry.id)
-    element.toggleAttribute('inert', isCovered)
+    element.toggleAttribute('inert', covered.has(entry.id))
     if (entry.kind !== 'root') {
-      element.toggleAttribute('data-covered', isCovered)
+      element.toggleAttribute('data-hidden', hidden.has(entry.id))
     }
   }
   const desired = topLayerOrder(entries, order).flatMap(e => {
@@ -194,7 +198,7 @@ export const registerEntry = (
   element: HTMLElement
 ) => {
   listen()
-  const {blocking, kind, parent} = structure
+  const {blocking, kind, parent, route = false} = structure
   entries.set(id, {
     ...behavior,
     blocking,
@@ -206,6 +210,7 @@ export const registerEntry = (
     lastFocused: null,
     opener: activeElement(),
     parent,
+    route,
     seq: nextSeq++,
     tier: tierOf(structure),
   })
@@ -220,9 +225,15 @@ export const updateEntryStructure = (id: string, structure: EntryStructure) => {
   if (!entry) {
     return
   }
-  const {blocking, kind, parent} = structure
+  const {blocking, kind, parent, route = false} = structure
   const tier = tierOf(structure)
-  if (entry.blocking === blocking && entry.kind === kind && entry.parent === parent && entry.tier === tier) {
+  if (
+    entry.blocking === blocking &&
+    entry.kind === kind &&
+    entry.parent === parent &&
+    entry.route === route &&
+    entry.tier === tier
+  ) {
     return
   }
   const active = activeElement()
@@ -231,7 +242,7 @@ export const updateEntryStructure = (id: string, structure: EntryStructure) => {
   if (blocking && !wasBlocking && !hadFocus) {
     entry.opener = active
   }
-  Object.assign(entry, {blocking, kind, parent, tier})
+  Object.assign(entry, {blocking, kind, parent, route, tier})
   restack()
   if (wasBlocking && !blocking && hadFocus) {
     returnFocus(entry)

@@ -394,7 +394,7 @@ describe('RelativeFloatingBox', () => {
     const [popup, modal] = popups()
     expect(modal?.textContent).toBe('dialog')
     expect(overlay.shown).toEqual([popup, modal])
-    expect(popup?.hasAttribute('data-covered')).toBe(true)
+    expect(popup?.hasAttribute('data-hidden')).toBe(true)
     expect(popup?.hasAttribute('inert')).toBe(true)
   })
 
@@ -416,11 +416,11 @@ describe('RelativeFloatingBox', () => {
     )
     const {rerender} = render(<Stack second={false} />)
     const tooltip = popups()[1]
-    expect(tooltip?.hasAttribute('data-covered')).toBe(false)
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(false)
     rerender(<Stack second={true} />)
-    expect(tooltip?.hasAttribute('data-covered')).toBe(true)
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(true)
     rerender(<Stack second={false} />)
-    expect(tooltip?.hasAttribute('data-covered')).toBe(false)
+    expect(tooltip?.hasAttribute('data-hidden')).toBe(false)
   })
 
   describe('closing on outside clicks', () => {

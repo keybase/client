@@ -73,7 +73,8 @@ describe('GlobalOverlay', () => {
     // the cover was shown again above the modal inserted under it
     expect(overlay.shown.indexOf(feedback!)).toBeLessThan(overlay.shown.indexOf(cover!))
     expect(feedback?.hasAttribute('inert')).toBe(true)
-    expect(feedback?.hasAttribute('data-covered')).toBe(true)
+    // still drawn under the cover, as on master
+    expect(feedback?.hasAttribute('data-hidden')).toBe(false)
     expect(cover?.hasAttribute('inert')).toBe(false)
 
     pressEscape()

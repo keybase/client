@@ -26,6 +26,8 @@ beforeAll(() => {
 type ModalProps = {
   children?: React.ReactNode
   onEscape?: () => void
+  // a router modal, not a cover or dialog
+  route?: boolean
   stoppedEscapeCloses?: boolean
 }
 const Modal = (p: ModalProps) => (
@@ -34,6 +36,7 @@ const Modal = (p: ModalProps) => (
     blocking={true}
     kind="modal"
     onEscape={p.onEscape}
+    route={p.route}
     stoppedEscapeCloses={p.stoppedEscapeCloses ?? true}
   >
     {p.children}
@@ -123,13 +126,70 @@ describe('OverlayEntry', () => {
     rerender(<Stack second={true} />)
     const [first, second] = entries()
     expect(first?.hasAttribute('inert')).toBe(true)
-    expect(first?.hasAttribute('data-covered')).toBe(true)
     expect(second?.hasAttribute('inert')).toBe(false)
     rerender(<Stack second={false} />)
     expect(first?.hasAttribute('inert')).toBe(false)
-    expect(first?.hasAttribute('data-covered')).toBe(false)
     rerender(<></>)
     expect(appRoot()?.hasAttribute('inert')).toBe(false)
+  })
+
+  describe('what stays drawn under a blocking entry', () => {
+    const Menu = (p: {children?: React.ReactNode}) => (
+      <OverlayEntry acceptsKeys={true} blocking={false} kind="popup" stoppedEscapeCloses={false}>
+        {p.children}
+      </OverlayEntry>
+    )
+    const isHidden = (text: string) =>
+      entries()
+        .find(e => e.firstChild?.textContent === text)
+        ?.hasAttribute('data-hidden')
+
+    test('a router modal under a confirm opened from it, and its menu', () => {
+      const App = (p: {confirm: boolean}) => (
+        <Modal route={true}>
+          <span>route</span>
+          <Menu>
+            <span>menu</span>
+          </Menu>
+          {p.confirm ? (
+            <Modal>
+              <span>confirm</span>
+            </Modal>
+          ) : null}
+        </Modal>
+      )
+      const {rerender} = render(<App confirm={false} />)
+      rerender(<App confirm={true} />)
+      expect(isHidden('route')).toBe(false)
+      expect(isHidden('menu')).toBe(true)
+      expect(isHidden('confirm')).toBe(false)
+    })
+
+    test('a router modal under another router modal, and what is open in it', () => {
+      const App = (p: {second: boolean}) => (
+        <>
+          <Modal route={true}>
+            <span>first</span>
+            <Modal>
+              <span>its confirm</span>
+            </Modal>
+          </Modal>
+          {p.second ? (
+            <Modal route={true}>
+              <span>second</span>
+            </Modal>
+          ) : null}
+        </>
+      )
+      const {rerender} = render(<App second={false} />)
+      rerender(<App second={true} />)
+      expect(isHidden('first')).toBe(true)
+      expect(isHidden('its confirm')).toBe(true)
+      expect(isHidden('second')).toBe(false)
+      rerender(<App second={false} />)
+      expect(isHidden('first')).toBe(false)
+      expect(isHidden('its confirm')).toBe(false)
+    })
   })
 
   // problem 1: re-showing a covered modal put it above the popups open in it

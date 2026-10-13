@@ -119,6 +119,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       blocking={true}
       closing={closing}
       kind="modal"
+      route={true}
       onEscape={onEscape}
       outside={outside}
       stoppedEscapeCloses={true}

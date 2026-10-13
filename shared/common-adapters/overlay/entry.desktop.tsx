@@ -20,13 +20,13 @@ type HookProps = Omit<EntryStructure, 'parent'> &
 // to its manual popover, which the stack then shows in its place. Render what is inside only once
 // `shown`, and provide `id` to it as OverlayEntryContext.
 export const useOverlayEntry = (p: HookProps) => {
-  const {acceptsKeys, anchor, blocking, closing, kind, onEscape, outside, stoppedEscapeCloses, syncAnchor, tier} = p
+  const {acceptsKeys, anchor, blocking, closing, kind, onEscape, outside, route, stoppedEscapeCloses, syncAnchor, tier} = p
   const parent = React.use(OverlayEntryContext)
   const [id] = React.useState(newEntryId)
   const [shown, setShown] = React.useState(false)
   const behavior: EntryBehavior = {acceptsKeys, anchor, closing, onEscape, outside, stoppedEscapeCloses, syncAnchor}
   const behaviorRef = React.useRef(behavior)
-  const structureRef = React.useRef<EntryStructure>({blocking, kind, parent, tier})
+  const structureRef = React.useRef<EntryStructure>({blocking, kind, parent, route, tier})
 
   React.useLayoutEffect(() => {
     behaviorRef.current = behavior
@@ -51,12 +51,12 @@ export const useOverlayEntry = (p: HookProps) => {
 
   // Changing what it is (blocking, tier) keeps the entry, its place and what is open from it.
   React.useLayoutEffect(() => {
-    structureRef.current = {blocking, kind, parent, tier}
+    structureRef.current = {blocking, kind, parent, route, tier}
     updateEntryStructure(id, structureRef.current)
     if (shown) {
       entryMounted(id)
     }
-  }, [blocking, id, kind, parent, shown, tier])
+  }, [blocking, id, kind, parent, route, shown, tier])
 
   return {id, ref, shown}
 }
@@ -74,7 +74,8 @@ type Props = HookProps & {
 
 // A full-window overlay in the top layer, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
-  const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, stoppedEscapeCloses, tier} = p
+  const {acceptsKeys, blocking, children, closing, kind, onEscape, outside, passthrough, route} = p
+  const {stoppedEscapeCloses, tier} = p
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys,
     blocking,
@@ -82,6 +83,7 @@ export const OverlayEntry = (p: Props) => {
     kind,
     onEscape,
     outside,
+    route,
     stoppedEscapeCloses,
     tier,
   })

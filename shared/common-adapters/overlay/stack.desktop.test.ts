@@ -50,6 +50,7 @@ const stackOf = (...specs: ReadonlyArray<Spec>) => {
       dismissable: false,
       dormant: false,
       parent: undefined,
+      route: false,
       seq,
       tier: s.kind === 'modal' ? 'modal' : 'app',
       ...s,

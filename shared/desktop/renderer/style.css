@@ -478,8 +478,9 @@ body {
   }
 }
 
-/* an overlay under a blocking one keeps its place, scroll and state, but draws nothing */
-[data-overlay-entry][data-covered] {
+/* an overlay the stack hides (a router modal under another, a covered popup) keeps its place,
+   scroll and state, but draws nothing */
+[data-overlay-entry][data-hidden] {
   content-visibility: hidden;
 }
 
