@@ -420,6 +420,11 @@ body {
     opacity: 0;
   }
 
+  /* not measured yet, so not placed yet (see relative-floating-box) */
+  &[data-unsized] {
+    visibility: hidden;
+  }
+
   /* its anchor is there but not rendered (a hover toolbar once the pointer left its row): anchor()
      no longer resolves, so it stays where it last was. Over the inline anchored placement */
   &[data-held] {

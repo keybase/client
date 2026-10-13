@@ -88,8 +88,11 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     const held = !!anchor && !rendered && !!last
     if (popup && rendered) {
       popup.removeAttribute('data-held')
-      const {left, top, width} = popup.getBoundingClientRect()
-      lastPlaceRef.current = {left, top, width}
+      // only a placement made with its size known is where it really goes
+      if (!popup.hasAttribute('data-unsized')) {
+        const {left, top, width} = popup.getBoundingClientRect()
+        lastPlaceRef.current = {left, top, width}
+      }
     } else if (popup && held && !popup.hasAttribute('data-held')) {
       popup.style.setProperty(heldLeftVar, `${last.left}px`)
       popup.style.setProperty(heldTopVar, `${last.top}px`)
@@ -138,11 +141,17 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
         return undefined
       }
       // fitting a popup into the viewport needs its size, which CSS can't read in its own insets
+      // Until then it would be placed as if it had no size, possibly over its own anchor, so it is
+      // not drawn and takes no clicks; the size arrives before the first paint.
+      popup.setAttribute('data-unsized', '')
       const observer = new ResizeObserver(([entry]) => {
         const size = entry?.borderBoxSize[0]
         if (size) {
           popup.style.setProperty(widthVar, `${size.inlineSize}px`)
           popup.style.setProperty(heightVar, `${size.blockSize}px`)
+          if (size.inlineSize || size.blockSize) {
+            popup.removeAttribute('data-unsized')
+          }
         }
         syncAnchorRef.current()
       })

@@ -34,9 +34,11 @@ beforeAll(() => {
     }
   } as unknown as typeof ResizeObserver
 })
-const resized = (target: Element) => {
+// with a size, as the browser reports a box it measured
+const resized = (target: Element, size?: {width: number; height: number}) => {
+  const entries = size ? [{borderBoxSize: [{blockSize: size.height, inlineSize: size.width}], target}] : []
   act(() => {
-    observers.filter(o => o.targets.has(target)).forEach(o => o.cb([]))
+    observers.filter(o => o.targets.has(target)).forEach(o => o.cb(entries))
   })
 }
 
@@ -232,6 +234,40 @@ describe('RelativeFloatingBox', () => {
     expect(under).toHaveBeenCalledTimes(1)
   })
 
+  // Placed before its size is known, a menu near the window's corner lands on its pushed fallback,
+  // over its own anchor; the row lost its hover, the toolbar anchor hid, and the menu was held there.
+  test('is not drawn, and holds no place, until its size is known', () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="top right">
+        menu
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    // placed with no size: the wrong place
+    popup.getBoundingClientRect = () => ({left: 952, top: 541, width: 256}) as DOMRect
+    expect(popup.hasAttribute('data-unsized')).toBe(true)
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(false)
+
+    anchor.style.display = ''
+    resized(anchor)
+    // measured, and placed with its size
+    popup.getBoundingClientRect = () => ({left: 920, top: 442, width: 256}) as DOMRect
+    resized(popup, {height: 382, width: 256})
+    expect(popup.hasAttribute('data-unsized')).toBe(false)
+    expect(popup.style.getPropertyValue('--kb-popup-width')).toBe('256px')
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.style.getPropertyValue('--kb-popup-held-left')).toBe('920px')
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('442px')
+  })
+
   // a message menu opened from the hover toolbar, which hides once the pointer leaves the row
   test('while its anchor is there but not rendered, it stays where it was, visible and usable', () => {
     const under = jest.fn()
@@ -250,7 +286,7 @@ describe('RelativeFloatingBox', () => {
     }
     // where the browser placed it on its anchor
     popup.getBoundingClientRect = () => ({left: 40, top: 60, width: 120}) as DOMRect
-    resized(popup)
+    resized(popup, {height: 80, width: 120})
 
     anchor.style.display = 'none'
     resized(anchor)
