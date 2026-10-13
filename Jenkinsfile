@@ -301,11 +301,13 @@ helpers.rootLinuxNode(env, {
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
                         kbfsfuseImage.push(env.BUILD_TAG)
                       }
-                      // That job builds mdserver and bserver itself. This branch
-                      // builds them with public reads and writes disabled.
+                      // That job builds mdserver and bserver itself, with public
+                      // reads and writes disabled. kbfs-server CI names the
+                      // pull request PR-785, same as client names this one
+                      // PR-29768. A branch-name job does not exist.
                       if (cause != "upstream") {
                         build([
-                          job: "/kbfs-server/joshblum%2Fpublic-folders-disabled",
+                          job: "/kbfs-server/PR-785",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
