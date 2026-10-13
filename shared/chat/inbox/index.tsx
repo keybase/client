@@ -408,7 +408,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
     }
   }
 
-  const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
+  const renderItem = (index: number, item: RowItem): React.ReactElement | null => {
     if (item.type === 'divider') {
       return (
         <DesktopDragLine
@@ -427,8 +427,12 @@ function DesktopInboxBody(props: ControlledInboxProps) {
       return <BuildTeam />
     }
     const isSelected = 'conversationIDKey' in item && selectedConversationIDKey === item.conversationIDKey
-    const rowKey = 'conversationIDKey' in item ? item.conversationIDKey : item.teamID
-    return <RecycledRow rowKey={rowKey}>{makeRow(item, isSelected, chosenChannelsTeamnames)}</RecycledRow>
+    // the list's own key for the row, so a recycled row is one the list moved to another item
+    return (
+      <RecycledRow rowKey={keyExtractor(item, index)}>
+        {makeRow(item, isSelected, chosenChannelsTeamnames)}
+      </RecycledRow>
+    )
   }
 
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (
