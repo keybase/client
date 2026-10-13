@@ -372,6 +372,24 @@ describe('OverlayEntry', () => {
         expect(onEscape).toHaveBeenCalledTimes(1)
       })
 
+      test('is left to a field that also prevented it', () => {
+        const onEscape = jest.fn()
+        const handle = (e: React.KeyboardEvent) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+        render(
+          <Modal onEscape={onEscape}>
+            <input aria-label="field" onKeyDown={handle} />
+          </Modal>
+        )
+        fireEvent.keyDown(screen.getByLabelText('field'), {key: 'Escape'})
+        act(() => {
+          jest.runAllTimers()
+        })
+        expect(onEscape).not.toHaveBeenCalled()
+      })
+
       test('is left to the field when the modal says so', () => {
         const onEscape = jest.fn()
         render(

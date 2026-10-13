@@ -411,14 +411,15 @@ const deliver = (type: KeyType, ev: KeyboardEvent, top: string) => {
 let pendingEscape: {ev: KeyboardEvent; entry: string} | undefined
 
 // A field that handles Escape stops it. In a modal that wants it anyway it is delivered once the
-// event is done, if the same entry still has the keys.
+// event is done, if the same entry still has the keys. One the field also prevented it handled in
+// full, so it goes no further.
 const onStoppedEscape = (ev: KeyboardEvent) => {
   if (pendingEscape?.ev !== ev) {
     return
   }
   const {entry} = pendingEscape
   pendingEscape = undefined
-  if (derive().top !== entry) {
+  if (ev.defaultPrevented || derive().top !== entry) {
     return
   }
   const scope = scopeOf(entries, entry)
