@@ -173,6 +173,8 @@ const restack = () => {
 
 export const newEntryId = () => `overlay-${nextId++}`
 
+const tierOf = ({kind, tier}: EntryStructure) => tier ?? (kind === 'modal' ? 'modal' : 'app')
+
 // The element is a manual popover; it is shown here, in its place in the stack.
 export const registerEntry = (
   id: string,
@@ -181,7 +183,7 @@ export const registerEntry = (
   element: HTMLElement
 ) => {
   listen()
-  const {blocking, kind, parent, tier} = structure
+  const {blocking, kind, parent} = structure
   entries.set(id, {
     ...behavior,
     blocking,
@@ -194,9 +196,35 @@ export const registerEntry = (
     opener: activeElement(),
     parent,
     seq: nextSeq++,
-    tier: tier ?? (kind === 'modal' ? 'modal' : 'app'),
+    tier: tierOf(structure),
   })
   restack()
+}
+
+// An entry can change what it is in place, like the error banner becoming the disconnect overlay. It
+// keeps its place among the entries opened around it; one that starts blocking takes focus (in
+// entryMounted) and gives it back when it stops.
+export const updateEntryStructure = (id: string, structure: EntryStructure) => {
+  const entry = entries.get(id)
+  if (!entry) {
+    return
+  }
+  const {blocking, kind, parent} = structure
+  const tier = tierOf(structure)
+  if (entry.blocking === blocking && entry.kind === kind && entry.parent === parent && entry.tier === tier) {
+    return
+  }
+  const active = activeElement()
+  const hadFocus = !!active && !!entry.element?.contains(active)
+  const wasBlocking = entry.blocking
+  if (blocking && !wasBlocking && !hadFocus) {
+    entry.opener = active
+  }
+  Object.assign(entry, {blocking, kind, parent, tier})
+  restack()
+  if (wasBlocking && !blocking && hadFocus) {
+    returnFocus(entry)
+  }
 }
 
 export const updateEntry = (id: string, behavior: EntryBehavior) => {
@@ -227,8 +255,8 @@ export const setEntryDormant = (id: string, dormant: boolean) => {
   }
 }
 
-// What is inside an entry mounts once it is shown. A blocking entry takes focus if nothing inside
-// it did, so keys reach it and Tab starts in it.
+// What is inside an entry mounts once it is shown, or the entry started blocking. A blocking entry
+// takes focus if nothing inside it did, so keys reach it and Tab starts in it.
 export const entryMounted = (id: string) => {
   const entry = entries.get(id)
   const element = entry?.element

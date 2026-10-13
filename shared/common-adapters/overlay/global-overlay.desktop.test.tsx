@@ -184,6 +184,29 @@ describe('GlobalOverlay', () => {
     expect(onEscape).toHaveBeenCalledTimes(1)
   })
 
+  // GlobalError renders one GlobalOverlay whose tier changes with what it shows
+  test('the banner becoming the disconnect overlay takes focus, and gives it back', () => {
+    const App = (p: {disconnected: boolean}) => (
+      <>
+        <button>app</button>
+        <GlobalOverlay tier={p.disconnected ? 'disconnect' : 'globalError'}>
+          {p.disconnected ? 'disconnected' : 'banner'}
+        </GlobalOverlay>
+      </>
+    )
+    const {rerender} = render(<App disconnected={false} />)
+    const entry = entryHolding('banner')
+    const app = screen.getByText('app')
+    app.focus()
+    rerender(<App disconnected={true} />)
+    expect(entryHolding('disconnected')).toBe(entry)
+    expect(document.getElementById('root')?.hasAttribute('inert')).toBe(true)
+    expect(document.activeElement).toBe(entry)
+    rerender(<App disconnected={false} />)
+    expect(document.getElementById('root')?.hasAttribute('inert')).toBe(false)
+    expect(document.activeElement).toBe(app)
+  })
+
   test('re-showing overlays above an insert keeps focus and the selection where they were', () => {
     // Chromium can drop focus from a popover while it is hidden
     const hide = overlay.hide

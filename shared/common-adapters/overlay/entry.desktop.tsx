@@ -7,6 +7,7 @@ import {
   registerEntry,
   unregisterEntry,
   updateEntry,
+  updateEntryStructure,
   type EntryBehavior,
   type EntryStructure,
 } from './controller.desktop'
@@ -25,6 +26,7 @@ export const useOverlayEntry = (p: HookProps) => {
   const [shown, setShown] = React.useState(false)
   const behavior: EntryBehavior = {acceptsKeys, anchor, onEscape, outside, stoppedEscapeCloses, syncAnchor}
   const behaviorRef = React.useRef(behavior)
+  const structureRef = React.useRef<EntryStructure>({blocking, kind, parent, tier})
 
   React.useLayoutEffect(() => {
     behaviorRef.current = behavior
@@ -38,20 +40,23 @@ export const useOverlayEntry = (p: HookProps) => {
       if (!element) {
         return undefined
       }
-      registerEntry(id, {blocking, kind, parent, tier}, behaviorRef.current, element)
+      registerEntry(id, structureRef.current, behaviorRef.current, element)
       setShown(true)
       return () => {
         unregisterEntry(id)
       }
     },
-    [blocking, id, kind, parent, tier]
+    [id]
   )
 
+  // Changing what it is (blocking, tier) keeps the entry, its place and what is open from it.
   React.useLayoutEffect(() => {
+    structureRef.current = {blocking, kind, parent, tier}
+    updateEntryStructure(id, structureRef.current)
     if (shown) {
       entryMounted(id)
     }
-  }, [id, shown])
+  }, [blocking, id, kind, parent, shown, tier])
 
   return {id, ref, shown}
 }
