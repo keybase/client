@@ -100,16 +100,14 @@ describe('RelativeFloatingBox', () => {
   test('moves its anchor name when attachTo points somewhere else', () => {
     const first = anchorElement()
     const second = anchorElement()
-    const attachTo = refTo(first)
     const {rerender} = render(
-      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(first)} position="bottom left">
         content
       </RelativeFloatingBox>
     )
     const name = anchorNameOf(first)
-    attachTo.current = second
     rerender(
-      <RelativeFloatingBox attachTo={attachTo} position="bottom left">
+      <RelativeFloatingBox attachTo={refTo(second)} position="bottom left">
         content
       </RelativeFloatingBox>
     )
@@ -335,6 +333,30 @@ describe('RelativeFloatingBox', () => {
     expect(checks.map(c => c.mock.calls.length)).toEqual([0, 0])
     await act(async () => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
     expect(checks.map(c => c.mock.calls.length)).toEqual([1, 1])
+  })
+
+  // the hover toolbar hides once the pointer leaves the row, which may be after the list scrolled
+  test('a popup whose anchor hides after it scrolled stays where it was last drawn', async () => {
+    const anchor = anchorElement()
+    render(
+      <RelativeFloatingBox attachTo={refTo(anchor)} onHidden={noop} position="bottom left">
+        menu
+      </RelativeFloatingBox>
+    )
+    const [popup] = popups()
+    if (!popup) {
+      throw new Error('no popup')
+    }
+    popup.getBoundingClientRect = () => ({left: 40, top: 60, width: 120}) as DOMRect
+    resized(popup)
+    // the browser moves it with its anchor
+    popup.getBoundingClientRect = () => ({left: 40, top: 10, width: 120}) as DOMRect
+    document.body.dispatchEvent(new Event('scroll'))
+    await act(async () => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
+    anchor.style.display = 'none'
+    resized(anchor)
+    expect(popup.hasAttribute('data-held')).toBe(true)
+    expect(popup.style.getPropertyValue('--kb-popup-held-top')).toBe('10px')
   })
 
   // a message menu opened from the hover toolbar, which hides once the pointer leaves the row

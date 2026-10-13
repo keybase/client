@@ -67,22 +67,26 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   // undefined until the first check, so a popup with nothing to anchor to starts hidden
   const anchorRef = React.useRef<HTMLElement | null | undefined>(undefined)
   const anchorObserverRef = React.useRef<ResizeObserver | null>(null)
-  // where the popup last was while its anchor was rendered
   // the anchor and everything it was in, when it was last there
   const anchorPathRef = React.useRef<ReadonlyArray<Element>>([])
+  // where the popup last was while its anchor was rendered
   const lastPlaceRef = React.useRef<{left: number; top: number; width: number} | undefined>(undefined)
   const anchorName = `--kb-anchor-${React.useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const placement = popupPlacement(position, matchDimension, positionFallbacks)
+  const attachToRef = React.useRef(attachTo)
 
-  // The anchor can be replaced, removed or hidden without this re-rendering, e.g. a list row
-  // re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row. Watching its
-  // size catches all three: a detached or undisplayed element reports 0x0.
+  // CSS anchor positioning keeps the popup on its anchor as it moves; this only follows the anchor
+  // element itself. That can be replaced, removed or hidden without the popup re-rendering, e.g. a
+  // list row re-rendering on its own, or a hover toolbar hiding once the pointer leaves its row.
+  // Watching its size catches all three: a detached or undisplayed element reports 0x0. It is also
+  // checked when the popup is measured, when the overlay stack changes (one popup may have mounted
+  // before what it anchors to) and while anything scrolls (see the controller).
   //   - removed (or never there): the popup would be misplaced, so it hides until there is one again,
   //     and keys and clicks go to what is under it
   //   - there but not rendered: it stays open and usable where it last was, and follows the anchor
   //     again once it is rendered
   const syncAnchor = () => {
-    const current = attachTo?.current
+    const current = attachToRef.current?.current
     const anchor = current instanceof HTMLElement && current.isConnected ? current : null
     if (anchor !== anchorRef.current) {
       setAnchorName(anchorRef.current, anchorName, false)
@@ -138,13 +142,12 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     syncAnchor: () => syncAnchorRef.current(),
   })
 
-  // attachTo's element can change from one render to the next, so check it on every one. What is
-  // inside mounts a commit after the popup, so this also runs once whatever was rendered after the
-  // popup has attached its refs.
   React.useLayoutEffect(() => {
-    syncAnchorRef.current = syncAnchor
-    syncAnchor()
-  })
+    if (attachToRef.current !== attachTo) {
+      attachToRef.current = attachTo
+      syncAnchorRef.current()
+    }
+  }, [attachTo])
 
   React.useLayoutEffect(
     () => () => {
