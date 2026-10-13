@@ -1,5 +1,5 @@
 import {rootEntryId} from './context'
-import {matchesCombo, parseKeyCombo, shouldIgnoreEvent} from './key-combo.desktop'
+import {matchesCombo, parseKeyCombo, shouldIgnoreEvent, type KeyCombo} from './key-combo.desktop'
 import {
   coveredIds,
   descendantsOf,
@@ -401,22 +401,25 @@ export const addKeyReceiver = (entry: string, receive: KeyReceiver) => {
 }
 
 type HotKey = {cb: (combo: string) => void; entry: string}
-const hotKeys = new Map<string, Array<HotKey>>()
+// each combo is parsed once, when it is first registered
+const hotKeys = new Map<string, {combo: KeyCombo; list: ReadonlyArray<HotKey>}>()
 
 export const registerHotKeys = (keys: ReadonlyArray<string>, cb: (combo: string) => void, entry: string) => {
   listen()
   const item = {cb, entry}
   const combos = keys.map(k => k.toLowerCase().trim())
-  combos.forEach(combo => {
-    hotKeys.set(combo, [...(hotKeys.get(combo) ?? []), item])
+  combos.forEach(key => {
+    const registered = hotKeys.get(key)
+    hotKeys.set(key, {combo: registered?.combo ?? parseKeyCombo(key), list: [...(registered?.list ?? []), item]})
   })
   return () => {
-    combos.forEach(combo => {
-      const rest = (hotKeys.get(combo) ?? []).filter(h => h !== item)
-      if (rest.length) {
-        hotKeys.set(combo, rest)
+    combos.forEach(key => {
+      const registered = hotKeys.get(key)
+      const rest = registered?.list.filter(h => h !== item) ?? []
+      if (registered && rest.length) {
+        hotKeys.set(key, {combo: registered.combo, list: rest})
       } else {
-        hotKeys.delete(combo)
+        hotKeys.delete(key)
       }
     })
   }
@@ -428,15 +431,15 @@ const fireHotKey = (ev: KeyboardEvent, top: string) => {
     return false
   }
   const scope = scopeOf(entries, top)
-  for (const [combo, list] of hotKeys) {
-    if (!matchesCombo(ev, parseKeyCombo(combo))) {
+  for (const [key, {combo, list}] of hotKeys) {
+    if (!matchesCombo(ev, combo)) {
       continue
     }
     const hit = list.findLast(h => scopeOf(entries, h.entry) === scope)
     if (hit) {
       ev.preventDefault()
       ev.stopPropagation()
-      hit.cb(combo)
+      hit.cb(key)
       return true
     }
   }
