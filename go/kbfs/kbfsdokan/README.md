@@ -1,16 +1,19 @@
-The main executable for running KBFS on Windows.
+# The main executable for running KBFS on Windows.
 
-Dokan is a user mode filesystem library for Windows.
+[Dokan](https://github.com/dokan-dev/dokany) is a user mode filesystem library for Windows.
 
-Dokan implements a binding to dokan.dll.
-Libdokan implements a library binding of KBFS and Dokan.
-Kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfuse.
+Keybase bindings to dokan consists of: 
++ dokan implements a generic binding to dokan.dll.
++ libdokan implements a library binding of KBFS and Dokan.
++ kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfuse.
+
+# [Debugging](debugging.md)
 
 ## Normal installation is by installing Keybase on Windows which includes kbfsdokan
 
 ## Installation by hand
 
-### Install Dokan from https://github.com/dokan-dev/dokany/releases/tag/v0.8.0
+### Install Dokan from https://github.com/dokan-dev/dokany/releases/
 
 ### Install a C toolchain
 
@@ -19,7 +22,7 @@ Kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfus
 + Mingw64 works
 + Take care to differentiate between 32 and 64 bit toolchain
 + Add the toolchain to the path (e.g. C:\msys32\mingw32\bin)
-+ Currently Keybase uses a 32 bit toolchain for Windows
++ Currently Keybase uses a 64 bit toolchain for Windows
 
 ### Build kbfsdokan
 
@@ -33,13 +36,6 @@ Kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfus
 
 + 32-bit builds want 32 bit dokan.dll and dokan.lib.
 + 64-bit builds want 64 bit dokan.dll and don't need a lib-file.
-
-The correct files with 0.8.0 for 32 bit are:
-
-```
-dokan.lib           size:  5500 bytes         sha1: 1c9316a567b805c4a6adaf0abe1424fffb36a3bd
-dokan.dll           size: 53488 bytes         sha1: 5c4fc6b6e3083e575eed06de3115a6d05b30db02
-```
 
 ### Troubleshooting
 
