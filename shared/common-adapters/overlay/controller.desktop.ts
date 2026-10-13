@@ -276,7 +276,7 @@ const focusable = (element: HTMLElement | null | undefined): element is HTMLElem
   !!element?.isConnected && !element.closest('[inert]')
 
 // Focus goes back to what opened the entry, else to where it last was in what is now on top.
-const returnFocus = (entry: Entry) => {
+const tryReturnFocus = (entry: Entry) => {
   const {order, covered} = derive()
   const blocking = order.findLast(e => e.blocking && !covered.has(e.id))
   const top = blocking ? entries.get(blocking.id) : undefined
@@ -288,15 +288,39 @@ const returnFocus = (entry: Entry) => {
     top?.element,
     entries.get(rootEntryId)?.lastFocused,
   ]
-  for (const candidate of candidates) {
-    if (focusable(candidate)) {
-      candidate.focus({preventScroll: true})
-      if (document.activeElement === candidate) {
-        return
-      }
+  return candidates.some(candidate => {
+    if (!focusable(candidate)) {
+      return false
     }
-  }
+    candidate.focus({preventScroll: true})
+    return document.activeElement === candidate
+  })
 }
+
+// What focus goes back to can still be inert for a moment: react-navigation makes the screen under
+// a modal inert, and lifts that later in the same commit that removes the modal. So when nothing can
+// take it yet, try again once the commit is done, and once more a frame later, as long as focus has
+// not gone anywhere since.
+const returnFocus = (entry: Entry) => {
+  if (tryReturnFocus(entry)) {
+    return
+  }
+  queueMicrotask(() => {
+    if (activeElement() || tryReturnFocus(entry)) {
+      return
+    }
+    requestAnimationFrame(() => {
+      if (!activeElement()) {
+        tryReturnFocus(entry)
+      }
+    })
+  })
+}
+
+// The entry focus was last in. Focus that falls to the document (what had it unmounted or was
+// hidden, or a field blurred itself) leaves it, so an entry closing after its content let go of
+// focus still gives focus back.
+let focusedEntry: string | undefined
 
 // What was opened from an entry goes with it. React detaches the entry before what is inside it, so
 // left registered they would drop to the root for a moment, reorder the top layer and move focus.
@@ -305,12 +329,16 @@ export const unregisterEntry = (id: string) => {
   if (!entry) {
     return
   }
-  const gone = [...descendantsOf(entries, id).reverse(), id].flatMap(i => {
+  const goneIds = [...descendantsOf(entries, id).reverse(), id]
+  const gone = goneIds.flatMap(i => {
     const e = entries.get(i)
     entries.delete(i)
     return e?.element ? [e.element] : []
   })
-  const hadFocus = gone.some(element => element.contains(document.activeElement))
+  const active = activeElement()
+  const hadFocus = active
+    ? gone.some(element => element.contains(active))
+    : focusedEntry !== undefined && goneIds.includes(focusedEntry)
   shown = shown.filter(e => !gone.includes(e))
   gone.forEach(element => {
     if (element.isConnected) {
@@ -380,6 +408,7 @@ const onMouseUp = (ev: MouseEvent) => {
 
 const onFocusIn = (ev: FocusEvent) => {
   const entry = entryAt(ev.target)
+  focusedEntry = entry?.id
   if (entry && ev.target instanceof HTMLElement) {
     entry.lastFocused = ev.target
   }

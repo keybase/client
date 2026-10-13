@@ -600,6 +600,30 @@ describe('RelativeFloatingBox', () => {
     expect(document.activeElement).toBe(opener)
   })
 
+  // the emoji picker's search field blurs itself on Escape, and then the picker closes
+  test('closing after a field in it let go of focus still puts focus back on what opened it', () => {
+    const App = (p: {open: boolean}) => (
+      <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" stoppedEscapeCloses={true}>
+        <button>choose emoji</button>
+        {p.open ? (
+          <RelativeFloatingBox attachTo={refTo(anchorElement())} onHidden={noop} position="bottom left">
+            <input aria-label="search" />
+          </RelativeFloatingBox>
+        ) : null}
+      </OverlayEntry>
+    )
+    const {rerender} = render(<App open={false} />)
+    const opener = screen.getByText('choose emoji')
+    opener.focus()
+    rerender(<App open={true} />)
+    const search = screen.getByLabelText('search')
+    search.focus()
+    search.blur()
+    expect(document.activeElement).toBe(document.body)
+    rerender(<App open={false} />)
+    expect(document.activeElement).toBe(opener)
+  })
+
   test('opening does not move focus', () => {
     const App = (p: {open: boolean}) => (
       <>

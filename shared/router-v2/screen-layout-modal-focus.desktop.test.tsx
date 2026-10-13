@@ -103,3 +103,47 @@ describe('a lazily loaded modal screen', () => {
     expect(document.activeElement).toBe(screen.getByLabelText('search'))
   })
 })
+
+// As in the app: react-navigation makes the screen under a modal inert, and lifts that in the same
+// commit that removes the modal, after the modal is gone. The modal's screen can unmount (and drop
+// focus) before the modal itself does. Modal layouts run in StrictMode.
+describe('closing gives focus back to what had it', () => {
+  type Step = 'closed' | 'open' | 'contentGone'
+  const App = (p: {step: Step}) => (
+    <>
+      <div inert={p.step !== 'closed'}>
+        <textarea aria-label="composer" />
+      </div>
+      {p.step !== 'closed' ? (
+        <React.StrictMode>
+          <ModalWrapper canGoBack={false} navigation={{pop: () => {}} as never} navigationOptions={{title: 'New chat'}}>
+            {p.step === 'open' ? <input aria-label="search" autoFocus={true} /> : null}
+          </ModalWrapper>
+        </React.StrictMode>
+      ) : null}
+    </>
+  )
+
+  const stepThrough = async (rerender: (ui: React.ReactElement) => void, steps: ReadonlyArray<Step>) => {
+    for (const step of steps) {
+      // each step is its own task, a frame apart
+      await act(async () => {
+        rerender(<App step={step} />)
+        await new Promise(resolve => requestAnimationFrame(resolve))
+      })
+    }
+  }
+
+  test.each([
+    ['with its screen', ['closed']],
+    ['after its screen unmounted and dropped focus', ['contentGone', 'closed']],
+  ] as const)('a router modal closing %s', async (_, steps) => {
+    const {rerender} = render(<App step="closed" />)
+    const composer = screen.getByLabelText('composer')
+    composer.focus()
+    rerender(<App step="open" />)
+    expect(document.activeElement).toBe(screen.getByLabelText('search'))
+    await stepThrough(rerender, steps)
+    expect(document.activeElement).toBe(composer)
+  })
+})
