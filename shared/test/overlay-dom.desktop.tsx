@@ -7,7 +7,12 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 // modal. jsdom has neither root nor the Popover API, so tests that render overlays call this once:
 // it adds both roots around every test and records what is shown, in top-layer order.
 export const setupOverlayDom = () => {
-  const state = {shown: [] as Array<HTMLElement>}
+  const state = {
+    hide: (element: HTMLElement) => {
+      state.shown = state.shown.filter(p => p !== element)
+    },
+    shown: [] as Array<HTMLElement>,
+  }
   beforeAll(() => {
     HTMLElement.prototype.showPopover = function (this: HTMLElement) {
       if (state.shown.includes(this)) {
@@ -16,7 +21,7 @@ export const setupOverlayDom = () => {
       state.shown.push(this)
     }
     HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
-      state.shown = state.shown.filter(p => p !== this)
+      state.hide(this)
     }
   })
   beforeEach(() => {

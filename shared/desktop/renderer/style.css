@@ -450,6 +450,15 @@ body {
   overflow: hidden;
   padding: 0;
   width: 100%;
+
+  /* an app-wide banner: only what it draws takes clicks */
+  &.overlay-entry-passthrough {
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
 }
 
 /* an overlay under a blocking one keeps its place, scroll and state, but draws nothing */

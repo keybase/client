@@ -5,14 +5,17 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {openAppStore} from '@/util/storeless-actions'
+import {GlobalOverlay} from '@/common-adapters/overlay/global-overlay'
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  container: {
-    ...Kb.Styles.globalStyles.fillAbsolute,
-    backgroundColor: theme.red,
-    bottom: undefined,
-    zIndex: 9999,
-  },
+  container: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      backgroundColor: theme.red,
+      bottom: undefined,
+    },
+    isMobile: {zIndex: 9999},
+  }),
   messageContainer: {
     backgroundColor: theme.white_90,
     borderRadius: Kb.Styles.borderRadius,
@@ -61,15 +64,17 @@ const OutOfDate = () => {
   const message = isMobile ? mobileMessage : outOfDate.message
 
   return !critical ? null : (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" padding="small" style={styles.container}>
-      <Kb.Text center={true} type="Header" negative={true}>
-        Your version of Keybase is critically out of date!
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" padding="medium" fullWidth={true} style={styles.messageContainer}>
-        <Kb.Markdown>{message}</Kb.Markdown>
+    <GlobalOverlay tier="outOfDate">
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" padding="small" style={styles.container}>
+        <Kb.Text center={true} type="Header" negative={true}>
+          Your version of Keybase is critically out of date!
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" padding="medium" fullWidth={true} style={styles.messageContainer}>
+          <Kb.Markdown>{message}</Kb.Markdown>
+        </Kb.Box2>
+        {isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
       </Kb.Box2>
-      {isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
-    </Kb.Box2>
+    </GlobalOverlay>
   )
 }
 export default OutOfDate

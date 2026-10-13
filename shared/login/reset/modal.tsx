@@ -7,6 +7,7 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {formatDurationForAutoreset} from '@/util/timestamp'
 import {RPCError} from '@/util/errors'
+import {GlobalOverlay} from '@/common-adapters/overlay/global-overlay'
 
 const ResetModal = () => {
   const {active, endTime} = useConfigState(
@@ -105,12 +106,15 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
   if (!isMobile) {
     return (
-      // no onHidden: the reset countdown can't be dismissed by escape or a click away
-      <Kb.ModalCover style={styles.desktopCover}>
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.desktopModal}>
-          {content}
-        </Kb.Box2>
-      </Kb.ModalCover>
+      // above every router modal, whenever either opened
+      <GlobalOverlay tier="accountReset">
+        {/* no onHidden: the reset countdown can't be dismissed by escape or a click away */}
+        <Kb.ModalCover style={styles.desktopCover}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.desktopModal}>
+            {content}
+          </Kb.Box2>
+        </Kb.ModalCover>
+      </GlobalOverlay>
     )
   }
 

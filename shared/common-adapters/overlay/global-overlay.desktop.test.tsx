@@ -1,0 +1,186 @@
+/** @jest-environment jsdom */
+/// <reference types="jest" />
+
+import * as React from 'react'
+import {act, fireEvent, render, screen} from '@testing-library/react'
+import {ModalCover} from '../popup/modal-cover.desktop'
+import {OverlayEntry} from './entry.desktop'
+import {GlobalOverlay} from './global-overlay.desktop'
+import {EscapeHandler, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+
+jest.mock('@/constants', () => ({
+  Router2: {
+    useSafeFocusEffect: (cb: () => (() => void) | undefined) => jest.requireActual<typeof React>('react').useEffect(cb, [cb]),
+  },
+}))
+jest.mock('@/constants/platform', () => ({isMac: true}))
+
+import {useHotKey} from '../hot-key'
+
+const overlay = setupOverlayDom()
+
+const RouterModal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
+  <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape} stoppedEscapeCloses={true}>
+    {p.children}
+  </OverlayEntry>
+)
+
+// as login/reset/modal renders it
+const ResetCover = () => (
+  <GlobalOverlay tier="accountReset">
+    <ModalCover>reset</ModalCover>
+  </GlobalOverlay>
+)
+
+const Banner = (p: {onMount: () => void}) => {
+  const {onMount} = p
+  React.useEffect(() => {
+    onMount()
+  }, [onMount])
+  return <button>banner</button>
+}
+
+const HotKey = (p: {keys: string; cb: () => void}) => {
+  useHotKey(p.keys, p.cb)
+  return null
+}
+
+const entryHolding = (text: string) =>
+  overlayEntries().find(e => e.textContent === text) ?? (undefined as HTMLElement | undefined)
+
+const pressEscape = () => {
+  act(() => {
+    document.body.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, cancelable: true, key: 'Escape'}))
+  })
+}
+
+describe('GlobalOverlay', () => {
+  // problem 3: the last shown dialog used to win
+  test('a router modal opened while the reset cover is up goes under it and gets nothing', () => {
+    const onEscape = jest.fn()
+    const newChat = jest.fn()
+    const App = (p: {modal: boolean}) => (
+      <>
+        <HotKey keys="mod+n" cb={newChat} />
+        <ResetCover />
+        {p.modal ? <RouterModal onEscape={onEscape}>feedback</RouterModal> : null}
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    rerender(<App modal={true} />)
+    const feedback = entryHolding('feedback')
+    const cover = entryHolding('reset')
+    // the cover was shown again above the modal inserted under it
+    expect(overlay.shown.indexOf(feedback!)).toBeLessThan(overlay.shown.indexOf(cover!))
+    expect(feedback?.hasAttribute('inert')).toBe(true)
+    expect(feedback?.hasAttribute('data-covered')).toBe(true)
+    expect(cover?.hasAttribute('inert')).toBe(false)
+
+    pressEscape()
+    expect(onEscape).not.toHaveBeenCalled()
+    act(() => {
+      document.body.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, cancelable: true, key: 'n', metaKey: true}))
+    })
+    expect(newChat).not.toHaveBeenCalled()
+  })
+
+  // problem 4: the banner used to be moved into the top dialog, its context left at the root
+  test('the error banner stays above modals, usable, and keeps its state as they open and close', () => {
+    const onMount = jest.fn()
+    const onClick = jest.fn()
+    const App = (p: {modal: boolean}) => (
+      <>
+        {p.modal ? <RouterModal>modal</RouterModal> : null}
+        <GlobalOverlay tier="globalError">
+          <Banner onMount={onMount} />
+        </GlobalOverlay>
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    const banner = entryHolding('banner')
+    screen.getByText('banner').addEventListener('click', onClick)
+    rerender(<App modal={true} />)
+    const modal = entryHolding('modal')
+    expect(overlay.shown).toEqual([modal, banner])
+    expect(banner?.hasAttribute('inert')).toBe(false)
+    expect(banner?.classList.contains('overlay-entry-passthrough')).toBe(true)
+    fireEvent.click(screen.getByText('banner'))
+    expect(onClick).toHaveBeenCalledTimes(1)
+    rerender(<App modal={false} />)
+    expect(onMount).toHaveBeenCalledTimes(1)
+  })
+
+  test('a popup opened from the banner is in the banner’s tier, above modals', () => {
+    const App = (p: {modal: boolean}) => (
+      <>
+        <GlobalOverlay tier="globalError">
+          <RouterModal>from banner</RouterModal>
+        </GlobalOverlay>
+        {p.modal ? <RouterModal>modal</RouterModal> : null}
+      </>
+    )
+    const {rerender} = render(<App modal={false} />)
+    rerender(<App modal={true} />)
+    expect(entryHolding('from banner')?.hasAttribute('inert')).toBe(false)
+    expect(entryHolding('modal')?.hasAttribute('inert')).toBe(true)
+  })
+
+  test('the disconnect overlay blocks everything under it, keys included', () => {
+    const onEscape = jest.fn()
+    const under = jest.fn()
+    const App = (p: {disconnected: boolean}) => (
+      <>
+        <EscapeHandler onESC={under}>app</EscapeHandler>
+        <RouterModal onEscape={onEscape}>modal</RouterModal>
+        <GlobalOverlay tier="globalError">banner</GlobalOverlay>
+        {p.disconnected ? <GlobalOverlay tier="disconnect">disconnected</GlobalOverlay> : null}
+        <GlobalOverlay tier="outOfDate">update</GlobalOverlay>
+      </>
+    )
+    const {rerender} = render(<App disconnected={false} />)
+    rerender(<App disconnected={true} />)
+    expect(overlay.shown.map(e => e.textContent)).toEqual(['modal', 'banner', 'disconnected', 'update'])
+    expect(entryHolding('banner')?.hasAttribute('inert')).toBe(true)
+    expect(entryHolding('modal')?.hasAttribute('inert')).toBe(true)
+    expect(entryHolding('update')?.hasAttribute('inert')).toBe(false)
+    pressEscape()
+    expect(onEscape).not.toHaveBeenCalled()
+    expect(under).not.toHaveBeenCalled()
+    rerender(<App disconnected={false} />)
+    pressEscape()
+    expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  test('re-showing overlays above an insert keeps focus and the selection where they were', () => {
+    // Chromium can drop focus from a popover while it is hidden
+    const hide = overlay.hide
+    HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
+      if (this.contains(document.activeElement)) {
+        ;(document.activeElement as HTMLElement).blur()
+      }
+      hide(this)
+    }
+    const App = (p: {banner: boolean}) => (
+      <>
+        {p.banner ? <GlobalOverlay tier="globalError">banner</GlobalOverlay> : null}
+        <GlobalOverlay tier="outOfDate">
+          <input aria-label="field" defaultValue="hello world" />
+        </GlobalOverlay>
+      </>
+    )
+    try {
+      const {rerender} = render(<App banner={false} />)
+      const field = screen.getByLabelText<HTMLInputElement>('field')
+      field.focus()
+      field.setSelectionRange(2, 5)
+      rerender(<App banner={true} />)
+      expect(overlay.shown.map(e => e.textContent)).toEqual(['banner', ''])
+      expect(document.activeElement).toBe(field)
+      expect([field.selectionStart, field.selectionEnd]).toEqual([2, 5])
+    } finally {
+      HTMLElement.prototype.hidePopover = function (this: HTMLElement) {
+        hide(this)
+      }
+    }
+  })
+})

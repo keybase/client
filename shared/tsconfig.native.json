@@ -48,6 +48,7 @@
     "./common-adapters/popup/floating-box/relative-floating-box.test.tsx",
     "./common-adapters/popup/modal-cover.test.tsx",
     "./common-adapters/overlay/entry.desktop.test.tsx",
+    "./common-adapters/overlay/global-overlay.desktop.test.tsx",
     "./common-adapters/save-indicator.test.tsx",
     "./common-adapters/text.test.tsx",
     "./common-adapters/toast.test.tsx",

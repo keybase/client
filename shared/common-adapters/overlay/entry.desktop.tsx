@@ -58,11 +58,13 @@ export const useOverlayEntry = (p: HookProps) => {
 
 type Props = HookProps & {
   children: React.ReactNode
+  // only what is inside takes clicks, so what is under it stays usable
+  passthrough?: boolean
 }
 
 // A full-window overlay in the top layer, in its place in the overlay stack.
 export const OverlayEntry = (p: Props) => {
-  const {acceptsKeys, blocking, children, kind, onEscape, outside, stoppedEscapeCloses, tier} = p
+  const {acceptsKeys, blocking, children, kind, onEscape, outside, passthrough, stoppedEscapeCloses, tier} = p
   const {id, ref, shown} = useOverlayEntry({
     acceptsKeys,
     blocking,
@@ -79,7 +81,7 @@ export const OverlayEntry = (p: Props) => {
           popover="manual"
           ref={ref}
           data-overlay-entry={id}
-          className="overlay-entry"
+          className={passthrough ? 'overlay-entry overlay-entry-passthrough' : 'overlay-entry'}
           tabIndex={-1}
         >
           {shown ? <OverlayEntryContext value={id}>{children}</OverlayEntryContext> : null}
