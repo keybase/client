@@ -174,11 +174,13 @@ helpers.rootLinuxNode(env, {
     def hasProtocolChanges = protocolChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasShellcheckChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /^packaging\/|^shared\/react-native\/(gobuild|packageAndBuild)\.sh$/ } >= 0
     def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has protocol changes: " + hasProtocolChanges
     println "Has JS changes: " + hasJSChanges
     println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
+    println "Has shellcheck changes: " + hasShellcheckChanges
     def dependencyFiles = [:]
 
     if (hasGoChanges && env.CHANGE_TARGET && !hasJenkinsfileChanges) {
@@ -196,6 +198,17 @@ helpers.rootLinuxNode(env, {
         parallel (
           failFast: true,
           test_linux: {
+            if (hasShellcheckChanges || hasJenkinsfileChanges) {
+              stage("Shellcheck") {
+                // Run from the repo root: the `# shellcheck source=`
+                // directives are relative to it.
+                sh '''
+                  shellcheck --version
+                  git ls-files -z -- 'packaging/*.sh' shared/react-native/gobuild.sh shared/react-native/packageAndBuild.sh \\
+                    | xargs -0 shellcheck -S warning -x
+                '''
+              }
+            }
             def packagesToTest = [:]
             if (hasProtocolChanges || hasJenkinsfileChanges) {
               // Clean the index first

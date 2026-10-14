@@ -34,8 +34,8 @@ and the CI checks the release `wait-ci` gate waits for.
 
 ## Linting
 
-The `Shellcheck packaging scripts` GitHub workflow
-(`.github/workflows/shellcheck.yml`) runs `shellcheck -S warning -x` over every
-`.sh` file here plus `shared/react-native/gobuild.sh` and
-`shared/react-native/packageAndBuild.sh`. Run it from the repo root so the
-`# shellcheck source=` directives resolve.
+The `Shellcheck` stage in the `Jenkinsfile` runs `shellcheck -S warning -x` over
+every `.sh` file here plus `shared/react-native/gobuild.sh` and
+`shared/react-native/packageAndBuild.sh`, whenever one of them (or the
+`Jenkinsfile`) changes. Run it from the repo root so the `# shellcheck source=`
+directives resolve.
