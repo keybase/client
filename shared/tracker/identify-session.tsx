@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import {isQuietCancel, RPCError} from '@/util/errors'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
-import {navigateAppend, navigateUp} from '@/constants/router'
+import {getVisibleScreen, navigateAppend, navigateUp} from '@/constants/router'
 import {produce} from 'immer'
 import {registerExternalResetter} from '@/util/zustand'
 import {subscribeToEngineAction} from '@/engine/action-listener'
@@ -199,6 +199,12 @@ export const loadNonUserProfile = (username: string) => {
   ignorePromise(loadNonUserDetails(s, s.generation))
 }
 
+const isProfileOnScreen = (username: string) => {
+  const screen = getVisibleScreen(true)
+  const params = screen?.params as {username?: string} | undefined
+  return screen?.name === 'profile' && canonicalUsername(params?.username ?? '') === username
+}
+
 const runIdentify = async (s: Session, generation: number, guiID: string, ignoreCache: boolean) => {
   try {
     await T.RPCGen.identify3Identify3RpcListener({
@@ -209,7 +215,8 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
       waitingKey: C.waitingKeyTrackerProfileLoad,
     })
   } catch (error) {
-    if (!(error instanceof RPCError) || s.generation !== generation) {
+    // A cancel (an account switch, the session going away) is no failure of this user's identify
+    if (!(error instanceof RPCError) || s.generation !== generation || isQuietCancel(error)) {
       return
     }
     if (error.code === T.RPCGen.StatusCode.scresolutionfailed) {
@@ -221,13 +228,18 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
       )
       loadNonUserProfile(s.username)
     } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
-      navigateUp()
-      navigateAppend({
-        name: 'keybaseLinkError',
-        params: {
-          error: `You followed a profile link for a user (${s.username}) that does not exist.`,
-        },
-      })
+      setDetails(s, updateTrackerDetailsResult(s.details, 'error', `${s.username} does not exist.`))
+      // A profile link to a user that does not exist. Hover cards and lists identify too, and the
+      // user may have left the profile, so only the profile screen itself is replaced.
+      if (isProfileOnScreen(s.username)) {
+        navigateUp()
+        navigateAppend({
+          name: 'keybaseLinkError',
+          params: {
+            error: `You followed a profile link for a user (${s.username}) that does not exist.`,
+          },
+        })
+      }
     }
     logger.error(`Error loading profile: ${error.message}`)
   } finally {

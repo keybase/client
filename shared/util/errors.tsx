@@ -69,7 +69,7 @@ function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method, err.kind)
 }
 
-// The kind of an RPCError, or of the Error a listener wraps one in (which copies its fields)
+// The kind of an RPCError
 export const errorKind = (error: unknown): RPCErrorKind | undefined => {
   const kind = error && typeof error === 'object' ? (error as {kind?: unknown}).kind : undefined
   return kind && typeof kind === 'object' && typeof (kind as {type?: unknown}).type === 'string'
@@ -129,7 +129,7 @@ export const niceError = (e: RPCError) => {
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
     default: {
       const caps = capitalize(e.desc || e.message || 'Unknown error')
-      return caps.endsWith('.') ? `${caps}.` : caps
+      return caps.endsWith('.') ? caps : `${caps}.`
     }
   }
 }

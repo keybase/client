@@ -1,4 +1,4 @@
-import {ensureError, type RPCError} from '@/util/errors'
+import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import {
@@ -109,7 +109,9 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
         }
 
         if (error) {
-          reject(ensureError(error))
+          // The RPCError itself, as the promise RPCs reject with, so callers can match on it
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(error instanceof RPCError ? error : ensureError(error))
         } else {
           resolve(params)
         }

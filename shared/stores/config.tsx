@@ -14,6 +14,7 @@ import {
   RPCError,
   convertToError,
   isErrorTransient,
+  isQuietCancel,
   niceError,
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
@@ -350,20 +351,29 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             );
             return;
           }
-          // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
-          if (!(error instanceof RPCError) || error.desc === cancelDesc) {
-            get().dispatch.setUserSwitching(false);
-          }
+          // Every failure that was not superseded ends the switch here; nothing else would. The session
+          // refresh in finally then applies whatever the daemon says, a logged-out status included.
+          get().dispatch.setUserSwitching(false);
           if (!(error instanceof RPCError)) {
             return;
           }
           // Already logged in: the daemon's session says so. Canceling: nothing to report.
           if (
             error.code !== T.RPCGen.StatusCode.scalreadyloggedin &&
-            error.desc !== cancelDesc
+            error.desc !== cancelDesc &&
+            !isQuietCancel(error)
           ) {
-            error.desc = niceError(error);
-            get().dispatch.setLoginError(error);
+            // A copy: the engine hands the same error to the waiting key
+            get().dispatch.setLoginError(
+              new RPCError(
+                niceError(error),
+                error.code,
+                error.fields,
+                error.name,
+                undefined,
+                error.kind,
+              ),
+            );
           }
         } finally {
           // After the switch ends: a failed switch must apply a logged-out session.

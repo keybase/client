@@ -10,6 +10,7 @@ jest.mock('@/provision/flow', () => ({
 }))
 
 import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
 
 let nav: FakeNavigator
@@ -265,6 +266,36 @@ test('a non-rpc failure is not reported as a user facing error', async () => {
   enterResetPipeline({onError, username: 'testuser'})
   await flush()
 
+  expect(onError).toHaveBeenCalledTimes(1)
+  expect(onError).toHaveBeenCalledWith('')
+})
+
+test('a service failure through the engine listener reports its message to the caller', async () => {
+  const fake = installFakeEngine()
+  const held = fake.hold('keybase.1.account.enterResetPipeline')
+  const onError = jest.fn()
+  enterResetPipeline({onError, password: 'password', username: 'testuser'})
+  await flush()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scbadloginpassword, 'bad password'))
+  await flush()
+
+  expect(onError).toHaveBeenNthCalledWith(1, '')
+  expect(onError).toHaveBeenLastCalledWith('bad password')
+})
+
+test.each([
+  ['a session cancel', T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+  ['an input cancel', T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
+])('%s through the engine listener reports no error', async (_, code, desc) => {
+  const fake = installFakeEngine()
+  const held = fake.hold('keybase.1.account.enterResetPipeline')
+  const onError = jest.fn()
+  enterResetPipeline({onError, password: 'password', username: 'testuser'})
+  await flush()
+  held[0]!.reply(fakeError(code, desc))
+  await flush()
+
+  // only the clear at the start
   expect(onError).toHaveBeenCalledTimes(1)
   expect(onError).toHaveBeenCalledWith('')
 })

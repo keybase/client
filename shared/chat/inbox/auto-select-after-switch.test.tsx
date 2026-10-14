@@ -26,7 +26,8 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
-import {getChatRpc} from '@/chat/conversation/chat-rpc'
+import {getChatRpc, setChatRpc} from '@/chat/conversation/chat-rpc'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {flush} from '@/test/flush'
 
@@ -316,6 +317,30 @@ test("a thread load that says the user is not in the conversation moves the sele
   } as unknown as ConversationThreadActions
 
   loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
+  await flush()
+  rerenderShell()
+
+  expect(selected()).toBe(newest)
+})
+
+test('a thread load the service fails through the engine listener with not-in-conv moves the selection', async () => {
+  pickAfterSwitch()
+  const fake = installFakeEngine()
+  const held = fake.hold('chat.1.local.getThreadNonblock')
+  // the service adapter, so the load runs the real getThreadNonblock listener
+  setChatRpc()
+  const serviceRpc = getChatRpc()
+  setChatRpc(chatRpc)
+  const actions = {
+    claimWindowGate: () => {},
+    clearWindowGate: () => {},
+    getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+    rpc: serviceRpc,
+  } as unknown as ConversationThreadActions
+
+  loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
+  await flush()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scchatnotinconv, 'not in conv'))
   await flush()
   rerenderShell()
 

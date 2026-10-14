@@ -8,6 +8,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
@@ -42,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   cancelProvision()
   restoreNavigator()
+  jest.restoreAllMocks()
   resetAllStores()
 })
 
@@ -83,11 +85,8 @@ const waitingCount = () => {
   return useWaitingState.getState().counts.get(waitingKeyProvision)
 }
 
-// The listener rejects with a plain Error that carries the RPCError as its cause, so the flow's
-// `instanceof RPCError` routing below never runs on this code: every failure ends the run quietly.
-// These are master's intended routes; they fail until the flow reads the RPCError.
 describe('final error handling', () => {
-  test.failing('an unknown username sends the user back to the username screen inline', async () => {
+  test('an unknown username sends the user back to the username screen inline', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
@@ -101,7 +100,7 @@ describe('final error handling', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  test.failing('a malformed username also stays on the username screen', async () => {
+  test('a malformed username also stays on the username screen', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scbadusername, 'bad username'))
@@ -114,7 +113,7 @@ describe('final error handling', () => {
     })
   })
 
-  test.failing('any other error clears modals and shows the error screen with the rpc details', async () => {
+  test('any other error clears modals and shows the error screen with the rpc details', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scdeviceprovisionoffline, 'something broke'))
@@ -152,6 +151,33 @@ describe('final error handling', () => {
 
     expect(nav.modalsCleared()).toBe(false)
     expect(nav.navigations()).toEqual([])
+  })
+
+  test.each([
+    ['an input cancel', T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+    ['a session cancel', T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+  ])('a cancel from the service (%s) ends the run quietly', async (_, code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
+    const {reply} = await startAttempt()
+
+    reply(fakeError(code, desc))
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
+  })
+
+  test('a lost service connection shows the error screen', async () => {
+    await startAttempt()
+
+    fake.drop()
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toContainEqual(
+      expect.objectContaining({name: 'error', params: expect.objectContaining({username: 'testuser'})})
+    )
   })
 
   test('a lost service connection ends the run', async () => {

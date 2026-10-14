@@ -1,8 +1,10 @@
 /// <reference types="jest" />
 import {expect, jest, test, describe, beforeEach} from '@jest/globals'
 import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
 import {
   addMembersToWizard,
+  addMembersToWizardAndNav,
   makeAddMembersWizard,
   searchResultsToMembers,
   setWizardDefaultChannels,
@@ -260,4 +262,15 @@ describe('searchResultsToMembers', () => {
       {assertion: 'a@b.com', role: 'writer'},
     ])
   })
+})
+
+test('a service failure adding members reports the service message, not [object Object]', async () => {
+  findAssertions.mockRejectedValueOnce(new RPCError('team is locked', T.RPCGen.StatusCode.scgeneric))
+  const onError = jest.fn()
+  await addMembersToWizardAndNav(
+    makeAddMembersWizard(teamID),
+    [{assertion: 'testuser@email', role: 'writer'}],
+    onError
+  )
+  expect(onError).toHaveBeenCalledWith('team is locked')
 })

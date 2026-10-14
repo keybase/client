@@ -6,7 +6,9 @@ import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
 import {getClientPrevFromThread} from './client-prev'
-import {getChatRpc, makeThreadChatRpc} from './chat-rpc'
+import {getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
+import {flush as flushAll} from '@/test/flush'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
@@ -921,5 +923,61 @@ describe('persistExplodingMode', () => {
     await flush()
     expect(error).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
+  })
+})
+
+describe('a failed thread load through the engine listener', () => {
+  let fake: FakeEngine
+  let errorLog: jest.SpyInstance
+
+  beforeEach(() => {
+    // the service adapter, so the load runs the real getThreadNonblock listener
+    setChatRpc()
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id',
+      deviceName: 'testuser-mac',
+      uid: 'uid',
+      username: 'testuser',
+    })
+    fake = installFakeEngine()
+    errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  // the service adapter sends the real conversation ID, so a key that converts to one
+  const serviceConversationIDKey = T.Chat.stringToConversationIDKey('00'.repeat(32))
+
+  const failLoad = async (code: T.RPCGen.StatusCode) => {
+    const actions = {
+      claimWindowGate: () => {},
+      clearWindowGate: () => {},
+      getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+      rpc: getChatRpc(),
+    } as unknown as ConversationThreadActions
+    const held = fake.hold('chat.1.local.getThreadNonblock')
+    loadConversationThreadMessages(serviceConversationIDKey, {reason: 'focused'}, actions)
+    await flushAll()
+    held[0]!.reply(fakeError(code, 'thread load failed'))
+    await flushAll()
+  }
+
+  test.each([
+    ['our own cancel', T.RPCGen.StatusCode.sccanceled],
+    ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
+    ['not in the conversation', T.RPCGen.StatusCode.scchatnotinconv],
+    ['not in the team', T.RPCGen.StatusCode.scchatnotinteam],
+    ['a team read error', T.RPCGen.StatusCode.scteamreaderror],
+  ])('%s is not logged as an error', async (_, code) => {
+    await failLoad(code)
+    expect(errorLog).not.toHaveBeenCalled()
+  })
+
+  test('an unexpected service error is logged as an error', async () => {
+    await failLoad(T.RPCGen.StatusCode.scgeneric)
+    expect(errorLog).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
   })
 })

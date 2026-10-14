@@ -6,6 +6,7 @@ import {errors} from './rpc-transport'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {isErrorTransient, RPCError} from '@/util/errors'
 import {openDialog} from './dialog'
+import {makeListen} from './listener'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {ignorePromise} from '@/constants/utils'
@@ -168,16 +169,30 @@ describe('the code, desc and kind of each error the client makes', () => {
     uninstallFakeEngine()
   })
 
-  test("a listener rejects with an Error carrying the service error's code and desc, and the RPCError as its cause", async () => {
+  test('a listener rejects with the RPCError itself, as the promise RPCs do', async () => {
     const fake = installFakeEngine()
     const {held, p} = recoverListener(fake)
     await tick()
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
     const e = await rejection(p)
-    expect(e).toBeInstanceOf(Error)
+    expect(e).toBeInstanceOf(RPCError)
     expect(e).toMatchObject({code: T.RPCGen.StatusCode.scnotfound, desc: 'no such user', kind: {type: 'service'}})
-    expect((e as unknown as Error).cause).toBeInstanceOf(RPCError)
     uninstallFakeEngine()
+  })
+
+  test('a listener settled with something other than an RPCError rejects with an Error', async () => {
+    // The engine only settles with RPCErrors, so a stub stands in for one settling some other way
+    const listen = makeListen({
+      call: ({callback}) => {
+        queueMicrotask(() => callback('broken' as never))
+        return 1
+      },
+      cancelSession: () => {},
+      holdServerWork: () => () => {},
+    })
+    const e = await rejection(listen({method: 'keybase.1.login.recoverPassphrase', params: {username: 'testuser'}}))
+    expect(e).toBeInstanceOf(Error)
+    expect((e as unknown as Error).message).toBe('broken')
   })
 
   test("a Dialog's done rejects with the RPCError itself", async () => {
