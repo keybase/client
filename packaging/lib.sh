@@ -120,12 +120,23 @@ kb_release_bin() {
   export KB_RELEASE_BIN_KEY="$key"
 }
 
+# CLEAN_CACHES=1 (set by the bot) makes kb_prune_yarn_cache, kb_yarn_modules and
+# kb_guard_go_cache clear their caches unconditionally, for a from-scratch build.
+kb_clean_caches() {
+  [ "${CLEAN_CACHES:-}" = "1" ]
+}
+
 # kb_prune_yarn_cache
 # Runs `yarn cache clean` only when the volume holding the yarn cache has less
 # than KB_MIN_FREE_GB (default 30) free. The build machines are short on disk,
 # but cleaning every build forces a full re-download. Never fails the build.
 kb_prune_yarn_cache() {
   local min_gb="${KB_MIN_FREE_GB:-30}" cache_dir free_gb
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; cleaning the yarn cache"
+    yarn cache clean || echo "yarn cache clean failed; continuing"
+    return 0
+  fi
   cache_dir="$(yarn cache dir 2>/dev/null)" || cache_dir=""
   if [ -z "$cache_dir" ]; then
     echo "Couldn't find the yarn cache dir; not pruning it"
@@ -163,7 +174,10 @@ kb_yarn_modules() {
     ls patches 2>/dev/null || true
     cat patches/* 2>/dev/null || true
   } | shasum -a 256 | cut -d' ' -f1)"
-  if [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$stamp" ]; then
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; removing node_modules"
+    rm -rf "$shared_dir/node_modules"
+  elif [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$stamp" ]; then
     echo "Dependencies unchanged; reusing node_modules"
   else
     echo "Dependencies or patches changed; removing node_modules"
@@ -179,6 +193,11 @@ kb_yarn_modules() {
 # doesn't key cgo objects on the macOS SDK headers and libraries. So on macOS,
 # clear it whenever the SDK or clang changes. Never fails the build.
 kb_guard_go_cache() {
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; clearing the Go build cache"
+    go clean -cache || echo "go clean -cache failed; continuing"
+    return 0
+  fi
   if [ "$(uname)" != "Darwin" ]; then
     return 0
   fi
