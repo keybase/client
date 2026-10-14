@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
-index 565d9ce..dec8a48 100644
+index 049fd22..4daf6e5 100644
 --- a/node_modules/react-native-screens/ios/RNSScreen.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreen.mm
-@@ -1544,6 +1544,21 @@ - (void)viewDidDisappear:(BOOL)animated
+@@ -1589,6 +1589,21 @@ - (void)viewDidDisappear:(BOOL)animated
  - (void)viewDidLayoutSubviews
  {
    [super viewDidLayoutSubviews];
@@ -23,12 +23,12 @@ index 565d9ce..dec8a48 100644
 +  }
  
    // The below code makes the screen view adapt dimensions provided by the system. We take these
-   // into account only when the view is mounted under RNSNavigationController in which case system
+   // into account only when the view is mounted under RNSNavigationController, in which case the
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
-index c233036..a3f0f36 100644
+index 5da1196..033522f 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
-@@ -59,6 +59,21 @@ - (UIViewController *)childViewControllerForStatusBarHidden
+@@ -82,7 +82,21 @@ - (UIViewController *)childViewControllerForStatusBarHidden
  - (void)viewDidLayoutSubviews
  {
    [super viewDidLayoutSubviews];
@@ -44,17 +44,17 @@ index c233036..a3f0f36 100644
 +    [self rnscreens_updateHeaderLayoutInfoAfterLayout];
 +  }];
 +}
-+
+ 
 +- (void)rnscreens_updateHeaderLayoutInfoAfterLayout
 +{
-   if ([self.topViewController isKindOfClass:[RNSScreen class]]) {
-     RNSScreen *screenController = (RNSScreen *)self.topViewController;
-     BOOL isNotDismissingModal = screenController.presentedViewController == nil ||
+ #if RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
+   if (@available(iOS 26.0, *)) {
+     [self requestLayoutIfNavigationBarFrameChanged];
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
-index a54cb63..d7e2bf9 100644
+index e217b24..bc44b76 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
-@@ -208,7 +208,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
+@@ -212,7 +212,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
    [self updateShadowStateWithSize:navigationBar.frame.size
                         edgeInsets:[self computeEdgeInsetsOfNavigationBar:navigationBar]
                        frameOrigin:navBarFrameInScreenView.origin];
@@ -70,7 +70,7 @@ index a54cb63..d7e2bf9 100644
    }
  }
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
-index add33c4..8022575 100644
+index 882761c..9bf87c0 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
 @@ -2,6 +2,7 @@
@@ -81,7 +81,7 @@ index add33c4..8022575 100644
  
  #import <react/renderer/components/rnscreens/ComponentDescriptors.h>
  #import <react/renderer/components/rnscreens/EventEmitters.h>
-@@ -53,14 +54,18 @@ - (void)layoutNavigationBar
+@@ -54,14 +55,18 @@ - (void)layoutNavigationBar
      return;
    }
  
@@ -102,7 +102,7 @@ index add33c4..8022575 100644
  }
  
  #pragma mark - Fabric specific
-@@ -277,6 +282,11 @@ - (void)configureBarButtonItem
+@@ -280,6 +285,11 @@ - (void)configureBarButtonItem
    if (@available(iOS 26.0, *)) {
      if (_barButtonItem != nil) {
        [_barButtonItem setHidesSharedBackground:_hidesSharedBackground];
@@ -115,32 +115,30 @@ index add33c4..8022575 100644
    }
  #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 06c1957..222e098 100644
+index bc9c644..6f77f46 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-@@ -307,12 +307,22 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
+@@ -377,10 +377,19 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
    RCTAssert(![NSString rnscreens_isBlankOrNull:screenKey],
              @"[RNScreens] The screenKey MUST NOT be null if the view controller is not null");
  
 +  BOOL isInitialSelection = _navigationState == nil;
    [self progressNavigationState:screenKey withOrigin:actionOrigin];
  
-   if (currSelectedViewController == nextSelectedViewController) {
-     return YES;
+   if (![self isScreenControllerCurrentlySelected:nextSelectedViewController]) {
+-    [self applySelectedScreenController:nextSelectedViewController];
++    if (isInitialSelection) {
++      // setViewControllers: already selected index 0; don't slide the iOS 26 glass pill to the startup tab.
++      [UIView performWithoutAnimation:^{
++        [self applySelectedScreenController:nextSelectedViewController];
++        [self.tabBar layoutIfNeeded];
++      }];
++    } else {
++      [self applySelectedScreenController:nextSelectedViewController];
++    }
    }
  
-+  // setViewControllers: already selected index 0; don't slide the iOS 26 glass pill to the startup tab.
-+  if (isInitialSelection) {
-+    [UIView performWithoutAnimation:^{
-+      [self setSelectedViewController:nextSelectedViewController];
-+      [self.tabBar layoutIfNeeded];
-+    }];
-+    return YES;
-+  }
-+
-   [self setSelectedViewController:nextSelectedViewController];
    return YES;
- }
 diff --git a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h
 index 0e7010d..8e3af12 100644
 --- a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h

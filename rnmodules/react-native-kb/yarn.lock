@@ -2500,10 +2500,10 @@ react-is@^18.0.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
 
-react-native-builder-bob@0.43.1:
-  version "0.43.1"
-  resolved "https://registry.yarnpkg.com/react-native-builder-bob/-/react-native-builder-bob-0.43.1.tgz#b39d0764ebc7dd33d46e8507d8d45f7d1f20990c"
-  integrity sha512-TRGDmaAI72gMyRXFbNhWVODLe9YOydJ9HV+SCdLp+BjHnUJLeAImFCnZUmlO/2pUQUC1+yS+S4EMlRZ4rGCwBg==
+react-native-builder-bob@0.43.2:
+  version "0.43.2"
+  resolved "https://registry.yarnpkg.com/react-native-builder-bob/-/react-native-builder-bob-0.43.2.tgz#7bf1ed6e3a481ae53894bd81b2cf00fcad4aad0f"
+  integrity sha512-H9RmhrCf2zdxBI5YMznz/uRVZ+CcH1ScUaiSBc0s2JiDwglbbtzrrQJnc5w1IFDvOoVPo/WV3XkBXrb66PG9Pg==
   dependencies:
     "@babel/core" "^7.29.0"
     "@babel/plugin-transform-flow-strip-types" "^7.27.1"
@@ -2733,9 +2733,9 @@ shebang-regex@^3.0.0:
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
 shell-quote@^1.6.1:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.10.0.tgz#482033e192e4f5c07151521ffa03400ec71b1b0f"
-  integrity sha512-w1aiOKwKuRgtwAReIIj89puqg+I7GvX4IbLrvmhXbzQsj1+Zwi4VO3+fa6ZF91TWSjIxoEkKnMeHcLEODK5ZXA==
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.12.0.tgz#e98fdfd2e921d8a58ae2820f4fc0f75c39f09675"
+  integrity sha512-PcByqNyT/38F2kDNi006HAMRJaULuBzq/FOsw3qdZvX/GA9W/jamDaRskgHjubHiftXK5sIFxLNkvrXUwcof6Q==
 
 sisteransi@^1.0.5:
   version "1.0.5"
