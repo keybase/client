@@ -37,5 +37,6 @@ and the CI checks the release `wait-ci` gate waits for.
 The `Shellcheck` stage in the `Jenkinsfile` runs `shellcheck -S warning -x` over
 every `.sh` file here plus `shared/react-native/gobuild.sh` and
 `shared/react-native/packageAndBuild.sh`, whenever one of them (or the
-`Jenkinsfile`) changes. Run it from the repo root so the `# shellcheck source=`
+`Jenkinsfile`) changes. The Jenkins setup step installs a pinned, checksummed
+shellcheck (v0.11.0). Run it from the repo root so the `# shellcheck source=`
 directives resolve.
