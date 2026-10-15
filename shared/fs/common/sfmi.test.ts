@@ -5,8 +5,10 @@ import {
   canApplyStatus,
   canEnableDriver,
   disconnectedPollLimit,
+  driverEnableImpl,
   type DriverStatusRefresh,
   isSameAccount,
+  isFinderAccessMountPending,
   isMountPending,
   keepKextPermissionError,
   mountPollIntervalMs,
@@ -52,6 +54,10 @@ test('enabling needs macFUSE ready', () => {
   expect(canEnableDriver(Constants.emptyDriverStatusEnabled)).toBe(true)
 })
 
+test('enabling needs a known status', () => {
+  expect(canEnableDriver({type: T.FS.DriverStatusType.Unknown})).toBe(false)
+})
+
 test('a refresh during an operation keeps its in-flight flag', () => {
   expect(withDriverOperation(disabled(), 'enabling')).toEqual(disabled({isEnabling: true}))
   expect(withDriverOperation(Constants.emptyDriverStatusEnabled, 'disabling')).toEqual({
@@ -79,6 +85,7 @@ const refreshSequence = (statuses: ReadonlyArray<DriverStatusRefresh>) => {
   return jest.fn(async () => Promise.resolve(statuses[Math.min(call++, statuses.length - 1)]))
 }
 const noWait = jest.fn(async (_ms: number) => Promise.resolve())
+const always = () => true
 
 afterEach(() => {
   noWait.mockClear()
@@ -86,7 +93,7 @@ afterEach(() => {
 
 test('enabling keeps refreshing until the mount shows', async () => {
   const refresh = refreshSequence([disabled(), disabled(), Constants.emptyDriverStatusEnabled])
-  await refreshUntilMounted(refresh, noWait)
+  await refreshUntilMounted(refresh, noWait, always)
   expect(refresh).toHaveBeenCalledTimes(3)
   expect(noWait).toHaveBeenCalledTimes(2)
   expect(noWait).toHaveBeenCalledWith(mountPollIntervalMs)
@@ -94,33 +101,33 @@ test('enabling keeps refreshing until the mount shows', async () => {
 
 test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not ready', async () => {
   const neverMounts = refreshSequence([disabled()])
-  const last = await refreshUntilMounted(neverMounts, noWait)
+  const last = await refreshUntilMounted(neverMounts, noWait, always)
   expect(neverMounts).toHaveBeenCalledTimes(mountPollLimit + 1)
   expect(isMountPending(last)).toBe(true)
 
   const fails = refreshSequence([undefined])
-  const failed = await refreshUntilMounted(fails, noWait)
+  const failed = await refreshUntilMounted(fails, noWait, always)
   expect(fails).toHaveBeenCalledTimes(1)
   expect(isMountPending(failed)).toBe(false)
 
   const removedStatus = disabled({macfuse: T.FS.MacfuseState.NotInstalled})
   const removed = refreshSequence([removedStatus])
-  expect(await refreshUntilMounted(removed, noWait)).toBe(removedStatus)
+  expect(await refreshUntilMounted(removed, noWait, always)).toBe(removedStatus)
   expect(removed).toHaveBeenCalledTimes(1)
   expect(isMountPending(removedStatus)).toBe(false)
 })
 
 test('refreshing keeps going while KBFS restarts, and stops on a failure after it', async () => {
   const restarts = refreshSequence([disabled(), 'disconnected', 'disconnected', Constants.emptyDriverStatusEnabled])
-  expect(await refreshUntilMounted(restarts, noWait)).toBe(Constants.emptyDriverStatusEnabled)
+  expect(await refreshUntilMounted(restarts, noWait, always)).toBe(Constants.emptyDriverStatusEnabled)
   expect(restarts).toHaveBeenCalledTimes(4)
 
   const failsAfter = refreshSequence(['disconnected', undefined, disabled()])
-  expect(await refreshUntilMounted(failsAfter, noWait)).toBeUndefined()
+  expect(await refreshUntilMounted(failsAfter, noWait, always)).toBeUndefined()
   expect(failsAfter).toHaveBeenCalledTimes(2)
 
   const neverBack = refreshSequence(['disconnected'])
-  expect(await refreshUntilMounted(neverBack, noWait)).toBe('disconnected')
+  expect(await refreshUntilMounted(neverBack, noWait, always)).toBe('disconnected')
   expect(neverBack).toHaveBeenCalledTimes(disconnectedPollLimit + 1)
 })
 
@@ -128,12 +135,75 @@ test('time spent disconnected does not use up the wait for the mount', async () 
   const restarting = Array<DriverStatusRefresh>(disconnectedPollLimit).fill('disconnected')
   const pending = Array<DriverStatusRefresh>(mountPollLimit).fill(disabled())
   const slow = refreshSequence([...restarting, ...pending, Constants.emptyDriverStatusEnabled])
-  expect(await refreshUntilMounted(slow, noWait)).toBe(Constants.emptyDriverStatusEnabled)
+  expect(await refreshUntilMounted(slow, noWait, always)).toBe(Constants.emptyDriverStatusEnabled)
   expect(slow).toHaveBeenCalledTimes(disconnectedPollLimit + mountPollLimit + 1)
 
   const neverMounts = refreshSequence([...restarting, disabled()])
-  expect(isMountPending(await refreshUntilMounted(neverMounts, noWait))).toBe(true)
+  expect(isMountPending(await refreshUntilMounted(neverMounts, noWait, always))).toBe(true)
   expect(neverMounts).toHaveBeenCalledTimes(disconnectedPollLimit + mountPollLimit + 1)
+})
+
+test('polling stops as soon as the account changes', async () => {
+  let current = true
+  const refresh = jest.fn(async () => Promise.resolve<DriverStatusRefresh>(disabled()))
+  const switchAfterFirstWait = jest.fn(async (_ms: number) => {
+    current = false
+    return Promise.resolve()
+  })
+  await refreshUntilMounted(refresh, switchAfterFirstWait, () => current)
+  expect(refresh).toHaveBeenCalledTimes(1)
+  expect(switchAfterFirstWait).toHaveBeenCalledTimes(1)
+
+  const notCurrent = refreshSequence(['disconnected'])
+  await refreshUntilMounted(notCurrent, noWait, () => false)
+  expect(notCurrent).toHaveBeenCalledTimes(1)
+  expect(noWait).not.toHaveBeenCalled()
+})
+
+const enableWith = (
+  statuses: ReadonlyArray<DriverStatusRefresh>,
+  overrides: Partial<Parameters<typeof driverEnableImpl>[0]> = {}
+) => {
+  const params = {
+    enable: jest.fn(async () => Promise.resolve('refresh' as const)),
+    mountStillPending: jest.fn(),
+    openFinder: jest.fn(async (_driverStatus: T.FS.DriverStatus) => Promise.resolve()),
+    pollUntilMounted: true,
+    refreshDriverStatus: refreshSequence(statuses),
+    setKextPermissionError: jest.fn(),
+    stillCurrent: always,
+    wait: noWait,
+    ...overrides,
+  }
+  return {params, run: async () => driverEnableImpl(params)}
+}
+
+test("the user's enable opens Finder once, after the mount shows", async () => {
+  const {params, run} = enableWith([disabled(), 'disconnected', Constants.emptyDriverStatusEnabled])
+  await run()
+  expect(params.openFinder).toHaveBeenCalledTimes(1)
+  expect(params.openFinder).toHaveBeenCalledWith(Constants.emptyDriverStatusEnabled)
+  expect(params.mountStillPending).not.toHaveBeenCalled()
+})
+
+test('an enable opens nothing if the mount never shows, the account changed, or macOS refused the kext', async () => {
+  const pending = enableWith([disabled()])
+  await pending.run()
+  expect(pending.params.openFinder).not.toHaveBeenCalled()
+  expect(pending.params.mountStillPending).toHaveBeenCalledTimes(1)
+
+  const switched = enableWith([Constants.emptyDriverStatusEnabled], {stillCurrent: () => false})
+  await switched.run()
+  expect(switched.params.openFinder).not.toHaveBeenCalled()
+  expect(switched.params.mountStillPending).not.toHaveBeenCalled()
+
+  const kext = enableWith([Constants.emptyDriverStatusEnabled], {
+    enable: jest.fn(async () => Promise.resolve('kextPermissionErrorRetry' as const)),
+  })
+  await kext.run()
+  expect(kext.params.refreshDriverStatus).not.toHaveBeenCalled()
+  expect(kext.params.openFinder).not.toHaveBeenCalled()
+  expect(kext.params.setKextPermissionError).toHaveBeenCalledWith(true)
 })
 
 test('a status applies only on the account and KBFS connection its refresh started on', () => {
@@ -268,4 +338,14 @@ test('a failed operation reports its error and still ends', async () => {
   await runDriverOperation(async () => Promise.resolve(), onError, end)
   expect(onError).not.toHaveBeenCalled()
   expect(end).toHaveBeenCalledTimes(1)
+})
+
+test('waiting for the mount on connect stops at once when Finder access is off', async () => {
+  const refresh = refreshSequence([disabled(), Constants.emptyDriverStatusEnabled])
+  const waitForMount = isFinderAccessMountPending
+  expect(await refreshUntilMounted(refresh, noWait, () => true, waitForMount)).toEqual(disabled())
+  expect(refresh).toHaveBeenCalledTimes(1)
+  const on = refreshSequence([disabled({finderAccessOn: true}), Constants.emptyDriverStatusEnabled])
+  expect(await refreshUntilMounted(on, noWait, () => true, waitForMount)).toEqual(Constants.emptyDriverStatusEnabled)
+  expect(on).toHaveBeenCalledTimes(2)
 })

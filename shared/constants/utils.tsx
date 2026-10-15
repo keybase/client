@@ -5,7 +5,7 @@ import {errorKind, isQuietCancel} from '@/util/errors'
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {
+export const ignorePromise = (f: Promise<unknown>) => {
   f.then(() => {}).catch((e: unknown) => {
     // A quiet cancel (a switch, a dispose, the service's cancel) is not a failure of the work
     const kind = errorKind(e)

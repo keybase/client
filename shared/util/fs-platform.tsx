@@ -25,7 +25,10 @@ export const darwinFuseStatusToDriverStatus = (status: T.RPCGen.FuseStatus): T.F
   switch (status.installStatus) {
     case T.RPCGen.InstallStatus.installed:
       if (status.installAction !== T.RPCGen.InstallAction.upgrade) {
-        return Constants.emptyDriverStatusDisabled
+        return {
+          ...Constants.emptyDriverStatusDisabled,
+          finderAccessOn: !!status.status.fields?.some(f => f.key === 'finderAccess' && f.value === 'on'),
+        }
       }
       return status.status.name === statusUnsupportedMacos
         ? {
