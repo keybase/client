@@ -97,7 +97,8 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
       finishCommandLineTool
     )
   } catch (error) {
-    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
+    // attempted, so the result reports this error rather than a missing installer
+    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), true, '', '')
   }
 }
 

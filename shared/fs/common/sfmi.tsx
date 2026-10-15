@@ -14,8 +14,7 @@ import {
 } from '@/util/fs-platform'
 import {clientID as fsClientID} from './client'
 import {useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
-import {ensureError} from '@/util/errors'
-import isObject from 'lodash/isObject'
+import {RPCError, ensureError} from '@/util/errors'
 import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
@@ -89,6 +88,12 @@ export const withDriverOperation = (
 
 export type AppliedDriverStatus = {refreshId: number; driverStatus: T.FS.DriverStatus}
 
+// What the service reports, without the client-side in-flight and kext error flags.
+const driverStatusKey = (driverStatus: T.FS.DriverStatus) =>
+  driverStatus.type === T.FS.DriverStatusType.Disabled
+    ? `${driverStatus.type}:${driverStatus.macfuse}`
+    : driverStatus.type
+
 export type DriverStatusRefreshResult = {
   applied: AppliedDriverStatus
   becameEnabled: boolean
@@ -113,7 +118,7 @@ export const applyDriverStatusRefresh = (
         isCurrent: false,
         refreshAgain:
           applied.driverStatus.type !== T.FS.DriverStatusType.Unknown &&
-          applied.driverStatus.type !== driverStatus.type,
+          driverStatusKey(applied.driverStatus) !== driverStatusKey(driverStatus),
       }
     : {
         applied: {driverStatus, refreshId},
@@ -404,7 +409,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
 
   const reportDriverError = React.useEffectEvent((action: 'enable' | 'disable', error: unknown) => {
     redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${ensureError(error).message}`)
-    if (isObject(error) && (error as {code?: unknown}).code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
+    if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
       checkKbfsDaemonRpcStatus()
     }
     // a failure part way through can leave the status changed
@@ -425,8 +430,11 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     setSfmiState(s => (s.mountPending === mountPending ? s : {...s, mountPending}))
   }
 
+  // a refresh that landed after the enable's last poll may already show the mount
   const mountStillPending = React.useEffectEvent(() => {
-    setMountPending(true)
+    if (isMountPending(appliedDriverStatusRef.current.driverStatus)) {
+      setMountPending(true)
+    }
   })
 
   const endDriverOperation = () => {
