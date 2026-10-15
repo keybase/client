@@ -85,9 +85,14 @@ kb_sign_binary() {
   case "${PLATFORM:-}" in
     darwin|darwin-arm64)
       echo "Signing $*"
+      local args=(--verbose --force --options runtime --sign "$KB_CODESIGN_IDENTITY")
+      # An ad-hoc signature (identity "-") can't be timestamped.
+      if [ "$KB_CODESIGN_IDENTITY" != "-" ]; then
+        args+=(--timestamp)
+      fi
       local path
       for path in "$@"; do
-        codesign --verbose --force --timestamp --options runtime --sign "$KB_CODESIGN_IDENTITY" "$path"
+        codesign "${args[@]}" "$path"
       done
       ;;
     linux) echo "No codesigning for Linux" ;;

@@ -170,7 +170,10 @@ sign() { (
 
 	echo "Verify codesigning..."
 	codesign --verify --deep --strict --verbose=4 "$app_name.app"
-	spctl --assess --verbose=4 "$app_name.app"
+	# Gatekeeper rejects an ad-hoc signature (KB_CODESIGN_IDENTITY=-).
+	if [ "$KB_CODESIGN_IDENTITY" != "-" ]; then
+		spctl --assess --verbose=4 "$app_name.app"
+	fi
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase-redirector"
