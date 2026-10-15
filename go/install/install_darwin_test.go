@@ -243,26 +243,20 @@ func TestInstallCLIPathsCommand(t *testing.T) {
 }
 
 func TestLegacyRedirectorDirs(t *testing.T) {
-	cases := map[libkb.RunMode][]string{
-		libkb.ProductionRunMode: {"/keybase", "/Volumes/Keybase"},
-		libkb.StagingRunMode:    {"/keybase.staging", "/Volumes/KeybaseStaging"},
-		libkb.DevelRunMode:      {"/keybase.devel", "/Volumes/KeybaseDevel"},
-	}
-	for runMode, want := range cases {
-		dirs, err := legacyRedirectorDirs(runMode)
-		require.NoError(t, err)
-		require.Equal(t, want, dirs, runMode)
-	}
-	_, err := legacyRedirectorDirs(libkb.RunMode("bogus"))
-	require.Error(t, err)
+	require.Equal(t, []string{
+		"/keybase", "/Volumes/Keybase",
+		"/keybase.staging", "/Volumes/KeybaseStaging",
+		"/keybase.devel", "/Volumes/KeybaseDevel",
+	}, legacyRedirectorDirs)
 }
 
 func TestRetireLegacyHelperCommand(t *testing.T) {
-	dirs, err := legacyRedirectorDirs(libkb.ProductionRunMode)
-	require.NoError(t, err)
+	dirs := []string{"/keybase", "/Volumes/Keybase"}
 	cmd := retireLegacyHelperCommand(dirs, []string{"/Volumes/Keybase"})
 	require.Equal(t, "set -e"+
 		"; /bin/launchctl bootout 'system/keybase.Helper' 2>/dev/null || true"+
+		"; if /bin/launchctl print 'system/keybase.Helper' >/dev/null 2>&1;"+
+		" then echo 'keybase.Helper is still loaded' >&2; exit 1; fi"+
 		"; /sbin/umount -f '/Volumes/Keybase' 2>/dev/null || true"+
 		"; if /usr/bin/kmutil showloaded -b 'com.github.kbfuse.filesystems.kbfuse' 2>/dev/null"+
 		" | /usr/bin/grep -qF 'com.github.kbfuse.filesystems.kbfuse';"+
