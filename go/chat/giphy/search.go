@@ -114,6 +114,9 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 		MinVersion: tls.VersionTLS12,
 	}
 	xprt.TLSClientConfig = tlsConfig
+	// Custom TLSClientConfig disables HTTP/2 unless this is set. The giphy
+	// proxy negotiates h2 when SNI is the giphy host.
+	xprt.ForceAttemptHTTP2 = true
 
 	env := mctx.G().Env
 	xprt.Proxy = libkb.MakeProxy(env)

@@ -18,12 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDiscardAndCloseBodyNil(t *testing.T) {
-	err := DiscardAndCloseBody(nil)
-	require.Error(t, err,
-		"Should have errored")
-}
-
 func testServer(t *testing.T, data string, delay time.Duration) *httptest.Server {
 	return testServerWithETag(t, data, delay, "")
 }

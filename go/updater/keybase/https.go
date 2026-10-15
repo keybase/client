@@ -29,7 +29,10 @@ func httpClientWithCert(cert string, timeout time.Duration) (*http.Client, error
 		RootCAs:    certPool,
 		MinVersion: tls.VersionTLS12,
 	}
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	transport := &http.Transport{
+		TLSClientConfig:   tlsConfig,
+		ForceAttemptHTTP2: true,
+	}
 	return &http.Client{
 		Transport: transport,
 		Timeout:   timeout,

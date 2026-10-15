@@ -53,6 +53,7 @@ func newKbwebClient() (*kbwebClient, error) {
 				RootCAs:    certPool,
 				MinVersion: tls.VersionTLS12,
 			},
+			ForceAttemptHTTP2: true,
 		},
 	}
 	return &kbwebClient{http: client}, nil

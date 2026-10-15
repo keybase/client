@@ -83,11 +83,11 @@ func (c context) report(data url.Values, update *updater.Update, options updater
 		return err
 	}
 	c.log.Infof("Reporting: %s %v", uri, data)
-	resp, err := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Notify error returned bad HTTP status %v", resp.Status)
 	}

@@ -407,11 +407,11 @@ func (c *FullCachingSource) populateCacheJob(m libkb.MetaContext, arg populateAr
 	// Grab image data first
 	url := arg.url.String()
 	resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), url, "FullCachingSource: Avatar")
-	defer func() { _ = libkb.DiscardAndCloseBody(resp) }()
 	if err != nil {
 		c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 		return err
 	}
+	defer resp.Body.Close()
 	// Find any previous path we stored this image at on the disk
 	var previousEntry lruEntry
 	var previousPath string
