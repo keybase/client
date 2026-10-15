@@ -9,16 +9,16 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strings"
+	"slices"
 
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-kext"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -42,23 +42,23 @@ type macfuseProbe struct {
 }
 
 // KeybaseFuseStatus returns the status of the stock macFUSE install. The
-// bundle version is ignored on macOS.
+// bundle version is ignored on macOS. MountInfos holds only mounts the current
+// user owns.
 func KeybaseFuseStatus(_ string, log Log) keybase1.FuseStatus {
 	st := deriveFuseStatus(probeMacfuse(log))
-	out, err := exec.Command("/sbin/mount").Output()
+	mounts, err := listMounts()
 	if err != nil {
 		log.Errorf("Error trying to read mount info: %s", err)
 		return st
 	}
-	for _, fstype := range mounter.KBFSFstypes {
-		st.MountInfos = append(st.MountInfos, parseMountOutput(fstype, string(out))...)
-	}
+	st.MountInfos = mountInfosOwnedBy(mounts, mounter.KBFSFstypes, uint32(os.Getuid()))
 	return st
 }
 
 // FilterKBFSMountInfos keeps only the mount at the user's KBFS mount
 // directory, since other apps mount with fstype macfuse too.
 func FilterKBFSMountInfos(st *keybase1.FuseStatus, mountDir string) {
+	mountDir = filepath.Clean(mountDir)
 	var kept []keybase1.FuseMountInfo
 	for _, info := range st.MountInfos {
 		if info.Path == mountDir {
@@ -66,6 +66,40 @@ func FilterKBFSMountInfos(st *keybase1.FuseStatus, mountDir string) {
 		}
 	}
 	st.MountInfos = kept
+}
+
+// listMounts returns every mounted file system, without waiting on any of
+// them to answer.
+func listMounts() ([]unix.Statfs_t, error) {
+	n, err := unix.Getfsstat(nil, unix.MNT_NOWAIT)
+	if err != nil {
+		return nil, err
+	}
+	// Room for mounts added since the count.
+	buf := make([]unix.Statfs_t, n+16)
+	n, err = unix.Getfsstat(buf, unix.MNT_NOWAIT)
+	if err != nil {
+		return nil, err
+	}
+	return buf[:n], nil
+}
+
+// mountInfosOwnedBy returns the mounts of the given fstypes that uid mounted.
+func mountInfosOwnedBy(mounts []unix.Statfs_t, fstypes []string, uid uint32) []keybase1.FuseMountInfo {
+	var infos []keybase1.FuseMountInfo
+	for _, m := range mounts {
+		fstype := unix.ByteSliceToString(m.Fstypename[:])
+		if m.Owner != uid || !slices.Contains(fstypes, fstype) {
+			continue
+		}
+		path := unix.ByteSliceToString(m.Mntonname[:])
+		infos = append(infos, keybase1.FuseMountInfo{
+			Fstype: fstype,
+			Path:   path,
+			Output: fmt.Sprintf("%s on %s (%s)", unix.ByteSliceToString(m.Mntfromname[:]), path, fstype),
+		})
+	}
+	return infos
 }
 
 func probeMacfuse(log Log) macfuseProbe {
@@ -165,34 +199,6 @@ func deriveFuseStatus(p macfuseProbe) keybase1.FuseStatus {
 		st.Status.Fields = append(st.Status.Fields, keybase1.StringKVPair{Key: "legacyKbfuse", Value: legacyKbfusePath})
 	}
 	return st
-}
-
-// parseMountOutput returns the mounts of the given fstype in /sbin/mount
-// output, whose lines look like "<from> on <path> (<fstype>, <flags>...)".
-// The path may contain spaces and parentheses.
-func parseMountOutput(fstype, out string) []keybase1.FuseMountInfo {
-	var infos []keybase1.FuseMountInfo
-	for _, line := range strings.Split(out, "\n") {
-		_, rest, found := strings.Cut(line, " on ")
-		if !found {
-			continue
-		}
-		optsStart := strings.LastIndex(rest, " (")
-		if optsStart <= 0 || !strings.HasSuffix(rest, ")") {
-			continue
-		}
-		opts := rest[optsStart+2 : len(rest)-1]
-		lineFstype, _, _ := strings.Cut(opts, ",")
-		if strings.TrimSpace(lineFstype) != fstype {
-			continue
-		}
-		infos = append(infos, keybase1.FuseMountInfo{
-			Fstype: fstype,
-			Path:   rest[:optsStart],
-			Output: line,
-		})
-	}
-	return infos
 }
 
 func findStringInPlist(key string, plistData []byte, log Log) string {
