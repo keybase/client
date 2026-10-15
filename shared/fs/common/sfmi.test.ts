@@ -88,6 +88,12 @@ test('enabling keeps refreshing until the mount shows', async () => {
   expect(noWait).toHaveBeenCalledWith(mountPollIntervalMs)
 })
 
+test('enabling keeps refreshing past a reconnect reset', async () => {
+  const refresh = refreshSequence([{type: T.FS.DriverStatusType.Unknown}, disabled(), Constants.emptyDriverStatusEnabled])
+  expect(await refreshUntilMounted(refresh, noWait)).toEqual(Constants.emptyDriverStatusEnabled)
+  expect(refresh).toHaveBeenCalledTimes(3)
+})
+
 test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not ready', async () => {
   const neverMounts = refreshSequence([disabled()])
   const last = await refreshUntilMounted(neverMounts, noWait)
