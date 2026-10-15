@@ -149,6 +149,14 @@ test('a dropped Disabled response with another macFUSE state also asks for one m
   const applied = {driverStatus: unsupported, refreshId: 2}
   expect(applyDriverStatusRefresh(applied, 1, disabled()).refreshAgain).toBe(true)
   expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, unsupported).refreshAgain).toBe(true)
+  // the details the copy shows count too
+  const applyOver = (newer: T.FS.DriverStatusDisabled, older: T.FS.DriverStatusDisabled) =>
+    applyDriverStatusRefresh({driverStatus: newer, refreshId: 2}, 1, older).refreshAgain
+  expect(applyOver(unsupported, {...unsupported, macfuseVersion: '5.3.0'})).toBe(true)
+  expect(applyOver(unsupported, {...unsupported, macosVersion: '27'})).toBe(true)
+  const errored = disabled({macfuse: T.FS.MacfuseState.Error, macfuseError: 'load failed'})
+  expect(applyOver(errored, {...errored, macfuseError: 'not found'})).toBe(true)
+  expect(applyOver(errored, {...errored})).toBe(false)
   // the client-side flags are not the service's answer
   expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, kextError).refreshAgain).toBe(false)
   expect(

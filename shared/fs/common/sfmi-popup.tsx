@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import MacfusePrompt, {macfuseNetworkVolumeNote, macfusePromptCopy} from './macfuse-prompt'
-import MountPendingNote from './mount-pending-note'
+import MacfusePrompt, {macfusePromptCopy} from './macfuse-prompt'
+import {useEnableNote} from './mount-pending-note'
 import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {
@@ -14,6 +14,7 @@ const SFMIPopup = (props: Props) => {
   const theme = Kb.Styles.useTheme()
   const {mode} = props
   const {driverEnable, driverStatus} = useSystemFileManagerIntegration()
+  const enableNote = useEnableNote()
   const {type} = driverStatus
   const isEnabling = type === T.FS.DriverStatusType.Disabled ? driverStatus.isEnabling : false
   const macfuseCopy = type === T.FS.DriverStatusType.Disabled ? macfusePromptCopy(driverStatus) : undefined
@@ -49,12 +50,11 @@ const SFMIPopup = (props: Props) => {
                 Get access to your files and folders just like you normally do with your local files.
                 It&apos;s encrypted and secure.
               </Kb.Text>
-              {C.isDarwin ? (
+              {enableNote ? (
                 <Kb.Text type="BodySmall" style={styles.text} center={true}>
-                  {macfuseNetworkVolumeNote}
+                  {enableNote}
                 </Kb.Text>
               ) : null}
-              <MountPendingNote center={true} style={styles.text} />
               <Kb.Divider style={styles.divider} />
               <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
                 <Kb.Button type="Success" label="Yes, enable" waiting={isEnabling} onClick={enableDriver} />
