@@ -7,6 +7,8 @@ package install
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -173,6 +175,15 @@ func TestListMounts(t *testing.T) {
 		paths = append(paths, unix.ByteSliceToString(m.Mntonname[:]))
 	}
 	require.Contains(t, paths, "/")
+}
+
+func TestResolveMountDir(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	link := filepath.Join(tmp, "link")
+	require.NoError(t, os.Symlink(tmp, link))
+	require.Equal(t, filepath.Join(tmp, "Keybase (testuser)"), resolveMountDir(link+"/Keybase (testuser)/"))
+	require.Equal(t, "/nowhere/Keybase", resolveMountDir("/nowhere/Keybase/"))
 }
 
 func TestFilterKBFSMountInfos(t *testing.T) {

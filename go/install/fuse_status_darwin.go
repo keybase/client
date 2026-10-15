@@ -58,7 +58,7 @@ func KeybaseFuseStatus(_ string, log Log) keybase1.FuseStatus {
 // FilterKBFSMountInfos keeps only the mount at the user's KBFS mount
 // directory, since other apps mount with fstype macfuse too.
 func FilterKBFSMountInfos(st *keybase1.FuseStatus, mountDir string) {
-	mountDir = filepath.Clean(mountDir)
+	mountDir = resolveMountDir(mountDir)
 	var kept []keybase1.FuseMountInfo
 	for _, info := range st.MountInfos {
 		if info.Path == mountDir {
@@ -66,6 +66,18 @@ func FilterKBFSMountInfos(st *keybase1.FuseStatus, mountDir string) {
 		}
 	}
 	st.MountInfos = kept
+}
+
+// resolveMountDir returns mountDir as the kernel reports its mount: cleaned,
+// with links in its parent resolved. The mount dir itself is not resolved,
+// since that would ask the mounted file system, which may not answer.
+func resolveMountDir(mountDir string) string {
+	mountDir = filepath.Clean(mountDir)
+	parent, err := filepath.EvalSymlinks(filepath.Dir(mountDir))
+	if err != nil {
+		return mountDir
+	}
+	return filepath.Join(parent, filepath.Base(mountDir))
 }
 
 // listMounts returns every mounted file system, without waiting on any of
