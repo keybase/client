@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -554,16 +555,16 @@ func rootMountedDirs(mounts []unix.Statfs_t, dirs []string) []string {
 	return mounted
 }
 
-// otherUsersKbfuseMounts returns the kbfuse mounts owned by neither root nor
-// uid: another account's KBFS, which keeps kbfuse loaded.
-func otherUsersKbfuseMounts(mounts []unix.Statfs_t, uid uint32) []string {
-	var others []string
+// kbfuseMountsNotOwnedBy returns where kbfuse is mounted by anyone other
+// than owners.
+func kbfuseMountsNotOwnedBy(mounts []unix.Statfs_t, owners ...uint32) []string {
+	var paths []string
 	for _, m := range mounts {
-		if m.Owner != 0 && m.Owner != uid && unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" {
-			others = append(others, unix.ByteSliceToString(m.Mntonname[:]))
+		if !slices.Contains(owners, m.Owner) && unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" {
+			paths = append(paths, unix.ByteSliceToString(m.Mntonname[:]))
 		}
 	}
-	return others
+	return paths
 }
 
 // retireLegacyHelper removes the legacy helper, the kbfuse driver and the
@@ -580,18 +581,15 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 	}
 
 	redirectorDirs := legacyRedirectorDirs
-	// A redirector mount left after its process stops keeps kbfuse loaded,
-	// so the root-owned ones are unmounted.
-	mounts, err := listMounts()
-	if err != nil {
-		err = fmt.Errorf("unable to list mounts: %w", err)
-		log.Errorf("legacy helper retirement failed: %s", err)
-		return componentResult(name, err)
-	}
 	// kbfuse cannot unload while another account's KBFS is mounted on it, so
 	// nothing is stopped or removed until that account is done with it.
-	if others := otherUsersKbfuseMounts(mounts, uint32(os.Getuid())); len(others) > 0 {
-		err := fmt.Errorf("another account on this Mac is still using the old Keybase file system at %s; quit Keybase in that account, then try again", strings.Join(others, ", "))
+	mounts, err := listMounts()
+	if err == nil {
+		if inUse := kbfuseMountsNotOwnedBy(mounts, 0, uint32(os.Getuid())); len(inUse) > 0 {
+			err = fmt.Errorf("another account on this Mac is still using the old Keybase file system at %s; quit Keybase in that account or restart this Mac, then try again", strings.Join(inUse, ", "))
+		}
+	}
+	if err != nil {
 		log.Errorf("legacy helper retirement failed: %s", err)
 		return componentResult(name, err)
 	}
@@ -610,6 +608,21 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 				}
 			}()
 		}
+	}
+
+	// Listed again now that this user's KBFS is stopped: any kbfuse mount
+	// left that root does not own would keep kbfuse loaded and fail the
+	// retirement after the prompt. Root-owned ones are the redirector's,
+	// which the retirement unmounts.
+	mounts, err = listMounts()
+	if err == nil {
+		if inUse := kbfuseMountsNotOwnedBy(mounts, 0); len(inUse) > 0 {
+			err = fmt.Errorf("the old Keybase file system is still mounted at %s; quit Keybase or restart this Mac, then try again", strings.Join(inUse, ", "))
+		}
+	}
+	if err != nil {
+		log.Errorf("legacy helper retirement failed: %s", err)
+		return componentResult(name, err)
 	}
 
 	log.Info("Retiring the legacy helper as an administrator")
