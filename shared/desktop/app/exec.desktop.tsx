@@ -72,9 +72,13 @@ export default function exec(
         callback(execErr, true, stdout, stderr)
       })
     } catch (error) {
-      // this runs in the fs.access callback, past any try/catch of the caller
+      // this runs in the fs.access callback, past any try/catch of the caller, so a throwing callback is logged
       console.log('Exec (err):', error)
-      callback(Object.assign(ensureError(error), {cmd: [path, ...args].join(' ')}), true, '', '')
+      try {
+        callback(Object.assign(ensureError(error), {cmd: [path, ...args].join(' ')}), true, '', '')
+      } catch (callbackError) {
+        console.log('Exec (callback threw):', callbackError)
+      }
       return
     }
 

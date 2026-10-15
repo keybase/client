@@ -91,16 +91,22 @@ export const withDriverOperation = (
 export type AppliedDriverStatus = {refreshId: number; driverStatus: T.FS.DriverStatus}
 
 // What the service reports, without the client-side in-flight and kext error flags.
-const driverStatusKey = (driverStatus: T.FS.DriverStatus) =>
-  driverStatus.type === T.FS.DriverStatusType.Disabled
-    ? JSON.stringify([
+const driverStatusKey = (driverStatus: T.FS.DriverStatus) => {
+  switch (driverStatus.type) {
+    case T.FS.DriverStatusType.Disabled:
+      return JSON.stringify([
         driverStatus.type,
         driverStatus.macfuse,
         driverStatus.macfuseVersion,
         driverStatus.macosVersion,
         driverStatus.macfuseError,
       ])
-    : driverStatus.type
+    case T.FS.DriverStatusType.Enabled:
+      return JSON.stringify([driverStatus.type, driverStatus.dokanOutdated, driverStatus.dokanUninstallExecPath ?? ''])
+    default:
+      return driverStatus.type
+  }
+}
 
 export type DriverStatusRefreshResult = {
   applied: AppliedDriverStatus
@@ -323,7 +329,13 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     if (isCurrent) {
       appliedDriverStatusRef.current = applied
       const operation = operationRef.current
-      setSfmiState(s => ({...s, driverStatus: withDriverOperation(driverStatus, operation)}))
+      // once the mount is no longer pending, the note stays off until the next enable stops waiting
+      const settled = !isMountPending(driverStatus)
+      setSfmiState(s => ({
+        ...s,
+        driverStatus: withDriverOperation(driverStatus, operation),
+        enableStoppedWaiting: s.enableStoppedWaiting && !settled,
+      }))
     }
     return {becameEnabled, isCurrent, latest: applied.driverStatus, refreshAgain}
   }
