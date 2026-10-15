@@ -49,6 +49,14 @@ export const macfusePromptCopy = (status: T.FS.DriverStatusDisabled): MacfusePro
         label: 'Update macFUSE',
         title: 'Update macFUSE',
       }
+    case T.FS.MacfuseState.UnsupportedMacos:
+      return {
+        action: 'openSite',
+        actionLabel: 'Update macFUSE',
+        body: `macFUSE ${status.macfuseVersion} doesn't support macOS ${status.macosVersion}, which usually happens after a macOS update. Update macFUSE to keep using Keybase in Finder.`,
+        label: 'Update macFUSE',
+        title: 'Update macFUSE',
+      }
     case T.FS.MacfuseState.Error:
       return {
         action: 'openSite',

@@ -174,6 +174,7 @@ export const emptyDriverStatusDisabled = {
   macfuse: T.FS.MacfuseState.Ready,
   macfuseError: '',
   macfuseVersion: '',
+  macosVersion: '',
   type: T.FS.DriverStatusType.Disabled,
 } as const satisfies T.FS.DriverStatusDisabled
 
