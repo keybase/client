@@ -538,19 +538,32 @@ func removeRedirectorDirCommand(dir string) string {
 	return "if /bin/test -L " + d + "; then /bin/rm -f " + d + " 2>/dev/null || true; elif /bin/test -d " + d + "; then /bin/rmdir " + d + " 2>/dev/null || true; fi"
 }
 
-// rootMountedDirs returns the dirs that have a mount root owned, as the
-// legacy redirector's mounts are.
+// rootMountedDirs returns the dirs that have a root-owned kbfuse mount, as
+// the legacy redirector's mounts are.
 func rootMountedDirs(mounts []unix.Statfs_t, dirs []string) []string {
 	var mounted []string
 	for _, dir := range dirs {
 		for _, m := range mounts {
-			if m.Owner == 0 && unix.ByteSliceToString(m.Mntonname[:]) == dir {
+			if m.Owner == 0 && unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" &&
+				unix.ByteSliceToString(m.Mntonname[:]) == dir {
 				mounted = append(mounted, dir)
 				break
 			}
 		}
 	}
 	return mounted
+}
+
+// otherUsersKbfuseMounts returns the kbfuse mounts owned by neither root nor
+// uid: another account's KBFS, which keeps kbfuse loaded.
+func otherUsersKbfuseMounts(mounts []unix.Statfs_t, uid uint32) []string {
+	var others []string
+	for _, m := range mounts {
+		if m.Owner != 0 && m.Owner != uid && unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" {
+			others = append(others, unix.ByteSliceToString(m.Mntonname[:]))
+		}
+	}
+	return others
 }
 
 // retireLegacyHelper removes the legacy helper, the kbfuse driver and the
@@ -572,6 +585,13 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 	mounts, err := listMounts()
 	if err != nil {
 		err = fmt.Errorf("unable to list mounts: %w", err)
+		log.Errorf("legacy helper retirement failed: %s", err)
+		return componentResult(name, err)
+	}
+	// kbfuse cannot unload while another account's KBFS is mounted on it, so
+	// nothing is stopped or removed until that account is done with it.
+	if others := otherUsersKbfuseMounts(mounts, uint32(os.Getuid())); len(others) > 0 {
+		err := fmt.Errorf("another account on this Mac is still using the old Keybase file system at %s; quit Keybase in that account, then try again", strings.Join(others, ", "))
 		log.Errorf("legacy helper retirement failed: %s", err)
 		return componentResult(name, err)
 	}
