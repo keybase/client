@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/keybase/client/go/install/adminprompt"
 	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
@@ -409,6 +410,11 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
+func pathExists(path string) bool {
+	_, err := os.Lstat(path)
+	return err == nil
+}
+
 // installAutoComponents are the components install-auto installs. None of
 // them needs privileges or macFUSE; kbfs mounts only when the user opted in
 // and macFUSE is ready.
@@ -422,8 +428,8 @@ func installAutoComponents() []string {
 }
 
 // InstallAuto installs everything it can without asking for privileges.
-func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
-	return Install(context, binPath, sourcePath, installAutoComponents(), true, timeout, log)
+func InstallAuto(context Context, binPath string, timeout time.Duration, log Log) keybase1.InstallResult {
+	return Install(context, binPath, installAutoComponents(), true, timeout, log)
 }
 
 // shouldMountKBFS reports whether kbfs should mount: the user turned on
@@ -466,8 +472,14 @@ func ensureMacfuse(log Log) keybase1.ComponentResult {
 	}
 }
 
+func appComponentResult(log Log) keybase1.ComponentResult {
+	err := errors.New("the app component is not supported on macOS")
+	log.Errorf("%s", err)
+	return componentResult(ComponentNameApp.String(), err)
+}
+
 // Install installs specified components
-func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+func Install(context Context, binPath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
 
@@ -483,11 +495,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
-		err = libnativeinstaller.InstallAppBundle(context, sourcePath, log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
-		if err != nil {
-			log.Errorf("Error installing app bundle: %s", err)
-		}
+		componentResults = append(componentResults, appComponentResult(log))
 	}
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
@@ -519,7 +527,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
-		err = libnativeinstaller.InstallCommandLinePrivileged(context.GetRunMode(), log)
+		err = installCommandLinePrivileged(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
 			log.Errorf("Error installing command line (privileged): %s", err)
@@ -676,6 +684,146 @@ func InstallKBFS(context Context, binPath string, timeout time.Duration, log Log
 	return nil
 }
 
+// legacyCLIPathsFile is written instead of the links when /usr/local/bin is
+// not a directory, as the old helper did. cliPathsDir is its directory's real
+// path.
+const (
+	legacyCLIPathsFile = "/etc/paths.d/Keybase"
+	cliPathsDir        = "/private/etc/paths.d"
+)
+
+// cliAppBundle is the only app clipaths links the command line tools from.
+const cliAppBundle = "/Applications/Keybase.app"
+
+// cliLinkDir is where clipaths links the command line tools.
+const cliLinkDir = "/usr/local/bin"
+
+// cliBinNames are the command line tools clipaths links, by name.
+var cliBinNames = []string{"keybase", "git-remote-keybase"}
+
+// cliLinks returns, for each of cliBinNames, its binary in cliAppBundle and
+// its link in cliLinkDir.
+func cliLinks() (bins []string, links []string) {
+	binDir := filepath.Join(cliAppBundle, "Contents/SharedSupport/bin")
+	for _, name := range cliBinNames {
+		bins = append(bins, filepath.Join(binDir, name))
+		links = append(links, filepath.Join(cliLinkDir, name))
+	}
+	return bins, links
+}
+
+// cliLink is a link named name in cliLinkDir, pointing at target.
+type cliLink struct {
+	name, target string
+}
+
+// inDirCommand returns the shell command that runs cmds, joined with &&, in
+// dir, only when dir is that directory itself and not a link to another one.
+// cmds name entries of dir by relative path.
+func inDirCommand(dir string, cmds []string) string {
+	q := adminprompt.ShellQuote(dir)
+	return "cd -P " + q + " && /bin/test \"$(/bin/pwd -P)\" = " + q + " && " + strings.Join(cmds, " && ")
+}
+
+// installCLIPathsCommand returns the shell command that links each of
+// cliBinNames in linkDir to the binary at the same index in bins. ln -h and
+// -F make it replace a symlink or an empty directory at that exact name
+// rather than create the link inside the directory either points at.
+func installCLIPathsCommand(linkDir string, bins []string) string {
+	cmds := make([]string, 0, len(cliBinNames))
+	for i, name := range cliBinNames {
+		cmds = append(cmds, "/bin/ln -sfhF "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
+	}
+	return inDirCommand(linkDir, cmds)
+}
+
+// installCLIPathsFileCommand returns the shell command that writes binDir as
+// the only line of a new file named name in pathsDir, creating pathsDir if it
+// is missing.
+func installCLIPathsFileCommand(pathsDir, name, binDir string) string {
+	q := adminprompt.ShellQuote
+	n := q(name)
+	return "{ /bin/test -d " + q(pathsDir) + " || /bin/mkdir " + q(pathsDir) + "; } && " +
+		inDirCommand(pathsDir, []string{"/bin/rm -f " + n, "set -C", "/usr/bin/printf '%s\\n' " + q(binDir) + " > " + n})
+}
+
+// uninstallCLIPathsCommand returns the shell command that removes each
+// entry of linkDir named in links that is still a link to the given target,
+// then pathsFile when it is not empty.
+func uninstallCLIPathsCommand(linkDir string, links []cliLink, pathsFile string) string {
+	var parts []string
+	if len(links) > 0 {
+		cmds := make([]string, 0, len(links))
+		for _, l := range links {
+			name := adminprompt.ShellQuote(l.name)
+			cmds = append(cmds, "if /bin/test \"$(/usr/bin/readlink "+name+")\" = "+adminprompt.ShellQuote(l.target)+"; then /bin/rm -f "+name+"; fi")
+		}
+		parts = append(parts, "("+inDirCommand(linkDir, cmds)+")")
+	}
+	if pathsFile != "" {
+		parts = append(parts, "/bin/rm -f "+adminprompt.ShellQuote(pathsFile))
+	}
+	return strings.Join(parts, " && ")
+}
+
+func runAdminPrompt(prompt, shellCmd string, log Log) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	out, err := adminprompt.Run(ctx, prompt, shellCmd)
+	log.Debug("Administrator prompt output: %s", out)
+	return err
+}
+
+// installCommandLinePrivileged links the command line tools of the app in
+// /Applications into /usr/local/bin as root, after one administrator prompt.
+func installCommandLinePrivileged(log Log) error {
+	bins, links := cliLinks()
+	for _, bin := range bins {
+		fi, err := os.Lstat(bin)
+		if err != nil {
+			return fmt.Errorf("the command line tool can only be installed from %s: %w", cliAppBundle, err)
+		}
+		if !fi.Mode().IsRegular() {
+			return fmt.Errorf("%s is not a regular file", bin)
+		}
+	}
+	if fi, err := os.Lstat(cliLinkDir); err != nil || !fi.IsDir() {
+		binDir := filepath.Dir(bins[0])
+		log.Info("%s is not a directory; adding %s to %s as an administrator", cliLinkDir, binDir, legacyCLIPathsFile)
+		return runAdminPrompt("Keybase wants to install the keybase command line tool.",
+			installCLIPathsFileCommand(cliPathsDir, filepath.Base(legacyCLIPathsFile), binDir), log)
+	}
+	log.Info("Linking %v to %v as an administrator", links, bins)
+	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(cliLinkDir, bins), log)
+}
+
+// uninstallCommandLinePrivileged removes the CLI links that point into the
+// app in /Applications and the old helper's paths.d entry. What the user can
+// remove themselves is removed without a prompt; the rest takes one prompt.
+func uninstallCommandLinePrivileged(log Log) error {
+	bins, links := cliLinks()
+	var privileged []cliLink
+	for i, link := range links {
+		if target, err := os.Readlink(link); err != nil || target != bins[i] {
+			continue
+		}
+		if err := os.Remove(link); err == nil {
+			log.Info("Removed %s", link)
+			continue
+		}
+		privileged = append(privileged, cliLink{name: cliBinNames[i], target: bins[i]})
+	}
+	pathsFile := ""
+	if pathExists(legacyCLIPathsFile) {
+		pathsFile = legacyCLIPathsFile
+	}
+	if len(privileged) == 0 && pathsFile == "" {
+		return nil
+	}
+	log.Info("Removing %v from %s and %q as an administrator", privileged, cliLinkDir, pathsFile)
+	return runAdminPrompt("Keybase wants to remove the keybase command line tool.", uninstallCLIPathsCommand(cliLinkDir, privileged, pathsFile), log)
+}
+
 func uninstallCommandLine(log Log) error {
 	linkPath, err := defaultLinkPath()
 	if err != nil {
@@ -754,15 +902,11 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
-		err = libnativeinstaller.UninstallApp(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
-		if err != nil {
-			log.Errorf("Error uninstalling app: %s", err)
-		}
+		componentResults = append(componentResults, appComponentResult(log))
 	}
 
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
-		err = libnativeinstaller.UninstallCommandLinePrivileged(context.GetRunMode(), log)
+		err = uninstallCommandLinePrivileged(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
 			log.Errorf("Error uninstalling command line (privileged): %s", err)
@@ -960,6 +1104,8 @@ func isPathInDMG(p string) (inDMG bool, bundlePath string, err error) {
 	return
 }
 
+// bundleDirForPath returns the Keybase.app bundle that contains p (the first
+// path element named exactly Keybase.app), or "" if there is none.
 func bundleDirForPath(p string) string {
 	paths := libkb.SplitPath(p)
 	pathJoined := ""
