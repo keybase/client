@@ -7,7 +7,10 @@ import {
   disconnectedPollLimit,
   driverEnableImpl,
   type DriverStatusRefresh,
+  hasKextPermissionError,
+  isEnableWaiting,
   isSameAccount,
+  isSameConnection,
   isFinderAccessMountPending,
   isMountPending,
   keepKextPermissionError,
@@ -26,23 +29,27 @@ const disabled = (overrides: Partial<T.FS.DriverStatusDisabled> = {}): T.FS.Driv
 const kextError = disabled({kextPermissionError: true})
 
 test('a kext error from enabling survives a refresh while macFUSE is still ready', () => {
-  expect(keepKextPermissionError(kextError, disabled())).toEqual(kextError)
+  expect(keepKextPermissionError(true, disabled())).toEqual(kextError)
 })
 
 test('the kext error goes once KBFS mounts or macFUSE stops being ready', () => {
-  expect(keepKextPermissionError(kextError, Constants.emptyDriverStatusEnabled)).toBe(
-    Constants.emptyDriverStatusEnabled
-  )
+  expect(keepKextPermissionError(true, Constants.emptyDriverStatusEnabled)).toBe(Constants.emptyDriverStatusEnabled)
   const removed = disabled({macfuse: T.FS.MacfuseState.NotInstalled})
-  expect(keepKextPermissionError(kextError, removed)).toBe(removed)
+  expect(keepKextPermissionError(true, removed)).toBe(removed)
   const outdated = disabled({macfuse: T.FS.MacfuseState.Outdated, macfuseVersion: '4.8.0'})
-  expect(keepKextPermissionError(kextError, outdated)).toBe(outdated)
+  expect(keepKextPermissionError(true, outdated)).toBe(outdated)
 })
 
 test('no kext error appears without one before', () => {
   const ready = disabled()
-  expect(keepKextPermissionError(ready, ready)).toBe(ready)
-  expect(keepKextPermissionError(Constants.emptyDriverStatusEnabled, ready)).toBe(ready)
+  expect(keepKextPermissionError(false, ready)).toBe(ready)
+})
+
+test('only a Disabled status with the flag has a kext error to carry over a disconnect', () => {
+  expect(hasKextPermissionError(kextError)).toBe(true)
+  expect(hasKextPermissionError(disabled())).toBe(false)
+  expect(hasKextPermissionError(Constants.emptyDriverStatusEnabled)).toBe(false)
+  expect(hasKextPermissionError({type: T.FS.DriverStatusType.Unknown})).toBe(false)
 })
 
 test('enabling needs macFUSE ready', () => {
@@ -165,10 +172,10 @@ const enableWith = (
   overrides: Partial<Parameters<typeof driverEnableImpl>[0]> = {}
 ) => {
   const params = {
+    darwin: true,
     enable: jest.fn(async () => Promise.resolve('refresh' as const)),
     mountStillPending: jest.fn(),
     openFinder: jest.fn(async (_driverStatus: T.FS.DriverStatus) => Promise.resolve()),
-    pollUntilMounted: true,
     refreshDriverStatus: refreshSequence(statuses),
     setKextPermissionError: jest.fn(),
     stillCurrent: always,
@@ -204,6 +211,48 @@ test('an enable opens nothing if the mount never shows, the account changed, or 
   expect(kext.params.refreshDriverStatus).not.toHaveBeenCalled()
   expect(kext.params.openFinder).not.toHaveBeenCalled()
   expect(kext.params.setKextPermissionError).toHaveBeenCalledWith(true)
+})
+
+test('an enable that ends with KBFS still down leaves the pending note', async () => {
+  const dropped = enableWith([disabled(), 'disconnected'])
+  await dropped.run()
+  expect(dropped.params.openFinder).not.toHaveBeenCalled()
+  expect(dropped.params.mountStillPending).toHaveBeenCalledTimes(1)
+})
+
+test('off macOS the enable waits while the service restarts and opens the file manager once mounted', async () => {
+  const {params, run} = enableWith(['disconnected', disabled(), Constants.emptyDriverStatusEnabled], {
+    darwin: false,
+  })
+  await run()
+  expect(params.refreshDriverStatus).toHaveBeenCalledTimes(3)
+  expect(params.openFinder).toHaveBeenCalledTimes(1)
+  expect(params.openFinder).toHaveBeenCalledWith(Constants.emptyDriverStatusEnabled)
+
+  const never = enableWith([disabled()], {darwin: false})
+  await never.run()
+  expect(never.params.refreshDriverStatus).toHaveBeenCalledTimes(mountPollLimit + 1)
+  expect(never.params.openFinder).not.toHaveBeenCalled()
+  expect(never.params.mountStillPending).not.toHaveBeenCalled()
+})
+
+test('off macOS the enable waits on any Disabled status, on macOS only while macFUSE is ready', () => {
+  const notInstalled = disabled({macfuse: T.FS.MacfuseState.NotInstalled})
+  expect(isEnableWaiting(disabled(), false)).toBe(true)
+  expect(isEnableWaiting(notInstalled, false)).toBe(true)
+  expect(isEnableWaiting(Constants.emptyDriverStatusEnabled, false)).toBe(false)
+  expect(isEnableWaiting('disconnected', false)).toBe(false)
+  expect(isEnableWaiting(undefined, false)).toBe(false)
+  expect(isEnableWaiting(disabled(), true)).toBe(true)
+  expect(isEnableWaiting(notInstalled, true)).toBe(false)
+})
+
+test('the connect poll belongs to the account and KBFS connection it started on, connected or not', () => {
+  const session = {account: 1, connected: true, connection: 2}
+  expect(isSameConnection(session, {account: 1, connection: 2})).toBe(true)
+  expect(isSameConnection({...session, connected: false}, {account: 1, connection: 2})).toBe(true)
+  expect(isSameConnection(session, {account: 1, connection: 1})).toBe(false)
+  expect(isSameConnection(session, {account: 0, connection: 2})).toBe(false)
 })
 
 test('a status applies only on the account and KBFS connection its refresh started on', () => {
