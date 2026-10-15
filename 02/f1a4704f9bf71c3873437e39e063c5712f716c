@@ -1,0 +1,41 @@
+go/updater/keybase/https.go
+  s_47b47ff1c0e8d6::t_f5a9ae1681b532 32-35
+go/chat/maps/maps.go
+  s_47b47ff1c0e8d6::t_26c909a7878fb9 93-95
+go/avatars/fullcaching.go
+  s_47b47ff1c0e8d6::t_641f5191a8c3cc 414
+go/chat/giphy/search.go
+  s_47b47ff1c0e8d6::t_530c4f3a9612c1 117-119
+go/release/update/kbweb.go
+  s_47b47ff1c0e8d6::t_9338cfbaeea669 56
+go/updater/keybase/https_test.go
+  s_47b47ff1c0e8d6::t_84490a815623f0 76
+  s_47b47ff1c0e8d6::t_8994cbd280e537 75
+  s_47b47ff1c0e8d6::t_6d8dd30a0205ee 77-78
+go/chat/s3/s3.go
+  s_47b47ff1c0e8d6::t_e51b0fd4155e1c 356
+go/updater/keybase/report.go
+  s_47b47ff1c0e8d6::t_6144c56f328e4f 86,90
+go/updater/keybase/source.go
+  s_47b47ff1c0e8d6::t_8b7b07ec6fadce 89,93
+go/updater/sources/remote.go
+  s_47b47ff1c0e8d6::t_9ac2e82ad0286d 60,64
+go/updater/util/http.go
+  s_47b47ff1c0e8d6::t_b125cdc88570bb 68,75,138,145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "02f1a4704f9bf71c3873437e39e063c5712f716c",
+  "prompts": {},
+  "sessions": {
+    "s_47b47ff1c0e8d6": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b9cf124c-2873-4fc6-8c0b-905cc5436a3f",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
