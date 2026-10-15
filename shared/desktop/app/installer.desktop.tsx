@@ -86,8 +86,13 @@ let commandLineToolWaiters: Array<CommandLineToolCallback> | undefined
 const finishCommandLineTool: CommandLineToolCallback = (err, attempted, stdout, stderr) => {
   const waiters = commandLineToolWaiters ?? []
   commandLineToolWaiters = undefined
+  // one throwing waiter must not keep the rest waiting
   waiters.forEach(waiter => {
-    waiter(err, attempted, stdout, stderr)
+    try {
+      waiter(err, attempted, stdout, stderr)
+    } catch (error) {
+      logger.error('[Installer]: Command line tool callback threw', error)
+    }
   })
 }
 
@@ -99,20 +104,18 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
     commandLineToolWaiters.push(callback)
     return
   }
-  commandLineToolWaiters = [callback]
+  const waiters = [callback]
+  commandLineToolWaiters = waiters
   const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
   try {
-    exec(
-      keybaseBinPath(),
-      args,
-      'darwin',
-      'prod',
-      true,
-      finishCommandLineTool
-    )
+    exec(keybaseBinPath(), args, 'darwin', 'prod', true, finishCommandLineTool)
   } catch (error) {
-    // attempted, so the result reports this error rather than a missing installer
-    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), true, '', '')
+    // exec reports its own failures to start the installer, so this is finding the installer failing before it
+    // ran. The try also covers the callbacks exec makes synchronously, which already took this install's waiters.
+    if (commandLineToolWaiters === waiters) {
+      logger.warn('[Installer]: Could not find the command line tool installer', ensureError(error).message)
+      finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
+    }
   }
 }
 

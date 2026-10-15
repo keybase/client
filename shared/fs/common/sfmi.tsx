@@ -20,13 +20,15 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
 
 type SfmiState = T.FS.SystemFileManagerIntegration & {
-  // an enable stopped waiting while the mount had not appeared yet
-  mountPending: boolean
+  // the last enable stopped waiting while the mount had not appeared yet
+  enableStoppedWaiting: boolean
   settingsLoaded: boolean
   sfmiBannerDismissed: boolean
 }
 
-type SfmiContextType = SfmiState & {
+type SfmiContextType = Omit<SfmiState, 'enableStoppedWaiting'> & {
+  // an enable stopped waiting for the mount, and it still has not appeared
+  mountPending: boolean
   driverDisable: () => void
   driverEnable: (isRetry?: boolean) => void
   refreshDriverStatusDesktop: () => void
@@ -36,7 +38,7 @@ type SfmiContextType = SfmiState & {
 const makeInitialSfmiState = (): SfmiState => ({
   directMountDir: '',
   driverStatus: Constants.defaultDriverStatus,
-  mountPending: false,
+  enableStoppedWaiting: false,
   preferredMountDirs: [],
   settingsLoaded: false,
   sfmiBannerDismissed: false,
@@ -91,7 +93,13 @@ export type AppliedDriverStatus = {refreshId: number; driverStatus: T.FS.DriverS
 // What the service reports, without the client-side in-flight and kext error flags.
 const driverStatusKey = (driverStatus: T.FS.DriverStatus) =>
   driverStatus.type === T.FS.DriverStatusType.Disabled
-    ? `${driverStatus.type}:${driverStatus.macfuse}`
+    ? JSON.stringify([
+        driverStatus.type,
+        driverStatus.macfuse,
+        driverStatus.macfuseVersion,
+        driverStatus.macosVersion,
+        driverStatus.macfuseError,
+      ])
     : driverStatus.type
 
 export type DriverStatusRefreshResult = {
@@ -315,12 +323,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     if (isCurrent) {
       appliedDriverStatusRef.current = applied
       const operation = operationRef.current
-      const stillPending = isMountPending(driverStatus)
-      setSfmiState(s => ({
-        ...s,
-        driverStatus: withDriverOperation(driverStatus, operation),
-        mountPending: s.mountPending && stillPending,
-      }))
+      setSfmiState(s => ({...s, driverStatus: withDriverOperation(driverStatus, operation)}))
     }
     return {becameEnabled, isCurrent, latest: applied.driverStatus, refreshAgain}
   }
@@ -426,15 +429,12 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     )
   })
 
-  const setMountPending = (mountPending: boolean) => {
-    setSfmiState(s => (s.mountPending === mountPending ? s : {...s, mountPending}))
+  const setEnableStoppedWaiting = (enableStoppedWaiting: boolean) => {
+    setSfmiState(s => (s.enableStoppedWaiting === enableStoppedWaiting ? s : {...s, enableStoppedWaiting}))
   }
 
-  // a refresh that landed after the enable's last poll may already show the mount
   const mountStillPending = React.useEffectEvent(() => {
-    if (isMountPending(appliedDriverStatusRef.current.driverStatus)) {
-      setMountPending(true)
-    }
+    setEnableStoppedWaiting(true)
   })
 
   const endDriverOperation = () => {
@@ -447,7 +447,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return
     }
     driverBusyRef.current = true
-    setMountPending(false)
+    setEnableStoppedWaiting(false)
     const {driverStatus} = sfmiStateRef.current
     setSfmiBannerDismissed(false)
     C.ignorePromise(
@@ -464,7 +464,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return
     }
     driverBusyRef.current = true
-    setMountPending(false)
+    setEnableStoppedWaiting(false)
     setDriverOperation('enabling')
     setSfmiBannerDismissed(false)
     C.ignorePromise(
@@ -528,12 +528,15 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     connected
   )
 
+  const {enableStoppedWaiting, ...sfmiRest} = sfmiState
   return (
     <SfmiContext
       value={{
-        ...sfmiState,
+        ...sfmiRest,
         driverDisable,
         driverEnable,
+        // a refresh that landed after the enable's last poll may already show the mount
+        mountPending: enableStoppedWaiting && isMountPending(sfmiRest.driverStatus),
         refreshDriverStatusDesktop,
         setSfmiBannerDismissed,
       }}
