@@ -164,6 +164,14 @@ test('a dropped Disabled response with another macFUSE state also asks for one m
   ).toBe(false)
 })
 
+test('a dropped Enabled response with other Dokan details asks for one more refresh', () => {
+  const enabled = Constants.emptyDriverStatusEnabled
+  const applied = {driverStatus: enabled, refreshId: 2}
+  expect(applyDriverStatusRefresh(applied, 1, {...enabled, dokanOutdated: true}).refreshAgain).toBe(true)
+  expect(applyDriverStatusRefresh(applied, 1, {...enabled, dokanUninstallExecPath: 'C:\\x'}).refreshAgain).toBe(true)
+  expect(applyDriverStatusRefresh(applied, 1, {...enabled, isDisabling: true}).refreshAgain).toBe(false)
+})
+
 test('Disabled to Enabled is reported once, and not from Unknown', () => {
   const fromUnknown = applyDriverStatusRefresh(
     {driverStatus: {type: T.FS.DriverStatusType.Unknown}, refreshId: 0},

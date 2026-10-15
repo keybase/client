@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openMacfuseSiteDesktop} from '@/util/fs-platform'
 import {useFsErrorActionOrThrow} from './error-state'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 type MacfuseAction = 'openSite' | 'showKextHelp'
 
@@ -53,7 +54,7 @@ export const macfusePromptCopy = (status: T.FS.DriverStatusDisabled): MacfusePro
       return {
         action: 'openSite',
         actionLabel: 'Update macFUSE',
-        body: `macFUSE ${status.macfuseVersion} doesn't support ${status.macosVersion ? `macOS ${status.macosVersion}` : 'this version of macOS'}, which usually happens after a macOS update. Update macFUSE to keep using Keybase in Finder.`,
+        body: `${status.macfuseVersion ? `macFUSE ${status.macfuseVersion}` : 'This macFUSE'} doesn't support ${status.macosVersion ? `macOS ${status.macosVersion}` : 'this version of macOS'}, which usually happens after a macOS update. Update macFUSE to keep using Keybase in Finder.`,
         label: 'Update macFUSE',
         title: 'Update macFUSE',
       }
@@ -130,3 +131,12 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
 }))
 
 export default MacfusePrompt
+
+const mountPendingNote = `Keybase is not in ${C.fileUIName} yet. If macOS asked whether "kbfs" may access files on a network volume, click Allow. If you clicked Don't Allow, allow "kbfs" under Network Volumes in System Settings › Privacy & Security › Files & Folders.`
+
+// The note shown wherever an enable can start: once an enable stopped waiting for the mount, how to allow kbfs;
+// otherwise on macOS, the heads-up about the network volume prompt. Both cover the same Allow step.
+export const useEnableNote = (): string | undefined => {
+  const {mountPending} = useSystemFileManagerIntegration()
+  return mountPending ? mountPendingNote : C.isDarwin ? macfuseNetworkVolumeNote : undefined
+}
