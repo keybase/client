@@ -155,6 +155,12 @@ describe('fuse status', () => {
     expect(darwinFuseStatusToDriverStatus(readyLoaded)).toEqual(disabled(T.FS.MacfuseState.Ready))
   })
 
+  test('MACOS_UNSUPPORTED without a macosVersion field still maps, with no macOS version', () => {
+    expect(
+      darwinFuseStatusToDriverStatus({...unsupportedMacos, status: {...unsupportedMacos.status, fields: null}})
+    ).toEqual(disabled(T.FS.MacfuseState.UnsupportedMacos, '5.4.0'))
+  })
+
   test('darwin is Enabled exactly when the KBFS mount is listed, whatever the macFUSE row', () => {
     for (const status of [
       notInstalled,
