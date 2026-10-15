@@ -14,7 +14,6 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -43,7 +42,7 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 			cli.StringFlag{
 				Name:  "c, components",
-				Usage: fmt.Sprintf("Components to install, comma separated (%q)", install.ComponentNames),
+				Usage: fmt.Sprintf("Components to install, comma separated (%q)", install.InstallComponentNames),
 			},
 			cli.DurationFlag{
 				Name:  "t, timeout",
@@ -157,11 +156,8 @@ func exitOnError(result keybase1.InstallResult) {
 var defaultUninstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
-	install.ComponentNameRedirector.String(),
-	install.ComponentNameMountDir.String(),
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameFuse.String(),
-	install.ComponentNameHelper.String(),
 	install.ComponentNameCLIPaths.String(),
 	install.ComponentNameCLI.String(),
 }
@@ -176,7 +172,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 			cli.StringFlag{
 				Name:  "c, components",
-				Usage: fmt.Sprintf("Components to uninstall, comma separated (%q)", install.ComponentNames),
+				Usage: fmt.Sprintf("Components to uninstall, comma separated (%q)", install.UninstallComponentNames),
 			},
 		},
 		ArgumentHelp: "",
@@ -217,7 +213,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
-	bundlePath, err := libnativeinstaller.AppBundleForPath()
+	bundlePath, err := install.AppBundleForPath()
 	if err != nil {
 		return err
 	}
@@ -246,7 +242,7 @@ func DiagnoseSocketError(ui libkb.UI, inErr error) {
 	}
 
 	if len(services) == 0 {
-		bundlePath, err := libnativeinstaller.AppBundleForPath()
+		bundlePath, err := install.AppBundleForPath()
 		if err != nil {
 			t.Printf("No app bundle: %s\n\n", err)
 			return
