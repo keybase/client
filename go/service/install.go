@@ -33,6 +33,9 @@ func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusAr
 		h.G().Log.Warning("Unable to get the mount dir; reporting no KBFS mount: %s", err)
 	}
 	install.FilterKBFSMountInfos(&status, mountDir)
+	if install.MountOptIn(h.G()) {
+		status.Status.Fields = append(status.Status.Fields, keybase1.StringKVPair{Key: "finderAccess", Value: "on"})
+	}
 	return status, nil
 }
 
