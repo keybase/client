@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {errorToActionOrThrowWithHandlers} from './error-state'
+import {errorToActionOrElse, errorToActionOrThrowWithHandlers} from './error-state'
 
 const p = (s: string) => T.FS.stringToPath(s)
 const filePath = p('/keybase/private/testuser/a.txt')
@@ -111,4 +111,22 @@ test('unhandled errors are rethrown as real Errors', () => {
   ).toThrow(Error)
   // an object with no code at all is still an error
   expect(() => errorToActionOrThrowWithHandlers(handlers, {}, filePath)).toThrow(Error)
+})
+
+test('errorToActionOrElse keeps the special handling and sends the rest to orElse', () => {
+  const handlers = makeHandlers()
+  const orElse = jest.fn()
+  const toAction = (error: unknown) => errorToActionOrThrowWithHandlers(handlers, error)
+
+  errorToActionOrElse(toAction, {code: T.RPCGen.StatusCode.sckbfsclienttimeout}, orElse)
+  expect(handlers.checkKbfsDaemonRpcStatus).toHaveBeenCalledTimes(1)
+  errorToActionOrElse(toAction, {code: T.RPCGen.StatusCode.scidentifiesfailed}, orElse)
+  expect(orElse).not.toHaveBeenCalled()
+
+  const error = new Error('boom')
+  errorToActionOrElse(toAction, error, orElse)
+  expect(orElse).toHaveBeenLastCalledWith(error)
+  errorToActionOrElse(toAction, 'a string', orElse)
+  expect(orElse).toHaveBeenCalledTimes(2)
+  expect((orElse.mock.lastCall as [Error])[0].message).toContain('a string')
 })

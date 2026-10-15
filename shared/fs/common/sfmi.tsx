@@ -13,8 +13,7 @@ import {
   setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
 } from '@/util/fs-platform'
 import {clientID as fsClientID} from './client'
-import {useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
-import {ensureError} from '@/util/errors'
+import {errorToActionOrElse, useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
 import {useKbfsDaemonStatus} from './daemon'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
@@ -83,17 +82,49 @@ export const withDriverOperation = (
   }
 }
 
+export type AppliedDriverStatus = {refreshId: number; driverStatus: T.FS.DriverStatus}
+
+export type DriverStatusRefreshResult = {
+  applied: AppliedDriverStatus
+  becameEnabled: boolean
+  isCurrent: boolean
+}
+
+// Refreshes overlap and their responses can arrive out of order, so a response older than the newest one
+// already applied is dropped. becameEnabled is the change from Disabled to Enabled, which opens Finder once.
+export const applyDriverStatusRefresh = (
+  applied: AppliedDriverStatus,
+  refreshId: number,
+  driverStatus: T.FS.DriverStatus
+): DriverStatusRefreshResult =>
+  refreshId <= applied.refreshId
+    ? {applied, becameEnabled: false, isCurrent: false}
+    : {
+        applied: {driverStatus, refreshId},
+        becameEnabled:
+          applied.driverStatus.type === T.FS.DriverStatusType.Disabled &&
+          driverStatus.type === T.FS.DriverStatusType.Enabled,
+        isCurrent: true,
+      }
+
 const refreshDriverStatusImpl = async (
   previousDriverStatus: T.FS.DriverStatus,
-  // returns whether this status is the change from Disabled to Enabled
-  setDriverStatus: (driverStatus: T.FS.DriverStatus) => boolean,
+  // returns the newest applied status, which is this one unless a newer refresh already landed
+  setDriverStatus: (driverStatus: T.FS.DriverStatus) => {
+    becameEnabled: boolean
+    isCurrent: boolean
+    latest: T.FS.DriverStatus
+  },
   refreshMountDirs: (driverStatus: T.FS.DriverStatus) => Promise<{directMountDir: string}>,
   errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
 ): Promise<T.FS.DriverStatus | undefined> => {
   try {
     const status = await refreshDriverStatusInPlatform()
     const driverStatus = keepKextPermissionError(previousDriverStatus, fuseStatusToDriverStatus(status))
-    const becameEnabled = setDriverStatus(driverStatus)
+    const {becameEnabled, isCurrent, latest} = setDriverStatus(driverStatus)
+    if (!isCurrent) {
+      return latest
+    }
     const {directMountDir} = await refreshMountDirs(driverStatus)
     if (becameEnabled) {
       const path = T.FS.stringToPath('/keybase')
@@ -117,29 +148,33 @@ export const canEnableDriver = (driverStatus: T.FS.DriverStatus) =>
 export const mountPollIntervalMs = 1000
 export const mountPollLimit = 30
 
+// Enabled went through but the mount has not shown yet; a failed refresh is undefined and already reported.
+export const isMountPending = (
+  driverStatus: T.FS.DriverStatus | undefined
+): driverStatus is T.FS.DriverStatusDisabled =>
+  driverStatus?.type === T.FS.DriverStatusType.Disabled && driverStatus.macfuse === T.FS.MacfuseState.Ready
+
 // darwin is Enabled only once the mount shows in the status, and waitForMounts gives up after
-// 10s without failing, so the mount can land after the enable call returns.
+// 10s without failing, so the mount can land after the enable call returns. Returns the last status.
 export const refreshUntilMounted = async (
   refreshDriverStatus: () => Promise<T.FS.DriverStatus | undefined>,
   wait: (ms: number) => Promise<void>
 ) => {
   let polls = 0
   let driverStatus = await refreshDriverStatus()
-  while (
-    driverStatus?.type === T.FS.DriverStatusType.Disabled &&
-    driverStatus.macfuse === T.FS.MacfuseState.Ready &&
-    polls < mountPollLimit
-  ) {
+  while (isMountPending(driverStatus) && polls < mountPollLimit) {
     polls++
     await wait(mountPollIntervalMs)
     driverStatus = await refreshDriverStatus()
   }
+  return driverStatus
 }
 
 const driverEnableImpl = async (
   isRetry: boolean,
   driverKextPermissionError: () => void,
-  refreshDriverStatus: () => Promise<T.FS.DriverStatus | undefined>
+  refreshDriverStatus: () => Promise<T.FS.DriverStatus | undefined>,
+  mountStillPending: () => void
 ) => {
   const result = await afterDriverEnabledInPlatform(isRetry)
   if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
@@ -150,7 +185,11 @@ const driverEnableImpl = async (
     return
   }
   if (C.isDarwin) {
-    await refreshUntilMounted(refreshDriverStatus, C.timeoutPromise)
+    const driverStatus = await refreshUntilMounted(refreshDriverStatus, C.timeoutPromise)
+    // the kext error already has its own prompt
+    if (isMountPending(driverStatus) && !driverStatus.kextPermissionError) {
+      mountStillPending()
+    }
   } else {
     await refreshDriverStatus()
   }
@@ -196,10 +235,15 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   const [sfmiState, setSfmiState] = React.useState(makeInitialSfmiState)
   const appFocusedRef = React.useRef(appFocused)
   const sfmiStateRef = React.useRef(sfmiState)
+  // Set for the whole enable or disable, from the click on, so a second one cannot start meanwhile.
+  const driverBusyRef = React.useRef(false)
+  // The operation the visible in-flight flags show.
   const operationRef = React.useRef<DriverOperation | undefined>(undefined)
-  // Kept in step with every status set, so overlapping refreshes see one Disabled to Enabled change
-  // and open Finder once.
-  const driverStatusTypeRef = React.useRef(sfmiState.driverStatus.type)
+  const refreshIdRef = React.useRef(0)
+  const appliedDriverStatusRef = React.useRef<AppliedDriverStatus>({
+    driverStatus: sfmiState.driverStatus,
+    refreshId: 0,
+  })
   const [prevConnected, setPrevConnected] = React.useState(connected)
 
   if (connected !== prevConnected) {
@@ -228,14 +272,18 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     C.ignorePromise(f())
   })
 
-  const setDriverStatus = (driverStatus: T.FS.DriverStatus) => {
-    const becameEnabled =
-      driverStatusTypeRef.current === T.FS.DriverStatusType.Disabled &&
-      driverStatus.type === T.FS.DriverStatusType.Enabled
-    driverStatusTypeRef.current = driverStatus.type
-    const operation = operationRef.current
-    setSfmiState(s => ({...s, driverStatus: withDriverOperation(driverStatus, operation)}))
-    return becameEnabled
+  const setDriverStatus = (refreshId: number, driverStatus: T.FS.DriverStatus) => {
+    const {applied, becameEnabled, isCurrent} = applyDriverStatusRefresh(
+      appliedDriverStatusRef.current,
+      refreshId,
+      driverStatus
+    )
+    if (isCurrent) {
+      appliedDriverStatusRef.current = applied
+      const operation = operationRef.current
+      setSfmiState(s => ({...s, driverStatus: withDriverOperation(driverStatus, operation)}))
+    }
+    return {becameEnabled, isCurrent, latest: applied.driverStatus}
   }
 
   const setDriverOperation = (operation: DriverOperation | undefined) => {
@@ -273,9 +321,11 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const refreshDriverStatus = React.useEffectEvent(async () => {
+    refreshIdRef.current++
+    const refreshId = refreshIdRef.current
     return await refreshDriverStatusImpl(
       sfmiStateRef.current.driverStatus,
-      setDriverStatus,
+      driverStatus => setDriverStatus(refreshId, driverStatus),
       refreshMountDirsDesktop,
       defaultErrorToActionOrThrow
     )
@@ -315,7 +365,9 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const reportDriverError = React.useEffectEvent((action: 'enable' | 'disable', error: unknown) => {
-    redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${ensureError(error).message}`)
+    errorToActionOrElse(defaultErrorToActionOrThrow, error, unhandled => {
+      redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${unhandled.message}`)
+    })
     // a failure part way through can leave the status changed
     refreshDriverStatusDesktop()
   })
@@ -330,40 +382,57 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     )
   })
 
+  const mountStillPending = React.useEffectEvent(() => {
+    redbar(
+      `Keybase is not in ${C.fileUIName} yet. If macOS asked whether "kbfs" may access files on a network volume, click Allow; Keybase will appear in ${C.fileUIName} once it mounts.`
+    )
+  })
+
+  const endDriverOperation = () => {
+    driverBusyRef.current = false
+    setDriverOperation(undefined)
+  }
+
   const driverDisable = React.useEffectEvent(() => {
-    if (operationRef.current) {
+    if (driverBusyRef.current) {
       return
     }
+    driverBusyRef.current = true
     const {driverStatus} = sfmiStateRef.current
     setSfmiBannerDismissed(false)
     C.ignorePromise(
       runDriverOperation(
         async () => driverDisableImpl(driverStatus, () => setDriverOperation('disabling'), refreshDriverStatus),
         error => reportDriverError('disable', error),
-        () => setDriverOperation(undefined)
+        endDriverOperation
       )
     )
   })
 
   const driverEnable = React.useEffectEvent((isRetry?: boolean) => {
-    if (operationRef.current || !canEnableDriver(sfmiStateRef.current.driverStatus)) {
+    if (driverBusyRef.current || !canEnableDriver(sfmiStateRef.current.driverStatus)) {
       return
     }
+    driverBusyRef.current = true
     setDriverOperation('enabling')
     setSfmiBannerDismissed(false)
     C.ignorePromise(
       runDriverOperation(
-        async () => driverEnableImpl(!!isRetry, driverKextPermissionError, refreshDriverStatus),
+        async () =>
+          driverEnableImpl(!!isRetry, driverKextPermissionError, refreshDriverStatus, mountStillPending),
         error => reportDriverError('enable', error),
-        () => setDriverOperation(undefined)
+        endDriverOperation
       )
     )
   })
 
   React.useEffect(() => {
     if (!connected) return
-    // the status was reset to Unknown on disconnect
-    driverStatusTypeRef.current = T.FS.DriverStatusType.Unknown
+    // the status was reset to Unknown on disconnect, and refreshes from before it are dropped
+    appliedDriverStatusRef.current = {
+      driverStatus: {type: T.FS.DriverStatusType.Unknown},
+      refreshId: refreshIdRef.current,
+    }
     loadSettings()
     refreshDriverStatusDesktop()
   }, [connected])
@@ -371,7 +440,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   React.useEffect(() => {
     const wasFocused = appFocusedRef.current
     appFocusedRef.current = appFocused
-    if (wasFocused || !appFocused || operationRef.current) {
+    if (wasFocused || !appFocused || driverBusyRef.current) {
       return
     }
     const {driverStatus} = sfmiStateRef.current
