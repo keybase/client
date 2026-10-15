@@ -56,10 +56,12 @@ const KextPermission = () => {
 
   const kextError = driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError
   const enabled = driverStatus.type === T.FS.DriverStatusType.Enabled
+  // Unknown while KBFS reconnects; the kext error comes back with the next status
+  const unknown = driverStatus.type === T.FS.DriverStatusType.Unknown
   const sawKextErrorRef = React.useRef(false)
   const autoCancelledRef = React.useRef(false)
   React.useEffect(() => {
-    if (autoCancelledRef.current) return
+    if (autoCancelledRef.current || unknown) return
     if (kextError) {
       sawKextErrorRef.current = true
       return
@@ -68,7 +70,7 @@ const KextPermission = () => {
       autoCancelledRef.current = true
       onCancel()
     }
-  }, [kextError, enabled, onCancel])
+  }, [kextError, enabled, unknown, onCancel])
 
   return (
     <Kb.ModalScreen>
