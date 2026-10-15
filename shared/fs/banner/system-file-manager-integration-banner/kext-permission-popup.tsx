@@ -92,7 +92,7 @@ const KextPermission = () => {
         </Kb.Text>
         <Kb.Text type="BodySmall">This page updates when you come back to Keybase.</Kb.Text>
       </Kb.Box2>
-      {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
+      {((driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling) || unknown) && (
         <Kb.Box2 alignSelf="center" direction="vertical" style={styles.enablingContainer}>
           <Kb.Box2
             direction="vertical"
