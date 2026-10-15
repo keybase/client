@@ -18,12 +18,12 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/install/adminprompt"
-	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/mounter"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/utils"
 )
 
 // defaultLaunchdWait is how long we should wait after install & start.
@@ -410,6 +410,20 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
+const (
+	// legacyHelperPath is the root helper that older versions installed to
+	// run the /keybase redirector and the kbfuse driver.
+	legacyHelperPath      = "/Library/PrivilegedHelperTools/keybase.Helper"
+	legacyHelperPlistPath = "/Library/LaunchDaemons/keybase.Helper.plist"
+	legacyHelperLabel     = "keybase.Helper"
+	legacyKbfuseKextID    = "com.github.kbfuse.filesystems.kbfuse"
+
+	// exitCodeLegacyHelperInstalled marks install-auto's OK helper result
+	// when the legacy helper is still installed. The app then offers to
+	// retire it with `keybase uninstall --components=helper`.
+	exitCodeLegacyHelperInstalled = 7
+)
+
 func pathExists(path string) bool {
 	_, err := os.Lstat(path)
 	return err == nil
@@ -427,9 +441,159 @@ func installAutoComponents() []string {
 	}
 }
 
-// InstallAuto installs everything it can without asking for privileges.
+// InstallAuto installs everything it can without asking for privileges. It
+// never retires the legacy helper itself (that needs an administrator
+// prompt); it reports the helper with an OK result so the app can offer to.
 func InstallAuto(context Context, binPath string, timeout time.Duration, log Log) keybase1.InstallResult {
-	return Install(context, binPath, installAutoComponents(), true, timeout, log)
+	legacyHelper := pathExists(legacyHelperPath)
+	recordLegacyMountOptIn(context, legacyHelper && pathExists(legacyKbfusePath), log)
+
+	result := Install(context, binPath, installAutoComponents(), true, timeout, log)
+	if legacyHelper {
+		log.Info("The legacy helper %s is still installed", legacyHelperPath)
+		result.ComponentResults = append(result.ComponentResults, keybase1.ComponentResult{
+			Name:     ComponentNameHelper.String(),
+			Status:   keybase1.StatusOK("the legacy helper is installed"),
+			ExitCode: exitCodeLegacyHelperInstalled,
+		})
+	}
+	return result
+}
+
+// legacyMountOptInFile marks that this user's Finder access choice was
+// already carried over from kbfuse, so a later "off" sticks even while the
+// legacy helper and kbfuse.fs remain (the user can decline their removal).
+const legacyMountOptInFile = "kbfs_finder_legacy_migrated"
+
+// recordLegacyMountOptIn turns on Finder access once per user when kbfuse
+// was installed, since the user had turned it on then. A failure is retried
+// on the next run.
+func recordLegacyMountOptIn(context Context, legacyKbfuse bool, log Log) {
+	marker := filepath.Join(context.GetConfigDir(), legacyMountOptInFile)
+	if !legacyKbfuse || pathExists(marker) {
+		return
+	}
+	if err := SetMountOptIn(context, true); err != nil {
+		log.Warning("Unable to record the Finder access choice: %s", err)
+		return
+	}
+	if err := os.WriteFile(marker, nil, 0o600); err != nil {
+		log.Warning("Unable to record that the Finder access choice was carried over: %s", err)
+	}
+}
+
+// legacyRedirectorDirs returns the directories the legacy helper's
+// redirector could have mounted at for runMode.
+func legacyRedirectorDirs(runMode libkb.RunMode) ([]string, error) {
+	switch runMode {
+	case libkb.ProductionRunMode:
+		return []string{"/keybase", "/Volumes/Keybase"}, nil
+	case libkb.StagingRunMode:
+		return []string{"/keybase.staging", "/Volumes/KeybaseStaging"}, nil
+	case libkb.DevelRunMode:
+		return []string{"/keybase.devel", "/Volumes/KeybaseDevel"}, nil
+	default:
+		return nil, fmt.Errorf("invalid run mode: %s", runMode)
+	}
+}
+
+// retireLegacyHelperCommand returns the shell command, run as root, that
+// stops the legacy helper and its redirector, unloads and removes kbfuse,
+// removes the redirector directories, and removes the helper. Missing paths
+// and redirector directories that cannot be removed are not errors. Any
+// other failure (e.g. kbfuse still in use) stops the command before the
+// helper binary is removed, so the helper stays detectable.
+func retireLegacyHelperCommand(redirectorDirs []string) string {
+	q := adminprompt.ShellQuote
+	kextID := q(legacyKbfuseKextID)
+	steps := []string{
+		"set -e",
+		// Also stops the redirector, a child of the helper. Fails when the
+		// helper is not loaded.
+		"/bin/launchctl bootout " + q("system/"+legacyHelperLabel) + " 2>/dev/null || true",
+	}
+	for _, dir := range redirectorDirs {
+		// Fails when dir is not a mount point.
+		steps = append(steps, "/sbin/umount -f "+q(dir)+" 2>/dev/null || true")
+	}
+	steps = append(steps,
+		"if /usr/bin/kmutil showloaded -b "+kextID+" 2>/dev/null | /usr/bin/grep -qF "+kextID+"; then /usr/bin/kmutil unload -b "+kextID+"; fi",
+		"/bin/rm -rf "+q(legacyKbfusePath),
+	)
+	for _, dir := range redirectorDirs {
+		steps = append(steps, removeRedirectorDirCommand(dir))
+	}
+	steps = append(steps,
+		"/bin/rm -f "+q(legacyHelperPlistPath),
+		"/bin/rm -f "+q(legacyHelperPath),
+	)
+	return strings.Join(steps, "; ")
+}
+
+// removeRedirectorDirCommand removes a legacy redirector mount point: a
+// symlink with rm (rmdir fails on one), a directory with rmdir. A failed
+// rmdir only leaves a stale directory, so it is not an error: rmdir cannot
+// remove a live mount point or contents, and a synthetic /keybase lives on
+// the read-only system volume.
+func removeRedirectorDirCommand(dir string) string {
+	d := adminprompt.ShellQuote(dir)
+	return "if [ -L " + d + " ]; then /bin/rm -f " + d + "; elif [ -d " + d + " ]; then /bin/rmdir " + d + " 2>/dev/null || true; fi"
+}
+
+// retireLegacyHelper removes the legacy helper, the kbfuse driver and the
+// redirector directories behind one administrator prompt. When it has to stop
+// KBFS to free this user's kbfuse mount, it starts KBFS again afterwards
+// unless restartKBFS is false (the caller is uninstalling KBFS).
+func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.ComponentResult {
+	name := ComponentNameFuse.String()
+	if !pathExists(legacyHelperPath) {
+		if pathExists(legacyKbfusePath) {
+			log.Info("%s is installed without the legacy helper; leaving it", legacyKbfusePath)
+		}
+		return componentResult(name, nil)
+	}
+
+	redirectorDirs, err := legacyRedirectorDirs(context.GetRunMode())
+	if err != nil {
+		log.Errorf("legacy helper retirement failed: %s", err)
+		return componentResult(name, err)
+	}
+
+	// The kbfuse kext cannot unload while this user's KBFS is mounted on it.
+	if mountDir, err := context.GetMountDir(); err != nil {
+		log.Warning("Unable to get the mount dir: %s", err)
+	} else if kbfuseMountedAt(mountDir, log) {
+		if err := UninstallKBFS(context, mountDir, true, log); err != nil {
+			log.Warning("Unable to unmount kbfuse at %s: %s", mountDir, err)
+		}
+		if restartKBFS {
+			defer func() {
+				if err := InstallKBFS(context, "", defaultLaunchdWait, log); err != nil {
+					log.Warning("Unable to restart KBFS after the legacy helper retirement: %s", err)
+				}
+			}()
+		}
+	}
+
+	log.Info("Retiring the legacy helper as an administrator")
+	err = runAdminPrompt("Keybase wants to remove its old file system helper and driver, which are no longer used.",
+		retireLegacyHelperCommand(redirectorDirs), log)
+	if err == nil && pathExists(legacyHelperPath) {
+		err = fmt.Errorf("the retirement finished but %s is still installed", legacyHelperPath)
+	}
+	if err != nil {
+		log.Errorf("legacy helper retirement failed: %s", err)
+	}
+	return componentResult(name, err)
+}
+
+func kbfuseMountedAt(mountDir string, log Log) bool {
+	for _, info := range KeybaseFuseStatus("", log).MountInfos {
+		if info.Fstype == "kbfuse" && info.Path == mountDir {
+			return true
+		}
+	}
+	return false
 }
 
 // shouldMountKBFS reports whether kbfs should mount: the user turned on
@@ -811,14 +975,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	log.Debug("Uninstalling components: %s", components)
 	cleanupLegacyKBNM(log)
 
-	if libkb.IsIn(string(ComponentNameRedirector), components, false) {
-		err = libnativeinstaller.UninstallRedirector(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
-		if err != nil {
-			log.Errorf("Error stopping the redirector: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
 		var mountDir string
 		mountDir, err = context.GetMountDir()
@@ -847,19 +1003,18 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
-		err = libnativeinstaller.UninstallMountDir(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
-		if err != nil {
-			log.Errorf("Error uninstalling mount dir: %s", err)
+	// Removing kbfuse and the helper is one step, the legacy retirement.
+	uninstallFuse := libkb.IsIn(string(ComponentNameFuse), components, false)
+	uninstallHelper := libkb.IsIn(string(ComponentNameHelper), components, false)
+	if uninstallFuse || uninstallHelper {
+		uninstallingKBFS := libkb.IsIn(string(ComponentNameKBFS), components, false)
+		cr := retireLegacyHelper(context, !uninstallingKBFS, log)
+		if uninstallFuse {
+			componentResults = append(componentResults, cr)
 		}
-	}
-
-	if libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
-		if err != nil {
-			log.Errorf("Error uninstalling fuse: %s", err)
+		if uninstallHelper {
+			cr.Name = ComponentNameHelper.String()
+			componentResults = append(componentResults, cr)
 		}
 	}
 
@@ -875,14 +1030,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = libnativeinstaller.UninstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
-		if err != nil {
-			log.Errorf("Error uninstalling helper: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameCLI), components, false) {
 		err = uninstallCommandLine(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
@@ -894,9 +1041,8 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return newUninstallResult(componentResults)
 }
 
-// UninstallKBFSOnStop removes KBFS services and unmounts and removes /keybase from the system
+// UninstallKBFSOnStop stops KBFS and unmounts it
 func UninstallKBFSOnStop(context Context, log Log) error {
-	runMode := context.GetRunMode()
 	mountDir, err := context.GetMountDir()
 	if err != nil {
 		return err
@@ -908,10 +1054,6 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	}
 
 	log.Info("Uninstalled mount: %s", mountDir)
-	if err := libnativeinstaller.UninstallMountDir(runMode, log); err != nil {
-		return fmt.Errorf("Error uninstalling mount: %s", err)
-	}
-
 	return nil
 }
 
@@ -1239,9 +1381,29 @@ func updaterBinName() (string, error) {
 	return "updater", nil
 }
 
+// AppBundleForPath returns the path to the Keybase.app bundle this binary
+// runs from.
+func AppBundleForPath() (string, error) {
+	path, err := utils.BinPath()
+	if err != nil {
+		return "", err
+	}
+	if path == "" {
+		return "", errors.New("Could not get executable name")
+	}
+	appPath := bundleDirForPath(path)
+	if appPath == "" {
+		return "", fmt.Errorf("Unable to resolve bundle for valid path: %s", path)
+	}
+	if exists, _ := libkb.FileExists(appPath); !exists {
+		return "", fmt.Errorf("App not found: %s", appPath)
+	}
+	return appPath, nil
+}
+
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	appPath, err := libnativeinstaller.AppBundleForPath()
+	appPath, err := AppBundleForPath()
 	if err != nil {
 		return err
 	}

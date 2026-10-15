@@ -7,10 +7,13 @@ package install
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/keybase/client/go/install/adminprompt"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -140,6 +143,39 @@ func TestMountOptInRoundTrip(t *testing.T) {
 	require.False(t, MountOptIn(ctx))
 }
 
+func TestRecordLegacyMountOptIn(t *testing.T) {
+	ctx := testConfigDirContext{configDir: filepath.Join(t.TempDir(), "config")}
+	marker := filepath.Join(ctx.configDir, "kbfs_finder_legacy_migrated")
+
+	recordLegacyMountOptIn(ctx, false, testLog)
+	require.False(t, MountOptIn(ctx), "no kbfuse, nothing to carry over")
+	require.NoFileExists(t, marker)
+
+	recordLegacyMountOptIn(ctx, true, testLog)
+	require.True(t, MountOptIn(ctx))
+	require.FileExists(t, marker)
+
+	// The user turns Finder access off; kbfuse is still there next run.
+	require.NoError(t, SetMountOptIn(ctx, false))
+	recordLegacyMountOptIn(ctx, true, testLog)
+	require.False(t, MountOptIn(ctx), "a later off sticks")
+}
+
+func TestRecordLegacyMountOptInRetriesOnFailure(t *testing.T) {
+	dir := t.TempDir()
+	// A file where the config dir should be makes SetMountOptIn fail.
+	configDir := filepath.Join(dir, "config")
+	require.NoError(t, os.WriteFile(configDir, nil, 0o600))
+	ctx := testConfigDirContext{configDir: configDir}
+	recordLegacyMountOptIn(ctx, true, testLog)
+	require.False(t, MountOptIn(ctx))
+
+	require.NoError(t, os.Remove(configDir))
+	recordLegacyMountOptIn(ctx, true, testLog)
+	require.True(t, MountOptIn(ctx), "no marker was written, so the next run records it")
+	require.FileExists(t, filepath.Join(configDir, "kbfs_finder_legacy_migrated"))
+}
+
 func TestInstallCLIPathsCommand(t *testing.T) {
 	bins := []string{
 		"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase",
@@ -158,6 +194,86 @@ func TestInstallCLIPathsCommand(t *testing.T) {
 			" && /bin/ln -sfn '/Users/testuser/My Apps/Keybase.app/bin/keybase' '/usr/local/bin/keybase'"+
 			` && /bin/ln -sfn '/Users/testuser/it'\''s/git-remote-keybase' '/usr/local/bin/git-remote-keybase'`,
 		installCLIPathsCommand(bins, links))
+}
+
+func TestLegacyRedirectorDirs(t *testing.T) {
+	cases := map[libkb.RunMode][]string{
+		libkb.ProductionRunMode: {"/keybase", "/Volumes/Keybase"},
+		libkb.StagingRunMode:    {"/keybase.staging", "/Volumes/KeybaseStaging"},
+		libkb.DevelRunMode:      {"/keybase.devel", "/Volumes/KeybaseDevel"},
+	}
+	for runMode, want := range cases {
+		dirs, err := legacyRedirectorDirs(runMode)
+		require.NoError(t, err)
+		require.Equal(t, want, dirs, runMode)
+	}
+	_, err := legacyRedirectorDirs(libkb.RunMode("bogus"))
+	require.Error(t, err)
+}
+
+func TestRetireLegacyHelperCommand(t *testing.T) {
+	dirs, err := legacyRedirectorDirs(libkb.ProductionRunMode)
+	require.NoError(t, err)
+	cmd := retireLegacyHelperCommand(dirs)
+	require.Equal(t, "set -e"+
+		"; /bin/launchctl bootout 'system/keybase.Helper' 2>/dev/null || true"+
+		"; /sbin/umount -f '/keybase' 2>/dev/null || true"+
+		"; /sbin/umount -f '/Volumes/Keybase' 2>/dev/null || true"+
+		"; if /usr/bin/kmutil showloaded -b 'com.github.kbfuse.filesystems.kbfuse' 2>/dev/null"+
+		" | /usr/bin/grep -qF 'com.github.kbfuse.filesystems.kbfuse';"+
+		" then /usr/bin/kmutil unload -b 'com.github.kbfuse.filesystems.kbfuse'; fi"+
+		"; /bin/rm -rf '/Library/Filesystems/kbfuse.fs'"+
+		"; if [ -L '/keybase' ]; then /bin/rm -f '/keybase';"+
+		" elif [ -d '/keybase' ]; then /bin/rmdir '/keybase' 2>/dev/null || true; fi"+
+		"; if [ -L '/Volumes/Keybase' ]; then /bin/rm -f '/Volumes/Keybase';"+
+		" elif [ -d '/Volumes/Keybase' ]; then /bin/rmdir '/Volumes/Keybase' 2>/dev/null || true; fi"+
+		"; /bin/rm -f '/Library/LaunchDaemons/keybase.Helper.plist'"+
+		"; /bin/rm -f '/Library/PrivilegedHelperTools/keybase.Helper'",
+		cmd)
+
+	// The helper binary goes last, so any earlier failure leaves it.
+	require.True(t, strings.HasSuffix(cmd, "; /bin/rm -f '/Library/PrivilegedHelperTools/keybase.Helper'"))
+	require.Equal(t, 1, strings.Count(cmd, legacyHelperPath))
+
+	// Parse only (-n); the command is never run.
+	out, err := exec.Command("/bin/sh", "-n", "-c", cmd).CombinedOutput()
+	require.NoError(t, err, string(out))
+
+	cmd = retireLegacyHelperCommand([]string{"/Volumes/it's here"})
+	require.Contains(t, cmd, `/bin/rmdir '/Volumes/it'\''s here'`)
+	out, err = exec.Command("/bin/sh", "-n", "-c", cmd).CombinedOutput()
+	require.NoError(t, err, string(out))
+}
+
+// Runs the redirector-directory step against paths in a temp dir: a symlink
+// is removed with rm (rmdir fails on it, which under set -e would stop the
+// script before the helper is removed), and a directory rmdir cannot remove
+// does not stop the script.
+func TestRemoveRedirectorDirCommand(t *testing.T) {
+	tmp := t.TempDir()
+	link := filepath.Join(tmp, "link")
+	require.NoError(t, os.Symlink(tmp, link))
+	full := filepath.Join(tmp, "full")
+	require.NoError(t, os.MkdirAll(filepath.Join(full, "child"), 0o700))
+	empty := filepath.Join(tmp, "it's empty")
+	require.NoError(t, os.Mkdir(empty, 0o700))
+	done := filepath.Join(tmp, "done")
+
+	steps := []string{"set -e"}
+	for _, dir := range []string{link, full, empty, filepath.Join(tmp, "missing")} {
+		steps = append(steps, removeRedirectorDirCommand(dir))
+	}
+	steps = append(steps, "/usr/bin/touch "+adminprompt.ShellQuote(done))
+	script := strings.Join(steps, "; ")
+	out, err := exec.Command("/bin/sh", "-c", script).CombinedOutput()
+	require.NoError(t, err, string(out))
+
+	_, err = os.Lstat(link)
+	require.True(t, os.IsNotExist(err), "symlink removed")
+	require.DirExists(t, tmp, "symlink target kept")
+	require.DirExists(t, filepath.Join(full, "child"))
+	require.NoDirExists(t, empty)
+	require.FileExists(t, done, "later steps still run")
 }
 
 func TestRemovePathsCommand(t *testing.T) {
