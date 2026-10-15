@@ -66,6 +66,17 @@ test('each macFUSE state gets its own copy, and Ready gets none', () => {
     title: 'Update macFUSE',
   })
   expect(
+    macfusePromptCopy(
+      status({macfuse: T.FS.MacfuseState.UnsupportedMacos, macfuseVersion: '5.4.0', macosVersion: '28'})
+    )
+  ).toEqual({
+    action: 'openSite',
+    actionLabel: 'Update macFUSE',
+    body: "macFUSE 5.4.0 doesn't support macOS 28, which usually happens after a macOS update. Update macFUSE to keep using Keybase in Finder.",
+    label: 'Update macFUSE',
+    title: 'Update macFUSE',
+  })
+  expect(
     macfusePromptCopy(status({macfuse: T.FS.MacfuseState.Error, macfuseError: 'Error loading kext info: no kext'}))
   ).toEqual({
     action: 'openSite',

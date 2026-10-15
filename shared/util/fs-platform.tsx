@@ -20,13 +20,22 @@ export const darwinFuseStatusToDriverStatus = (status: T.RPCGen.FuseStatus): T.F
   }
   switch (status.installStatus) {
     case T.RPCGen.InstallStatus.installed:
-      return status.installAction === T.RPCGen.InstallAction.upgrade
+      if (status.installAction !== T.RPCGen.InstallAction.upgrade) {
+        return Constants.emptyDriverStatusDisabled
+      }
+      // the service names this status when macFUSE has no kext for the running macOS
+      return status.status.name === 'MACOS_UNSUPPORTED'
         ? {
+            ...Constants.emptyDriverStatusDisabled,
+            macfuse: T.FS.MacfuseState.UnsupportedMacos,
+            macfuseVersion: status.version,
+            macosVersion: status.status.fields?.find(f => f.key === 'macosVersion')?.value ?? '',
+          }
+        : {
             ...Constants.emptyDriverStatusDisabled,
             macfuse: T.FS.MacfuseState.Outdated,
             macfuseVersion: status.version,
           }
-        : Constants.emptyDriverStatusDisabled
     case T.RPCGen.InstallStatus.error:
       return {
         ...Constants.emptyDriverStatusDisabled,

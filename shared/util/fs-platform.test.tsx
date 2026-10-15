@@ -45,6 +45,15 @@ const kextInfoError = makeStatus({
 })
 const unknown = makeStatus({installStatus: T.RPCGen.InstallStatus.unknown})
 const outdated = makeStatus({installAction: T.RPCGen.InstallAction.upgrade, version: '4.8.0'})
+const unsupportedMacos = makeStatus({
+  installAction: T.RPCGen.InstallAction.upgrade,
+  status: {
+    code: 0,
+    desc: 'macFUSE 5.4.0 does not support macOS 28. Update it from https://macfuse.io',
+    fields: [{key: 'macosVersion', value: '28'}],
+    name: 'MACOS_UNSUPPORTED',
+  },
+})
 const readyNotLoaded = makeStatus({})
 const readyLoaded = makeStatus({kextID: 'io.macfuse.filesystems.macfuse.25', kextStarted: true})
 
@@ -66,13 +75,26 @@ test('darwin rows without a KBFS mount map to the macFUSE state', () => {
   )
   expect(darwinFuseStatusToDriverStatus(unknown)).toEqual(disabled(T.FS.MacfuseState.NotInstalled))
   expect(darwinFuseStatusToDriverStatus(outdated)).toEqual(disabled(T.FS.MacfuseState.Outdated, '4.8.0'))
+  expect(darwinFuseStatusToDriverStatus(unsupportedMacos)).toEqual({
+    ...disabled(T.FS.MacfuseState.UnsupportedMacos, '5.4.0'),
+    macosVersion: '28',
+  })
   expect(darwinFuseStatusToDriverStatus(readyNotLoaded)).toEqual(disabled(T.FS.MacfuseState.Ready))
   // a loaded kext alone does not mean KBFS is mounted
   expect(darwinFuseStatusToDriverStatus(readyLoaded)).toEqual(disabled(T.FS.MacfuseState.Ready))
 })
 
 test('darwin is Enabled exactly when the KBFS mount is listed, whatever the macFUSE row', () => {
-  for (const status of [notInstalled, unreadableVersion, kextInfoError, unknown, outdated, readyNotLoaded, readyLoaded]) {
+  for (const status of [
+    notInstalled,
+    unreadableVersion,
+    kextInfoError,
+    unknown,
+    outdated,
+    unsupportedMacos,
+    readyNotLoaded,
+    readyLoaded,
+  ]) {
     expect(darwinFuseStatusToDriverStatus({...status, mountInfos: [mount]})).toEqual(
       Constants.emptyDriverStatusEnabled
     )
