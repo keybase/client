@@ -683,9 +683,13 @@ func InstallKBFS(context Context, binPath string, timeout time.Duration, log Log
 	return nil
 }
 
-// legacyCLIPathsFile was written by the old helper when it could not link
-// into /usr/local/bin.
-const legacyCLIPathsFile = "/etc/paths.d/Keybase"
+// legacyCLIPathsFile is written instead of the links when /usr/local/bin is
+// not a directory, as the old helper did. cliPathsDir is its directory's real
+// path.
+const (
+	legacyCLIPathsFile = "/etc/paths.d/Keybase"
+	cliPathsDir        = "/private/etc/paths.d"
+)
 
 // cliAppBundle is the only app clipaths links the command line tools from.
 const cliAppBundle = "/Applications/Keybase.app"
@@ -732,6 +736,16 @@ func installCLIPathsCommand(linkDir string, bins []string) string {
 	return inDirCommand(linkDir, cmds)
 }
 
+// installCLIPathsFileCommand returns the shell command that writes binDir as
+// the only line of a new file named name in pathsDir, creating pathsDir if it
+// is missing.
+func installCLIPathsFileCommand(pathsDir, name, binDir string) string {
+	q := adminprompt.ShellQuote
+	n := q(name)
+	return "{ /bin/test -d " + q(pathsDir) + " || /bin/mkdir " + q(pathsDir) + "; } && " +
+		inDirCommand(pathsDir, []string{"/bin/rm -f " + n, "set -C", "/usr/bin/printf '%s\\n' " + q(binDir) + " > " + n})
+}
+
 // uninstallCLIPathsCommand returns the shell command that removes each
 // entry of linkDir named in links that is still a link to the given target,
 // then pathsFile when it is not empty.
@@ -773,7 +787,10 @@ func installCommandLinePrivileged(log Log) error {
 		}
 	}
 	if fi, err := os.Lstat(cliLinkDir); err != nil || !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory; create it, then install the command line tool again", cliLinkDir)
+		binDir := filepath.Dir(bins[0])
+		log.Info("%s is not a directory; adding %s to %s as an administrator", cliLinkDir, binDir, legacyCLIPathsFile)
+		return runAdminPrompt("Keybase wants to install the keybase command line tool.",
+			installCLIPathsFileCommand(cliPathsDir, filepath.Base(legacyCLIPathsFile), binDir), log)
 	}
 	log.Info("Linking %v to %v as an administrator", links, bins)
 	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(cliLinkDir, bins), log)
