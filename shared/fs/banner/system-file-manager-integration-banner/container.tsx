@@ -78,7 +78,6 @@ type BannerProps = {
   title: string
   body?: string
   button?: BannerButtonProps
-  showMountPendingNote?: boolean
 }
 
 const backgroundToTextStyle = (background: Background, styles: ReturnType<typeof useStyles>) => {
@@ -144,9 +143,6 @@ const Banner = (props: BannerProps) => {
                 {props.body}
               </Kb.Text>
             </Kb.Box2>
-          )}
-          {props.showMountPendingNote && (
-            <Kbfs.MountPendingNote style={backgroundToTextStyle(props.background, styles)} />
           )}
         </Kb.Box2>
         {!!props.button && (
@@ -296,6 +292,7 @@ const Disabled = (props: {
   onDismiss: () => void
 }) => {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props
+  const enableNote = Kbfs.useEnableNote()
   if (driverStatus.type !== T.FS.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
   }
@@ -309,14 +306,13 @@ const Disabled = (props: {
       background={Background.Blue}
       okIcon={false}
       title={`Enable Keybase in ${C.fileUIName}?`}
-      body={C.isDarwin ? `${enableBody} ${Kbfs.macfuseNetworkVolumeNote}` : enableBody}
+      body={enableNote ? `${enableBody} ${enableNote}` : enableBody}
       button={{
         action: onEnable,
         buttonText: 'Yes, enable',
         inProgress: driverStatus.isEnabling,
       }}
       onDismiss={alwaysShow ? undefined : onDismiss}
-      showMountPendingNote={true}
     />
   )
 }

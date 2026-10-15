@@ -64,6 +64,7 @@ const finderIntegrationBody =
 const FinderIntegrationDarwin = () => {
   const styles = useStyles()
   const {directMountDir, driverDisable, driverEnable, driverStatus} = Kbfs.useSystemFileManagerIntegration()
+  const enableNote = Kbfs.useEnableNote()
   const isEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const isPending = isDriverPending(driverStatus)
   const macfuseCopy =
@@ -92,7 +93,6 @@ const FinderIntegrationDarwin = () => {
             disabled={!canToggle}
             onClick={onToggle}
           />
-          <Kbfs.MountPendingNote />
           {macfuseCopy ? (
             <Kbfs.MacfusePrompt copy={macfuseCopy} variant="settings" />
           ) : isEnabled ? (
@@ -106,7 +106,7 @@ const FinderIntegrationDarwin = () => {
           ) : (
             <>
               <Kb.Text type="BodySmall">{finderIntegrationBody}</Kb.Text>
-              <Kb.Text type="BodySmall">{Kbfs.macfuseNetworkVolumeNote}</Kb.Text>
+              {enableNote ? <Kb.Text type="BodySmall">{enableNote}</Kb.Text> : null}
             </>
           )}
         </Kb.Box2>
