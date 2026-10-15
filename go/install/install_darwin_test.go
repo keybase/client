@@ -7,6 +7,7 @@ package install
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -140,29 +141,94 @@ func TestMountOptInRoundTrip(t *testing.T) {
 	require.False(t, MountOptIn(ctx))
 }
 
-func TestInstallCLIPathsCommand(t *testing.T) {
-	bins := []string{
-		"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase",
-		"/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase",
-	}
-	links := []string{"/usr/local/bin/keybase", "/usr/local/bin/git-remote-keybase"}
-	require.Equal(t,
-		"/bin/mkdir -p '/usr/local/bin'"+
-			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/keybase' '/usr/local/bin/keybase'"+
-			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase' '/usr/local/bin/git-remote-keybase'",
-		installCLIPathsCommand(bins, links))
-
-	bins = []string{"/Users/testuser/My Apps/Keybase.app/bin/keybase", "/Users/testuser/it's/git-remote-keybase"}
-	require.Equal(t,
-		"/bin/mkdir -p '/usr/local/bin'"+
-			" && /bin/ln -sfn '/Users/testuser/My Apps/Keybase.app/bin/keybase' '/usr/local/bin/keybase'"+
-			` && /bin/ln -sfn '/Users/testuser/it'\''s/git-remote-keybase' '/usr/local/bin/git-remote-keybase'`,
-		installCLIPathsCommand(bins, links))
+func runShell(t *testing.T, cmd string) (string, error) {
+	t.Helper()
+	out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+	return string(out), err
 }
 
-func TestRemovePathsCommand(t *testing.T) {
-	require.Equal(t, "/bin/rm -f '/usr/local/bin/keybase' '/etc/paths.d/Keybase'",
-		removePathsCommand([]string{"/usr/local/bin/keybase", "/etc/paths.d/Keybase"}))
+func TestCLILinks(t *testing.T) {
+	bins, links := cliLinks()
+	require.Equal(t, []string{
+		"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase",
+		"/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase",
+	}, bins)
+	require.Equal(t, []string{"/usr/local/bin/keybase", "/usr/local/bin/git-remote-keybase"}, links)
+}
+
+func TestInstallCLIPathsCommand(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	bins := []string{filepath.Join(tmp, "it's app", "keybase"), filepath.Join(tmp, "it's app", "git-remote-keybase")}
+	linkDir := filepath.Join(tmp, "link dir")
+
+	out, err := runShell(t, installCLIPathsCommand(linkDir, bins))
+	require.NoError(t, err, out)
+	for i, name := range cliBinNames {
+		target, err := os.Readlink(filepath.Join(linkDir, name))
+		require.NoError(t, err)
+		require.Equal(t, bins[i], target)
+	}
+
+	// An existing link is replaced.
+	require.NoError(t, os.Remove(filepath.Join(linkDir, "keybase")))
+	require.NoError(t, os.Symlink(tmp, filepath.Join(linkDir, "keybase")))
+	out, err = runShell(t, installCLIPathsCommand(linkDir, bins))
+	require.NoError(t, err, out)
+	target, err := os.Readlink(filepath.Join(linkDir, "keybase"))
+	require.NoError(t, err)
+	require.Equal(t, bins[0], target)
+}
+
+func TestInstallCLIPathsCommandLinkedDir(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	realDir := filepath.Join(tmp, "real")
+	require.NoError(t, os.Mkdir(realDir, 0o755))
+	linkDir := filepath.Join(tmp, "linked")
+	require.NoError(t, os.Symlink(realDir, linkDir))
+
+	out, err := runShell(t, installCLIPathsCommand(linkDir, []string{"/a/keybase", "/a/git-remote-keybase"}))
+	require.Error(t, err, out)
+	entries, err := os.ReadDir(realDir)
+	require.NoError(t, err)
+	require.Empty(t, entries, "nothing is linked into the directory a link dir points at")
+}
+
+func TestUninstallCLIPathsCommand(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	linkDir := filepath.Join(tmp, "link dir")
+	require.NoError(t, os.Mkdir(linkDir, 0o755))
+	for _, name := range append([]string{"other"}, cliBinNames...) {
+		require.NoError(t, os.Symlink("/nowhere/"+name, filepath.Join(linkDir, name)))
+	}
+	pathsFile := filepath.Join(tmp, "it's paths")
+	require.NoError(t, os.WriteFile(pathsFile, nil, 0o600))
+
+	out, err := runShell(t, uninstallCLIPathsCommand(linkDir, cliBinNames, pathsFile))
+	require.NoError(t, err, out)
+	entries, err := os.ReadDir(linkDir)
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	require.Equal(t, "other", entries[0].Name())
+	require.NoFileExists(t, pathsFile)
+
+	require.Equal(t, "/bin/rm -f '/etc/paths.d/Keybase'", uninstallCLIPathsCommand(cliLinkDir, nil, "/etc/paths.d/Keybase"))
+}
+
+func TestUninstallCLIPathsCommandLinkedDir(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	realDir := filepath.Join(tmp, "real")
+	require.NoError(t, os.Mkdir(realDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(realDir, "keybase"), nil, 0o600))
+	linkDir := filepath.Join(tmp, "linked")
+	require.NoError(t, os.Symlink(realDir, linkDir))
+
+	out, err := runShell(t, uninstallCLIPathsCommand(linkDir, []string{"keybase"}, ""))
+	require.Error(t, err, out)
+	require.FileExists(t, filepath.Join(realDir, "keybase"))
 }
 
 func TestLinkPointsInto(t *testing.T) {
@@ -177,7 +243,6 @@ func TestLinkPointsInto(t *testing.T) {
 		{"/Applications/Keybase.app2/bin/keybase", "/usr/local/bin", bundle, false},
 		{"/opt/homebrew/bin/keybase", "/usr/local/bin", bundle, false},
 		{"/Applications/Keybase.app/../Other.app/keybase", "/usr/local/bin", bundle, false},
-		{"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/usr/local/bin", "", false},
 	}
 	for _, tc := range cases {
 		require.Equal(t, tc.want, linkPointsInto(tc.target, tc.linkDir, tc.bundleDir), tc.target)

@@ -190,8 +190,7 @@ func (c context) swapContentsStaged(sourcePath, destinationPath string) error {
 // applyRenameFallback installs the update when the app bundle cannot be
 // renamed. It checks the update's signature, then swaps the app's Contents in
 // place as the user and checks the result's signature. It never asks for
-// administrator privileges: root would be moving a bundle the user can still
-// change after its check, into an app the user cannot write.
+// administrator privileges.
 func (c context) applyRenameFallback(localPath, destinationPath string) error {
 	unzipPath, err := util.UnzipPath(localPath, c.log)
 	keepUnzipPath := false

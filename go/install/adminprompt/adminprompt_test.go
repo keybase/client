@@ -39,9 +39,15 @@ func TestAppleScriptString(t *testing.T) {
 func TestScript(t *testing.T) {
 	cmd := "/bin/ln -sfn " + ShellQuote(`/Volumes/Keybase (it's "x" $y\z)`) + " /tmp/l"
 	require.Equal(t,
-		`do shell script "/bin/ln -sfn '/Volumes/Keybase (it'\\''s \"x\" $y\\z)' /tmp/l"`+
+		`do shell script `+appleScriptString(cleanEnvCommand(cmd))+
 			` with prompt "Keybase wants \"this\"." with administrator privileges`,
 		script(`Keybase wants "this".`, cmd))
+}
+
+func TestCleanEnvCommandQuoting(t *testing.T) {
+	require.Equal(t,
+		`/usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/sh -c '/bin/rm -f '\''/a b/it'\''\'\'''\''s'\'''`,
+		cleanEnvCommand("/bin/rm -f "+ShellQuote("/a b/it's")))
 }
 
 func TestIsCanceled(t *testing.T) {
