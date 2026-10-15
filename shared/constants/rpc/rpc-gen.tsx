@@ -3483,7 +3483,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.identifyUi.dismiss'
 // 'keybase.1.implicitTeamMigration.startMigration'
 // 'keybase.1.implicitTeamMigration.finalizeMigration'
-// 'keybase.1.install.installCommandLinePrivileged'
 // 'keybase.1.inviteFriends.invitePeople'
 // 'keybase.1.inviteFriends.getInviteCounts'
 // 'keybase.1.inviteFriends.requestInviteCounts'
