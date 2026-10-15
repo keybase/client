@@ -7,7 +7,6 @@ import {keybaseBinPath} from './paths.desktop'
 import {ctlQuit} from './ctl.desktop'
 import {isDarwin, runMode} from '@/constants/platform'
 import logger from '@/logger'
-import {ensureError} from '@/util/errors'
 import zlib from 'zlib'
 import {legacyHelperInstalled, legacyHelperRetirementResult, type InstallResultJSON} from './install-result.desktop'
 
@@ -105,16 +104,14 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
     return
   }
   commandLineToolWaiters = [callback]
-  const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
-  let binPath: string | undefined
-  try {
-    binPath = keybaseBinPath()
-  } catch (error) {
-    logger.warn('[Installer]: Could not find the keybase binary', ensureError(error).message)
-    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
-    return
-  }
-  exec(binPath, args, 'darwin', 'prod', true, finishCommandLineTool)
+  exec(
+    keybaseBinPath(),
+    ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
+    'darwin',
+    'prod',
+    true,
+    finishCommandLineTool
+  )
 }
 
 // Removes the legacy root helper, its FUSE driver and the old redirector directories behind one macOS administrator
