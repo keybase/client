@@ -49,10 +49,6 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "t, timeout",
 				Usage: "Timeout as duration, such as '10s' or '1m'.",
 			},
-			cli.StringFlag{
-				Name:  "source-path",
-				Usage: "Source path to app bundle.",
-			},
 		},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
@@ -69,7 +65,6 @@ type CmdInstall struct {
 	format     string
 	binPath    string
 	installer  string
-	sourcePath string
 	timeout    time.Duration
 	components []string
 }
@@ -97,7 +92,6 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
 	v.timeout = ctx.Duration("timeout")
-	v.sourcePath = ctx.String("source-path")
 	if v.timeout == 0 {
 		v.timeout = 11 * time.Second
 	}
@@ -126,7 +120,7 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	case "auto":
 		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.timeout, v.G().Log)
 	case "":
-		return install.Install(v.G(), v.binPath, v.sourcePath, v.components, v.force, v.timeout, v.G().Log)
+		return install.Install(v.G(), v.binPath, v.components, v.force, v.timeout, v.G().Log)
 	}
 
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}
@@ -173,6 +167,7 @@ var defaultUninstallComponents = []string{
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameFuse.String(),
 	install.ComponentNameHelper.String(),
+	install.ComponentNameCLIPaths.String(),
 	install.ComponentNameCLI.String(),
 }
 
@@ -308,10 +303,6 @@ func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 				Usage: "Timeout as duration, such as '10s' or '1m'.",
 			},
 			cli.StringFlag{
-				Name:  "source-path",
-				Usage: "Source path to app bundle.",
-			},
-			cli.StringFlag{
 				Name:  "o, format",
 				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
@@ -327,10 +318,9 @@ func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 
 type cmdInstallAuto struct {
 	libkb.Contextified
-	binPath    string
-	sourcePath string
-	format     string
-	timeout    time.Duration
+	binPath string
+	format  string
+	timeout time.Duration
 }
 
 func newCmdInstallAutoRunner(g *libkb.GlobalContext) *cmdInstallAuto {
@@ -349,7 +339,6 @@ func (v *cmdInstallAuto) GetUsage() libkb.Usage {
 func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.timeout = ctx.Duration("timeout")
-	v.sourcePath = ctx.String("source-path")
 	v.format = ctx.String("format")
 	if v.timeout == 0 {
 		v.timeout = 11 * time.Second
@@ -358,7 +347,7 @@ func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *cmdInstallAuto) Run() error {
-	result := install.InstallAuto(v.G(), v.binPath, v.sourcePath, v.timeout, v.G().Log)
+	result := install.InstallAuto(v.G(), v.binPath, v.timeout, v.G().Log)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
