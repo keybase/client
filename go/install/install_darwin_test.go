@@ -139,3 +139,64 @@ func TestMountOptInRoundTrip(t *testing.T) {
 	require.NoError(t, SetMountOptIn(ctx, false))
 	require.False(t, MountOptIn(ctx))
 }
+
+func TestInstallCLIPathsCommand(t *testing.T) {
+	bins := []string{
+		"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase",
+		"/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase",
+	}
+	links := []string{"/usr/local/bin/keybase", "/usr/local/bin/git-remote-keybase"}
+	require.Equal(t,
+		"/bin/mkdir -p '/usr/local/bin'"+
+			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/keybase' '/usr/local/bin/keybase'"+
+			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase' '/usr/local/bin/git-remote-keybase'",
+		installCLIPathsCommand(bins, links))
+
+	bins = []string{"/Users/testuser/My Apps/Keybase.app/bin/keybase", "/Users/testuser/it's/git-remote-keybase"}
+	require.Equal(t,
+		"/bin/mkdir -p '/usr/local/bin'"+
+			" && /bin/ln -sfn '/Users/testuser/My Apps/Keybase.app/bin/keybase' '/usr/local/bin/keybase'"+
+			` && /bin/ln -sfn '/Users/testuser/it'\''s/git-remote-keybase' '/usr/local/bin/git-remote-keybase'`,
+		installCLIPathsCommand(bins, links))
+}
+
+func TestRemovePathsCommand(t *testing.T) {
+	require.Equal(t, "/bin/rm -f '/usr/local/bin/keybase' '/etc/paths.d/Keybase'",
+		removePathsCommand([]string{"/usr/local/bin/keybase", "/etc/paths.d/Keybase"}))
+}
+
+func TestLinkPointsInto(t *testing.T) {
+	bundle := "/Applications/Keybase.app"
+	cases := []struct {
+		target, linkDir, bundleDir string
+		want                       bool
+	}{
+		{"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/usr/local/bin", bundle, true},
+		{"../../../Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/usr/local/bin", bundle, true},
+		{"/Applications/Keybase.app", "/usr/local/bin", bundle, false},
+		{"/Applications/Keybase.app2/bin/keybase", "/usr/local/bin", bundle, false},
+		{"/opt/homebrew/bin/keybase", "/usr/local/bin", bundle, false},
+		{"/Applications/Keybase.app/../Other.app/keybase", "/usr/local/bin", bundle, false},
+		{"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/usr/local/bin", "", false},
+	}
+	for _, tc := range cases {
+		require.Equal(t, tc.want, linkPointsInto(tc.target, tc.linkDir, tc.bundleDir), tc.target)
+	}
+}
+
+func TestBundleDirForPath(t *testing.T) {
+	cases := []struct{ path, want string }{
+		{"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/Applications/Keybase.app"},
+		{"/Users/testuser/My Apps/Keybase.app/Contents/SharedSupport/bin/keybase", "/Users/testuser/My Apps/Keybase.app"},
+		{"/Applications/Keybase.app", "/Applications/Keybase.app"},
+		// Only a path element named exactly Keybase.app counts.
+		{"/Applications/Other.app/Contents/MacOS/keybase", ""},
+		{"/Applications/Keybase.app2/bin/keybase", ""},
+		{"/Applications/MyKeybase.app/bin/keybase", ""},
+		{"/usr/local/bin/keybase", ""},
+		{"", ""},
+	}
+	for _, tc := range cases {
+		require.Equal(t, tc.want, bundleDirForPath(tc.path), tc.path)
+	}
+}

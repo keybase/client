@@ -332,20 +332,10 @@ func (c context) Apply(update updater.Update, options updater.UpdateOptions, tmp
 	case nil:
 	case *os.LinkError:
 		if err.Op == "rename" && err.Old == "/Applications/Keybase.app" {
-			c.log.Infof("The error was a problem renaming (moving) the app, let's trying installing the app via keybase install --components=app which has more privileges: %s", err)
-
-			// Unzip and get source path
-			unzipPath, err := util.UnzipPath(localPath, c.log)
-			defer util.RemoveFileAtPath(unzipPath)
-			if err != nil {
-				return err
-			}
-			sourcePath := filepath.Join(unzipPath, filepath.Base(destinationPath))
-
-			_, installErr := command.Exec(c.config.keybasePath(), []string{"install", "--components=app", fmt.Sprintf("--source-path=%s", sourcePath)}, time.Minute, c.log)
-			if installErr != nil {
-				c.log.Errorf("Error trying to install the app (privileged): %s", installErr)
-				return installErr
+			c.log.Infof("Renaming the app failed; installing the update in place instead: %s", err)
+			if fallbackErr := c.applyRenameFallback(localPath, destinationPath); fallbackErr != nil {
+				c.log.Errorf("Error installing the update in place: %s", fallbackErr)
+				return fallbackErr
 			}
 		} else {
 			return err
