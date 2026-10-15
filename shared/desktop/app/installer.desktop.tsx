@@ -7,6 +7,7 @@ import {keybaseBinPath} from './paths.desktop'
 import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '@/constants/platform'
 import logger from '@/logger'
+import {ensureError} from '@/util/errors'
 import zlib from 'zlib'
 import {legacyHelperInstalled, legacyHelperRetirementResult, type InstallResultJSON} from './install-result.desktop'
 
@@ -68,28 +69,36 @@ type CommandLineToolCallback = (
 
 let commandLineToolWaiters: Array<CommandLineToolCallback> | undefined
 
-// Links the CLI into /usr/local/bin behind a one-time macOS administrator prompt. Only runs in prod. One install
-// runs at a time: a caller while one runs gets that install's result.
+const finishCommandLineTool: CommandLineToolCallback = (err, attempted, stdout, stderr) => {
+  const waiters = commandLineToolWaiters ?? []
+  commandLineToolWaiters = undefined
+  waiters.forEach(waiter => {
+    waiter(err, attempted, stdout, stderr)
+  })
+}
+
+// Makes the keybase command available in Terminal behind a one-time macOS administrator prompt: links it into
+// /usr/local/bin, or when that directory is missing, adds the app's bin directory to /etc/paths.d/Keybase. Only
+// runs in prod. One install runs at a time: a caller while one runs gets that install's result.
 export const installCommandLineTool = (callback: CommandLineToolCallback) => {
   if (commandLineToolWaiters) {
     commandLineToolWaiters.push(callback)
     return
   }
   commandLineToolWaiters = [callback]
-  exec(
-    keybaseBinPath(),
-    ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
-    'darwin',
-    'prod',
-    true,
-    (err, attempted, stdout, stderr) => {
-      const waiters = commandLineToolWaiters ?? []
-      commandLineToolWaiters = undefined
-      waiters.forEach(waiter => {
-        waiter(err, attempted, stdout, stderr)
-      })
-    }
-  )
+  const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
+  try {
+    exec(
+      keybaseBinPath(),
+      args,
+      'darwin',
+      'prod',
+      true,
+      finishCommandLineTool
+    )
+  } catch (error) {
+    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
+  }
 }
 
 // Removes the legacy root helper, its FUSE driver and the old redirector directories behind one macOS administrator
