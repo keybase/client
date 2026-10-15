@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/go-kext"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sys/unix"
 )
 
 func TestFindStringInPlist(t *testing.T) {
@@ -139,23 +140,39 @@ func TestDeriveFuseStatus(t *testing.T) {
 	}
 }
 
-func TestParseMountOutput(t *testing.T) {
-	out := "/dev/disk3s1s1 on / (apfs, sealed, local, read-only, journaled)\n" +
-		"kbfs@macfuse0 on /Volumes/Keybase (testuser) (macfuse, nodev, nosuid, synchronous, mounted by testuser)\n" +
-		"sshfs@macfuse1 on /Volumes/remote (macfuse, nodev, nosuid, mounted by testuser)\n" +
-		"kbfs@kbfuse0 on /Volumes/Keybase (testuser-mac) (kbfuse, nodev, nosuid, mounted by testuser-mac)\n" +
-		"garbage line without the separator\n" +
-		"x on /no/options\n" +
-		"y on (macfuse)\n" +
-		"\n"
+func statfs(from, on, fstype string, owner uint32) unix.Statfs_t {
+	var m unix.Statfs_t
+	copy(m.Mntfromname[:], from)
+	copy(m.Mntonname[:], on)
+	copy(m.Fstypename[:], fstype)
+	m.Owner = owner
+	return m
+}
+
+func TestMountInfosOwnedBy(t *testing.T) {
+	mounts := []unix.Statfs_t{
+		statfs("/dev/disk3s1s1", "/", "apfs", 0),
+		statfs("kbfs@macfuse0", "/Volumes/Keybase (testuser)", "macfuse", 501),
+		statfs("kbfs@macfuse1", "/Volumes/Keybase (testuser-mac)", "macfuse", 502),
+		statfs("kbfs@kbfuse0", "/Volumes/Keybase", "kbfuse", 0),
+		statfs("kbfs@kbfuse1", "/Volumes/Keybase (old)", "kbfuse", 501),
+	}
 	require.Equal(t, []keybase1.FuseMountInfo{
-		{Fstype: "macfuse", Path: "/Volumes/Keybase (testuser)", Output: "kbfs@macfuse0 on /Volumes/Keybase (testuser) (macfuse, nodev, nosuid, synchronous, mounted by testuser)"},
-		{Fstype: "macfuse", Path: "/Volumes/remote", Output: "sshfs@macfuse1 on /Volumes/remote (macfuse, nodev, nosuid, mounted by testuser)"},
-	}, parseMountOutput("macfuse", out))
-	require.Equal(t, []keybase1.FuseMountInfo{
-		{Fstype: "kbfuse", Path: "/Volumes/Keybase (testuser-mac)", Output: "kbfs@kbfuse0 on /Volumes/Keybase (testuser-mac) (kbfuse, nodev, nosuid, mounted by testuser-mac)"},
-	}, parseMountOutput("kbfuse", out))
-	require.Empty(t, parseMountOutput("macfuse", ""))
+		{Fstype: "macfuse", Path: "/Volumes/Keybase (testuser)", Output: "kbfs@macfuse0 on /Volumes/Keybase (testuser) (macfuse)"},
+		{Fstype: "kbfuse", Path: "/Volumes/Keybase (old)", Output: "kbfs@kbfuse1 on /Volumes/Keybase (old) (kbfuse)"},
+	}, mountInfosOwnedBy(mounts, []string{"macfuse", "kbfuse"}, 501))
+	require.Empty(t, mountInfosOwnedBy(mounts, []string{"macfuse"}, 503))
+	require.Empty(t, mountInfosOwnedBy(nil, []string{"macfuse"}, 501))
+}
+
+func TestListMounts(t *testing.T) {
+	mounts, err := listMounts()
+	require.NoError(t, err)
+	var paths []string
+	for _, m := range mounts {
+		paths = append(paths, unix.ByteSliceToString(m.Mntonname[:]))
+	}
+	require.Contains(t, paths, "/")
 }
 
 func TestFilterKBFSMountInfos(t *testing.T) {
@@ -164,7 +181,7 @@ func TestFilterKBFSMountInfos(t *testing.T) {
 		{Fstype: "macfuse", Path: "/Volumes/Keybase (testuser)"},
 		{Fstype: "kbfuse", Path: "/Volumes/Keybase (testuser-mac)"},
 	}}
-	FilterKBFSMountInfos(&st, "/Volumes/Keybase (testuser)")
+	FilterKBFSMountInfos(&st, "/Volumes/Keybase (testuser)/")
 	require.Equal(t, []keybase1.FuseMountInfo{{Fstype: "macfuse", Path: "/Volumes/Keybase (testuser)"}}, st.MountInfos)
 	FilterKBFSMountInfos(&st, "")
 	require.Empty(t, st.MountInfos)
