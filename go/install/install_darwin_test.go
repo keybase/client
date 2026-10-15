@@ -349,6 +349,18 @@ func TestRootMountedDirs(t *testing.T) {
 	require.Empty(t, rootMountedDirs([]unix.Statfs_t{statfs("/dev/disk9s2", "/Volumes/KeybaseStaging", "apfs", 0)}, []string{"/Volumes/KeybaseStaging"}))
 }
 
+func TestKbfuseMountsKeptBy(t *testing.T) {
+	mounts := []unix.Statfs_t{
+		statfs("kbfs@kbfuse0", "/Volumes/Keybase", "kbfuse", 0),
+		statfs("kbfs@kbfuse1", "/Volumes/Elsewhere", "kbfuse", 0),
+		statfs("kbfs@kbfuse2", "/Volumes/Keybase (testuser)", "kbfuse", 501),
+		statfs("kbfs@macfuse0", "/Volumes/Keybase (other)", "macfuse", 503),
+		statfs("/dev/disk3s1s1", "/", "apfs", 0),
+	}
+	require.Equal(t, []string{"/Volumes/Elsewhere", "/Volumes/Keybase (testuser)"}, kbfuseMountsKeptBy(mounts, legacyRedirectorDirs))
+	require.Empty(t, kbfuseMountsKeptBy(mounts[:1], legacyRedirectorDirs))
+}
+
 func TestKbfuseMountsNotOwnedBy(t *testing.T) {
 	mounts := []unix.Statfs_t{
 		statfs("kbfs@kbfuse0", "/Volumes/Keybase", "kbfuse", 0),
@@ -358,7 +370,6 @@ func TestKbfuseMountsNotOwnedBy(t *testing.T) {
 	}
 	require.Equal(t, []string{"/Volumes/Keybase (testuser-mac)"}, kbfuseMountsNotOwnedBy(mounts, 0, 501))
 	require.Empty(t, kbfuseMountsNotOwnedBy(mounts[:2], 0, 501))
-	require.Equal(t, []string{"/Volumes/Keybase (testuser)", "/Volumes/Keybase (testuser-mac)"}, kbfuseMountsNotOwnedBy(mounts, 0))
 }
 
 func TestInstallCLIPathsFileCommand(t *testing.T) {
