@@ -201,6 +201,13 @@ test('an enable waits out a status read that fails while the service restarts', 
   expect(params.openFinder).toHaveBeenCalledTimes(1)
 })
 
+test('an enable whose status reads keep failing reports the last failure', async () => {
+  const refreshDriverStatus = jest.fn(async (): Promise<DriverStatusRefresh> => Promise.reject(new Error('broken')))
+  const {params, run} = enableWith([], {darwin: false, refreshDriverStatus})
+  await expect(run()).rejects.toThrow('broken')
+  expect(params.openFinder).not.toHaveBeenCalled()
+})
+
 test('a kext error from an enable started on another account opens no prompt', async () => {
   const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
   const {params, run} = enableWith([], {

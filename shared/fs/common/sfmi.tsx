@@ -203,6 +203,25 @@ type DriverEnableParams = {
   wait: (ms: number) => Promise<void>
 }
 
+// A status read that fails is waited out like a disconnect, since an enable can restart the service. The last
+// failure is kept, so a wait that ends on failures can still report it.
+export const waitingOutFailures = (refresh: () => Promise<DriverStatusRefresh>) => {
+  let lastError: unknown
+  return {
+    lastError: () => lastError,
+    refresh: async (): Promise<DriverStatusRefresh> => {
+      try {
+        const driverStatus = await refresh()
+        lastError = undefined
+        return driverStatus
+      } catch (error) {
+        lastError = error
+        return 'disconnected'
+      }
+    },
+  }
+}
+
 // Finder opens only here, once the user's own enable shows Enabled for the account that started it (D58).
 export const driverEnableImpl = async (p: DriverEnableParams) => {
   const result = await p.enable()
@@ -214,17 +233,14 @@ export const driverEnableImpl = async (p: DriverEnableParams) => {
     return
   }
   p.setKextPermissionError(false)
-  // the enable can restart the service, so a status read that fails meanwhile is waited out like a disconnect
-  const refreshThroughRestart = async (): Promise<DriverStatusRefresh> => {
-    try {
-      return await p.refreshDriverStatus()
-    } catch {
-      return 'disconnected'
-    }
-  }
-  const driverStatus = await refreshUntilMounted(refreshThroughRestart, p.wait, p.stillCurrent, s =>
+  const reads = waitingOutFailures(p.refreshDriverStatus)
+  const driverStatus = await refreshUntilMounted(reads.refresh, p.wait, p.stillCurrent, s =>
     isEnableWaiting(s, p.darwin)
   )
+  const lastError = reads.lastError()
+  if (driverStatus === 'disconnected' && lastError !== undefined) {
+    throw ensureError(lastError)
+  }
   if (p.stillCurrent()) {
     if (typeof driverStatus === 'object' && driverStatus.type === T.FS.DriverStatusType.Enabled) {
       await p.openFinder(driverStatus)
@@ -421,7 +437,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     const started = {account, connection}
     const stillCurrent = () => isSameConnection(sessionRef.current, started)
     const driverStatus = await refreshUntilMounted(
-      refreshDriverStatus,
+      waitingOutFailures(refreshDriverStatus).refresh,
       C.timeoutPromise,
       stillCurrent,
       isFinderAccessMountPending
