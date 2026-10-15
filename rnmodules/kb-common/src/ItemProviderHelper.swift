@@ -141,11 +141,14 @@ public class ItemProviderHelper: NSObject {
     return payloadFolderURL
   }
 
-  private func getPayloadURL(from url: URL?) -> URL {
+  // Each item gets its own subdirectory so same-named items (edited photos are all
+  // FullSizeRender.jpg) don't collide while the real filename is kept.
+  private func getPayloadURL(from url: URL) throws -> URL {
     let guid = ProcessInfo.processInfo.globallyUniqueString
-    return url != nil
-      ? payloadFolderURL.appendingPathComponent(url!.lastPathComponent)
-      : payloadFolderURL.appendingPathComponent(guid)
+    let itemFolderURL = payloadFolderURL.appendingPathComponent(guid, isDirectory: true)
+    try FileManager.default.createDirectory(
+      at: itemFolderURL, withIntermediateDirectories: true, attributes: nil)
+    return itemFolderURL.appendingPathComponent(url.lastPathComponent)
   }
 
   private func getPayloadURL(withExtension ext: String?) -> URL {
@@ -229,8 +232,8 @@ public class ItemProviderHelper: NSObject {
       return
     }
 
-    let filePayloadURL = getPayloadURL(from: url)
     do {
+      let filePayloadURL = try getPayloadURL(from: url)
       try FileManager.default.copyItem(at: url, to: filePayloadURL)
       completeItemAndAppendManifest(type: "file", originalFileURL: filePayloadURL)
     } catch {
@@ -326,8 +329,9 @@ public class ItemProviderHelper: NSObject {
       return
     }
 
-    let filePayloadURL = getPayloadURL(from: url)
+    let filePayloadURL: URL
     do {
+      filePayloadURL = try getPayloadURL(from: url)
       try FileManager.default.copyItem(at: url, to: filePayloadURL)
     } catch {
       completeItemAndAppendManifestAndLogError(text: "sendMedia: copy error", error: error)
