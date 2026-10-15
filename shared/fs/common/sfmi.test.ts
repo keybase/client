@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
@@ -184,6 +185,33 @@ const enableWith = (
   }
   return {params, run: async () => driverEnableImpl(params)}
 }
+
+test('an enable waits out a status read that fails while the service restarts', async () => {
+  let call = 0
+  const refreshDriverStatus = jest.fn(async (): Promise<DriverStatusRefresh> => {
+    call++
+    if (call === 2) {
+      return Promise.reject(new Error('service restarting'))
+    }
+    return Promise.resolve(call === 1 ? disabled() : Constants.emptyDriverStatusEnabled)
+  })
+  const {params, run} = enableWith([], {darwin: false, refreshDriverStatus})
+  await run()
+  expect(refreshDriverStatus).toHaveBeenCalledTimes(3)
+  expect(params.openFinder).toHaveBeenCalledTimes(1)
+})
+
+test('a kext error from an enable started on another account opens no prompt', async () => {
+  const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
+  const {params, run} = enableWith([], {
+    enable: jest.fn(async () => Promise.resolve('kextPermissionError' as const)),
+    stillCurrent: () => false,
+  })
+  await run()
+  expect(params.setKextPermissionError).toHaveBeenCalledWith(true)
+  expect(navigateAppend).not.toHaveBeenCalled()
+  navigateAppend.mockRestore()
+})
 
 test("the user's enable opens Finder once, after the mount shows", async () => {
   const {params, run} = enableWith([disabled(), 'disconnected', Constants.emptyDriverStatusEnabled])
