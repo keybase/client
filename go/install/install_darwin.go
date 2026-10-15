@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/mounter"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/utils"
+	"golang.org/x/sys/unix"
 )
 
 // defaultLaunchdWait is how long we should wait after install & start.
@@ -480,12 +481,12 @@ func legacyRedirectorDirs(runMode libkb.RunMode) ([]string, error) {
 }
 
 // retireLegacyHelperCommand returns the shell command, run as root, that
-// stops the legacy helper and its redirector, unloads and removes kbfuse,
-// removes the redirector directories, and removes the helper. Missing paths
-// and redirector directories that cannot be removed are not errors. Any
-// other failure (e.g. kbfuse still in use) stops the command before the
-// helper binary is removed, so the helper stays detectable.
-func retireLegacyHelperCommand(redirectorDirs []string) string {
+// stops the legacy helper and its redirector, unmounts umountDirs, unloads
+// and removes kbfuse, removes the redirector directories, and removes the
+// helper. Missing paths and redirector directories that cannot be removed are
+// not errors. Any other failure (e.g. kbfuse still in use) stops the command
+// before the helper binary is removed, so the helper stays detectable.
+func retireLegacyHelperCommand(redirectorDirs, umountDirs []string) string {
 	q := adminprompt.ShellQuote
 	kextID := q(legacyKbfuseKextID)
 	steps := []string{
@@ -494,8 +495,8 @@ func retireLegacyHelperCommand(redirectorDirs []string) string {
 		// helper is not loaded.
 		"/bin/launchctl bootout " + q("system/"+legacyHelperLabel) + " 2>/dev/null || true",
 	}
-	for _, dir := range redirectorDirs {
-		// Fails when dir is not a mount point.
+	for _, dir := range umountDirs {
+		// Fails when the redirector's mount went away with it.
 		steps = append(steps, "/sbin/umount -f "+q(dir)+" 2>/dev/null || true")
 	}
 	steps = append(steps,
@@ -512,14 +513,29 @@ func retireLegacyHelperCommand(redirectorDirs []string) string {
 	return strings.Join(steps, "; ")
 }
 
-// removeRedirectorDirCommand removes a legacy redirector mount point: a
-// symlink with rm (rmdir fails on one), a directory with rmdir. A failed
-// rmdir only leaves a stale directory, so it is not an error: rmdir cannot
-// remove a live mount point or contents, and a synthetic /keybase lives on
-// the read-only system volume.
+// removeRedirectorDirCommand removes a legacy redirector mount point or the
+// link the helper made to one: a symlink with rm (rmdir fails on one), a
+// directory with rmdir. A failure only leaves a stale path, so it is not an
+// error: rmdir cannot remove a live mount point or contents, and a synthetic
+// /keybase lives on the read-only system volume.
 func removeRedirectorDirCommand(dir string) string {
 	d := adminprompt.ShellQuote(dir)
-	return "if [ -L " + d + " ]; then /bin/rm -f " + d + "; elif [ -d " + d + " ]; then /bin/rmdir " + d + " 2>/dev/null || true; fi"
+	return "if /bin/test -L " + d + "; then /bin/rm -f " + d + " 2>/dev/null || true; elif /bin/test -d " + d + "; then /bin/rmdir " + d + " 2>/dev/null || true; fi"
+}
+
+// rootMountedDirs returns the dirs that have a mount root owned, as the
+// legacy redirector's mounts are.
+func rootMountedDirs(mounts []unix.Statfs_t, dirs []string) []string {
+	var mounted []string
+	for _, dir := range dirs {
+		for _, m := range mounts {
+			if m.Owner == 0 && unix.ByteSliceToString(m.Mntonname[:]) == dir {
+				mounted = append(mounted, dir)
+				break
+			}
+		}
+	}
+	return mounted
 }
 
 // retireLegacyHelper removes the legacy helper, the kbfuse driver and the
@@ -557,11 +573,20 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 		}
 	}
 
+	mounts, err := listMounts()
+	if err != nil {
+		log.Warning("Unable to list mounts: %s", err)
+	}
 	log.Info("Retiring the legacy helper as an administrator")
 	err = runAdminPrompt("Keybase wants to remove its old file system helper and driver, which are no longer used.",
-		retireLegacyHelperCommand(redirectorDirs), log)
+		retireLegacyHelperCommand(redirectorDirs, rootMountedDirs(mounts, redirectorDirs)), log)
 	if err == nil && pathExists(legacyHelperPath) {
 		err = fmt.Errorf("the retirement finished but %s is still installed", legacyHelperPath)
+	}
+	for _, dir := range redirectorDirs {
+		if target, lerr := os.Readlink(dir); lerr == nil {
+			log.Warning("%s still links to %s, where nothing is mounted anymore. If /etc/synthetic.conf creates it, remove that line.", dir, target)
+		}
 	}
 	if err != nil {
 		log.Errorf("legacy helper retirement failed: %s", err)
