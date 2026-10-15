@@ -9,6 +9,7 @@ import {normalizeFilePathURL} from '@/util/file-url'
 import {Image} from 'expo-image'
 import {iconMeta, type IconType} from '../icon.constants-gen'
 import {getAssetPath} from '@/constants/platform'
+import {asSyntheticEvent} from '../press-event'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 
@@ -296,7 +297,7 @@ function Avatar(p: Props) {
   )
 
   if (onClick) {
-    return <Pressable onPress={onClick} style={containerStyle} testID={testID}>{content}</Pressable>
+    return <Pressable onPress={e => onClick(asSyntheticEvent(e))} style={containerStyle} testID={testID}>{content}</Pressable>
   }
 
   return <View style={containerStyle} testID={testID}>{content}</View>

@@ -3,7 +3,8 @@ import type * as React from 'react'
 import {
   SectionList as NativeSectionList,
   type SectionListProps,
-  type ViewToken,
+  type ListViewToken,
+  type SectionBase,
   type SectionListData,
 } from 'react-native'
 import noop from 'lodash/noop'
@@ -45,7 +46,7 @@ function SectionListImpl<ItemT, SectionT>(
     ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
     : undefined
   const onViewableItemsChanged = onSectionChange
-    ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
+    ? (e: {viewableItems: ListViewToken[]}) => {
         const section = e.viewableItems[0]?.section as SectionT | undefined
         if (section) {
           onSectionChange(section)
@@ -117,7 +118,7 @@ function getGetItemLayout<ItemT, SectionT>({
   getSectionFooterHeight = () => 0,
   listHeaderHeight = 0,
 }: Parameters<ItemT>) {
-  return (data: SectionListData<ItemT, SectionT>[] | null, index: number) => {
+  return (data: ReadonlyArray<SectionBase<ItemT, SectionT>> | null, index: number) => {
     let i = 0
     let sectionIndex = 0
     let elementPointer: ListElement = {type: 'SECTION_HEADER'}

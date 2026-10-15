@@ -7,7 +7,7 @@ import logger from '@/logger'
 import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
-import {Animated, View} from 'react-native'
+import {Animated, View, type GestureResponderEvent} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {Image} from 'expo-image'
 import {useVideoPlayer, VideoView} from 'expo-video'
@@ -195,15 +195,11 @@ const DesktopFullscreen = (p: Props) => {
   )
 }
 
-type GestureEvent = {
-  nativeEvent: {touches: Array<unknown>; pageX: number}
-}
-
 const NativeFullscreenVideo = (p: {
   path: string
   previewHeight: number
-  onTouchStart: (e: GestureEvent) => void
-  onTouchEnd: (e: GestureEvent) => void
+  onTouchStart: (e: GestureResponderEvent) => void
+  onTouchEnd: (e: GestureResponderEvent) => void
   onLoaded: () => void
 }) => {
   const styles = useStyles()
@@ -305,7 +301,7 @@ const NativeFullscreen = (p: Props) => {
   const needDiff = windowWidth / 3
   const initialTouch = React.useRef(-1)
   const maxTouchesRef = React.useRef(0)
-  const onTouchStart = (e: GestureEvent) => {
+  const onTouchStart = (e: GestureResponderEvent) => {
     maxTouchesRef.current = Math.max(maxTouchesRef.current, e.nativeEvent.touches.length)
     if (e.nativeEvent.touches.length === 1) {
       initialTouch.current = e.nativeEvent.pageX
@@ -313,7 +309,7 @@ const NativeFullscreen = (p: Props) => {
       initialTouch.current = -1
     }
   }
-  const onTouchEnd = (e: GestureEvent) => {
+  const onTouchEnd = (e: GestureResponderEvent) => {
     const maxTouches = maxTouchesRef.current
     maxTouchesRef.current = 0
     const diff = e.nativeEvent.pageX - initialTouch.current

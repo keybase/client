@@ -451,7 +451,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
       <Rover />
       <Kb.SectionList
-        ListHeaderComponent={header}
+        ListHeaderComponent={header ?? undefined}
         contentInsetAdjustmentBehavior={isMobile ? 'automatic' : undefined}
         stickySectionHeadersEnabled={true}
         renderSectionHeader={({section}: {section: Section}) => section.renderHeader(section)}

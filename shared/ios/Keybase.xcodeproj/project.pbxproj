@@ -520,7 +520,6 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoLocalization/ExpoLocalization_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoMediaLibrary/ExpoMediaLibrary_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoTaskManager/ExpoTaskManager_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React-timing_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
@@ -535,7 +534,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoLocalization_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoMediaLibrary_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoTaskManager_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-timing_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
@@ -938,6 +936,14 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
 					"${PODS_ROOT}/React-featureflags",
 					"${PODS_ROOT}/React-renderercss",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/scrollview/platform/cxx",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/scrollview/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/textlayoutmanager/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/text/platform/cxx",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/textinput/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/switch/iosswitch",
+					"${PODS_ROOT}/React-bridging",
+					"${PODS_ROOT}/React-cxxstableapi",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -1057,6 +1063,14 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
 					"${PODS_ROOT}/React-featureflags",
 					"${PODS_ROOT}/React-renderercss",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/scrollview/platform/cxx",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/scrollview/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/textlayoutmanager/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/text/platform/cxx",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/textinput/platform/ios",
+					"${PODS_ROOT}/React-FabricComponents/react/renderer/components/switch/iosswitch",
+					"${PODS_ROOT}/React-bridging",
+					"${PODS_ROOT}/React-cxxstableapi",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";

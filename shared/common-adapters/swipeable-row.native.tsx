@@ -21,7 +21,7 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
 
   // progress = -translationX / openWidth, naturally 0→1 as row opens
   const progress = React.useRef(
-    Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision<number>
+    Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision
   ).current
 
   // actions subtree is deferred until the first drag so idle rows don't pay for it

@@ -1,5 +1,6 @@
-import {TurboModuleRegistry, type TurboModule} from 'react-native'
-import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes'
+import {TurboModuleRegistry, type CodegenTypes, type TurboModule} from 'react-native'
+
+type EventEmitter<T> = CodegenTypes.EventEmitter<T>
 
 export interface Spec extends TurboModule {
   readonly onMetaEvent: EventEmitter<string>

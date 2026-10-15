@@ -122,7 +122,7 @@ android {
         release {
             signingConfig = signingConfigs.release
             minifyEnabled enableMinifyInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
         releaseUnsigned.initWith(buildTypes.release)
         releaseUnsigned {

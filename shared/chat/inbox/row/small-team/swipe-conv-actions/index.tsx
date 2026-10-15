@@ -26,7 +26,7 @@ const Action = (p: {
   color: Kb.Styles.Color
   iconType: Kb.IconType
   onClick: () => void
-  progress: Animated.AnimatedDivision<number>
+  progress: Animated.AnimatedDivision
 }) => {
   'use no memo'
   const nativeStyles = useNativeStyles()
@@ -107,7 +107,7 @@ function SwipeConvActions(p: Props) {
     setOpenedRow(conversationIDKey)
   }
 
-  const renderRightActions = (progress: Animated.AnimatedDivision<number>) => {
+  const renderRightActions = (progress: Animated.AnimatedDivision) => {
     return (
       <View style={[nativeStyles.container, {width: 3 * actionWidth}]}>
         <Action

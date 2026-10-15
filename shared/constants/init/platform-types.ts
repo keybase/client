@@ -33,7 +33,7 @@ export type DesktopModules = {
 export type NativeModules = {
   ExpoLocation: ExpoLocationModule
   ExpoTaskManager: ExpoTaskManagerModule
-  Linking: {getInitialURL: () => Promise<string | null>}
+  Linking: {getInitialURL: () => Promise<string | null | undefined>}
   Network: NetworkModule
   // iOS only
   addLocationFixListener: (cb: (fix: {accuracy: number; lat: number; lon: number}) => void) => () => void

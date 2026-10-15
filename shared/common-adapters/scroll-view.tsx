@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {RefreshControl, ScrollView as NativeScrollView} from 'react-native'
-import type {ScrollViewProps, RefreshControlProps, GestureResponderEvent} from 'react-native'
+import type {ScrollViewProps, ScrollViewInstance, RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
 
 export type ScrollViewRef = {
@@ -61,7 +61,7 @@ function ScrollView(props: Props) {
   const {ref: outerRef, onRefresh, refreshing, ...rest} = props
 
   const divRef = React.useRef<DivScrollable | null>(null)
-  const innerRef = React.useRef<NativeScrollView | null>(null)
+  const innerRef = React.useRef<ScrollViewInstance | null>(null)
 
   React.useImperativeHandle(outerRef, () => ({
     scrollTo: (args: {x: number; y: number; animated?: boolean}) => {
