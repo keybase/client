@@ -73,17 +73,36 @@ const logComponentResults = (result: InstallResultJSON) => {
 
 type CB = (err: Error | null) => void
 
-// Links the CLI into /usr/local/bin behind a one-time macOS administrator prompt. Only runs in prod.
-export const installCommandLineTool = (
-  callback: (err: ExecException | null, attempted: boolean, stdout: string, stderr: string) => void
-) => {
+type CommandLineToolCallback = (
+  err: ExecException | null,
+  attempted: boolean,
+  stdout: string,
+  stderr: string
+) => void
+
+let commandLineToolWaiters: Array<CommandLineToolCallback> | undefined
+
+// Links the CLI into /usr/local/bin behind a one-time macOS administrator prompt. Only runs in prod. One install
+// runs at a time: a caller while one runs gets that install's result.
+export const installCommandLineTool = (callback: CommandLineToolCallback) => {
+  if (commandLineToolWaiters) {
+    commandLineToolWaiters.push(callback)
+    return
+  }
+  commandLineToolWaiters = [callback]
   exec(
     keybaseBinPath(),
     ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
     'darwin',
     'prod',
     true,
-    callback
+    (err, attempted, stdout, stderr) => {
+      const waiters = commandLineToolWaiters ?? []
+      commandLineToolWaiters = undefined
+      waiters.forEach(waiter => {
+        waiter(err, attempted, stdout, stderr)
+      })
+    }
   )
 }
 
