@@ -11,8 +11,7 @@ import "flag"
 // PlatformParams contains all platform-specific parameters to be
 // passed to New{Default,Force}Mounter.
 type PlatformParams struct {
-	UseSystemFuse bool
-	UseLocal      bool
+	UseLocal bool
 }
 
 func (p PlatformParams) shouldAppendPlatformRootDirs() bool {
@@ -22,7 +21,7 @@ func (p PlatformParams) shouldAppendPlatformRootDirs() bool {
 // GetPlatformUsageString returns a string to be included in a usage
 // string corresponding to the flags added by AddPlatformFlags.
 func GetPlatformUsageString() string {
-	return "[--use-system-fuse] [--local-experimental]\n    "
+	return "[--local-experimental]\n    "
 }
 
 // AddPlatformFlags adds platform-specific flags to the given FlagSet
@@ -30,8 +29,6 @@ func GetPlatformUsageString() string {
 // given FlagSet is parsed.
 func AddPlatformFlags(flags *flag.FlagSet) *PlatformParams {
 	var params PlatformParams
-	flags.BoolVar(&params.UseSystemFuse, "use-system-fuse", false,
-		"Use the system OSXFUSE instead of keybase's OSXFUSE")
 	flags.BoolVar(&params.UseLocal, "local-experimental", false,
 		"Use 'local' mount option and enable other hacky stuff for testing macOS "+
 			"apps. The \"hacky stuff\" includes a Trash implementation that only "+

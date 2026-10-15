@@ -7,23 +7,26 @@ package mounter
 
 import (
 	"regexp"
-	"strings"
+	"slices"
 	"syscall"
 )
 
-// IsMounted returns true if directory is mounted (by kbfuse)
+// KBFSFstypes are the filesystem types a KBFS mount can have. kbfuse is the
+// legacy Keybase-bundled FUSE, so leftover mounts can still be found and
+// unmounted. Remove it once the legacy helper retirement has removed kbfuse
+// from upgraders' machines.
+var KBFSFstypes = []string{"macfuse", "kbfuse"}
+
+// IsMounted returns true if directory is a KBFS FUSE mount
 func IsMounted(dir string, log Log) (bool, error) {
-	mountInfo, err := getMountInfo(dir)
-	if err != nil {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(dir, &st); err != nil {
 		return false, err
 	}
-
-	log.Debug("Mount info: %s", mountInfo)
-	if strings.Contains(mountInfo, "@kbfuse") {
-		return true, nil
-	}
-
-	return false, nil
+	fstype := cstr(st.Fstypename[:])
+	log.Debug("Mount info: fstype=%s from=%s", fstype,
+		unescapeBackslash(cstr(st.Mntfromname[:])))
+	return slices.Contains(KBFSFstypes, fstype), nil
 }
 
 //
@@ -48,13 +51,4 @@ func cstr(ca []int8) string {
 		s = append(s, byte(c))
 	}
 	return string(s)
-}
-
-func getMountInfo(mnt string) (string, error) {
-	var st syscall.Statfs_t
-	err := syscall.Statfs(mnt, &st)
-	if err != nil {
-		return "", err
-	}
-	return unescapeBackslash(cstr(st.Mntfromname[:])), nil
 }
