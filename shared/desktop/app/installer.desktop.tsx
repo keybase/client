@@ -1,6 +1,4 @@
 import * as Electron from 'electron'
-import * as RemoteGen from '@/constants/remote-actions'
-import * as R from '@/constants/remote'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
@@ -10,97 +8,48 @@ import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '@/constants/platform'
 import logger from '@/logger'
 import zlib from 'zlib'
-import {
-  ExitCodeAuthCanceledError,
-  ExitCodeFuseKextError,
-  ExitCodeFuseKextPermissionError,
-  ExitFuseCriticalUpdate,
-  ExitFuseCriticalUpdateFailed,
-} from '@/constants/values'
+import {legacyHelperInstalled, legacyHelperRetirementResult, type InstallResultJSON} from './install-result.desktop'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
-const loadHasPrompted = () => {
+type InstallerState = {promptedForCLI?: boolean; promptedForHelper?: boolean}
+
+const loadState = (): InstallerState => {
   try {
     const data = fs.readFileSync(file, 'utf8')
-    const p = JSON.parse(data) as undefined | {promptedForCLI: unknown}
-    return !!p?.promptedForCLI
+    const p = JSON.parse(data) as undefined | {promptedForCLI?: unknown; promptedForHelper?: unknown}
+    return {promptedForCLI: !!p?.promptedForCLI, promptedForHelper: !!p?.promptedForHelper}
   } catch (error_) {
     const error = error_ as {code?: string} | undefined
     if (error?.code === 'ENOENT') {
-      console.log('[Installer] loadHasPrompted: No installer.json file')
+      console.log('[Installer] loadState: No installer.json file')
     } else {
-      console.warn('[Installer] loadHasPrompted: Error loading state:', error)
+      console.warn('[Installer] loadState: Error loading state:', error)
     }
-    return false
+    return {}
   }
 }
 
-const saveHasPrompted = () => {
+const savePrompted = (key: keyof InstallerState) => {
   try {
-    fs.writeFileSync(file, JSON.stringify({promptedForCLI: true}))
+    fs.writeFileSync(file, JSON.stringify({...loadState(), [key]: true}))
   } catch (err) {
-    console.warn('[Installer] saveHasPrompted: Error saving state:', err)
+    console.warn('[Installer] savePrompted: Error saving state:', err)
   }
 }
 
 type ErrorTypes = {
   cli: boolean
-  fuse: boolean
 }
 
-type ResultType =
-  | {
-      componentResults?: Array<{
-        status?: {
-          code?: number
-          desc?: string
-        }
-        name?: string
-        exitCode?: number
-      }>
-    }
-  | undefined
-
-const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: ErrorTypes) => {
+const checkErrors = (result: InstallResultJSON, errors: Array<string>, errorTypes: ErrorTypes) => {
   const results = result?.componentResults || []
   results.forEach(cr => {
     if (cr.status?.code === 0) {
       return
     }
-    if (cr.name === 'fuse') {
-      errorTypes.fuse = true
-      if (cr.exitCode === ExitCodeFuseKextError) {
-        errors.push(
-          `We were unable to load KBFS (Fuse kext). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
-        )
-      } else if (cr.exitCode === ExitCodeFuseKextPermissionError) {
-        // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
-        // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
-      }
-    } else if (cr.name === 'helper' && cr.exitCode === ExitCodeAuthCanceledError) {
-      // Consider this a FUSE error for the purpose of showing it to the user.
-      errorTypes.fuse = true
-      errors.push(
-        `Installation was canceled. The file system will not be available until authorization is granted.`
-      )
-    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
-      logger.info('[Installer] fuse critical update, setting badge')
-      // ignore critical update error, it's just to coerce specific behavior in the Go installer
-      R.remoteDispatch(RemoteGen.createSetCriticalUpdate({critical: true}))
-      return
-    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
-      errorTypes.fuse = true
-      errors.push(
-        `We were unable to perform required KBFS maintenance. This is likely because you are using KBFS mounts on more than one macOS system account on this computer. In order to fix this situation, please quit all running copies of Keybase on all accounts, and try starting Keybase again.`
-      )
-    } else if (cr.name === 'cli') {
+    if (cr.name === 'cli') {
       errorTypes.cli = true
-    } else if (cr.name === 'redirector') {
-      errorTypes.fuse = true
-      errors.push(
-        `We were unable to load the part of Keybase that lets you access your files in your file system. You should be able to do so if you wait a few minutes and restart Keybase.`
-      )
     } else {
       errors.push(`There was an error trying to install the ${cr.name ?? ''}.`)
       errors.push(`\n${cr.status?.desc ?? ''}`)
@@ -109,6 +58,43 @@ const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: Erro
 }
 
 type CB = (err: Error | null) => void
+
+// Links the CLI into /usr/local/bin behind a one-time macOS administrator prompt. Only runs in prod.
+export const installCommandLineTool = (
+  callback: (err: ExecException | null, attempted: boolean, stdout: string, stderr: string) => void
+) => {
+  exec(
+    keybaseBinPath(),
+    ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
+    'darwin',
+    'prod',
+    true,
+    callback
+  )
+}
+
+// Removes the legacy root helper, its FUSE driver and the old redirector directories behind one macOS administrator
+// prompt. Only runs in prod. A cancel or failure is logged and never shown.
+const retireLegacyHelper = () => {
+  exec(
+    keybaseBinPath(),
+    ['--debug', 'uninstall', '--components=helper', '--format=json'],
+    'darwin',
+    'prod',
+    true,
+    (err, attempted, stdout) => {
+      if (!attempted) {
+        logger.info('[Installer]: Legacy helper retirement not attempted')
+      } else if (err) {
+        logger.warn('[Installer]: Legacy helper retirement failed to run', err.message)
+      } else {
+        const r = legacyHelperRetirementResult(stdout)
+        logger.info(`[Installer]: Legacy helper retirement ${r.ok ? 'succeeded' : 'failed'}: ${r.desc}`)
+      }
+    }
+  )
+}
+
 const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
@@ -146,15 +132,16 @@ const darwinInstall = (callback: CB) => {
     const errors: Array<string> = []
     const errorTypes: ErrorTypes = {
       cli: false,
-      fuse: false,
     }
+    let helperInstalled = false
     if (err) {
       errors.push(`There was an error trying to run the install (${err.code}).`)
     } else if (stdout !== '') {
       try {
-        const result = JSON.parse(stdout) as ResultType
+        const result = JSON.parse(stdout) as InstallResultJSON
         if (result) {
           checkErrors(result, errors, errorTypes)
+          helperInstalled = legacyHelperInstalled(result)
         } else {
           errors.push(`There was an error trying to run the install. No output.`)
         }
@@ -168,7 +155,7 @@ const darwinInstall = (callback: CB) => {
     if (errors.length > 0) {
       logger.info(errors.join('\n'))
       logger.info('[Installer]: Install errorred')
-      const buttons = errorTypes.fuse ? ['Okay'] : ['Ignore', 'Quit']
+      const buttons = ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
       loggingPromise
@@ -184,26 +171,40 @@ const darwinInstall = (callback: CB) => {
       return
     }
 
+    // Each one-time prompt is remembered before it runs, so a cancel is never asked again. The helper prompt can
+    // wait minutes for the user, so the install is reported done first and the retirement runs after it.
+    const finish = () => {
+      callback(null)
+      if (!helperInstalled) {
+        return
+      }
+      if (loadState().promptedForHelper) {
+        logger.info('[Installer]: Legacy helper installed; already asked to remove it previously')
+        return
+      }
+      logger.info('[Installer]: Legacy helper installed, trying to remove it')
+      savePrompted('promptedForHelper')
+      retireLegacyHelper()
+    }
+
     // If we had an error install CLI, let's prompt and try to do it via privileged install.
     if (errorTypes.cli) {
       logger.info('[Installer]: Has cli errors and not installed yet, trying CLI install')
-      if (loadHasPrompted()) {
+      if (loadState().promptedForCLI) {
         logger.info('[Installer]: Bailing on already tried to install cli previously')
       } else {
-        saveHasPrompted()
-        exec(
-          keybaseBin,
-          ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
-          'darwin',
-          'prod',
-          true,
-          callback
-        )
+        savePrompted('promptedForCLI')
+        installCommandLineTool(cliErr => {
+          if (cliErr) {
+            logger.warn('[Installer]: CLI install failed', cliErr.message)
+          }
+          finish()
+        })
         return
       }
     }
 
-    callback(null)
+    finish()
   }
   exec(
     keybaseBin,

@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -66,7 +65,6 @@ enum Background {
 type BannerButtonProps = {
   action: () => void
   buttonText: string
-  disabled?: boolean
   inProgress: boolean
 }
 
@@ -76,9 +74,7 @@ type BannerProps = {
   onDismiss?: () => void
   title: string
   body?: string
-  bodyExtraComponent?: React.ReactNode
   button?: BannerButtonProps
-  buttonSecondary?: BannerButtonProps
 }
 
 const backgroundToTextStyle = (background: Background, styles: ReturnType<typeof useStyles>) => {
@@ -145,29 +141,15 @@ const Banner = (props: BannerProps) => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        {props.bodyExtraComponent ?? false}
-        {!!(props.button || props.buttonSecondary) && (
+        {!!props.button && (
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
-            {!!props.button && (
-              <Kb.Button
-                disabled={props.button.disabled}
-                label={props.button.buttonText}
-                onClick={props.button.action}
-                waiting={props.button.inProgress}
-                style={styles.buttonOnColor}
-                labelStyle={backgroundToButtonLabelStyle(props.background, theme)}
-              />
-            )}
-            {!!props.buttonSecondary && (
-              <Kb.Button
-                disabled={props.buttonSecondary.disabled}
-                label={props.buttonSecondary.buttonText}
-                onClick={props.buttonSecondary.action}
-                waiting={props.buttonSecondary.inProgress}
-                style={styles.buttonOnColor}
-                labelStyle={backgroundToButtonLabelStyle(props.background, theme)}
-              />
-            )}
+            <Kb.Button
+              label={props.button.buttonText}
+              onClick={props.button.action}
+              waiting={props.button.inProgress}
+              style={styles.buttonOnColor}
+              labelStyle={backgroundToButtonLabelStyle(props.background, theme)}
+            />
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -222,8 +204,9 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const {preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
-  const displayingMountDir = preferredMountDirs[0] ?? ''
+  const {directMountDir, preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
+  // macOS has no preferred (redirector) mount dirs, only the mount itself
+  const displayingMountDir = C.isDarwin ? directMountDir : (preferredMountDirs[0] ?? '')
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir, errorToActionOrThrow)
     : undefined
@@ -279,6 +262,25 @@ const Enabled = (props: {
   return null
 }
 
+const MacfuseNotReady = (props: {copy: Kbfs.MacfusePromptCopy; onDismiss?: () => void}) => {
+  const {copy, onDismiss} = props
+  const {action, actionLabel, body, title} = copy
+  const onAction = Kbfs.useMacfuseAction(action)
+  return (
+    <Banner
+      background={Background.Blue}
+      okIcon={false}
+      title={title}
+      body={body}
+      button={{action: onAction, buttonText: actionLabel, inProgress: false}}
+      onDismiss={onDismiss}
+    />
+  )
+}
+
+const enableBody =
+  "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
+
 const Disabled = (props: {
   driverStatus: T.FS.DriverStatus
   onEnable: () => void
@@ -286,12 +288,12 @@ const Disabled = (props: {
   onDismiss: () => void
 }) => {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props
-  const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
-    driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling,
-    true
-  )
   if (driverStatus.type !== T.FS.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
+  }
+  const macfuseCopy = Kbfs.macfusePromptCopy(driverStatus)
+  if (macfuseCopy) {
+    return <MacfuseNotReady copy={macfuseCopy} onDismiss={alwaysShow ? undefined : onDismiss} />
   }
 
   return (
@@ -299,12 +301,10 @@ const Disabled = (props: {
       background={Background.Blue}
       okIcon={false}
       title={`Enable Keybase in ${C.fileUIName}?`}
-      body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
-      bodyExtraComponent={component}
+      body={C.isDarwin ? `${enableBody} ${Kbfs.macfuseNetworkVolumeNote}` : enableBody}
       button={{
         action: onEnable,
         buttonText: 'Yes, enable',
-        disabled: !canContinue,
         inProgress: driverStatus.isEnabling,
       }}
       onDismiss={alwaysShow ? undefined : onDismiss}
