@@ -32,7 +32,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (58.0.15):
+  - ExpoAsset (58.0.16):
     - ExpoModulesCore
   - ExpoAudio (58.0.9):
     - ExpoModulesCore
@@ -58,7 +58,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (58.0.6):
     - ExpoModulesCore
-  - ExpoImage (58.0.14):
+  - ExpoImage (58.0.15):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -75,7 +75,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLogBox (58.0.12):
     - React-Core
-  - ExpoMediaLibrary (58.0.8):
+  - ExpoMediaLibrary (58.0.9):
     - ExpoModulesCore
     - React-Core
   - ExpoModulesCore (58.0.18):
@@ -120,10 +120,10 @@ PODS:
     - ExpoModulesCore
   - ExpoSMS (58.0.2):
     - ExpoModulesCore
-  - ExpoTaskManager (58.0.11):
+  - ExpoTaskManager (58.0.12):
     - ExpoModulesCore
     - UMAppLoader
-  - ExpoVideo (58.0.10):
+  - ExpoVideo (58.0.11):
     - ExpoModulesCore
   - fast_float (8.0.0):
     - ReactNativeDependencies
@@ -2801,7 +2801,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
   EXConstants: ff5c226215048137ea31d39fa460027a6daeeadc
   Expo: d72364a5b886db713a0128b70e2fb277b88a415e
-  ExpoAsset: 6c3ed2115593bde988dfdd6ff5f37f1a29d23a3b
+  ExpoAsset: 7c69bf16ddb143a238c9d6a55b9f699cc60b72cf
   ExpoAudio: 7963cae3818d0a9f9b6ac927b7f5401b2539daa6
   ExpoCamera: 8687ecfd49647eb6b0e33d9290a2f413d93d45db
   ExpoCameraBarcodeScanning: ec2afad27d20ed275907efab1447b8c9b5cd715a
@@ -2813,13 +2813,13 @@ SPEC CHECKSUMS:
   ExpoFont: 8c11c15724418e0fc2f4cd410afa49686d55a6c4
   ExpoGlassEffect: 1542f6b1b15b4e41eca504e2c3914bf4f4c05187
   ExpoHaptics: 643848b7e73fa625aa78bf4ee3a1bff2e3fc893c
-  ExpoImage: 1b6245fc6de995a9f53bd30091f020a24c3affe4
+  ExpoImage: 0765d30c52245e378639f83dd2c39f12dfa059f6
   ExpoImagePicker: a466134ec92fed0b38bbf9062c7eb5f3c8c49d94
   ExpoKeepAwake: fd18a5d233329013c578030ad399d8e10b252b5f
   ExpoLocalization: 10737c526cc1a661b76b3dbcdd9e5d91df1b8b4b
   ExpoLocation: 2bd19a9b30819b97730479db18b1b9537b7e8fae
   ExpoLogBox: 14c42e5429c85e1e2acfb9316b4e821db8e40d42
-  ExpoMediaLibrary: a6fa29be39a371fd9d5fecfd2cde59b9179a1071
+  ExpoMediaLibrary: f5314a295d1088ca5b3cc913e5193a060cca4fcd
   ExpoModulesCore: e1b9cb77864aea8af34041f71a4b0705ab1a529f
   ExpoModulesJSI: 392ef0e356ad1d4cb7a58d863914c24c9076a1bb
   ExpoModulesWorklets: 74ffcbe74bfebb06e626e28d59d79e12f36781d8
@@ -2827,8 +2827,8 @@ SPEC CHECKSUMS:
   ExpoNetwork: 05cec4bdbf35b954ab0434f5ecfec363cf826b33
   ExpoScreenCapture: 777a2f5ff850cfbdddc03a7f97fc060519c2555c
   ExpoSMS: c8b282d16f6ed0846beeec28f59bdf9218199d91
-  ExpoTaskManager: 67eabcfa459b0cd9365fd9f6eb8fcaf00c3b5c3a
-  ExpoVideo: 8f0150710305b716fc1d2c398ffbcba6fb939243
+  ExpoTaskManager: a9a9c3ccecdf3e0b76d11c35893a5ee0989ccd7a
+  ExpoVideo: 1281a010245cad04faf0106cbfeb2c643bbdc403
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: 0cda95e224d41048500089537a4dd97600bf717a
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93

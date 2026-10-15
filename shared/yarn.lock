@@ -2756,17 +2756,17 @@
   resolved "https://registry.yarnpkg.com/@keyv/serialize/-/serialize-1.1.1.tgz#0c01dd3a3483882af7cf3878d4e71d505c81fc4a"
   integrity sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==
 
-"@khanacademy/perseus-utils@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@khanacademy/perseus-utils/-/perseus-utils-3.0.0.tgz#5f3ee85171c7ca3f6907d08e9cec4d6eaa8927e8"
-  integrity sha512-o1e8Gp3cQUSfWRbx8SMoV83/FIv49ZgaTE4dsJ3mGc1MMv9iN5e+u2SnvzscYkHfYRWwHlhxJ5ZwFzBfqrjM1A==
+"@khanacademy/perseus-utils@3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@khanacademy/perseus-utils/-/perseus-utils-3.0.1.tgz#56fce1321439fc95c0ec452123e2d3a684208450"
+  integrity sha512-TKQ3WoZT6JV5Sh1GfZXi+JVXjjLZmOc0sr9id4YI/PzepXP7DZUEYpoOxxDYM5Od6LHpKe7i3mChcJQChmk1XA==
 
-"@khanacademy/simple-markdown@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@khanacademy/simple-markdown/-/simple-markdown-4.0.0.tgz#0580a713f802b6091172d39a769f466f9cd85c9e"
-  integrity sha512-CJcG7BwadAeBtg3PHxw+JBm25Gj0Om64NF3nDvoIoz3rK6ql5s36QaA1Psi/McSWhN3FtmA55kt0/pnU/8BpkQ==
+"@khanacademy/simple-markdown@4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@khanacademy/simple-markdown/-/simple-markdown-4.0.1.tgz#b60fdd54357a01ec1cbd3869ac5da3d3417cfd1f"
+  integrity sha512-iLZtQWDcxjiISRudChCrSfGQcLqx7hTQrh+UIHBXUr6WJX/BQjh5HvaPA53zhBjcgjGnO9PDR7akRn4nXgCjcQ==
   dependencies:
-    "@khanacademy/perseus-utils" "3.0.0"
+    "@khanacademy/perseus-utils" "3.0.1"
 
 "@legendapp/list@3.6.0":
   version "3.6.0"
@@ -7339,7 +7339,15 @@ expect@^30.0.0, expect@^30.4.1:
     jest-mock "30.4.1"
     jest-util "30.4.1"
 
-expo-asset@58.0.15, expo-asset@~58.0.15:
+expo-asset@58.0.16:
+  version "58.0.16"
+  resolved "https://registry.yarnpkg.com/expo-asset/-/expo-asset-58.0.16.tgz#ae351bf723a1542a52ccb25d9b2aa569292bda3a"
+  integrity sha512-beR3uusLA+rFo+6Ug0L7FPR4b6y/37VwtYW2Jig/i+3Co+oyYCTnvVuFPWhb05W9TOZRxdHUEI569fVKIgtYAA==
+  dependencies:
+    "@expo/image-utils" "^0.12.5"
+    expo-constants "~58.0.12"
+
+expo-asset@~58.0.15:
   version "58.0.15"
   resolved "https://registry.yarnpkg.com/expo-asset/-/expo-asset-58.0.15.tgz#50e16966c3d88f1fac0a1893e53b47082483d8dc"
   integrity sha512-ECWrKi7hZLaQbju/B7lu9GV1NewShOmk6s40pgU3irt0OqP7N5V5usuUHmYfwzjHZ8pgXFyNVghcencPz84TFw==
@@ -7414,10 +7422,10 @@ expo-image-picker@58.0.10:
   dependencies:
     expo-image-loader "~58.0.3"
 
-expo-image@58.0.14:
-  version "58.0.14"
-  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-58.0.14.tgz#7cdce49af45e19913b859dee87a757f551a3544c"
-  integrity sha512-cXVnMcpNLC5b+Pgzxv5ep/GLl3PhFDc8k6NNA1Lz3eJy6n43vup67leez+Nl7N+UNLuImYaoRyDJqCEMl6ywJw==
+expo-image@58.0.15:
+  version "58.0.15"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-58.0.15.tgz#892365988f86bbab3ea6dbf55186e1bb3eba7e7b"
+  integrity sha512-6jGpKZUhQtDpwF0u7V7ETWNdOV1gkDTpdeAYHi3t+lk09fd+ltDrHq3Me0W6S4ajAtpNu92bFype/IAJQwtyjw==
   dependencies:
     sf-symbols-typescript "^2.2.0"
 
@@ -7440,10 +7448,10 @@ expo-location@58.0.16:
   dependencies:
     "@expo/image-utils" "^0.12.5"
 
-expo-media-library@58.0.8:
-  version "58.0.8"
-  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-58.0.8.tgz#a535cb3ccd2183dfff0566d4034184009970ebbb"
-  integrity sha512-qk1Mmkxy0z+w0Jlpm8XR0GNRQMHM/keeex5jAyWXYq11IcP43bL6uuQomE6/buj3Nm9kHH+j7qCI7K7VbN8lzw==
+expo-media-library@58.0.9:
+  version "58.0.9"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-58.0.9.tgz#fce2a048017b260243f873523a9c7c305c94d849"
+  integrity sha512-bwJm43L8rUCwumz4JCYtqs8pYbsfDhpRGAGYhBMY56HKN4cPboK2HYbf4Akw3idpPLtazc/jdFRK4Uh8xxodIg==
 
 expo-modules-autolinking@~58.0.13:
   version "58.0.13"
@@ -7503,17 +7511,17 @@ expo-status-bar@58.0.3:
   resolved "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-58.0.3.tgz#2646aabefe4b47293ce1eebdfda8e54e1c68e466"
   integrity sha512-+GMLHLA81LB+/m2DteQAN7kvH8unVj3zYGSj8D6Csf+mCrc4P6jJwaSbrz17qTizzEIJ5lv6SuU9Zfyy2vSNoQ==
 
-expo-task-manager@58.0.11:
-  version "58.0.11"
-  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-58.0.11.tgz#583a8b2ab9d7db68d4e01f07ade5077d6730a318"
-  integrity sha512-ummXCHlVuQrWhnhwxBwIdWnao6bXneSgf1dzPTlMcPaflPlXr+wuiX30VMZNvA6mP9d2jVPlg+IRihj7udqbSQ==
+expo-task-manager@58.0.12:
+  version "58.0.12"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-58.0.12.tgz#47c0174229b1e7ab1d83bd3253c648eef9c71cdb"
+  integrity sha512-SLvNkkFJhkHwVzI1xfNiBxS3tNH2zxTUQXVFxpyMXtbc5GRIwRvgv/KYpheV3SjlIqiEh1yy6qG5kMmqKXcsMw==
   dependencies:
     unimodules-app-loader "~58.0.2"
 
-expo-video@58.0.10:
-  version "58.0.10"
-  resolved "https://registry.yarnpkg.com/expo-video/-/expo-video-58.0.10.tgz#b646a81acca70809edc02926c8cb7c62369e9286"
-  integrity sha512-1JQcUJx6xT1SB//0joQlaSqpPkzby31nseBmyiePLMOgGDRIjneBuD2jgwepMmPxGkF07RMaNeKLef9+eIX6Gg==
+expo-video@58.0.11:
+  version "58.0.11"
+  resolved "https://registry.yarnpkg.com/expo-video/-/expo-video-58.0.11.tgz#d8f87127acb206ba93ff1d707c874392a371f7d2"
+  integrity sha512-fCQE63LFMFbI9K+o/DNDtVM8MfmYp1PzfUUXMcajILPLuEw+j1C7Wp03vvZnIwwOUSubXJZmxDYSXBIHBnJmag==
 
 expo@58.0.10:
   version "58.0.10"
