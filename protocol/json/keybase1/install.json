@@ -241,10 +241,6 @@
     "uninstallKBFS": {
       "request": [],
       "response": "UninstallResult"
-    },
-    "installCommandLinePrivileged": {
-      "request": [],
-      "response": "InstallResult"
     }
   },
   "namespace": "keybase.1"
