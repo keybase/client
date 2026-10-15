@@ -25,14 +25,8 @@ func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 
 func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "status",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "b, bundle-version",
-				Usage: "Bundle version",
-			},
-		},
-		Usage: "Status for fuse, including for installing or updating",
+		Name:  "status",
+		Usage: "Status of the macFUSE install (https://macfuse.io)",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -43,7 +37,6 @@ func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 type CmdFuseStatus struct {
 	libkb.Contextified
-	bundleVersion string
 }
 
 func NewCmdFuseStatusRunner(g *libkb.GlobalContext) *CmdFuseStatus {
@@ -56,13 +49,17 @@ func (v *CmdFuseStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
 
-func (v *CmdFuseStatus) ParseArgv(ctx *cli.Context) error {
-	v.bundleVersion = ctx.String("bundle-version")
+func (v *CmdFuseStatus) ParseArgv(*cli.Context) error {
 	return nil
 }
 
 func (v *CmdFuseStatus) Run() error {
-	status := install.KeybaseFuseStatus(v.bundleVersion, v.G().Log)
+	status := install.KeybaseFuseStatus("", v.G().Log)
+	mountDir, err := v.G().Env.GetMountDir()
+	if err != nil {
+		v.G().Log.Warning("Unable to get the mount dir; reporting no KBFS mount: %s", err)
+	}
+	install.FilterKBFSMountInfos(&status, mountDir)
 	out, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return err
