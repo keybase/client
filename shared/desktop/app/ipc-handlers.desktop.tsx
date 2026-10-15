@@ -165,6 +165,8 @@ const writeAppState = (contents: string) => {
   }
 }
 
+let cliInstall: Promise<CommandLineToolResult> | undefined
+
 export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
@@ -307,11 +309,18 @@ export const setupIPCHandlers = (deps: {
         return
       }
       case 'installCommandLineTool': {
-        return new Promise<CommandLineToolResult>(resolve => {
+        // it shows an administrator prompt: only the main window may ask, and one at a time
+        if (event.sender !== getMainWindow()?.webContents) {
+          return {desc: 'Not allowed from this window.', ok: false}
+        }
+        cliInstall ??= new Promise<CommandLineToolResult>(resolve => {
           installCommandLineTool((err, attempted, stdout) => {
             resolve(commandLineToolResult(err?.message, attempted, stdout))
           })
+        }).finally(() => {
+          cliInstall = undefined
         })
+        return cliInstall
       }
       case 'exitApp': {
         return Electron.app.exit(action.payload.code)
