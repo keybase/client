@@ -8,7 +8,8 @@ import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/wai
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import {pprofDir} from '@/constants/platform'
+import {pprofDir, runMode} from '@/constants/platform'
+import KB2 from '@/util/electron'
 import {clearLocalLogs} from '@/util/misc'
 import {withWaiting} from '@/stores/waiting'
 import {useRandomPWState} from './use-random-pw'
@@ -260,6 +261,7 @@ const Advanced = () => {
             {!isMobile && (
               <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
             )}
+            {C.isDarwin && runMode === 'prod' ? <InstallCommandLineTool /> : null}
             {!isMobile && (
               <Kb.Checkbox
                 label={
@@ -287,6 +289,60 @@ const Advanced = () => {
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.KeyboardAvoidingView2>
+  )
+}
+
+type CommandLineToolResult = {ok: boolean; desc: string}
+
+const runInstallCommandLineTool = async (): Promise<CommandLineToolResult> => {
+  try {
+    return (
+      (await KB2.functions.installCommandLineTool?.()) ?? {
+        desc: 'Installing the command line tool is not available.',
+        ok: false,
+      }
+    )
+  } catch (error) {
+    return {desc: error instanceof Error ? error.message : String(error), ok: false}
+  }
+}
+
+// The installer only runs in prod, so the button is not shown in other run modes
+const InstallCommandLineTool = () => {
+  const [installing, setInstalling] = React.useState(false)
+  const [result, setResult] = React.useState<CommandLineToolResult | undefined>(undefined)
+  const onInstall = () => {
+    const f = async () => {
+      setInstalling(true)
+      setResult(undefined)
+      setResult(await runInstallCommandLineTool())
+      setInstalling(false)
+    }
+    ignorePromise(f())
+  }
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Kb.Text type="Body">Command line tool</Kb.Text>
+      <Kb.Text type="BodySmall">
+        Makes the keybase command available in Terminal. macOS asks for an administrator password.
+      </Kb.Text>
+      <Kb.Box2 direction="horizontal">
+        <Kb.Button
+          mode="Secondary"
+          small={true}
+          label="Install command line tool"
+          waiting={installing}
+          onClick={onInstall}
+        />
+      </Kb.Box2>
+      {result ? (
+        result.ok ? (
+          <Kb.Text type="BodySmall">Installed. Open a new Terminal window to use keybase.</Kb.Text>
+        ) : (
+          <Kb.Text type="BodySmallError">{result.desc}</Kb.Text>
+        )
+      ) : null}
+    </Kb.Box2>
   )
 }
 

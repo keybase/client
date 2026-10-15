@@ -108,6 +108,7 @@ if (isRenderer) {
         throw new Error('installCachedDokan fail')
       }
     },
+    installCommandLineTool: async () => invoke({type: 'installCommandLineTool'}),
     ipcRendererOn: (channel: unknown, cb: (data: unknown) => void) => {
       if (!isRendererChannel(channel)) {
         throw new Error(`ipcRendererOn: channel not allowed: ${String(channel)}`)
@@ -177,9 +178,6 @@ if (isRenderer) {
     readImageFromClipboard: async () => {
       return invoke({type: 'readImageFromClipboard'})
     },
-    relaunchApp: () => {
-      ignorePromise(invoke({type: 'relaunchApp'}))
-    },
     rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
       const {propsStr, windowComponent, windowParam} = options
       ignorePromise(
@@ -241,9 +239,6 @@ if (isRenderer) {
     },
     uninstallDokanDialog: async () => {
       return invoke({type: 'uninstallDokanDialog'})
-    },
-    uninstallKBFSDialog: async () => {
-      return invoke({type: 'uninstallKBFSDialog'})
     },
     winCheckRPCOwnership: async () => {
       const res = await invoke({

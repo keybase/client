@@ -52,39 +52,89 @@ const SyncNotificationSetting = (
   )
 }
 
-// Desktop: Finder/Explorer integration section
-const FinderIntegration = () => {
+const isDriverPending = (driverStatus: T.FS.DriverStatus) =>
+  driverStatus.type === T.FS.DriverStatusType.Unknown ||
+  (driverStatus.type === T.FS.DriverStatusType.Enabled && driverStatus.isDisabling) ||
+  (driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling)
+
+const finderIntegrationBody =
+  "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
+
+// Desktop: Finder integration section (macOS)
+const FinderIntegrationDarwin = () => {
+  const styles = useStyles()
+  const {directMountDir, driverDisable, driverEnable, driverStatus} = Kbfs.useSystemFileManagerIntegration()
+  const enableNote = Kbfs.useEnableNote()
+  const isEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
+  const isPending = isDriverPending(driverStatus)
+  const macfuseCopy =
+    driverStatus.type === T.FS.DriverStatusType.Disabled ? Kbfs.macfusePromptCopy(driverStatus) : undefined
+  const canToggle = !isPending && (isEnabled || (driverStatus.type === T.FS.DriverStatusType.Disabled && !macfuseCopy))
+  const onToggle = () => {
+    if (isEnabled) {
+      driverDisable()
+    } else {
+      driverEnable()
+    }
+  }
+  const openMount = directMountDir ? () => openLocalPathInSystemFileManagerDesktop(directMountDir) : undefined
+
+  return (
+    <>
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
+            <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
+            {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
+          </Kb.Box2>
+          <Kb.Switch
+            label={`Show Keybase in ${Platform.fileUIName}`}
+            on={isEnabled}
+            disabled={!canToggle}
+            onClick={onToggle}
+          />
+          {macfuseCopy ? (
+            <Kbfs.MacfusePrompt copy={macfuseCopy} variant="settings" />
+          ) : isEnabled ? (
+            <Kb.Text type="BodySmall">
+              Your files are accessible at{' '}
+              <Kb.Text type="BodySmallPrimaryLink" underline={false} onClick={openMount}>
+                {directMountDir}
+              </Kb.Text>
+              .
+            </Kb.Text>
+          ) : (
+            <>
+              <Kb.Text type="BodySmall">{finderIntegrationBody}</Kb.Text>
+              {enableNote ? <Kb.Text type="BodySmall">{enableNote}</Kb.Text> : null}
+            </>
+          )}
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Divider style={styles.divider} />
+    </>
+  )
+}
+
+// Desktop: Explorer integration section (Windows)
+const FinderIntegrationWindows = () => {
   const styles = useStyles()
   const {driverDisable, driverStatus, preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
-  const navigateAppend = C.Router2.navigateAppend
-  const onShowKextPermissionPopup = () => {
-    navigateAppend({name: 'kextPermission', params: {}})
-  }
   const displayingMountDir = preferredMountDirs[0] || ''
   const openMount = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined
   const disable = driverDisable
 
-  const isPending =
-    driverStatus.type === T.FS.DriverStatusType.Unknown ||
-    (driverStatus.type === T.FS.DriverStatusType.Enabled && driverStatus.isDisabling) ||
-    (driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling)
+  const isPending = isDriverPending(driverStatus)
 
-  return Platform.isDarwin || Platform.isWindows ? (
+  return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
         <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
-            {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
-              <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.actionNeededBox} onClick={onShowKextPermissionPopup}>
-                <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
-                  Action needed!
-                </Kb.Text>
-              </Kb.ClickableBox>
-            )}
           </Kb.Box2>
           {driverStatus.type === T.FS.DriverStatusType.Enabled ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -108,11 +158,7 @@ const FinderIntegration = () => {
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical">
-              <Kb.Text type="BodySmall">
-                {
-                  "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
-                }
-              </Kb.Text>
+              <Kb.Text type="BodySmall">{finderIntegrationBody}</Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
                 <Kbfs.SystemFileManagerIntegrationPopup mode="Button" />
               </Kb.Box2>
@@ -122,7 +168,7 @@ const FinderIntegration = () => {
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </>
-  ) : null
+  )
 }
 
 // Mobile: picker for notification threshold
@@ -246,7 +292,7 @@ const FilesSettings = () => {
     <>
       <RefreshDriverStatusOnMount />
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} testID={TestIDs.SETTINGS_FILES}>
-        <FinderIntegration />
+        {Platform.isDarwin ? <FinderIntegrationDarwin /> : Platform.isWindows ? <FinderIntegrationWindows /> : null}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
@@ -277,14 +323,8 @@ const FilesSettings = () => {
 }
 
 const useStyles = Kb.Styles.createStyleHook(
-  theme =>
+  () =>
     ({
-      actionNeededBox: {
-        marginLeft: Kb.Styles.globalMargins.medium,
-      },
-      actionNeededText: {
-        color: theme.redDark,
-      },
       buttonBox: {
         paddingTop: Kb.Styles.globalMargins.tiny,
       },

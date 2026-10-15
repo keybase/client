@@ -22,6 +22,7 @@ global.isIOS = false
 
 global._fromPreload = {
   constants: {
+    arch: 'arm64',
     assetRoot: '',
     configOverload: {},
     dokanPath: '',
