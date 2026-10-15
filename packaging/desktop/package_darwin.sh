@@ -75,7 +75,6 @@ keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
 kbfs_bin="$tmp_dir/kbfs"
 updater_bin="$tmp_dir/updater"
-installer_app="$tmp_dir/KeybaseInstaller.app"
 updater_app="$tmp_dir/KeybaseUpdater.app"
 
 app_version="$keybase_version"
@@ -106,10 +105,6 @@ get_deps() { (
 
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
-
-	# KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-	echo "Using installer from $KB_INSTALLER_URL"
-	kb_fetch_verified "$KB_INSTALLER_URL" "$KB_INSTALLER_SHA256" .
 
 	# KeybaseUpdater.app is the native updater UI (prompt dialogs)
 	echo "Using updater from $KB_UPDATER_URL"
@@ -147,8 +142,6 @@ package_app() { (
 	cp -R "$client_dir/media/icons/KeybaseFolder.icns" "$resources_dir/KeybaseFolder.icns"
 	echo "Copying other resources"
 	cp -R "$client_dir/osx/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
-	echo "Copying installer"
-	cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
 	echo "Copying updater (app)"
 	cp -R "$updater_app" "$resources_dir/KeybaseUpdater.app"
 ); }
@@ -173,9 +166,6 @@ sign() { (
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
-	bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
-	codesign --verify --verbose=4 "$bundle_installer_app"
-	spctl --assess --verbose=4 "$bundle_installer_app"
 	bundle_updater_app="$app_name.app/Contents/Resources/KeybaseUpdater.app"
 	codesign --verify --verbose=4 "$bundle_updater_app"
 	spctl --assess --verbose=4 "$bundle_updater_app"

@@ -24,7 +24,7 @@ If you're interested in our Docker image releases, please check out **[the Docke
 - **packaging**: Scripts for releasing packages across the various platforms.
 - **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
 - **media**: Icons, graphics, media for Keybase apps.
-- **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
+- **osx**: Signing entitlements and a resource used to package the macOS app. [Learn More](osx/README.md)
 
 ### Problems?
 
