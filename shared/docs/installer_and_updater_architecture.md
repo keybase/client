@@ -28,7 +28,7 @@ removes the redirector directories and finally the helper itself. If the user
 cancels, Electron does not ask again; the command can be run by hand.
 
 On OS X, app bundles look like normal executables to the user, but they're
-always signed and they can perform privileged operations.
+always signed.
 
 We distribute the Keybase.app bundle inside a DMG. Any time you launch
 Keybase.app, it launches Electron, which runs `keybase install-auto` from the
@@ -50,9 +50,10 @@ before continuing.
 
 The installation steps are done by our own Go code, by running `keybase install`
 using the new `keybase` Go binary that we're updating to. Nothing needs root,
-except the `/usr/local/bin/keybase` symlink when the user cannot write
-`/usr/local/bin`: `keybase install --components=clipaths` then shows a
-one-time macOS administrator prompt. Here are the full commands:
+except the `keybase` and `git-remote-keybase` symlinks in `/usr/local/bin`
+when the user cannot write there: `keybase install --components=clipaths`
+then shows a macOS administrator prompt and links them to the binaries in
+`/Applications/Keybase.app`. Here are the full commands:
 
 ```sh
 # Keybase service install (launchd):

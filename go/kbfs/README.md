@@ -14,7 +14,8 @@ service](https://github.com/keybase/client/tree/master/go).
 ### Architecture
 
 This client allows you to mount KBFS as a proper filesystem at some
-mountpoint on your local device (by default, `/keybase/`). It
+mountpoint on your local device (by default, `/keybase` on Linux and
+`/Volumes/Keybase (<username>)` on macOS). It
 communicates locally with the Keybase service, and remotely with three
 types of KBFS servers (block servers, metadata servers, and key
 servers).
