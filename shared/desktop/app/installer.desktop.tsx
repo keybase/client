@@ -90,19 +90,17 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
     commandLineToolWaiters.push(callback)
     return
   }
-  const waiters = [callback]
-  commandLineToolWaiters = waiters
+  commandLineToolWaiters = [callback]
   const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
+  let binPath: string | undefined
   try {
-    exec(keybaseBinPath(), args, 'darwin', 'prod', true, finishCommandLineTool)
+    binPath = keybaseBinPath()
   } catch (error) {
-    // exec reports its own failures to start the installer, so this is finding the installer failing before it
-    // ran. The try also covers the callbacks exec makes synchronously, which already took this install's waiters.
-    if (commandLineToolWaiters === waiters) {
-      logger.warn('[Installer]: Could not find the command line tool installer', ensureError(error).message)
-      finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
-    }
+    logger.warn('[Installer]: Could not find the keybase binary', ensureError(error).message)
+    finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), true, '', '')
+    return
   }
+  exec(binPath, args, 'darwin', 'prod', true, finishCommandLineTool)
 }
 
 // Removes the legacy root helper, its FUSE driver and the old redirector directories behind one macOS administrator
