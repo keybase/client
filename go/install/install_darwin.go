@@ -431,11 +431,19 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 		}
 	}
 
+	log.Info("InstallAuto: fuseInstallStatus=%v timeout=%s components=%v binPath=%q",
+		status.InstallStatus, timeout, components, binPath)
+
 	// A force unmount is needed to change from one mountpoint to another
 	// if the mount is in use after an upgrade, and install-auto is
 	// invoked from the updater.
 	forceUnmount := true
-	return Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
+	result := Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
+	for _, cr := range result.ComponentResults {
+		log.Info("InstallAuto: component=%s statusCode=%d exitCode=%d desc=%q",
+			cr.Name, cr.Status.Code, cr.ExitCode, cr.Status.Desc)
+	}
+	return result
 }
 
 const mountsPresentErrorCode = 7 // See Installer/Installer.m
@@ -723,54 +731,69 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool, l
 }
 
 // InstallService installs the launchd service
-func InstallService(context Context, binPath string, force bool, timeout time.Duration, log Log) error {
+func InstallService(context Context, binPath string, force bool, timeout time.Duration, log Log) (err error) {
+	defer func() {
+		if err != nil {
+			log.Errorf("InstallService: %s", err)
+		}
+	}()
+
 	resolvedBinPath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
 	}
-	log.Debug("Using binPath: %s", resolvedBinPath)
-
 	label := DefaultServiceLabel(context.GetRunMode())
 	service := launchd.NewService(label)
+	plistDest := service.PlistDestination()
+	log.Info("InstallService: begin label=%s binPath=%s plist=%s timeout=%s",
+		label, resolvedBinPath, plistDest, timeout)
+
 	plist, err := keybasePlist(context, resolvedBinPath, label, log)
 	if err != nil {
 		return err
 	}
 	if err = UninstallKeybaseServices(context, log); err != nil {
-		log.Debug("unable to uninstall service: %s", err)
+		log.Warning("InstallService: uninstall before reinstall: %s", err)
 	}
-	log.Debug("Installing service (%s, timeout=%s)", label, timeout)
-	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
-		log.Errorf("Error installing Keybase service: %s", err)
-		pid, err := fallbackStartProcessAndWaitForInfo(context, service, plist, context.GetServiceInfoPath(), timeout, log)
-		if err != nil {
-			return err
+	if _, err = installKeybaseService(context, service, plist, timeout, log); err != nil {
+		log.Warning("InstallService: launchd install failed (%s); trying fallback", err)
+		pid, ferr := fallbackStartProcessAndWaitForInfo(context, service, plist, context.GetServiceInfoPath(), timeout, log)
+		if ferr != nil {
+			return ferr
 		}
-		log.Debug("fallback keybase service started, pid=%d", pid)
+		log.Warning("InstallService: fallback started pid=%d plist=%s", pid, plistDest)
 		return nil
 	}
-	log.Debug("keybase service installed via launchd successfully")
+	log.Info("InstallService: ok label=%s plist=%s", label, plistDest)
 	return nil
 }
 
 // InstallKBFS installs the KBFS launchd service
-func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvailable bool, timeout time.Duration, log Log) error {
+func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvailable bool, timeout time.Duration, log Log) (err error) {
+	defer func() {
+		if err != nil {
+			log.Errorf("InstallKBFS: %s", err)
+		}
+	}()
+
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
+	plistDest := kbfsService.PlistDestination()
 	kbfsBinPath, err := KBFSBinPath(runMode, binPath)
 	if err != nil {
 		return err
 	}
-	// Unmount any existing KBFS directory for the user.
+	log.Info("InstallKBFS: begin label=%s binPath=%s plist=%s timeout=%s",
+		label, kbfsBinPath, plistDest, timeout)
+
 	mountDir, err := context.GetMountDir()
 	if err != nil {
 		return err
 	}
 
 	skipMount := false
-	_, err = os.Stat(mountDir)
-	if err != nil {
+	if _, err = os.Stat(mountDir); err != nil {
 		if skipMountIfNotAvailable {
 			skipMount = true
 		} else {
@@ -784,20 +807,19 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 	}
 
 	if err = UninstallKBFSServices(context, log); err != nil {
-		log.Debug("unable to uninstall kbfs %s", err)
+		log.Warning("InstallKBFS: uninstall before reinstall: %s", err)
 	}
-	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
-	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
-		log.Errorf("error installing KBFS: %s", err)
-		pid, err := fallbackStartProcessAndWaitForInfo(context, kbfsService, plist, context.GetKBFSInfoPath(), timeout, log)
-		if err != nil {
-			return err
+	if _, err = installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
+		log.Warning("InstallKBFS: launchd install failed (%s); trying fallback", err)
+		pid, ferr := fallbackStartProcessAndWaitForInfo(context, kbfsService, plist, context.GetKBFSInfoPath(), timeout, log)
+		if ferr != nil {
+			return ferr
 		}
-		log.Debug("fallback KBFS service started, pid=%d", pid)
+		log.Warning("InstallKBFS: fallback started pid=%d plist=%s", pid, plistDest)
 		return nil
 	}
 
-	log.Debug("KBFS installed via launchd successfully")
+	log.Info("InstallKBFS: ok label=%s plist=%s", label, plistDest)
 	return nil
 }
 
