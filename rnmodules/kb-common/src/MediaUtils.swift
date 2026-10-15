@@ -124,10 +124,10 @@ public class MediaUtils: NSObject {
         return compressedURL
     }
 
-    // Images that may be sent as they are. Everything else (TIFF, RAW, webp,
-    // avif) is transcoded even with compression off. The JS side sends every
+    // Images that may be sent as they are. Everything else (bmp, TIFF, RAW,
+    // webp, avif) is transcoded even with compression off. The JS side sends every
     // processable image here and leaves this call to us.
-    private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .bmp, .gif, .heic, .heif]
+    private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .gif, .heic, .heif]
 
     private static func mustTranscode(_ type: UTType) -> Bool {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
