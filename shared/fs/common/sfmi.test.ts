@@ -3,10 +3,13 @@ import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
   canEnableDriver,
+  type DriverStatusRefresh,
   isMountPending,
+  isSameKbfsConnection,
   keepKextPermissionError,
   mountPollIntervalMs,
   mountPollLimit,
+  nextKbfsConnection,
   refreshUntilMounted,
   runDriverOperation,
   singleFlight,
@@ -70,7 +73,7 @@ test('the flag clears with no operation and never lands on the other state', () 
   expect(withDriverOperation(unknown, 'enabling')).toBe(unknown)
 })
 
-const refreshSequence = (statuses: ReadonlyArray<T.FS.DriverStatus | undefined>) => {
+const refreshSequence = (statuses: ReadonlyArray<DriverStatusRefresh>) => {
   let call = 0
   return jest.fn(async () => Promise.resolve(statuses[Math.min(call++, statuses.length - 1)]))
 }
@@ -94,7 +97,6 @@ test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not
   expect(neverMounts).toHaveBeenCalledTimes(mountPollLimit + 1)
   expect(isMountPending(last)).toBe(true)
 
-  // a failed refresh, or one that ended while KBFS was disconnected
   const fails = refreshSequence([undefined])
   const failed = await refreshUntilMounted(fails, noWait)
   expect(fails).toHaveBeenCalledTimes(1)
@@ -107,10 +109,41 @@ test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not
   expect(isMountPending(removedStatus)).toBe(false)
 })
 
+test('refreshing keeps going while KBFS restarts, and stops on a failure after it', async () => {
+  const restarts = refreshSequence([disabled(), 'disconnected', 'disconnected', Constants.emptyDriverStatusEnabled])
+  expect(await refreshUntilMounted(restarts, noWait)).toBe(Constants.emptyDriverStatusEnabled)
+  expect(restarts).toHaveBeenCalledTimes(4)
+
+  const failsAfter = refreshSequence(['disconnected', undefined, disabled()])
+  expect(await refreshUntilMounted(failsAfter, noWait)).toBeUndefined()
+  expect(failsAfter).toHaveBeenCalledTimes(2)
+
+  const neverBack = refreshSequence(['disconnected'])
+  expect(await refreshUntilMounted(neverBack, noWait)).toBe('disconnected')
+  expect(neverBack).toHaveBeenCalledTimes(mountPollLimit + 1)
+})
+
+test('a status applies only on the connection its refresh started on', () => {
+  const start = {connected: true, epoch: 0}
+  expect(nextKbfsConnection(start, true)).toBe(start)
+  expect(isSameKbfsConnection(start, 0)).toBe(true)
+
+  const down = nextKbfsConnection(start, false)
+  expect(isSameKbfsConnection(down, 0)).toBe(false)
+  const back = nextKbfsConnection(down, true)
+  expect(back.connected).toBe(true)
+  // started before the reconnect
+  expect(isSameKbfsConnection(back, 0)).toBe(false)
+  expect(isSameKbfsConnection(back, back.epoch)).toBe(true)
+  // started while disconnected
+  expect(isSameKbfsConnection(back, down.epoch)).toBe(false)
+})
+
 test('the mount is pending only while Disabled with macFUSE ready', () => {
   expect(isMountPending(disabled())).toBe(true)
   expect(isMountPending(Constants.emptyDriverStatusEnabled)).toBe(false)
   expect(isMountPending(undefined)).toBe(false)
+  expect(isMountPending('disconnected')).toBe(false)
   expect(isMountPending({type: T.FS.DriverStatusType.Unknown})).toBe(false)
   expect(isMountPending(disabled({macfuse: T.FS.MacfuseState.Outdated}))).toBe(false)
 })
