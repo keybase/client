@@ -120,10 +120,28 @@ test('a refresh response older than the newest applied one is dropped', () => {
   const first = applyDriverStatusRefresh(unknown, 2, Constants.emptyDriverStatusEnabled)
   expect(first.isCurrent).toBe(true)
   const late = applyDriverStatusRefresh(first.applied, 1, disabled())
-  expect(late).toEqual({applied: first.applied, becameEnabled: false, isCurrent: false})
+  expect(late).toEqual({applied: first.applied, becameEnabled: false, isCurrent: false, refreshAgain: true})
   expect(late.applied.driverStatus).toBe(Constants.emptyDriverStatusEnabled)
   // a refresh started at the same id as the applied one is from before a reset
   expect(applyDriverStatusRefresh(first.applied, 2, disabled()).isCurrent).toBe(false)
+})
+
+test('a dropped response that disagrees asks for one more refresh, which settles', () => {
+  const unknown = {driverStatus: {type: T.FS.DriverStatusType.Unknown} as const, refreshId: 0}
+  // refresh 2 answered Disabled first; refresh 1 then answers Enabled, the service's later view
+  const second = applyDriverStatusRefresh(unknown, 2, disabled())
+  const dropped = applyDriverStatusRefresh(second.applied, 1, Constants.emptyDriverStatusEnabled)
+  expect(dropped.isCurrent).toBe(false)
+  expect(dropped.refreshAgain).toBe(true)
+  // the new refresh has the newest id, so its answer applies and asks for nothing more
+  const again = applyDriverStatusRefresh(dropped.applied, 3, Constants.emptyDriverStatusEnabled)
+  expect(again.isCurrent).toBe(true)
+  expect(again.refreshAgain).toBe(false)
+  expect(again.becameEnabled).toBe(true)
+
+  // a dropped response that agrees, or one from before a reset to Unknown, asks for nothing
+  expect(applyDriverStatusRefresh(again.applied, 2, Constants.emptyDriverStatusEnabled).refreshAgain).toBe(false)
+  expect(applyDriverStatusRefresh({...unknown, refreshId: 4}, 3, disabled()).refreshAgain).toBe(false)
 })
 
 test('Disabled to Enabled is reported once, and not from Unknown', () => {
