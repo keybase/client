@@ -12,12 +12,12 @@ import (
 )
 
 func TestCleanEnvCommand(t *testing.T) {
-	inner := `echo "${KB_ADMINPROMPT_TEST-unset}|${HOME-unset}|$PATH|it's"`
-	cmd := exec.Command("/bin/sh", "-c", cleanEnvCommand(inner)) //nolint:gosec // G204: the command is a constant
+	inner := `echo "${KB_ADMINPROMPT_TEST-unset}|${HOME-unset}|$PATH|$(umask)|it's"`
+	cmd := exec.Command("/bin/sh", "-c", "umask 000; "+cleanEnvCommand(inner)) //nolint:gosec // G204: the command is a constant
 	cmd.Env = []string{"KB_ADMINPROMPT_TEST=set", "HOME=/nowhere", "PATH=/nowhere"}
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(out))
-	require.Equal(t, "unset|unset|/usr/bin:/bin:/usr/sbin:/sbin|it's\n", string(out))
+	require.Equal(t, "unset|unset|/usr/bin:/bin:/usr/sbin:/sbin|0022|it's\n", string(out))
 }
 
 func TestOsascriptCommand(t *testing.T) {
