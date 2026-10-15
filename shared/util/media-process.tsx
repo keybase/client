@@ -3,15 +3,21 @@ import {File} from 'expo-file-system'
 import {processMedia as processMediaNative} from 'react-native-kb'
 
 const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
-// heic/heif are here because processImage transcodes them to jpeg; gif is not,
-// because scaling one would flatten an animation to a single frame.
-const processableImageFileNameRegex = /[^/]+\.(jpg|jpeg|png|bmp|heic|heif)$/i
+// heic/heif, tiff, RAW (dng and camera formats), webp and avif are here because
+// processImage transcodes them to jpeg; the share extension hands them over
+// untouched since decoding them can exceed its memory limit. gif is not, because
+// scaling one would flatten an animation to a single frame.
+// Which of these are transcoded even with compression off is the native side's
+// call (MediaUtils.mustTranscode), by content type.
+const processableImageFileNameRegex =
+  /[^/]+\.(jpg|jpeg|png|bmp|heic|heif|tiff|tif|dng|cr2|cr3|nef|arw|raf|orf|rw2|webp|avif)$/i
 
 export const isVideoPath = (path: string) => videoFileNameRegex.test(path)
 
+export const isProcessableImagePath = (path: string) => processableImageFileNameRegex.test(path)
+
 // The single source of truth for "the native processor can handle this".
-export const canProcess = (path: string) =>
-  isVideoPath(path) || processableImageFileNameRegex.test(path)
+export const canProcess = (path: string) => isVideoPath(path) || isProcessableImagePath(path)
 
 // A trim range plus the audio choice. endMs of 0 means "to the end of the clip",
 // so a range the user never moved off the tail stays a noop.

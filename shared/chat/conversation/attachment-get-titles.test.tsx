@@ -186,3 +186,63 @@ describe('Send with an unresolved tlfName', () => {
     expect(sendDisabled()).toBe(false)
   })
 })
+
+describe('Send with compression off', () => {
+  let rpc: FakeChatRpc
+  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+  const g = globalThis as unknown as {isIOS: boolean}
+
+  beforeEach(() => {
+    g.isIOS = true
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    rpc = installFakeChatRpc()
+    jest
+      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
+      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
+    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    g.isIOS = false
+    cleanup()
+    restoreChatRpc()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  const send = async (path: string) => {
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+  }
+
+  test('an image still goes to the native processor, which decides whether it must become a JPEG', async () => {
+    jest.spyOn(MediaProcess, 'processPaths').mockResolvedValue([{path: '/tmp/scan.jpg'}])
+    await send('/tmp/scan.tiff')
+    expect(MediaProcess.processPaths).toHaveBeenCalledWith(
+      [{edit: undefined, path: '/tmp/scan.tiff'}],
+      false,
+      expect.any(Function)
+    )
+    const params = rpc.params('postAttachment')
+    expect(params).toHaveLength(1)
+    expect(params[0]).toMatchObject({filename: '/tmp/scan.jpg'})
+  })
+
+  test('a non-media file uploads as is', async () => {
+    jest.spyOn(MediaProcess, 'processPaths')
+    await send('/tmp/a.pdf')
+    expect(MediaProcess.processPaths).not.toHaveBeenCalled()
+    expect(rpc.params('postAttachment')).toHaveLength(1)
+  })
+})

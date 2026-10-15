@@ -15,7 +15,15 @@ import {useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
 import logger from '@/logger'
 import {isKbfsPath} from './attachment-path'
-import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
+import {
+  canEdit,
+  canProcess,
+  isEditNoop,
+  isProcessableImagePath,
+  isVideoPath,
+  processPaths,
+  type VideoEdit,
+} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -174,11 +182,14 @@ const ContainerInner = (ownProps: OwnProps) => {
       // Only local media can be handed to the native processor: kbfs paths aren't
       // real files and non-media has nothing to compress. "Keep full size" is a raw
       // share, so with compression off only an explicit trim still needs the
-      // exporter — the cut has to be applied somewhere.
+      // exporter — the cut has to be applied somewhere — and images still go
+      // through so formats recipients can't show (tiff, RAW, webp) come out as
+      // JPEG; the rest come back untouched.
       const eligible = effective.reduce(
         (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
           const edit = edits[idx]
-          const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
+          const needsProcessing =
+            !isEditNoop(edit) || (compress ? canProcess(path) : isProcessableImagePath(path))
           if (!isKbfsPath(path) && needsProcessing) {
             l.push({edit, idx, path})
           }
