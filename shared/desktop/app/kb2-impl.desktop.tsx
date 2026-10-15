@@ -16,6 +16,8 @@ if (_pathSep !== '/' && _pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
+  // an Intel build can run under Rosetta on Apple silicon
+  arch: process.arch === 'arm64' || app.runningUnderARM64Translation ? 'arm64' : 'x64',
   // In hot dev the renderer is served over http from the Vite root, so images must
   // be root-relative (Vite serves /images/... from the shared dir). Cold dev + prod
   // load from file://, where an absolute filesystem path is correct.

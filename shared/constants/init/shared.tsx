@@ -468,18 +468,6 @@ const onNavStateChanged = (
 ) => {
   if (prev === next) return;
 
-  // Clear critical update when we nav away from tab
-  if (
-    prev &&
-    NavTree.currentTab(prev) === Tabs.fsTab &&
-    next &&
-    NavTree.currentTab(next) !== Tabs.fsTab &&
-    useShellState.getState().fsCriticalUpdate
-  ) {
-    const { dispatch } = useShellState.getState();
-    dispatch.setFsCriticalUpdate(false);
-  }
-
   if (
     prev &&
     NavTree.currentTab(prev) === Tabs.teamsTab &&

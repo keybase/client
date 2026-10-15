@@ -171,8 +171,13 @@ export const emptyDriverStatusEnabled = {
 export const emptyDriverStatusDisabled = {
   isEnabling: false,
   kextPermissionError: false,
+  macfuse: T.FS.MacfuseState.Ready,
+  macfuseError: '',
+  macfuseVersion: '',
   type: T.FS.DriverStatusType.Disabled,
 } as const satisfies T.FS.DriverStatusDisabled
+
+export const macfuseURL = 'https://macfuse.io'
 
 export const defaultDriverStatus: T.FS.DriverStatus = isLinux ? emptyDriverStatusEnabled : driverStatusUnknown
 
