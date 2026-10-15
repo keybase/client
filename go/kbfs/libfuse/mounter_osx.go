@@ -20,29 +20,11 @@ import (
 	"unsafe"
 
 	"bazil.org/fuse"
-	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/logger"
 )
 
-var kbfusePath = fuse.OSXFUSEPaths{
-	DevicePrefix: "/dev/kbfuse",
-	Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
-	Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
-	DaemonVar:    "_FUSE_DAEMON_PATH",
-}
-
 func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) ([]fuse.MountOption, error) {
-	options := []fuse.MountOption{}
-
-	var locationOption fuse.MountOption
-	if platformParams.UseSystemFuse {
-		// Only allow osxfuse 3.x.
-		locationOption = fuse.OSXFUSELocations(fuse.OSXFUSELocationV3)
-	} else {
-		// Only allow kbfuse.
-		locationOption = fuse.OSXFUSELocations(kbfusePath)
-	}
-	options = append(options, locationOption)
+	options := []fuse.MountOption{fuse.OSXFUSELocations(fuse.OSXFUSELocationV4)}
 
 	// Volume name option is only used on OSX (ignored on other platforms).
 	volName, err := volumeName(dir)
@@ -62,10 +44,8 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 
 // GetPlatformSpecificMountOptionsForTest makes cross-platform tests work
 func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
-	// For now, test with either kbfuse or OSXFUSE for now.
-	// TODO: Consider mandate testing with kbfuse?
 	return []fuse.MountOption{
-		fuse.OSXFUSELocations(kbfusePath, fuse.OSXFUSELocationV3),
+		fuse.OSXFUSELocations(fuse.OSXFUSELocationV4),
 		fuse.ExclCreate(),
 
 		// We are diabling the 'local' mount option in tests for now since it
@@ -75,25 +55,12 @@ func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
 	}
 }
 
-func translatePlatformSpecificError(err error, platformParams PlatformParams) error {
+func translatePlatformSpecificError(err error) error {
 	if errors.Is(err, fuse.ErrOSXFUSENotFound) {
-		if platformParams.UseSystemFuse {
-			return errors.New(
-				"cannot locate OSXFUSE 3.x")
-		}
 		return errors.New(
-			"cannot locate kbfuse; either install the Keybase " +
-				"app, or install OSXFUSE 3.x " +
-				"and pass in --use-system-fuse")
+			"cannot locate macFUSE; install macFUSE 5 or later from https://macfuse.io")
 	}
 	return err
-}
-
-func (m *mounter) reinstallMountDirIfPossible() {
-	err := libnativeinstaller.UninstallMountDir(m.runMode, m.log)
-	m.log.Debug("UninstallMountDir: err=%v", err)
-	err = libnativeinstaller.InstallMountDir(m.runMode, m.log)
-	m.log.Debug("InstallMountDir: err=%v", err)
 }
 
 const unmountCallTolerance = time.Second

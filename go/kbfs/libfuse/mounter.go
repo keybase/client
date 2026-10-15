@@ -17,7 +17,6 @@ import (
 	"strings"
 
 	"bazil.org/fuse"
-	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -27,7 +26,6 @@ type mounter struct {
 	options StartOptions
 	c       *fuse.Conn
 	log     logger.Logger
-	runMode kbconst.RunMode
 }
 
 // fuseMount tries to mount the mountpoint.
@@ -52,34 +50,31 @@ func (m *mounter) Mount() (err error) {
 	// if unmounting errors here.
 	_ = m.Unmount()
 
-	// In case we are on darwin, ask the installer to reinstall the mount dir
-	// and try again as the last resort. This specifically fixes a situation
-	// where /keybase gets created and owned by root after Keybase app is
-	// started, and `kbfs` later fails to mount because of a permission error.
-	m.reinstallMountDirIfPossible()
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
 
 	return err
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
-	// Create mountdir directory on Linux.
 	switch libkb.RuntimeGroup() {
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		// mount_macfuse creates a missing mount point under /Volumes (which
+		// only root can write) and removes it on unmount, so don't require
+		// it to exist.
 	case keybase1.RuntimeGroup_LINUXLIKE:
 		// Inherit permissions from containing directory and umask.
-		err := os.MkdirAll(dir, os.ModeDir|os.ModePerm)
+		if err := os.MkdirAll(dir, os.ModeDir|os.ModePerm); err != nil {
+			return nil, err
+		}
+		fallthrough
+	default:
+		fi, err := os.Stat(dir)
 		if err != nil {
 			return nil, err
 		}
-	default:
-	}
-
-	fi, err := os.Stat(dir)
-	if err != nil {
-		return nil, err
-	}
-	if !fi.IsDir() {
-		return nil, errors.New("mount point is not a directory")
+		if !fi.IsDir() {
+			return nil, errors.New("mount point is not a directory")
+		}
 	}
 	options, err := getPlatformSpecificMountOptions(dir, platformParams)
 	if err != nil {
@@ -87,8 +82,7 @@ func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error)
 	}
 	c, err := fuse.Mount(dir, options...)
 	if err != nil {
-		err = translatePlatformSpecificError(err, platformParams)
-		return nil, err
+		return nil, translatePlatformSpecificError(err)
 	}
 	return c, nil
 }
