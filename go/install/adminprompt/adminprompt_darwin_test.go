@@ -4,6 +4,7 @@
 package adminprompt
 
 import (
+	"context"
 	"os/exec"
 	"testing"
 
@@ -17,4 +18,10 @@ func TestCleanEnvCommand(t *testing.T) {
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(out))
 	require.Equal(t, "unset|unset|/usr/bin:/bin:/usr/sbin:/sbin|it's\n", string(out))
+}
+
+func TestOsascriptCommand(t *testing.T) {
+	cmd := osascriptCommand(context.Background(), "prompt", "/usr/bin/true")
+	require.Equal(t, []string{"PATH=/usr/bin:/bin:/usr/sbin:/sbin"}, cmd.Env)
+	require.Equal(t, "/usr/bin/osascript", cmd.Path)
 }

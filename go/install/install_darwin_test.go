@@ -170,14 +170,34 @@ func TestInstallCLIPathsCommand(t *testing.T) {
 		require.Equal(t, bins[i], target)
 	}
 
-	// An existing link is replaced.
+	// A link to a directory and an empty directory are replaced, and nothing
+	// is created inside either.
+	other := filepath.Join(tmp, "other")
+	require.NoError(t, os.Mkdir(other, 0o755))
 	require.NoError(t, os.Remove(filepath.Join(linkDir, "keybase")))
-	require.NoError(t, os.Symlink(tmp, filepath.Join(linkDir, "keybase")))
+	require.NoError(t, os.Symlink(other, filepath.Join(linkDir, "keybase")))
+	require.NoError(t, os.Remove(filepath.Join(linkDir, "git-remote-keybase")))
+	require.NoError(t, os.Mkdir(filepath.Join(linkDir, "git-remote-keybase"), 0o755))
 	out, err = runShell(t, installCLIPathsCommand(linkDir, bins))
 	require.NoError(t, err, out)
-	target, err := os.Readlink(filepath.Join(linkDir, "keybase"))
+	for i, name := range cliBinNames {
+		target, err := os.Readlink(filepath.Join(linkDir, name))
+		require.NoError(t, err)
+		require.Equal(t, bins[i], target)
+	}
+	entries, err := os.ReadDir(other)
 	require.NoError(t, err)
-	require.Equal(t, bins[0], target)
+	require.Empty(t, entries)
+
+	// A directory with contents is left alone and fails the command.
+	require.NoError(t, os.Remove(filepath.Join(linkDir, "keybase")))
+	require.NoError(t, os.MkdirAll(filepath.Join(linkDir, "keybase", "child"), 0o755))
+	out, err = runShell(t, installCLIPathsCommand(linkDir, bins))
+	require.Error(t, err, out)
+	require.DirExists(t, filepath.Join(linkDir, "keybase", "child"))
+	entries, err = os.ReadDir(filepath.Join(linkDir, "keybase"))
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
 }
 
 func TestInstallCLIPathsCommandLinkedDir(t *testing.T) {
