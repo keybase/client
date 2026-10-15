@@ -90,8 +90,7 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
     commandLineToolWaiters.push(callback)
     return
   }
-  const waiters = [callback]
-  commandLineToolWaiters = waiters
+  commandLineToolWaiters = [callback]
   const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
   let binPath: string | undefined
   try {
@@ -101,14 +100,7 @@ export const installCommandLineTool = (callback: CommandLineToolCallback) => {
     finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), false, '', '')
     return
   }
-  try {
-    exec(binPath, args, 'darwin', 'prod', true, finishCommandLineTool)
-  } catch (error) {
-    // unless exec already finished this install before throwing
-    if (commandLineToolWaiters === waiters) {
-      finishCommandLineTool(Object.assign(ensureError(error), {cmd: `keybase ${args.join(' ')}`}), true, '', '')
-    }
-  }
+  exec(binPath, args, 'darwin', 'prod', true, finishCommandLineTool)
 }
 
 // Removes the legacy root helper, its FUSE driver and the old redirector directories behind one macOS administrator

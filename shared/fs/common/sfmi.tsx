@@ -209,7 +209,11 @@ export const refreshUntilMounted = async (
 ) => {
   let polls = 0
   let driverStatus = await refreshDriverStatus()
-  while (isMountPending(driverStatus) && polls < mountPollLimit) {
+  // Unknown means a reconnect reset the status and its own refresh is on the way
+  while (
+    (isMountPending(driverStatus) || driverStatus?.type === T.FS.DriverStatusType.Unknown) &&
+    polls < mountPollLimit
+  ) {
     polls++
     await wait(mountPollIntervalMs)
     driverStatus = await refreshDriverStatus()
@@ -423,9 +427,11 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const reportDriverError = React.useEffectEvent((action: 'enable' | 'disable', error: unknown) => {
-    redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${ensureError(error).message}`)
+    // a KBFS timeout shows as the daemon's status instead
     if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
       checkKbfsDaemonRpcStatus()
+    } else {
+      redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${ensureError(error).message}`)
     }
     // a failure part way through can leave the status changed
     refreshDriverStatusDesktop()
@@ -491,12 +497,12 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   React.useEffect(() => {
-    if (!connected) return
-    // the status was reset to Unknown on disconnect, and refreshes from before it are dropped
+    // the status resets to Unknown on disconnect, and refreshes started before a disconnect or reconnect are dropped
     appliedDriverStatusRef.current = {
       driverStatus: {type: T.FS.DriverStatusType.Unknown},
       refreshId: refreshIdRef.current,
     }
+    if (!connected) return
     loadSettings()
     refreshDriverStatusDesktop()
   }, [connected])
@@ -548,8 +554,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
         ...sfmiRest,
         driverDisable,
         driverEnable,
-        // a refresh that landed after the enable's last poll may already show the mount
-        mountPending: enableStoppedWaiting && isMountPending(sfmiRest.driverStatus),
+        mountPending: enableStoppedWaiting,
         refreshDriverStatusDesktop,
         setSfmiBannerDismissed,
       }}
