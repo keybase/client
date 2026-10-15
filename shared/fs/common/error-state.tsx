@@ -69,23 +69,6 @@ export const errorToActionOrThrowWithHandlers = (
   throw ensureError(error)
 }
 
-// The codes errorToActionOrThrow handles get its handling; any other error goes to orElse.
-export const errorToActionOrElse = (
-  errorToActionOrThrow: (error: unknown) => void,
-  error: unknown,
-  orElse: (error: Error) => void
-) => {
-  if (!isObject(error)) {
-    orElse(ensureError(error))
-    return
-  }
-  try {
-    errorToActionOrThrow(error)
-  } catch (unhandled) {
-    orElse(ensureError(unhandled))
-  }
-}
-
 const makeEmptySoftErrors = (): T.FS.SoftErrors => ({
   pathErrors: new Map(),
   tlfErrors: new Map(),

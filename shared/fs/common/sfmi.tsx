@@ -13,12 +13,16 @@ import {
   setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
 } from '@/util/fs-platform'
 import {clientID as fsClientID} from './client'
-import {errorToActionOrElse, useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
-import {useKbfsDaemonStatus} from './daemon'
+import {useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
+import {ensureError} from '@/util/errors'
+import isObject from 'lodash/isObject'
+import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
 
 type SfmiState = T.FS.SystemFileManagerIntegration & {
+  // an enable stopped waiting while the mount had not appeared yet
+  mountPending: boolean
   settingsLoaded: boolean
   sfmiBannerDismissed: boolean
 }
@@ -33,6 +37,7 @@ type SfmiContextType = SfmiState & {
 const makeInitialSfmiState = (): SfmiState => ({
   directMountDir: '',
   driverStatus: Constants.defaultDriverStatus,
+  mountPending: false,
   preferredMountDirs: [],
   settingsLoaded: false,
   sfmiBannerDismissed: false,
@@ -88,41 +93,64 @@ export type DriverStatusRefreshResult = {
   applied: AppliedDriverStatus
   becameEnabled: boolean
   isCurrent: boolean
+  refreshAgain: boolean
 }
 
 // Refreshes overlap and their responses can arrive out of order, so a response older than the newest one
-// already applied is dropped. becameEnabled is the change from Disabled to Enabled, which opens Finder once.
+// already applied is dropped. The service can answer an older request later than a newer one, so a dropped
+// response that disagrees with the applied status asks for one more refresh, which gets the newest id. After a
+// reset to Unknown a newer refresh is already running. becameEnabled is the change from Disabled to Enabled,
+// which opens Finder once.
 export const applyDriverStatusRefresh = (
   applied: AppliedDriverStatus,
   refreshId: number,
   driverStatus: T.FS.DriverStatus
 ): DriverStatusRefreshResult =>
   refreshId <= applied.refreshId
-    ? {applied, becameEnabled: false, isCurrent: false}
+    ? {
+        applied,
+        becameEnabled: false,
+        isCurrent: false,
+        refreshAgain:
+          applied.driverStatus.type !== T.FS.DriverStatusType.Unknown &&
+          applied.driverStatus.type !== driverStatus.type,
+      }
     : {
         applied: {driverStatus, refreshId},
         becameEnabled:
           applied.driverStatus.type === T.FS.DriverStatusType.Disabled &&
           driverStatus.type === T.FS.DriverStatusType.Enabled,
         isCurrent: true,
+        refreshAgain: false,
       }
 
+type SetRefreshedDriverStatus = (driverStatus: T.FS.DriverStatus) => {
+  becameEnabled: boolean
+  isCurrent: boolean
+  // the newest applied status, which is this one unless a newer refresh already landed
+  latest: T.FS.DriverStatus
+  refreshAgain: boolean
+}
+
 const refreshDriverStatusImpl = async (
-  previousDriverStatus: T.FS.DriverStatus,
-  // returns the newest applied status, which is this one unless a newer refresh already landed
-  setDriverStatus: (driverStatus: T.FS.DriverStatus) => {
-    becameEnabled: boolean
-    isCurrent: boolean
-    latest: T.FS.DriverStatus
-  },
+  previousDriverStatus: () => T.FS.DriverStatus,
+  // numbers a new refresh and returns how to apply its response
+  startRefresh: () => SetRefreshedDriverStatus,
   refreshMountDirs: (driverStatus: T.FS.DriverStatus) => Promise<{directMountDir: string}>,
   errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
 ): Promise<T.FS.DriverStatus | undefined> => {
+  const setDriverStatus = startRefresh()
   try {
     const status = await refreshDriverStatusInPlatform()
-    const driverStatus = keepKextPermissionError(previousDriverStatus, fuseStatusToDriverStatus(status))
-    const {becameEnabled, isCurrent, latest} = setDriverStatus(driverStatus)
+    const driverStatus = keepKextPermissionError(previousDriverStatus(), fuseStatusToDriverStatus(status))
+    const {becameEnabled, isCurrent, latest, refreshAgain} = setDriverStatus(driverStatus)
     if (!isCurrent) {
+      if (refreshAgain) {
+        const again = async () => {
+          await refreshDriverStatusImpl(previousDriverStatus, startRefresh, refreshMountDirs, errorToActionOrThrow)
+        }
+        C.ignorePromise(again())
+      }
       return latest
     }
     const {directMountDir} = await refreshMountDirs(driverStatus)
@@ -231,6 +259,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const defaultErrorToActionOrThrow = useFsErrorActionOrThrow()
   const {redbar} = useFsRedbarActions()
+  const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
   const appFocused = useShellState(s => s.appFocused)
   const [sfmiState, setSfmiState] = React.useState(makeInitialSfmiState)
   const appFocusedRef = React.useRef(appFocused)
@@ -273,7 +302,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const setDriverStatus = (refreshId: number, driverStatus: T.FS.DriverStatus) => {
-    const {applied, becameEnabled, isCurrent} = applyDriverStatusRefresh(
+    const {applied, becameEnabled, isCurrent, refreshAgain} = applyDriverStatusRefresh(
       appliedDriverStatusRef.current,
       refreshId,
       driverStatus
@@ -281,9 +310,14 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     if (isCurrent) {
       appliedDriverStatusRef.current = applied
       const operation = operationRef.current
-      setSfmiState(s => ({...s, driverStatus: withDriverOperation(driverStatus, operation)}))
+      const stillPending = isMountPending(driverStatus)
+      setSfmiState(s => ({
+        ...s,
+        driverStatus: withDriverOperation(driverStatus, operation),
+        mountPending: s.mountPending && stillPending,
+      }))
     }
-    return {becameEnabled, isCurrent, latest: applied.driverStatus}
+    return {becameEnabled, isCurrent, latest: applied.driverStatus, refreshAgain}
   }
 
   const setDriverOperation = (operation: DriverOperation | undefined) => {
@@ -320,12 +354,16 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     }
   })
 
-  const refreshDriverStatus = React.useEffectEvent(async () => {
+  const startRefresh = (): SetRefreshedDriverStatus => {
     refreshIdRef.current++
     const refreshId = refreshIdRef.current
+    return driverStatus => setDriverStatus(refreshId, driverStatus)
+  }
+
+  const refreshDriverStatus = React.useEffectEvent(async () => {
     return await refreshDriverStatusImpl(
-      sfmiStateRef.current.driverStatus,
-      driverStatus => setDriverStatus(refreshId, driverStatus),
+      () => sfmiStateRef.current.driverStatus,
+      startRefresh,
       refreshMountDirsDesktop,
       defaultErrorToActionOrThrow
     )
@@ -365,9 +403,10 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const reportDriverError = React.useEffectEvent((action: 'enable' | 'disable', error: unknown) => {
-    errorToActionOrElse(defaultErrorToActionOrThrow, error, unhandled => {
-      redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${unhandled.message}`)
-    })
+    redbar(`Couldn't ${action} Keybase in ${C.fileUIName}: ${ensureError(error).message}`)
+    if (isObject(error) && (error as {code?: unknown}).code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
+      checkKbfsDaemonRpcStatus()
+    }
     // a failure part way through can leave the status changed
     refreshDriverStatusDesktop()
   })
@@ -382,10 +421,12 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     )
   })
 
+  const setMountPending = (mountPending: boolean) => {
+    setSfmiState(s => (s.mountPending === mountPending ? s : {...s, mountPending}))
+  }
+
   const mountStillPending = React.useEffectEvent(() => {
-    redbar(
-      `Keybase is not in ${C.fileUIName} yet. If macOS asked whether "kbfs" may access files on a network volume, click Allow; Keybase will appear in ${C.fileUIName} once it mounts.`
-    )
+    setMountPending(true)
   })
 
   const endDriverOperation = () => {
@@ -398,6 +439,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return
     }
     driverBusyRef.current = true
+    setMountPending(false)
     const {driverStatus} = sfmiStateRef.current
     setSfmiBannerDismissed(false)
     C.ignorePromise(
@@ -414,6 +456,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return
     }
     driverBusyRef.current = true
+    setMountPending(false)
     setDriverOperation('enabling')
     setSfmiBannerDismissed(false)
     C.ignorePromise(
