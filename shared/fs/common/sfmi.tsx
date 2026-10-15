@@ -208,13 +208,21 @@ export const driverEnableImpl = async (p: DriverEnableParams) => {
   const result = await p.enable()
   if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
     p.setKextPermissionError(true)
-    if (result === 'kextPermissionError') {
+    if (result === 'kextPermissionError' && p.stillCurrent()) {
       C.Router2.navigateAppend({name: 'kextPermission', params: {}})
     }
     return
   }
   p.setKextPermissionError(false)
-  const driverStatus = await refreshUntilMounted(p.refreshDriverStatus, p.wait, p.stillCurrent, s =>
+  // the enable can restart the service, so a status read that fails meanwhile is waited out like a disconnect
+  const refreshThroughRestart = async (): Promise<DriverStatusRefresh> => {
+    try {
+      return await p.refreshDriverStatus()
+    } catch {
+      return 'disconnected'
+    }
+  }
+  const driverStatus = await refreshUntilMounted(refreshThroughRestart, p.wait, p.stillCurrent, s =>
     isEnableWaiting(s, p.darwin)
   )
   if (p.stillCurrent()) {
@@ -433,10 +441,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return
     }
     loadSettings()
-    // a running enable or disable polls for itself
-    C.ignorePromise(
-      onConnect && C.isDarwin && !driverBusyRef.current ? refreshUntilMountedOnConnect() : refreshDriverStatus()
-    )
+    C.ignorePromise(onConnect && C.isDarwin ? refreshUntilMountedOnConnect() : refreshDriverStatus())
   })
 
   const setSfmiBannerDismissed = React.useEffectEvent((dismissed: boolean) => {
