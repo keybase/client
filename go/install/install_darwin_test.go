@@ -346,6 +346,18 @@ func TestRootMountedDirs(t *testing.T) {
 	}
 	require.Equal(t, []string{"/Volumes/Keybase"}, rootMountedDirs(mounts, []string{"/keybase", "/Volumes/Keybase"}))
 	require.Empty(t, rootMountedDirs(nil, []string{"/keybase"}))
+	require.Empty(t, rootMountedDirs([]unix.Statfs_t{statfs("/dev/disk9s2", "/Volumes/KeybaseStaging", "apfs", 0)}, []string{"/Volumes/KeybaseStaging"}))
+}
+
+func TestOtherUsersKbfuseMounts(t *testing.T) {
+	mounts := []unix.Statfs_t{
+		statfs("kbfs@kbfuse0", "/Volumes/Keybase", "kbfuse", 0),
+		statfs("kbfs@kbfuse1", "/Volumes/Keybase (testuser)", "kbfuse", 501),
+		statfs("kbfs@kbfuse2", "/Volumes/Keybase (testuser-mac)", "kbfuse", 502),
+		statfs("kbfs@macfuse0", "/Volumes/Keybase (other)", "macfuse", 503),
+	}
+	require.Equal(t, []string{"/Volumes/Keybase (testuser-mac)"}, otherUsersKbfuseMounts(mounts, 501))
+	require.Empty(t, otherUsersKbfuseMounts(mounts[:2], 501))
 }
 
 func TestInstallCLIPathsFileCommand(t *testing.T) {
