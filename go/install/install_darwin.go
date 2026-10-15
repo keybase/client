@@ -717,11 +717,13 @@ func inDirCommand(dir string, cmds []string) string {
 }
 
 // installCLIPathsCommand returns the shell command that links each of
-// cliBinNames in linkDir to the binary at the same index in bins.
+// cliBinNames in linkDir to the binary at the same index in bins. ln -h and
+// -F make it replace a symlink or an empty directory at that exact name
+// rather than create the link inside the directory either points at.
 func installCLIPathsCommand(linkDir string, bins []string) string {
 	cmds := make([]string, 0, len(cliBinNames))
 	for i, name := range cliBinNames {
-		cmds = append(cmds, "/bin/ln -sfn "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
+		cmds = append(cmds, "/bin/ln -sfhF "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
 	}
 	return "/bin/mkdir -p " + adminprompt.ShellQuote(linkDir) + " && " + inDirCommand(linkDir, cmds)
 }
