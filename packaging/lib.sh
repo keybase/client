@@ -119,3 +119,102 @@ kb_release_bin() {
   export KB_RELEASE_BIN="$gopath/bin/release"
   export KB_RELEASE_BIN_KEY="$key"
 }
+
+# CLEAN_CACHES=1 (set by the bot) makes kb_prune_yarn_cache, kb_yarn_modules and
+# kb_guard_go_cache clear their caches unconditionally, for a from-scratch build.
+kb_clean_caches() {
+  [ "${CLEAN_CACHES:-}" = "1" ]
+}
+
+# kb_prune_yarn_cache
+# Runs `yarn cache clean` only when the volume holding the yarn cache has less
+# than KB_MIN_FREE_GB (default 30) free. The build machines are short on disk,
+# but cleaning every build forces a full re-download. Never fails the build.
+kb_prune_yarn_cache() {
+  local min_gb="${KB_MIN_FREE_GB:-30}" cache_dir free_gb
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; cleaning the yarn cache"
+    yarn cache clean || echo "yarn cache clean failed; continuing"
+    return 0
+  fi
+  cache_dir="$(yarn cache dir 2>/dev/null)" || cache_dir=""
+  if [ -z "$cache_dir" ]; then
+    echo "Couldn't find the yarn cache dir; not pruning it"
+    return 0
+  fi
+  mkdir -p "$cache_dir" 2>/dev/null || true
+  free_gb="$(df -Pk "$cache_dir" 2>/dev/null | awk 'NR==2 {print int($4 / 1024 / 1024)}')" || free_gb=""
+  if [ -z "$free_gb" ]; then
+    echo "Couldn't read free disk space for $cache_dir; not pruning the yarn cache"
+    return 0
+  fi
+  if [ "$free_gb" -lt "$min_gb" ]; then
+    echo "${free_gb}GB free (< ${min_gb}GB); cleaning the yarn cache"
+    yarn cache clean || echo "yarn cache clean failed; continuing"
+  else
+    echo "${free_gb}GB free (>= ${min_gb}GB); keeping the yarn cache"
+  fi
+  return 0
+}
+
+# kb_yarn_modules <shared_dir>
+# Installs JS dependencies with `yarn modules`, keeping node_modules between
+# builds. node_modules is deleted first only when yarn.lock, package.json, a
+# patch-package patch (name or contents) or the node/yarn version changed since
+# the last install there: yarn skips an unchanged lockfile, so an edited patch
+# would otherwise meet the old one already applied. The stamp is removed while
+# installing, so an install that fails or is killed is never reused.
+kb_yarn_modules() {
+  local shared_dir="$1" stamp_file stamp
+  stamp_file="$shared_dir/node_modules/.kb-modules-stamp"
+  stamp="$(cd "$shared_dir" && {
+    node --version
+    yarn --version
+    cat yarn.lock package.json
+    ls patches 2>/dev/null || true
+    cat patches/* 2>/dev/null || true
+  } | shasum -a 256 | cut -d' ' -f1)"
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; removing node_modules"
+    rm -rf "$shared_dir/node_modules"
+  elif [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$stamp" ]; then
+    echo "Dependencies unchanged; reusing node_modules"
+  else
+    echo "Dependencies or patches changed; removing node_modules"
+    rm -rf "$shared_dir/node_modules"
+  fi
+  rm -f "$stamp_file"
+  (cd "$shared_dir" && yarn modules) || return 1
+  echo "$stamp" > "$stamp_file"
+}
+
+# kb_guard_go_cache
+# The release builds reuse the Go build cache (no `go build -a`), but the cache
+# doesn't key cgo objects on the macOS SDK headers and libraries. So on macOS,
+# clear it whenever the SDK or clang changes. Never fails the build.
+kb_guard_go_cache() {
+  if kb_clean_caches; then
+    echo "CLEAN_CACHES=1; clearing the Go build cache"
+    go clean -cache || echo "go clean -cache failed; continuing"
+    return 0
+  fi
+  if [ "$(uname)" != "Darwin" ]; then
+    return 0
+  fi
+  local gocache fingerprint stamp_file
+  gocache="$(go env GOCACHE 2>/dev/null)" || gocache=""
+  fingerprint="$(xcrun --show-sdk-version 2>/dev/null && xcrun --show-sdk-build-version 2>/dev/null && clang --version 2>/dev/null | head -1 && echo "${MACOSX_DEPLOYMENT_TARGET:-}")" || fingerprint=""
+  if [ -z "$gocache" ] || [ -z "$fingerprint" ]; then
+    echo "Couldn't fingerprint the Go cache or toolchain; leaving the Go cache as is"
+    return 0
+  fi
+  stamp_file="$gocache/.kb-toolchain"
+  if [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$fingerprint" ]; then
+    echo "macOS SDK and clang unchanged; keeping the Go build cache"
+    return 0
+  fi
+  echo "macOS SDK or clang changed; clearing the Go build cache"
+  go clean -cache || { echo "go clean -cache failed; continuing"; return 0; }
+  mkdir -p "$gocache" && echo "$fingerprint" > "$stamp_file" || true
+  return 0
+}

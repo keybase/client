@@ -11,8 +11,9 @@ notify_failure() {
 }
 trap notify_failure ERR
 
-echo "Cleaning yarn cache to free up disk space"
-yarn cache clean || true
+# shellcheck source=packaging/lib.sh
+source "$client_dir/packaging/lib.sh"
+kb_prune_yarn_cache
 
 arch=${ARCH:-}
 if [[ -n "$arch" ]]; then
