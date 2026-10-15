@@ -483,19 +483,13 @@ func recordLegacyMountOptIn(context Context, legacyKbfuse bool, log Log) {
 	}
 }
 
-// legacyRedirectorDirs returns the directories the legacy helper's
-// redirector could have mounted at for runMode.
-func legacyRedirectorDirs(runMode libkb.RunMode) ([]string, error) {
-	switch runMode {
-	case libkb.ProductionRunMode:
-		return []string{"/keybase", "/Volumes/Keybase"}, nil
-	case libkb.StagingRunMode:
-		return []string{"/keybase.staging", "/Volumes/KeybaseStaging"}, nil
-	case libkb.DevelRunMode:
-		return []string{"/keybase.devel", "/Volumes/KeybaseDevel"}, nil
-	default:
-		return nil, fmt.Errorf("invalid run mode: %s", runMode)
-	}
+// legacyRedirectorDirs are the directories the legacy helper's redirector
+// could have mounted at or linked, for every run mode: the helper is shared by
+// all of them.
+var legacyRedirectorDirs = []string{
+	"/keybase", "/Volumes/Keybase",
+	"/keybase.staging", "/Volumes/KeybaseStaging",
+	"/keybase.devel", "/Volumes/KeybaseDevel",
 }
 
 // retireLegacyHelperCommand returns the shell command, run as root, that
@@ -512,6 +506,9 @@ func retireLegacyHelperCommand(redirectorDirs, umountDirs []string) string {
 		// Also stops the redirector, a child of the helper. Fails when the
 		// helper is not loaded.
 		"/bin/launchctl bootout " + q("system/"+legacyHelperLabel) + " 2>/dev/null || true",
+		// Stops here, before anything is removed, if the helper is still
+		// loaded.
+		"if /bin/launchctl print " + q("system/"+legacyHelperLabel) + " >/dev/null 2>&1; then echo " + q(legacyHelperLabel+" is still loaded") + " >&2; exit 1; fi",
 	}
 	for _, dir := range umountDirs {
 		// Fails when the redirector's mount went away with it.
@@ -569,8 +566,12 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 		return componentResult(name, nil)
 	}
 
-	redirectorDirs, err := legacyRedirectorDirs(context.GetRunMode())
+	redirectorDirs := legacyRedirectorDirs
+	// A redirector mount left after its process stops keeps kbfuse loaded,
+	// so the root-owned ones are unmounted.
+	mounts, err := listMounts()
 	if err != nil {
+		err = fmt.Errorf("unable to list mounts: %w", err)
 		log.Errorf("legacy helper retirement failed: %s", err)
 		return componentResult(name, err)
 	}
@@ -591,16 +592,9 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 		}
 	}
 
-	// A redirector mount left after its process stops keeps kbfuse loaded.
-	umountDirs := redirectorDirs
-	if mounts, err := listMounts(); err != nil {
-		log.Warning("Unable to list mounts, so unmounting every redirector dir: %s", err)
-	} else {
-		umountDirs = rootMountedDirs(mounts, redirectorDirs)
-	}
 	log.Info("Retiring the legacy helper as an administrator")
 	err = runAdminPrompt("Keybase wants to remove its old file system helper and driver, which are no longer used.",
-		retireLegacyHelperCommand(redirectorDirs, umountDirs), log)
+		retireLegacyHelperCommand(redirectorDirs, rootMountedDirs(mounts, redirectorDirs)), log)
 	if err == nil && pathExists(legacyHelperPath) {
 		err = fmt.Errorf("the retirement finished but %s is still installed", legacyHelperPath)
 	}
