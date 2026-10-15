@@ -2,7 +2,9 @@
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
+  applyDriverStatusRefresh,
   canEnableDriver,
+  isMountPending,
   keepKextPermissionError,
   mountPollIntervalMs,
   mountPollLimit,
@@ -88,16 +90,56 @@ test('enabling keeps refreshing until the mount shows', async () => {
 
 test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not ready', async () => {
   const neverMounts = refreshSequence([disabled()])
-  await refreshUntilMounted(neverMounts, noWait)
+  const last = await refreshUntilMounted(neverMounts, noWait)
   expect(neverMounts).toHaveBeenCalledTimes(mountPollLimit + 1)
+  expect(isMountPending(last)).toBe(true)
 
   const fails = refreshSequence([undefined])
-  await refreshUntilMounted(fails, noWait)
+  const failed = await refreshUntilMounted(fails, noWait)
   expect(fails).toHaveBeenCalledTimes(1)
+  expect(isMountPending(failed)).toBe(false)
 
-  const removed = refreshSequence([disabled({macfuse: T.FS.MacfuseState.NotInstalled})])
-  await refreshUntilMounted(removed, noWait)
+  const removedStatus = disabled({macfuse: T.FS.MacfuseState.NotInstalled})
+  const removed = refreshSequence([removedStatus])
+  expect(await refreshUntilMounted(removed, noWait)).toBe(removedStatus)
   expect(removed).toHaveBeenCalledTimes(1)
+  expect(isMountPending(removedStatus)).toBe(false)
+})
+
+test('the mount is pending only while Disabled with macFUSE ready', () => {
+  expect(isMountPending(disabled())).toBe(true)
+  expect(isMountPending(Constants.emptyDriverStatusEnabled)).toBe(false)
+  expect(isMountPending(undefined)).toBe(false)
+  expect(isMountPending({type: T.FS.DriverStatusType.Unknown})).toBe(false)
+  expect(isMountPending(disabled({macfuse: T.FS.MacfuseState.Outdated}))).toBe(false)
+})
+
+test('a refresh response older than the newest applied one is dropped', () => {
+  const unknown = {driverStatus: {type: T.FS.DriverStatusType.Unknown} as const, refreshId: 0}
+  // refresh 1 and 2 overlap; 2 answers Enabled first, then 1's Disabled arrives
+  const first = applyDriverStatusRefresh(unknown, 2, Constants.emptyDriverStatusEnabled)
+  expect(first.isCurrent).toBe(true)
+  const late = applyDriverStatusRefresh(first.applied, 1, disabled())
+  expect(late).toEqual({applied: first.applied, becameEnabled: false, isCurrent: false})
+  expect(late.applied.driverStatus).toBe(Constants.emptyDriverStatusEnabled)
+  // a refresh started at the same id as the applied one is from before a reset
+  expect(applyDriverStatusRefresh(first.applied, 2, disabled()).isCurrent).toBe(false)
+})
+
+test('Disabled to Enabled is reported once, and not from Unknown', () => {
+  const fromUnknown = applyDriverStatusRefresh(
+    {driverStatus: {type: T.FS.DriverStatusType.Unknown}, refreshId: 0},
+    1,
+    Constants.emptyDriverStatusEnabled
+  )
+  expect(fromUnknown.becameEnabled).toBe(false)
+
+  const off = applyDriverStatusRefresh(fromUnknown.applied, 2, disabled())
+  expect(off.becameEnabled).toBe(false)
+  const on = applyDriverStatusRefresh(off.applied, 3, Constants.emptyDriverStatusEnabled)
+  expect(on.becameEnabled).toBe(true)
+  expect(on.applied).toEqual({driverStatus: Constants.emptyDriverStatusEnabled, refreshId: 3})
+  expect(applyDriverStatusRefresh(on.applied, 4, Constants.emptyDriverStatusEnabled).becameEnabled).toBe(false)
 })
 
 test('a failed operation reports its error and still ends', async () => {
