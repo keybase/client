@@ -226,16 +226,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   }];
 }
 
-- (void)showBrewWarning:(dispatch_block_t)retry {
-  KBStatusView *view = [[KBStatusView alloc] init];
-  view.insets = UIEdgeInsetsMake(100, 100, 100, 100);
-  [view setText:@"We've detected that you already have Keybase installed via Homebrew." description:@"We recommend that you uninstall the Homebrew installation since running both at the same time can causes issues." title:@"Homebrew Install Found" retry:retry close:^{
-    [KBApp.app quitWithPrompt:NO sender:self];
-  }];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation mode:KBAppViewModeStatus];
-}
-
 - (void)showWelcome {
   KBStatusView *view = [[KBStatusView alloc] init];
   view.insets = UIEdgeInsetsMake(100, 100, 100, 100);

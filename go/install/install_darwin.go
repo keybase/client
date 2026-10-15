@@ -41,10 +41,6 @@ const (
 	AppKBFSLabel ServiceLabel = "keybase.kbfs"
 	// AppUpdaterLabel is the service label for the updater launchd service in Keybase.app
 	AppUpdaterLabel ServiceLabel = "keybase.updater"
-	// BrewServiceLabel is the service label for the updater launchd service in homebrew
-	BrewServiceLabel ServiceLabel = "homebrew.mxcl.keybase"
-	// BrewKBFSLabel is the service label for the kbfs launchd service in homebrew
-	BrewKBFSLabel ServiceLabel = "homebrew.mxcl.kbfs"
 	// UnknownLabel is an empty/unknown label
 	UnknownLabel ServiceLabel = ""
 
@@ -200,11 +196,11 @@ func serviceStatusesFromLaunchd(context Context, ls []launchd.Service, wait time
 
 // ListServices returns status for all services
 func ListServices(context Context, wait time.Duration, log Log) (*keybase1.ServicesStatus, error) {
-	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
+	services, err := launchd.ListServices([]string{"keybase.service"})
 	if err != nil {
 		return nil, err
 	}
-	kbfs, err := launchd.ListServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"})
+	kbfs, err := launchd.ListServices([]string{"keybase.kbfs."})
 	if err != nil {
 		return nil, err
 	}
@@ -230,14 +226,7 @@ func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
 
 // DefaultServiceLabel returns the default label for Keybase service in launchd
 func DefaultServiceLabel(runMode libkb.RunMode) string {
-	return defaultServiceLabel(runMode, libkb.IsBrewBuild)
-}
-
-func defaultServiceLabel(runMode libkb.RunMode, isBrew bool) string {
 	label := AppServiceLabel.String()
-	if isBrew {
-		label = BrewServiceLabel.String()
-	}
 	if runMode != libkb.ProductionRunMode {
 		label = label + "." + string(runMode)
 	}
@@ -246,14 +235,7 @@ func defaultServiceLabel(runMode libkb.RunMode, isBrew bool) string {
 
 // DefaultKBFSLabel returns the default label for KBFS service in launchd
 func DefaultKBFSLabel(runMode libkb.RunMode) string {
-	return defaultKBFSLabel(runMode, libkb.IsBrewBuild)
-}
-
-func defaultKBFSLabel(runMode libkb.RunMode, isBrew bool) string {
 	label := AppKBFSLabel.String()
-	if isBrew {
-		label = BrewKBFSLabel.String()
-	}
 	if runMode != libkb.ProductionRunMode {
 		label = label + "." + string(runMode)
 	}
@@ -296,13 +278,12 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 	return &st, err
 }
 
-// UninstallKeybaseServices removes the keybase service (includes homebrew)
+// UninstallKeybaseServices removes the keybase service
 func UninstallKeybaseServices(context Context, log Log) error {
-	runMode := context.GetRunMode()
-	err0 := fallbackKillProcess(context, log, defaultServiceLabel(runMode, false), context.GetServiceInfoPath(), "")
-	err1 := launchd.Uninstall(defaultServiceLabel(runMode, false), defaultLaunchdWait, log)
-	err2 := launchd.Uninstall(defaultServiceLabel(runMode, true), defaultLaunchdWait, log)
-	return libkb.CombineErrors(err0, err1, err2)
+	label := DefaultServiceLabel(context.GetRunMode())
+	err0 := fallbackKillProcess(context, log, label, context.GetServiceInfoPath(), "")
+	err1 := launchd.Uninstall(label, defaultLaunchdWait, log)
+	return libkb.CombineErrors(err0, err1)
 }
 
 func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool, log Log) (launchd.Plist, error) {
@@ -345,13 +326,12 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 	return &st, err
 }
 
-// UninstallKBFSServices removes KBFS service (including homebrew)
+// UninstallKBFSServices removes KBFS service
 func UninstallKBFSServices(context Context, log Log) error {
-	runMode := context.GetRunMode()
-	err0 := fallbackKillProcess(context, log, defaultKBFSLabel(runMode, false), context.GetKBFSInfoPath(), "")
-	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
-	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
-	return libkb.CombineErrors(err0, err1, err2)
+	label := DefaultKBFSLabel(context.GetRunMode())
+	err0 := fallbackKillProcess(context, log, label, context.GetKBFSInfoPath(), "")
+	err1 := launchd.Uninstall(label, defaultLaunchdWait, log)
+	return libkb.CombineErrors(err0, err1)
 }
 
 // NewServiceLabel constructs a service label
@@ -359,12 +339,8 @@ func NewServiceLabel(s string) (ServiceLabel, error) {
 	switch s {
 	case string(AppServiceLabel):
 		return AppServiceLabel, nil
-	case string(BrewServiceLabel):
-		return BrewServiceLabel, nil
 	case string(AppKBFSLabel):
 		return AppKBFSLabel, nil
-	case string(BrewKBFSLabel):
-		return BrewKBFSLabel, nil
 	case string(AppUpdaterLabel):
 		return AppUpdaterLabel, nil
 	}
@@ -378,9 +354,9 @@ func (l ServiceLabel) String() string {
 // ComponentName returns the component name for a service label
 func (l ServiceLabel) ComponentName() ComponentName {
 	switch l {
-	case AppServiceLabel, BrewServiceLabel:
+	case AppServiceLabel:
 		return ComponentNameService
-	case AppKBFSLabel, BrewKBFSLabel:
+	case AppKBFSLabel:
 		return ComponentNameKBFS
 	case AppUpdaterLabel:
 		return ComponentNameUpdater
@@ -1144,30 +1120,7 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 // If binPath (directory) is specified, it will override the default (which is in
 // the same directory where the keybase executable is).
 func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
-	// If it's brew lookup path by formula name
-	if libkb.IsBrewBuild {
-		if runMode != libkb.ProductionRunMode {
-			return "", fmt.Errorf("Not supported in this run mode")
-		}
-		kbfsBinName := kbfsBinName()
-		prefix, err := brewPath(kbfsBinName)
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(prefix, "bin", kbfsBinName), nil
-	}
-
 	return kbfsBinPathDefault(runMode, binPath)
-}
-
-func brewPath(formula string) (string, error) {
-	// Get the homebrew install path prefix for this formula
-	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
-	if err != nil {
-		return "", fmt.Errorf("Error checking brew path: %s", err)
-	}
-	prefix := strings.TrimSpace(string(prefixOutput))
-	return prefix, nil
 }
 
 // OSVersion returns the OS version

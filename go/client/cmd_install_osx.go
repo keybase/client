@@ -111,11 +111,6 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
 
-	// Brew uses the auto installer by default
-	if libkb.IsBrewBuild && v.installer == "" {
-		v.installer = "auto"
-	}
-
 	return nil
 }
 
@@ -217,11 +212,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	if ctx.String("components") == "" {
 		v.isDefault = true
-		if libkb.IsBrewBuild {
-			v.components = []string{"service"}
-		} else {
-			v.components = defaultUninstallComponents
-		}
+		v.components = defaultUninstallComponents
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
@@ -251,23 +242,19 @@ func (v *CmdUninstall) Run() error {
 
 func DiagnoseSocketError(ui libkb.UI, inErr error) {
 	t := ui.GetTerminalUI()
-	services, err := launchd.ListServices([]string{"keybase.service.", "homebrew.mxcl.keybase"})
+	services, err := launchd.ListServices([]string{"keybase.service."})
 	if err != nil {
 		t.Printf("Error checking launchd services: %s\n\n", err)
 		return
 	}
 
 	if len(services) == 0 {
-		if libkb.IsBrewBuild {
-			t.Printf("\nThere are no Keybase services installed, you might try running:\n\n\tkeybase install\n\n")
-		} else {
-			bundlePath, err := libnativeinstaller.AppBundleForPath()
-			if err != nil {
-				t.Printf("No app bundle: %s\n\n", err)
-				return
-			}
-			t.Printf("\nKeybase isn't running. To start, you can run:\n\n\topen %s\n\n", bundlePath)
+		bundlePath, err := libnativeinstaller.AppBundleForPath()
+		if err != nil {
+			t.Printf("No app bundle: %s\n\n", err)
+			return
 		}
+		t.Printf("\nKeybase isn't running. To start, you can run:\n\n\topen %s\n\n", bundlePath)
 	} else if len(services) > 1 {
 		t.Printf("\nWe found multiple services:\n")
 		for _, service := range services {

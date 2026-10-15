@@ -265,7 +265,7 @@ func configOtherLibraries(g *libkb.GlobalContext) error {
 	return nil
 }
 
-// AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
+// AutoFork? Standalone? ClientServer?  This function deals with the
 // various run configurations that we can run in.
 func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd *libcmdline.Command) (err error) {
 	g.Log.Debug("+ configureProcesses")
@@ -332,14 +332,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	}
 
 	var newProc bool
-	if libkb.IsBrewBuild {
-		// If we're running in Brew mode, we might need to install ourselves as a persistent
-		// service for future invocations of the command.
-		newProc, err = install.AutoInstall(g, "", false, 10*time.Second, g.Log)
-		if err != nil {
-			return err
-		}
-	} else if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
+	if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
 		// If this command warrants an autofork, do it now.
 		newProc, err = client.AutoForkServer(g, cl)
 		if err != nil {

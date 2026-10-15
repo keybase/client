@@ -69,20 +69,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 }
 
 func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
-	packageName := "keybase"
-	switch DefaultRunMode {
-	case DevelRunMode:
-		packageName = "keybase/beta/kbdev"
-	case StagingRunMode:
-		packageName = "keybase/beta/kbstage"
-	}
-
-	if IsBrewBuild {
-		printUpgradeCommand(g, "brew update && brew upgrade "+packageName)
-	} else {
-		g.Log.Warning("  Please download a new version from " + upgradeURI)
-	}
-	// TODO: non-brew update instructions
+	g.Log.Warning("  Please download a new version from " + upgradeURI)
 }
 
 func windowsUpgradeInstructions(g *GlobalContext, upgradeURI string) {

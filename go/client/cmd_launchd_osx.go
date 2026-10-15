@@ -212,11 +212,11 @@ func (v *CmdLaunchdList) Run() error {
 }
 
 func (v *CmdLaunchdList) ShowServices() error {
-	err := v.showServices([]string{"keybase.service.", "homebrew.mxcl.keybase"}, "Keybase")
+	err := v.showServices([]string{"keybase.service."}, "Keybase")
 	if err != nil {
 		return err
 	}
-	err = v.showServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"}, "KBFS")
+	err = v.showServices([]string{"keybase.kbfs."}, "KBFS")
 	if err != nil {
 		return err
 	}
@@ -344,19 +344,6 @@ func (v *CmdLaunchdAction) Run() error {
 		return launchd.Uninstall(v.label, defaultLaunchdWait, v.G().Log)
 	}
 
-	return nil
-}
-
-func startLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string, wait bool) error {
-	launchService := launchd.NewService(label)
-	launchService.SetLogger(g.Log)
-	err := launchService.Start(defaultLaunchdWait)
-	if err != nil {
-		return err
-	}
-	if wait {
-		return WaitForService(g, launchService, serviceInfoPath)
-	}
 	return nil
 }
 

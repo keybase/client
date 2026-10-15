@@ -15,7 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// Similar to the Brew install on OSX, the Unix install happens in two steps.
+// The Unix install happens in two steps.
 // First, the system package manager installs all the binaries as root. Second,
 // an autostart file needs to be written to the user's home dir, so that
 // Keybase launches when that user logs in. The second step is done the first
