@@ -120,26 +120,10 @@ func TestRollbackContentsSwap(t *testing.T) {
 	require.Equal(t, [][2]string{undoMove, undoBackup}, f.calls)
 }
 
-func TestAppSwapCommand(t *testing.T) {
-	require.Equal(t,
-		"/bin/rm -rf '/Applications/.Keybase.app.updating'"+
-			" && /bin/mv '/Applications/Keybase.app' '/Applications/.Keybase.app.updating'"+
-			" && { /bin/mv '/var/folders/x/T/u.zip.unzipped/Keybase.app' '/Applications/Keybase.app'"+
-			" || { /bin/mv '/Applications/.Keybase.app.updating' '/Applications/Keybase.app'; exit 1; }; }"+
-			" && /bin/rm -rf '/Applications/.Keybase.app.updating'",
-		appSwapCommand("/var/folders/x/T/u.zip.unzipped/Keybase.app", "/Applications/Keybase.app"))
-
-	cmd := appSwapCommand("/tmp/it's an update/Keybase.app", "/Users/testuser/My Apps/Keybase.app")
-	require.Contains(t, cmd, `/bin/mv '/tmp/it'\''s an update/Keybase.app' '/Users/testuser/My Apps/Keybase.app'`)
-	require.Contains(t, cmd, "'/Users/testuser/My Apps/.Keybase.app.updating'")
-	require.NotContains(t, cmd, " /Users/testuser/My Apps")
-}
-
-// TestApplyRenameFallbackManual runs the real fallback, including codesign
-// and possibly the administrator prompt. It is skipped unless
-// KEYBASE_APPSWAP_MANUAL_DIR names a work directory (under /tmp/appswap-test/)
-// that holds update.zip, a signed release as the updater downloads it, and
-// Keybase.app, an older signed copy of the app to update.
+// TestApplyRenameFallbackManual runs the real fallback, including codesign. It
+// is skipped unless KEYBASE_APPSWAP_MANUAL_DIR names a work directory (under
+// /tmp/appswap-test/) that holds update.zip, a signed release as the updater
+// downloads it, and Keybase.app, an older signed copy of the app to update.
 // KEYBASE_APPSWAP_FAIL_CHECK=1 makes the check of the updated app fail.
 func TestApplyRenameFallbackManual(t *testing.T) {
 	dir := os.Getenv("KEYBASE_APPSWAP_MANUAL_DIR")
@@ -199,7 +183,6 @@ func TestSwapContentsAsUser(t *testing.T) {
 		if checkFails {
 			var f *userSwapFailure
 			require.ErrorAs(t, err, &f)
-			require.False(t, f.moveFailed, "a failed check must not lead to the administrator prompt")
 			require.Empty(t, f.stranded)
 			require.Equal(t, "old", bundleVersion(t, destinationPath))
 			require.Equal(t, "new", bundleVersion(t, sourcePath))
