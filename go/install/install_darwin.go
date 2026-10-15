@@ -555,6 +555,20 @@ func rootMountedDirs(mounts []unix.Statfs_t, dirs []string) []string {
 	return mounted
 }
 
+// kbfuseMountsKeptBy returns where kbfuse is mounted other than the
+// root-owned mounts at redirectorDirs, which the retirement unmounts.
+func kbfuseMountsKeptBy(mounts []unix.Statfs_t, redirectorDirs []string) []string {
+	unmounted := rootMountedDirs(mounts, redirectorDirs)
+	var paths []string
+	for _, m := range mounts {
+		path := unix.ByteSliceToString(m.Mntonname[:])
+		if unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" && (m.Owner != 0 || !slices.Contains(unmounted, path)) {
+			paths = append(paths, path)
+		}
+	}
+	return paths
+}
+
 // kbfuseMountsNotOwnedBy returns where kbfuse is mounted by anyone other
 // than owners.
 func kbfuseMountsNotOwnedBy(mounts []unix.Statfs_t, owners ...uint32) []string {
@@ -597,7 +611,7 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 	// The kbfuse kext cannot unload while this user's KBFS is mounted on it.
 	if mountDir, err := context.GetMountDir(); err != nil {
 		log.Warning("Unable to get the mount dir: %s", err)
-	} else if kbfuseMountedAt(mountDir, log) {
+	} else if kbfuseMountedAt(mounts, mountDir) {
 		if err := UninstallKBFS(context, mountDir, true, log); err != nil {
 			log.Warning("Unable to unmount kbfuse at %s: %s", mountDir, err)
 		}
@@ -611,12 +625,11 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 	}
 
 	// Listed again now that this user's KBFS is stopped: any kbfuse mount
-	// left that root does not own would keep kbfuse loaded and fail the
-	// retirement after the prompt. Root-owned ones are the redirector's,
-	// which the retirement unmounts.
+	// left that the retirement does not unmount would keep kbfuse loaded and
+	// fail the retirement after the prompt.
 	mounts, err = listMounts()
 	if err == nil {
-		if inUse := kbfuseMountsNotOwnedBy(mounts, 0); len(inUse) > 0 {
+		if inUse := kbfuseMountsKeptBy(mounts, redirectorDirs); len(inUse) > 0 {
 			err = fmt.Errorf("the old Keybase file system is still mounted at %s; quit Keybase or restart this Mac, then try again", strings.Join(inUse, ", "))
 		}
 	}
@@ -642,10 +655,10 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 	return componentResult(name, err)
 }
 
-func kbfuseMountedAt(mountDir string, log Log) bool {
+func kbfuseMountedAt(mounts []unix.Statfs_t, mountDir string) bool {
 	mountDir = resolveMountDir(mountDir)
-	for _, info := range KeybaseFuseStatus("", log).MountInfos {
-		if info.Fstype == "kbfuse" && info.Path == mountDir {
+	for _, info := range mountInfosOwnedBy(mounts, []string{"kbfuse"}, uint32(os.Getuid())) {
+		if info.Path == mountDir {
 			return true
 		}
 	}
@@ -904,9 +917,13 @@ func InstallKBFS(context Context, binPath string, timeout time.Duration, log Log
 	return nil
 }
 
-// legacyCLIPathsFile was written by the old helper when it could not link
-// into /usr/local/bin.
-const legacyCLIPathsFile = "/etc/paths.d/Keybase"
+// legacyCLIPathsFile is written instead of the links when /usr/local/bin is
+// not a directory, as the old helper did. cliPathsDir is its directory's real
+// path.
+const (
+	legacyCLIPathsFile = "/etc/paths.d/Keybase"
+	cliPathsDir        = "/private/etc/paths.d"
+)
 
 // cliAppBundle is the only app clipaths links the command line tools from.
 const cliAppBundle = "/Applications/Keybase.app"
@@ -953,6 +970,16 @@ func installCLIPathsCommand(linkDir string, bins []string) string {
 	return inDirCommand(linkDir, cmds)
 }
 
+// installCLIPathsFileCommand returns the shell command that writes binDir as
+// the only line of a new file named name in pathsDir, creating pathsDir if it
+// is missing.
+func installCLIPathsFileCommand(pathsDir, name, binDir string) string {
+	q := adminprompt.ShellQuote
+	n := q(name)
+	return "{ /bin/test -d " + q(pathsDir) + " || /bin/mkdir " + q(pathsDir) + "; } && " +
+		inDirCommand(pathsDir, []string{"/bin/rm -f " + n, "set -C", "/usr/bin/printf '%s\\n' " + q(binDir) + " > " + n})
+}
+
 // uninstallCLIPathsCommand returns the shell command that removes each
 // entry of linkDir named in links that is still a link to the given target,
 // then pathsFile when it is not empty.
@@ -994,7 +1021,10 @@ func installCommandLinePrivileged(log Log) error {
 		}
 	}
 	if fi, err := os.Lstat(cliLinkDir); err != nil || !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory; create it, then install the command line tool again", cliLinkDir)
+		binDir := filepath.Dir(bins[0])
+		log.Info("%s is not a directory; adding %s to %s as an administrator", cliLinkDir, binDir, legacyCLIPathsFile)
+		return runAdminPrompt("Keybase wants to install the keybase command line tool.",
+			installCLIPathsFileCommand(cliPathsDir, filepath.Base(legacyCLIPathsFile), binDir), log)
 	}
 	log.Info("Linking %v to %v as an administrator", links, bins)
 	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(cliLinkDir, bins), log)
