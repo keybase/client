@@ -2,8 +2,7 @@
 // this source code is governed by the included BSD license.
 
 // Package adminprompt runs a shell command as root after the user approves
-// the standard macOS administrator prompt. It imports only the standard
-// library so the updater can use it.
+// the standard macOS administrator prompt.
 package adminprompt
 
 import (
@@ -24,9 +23,18 @@ func appleScriptString(s string) string {
 	return `"` + strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(s) + `"`
 }
 
+// rootPath is the only environment variable shellCmd runs with.
+const rootPath = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"
+
+// cleanEnvCommand runs shellCmd with /bin/sh and an environment holding only
+// rootPath, whatever the environment of the shell that runs it.
+func cleanEnvCommand(shellCmd string) string {
+	return "/usr/bin/env -i " + rootPath + " /bin/sh -c " + ShellQuote(shellCmd)
+}
+
 // script returns the AppleScript that runs shellCmd as root.
 func script(prompt, shellCmd string) string {
-	return "do shell script " + appleScriptString(shellCmd) +
+	return "do shell script " + appleScriptString(cleanEnvCommand(shellCmd)) +
 		" with prompt " + appleScriptString(prompt) +
 		" with administrator privileges"
 }
