@@ -235,12 +235,7 @@ export const openSecurityPreferencesDesktop = async () => {
     return
   }
   const {openURL} = KB2.functions
-  try {
-    await openURL?.('x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension', {activate: true})
-  } catch {
-    // the System Preferences pane id from before macOS 13
-    await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
-  }
+  await openURL?.('x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension', {activate: true})
 }
 
 export const openMacfuseSiteDesktop = async () => {
