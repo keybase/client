@@ -2,7 +2,6 @@
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
-  applyDriverStatusRefresh,
   canEnableDriver,
   isMountPending,
   keepKextPermissionError,
@@ -10,6 +9,7 @@ import {
   mountPollLimit,
   refreshUntilMounted,
   runDriverOperation,
+  singleFlight,
   withDriverOperation,
 } from './sfmi'
 
@@ -88,18 +88,13 @@ test('enabling keeps refreshing until the mount shows', async () => {
   expect(noWait).toHaveBeenCalledWith(mountPollIntervalMs)
 })
 
-test('enabling keeps refreshing past a reconnect reset', async () => {
-  const refresh = refreshSequence([{type: T.FS.DriverStatusType.Unknown}, disabled(), Constants.emptyDriverStatusEnabled])
-  expect(await refreshUntilMounted(refresh, noWait)).toEqual(Constants.emptyDriverStatusEnabled)
-  expect(refresh).toHaveBeenCalledTimes(3)
-})
-
 test('refreshing stops at the limit, on a failed refresh, or once macFUSE is not ready', async () => {
   const neverMounts = refreshSequence([disabled()])
   const last = await refreshUntilMounted(neverMounts, noWait)
   expect(neverMounts).toHaveBeenCalledTimes(mountPollLimit + 1)
   expect(isMountPending(last)).toBe(true)
 
+  // a failed refresh, or one that ended while KBFS was disconnected
   const fails = refreshSequence([undefined])
   const failed = await refreshUntilMounted(fails, noWait)
   expect(fails).toHaveBeenCalledTimes(1)
@@ -120,78 +115,96 @@ test('the mount is pending only while Disabled with macFUSE ready', () => {
   expect(isMountPending(disabled({macfuse: T.FS.MacfuseState.Outdated}))).toBe(false)
 })
 
-test('a refresh response older than the newest applied one is dropped', () => {
-  const unknown = {driverStatus: {type: T.FS.DriverStatusType.Unknown} as const, refreshId: 0}
-  // refresh 1 and 2 overlap; 2 answers Enabled first, then 1's Disabled arrives
-  const first = applyDriverStatusRefresh(unknown, 2, Constants.emptyDriverStatusEnabled)
-  expect(first.isCurrent).toBe(true)
-  const late = applyDriverStatusRefresh(first.applied, 1, disabled())
-  expect(late).toEqual({applied: first.applied, becameEnabled: false, isCurrent: false, refreshAgain: true})
-  expect(late.applied.driverStatus).toBe(Constants.emptyDriverStatusEnabled)
-  // a refresh started at the same id as the applied one is from before a reset
-  expect(applyDriverStatusRefresh(first.applied, 2, disabled()).isCurrent).toBe(false)
+const deferred = <R>() => {
+  let resolve: (r: R) => void = () => {}
+  let reject: (e: unknown) => void = () => {}
+  const promise = new Promise<R>((_resolve, _reject) => {
+    resolve = _resolve
+    reject = _reject
+  })
+  return {promise, reject, resolve}
+}
+
+// a run whose answers the test hands out in order
+const controlledRun = () => {
+  const runs: Array<ReturnType<typeof deferred<number>>> = []
+  const run = jest.fn(async () => {
+    const d = deferred<number>()
+    runs.push(d)
+    return d.promise
+  })
+  return {run, runs}
+}
+
+const settle = async () => {
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve()
+  }
+}
+
+test('a call with nothing running starts one run and gets its result', async () => {
+  const {run, runs} = controlledRun()
+  const refresh = singleFlight(run)
+  const first = refresh()
+  expect(run).toHaveBeenCalledTimes(1)
+  runs[0]?.resolve(1)
+  expect(await first).toBe(1)
+  const second = refresh()
+  expect(run).toHaveBeenCalledTimes(2)
+  runs[1]?.resolve(2)
+  expect(await second).toBe(2)
 })
 
-test('a dropped response that disagrees asks for one more refresh, which settles', () => {
-  const unknown = {driverStatus: {type: T.FS.DriverStatusType.Unknown} as const, refreshId: 0}
-  // refresh 2 answered Disabled first; refresh 1 then answers Enabled, the service's later view
-  const second = applyDriverStatusRefresh(unknown, 2, disabled())
-  const dropped = applyDriverStatusRefresh(second.applied, 1, Constants.emptyDriverStatusEnabled)
-  expect(dropped.isCurrent).toBe(false)
-  expect(dropped.refreshAgain).toBe(true)
-  // the new refresh has the newest id, so its answer applies and asks for nothing more
-  const again = applyDriverStatusRefresh(dropped.applied, 3, Constants.emptyDriverStatusEnabled)
-  expect(again.isCurrent).toBe(true)
-  expect(again.refreshAgain).toBe(false)
-  expect(again.becameEnabled).toBe(true)
-
-  // a dropped response that agrees, or one from before a reset to Unknown, asks for nothing
-  expect(applyDriverStatusRefresh(again.applied, 2, Constants.emptyDriverStatusEnabled).refreshAgain).toBe(false)
-  expect(applyDriverStatusRefresh({...unknown, refreshId: 4}, 3, disabled()).refreshAgain).toBe(false)
+test('calls during a run share exactly one more run, and everyone gets its result', async () => {
+  const {run, runs} = controlledRun()
+  const refresh = singleFlight(run)
+  const first = refresh()
+  const second = refresh()
+  const third = refresh()
+  expect(run).toHaveBeenCalledTimes(1)
+  runs[0]?.resolve(1)
+  await settle()
+  expect(run).toHaveBeenCalledTimes(2)
+  runs[1]?.resolve(2)
+  expect(await Promise.all([first, second, third])).toEqual([2, 2, 2])
+  expect(run).toHaveBeenCalledTimes(2)
 })
 
-test('a dropped Disabled response with another macFUSE state also asks for one more refresh', () => {
-  const unsupported = disabled({macfuse: T.FS.MacfuseState.UnsupportedMacos, macfuseVersion: '5.4.0'})
-  const applied = {driverStatus: unsupported, refreshId: 2}
-  expect(applyDriverStatusRefresh(applied, 1, disabled()).refreshAgain).toBe(true)
-  expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, unsupported).refreshAgain).toBe(true)
-  // the details the copy shows count too
-  const applyOver = (newer: T.FS.DriverStatusDisabled, older: T.FS.DriverStatusDisabled) =>
-    applyDriverStatusRefresh({driverStatus: newer, refreshId: 2}, 1, older).refreshAgain
-  expect(applyOver(unsupported, {...unsupported, macfuseVersion: '5.3.0'})).toBe(true)
-  expect(applyOver(unsupported, {...unsupported, macosVersion: '27'})).toBe(true)
-  const errored = disabled({macfuse: T.FS.MacfuseState.Error, macfuseError: 'load failed'})
-  expect(applyOver(errored, {...errored, macfuseError: 'not found'})).toBe(true)
-  expect(applyOver(errored, {...errored})).toBe(false)
-  // the client-side flags are not the service's answer
-  expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, kextError).refreshAgain).toBe(false)
-  expect(
-    applyDriverStatusRefresh({driverStatus: disabled({isEnabling: true}), refreshId: 2}, 1, disabled()).refreshAgain
-  ).toBe(false)
+test('a call during the rerun asks for another one', async () => {
+  const {run, runs} = controlledRun()
+  const refresh = singleFlight(run)
+  const first = refresh()
+  const second = refresh()
+  runs[0]?.resolve(1)
+  await settle()
+  const late = refresh()
+  runs[1]?.resolve(2)
+  await settle()
+  expect(run).toHaveBeenCalledTimes(3)
+  runs[2]?.resolve(3)
+  expect(await Promise.all([first, second, late])).toEqual([3, 3, 3])
 })
 
-test('a dropped Enabled response with other Dokan details asks for one more refresh', () => {
-  const enabled = Constants.emptyDriverStatusEnabled
-  const applied = {driverStatus: enabled, refreshId: 2}
-  expect(applyDriverStatusRefresh(applied, 1, {...enabled, dokanOutdated: true}).refreshAgain).toBe(true)
-  expect(applyDriverStatusRefresh(applied, 1, {...enabled, dokanUninstallExecPath: 'C:\\x'}).refreshAgain).toBe(true)
-  expect(applyDriverStatusRefresh(applied, 1, {...enabled, isDisabling: true}).refreshAgain).toBe(false)
-})
+test('a failed run rejects its callers, unless a call during it asked for a rerun', async () => {
+  const {run, runs} = controlledRun()
+  const refresh = singleFlight(run)
+  const error = new Error('boom')
+  const alone = refresh()
+  runs[0]?.reject(error)
+  await expect(alone).rejects.toBe(error)
 
-test('Disabled to Enabled is reported once, and not from Unknown', () => {
-  const fromUnknown = applyDriverStatusRefresh(
-    {driverStatus: {type: T.FS.DriverStatusType.Unknown}, refreshId: 0},
-    1,
-    Constants.emptyDriverStatusEnabled
-  )
-  expect(fromUnknown.becameEnabled).toBe(false)
+  const first = refresh()
+  const second = refresh()
+  runs[1]?.reject(error)
+  await settle()
+  runs[2]?.resolve(2)
+  expect(await first).toBe(2)
+  expect(await second).toBe(2)
 
-  const off = applyDriverStatusRefresh(fromUnknown.applied, 2, disabled())
-  expect(off.becameEnabled).toBe(false)
-  const on = applyDriverStatusRefresh(off.applied, 3, Constants.emptyDriverStatusEnabled)
-  expect(on.becameEnabled).toBe(true)
-  expect(on.applied).toEqual({driverStatus: Constants.emptyDriverStatusEnabled, refreshId: 3})
-  expect(applyDriverStatusRefresh(on.applied, 4, Constants.emptyDriverStatusEnabled).becameEnabled).toBe(false)
+  const after = refresh()
+  expect(run).toHaveBeenCalledTimes(4)
+  runs[3]?.resolve(4)
+  expect(await after).toBe(4)
 })
 
 test('a failed operation reports its error and still ends', async () => {
