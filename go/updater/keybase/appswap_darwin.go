@@ -4,7 +4,6 @@
 package keybase
 
 import (
-	gocontext "context"
 	"errors"
 	"fmt"
 	"os"
@@ -12,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/keybase/client/go/install/adminprompt"
 	"github.com/keybase/client/go/updater/command"
 	"github.com/keybase/client/go/updater/util"
 )
@@ -23,8 +21,6 @@ import (
 // requirement Xcode issues for a Developer ID signature; view an app's with
 // `codesign -d -r- /Applications/Keybase.app`.
 const appRequirement = `anchor apple generic and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "99229SGT5K") and (identifier "keybase.Keybase" or identifier "keybase.Electron")`
-
-const updatePrompt = "Keybase needs your permission to finish installing an update."
 
 // codesignVerifyArgs checks the signature strictly, of nested code too, for
 // every architecture, against appRequirement.
@@ -110,23 +106,9 @@ func rollbackContentsSwap(p contentsSwap, rename func(oldpath, newpath string) e
 	return rename(p.Backup, p.Destination)
 }
 
-// appSwapCommand replaces the whole app bundle as root, putting the old one
-// back if the new one cannot be moved in.
-func appSwapCommand(sourcePath, destinationPath string) string {
-	s := adminprompt.ShellQuote(sourcePath)
-	d := adminprompt.ShellQuote(destinationPath)
-	b := adminprompt.ShellQuote(filepath.Join(filepath.Dir(destinationPath), "."+filepath.Base(destinationPath)+".updating"))
-	return "/bin/rm -rf " + b + " && /bin/mv " + d + " " + b +
-		" && { /bin/mv " + s + " " + d + " || { /bin/mv " + b + " " + d + "; exit 1; }; }" +
-		" && /bin/rm -rf " + b
-}
-
 // userSwapFailure is a failed unprivileged swap.
 type userSwapFailure struct {
 	err error
-	// moveFailed means the Contents could not be moved, which an
-	// administrator may be able to do.
-	moveFailed bool
 	// stranded is where the previous Contents is when it could not be put
 	// back; empty otherwise.
 	stranded string
@@ -152,7 +134,7 @@ func (c context) swapContentsAsUser(sourcePath, destinationPath, unzipPath strin
 		return c.swapContentsStaged(sourcePath, destinationPath)
 	}
 	if err != nil {
-		f := &userSwapFailure{err: err, moveFailed: true}
+		f := &userSwapFailure{err: err}
 		if restoreFailed(err) {
 			f.stranded = p.Backup
 		}
@@ -171,14 +153,14 @@ func (c context) swapContentsAsUser(sourcePath, destinationPath, unzipPath strin
 func (c context) swapContentsStaged(sourcePath, destinationPath string) error {
 	stagingDir, stagedBundle, p := planStagedContentsSwap(destinationPath)
 	if err := os.RemoveAll(stagingDir); err != nil {
-		return &userSwapFailure{err: err, moveFailed: true}
+		return &userSwapFailure{err: err}
 	}
 	if err := os.MkdirAll(stagingDir, 0o755); err != nil {
-		return &userSwapFailure{err: err, moveFailed: true}
+		return &userSwapFailure{err: err}
 	}
 	if result, err := command.Exec("/usr/bin/ditto", []string{sourcePath, stagedBundle}, 10*time.Minute, c.log); err != nil {
 		util.RemoveFileAtPath(stagingDir)
-		return &userSwapFailure{err: fmt.Errorf("copying the update failed: %w: %s", err, result.CombinedOutput()), moveFailed: true}
+		return &userSwapFailure{err: fmt.Errorf("copying the update failed: %w: %s", err, result.CombinedOutput())}
 	}
 	// The copy is checked before the swap: once the old Contents is removed
 	// from the staging directory there is nothing to roll back to.
@@ -187,7 +169,7 @@ func (c context) swapContentsStaged(sourcePath, destinationPath string) error {
 		return &userSwapFailure{err: err}
 	}
 	if err := runContentsSwap(p, os.Rename); err != nil {
-		f := &userSwapFailure{err: err, moveFailed: true}
+		f := &userSwapFailure{err: err}
 		if restoreFailed(err) {
 			f.stranded = p.Backup
 		} else {
@@ -207,9 +189,8 @@ func (c context) swapContentsStaged(sourcePath, destinationPath string) error {
 
 // applyRenameFallback installs the update when the app bundle cannot be
 // renamed. It checks the update's signature, then swaps the app's Contents in
-// place as the user. Only when that swap fails does it ask for administrator
-// approval to replace the whole bundle. Either way the result's signature is
-// checked.
+// place as the user and checks the result's signature. It never asks for
+// administrator privileges.
 func (c context) applyRenameFallback(localPath, destinationPath string) error {
 	unzipPath, err := util.UnzipPath(localPath, c.log)
 	keepUnzipPath := false
@@ -228,31 +209,10 @@ func (c context) applyRenameFallback(localPath, destinationPath string) error {
 	}
 
 	err = c.swapContentsAsUser(sourcePath, destinationPath, unzipPath)
-	if err == nil {
-		return nil
-	}
 	var f *userSwapFailure
-	if !errors.As(err, &f) || !f.moveFailed {
-		if f != nil && f.stranded != "" {
-			keepUnzipPath = true
-		}
-		return err
+	if errors.As(err, &f) && f.stranded != "" {
+		keepUnzipPath = true
+		c.log.Errorf("%s may have no Contents; the previous Contents is at %s", destinationPath, f.stranded)
 	}
-
-	c.log.Warningf("Unprivileged Contents swap failed; asking for administrator approval: %s", err)
-	ctx, cancel := gocontext.WithTimeout(gocontext.Background(), 5*time.Minute)
-	defer cancel()
-	out, promptErr := adminprompt.Run(ctx, updatePrompt, appSwapCommand(sourcePath, destinationPath))
-	c.log.Debugf("Administrator prompt output: %s", out)
-	if promptErr != nil {
-		if errors.Is(promptErr, adminprompt.ErrCanceled) || errors.Is(promptErr, gocontext.DeadlineExceeded) {
-			c.log.Errorf("update needs administrator approval; canceled")
-		}
-		if f.stranded != "" {
-			keepUnzipPath = true
-			c.log.Errorf("%s has no Contents; the previous Contents is at %s", destinationPath, f.stranded)
-		}
-		return promptErr
-	}
-	return verifyAppSignature(destinationPath, c.log)
+	return err
 }

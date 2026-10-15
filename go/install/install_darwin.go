@@ -691,7 +691,7 @@ func Install(context Context, binPath string, components []string, force bool, t
 	}
 
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
-		err = installCommandLinePrivileged(binPath, log)
+		err = installCommandLinePrivileged(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
 			log.Errorf("Error installing command line (privileged): %s", err)
@@ -852,48 +852,64 @@ func InstallKBFS(context Context, binPath string, timeout time.Duration, log Log
 // into /usr/local/bin.
 const legacyCLIPathsFile = "/etc/paths.d/Keybase"
 
-// cliLinks returns the keybase and git-remote-keybase binaries and the
-// /usr/local/bin links that point at them.
-func cliLinks(binPath string) (bins []string, links []string, err error) {
-	bp, err := chooseBinPath(binPath)
-	if err != nil {
-		return nil, nil, err
+// cliAppBundle is the only app clipaths links the command line tools from.
+const cliAppBundle = "/Applications/Keybase.app"
+
+// cliLinkDir is where clipaths links the command line tools.
+const cliLinkDir = "/usr/local/bin"
+
+// cliBinNames are the command line tools clipaths links, by name.
+var cliBinNames = []string{"keybase", "git-remote-keybase"}
+
+// cliLinks returns, for each of cliBinNames, its binary in cliAppBundle and
+// its link in cliLinkDir.
+func cliLinks() (bins []string, links []string) {
+	binDir := filepath.Join(cliAppBundle, "Contents/SharedSupport/bin")
+	for _, name := range cliBinNames {
+		bins = append(bins, filepath.Join(binDir, name))
+		links = append(links, filepath.Join(cliLinkDir, name))
 	}
-	linkPath, err := defaultLinkPath()
-	if err != nil {
-		return nil, nil, err
-	}
-	gitBinFilename := "git-remote-keybase"
-	bins = []string{bp, filepath.Join(filepath.Dir(bp), gitBinFilename)}
-	links = []string{linkPath, filepath.Join(filepath.Dir(linkPath), gitBinFilename)}
-	return bins, links, nil
+	return bins, links
 }
 
-// installCLIPathsCommand returns the shell command that links each bin into
-// place.
-func installCLIPathsCommand(bins, links []string) string {
-	parts := []string{"/bin/mkdir -p " + adminprompt.ShellQuote(filepath.Dir(links[0]))}
-	for i := range bins {
-		parts = append(parts, "/bin/ln -sfn "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(links[i]))
+// inDirCommand returns the shell command that runs cmds, joined with &&, in
+// dir, only when dir is that directory itself and not a link to another one.
+// cmds name entries of dir by relative path.
+func inDirCommand(dir string, cmds []string) string {
+	q := adminprompt.ShellQuote(dir)
+	return "cd -P " + q + " && /bin/test \"$(/bin/pwd -P)\" = " + q + " && " + strings.Join(cmds, " && ")
+}
+
+// installCLIPathsCommand returns the shell command that links each of
+// cliBinNames in linkDir to the binary at the same index in bins.
+func installCLIPathsCommand(linkDir string, bins []string) string {
+	cmds := make([]string, 0, len(cliBinNames))
+	for i, name := range cliBinNames {
+		cmds = append(cmds, "/bin/ln -sfn "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
+	}
+	return "/bin/mkdir -p " + adminprompt.ShellQuote(linkDir) + " && " + inDirCommand(linkDir, cmds)
+}
+
+// uninstallCLIPathsCommand returns the shell command that removes the named
+// entries of linkDir, then pathsFile when it is not empty.
+func uninstallCLIPathsCommand(linkDir string, names []string, pathsFile string) string {
+	var parts []string
+	if len(names) > 0 {
+		quoted := make([]string, 0, len(names))
+		for _, name := range names {
+			quoted = append(quoted, adminprompt.ShellQuote(name))
+		}
+		parts = append(parts, "("+inDirCommand(linkDir, []string{"/bin/rm -f " + strings.Join(quoted, " ")})+")")
+	}
+	if pathsFile != "" {
+		parts = append(parts, "/bin/rm -f "+adminprompt.ShellQuote(pathsFile))
 	}
 	return strings.Join(parts, " && ")
-}
-
-// removePathsCommand returns the shell command that removes paths.
-func removePathsCommand(paths []string) string {
-	quoted := make([]string, 0, len(paths))
-	for _, p := range paths {
-		quoted = append(quoted, adminprompt.ShellQuote(p))
-	}
-	return "/bin/rm -f " + strings.Join(quoted, " ")
 }
 
 // linkPointsInto reports whether a symlink with the given target, found in
 // linkDir, resolves to a path inside bundleDir.
 func linkPointsInto(target, linkDir, bundleDir string) bool {
-	if bundleDir == "" {
-		return false
-	}
 	if !filepath.IsAbs(target) {
 		target = filepath.Join(linkDir, target)
 	}
@@ -908,46 +924,49 @@ func runAdminPrompt(prompt, shellCmd string, log Log) error {
 	return err
 }
 
-// installCommandLinePrivileged links the CLI into /usr/local/bin as root,
-// after one administrator prompt.
-func installCommandLinePrivileged(binPath string, log Log) error {
-	bins, links, err := cliLinks(binPath)
-	if err != nil {
-		return err
+// installCommandLinePrivileged links the command line tools of the app in
+// /Applications into /usr/local/bin as root, after one administrator prompt.
+func installCommandLinePrivileged(log Log) error {
+	bins, links := cliLinks()
+	for _, bin := range bins {
+		fi, err := os.Lstat(bin)
+		if err != nil {
+			return fmt.Errorf("the command line tool can only be installed from %s: %w", cliAppBundle, err)
+		}
+		if !fi.Mode().IsRegular() {
+			return fmt.Errorf("%s is not a regular file", bin)
+		}
 	}
 	log.Info("Linking %v to %v as an administrator", links, bins)
-	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(bins, links), log)
+	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(cliLinkDir, bins), log)
 }
 
-// uninstallCommandLinePrivileged removes the CLI links that point into this
-// app bundle and the old helper's paths.d entry. What the user can remove
-// themselves is removed without a prompt; the rest takes one prompt.
+// uninstallCommandLinePrivileged removes the CLI links that point into the
+// app in /Applications and the old helper's paths.d entry. What the user can
+// remove themselves is removed without a prompt; the rest takes one prompt.
 func uninstallCommandLinePrivileged(log Log) error {
-	bins, links, err := cliLinks("")
-	if err != nil {
-		return err
-	}
-	bundleDir := bundleDirForPath(bins[0])
-	var privileged []string
-	for _, link := range links {
+	_, links := cliLinks()
+	var names []string
+	for i, link := range links {
 		target, err := os.Readlink(link)
-		if err != nil || !linkPointsInto(target, filepath.Dir(link), bundleDir) {
+		if err != nil || !linkPointsInto(target, filepath.Dir(link), cliAppBundle) {
 			continue
 		}
 		if err := os.Remove(link); err == nil {
 			log.Info("Removed %s", link)
 			continue
 		}
-		privileged = append(privileged, link)
+		names = append(names, cliBinNames[i])
 	}
+	pathsFile := ""
 	if pathExists(legacyCLIPathsFile) {
-		privileged = append(privileged, legacyCLIPathsFile)
+		pathsFile = legacyCLIPathsFile
 	}
-	if len(privileged) == 0 {
+	if len(names) == 0 && pathsFile == "" {
 		return nil
 	}
-	log.Info("Removing %v as an administrator", privileged)
-	return runAdminPrompt("Keybase wants to remove the keybase command line tool.", removePathsCommand(privileged), log)
+	log.Info("Removing %v from %s and %q as an administrator", names, cliLinkDir, pathsFile)
+	return runAdminPrompt("Keybase wants to remove the keybase command line tool.", uninstallCLIPathsCommand(cliLinkDir, names, pathsFile), log)
 }
 
 func uninstallCommandLine(log Log) error {
