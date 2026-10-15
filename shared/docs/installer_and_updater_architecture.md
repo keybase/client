@@ -89,13 +89,12 @@ The design above limits the updater's responsibilities to:
 - download it
 - ask the user for permission to update, or do so automatically if they've
   said they don't want to be asked every time
-- check signatures on the new upgrade, ask for admin permissions if needed to
-  perform the install
+- check signatures on the new upgrade
 - replace the old app bundle on disk with the newly-downloaded one. If it
   cannot rename Keybase.app in /Applications, it checks the new bundle's code
-  signature and swaps the bundle's `Contents` in place as the user. Only if
-  that fails too does it show a one-time macOS administrator prompt to move
-  the bundle
+  signature and swaps the bundle's `Contents` in place as the user. If that
+  fails too, the update fails; the updater never asks for administrator
+  permissions
 - restart the app, triggering the installer to notice and install new services
 
 #### How do we find out about updates?
