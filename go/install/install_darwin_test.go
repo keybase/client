@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sys/unix"
 )
 
 func TestOSVersion(t *testing.T) {
@@ -176,24 +177,94 @@ func TestRecordLegacyMountOptInRetriesOnFailure(t *testing.T) {
 	require.FileExists(t, filepath.Join(configDir, "kbfs_finder_legacy_migrated"))
 }
 
-func TestInstallCLIPathsCommand(t *testing.T) {
-	bins := []string{
+func runShell(t *testing.T, cmd string) (string, error) {
+	t.Helper()
+	out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+	return string(out), err
+}
+
+func TestCLILinks(t *testing.T) {
+	bins, links := cliLinks()
+	require.Equal(t, []string{
 		"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase",
 		"/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase",
-	}
-	links := []string{"/usr/local/bin/keybase", "/usr/local/bin/git-remote-keybase"}
-	require.Equal(t,
-		"/bin/mkdir -p '/usr/local/bin'"+
-			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/keybase' '/usr/local/bin/keybase'"+
-			" && /bin/ln -sfn '/Applications/Keybase.app/Contents/SharedSupport/bin/git-remote-keybase' '/usr/local/bin/git-remote-keybase'",
-		installCLIPathsCommand(bins, links))
+	}, bins)
+	require.Equal(t, []string{"/usr/local/bin/keybase", "/usr/local/bin/git-remote-keybase"}, links)
+}
 
-	bins = []string{"/Users/testuser/My Apps/Keybase.app/bin/keybase", "/Users/testuser/it's/git-remote-keybase"}
-	require.Equal(t,
-		"/bin/mkdir -p '/usr/local/bin'"+
-			" && /bin/ln -sfn '/Users/testuser/My Apps/Keybase.app/bin/keybase' '/usr/local/bin/keybase'"+
-			` && /bin/ln -sfn '/Users/testuser/it'\''s/git-remote-keybase' '/usr/local/bin/git-remote-keybase'`,
-		installCLIPathsCommand(bins, links))
+func TestInstallCLIPathsCommand(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	bins := []string{filepath.Join(tmp, "it's app", "keybase"), filepath.Join(tmp, "it's app", "git-remote-keybase")}
+	linkDir := filepath.Join(tmp, "link dir")
+
+	out, err := runShell(t, installCLIPathsCommand(linkDir, bins))
+	require.NoError(t, err, out)
+	for i, name := range cliBinNames {
+		target, err := os.Readlink(filepath.Join(linkDir, name))
+		require.NoError(t, err)
+		require.Equal(t, bins[i], target)
+	}
+
+	// An existing link is replaced.
+	require.NoError(t, os.Remove(filepath.Join(linkDir, "keybase")))
+	require.NoError(t, os.Symlink(tmp, filepath.Join(linkDir, "keybase")))
+	out, err = runShell(t, installCLIPathsCommand(linkDir, bins))
+	require.NoError(t, err, out)
+	target, err := os.Readlink(filepath.Join(linkDir, "keybase"))
+	require.NoError(t, err)
+	require.Equal(t, bins[0], target)
+}
+
+func TestInstallCLIPathsCommandLinkedDir(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	realDir := filepath.Join(tmp, "real")
+	require.NoError(t, os.Mkdir(realDir, 0o755))
+	linkDir := filepath.Join(tmp, "linked")
+	require.NoError(t, os.Symlink(realDir, linkDir))
+
+	out, err := runShell(t, installCLIPathsCommand(linkDir, []string{"/a/keybase", "/a/git-remote-keybase"}))
+	require.Error(t, err, out)
+	entries, err := os.ReadDir(realDir)
+	require.NoError(t, err)
+	require.Empty(t, entries, "nothing is linked into the directory a link dir points at")
+}
+
+func TestUninstallCLIPathsCommand(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	linkDir := filepath.Join(tmp, "link dir")
+	require.NoError(t, os.Mkdir(linkDir, 0o755))
+	for _, name := range append([]string{"other"}, cliBinNames...) {
+		require.NoError(t, os.Symlink("/nowhere/"+name, filepath.Join(linkDir, name)))
+	}
+	pathsFile := filepath.Join(tmp, "it's paths")
+	require.NoError(t, os.WriteFile(pathsFile, nil, 0o600))
+
+	out, err := runShell(t, uninstallCLIPathsCommand(linkDir, cliBinNames, pathsFile))
+	require.NoError(t, err, out)
+	entries, err := os.ReadDir(linkDir)
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	require.Equal(t, "other", entries[0].Name())
+	require.NoFileExists(t, pathsFile)
+
+	require.Equal(t, "/bin/rm -f '/etc/paths.d/Keybase'", uninstallCLIPathsCommand(cliLinkDir, nil, "/etc/paths.d/Keybase"))
+}
+
+func TestUninstallCLIPathsCommandLinkedDir(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	realDir := filepath.Join(tmp, "real")
+	require.NoError(t, os.Mkdir(realDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(realDir, "keybase"), nil, 0o600))
+	linkDir := filepath.Join(tmp, "linked")
+	require.NoError(t, os.Symlink(realDir, linkDir))
+
+	out, err := runShell(t, uninstallCLIPathsCommand(linkDir, []string{"keybase"}, ""))
+	require.Error(t, err, out)
+	require.FileExists(t, filepath.Join(realDir, "keybase"))
 }
 
 func TestLegacyRedirectorDirs(t *testing.T) {
@@ -214,22 +285,22 @@ func TestLegacyRedirectorDirs(t *testing.T) {
 func TestRetireLegacyHelperCommand(t *testing.T) {
 	dirs, err := legacyRedirectorDirs(libkb.ProductionRunMode)
 	require.NoError(t, err)
-	cmd := retireLegacyHelperCommand(dirs)
+	cmd := retireLegacyHelperCommand(dirs, []string{"/Volumes/Keybase"})
 	require.Equal(t, "set -e"+
 		"; /bin/launchctl bootout 'system/keybase.Helper' 2>/dev/null || true"+
-		"; /sbin/umount -f '/keybase' 2>/dev/null || true"+
 		"; /sbin/umount -f '/Volumes/Keybase' 2>/dev/null || true"+
 		"; if /usr/bin/kmutil showloaded -b 'com.github.kbfuse.filesystems.kbfuse' 2>/dev/null"+
 		" | /usr/bin/grep -qF 'com.github.kbfuse.filesystems.kbfuse';"+
 		" then /usr/bin/kmutil unload -b 'com.github.kbfuse.filesystems.kbfuse'; fi"+
 		"; /bin/rm -rf '/Library/Filesystems/kbfuse.fs'"+
-		"; if [ -L '/keybase' ]; then /bin/rm -f '/keybase';"+
-		" elif [ -d '/keybase' ]; then /bin/rmdir '/keybase' 2>/dev/null || true; fi"+
-		"; if [ -L '/Volumes/Keybase' ]; then /bin/rm -f '/Volumes/Keybase';"+
-		" elif [ -d '/Volumes/Keybase' ]; then /bin/rmdir '/Volumes/Keybase' 2>/dev/null || true; fi"+
+		"; if /bin/test -L '/keybase'; then /bin/rm -f '/keybase' 2>/dev/null || true;"+
+		" elif /bin/test -d '/keybase'; then /bin/rmdir '/keybase' 2>/dev/null || true; fi"+
+		"; if /bin/test -L '/Volumes/Keybase'; then /bin/rm -f '/Volumes/Keybase' 2>/dev/null || true;"+
+		" elif /bin/test -d '/Volumes/Keybase'; then /bin/rmdir '/Volumes/Keybase' 2>/dev/null || true; fi"+
 		"; /bin/rm -f '/Library/LaunchDaemons/keybase.Helper.plist'"+
 		"; /bin/rm -f '/Library/PrivilegedHelperTools/keybase.Helper'",
 		cmd)
+	require.NotContains(t, retireLegacyHelperCommand(dirs, nil), "umount")
 
 	// The helper binary goes last, so any earlier failure leaves it.
 	require.True(t, strings.HasSuffix(cmd, "; /bin/rm -f '/Library/PrivilegedHelperTools/keybase.Helper'"))
@@ -239,16 +310,15 @@ func TestRetireLegacyHelperCommand(t *testing.T) {
 	out, err := exec.Command("/bin/sh", "-n", "-c", cmd).CombinedOutput()
 	require.NoError(t, err, string(out))
 
-	cmd = retireLegacyHelperCommand([]string{"/Volumes/it's here"})
+	cmd = retireLegacyHelperCommand([]string{"/Volumes/it's here"}, []string{"/Volumes/it's here"})
 	require.Contains(t, cmd, `/bin/rmdir '/Volumes/it'\''s here'`)
 	out, err = exec.Command("/bin/sh", "-n", "-c", cmd).CombinedOutput()
 	require.NoError(t, err, string(out))
 }
 
 // Runs the redirector-directory step against paths in a temp dir: a symlink
-// is removed with rm (rmdir fails on it, which under set -e would stop the
-// script before the helper is removed), and a directory rmdir cannot remove
-// does not stop the script.
+// is removed with rm, and neither a symlink nor a directory that cannot be
+// removed stops the script.
 func TestRemoveRedirectorDirCommand(t *testing.T) {
 	tmp := t.TempDir()
 	link := filepath.Join(tmp, "link")
@@ -257,10 +327,16 @@ func TestRemoveRedirectorDirCommand(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(full, "child"), 0o700))
 	empty := filepath.Join(tmp, "it's empty")
 	require.NoError(t, os.Mkdir(empty, 0o700))
+	readOnly := filepath.Join(tmp, "read-only")
+	require.NoError(t, os.Mkdir(readOnly, 0o700))
+	stuckLink := filepath.Join(readOnly, "link")
+	require.NoError(t, os.Symlink(tmp, stuckLink))
+	require.NoError(t, os.Chmod(readOnly, 0o500))
+	t.Cleanup(func() { _ = os.Chmod(readOnly, 0o700) })
 	done := filepath.Join(tmp, "done")
 
 	steps := []string{"set -e"}
-	for _, dir := range []string{link, full, empty, filepath.Join(tmp, "missing")} {
+	for _, dir := range []string{link, stuckLink, full, empty, filepath.Join(tmp, "missing")} {
 		steps = append(steps, removeRedirectorDirCommand(dir))
 	}
 	steps = append(steps, "/usr/bin/touch "+adminprompt.ShellQuote(done))
@@ -270,15 +346,22 @@ func TestRemoveRedirectorDirCommand(t *testing.T) {
 
 	_, err = os.Lstat(link)
 	require.True(t, os.IsNotExist(err), "symlink removed")
+	_, err = os.Lstat(stuckLink)
+	require.NoError(t, err, "symlink in a read-only dir stays")
 	require.DirExists(t, tmp, "symlink target kept")
 	require.DirExists(t, filepath.Join(full, "child"))
 	require.NoDirExists(t, empty)
 	require.FileExists(t, done, "later steps still run")
 }
 
-func TestRemovePathsCommand(t *testing.T) {
-	require.Equal(t, "/bin/rm -f '/usr/local/bin/keybase' '/etc/paths.d/Keybase'",
-		removePathsCommand([]string{"/usr/local/bin/keybase", "/etc/paths.d/Keybase"}))
+func TestRootMountedDirs(t *testing.T) {
+	mounts := []unix.Statfs_t{
+		statfs("kbfs@kbfuse0", "/Volumes/Keybase", "kbfuse", 0),
+		statfs("/dev/disk9s1", "/keybase", "apfs", 501),
+		statfs("/dev/disk3s1s1", "/", "apfs", 0),
+	}
+	require.Equal(t, []string{"/Volumes/Keybase"}, rootMountedDirs(mounts, []string{"/keybase", "/Volumes/Keybase"}))
+	require.Empty(t, rootMountedDirs(nil, []string{"/keybase"}))
 }
 
 func TestLinkPointsInto(t *testing.T) {
@@ -293,7 +376,6 @@ func TestLinkPointsInto(t *testing.T) {
 		{"/Applications/Keybase.app2/bin/keybase", "/usr/local/bin", bundle, false},
 		{"/opt/homebrew/bin/keybase", "/usr/local/bin", bundle, false},
 		{"/Applications/Keybase.app/../Other.app/keybase", "/usr/local/bin", bundle, false},
-		{"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase", "/usr/local/bin", "", false},
 	}
 	for _, tc := range cases {
 		require.Equal(t, tc.want, linkPointsInto(tc.target, tc.linkDir, tc.bundleDir), tc.target)
