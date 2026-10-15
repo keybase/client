@@ -10,3 +10,6 @@ import "github.com/keybase/client/go/protocol/keybase1"
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	return keybase1.FuseStatus{}
 }
+
+// FilterKBFSMountInfos is a no-op on this platform.
+func FilterKBFSMountInfos(*keybase1.FuseStatus, string) {}
