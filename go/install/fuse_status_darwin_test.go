@@ -16,6 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMacosMajor(t *testing.T) {
+	major := macosMajor(testLog)
+	require.NotEmpty(t, major)
+	require.NotContains(t, major, ".")
+}
+
 func TestFindStringInPlist(t *testing.T) {
 	const plistTestData = `<?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -58,6 +64,8 @@ func TestDeriveFuseStatus(t *testing.T) {
 		version     string
 		kextID      string
 		kextStarted bool
+		statusName  string
+		fields      []keybase1.StringKVPair
 	}{
 		{
 			name: "not installed", probe: macfuseProbe{},
@@ -107,6 +115,30 @@ func TestDeriveFuseStatus(t *testing.T) {
 			name: "ready, started", probe: macfuseProbe{BundleExists: true, PlistVersion: "5.4.0", KextID: "io.macfuse.filesystems.macfuse.25", KextInfo: started},
 			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_NONE, version: "5.4.0", kextID: "io.macfuse.filesystems.macfuse.25", kextStarted: true,
 		},
+		{
+			name: "ready, kext for this macOS", probe: macfuseProbe{BundleExists: true, PlistVersion: "5.4.0", MacosMajor: "27", KextForMacos: true},
+			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_NONE, version: "5.4.0",
+		},
+		{
+			name: "no kext for this macOS", probe: macfuseProbe{BundleExists: true, PlistVersion: "5.4.0", MacosMajor: "28"},
+			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_UPGRADE, version: "5.4.0",
+			desc: "macFUSE 5.4.0 does not support macOS 28. Update it from https://macfuse.io", statusName: statusUnsupportedMacos,
+			fields: []keybase1.StringKVPair{{Key: "macosVersion", Value: "28"}},
+		},
+		{
+			name: "no kext for this macOS beats kext error", probe: macfuseProbe{BundleExists: true, PlistVersion: "5.4.0", MacosMajor: "28", KextInfoErr: errors.New("iokit")},
+			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_UPGRADE, version: "5.4.0", statusName: statusUnsupportedMacos,
+			fields: []keybase1.StringKVPair{{Key: "macosVersion", Value: "28"}},
+		},
+		{
+			name: "a loaded kext is used whatever the macOS", probe: macfuseProbe{BundleExists: true, PlistVersion: "5.4.0", MacosMajor: "28", KextID: "io.macfuse.filesystems.macfuse.25", KextInfo: started},
+			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_NONE, version: "5.4.0", kextID: "io.macfuse.filesystems.macfuse.25", kextStarted: true,
+		},
+		{
+			name: "outdated beats no kext for this macOS", probe: macfuseProbe{BundleExists: true, PlistVersion: "4.8.0", MacosMajor: "28"},
+			status: keybase1.InstallStatus_INSTALLED, action: keybase1.InstallAction_UPGRADE, version: "4.8.0",
+			desc: "macFUSE 4.8.0 is installed, but Keybase needs macFUSE 5 or later. Update it from https://macfuse.io",
+		},
 	}
 	for _, tc := range cases {
 		for _, legacy := range []bool{false, true} {
@@ -121,6 +153,8 @@ func TestDeriveFuseStatus(t *testing.T) {
 			}
 			if tc.code != 0 {
 				require.Equal(t, "INSTALL_ERROR", st.Status.Name, tc.name)
+			} else if tc.statusName != "" {
+				require.Equal(t, tc.statusName, st.Status.Name, tc.name)
 			}
 			require.Equal(t, tc.version, st.Version, tc.name)
 			require.Equal(t, tc.kextID, st.KextID, tc.name)
@@ -130,11 +164,11 @@ func TestDeriveFuseStatus(t *testing.T) {
 			} else {
 				require.Empty(t, st.Path, tc.name)
 			}
+			fields := tc.fields
 			if legacy {
-				require.Equal(t, []keybase1.StringKVPair{{Key: "legacyKbfuse", Value: legacyKbfusePath}}, st.Status.Fields, tc.name)
-			} else {
-				require.Empty(t, st.Status.Fields, tc.name)
+				fields = append(fields, keybase1.StringKVPair{Key: "legacyKbfuse", Value: legacyKbfusePath})
 			}
+			require.Equal(t, fields, st.Status.Fields, tc.name)
 		}
 	}
 }
