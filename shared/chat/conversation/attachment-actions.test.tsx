@@ -245,6 +245,13 @@ describe('uploadAttachments', () => {
       ...over,
     })
 
+  test('a missing tlfName posts nothing and raises a global error', async () => {
+    upload({tlfName: undefined})
+    await flushPromises()
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(useConfigState.getState().globalError).toBeDefined()
+  })
+
   test('a switch mid-batch posts none of the remaining files for the next account', async () => {
     const first = Promise.withResolvers<undefined>()
     rpc.once('postAttachment', async () => first.promise)
