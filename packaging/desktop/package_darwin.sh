@@ -6,6 +6,8 @@ dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$dir"
 
 client_dir="$dir/../.."
+# shellcheck source=packaging/lib.sh
+source "$client_dir/packaging/lib.sh"
 shared_dir="$client_dir/shared"
 desktop_dir="$client_dir/shared/desktop"
 build_dir=${BUILD_DIR:-"/tmp/package_darwin/build"}
@@ -89,11 +91,6 @@ app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-# The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.94-darwin.tgz"
-# KeybaseUpdater.app is the native updater UI (prompt dialogs)
-updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.7-darwin.tgz"
-
 keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
 redirector_bin="$tmp_dir/keybase-redirector"
@@ -157,11 +154,13 @@ get_deps() { (
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
 
-	echo "Using installer from $installer_url"
-	curl -J -L -Ss "$installer_url" | tar zx
+	# KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
+	echo "Using installer from $KB_INSTALLER_URL"
+	kb_fetch_verified "$KB_INSTALLER_URL" "$KB_INSTALLER_SHA256" .
 
-	echo "Using updater from $updater_url"
-	curl -J -L -Ss "$updater_url" | tar zx
+	# KeybaseUpdater.app is the native updater UI (prompt dialogs)
+	echo "Using updater from $KB_UPDATER_URL"
+	kb_fetch_verified "$KB_UPDATER_URL" "$KB_UPDATER_SHA256" .
 ); }
 
 # Build Keybase.app

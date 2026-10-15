@@ -48,7 +48,9 @@ if [ "$check_ci" = "1" ]; then
 		cd "$client_dir/go/buildtools"
 		go install "github.com/keybase/client/go/release"
 	)
-	release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+	# shellcheck source=packaging/lib.sh
+	source "$client_dir/packaging/lib.sh"
+	release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" "${KB_CI_CONTEXTS[@]}"
 fi
 
 package="github.com/keybase/client/go/bind"

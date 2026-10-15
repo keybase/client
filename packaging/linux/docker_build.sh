@@ -30,6 +30,18 @@ clientdir="$(git -C "$here" rev-parse --show-toplevel)"
 echo "Fetching $clientdir"
 git -C "$clientdir" fetch
 
+# The temp dirs below hold copies of the S3 config, the AUR SSH key and the
+# exported GPG signing key. Delete them however the build ends.
+s3cmd_temp=""
+ssh_temp=""
+gpg_tempdir=""
+cleanup() {
+  if [ -n "$s3cmd_temp" ]; then rm -rf "$s3cmd_temp"; fi
+  if [ -n "$ssh_temp" ]; then rm -rf "$ssh_temp"; fi
+  if [ -n "$gpg_tempdir" ]; then rm -rf "$gpg_tempdir"; fi
+}
+trap cleanup EXIT
+
 # Arrange to share the S3 credentials. We have to do this with a directory
 # instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"

@@ -144,7 +144,8 @@ echo [%clientCommit%]
 :: need GITHUB_TOKEN
 pushd %GOPATH%\src\github.com\keybase\client\go\release
 go build || goto:build_error || EXIT /B 1
-release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
+:: The contexts mirror KB_CI_CONTEXTS in packaging/lib.sh
+release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch"  || goto:ci_error
 popd
 EXIT /B 0
 
