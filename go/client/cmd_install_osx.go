@@ -88,11 +88,7 @@ var defaultInstallComponents = []string{
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameService.String(),
 	install.ComponentNameCLI.String(),
-	install.ComponentNameHelper.String(),
-	install.ComponentNameFuse.String(),
-	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
-	install.ComponentNameRedirector.String(),
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
@@ -144,6 +140,12 @@ func (v *CmdInstall) Run() error {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else {
+		for _, r := range result.ComponentResults {
+			if r.Status.Code != 0 {
+				fmt.Fprintf(os.Stderr, "%s: %s\n", r.Name, r.Status.Desc)
+			}
+		}
 	}
 	exitOnError(result)
 	return nil

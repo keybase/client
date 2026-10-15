@@ -75,6 +75,31 @@ func (c ComponentName) String() string {
 	return string(c)
 }
 
+// mountOptInFile marks that the user turned on Finder access, so kbfs should
+// mount when macFUSE is ready.
+const mountOptInFile = "kbfs_finder_enabled"
+
+// MountOptIn reports whether the user turned on Finder access.
+func MountOptIn(context Context) bool {
+	_, err := os.Stat(filepath.Join(context.GetConfigDir(), mountOptInFile))
+	return err == nil
+}
+
+// SetMountOptIn records whether the user wants Finder access.
+func SetMountOptIn(context Context, enabled bool) error {
+	path := filepath.Join(context.GetConfigDir(), mountOptInFile)
+	if !enabled {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return nil
+	}
+	if err := os.MkdirAll(context.GetConfigDir(), 0o700); err != nil {
+		return err
+	}
+	return os.WriteFile(path, nil, 0o600)
+}
+
 // Description returns description for component name
 func (c ComponentName) Description() string {
 	switch c {

@@ -47,13 +47,17 @@ const (
 	BrewKBFSLabel ServiceLabel = "homebrew.mxcl.kbfs"
 	// UnknownLabel is an empty/unknown label
 	UnknownLabel ServiceLabel = ""
+)
 
-	// See osx/Installer/Installer.m : KBExitAuthCanceledError
-	installHelperExitCodeAuthCanceled int = 6
-	// See osx/Installer/Installer.m : KBExitFuseCriticalUpdate
-	installHelperExitCodeFuseCriticalUpdate int = 8
-	// our own exit code
-	exitCodeFuseCriticalUpdateFailed int = 300
+const (
+	macfusePath      = "/Library/Filesystems/macfuse.fs"
+	loadMacfusePath  = macfusePath + "/Contents/Resources/load_macfuse"
+	legacyKbfusePath = "/Library/Filesystems/kbfuse.fs"
+
+	// exitCodeKextNotLoadable means macFUSE is installed but macOS has not
+	// allowed its kext yet. The app shows the approval help for it.
+	exitCodeKextNotLoadable = 5
+	msgKextNotLoadable      = "macFUSE is installed, but macOS has not allowed its system extension yet."
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -405,79 +409,61 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
-// InstallAuto installs everything it can without asking for privileges or
-// extensions. If the user has already installed Fuse, we install everything.
-func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
-	var components []string
-	status := KeybaseFuseStatus("", log)
-	if status.InstallStatus == keybase1.InstallStatus_INSTALLED {
-		components = []string{
-			ComponentNameCLI.String(),
-			ComponentNameUpdater.String(),
-			ComponentNameService.String(),
-			ComponentNameKBFS.String(),
-			ComponentNameHelper.String(),
-			ComponentNameFuse.String(),
-			ComponentNameMountDir.String(),
-			ComponentNameRedirector.String(),
-			ComponentNameKBFS.String(),
-		}
-	} else {
-		components = []string{
-			ComponentNameCLI.String(),
-			ComponentNameUpdater.String(),
-			ComponentNameService.String(),
-			ComponentNameKBFS.String(),
-		}
+// installAutoComponents are the components install-auto installs. None of
+// them needs privileges or macFUSE; kbfs mounts only when the user opted in
+// and macFUSE is ready.
+func installAutoComponents() []string {
+	return []string{
+		ComponentNameCLI.String(),
+		ComponentNameUpdater.String(),
+		ComponentNameService.String(),
+		ComponentNameKBFS.String(),
 	}
-
-	// A force unmount is needed to change from one mountpoint to another
-	// if the mount is in use after an upgrade, and install-auto is
-	// invoked from the updater.
-	forceUnmount := true
-	return Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
 }
 
-const mountsPresentErrorCode = 7 // See Installer/Installer.m
+// InstallAuto installs everything it can without asking for privileges.
+func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
+	return Install(context, binPath, sourcePath, installAutoComponents(), true, timeout, log)
+}
 
-func installFuse(runMode libkb.RunMode, log Log) error {
-	err := libnativeinstaller.InstallFuse(runMode, log)
-	switch e := err.(type) {
-	case nil:
-		return nil
-	case (*exec.ExitError):
-		if waitStatus, ok := e.Sys().(syscall.WaitStatus); ok {
-			if waitStatus.ExitStatus() != mountsPresentErrorCode {
-				return err
-			}
-			// Otherwise, continue with the logic after switch.
-		} else {
-			return err
-		}
-	default:
-		return err
-	}
+// shouldMountKBFS reports whether kbfs should mount: the user turned on
+// Finder access and a supported macFUSE is installed.
+func shouldMountKBFS(optIn bool, st keybase1.FuseStatus) bool {
+	return optIn && macfuseReady(st)
+}
 
-	log.Info("Can't install/upgrade fuse when mounts are present. " +
-		"Assuming it's the redirector and trying to uninstall it first.")
-	if err = libnativeinstaller.UninstallRedirector(runMode, log); err != nil {
-		log.Info("Uninstalling redirector failed. " +
-			"Fuse should be able to update next time the OS reboots.")
-		return err
+// macfuseReady reports whether a supported macFUSE is installed. Its kext
+// may still need to be loaded.
+func macfuseReady(st keybase1.FuseStatus) bool {
+	return st.InstallStatus == keybase1.InstallStatus_INSTALLED &&
+		st.InstallAction == keybase1.InstallAction_NONE
+}
+
+// ensureMacfuse checks that stock macFUSE is installed and up to date, and
+// loads its kext. Keybase never installs macFUSE itself.
+func ensureMacfuse(log Log) keybase1.ComponentResult {
+	name := ComponentNameFuse.String()
+	st := KeybaseFuseStatus("", log)
+	if !macfuseReady(st) {
+		log.Errorf("%s", st.Status.Desc)
+		return keybase1.ComponentResult{Name: name, Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, st.Status.Desc)}
 	}
-	defer func() {
-		if err := libnativeinstaller.InstallRedirector(runMode, log); err != nil {
-			log.Info("Installing redirector failed. %s", err)
-		}
-	}()
-	log.Info(
-		"Uninstalling redirector succeeded. Trying to install KBFuse again.")
-	if err = libnativeinstaller.InstallFuse(runMode, log); err != nil {
-		log.Info("Installing fuse failed again. " +
-			"Fuse should be able to update next time the OS reboots.")
-		return err
+	if st.KextStarted {
+		return componentResult(name, nil)
 	}
-	return nil
+	// load_macfuse is setuid root. When macOS has not allowed the kext it
+	// exits non-zero with no output and macOS shows its own dialog.
+	out, err := exec.Command(loadMacfusePath).CombinedOutput()
+	log.Debug("load_macfuse: err=%v output=%q", err, out)
+	if st = KeybaseFuseStatus("", log); macfuseReady(st) && st.KextStarted {
+		return componentResult(name, nil)
+	}
+	log.Errorf("%s", msgKextNotLoadable)
+	return keybase1.ComponentResult{
+		Name:     name,
+		Status:   keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, msgKextNotLoadable),
+		ExitCode: exitCodeKextNotLoadable,
+	}
 }
 
 // Install installs specified components
@@ -520,119 +506,15 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
-	helperCanceled := false
-	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = libnativeinstaller.InstallHelper(context.GetRunMode(), log)
-		cr := componentResult(string(ComponentNameHelper), err)
-		componentResults = append(componentResults, cr)
-		if err != nil {
-			log.Errorf("Error installing Helper: %v", err)
-		}
-		shouldUninstallKBFS := false
-		shouldUninstallHelper := false
-		switch cr.ExitCode {
-		case installHelperExitCodeAuthCanceled:
-			log.Debug("Auth canceled; uninstalling mountdir and fuse")
-			helperCanceled = true
-			shouldUninstallKBFS = true
-		case installHelperExitCodeFuseCriticalUpdate:
-			log.Debug("FUSE critical update; uninstalling mountdir and fuse")
-			shouldUninstallKBFS = true
-			helperCanceled = true
-			shouldUninstallHelper = true
-		}
-		if shouldUninstallKBFS {
-			// Unmount the user's KBFS directory.
-			mountDir, err := context.GetMountDir()
-			if err == nil {
-				err = UninstallKBFS(context, mountDir, true, log)
-			}
-			if err != nil {
-				log.Errorf("Error uninstalling KBFS: %s", err)
-			}
-
-			// For older systems, check `/keybase` too, just in case.
-			var oldMountDir string
-			switch context.GetRunMode() {
-			case libkb.ProductionRunMode:
-				oldMountDir = "/keybase"
-			case libkb.StagingRunMode:
-				oldMountDir = "/keybase.staging"
-			default:
-				oldMountDir = "/keybase.devel"
-			}
-			err = unmount(oldMountDir, true, log)
-			if err != nil {
-				log.Debug("Error unmounting old mount dir %s: %v", oldMountDir,
-					err)
-			}
-
-			err = libnativeinstaller.UninstallMountDir(
-				context.GetRunMode(), log)
-			if err != nil {
-				log.Errorf("Error uninstalling mount directory: %s", err)
-			}
-
-			err = libnativeinstaller.UninstallRedirector(
-				context.GetRunMode(), log)
-			if err != nil {
-				log.Errorf("Error stopping redirector: %s", err)
-			}
-
-			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
-			if err != nil {
-				log.Errorf("Error uninstalling FUSE: %s", err)
-				if shouldUninstallKBFS {
-					log.Errorf("Returning critical update failure result since FUSE uninstall failed")
-					return newInstallResult([]keybase1.ComponentResult{{
-						Name: "helper",
-						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCGeneric,
-							"FUSE uninstall failed"),
-						ExitCode: exitCodeFuseCriticalUpdateFailed,
-					}})
-				}
-			}
-		}
-		if shouldUninstallHelper {
-			err = libnativeinstaller.UninstallHelper(context.GetRunMode(), log)
-			if err != nil {
-				log.Errorf("Error uninstalling helper: %s", err)
-			}
-		}
-	}
-
-	if !helperCanceled &&
-		libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = installFuse(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
-		if err != nil {
-			log.Errorf("Error installing KBFuse: %s", err)
-		}
-	}
-
-	if !helperCanceled &&
-		libkb.IsIn(string(ComponentNameMountDir), components, false) {
-		err = libnativeinstaller.InstallMountDir(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
-		if err != nil {
-			log.Errorf("Error installing mount directory: %s", err)
-		}
+	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+		componentResults = append(componentResults, ensureMacfuse(log))
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(context, binPath, force, true, timeout, log)
+		err = InstallKBFS(context, binPath, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
 			log.Errorf("Error installing KBFS: %s", err)
-		}
-	}
-
-	if !helperCanceled &&
-		libkb.IsIn(string(ComponentNameRedirector), components, false) {
-		err = libnativeinstaller.InstallRedirector(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
-		if err != nil {
-			log.Errorf("Error starting redirector: %s", err)
 		}
 	}
 
@@ -754,7 +636,7 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 }
 
 // InstallKBFS installs the KBFS launchd service
-func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvailable bool, timeout time.Duration, log Log) error {
+func InstallKBFS(context Context, binPath string, timeout time.Duration, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -762,21 +644,14 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 	if err != nil {
 		return err
 	}
-	// Unmount any existing KBFS directory for the user.
 	mountDir, err := context.GetMountDir()
 	if err != nil {
 		return err
 	}
 
-	skipMount := false
-	_, err = os.Stat(mountDir)
-	if err != nil {
-		if skipMountIfNotAvailable {
-			skipMount = true
-		} else {
-			return err
-		}
-	}
+	// The mount directory need not exist: mount_macfuse creates it.
+	skipMount := !shouldMountKBFS(MountOptIn(context), KeybaseFuseStatus("", log))
+	log.Debug("KBFS mount at %s skipped: %v", mountDir, skipMount)
 
 	plist, err := kbfsPlist(context, kbfsBinPath, label, mountDir, skipMount, log)
 	if err != nil {

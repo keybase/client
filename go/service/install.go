@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"runtime"
 	"time"
 
 	"github.com/keybase/client/go/install"
@@ -27,31 +28,52 @@ func NewInstallHandler(xp rpc.Transporter, g *libkb.GlobalContext) *InstallHandl
 
 func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusArg) (keybase1.FuseStatus, error) {
 	status := install.KeybaseFuseStatus(arg.BundleVersion, h.G().Log)
+	mountDir, err := h.G().Env.GetMountDir()
+	if err != nil {
+		h.G().Log.Warning("Unable to get the mount dir; reporting no KBFS mount: %s", err)
+	}
+	install.FilterKBFSMountInfos(&status, mountDir)
 	return status, nil
 }
 
 func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, error) {
-	components := []string{"helper", "fuse"}
+	components := []string{"fuse"}
 	result := install.Install(
 		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
+}
+
+// setMountOptIn records whether the user wants KBFS mounted (Finder access).
+// It is only kept on macOS, where mounting needs the user's macFUSE.
+func (h *InstallHandler) setMountOptIn(enabled bool) {
+	if runtime.GOOS != "darwin" {
+		return
+	}
+	if err := install.SetMountOptIn(h.G(), enabled); err != nil {
+		h.G().Log.Warning("Unable to record the Finder access choice: %s", err)
+	}
 }
 
 func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, error) {
-	components := []string{"mountdir", "kbfs", "redirector"}
+	h.setMountOptIn(true)
+	components := []string{"kbfs"}
 	result := install.Install(
 		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
 
+// UninstallKBFS unmounts KBFS and restarts it unmounted, since chat and the
+// in-app Files tab still need it.
 func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResult, error) {
-	// If we're uninstalling the FUSE kext, we need to uninstall the
-	// redirector first because it uses that module. That means one
-	// user's uninstall request will affect the other users on the
-	// same machine -- but that was true anyway when uninstalling the
-	// kext if the other users didn't have KBFS actively mounted.
-	components := []string{"redirector", "kbfs", "mountdir", "fuse"}
+	h.setMountOptIn(false)
+	components := []string{"kbfs"}
 	result := install.Uninstall(h.G(), components, h.G().Log)
+	restart := install.Install(
+		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
+	result.ComponentResults = append(result.ComponentResults, restart.ComponentResults...)
+	if result.Status.Code == 0 {
+		result.Status = restart.Status
+	}
 	return result, nil
 }
 
