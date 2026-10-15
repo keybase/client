@@ -80,6 +80,12 @@ test('darwin rows without a KBFS mount map to the macFUSE state', () => {
     macosVersion: '28',
   })
   expect(darwinFuseStatusToDriverStatus(readyNotLoaded)).toEqual(disabled(T.FS.MacfuseState.Ready))
+  // the service adds finderAccess when the user turned Finder access on
+  expect(
+    darwinFuseStatusToDriverStatus(
+      makeStatus({status: {code: 0, desc: '', fields: [{key: 'finderAccess', value: 'on'}], name: 'OK'}})
+    )
+  ).toEqual({...disabled(T.FS.MacfuseState.Ready), finderAccessOn: true})
   // a loaded kext alone does not mean KBFS is mounted
   expect(darwinFuseStatusToDriverStatus(readyLoaded)).toEqual(disabled(T.FS.MacfuseState.Ready))
 })
