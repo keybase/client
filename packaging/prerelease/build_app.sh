@@ -62,6 +62,8 @@ trap reset EXIT
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
+  # The rest of this script keeps running from the copy bash already opened, so
+  # every path it calls below must exist in any commit it can build.
   git checkout "$client_commit"
   # If commit is hash, this fails and is unnecessary, if branch it's needed to
   # update if it has changed.
@@ -76,7 +78,7 @@ if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$KB_RELEASE_BIN" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)" "${KB_CI_CONTEXTS[@]}"
 
-  "$client_dir/packaging/notify/send.sh" "CI tests passed! Starting build for $platform."
+  "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
 
 number_of_builds=1
@@ -145,7 +147,7 @@ done
 
 
 if [ "$istest" = "1" ]; then
-  "$client_dir/packaging/notify/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/$platform-test/index.html"
+  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/$platform-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.
@@ -159,5 +161,5 @@ else
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 
-  "$client_dir/packaging/notify/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, updater: $updater_version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, updater: $updater_version). See $s3host";
 fi

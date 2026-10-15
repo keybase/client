@@ -14,5 +14,5 @@ kb_release_bin
 echo "$(go version)"
 
 report=$("$KB_RELEASE_BIN" updates-report --bucket-name="$bucket_name")
-"$client_dir/packaging/notify/send.sh" "\`\`\`$report\`\`\`"
+"$client_dir/packaging/slack/send.sh" "\`\`\`$report\`\`\`"
 echo "reporting complete"

@@ -15,7 +15,7 @@ check_ci=${CHECK_CI:-1}
 # Notify Slack on failure
 function notify_slack {
 	if [ -n "$automated_build" ]; then
-		"$client_dir/packaging/notify/send.sh" "<@channel> Automated iOS build failed, please check out the log."
+		"$client_dir/packaging/slack/send.sh" "<@channel> Automated iOS build failed, please check out the log."
 	fi
 }
 trap notify_slack ERR
@@ -101,4 +101,4 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 fastlane ios beta
 
-"$client_dir/packaging/notify/send.sh" "Finished releasing ios"
+"$client_dir/packaging/slack/send.sh" "Finished releasing ios"

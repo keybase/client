@@ -22,9 +22,11 @@ variable it reads.
 
 keybot also passes `KBFS_COMMIT` to `build_darwin.sh`; nothing reads it.
 
-Chat notifications go through `notify/send.sh`, which posts to Keybase chat when
+Chat notifications go through `slack/send.sh`, which posts to Keybase chat when
 `KEYBASE_CHAT_CONVID` is set (`KEYBASE_LOCATION` and `KEYBASE_HOME` pick the
-binary and home dir).
+binary and home dir). Keep the `slack/` path: `prerelease/build_app.sh` checks
+out the commit it builds while it is still running, so every path the running
+copy calls must exist in any commit it can be asked to build.
 
 ## Shared code
 
