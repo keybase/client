@@ -22,6 +22,7 @@ type OutputActionsBarProps = {
   canReplyInChat: boolean
   canSaveAsText: boolean
   onSaveAsText?: () => void
+  sensitiveOutput?: boolean
   state: CommonState
 }
 
@@ -156,6 +157,7 @@ export const CryptoOutputActionsBar = ({
   canReplyInChat,
   canSaveAsText,
   onSaveAsText,
+  sensitiveOutput,
   state,
 }: OutputActionsBarProps) => {
   const styles = useStyles()
@@ -187,7 +189,7 @@ export const CryptoOutputActionsBar = ({
   const copy = () => {
     if (!state.output) return
     setShowingToast(true)
-    copyToClipboard(state.output)
+    copyToClipboard(state.output, sensitiveOutput)
   }
 
   return hasOutput(state) ? (

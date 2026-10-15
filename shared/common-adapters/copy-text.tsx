@@ -30,6 +30,7 @@ type Props = {
   text?: string
   textType?: TextType
   placeholderText?: string
+  sensitive?: boolean // secret text: kept out of Android clipboard previews and history
   shareSheet?: boolean // (mobile only) show share sheet instead of copying
   loadText?: (onLoaded?: (text: string) => void) => void
 }
@@ -49,6 +50,7 @@ const CopyText = (props: Props) => {
     multiline,
     onReveal,
     placeholderText,
+    sensitive,
     shareSheet: _shareSheet,
     textType,
   } = props
@@ -64,7 +66,7 @@ const CopyText = (props: Props) => {
       showShareActionSheet('', t, 'text/plain')
     } else {
       setShowingToast(true)
-      copyToClipboard(t)
+      copyToClipboard(t, sensitive)
     }
     onCopy?.()
     if (hideOnCopy) {

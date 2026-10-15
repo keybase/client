@@ -48,7 +48,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const onCopy = () => {
     setShowToast(true)
     setShowToastFalseLater()
-    copyToClipboard(sk)
+    copyToClipboard(sk, true)
   }
   return (
     <Kb.ModalScreen

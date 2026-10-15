@@ -221,7 +221,13 @@ export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}
         state={state}
         onChooseOutputFolder={() => undefined}
       />
-      <CryptoOutputActionsBar key="bar" canReplyInChat={true} canSaveAsText={false} state={state} />
+      <CryptoOutputActionsBar
+        key="bar"
+        canReplyInChat={true}
+        canSaveAsText={false}
+        sensitiveOutput={true}
+        state={state}
+      />
     </>
   )
 
