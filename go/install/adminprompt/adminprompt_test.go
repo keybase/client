@@ -46,7 +46,7 @@ func TestScript(t *testing.T) {
 
 func TestCleanEnvCommandQuoting(t *testing.T) {
 	require.Equal(t,
-		`/usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/sh -c '/bin/rm -f '\''/a b/it'\''\'\'''\''s'\'''`,
+		`/usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/sh -c 'umask 022; /bin/rm -f '\''/a b/it'\''\'\'''\''s'\'''`,
 		cleanEnvCommand("/bin/rm -f "+ShellQuote("/a b/it's")))
 }
 

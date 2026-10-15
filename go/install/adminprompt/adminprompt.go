@@ -26,10 +26,11 @@ func appleScriptString(s string) string {
 // rootPath is the only environment variable shellCmd runs with.
 const rootPath = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"
 
-// cleanEnvCommand runs shellCmd with /bin/sh and an environment holding only
-// rootPath, whatever the environment of the shell that runs it.
+// cleanEnvCommand runs shellCmd with /bin/sh, an environment holding only
+// rootPath and umask 022, whatever the environment and umask of the shell
+// that runs it.
 func cleanEnvCommand(shellCmd string) string {
-	return "/usr/bin/env -i " + rootPath + " /bin/sh -c " + ShellQuote(shellCmd)
+	return "/usr/bin/env -i " + rootPath + " /bin/sh -c " + ShellQuote("umask 022; "+shellCmd)
 }
 
 // script returns the AppleScript that runs shellCmd as root.

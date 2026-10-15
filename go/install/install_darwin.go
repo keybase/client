@@ -707,6 +707,11 @@ func cliLinks() (bins []string, links []string) {
 	return bins, links
 }
 
+// cliLink is a link named name in cliLinkDir, pointing at target.
+type cliLink struct {
+	name, target string
+}
+
 // inDirCommand returns the shell command that runs cmds, joined with &&, in
 // dir, only when dir is that directory itself and not a link to another one.
 // cmds name entries of dir by relative path.
@@ -724,33 +729,26 @@ func installCLIPathsCommand(linkDir string, bins []string) string {
 	for i, name := range cliBinNames {
 		cmds = append(cmds, "/bin/ln -sfhF "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
 	}
-	return "/bin/mkdir -p " + adminprompt.ShellQuote(linkDir) + " && " + inDirCommand(linkDir, cmds)
+	return inDirCommand(linkDir, cmds)
 }
 
-// uninstallCLIPathsCommand returns the shell command that removes the named
-// entries of linkDir, then pathsFile when it is not empty.
-func uninstallCLIPathsCommand(linkDir string, names []string, pathsFile string) string {
+// uninstallCLIPathsCommand returns the shell command that removes each
+// entry of linkDir named in links that is still a link to the given target,
+// then pathsFile when it is not empty.
+func uninstallCLIPathsCommand(linkDir string, links []cliLink, pathsFile string) string {
 	var parts []string
-	if len(names) > 0 {
-		quoted := make([]string, 0, len(names))
-		for _, name := range names {
-			quoted = append(quoted, adminprompt.ShellQuote(name))
+	if len(links) > 0 {
+		cmds := make([]string, 0, len(links))
+		for _, l := range links {
+			name := adminprompt.ShellQuote(l.name)
+			cmds = append(cmds, "if /bin/test \"$(/usr/bin/readlink "+name+")\" = "+adminprompt.ShellQuote(l.target)+"; then /bin/rm -f "+name+"; fi")
 		}
-		parts = append(parts, "("+inDirCommand(linkDir, []string{"/bin/rm -f " + strings.Join(quoted, " ")})+")")
+		parts = append(parts, "("+inDirCommand(linkDir, cmds)+")")
 	}
 	if pathsFile != "" {
 		parts = append(parts, "/bin/rm -f "+adminprompt.ShellQuote(pathsFile))
 	}
 	return strings.Join(parts, " && ")
-}
-
-// linkPointsInto reports whether a symlink with the given target, found in
-// linkDir, resolves to a path inside bundleDir.
-func linkPointsInto(target, linkDir, bundleDir string) bool {
-	if !filepath.IsAbs(target) {
-		target = filepath.Join(linkDir, target)
-	}
-	return strings.HasPrefix(filepath.Clean(target), filepath.Clean(bundleDir)+"/")
 }
 
 func runAdminPrompt(prompt, shellCmd string, log Log) error {
@@ -774,6 +772,9 @@ func installCommandLinePrivileged(log Log) error {
 			return fmt.Errorf("%s is not a regular file", bin)
 		}
 	}
+	if fi, err := os.Lstat(cliLinkDir); err != nil || !fi.IsDir() {
+		return fmt.Errorf("%s is not a directory; create it, then install the command line tool again", cliLinkDir)
+	}
 	log.Info("Linking %v to %v as an administrator", links, bins)
 	return runAdminPrompt("Keybase wants to install the keybase command line tool.", installCLIPathsCommand(cliLinkDir, bins), log)
 }
@@ -782,28 +783,27 @@ func installCommandLinePrivileged(log Log) error {
 // app in /Applications and the old helper's paths.d entry. What the user can
 // remove themselves is removed without a prompt; the rest takes one prompt.
 func uninstallCommandLinePrivileged(log Log) error {
-	_, links := cliLinks()
-	var names []string
+	bins, links := cliLinks()
+	var privileged []cliLink
 	for i, link := range links {
-		target, err := os.Readlink(link)
-		if err != nil || !linkPointsInto(target, filepath.Dir(link), cliAppBundle) {
+		if target, err := os.Readlink(link); err != nil || target != bins[i] {
 			continue
 		}
 		if err := os.Remove(link); err == nil {
 			log.Info("Removed %s", link)
 			continue
 		}
-		names = append(names, cliBinNames[i])
+		privileged = append(privileged, cliLink{name: cliBinNames[i], target: bins[i]})
 	}
 	pathsFile := ""
 	if pathExists(legacyCLIPathsFile) {
 		pathsFile = legacyCLIPathsFile
 	}
-	if len(names) == 0 && pathsFile == "" {
+	if len(privileged) == 0 && pathsFile == "" {
 		return nil
 	}
-	log.Info("Removing %v from %s and %q as an administrator", names, cliLinkDir, pathsFile)
-	return runAdminPrompt("Keybase wants to remove the keybase command line tool.", uninstallCLIPathsCommand(cliLinkDir, names, pathsFile), log)
+	log.Info("Removing %v from %s and %q as an administrator", privileged, cliLinkDir, pathsFile)
+	return runAdminPrompt("Keybase wants to remove the keybase command line tool.", uninstallCLIPathsCommand(cliLinkDir, privileged, pathsFile), log)
 }
 
 func uninstallCommandLine(log Log) error {
