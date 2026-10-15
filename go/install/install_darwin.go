@@ -591,13 +591,16 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 		}
 	}
 
-	mounts, err := listMounts()
-	if err != nil {
-		log.Warning("Unable to list mounts: %s", err)
+	// A redirector mount left after its process stops keeps kbfuse loaded.
+	umountDirs := redirectorDirs
+	if mounts, err := listMounts(); err != nil {
+		log.Warning("Unable to list mounts, so unmounting every redirector dir: %s", err)
+	} else {
+		umountDirs = rootMountedDirs(mounts, redirectorDirs)
 	}
 	log.Info("Retiring the legacy helper as an administrator")
 	err = runAdminPrompt("Keybase wants to remove its old file system helper and driver, which are no longer used.",
-		retireLegacyHelperCommand(redirectorDirs, rootMountedDirs(mounts, redirectorDirs)), log)
+		retireLegacyHelperCommand(redirectorDirs, umountDirs), log)
 	if err == nil && pathExists(legacyHelperPath) {
 		err = fmt.Errorf("the retirement finished but %s is still installed", legacyHelperPath)
 	}
@@ -613,6 +616,7 @@ func retireLegacyHelper(context Context, restartKBFS bool, log Log) keybase1.Com
 }
 
 func kbfuseMountedAt(mountDir string, log Log) bool {
+	mountDir = resolveMountDir(mountDir)
 	for _, info := range KeybaseFuseStatus("", log).MountInfos {
 		if info.Fstype == "kbfuse" && info.Path == mountDir {
 			return true
@@ -906,11 +910,13 @@ func inDirCommand(dir string, cmds []string) string {
 }
 
 // installCLIPathsCommand returns the shell command that links each of
-// cliBinNames in linkDir to the binary at the same index in bins.
+// cliBinNames in linkDir to the binary at the same index in bins. ln -h and
+// -F make it replace a symlink or an empty directory at that exact name
+// rather than create the link inside the directory either points at.
 func installCLIPathsCommand(linkDir string, bins []string) string {
 	cmds := make([]string, 0, len(cliBinNames))
 	for i, name := range cliBinNames {
-		cmds = append(cmds, "/bin/ln -sfn "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
+		cmds = append(cmds, "/bin/ln -sfhF "+adminprompt.ShellQuote(bins[i])+" "+adminprompt.ShellQuote(name))
 	}
 	return "/bin/mkdir -p " + adminprompt.ShellQuote(linkDir) + " && " + inDirCommand(linkDir, cmds)
 }
