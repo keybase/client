@@ -1,5 +1,6 @@
 import Contacts
 import Foundation
+import ImageIO
 import UIKit
 import UniformTypeIdentifiers
 
@@ -448,43 +449,87 @@ public class ItemProviderHelper: NSObject {
       return
     }
 
-    // Pass these through untouched (re-encoding a gif would drop its animation);
-    // anything else the web serves (webp, avif) gets transcoded so it renders.
-    let passthrough: [UTType] = [.png, .gif, .jpeg, .heic]
-    if let type = type, let ext = type.preferredFilenameExtension,
-      passthrough.contains(where: { type.conforms(to: $0) })
-    {
-      let payloadURL = getPayloadURL(withExtension: ext)
-      if (try? data.write(to: payloadURL, options: .atomic)) != nil {
-        completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
-        return
-      }
-    }
-
-    guard let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.85) else {
+    // Written as served. Decoding a large image would blow the extension's
+    // memory limit, so anything the app can't show as-is (webp, avif) is
+    // transcoded there.
+    guard let ext = (type ?? Self.sniffImageType(data))?.preferredFilenameExtension else {
       sendLink()
       return
     }
-    let payloadURL = getPayloadURL(withExtension: "jpg")
-    guard (try? jpeg.write(to: payloadURL, options: .atomic)) != nil else {
+    let payloadURL = getPayloadURL(withExtension: ext)
+    guard (try? data.write(to: payloadURL, options: .atomic)) != nil else {
       sendLink()
       return
     }
     completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
   }
 
-  private func sendImage(_ imgData: Data?) {
-    if let imgData = imgData {
-      let originalFileURL = getPayloadURL(withExtension: "jpg")
-      let OK = (try? imgData.write(to: originalFileURL, options: .atomic)) != nil
-      if OK {
-        completeItemAndAppendManifest(type: "image", originalFileURL: originalFileURL)
-        return
-      }
-    }
+  // Reads only the header, so it costs nothing next to a decode.
+  private static func sniffImageType(_ data: Data) -> UTType? {
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+      let id = CGImageSourceGetType(source)
+    else { return nil }
+    return UTType(id as String)
+  }
 
-    completeItemAndAppendManifestAndLogError(
-      text: "coerceImageHandlerSimple2: unable to decode share", error: nil)
+  private enum ImageEncodeError: Error {
+    case encodeFailed
+  }
+
+  private static func encodeJPEG(
+    _ image: CGImage, orientation: CGImagePropertyOrientation, to url: URL
+  ) throws {
+    guard
+      let dest = CGImageDestinationCreateWithURL(
+        url as CFURL, UTType.jpeg.identifier as CFString, 1, nil)
+    else {
+      throw ImageEncodeError.encodeFailed
+    }
+    let props =
+      [
+        kCGImageDestinationLossyCompressionQuality: 0.85,
+        kCGImagePropertyOrientation: orientation.rawValue,
+      ] as CFDictionary
+    CGImageDestinationAddImage(dest, image, props)
+    guard CGImageDestinationFinalize(dest) else {
+      throw ImageEncodeError.encodeFailed
+    }
+  }
+
+  private static func cgOrientation(_ o: UIImage.Orientation) -> CGImagePropertyOrientation {
+    switch o {
+    case .up: return .up
+    case .down: return .down
+    case .left: return .left
+    case .right: return .right
+    case .upMirrored: return .upMirrored
+    case .downMirrored: return .downMirrored
+    case .leftMirrored: return .leftMirrored
+    case .rightMirrored: return .rightMirrored
+    @unknown default: return .up
+    }
+  }
+
+  // A provider that vends only an in-memory UIImage has no file to copy. The
+  // image is already decoded, so encoding it costs little extra memory.
+  private func sendUIImage(_ image: UIImage) {
+    let payloadURL = getPayloadURL(withExtension: "jpg")
+    do {
+      if let cgImage = image.cgImage {
+        try Self.encodeJPEG(
+          cgImage, orientation: Self.cgOrientation(image.imageOrientation), to: payloadURL)
+      } else {
+        // CIImage-backed: no CGImage to hand ImageIO.
+        guard let jpeg = image.jpegData(compressionQuality: 0.85) else {
+          throw ImageEncodeError.encodeFailed
+        }
+        try jpeg.write(to: payloadURL, options: .atomic)
+      }
+    } catch {
+      completeItemAndAppendManifestAndLogError(text: "sendUIImage: unable to encode share", error: error)
+      return
+    }
+    completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
   }
 
   // Providers register several representations for one item and the order is
@@ -548,19 +593,14 @@ public class ItemProviderHelper: NSObject {
     }
 
     let imageHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
-      var imgData: Data?
-      if error == nil {
-        if let url = item as? URL {
-          imgData = try? Data(contentsOf: url)
-          if let data = imgData {
-            let image = UIImage(data: data)
-            imgData = image?.jpegData(compressionQuality: 0.85)
-          }
-        } else if let image = item as? UIImage {
-          imgData = image.jpegData(compressionQuality: 0.85)
-        }
+      if error == nil, let url = item as? URL {
+        self.sendMedia(url, isVideo: false)
+      } else if error == nil, let image = item as? UIImage {
+        self.sendUIImage(image)
+      } else {
+        self.completeItemAndAppendManifestAndLogError(
+          text: "imageHandler: unable to decode share", error: error)
       }
-      self.sendImage(imgData)
     }
 
     let contactHandler: @Sendable (Data?, Error?) -> Void = { data, error in
@@ -618,11 +658,24 @@ public class ItemProviderHelper: NSObject {
           attachLoaderProgress(
             item.loadFileRepresentation(
               forTypeIdentifier: best.stype, completionHandler: imageFileHandler))
-        // Other images (coerce)
+        // Other images (TIFF, RAW, webp...): also copied as-is, since decoding
+        // one can exceed the extension's memory limit; the app transcodes. A
+        // provider that only vends an in-memory UIImage has no file
+        // representation, so fall back to loadItem.
         case .image:
-          reserveItemProgress(loaderReportsProgress: false)
-          item.loadItem(
-            forTypeIdentifier: "public.image", options: nil, completionHandler: imageHandler)
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadFileRepresentation(
+              forTypeIdentifier: best.stype,
+              completionHandler: { (url: URL?, error: Error?) in
+                if let url = url, error == nil {
+                  self.sendMedia(url, isVideo: false)
+                } else {
+                  item.loadItem(
+                    forTypeIdentifier: "public.image", options: nil,
+                    completionHandler: imageHandler)
+                }
+              }))
         case .vCard:
           reserveItemProgress(loaderReportsProgress: true)
           attachLoaderProgress(

@@ -54,6 +54,13 @@ describe('canProcess', () => {
     expect(canProcess('/tmp/photo.heif')).toBe(true)
   })
 
+  it('includes formats the share extension passes through for the app to transcode', () => {
+    for (const ext of ['tiff', 'TIF', 'dng', 'CR2', 'cr3', 'nef', 'arw', 'raf', 'orf', 'rw2', 'webp', 'avif']) {
+      expect(canProcess(`/tmp/photo.${ext}`)).toBe(true)
+    }
+    expect(canProcess('/tmp/photo.tiff/notanimage')).toBe(false)
+  })
+
   it('excludes gifs and non-media', () => {
     expect(canProcess('/tmp/anim.gif')).toBe(false)
     expect(canProcess('/tmp/doc.pdf')).toBe(false)

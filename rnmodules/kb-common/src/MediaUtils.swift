@@ -2,6 +2,7 @@ import AVFoundation
 import Foundation
 import ImageIO
 import UIKit
+import UniformTypeIdentifiers
 
 struct MediaProcessingConfig {
     // Images keep their original dimensions: 6.6.3's in-chat attach re-encoded at
@@ -9,6 +10,9 @@ struct MediaProcessingConfig {
     // edge is the visible regression users noticed when the share extension's
     // policy took over both flows.
     static let imageCompressionQuality: CGFloat = 0.4
+    // What the share extension encoded non-JPEG/HEIC images at before the app
+    // took over transcoding them.
+    static let transcodeQuality: CGFloat = 0.85
 }
 
 enum MediaUtilsError: Error, LocalizedError {
@@ -82,9 +86,24 @@ public class MediaUtils: NSObject {
         }
 
         // "Keep full size" is a raw share: the original bytes with their original
-        // metadata, which is what the settings screen promises.
+        // metadata, which is what the settings screen promises. The exception is
+        // a format recipients may not be able to show, which always goes out as
+        // a full-size JPEG.
         if !compress {
-            return url
+            guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
+                let type = CGImageSourceGetType(cgSource).flatMap({ UTType($0 as String) }),
+                mustTranscode(type)
+            else {
+                return url
+            }
+            let basename = url.deletingPathExtension().lastPathComponent
+            // Not "<basename>.jpg": a sibling with that name may be another attachment.
+            let jpegURL = url.deletingLastPathComponent()
+                .appendingPathComponent("\(basename).converted.jpg")
+            try recompressCGImageSource(
+                cgSource, dstURL: jpegURL, options: fullSizeImageOptions,
+                quality: MediaProcessingConfig.transcodeQuality)
+            return jpegURL
         }
 
         try stripImageExif(at: url)
@@ -99,8 +118,19 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
 
-        try recompressCGImageSource(cgSource, dstURL: compressedURL, options: fullSizeImageOptions)
+        try recompressCGImageSource(
+            cgSource, dstURL: compressedURL, options: fullSizeImageOptions,
+            quality: MediaProcessingConfig.imageCompressionQuality)
         return compressedURL
+    }
+
+    // Images that may be sent as they are. Everything else (TIFF, RAW, webp,
+    // avif) is transcoded even with compression off. The JS side sends every
+    // processable image here and leaves this call to us.
+    private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .bmp, .gif, .heic, .heif]
+
+    private static func mustTranscode(_ type: UTType) -> Bool {
+        return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
     }
 
     // edit carries the user's trim range and audio choice; nil means "the whole
@@ -287,7 +317,7 @@ public class MediaUtils: NSObject {
     }
 
     private static func recompressCGImageSource(
-        _ img: CGImageSource, dstURL: URL, options: CFDictionary
+        _ img: CGImageSource, dstURL: URL, options: CFDictionary, quality: CGFloat
     ) throws {
         guard let fullRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
@@ -295,7 +325,7 @@ public class MediaUtils: NSObject {
 
         guard
             let data = UIImage(cgImage: fullRef).jpegData(
-                compressionQuality: MediaProcessingConfig.imageCompressionQuality)
+                compressionQuality: quality)
         else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
         }
@@ -313,7 +343,16 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
 
-        let type = CGImageSourceGetType(cgSource)
+        // No type means ImageIO can't read it (empty or corrupt file).
+        guard let type = CGImageSourceGetType(cgSource) else {
+            throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
+        }
+        // ImageIO reads more formats than it writes (RAW, webp). Those can't be
+        // rewritten in place, and the JPEG re-encode carries no metadata anyway.
+        let writable = CGImageDestinationCopyTypeIdentifiers() as? [String] ?? []
+        guard writable.contains(type as String) else {
+            return
+        }
         let count = CGImageSourceGetCount(cgSource)
         let tmpDstURL = url.appendingPathExtension("tmp")
 
@@ -324,7 +363,7 @@ public class MediaUtils: NSObject {
 
         guard
             let cgDestination = CGImageDestinationCreateWithURL(
-                tmpDstURL as CFURL, type!, count, nil)
+                tmpDstURL as CFURL, type, count, nil)
         else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
         }
