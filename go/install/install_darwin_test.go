@@ -257,6 +257,40 @@ func TestInstallCLIPathsCommandLinkedDir(t *testing.T) {
 	require.Empty(t, entries, "nothing is linked into the directory a link dir points at")
 }
 
+func TestInstallCLIPathsFileCommand(t *testing.T) {
+	tmp, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	pathsDir := filepath.Join(tmp, "paths.d")
+	file := filepath.Join(pathsDir, "Keybase")
+
+	// Creates the missing dir, and replaces whatever is at the name.
+	out, err := runShell(t, installCLIPathsFileCommand(pathsDir, "Keybase", "/it's app/bin"))
+	require.NoError(t, err, out)
+	b, err := os.ReadFile(file)
+	require.NoError(t, err)
+	require.Equal(t, "/it's app/bin\n", string(b))
+	elsewhere := filepath.Join(tmp, "elsewhere")
+	require.NoError(t, os.WriteFile(elsewhere, []byte("kept"), 0o600))
+	require.NoError(t, os.Remove(file))
+	require.NoError(t, os.Symlink(elsewhere, file))
+	out, err = runShell(t, installCLIPathsFileCommand(pathsDir, "Keybase", "/app/bin"))
+	require.NoError(t, err, out)
+	b, err = os.ReadFile(elsewhere)
+	require.NoError(t, err)
+	require.Equal(t, "kept", string(b))
+	b, err = os.ReadFile(file)
+	require.NoError(t, err)
+	require.Equal(t, "/app/bin\n", string(b))
+
+	// A paths dir that is a link is refused.
+	linked := filepath.Join(tmp, "linked")
+	require.NoError(t, os.Symlink(pathsDir, linked))
+	require.NoError(t, os.Remove(file))
+	out, err = runShell(t, installCLIPathsFileCommand(linked, "Keybase", "/app/bin"))
+	require.Error(t, err, out)
+	require.NoFileExists(t, file)
+}
+
 func TestUninstallCLIPathsCommand(t *testing.T) {
 	tmp, err := filepath.EvalSymlinks(t.TempDir())
 	require.NoError(t, err)
