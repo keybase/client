@@ -17,6 +17,8 @@ const SFMIContainer = (op: OwnProps) => {
     sfmiBannerDismissed,
   } = Kbfs.useSystemFileManagerIntegration()
   const onDismiss = () => setSfmiBannerDismissed(true)
+  // the button passes its click event, which driverEnable would read as isRetry
+  const onEnable = () => driverEnable()
   const alwaysShow = op.alwaysShow
 
   if (!FS.sfmiInfoLoaded({loaded: settingsLoaded}, driverStatus)) {
@@ -35,7 +37,7 @@ const SFMIContainer = (op: OwnProps) => {
       return alwaysShow || !sfmiBannerDismissed ? (
         <Disabled
           driverStatus={driverStatus}
-          onEnable={driverEnable}
+          onEnable={onEnable}
           alwaysShow={alwaysShow}
           onDismiss={onDismiss}
         />
