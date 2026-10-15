@@ -126,43 +126,14 @@ export const isSameAccount = (session: SfmiSession, startedAccount: number) => s
 export const canApplyStatus = (session: SfmiSession, started: SfmiStarted) =>
   session.connected && session.connection === started.connection && isSameAccount(session, started.account)
 
-// 'disconnected': not applied because KBFS was down, reconnected or the account changed meanwhile; a refresh
-// once it is back re-reads. undefined: the refresh failed, and that is already reported.
+// 'disconnected': not read or not applied because KBFS was down, reconnected or the account changed meanwhile; a
+// refresh once it is back re-reads. undefined: the refresh failed, and that is already reported.
 export type DriverStatusRefresh = T.FS.DriverStatus | 'disconnected' | undefined
-
-const refreshDriverStatusImpl = async (
-  applyFuseStatus: (
-    status: T.RPCGen.FuseStatus | undefined
-  ) => {becameEnabled: boolean; driverStatus: T.FS.DriverStatus} | 'disconnected',
-  refreshMountDirs: (driverStatus: T.FS.DriverStatus) => Promise<{directMountDir: string}>,
-  stillCurrent: () => boolean,
-  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
-): Promise<DriverStatusRefresh> => {
-  try {
-    const applied = applyFuseStatus(await refreshDriverStatusInPlatform())
-    if (applied === 'disconnected') {
-      return applied
-    }
-    const {becameEnabled, driverStatus} = applied
-    const {directMountDir} = await refreshMountDirs(driverStatus)
-    if (becameEnabled && stillCurrent()) {
-      const path = T.FS.stringToPath('/keybase')
-      try {
-        await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
-      } catch (error) {
-        errorToActionOrThrow(error, path)
-      }
-    }
-    return driverStatus
-  } catch (error) {
-    errorToActionOrThrow(error)
-    return undefined
-  }
-}
 
 // On macOS enabling needs the user's own macFUSE, installed and up to date.
 export const canEnableDriver = (driverStatus: T.FS.DriverStatus) =>
-  driverStatus.type !== T.FS.DriverStatusType.Disabled || driverStatus.macfuse === T.FS.MacfuseState.Ready
+  driverStatus.type === T.FS.DriverStatusType.Enabled ||
+  (driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.macfuse === T.FS.MacfuseState.Ready)
 
 export const mountPollIntervalMs = 1000
 export const mountPollLimit = 30
@@ -174,50 +145,70 @@ export const isMountPending = (driverStatus: DriverStatusRefresh): driverStatus 
   driverStatus.type === T.FS.DriverStatusType.Disabled &&
   driverStatus.macfuse === T.FS.MacfuseState.Ready
 
+// KBFS connects before it mounts, so a user who turned Finder access on waits for the mount after a connect.
+export const isFinderAccessMountPending = (driverStatus: DriverStatusRefresh) =>
+  isMountPending(driverStatus) && driverStatus.finderAccessOn
+
 // darwin is Enabled only once the mount shows in the status, and waitForMounts gives up after
 // 10s without failing, so the mount can land after the enable call returns. Enabling restarts KBFS, so polling
-// also waits through 'disconnected', on a budget of its own. Returns the last result.
+// also waits through 'disconnected', on a budget of its own. Stops once stillCurrent fails. Returns the last result.
 export const refreshUntilMounted = async (
   refreshDriverStatus: () => Promise<DriverStatusRefresh>,
-  wait: (ms: number) => Promise<void>
+  wait: (ms: number) => Promise<void>,
+  stillCurrent: () => boolean,
+  waitForMount: (driverStatus: DriverStatusRefresh) => boolean = isMountPending
 ) => {
   let pendingPolls = 0
   let disconnectedPolls = 0
   let driverStatus = await refreshDriverStatus()
-  for (;;) {
-    if (isMountPending(driverStatus) && pendingPolls < mountPollLimit) {
+  while (stillCurrent()) {
+    if (waitForMount(driverStatus) && pendingPolls < mountPollLimit) {
       pendingPolls++
     } else if (driverStatus === 'disconnected' && disconnectedPolls < disconnectedPollLimit) {
       disconnectedPolls++
     } else {
-      return driverStatus
+      break
     }
     await wait(mountPollIntervalMs)
+    if (!stillCurrent()) {
+      break
+    }
     driverStatus = await refreshDriverStatus()
   }
+  return driverStatus
 }
 
-const driverEnableImpl = async (
-  isRetry: boolean,
-  setKextPermissionError: (kextPermissionError: boolean) => void,
-  refreshDriverStatus: () => Promise<DriverStatusRefresh>,
+type DriverEnableParams = {
+  enable: () => Promise<Awaited<ReturnType<typeof afterDriverEnabledInPlatform>>>
   mountStillPending: () => void
-) => {
-  const result = await afterDriverEnabledInPlatform(isRetry)
+  openFinder: (driverStatus: T.FS.DriverStatus) => Promise<void>
+  pollUntilMounted: boolean
+  refreshDriverStatus: () => Promise<DriverStatusRefresh>
+  setKextPermissionError: (kextPermissionError: boolean) => void
+  stillCurrent: () => boolean
+  wait: (ms: number) => Promise<void>
+}
+
+// Finder opens only here, once the user's own enable shows Enabled for the account that started it (D58).
+export const driverEnableImpl = async (p: DriverEnableParams) => {
+  const result = await p.enable()
   if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
-    setKextPermissionError(true)
+    p.setKextPermissionError(true)
     if (result === 'kextPermissionError') {
       C.Router2.navigateAppend({name: 'kextPermission', params: {}})
     }
     return
   }
-  setKextPermissionError(false)
-  if (C.isDarwin) {
-    if (isMountPending(await refreshUntilMounted(refreshDriverStatus, C.timeoutPromise))) {
-      mountStillPending()
+  p.setKextPermissionError(false)
+  const driverStatus = p.pollUntilMounted
+    ? await refreshUntilMounted(p.refreshDriverStatus, p.wait, p.stillCurrent)
+    : await p.refreshDriverStatus()
+  if (p.stillCurrent() && typeof driverStatus === 'object') {
+    if (driverStatus.type === T.FS.DriverStatusType.Enabled) {
+      await p.openFinder(driverStatus)
+    } else if (p.pollUntilMounted && isMountPending(driverStatus)) {
+      p.mountStillPending()
     }
-  } else {
-    await refreshDriverStatus()
   }
   notifySfmiReload()
 }
@@ -264,12 +255,11 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   const appFocusedRef = React.useRef(appFocused)
   const sfmiStateRef = React.useRef(sfmiState)
   const sessionRef = React.useRef<SfmiSession>({account: 0, connected, connection: 0})
-  // Set for the whole enable or disable, from the click on, so a second one cannot start meanwhile.
+  // Set for the whole enable or disable, from the click on, so a second one cannot start meanwhile. Driver
+  // operations are machine-wide, so it is held through an account switch until the operation ends.
   const driverBusyRef = React.useRef(false)
-  // The operation the visible in-flight flags show.
+  // The operation the visible in-flight flags show, for the current account only.
   const operationRef = React.useRef<DriverOperation | undefined>(undefined)
-  // The last applied known status type, kept through a KBFS reconnect so an enable across one still opens Finder.
-  const lastStatusTypeRef = React.useRef<T.FS.DriverStatusType>(T.FS.DriverStatusType.Unknown)
   const [prevUsername, setPrevUsername] = React.useState(username)
   const [prevConnected, setPrevConnected] = React.useState(connected)
 
@@ -291,13 +281,10 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     }
   }
 
-  // These run as the change commits, before any pending work can resume. An operation from the previous account
-  // still runs to its end but touches nothing, so the new account does not wait on it.
+  // These run as the change commits, before any pending work can resume.
   React.useLayoutEffect(() => {
     sessionRef.current = {...sessionRef.current, account: sessionRef.current.account + 1}
-    driverBusyRef.current = false
     operationRef.current = undefined
-    lastStatusTypeRef.current = T.FS.DriverStatusType.Unknown
   }, [username])
 
   React.useLayoutEffect(() => {
@@ -308,10 +295,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     sfmiStateRef.current = sfmiState
   }, [sfmiState])
 
-  const currentStarted = React.useEffectEvent(
-    (): SfmiStarted => ({account: sessionRef.current.account, connection: sessionRef.current.connection})
-  )
-  const isCurrent = React.useEffectEvent((epoch: number) => isSameAccount(sessionRef.current, epoch))
+  const isCurrent = (epoch: number) => isSameAccount(sessionRef.current, epoch)
 
   const loadSettings = React.useEffectEvent(() => {
     const epoch = sessionRef.current.account
@@ -337,29 +321,22 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     setSfmiState(s => ({...s, driverStatus: withDriverOperation(s.driverStatus, operation)}))
   }
 
-  const refreshMountDirsDesktop = React.useEffectEvent(async (driverStatus: T.FS.DriverStatus, started: SfmiStarted) => {
-    const current = {
-      directMountDir: sfmiStateRef.current.directMountDir,
-      preferredMountDirs: sfmiStateRef.current.preferredMountDirs,
-    }
+  const refreshMountDirs = React.useEffectEvent(async (driverStatus: T.FS.DriverStatus, started: SfmiStarted) => {
     if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
-      return current
+      return
     }
     try {
       const {directMountDir, preferredMountDirs} = await refreshMountDirsInPlatform()
-      if (!canApplyStatus(sessionRef.current, started)) {
-        return current
+      if (canApplyStatus(sessionRef.current, started)) {
+        setSfmiState(s =>
+          C.produce(s, draft => {
+            draft.directMountDir = directMountDir
+            draft.preferredMountDirs = T.castDraft(preferredMountDirs)
+          })
+        )
       }
-      setSfmiState(s =>
-        C.produce(s, draft => {
-          draft.directMountDir = directMountDir
-          draft.preferredMountDirs = T.castDraft(preferredMountDirs)
-        })
-      )
-      return {directMountDir, preferredMountDirs}
     } catch (error) {
       defaultErrorToActionOrThrow(error)
-      return current
     }
   })
 
@@ -368,12 +345,6 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
       return 'disconnected' as const
     }
     const driverStatus = fuseStatusToDriverStatus(status)
-    const becameEnabled =
-      lastStatusTypeRef.current === T.FS.DriverStatusType.Disabled &&
-      driverStatus.type === T.FS.DriverStatusType.Enabled
-    if (driverStatus.type !== T.FS.DriverStatusType.Unknown) {
-      lastStatusTypeRef.current = driverStatus.type
-    }
     const operation = operationRef.current
     const pending = isMountPending(driverStatus)
     setSfmiState(s => {
@@ -383,34 +354,52 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
         ? s
         : {...s, driverStatus: nextDriverStatus, mountPending}
     })
-    return {becameEnabled, driverStatus}
+    return driverStatus
   })
 
-  const [refreshDriverStatus] = React.useState(() =>
-    singleFlight(async () => {
-      const started = currentStarted()
-      return refreshDriverStatusImpl(
-        status => applyFuseStatus(status, started),
-        async driverStatus => refreshMountDirsDesktop(driverStatus, started),
-        () => isCurrent(started.account),
-        defaultErrorToActionOrThrow
-      )
-    })
-  )
-
-  const refreshDriverStatusDesktop = React.useEffectEvent(() => {
-    const f = async () => {
-      await refreshDriverStatus()
+  const readDriverStatus = React.useEffectEvent(async (): Promise<DriverStatusRefresh> => {
+    const session = sessionRef.current
+    // the answer would not apply, so there is no need to ask
+    if (!session.connected) {
+      return 'disconnected'
     }
-    C.ignorePromise(f())
+    const started = {account: session.account, connection: session.connection}
+    try {
+      const driverStatus = applyFuseStatus(await refreshDriverStatusInPlatform(), started)
+      if (driverStatus !== 'disconnected') {
+        await refreshMountDirs(driverStatus, started)
+      }
+      return driverStatus
+    } catch (error) {
+      defaultErrorToActionOrThrow(error)
+      return undefined
+    }
   })
 
-  const reloadSfmi = React.useEffectEvent(() => {
+  const [refreshDriverStatus] = React.useState(() => singleFlight(async () => readDriverStatus()))
+
+  // A user with Finder access on may connect before KBFS has mounted, so on connect the status is re-read until
+  // the mount shows. There is no opt-in signal to tell them from a user with it off.
+  const pollOnConnect = React.useEffectEvent(async () => {
+    const {account, connection} = sessionRef.current
+    return refreshUntilMounted(
+      refreshDriverStatus,
+      C.timeoutPromise,
+      () => sessionRef.current.account === account && sessionRef.current.connection === connection,
+      isFinderAccessMountPending
+    )
+  })
+
+  const [refreshUntilMountedOnConnect] = React.useState(() => singleFlight(async () => pollOnConnect()))
+
+  const refreshDriverStatusDesktop = React.useEffectEvent(() => C.ignorePromise(refreshDriverStatus()))
+
+  const reloadSfmi = React.useEffectEvent((onConnect: boolean) => {
     if (!connected) {
       return
     }
     loadSettings()
-    refreshDriverStatusDesktop()
+    C.ignorePromise(onConnect && C.isDarwin ? refreshUntilMountedOnConnect() : refreshDriverStatus())
   })
 
   const setSfmiBannerDismissed = React.useEffectEvent((dismissed: boolean) => {
@@ -434,7 +423,10 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     C.ignorePromise(f())
   })
 
-  const reportDriverError = React.useEffectEvent((action: 'enable' | 'disable', error: unknown) => {
+  const reportDriverError = React.useEffectEvent((epoch: number, action: 'enable' | 'disable', error: unknown) => {
+    if (!isCurrent(epoch)) {
+      return
+    }
     // a KBFS timeout shows as the daemon's status instead
     if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
       checkKbfsDaemonRpcStatus()
@@ -461,15 +453,24 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     setSfmiState(s => (s.mountPending ? {...s, mountPending: false} : s))
   }
 
-  const mountStillPending = React.useEffectEvent((epoch: number) => {
-    if (!isCurrent(epoch)) {
-      return
-    }
+  const mountStillPending = React.useEffectEvent(() => {
     // Decided from the applied status, which a refresh may have moved on since polling stopped. The kext error
     // already has its own prompt.
     setSfmiState(s =>
       isMountPending(s.driverStatus) && !s.driverStatus.kextPermissionError ? {...s, mountPending: true} : s
     )
+  })
+
+  const openFinder = React.useEffectEvent(async (epoch: number, driverStatus: T.FS.DriverStatus) => {
+    const path = T.FS.stringToPath('/keybase')
+    try {
+      const {directMountDir} = await refreshMountDirsInPlatform()
+      if (isCurrent(epoch)) {
+        await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
+      }
+    } catch (error) {
+      defaultErrorToActionOrThrow(error, path)
+    }
   })
 
   const startDisabling = React.useEffectEvent((epoch: number) => {
@@ -479,11 +480,10 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   })
 
   const endDriverOperation = React.useEffectEvent((epoch: number) => {
-    if (!isCurrent(epoch)) {
-      return
-    }
     driverBusyRef.current = false
-    setDriverOperation(undefined)
+    if (isCurrent(epoch)) {
+      setDriverOperation(undefined)
+    }
   })
 
   const driverDisable = React.useEffectEvent(() => {
@@ -498,7 +498,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     C.ignorePromise(
       runDriverOperation(
         async () => driverDisableImpl(driverStatus, () => startDisabling(epoch), refreshDriverStatus),
-        error => reportDriverError('disable', error),
+        error => reportDriverError(epoch, 'disable', error),
         () => endDriverOperation(epoch)
       )
     )
@@ -516,22 +516,24 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
     C.ignorePromise(
       runDriverOperation(
         async () =>
-          driverEnableImpl(
-            !!isRetry,
-            kextPermissionError => setKextPermissionError(epoch, kextPermissionError),
+          driverEnableImpl({
+            enable: async () => afterDriverEnabledInPlatform(!!isRetry),
+            mountStillPending: () => mountStillPending(),
+            openFinder: async driverStatus => openFinder(epoch, driverStatus),
+            pollUntilMounted: C.isDarwin,
             refreshDriverStatus,
-            () => mountStillPending(epoch)
-          ),
-        error => reportDriverError('enable', error),
+            setKextPermissionError: kextPermissionError => setKextPermissionError(epoch, kextPermissionError),
+            stillCurrent: () => isCurrent(epoch),
+            wait: C.timeoutPromise,
+          }),
+        error => reportDriverError(epoch, 'enable', error),
         () => endDriverOperation(epoch)
       )
     )
   })
 
   React.useEffect(() => {
-    if (!connected) return
-    loadSettings()
-    refreshDriverStatusDesktop()
+    reloadSfmi(true)
   }, [connected, username])
 
   React.useEffect(() => {
@@ -555,7 +557,7 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
 
   React.useEffect(() => {
     const listener = () => {
-      reloadSfmi()
+      reloadSfmi(false)
     }
     sfmiReloadListeners.add(listener)
     return () => {

@@ -404,6 +404,8 @@ export type DriverStatusDisabled = Readonly<{
   macfuseVersion: string
   // macOS only: the running macOS major version when macfuse is UnsupportedMacos
   macosVersion: string
+  // macOS only: the user turned Finder access on, so KBFS mounts once it can
+  finderAccessOn: boolean
   // macOS only: the service's description when macfuse is Error
   macfuseError: string
 }>
