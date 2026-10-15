@@ -11,19 +11,26 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-kext"
+	"golang.org/x/sys/unix"
 )
 
 const (
 	minMacfuseMajor = 5
 
-	msgNotInstalled = "macFUSE is not installed. To use Keybase in Finder, install macFUSE 5 or later from https://macfuse.io"
-	msgOutdated     = "macFUSE %s is installed, but Keybase needs macFUSE 5 or later. Update it from https://macfuse.io"
+	msgNotInstalled     = "macFUSE is not installed. To use Keybase in Finder, install macFUSE 5 or later from https://macfuse.io"
+	msgOutdated         = "macFUSE %s is installed, but Keybase needs macFUSE 5 or later. Update it from https://macfuse.io"
+	msgUnsupportedMacos = "macFUSE %s does not support macOS %s. Update it from https://macfuse.io"
+
+	// statusUnsupportedMacos names the status of a macFUSE with no kext for
+	// the running macOS, which usually follows a macOS update.
+	statusUnsupportedMacos = "MACOS_UNSUPPORTED"
 )
 
 // macfuseProbe is what KeybaseFuseStatus reads from the system.
@@ -37,6 +44,10 @@ type macfuseProbe struct {
 	KextInfo     *kext.Info
 	KextInfoErr  error
 	LegacyKbfuse bool
+	// MacosMajor is the running macOS major version, empty when unknown.
+	MacosMajor string
+	// KextForMacos reports whether the bundle has a kext for MacosMajor.
+	KextForMacos bool
 }
 
 // KeybaseFuseStatus returns the status of the stock macFUSE install. The
@@ -85,7 +96,24 @@ func probeMacfuse(log Log) macfuseProbe {
 		p.PlistVersion = findStringInPlist("CFBundleVersion", plistData, log)
 	}
 	p.KextID, p.KextInfo, p.KextInfoErr = loadedMacfuseKext(log)
+	p.MacosMajor = macosMajor(log)
+	if p.MacosMajor != "" {
+		_, err := os.Stat(filepath.Join(macfusePath, "Contents/Extensions", p.MacosMajor, "macfuse.kext"))
+		p.KextForMacos = err == nil
+	}
 	return p
+}
+
+// macosMajor returns the running macOS major version, e.g. "27", or "" if it
+// cannot be read.
+func macosMajor(log Log) string {
+	version, err := unix.Sysctl("kern.osproductversion")
+	if err != nil {
+		log.Debug("Unable to read the macOS version: %s", err)
+		return ""
+	}
+	major, _, _ := strings.Cut(version, ".")
+	return major
 }
 
 // loadedMacfuseKext returns the ID and info of whichever of the bundle's kexts
@@ -146,6 +174,15 @@ func deriveFuseStatus(p macfuseProbe) keybase1.FuseStatus {
 		st.InstallAction = keybase1.InstallAction_UPGRADE
 		st.Version = p.PlistVersion
 		st.Status = keybase1.Status{Desc: fmt.Sprintf(msgOutdated, p.PlistVersion)}
+	case p.KextInfo == nil && p.MacosMajor != "" && !p.KextForMacos:
+		st.InstallStatus = keybase1.InstallStatus_INSTALLED
+		st.InstallAction = keybase1.InstallAction_UPGRADE
+		st.Version = p.PlistVersion
+		st.Status = keybase1.Status{
+			Name:   statusUnsupportedMacos,
+			Desc:   fmt.Sprintf(msgUnsupportedMacos, p.PlistVersion, p.MacosMajor),
+			Fields: []keybase1.StringKVPair{{Key: "macosVersion", Value: p.MacosMajor}},
+		}
 	case p.KextInfoErr != nil:
 		st.InstallStatus = keybase1.InstallStatus_ERROR
 		st.InstallAction = keybase1.InstallAction_NONE
