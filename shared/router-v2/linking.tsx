@@ -282,7 +282,7 @@ export const createLinkingConfig = (
       let deepLinkUrl: string | null = null
       if (isMobile) {
         try {
-          deepLinkUrl = await Linking.getInitialURL()
+          deepLinkUrl = (await Linking.getInitialURL()) ?? null
         } catch {}
       }
 

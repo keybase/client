@@ -211,7 +211,7 @@ const loadStartupDetails = async () => {
   const initialUrl = await neverThrowPromiseFunc(async () => {
     const linkingStart = Date.now()
     logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
-    const url = await Linking.getInitialURL()
+    const url = (await Linking.getInitialURL()) ?? null
     const elapsed = Date.now() - linkingStart
     if (url === null) {
       logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)

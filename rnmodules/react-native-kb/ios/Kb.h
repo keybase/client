@@ -8,8 +8,9 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTCallInvokerModule.h>
+#import <React/RCTInitializing.h>
 #import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
-@interface Kb : NativeKbSpecBase <NativeKbSpec,RCTCallInvokerModule,RCTTurboModuleWithJSIBindings,RCTInvalidating>
+@interface Kb : NativeKbSpecBase <NativeKbSpec,RCTCallInvokerModule,RCTTurboModuleWithJSIBindings,RCTInitializing,RCTInvalidating>
 @end
 #else
 #endif // RCT_NEW_ARCH_ENABLED

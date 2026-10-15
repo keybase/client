@@ -24,16 +24,20 @@ export default function useImageResolution(source: Source | number): FetchImageR
     setResolvedDeps(deps)
   }
 
-  const onFailure = (e: Error) => {
-    setError(e)
+  const onFailure = (e: unknown) => {
+    setError(e instanceof Error ? e : new Error(String(e)))
     setResolvedDeps(deps)
   }
 
   useEffect(() => {
     if (typeof source === 'number') {
-      const {width, height} = Image.resolveAssetSource(source)
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      onSuccess(width, height)
+      const resolved = Image.resolveAssetSource(source)
+      if (resolved?.width === undefined || resolved.height === undefined) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        onFailure(new Error(`Unable to resolve asset source ${source}`))
+        return
+      }
+      onSuccess(resolved.width, resolved.height)
       return
     }
     if (source.headers === undefined) {

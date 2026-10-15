@@ -66,7 +66,7 @@ export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) =>
         // update RN so keyboards / etc are correct on the native side
         switch (p) {
           case 'system':
-            Appearance.setColorScheme('unspecified')
+            Appearance.setColorScheme('auto')
             break
           case 'alwaysDark':
             Appearance.setColorScheme('dark')

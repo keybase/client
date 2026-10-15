@@ -2,7 +2,8 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Pressable, View} from 'react-native'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
-import type {NativeSyntheticEvent} from 'react-native'
+import {asSyntheticEvent} from './press-event'
+import type {HostInstance, NativeSyntheticEvent} from 'react-native'
 import './box.css'
 
 export type Box2Props = {
@@ -278,7 +279,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
 
   const {ref, testID, ...rest} = p
   const props = box2SharedProps(rest)
-  return <View {...props} testID={testID} ref={ref as React.Ref<View>} />
+  return <View {...props} testID={testID} ref={ref as React.Ref<HostInstance>} />
 }
 
 const common = {
@@ -383,12 +384,12 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
   const {style: s, children: c, onLayout, collapsable, pointerEvents} = box2SharedProps(box2p)
   return (
     <Pressable
-      ref={ref as React.Ref<View>}
+      ref={ref as React.Ref<HostInstance>}
       collapsable={collapsable}
       hitSlop={hitSlop}
       onLayout={onLayout}
       onLongPress={onLongPress}
-      onPress={onClick ? e => { onClick(e) } : undefined}
+      onPress={onClick ? e => { onClick(asSyntheticEvent(e)) } : undefined}
       pointerEvents={pointerEvents}
       role={asButton ? 'button' : undefined}
       style={s}

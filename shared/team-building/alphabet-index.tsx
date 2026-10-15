@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {View, type NativeSyntheticEvent, type NativeTouchEvent} from 'react-native'
+import {View, type HostInstance, type NativeSyntheticEvent, type NativeTouchEvent} from 'react-native'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -18,7 +18,7 @@ const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
 
 const AlphabetIndexImpl = (props: Props) => {
   const styles = useStyles()
-  const topSectionRef = React.useRef<View>(null)
+  const topSectionRef = React.useRef<HostInstance>(null)
   const sectionMeasureRef = React.useRef(initMeasureRef)
   const currIndex = React.useRef(-1)
 

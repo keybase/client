@@ -67,7 +67,7 @@ const pinned = (c: Combo): Combo =>
 const flatStyle = (c: Combo): Style => {
   // flatten returns undefined when every style entry is empty, which its typing omits
   const flat =
-    (StyleSheet.flatten(box2SharedPropsForTest(pinned(c) as Props).style as RN.StyleProp<RN.ViewStyle>) as
+    (StyleSheet.flatten(box2SharedPropsForTest(pinned(c) as Props).style as Parameters<typeof StyleSheet.flatten>[0]) as
       | Style
       | undefined) ?? {}
   return sortKeys(Object.fromEntries(Object.entries(flat).filter(([, v]) => v !== undefined)))
@@ -179,7 +179,7 @@ test('Box2 native styles match the committed fixture for every prop combination'
 
 test('a box without fullWidth, fullHeight or alignSelf is not centered', () => {
   const p: Props = {direction: 'vertical'}
-  const flat = StyleSheet.flatten(box2SharedPropsForTest(p).style as RN.StyleProp<RN.ViewStyle>) as Style | undefined
+  const flat = StyleSheet.flatten(box2SharedPropsForTest(p).style as Parameters<typeof StyleSheet.flatten>[0]) as Style | undefined
   expect(flat?.['alignSelf']).toBeUndefined()
   expect(box2ClassNamesForTest(p)).toBe('box2_vertical')
 })

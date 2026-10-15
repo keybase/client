@@ -6,6 +6,7 @@ import Animation from './animation'
 import WithTooltip from './with-tooltip'
 import Icon from './icon'
 import type {MeasureRef} from './measure-ref'
+import {asSyntheticEvent} from './press-event'
 import type {IconType} from './icon.constants-gen'
 
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
@@ -264,7 +265,7 @@ const ButtonNative = (props: FullProps) => {
   }
 
   return (
-    <Pressable style={Styles.castStyleNative(containerStyle)} onPress={handlePress} accessible={true} accessibilityRole="button" testID={testID}>
+    <Pressable style={Styles.castStyleNative(containerStyle)} onPress={e => handlePress(asSyntheticEvent(e))} accessible={true} accessibilityRole="button" testID={testID}>
       {inner}
     </Pressable>
   )

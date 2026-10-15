@@ -15,6 +15,8 @@ description: Use when updating npm/yarn dependencies in shared/package.json, pro
 
 > Version terminology in this project (all packages, not just react-native): a version-line change like 0.86 → 0.87 is a **major**; the last number (0.86.0 → 0.86.1) is a **minor**.
 
+**Expo pins the RN version too.** `expo`, `@expo/cli`, `babel-preset-expo` and `@expo/prebuild-config` exact-pin `@react-native/*` (codegen, dev-middleware, debugger-frontend, …). If our `react-native` differs from that pin — including rc → final — yarn nests a second copy under Expo, and `check-dupes.py` does NOT flag it (it only reports nested copies newer than top level). After every RN or expo bump, run `find node_modules -path '*/node_modules/@react-native/*/package.json' -maxdepth 6` and confirm one version (react-native-web's old `normalize-colors` is expected). If they differ, hold RN and those expo packages at the matching versions until Expo ships a release that pins the new RN.
+
 ## Other version constraints
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.

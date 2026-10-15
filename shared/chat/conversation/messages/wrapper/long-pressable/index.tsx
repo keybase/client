@@ -47,7 +47,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   )
 
   const makeAction = (
-    _progress: Animated.AnimatedDivision<number>,
+    _progress: Animated.AnimatedDivision,
     translation: Animated.Value
   ) => <ReplyIcon progress={translation} />
 

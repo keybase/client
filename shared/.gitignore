@@ -5,6 +5,7 @@ android/keybaselib/keybaselib.aar
 # gobuild-if-needed's freshness stamp for the .aar above
 android/keybaselib/.gobuild-stamp
 android/.kotlin
+android/gradle/gradle-daemon-jvm.properties
 android/.idea
 android/app/.externalNativeBuild
 android/**/build/

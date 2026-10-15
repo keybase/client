@@ -54,6 +54,11 @@
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "com.reactnativekb"
+    },
+    "ios": {
+      "modulesProvider": {
+        "Kb": "Kb"
+      }
     }
   }
 }

@@ -4,9 +4,11 @@ import {useTypeStyles, useNegativeColors} from './text-meta'
 import {linkTypes} from './text.shared'
 import type {Props} from './text.shared'
 import {Text as RNText} from 'react-native'
+import {asSyntheticEvent} from './press-event'
 import './text.css'
 
 export function Text(p: Props) {
+  const {onClick} = p
   const nativeStyles = useNativeStyles()
   const typeStyles = useTypeStyles()
   const negativeColors = useNegativeColors()
@@ -20,7 +22,7 @@ export function Text(p: Props) {
       : undefined
     const cn = Styles.classNames(`text_${type}`, p.className, {
       text_center: p.center,
-      text_clickable: !!p.onClick,
+      text_clickable: !!onClick,
       'text_hover-underline': linkTypes.has(type),
       text_lineClamp1: p.lineClamp === 1,
       text_lineClamp2: p.lineClamp === 2,
@@ -56,7 +58,7 @@ export function Text(p: Props) {
         ref={setRef}
         title={p.title}
         className={cn}
-        onClick={p.onClick ?? undefined}
+        onClick={onClick ?? undefined}
         onContextMenuCapture={p.onContextMenu ?? undefined}
         style={style}
         data-tooltip={p.tooltip}
@@ -80,7 +82,7 @@ export function Text(p: Props) {
     <RNText
       style={mergedStyle}
       allowFontScaling={p.allowFontScaling ?? false}
-      onPress={p.onClick ?? undefined}
+      onPress={onClick ? e => onClick(asSyntheticEvent(e)) : undefined}
       onLongPress={p.onLongPress ?? undefined}
       selectable={p.selectable}
       numberOfLines={p.lineClamp}

@@ -189,7 +189,7 @@ const resolveDesktop = (p: Props): Resolved => {
 const resolveNative = (p: Props): Resolved => {
   const shared = box2SharedPropsForTest(p)
   // flatten returns undefined when every style entry is empty, which its typing omits
-  const s = (StyleSheet.flatten(shared.style as RN.StyleProp<RN.ViewStyle>) as {[key: string]: unknown} | undefined) ?? {}
+  const s = (StyleSheet.flatten(shared.style as Parameters<typeof StyleSheet.flatten>[0]) as {[key: string]: unknown} | undefined) ?? {}
   const first = (...keys: Array<string>) => keys.map(k => s[k]).find(v => v !== undefined) ?? 0
   const flex = typeof s['flex'] === 'number' ? s['flex'] : 0
   const pe = shared.pointerEvents

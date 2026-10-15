@@ -42,7 +42,7 @@ using namespace kb;
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 static __weak Kb *kbSharedInstance = nil;
-// Guards the compare-and-clear in invalidate against init's write: init runs
+// Guards the compare-and-clear in invalidate against initialize's write: initialize runs
 // on the main thread, invalidate on the TurboModule shared method queue, and
 // the __weak load/store are each individually synchronized but the
 // read-then-write in invalidate is not, so without this lock a reload's new
@@ -248,7 +248,11 @@ static NSDictionary *kbConstants(void) {
   std::shared_ptr<kb::KBBridge> myBridge_;
 }
 
-RCT_EXPORT_MODULE()
+// RN finds this module only through codegenConfig.ios.modulesProvider in
+// package.json; this name must match the key there.
++ (NSString *)moduleName {
+  return @"Kb";
+}
 
 + (BOOL)requiresMainQueueSetup {
   return YES;
@@ -260,8 +264,12 @@ RCT_EXPORT_MODULE()
   return _eventEmitterCallback != nullptr;
 }
 
-- (instancetype)init {
-  self = [super init];
+// Setup lives here, not in init: the codegen module-provider map makes its own
+// [Kb new] that it keeps forever but never sets up. Only the instance the
+// TurboModule manager creates gets initialize (on the main queue, since
+// requiresMainQueueSetup), and only that one may publish kbSharedInstance or
+// observe notifications.
+- (void)initialize {
   {
     std::lock_guard<std::mutex> lock(kbSharedInstanceMutex);
     kbSharedInstance = self;
@@ -276,7 +284,6 @@ RCT_EXPORT_MODULE()
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     (void)kbConstants();
   });
-  return self;
 }
 
 + (void)swizzleUITextViewPaste {
@@ -346,7 +353,7 @@ RCT_EXPORT_MODULE()
   // (worst) the reader's desync meta event emits into the dying runtime's
   // invoker. Guarded because a reload may already have installed a newer
   // module as the shared instance; the lock makes the compare-and-clear
-  // atomic with init's write so a newer instance can never be clobbered.
+  // atomic with initialize's write so a newer instance can never be clobbered.
   {
     std::lock_guard<std::mutex> lock(kbSharedInstanceMutex);
     if (kbSharedInstance == self) {

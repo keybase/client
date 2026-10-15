@@ -91,6 +91,7 @@ const Row = (p: {account: Account}) => {
               containerStyle={styles.copyText}
               multiline={true}
               withReveal={true}
+              sensitive={true}
               loadText={onReveal}
               hideOnCopy={true}
               onCopy={onCopied}

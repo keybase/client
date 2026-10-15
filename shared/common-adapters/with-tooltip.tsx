@@ -7,7 +7,7 @@ import {Box2, ClickableBox} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {MeasureRef} from './measure-ref'
-import {View} from 'react-native'
+import {View, type HostInstance} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import type {StylesCrossPlatform, Position} from '@/styles'
 
@@ -57,8 +57,8 @@ function WithTooltip(p: Props) {
   const [left, setLeft] = React.useState(0)
   const [top, setTop] = React.useState(0)
   const [nativeVisible, setNativeVisible] = React.useState(false)
-  const clickableRef = React.useRef<View>(null)
-  const tooltipRef = React.useRef<View>(null)
+  const clickableRef = React.useRef<HostInstance>(null)
+  const tooltipRef = React.useRef<HostInstance>(null)
   const setVisibleFalseLater = useTimeout(() => {
     setNativeVisible(false)
   }, 3000)

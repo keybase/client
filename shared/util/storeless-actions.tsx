@@ -9,9 +9,10 @@ import {getTab, getVisiblePath} from '@/constants/router'
 import {peopleTab} from '@/constants/tabs'
 import {useCurrentUserState} from '@/stores/current-user'
 
-export const copyToClipboard = (text: string) => {
+// sensitive keeps the text out of the clipboard preview and history; Android only
+export const copyToClipboard = (text: string, sensitive?: boolean) => {
   if (isMobile) {
-    setStringAsync(text)
+    setStringAsync(text, sensitive ? {android: {isSensitive: true}} : undefined)
       .then(() => {})
       .catch(() => {})
   } else {

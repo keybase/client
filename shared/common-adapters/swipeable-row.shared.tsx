@@ -9,7 +9,7 @@ export type SwipeableMethods = {
 export type Props = {
   children?: React.ReactNode
   renderRightActions?: (
-    progress: Animated.AnimatedDivision<number>,
+    progress: Animated.AnimatedDivision,
     translation: Animated.Value
   ) => React.ReactNode
   onSwipeableOpenStartDrag?: () => void
