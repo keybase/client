@@ -15,11 +15,13 @@ mkdir -p $build_dest
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
-code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+# shellcheck source=packaging/lib.sh
+source "$dir/../../packaging/lib.sh"
+code_sign_identity="$KB_CODESIGN_IDENTITY"
 
 echo "Plist: $plist"
-app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
-#app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
+app_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+#app_build="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $plist`"
 
 #echo "Cleaning..."
 #set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c

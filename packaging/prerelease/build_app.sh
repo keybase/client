@@ -43,15 +43,14 @@ build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 build_dir_updater="/tmp/build_updater"
 client_dir=${CLIENT_DIR:-"$gopath/src/github.com/keybase/client"}
+# The lib.sh helpers (version, build id, release tool) work on this checkout.
+KB_CLIENT_DIR="$client_dir"
 kbfs_dir="$client_dir/go/kbfs"
 updater_dir=${UPDATER_DIR:-"$gopath/src/github.com/keybase/client/go/updater"}
 echo "client_dir: $client_dir"
 echo "kbfs_dir: $kbfs_dir"
 echo "updater_dir: $updater_dir"
 
-echo "Loading release tool"
-(cd "$client_dir/go/buildtools"; go install "github.com/keybase/client/go/release")
-release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 
 client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
@@ -63,15 +62,21 @@ trap reset EXIT
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
+  # The rest of this script keeps running from the copy bash already opened, so
+  # every path it calls below must exist in any commit it can build.
   git checkout "$client_commit"
   # If commit is hash, this fails and is unnecessary, if branch it's needed to
   # update if it has changed.
   git pull || true
 fi
 
+# Built after the checkout so the tool matches the commit being built.
+# package_darwin.sh, s3_index.sh and report.sh reuse it.
+kb_release_bin
+
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)" "${KB_CI_CONTEXTS[@]}"
+  "$KB_RELEASE_BIN" wait-ci --repo="client" --commit="$(git -C "$client_dir" log -1 --pretty=format:%h)" "${KB_CI_CONTEXTS[@]}"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
@@ -89,15 +94,13 @@ for ((i=1; i<=$number_of_builds; i++)); do
 
   # required for cross compilation to arm64 on darwin amd64 machine.
   export CGO_ENABLED=1
-  current_date=`date -u +%Y%m%d%H%M%S` # UTC
-  commit_short=`git log -1 --pretty=format:%h`
-  build="$current_date+$commit_short"
-  # Consumed by build_keybase.sh and on darwin-arm64 builds below. We the value
+  build="$(kb_build_id)"
+  # Consumed by build_keybase.sh and on darwin-arm64 builds below. We set the value
   # here so it is consistent across the build compilation and build announcement
   # since we can't echo the version of the binary when cross compiling.
   KEYBASE_BUILD=$build
   KBFS_BUILD=$build
-  kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
+  kb_version="$(kb_lib_version)"
   KEYBASE_VERSION="$kb_version-$KEYBASE_BUILD"
   KBFS_VERSION="$kb_version-$KBFS_BUILD"
 
@@ -112,7 +115,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
   version="$KEYBASE_VERSION"
   kbfs_version="$KBFS_VERSION"
   updater_version="" # noop, just used for logging
-  if [ ! "$PLATFORM" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  if [ ! "$platform" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
     version=$($build_dir_keybase/keybase version -S)
     kbfs_version=$($build_dir_kbfs/kbfs -version)
     updater_version=$($build_dir_updater/updater -version)
@@ -148,12 +151,12 @@ if [ "$istest" = "1" ]; then
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.
-  S3HOST="$s3host" "$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
+  S3HOST="$s3host" "$KB_RELEASE_BIN" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
 
   if [ "$number_of_builds" = "2" ]; then
     # Announce the new builds to the API server.
     echo "Announcing builds: $build_a and $build_b."
-    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="$platform"
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$KB_RELEASE_BIN" announce-build --build-a="$build_a" --build-b="$build_b" --platform="$platform"
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"

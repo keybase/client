@@ -4,6 +4,8 @@ set -e -u -o pipefail # Fail on error
 
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$dir"
+# shellcheck source=packaging/lib.sh
+source "$dir/../lib.sh"
 
 build_dir=${BUILD_DIR:-/tmp/keybase}
 gopath=${GOPATH:-}
@@ -21,18 +23,7 @@ echo "Building $build_dir/updater with $(go version) on arch: $arch"
 GOARCH="$arch" go build -a -o "$dest" "$package"
 echo "------------------ Building updater go ------------------"
 
-if [ "$PLATFORM" = "darwin" ] || [ "$PLATFORM" = "darwin-arm64" ]; then
-	echo "Signing binary..."
-	code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$dest"
-elif [ "$PLATFORM" = "linux" ]; then
-	echo "No codesigning for Linux"
-elif [ "$PLATFORM" = "windows" ]; then
-	echo "No codesigning for Windows"
-else
-	echo "Invalid PLATFORM"
-	exit 1
-fi
+kb_sign_binary "$dest"
 
 if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
 	updater_version=$("$build_dir"/updater -version)

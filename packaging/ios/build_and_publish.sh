@@ -3,10 +3,10 @@
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
 automated_build=${AUTOMATED_BUILD:-}
-gopath=${GOPATH:-}
-client_dir="$gopath/src/github.com/keybase/client"
-shared_dir="$gopath/src/github.com/keybase/client/shared"
-ios_dir="$gopath/src/github.com/keybase/client/shared/ios"
+dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+client_dir="$(cd "$dir/../.." && pwd)"
+shared_dir="$client_dir/shared"
+ios_dir="$shared_dir/ios"
 clean=${CLEAN:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}

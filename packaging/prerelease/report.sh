@@ -6,13 +6,13 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 client_dir="$dir/../.."
+# shellcheck source=packaging/lib.sh
+source "$dir/../lib.sh"
 bucket_name=${BUCKET_NAME:-}
 
-echo "Loading release tool"
-(cd "$client_dir/go" && go install "github.com/keybase/client/go/release")
-release_bin="$GOPATH/bin/release"
+kb_release_bin
 echo "$(go version)"
 
-report=$("$release_bin" updates-report --bucket-name="$bucket_name")
+report=$("$KB_RELEASE_BIN" updates-report --bucket-name="$bucket_name")
 "$client_dir/packaging/slack/send.sh" "\`\`\`$report\`\`\`"
 echo "reporting complete"

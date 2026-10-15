@@ -13,7 +13,8 @@ mode="$1"
 build_dir="$2"
 
 here="$(dirname "${BASH_SOURCE[0]}")"
-client_dir="$(git -C "$here" rev-parse --show-toplevel)"
+# shellcheck source=packaging/lib.sh
+source "$here/../lib.sh"
 
 echo "================================="
 echo "================================="
@@ -47,10 +48,8 @@ echo "=============================="
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
-echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
-(cd "$client_dir/go/buildtools"; GOPATH="$release_gopath" go install "github.com/keybase/client/go/release")
-release_bin="$release_gopath/bin/release"
+GOPATH="$release_gopath" kb_release_bin
 echo "$(go version)"
 
 # Build all the packages!
@@ -125,7 +124,7 @@ fi
 json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
 
-"$release_bin" update-json --version="$version" > "$json_tmp"
+"$KB_RELEASE_BIN" update-json --version="$version" > "$json_tmp"
 
 copy_metadata() {
     s3cmd put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"

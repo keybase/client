@@ -8,7 +8,9 @@ cd "$dir"
 app_name="KeybaseUpdater"
 plist="$dir/Updater/Info.plist"
 scheme="Updater"
-code_sign_identity=${CODE_SIGN_IDENTITY:-"90524F7BEAEACD94C7B473787F4949582F904104"}
+# shellcheck source=packaging/lib.sh
+source "$dir/../../../packaging/lib.sh"
+code_sign_identity=${CODE_SIGN_IDENTITY:-"$KB_CODESIGN_IDENTITY"}
 xcode_configuration="Release"
 install_app_path="/Applications/Keybase.app/Contents/Resources/$app_name.app"
 
@@ -17,7 +19,7 @@ mkdir -p "$build_dir"
 archive_path="$build_dir/$app_name.xcarchive"
 
 echo "Plist: $plist"
-app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+app_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 
 echo "Archiving"
 xcodebuild archive -scheme "$scheme" -project "$dir/Updater.xcodeproj" -configuration "$xcode_configuration" -archivePath "$archive_path" ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO | xcpretty -c

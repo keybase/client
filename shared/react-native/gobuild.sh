@@ -4,6 +4,8 @@ set -e -u -o pipefail # Fail on error
 
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 client_dir="$dir/../.."
+# shellcheck source=packaging/lib.sh
+source "$client_dir/packaging/lib.sh"
 cd "$client_dir/go"
 
 arg=${1:-}
@@ -23,10 +25,7 @@ fi
 if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
 	keybase_build="$KEYBASE_BUILD"
 else
-	## TODO(mm) consolidate this with packaging/prerelease/
-	current_date=$(date -u +%Y%m%d%H%M%S) # UTC
-	commit_short=$(git log -1 --pretty=format:%h)
-	keybase_build="$current_date+$commit_short"
+	keybase_build="$(kb_build_id)"
 fi
 
 check_ci=${CHECK_CI:-}
@@ -44,13 +43,8 @@ PATH="$GOPATH/bin:$PATH"
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
 if [ "$check_ci" = "1" ]; then
-	(
-		cd "$client_dir/go/buildtools"
-		go install "github.com/keybase/client/go/release"
-	)
-	# shellcheck source=packaging/lib.sh
-	source "$client_dir/packaging/lib.sh"
-	release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" "${KB_CI_CONTEXTS[@]}"
+	kb_release_bin
+	"$KB_RELEASE_BIN" wait-ci --repo="client" --commit="$(git rev-parse HEAD)" "${KB_CI_CONTEXTS[@]}"
 fi
 
 package="github.com/keybase/client/go/bind"
