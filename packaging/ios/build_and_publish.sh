@@ -8,7 +8,6 @@ client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
 ios_dir="$gopath/src/github.com/keybase/client/shared/ios"
 clean=${CLEAN:-}
-cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
 check_ci=${CHECK_CI:-1}

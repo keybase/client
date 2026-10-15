@@ -9,7 +9,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 base_version="$("$here/../../version.sh" production)"
 commit_count="$(git -C "$here" rev-list --count HEAD)"

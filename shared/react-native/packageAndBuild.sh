@@ -31,14 +31,12 @@ requestbundles ()
     return
   fi
   printf "\nRequesting bundles...\n"
-  case "ios" in
-    $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.bundle?platform=ios&dev=true&minify=false 2>&1;;
-  esac
-  case "android" in
-    $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.bundle?platform=android&dev=true&minify=false 2>&1;;
-  esac
+  if [ "$arg1" == "ios" ] || [ "$arg2" == "ios" ]; then
+    curl -s -o /dev/null "localhost:8081/index.bundle?platform=ios&dev=true&minify=false" 2>&1 || true
+  fi
+  if [ "$arg1" == "android" ] || [ "$arg2" == "android" ]; then
+    curl -s -o /dev/null "localhost:8081/index.bundle?platform=android&dev=true&minify=false" 2>&1 || true
+  fi
 }
 
 # start in background so we get the bundler dashboard

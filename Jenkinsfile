@@ -99,6 +99,21 @@ helpers.rootLinuxNode(env, {
       echo "Installing golangci-lint v2.13.2..."
       curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "${GOBIN}" v2.13.2
 
+      # Install shellcheck for the Shellcheck stage
+      echo "Installing shellcheck v0.11.0..."
+      case "$(uname -m)" in
+        x86_64) sc_arch=x86_64; sc_sha=b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6 ;;
+        aarch64|arm64) sc_arch=aarch64; sc_sha=68a8133197a50beb8803f8d42f9908d1af1c5540d4bb05fdfca8c1fa47decefc ;;
+        *) echo "No shellcheck build for $(uname -m)" >&2; exit 1 ;;
+      esac
+      sc_tgz="$(mktemp)"
+      # This script has no `set -e`: never extract an unverified download.
+      curl -sSfL -o "${sc_tgz}" "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.${sc_arch}.tar.gz" \\
+        && echo "${sc_sha}  ${sc_tgz}" | sha256sum -c - \\
+        && tar -xzf "${sc_tgz}" -C "${GOBIN}" --strip-components=1 shellcheck-v0.11.0/shellcheck \\
+        || { rm -f "${sc_tgz}"; echo "shellcheck install failed" >&2; exit 1; }
+      rm -f "${sc_tgz}"
+
       # Set up Node
       source  ~/.nvm/nvm.sh
       nvm install 24 && nvm use 24 && nvm alias default 24
@@ -174,11 +189,13 @@ helpers.rootLinuxNode(env, {
     def hasProtocolChanges = protocolChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasShellcheckChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /^packaging\/|^shared\/react-native\/(gobuild|packageAndBuild)\.sh$/ } >= 0
     def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has protocol changes: " + hasProtocolChanges
     println "Has JS changes: " + hasJSChanges
     println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
+    println "Has shellcheck changes: " + hasShellcheckChanges
     def dependencyFiles = [:]
 
     if (hasGoChanges && env.CHANGE_TARGET && !hasJenkinsfileChanges) {
@@ -196,6 +213,17 @@ helpers.rootLinuxNode(env, {
         parallel (
           failFast: true,
           test_linux: {
+            if (hasShellcheckChanges || hasJenkinsfileChanges) {
+              stage("Shellcheck") {
+                // Run from the repo root: the `# shellcheck source=`
+                // directives are relative to it.
+                sh '''
+                  shellcheck --version
+                  git ls-files -z -- 'packaging/*.sh' shared/react-native/gobuild.sh shared/react-native/packageAndBuild.sh \\
+                    | xargs -0 shellcheck -S warning -x
+                '''
+              }
+            }
             def packagesToTest = [:]
             if (hasProtocolChanges || hasJenkinsfileChanges) {
               // Clean the index first

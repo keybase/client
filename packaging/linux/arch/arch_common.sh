@@ -13,7 +13,7 @@ setup_arch_build() {
 
     # build_binaries.sh and deb/package_binaries.sh must already have
     # been run on this build root.
-    here="$(dirname "$BASH_SOURCE")"
+    here="$(dirname "${BASH_SOURCE[0]}")"
 
     mkdir -p "$build_root/arch"
 
