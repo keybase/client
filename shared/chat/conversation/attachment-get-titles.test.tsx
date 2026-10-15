@@ -2,9 +2,11 @@
 /// <reference types="jest" />
 import * as C from '@/constants'
 import * as MediaProcess from '@/util/media-process'
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
@@ -107,5 +109,80 @@ describe('Send on iOS', () => {
     })
     expect(rpc.calls('postAttachment')).toEqual([])
     expect(C.Router2.clearModals).not.toHaveBeenCalled()
+  })
+})
+
+describe('Send with an unresolved tlfName', () => {
+  let rpc: FakeChatRpc
+  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+  const g = globalThis as unknown as {isIOS: boolean}
+
+  beforeEach(() => {
+    g.isIOS = true
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    rpc = installFakeChatRpc()
+    // keep full size: nothing to export, so Send uploads directly
+    jest
+      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
+      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
+    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    g.isIOS = false
+    cleanup()
+    restoreChatRpc()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  const renderTitles = (tlfName?: string) =>
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/a.pdf'}]}
+        tlfName={tlfName}
+      />
+    )
+
+  test('an empty tlfName prop falls back to the loaded meta', async () => {
+    metasReceived(
+      [{...Meta.makeConversationMeta(), conversationIDKey, tlfname: 'testuser,testuser2'}],
+      undefined,
+      {force: true}
+    )
+    renderTitles('')
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    const params = rpc.params('postAttachment')
+    expect(params).toHaveLength(1)
+    expect(params[0]).toMatchObject({tlfName: 'testuser,testuser2'})
+  })
+
+  test('Send is disabled until a tlfName is known', async () => {
+    renderTitles('')
+    const sendDisabled = () =>
+      !!(screen.getByText('Send') as unknown as {closest: (selector: string) => unknown}).closest(
+        '.button--disabled'
+      )
+    expect(sendDisabled()).toBe(true)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(C.Router2.clearModals).not.toHaveBeenCalled()
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), conversationIDKey, tlfname: 'testuser,testuser2'}],
+        undefined,
+        {force: true}
+      )
+    })
+    expect(sendDisabled()).toBe(false)
   })
 })

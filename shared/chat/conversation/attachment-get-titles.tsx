@@ -60,6 +60,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
   const metaTlfName = useConversationMeta(conversationIDKey).tlfname
+  // A share to a suggested conversation can arrive before the inbox meta has loaded; the meta hook
+  // above triggers that load, and Send waits for it.
+  const resolvedTlfName = tlfName || metaTlfName || undefined
   const explodingMode = useConversationExplodingMode(conversationIDKey)
   const clientPrev = getConversationClientPrev(conversationIDKey)
   const onCancel = () => {
@@ -119,7 +122,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   // skipProcessing is the "Send anyway" path: the user has already been told the
   // export failed and wants the originals.
   const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
-    if (progress || submittingRef.current) {
+    if (progress || submittingRef.current || !resolvedTlfName) {
       return
     }
     submittingRef.current = true
@@ -135,9 +138,9 @@ const ContainerInner = (ownProps: OwnProps) => {
         ephemeralLifetime: explodingMode,
         paths,
         titles,
-        tlfName: tlfName ?? metaTlfName,
+        tlfName: resolvedTlfName,
       }
-      if (tlfName || noDragDrop) {
+      if (resolvedTlfName || noDragDrop) {
         uploadAttachments(uploadArgs)
       } else {
         uploadAttachmentsFromDragAndDrop(uploadArgs)
@@ -366,7 +369,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.WaitingButton
-              disabled={!!progress}
+              disabled={!!progress || !resolvedTlfName}
               fullWidth={!multiUpload}
               onClick={onSubmit}
               label="Send"
@@ -375,12 +378,12 @@ const ContainerInner = (ownProps: OwnProps) => {
             <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
           {multiUpload ? (
-            <Kb.WaitingButton disabled={!!progress} onClick={onSubmit} label="Send All" />
+            <Kb.WaitingButton disabled={!!progress || !resolvedTlfName} onClick={onSubmit} label="Send All" />
           ) : null}
           {/* Send retries the export; this is the way out when it keeps failing. */}
           {error ? (
             <Kb.Button
-              disabled={!!progress}
+              disabled={!!progress || !resolvedTlfName}
               type="Dim"
               onClick={onSendAnyway}
               label="Send original"

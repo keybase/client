@@ -88,7 +88,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
     if (sendPaths.length > 0) {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
       const meta = getInboxConversationMeta(selectedConversationIDKey)
-      const tlfName = meta?.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
+      const tlfName = meta?.conversationIDKey === selectedConversationIDKey ? meta.tlfname || undefined : undefined
       navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {
