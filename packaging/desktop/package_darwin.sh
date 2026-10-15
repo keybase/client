@@ -88,8 +88,6 @@ app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-# The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.94-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.7-darwin.tgz"
 
@@ -97,7 +95,6 @@ keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
 kbfs_bin="$tmp_dir/kbfs"
 updater_bin="$tmp_dir/updater"
-installer_app="$tmp_dir/KeybaseInstaller.app"
 updater_app="$tmp_dir/KeybaseUpdater.app"
 
 app_version="$keybase_version"
@@ -153,9 +150,6 @@ get_deps() { (
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
 
-	echo "Using installer from $installer_url"
-	curl -J -L -Ss "$installer_url" | tar zx
-
 	echo "Using updater from $updater_url"
 	curl -J -L -Ss "$updater_url" | tar zx
 ); }
@@ -194,8 +188,6 @@ package_app() { (
 	cp -R "$client_dir/media/icons/KeybaseFolder.icns" "$resources_dir/KeybaseFolder.icns"
 	echo "Copying other resources"
 	cp -R "$client_dir/osx/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
-	echo "Copying installer"
-	cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
 	echo "Copying updater (app)"
 	cp -R "$updater_app" "$resources_dir/KeybaseUpdater.app"
 ); }
@@ -235,9 +227,6 @@ sign() { (
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
-	bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
-	codesign --verify --verbose=4 "$bundle_installer_app"
-	spctl --assess --verbose=4 "$bundle_installer_app"
 	bundle_updater_app="$app_name.app/Contents/Resources/KeybaseUpdater.app"
 	codesign --verify --verbose=4 "$bundle_updater_app"
 	spctl --assess --verbose=4 "$bundle_updater_app"
