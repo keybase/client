@@ -1,0 +1,27 @@
+go/install/install_darwin.go
+  s_efa5d4bec71f9c::t_53d660baf7075d 734-740,758-759,764,767,772-778,782,788-789,796,812-813,818,822
+  s_efa5d4bec71f9c::t_6230c3836d62aa 762,816
+  s_efa5d4bec71f9c::t_6d3167683d3d9c 434-436,441-446,747-750,756,760-761,787,810,814-815
+shared/desktop/app/node.desktop.tsx
+  s_efa5d4bec71f9c::t_6d3167683d3d9c 14,103-107
+  s_efa5d4bec71f9c::t_e492d0607ec3f6 109
+shared/desktop/app/installer.desktop.tsx
+  s_efa5d4bec71f9c::t_6d3167683d3d9c 10,112-119,121-124,128,132,136-149,168-193,206,211-215,220-221,225,244,246,261
+  s_efa5d4bec71f9c::t_4cbaddf3c0dd7f 111,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "163101abddf2fd57eb7c45625d8ea75f665f9865",
+  "prompts": {},
+  "sessions": {
+    "s_efa5d4bec71f9c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3ac2bfe3-2a53-4af1-82b7-df0285693b09",
+        "model": "grok-4.5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
