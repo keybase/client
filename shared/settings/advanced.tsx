@@ -324,8 +324,7 @@ const InstallCommandLineTool = () => {
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="Body">Command line tool</Kb.Text>
       <Kb.Text type="BodySmall">
-        Adds keybase to /usr/local/bin so you can use it in Terminal. macOS asks for an administrator
-        password.
+        Makes the keybase command available in Terminal. macOS asks for an administrator password.
       </Kb.Text>
       <Kb.Box2 direction="horizontal">
         <Kb.Button

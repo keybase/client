@@ -63,7 +63,8 @@ const finderIntegrationBody =
 // Desktop: Finder integration section (macOS)
 const FinderIntegrationDarwin = () => {
   const styles = useStyles()
-  const {directMountDir, driverDisable, driverEnable, driverStatus} = Kbfs.useSystemFileManagerIntegration()
+  const {directMountDir, driverDisable, driverEnable, driverStatus, mountPending} =
+    Kbfs.useSystemFileManagerIntegration()
   const isEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const isPending = isDriverPending(driverStatus)
   const macfuseCopy =
@@ -92,6 +93,13 @@ const FinderIntegrationDarwin = () => {
             disabled={!canToggle}
             onClick={onToggle}
           />
+          {mountPending && (
+            <Kb.Text type="BodySmall">
+              Keybase is not in {Platform.fileUIName} yet. If macOS asked whether &quot;kbfs&quot; may access
+              files on a network volume, click Allow; Keybase will appear in {Platform.fileUIName} once it
+              mounts.
+            </Kb.Text>
+          )}
           {macfuseCopy ? (
             <Kbfs.MacfusePrompt copy={macfuseCopy} variant="settings" />
           ) : isEnabled ? (
