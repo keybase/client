@@ -47,18 +47,18 @@ const notifySfmiReload = () => {
   })
 }
 
-const makeInitialSfmiStateWithPermissionError = (initialKextPermissionError: boolean): SfmiState => {
-  const initialState = makeInitialSfmiState()
-  return initialKextPermissionError
-    ? {
-        ...initialState,
-        driverStatus: {
-          ...Constants.emptyDriverStatusDisabled,
-          kextPermissionError: true,
-        },
-      }
-    : initialState
-}
+// The status cannot tell an unapproved kext from one that is just not loaded yet, so a kext
+// error from enabling holds while macFUSE stays otherwise ready.
+export const keepKextPermissionError = (
+  previous: T.FS.DriverStatus,
+  refreshed: T.FS.DriverStatus
+): T.FS.DriverStatus =>
+  previous.type === T.FS.DriverStatusType.Disabled &&
+  previous.kextPermissionError &&
+  refreshed.type === T.FS.DriverStatusType.Disabled &&
+  refreshed.macfuse === T.FS.MacfuseState.Ready
+    ? {...refreshed, kextPermissionError: true}
+    : refreshed
 
 const refreshDriverStatusImpl = async (
   previousDriverStatus: T.FS.DriverStatus,
@@ -69,19 +69,10 @@ const refreshDriverStatusImpl = async (
   try {
     const previousType = previousDriverStatus.type
     const status = await refreshDriverStatusInPlatform()
-    const refreshedDriverStatus = fuseStatusToDriverStatus(status)
-    const driverStatus =
-      previousDriverStatus.type === T.FS.DriverStatusType.Disabled &&
-      previousDriverStatus.kextPermissionError &&
-      refreshedDriverStatus.type === T.FS.DriverStatusType.Disabled
-        ? {
-            ...refreshedDriverStatus,
-            kextPermissionError: true,
-          }
-        : refreshedDriverStatus
+    const driverStatus = keepKextPermissionError(previousDriverStatus, fuseStatusToDriverStatus(status))
     setDriverStatus(driverStatus)
     const {directMountDir} = await refreshMountDirs(driverStatus)
-    if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
+    if (driverStatus.type === T.FS.DriverStatusType.Enabled && previousType === T.FS.DriverStatusType.Disabled) {
       const path = T.FS.stringToPath('/keybase')
       try {
         await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
@@ -93,6 +84,10 @@ const refreshDriverStatusImpl = async (
     errorToActionOrThrow(error)
   }
 }
+
+// On macOS enabling needs the user's own macFUSE, installed and up to date.
+export const canEnableDriver = (driverStatus: T.FS.DriverStatus) =>
+  driverStatus.type !== T.FS.DriverStatusType.Disabled || driverStatus.macfuse === T.FS.MacfuseState.Ready
 
 const driverEnableImpl = async (
   isRetry: boolean,
@@ -116,33 +111,20 @@ const driverEnableImpl = async (
   }
 }
 
-export const SystemFileManagerIntegrationProvider = ({
-  children,
-  initialKextPermissionError = false,
-}: {
-  children: React.ReactNode
-  initialKextPermissionError?: boolean
-}) => {
+export const SystemFileManagerIntegrationProvider = ({children}: {children: React.ReactNode}) => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const defaultErrorToActionOrThrow = useFsErrorActionOrThrow()
   const appFocused = useShellState(s => s.appFocused)
-  const [sfmiState, setSfmiState] = React.useState(() =>
-    makeInitialSfmiStateWithPermissionError(initialKextPermissionError)
-  )
+  const [sfmiState, setSfmiState] = React.useState(makeInitialSfmiState)
   const appFocusedRef = React.useRef(appFocused)
   const sfmiStateRef = React.useRef(sfmiState)
   const [prevConnected, setPrevConnected] = React.useState(connected)
-  const [prevKextError, setPrevKextError] = React.useState(initialKextPermissionError)
 
   if (connected !== prevConnected) {
     setPrevConnected(connected)
     if (!connected) {
-      setSfmiState(makeInitialSfmiStateWithPermissionError(initialKextPermissionError))
+      setSfmiState(makeInitialSfmiState())
     }
-  }
-  if (!connected && initialKextPermissionError !== prevKextError) {
-    setPrevKextError(initialKextPermissionError)
-    setSfmiState(makeInitialSfmiStateWithPermissionError(initialKextPermissionError))
   }
 
   React.useEffect(() => {
@@ -285,6 +267,9 @@ export const SystemFileManagerIntegrationProvider = ({
   })
 
   const driverEnable = React.useEffectEvent((isRetry?: boolean) => {
+    if (!canEnableDriver(sfmiStateRef.current.driverStatus)) {
+      return
+    }
     const f = async () => {
       setSfmiState(s =>
         C.produce(s, draft => {
@@ -312,11 +297,14 @@ export const SystemFileManagerIntegrationProvider = ({
       return
     }
     const {driverStatus} = sfmiStateRef.current
-    if (
-      driverStatus.type === T.FS.DriverStatusType.Disabled &&
-      driverStatus.kextPermissionError
-    ) {
+    if (driverStatus.type !== T.FS.DriverStatusType.Disabled) {
+      return
+    }
+    if (driverStatus.kextPermissionError) {
       driverEnable(true)
+    } else if (driverStatus.macfuse !== T.FS.MacfuseState.Ready) {
+      // the user may have just installed or updated macFUSE
+      refreshDriverStatusDesktop()
     }
   }, [appFocused])
 

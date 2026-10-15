@@ -383,11 +383,25 @@ export type DriverStatusUnknown = Readonly<{
   type: DriverStatusType.Unknown
 }>
 
+// The user's own macFUSE install (macOS only; always Ready elsewhere)
+export enum MacfuseState {
+  NotInstalled = 'notInstalled',
+  Outdated = 'outdated',
+  // installed, but the service can't use it (e.g. unreadable version, kext info error)
+  Error = 'error',
+  Ready = 'ready',
+}
+
 export type DriverStatusDisabled = Readonly<{
   type: DriverStatusType.Disabled
   isEnabling: boolean
-  // macOS only
+  // macOS only: macFUSE is installed but macOS has not allowed its kext
   kextPermissionError: boolean
+  macfuse: MacfuseState
+  // macOS only: the installed version when macfuse is Outdated
+  macfuseVersion: string
+  // macOS only: the service's description when macfuse is Error
+  macfuseError: string
 }>
 
 export type DriverStatusEnabled = Readonly<{

@@ -26,7 +26,6 @@ type Store = T.Immutable<{
   desktopNotifications: boolean
   desktopNotificationsLoaded: boolean
   forceSmallNav: boolean
-  fsCriticalUpdate: boolean
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
   networkStatus?: {online: boolean; type: ConnectionType; isInit?: boolean}
   notifySound: boolean
@@ -41,7 +40,6 @@ const initialStore: Store = {
   desktopNotifications: true,
   desktopNotificationsLoaded: false,
   forceSmallNav: false,
-  fsCriticalUpdate: false,
   mobileAppState: 'unknown',
   networkStatus: undefined,
   notifySound: false,
@@ -71,7 +69,6 @@ export type State = Store & {
     setActive: (a: boolean) => void
     setDesktopNotifications: (on: boolean) => void
     setForceSmallNav: (f: boolean) => void
-    setFsCriticalUpdate: (u: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNotifySound: (n: boolean) => void
     setOpenAtLogin: (open: boolean) => void
@@ -234,12 +231,6 @@ export const useShellState = Z.createZustand<State>('shell', (set, get) => {
           logger.warn('failed to save desktop notifications setting', error)
         })
       )
-    },
-    setFsCriticalUpdate: u => {
-      if (get().fsCriticalUpdate === u) return
-      set(s => {
-        s.fsCriticalUpdate = u
-      })
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return

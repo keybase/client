@@ -1016,6 +1016,5 @@ export const iconMeta = {
   'iconfont-wave-2': {charCode: 0xe98e, gridSize: 24, isFont: true},
   'illustration-bg-provisioning-blue': {imagesDir: 'illustrations', ...(isMobile ? {get require(): number {return require('../images/illustrations/illustration-bg-provisioning-blue.png')}} : {})},
   'illustration-bg-provisioning-green': {imagesDir: 'illustrations', ...(isMobile ? {get require(): number {return require('../images/illustrations/illustration-bg-provisioning-green.png')}} : {})},
-  'illustration-security-preferences': {imagesDir: 'illustrations', ...(isMobile ? {get require(): number {return require('../images/illustrations/illustration-security-preferences.png')}} : {})},
   'illustration-turn-on-notifications': {imagesDir: 'illustrations', ...(isMobile ? {get require(): number {return require('../images/illustrations/illustration-turn-on-notifications.png')}} : {})}
 }

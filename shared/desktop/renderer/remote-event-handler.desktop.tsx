@@ -117,10 +117,6 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       switchTab(action.payload.tab)
       break
     }
-    case RemoteGen.setCriticalUpdate: {
-      useShellState.getState().dispatch.setFsCriticalUpdate(action.payload.critical)
-      break
-    }
     case RemoteGen.openFilesFromWidget: {
       showMain()
       if (action.payload.path) {
