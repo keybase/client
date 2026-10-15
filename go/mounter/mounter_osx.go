@@ -6,6 +6,7 @@
 package mounter
 
 import (
+	"os"
 	"regexp"
 	"slices"
 	"syscall"
@@ -17,16 +18,20 @@ import (
 // from upgraders' machines.
 var KBFSFstypes = []string{"macfuse", "kbfuse"}
 
-// IsMounted returns true if directory is a KBFS FUSE mount
+// IsMounted returns true if directory is a KBFS FUSE mount the current user
+// owns.
 func IsMounted(dir string, log Log) (bool, error) {
 	var st syscall.Statfs_t
 	if err := syscall.Statfs(dir, &st); err != nil {
 		return false, err
 	}
-	fstype := cstr(st.Fstypename[:])
-	log.Debug("Mount info: fstype=%s from=%s", fstype,
-		unescapeBackslash(cstr(st.Mntfromname[:])))
-	return slices.Contains(KBFSFstypes, fstype), nil
+	log.Debug("Mount info: fstype=%s from=%s owner=%d", cstr(st.Fstypename[:]),
+		unescapeBackslash(cstr(st.Mntfromname[:])), st.Owner)
+	return isOwnKBFSMount(st, uint32(os.Getuid())), nil
+}
+
+func isOwnKBFSMount(st syscall.Statfs_t, uid uint32) bool {
+	return st.Owner == uid && slices.Contains(KBFSFstypes, cstr(st.Fstypename[:]))
 }
 
 //
