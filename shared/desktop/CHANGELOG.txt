@@ -1,5 +1,5 @@
 • Push notification handling for multiple accounts, account switching
 • Support audio attachments
 • Various bug fixes
-• macOS: Keybase no longer bundles its own FUSE. To use Keybase in Finder, install macFUSE 5 or later from macfuse.io. The old Keybase FUSE and its helper are removed after one administrator prompt. The first time Keybase appears in Finder, macOS asks once whether "kbfs" may access files on a network volume; click Allow.
-• macOS: /keybase is gone. Your files are at /Volumes/Keybase (your Mac username), shown as Keybase in Finder.
+• macOS: Keybase no longer bundles its own FUSE. To use Keybase in Finder, install macFUSE 5 or later from macfuse.io, then turn on Finder access in the Files tab. The old Keybase FUSE and its helper are removed after one administrator prompt. The first time Keybase appears in Finder, macOS asks once whether "kbfs" may access files on a network volume; click Allow.
+• macOS: /keybase and /Volumes/Keybase are gone. Your files are at /Volumes/Keybase (your Mac username), shown as Keybase in Finder. If you added a keybase line to /etc/synthetic.conf for /keybase, you can remove it.
