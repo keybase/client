@@ -3,6 +3,7 @@ import fs from 'fs'
 import os from 'os'
 
 import {runMode} from '@/constants/platform'
+import {ensureError} from '@/util/errors'
 
 const killOnExitChildren = new Set<ChildProcess>()
 let exitListenerAdded = false
@@ -56,18 +57,26 @@ export default function exec(
     }
 
     console.log('Executing:', path, args.join(' '))
-    const child = execFile(path, args, function (execErr, stdout, stderr) {
-      if (stdout) {
-        console.log('Exec (stdout):', stdout)
-      }
-      if (stderr) {
-        console.log('Exec (stderr):', stderr)
-      }
-      if (execErr) {
-        console.log('Exec (err):', execErr)
-      }
-      callback(execErr, true, stdout, stderr)
-    })
+    let child: ChildProcess
+    try {
+      child = execFile(path, args, function (execErr, stdout, stderr) {
+        if (stdout) {
+          console.log('Exec (stdout):', stdout)
+        }
+        if (stderr) {
+          console.log('Exec (stderr):', stderr)
+        }
+        if (execErr) {
+          console.log('Exec (err):', execErr)
+        }
+        callback(execErr, true, stdout, stderr)
+      })
+    } catch (error) {
+      // this runs in the fs.access callback, past any try/catch of the caller
+      console.log('Exec (err):', error)
+      callback(Object.assign(ensureError(error), {cmd: [path, ...args].join(' ')}), true, '', '')
+      return
+    }
 
     if (killOnExit) {
       killChildOnExit(child)

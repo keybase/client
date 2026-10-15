@@ -78,6 +78,7 @@ type BannerProps = {
   title: string
   body?: string
   button?: BannerButtonProps
+  showMountPendingNote?: boolean
 }
 
 const backgroundToTextStyle = (background: Background, styles: ReturnType<typeof useStyles>) => {
@@ -143,6 +144,9 @@ const Banner = (props: BannerProps) => {
                 {props.body}
               </Kb.Text>
             </Kb.Box2>
+          )}
+          {props.showMountPendingNote && (
+            <Kbfs.MountPendingNote style={backgroundToTextStyle(props.background, styles)} />
           )}
         </Kb.Box2>
         {!!props.button && (
@@ -312,6 +316,7 @@ const Disabled = (props: {
         inProgress: driverStatus.isEnabling,
       }}
       onDismiss={alwaysShow ? undefined : onDismiss}
+      showMountPendingNote={true}
     />
   )
 }

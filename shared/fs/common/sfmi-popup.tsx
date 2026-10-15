@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import MacfusePrompt, {macfuseNetworkVolumeNote, macfusePromptCopy} from './macfuse-prompt'
+import MountPendingNote from './mount-pending-note'
 import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {
@@ -53,6 +54,7 @@ const SFMIPopup = (props: Props) => {
                   {macfuseNetworkVolumeNote}
                 </Kb.Text>
               ) : null}
+              <MountPendingNote center={true} style={styles.text} />
               <Kb.Divider style={styles.divider} />
               <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
                 <Kb.Button type="Success" label="Yes, enable" waiting={isEnabling} onClick={enableDriver} />

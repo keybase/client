@@ -14,6 +14,9 @@ import {saveAttachmentToCameraRoll, saveFileToDownloads, showShareActionSheet} f
 import {fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import {registerExternalResetter} from '@/util/zustand'
 
+// Matches statusUnsupportedMacos in go/install/fuse_status_darwin.go: macFUSE has no kext for the running macOS.
+const statusUnsupportedMacos = 'MACOS_UNSUPPORTED'
+
 // The service narrows mountInfos to this user's KBFS mount, so any entry means KBFS is mounted.
 export const darwinFuseStatusToDriverStatus = (status: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
   if (status.mountInfos?.length) {
@@ -24,8 +27,7 @@ export const darwinFuseStatusToDriverStatus = (status: T.RPCGen.FuseStatus): T.F
       if (status.installAction !== T.RPCGen.InstallAction.upgrade) {
         return Constants.emptyDriverStatusDisabled
       }
-      // the service names this status when macFUSE has no kext for the running macOS
-      return status.status.name === 'MACOS_UNSUPPORTED'
+      return status.status.name === statusUnsupportedMacos
         ? {
             ...Constants.emptyDriverStatusDisabled,
             macfuse: T.FS.MacfuseState.UnsupportedMacos,

@@ -144,6 +144,18 @@ test('a dropped response that disagrees asks for one more refresh, which settles
   expect(applyDriverStatusRefresh({...unknown, refreshId: 4}, 3, disabled()).refreshAgain).toBe(false)
 })
 
+test('a dropped Disabled response with another macFUSE state also asks for one more refresh', () => {
+  const unsupported = disabled({macfuse: T.FS.MacfuseState.UnsupportedMacos, macfuseVersion: '5.4.0'})
+  const applied = {driverStatus: unsupported, refreshId: 2}
+  expect(applyDriverStatusRefresh(applied, 1, disabled()).refreshAgain).toBe(true)
+  expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, unsupported).refreshAgain).toBe(true)
+  // the client-side flags are not the service's answer
+  expect(applyDriverStatusRefresh({driverStatus: disabled(), refreshId: 2}, 1, kextError).refreshAgain).toBe(false)
+  expect(
+    applyDriverStatusRefresh({driverStatus: disabled({isEnabling: true}), refreshId: 2}, 1, disabled()).refreshAgain
+  ).toBe(false)
+})
+
 test('Disabled to Enabled is reported once, and not from Unknown', () => {
   const fromUnknown = applyDriverStatusRefresh(
     {driverStatus: {type: T.FS.DriverStatusType.Unknown}, refreshId: 0},
