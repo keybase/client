@@ -2,14 +2,15 @@
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
+  canApplyStatus,
   canEnableDriver,
+  disconnectedPollLimit,
   type DriverStatusRefresh,
+  isSameAccount,
   isMountPending,
-  isSameKbfsConnection,
   keepKextPermissionError,
   mountPollIntervalMs,
   mountPollLimit,
-  nextKbfsConnection,
   refreshUntilMounted,
   runDriverOperation,
   singleFlight,
@@ -120,23 +121,37 @@ test('refreshing keeps going while KBFS restarts, and stops on a failure after i
 
   const neverBack = refreshSequence(['disconnected'])
   expect(await refreshUntilMounted(neverBack, noWait)).toBe('disconnected')
-  expect(neverBack).toHaveBeenCalledTimes(mountPollLimit + 1)
+  expect(neverBack).toHaveBeenCalledTimes(disconnectedPollLimit + 1)
 })
 
-test('a status applies only on the connection its refresh started on', () => {
-  const start = {connected: true, epoch: 0}
-  expect(nextKbfsConnection(start, true)).toBe(start)
-  expect(isSameKbfsConnection(start, 0)).toBe(true)
+test('time spent disconnected does not use up the wait for the mount', async () => {
+  const restarting = Array<DriverStatusRefresh>(disconnectedPollLimit).fill('disconnected')
+  const pending = Array<DriverStatusRefresh>(mountPollLimit).fill(disabled())
+  const slow = refreshSequence([...restarting, ...pending, Constants.emptyDriverStatusEnabled])
+  expect(await refreshUntilMounted(slow, noWait)).toBe(Constants.emptyDriverStatusEnabled)
+  expect(slow).toHaveBeenCalledTimes(disconnectedPollLimit + mountPollLimit + 1)
 
-  const down = nextKbfsConnection(start, false)
-  expect(isSameKbfsConnection(down, 0)).toBe(false)
-  const back = nextKbfsConnection(down, true)
-  expect(back.connected).toBe(true)
-  // started before the reconnect
-  expect(isSameKbfsConnection(back, 0)).toBe(false)
-  expect(isSameKbfsConnection(back, back.epoch)).toBe(true)
-  // started while disconnected
-  expect(isSameKbfsConnection(back, down.epoch)).toBe(false)
+  const neverMounts = refreshSequence([...restarting, disabled()])
+  expect(isMountPending(await refreshUntilMounted(neverMounts, noWait))).toBe(true)
+  expect(neverMounts).toHaveBeenCalledTimes(disconnectedPollLimit + mountPollLimit + 1)
+})
+
+test('a status applies only on the account and KBFS connection its refresh started on', () => {
+  const session = {account: 1, connected: true, connection: 2}
+  expect(canApplyStatus(session, {account: 1, connection: 2})).toBe(true)
+  // started before a reconnect
+  expect(canApplyStatus(session, {account: 1, connection: 1})).toBe(false)
+  // started before an account switch
+  expect(canApplyStatus(session, {account: 0, connection: 2})).toBe(false)
+  // the service answers while KBFS is down too
+  expect(canApplyStatus({...session, connected: false}, {account: 1, connection: 2})).toBe(false)
+})
+
+test('the rest of the work only needs the same account, so an enable across a KBFS restart still finishes', () => {
+  const restarted = {account: 1, connected: true, connection: 4}
+  expect(isSameAccount(restarted, 1)).toBe(true)
+  expect(isSameAccount({...restarted, connected: false}, 1)).toBe(true)
+  expect(isSameAccount({...restarted, account: 2}, 1)).toBe(false)
 })
 
 test('the mount is pending only while Disabled with macFUSE ready', () => {
