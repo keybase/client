@@ -59,7 +59,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
-  const metaTlfName = useConversationMeta(conversationIDKey).tlfname
+  const meta = useConversationMeta(conversationIDKey)
+  const metaTlfName = meta.tlfname
+  const metaFailed = meta.trustedState === 'error'
   // A share to a suggested conversation can arrive before the inbox meta has loaded; the meta hook
   // above triggers that load, and Send waits for it.
   const resolvedTlfName = tlfName || metaTlfName || undefined
@@ -140,7 +142,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         titles,
         tlfName: resolvedTlfName,
       }
-      if (resolvedTlfName || noDragDrop) {
+      if (tlfName || noDragDrop) {
         uploadAttachments(uploadArgs)
       } else {
         uploadAttachmentsFromDragAndDrop(uploadArgs)
@@ -423,6 +425,11 @@ const ContainerInner = (ownProps: OwnProps) => {
           />
         </Kb.Box2>
       </Kb.ClickableBox>
+      {resolvedTlfName ? null : (
+        <Kb.Text type="BodySmall" center={true} style={styles.progress}>
+          {metaFailed ? "Couldn't load this conversation." : 'Loading conversation...'}
+        </Kb.Text>
+      )}
       {progress ? (
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
           <Kb.ProgressIndicator />
