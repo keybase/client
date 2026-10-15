@@ -19,7 +19,7 @@ export type MacfusePromptCopy = {
 
 // Shown where the user turns Finder access on: the first mount triggers macOS's one-time privacy prompt
 // for the kbfs binary, and KBFS cannot serve the volume until it is allowed.
-export const macfuseNetworkVolumeNote =
+const macfuseNetworkVolumeNote =
   'macOS will ask once whether "kbfs" may access files on a network volume — click Allow.'
 
 // The copy for a macOS Disabled status that cannot be enabled yet; undefined when it can.
