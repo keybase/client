@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (57.0.21):
+  - EXConstants (57.0.22):
     - ExpoModulesCore
-  - Expo (57.0.28):
+  - Expo (57.0.30):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -27,7 +27,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (57.0.19):
+  - ExpoAsset (57.0.20):
     - ExpoModulesCore
   - ExpoAudio (57.0.5):
     - ExpoModulesCore
@@ -39,7 +39,7 @@ PODS:
     - ZXingObjC/PDF417
   - ExpoClipboard (57.0.2):
     - ExpoModulesCore
-  - ExpoContacts (57.0.7):
+  - ExpoContacts (57.0.8):
     - ExpoModulesCore
   - ExpoDocumentPicker (57.0.3):
     - ExpoModulesCore
@@ -73,7 +73,7 @@ PODS:
   - ExpoMediaLibrary (57.0.5):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (57.0.22):
+  - ExpoModulesCore (57.0.23):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -100,10 +100,10 @@ PODS:
   - ExpoModulesJSI (57.1.2):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (57.0.22):
+  - ExpoModulesWorklets (57.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.22):
+  - ExpoModulesWorkletsAdapter (57.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -2821,14 +2821,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: b4e9051547ee9b8337155565fbdbe66036865120
-  Expo: 1f24ff5decaa02797c291613d62c74f2d70cefdc
-  ExpoAsset: 78dbecc7bc9f60d839fb37ba8b10317b64779685
+  EXConstants: 8a0eb5e2553569c0e6710b73a8d90d1ce358c153
+  Expo: 37626cb37829d85bd68b3b2308341fab3e2b9529
+  ExpoAsset: 2581425f9b581b4fce3c83ffc9f28528d1c4ee68
   ExpoAudio: edc9230b788be6f65238a53907d5c176b57a7ce0
   ExpoCamera: d3d3c6c6ddca5088d4eed2df010c0f33e78bebd1
   ExpoCameraBarcodeScanning: e20737140da28cfd614abccd86ef50b47f0f94b5
   ExpoClipboard: 15b8cc88075d7c50af165ed8fca0a76915903bba
-  ExpoContacts: e8e3bb40f5f19cced50f45cd8af2d098995cb0fc
+  ExpoContacts: 113c0a5d4a951ded3759bc403b9d68e6d6dc8506
   ExpoDocumentPicker: 3cb0c283969538c03ced2b405e519c91abf39f8e
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFileSystem: 28778f942725170102f7c6cf4dee05a526ddacd0
@@ -2842,10 +2842,10 @@ SPEC CHECKSUMS:
   ExpoLocation: 7b878272a650957859fb04770b30db78a8e5bf79
   ExpoLogBox: 80957303325cd4439137765c90a87d7f22aaf2ff
   ExpoMediaLibrary: 341321256621e7bf220b6272c42fedcb095607d0
-  ExpoModulesCore: 3868105e4f56a39148214cd97b1bfd6f7067a4f7
+  ExpoModulesCore: a8e314f45df5bd0e424d15a2bb70fd22b679e4fb
   ExpoModulesJSI: 0853c5456f7926218337a8e007c12b75fb10bdc3
-  ExpoModulesWorklets: 1fb83b3dfe735f8c940ce8a69ca2904f164e888b
-  ExpoModulesWorkletsAdapter: 8ac2d43f516ea454fc318e23016bc6e829e8fcbb
+  ExpoModulesWorklets: 22d1898cfa60b815ffc7421c775e2e6a1bd8dc82
+  ExpoModulesWorkletsAdapter: 8f161daf587c1ebf8e331062fb43b2e2e8f2fe40
   ExpoNetwork: 7a7a7e0123d1ac5efc742b7b29e43102be5634bf
   ExpoScreenCapture: 9895600e6d3aeeadbdfd776f8d7b309b8fd33a33
   ExpoSMS: 241fbd0ed18edac737edcf232ae1e008ee24bcce
