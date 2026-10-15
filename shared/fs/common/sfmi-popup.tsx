@@ -1,8 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import MacfusePrompt, {macfusePromptCopy} from './macfuse-prompt'
-import {useEnableNote} from './macfuse-prompt'
+import MacfusePrompt, {macfusePromptCopy, useEnableNote} from './macfuse-prompt'
 import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {

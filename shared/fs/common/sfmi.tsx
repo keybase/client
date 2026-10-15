@@ -446,7 +446,8 @@ export const SystemFileManagerIntegrationProvider = ({children}: {children: Reac
   }
 
   const mountStillPending = React.useEffectEvent(() => {
-    setEnableStoppedWaiting(true)
+    // decided from the applied status, which a refresh may have moved on since polling stopped
+    setSfmiState(s => (isMountPending(s.driverStatus) ? {...s, enableStoppedWaiting: true} : s))
   })
 
   const endDriverOperation = () => {
