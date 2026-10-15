@@ -540,11 +540,10 @@ func rootMountedDirs(mounts []unix.Statfs_t, dirs []string) []string {
 // kbfuseMountsKeptBy returns where kbfuse is mounted other than the
 // root-owned mounts at redirectorDirs, which the retirement unmounts.
 func kbfuseMountsKeptBy(mounts []unix.Statfs_t, redirectorDirs []string) []string {
-	unmounted := rootMountedDirs(mounts, redirectorDirs)
 	var paths []string
 	for _, m := range mounts {
 		path := unix.ByteSliceToString(m.Mntonname[:])
-		if unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" && (m.Owner != 0 || !slices.Contains(unmounted, path)) {
+		if unix.ByteSliceToString(m.Fstypename[:]) == "kbfuse" && (m.Owner != 0 || !slices.Contains(redirectorDirs, path)) {
 			paths = append(paths, path)
 		}
 	}
