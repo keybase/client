@@ -5,7 +5,11 @@ import UniformTypeIdentifiers
 // Each item already gets its own directory, so the name only has to be
 // readable, not unique.
 enum PayloadFileName {
-  static let maxBaseLength = 100
+  // APFS allows 255 UTF-8 bytes per name; leave room for the app's
+  // ".processed"/".compressed" suffixes on its copies.
+  static let maxNameBytes = 200
+  // A longer "extension" is really part of the name.
+  private static let maxExtBytes = 16
 
   // Uses the first usable candidate (a provider's suggestedName, a download's
   // last path component), else fallbackBase. The name keeps an extension that
@@ -22,19 +26,29 @@ enum PayloadFileName {
     return ext.map { "\(fallbackBase).\($0)" } ?? fallbackBase
   }
 
-  // A path separator would escape the item's directory, and a leading dot
-  // would hide the file.
+  // A path separator would escape the item's directory, a leading dot would
+  // hide the file, and control characters (newlines) garble it in the UI.
+  // Only C0/C1 controls and line breaks: .controlCharacters also holds format
+  // characters such as the zero-width joiner inside emoji sequences.
+  private static let replaced = CharacterSet(charactersIn: "/:")
+    .union(.newlines)
+    .union(CharacterSet(charactersIn: Unicode.Scalar(0x00)!...Unicode.Scalar(0x1F)!))
+    .union(CharacterSet(charactersIn: Unicode.Scalar(0x7F)!...Unicode.Scalar(0x9F)!))
+
   private static func sanitize(_ candidate: String?) -> String? {
     guard let candidate = candidate else { return nil }
     let trimmed = candidate.trimmingCharacters(
       in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "/.")))
-    let cleaned = trimmed.components(separatedBy: CharacterSet(charactersIn: "/:\0")).joined(
-      separator: "_")
+    let cleaned = String(
+      String.UnicodeScalarView(trimmed.unicodeScalars.map { replaced.contains($0) ? "_" : $0 }))
     return cleaned.isEmpty ? nil : cleaned
   }
 
   private static func withExtension(_ name: String, ext: String?, type: UTType?) -> String {
-    let current = (name as NSString).pathExtension
+    var current = (name as NSString).pathExtension
+    if current.utf8.count > maxExtBytes {
+      current = ""
+    }
     var base = name
     var keptExt: String? = current.isEmpty ? nil : current
     if let ext = ext, let type = type {
@@ -50,8 +64,10 @@ enum PayloadFileName {
     } else if keptExt != nil {
       base = (name as NSString).deletingPathExtension
     }
-    if base.count > maxBaseLength {
-      base = String(base.prefix(maxBaseLength))
+    // Cut whole Characters so a multi-byte one is never split.
+    let extBytes = keptExt.map { $0.utf8.count + 1 } ?? 0
+    while base.utf8.count + extBytes > maxNameBytes {
+      base.removeLast()
     }
     if base.isEmpty {
       base = "file"

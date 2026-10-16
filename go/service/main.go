@@ -451,8 +451,10 @@ func (d *Service) purgeOldIncomingShareData() {
 		if err != nil {
 			continue
 		}
-		// Writing the processed copy into the payload dir bumps its mtime, so a
-		// share still being worked on keeps renewing its lease.
+		// The payload dir's mtime is when the extension last added an item to
+		// it. Each item lives in its own subdirectory, so the app's processed
+		// copies land there and don't renew it: a share left unsent past the
+		// cutoff is removed.
 		if info.ModTime().After(cutoff) {
 			continue
 		}
