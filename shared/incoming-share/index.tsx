@@ -210,7 +210,7 @@ const useIncomingShareItems = () => {
   }, [setAndroidShare])
 
   return androidShareItems
-    ? {droppedCount: 0, incomingShareError: undefined, incomingShareItems: androidShareItems}
+    ? {droppedCount: androidShare?.droppedCount ?? 0, incomingShareError: undefined, incomingShareItems: androidShareItems}
     : {droppedCount: incomingShare.droppedCount, incomingShareError, incomingShareItems: incomingShare.items}
 }
 

@@ -1,8 +1,8 @@
-import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {subscribeIntentAccountSwitch} from '@/router-v2/account-link-switch'
+import {androidShareFromEvent} from './android-share'
 import {listenForPushTaps} from './shared'
 import {
   getRegistrationToken,
@@ -83,18 +83,9 @@ export const initPushListener = () => {
 
     if (isAndroid) {
       const shareSub = onShareData(evt => {
-        const {setAndroidShare} = useConfigState.getState().dispatch
-
-        const text = evt.text
-        const urls = evt.localPaths
-
-        if (urls) {
-          setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-        } else if (text) {
-          setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-        } else {
-          return
-        }
+        const share = androidShareFromEvent(evt)
+        if (!share) return
+        useConfigState.getState().dispatch.setAndroidShare(share)
         emitDeepLink('keybase://incoming-share')
       })
       unsubs.push(() => shareSub.remove())
