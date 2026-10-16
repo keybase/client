@@ -1,4 +1,6 @@
 import * as T from '@/constants/types'
+import logger from '@/logger'
+import {navigationRef} from '@/constants/navigator'
 import {ackIncomingShare, peekIncomingShare} from 'react-native-kb'
 import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {useConfigState} from '@/stores/config'
@@ -11,7 +13,8 @@ import {useRouterState} from '@/stores/router'
 // names the share's id, and done with when such a route leaves it. A screen paused under pushed
 // screens is still in the state, and clearModals or a reset takes it out. A navigator torn down
 // (logout, account switch, the app's surface going away) is not the user leaving the share, so its
-// shares are not done with: the next navigator opens them again.
+// shares are not done with: the next navigator opens them again. A new navigator is told apart by
+// its container, so its first state is never compared with an older navigator's.
 
 // The link that opens an Android share. It names the share, so the screen it opens knows which
 // share is its own.
@@ -30,15 +33,20 @@ const shareIDsIn = (state: StateLike, ids = new Set<number>()) => {
 
 // The share native holds, by the id it last told us.
 let heldShareID: number | undefined
-// The shares routes in the current navigator's state are for.
+// The navigator (its container) whose state was seen last, and the shares its routes are for.
+let navigator: unknown
 let navigatorShareIDs = new Set<number>()
 // The link this navigator was sent for the held share and hasn't shown yet, and how many were sent.
 // Each link sent is new (open=<n>): the intents store drops a link it just followed, and a new
 // navigator may need the same share's link again within that window.
 let issuedURL: string | undefined
 let issuedCount = 0
+// Whether the held share's link was sent again because one that was followed didn't land. Once per
+// share per navigator, so a link that never lands can't be sent over and over.
+let reissued = false
 
 const finishAndroidShare = (id: number) => {
+  logger.info(`[AndroidShare] done with share ${id}`)
   ackIncomingShare(id)
   if (heldShareID === id) heldShareID = undefined
 }
@@ -56,33 +64,42 @@ const openHeldShare = () => {
   const {loggedIn, userSwitching} = useConfigState.getState()
   if (!loggedIn || userSwitching || !navigationReady || intent) return
   issuedURL = `${androidShareURL(heldShareID)}&open=${++issuedCount}`
+  logger.info(`[AndroidShare] opening share ${heldShareID}`)
   emitDeepLink(issuedURL)
 }
 
 const onNavState = (state: StateLike) => {
   const next = shareIDsIn(state)
+  const current = navigationRef.current
   // Logging out, and starting an account switch, reset loggedIn before the navigator empties.
-  if (state && useConfigState.getState().loggedIn) {
+  if (current === navigator && state && useConfigState.getState().loggedIn) {
     for (const id of navigatorShareIDs) {
       if (!next.has(id)) finishAndroidShare(id)
     }
   } else {
     issuedURL = undefined
+    reissued = false
   }
+  navigator = current
   navigatorShareIDs = next
+  if (heldShareID !== undefined && next.has(heldShareID)) {
+    reissued = false
+  } else if (
+    !reissued &&
+    issuedURL !== undefined &&
+    useNavigationIntentsState.getState().lastHandledIntent?.url === issuedURL
+  ) {
+    // The link was followed and the state still doesn't show the share: it didn't land.
+    reissued = true
+    issuedURL = undefined
+  }
   openHeldShare()
 }
 
 export const onAndroidShareHeld = (id: number) => {
+  if (heldShareID !== id) reissued = false
   heldShareID = id
   openHeldShare()
-}
-
-// A new navigator starts with no routes, and the old one's going doesn't count as leaving them.
-// Called before the new navigator reports its first state.
-export const onAndroidShareNavigatorReady = () => {
-  navigatorShareIDs = new Set()
-  issuedURL = undefined
 }
 
 export const subscribeAndroidShareOpener = () => {
@@ -112,6 +129,8 @@ export const readAndroidShare = (
 
 export const resetAndroidShareForTest = () => {
   heldShareID = undefined
+  navigator = undefined
   navigatorShareIDs = new Set()
   issuedURL = undefined
+  reissued = false
 }

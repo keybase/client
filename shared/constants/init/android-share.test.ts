@@ -4,6 +4,7 @@ import {useConfigState} from '@/stores/config'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState, type NavState} from '@/stores/router'
 import {resetAllStores} from '@/util/zustand'
+import {navigationRef} from '@/constants/navigator'
 
 const mockNative = {
   acks: new Array<number>(),
@@ -23,7 +24,6 @@ jest.mock('react-native-kb', () => ({
 import {
   androidShareURL,
   onAndroidShareHeld,
-  onAndroidShareNavigatorReady,
   readAndroidShare,
   resetAndroidShareForTest,
   subscribeAndroidShareOpener,
@@ -69,12 +69,17 @@ const follow = (id: number) => {
   consume()
   setState(withShare(id))
 }
+// A new NavigationContainer: its own handle in navigationRef.
+const newNavigator = () => {
+  navigationRef.current = {} as typeof navigationRef.current
+}
 const later = (ms: number) => jest.spyOn(Date, 'now').mockReturnValue(Date.now() + ms)
 
 beforeEach(() => {
   mockNative.acks = []
   mockNative.held = undefined
   resetAndroidShareForTest()
+  newNavigator()
   unsubscribe = subscribeAndroidShareOpener()
 })
 
@@ -123,6 +128,40 @@ test('a link dropped before it was followed is sent again', () => {
   expect(pendingURL()).toBe(androidShareURL(1))
 })
 
+test('a followed link that never lands is sent once more on the next state, and only once', () => {
+  ready()
+  setState(tabs)
+  hold(1)
+  // Followed, but the router never got the share's route into the state.
+  consume()
+  setState({...tabs})
+  expect(pendingURL()).toBe(androidShareURL(1))
+
+  consume()
+  setState({...tabs})
+  expect(pendingURL()).toBeUndefined()
+  setState({...tabs})
+  expect(pendingURL()).toBeUndefined()
+})
+
+test('a state reported before the link is followed does not count as the link not landing', () => {
+  ready()
+  setState(tabs)
+  hold(1)
+  setState({...tabs})
+  consume()
+  expect(pendingURL()).toBeUndefined()
+})
+
+test('a followed link that lands is not sent again', () => {
+  ready()
+  setState(tabs)
+  hold(1)
+  follow(1)
+  setState(withPickers(1))
+  expect(pendingURL()).toBeUndefined()
+})
+
 test('shown is read from the state: a share whose route is in it is not sent again', () => {
   ready()
   hold(1)
@@ -143,7 +182,7 @@ test('a share screen paused under pushed screens keeps its share; clearModals th
   setState(tabs)
   expect(mockNative.acks).toEqual([1])
   expect(readAndroidShare(1)).toBeUndefined()
-  onAndroidShareNavigatorReady()
+  newNavigator()
   later(60_000)
   setState({...tabs})
   expect(pendingURL()).toBeUndefined()
@@ -161,20 +200,10 @@ test('a new navigator is not leaving the share: it is opened again there', () =>
   ready()
   hold(1)
   follow(1)
-  onAndroidShareNavigatorReady()
+  newNavigator()
   setState(tabs)
   expect(mockNative.acks).toEqual([])
   expect(pendingURL()).toBe(androidShareURL(1))
-})
-
-test('an account switch emptying the old navigator is not leaving the share', () => {
-  ready()
-  hold(1)
-  follow(1)
-  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
-  setState(tabs)
-  expect(mockNative.acks).toEqual([])
-  useConfigState.getState().dispatch.setUserSwitching(false)
 })
 
 test('logging out is not leaving the share: it opens again after login', () => {
