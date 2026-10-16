@@ -45,21 +45,50 @@ trap stop_run INT TERM HUP ALRM
 # Only a dir this script generated: a caller's KB_SHARE_ASSETS is left alone.
 trap '[ -n "$MADE_ASSETS" ] && rm -rf "$MADE_ASSETS"' EXIT
 
+# simctl can hang (it waits on an Xcode first-launch install, for one), so every call gets a
+# deadline. The call runs in a process group of its own and the whole group is killed: a child it
+# left behind would keep a captured output open. A timeout says so on the script's own stderr,
+# even from a call whose output is redirected or captured, and stops the run.
+exec 3>&2
+simctl() {
+  local secs=$1
+  shift
+  perl -e '
+    my $secs = shift;
+    my $pid = fork // die "fork: $!";
+    if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
+    setpgrp($pid, $pid);
+    my $stop = sub { kill "KILL", -$pid; exit shift };
+    $SIG{ALRM} = sub { $stop->(142) };
+    $SIG{INT} = sub { $stop->(130) };
+    $SIG{TERM} = sub { $stop->(143) };
+    alarm $secs;
+    waitpid $pid, 0;
+    exit($? & 127 ? 128 + ($? & 127) : $? >> 8);
+  ' "$secs" xcrun simctl "$@"
+  local rc=$?
+  if [ "$rc" -eq 142 ]; then
+    echo "❌ xcrun simctl $* did not finish within ${secs}s" >&3
+    kill -TERM $$
+  fi
+  return "$rc"
+}
+
 if ! curl -sf -m 5 http://127.0.0.1:8081/status >/dev/null; then
   echo "❌ Metro is not running on 8081 (yarn rn:start)"
   exit 1
 fi
 
-UDID="$(xcrun simctl list devices available | sed -n "s/^ *$NAME (\([-0-9A-F]*\)).*/\1/p" | head -1)"
-xcrun simctl boot "$NAME" 2>/dev/null || true
-if ! perl -e 'alarm 120; exec @ARGV' xcrun simctl bootstatus "$NAME" -b >/dev/null 2>&1; then
+UDID="$(simctl 60 list devices available | sed -n "s/^ *$NAME (\([-0-9A-F]*\)).*/\1/p" | head -1)"
+simctl 120 boot "$NAME" 2>/dev/null || true
+if ! simctl 120 bootstatus "$NAME" -b >/dev/null 2>&1; then
   echo "❌ Simulator not found / failed to boot: $NAME"
   exit 1
 fi
 # Xcode 27 shows simulators in DeviceHub; older Xcodes in Simulator.
 open -a Simulator >/dev/null 2>&1 || open -a DeviceHub >/dev/null 2>&1 || true
 
-if ! xcrun simctl get_app_container "$NAME" keybase.ios groups 2>/dev/null | grep -q '^group.keybase'; then
+if ! simctl 60 get_app_container "$NAME" keybase.ios groups 2>/dev/null | grep -q '^group.keybase'; then
   echo "❌ the installed app has no group.keybase container: install a signed build"
   exit 1
 fi
@@ -72,8 +101,8 @@ fi
 export KB_SHARE_ASSETS
 
 echo "▶ Relaunching the app on $NAME for a fresh bundle"
-xcrun simctl terminate "$NAME" keybase.ios 2>/dev/null || true
-xcrun simctl launch "$NAME" keybase.ios >/dev/null
+simctl 60 terminate "$NAME" keybase.ios 2>/dev/null || true
+simctl 60 launch "$NAME" keybase.ios >/dev/null
 END=$(($(date +%s) + 180))
 until curl -s -m 3 http://127.0.0.1:8081/json/list | grep -q "\"deviceName\": \"$NAME\""; do
   if [ "$(date +%s)" -gt "$END" ]; then
