@@ -6,10 +6,11 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -74,29 +75,75 @@ func isClaimedIncomingShareManifest(name string) bool {
 		strings.HasSuffix(name, incomingShareClaimedSuffix)
 }
 
+// How long a claimed share is still handed out again. The app can throw an
+// answer away (a newer load superseded it, a disconnect cancelled it) and load
+// again; that reload has to get the share, not nothing.
+const incomingShareRepeatWindow = 30 * time.Second
+
+// The last share claimed, guarded by its mutex, which also serializes reads.
+var lastIncomingShare struct {
+	sync.Mutex
+	folder string
+	at     time.Time
+	res    keybase1.IncomingShareItems
+}
+
 // GetIncomingShareItems hands out each share once. The manifest is moved aside
-// before it is read and removed after, so a later call (a stale or replayed
-// keybase://incoming-share link, a reload) finds nothing and returns no items
-// and no error. The payload files stay until they are sent or purged.
+// before it is read and removed after; a repeat call within
+// incomingShareRepeatWindow gets the same share again, and any later one (a
+// stale or replayed keybase://incoming-share link) gets no items and no error.
+// The payload files stay until they are sent or purged.
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res keybase1.IncomingShareItems, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
 	if folder == "" {
 		return res, nil
 	}
+	last := &lastIncomingShare
+	last.Lock()
+	defer last.Unlock()
+	now := h.G().Clock().Now()
+	res, claimed, err := h.claimIncomingShare(mctx, folder)
+	switch {
+	case err != nil:
+		// a newer share that can't be read still replaces the last one
+		last.folder = ""
+		return res, err
+	case claimed:
+		last.folder, last.at, last.res = folder, now, res
+		return res, nil
+	case last.folder == folder && now.Sub(last.at) < incomingShareRepeatWindow:
+		mctx.Debug("incoming-share: handing out the share claimed %v ago again", now.Sub(last.at))
+		return last.res, nil
+	default:
+		return keybase1.IncomingShareItems{}, nil
+	}
+}
+
+// claimIncomingShare reads and removes the manifest; claimed is false when
+// there is none.
+func (h *IncomingShareHandler) claimIncomingShare(mctx libkb.MetaContext, folder string) (
+	res keybase1.IncomingShareItems, claimed bool, err error,
+) {
 	suffix, err := libkb.RandHexString("", 8)
 	if err != nil {
-		return res, err
+		return res, false, err
 	}
 	claimedPath := filepath.Join(folder, incomingShareClaimedPrefix+suffix+incomingShareClaimedSuffix)
 	// A rename is atomic, so of two calls racing for one manifest only one gets it.
 	if err := os.Rename(filepath.Join(folder, incomingShareManifest), claimedPath); err != nil {
 		if os.IsNotExist(err) {
 			mctx.Debug("incoming-share: no manifest, nothing to share")
-			return res, nil
+			return res, false, nil
 		}
 		mctx.Debug("incoming-share: claim manifest.json error: %v", err)
-		return res, err
+		return res, false, err
+	}
+	// The rename keeps the manifest's mtime, and the purge removes claimed
+	// manifests by age: make it read as new so the purge can't take it mid-read.
+	now := time.Now()
+	if err := os.Chtimes(claimedPath, now, now); err != nil {
+		mctx.Debug("incoming-share: touch claimed manifest error: %v", err)
 	}
 	defer func() {
 		if err := os.Remove(claimedPath); err != nil {
@@ -106,13 +153,13 @@ func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res k
 	f, err := os.Open(claimedPath)
 	if err != nil {
 		mctx.Debug("incoming-share: open manifest.json error: %v", err)
-		return res, err
+		return res, true, err
 	}
 	defer f.Close()
 	var jsonItems []shareItemJSON
 	if err = json.NewDecoder(f).Decode(&jsonItems); err != nil {
 		mctx.Debug("incoming-share: decode manifest.json error: %v", err)
-		return res, err
+		return res, true, err
 	}
 	mctx.Debug("incoming-share: %d items", len(jsonItems))
 loop:
@@ -167,13 +214,9 @@ loop:
 		})
 	}
 
-	// A share where every item was dropped still answers, so the app can say
-	// why instead of a generic failure.
-	if len(res.Items) == 0 && res.DroppedCount == 0 {
-		return res, errors.New("empty incoming share")
-	}
-
-	return res, nil
+	// An empty manifest is a cancelled share: nothing to share. A share where
+	// every item was dropped still answers, so the app can say why.
+	return res, true, nil
 }
 
 func (h *IncomingShareHandler) dbKey() libkb.DbKey {
