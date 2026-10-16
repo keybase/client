@@ -7,7 +7,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.IntentCompat
@@ -19,6 +19,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
+import com.reactnativekb.IncomingShareFileName
 import com.reactnativekb.KbModule
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.util.DNSNSFetcher
@@ -30,7 +31,6 @@ import java.io.IOException
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
 import java.security.cert.CertificateException
-import java.util.UUID
 
 class MainActivity : ReactActivity() {
     private var isUsingHardwareKeyboard = false
@@ -69,58 +69,39 @@ class MainActivity : ReactActivity() {
         super.onPause()
     }
 
-    private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
-        // Use a GUID default.
-        var filename = String.format("%s.%s", UUID.randomUUID().toString(), extension)
-        val nameProjection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
-        resolver.query(uri, nameProjection, null, null, null).use { cursor ->
-            if (cursor != null && cursor.moveToFirst()) {
-                filename = cursor.getString(0)
-            }
+    private fun queryDisplayName(resolver: ContentResolver, uri: Uri): String? = try {
+        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getString(0) else null
         }
-        val cut = filename.lastIndexOf('/')
-        if (cut != -1) {
-            filename = filename.substring(cut + 1)
-        }
-        return filename
+    } catch (e: Exception) {
+        // Some providers lack the column or throw on query; the name is optional.
+        NativeLogger.warn("Unable to read the display name of $uri", e)
+        null
     }
 
-    private fun saveFileToCache(context: Context, uri: Uri, filename: String): File {
-        val file = IncomingShareCache.file(context, filename)
-        try {
-            context.contentResolver.openInputStream(uri).use { istream ->
-                FileOutputStream(file).use { ostream ->
-                    val buf = ByteArray(64 * 1024)
-                    var len: Int
-                    while (istream!!.read(buf).also { len = it } != -1) {
-                        ostream.write(buf, 0, len)
-                    }
-                }
+    // Copies a shared item into the share cache. Returns null, leaving nothing
+    // behind, when the item can't be copied whole: a missing or partial file
+    // must never be sent.
+    private fun copySharedUri(context: Context, uri: Uri): String? {
+        if (uri.scheme != "content") {
+            return uri.path
+        }
+        val resolver = context.contentResolver
+        var file: File? = null
+        return try {
+            val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            val dest = IncomingShareCache.newItemFile(context, IncomingShareFileName.make(queryDisplayName(resolver, uri), ext))
+            file = dest
+            val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
+            input.use { istream ->
+                FileOutputStream(dest).use { ostream -> istream.copyTo(ostream, 64 * 1024) }
             }
-        } catch (ex: IOException) {
-            Log.w(TAG, "Error writing shared file $uri", ex)
+            dest.path
+        } catch (e: Exception) {
+            NativeLogger.warn("Unable to copy shared item $uri", e)
+            file?.let { IncomingShareCache.discardItem(context, it) }
+            null
         }
-        return file
-    }
-
-    private fun readFileFromUri(context: Context, uri: Uri?): String? {
-        if (uri == null) return null
-        var filePath: String?
-        filePath = if (uri.scheme == "content") {
-            val resolver = context.contentResolver
-            val mimeType = resolver.getType(uri)
-            val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
-
-            // Load the filename from the resolver.
-            val filename = getFileNameFromResolver(resolver, uri, extension)
-
-            // Now load the file itself.
-            val file = saveFileToCache(context, uri, filename)
-            file.path
-        } else {
-            uri.path
-        }
-        return filePath
     }
 
     override fun onResume() {
@@ -259,20 +240,15 @@ class MainActivity : ReactActivity() {
             // block the main thread on it.
             val context: Context = this
             Thread {
-                val filePaths = uris.mapNotNull { uri ->
-                    try {
-                        readFileFromUri(context, uri)
-                    } catch (e: SecurityException) {
-                        null
-                    }
-                }
+                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri) }
+                val droppedCount = uris.size - filePaths.size
                 if (filePaths.isNotEmpty()) {
-                    emitShareFiles(filePaths)
+                    emitShareFiles(filePaths, droppedCount)
                 } else if (textPayload.isNotEmpty()) {
                     // Fallback: non-text MIME but no files resolved, send text
-                    emitShareText(textPayload)
+                    emitShareText(textPayload, droppedCount)
                 } else {
-                    emitShareFiles(emptyList())
+                    emitShareFiles(emptyList(), droppedCount)
                 }
             }.start()
         }
@@ -280,19 +256,22 @@ class MainActivity : ReactActivity() {
         cachedIntent = null
     }
 
-    private fun emitShareText(text: String) {
+    private fun emitShareText(text: String, droppedCount: Int = 0) {
         val args = Arguments.createMap()
         args.putString("text", text)
+        args.putInt("droppedCount", droppedCount)
         KbModule.emitShareData(args)
     }
 
-    private fun emitShareFiles(paths: List<String>) {
+    // droppedCount is how many shared items couldn't be copied.
+    private fun emitShareFiles(paths: List<String>, droppedCount: Int) {
         val args = Arguments.createMap()
         val lPaths = Arguments.createArray()
         for (path in paths) {
             lPaths.pushString(path)
         }
         args.putArray("localPaths", lPaths)
+        args.putInt("droppedCount", droppedCount)
         KbModule.emitShareData(args)
     }
 

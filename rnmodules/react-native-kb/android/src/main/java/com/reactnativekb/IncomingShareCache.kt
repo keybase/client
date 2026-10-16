@@ -2,6 +2,8 @@ package com.reactnativekb
 
 import android.content.Context
 import java.io.File
+import java.io.IOException
+import java.util.UUID
 
 // Sharing into the app copies the sender's content out of its content:// uri and
 // into our cache, because the uri is only readable for as long as the intent
@@ -23,7 +25,24 @@ object IncomingShareCache {
         return dir
     }
 
-    fun file(context: Context, filename: String): File = File(dir(context), filename)
+    // Each item gets its own directory so two items with the same name, in one
+    // share or in overlapping ones, never overwrite each other's copy. name must
+    // be a single path component (see IncomingShareFileName).
+    fun newItemFile(context: Context, name: String): File {
+        val itemDir = File(dir(context), UUID.randomUUID().toString())
+        if (!itemDir.mkdirs()) {
+            throw IOException("unable to create ${itemDir.path}")
+        }
+        return File(itemDir, name)
+    }
+
+    // Removes a copy made by newItemFile, along with its directory.
+    fun discardItem(context: Context, file: File) {
+        val itemDir = file.parentFile ?: return
+        if (itemDir.parentFile == dir(context)) {
+            itemDir.deleteRecursively()
+        }
+    }
 
     // Call off the main thread: this stats every file in the directory.
     fun purgeOld(context: Context) {

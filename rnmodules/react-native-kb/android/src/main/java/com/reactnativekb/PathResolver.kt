@@ -86,9 +86,14 @@ object PathResolver {
                         attachment.use { istream ->
                             val filename = getContentName(context.contentResolver, uri)
                             if (filename != null) {
-                                val file = IncomingShareCache.file(context, filename)
-                                FileOutputStream(file).use { tmp ->
-                                    istream.copyTo(tmp)
+                                val file = IncomingShareCache.newItemFile(context, IncomingShareFileName.make(filename, null))
+                                try {
+                                    FileOutputStream(file).use { tmp ->
+                                        istream.copyTo(tmp)
+                                    }
+                                } catch (e: Exception) {
+                                    IncomingShareCache.discardItem(context, file)
+                                    throw e
                                 }
                                 return file.absolutePath
                             }
