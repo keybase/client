@@ -318,10 +318,7 @@ public class MediaUtils: NSObject {
     private static func recompressCGImageSource(
         _ img: CGImageSource, dstURL: URL, options: CFDictionary, quality: CGFloat
     ) throws {
-        guard let decoded = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
-        }
-        let image = try jpegEncodable(decoded)
+        let image = try decodeForJPEG(img, options: options)
 
         guard
             let destination = CGImageDestinationCreateWithURL(
@@ -338,12 +335,25 @@ public class MediaUtils: NSObject {
         }
     }
 
-    // On iOS the JPEG encoder doesn't take every layout a decoder hands back: an
-    // AVIF as Safari saves it (10-bit packed RGB) produced no data at all. So
-    // anything but plain 8-bit RGB or gray (10-bit packed, 16-bit or float from
-    // deep TIFF, DNG or HDR, CMYK) is redrawn into an 8-bit bitmap first. That
-    // costs one extra 8-bit copy; plain 8-bit images, which is every camera photo
-    // and screenshot, go to the encoder untouched.
+    // Its own function so the full-size decode, which can be several times the
+    // 8-bit copy for a deep image, is released before the encode starts.
+    private static func decodeForJPEG(_ img: CGImageSource, options: CFDictionary) throws
+        -> CGImage
+    {
+        guard CGImageSourceGetStatusAtIndex(img, 0) == .statusComplete else {
+            throw MediaUtilsError.imageProcessingFailed("Image is incomplete")
+        }
+        guard let decoded = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
+        }
+        return try jpegEncodable(decoded)
+    }
+
+    // The JPEG encoder is only ever given plain 8-bit RGB or gray. A decoder can
+    // hand back other layouts (10-bit packed RGB from an AVIF, 16-bit or float
+    // from deep TIFF, DNG or HDR, CMYK), so those are redrawn into an 8-bit RGB
+    // bitmap first. That costs one extra 8-bit copy; plain 8-bit images, which is
+    // every camera photo and screenshot, go to the encoder untouched.
     private static func jpegEncodable(_ image: CGImage) throws -> CGImage {
         let colorSpace = image.colorSpace
         let model = colorSpace?.model
@@ -360,37 +370,48 @@ public class MediaUtils: NSObject {
 
         // An ordinary RGB space is kept, so Display P3 stays P3. Extended-range and
         // PQ/HLG spaces can't back an 8-bit bitmap: those clip to Display P3 when
-        // wide gamut and sRGB otherwise, as do CMYK and the rest.
-        let gray = model == .monochrome
+        // wide gamut and sRGB otherwise, as do gray, CMYK and the rest.
         let target: CGColorSpace?
-        if gray {
-            target = CGColorSpace(name: CGColorSpace.genericGrayGamma2_2)
-        } else if model == .rgb, !isExtended, !isHDR, let colorSpace {
+        if model == .rgb, !isExtended, !isHDR, let colorSpace {
             target = colorSpace
         } else if model == .rgb, colorSpace?.isWideGamutRGB ?? false {
             target = CGColorSpace(name: CGColorSpace.displayP3)
         } else {
             target = CGColorSpace(name: CGColorSpace.sRGB)
         }
-        let alphaInfo: CGImageAlphaInfo = gray ? .none : .noneSkipLast
         guard let target,
             let context = CGContext(
                 data: nil, width: image.width, height: image.height, bitsPerComponent: 8,
-                bytesPerRow: 0, space: target, bitmapInfo: alphaInfo.rawValue)
+                bytesPerRow: 0, space: target,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+            let pixels = context.data
         else {
             throw MediaUtilsError.imageProcessingFailed(
                 "Failed to create an 8-bit bitmap for the JPEG")
         }
         let rect = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-        // Over white, as the encoder flattens an 8-bit image with alpha.
-        switch image.alphaInfo {
-        case .none, .noneSkipFirst, .noneSkipLast:
-            break
-        default:
-            context.setFillColor(gray: 1, alpha: 1)
-            context.fill(rect)
-        }
+        // The bitmap starts fully transparent. Some decoders (AVIF) hand back an
+        // image whose pixels are only produced when drawn, and if that fails the
+        // draw leaves the bitmap untouched: without this check that would go out
+        // as a blank JPEG instead of an error.
         context.draw(image, in: rect)
+        let rowBytes = context.bytesPerRow
+        let bytes = pixels.assumingMemoryBound(to: UInt8.self)
+        var drewAnything = false
+        rows: for y in 0..<image.height {
+            let row = bytes + y * rowBytes
+            for x in 0..<image.width where row[x * 4 + 3] != 0 {
+                drewAnything = true
+                break rows
+            }
+        }
+        guard drewAnything else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
+        }
+        // Flatten over white, as the encoder does for an 8-bit image with alpha.
+        context.setBlendMode(.destinationOver)
+        context.setFillColor(gray: 1, alpha: 1)
+        context.fill(rect)
         guard let redrawn = context.makeImage() else {
             throw MediaUtilsError.imageProcessingFailed("Failed to redraw image for the JPEG")
         }
