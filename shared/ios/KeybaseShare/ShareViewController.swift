@@ -59,7 +59,9 @@ public class ShareViewController: UIViewController {
     case done, stalled, cancelled
   }
 
-  private var itemCount = 0
+  // What the share set out to prepare; 0 until processing starts, which reads
+  // as plural.
+  private var itemCount: Int { iph?.itemCount ?? 0 }
 
   private var manifestFailedMessage: String {
     itemCount == 1 ? "This item couldn't be saved for sharing." : "These items couldn't be saved for sharing."
@@ -293,7 +295,6 @@ public class ShareViewController: UIViewController {
       ($0 as? NSExtensionItem)?.attachments
     } ?? []
 
-    itemCount = itemArrs.reduce(0) { $0 + $1.count }
     iph = ItemProviderHelper(forShare: true, withItems: itemArrs) { [weak self] in
       self?.finish(.done)
     }
