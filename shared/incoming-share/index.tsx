@@ -180,14 +180,33 @@ const IncomingShareError = (props: {message?: string}) => {
   )
 }
 
+const NothingToShare = () => (
+  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+    <Kb.Text type="BodySmall" center={true}>
+      {"There's nothing to share."}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 const noShareItems = new Array<T.RPCGen.IncomingShareItem>()
 const noIncomingShare = {droppedCount: 0, items: noShareItems}
+type Share = {droppedCount: number; items: ReadonlyArray<T.RPCGen.IncomingShareItem>}
+
+// The service hands each share out once, so a later load (the reconnect reload) finds nothing:
+// the share the first load got is the one this screen shows.
+export const keepFirstShare = (prev: Share | undefined, next: Share): Share =>
+  prev && (prev.items.length > 0 || prev.droppedCount > 0) ? prev : next
 
 const useIncomingShareItems = () => {
-  const {data: incomingShare = noIncomingShare, error: incomingShareError} = useRPCLoad(
+  const [incomingShare, setIncomingShare] = React.useState<Share>()
+  const {error: incomingShareError} = useRPCLoad(
     T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
     [undefined],
-    {enabled: isIOS, map: res => ({droppedCount: res.droppedCount, items: res.items || noShareItems})}
+    {
+      enabled: isIOS,
+      map: res => ({droppedCount: res.droppedCount, items: res.items || noShareItems}),
+      onResult: next => setIncomingShare(prev => keepFirstShare(prev, next)),
+    }
   )
 
   const androidShare = useConfigState(s => s.androidShare)
@@ -209,15 +228,28 @@ const useIncomingShareItems = () => {
     }
   }, [setAndroidShare])
 
-  return androidShareItems
-    ? {droppedCount: androidShare?.droppedCount ?? 0, incomingShareError: undefined, incomingShareItems: androidShareItems}
-    : {droppedCount: incomingShare.droppedCount, incomingShareError, incomingShareItems: incomingShare.items}
+  if (androidShareItems) {
+    return {
+      droppedCount: androidShare?.droppedCount ?? 0,
+      incomingShareError: undefined,
+      incomingShareItems: androidShareItems,
+      nothingToShare: false,
+    }
+  }
+  const {droppedCount, items} = incomingShare ?? noIncomingShare
+  return {
+    droppedCount,
+    incomingShareError: items.length || droppedCount ? undefined : incomingShareError,
+    incomingShareItems: items,
+    // A link opened again, or from somewhere other than a share, has no share behind it.
+    nothingToShare: isAndroid || incomingShare !== undefined,
+  }
 }
 
 const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
 const IncomingShareMain = (props: SelectedConversationProps) => {
-  const {droppedCount, incomingShareError, incomingShareItems} = useIncomingShareItems()
+  const {droppedCount, incomingShareError, incomingShareItems, nothingToShare} = useIncomingShareItems()
   const droppedMessage = getDroppedItemsMessage(incomingShareItems.length, droppedCount)
   return incomingShareError ? (
     <IncomingShareError />
@@ -229,6 +261,8 @@ const IncomingShareMain = (props: SelectedConversationProps) => {
     />
   ) : droppedMessage ? (
     <IncomingShareError message={droppedMessage} />
+  ) : nothingToShare ? (
+    <NothingToShare />
   ) : (
     <LoadingSpinner />
   )

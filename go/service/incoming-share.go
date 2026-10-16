@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -60,10 +61,49 @@ func IncomingShareFolder(mobileSharedHome string) string {
 	return filepath.Join(mobileSharedHome, "Library", "Caches", "incoming-shares")
 }
 
+const (
+	incomingShareManifest = "manifest.json"
+	// A manifest being read is moved to manifest.<random>.claimed first.
+	incomingShareClaimedPrefix = "manifest."
+	incomingShareClaimedSuffix = ".claimed"
+)
+
+func isClaimedIncomingShareManifest(name string) bool {
+	return name != incomingShareManifest &&
+		strings.HasPrefix(name, incomingShareClaimedPrefix) &&
+		strings.HasSuffix(name, incomingShareClaimedSuffix)
+}
+
+// GetIncomingShareItems hands out each share once. The manifest is moved aside
+// before it is read and removed after, so a later call (a stale or replayed
+// keybase://incoming-share link, a reload) finds nothing and returns no items
+// and no error. The payload files stay until they are sent or purged.
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res keybase1.IncomingShareItems, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	manifestPath := filepath.Join(IncomingShareFolder(h.G().Env.GetMobileSharedHome()), "manifest.json")
-	f, err := os.Open(manifestPath)
+	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
+	if folder == "" {
+		return res, nil
+	}
+	suffix, err := libkb.RandHexString("", 8)
+	if err != nil {
+		return res, err
+	}
+	claimedPath := filepath.Join(folder, incomingShareClaimedPrefix+suffix+incomingShareClaimedSuffix)
+	// A rename is atomic, so of two calls racing for one manifest only one gets it.
+	if err := os.Rename(filepath.Join(folder, incomingShareManifest), claimedPath); err != nil {
+		if os.IsNotExist(err) {
+			mctx.Debug("incoming-share: no manifest, nothing to share")
+			return res, nil
+		}
+		mctx.Debug("incoming-share: claim manifest.json error: %v", err)
+		return res, err
+	}
+	defer func() {
+		if err := os.Remove(claimedPath); err != nil {
+			mctx.Debug("incoming-share: remove claimed manifest error: %v", err)
+		}
+	}()
+	f, err := os.Open(claimedPath)
 	if err != nil {
 		mctx.Debug("incoming-share: open manifest.json error: %v", err)
 		return res, err

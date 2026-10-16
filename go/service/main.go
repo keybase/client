@@ -443,8 +443,9 @@ func (d *Service) purgeOldIncomingShareData() {
 	cutoff := time.Now().Add(-incomingShareMaxAge)
 	for _, entry := range entries {
 		// manifest.json lives alongside the payload dirs and is the live handoff
-		// to the app; only the directories are ours to remove.
-		if !entry.IsDir() {
+		// to the app. Besides the directories, only a claimed manifest that a
+		// read never got to remove is ours.
+		if !entry.IsDir() && !isClaimedIncomingShareManifest(entry.Name()) {
 			continue
 		}
 		info, err := entry.Info()
