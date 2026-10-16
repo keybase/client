@@ -57,3 +57,8 @@ test('a complete Android share shows no notice', () => {
   render(<IncomingShareMain />)
   expect(screen.queryByText(/couldn't be prepared/)).toBeNull()
 })
+
+test('an incoming-share link with no Android share behind it says there is nothing to share', () => {
+  render(<IncomingShareMain />)
+  expect(screen.getByText("There's nothing to share.")).toBeTruthy()
+})

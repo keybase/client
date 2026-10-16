@@ -13,6 +13,7 @@ import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
 import {peekPendingAccountSwitchTab} from './account-switch'
+import {takeLaunchURL} from './launch-url'
 import {emitDeepLink, normalizeUrl, setInitialURLOnce} from './deep-link-emitter'
 // Re-exported so existing importers ('@/router-v2/linking') keep working; the
 // definitions live in the dependency-free './deep-link-emitter' leaf.
@@ -279,12 +280,7 @@ export const createLinkingConfig = (
       const showMonster =
         !pushState.justSignedUp && pushState.showPushPrompt && !pushState.hasPermissions
 
-      let deepLinkUrl: string | null = null
-      if (isMobile) {
-        try {
-          deepLinkUrl = (await Linking.getInitialURL()) ?? null
-        } catch {}
-      }
+      const deepLinkUrl = isMobile ? await takeLaunchURL() : undefined
 
       const haveSavedTab = !!(startupTab || startupConversation)
 
