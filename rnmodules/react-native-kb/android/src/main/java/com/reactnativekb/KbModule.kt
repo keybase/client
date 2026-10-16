@@ -416,7 +416,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // JS is done with the share with this id.
     @ReactMethod
     override fun ackIncomingShare(id: Double) {
-        IncomingShareRelay.shared.done(id.toLong())
+        IncomingShareRelay.shared.done(id.toLong())?.let { IncomingShareDone.record(IncomingShareDone.file(reactContext), it) }
     }
 
     // True only once JS has been told about the share.
