@@ -140,15 +140,18 @@ class MainActivity : ReactActivity() {
         val subject = sharedText(intent, Intent.EXTRA_SUBJECT)
         val text = sharedText(intent, Intent.EXTRA_TEXT)
             ?: sharedText(intent, Intent.EXTRA_HTML_TEXT)?.let {
-                HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().takeIf { t -> t.isNotBlank() }
+                // fromHtml leaves an object-replacement character where each image was.
+                HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                    .replace("\uFFFC", "").trim().takeIf { t -> t.isNotEmpty() }
             }
         NativeLogger.info("MainActivity.captureIntent: action=${intent.action}, uriCount=${uris.size}")
 
         val textPayload = listOfNotNull(subject, text).joinToString(" ")
-        val isTextMime = intent.type?.startsWith("text/") == true
+        // Only a single SEND: a SEND_MULTIPLE of text files is files, whatever text rides along.
+        val isTextSend = Intent.ACTION_SEND == intent.action && intent.type?.startsWith("text/") == true
         val relay = IncomingShareRelay.shared
 
-        if (isTextMime && textPayload.isNotEmpty()) {
+        if (isTextSend && textPayload.isNotEmpty()) {
             // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
             relay.fill(relay.begin(), textShare(text ?: textPayload, 0))
         } else if (uris.isEmpty()) {
