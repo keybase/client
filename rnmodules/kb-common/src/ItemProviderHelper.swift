@@ -642,6 +642,11 @@ public class ItemProviderHelper: NSObject {
       )
       item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
         switch loaded {
+        // Some providers vend the image's web address as the image item.
+        case let url as URL where error == nil && ["http", "https"].contains(url.scheme?.lowercased()):
+          self.downloadMedia(url, isVideo: false) {
+            self.sendText(url.absoluteString)
+          }
         case let url as URL where error == nil:
           self.sendMedia(url, isVideo: false, providerTemp: false)
         case let image as UIImage where error == nil:
