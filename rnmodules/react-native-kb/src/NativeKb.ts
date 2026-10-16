@@ -7,7 +7,8 @@ export interface Spec extends TurboModule {
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
   readonly onPushToken: EventEmitter<string>
-  readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
+  // droppedCount: shared items that couldn't be copied
+  readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>; droppedCount?: number}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
   readonly onAppLifecycle: EventEmitter<{state: string}>
   // iOS only: every fix the location watch receives, accuracy in metres

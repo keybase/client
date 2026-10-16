@@ -32,9 +32,10 @@ import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean;
+  // droppedCount: shared items that couldn't be copied
   androidShare?:
-    | { type: T.RPCGen.IncomingShareType.file; urls: Array<string> }
-    | { type: T.RPCGen.IncomingShareType.text; text: string };
+    | { type: T.RPCGen.IncomingShareType.file; urls: Array<string>; droppedCount?: number }
+    | { type: T.RPCGen.IncomingShareType.text; text: string; droppedCount?: number };
   badgeState?: T.RPCGen.BadgeState;
   chatBuiltinCommands?: T.Chat.StaticConfig["builtinCommands"];
   chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>;
