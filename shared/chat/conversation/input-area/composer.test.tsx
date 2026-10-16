@@ -280,6 +280,35 @@ describe('append', () => {
     expect(drafts).not.toContain('')
   })
 
+  test('a draft arriving during an edit started over an append is not merged into the edit', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('shared text')
+    composer.startEdit('my message')
+
+    view.offerDraft('my draft')
+
+    expect(fake.text).toBe('my message')
+    expect(drafts).toEqual(['my draft\nshared text'])
+    composer.clear()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('an edit over an append that ends before the draft is known gives the append back, still ahead of the draft', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('shared text')
+    composer.startEdit('my message')
+
+    composer.clear()
+    expect(fake.text).toBe('shared text')
+    expect(drafts).toEqual([])
+
+    view.offerDraft('my draft')
+    expect(fake.text).toBe('my draft\nshared text')
+    expect(drafts).toEqual(['my draft\nshared text'])
+  })
+
   test('writes nothing where the user cannot post', () => {
     const {composer, drafts, mount, setReadOnly} = setup()
     const {fake} = mount('my draft')
