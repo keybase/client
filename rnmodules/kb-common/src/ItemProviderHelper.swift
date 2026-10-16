@@ -3,6 +3,9 @@ import Foundation
 import ImageIO
 import UIKit
 import UniformTypeIdentifiers
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "item-provider")
 
 @objc(ItemProviderHelper)
 public class ItemProviderHelper: NSObject {
@@ -165,12 +168,16 @@ public class ItemProviderHelper: NSObject {
 
   // Each item gets its own subdirectory so same-named items (edited photos are all
   // FullSizeRender.jpg) don't collide while the real filename is kept.
-  private func getPayloadURL(from url: URL) throws -> URL {
+  private func getPayloadURL(named name: String) throws -> URL {
     let guid = ProcessInfo.processInfo.globallyUniqueString
     let itemFolderURL = payloadFolderURL.appendingPathComponent(guid, isDirectory: true)
     try FileManager.default.createDirectory(
       at: itemFolderURL, withIntermediateDirectories: true, attributes: nil)
-    return itemFolderURL.appendingPathComponent(url.lastPathComponent)
+    return itemFolderURL.appendingPathComponent(name)
+  }
+
+  private func getPayloadURL(from url: URL) throws -> URL {
+    return try getPayloadURL(named: url.lastPathComponent)
   }
 
   private func getPayloadURL(withExtension ext: String?) -> URL {
@@ -210,9 +217,9 @@ public class ItemProviderHelper: NSObject {
   }
 
   private func completeItemAndAppendManifestAndLogError(text: String, error: Error?) {
-    completeItemAndAppend(type: "error", entry: [
-      "error": "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
-    ])
+    let message = "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
+    log.error("item failed: \(message, privacy: .public)")
+    completeItemAndAppend(type: "error", entry: ["error": message])
   }
 
   private func writeManifest() {
@@ -461,8 +468,11 @@ public class ItemProviderHelper: NSObject {
     let type = UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased())
 
     if isVideo {
-      let payloadURL = getPayloadURL(withExtension: type?.preferredFilenameExtension ?? "mp4")
-      guard (try? data.write(to: payloadURL, options: .atomic)) != nil else {
+      let name = PayloadFileName.make(
+        candidates: [url.lastPathComponent], type: type ?? .mpeg4Movie, fallbackBase: "video")
+      guard let payloadURL = try? getPayloadURL(named: name),
+        (try? data.write(to: payloadURL, options: .atomic)) != nil
+      else {
         sendLink()
         return
       }
@@ -473,16 +483,42 @@ public class ItemProviderHelper: NSObject {
     // Written as served. Decoding a large image would blow the extension's
     // memory limit, so anything the app can't show as-is (webp, avif) is
     // transcoded there.
-    guard let ext = (type ?? Self.sniffImageType(data))?.preferredFilenameExtension else {
+    guard let imageType = type ?? Self.sniffImageType(data),
+      imageType.preferredFilenameExtension != nil
+    else {
       sendLink()
       return
     }
-    let payloadURL = getPayloadURL(withExtension: ext)
-    guard (try? data.write(to: payloadURL, options: .atomic)) != nil else {
+    let name = PayloadFileName.make(
+      candidates: [url.lastPathComponent], type: imageType, fallbackBase: "image")
+    guard let payloadURL = try? getPayloadURL(named: name),
+      (try? data.write(to: payloadURL, options: .atomic)) != nil
+    else {
       sendLink()
       return
     }
     completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+  }
+
+  // A provider that vends the image as bytes rather than a file (Safari's
+  // image pages). Written as-is, like a download.
+  private func sendImageData(_ data: Data, typeIdentifier: String, suggestedName: String?) {
+    guard let type = Self.sniffImageType(data) ?? UTType(typeIdentifier),
+      type.preferredFilenameExtension != nil
+    else {
+      completeItemAndAppendManifestAndLogError(
+        text: "sendImageData: \(data.count) bytes of unknown image type \(typeIdentifier)",
+        error: nil)
+      return
+    }
+    let name = PayloadFileName.make(candidates: [suggestedName], type: type, fallbackBase: "image")
+    do {
+      let payloadURL = try getPayloadURL(named: name)
+      try data.write(to: payloadURL, options: .atomic)
+      completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+    } catch {
+      completeItemAndAppendManifestAndLogError(text: "sendImageData: write error", error: error)
+    }
   }
 
   // Reads only the header, so it costs nothing next to a decode.
@@ -533,9 +569,10 @@ public class ItemProviderHelper: NSObject {
 
   // A provider that vends only an in-memory UIImage has no file to copy. The
   // image is already decoded, so encoding it costs little extra memory.
-  private func sendUIImage(_ image: UIImage) {
-    let payloadURL = getPayloadURL(withExtension: "jpg")
+  private func sendUIImage(_ image: UIImage, suggestedName: String?) {
     do {
+      let payloadURL = try getPayloadURL(
+        named: PayloadFileName.make(candidates: [suggestedName], type: .jpeg, fallbackBase: "image"))
       if let cgImage = image.cgImage {
         try Self.encodeJPEG(
           cgImage, orientation: Self.cgOrientation(image.imageOrientation), to: payloadURL)
@@ -546,11 +583,44 @@ public class ItemProviderHelper: NSObject {
         }
         try jpeg.write(to: payloadURL, options: .atomic)
       }
+      completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
     } catch {
       completeItemAndAppendManifestAndLogError(text: "sendUIImage: unable to encode share", error: error)
-      return
     }
-    completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+  }
+
+  // Every image goes through here. A file representation is the cheap path: the
+  // provider's file is copied, never decoded. Two kinds of provider don't get
+  // there. One vends only an in-memory UIImage. The other is Safari sharing an
+  // image page, which vends the image as bytes: asking for a file makes
+  // NSItemProvider write those bytes to a temp file and copy it, and that copy
+  // intermittently fails with a nil error ("Failed to copy item ... to
+  // temporary folder"). loadItem hands back the object itself either way.
+  private func loadImage(_ item: NSItemProvider, typeIdentifier: String) -> Progress {
+    return item.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
+      if let url = url, error == nil {
+        self.sendMedia(url, isVideo: false)
+        return
+      }
+      log.info(
+        "loadFileRepresentation(\(typeIdentifier, privacy: .public)) failed (\(String(describing: error), privacy: .public)); loading the item instead"
+      )
+      item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
+        switch loaded {
+        case let url as URL where error == nil:
+          self.sendMedia(url, isVideo: false)
+        case let image as UIImage where error == nil:
+          self.sendUIImage(image, suggestedName: item.suggestedName)
+        case let data as Data where error == nil:
+          self.sendImageData(data, typeIdentifier: typeIdentifier, suggestedName: item.suggestedName)
+        default:
+          self.completeItemAndAppendManifestAndLogError(
+            text:
+              "loadImage: no file or loadable item for \(typeIdentifier) (got \(loaded.map { String(describing: type(of: $0)) } ?? "nil"))",
+            error: error)
+        }
+      }
+    }
   }
 
   // Providers register several representations for one item and the order is
@@ -609,21 +679,6 @@ public class ItemProviderHelper: NSObject {
       self.sendMedia(error == nil ? url : nil, isVideo: true)
     }
 
-    let imageFileHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-      self.sendMedia(error == nil ? url : nil, isVideo: false)
-    }
-
-    let imageHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
-      if error == nil, let url = item as? URL {
-        self.sendMedia(url, isVideo: false)
-      } else if error == nil, let image = item as? UIImage {
-        self.sendUIImage(image)
-      } else {
-        self.completeItemAndAppendManifestAndLogError(
-          text: "imageHandler: unable to decode share", error: error)
-      }
-    }
-
     let contactHandler: @Sendable (Data?, Error?) -> Void = { data, error in
       if let data = data {
         self.sendContact(data)
@@ -673,30 +728,12 @@ public class ItemProviderHelper: NSObject {
           attachLoaderProgress(
             item.loadFileRepresentation(
               forTypeIdentifier: best.stype, completionHandler: movieHandler))
-        // PNG, GIF, JPEG, HEIC: copy the original file through as-is
-        case .imageFile:
+        // All images are copied as-is, since decoding one can exceed the
+        // extension's memory limit; the app transcodes what it can't send
+        // (TIFF, RAW, webp...).
+        case .imageFile, .image:
           reserveItemProgress(loaderReportsProgress: true)
-          attachLoaderProgress(
-            item.loadFileRepresentation(
-              forTypeIdentifier: best.stype, completionHandler: imageFileHandler))
-        // Other images (TIFF, RAW, webp...): also copied as-is, since decoding
-        // one can exceed the extension's memory limit; the app transcodes. A
-        // provider that only vends an in-memory UIImage has no file
-        // representation, so fall back to loadItem.
-        case .image:
-          reserveItemProgress(loaderReportsProgress: true)
-          attachLoaderProgress(
-            item.loadFileRepresentation(
-              forTypeIdentifier: best.stype,
-              completionHandler: { (url: URL?, error: Error?) in
-                if let url = url, error == nil {
-                  self.sendMedia(url, isVideo: false)
-                } else {
-                  item.loadItem(
-                    forTypeIdentifier: "public.image", options: nil,
-                    completionHandler: imageHandler)
-                }
-              }))
+          attachLoaderProgress(loadImage(item, typeIdentifier: best.stype))
         case .vCard:
           reserveItemProgress(loaderReportsProgress: true)
           attachLoaderProgress(
