@@ -143,9 +143,12 @@ describe('Send on iOS', () => {
 
   test('a failed export stops the Send spinner, shows the error, and Send retries while Send original stays offered', async () => {
     const failure = 'Image processing failed: Failed to create JPEG data'
+    const converted = '/tmp/AV1 Image File Format.converted.jpg'
     jest
       .spyOn(MediaProcess, 'processPaths')
-      .mockResolvedValue([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
+      .mockResolvedValueOnce([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
+      .mockResolvedValueOnce([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
+      .mockResolvedValueOnce([{path: converted}])
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -172,9 +175,15 @@ describe('Send on iOS', () => {
       fireEvent.click(screen.getByText('Send original'))
       await new Promise(resolve => setTimeout(resolve, 0))
     })
+    // as Keep full size would: the avif goes out as a JPEG, never as is
+    expect(MediaProcess.processPaths).toHaveBeenLastCalledWith(
+      [{path: '/tmp/AV1 Image File Format.avif'}],
+      false,
+      expect.any(Function)
+    )
     const params = rpc.params('postAttachment')
     expect(params).toHaveLength(1)
-    expect(params[0]).toMatchObject({filename: '/tmp/AV1 Image File Format.avif'})
+    expect(params[0]).toMatchObject({filename: converted})
   })
 
   test('an export that throws still stops the Send spinner and reports the failure', async () => {
@@ -534,6 +543,56 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(screen.getByText('nope')).toBeTruthy()
     expect(rpc.calls('postAttachment')).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
+  })
+
+  test('Send original converts the images Keep full size would and keeps every original', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.jpg', '/tmp/photo.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.compressed2.jpg')
+    deleted.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send original'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    // only the images, with compression off; the clip goes as is
+    expect(processMediaMock.mock.calls.slice(3).map(c => [c[0], c[2]])).toEqual([
+      ['/tmp/photo.jpg', false],
+    ])
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
+    expect(processMediaMock.mock.calls.slice(4).map(c => [c[0], c[2]])).toEqual([
+      ['/tmp/photo.webp', false],
+    ])
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
+    expect(rpc.params('postAttachment').map(p => (p as {filename: string}).filename)).toEqual([
+      '/tmp/clip.mov',
+      '/tmp/photo.jpg',
+      'file:///tmp/photo.converted.jpg',
+    ])
+    expect(deleted).toEqual([])
+  })
+
+  test('Send original never sends an image it can neither convert nor send without its location', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.jpg', '/tmp/photo.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
+    await finish('/tmp/photo.webp', new Error('undecodable'))
+    deleted.length = 0
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send original'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
+    await finish('/tmp/photo.webp', new Error('undecodable'))
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(
+      screen.getByText(
+        "Couldn't convert photo.webp to JPEG. The original can include its location, so it isn't sent as is."
+      )
+    ).toBeTruthy()
+    expect(screen.queryByText('Send original')).toBeNull()
+    // the passthrough is the original, so nothing is deleted
+    expect(deleted).toEqual([])
   })
 
   // Native processMedia always answers with a file:// path, and with

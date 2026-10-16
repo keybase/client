@@ -3,14 +3,16 @@ import {File} from 'expo-file-system'
 import {processMedia as processMediaNative} from 'react-native-kb'
 
 const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
-// heic/heif, tiff, RAW (dng and camera formats), webp and avif are here because
-// processImage transcodes them to jpeg; the share extension hands them over
-// untouched since decoding them can exceed its memory limit. gif is not, because
-// scaling one would flatten an animation to a single frame.
+// heic/heif, tiff, RAW (dng and camera formats), webp, avif and the other photo
+// formats ImageIO reads are here because processImage transcodes them to jpeg; the
+// share extension hands them over untouched since decoding them can exceed its
+// memory limit. An image left off this list is uploaded as is on every path,
+// location metadata included. gif is not here, because scaling one would flatten
+// an animation to a single frame.
 // Which of these are transcoded even with compression off is the native side's
 // call (MediaUtils.mustTranscode), by content type.
 const processableImageFileNameRegex =
-  /[^/]+\.(jpg|jpeg|png|bmp|heic|heif|tiff|tif|dng|cr2|cr3|nef|arw|raf|orf|rw2|webp|avif)$/i
+  /[^/]+\.(jpg|jpeg|jpe|png|bmp|heic|heics|heif|hif|avci|tiff|tif|webp|avif|jxl|jp2|jpf|jpx|j2k|mpo|psd|dng|cr2|cr3|crw|nef|nefx|nrw|arw|srf|sr2|axr|raf|orf|ori|rw2|raw|rwl|pef|srw|erf|3fr|fff|dcr|mrw|mos|iiq|dxo)$/i
 
 export const isVideoPath = (path: string) => videoFileNameRegex.test(path)
 
