@@ -68,26 +68,30 @@ class MainActivity : ReactActivity() {
                 relay.restore(shareFromBundle(saved), isDone = { IncomingShareDone.contains(done, it) })
             }
             savedInstanceState.getBundle(PREPARING_SHARE)?.let { preparing ->
-                // The copies cut off when the process was killed are made again, under a new tag.
+                // The copies cut off when the process was killed are made again, under a new tag,
+                // and the share keeps its key, so it isn't read again once it was sent.
                 cutOffCopies = preparing.getString(PREPARING_TAG)
-                BundleCompat.getParcelable(preparing, PREPARING_INTENT, Intent::class.java)?.let { captureIntent(it) }
+                val key = preparing.getString(PREPARING_KEY) ?: UUID.randomUUID().toString()
+                if (!IncomingShareDone.contains(done, key)) {
+                    BundleCompat.getParcelable(preparing, PREPARING_INTENT, Intent::class.java)?.let { captureIntent(it, key) }
+                }
             }
         }
-        // Once per process, after a restore so its copies are known and kept.
-        if (!cachePurged) {
-            cachePurged = true
-            val keep = relay.saved().share?.paths.orEmpty().mapNotNull { File(it).parentFile }.toSet()
+        // The purge runs once per process, after a restore so its copies are known and kept.
+        val purge = !cachePurged
+        cachePurged = true
+        val keep = relay.saved().share?.paths.orEmpty().mapNotNull { File(it).parentFile }.toSet()
+        val discard = cutOffCopies
+        if (purge || discard != null) {
             val context: Context = applicationContext
             Thread {
                 try {
-                    cutOffCopies?.let { IncomingShareCache.discardShare(context, it) }
-                    IncomingShareCache.purgeOld(context, keep)
+                    discard?.let { IncomingShareCache.discardShare(context, it) }
+                    if (purge) IncomingShareCache.purgeOld(context, keep)
                 } catch (e: Exception) {
-                    NativeLogger.warn("MainActivity: error purging old incoming shares", e)
+                    NativeLogger.warn("MainActivity: error clearing old incoming shares", e)
                 }
             }.start()
-        } else {
-            cutOffCopies?.let { tag -> Thread { IncomingShareCache.discardShare(applicationContext, tag) }.start() }
         }
 
         // Before super.onCreate so the first frame after the splash already has the
@@ -164,7 +168,8 @@ class MainActivity : ReactActivity() {
     // Snapshot share data out of the intent right away and hand it to the relay, which holds
     // it until JS is ready to route it: URI permission grants and clip data are tied to the
     // delivered intent, and JS may not be ready until much later (after login).
-    private fun captureIntent(intent: Intent) {
+    // key: names the share across processes (see IncomingShareDone).
+    private fun captureIntent(intent: Intent, key: String = UUID.randomUUID().toString()) {
         if (Intent.ACTION_SEND != intent.action && Intent.ACTION_SEND_MULTIPLE != intent.action) {
             return
         }
@@ -198,10 +203,10 @@ class MainActivity : ReactActivity() {
 
         if (isTextSend && textPayload.isNotEmpty()) {
             // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
-            relay.fill(relay.begin(), textShare(text ?: textPayload, 0))
+            relay.fill(relay.begin(), textShare(text ?: textPayload, 0, key))
         } else if (uris.isEmpty()) {
             if (textPayload.isNotEmpty()) {
-                relay.fill(relay.begin(), textShare(textPayload, 0))
+                relay.fill(relay.begin(), textShare(textPayload, 0, key))
             } else {
                 NativeLogger.warn("MainActivity.captureIntent: share had no text or files, type=${intent.type}")
             }
@@ -212,6 +217,7 @@ class MainActivity : ReactActivity() {
             val token = relay.begin(Bundle().apply {
                 putParcelable(PREPARING_INTENT, intent)
                 putString(PREPARING_TAG, tag)
+                putString(PREPARING_KEY, key)
             })
             // Copying out of the content providers can be slow for big files; don't
             // block the main thread on it.
@@ -222,9 +228,9 @@ class MainActivity : ReactActivity() {
                 val droppedCount = uris.size - filePaths.size
                 val share = if (filePaths.isEmpty() && textPayload.isNotEmpty()) {
                     // Fallback: non-text MIME but no files resolved, send text
-                    textShare(textPayload, droppedCount)
+                    textShare(textPayload, droppedCount, key)
                 } else {
-                    IncomingShareRelay.Share(null, filePaths, droppedCount)
+                    IncomingShareRelay.Share(null, filePaths, droppedCount, key)
                 }
                 relay.fill(token, share)
             }.start()
@@ -264,7 +270,8 @@ class MainActivity : ReactActivity() {
     private fun shareFromBundle(b: Bundle) = IncomingShareRelay.Share(
         b.getString("text"), b.getStringArrayList("paths").orEmpty(), b.getInt("droppedCount"), b.getString("key").orEmpty())
 
-    private fun textShare(text: String, droppedCount: Int) = IncomingShareRelay.Share(text, emptyList(), droppedCount)
+    private fun textShare(text: String, droppedCount: Int, key: String) =
+        IncomingShareRelay.Share(text, emptyList(), droppedCount, key)
 
     // EXTRA_TEXT is a CharSequence, often a Spanned from rich-text senders, and an
     // ArrayList of them for SEND_MULTIPLE; getStringExtra returns null for both.
@@ -368,6 +375,7 @@ class MainActivity : ReactActivity() {
         private var cachePurged = false
         private const val PREPARING_INTENT = "intent"
         private const val PREPARING_TAG = "tag"
+        private const val PREPARING_KEY = "key"
         private const val MAX_SAVED_SHARE_BYTES = 200 * 1024
 
         private fun createDummyFile(context: Context) {
