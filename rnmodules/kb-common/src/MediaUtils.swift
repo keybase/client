@@ -1,7 +1,6 @@
 import AVFoundation
 import Foundation
 import ImageIO
-import UIKit
 import UniformTypeIdentifiers
 
 struct MediaProcessingConfig {
@@ -319,23 +318,83 @@ public class MediaUtils: NSObject {
     private static func recompressCGImageSource(
         _ img: CGImageSource, dstURL: URL, options: CFDictionary, quality: CGFloat
     ) throws {
-        guard let fullRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
+        guard let decoded = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to decode image")
         }
+        let image = try jpegEncodable(decoded)
 
         guard
-            let data = UIImage(cgImage: fullRef).jpegData(
-                compressionQuality: quality)
+            let destination = CGImageDestinationCreateWithURL(
+                dstURL as CFURL, UTType.jpeg.identifier as CFString, 1, nil)
         else {
+            throw MediaUtilsError.fileOperationFailed("Failed to create JPEG destination")
+        }
+        CGImageDestinationAddImage(
+            destination, image,
+            [kCGImageDestinationLossyCompressionQuality: quality] as CFDictionary)
+        guard CGImageDestinationFinalize(destination) else {
+            try? FileManager.default.removeItem(at: dstURL)
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
         }
+    }
 
-        do {
-            try data.write(to: dstURL)
-        } catch {
-            throw MediaUtilsError.fileOperationFailed(
-                "Failed to write compressed image: \(error.localizedDescription)")
+    // On iOS the JPEG encoder doesn't take every layout a decoder hands back: an
+    // AVIF as Safari saves it (10-bit packed RGB) produced no data at all. So
+    // anything but plain 8-bit RGB or gray (10-bit packed, 16-bit or float from
+    // deep TIFF, DNG or HDR, CMYK) is redrawn into an 8-bit bitmap first. That
+    // costs one extra 8-bit copy; plain 8-bit images, which is every camera photo
+    // and screenshot, go to the encoder untouched.
+    private static func jpegEncodable(_ image: CGImage) throws -> CGImage {
+        let colorSpace = image.colorSpace
+        let model = colorSpace?.model
+        let isExtended = colorSpace.map(CGColorSpaceUsesExtendedRange) ?? false
+        let isHDR = colorSpace.map(CGColorSpaceUsesITUR_2100TF) ?? false
+        if image.bitsPerComponent == 8,
+            image.pixelFormatInfo == .packed,
+            !image.bitmapInfo.contains(.floatComponents),
+            model == .rgb || model == .monochrome,
+            !isExtended, !isHDR
+        {
+            return image
         }
+
+        // An ordinary RGB space is kept, so Display P3 stays P3. Extended-range and
+        // PQ/HLG spaces can't back an 8-bit bitmap: those clip to Display P3 when
+        // wide gamut and sRGB otherwise, as do CMYK and the rest.
+        let gray = model == .monochrome
+        let target: CGColorSpace?
+        if gray {
+            target = CGColorSpace(name: CGColorSpace.genericGrayGamma2_2)
+        } else if model == .rgb, !isExtended, !isHDR, let colorSpace {
+            target = colorSpace
+        } else if model == .rgb, colorSpace?.isWideGamutRGB ?? false {
+            target = CGColorSpace(name: CGColorSpace.displayP3)
+        } else {
+            target = CGColorSpace(name: CGColorSpace.sRGB)
+        }
+        let alphaInfo: CGImageAlphaInfo = gray ? .none : .noneSkipLast
+        guard let target,
+            let context = CGContext(
+                data: nil, width: image.width, height: image.height, bitsPerComponent: 8,
+                bytesPerRow: 0, space: target, bitmapInfo: alphaInfo.rawValue)
+        else {
+            throw MediaUtilsError.imageProcessingFailed(
+                "Failed to create an 8-bit bitmap for the JPEG")
+        }
+        let rect = CGRect(x: 0, y: 0, width: image.width, height: image.height)
+        // Over white, as the encoder flattens an 8-bit image with alpha.
+        switch image.alphaInfo {
+        case .none, .noneSkipFirst, .noneSkipLast:
+            break
+        default:
+            context.setFillColor(gray: 1, alpha: 1)
+            context.fill(rect)
+        }
+        context.draw(image, in: rect)
+        guard let redrawn = context.makeImage() else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to redraw image for the JPEG")
+        }
+        return redrawn
     }
 
     private static func stripImageExif(at url: URL) throws {
