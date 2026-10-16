@@ -136,14 +136,23 @@ class MainActivity : ReactActivity() {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) {
             return
         }
-        val uris = extractSharedUris(intent)
-        val subject = sharedText(intent, Intent.EXTRA_SUBJECT)
-        val text = sharedText(intent, Intent.EXTRA_TEXT)
-            ?: sharedText(intent, Intent.EXTRA_HTML_TEXT)?.let {
-                // fromHtml leaves an object-replacement character where each image was.
-                HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
-                    .replace("\uFFFC", "").trim().takeIf { t -> t.isNotEmpty() }
-            }
+        // Reading the extras unparcels the sender's bundle, which throws on a class we
+        // don't have (BadParcelableException); that share is unusable, not a crash.
+        val (uris, subject, text) = try {
+            Triple(
+                extractSharedUris(intent),
+                sharedText(intent, Intent.EXTRA_SUBJECT),
+                sharedText(intent, Intent.EXTRA_TEXT)
+                    ?: sharedText(intent, Intent.EXTRA_HTML_TEXT)?.let {
+                        // fromHtml leaves an object-replacement character where each image was.
+                        HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                            .replace("\uFFFC", "").trim().takeIf { t -> t.isNotEmpty() }
+                    },
+            )
+        } catch (e: Exception) {
+            NativeLogger.warn("MainActivity.captureIntent: unreadable share extras, ignoring the share", e)
+            return
+        }
         NativeLogger.info("MainActivity.captureIntent: action=${intent.action}, uriCount=${uris.size}")
 
         val textPayload = listOfNotNull(subject, text).joinToString(" ")
