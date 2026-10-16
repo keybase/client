@@ -572,6 +572,14 @@ public class MediaUtils: NSObject {
                 kCGImagePropertyGPSDictionary: kCFNull,
             ] as CFDictionary
 
+        // The container's own properties (an animation's loop count) aren't
+        // copied with the frames; without them an APNG plays forever.
+        if var container = CGImageSourceCopyProperties(cgSource, nil) as? [CFString: Any] {
+            container[kCGImagePropertyExifDictionary] = nil
+            container[kCGImagePropertyGPSDictionary] = nil
+            CGImageDestinationSetProperties(cgDestination, container as CFDictionary)
+        }
+
         for index in 0..<count {
             CGImageDestinationAddImageFromSource(
                 cgDestination, cgSource, index, removeExifProperties)
