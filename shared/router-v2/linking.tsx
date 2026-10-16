@@ -199,21 +199,14 @@ const customGetStateFromPath = (
 
     // keybase://incoming-share/{conversationIDKey?} — convID present when the user
     // picked a donated conversation directly in the share sheet
-    // ?androidShare={id} names the Android share the screen is for.
-    case 'incoming-share': {
-      const androidShareID = parseInt(new URLSearchParams(path.split('?')[1]).get('androidShare') ?? '', 10)
-      const params = {
-        ...(parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : {}),
-        ...(Number.isNaN(androidShareID) ? {} : {androidShareID}),
-      }
+    case 'incoming-share':
       // Share always ends in chat, so park the chat tab (inbox) beneath the modal;
       // otherwise dismissing/back lands on the initial people tab.
       return NavTree.modalState(
         'incomingShareNew',
-        Object.keys(params).length ? params : undefined,
+        parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined,
         Tabs.chatTab
       )
-    }
 
     // keybase://settingsPushPrompt
     case 'settingsPushPrompt':
