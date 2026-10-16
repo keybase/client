@@ -28,6 +28,9 @@ public class ShareViewController: UIViewController {
   // Work done, Cancel and the watchdog all end the share through finish(),
   // which acts only once. Main thread only.
   private var finished = false
+  // The extension request is completed or cancelled exactly once, whichever
+  // of finish's action, Cancel or a fallback timer gets there first.
+  private var requestEnded = false
   private var alertPresented = false
   // Set when finish() runs before the alert's present animation has ended.
   private var afterPresent: (() -> Void)?
@@ -75,11 +78,15 @@ public class ShareViewController: UIViewController {
   }
 
   private func openAppAndComplete() {
+    guard !requestEnded else { return }
+    requestEnded = true
     openApp()
     extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
   }
 
   private func cancelRequest() {
+    guard !requestEnded else { return }
+    requestEnded = true
     extensionContext?.cancelRequest(
       withError: NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError))
   }
@@ -124,19 +131,34 @@ public class ShareViewController: UIViewController {
     }
   }
 
+  // Cancel always ends the share. Once finish has run, its outcome may still be
+  // waiting on an alert transition, so cancel the request directly.
+  private func userCancelled() {
+    guard finished else {
+      finish(.cancelled)
+      return
+    }
+    log.log("share cancelled by user while finishing")
+    cancelRequest()
+  }
+
   // Tells the user the share couldn't be prepared, then cancels it on OK or
-  // after failureAlertTimeout, whichever comes first.
+  // after failureAlertTimeout, whichever comes first. If afterAlert gave up on
+  // the progress alert it is still on screen and UIKit would refuse a second
+  // alert, so the share ends right away instead.
   private func showFailureAndCancel(message: String) {
-    var cancelled = false
-    let cancelOnce = { [weak self] in
-      guard !cancelled else { return }
-      cancelled = true
-      self?.cancelRequest()
+    guard !requestEnded else { return }
+    guard presentedViewController == nil else {
+      log.error("share: progress alert still up; cancelling without the failure alert")
+      cancelRequest()
+      return
     }
     let failure = UIAlertController(
       title: "Couldn't prepare these items", message: message, preferredStyle: .alert)
-    failure.addAction(UIAlertAction(title: "OK", style: .default) { _ in cancelOnce() })
-    DispatchQueue.main.asyncAfter(deadline: .now() + Self.failureAlertTimeout, execute: cancelOnce)
+    failure.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in self?.cancelRequest() })
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.failureAlertTimeout) { [weak self] in
+      self?.cancelRequest()
+    }
     present(failure, animated: true)
   }
 
@@ -211,7 +233,7 @@ public class ShareViewController: UIViewController {
     let alertController = UIAlertController(title: "Working on it", message: "\n\nPreparing content for sharing into Keybase.", preferredStyle: .alert)
     alertController.addAction(
       UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
-        self?.finish(.cancelled)
+        self?.userCancelled()
       })
     alert = alertController
     let bar = UIProgressView(progressViewStyle: .default)
