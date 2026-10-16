@@ -1,16 +1,31 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as T from '@/constants/types'
 import {act, cleanup, render, screen} from '@testing-library/react'
-import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 
-const mockAcks: Array<number> = []
+type Held = {id: number; text?: string; localPaths?: Array<string>; droppedCount: number}
+const mockNative = {acks: new Array<number>(), held: undefined as Held | undefined}
 jest.mock('react-native-kb', () => ({
-  ackIncomingShare: (id: number) => mockAcks.push(id),
+  ackIncomingShare: (id: number) => {
+    mockNative.acks.push(id)
+    if (mockNative.held?.id === id) mockNative.held = undefined
+  },
+  peekIncomingShare: (id: number) => {
+    const held = mockNative.held
+    return held?.id === id ? {droppedCount: held.droppedCount, localPaths: held.localPaths, text: held.text} : null
+  },
 }))
+// The route's beforeRemove listeners, which fire only when the route leaves the navigator.
+const mockBeforeRemove = new Set<() => void>()
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({setOptions: () => {}}),
+  useNavigation: () => ({
+    addListener: (event: string, listener: () => void) => {
+      if (event !== 'beforeRemove') return () => {}
+      mockBeforeRemove.add(listener)
+      return () => mockBeforeRemove.delete(listener)
+    },
+    setOptions: () => {},
+  }),
 }))
 jest.mock('../chat/send-to-chat', () => ({
   SendToChat: () => null,
@@ -22,7 +37,9 @@ const g = globalThis as unknown as {isAndroid: boolean}
 
 beforeEach(() => {
   g.isAndroid = true
-  mockAcks.length = 0
+  mockNative.acks = []
+  mockNative.held = undefined
+  mockBeforeRemove.clear()
 })
 
 afterEach(() => {
@@ -31,26 +48,25 @@ afterEach(() => {
   resetAllStores()
 })
 
-const setShare = (share: NonNullable<ReturnType<typeof useConfigState.getState>['androidShare']>) =>
-  act(() => useConfigState.getState().dispatch.setAndroidShare(share))
-const fileShare = (id: number, droppedCount = 0, urls = [`/tmp/${id}.pdf`]) =>
-  ({droppedCount, id, type: T.RPCGen.IncomingShareType.file, urls}) as const
-const stored = () => useConfigState.getState().androidShare
+const hold = (id: number, droppedCount = 0, localPaths: Array<string> = [`/tmp/${id}.pdf`]) => {
+  mockNative.held = {droppedCount, id, localPaths}
+}
+const removeRoute = () => act(() => [...mockBeforeRemove].forEach(l => l()))
 
 test('an Android share with dropped files shows the notice on the picker', () => {
-  setShare(fileShare(1, 1))
+  hold(1, 1)
   render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
 })
 
 test('an Android text share sent after every file failed shows the notice', () => {
-  setShare({droppedCount: 1, id: 1, text: 'caption', type: T.RPCGen.IncomingShareType.text})
+  mockNative.held = {droppedCount: 1, id: 1, text: 'caption'}
   render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
 })
 
 test('an Android share whose files all failed says so instead of spinning', () => {
-  setShare(fileShare(1, 2, []))
+  hold(1, 2, [])
   render(<IncomingShareMain androidShareID={1} />)
   expect(
     screen.getByText('None of the 2 shared items could be prepared. Please try sharing them again.')
@@ -58,66 +74,46 @@ test('an Android share whose files all failed says so instead of spinning', () =
 })
 
 test('a complete Android share shows no notice', () => {
-  setShare(fileShare(1))
+  hold(1)
   render(<IncomingShareMain androidShareID={1} />)
   expect(screen.queryByText(/couldn't be prepared/)).toBeNull()
 })
 
-test('an incoming-share link with no Android share behind it says there is nothing to share', () => {
+test('a link whose share is gone says there is nothing to share', () => {
   render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("There's nothing to share.")).toBeTruthy()
 })
 
-test('leaving the share screen clears its share and tells the native side', () => {
-  setShare(fileShare(1))
+test('a link with no id neither shows nor takes the held share', () => {
+  hold(1, 1)
+  const {unmount} = render(<IncomingShareMain />)
+  expect(screen.getByText("There's nothing to share.")).toBeTruthy()
+  removeRoute()
+  unmount()
+  expect(mockNative.acks).toEqual([])
+  expect(mockNative.held?.id).toBe(1)
+})
+
+test('the share is done with only when its route is removed, not when the screen is paused or unmounted', () => {
+  hold(1, 1)
   const {unmount} = render(<IncomingShareMain androidShareID={1} />)
+  // Paused under a pushed screen, or torn down with its navigator: effects clean up, the route stays.
   unmount()
-  expect(stored()).toBeUndefined()
-  expect(mockAcks).toEqual([1])
-})
-
-test('a newer share that arrives while the screen is open, before it closes, is left for its own screen', () => {
-  setShare(fileShare(1))
-  const {rerender, unmount} = render(<IncomingShareMain androidShareID={1} />)
-  setShare(fileShare(2, 1))
-  // The old screen waits for the newer share's own link rather than taking it.
-  expect(screen.queryByText("1 item couldn't be prepared.")).toBeNull()
-  rerender(<IncomingShareMain androidShareID={1} />)
-  unmount()
-  expect(stored()).toEqual(fileShare(2, 1))
-
-  // Its screen opens several commits later.
-  render(<IncomingShareMain androidShareID={2} />)
+  expect(mockNative.acks).toEqual([])
+  render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
+
+  removeRoute()
+  expect(mockNative.acks).toEqual([1])
+  expect(mockNative.held).toBeUndefined()
 })
 
-test('a newer share that arrives after the screen closed is not cleared by it', () => {
-  setShare(fileShare(1))
-  const {unmount} = render(<IncomingShareMain androidShareID={1} />)
-  unmount()
-  setShare(fileShare(2, 1))
-  render(<IncomingShareMain androidShareID={2} />)
-  expect(stored()).toEqual(fileShare(2, 1))
-  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
-})
-
-test('a screen replaced in the same commit leaves the newer share to its replacement', () => {
-  setShare(fileShare(1))
-  const {rerender} = render(<IncomingShareMain key="1" androidShareID={1} />)
-  setShare(fileShare(2, 1))
-  rerender(<IncomingShareMain key="2" androidShareID={2} />)
-  expect(stored()).toEqual(fileShare(2, 1))
-  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
-})
-
-test('a screen reused for the newer share owns it from then on', () => {
-  setShare(fileShare(1))
-  const {rerender, unmount} = render(<IncomingShareMain androidShareID={1} />)
-  setShare(fileShare(2, 1))
+test('a screen reused for a newer share is done with the newer one when removed', () => {
+  hold(1)
+  const {rerender} = render(<IncomingShareMain androidShareID={1} />)
+  hold(2, 1)
   rerender(<IncomingShareMain androidShareID={2} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
-  expect(stored()).toEqual(fileShare(2, 1))
-  unmount()
-  expect(stored()).toBeUndefined()
-  expect(mockAcks).toEqual([1, 2])
+  removeRoute()
+  expect(mockNative.acks).toEqual([2])
 })

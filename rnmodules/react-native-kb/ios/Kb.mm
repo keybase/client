@@ -925,6 +925,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekPushTap) {
 }
 
 // Android only: shares come in through the share extension on iOS.
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekIncomingShare : (double)shareID) {
+  return (id)kCFNull;
+}
+
 RCT_EXPORT_METHOD(ackIncomingShare : (double)shareID) {
 }
 

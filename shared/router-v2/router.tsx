@@ -37,6 +37,7 @@ import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {takeLaunchURL} from './launch-url'
+import {onAndroidShareNavigatorReady} from '@/constants/init/android-share'
 import {holdLoggedOutShare, loggedOutShareToHold, releaseLoggedOutShare} from './logged-out-share'
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
@@ -731,6 +732,9 @@ function NativeRouter() {
       C.Router2.switchTab(tab)
     }
     setNavigationReady(true, currentUid)
+    if (isAndroid) {
+      onAndroidShareNavigatorReady()
+    }
     endUserSwitchLandedOn(username)
   }
 

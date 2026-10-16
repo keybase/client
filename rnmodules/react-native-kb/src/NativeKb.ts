@@ -8,13 +8,8 @@ export interface Spec extends TurboModule {
   readonly onPasteImage: EventEmitter<Array<string>>
   readonly onPushToken: EventEmitter<string>
   // droppedCount: shared items that couldn't be copied
-  // id: the share's id, for ackIncomingShare
-  readonly onShareData: EventEmitter<{
-    text?: string
-    localPaths?: Array<string>
-    droppedCount?: number
-    id: number
-  }>
+  // Android only: a share is held, under this id (see peekIncomingShare)
+  readonly onShareData: EventEmitter<{id: number}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
   readonly onAppLifecycle: EventEmitter<{state: string}>
   // iOS only: every fix the location watch receives, accuracy in metres
@@ -79,7 +74,10 @@ export interface Spec extends TurboModule {
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
   notifyJSReady(): void
   shareListenersRegistered(): void
-  // Android only: JS is done with the share onShareData handed it with this id.
+  // Android only: the held share with this id; null once it is done with or replaced.
+  // droppedCount: shared items that couldn't be copied
+  peekIncomingShare(id: number): {text?: string; localPaths?: Array<string>; droppedCount: number} | null
+  // Android only: JS is done with the share with this id.
   ackIncomingShare(id: number): void
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
