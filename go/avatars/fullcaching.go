@@ -212,14 +212,14 @@ func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
 		return
 	}
 	c.started = true
-	go c.monitorAppState(mctx)
+	bgCtx, cancel := mctx.WithContextCancel()
+	c.diskLRUCleanerCancel = cancel
+	go c.monitorAppState(bgCtx)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for range 10 {
 		go c.populateCacheWorker(mctx)
 	}
-	mctx, cancel := mctx.WithContextCancel()
-	c.diskLRUCleanerCancel = cancel
-	go lru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(mctx), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(bgCtx, c.diskLRU, c.getCacheDir(bgCtx), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(mctx libkb.MetaContext) {
@@ -255,12 +255,16 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		<-m.G().MobileAppState.NextUpdate(state)
-		state = m.G().MobileAppState.State()
-		if state == keybase1.MobileAppState_BACKGROUND {
-			c.debug(m, "monitorAppState: backgrounded")
-			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-				c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
+		select {
+		case <-m.Ctx().Done():
+			return
+		case <-m.G().MobileAppState.NextUpdate(state):
+			state = m.G().MobileAppState.State()
+			if state == keybase1.MobileAppState_BACKGROUND {
+				c.debug(m, "monitorAppState: backgrounded")
+				if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
+					c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
+				}
 			}
 		}
 	}

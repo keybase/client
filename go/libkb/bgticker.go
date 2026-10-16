@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"time"
 )
 
@@ -11,6 +12,8 @@ type BgTicker struct {
 	c          chan time.Time
 	ticker     *time.Ticker
 	resumeWait time.Duration
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 // This ticker wrap's Go's time.Ticker to wait a given time.Duration before
@@ -25,23 +28,40 @@ func NewBgTicker(duration time.Duration) *BgTicker {
 
 func NewBgTickerWithWait(duration time.Duration, wait time.Duration) *BgTicker {
 	c := make(chan time.Time, 1)
+	ctx, cancel := context.WithCancel(context.Background())
 	t := &BgTicker{
 		C:          c,
 		c:          c,
 		ticker:     time.NewTicker(duration - wait),
 		resumeWait: wait,
+		ctx:        ctx,
+		cancel:     cancel,
 	}
 	go t.tick()
 	return t
 }
 
 func (t *BgTicker) tick() {
-	for c := range t.ticker.C {
-		time.Sleep(RandomJitter(t.resumeWait))
-		t.c <- c
+	for {
+		select {
+		case <-t.ctx.Done():
+			return
+		case c := <-t.ticker.C:
+			select {
+			case <-t.ctx.Done():
+				return
+			case <-time.After(RandomJitter(t.resumeWait)):
+			}
+			select {
+			case <-t.ctx.Done():
+				return
+			case t.c <- c:
+			}
+		}
 	}
 }
 
 func (t *BgTicker) Stop() {
+	t.cancel()
 	t.ticker.Stop()
 }
