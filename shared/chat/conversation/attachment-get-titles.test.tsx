@@ -11,6 +11,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {processMedia} from 'react-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
+import {peekInputIntent} from './input-intent-store'
 
 // Native-only packages resolve to this one stub through jest.config's
 // moduleNameMapper, so it carries the export and the file deletes the real
@@ -466,7 +467,11 @@ describe('Send on iOS, with the real export bookkeeping', () => {
   })
 
   // Send, with the export held open until the returned resolve is called.
-  const sendAndHoldExport = async (paths: Array<string>, keepFullSize = false) => {
+  const sendAndHoldExport = async (
+    paths: Array<string>,
+    keepFullSize = false,
+    extra: {pickedAsFiles?: boolean; selectConversationWithReason?: 'extension'; inputPrefillText?: string} = {}
+  ) => {
     if (keepFullSize) {
       jest
         .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
@@ -483,6 +488,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
         conversationIDKey={conversationIDKey}
         pathAndOutboxIDs={paths.map((path, i) => ({outboxID: new Uint8Array([7 + i]), path}))}
         tlfName="testuser,testuser2"
+        {...extra}
       />
     )
     await act(async () => {
@@ -572,27 +578,198 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(deleted).toEqual([])
   })
 
-  test('Send original never sends an image it can neither convert nor send without its location', async () => {
-    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.jpg', '/tmp/photo.webp'])
-    await finish('/tmp/clip.mov', new Error('nope'))
-    await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
-    await finish('/tmp/photo.webp', new Error('undecodable'))
-    deleted.length = 0
+  const sendOriginal = async () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
       await new Promise(resolve => setTimeout(resolve, 0))
     })
+  }
+  const uploaded = () => rpc.params('postAttachment').map(p => (p as {filename: string}).filename)
+  const uploadedTitles = () => rpc.params('postAttachment').map(p => (p as {title: string}).title)
+  const pendingNotice = () => peekInputIntent(conversationIDKey, ['injectText'])?.notice
+
+  test('Send original drops an image it can neither convert nor send without its location, and sends the rest', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.jpg', '/tmp/bad.webp', '/tmp/good.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    await finish('/tmp/good.webp', 'file:///tmp/good.compressed.jpg')
+    deleted.length = 0
+    await sendOriginal()
     await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
-    await finish('/tmp/photo.webp', new Error('undecodable'))
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    await finish('/tmp/good.webp', 'file:///tmp/good.converted.jpg')
+    expect(uploaded()).toEqual(['/tmp/clip.mov', '/tmp/photo.jpg', 'file:///tmp/good.converted.jpg'])
+    expect(C.Router2.clearModals).toHaveBeenCalled()
+    expect(pendingNotice()).toBe(
+      "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location."
+    )
+    // nothing was cancelled but the dropped item's own handle
+    expect(rpc.params('cancelUploadTempFile')).toEqual([new Uint8Array([9])])
+    // the upload reads the converted copy, and no original is ever deleted
+    expect(deleted).toEqual([])
+  })
+
+  test('the titles stay with their items when Send original drops one', async () => {
+    const paths = ['/tmp/clip.mov', '/tmp/bad.webp', '/tmp/photo.jpg']
+    processMediaMock.mockImplementation(async path => {
+      if (path === '/tmp/bad.webp') {
+        return Promise.reject(new Error('Image processing failed: Failed to decode image'))
+      }
+      if (path === '/tmp/clip.mov') {
+        return Promise.reject(new Error('nope'))
+      }
+      return Promise.resolve(`file://${path}`)
+    })
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={paths.map(path => ({path}))}
+        titles={['clip title', 'bad title', 'photo title']}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send All'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    await sendOriginal()
+    expect(uploaded()).toEqual(['/tmp/clip.mov', '/tmp/photo.jpg'])
+    expect(uploadedTitles()).toEqual(['clip title', 'photo title'])
+  })
+
+  test('when Send original can send none of it, nothing goes and only Cancel and Send are left', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/bad.webp'])
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    await sendOriginal()
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
     expect(rpc.calls('postAttachment')).toEqual([])
     expect(
       screen.getByText(
-        "Couldn't convert photo.webp to JPEG. The original can include its location, so it isn't sent as is."
+        "Nothing was sent. bad.webp couldn't be converted to a JPEG, and the original can include its location."
       )
     ).toBeTruthy()
     expect(screen.queryByText('Send original')).toBeNull()
-    // the passthrough is the original, so nothing is deleted
+    expect(screen.getByText('Send')).toBeTruthy()
     expect(deleted).toEqual([])
+  })
+
+  test.each([
+    ['Invalid input: File does not exist at path: /tmp/gone.jpg', 'is no longer on this device.'],
+    [
+      'Image processing failed: Unrecognized image format',
+      "is in a format this device can't read, and the original can include its location.",
+    ],
+  ])('the Send original notice says why: %s', async (failure, reason) => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/x.pef'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/x.pef', new Error(failure))
+    await sendOriginal()
+    await finish('/tmp/x.pef', new Error(failure))
+    expect(uploaded()).toEqual(['/tmp/clip.mov'])
+    expect(pendingNotice()).toBe(`Not sent: x.pef ${reason}`)
+  })
+
+  test('a Send original whose processing throws drops the images as unprepared', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/x.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/x.webp', 'file:///tmp/x.compressed.jpg')
+    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error('boom'))
+    await sendOriginal()
+    expect(uploaded()).toEqual(['/tmp/clip.mov'])
+    expect(pendingNotice()).toBe("Not sent: x.webp couldn't be prepared.")
+  })
+
+  test('a share that drops an item carries the notice to the thread with the prefill', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/bad.webp'], false, {
+      inputPrefillText: 'look',
+      selectConversationWithReason: 'extension',
+    })
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    await sendOriginal()
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+      intent: {
+        notice:
+          "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location.",
+        text: 'look',
+        type: 'injectText',
+      },
+    })
+  })
+
+  test('a screen dismissed during Send original keeps the originals and throws away the conversion', async () => {
+    const {finish, view} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.compressed.jpg')
+    deleted.length = 0
+    await sendOriginal()
+    view.unmount()
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
+  })
+
+  test('an account switch during Send original keeps the originals and throws away the conversion', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.webp', '/tmp/bad.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.compressed.jpg')
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    deleted.length = 0
+    await sendOriginal()
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+      useConfigState.getState().dispatch.setUserSwitching(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
+    await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(rpc.calls('cancelUploadTempFile')).toEqual([])
+    expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
+  })
+
+  test('an account switch during a Send original that drops nothing throws away the conversion', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.webp'])
+    await finish('/tmp/clip.mov', new Error('nope'))
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.compressed.jpg')
+    deleted.length = 0
+    await sendOriginal()
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+      useConfigState.getState().dispatch.setUserSwitching(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
+    await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
+  })
+
+  describe('files chosen in the file picker', () => {
+    const picked = {pickedAsFiles: true}
+
+    test('compressing re-encodes only the images the app always compressed', async () => {
+      const {finish} = await sendAndHoldExport(['/tmp/layers.psd', '/tmp/shot.pef', '/tmp/photo.jpg'], false, picked)
+      expect(processMediaMock.mock.calls.map(c => c[0])).toEqual(['/tmp/photo.jpg'])
+      await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
+      expect(uploaded()).toEqual(['/tmp/layers.psd', '/tmp/shot.pef', 'file:///tmp/photo.compressed.jpg'])
+    })
+
+    test('with compression off nothing is converted', async () => {
+      await sendAndHoldExport(['/tmp/layers.psd', '/tmp/scan.tiff', '/tmp/photo.jpg'], true, picked)
+      expect(processMediaMock).not.toHaveBeenCalled()
+      expect(uploaded()).toEqual(['/tmp/layers.psd', '/tmp/scan.tiff', '/tmp/photo.jpg'])
+    })
+
+    test('Send original sends the files as they are', async () => {
+      const {finish} = await sendAndHoldExport(['/tmp/data.raw', '/tmp/photo.jpg'], false, picked)
+      expect(processMediaMock.mock.calls.map(c => c[0])).toEqual(['/tmp/photo.jpg'])
+      await finish('/tmp/photo.jpg', new Error('nope'))
+      await sendOriginal()
+      expect(processMediaMock).toHaveBeenCalledTimes(1)
+      expect(uploaded()).toEqual(['/tmp/data.raw', '/tmp/photo.jpg'])
+    })
   })
 
   // Native processMedia always answers with a file:// path, and with

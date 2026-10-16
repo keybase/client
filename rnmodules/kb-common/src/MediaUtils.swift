@@ -90,12 +90,16 @@ public class MediaUtils: NSObject {
         // "Keep full size" is a raw share: the original bytes with their original
         // metadata, which is what the settings screen promises. The exception is
         // a format recipients may not be able to show, which always goes out as
-        // a full-size JPEG.
+        // a full-size JPEG. A file this device's ImageIO can't identify (a newer
+        // RAW, jxl before iOS 17) is an error, not a raw share: Send original
+        // takes this path too, and must not upload a location it can't strip.
         if !compress {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
-                let type = CGImageSourceGetType(cgSource).flatMap({ UTType($0 as String) }),
-                mustTranscode(type)
+                let typeID = CGImageSourceGetType(cgSource)
             else {
+                throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
+            }
+            guard let type = UTType(typeID as String), mustTranscode(type) else {
                 return url
             }
             let basename = url.deletingPathExtension().lastPathComponent
@@ -414,7 +418,8 @@ public class MediaUtils: NSObject {
         // image whose pixels are only produced when drawn, and if that fails the
         // draw leaves the bitmap untouched: without this check that would go out
         // as a blank JPEG instead of an error. A fully transparent deep-format image
-        // fails here by design; Send original still sends it.
+        // fails here by design; Send original drops it with a notice rather than
+        // upload an original that can carry its location.
         context.draw(image, in: rect)
         let rowBytes = context.bytesPerRow
         let bytes = pixels.assumingMemoryBound(to: UInt8.self)

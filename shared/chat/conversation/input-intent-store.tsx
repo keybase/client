@@ -25,8 +25,9 @@ import logger from '@/logger'
 export type InputIntent =
   | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
   // notice is shown in the command status bar above the composer, e.g. that some of a share
-  // didn't make it; it rides here because the mailbox holds one intent per conversation
-  | {type: 'injectText'; text: string; notice?: string}
+  // didn't make it; it rides here because the mailbox holds one intent per conversation. With no
+  // text the composer is left as it is.
+  | {type: 'injectText'; text?: string; notice?: string}
   | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
   | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
   | {type: 'highlight'; messageID: T.Chat.MessageID}

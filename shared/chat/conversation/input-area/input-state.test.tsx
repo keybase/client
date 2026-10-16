@@ -816,6 +816,19 @@ test('an injectText notice shows as a warning in the command status bar', () => 
   })
 })
 
+test('an injectText with only a notice leaves the composer text alone', () => {
+  setInputIntent(convID, {text: 'a draft', type: 'injectText'})
+  const {composerInput, result} = renderInput(convID)
+  expect(composerInput.text).toBe('a draft')
+
+  act(() => {
+    setInputIntent(convID, {notice: "Not sent: a.webp couldn't be converted.", type: 'injectText'})
+  })
+
+  expect(composerInput.text).toBe('a draft')
+  expect(result.current.commandStatus?.displayText).toBe("Not sent: a.webp couldn't be converted.")
+})
+
 test('an injectText without a notice leaves the command status bar alone', () => {
   setInputIntent(convID, {text: 'shared text', type: 'injectText'})
 
