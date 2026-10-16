@@ -121,6 +121,27 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
+  // Stops waiting on loads still in flight and writes the manifest from the
+  // items that finished. Returns whether there is anything to share. Main
+  // thread only.
+  @objc public func finishEarly() -> Bool {
+    guard !done else { return false }
+    done = true
+    progress.cancel()
+    let hasItems = !manifest.isEmpty
+    if hasItems {
+      writeManifest()
+    }
+    return hasItems
+  }
+
+  // Abandons the share: in-flight loads are cancelled and no manifest is
+  // written. Main thread only.
+  @objc public func cancel() {
+    done = true
+    progress.cancel()
+  }
+
   private static func getIncomingShareFolder() -> URL {
     let containerURL = FileManager.default.containerURL(
       forSecurityApplicationGroupIdentifier: "group.keybase")!
