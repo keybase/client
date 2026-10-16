@@ -146,6 +146,7 @@ test('an Android share link names its share', () => {
     ],
   })
   expect(getStateFromPath('incoming-share?androidShare=x')).toEqual(getStateFromPath('incoming-share'))
+  expect(getStateFromPath('incoming-share?androidShare=3&open=2')).toEqual(getStateFromPath('incoming-share?androidShare=3'))
 })
 
 test('the push prompt is a modal with no tab parked underneath', () => {

@@ -726,15 +726,15 @@ function NativeRouter() {
   }, [loggedIn])
 
   const onNativeReady = () => {
+    if (isAndroid) {
+      onAndroidShareNavigatorReady()
+    }
     onStateChange()
     const tab = consumePendingAccountSwitchTab(username)
     if (tab) {
       C.Router2.switchTab(tab)
     }
     setNavigationReady(true, currentUid)
-    if (isAndroid) {
-      onAndroidShareNavigatorReady()
-    }
     endUserSwitchLandedOn(username)
   }
 

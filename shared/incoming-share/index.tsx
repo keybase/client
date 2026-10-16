@@ -8,7 +8,7 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
-import {androidShareShown, finishAndroidShare, readAndroidShare} from '@/constants/init/android-share'
+import {readAndroidShare} from '@/constants/init/android-share'
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -232,18 +232,12 @@ const useIncomingShareItems = (androidShareID?: number) => {
     }
   )
 
-  // An Android screen shows only the share its link names, read from native, and is done with it
-  // when its route is removed: not when it is paused under a screen pushed above it.
+  // An Android screen shows only the share its link names, read from native. When it is done with
+  // is up to constants/init/android-share, from the navigation state.
   const androidShare = React.useMemo(
     () => (isAndroid && androidShareID !== undefined ? readAndroidShare(androidShareID) : undefined),
     [androidShareID]
   )
-  const navigation = useNavigation()
-  React.useEffect(() => {
-    if (!isAndroid || androidShareID === undefined) return
-    androidShareShown(androidShareID)
-    return navigation.addListener('beforeRemove', () => finishAndroidShare(androidShareID))
-  }, [androidShareID, navigation])
 
   if (isAndroid) {
     return {
