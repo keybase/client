@@ -101,12 +101,20 @@ test('a held share opens over the chat tab once logged in with the navigator rea
   expect(opened).toEqual(['over tabs 1'])
 })
 
-test('a share opens above a pushed screen instead of replacing it', () => {
+test('a share resets to the chat tab with the share above it, whatever was pushed', () => {
   ready()
   setState(withConversation)
   hold(1)
-  expect(opened).toEqual(['push 1'])
-  expect(root.routes.map(r => r.name)).toEqual(['loggedIn', 'chatConversation', 'incomingShareNew'])
+  expect(opened).toEqual(['over tabs 1'])
+  expect(root.routes.map(r => r.name)).toEqual(['loggedIn', 'incomingShareNew'])
+})
+
+test('a newer share replaces the screen of the one it supersedes', () => {
+  ready()
+  hold(1)
+  hold(2)
+  expect(root.routes.map(r => r.name)).toEqual(['loggedIn', 'incomingShareNew'])
+  expect(opened).toEqual(['over tabs 1', 'over tabs 2'])
 })
 
 test('a pending link or tap for this account goes first; the share opens once it was followed', () => {
@@ -117,7 +125,7 @@ test('a pending link or tap for this account goes first; the share opens once it
   expect(opened).toEqual([])
   setState(withConversation)
   dispatch.acknowledge(useNavigationIntentsState.getState().intent!.id)
-  expect(opened).toEqual(['push 1'])
+  expect(opened).toEqual(['over tabs 1'])
 })
 
 test('a tap waiting on a switch to another account does not hold the share up', () => {
