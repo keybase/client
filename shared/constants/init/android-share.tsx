@@ -1,9 +1,10 @@
 import * as T from '@/constants/types'
+import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
-import {navigationRef} from '@/constants/navigator'
+import {getNavigator, navigationRef} from '@/constants/navigator'
 import {ackIncomingShare, peekIncomingShare} from 'react-native-kb'
-import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState} from '@/stores/router'
 
@@ -15,10 +16,6 @@ import {useRouterState} from '@/stores/router'
 // (logout, account switch, the app's surface going away) is not the user leaving the share, so its
 // shares are not done with: the next navigator opens them again. A new navigator is told apart by
 // its container, so its first state is never compared with an older navigator's.
-
-// The link that opens an Android share. It names the share, so the screen it opens knows which
-// share is its own.
-export const androidShareURL = (id: number) => `keybase://incoming-share?androidShare=${id}`
 
 type StateLike = {routes?: ReadonlyArray<{params?: object; state?: StateLike}>} | undefined
 
@@ -36,14 +33,9 @@ let heldShareID: number | undefined
 // The navigator (its container) whose state was seen last, and the shares its routes are for.
 let navigator: unknown
 let navigatorShareIDs = new Set<number>()
-// The link this navigator was sent for the held share and hasn't shown yet, and how many were sent.
-// Each link sent is new (open=<n>): the intents store drops a link it just followed, and a new
-// navigator may need the same share's link again within that window.
-let issuedURL: string | undefined
-let issuedCount = 0
-// Whether the held share's link was sent again because one that was followed didn't land. Once per
-// share per navigator, so a link that never lands can't be sent over and over.
-let reissued = false
+// A share navigated to and not yet in a reported state. The navigation is a reset or a push of a
+// registered route, which always commits a new state, so the next state report settles it.
+let openingShareID: number | undefined
 
 const finishAndroidShare = (id: number) => {
   logger.info(`[AndroidShare] done with share ${id}`)
@@ -52,52 +44,50 @@ const finishAndroidShare = (id: number) => {
 }
 
 const openHeldShare = () => {
-  if (heldShareID === undefined || navigatorShareIDs.has(heldShareID)) return
-  const {intent, lastHandledIntent, navigationReady} = useNavigationIntentsState.getState()
-  // Sent already: wait for the state to show it, unless it was dropped before it was followed.
-  if (
-    issuedURL?.startsWith(`${androidShareURL(heldShareID)}&`) &&
-    (intent?.url === issuedURL || lastHandledIntent?.url === issuedURL)
-  ) {
-    return
-  }
+  const id = heldShareID
+  if (id === undefined || navigatorShareIDs.has(id) || openingShareID === id) return
   const {loggedIn, userSwitching} = useConfigState.getState()
-  if (!loggedIn || userSwitching || !navigationReady || intent) return
-  issuedURL = `${androidShareURL(heldShareID)}&open=${++issuedCount}`
-  logger.info(`[AndroidShare] opening share ${heldShareID}`)
-  emitDeepLink(issuedURL)
+  const {intent, navigationReady} = useNavigationIntentsState.getState()
+  // A link or tap about to navigate this account goes first, and the share opens above where it
+  // went once it has: its consumption changes the store, which runs this again. One waiting on a
+  // switch to another account doesn't hold the share up.
+  const uid = useCurrentUserState.getState().uid
+  const waiting = !!intent && (!intent.targetUid || intent.targetUid === uid)
+  if (!loggedIn || userSwitching || !navigationReady || waiting) return
+  const navigator = getNavigator()
+  const routes = navigator.getRootState()?.routes ?? []
+  // The share screen is one of the logged-in screens: until they are in the state (just after
+  // login) a navigation to it would go nowhere. Their arrival is a state report, which runs this.
+  if (!routes.some(r => r.name === 'loggedIn')) return
+  const screen = {name: 'incomingShareNew', params: {androidShareID: id}} as const
+  // Over the tabs alone, the chat tab is parked under the share, which always ends in chat. Over
+  // anything else, the share is pushed on top, so nothing already navigated to is replaced.
+  const overTabsOnly = routes.length <= 1
+  const opened = overTabsOnly ? navigator.showAboveTabs(Tabs.chatTab, screen) : navigator.navigateAppend(screen)
+  if (opened) {
+    logger.info(`[AndroidShare] opening share ${id}`)
+    openingShareID = id
+  }
 }
 
 const onNavState = (state: StateLike) => {
+  // No state is no navigator to compare: nothing was left, and nothing is shown.
+  if (!state) return
   const next = shareIDsIn(state)
   const current = navigationRef.current
   // Logging out, and starting an account switch, reset loggedIn before the navigator empties.
-  if (current === navigator && state && useConfigState.getState().loggedIn) {
+  if (current === navigator && useConfigState.getState().loggedIn) {
     for (const id of navigatorShareIDs) {
       if (!next.has(id)) finishAndroidShare(id)
     }
-  } else {
-    issuedURL = undefined
-    reissued = false
   }
   navigator = current
   navigatorShareIDs = next
-  if (heldShareID !== undefined && next.has(heldShareID)) {
-    reissued = false
-  } else if (
-    !reissued &&
-    issuedURL !== undefined &&
-    useNavigationIntentsState.getState().lastHandledIntent?.url === issuedURL
-  ) {
-    // The link was followed and the state still doesn't show the share: it didn't land.
-    reissued = true
-    issuedURL = undefined
-  }
+  openingShareID = undefined
   openHeldShare()
 }
 
 export const onAndroidShareHeld = (id: number) => {
-  if (heldShareID !== id) reissued = false
   heldShareID = id
   openHeldShare()
 }
@@ -131,6 +121,5 @@ export const resetAndroidShareForTest = () => {
   heldShareID = undefined
   navigator = undefined
   navigatorShareIDs = new Set()
-  issuedURL = undefined
-  reissued = false
+  openingShareID = undefined
 }

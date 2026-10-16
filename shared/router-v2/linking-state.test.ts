@@ -137,18 +137,6 @@ test('an incoming share with a conversation preselects it', () => {
   })
 })
 
-test('an Android share link names its share', () => {
-  expect(getStateFromPath('incoming-share?androidShare=3')).toEqual({
-    index: 1,
-    routes: [
-      {name: 'loggedIn', state: {index: 0, routes: [{name: Tabs.chatTab}]}},
-      {name: 'incomingShareNew', params: {androidShareID: 3}},
-    ],
-  })
-  expect(getStateFromPath('incoming-share?androidShare=x')).toEqual(getStateFromPath('incoming-share'))
-  expect(getStateFromPath('incoming-share?androidShare=3&open=2')).toEqual(getStateFromPath('incoming-share?androidShare=3'))
-})
-
 test('the push prompt is a modal with no tab parked underneath', () => {
   expect(getStateFromPath('settingsPushPrompt')).toEqual({
     index: 1,
