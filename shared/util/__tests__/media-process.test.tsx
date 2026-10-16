@@ -149,7 +149,7 @@ describe('processPaths', () => {
 
   it('hands the paths straight back off iOS', async () => {
     global.isIOS = false
-    const out = await processPaths([{path: '/tmp/clip.mp4'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mp4'}], {compress: true})
     expect(out).toEqual([{path: '/tmp/clip.mp4'}])
     expect(processMediaMock).not.toHaveBeenCalled()
     expect(deleted).toEqual([])
@@ -160,21 +160,27 @@ describe('processPaths', () => {
     const onProgress = jest.fn()
     const out = await processPaths(
       [{edit: {endMs: 9000, removeAudio: true, startMs: 500}, path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
-      true,
+      {compress: true},
       onProgress
     )
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {path: '/tmp/photo.jpg.out'}])
-    expect(processMediaMock).toHaveBeenNthCalledWith(1, '/tmp/clip.mp4', true, true, 500, 9000, true)
-    expect(processMediaMock).toHaveBeenNthCalledWith(2, '/tmp/photo.jpg', false, true, 0, 0, false)
+    expect(processMediaMock).toHaveBeenNthCalledWith(1, '/tmp/clip.mp4', true, true, 500, 9000, true, false)
+    expect(processMediaMock).toHaveBeenNthCalledWith(2, '/tmp/photo.jpg', false, true, 0, 0, false, false)
     expect(onProgress.mock.calls).toEqual([
       [1, 2],
       [2, 2],
     ])
   })
 
+  it('forwards stripLocation for Send original', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(path))
+    await processPaths([{path: '/tmp/photo.jpg'}], {compress: false, stripLocation: true})
+    expect(processMediaMock).toHaveBeenCalledWith('/tmp/photo.jpg', false, false, 0, 0, false, true)
+  })
+
   it('leaves every file in place, since the caller may still back out', async () => {
     processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
-    await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
     expect(deleted).toEqual([])
   })
 
@@ -182,7 +188,7 @@ describe('processPaths', () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
     )
-    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}])
   })
 
@@ -190,26 +196,26 @@ describe('processPaths', () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('')) : Promise.resolve(`${path}.out`)
     )
-    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
     expect(out[1]).toEqual({error: 'Processing failed', path: '/tmp/photo.jpg'})
   })
 
   it('hands back the source string for a passthrough native reports as file://', async () => {
     // native always answers file://; a pasted image arrives bare
     processMediaMock.mockImplementation(async path => Promise.resolve(`file://${path}`))
-    const out = await processPaths([{path: '/tmp/paste.png'}], false)
+    const out = await processPaths([{path: '/tmp/paste.png'}], {compress: false})
     expect(out).toEqual([{path: '/tmp/paste.png'}])
   })
 
   it('keeps a transcoded output as native named it', async () => {
     processMediaMock.mockResolvedValue('file:///tmp/clip-small.mp4')
-    const out = await processPaths([{path: '/tmp/clip.mov'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mov'}], {compress: true})
     expect(out).toEqual([{path: 'file:///tmp/clip-small.mp4'}])
   })
 
   it('still returns every result when the progress callback throws', async () => {
     processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
-    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true, () => {
+    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], {compress: true}, () => {
       throw new Error('boom')
     })
     expect(out).toEqual([{path: '/tmp/a.jpg.out'}, {path: '/tmp/b.jpg.out'}])
@@ -219,7 +225,7 @@ describe('processPaths', () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
     )
-    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true)
+    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], {compress: true})
     expect(processMediaMock).toHaveBeenCalledTimes(2)
     expect(out[1]).toEqual({path: '/tmp/b.jpg.out'})
   })

@@ -179,7 +179,7 @@ describe('Send on iOS', () => {
     // as Keep full size would: the avif goes out as a JPEG, never as is
     expect(MediaProcess.processPaths).toHaveBeenLastCalledWith(
       [{path: '/tmp/AV1 Image File Format.avif'}],
-      false,
+      {compress: false, stripLocation: true},
       expect.any(Function)
     )
     const params = rpc.params('postAttachment')
@@ -371,7 +371,7 @@ describe('Send with compression off', () => {
     await send('/tmp/scan.tiff')
     expect(MediaProcess.processPaths).toHaveBeenCalledWith(
       [{edit: undefined, path: '/tmp/scan.tiff'}],
-      false,
+      {compress: false},
       expect.any(Function)
     )
     const params = rpc.params('postAttachment')
@@ -561,13 +561,13 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       fireEvent.click(screen.getByText('Send original'))
       await new Promise(resolve => setTimeout(resolve, 0))
     })
-    // only the images, with compression off; the clip goes as is
-    expect(processMediaMock.mock.calls.slice(3).map(c => [c[0], c[2]])).toEqual([
-      ['/tmp/photo.jpg', false],
+    // only the images, with compression off and their location stripped; the clip goes as is
+    expect(processMediaMock.mock.calls.slice(3).map(c => [c[0], c[2], c[6]])).toEqual([
+      ['/tmp/photo.jpg', false, true],
     ])
     await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
-    expect(processMediaMock.mock.calls.slice(4).map(c => [c[0], c[2]])).toEqual([
-      ['/tmp/photo.webp', false],
+    expect(processMediaMock.mock.calls.slice(4).map(c => [c[0], c[2], c[6]])).toEqual([
+      ['/tmp/photo.webp', false, true],
     ])
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
     expect(rpc.params('postAttachment').map(p => (p as {filename: string}).filename)).toEqual([
@@ -576,6 +576,20 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       'file:///tmp/photo.converted.jpg',
     ])
     expect(deleted).toEqual([])
+  })
+
+  test('with Keep full size, Send original keeps an original and its metadata', async () => {
+    // the pdf first: an image preview doesn't render under jsdom
+    const {finish} = await sendAndHoldExport(['/tmp/notes.pdf', '/tmp/photo.jpg', '/tmp/photo.webp'], true)
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
+    await finish('/tmp/photo.webp', new Error('nope'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send original'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(processMediaMock.mock.calls.slice(2).map(c => [c[0], c[2], c[6]])).toEqual([
+      ['/tmp/photo.jpg', false, false],
+    ])
   })
 
   const sendOriginal = async () => {

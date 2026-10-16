@@ -737,6 +737,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         startMs: Double,
         endMs: Double,
         removeAudio: Boolean,
+        stripLocation: Boolean,
         promise: Promise
     ) {
         promise.reject(Exception("wrong platform"))
