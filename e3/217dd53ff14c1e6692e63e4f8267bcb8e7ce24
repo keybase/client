@@ -1,0 +1,28 @@
+go/libkb/bgticker.go
+  s_cd4372a37f6aa9::t_1cfa6ffb1fed18 4,15-16
+  s_cd4372a37f6aa9::t_efbb9e87aef127 31,37-38,45-60,65
+go/avatars/urlcaching.go
+  s_cd4372a37f6aa9::t_82b818e14b69db 38-46,50-56
+  s_cd4372a37f6aa9::t_aa22c26820c25f 6,19-21
+  s_cd4372a37f6aa9::t_8981fef0029426 76-84
+  s_cd4372a37f6aa9::t_54bf6777291662 22
+go/avatars/fullcaching.go
+  s_cd4372a37f6aa9::t_e60fe2b1faf13c 215-217,222
+  s_cd4372a37f6aa9::t_fdcbdf8abbc999 258-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e3217dd53ff14c1e6692e63e4f8267bcb8e7ce24",
+  "prompts": {},
+  "sessions": {
+    "s_cd4372a37f6aa9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "247495ed-15b9-4663-9e13-f706fce185e4",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
