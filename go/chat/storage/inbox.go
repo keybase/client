@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec // G505: SHA1 used for non-cryptographic cache key generation, not for security
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -180,11 +182,14 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 	}
 }
 
+// diskReadError returns a clearing InternalError only when the stored bytes
+// themselves are unusable. Anything else, such as failing to fetch the
+// secretbox key, can be transient and must not wipe the inbox.
 func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
-	if _, ok := err.(libkb.LoginRequiredError); ok {
-		return MiscError{Msg: err.Error()}
+	if errors.Is(err, encrypteddb.ErrDecryptionFailed) || errors.Is(err, encrypteddb.ErrUndecodable) {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
 	}
-	return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
+	return MiscError{Msg: fmt.Sprintf("failed to read inbox: uid: %s err: %s", uid, err)}
 }
 
 func (i *Inbox) maybeNuke(ctx context.Context, ef func() Error, uid gregor1.UID) {
@@ -717,6 +722,9 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 		}
 
 		if convs, err = i.readConvs(ctx, uid, iboxIndex.ConversationIDs); err != nil {
+			if _, ok := err.(MissError); !ok {
+				return 0, nil, err
+			}
 			i.Debug(ctx, "Read: unexpected miss on index read: %s", err)
 			return 0, nil, NewInternalError(ctx, i.DebugLabeler, "index out of sync with convs")
 		}

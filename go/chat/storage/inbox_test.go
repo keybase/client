@@ -969,7 +969,7 @@ func TestInboxMemCacheClearOnlyUID(t *testing.T) {
 
 func TestInboxClearLockedCorruptIndexClearsAll(t *testing.T) {
 	var key [32]byte
-	tc, inbox, uid := setupInboxNoSignupTest(t, "clridx", &key)
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clridx", fixedKeyFn(&key))
 	defer tc.Cleanup()
 	defer inboxMemCache.Clear(uid)
 	ctx := context.TODO()
@@ -991,8 +991,8 @@ func TestInboxClearLockedCorruptIndexClearsAll(t *testing.T) {
 }
 
 // setupInboxNoSignupTest makes uid the active device's user without a server
-// signup and points the inbox at a caller-controlled secretbox key.
-func setupInboxNoSignupTest(t *testing.T, name string, key *[32]byte) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
+// signup and points the inbox at a caller-controlled secretbox key function.
+func setupInboxNoSignupTest(t *testing.T, name string, keyFn encrypteddb.KeyFn) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
 	tc := setupCommonTest(t, name)
 	kuid := libkb.UsernameToUID("testuser")
 	deviceID, err := libkb.NewDeviceID()
@@ -1002,15 +1002,18 @@ func setupInboxNoSignupTest(t *testing.T, name string, key *[32]byte) (kbtest.Ch
 		libkb.KeychainModeNone))
 	inbox := NewInbox(tc.Context())
 	inbox.encryptedDB = encrypteddb.New(tc.G,
-		func(g *libkb.GlobalContext) *libkb.JSONLocalDb { return g.LocalChatDb },
-		func(context.Context) ([32]byte, error) { return *key, nil })
+		func(g *libkb.GlobalContext) *libkb.JSONLocalDb { return g.LocalChatDb }, keyFn)
 	return tc, inbox, gregor1.UID(kuid.ToBytes())
+}
+
+func fixedKeyFn(key *[32]byte) encrypteddb.KeyFn {
+	return func(context.Context) ([32]byte, error) { return *key, nil }
 }
 
 func TestInboxUndecryptableIsClearedThenMisses(t *testing.T) {
 	var key [32]byte
 	key[0] = 1
-	tc, inbox, uid := setupInboxNoSignupTest(t, "undecryptable", &key)
+	tc, inbox, uid := setupInboxNoSignupTest(t, "undecryptable", fixedKeyFn(&key))
 	defer tc.Cleanup()
 	defer inboxMemCache.Clear(uid)
 	ctx := context.TODO()
@@ -1064,4 +1067,51 @@ func TestInboxUndecryptableIsClearedThenMisses(t *testing.T) {
 	require.Zero(t, vers)
 	_, _, err = inbox.Read(ctx, uid, nil)
 	require.ErrorAs(t, err, new(MissError))
+}
+
+func TestInboxKeyFetchErrorDoesNotClear(t *testing.T) {
+	var key [32]byte
+	var keyErr error
+	keyFn := func(context.Context) ([32]byte, error) { return key, keyErr }
+	tc, inbox, uid := setupInboxNoSignupTest(t, "keyerr", keyFn)
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	inboxMemCache.Clear(uid)
+
+	keyErr = libkb.KeyCannotDecryptError{}
+	_, err := inbox.Version(ctx, uid)
+	require.Error(t, err)
+	require.False(t, err.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a key fetch failure must not clear %v", k)
+	}
+
+	keyErr = nil
+	vers, err := inbox.Version(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, chat1.InboxVers(5), vers)
+
+	// Versions are now cached in memory; with the index cached too, Read
+	// reaches the conv boxes on disk and the key fetch fails there.
+	inboxMemCache.PutIndex(uid, &inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}})
+	keyErr = libkb.KeyCannotDecryptError{}
+	_, _, err = inbox.Read(ctx, uid, &chat1.GetInboxQuery{AllowUnseenQuery: true})
+	require.Error(t, err)
+	require.False(t, err.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a key fetch failure reading convs must not clear %v", k)
+	}
 }

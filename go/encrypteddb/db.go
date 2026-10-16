@@ -24,6 +24,11 @@ type boxedData struct {
 // ErrDecryptionFailed is returned when an encrypteddb box fails to decrypt
 var ErrDecryptionFailed = errors.New("failed to decrypt item")
 
+// ErrUndecodable wraps msgpack decode failures of a stored box or of its
+// decrypted payload. Like ErrDecryptionFailed it means the stored bytes are
+// unusable, as opposed to a failure to fetch the key.
+var ErrUndecodable = errors.New("failed to decode item")
+
 // ***
 // If we change this, make sure to update the key derivation reason for all callers of EncryptedDB!
 // ***
@@ -53,7 +58,7 @@ func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(b, &boxed); err != nil {
-		return err
+		return fmt.Errorf("%w: box: %w", ErrUndecodable, err)
 	}
 	if boxed.V > cryptoVersion {
 		return fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
@@ -69,7 +74,7 @@ func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
 	}
 
 	if err = libkb.MPackDecode(pt, res); err != nil {
-		return err
+		return fmt.Errorf("%w: payload: %w", ErrUndecodable, err)
 	}
 	return nil
 }
