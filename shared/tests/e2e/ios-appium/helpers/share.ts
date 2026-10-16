@@ -414,23 +414,36 @@ export const shareContactSheet = (name: string) => async () => {
 
 // Maps: a dropped pin's place card.
 export const shareMapsPinSheet = (lat: number, lon: number, name: string) => async () => {
-  openUrl(`maps://?ll=${lat},${lon}&q=${encodeURIComponent(name)}`)
+  const url = `maps://?ll=${lat},${lon}&q=${encodeURIComponent(name)}`
+  openUrl(url)
   const share = 'name == "CardButtonTypeShare"'
+  // Maps can show the place card and then swap it for a search sheet with only the address in the
+  // search field (no Share button). Tap Share while it is there, and open the link again when the
+  // card is gone, until the share sheet is up.
+  let reopenAt = Date.now() + 8_000
   await waitFor(
-    'the place card',
+    'the Maps share sheet',
     async () => {
-      if (await exists(share)) return true
+      if (await exists('name == "shareCell"')) return true
+      if (await exists(share)) {
+        await pred(share).click().catch(() => {})
+        await sleep(1500)
+        return undefined
+      }
       await dismissSystemPrompts(MAPS)
       for (const l of ['Not Now', 'Continue']) {
         if (await exists(`type == "XCUIElementTypeButton" AND label == ${quote(l)}`)) {
           await tapWhenExists(`type == "XCUIElementTypeButton" AND label == ${quote(l)}`)
         }
       }
+      if (Date.now() > reopenAt) {
+        openUrl(url)
+        reopenAt = Date.now() + 8_000
+      }
       return undefined
     },
-    {interval: 1000, timeout: 30_000}
+    {interval: 1000, timeout: 45_000}
   )
-  await tapWhenExists(share)
 }
 
 // -- the share ------------------------------------------------------------------------------------
