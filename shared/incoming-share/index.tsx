@@ -31,6 +31,19 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
   return name || `1 ${incomingShareTypeToString(item.type, false)}`
 }
 
+// What to tell the user about items the share extension couldn't hand over.
+export const getDroppedItemsMessage = (sharedCount: number, droppedCount: number): string => {
+  if (droppedCount <= 0) {
+    return ''
+  }
+  if (sharedCount <= 0) {
+    return droppedCount === 1
+      ? "The shared item couldn't be prepared. Please try sharing it again."
+      : `None of the ${droppedCount} shared items could be prepared. Please try sharing them again.`
+  }
+  return `${droppedCount} of ${sharedCount + droppedCount} items couldn't be prepared.`
+}
+
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
@@ -54,6 +67,7 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 
 type IncomingShareProps = {
   incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
+  droppedMessage: string
 }
 
 type SelectedConversationProps = {
@@ -61,11 +75,12 @@ type SelectedConversationProps = {
 }
 
 const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
+  const {droppedMessage, incomingShareItems, selectedConversationIDKey} = props
   const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
   // Always the untouched original: trimming and compression happen downstream on
   // the get-titles screen, so the extension's copy must not be pre-processed.
-  const {sendPaths, text} = props.incomingShareItems.reduce(
+  const {sendPaths, text} = incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
         return {sendPaths, text: item.content}
@@ -79,7 +94,6 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   )
 
   // Pre-selected conv: navToThread + attachments directly (skip SendToChat)
-  const selectedConversationIDKey = props.selectedConversationIDKey
   const canDirectNav = selectedConversationIDKey && T.Chat.isValidConversationIDKey(selectedConversationIDKey)
   const hasNavigatedRef = React.useRef(false)
   React.useEffect(() => {
@@ -94,6 +108,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
         params: {
           conversationIDKey: selectedConversationIDKey,
           inputPrefillText: text,
+          notice: droppedMessage || undefined,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
           })),
@@ -106,10 +121,10 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
         intent: text === undefined ? undefined : {text, type: 'injectText'},
       })
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage])
 
-  const footer = useFooter(props.incomingShareItems)
-  const contentDescription = getContentDescriptionText(props.incomingShareItems)
+  const footer = useFooter(incomingShareItems)
+  const contentDescription = getContentDescriptionText(incomingShareItems)
 
   React.useEffect(() => {
     navigation.setOptions({
@@ -127,13 +142,19 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   }
 
   return (
-    <Kb.ModalScreen scroll={false} padding="none" footer={footer}>
+    <Kb.ModalScreen
+      scroll={false}
+      padding="none"
+      footer={footer}
+      banner={droppedMessage ? <Kb.Banner color="yellow">{droppedMessage}</Kb.Banner> : undefined}
+    >
       <SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
     </Kb.ModalScreen>
   )
 }
 
-const IncomingShareError = () => {
+const IncomingShareError = (props: {message?: string}) => {
+  const {message} = props
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   const erroredSendFeedback = () => {
@@ -146,19 +167,22 @@ const IncomingShareError = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
-      <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
+      <Kb.Text type="BodySmall" center={true}>
+        {message || 'Whoops! Something went wrong.'}
+      </Kb.Text>
       <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
     </Kb.Box2>
   )
 }
 
 const noShareItems = new Array<T.RPCGen.IncomingShareItem>()
+const noIncomingShare = {droppedCount: 0, items: noShareItems}
 
 const useIncomingShareItems = () => {
-  const {data: incomingShareItems = noShareItems, error: incomingShareError} = useRPCLoad(
+  const {data: incomingShare = noIncomingShare, error: incomingShareError} = useRPCLoad(
     T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
     [undefined],
-    {enabled: isIOS, map: items => items || noShareItems}
+    {enabled: isIOS, map: res => ({droppedCount: res.droppedCount, items: res.items || noShareItems})}
   )
 
   const androidShare = useConfigState(s => s.androidShare)
@@ -180,20 +204,26 @@ const useIncomingShareItems = () => {
     }
   }, [setAndroidShare])
 
-  return {incomingShareError, incomingShareItems: androidShareItems ?? incomingShareItems}
+  return androidShareItems
+    ? {droppedCount: 0, incomingShareError: undefined, incomingShareItems: androidShareItems}
+    : {droppedCount: incomingShare.droppedCount, incomingShareError, incomingShareItems: incomingShare.items}
 }
 
 const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
 const IncomingShareMain = (props: SelectedConversationProps) => {
-  const {incomingShareError, incomingShareItems} = useIncomingShareItems()
+  const {droppedCount, incomingShareError, incomingShareItems} = useIncomingShareItems()
+  const droppedMessage = getDroppedItemsMessage(incomingShareItems.length, droppedCount)
   return incomingShareError ? (
     <IncomingShareError />
   ) : incomingShareItems.length ? (
     <IncomingShare
+      droppedMessage={droppedMessage}
       incomingShareItems={incomingShareItems}
       selectedConversationIDKey={props.selectedConversationIDKey}
     />
+  ) : droppedMessage ? (
+    <IncomingShareError message={droppedMessage} />
   ) : (
     <LoadingSpinner />
   )

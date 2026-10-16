@@ -31,6 +31,8 @@ type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
   inputPrefillText?: string
+  // Shown above the preview, e.g. that some shared items didn't make it
+  notice?: string
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
@@ -78,7 +80,7 @@ const processForSend = async (
 
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()
-  const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
+  const {notice, titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
@@ -399,12 +401,15 @@ const ContainerInner = (ownProps: OwnProps) => {
     <Kb.ModalScreen
       scroll={false}
       banner={
-        <Kb.ErrorBanner
-          error={error}
-          onClose={() => {
-            setError(undefined)
-          }}
-        />
+        <>
+          {notice ? <Kb.Banner color="yellow">{notice}</Kb.Banner> : null}
+          <Kb.ErrorBanner
+            error={error}
+            onClose={() => {
+              setError(undefined)
+            }}
+          />
+        </>
       }
       footer={
         <Kb.ButtonBar direction={stackButtons ? 'column' : 'row'} fullWidth={true} small={true}>
