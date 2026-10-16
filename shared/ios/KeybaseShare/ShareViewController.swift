@@ -59,6 +59,8 @@ public class ShareViewController: UIViewController {
     case done, stalled, cancelled
   }
 
+  private static let manifestFailedMessage = "These items couldn't be saved for sharing."
+
   func openApp() {
     let path = selectedConvID.map { "keybase://incoming-share/\($0)" } ?? "keybase://incoming-share"
     guard let url = URL(string: path) else { return }
@@ -101,7 +103,10 @@ public class ShareViewController: UIViewController {
       // Everything failed: say so here rather than opening the app to an empty
       // share. A share with nothing we could even try still opens the app.
       let failed = iph?.failedCount ?? 0
-      if !(iph?.hasPreparedItems ?? false) && failed > 0 {
+      if iph?.manifestWritten == false {
+        log.error("share failed: manifest not written")
+        afterAlert { self.showFailureAndCancel(message: Self.manifestFailedMessage) }
+      } else if !(iph?.hasPreparedItems ?? false) && failed > 0 {
         log.error("share failed: none of \(failed, privacy: .public) items could be prepared")
         afterAlert {
           self.showFailureAndCancel(
@@ -121,7 +126,9 @@ public class ShareViewController: UIViewController {
         if hasItems {
           self.openAppAndComplete()
         } else {
-          self.showFailureAndCancel(message: "Preparing these items took too long.")
+          self.showFailureAndCancel(
+            message: self.iph?.manifestWritten == false
+              ? Self.manifestFailedMessage : "Preparing these items took too long.")
         }
       }
     case .cancelled:
@@ -148,6 +155,9 @@ public class ShareViewController: UIViewController {
   // alert, so the share ends right away instead.
   private func showFailureAndCancel(message: String) {
     guard !requestEnded else { return }
+    // The app isn't opened for this share, so its manifest of failures has no
+    // reader.
+    iph?.removeManifest()
     guard presentedViewController == nil else {
       log.error("share: progress alert still up; cancelling without the failure alert")
       cancelRequest()
