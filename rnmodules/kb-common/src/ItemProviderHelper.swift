@@ -732,7 +732,7 @@ public class ItemProviderHelper: NSObject {
       sendURLItem(order, nil)
       return
     }
-    if let url = URL(string: str.trimmingCharacters(in: .whitespacesAndNewlines)) {
+    if let url = ShareText.linkURL(str) {
       sendURLItem(order, url)
     } else {
       sendText(order, str)

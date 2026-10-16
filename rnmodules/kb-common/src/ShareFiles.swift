@@ -174,6 +174,16 @@ enum ShareText {
     })
   }
 
+  // The URL a link item's text names, if it is one. URL(string:) no longer
+  // fails on plain text (it percent-encodes "hello world"), so a URL without a
+  // scheme is text, not a link.
+  static func linkURL(_ text: String) -> URL? {
+    guard let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
+      let scheme = url.scheme, !scheme.isEmpty
+    else { return nil }
+    return url
+  }
+
   // A lone web address, nothing else.
   static func isLink(_ text: String) -> Bool {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
