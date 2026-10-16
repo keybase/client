@@ -122,6 +122,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let editing = false
   // set while an append shows ahead of a draft that hasn't loaded: saving now would replace it
   let appendedBeforeDraft = false
+  // that text, set aside by an edit started over it, to go after the draft once the draft loads
+  let appendSetAside: string | undefined
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
 
@@ -175,11 +177,17 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   const clear = (target: ComposerInput, focus: boolean) => {
     if (editing) {
       const readOnly = deps.isReadOnly()
-      write(target, readOnly ? '' : (saved ?? ''), focus)
+      // an append set aside with the draft still unknown comes back alone, still ahead of the draft
+      const backAhead = !readOnly && appendSetAside !== undefined
+      write(target, readOnly ? '' : backAhead ? (appendSetAside ?? '') : (saved ?? ''), focus)
       if (readOnly) {
         draftLoaded = false
       }
       editing = false
+      if (backAhead) {
+        appendSetAside = undefined
+        appendedBeforeDraft = true
+      }
     } else {
       write(target, '', focus)
     }
@@ -215,17 +223,23 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // store, and read-only clearing offers it again.
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
+    // an edit is never merged with the draft: the draft and any append set aside wait for it to end
+    if (editing) {
+      draftLoaded = true
+      saved = draft
+      if (appendSetAside !== undefined) {
+        saved = appendLine(draft, appendSetAside)
+        appendSetAside = undefined
+        deps.saveDraft(saved)
+      }
+      return
+    }
     if (appendedBeforeDraft) {
       if (!input || deps.isReadOnly()) return
       draftLoaded = true
       appendedBeforeDraft = false
       saved = draft
       write(input, appendLine(draft, text), false)
-      return
-    }
-    if (editing) {
-      draftLoaded = true
-      saved = draft
       return
     }
     if (text !== '' || !draft) {
@@ -335,6 +349,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     startEdit: next => {
       if (deps.isReadOnly()) return false
       whenAttached(target => {
+        if (appendedBeforeDraft) {
+          appendSetAside = text
+          appendedBeforeDraft = false
+        }
         editing = true
         write(target, next, false)
       })
