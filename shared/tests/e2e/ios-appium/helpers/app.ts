@@ -1,9 +1,30 @@
-import {execSync} from 'child_process'
+import {execFileSync} from 'child_process'
 import {existsSync} from 'fs'
 import * as path from 'path'
 
+// A synchronous child blocks the event loop, so mocha's per-test timeout can never fire while it
+// runs: every one needs its own deadline. simctl, for one, can wait forever on an Xcode
+// first-launch install. On a timeout the child is killed and this throws.
+export function runSync(file: string, args: ReadonlyArray<string>, timeoutMs: number): string {
+  try {
+    return execFileSync(file, args, {
+      encoding: 'utf8',
+      killSignal: 'SIGKILL',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: timeoutMs,
+    })
+  } catch (e) {
+    if ((e as {code?: string}).code === 'ETIMEDOUT') {
+      throw new Error(`${[file, ...args].join(' ')} did not finish within ${timeoutMs / 1000}s; killed it`, {
+        cause: e,
+      })
+    }
+    throw e
+  }
+}
+
 export function udidForName(name: string): string {
-  const json = execSync('xcrun simctl list devices available -j', {encoding: 'utf8'})
+  const json = runSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], 60_000)
   const devices = (JSON.parse(json) as {devices: Record<string, Array<{name: string; udid: string}>>}).devices
   for (const runtime of Object.keys(devices)) {
     for (const d of devices[runtime] ?? []) {
@@ -25,7 +46,7 @@ export function requireSmokeUser(): string {
 export function androidSerial(): string {
   const override = process.env['KB_ANDROID_SERIAL']
   if (override) return override
-  const out = execSync('adb devices', {encoding: 'utf8'})
+  const out = runSync('adb', ['devices'], 60_000)
   for (const line of out.split('\n').slice(1)) {
     const [serial, state] = line.trim().split(/\s+/)
     if (serial && state === 'device') return serial
@@ -74,7 +95,7 @@ export function androidCapabilities(serial: string) {
 // It never touches DeviceHub, which the runners open, so the window stays up either way.
 function hasSimulatorApp(): boolean {
   try {
-    const developerDir = execSync('xcode-select -p', {encoding: 'utf8'}).trim()
+    const developerDir = runSync('xcode-select', ['-p'], 30_000).trim()
     return existsSync(path.join(developerDir, 'Applications', 'Simulator.app'))
   } catch {
     return true

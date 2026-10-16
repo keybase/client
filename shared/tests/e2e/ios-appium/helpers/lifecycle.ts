@@ -1,8 +1,7 @@
-import {execFileSync} from 'child_process'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {udidForName} from './app'
+import {runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {waitForTestID} from './elements'
@@ -22,8 +21,10 @@ export const deviceUdid = () => process.env['KB_IOS_UDID'] ?? udidForName(device
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-export const simctl = (...args: Array<string>): string =>
-  execFileSync('xcrun', ['simctl', ...args], {encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']})
+// Covers a log show over a long run and an addmedia of several videos; a cold boot gets longer.
+const simctlMs = (args: ReadonlyArray<string>) => (args[0] === 'bootstatus' ? 300_000 : 120_000)
+
+export const simctl = (...args: Array<string>): string => runSync('xcrun', ['simctl', ...args], simctlMs(args))
 
 // Retries until check returns a value, or throws with the last error once the timeout passes.
 export const waitFor = async <R>(
