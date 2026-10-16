@@ -1,5 +1,5 @@
 // Share-source matrix: the Files app, from a folder seeded in its "On My iPhone" storage.
-import {FILES, missingAsset, runSource, seedFilesFolder, shareFilesSheet, skipIfMissing} from '../helpers/share'
+import {FILES, runSource, shareFilesSheet, skipIfMissing} from '../helpers/share'
 
 // Text files are documents the user picked: each goes as a file under its own name, never pasted into
 // the composer (a Latin-1 one used to paste its local path).
@@ -9,23 +9,8 @@ const documents = ['clip.m4a', 'invite.ics', 'doc.docx', 'data.json', 'page.html
 const exactly = (name: string) => new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
 
 describe('Share from Files', () => {
-  let dir = ''
-  before(() => {
-    dir = seedFilesFolder(
-      'ShareMatrix',
-      [
-        'doc.pdf',
-        'bundle.zip',
-        'small.tif',
-        'empty.dat',
-        'photo-b.png',
-        'short.mp4',
-        ...textFiles,
-        'notes2.txt',
-        ...documents,
-      ].filter(n => !missingAsset(n))
-    )
-  })
+  // each source seeds the folder with only its own files
+  const dir = 'ShareMatrix'
 
   it('a pdf', async () => {
     await runSource('files-pdf', {host: FILES, open: shareFilesSheet(dir, ['doc.pdf'])}, {items: [{name: /^doc\.pdf$/, type: 'file'}]})

@@ -72,7 +72,8 @@ describe('Share text and other sources', () => {
   })
 
   // Whitespace isn't something to share: the extension says it couldn't prepare the item and never
-  // opens the app.
+  // opens the app. Its process can outlive the share (the alert alone stays up about 10s), so the
+  // log line is the sign it finished, not the process going away.
   it('whitespace-only text selected in Safari', async () => {
     const share = await shareToKeybase(
       {host: SAFARI, open: shareSafariElementSheet(`${server!.origin}/text.html`, 'blank text', {selectAll: true})},
@@ -80,7 +81,6 @@ describe('Share text and other sources', () => {
     )
     const problems = [
       ...(share.appOpened ? ['the app opened for a whitespace-only share'] : []),
-      ...(share.extensionFinished ? [] : ['the share extension never finished']),
       ...(share.manifest?.some(m => !m.error) ? [`the manifest has items: ${JSON.stringify(share.manifest)}`] : []),
       ...(share.extLog.some(l => l.includes('share failed: none of')) ? [] : ['the extension never logged the failed share']),
     ]

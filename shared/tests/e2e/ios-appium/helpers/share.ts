@@ -110,11 +110,38 @@ export const incomingShareDir = () =>
 
 export type ManifestItem = {type?: string; originalPath?: string; content?: string; error?: string}
 
-export const readManifest = (): Array<ManifestItem> | undefined => {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(incomingShareDir(), 'manifest.json'), 'utf8')) as Array<ManifestItem>
-  } catch {
-    return undefined
+// The app claims a manifest as soon as it opens (renames it to manifest.<random>.claimed, reads it,
+// removes it), so a share's manifest is caught while the share runs: the newest one written since
+// `since`, under either name.
+const watchManifest = (since: Date) => {
+  const dir = incomingShareDir()
+  let seen: {mtimeMs: number; items: Array<ManifestItem>} | undefined
+  const peek = () => {
+    let names: Array<string>
+    try {
+      names = fs.readdirSync(dir)
+    } catch {
+      return
+    }
+    for (const n of names) {
+      if (n !== 'manifest.json' && !/^manifest\..+\.claimed$/.test(n)) continue
+      try {
+        const f = path.join(dir, n)
+        const {mtimeMs} = fs.statSync(f)
+        if (mtimeMs < since.getTime() || (seen && mtimeMs < seen.mtimeMs)) continue
+        seen = {items: JSON.parse(fs.readFileSync(f, 'utf8')) as Array<ManifestItem>, mtimeMs}
+      } catch {
+        // claimed or removed between the listing and the read, or still being renamed into place
+      }
+    }
+  }
+  const timer = setInterval(peek, 50)
+  return {
+    stop: () => {
+      clearInterval(timer)
+      peek()
+      return seen?.items
+    },
   }
 }
 
@@ -300,9 +327,10 @@ export const rotateNewestPhotos = async (count: number) => {
   }
 }
 
-// Files: the named files in a seeded folder; one is shared from its context menu, several from
-// selection mode.
-export const shareFilesSheet = (dir: string, names: Array<string>) => async () => {
+// Files: the named files in a folder seeded with only them, so every cell is on the first screen;
+// one is shared from its context menu, several from selection mode.
+export const shareFilesSheet = (folder: string, names: Array<string>) => async () => {
+  const dir = seedFilesFolder(folder, names)
   openUrl(`shareddocuments://${encodeURI(dir)}`)
   // a cell is named "<name>, <extension>", where Files drops the extension from the name for the
   // types it knows (pdf, mp4, tif) and keeps it for the rest (zip, dat)
@@ -463,61 +491,66 @@ export const shareToKeybase = async (
 ): Promise<ShareOutcome> => {
   removeManifest()
   const since = new Date(Date.now() - 1000)
+  const manifest = watchManifest(since)
   const before = new Set(extensionPids())
   const extensionRunning = () => extensionPids().some(p => !before.has(p))
   let t0 = 0
-  await inApp(
-    source.host,
-    async () => {
-      await source.open()
-      await pred(target).waitForExist({interval: 200, timeout: 15_000, timeoutMsg: `the share sheet never showed ${target}`})
-      // A sheet still loading its preview (a video) takes the tap without acting on it, so tap until
-      // the extension starts.
-      await sleep(1200)
-      await waitFor(
-        'the share extension to start',
-        async () => {
-          if (extensionRunning() || (await appState(BUNDLE_ID)) === FOREGROUND) return true
-          if (await exists(target)) {
-            t0 ||= Date.now()
-            await pred(target).click().catch(() => {})
-          }
-          return undefined
-        },
-        {interval: 2500, timeout: 30_000}
-      )
-    },
-    {fresh: source.fresh ?? true}
-  )
-  // the extension's watchdog gives up after 120s without progress
-  const appOpened = await waitFor('the app to open', async () => ((await appState(BUNDLE_ID)) === FOREGROUND ? true : undefined), {
-    interval: 300,
-    timeout,
-  }).catch(() => false)
-  const ms = Date.now() - t0
-  // The extension opens the app only after its alert is gone, right before it completes the request,
-  // so an open app means it finished. Without one, it finished only if its process went away (a
-  // cancelled share); iOS may keep a finished extension's process around for a while.
-  const extensionFinished =
-    appOpened ||
-    (await waitFor('the share extension to exit', () => (extensionRunning() ? undefined : true), {
+  try {
+    await inApp(
+      source.host,
+      async () => {
+        await source.open()
+        await pred(target).waitForExist({interval: 200, timeout: 15_000, timeoutMsg: `the share sheet never showed ${target}`})
+        // A sheet still loading its preview (a video) takes the tap without acting on it, so tap until
+        // the extension starts.
+        await sleep(1200)
+        await waitFor(
+          'the share extension to start',
+          async () => {
+            if (extensionRunning() || (await appState(BUNDLE_ID)) === FOREGROUND) return true
+            if (await exists(target)) {
+              t0 ||= Date.now()
+              await pred(target).click().catch(() => {})
+            }
+            return undefined
+          },
+          {interval: 2500, timeout: 30_000}
+        )
+      },
+      {fresh: source.fresh ?? true}
+    )
+    // the extension's watchdog gives up after 120s without progress
+    const appOpened = await waitFor('the app to open', async () => ((await appState(BUNDLE_ID)) === FOREGROUND ? true : undefined), {
       interval: 300,
-      timeout: 1_000,
-    }).catch(() => false))
-  if (!extensionFinished) {
-    // only this share's extension: an older one may belong to a share still on screen. pgrep is
-    // host-wide, so with two simulators booted this could also pick up the other one's extension.
-    await browser.saveScreenshot(path.join(shareDebugDir(), `stuck-${Date.now()}.png`)).catch(() => {})
-    for (const pid of extensionPids().filter(p => !before.has(p))) {
-      try {
-        execFileSync('kill', ['-9', pid])
-      } catch {
-        // already gone
+      timeout,
+    }).catch(() => false)
+    const ms = Date.now() - t0
+    // The extension opens the app only after its alert is gone, right before it completes the request,
+    // so an open app means it finished. Without one, it finished only if its process went away (a
+    // cancelled share); iOS may keep a finished extension's process around for a while.
+    const extensionFinished =
+      appOpened ||
+      (await waitFor('the share extension to exit', () => (extensionRunning() ? undefined : true), {
+        interval: 300,
+        timeout: 1_000,
+      }).catch(() => false))
+    if (!extensionFinished) {
+      // only this share's extension: an older one may belong to a share still on screen. pgrep is
+      // host-wide, so with two simulators booted this could also pick up the other one's extension.
+      await browser.saveScreenshot(path.join(shareDebugDir(), `stuck-${Date.now()}.png`)).catch(() => {})
+      for (const pid of extensionPids().filter(p => !before.has(p))) {
+        try {
+          execFileSync('kill', ['-9', pid])
+        } catch {
+          // already gone
+        }
       }
     }
+    await sleep(500)
+    return {appOpened, extLog: extensionLogSince(since), extensionFinished, manifest: manifest.stop(), ms}
+  } finally {
+    manifest.stop()
   }
-  await sleep(500)
-  return {appOpened, extLog: extensionLogSince(since), extensionFinished, manifest: readManifest(), ms}
 }
 
 export const shareDebugDir = () => {
@@ -716,8 +749,13 @@ export const sendToSelfConversation = async (
   return {delivered, destination}
 }
 
-const deliveredType = (m: Delivered): ItemType =>
-  m.type === 'text' ? 'text' : m.videoDuration ? 'video' : m.attachmentType === 'image' ? 'image' : 'file'
+const deliveredType = (m: Delivered): ItemType => {
+  if (m.type === 'text') return 'text'
+  // an audio file goes as a file, and arrives as an audio attachment with a duration
+  if (m.attachmentType === 'audio') return 'file'
+  if (m.videoDuration) return 'video'
+  return m.attachmentType === 'image' ? 'image' : 'file'
+}
 
 // "1:15, 54 MB" → 75
 export const durationSeconds = (videoDuration?: string) => {
