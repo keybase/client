@@ -47,14 +47,15 @@ func newKbwebClient() (*kbwebClient, error) {
 	if !ok {
 		return nil, fmt.Errorf("Could not read CA for keybase.io")
 	}
+	// Clone keeps DefaultTransport's dial, handshake, and idle timeouts.
+	// ForceAttemptHTTP2 stays set, so the custom TLS config does not disable HTTP/2.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{
+		RootCAs:    certPool,
+		MinVersion: tls.VersionTLS12,
+	}
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:    certPool,
-				MinVersion: tls.VersionTLS12,
-			},
-			ForceAttemptHTTP2: true,
-		},
+		Transport: transport,
 	}
 	return &kbwebClient{http: client}, nil
 }

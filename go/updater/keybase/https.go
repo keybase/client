@@ -29,10 +29,10 @@ func httpClientWithCert(cert string, timeout time.Duration) (*http.Client, error
 		RootCAs:    certPool,
 		MinVersion: tls.VersionTLS12,
 	}
-	transport := &http.Transport{
-		TLSClientConfig:   tlsConfig,
-		ForceAttemptHTTP2: true,
-	}
+	// Clone keeps DefaultTransport's dial, handshake, and idle timeouts.
+	// ForceAttemptHTTP2 stays set, so the custom TLS config does not disable HTTP/2.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = tlsConfig
 	return &http.Client{
 		Transport: transport,
 		Timeout:   timeout,

@@ -108,22 +108,19 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 }
 
 func httpClient(mctx libkb.MetaContext, host string) *http.Client {
-	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
 		MinVersion: tls.VersionTLS12,
 	}
+	// Clone keeps DefaultTransport's dial, handshake, and idle timeouts.
+	// ForceAttemptHTTP2 stays set, so the custom TLS config does not disable HTTP/2.
+	xprt := http.DefaultTransport.(*http.Transport).Clone()
 	xprt.TLSClientConfig = tlsConfig
-	// Custom TLSClientConfig disables HTTP/2 unless this is set. The giphy
-	// proxy negotiates h2 when SNI is the giphy host.
-	xprt.ForceAttemptHTTP2 = true
-
-	env := mctx.G().Env
-	xprt.Proxy = libkb.MakeProxy(env)
+	xprt.Proxy = libkb.MakeProxy(mctx.G().Env)
 
 	return &http.Client{
 		Transport: libkb.NewInstrumentedRoundTripper(mctx.G(),
-			func(*http.Request) string { return host + " Giphy" }, libkb.NewClosingRoundTripper(&xprt)),
+			func(*http.Request) string { return host + " Giphy" }, libkb.NewClosingRoundTripper(xprt)),
 		Timeout: 10 * time.Second,
 	}
 }
