@@ -1,10 +1,12 @@
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 import os
 
 private let log = Logger(subsystem: "com.keybase.app", category: "item-provider")
 
-// The file work behind a share's payloads and manifest. Foundation only, so it
-// can be exercised off-device.
+// The file work behind a share's payloads and manifest. No UIKit, so it can be
+// exercised off-device.
 enum ShareFiles {
   // The app reads the manifest as soon as it is opened, so it must never see a
   // partial one: the JSON is written to a temporary file in the same directory
@@ -60,5 +62,15 @@ enum ShareFiles {
       }
     }
     try fm.copyItem(at: src, to: dst)
+  }
+
+  // The image format of data, from its header alone, so it costs nothing next
+  // to a decode. nil unless ImageIO knows the format and finds an image in it.
+  static func imageType(of data: Data) -> UTType? {
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+      let id = CGImageSourceGetType(source),
+      CGImageSourceGetCount(source) > 0
+    else { return nil }
+    return UTType(id as String)
   }
 }
