@@ -47,12 +47,18 @@ public class MediaUtils: NSObject {
         ] as CFDictionary
     }
 
+    // stripLocation is for Send original after a compressed run: with compress
+    // off, an image that would go as it is must carry no location, so it is
+    // stripped, or else converted to a JPEG, or else this fails. "Keep full size"
+    // passes false and gets the original with its metadata.
     @objc public static func processImage(
         fromOriginal url: URL,
         compress: Bool,
+        stripLocation: Bool,
         completion: @escaping (Error?, URL?) -> Void
     ) {
-        processImageAsync(fromOriginal: url, compress: compress) { result in
+        processImageAsync(fromOriginal: url, compress: compress, stripLocation: stripLocation) {
+            result in
             switch result {
             case .success(let url):
                 completion(nil, url)
@@ -65,11 +71,13 @@ public class MediaUtils: NSObject {
     static func processImageAsync(
         fromOriginal url: URL,
         compress: Bool,
+        stripLocation: Bool = false,
         completion: @escaping ProcessMediaCompletion
     ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let processedURL = try processImageSync(fromOriginal: url, compress: compress)
+                let processedURL = try processImageSync(
+                    fromOriginal: url, compress: compress, stripLocation: stripLocation)
                 DispatchQueue.main.async {
                     completion(.success(processedURL))
                 }
@@ -81,7 +89,9 @@ public class MediaUtils: NSObject {
         }
     }
 
-    private static func processImageSync(fromOriginal url: URL, compress: Bool) throws -> URL {
+    private static func processImageSync(
+        fromOriginal url: URL, compress: Bool, stripLocation: Bool
+    ) throws -> URL {
         // Validate input
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
@@ -93,13 +103,17 @@ public class MediaUtils: NSObject {
         // a full-size JPEG. A file this device's ImageIO can't identify (a newer
         // RAW, jxl before iOS 17) is an error, not a raw share: Send original
         // takes this path too, and must not upload a location it can't strip.
+        // With stripLocation, an image that would go as it is goes only once it
+        // carries no location; one the strip can't clean becomes a JPEG instead.
         if !compress {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
                 let typeID = CGImageSourceGetType(cgSource)
             else {
                 throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
             }
-            guard let type = UTType(typeID as String), mustTranscode(type) else {
+            if let type = UTType(typeID as String), !mustTranscode(type),
+                !stripLocation || removeLocation(at: url)
+            {
                 return url
             }
             let basename = url.deletingPathExtension().lastPathComponent
@@ -114,11 +128,10 @@ public class MediaUtils: NSObject {
 
         // The source is stripped in place, not only the output: after a failure
         // Send original uploads what compress off returns, which for a send-as-is
-        // type is the source itself, and it must not carry GPS that the compressed
-        // send would have removed. Best effort, since ImageIO can read some files it
-        // can't rewrite (webp, RAW, a 10-bit AVIF on iOS). Those still get their
-        // JPEG here, and are all mustTranscode types, which Send original converts
-        // to a metadata-free JPEG instead of uploading as they are.
+        // type is the source itself. Best effort, since ImageIO can read some files
+        // it can't rewrite (webp, RAW, a 10-bit AVIF on iOS). Those still get their
+        // JPEG here, and Send original (stripLocation) checks again and converts
+        // anything still carrying a location.
         do {
             try stripImageExif(at: url)
         } catch {
@@ -146,10 +159,10 @@ public class MediaUtils: NSObject {
 
     // Images that may be sent as they are. Everything else (bmp, TIFF, RAW,
     // webp, avif, heif) is transcoded even with compression off. The JS side sends
-    // every processable image here and leaves this call to us. Each of these must be
-    // a type the GPS strip can rewrite in place: Send original uploads them as they
-    // are. public.heic is, public.heif is not, and the two don't conform to each
-    // other.
+    // every processable image here and leaves this call to us. Each of these should
+    // be a type the GPS strip can rewrite in place, since Send original uploads them
+    // as they are once stripped (and as a JPEG when it can't strip one). public.heic
+    // is, public.heif is not, and the two don't conform to each other.
     private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .gif, .heic]
 
     private static func mustTranscode(_ type: UTType) -> Bool {
@@ -442,6 +455,37 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.imageProcessingFailed("Failed to redraw image for the JPEG")
         }
         return redrawn
+    }
+
+    // Whether any frame of the image carries GPS. A frame ImageIO can't read
+    // properties for is assumed to: it reports none at all, not even a pixel
+    // size, for a truncated JPEG whose header still holds the GPS.
+    private static func hasLocation(_ url: URL) -> Bool {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return true }
+        let count = CGImageSourceGetCount(source)
+        guard count > 0 else { return true }
+        return (0..<count).contains { index in
+            guard let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any],
+                props[kCGImagePropertyPixelWidth] != nil
+            else { return true }
+            let gps = props[kCGImagePropertyGPSDictionary] as? [CFString: Any]
+            return !(gps?.isEmpty ?? true)
+        }
+    }
+
+    // Strips the image in place if it carries GPS. Returns whether it is free of
+    // GPS afterwards: the strip skips formats ImageIO can't write, and can fail.
+    private static func removeLocation(at url: URL) -> Bool {
+        guard hasLocation(url) else { return true }
+        do {
+            try stripImageExif(at: url)
+        } catch {
+            log.warning(
+                "stripImageExif failed for \(url.path, privacy: .private): \(error.localizedDescription, privacy: .private)"
+            )
+            return false
+        }
+        return !hasLocation(url)
     }
 
     private static func stripImageExif(at url: URL) throws {

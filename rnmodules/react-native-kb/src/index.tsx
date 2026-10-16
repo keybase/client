@@ -30,10 +30,11 @@ export const processMedia = (
   compress: boolean,
   startMs = 0,
   endMs = 0,
-  removeAudio = false
+  removeAudio = false,
+  stripLocation = false
 ): Promise<string> => {
   if (Platform.OS === 'ios') {
-    return Kb.processMedia(path, isVideo, compress, startMs, endMs, removeAudio)
+    return Kb.processMedia(path, isVideo, compress, startMs, endMs, removeAudio, stripLocation)
   }
   return Promise.resolve(path)
 }

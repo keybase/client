@@ -102,9 +102,16 @@ export const processingErrorMessage = (e: unknown) =>
 // the one form any two paths are compared in.
 const barePath = (p: string) => (p.startsWith('file://') ? p.slice('file://'.length) : p)
 
+// stripLocation: see processMedia in react-native-kb. Send original after a
+// compressed run sets it; "Keep full size" keeps an original's metadata.
+export type ProcessOptions = {
+  compress: boolean
+  stripLocation?: boolean
+}
+
 export const processPaths = async (
   items: ReadonlyArray<ProcessItem>,
-  compress: boolean,
+  {compress, stripLocation = false}: ProcessOptions,
   onProgress?: (done: number, total: number) => void
 ): Promise<Array<ProcessResult>> => {
   if (!isIOS) return items.map(i => ({path: i.path}))
@@ -117,7 +124,8 @@ export const processPaths = async (
         compress,
         edit?.startMs ?? 0,
         edit?.endMs ?? 0,
-        edit?.removeAudio ?? false
+        edit?.removeAudio ?? false,
+        stripLocation
       )
       // A passthrough is the source itself; hand back the caller's own string.
       out.push({path: barePath(processed) === barePath(path) ? path : processed})

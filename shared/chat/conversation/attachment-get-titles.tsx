@@ -239,9 +239,10 @@ const ContainerInner = (ownProps: OwnProps) => {
 
     // Send original sends what "Keep full size" would: a format recipients can't
     // show (webp, avif, tiff, RAW) becomes a metadata-free JPEG, and the rest come
-    // back as the source (stripped of GPS in place by a compressed run, raw with
-    // Keep full size). Those formats can't always be stripped in place, so one that
-    // can't be converted is dropped rather than sent with its location, and the
+    // back as the source. After a compressed run that source must carry no
+    // location (stripLocation): native strips it, or converts it to a JPEG, or
+    // fails it. With Keep full size it is the raw original, metadata and all. One
+    // that can't be cleaned is dropped rather than sent with its location, and the
     // rest still go. Files chosen in the file picker go as they are.
     const sendOriginals = async () => {
       if (accountChanged()) {
@@ -262,11 +263,17 @@ const ContainerInner = (ownProps: OwnProps) => {
       }
       setProgress({done: 0, total: eligible.length})
       const items = eligible.map(({path}) => ({path}))
-      const {processed} = await processForSend(items, false, (done, total) => {
-        if (!unmountedRef.current) {
-          setProgress({done, total})
+      // The failed run that led here used the same preference.
+      const stripLocation = (await compressPrefRef.current) ?? true
+      const {processed} = await processForSend(
+        items,
+        {compress: false, stripLocation},
+        (done, total) => {
+          if (!unmountedRef.current) {
+            setProgress({done, total})
+          }
         }
-      })
+      )
       if (unmountedRef.current) {
         discardProcessedOutputs(items, processed)
         return
@@ -358,7 +365,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       const items = eligible.map(({path, edit}) => ({edit, path}))
       const {processed, failure} = await processForSend(
         items,
-        compress,
+        {compress},
         (done, total) => {
           if (!unmountedRef.current) {
             setProgress({done, total})

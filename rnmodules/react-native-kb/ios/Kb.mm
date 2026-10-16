@@ -670,7 +670,7 @@ static NSString *kbJSPath(NSString *p) {
   return [p hasPrefix:@"/"] ? [@"file://" stringByAppendingString:p] : p;
 }
 
-RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress startMs:(double)startMs endMs:(double)endMs removeAudio:(BOOL)removeAudio resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress startMs:(double)startMs endMs:(double)endMs removeAudio:(BOOL)removeAudio stripLocation:(BOOL)stripLocation resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   NSURL *url = [NSURL fileURLWithPath:kbBarePath(path)];
   void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
     if (error) {
@@ -687,7 +687,7 @@ RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(
                                             removeAudio:removeAudio];
     [MediaUtils processVideoFromOriginal:url compress:compress edit:(edit.isNoop ? nil : edit) completion:done];
   } else {
-    [MediaUtils processImageFromOriginal:url compress:compress completion:done];
+    [MediaUtils processImageFromOriginal:url compress:compress stripLocation:stripLocation completion:done];
   }
 }
 
