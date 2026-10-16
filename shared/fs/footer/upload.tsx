@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
+import {linearEasing} from '@/common-adapters/native-easing'
 // url on desktop, Metro asset number on native; only used in the native footer.
 import uploadPatternRaw from '../../images/upload-pattern-80.png'
 import darkUploadPatternRaw from '../../images/dark-upload-pattern-80.png'
@@ -26,8 +27,6 @@ type AnimationState = {
   hideComplete: boolean
   lastShowing: boolean
 }
-
-const linearEasing = (t: number) => NativeEasing.linear(t)
 
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
 

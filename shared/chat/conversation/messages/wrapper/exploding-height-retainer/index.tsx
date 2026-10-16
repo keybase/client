@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
+import {easeInOutEasing} from '@/common-adapters/native-easing'
 import colors, {darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 // Mobile: static ash tile images (a url on desktop, a Metro asset number on native;
@@ -218,8 +219,6 @@ type AshTowerProps = {
   numImages: number
 }
 
-const easeInOut = (t: number) => NativeEasing.inOut((x: number) => NativeEasing.ease(x))(t)
-
 const AnimatedAshTower = (p: AshTowerProps) => {
   const styles = useStyles()
   const {exploded, numImages, explodedBy} = p
@@ -233,7 +232,7 @@ const AnimatedAshTower = (p: AshTowerProps) => {
     if (exploded) {
       NativeAnimated.timing(widthAV, {
         duration: animationDuration,
-        easing: easeInOut,
+        easing: easeInOutEasing,
         toValue: 100,
         useNativeDriver: false,
       }).start()

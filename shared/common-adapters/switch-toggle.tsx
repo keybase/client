@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
+import {linearEasing} from './native-easing'
 import * as Styles from '@/styles'
 
 type Props = {
@@ -7,8 +8,6 @@ type Props = {
   on: boolean
   style?: Styles.StylesCrossPlatform
 }
-
-const linearEasing = (t: number) => NativeEasing.linear(t)
 
 const nativeDisabledOffset = 2
 const nativeEnabledOffset = 22

@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
+import {linearEasing} from '@/common-adapters/native-easing'
 
 type Props = {
   dismiss: () => void
@@ -7,8 +8,6 @@ type Props = {
   isFirst: boolean
   children: React.ReactNode
 }
-
-const linearEasing = (t: number) => NativeEasing.linear(t)
 
 const DownloadWrapper = (props: Props): React.ReactNode => {
   const {children, dismiss, done, isFirst} = props
