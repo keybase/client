@@ -209,6 +209,22 @@ export const nextShare = (prev: Share | undefined, next: Share): Share =>
 // a second time) is not sent there again: its text would be added to the draft twice.
 const routedShareIDs = new Set<string>()
 
+// Incoming-share screens mounted on Android. A new share opens a new screen, and this one's cleanup
+// can run before it mounts, so the share is cleared only once no screen is left to show it.
+let androidShareScreens = 0
+const openAndroidShareScreen = () => {
+  androidShareScreens++
+}
+const closeAndroidShareScreen = () => {
+  androidShareScreens--
+  const {androidShare: shown, dispatch} = useConfigState.getState()
+  setTimeout(() => {
+    if (androidShareScreens === 0 && useConfigState.getState().androidShare === shown) {
+      dispatch.setAndroidShare(undefined)
+    }
+  }, 0)
+}
+
 const useIncomingShareItems = () => {
   const [incomingShare, setIncomingShare] = React.useState<Share>()
   const {error: incomingShareError} = useRPCLoad(
@@ -232,14 +248,11 @@ const useIncomingShareItems = () => {
 
   // The share is consumed by this screen; clear it so a later cold-path
   // getInitialURL doesn't resurface a stale share (see router-v2/linking.tsx).
-  const setAndroidShare = useConfigState(s => s.dispatch.setAndroidShare)
   React.useEffect(() => {
-    return () => {
-      if (isAndroid) {
-        setAndroidShare(undefined)
-      }
-    }
-  }, [setAndroidShare])
+    if (!isAndroid) return
+    openAndroidShareScreen()
+    return closeAndroidShareScreen
+  }, [])
 
   if (androidShareItems) {
     return {
