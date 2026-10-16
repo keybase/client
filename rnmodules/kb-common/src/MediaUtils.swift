@@ -393,7 +393,8 @@ public class MediaUtils: NSObject {
         // The bitmap starts fully transparent. Some decoders (AVIF) hand back an
         // image whose pixels are only produced when drawn, and if that fails the
         // draw leaves the bitmap untouched: without this check that would go out
-        // as a blank JPEG instead of an error.
+        // as a blank JPEG instead of an error. A fully transparent deep-format image
+        // fails here by design; Send original still sends it.
         context.draw(image, in: rect)
         let rowBytes = context.bytesPerRow
         let bytes = pixels.assumingMemoryBound(to: UInt8.self)
