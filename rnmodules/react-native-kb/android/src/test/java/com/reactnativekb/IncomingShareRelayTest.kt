@@ -70,9 +70,9 @@ class IncomingShareRelayTest {
         val relay = IncomingShareRelay()
         val id = relay.add(text("a"))
         relay.done(id + 1)
-        assertEquals(text("a"), relay.unfinished())
+        assertEquals(text("a"), relay.saved().share)
         relay.done(id)
-        assertNull(relay.unfinished())
+        assertNull(relay.saved().share)
         assertNull(relay.share(id))
     }
 
@@ -82,21 +82,21 @@ class IncomingShareRelayTest {
         val a = relay.add(text("a"))
         relay.add(text("b"))
         relay.done(a)
-        assertEquals(text("b"), relay.unfinished())
+        assertEquals(text("b"), relay.saved().share)
     }
 
     @Test
     fun theOpenShareStaysWhileTheNextIsPrepared() {
         val relay = IncomingShareRelay()
         val a = relay.add(text("a"))
-        assertFalse(relay.preparing())
+        assertFalse(relay.saved().preparing)
         val b = relay.begin()
-        assertTrue(relay.preparing())
-        assertEquals(text("a"), relay.unfinished())
+        assertTrue(relay.saved().preparing)
+        assertEquals(text("a"), relay.saved().share)
         assertEquals(text("a"), relay.share(a))
         relay.fill(b, text("b"))
-        assertFalse(relay.preparing())
-        assertEquals(text("b"), relay.unfinished())
+        assertFalse(relay.saved().preparing)
+        assertEquals(text("b"), relay.saved().share)
     }
 
     @Test
@@ -108,7 +108,7 @@ class IncomingShareRelayTest {
         val newer = relay.add(text("newer"))
         relay.fill(older, text("older"))
         assertEquals(listOf(newer), sink.ids)
-        assertEquals(text("newer"), relay.unfinished())
+        assertEquals(text("newer"), relay.saved().share)
     }
 
     @Test
@@ -159,7 +159,7 @@ class IncomingShareRelayTest {
         assertFalse(relay.started())
         relay.restore(text("saved"))
         assertTrue(relay.started())
-        assertEquals(text("saved"), relay.unfinished())
+        assertEquals(text("saved"), relay.saved().share)
     }
 
     @Test
@@ -167,22 +167,29 @@ class IncomingShareRelayTest {
         val relay = IncomingShareRelay()
         relay.add(text("newer"))
         relay.restore(text("saved"))
-        assertEquals(text("newer"), relay.unfinished())
+        assertEquals(text("newer"), relay.saved().share)
 
         val preparing = IncomingShareRelay()
         preparing.begin()
         preparing.restore(text("saved"))
-        assertNull(preparing.unfinished())
+        assertNull(preparing.saved().share)
     }
 
     @Test
     fun aRestoredShareCountsPurgedCopiesAsDropped() {
         val relay = IncomingShareRelay()
         relay.restore(IncomingShareRelay.Share(null, listOf("/kept", "/purged"), 1)) { it == "/kept" }
-        assertEquals(IncomingShareRelay.Share(null, listOf("/kept"), 2), relay.unfinished())
+        assertEquals(IncomingShareRelay.Share(null, listOf("/kept"), 2), relay.saved().share)
 
         val allGone = IncomingShareRelay()
         allGone.restore(IncomingShareRelay.Share(null, listOf("/purged"), 0)) { false }
-        assertEquals(IncomingShareRelay.Share(null, emptyList(), 1), allGone.unfinished())
+        assertEquals(IncomingShareRelay.Share(null, emptyList(), 1), allGone.saved().share)
+    }
+
+    @Test
+    fun savedPartsStayWithinOneBudget() {
+        assertEquals(listOf(true, true), IncomingShareRelay.withinBudget(listOf(40, 60), 100))
+        assertEquals(listOf(true, false), IncomingShareRelay.withinBudget(listOf(60, 60), 100))
+        assertEquals(listOf(false, true), IncomingShareRelay.withinBudget(listOf(120, 60), 100))
     }
 }

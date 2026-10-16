@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
+import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.KeyEvent
@@ -204,30 +205,30 @@ class MainActivity : ReactActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        savePreparingShare(outState)
-        val share = IncomingShareRelay.shared.unfinished() ?: return
-        // Saved state goes through a binder transaction, which fails past about 1 MB;
-        // a share that big is not worth crashing for.
-        if ((share.text?.length ?: 0) + share.paths.sumOf { it.length } > MAX_SAVED_SHARE_CHARS) return
-        outState.putBundle(HELD_SHARE, Bundle().apply {
-            putString("text", share.text)
-            putStringArrayList("paths", ArrayList(share.paths))
-            putInt("droppedCount", share.droppedCount)
-        })
+        val saved = IncomingShareRelay.shared.saved()
+        val parts = listOfNotNull(
+            saved.share?.let { share ->
+                HELD_SHARE to Bundle().apply {
+                    putString("text", share.text)
+                    putStringArrayList("paths", ArrayList(share.paths))
+                    putInt("droppedCount", share.droppedCount)
+                }
+            },
+            preparingIntent?.takeIf { saved.preparing }?.let { PREPARING_SHARE to it },
+        )
+        // Saved state goes through a binder transaction, which fails past about 1 MB
+        // for everything in it; a share that big is not worth crashing for.
+        val fits = IncomingShareRelay.withinBudget(parts.map { parcelSize(it.second) }, MAX_SAVED_SHARE_BYTES)
+        parts.zip(fits).forEach { (part, fit) -> if (fit) outState.putParcelable(part.first, part.second) }
     }
 
-    private fun savePreparingShare(outState: Bundle) {
-        if (!IncomingShareRelay.shared.preparing()) return
-        val intent = preparingIntent ?: return
+    private fun parcelSize(value: Parcelable): Int {
         val parcel = Parcel.obtain()
-        val size = try {
-            intent.writeToParcel(parcel, 0)
+        return try {
+            parcel.writeParcelable(value, 0)
             parcel.dataSize()
         } finally {
             parcel.recycle()
-        }
-        if (size <= MAX_SAVED_SHARE_CHARS * 2) {
-            outState.putParcelable(PREPARING_SHARE, intent)
         }
     }
 
@@ -333,7 +334,7 @@ class MainActivity : ReactActivity() {
         private const val TAG = "ossifrage"
         private const val HELD_SHARE = "heldIncomingShare"
         private const val PREPARING_SHARE = "preparingIncomingShare"
-        private const val MAX_SAVED_SHARE_CHARS = 100_000
+        private const val MAX_SAVED_SHARE_BYTES = 200 * 1024
 
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")
