@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -123,6 +124,63 @@ func TestArchiveRegistryUndecodableIsKept(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, found, "job history a newer client may read must be kept")
 			require.Equal(t, tc.stored, stored)
+		})
+	}
+}
+
+type statusErrUploader struct {
+	types.AttachmentUploader
+	err error
+}
+
+func (u statusErrUploader) Status(context.Context, chat1.OutboxID) (types.AttachmentUploaderTaskStatus, types.AttachmentUploadResult, error) {
+	return 0, types.AttachmentUploadResult{}, u.err
+}
+
+func TestDelivererUnreadableUploadStatusIsPermanent(t *testing.T) {
+	ctc, _ := setupChatTest(t, "unreadableuploadstatus")
+	defer ctc.Cleanup()
+	ctx := context.TODO()
+	g := ctc.Context()
+	var key [32]byte
+	keyFn := func(context.Context) ([32]byte, error) { return key, nil }
+
+	sealed, err := encrypteddb.EncodeBox(ctx, "status", keyFn)
+	require.NoError(t, err)
+	newer, err := libkb.MPackEncode(struct {
+		V int
+		N [24]byte
+		E []byte
+	}{V: 2, E: []byte("sealed-by-newer-client")})
+	require.NoError(t, err)
+	decodeErr := func(stored []byte, k byte) error {
+		key[0] = k
+		var res string
+		return encrypteddb.DecodeBox(ctx, stored, keyFn, &res)
+	}
+
+	realUploader := g.AttachmentUploader
+	defer func() { g.AttachmentUploader = realUploader }()
+	d := &Deliverer{Contextified: globals.NewContextified(g)}
+	obr := chat1.OutboxRecord{Msg: chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{MessageType: chat1.MessageType_ATTACHMENT},
+	}}
+	for _, tc := range []struct {
+		name string
+		err  error
+		perm bool
+	}{
+		{name: "undecryptable", err: decodeErr(sealed, 1), perm: true},
+		{name: "torn", err: decodeErr(sealed[:len(sealed)/2], 0), perm: true},
+		{name: "newer crypto version", err: decodeErr(newer, 0), perm: true},
+		{name: "key fetch error", err: libkb.KeyCannotDecryptError{}, perm: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g.AttachmentUploader = statusErrUploader{err: tc.err}
+			_, err := d.processAttachment(ctx, obr)
+			var uerr AttachmentUploadError
+			require.ErrorAs(t, err, &uerr)
+			require.Equal(t, tc.perm, uerr.Perm, "status error: %v", tc.err)
 		})
 	}
 }
