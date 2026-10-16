@@ -43,6 +43,10 @@ export type Composer = {
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
+  // Adds text on its own line after what the composer holds, with the caret at the end: a share
+  // lands next to the draft instead of over it. Before the draft is known the text shows alone and
+  // nothing is saved; the draft goes in front of it once it loads.
+  append: (text: string, focus?: boolean) => void
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
@@ -94,6 +98,8 @@ const spoiler = '!>spoiler<!'
 // long enough for an input on its way (a screen mounting, or shown again) to attach; one turning up
 // later is not one the user just asked to focus
 const focusWaitMs = 1000
+const appendLine = (text: string, s: string) =>
+  !text ? s : !s ? text : text.endsWith('\n') ? `${text}${s}` : `${text}\n${s}`
 const injectedSelection = (text: string): Selection =>
   text === spoiler
     ? {end: text.length - 2, start: text.length - 2 - 7}
@@ -114,12 +120,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let saved: string | undefined
   // set from the moment an edit's text lands until the edit ends
   let editing = false
+  // set while an append shows ahead of a draft that hasn't loaded: saving now would replace it
+  let appendedBeforeDraft = false
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
 
   // only a restore saves where the user can't post: it puts back the user's own text
   const saveDraft = (next: string, evenReadOnly = false) => {
-    if (editing || next === saved || (!evenReadOnly && deps.isReadOnly())) return
+    if (editing || appendedBeforeDraft || next === saved || (!evenReadOnly && deps.isReadOnly())) return
     saved = next
     deps.saveDraft(next)
   }
@@ -207,6 +215,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // store, and read-only clearing offers it again.
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
+    if (appendedBeforeDraft) {
+      if (!input || deps.isReadOnly()) return
+      draftLoaded = true
+      appendedBeforeDraft = false
+      saved = draft
+      write(input, appendLine(draft, text), false)
+      return
+    }
     if (editing) {
       draftLoaded = true
       saved = draft
@@ -226,6 +242,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   }
 
   return {
+    append: (s, focus = false) => {
+      whenAttached(target => {
+        if (!draftLoaded && !editing && !deps.isReadOnly()) {
+          appendedBeforeDraft = true
+        }
+        write(target, appendLine(text, s), focus)
+      })
+    },
     clear: () => {
       whenAttached(target => clear(target, false))
     },
@@ -252,6 +276,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
             session = view
             text = ''
             draftLoaded = false
+            appendedBeforeDraft = false
           }
           input = next
           if (editText) {

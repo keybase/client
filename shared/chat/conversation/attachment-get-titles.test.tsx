@@ -709,6 +709,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
     expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
       intent: {
+        append: true,
         notice:
           "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location.",
         text: 'look',

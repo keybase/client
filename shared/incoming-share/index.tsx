@@ -123,7 +123,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
         intent:
           text === undefined
             ? undefined
-            : {notice: droppedMessage || undefined, text, type: 'injectText'},
+            : {append: true, notice: droppedMessage || undefined, text, type: 'injectText'},
       })
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage])

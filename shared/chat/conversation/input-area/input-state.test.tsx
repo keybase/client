@@ -829,6 +829,17 @@ test('an injectText with only a notice leaves the composer text alone', () => {
   expect(result.current.commandStatus?.displayText).toBe("Not sent: a.webp couldn't be converted.")
 })
 
+test('a shared text (append) goes after the conversation\'s draft instead of replacing it', () => {
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft: 'my draft'}], undefined, {
+    force: true,
+  })
+  setInputIntent(convID, {append: true, text: 'shared text', type: 'injectText'})
+
+  const {composerInput} = renderInput(convID)
+
+  expect(composerInput.text).toBe('my draft\nshared text')
+})
+
 test('an injectText without a notice leaves the command status bar alone', () => {
   setInputIntent(convID, {text: 'shared text', type: 'injectText'})
 

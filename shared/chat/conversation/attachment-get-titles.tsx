@@ -221,7 +221,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           intent:
             inputPrefillText === undefined && !dropped
               ? undefined
-              : {notice: dropped, text: inputPrefillText, type: 'injectText'},
+              : {append: true, notice: dropped, text: inputPrefillText, type: 'injectText'},
         })
       } else if (dropped) {
         // The thread is under this modal, so its composer takes this right away.
