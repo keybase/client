@@ -291,11 +291,14 @@ public class ShareViewController: UIViewController {
     if let intent = extensionContext?.intent as? INSendMessageIntent {
       selectedConvID = intent.conversationIdentifier
     }
-    let itemArrs = extensionContext?.inputItems.compactMap {
-      ($0 as? NSExtensionItem)?.attachments
-    } ?? []
+    let inputItems = extensionContext?.inputItems.compactMap { $0 as? NSExtensionItem } ?? []
+    let extItems = ShareExtensionItems.shared(
+      pageFlags: inputItems.map { ($0.userInfo?["supportsJavaScript"] as? Bool) == true }
+    ).map { inputItems[$0] }
+    let itemArrs = extItems.map { $0.attachments ?? [] }
+    let captions = extItems.map { $0.attributedContentText?.string ?? "" }
 
-    iph = ItemProviderHelper(forShare: true, withItems: itemArrs) { [weak self] in
+    iph = ItemProviderHelper(forShare: true, withItems: itemArrs, captions: captions) { [weak self] in
       self?.finish(.done)
     }
     showProgressView()

@@ -10,10 +10,22 @@ private let log = Logger(subsystem: "com.keybase.app", category: "item-provider"
 @objc(ItemProviderHelper)
 public class ItemProviderHelper: NSObject {
   private var itemArrs: [Any]
+  private var captions: [String]
   private var payloadFolderURL: URL
   private var isShare: Bool
   private var done = false
-  private var typeToArray: [String: [[String: Any]]] = [:]
+  // What each attachment (and each host caption) came to, keyed by its place
+  // in the share so text joins in the order it was shared. Main thread only.
+  private var pieces: [(order: Int, piece: Piece)] = []
+  private enum Piece {
+    // an image, video or file entry
+    case payload([String: Any])
+    case text(String)
+    // the host's own text for an extension item
+    case caption(String)
+    // the static description that was logged
+    case failed(String)
+  }
   private var completionHandler: () -> Void
   private var unprocessed: Int = 0
 
@@ -37,21 +49,22 @@ public class ItemProviderHelper: NSObject {
   }
 
   // What the share sends, plus one "error" entry per item that failed so the
-  // app can say how many didn't make it.
-  @objc public var manifest: [[String: Any]] {
-    return preparedItems + (typeToArray["error"] ?? [])
-  }
+  // app can say how many didn't make it. Set when the manifest is written.
+  private var preparedItems: [[String: Any]] = []
+  private var failedItems: [[String: Any]] = []
 
-  // Items startProcessing recognised and set out to load: not every attachment
-  // a share carries is one. Main thread only.
+  // The attachments startProcessing set out to load, which is every one the
+  // share carries. Main thread only.
   @objc public private(set) var itemCount = 0
 
-  // Items that failed to load or copy. Main thread only.
+  // Items that failed to load or copy. Valid once the manifest is written.
+  // Main thread only.
   @objc public var failedCount: Int {
-    return typeToArray["error"]?.count ?? 0
+    return failedItems.count
   }
 
-  // Whether anything finished that the share can send. Main thread only.
+  // Whether anything finished that the share can send. Valid once the manifest
+  // is written. Main thread only.
   @objc public var hasPreparedItems: Bool {
     return !preparedItems.isEmpty
   }
@@ -71,49 +84,15 @@ public class ItemProviderHelper: NSObject {
     return FileManager.default.fileExists(atPath: getManifestFileURL().path)
   }
 
-  private var preparedItems: [[String: Any]] {
-    // reconcile what we're sending over. types=text, url, video, image, file
-    var toWrite: [[String: Any]] = []
-    let images = typeToArray["image"] ?? []
-    let videos = typeToArray["video"] ?? []
-    let files = typeToArray["file"] ?? []
-
-    // Media wins over everything else: we want to attach the thing, not also
-    // inject into the input box. A share can carry a url attachment next to the
-    // media one, and the media is what was asked for.
-    if !images.isEmpty || !videos.isEmpty || !files.isEmpty {
-      toWrite.append(contentsOf: images)
-      toWrite.append(contentsOf: videos)
-      toWrite.append(contentsOf: files)
-      return toWrite
-    }
-
-    // We treat all text that has http in it a url, we take the longest one as its
-    // likely most descriptive
-    if let urls = typeToArray["url"] {
-      var content = urls.first?["content"] as? String ?? ""
-      for url in urls {
-        if let c = url["content"] as? String, c.count > content.count {
-          content = c
-        }
-      }
-      toWrite.append([
-        "type": "text",
-        "content": content,
-      ])
-    } else if let texts = typeToArray["text"], !texts.isEmpty {
-      // Likely just one piece of text
-      toWrite.append(texts[0])
-    }
-
-    return toWrite
-  }
-
+  // itemArrs holds each extension item's attachments; captions, when given,
+  // the host's text for the same extension items (empty for none).
   @objc public init(
-    forShare isShare: Bool, withItems itemArrs: [Any], completionHandler: @escaping () -> Void
+    forShare isShare: Bool, withItems itemArrs: [Any], captions: [String] = [],
+    completionHandler: @escaping () -> Void
   ) {
     self.isShare = isShare
     self.itemArrs = itemArrs
+    self.captions = captions
     self.completionHandler = completionHandler
     self.payloadFolderURL = Self.makePayloadFolder()
   }
@@ -163,7 +142,7 @@ public class ItemProviderHelper: NSObject {
     guard !done else { return }
     done = true
     progress.cancel()
-    typeToArray = [:]
+    pieces = []
     writeManifest()
   }
 
@@ -204,13 +183,6 @@ public class ItemProviderHelper: NSObject {
         candidates: [url.lastPathComponent], type: nil, fallbackBase: "file"))
   }
 
-  private func getPayloadURL(withExtension ext: String?) -> URL {
-    let guid = ProcessInfo.processInfo.globallyUniqueString
-    return ext != nil
-      ? payloadFolderURL.appendingPathComponent(guid).appendingPathExtension(ext!)
-      : payloadFolderURL.appendingPathComponent(guid)
-  }
-
   private func getManifestFileURL() -> URL {
     let incomingShareFolderURL = Self.getIncomingShareFolder()
     try? FileManager.default.createDirectory(
@@ -218,39 +190,71 @@ public class ItemProviderHelper: NSObject {
     return incomingShareFolderURL.appendingPathComponent("manifest.json")
   }
 
-  private func completeItemAndAppend(type: String, entry: [String: Any]) {
+  private func complete(_ order: Int, _ piece: Piece) {
     DispatchQueue.main.async { [weak self] in
       guard let self = self else { return }
-      self.typeToArray[type, default: []].append(entry)
+      self.pieces.append((order, piece))
       self.completeProcessingItemAlreadyInMainThread()
     }
   }
 
-  private func completeItemAndAppendManifest(type: String, originalFileURL: URL) {
-    completeItemAndAppend(type: type, entry: [
+  private func completeItemAndAppendManifest(_ order: Int, type: String, originalFileURL: URL) {
+    complete(order, .payload([
       "type": type,
       "originalPath": originalFileURL.absoluteURL.path,
-    ])
+    ]))
   }
 
-  private func completeItemAndAppendManifest(type: String, content: String) {
-    completeItemAndAppend(type: type, entry: [
-      "type": type,
-      "content": content,
-    ])
+  private func completeItemAndAppendManifestAndLogError(_ order: Int, text: String, error: Error?) {
+    logFailure(text, error)
+    complete(order, .failed(text))
   }
 
-  private func completeItemAndAppendManifestAndLogError(text: String, error: Error?) {
+  private func logFailure(_ text: String, _ error: Error?) {
     let reason = error != nil ? String(describing: error!) : "<empty>"
     // The error can carry file paths, so only the static text is public.
     log.error("item failed: \(text, privacy: .public): \(reason, privacy: .private)")
+  }
+
+  // Media and files go as they are; the text, in share order, goes as one
+  // message, which the app sends after the media when there is any. Text over
+  // chat's limit is attached as a .txt instead.
+  private func buildManifest() {
+    var prepared: [[String: Any]] = []
+    var failed: [String] = []
+    var texts: [ShareText.Piece] = []
+    for (_, piece) in pieces.sorted(by: { $0.order < $1.order }) {
+      switch piece {
+      case let .payload(entry): prepared.append(entry)
+      case let .text(text): texts.append(.item(text))
+      case let .caption(text): texts.append(.caption(text))
+      case let .failed(text): failed.append(text)
+      }
+    }
+    if let text = ShareText.message(from: texts, withMedia: !prepared.isEmpty) {
+      if ShareText.fitsInline(text) {
+        prepared.append(["type": "text", "content": text])
+      } else {
+        do {
+          let url = try getPayloadURL(named: PayloadFileName.forText(text))
+          try text.write(to: url, atomically: true, encoding: .utf8)
+          prepared.append(["type": "text", "originalPath": url.absoluteURL.path])
+        } catch {
+          let what = "long text: unable to write payload file"
+          logFailure(what, error)
+          failed.append(what)
+        }
+      }
+    }
+    preparedItems = prepared
     // The service logs this, so it gets the static text only.
-    completeItemAndAppend(type: "error", entry: ["type": "error", "error": text])
+    failedItems = failed.map { ["type": "error", "error": $0] }
   }
 
   // Written even if empty so an older share's manifest can't be picked up.
   private func writeManifest() {
-    writtenManifest = ShareFiles.writeManifest(manifest, to: getManifestFileURL())
+    buildManifest()
+    writtenManifest = ShareFiles.writeManifest(preparedItems + failedItems, to: getManifestFileURL())
   }
 
   // For a share that won't open the app: its manifest would only be read by
@@ -261,46 +265,39 @@ public class ItemProviderHelper: NSObject {
     ShareFiles.removeManifest(at: getManifestFileURL(), ifContents: written)
   }
 
-  private func sendText(_ text: String) {
-    if text.isEmpty {
-      completeItemAndAppendManifestAndLogError(text: "sendText: empty?", error: nil)
+  // Text and links are joined into one message when the manifest is written.
+  // Blank text isn't something to share.
+  private func sendText(_ order: Int, _ text: String) {
+    if ShareText.isBlank(text) {
+      completeItemAndAppendManifestAndLogError(order, text: "sendText: blank text", error: nil)
       return
     }
-
-    if text.count < 1000 {
-      let isURL = text.range(of: "http", options: .caseInsensitive) != nil
-      completeItemAndAppendManifest(type: isURL ? "url" : "text", content: text)
-      return
-    }
-
-    let originalFileURL = getPayloadURL(withExtension: "txt")
-    do {
-      try text.write(to: originalFileURL, atomically: true, encoding: .utf8)
-      completeItemAndAppendManifest(type: "text", originalFileURL: originalFileURL)
-    } catch {
-      completeItemAndAppendManifestAndLogError(
-        text: "sendText: unable to write payload file", error: error)
-    }
+    complete(order, .text(text))
   }
 
   // providerTemp: url is a load*Representation temp file, ours to move until
-  // the completion handler returns. Must be called before it returns.
-  private func sendFile(_ url: URL?, providerTemp: Bool) {
+  // the completion handler returns. Must be called before it returns. The
+  // file keeps the provider's suggested name, with an extension for type.
+  private func sendFile(
+    _ order: Int, _ url: URL?, providerTemp: Bool, suggestedName: String? = nil, type: UTType? = nil
+  ) {
     guard let url = url else {
-      completeItemAndAppendManifestAndLogError(text: "sendFile: unable to decode share", error: nil)
+      completeItemAndAppendManifestAndLogError(order, text: "sendFile: unable to decode share", error: nil)
       return
     }
 
     do {
-      let filePayloadURL = try getPayloadURL(from: url)
+      let filePayloadURL = try getPayloadURL(
+        named: PayloadFileName.make(
+          candidates: [suggestedName, url.lastPathComponent], type: type, fallbackBase: "file"))
       try ShareFiles.place(url, at: filePayloadURL, move: providerTemp)
-      completeItemAndAppendManifest(type: "file", originalFileURL: filePayloadURL)
+      completeItemAndAppendManifest(order, type: "file", originalFileURL: filePayloadURL)
     } catch {
-      completeItemAndAppendManifestAndLogError(text: "fileHandlerSimple: copy error", error: error)
+      completeItemAndAppendManifestAndLogError(order, text: "sendFile: copy error", error: error)
     }
   }
 
-  private func sendContact(_ vCardData: Data) {
+  private func sendContact(_ order: Int, _ vCardData: Data) {
     do {
       let contacts = try CNContactVCardSerialization.contacts(with: vCardData)
       let addressFormatter = CNPostalAddressFormatter()
@@ -367,14 +364,14 @@ public class ItemProviderHelper: NSObject {
 
       if !contents.isEmpty {
         let text = contents.joined(separator: "\n\n")
-        completeItemAndAppendManifest(type: "text", content: text)
+        complete(order, .text(text))
       } else {
         completeItemAndAppendManifestAndLogError(
-          text: "vcardHandler: unable to decode share", error: nil)
+          order, text: "vcardHandler: unable to decode share", error: nil)
       }
     } catch {
       completeItemAndAppendManifestAndLogError(
-        text: "vcardHandler: error processing vcard", error: error)
+        order, text: "vcardHandler: error processing vcard", error: error)
     }
   }
 
@@ -383,9 +380,9 @@ public class ItemProviderHelper: NSObject {
   // The extension never transcodes: trimming and compression happen in the
   // app, which has no extension memory budget and can let the user edit before
   // encoding.
-  private func sendMedia(_ url: URL?, isVideo: Bool, providerTemp: Bool) {
+  private func sendMedia(_ order: Int, _ url: URL?, isVideo: Bool, providerTemp: Bool) {
     guard let url = url else {
-      completeItemAndAppendManifestAndLogError(text: "sendMedia: unable to decode share", error: nil)
+      completeItemAndAppendManifestAndLogError(order, text: "sendMedia: unable to decode share", error: nil)
       return
     }
 
@@ -394,10 +391,10 @@ public class ItemProviderHelper: NSObject {
       filePayloadURL = try getPayloadURL(from: url)
       try ShareFiles.place(url, at: filePayloadURL, move: providerTemp)
     } catch {
-      completeItemAndAppendManifestAndLogError(text: "sendMedia: copy error", error: error)
+      completeItemAndAppendManifestAndLogError(order, text: "sendMedia: copy error", error: error)
       return
     }
-    completeItemAndAppendManifest(type: isVideo ? "video" : "image", originalFileURL: filePayloadURL)
+    completeItemAndAppendManifest(order, type: isVideo ? "video" : "image", originalFileURL: filePayloadURL)
   }
 
   // A URL item is not necessarily a web link: providers also vend local files
@@ -405,13 +402,13 @@ public class ItemProviderHelper: NSObject {
   // path. A web link is always sent as the link: the extension makes no
   // network requests, so sharing a link never tells its site, and never
   // turns into a download the user didn't ask for.
-  private func sendURLItem(_ url: URL?) {
+  private func sendURLItem(_ order: Int, _ url: URL?) {
     guard let url = url else {
-      completeItemAndAppendManifestAndLogError(text: "sendURLItem: unable to decode share", error: nil)
+      completeItemAndAppendManifestAndLogError(order, text: "sendURLItem: unable to decode share", error: nil)
       return
     }
     guard url.isFileURL else {
-      sendText(url.absoluteString)
+      sendText(order, url.absoluteString)
       return
     }
 
@@ -420,37 +417,25 @@ public class ItemProviderHelper: NSObject {
 
     let type = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType
       ?? UTType(filenameExtension: url.pathExtension)
-
-    if let type = type {
-      if type.conforms(to: .movie) {
-        sendMedia(url, isVideo: true, providerTemp: false)
-        return
-      }
-      if type.conforms(to: .image) {
-        sendMedia(url, isVideo: false, providerTemp: false)
-        return
-      }
-      // Only inline honest plain text. Plenty of document types (crash reports,
-      // logs, source) conform to public.text but are files the user meant to
-      // attach, extension and all.
-      if !type.conforms(to: .plainText) {
-        sendFile(url, providerTemp: false)
-        return
-      }
+    if type?.conforms(to: .movie) == true {
+      sendMedia(order, url, isVideo: true, providerTemp: false)
+    } else if type?.conforms(to: .image) == true {
+      sendMedia(order, url, isVideo: false, providerTemp: false)
+    } else {
+      // Text files too: a .txt, .csv or .md the user picked is a document with
+      // a name, not text to paste.
+      sendFile(order, url, providerTemp: false)
     }
-
-    let text = (try? Data(contentsOf: url)).flatMap { String(data: $0, encoding: .utf8) }
-    sendText(text ?? url.absoluteString)
   }
 
   // A provider that vends the image as bytes rather than a file (Safari's
   // image pages). Written as-is.
-  private func sendImageData(_ data: Data, typeIdentifier: String, suggestedName: String?) {
+  private func sendImageData(_ order: Int, _ data: Data, typeIdentifier: String, suggestedName: String?) {
     guard let type = ShareFiles.imageType(of: data) ?? UTType(typeIdentifier),
       type.preferredFilenameExtension != nil
     else {
       completeItemAndAppendManifestAndLogError(
-        text: "sendImageData: \(data.count) bytes of unknown image type \(typeIdentifier)",
+        order, text: "sendImageData: \(data.count) bytes of unknown image type \(typeIdentifier)",
         error: nil)
       return
     }
@@ -458,9 +443,9 @@ public class ItemProviderHelper: NSObject {
     do {
       let payloadURL = try getPayloadURL(named: name)
       try data.write(to: payloadURL, options: .atomic)
-      completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+      completeItemAndAppendManifest(order, type: "image", originalFileURL: payloadURL)
     } catch {
-      completeItemAndAppendManifestAndLogError(text: "sendImageData: write error", error: error)
+      completeItemAndAppendManifestAndLogError(order, text: "sendImageData: write error", error: error)
     }
   }
 
@@ -504,7 +489,7 @@ public class ItemProviderHelper: NSObject {
 
   // A provider that vends only an in-memory UIImage has no file to copy. The
   // image is already decoded, so encoding it costs little extra memory.
-  private func sendUIImage(_ image: UIImage, suggestedName: String?) {
+  private func sendUIImage(_ order: Int, _ image: UIImage, suggestedName: String?) {
     do {
       let payloadURL = try getPayloadURL(
         named: PayloadFileName.make(candidates: [suggestedName], type: .jpeg, fallbackBase: "image"))
@@ -518,9 +503,9 @@ public class ItemProviderHelper: NSObject {
         }
         try jpeg.write(to: payloadURL, options: .atomic)
       }
-      completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+      completeItemAndAppendManifest(order, type: "image", originalFileURL: payloadURL)
     } catch {
-      completeItemAndAppendManifestAndLogError(text: "sendUIImage: unable to encode share", error: error)
+      completeItemAndAppendManifestAndLogError(order, text: "sendUIImage: unable to encode share", error: error)
     }
   }
 
@@ -531,15 +516,15 @@ public class ItemProviderHelper: NSObject {
   // NSItemProvider write those bytes to a temp file and copy it, and that copy
   // intermittently fails with a nil error ("Failed to copy item ... to
   // temporary folder"). loadItem hands back the object itself either way.
-  private func loadImage(_ item: NSItemProvider, typeIdentifier: String) -> Progress {
+  private func loadImage(_ order: Int, _ item: NSItemProvider, typeIdentifier: String) -> Progress {
     return item.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
       if let url = url, error == nil {
-        self.sendMedia(url, isVideo: false, providerTemp: true)
+        self.sendMedia(order, url, isVideo: false, providerTemp: true)
         return
       }
       // Cancel and the watchdog cancel the loads; don't start another.
       if (error as? CocoaError)?.code == .userCancelled {
-        self.completeItemAndAppendManifestAndLogError(text: "loadImage: cancelled", error: error)
+        self.completeItemAndAppendManifestAndLogError(order, text: "loadImage: cancelled", error: error)
         return
       }
       log.info(
@@ -550,15 +535,16 @@ public class ItemProviderHelper: NSObject {
         // Some providers vend the image's web address as the image item. Like
         // any web link it is sent as the link, not fetched.
         case let url as URL where error == nil && !url.isFileURL:
-          self.sendText(url.absoluteString)
+          self.sendText(order, url.absoluteString)
         case let url as URL where error == nil:
-          self.sendMedia(url, isVideo: false, providerTemp: false)
+          self.sendMedia(order, url, isVideo: false, providerTemp: false)
         case let image as UIImage where error == nil:
-          self.sendUIImage(image, suggestedName: item.suggestedName)
+          self.sendUIImage(order, image, suggestedName: item.suggestedName)
         case let data as Data where error == nil:
-          self.sendImageData(data, typeIdentifier: typeIdentifier, suggestedName: item.suggestedName)
+          self.sendImageData(order, data, typeIdentifier: typeIdentifier, suggestedName: item.suggestedName)
         default:
           self.completeItemAndAppendManifestAndLogError(
+            order,
             text:
               "loadImage: no file or loadable item for \(typeIdentifier) (got \(loaded.map { String(describing: type(of: $0)) } ?? "nil"))",
             error: error)
@@ -567,159 +553,135 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
-  // Providers register several representations for one item and the order is
-  // arbitrary, not a preference — a provider can list public.url ahead of the
-  // image itself. Rank so media always beats the link.
-  private enum ItemKind: Int {
-    case movie = 0
-    case imageFile = 1
-    case image = 2
-    case vCard = 3
-    case file = 4
-    case text = 5
-    case url = 6
-  }
-
-  private static func kind(forType stype: String) -> ItemKind? {
-    guard let type = UTType(stype) else { return nil }
-    if type.conforms(to: .movie) { return .movie }
-    if type.conforms(to: .png) || type.conforms(to: .gif) || type.conforms(to: .jpeg)
-      || stype == "public.heic"
-    {
-      return .imageFile
-    }
-    if type.conforms(to: .image) { return .image }
-    if type.conforms(to: .vCard) { return .vCard }
-    if type.conforms(to: .pdf) || type.conforms(to: .fileURL) { return .file }
-    if type.conforms(to: .plainText) { return .text }
-    if type.conforms(to: .url) { return .url }
-    return nil
-  }
-
-  private static func bestType(for item: NSItemProvider) -> (stype: String, kind: ItemKind)? {
-    var best: (stype: String, kind: ItemKind)?
-    for stype in item.registeredTypeIdentifiers {
-      guard let kind = Self.kind(forType: stype) else { continue }
-      if best == nil || kind.rawValue < best!.kind.rawValue {
-        best = (stype, kind)
-      }
-    }
-    return best
-  }
-
   private func incrementUnprocessed() {
     objc_sync_enter(self)
     unprocessed += 1
     objc_sync_exit(self)
   }
 
-  @objc public func startProcessing() {
-    // Handlers for different types
-    let fileHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-      if let error {
-        self.completeItemAndAppendManifestAndLogError(text: "fileHandler: load error", error: error)
+  // A text item: a string, a link, or (from some hosts) a file, which is sent
+  // as the file it is rather than read into the message.
+  private func sendTextItem(_ order: Int, _ item: NSSecureCoding?, _ error: Error?) {
+    switch item {
+    case let str as String where error == nil:
+      sendText(order, str)
+    case let url as URL where error == nil && url.isFileURL:
+      sendURLItem(order, url)
+    case let url as URL where error == nil:
+      sendText(order, url.absoluteString)
+    case let data as Data where error == nil:
+      guard let str = String(data: data, encoding: .utf8) else {
+        completeItemAndAppendManifestAndLogError(order, text: "sendTextItem: text isn't UTF-8", error: nil)
         return
       }
-      self.sendFile(url, providerTemp: true)
+      sendText(order, str)
+    default:
+      completeItemAndAppendManifestAndLogError(order, text: "sendTextItem: unable to decode share", error: error)
     }
+  }
 
-    let movieHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-      self.sendMedia(error == nil ? url : nil, isVideo: true, providerTemp: true)
-    }
-
-    let contactHandler: @Sendable (Data?, Error?) -> Void = { data, error in
-      if let data = data {
-        self.sendContact(data)
-      } else {
-        self.completeItemAndAppendManifestAndLogError(
-          text: "vcardHandler: unable to decode share",
-          error: nil
-        )
-      }
-    }
-
-    let secureTextHandler: @Sendable (NSSecureCoding?, Error?) -> Void = { item, error in
-      var text: String?
-      if error == nil {
-        if let str = item as? String {
-          text = str
-        } else if let url = item as? URL {
-          text = url.absoluteString
-          if text?.hasPrefix("file://") == true {
-            let d = try? Data(contentsOf: url)
-            text = d != nil ? String(data: d!, encoding: .utf8) : nil
-          }
-        } else if let data = item as? Data {
-          text = String(data: data, encoding: .utf8)
+  // A link item, which some providers vend as a string or its bytes.
+  private func sendLinkItem(_ order: Int, _ item: NSSecureCoding?, _ error: Error?) {
+    var url: URL?
+    if error == nil {
+      switch item {
+      case let u as URL: url = u
+      case let str as String: url = URL(string: str.trimmingCharacters(in: .whitespacesAndNewlines))
+      case let data as Data:
+        url = String(data: data, encoding: .utf8).flatMap {
+          URL(string: $0.trimmingCharacters(in: .whitespacesAndNewlines))
         }
+      default: break
       }
-      self.sendText(text ?? "")
     }
+    sendURLItem(order, url)
+  }
 
-    for items in itemArrs as! [[NSItemProvider]] {
-      // Only handle one from itemArrs if we're already processing
-      objc_sync_enter(self)
-      if unprocessed > 0 {
-        objc_sync_exit(self)
-        break
+  @objc public func startProcessing() {
+    var order = 0
+    for (index, items) in (itemArrs as! [[NSItemProvider]]).enumerated() {
+      // The host's own text for this extension item (a post's caption, a
+      // page's title) goes ahead of its attachments.
+      if index < captions.count, !ShareText.isBlank(captions[index]) {
+        pieces.append((order, .caption(captions[index])))
       }
-      objc_sync_exit(self)
+      order += 1
 
       for item in items {
-        guard let best = Self.bestType(for: item) else { continue }
+        let itemOrder = order
+        order += 1
         itemCount += 1
         incrementUnprocessed()
+        let types = item.registeredTypeIdentifiers
+        guard let best = ShareItemKind.best(of: types) else {
+          reserveItemProgress(loaderReportsProgress: false)
+          completeItemAndAppendManifestAndLogError(itemOrder, text: "item offers no types", error: nil)
+          continue
+        }
+        log.log(
+          "item \(itemOrder, privacy: .public) offers \(ShareItemKind.publicDescription(of: types), privacy: .public) (\(types, privacy: .private)); loading \(String(describing: best.kind), privacy: .public)"
+        )
         // Only the load*Representation calls hand back a Progress; loadItem
         // gives us nothing to observe, so those items count all at once.
         switch best.kind {
         case .movie:
           reserveItemProgress(loaderReportsProgress: true)
           attachLoaderProgress(
-            item.loadFileRepresentation(
-              forTypeIdentifier: best.stype, completionHandler: movieHandler))
+            item.loadFileRepresentation(forTypeIdentifier: best.stype) { url, error in
+              self.sendMedia(itemOrder, error == nil ? url : nil, isVideo: true, providerTemp: true)
+            })
         // All images are copied as-is, since decoding one can exceed the
         // extension's memory limit; the app transcodes what it can't send
         // (TIFF, RAW, webp...).
         case .imageFile, .image:
           reserveItemProgress(loaderReportsProgress: true)
-          attachLoaderProgress(loadImage(item, typeIdentifier: best.stype))
+          attachLoaderProgress(loadImage(itemOrder, item, typeIdentifier: best.stype))
         case .vCard:
           reserveItemProgress(loaderReportsProgress: true)
           attachLoaderProgress(
-            item.loadDataRepresentation(
-              forTypeIdentifier: "public.vcard", completionHandler: contactHandler))
-        // PDF and generic files
-        case .file:
-          // A provider whose only file-ish representation is `public.file-url`
-          // has no file representation to load: asking for one writes the URL's
-          // property-list encoding to a temp file, and we would attach that
-          // 200-byte blob instead of the document. Take the URL and copy what it
-          // points at.
-          if UTType(best.stype)?.conforms(to: .fileURL) == true {
-            reserveItemProgress(loaderReportsProgress: false)
-            item.loadItem(
-              forTypeIdentifier: best.stype, options: nil,
-              completionHandler: { (loaded: NSSecureCoding?, error: Error?) in
-                self.sendURLItem(loaded as? URL)
-              })
-          } else {
-            reserveItemProgress(loaderReportsProgress: true)
-            attachLoaderProgress(
-              item.loadFileRepresentation(
-                forTypeIdentifier: best.stype, completionHandler: fileHandler))
+            item.loadDataRepresentation(forTypeIdentifier: "public.vcard") { data, error in
+              if let data = data {
+                self.sendContact(itemOrder, data)
+              } else {
+                self.completeItemAndAppendManifestAndLogError(
+                  itemOrder, text: "vcardHandler: unable to decode share", error: error)
+              }
+            })
+        // A provider whose only file-ish representation is `public.file-url`
+        // has no file representation to load: asking for one writes the URL's
+        // property-list encoding to a temp file, and we would attach that
+        // 200-byte blob instead of the document. Take the URL and copy what it
+        // points at.
+        case .file where UTType(best.stype)?.conforms(to: .fileURL) == true:
+          reserveItemProgress(loaderReportsProgress: false)
+          item.loadItem(forTypeIdentifier: best.stype, options: nil) { loaded, error in
+            self.sendURLItem(itemOrder, error == nil ? loaded as? URL : nil)
           }
+        // PDFs, and anything else a host offers (audio, documents, archives,
+        // types we have never heard of), go as files under the provider's name.
+        case .file, .data:
+          let stype = best.stype
+          let suggestedName = item.suggestedName
+          reserveItemProgress(loaderReportsProgress: true)
+          attachLoaderProgress(
+            item.loadFileRepresentation(forTypeIdentifier: stype) { url, error in
+              if let error {
+                self.completeItemAndAppendManifestAndLogError(itemOrder, text: "fileHandler: load error", error: error)
+                return
+              }
+              self.sendFile(
+                itemOrder, url, providerTemp: true, suggestedName: suggestedName, type: UTType(stype))
+            })
         case .text:
           reserveItemProgress(loaderReportsProgress: false)
-          item.loadItem(
-            forTypeIdentifier: "public.plain-text", options: nil,
-            completionHandler: secureTextHandler)
+          item.loadItem(forTypeIdentifier: "public.plain-text", options: nil) { loaded, error in
+            self.sendTextItem(itemOrder, loaded, error)
+          }
         case .url:
           reserveItemProgress(loaderReportsProgress: false)
-          item.loadItem(
-            forTypeIdentifier: "public.url", options: nil,
-            completionHandler: { (item: NSSecureCoding?, error: Error?) in
-              self.sendURLItem(item as? URL)
-            })
+          item.loadItem(forTypeIdentifier: "public.url", options: nil) { loaded, error in
+            self.sendLinkItem(itemOrder, loaded, error)
+          }
         }
       }
     }

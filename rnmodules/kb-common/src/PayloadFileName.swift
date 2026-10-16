@@ -27,6 +27,26 @@ enum PayloadFileName {
     return ext.map { "\(fallbackBase).\($0)" } ?? fallbackBase
   }
 
+  // The name long shared text is attached under: its first words, so the
+  // attachment reads as what it is rather than a random name.
+  static func forText(_ text: String) -> String {
+    let words = text.split(whereSeparator: { $0.isWhitespace }).prefix(6)
+    var snippet = ""
+    for word in words {
+      let next = snippet.isEmpty ? String(word) : "\(snippet) \(word)"
+      if next.count > maxTextNameChars { break }
+      snippet = next
+    }
+    if snippet.isEmpty, let first = words.first {
+      snippet = String(first.prefix(maxTextNameChars))
+    }
+    // Named with .txt already, so a dot in the words ("see example.com") is
+    // never taken for the extension.
+    return make(
+      candidates: snippet.isEmpty ? [] : ["\(snippet).txt"], type: .plainText, fallbackBase: "shared-text")
+  }
+  private static let maxTextNameChars = 40
+
   // A path separator would escape the item's directory, a leading dot would
   // hide the file, and control characters (newlines) garble it in the UI.
   // Only C0/C1 controls and line breaks: .controlCharacters also holds format
