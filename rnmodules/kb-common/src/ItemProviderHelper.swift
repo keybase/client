@@ -505,14 +505,8 @@ public class ItemProviderHelper: NSObject {
   private func writeDownloadedMedia(
     _ data: Data, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
   ) {
-    // An unregistered MIME type yields a dynamic UTType with no extension;
-    // the URL's extension knows better.
-    let type = (UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased()))
-      .flatMap { $0.preferredFilenameExtension != nil ? $0 : nil }
-
     if isVideo {
-      let name = PayloadFileName.make(
-        candidates: [url.lastPathComponent], type: type ?? .mpeg4Movie, fallbackBase: "video")
+      let name = PayloadFileName.downloadedVideo(from: url, mime: mime)
       guard let payloadURL = try? getPayloadURL(named: name),
         (try? data.write(to: payloadURL, options: .atomic)) != nil
       else {
