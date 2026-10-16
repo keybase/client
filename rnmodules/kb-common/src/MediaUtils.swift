@@ -18,6 +18,8 @@ struct MediaProcessingConfig {
 }
 
 enum MediaUtilsError: Error, LocalizedError {
+    case fileMissing(String)
+    case unrecognizedImageFormat
     case invalidInput(String)
     case imageProcessingFailed(String)
     case videoProcessingFailed(String)
@@ -25,6 +27,8 @@ enum MediaUtilsError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .fileMissing(let path): return "Invalid input: File does not exist at path: \(path)"
+        case .unrecognizedImageFormat: return "Image processing failed: Unrecognized image format"
         case .invalidInput(let message): return "Invalid input: \(message)"
         case .imageProcessingFailed(let message): return "Image processing failed: \(message)"
         case .videoProcessingFailed(let message): return "Video processing failed: \(message)"
@@ -37,6 +41,17 @@ typealias ProcessMediaCompletion = (Result<URL, Error>) -> Void
 
 @objc(MediaUtils)
 public class MediaUtils: NSObject {
+    // The code the JS bridge rejects a failed processImage/processVideo with, so
+    // the app can tell the user why without parsing the message. Kept in step with
+    // ProcessErrorCode in shared/util/media-process.tsx.
+    @objc public static func rejectCode(for error: Error) -> String {
+        switch error as? MediaUtilsError {
+        case .fileMissing: return "media_missing"
+        case .unrecognizedImageFormat: return "media_unrecognized"
+        default: return "process_media_error"
+        }
+    }
+
     // No max pixel size, so this decodes at full resolution; it stays a thumbnail
     // request only because that's the call that bakes the EXIF orientation into
     // the pixels, which the re-encoded JPEG no longer carries as metadata.
@@ -94,7 +109,7 @@ public class MediaUtils: NSObject {
     ) throws -> URL {
         // Validate input
         guard FileManager.default.fileExists(atPath: url.path) else {
-            throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
+            throw MediaUtilsError.fileMissing(url.path)
         }
 
         // "Keep full size" is a raw share: the original bytes with their original
@@ -111,7 +126,7 @@ public class MediaUtils: NSObject {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
                 let typeID = CGImageSourceGetType(cgSource)
             else {
-                throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
+                throw MediaUtilsError.unrecognizedImageFormat
             }
             if let type = UTType(typeID as String),
                 !mustTranscode(type) || isAnimation(cgSource, type: type),
@@ -153,12 +168,13 @@ public class MediaUtils: NSObject {
         guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
+        guard let typeID = CGImageSourceGetType(cgSource) else {
+            throw MediaUtilsError.unrecognizedImageFormat
+        }
 
         // An animation goes as it is, like a gif, once it carries no location;
         // the JPEG would keep one frame.
-        if let typeID = CGImageSourceGetType(cgSource), let type = UTType(typeID as String),
-            isAnimation(cgSource, type: type), !hasLocation(url)
-        {
+        if let type = UTType(typeID as String), isAnimation(cgSource, type: type), !hasLocation(url) {
             return url
         }
 
@@ -236,7 +252,7 @@ public class MediaUtils: NSObject {
         fromOriginal url: URL, compress: Bool, edit: VideoEdit?
     ) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
-            throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
+            throw MediaUtilsError.fileMissing(url.path)
         }
 
         // "Keep full size" is a raw share: hand the original back untouched. An
@@ -519,7 +535,7 @@ public class MediaUtils: NSObject {
 
         // No type means ImageIO can't read it (empty or corrupt file).
         guard let type = CGImageSourceGetType(cgSource) else {
-            throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
+            throw MediaUtilsError.unrecognizedImageFormat
         }
         // ImageIO reads more formats than it writes (RAW, webp). Those can't be
         // rewritten in place, and the JPEG re-encode carries no metadata anyway.

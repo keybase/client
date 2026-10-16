@@ -674,7 +674,7 @@ RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(
   NSURL *url = [NSURL fileURLWithPath:kbBarePath(path)];
   void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
     if (error) {
-      reject(@"process_media_error", error.localizedDescription, error);
+      reject([MediaUtils rejectCodeFor:error], error.localizedDescription, error);
     } else if (out) {
       resolve(kbJSPath(out.path));
     } else {

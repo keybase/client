@@ -668,18 +668,19 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(deleted).toEqual([])
   })
 
+  // The reason comes from the native reject code, never the message.
   test.each([
-    ['Invalid input: File does not exist at path: /tmp/gone.jpg', 'is no longer on this device.'],
-    [
-      'Image processing failed: Unrecognized image format',
-      "is in a format this device can't read, and the original can include its location.",
-    ],
-  ])('the Send original notice says why: %s', async (failure, reason) => {
+    ['media_missing', 'is no longer on this device.'],
+    ['media_unrecognized', "is in a format this device can't read, and the original can include its location."],
+    [undefined, "couldn't be converted to a JPEG, and the original can include its location."],
+  ])('the Send original notice says why: %s', async (code, reason) => {
+    const failure = () =>
+      Object.assign(new Error('Image processing failed: Unrecognized image format'), code ? {code} : {})
     const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/x.pef'])
     await finish('/tmp/clip.mov', new Error('nope'))
-    await finish('/tmp/x.pef', new Error(failure))
+    await finish('/tmp/x.pef', failure())
     await sendOriginal()
-    await finish('/tmp/x.pef', new Error(failure))
+    await finish('/tmp/x.pef', failure())
     expect(uploaded()).toEqual(['/tmp/clip.mov'])
     expect(pendingNotice()).toBe(`Not sent: x.pef ${reason}`)
   })
