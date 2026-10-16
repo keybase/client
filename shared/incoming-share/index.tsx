@@ -70,6 +70,8 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 type IncomingShareProps = {
   incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
   droppedMessage: string
+  // The service's id for the share; empty on Android.
+  shareID: string
 }
 
 type SelectedConversationProps = {
@@ -77,7 +79,7 @@ type SelectedConversationProps = {
 }
 
 const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
-  const {droppedMessage, incomingShareItems, selectedConversationIDKey} = props
+  const {droppedMessage, incomingShareItems, selectedConversationIDKey, shareID} = props
   const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
   // Always the untouched original: trimming and compression happen downstream on
@@ -101,6 +103,9 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
+    if (shareID) {
+      routedShareIDs.add(shareID)
+    }
     if (sendPaths.length > 0) {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
       const meta = getInboxConversationMeta(selectedConversationIDKey)
@@ -126,7 +131,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
             : {append: true, notice: droppedMessage || undefined, text, type: 'injectText'},
       })
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage, shareID])
 
   const footer = useFooter(incomingShareItems)
   const contentDescription = getContentDescriptionText(incomingShareItems)
@@ -189,13 +194,20 @@ const NothingToShare = () => (
 )
 
 const noShareItems = new Array<T.RPCGen.IncomingShareItem>()
-const noIncomingShare = {droppedCount: 0, items: noShareItems}
-type Share = {droppedCount: number; items: ReadonlyArray<T.RPCGen.IncomingShareItem>}
+const noIncomingShare = {droppedCount: 0, id: '', items: noShareItems}
+type Share = {droppedCount: number; id: string; items: ReadonlyArray<T.RPCGen.IncomingShareItem>}
 
-// The service hands each share out once, so a later load (the reconnect reload) finds nothing:
-// the share the first load got is the one this screen shows.
-export const keepFirstShare = (prev: Share | undefined, next: Share): Share =>
-  prev && (prev.items.length > 0 || prev.droppedCount > 0) ? prev : next
+const isEmptyShare = (share: Share) => share.items.length === 0 && share.droppedCount === 0
+
+// What a load shows, given the share already shown. The service hands a share out again for a
+// while, in case an answer was lost, and nothing after that: neither replaces the share shown. A
+// newer share does.
+export const nextShare = (prev: Share | undefined, next: Share): Share =>
+  prev && !isEmptyShare(prev) && (isEmptyShare(next) || next.id === prev.id) ? prev : next
+
+// Shares sent straight to their conversation, by id. One that is handed out again (the link opened
+// a second time) is not sent there again: its text would be added to the draft twice.
+const routedShareIDs = new Set<string>()
 
 const useIncomingShareItems = () => {
   const [incomingShare, setIncomingShare] = React.useState<Share>()
@@ -204,8 +216,9 @@ const useIncomingShareItems = () => {
     [undefined],
     {
       enabled: isIOS,
-      map: res => ({droppedCount: res.droppedCount, items: res.items || noShareItems}),
-      onResult: next => setIncomingShare(prev => keepFirstShare(prev, next)),
+      map: res => ({droppedCount: res.droppedCount, id: res.id, items: res.items || noShareItems}),
+      onResult: next =>
+        setIncomingShare(prev => nextShare(prev, routedShareIDs.has(next.id) ? noIncomingShare : next)),
     }
   )
 
@@ -234,13 +247,15 @@ const useIncomingShareItems = () => {
       incomingShareError: undefined,
       incomingShareItems: androidShareItems,
       nothingToShare: false,
+      shareID: '',
     }
   }
-  const {droppedCount, items} = incomingShare ?? noIncomingShare
+  const {droppedCount, id, items} = incomingShare ?? noIncomingShare
   return {
     droppedCount,
     incomingShareError: items.length || droppedCount ? undefined : incomingShareError,
     incomingShareItems: items,
+    shareID: id,
     // A link opened again, or from somewhere other than a share, has no share behind it.
     nothingToShare: isAndroid || incomingShare !== undefined,
   }
@@ -249,7 +264,7 @@ const useIncomingShareItems = () => {
 const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
 const IncomingShareMain = (props: SelectedConversationProps) => {
-  const {droppedCount, incomingShareError, incomingShareItems, nothingToShare} = useIncomingShareItems()
+  const {droppedCount, incomingShareError, incomingShareItems, nothingToShare, shareID} = useIncomingShareItems()
   const droppedMessage = getDroppedItemsMessage(incomingShareItems.length, droppedCount)
   return incomingShareError ? (
     <IncomingShareError />
@@ -258,6 +273,7 @@ const IncomingShareMain = (props: SelectedConversationProps) => {
       droppedMessage={droppedMessage}
       incomingShareItems={incomingShareItems}
       selectedConversationIDKey={props.selectedConversationIDKey}
+      shareID={shareID}
     />
   ) : droppedMessage ? (
     <IncomingShareError message={droppedMessage} />

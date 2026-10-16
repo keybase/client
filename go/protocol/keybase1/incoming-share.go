@@ -104,6 +104,7 @@ func (o IncomingShareItem) DeepCopy() IncomingShareItem {
 type IncomingShareItems struct {
 	Items        []IncomingShareItem `codec:"items" json:"items"`
 	DroppedCount int                 `codec:"droppedCount" json:"droppedCount"`
+	Id           string              `codec:"id" json:"id"`
 }
 
 func (o IncomingShareItems) DeepCopy() IncomingShareItems {
@@ -120,6 +121,7 @@ func (o IncomingShareItems) DeepCopy() IncomingShareItems {
 			return ret
 		})(o.Items),
 		DroppedCount: o.DroppedCount,
+		Id:           o.Id,
 	}
 }
 

@@ -93,6 +93,8 @@ var lastIncomingShare struct {
 // incomingShareRepeatWindow gets the same share again, and any later one (a
 // stale or replayed keybase://incoming-share link) gets no items and no error.
 // The payload files stay until they are sent or purged.
+// A repeat carries the share's id, and only the app knows whether it already
+// acted on that share, so keeping a share from being acted on twice is up to it.
 func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res keybase1.IncomingShareItems, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
@@ -141,6 +143,7 @@ func stillPresentIncomingShare(share keybase1.IncomingShareItems) (res keybase1.
 		return keybase1.IncomingShareItems{}
 	}
 	res.DroppedCount = share.DroppedCount
+	res.Id = share.Id
 	return res
 }
 
@@ -186,6 +189,7 @@ func (h *IncomingShareHandler) claimIncomingShare(mctx libkb.MetaContext, folder
 		return res, true, err
 	}
 	mctx.Debug("incoming-share: %d items", len(jsonItems))
+	res.Id = suffix
 loop:
 	for _, jsonItem := range jsonItems {
 		if len(jsonItem.Error) > 0 {

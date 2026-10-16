@@ -263,3 +263,37 @@ func TestIncomingSharePurgeRemovesOldClaimedManifests(t *testing.T) {
 	}
 	require.ElementsMatch(t, []string{"manifest.json", "manifest.def.claimed", "other.txt"}, names)
 }
+
+// The app tells a repeat from a newer share by its id.
+func TestIncomingShareRepeatCarriesTheShareID(t *testing.T) {
+	sent := ""
+	h, cleanup := setupIncomingShare(t, func(folder string) []map[string]string {
+		sent = filepath.Join(folder, "guid", "sent.jpg")
+		require.NoError(t, os.MkdirAll(filepath.Dir(sent), 0o700))
+		require.NoError(t, os.WriteFile(sent, []byte("jpeg"), 0o600))
+		return []map[string]string{
+			{"type": "image", "originalPath": sent},
+			{"type": "text", "content": "first"},
+		}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+	get := func() keybase1.IncomingShareItems {
+		res, err := h.GetIncomingShareItems(context.Background())
+		require.NoError(t, err)
+		return res
+	}
+
+	first := get()
+	require.NotEmpty(t, first.Id)
+	require.Equal(t, first.Id, get().Id)
+	// Still the same share with one of its files sent.
+	require.NoError(t, os.Remove(sent))
+	require.Equal(t, first.Id, get().Id)
+
+	writeIncomingShareManifest(t, h, []map[string]string{{"type": "text", "content": "first"}})
+	second := get()
+	require.NotEmpty(t, second.Id)
+	require.NotEqual(t, first.Id, second.Id)
+	require.Equal(t, second.Id, get().Id)
+}
