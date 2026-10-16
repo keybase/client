@@ -177,8 +177,10 @@ export const seedFilesFolder = (folder: string, names: Array<string>) => {
     'File Provider Storage',
     folder
   )
-  fs.rmSync(dir, {force: true, recursive: true})
+  // Empty the folder rather than recreate it: Files falls back to the parent folder when the one a
+  // link opens was just replaced.
   fs.mkdirSync(dir, {recursive: true})
+  for (const f of fs.readdirSync(dir)) fs.rmSync(path.join(dir, f), {force: true, recursive: true})
   for (const n of names) fs.copyFileSync(asset(n), path.join(dir, n))
   return dir
 }
@@ -331,14 +333,31 @@ export const rotateNewestPhotos = async (count: number) => {
 // one is shared from its context menu, several from selection mode.
 export const shareFilesSheet = (folder: string, names: Array<string>) => async () => {
   const dir = seedFilesFolder(folder, names)
-  openUrl(`shareddocuments://${encodeURI(dir)}`)
+  const link = `shareddocuments://${encodeURI(dir)}`
+  openUrl(link)
   // a cell is named "<name>, <extension>", where Files drops the extension from the name for the
   // types it knows (pdf, mp4, tif) and keeps it for the rest (zip, dat)
   const cell = (n: string) => {
     const ext = path.extname(n).slice(1)
     return `type == "XCUIElementTypeCell" AND (name == ${quote(`${path.basename(n, `.${ext}`)}, ${ext}`)} OR name == ${quote(`${n}, ${ext}`)})`
   }
-  await pred(cell(names[0]!)).waitForExist({interval: 250, timeout: 15_000, timeoutMsg: `Files never showed ${names[0]}`})
+  // Files can open the folder's parent instead (it hasn't caught up with the folder's new contents
+  // yet), so open the link again until the first file shows.
+  let reopenAt = Date.now() + 5_000
+  await waitFor(
+    `Files to show ${names[0]}`,
+    async () => {
+      if (await exists(cell(names[0]!))) return true
+      if (Date.now() > reopenAt) {
+        openUrl(link)
+        reopenAt = Date.now() + 5_000
+      }
+      return undefined
+    },
+    {interval: 500, timeout: 30_000}
+  ).catch(() => {
+    throw new Error(`Files never showed ${names[0]}`)
+  })
   if (names.length === 1) {
     await touchAndHold(cell(names[0]!))
     await tapWhenExists('label == "Share" AND type == "XCUIElementTypeButton"')
