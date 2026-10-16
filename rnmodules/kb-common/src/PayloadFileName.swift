@@ -12,8 +12,8 @@ enum PayloadFileName {
   // A longer "extension" is really part of the name.
   private static let maxExtBytes = 16
 
-  // Uses the first usable candidate (a provider's suggestedName, a file's last
-  // path component), else fallbackBase. The name keeps an extension that
+  // Uses the first usable candidate (a provider's suggestedName, a file's or a
+  // download's last path component), else fallbackBase. The name keeps an extension that
   // matches type and gets type's preferred one otherwise, so the app can tell
   // what the file is.
   static func make(candidates: [String?], type: UTType?, fallbackBase: String) -> String {
@@ -46,6 +46,26 @@ enum PayloadFileName {
       candidates: snippet.isEmpty ? [] : ["\(snippet).txt"], type: .plainText, fallbackBase: "shared-text")
   }
   private static let maxTextNameChars = 40
+
+  // The name a downloaded video is saved under. The served MIME type wins, then
+  // the URL's extension; with neither registered the name keeps whatever
+  // extension the URL has, and mp4 is only a guess for a URL with none.
+  static func downloadedVideo(from url: URL, mime: String) -> String {
+    let ext = url.pathExtension.lowercased()
+    let type = declared(UTType(mimeType: mime)) ?? declared(UTType(filenameExtension: ext))
+    return make(
+      candidates: [url.lastPathComponent], type: type ?? (ext.isEmpty ? .mpeg4Movie : nil),
+      fallbackBase: "video")
+  }
+
+  // An unregistered MIME type or extension yields a dynamic UTType, not nil,
+  // and a dynamic type has no extension to name the file with.
+  private static func declared(_ type: UTType?) -> UTType? {
+    guard let type = type, !type.isDynamic, type.preferredFilenameExtension != nil else {
+      return nil
+    }
+    return type
+  }
 
   // A path separator would escape the item's directory, a leading dot would
   // hide the file, and control characters (newlines) garble it in the UI.
