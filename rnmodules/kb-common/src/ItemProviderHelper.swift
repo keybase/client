@@ -484,22 +484,43 @@ public class ItemProviderHelper: NSObject {
     }.resume()
   }
 
+  // The body goes to a file, never memory, so a large video can't push the
+  // extension past its memory limit. Above this the link is shared instead: the
+  // copy lands in the shared container, and the app uploads it from there.
+  static let maxDownloadBytes: Int64 = 200 * 1024 * 1024
+
   private func downloadMedia(_ url: URL, isVideo: Bool, sendLink: @escaping () -> Void) {
     let request = URLRequest(url: url, timeoutInterval: Self.downloadTimeout)
-    let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+    let task = URLSession.shared.downloadTask(with: request) { [weak self] location, response, error in
       guard let self = self else { return }
       let mime = response?.mimeType ?? ""
-      guard error == nil, let data = data, !data.isEmpty,
+      guard error == nil, let location = location,
         mime.isEmpty || mime.hasPrefix("image/") || mime.hasPrefix("video/")
       else {
         sendLink()
         return
       }
-      // URLSession runs this on its delegate queue, and writing a shared video
-      // out is enough file I/O to stall the extension's UI.
+      let size = (try? location.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+      guard size > 0, Int64(size) <= Self.maxDownloadBytes else {
+        if size > 0 {
+          log.info("download of \(size) bytes is over the cap; sharing the link")
+        }
+        sendLink()
+        return
+      }
+      // URLSession deletes its file when this handler returns, so it is moved
+      // first; the rest runs off the session's queue, as writing out a video is
+      // enough file I/O to stall the extension's UI.
+      let staged = FileManager.default.temporaryDirectory
+        .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+      guard (try? FileManager.default.moveItem(at: location, to: staged)) != nil else {
+        sendLink()
+        return
+      }
       DispatchQueue.global(qos: .userInitiated).async {
+        defer { try? FileManager.default.removeItem(at: staged) }
         self.writeDownloadedMedia(
-          data, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
+          at: staged, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
           sendLink: sendLink)
       }
     }
@@ -507,39 +528,37 @@ public class ItemProviderHelper: NSObject {
   }
 
   private func writeDownloadedMedia(
-    _ data: Data, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
+    at file: URL, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
   ) {
+    let name: String
+    let type: String
     if isVideo {
-      let name = PayloadFileName.downloadedVideo(from: url, mime: mime)
-      guard let payloadURL = try? getPayloadURL(named: name),
-        (try? data.write(to: payloadURL, options: .atomic)) != nil
+      name = PayloadFileName.downloadedVideo(from: url, mime: mime)
+      type = "video"
+    } else {
+      // Written as served. Decoding a large image would blow the extension's
+      // memory limit, so anything the app can't show as-is (webp, avif) is
+      // transcoded there. The bytes, not the label, decide: a server can serve an
+      // error page as image/*, and then the link is the better share. Mapped, so
+      // the sniff reads only the header.
+      guard let data = try? Data(contentsOf: file, options: .alwaysMapped),
+        let imageType = ShareFiles.imageType(of: data),
+        imageType.preferredFilenameExtension != nil
       else {
         sendLink()
         return
       }
-      completeItemAndAppendManifest(type: "video", originalFileURL: payloadURL)
-      return
+      name = PayloadFileName.make(
+        candidates: [url.lastPathComponent], type: imageType, fallbackBase: "image")
+      type = "image"
     }
-
-    // Written as served. Decoding a large image would blow the extension's
-    // memory limit, so anything the app can't show as-is (webp, avif) is
-    // transcoded there. The bytes, not the label, decide: a server can serve an
-    // error page as image/*, and then the link is the better share.
-    guard let imageType = ShareFiles.imageType(of: data),
-      imageType.preferredFilenameExtension != nil
-    else {
-      sendLink()
-      return
-    }
-    let name = PayloadFileName.make(
-      candidates: [url.lastPathComponent], type: imageType, fallbackBase: "image")
     guard let payloadURL = try? getPayloadURL(named: name),
-      (try? data.write(to: payloadURL, options: .atomic)) != nil
+      (try? FileManager.default.moveItem(at: file, to: payloadURL)) != nil
     else {
       sendLink()
       return
     }
-    completeItemAndAppendManifest(type: "image", originalFileURL: payloadURL)
+    completeItemAndAppendManifest(type: type, originalFileURL: payloadURL)
   }
 
   // A provider that vends the image as bytes rather than a file (Safari's
