@@ -299,7 +299,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	finisher = func() {
 		if internalResp != nil {
-			_ = DiscardAndCloseBody(internalResp)
+			_ = internalResp.Body.Close()
 			internalResp = nil
 		}
 		if canc != nil {

@@ -57,11 +57,11 @@ func (r RemoteUpdateSource) FindUpdate(options updater.UpdateOptions) (*updater.
 		Timeout: time.Minute,
 	}
 	r.log.Infof("Request %#v", sourceURL)
-	resp, err := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("Updater remote returned bad status %v", resp.Status)

@@ -90,6 +90,9 @@ func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 		MinVersion: tls.VersionTLS12,
 	}
 	xprt.TLSClientConfig = tlsConfig
+	// Custom TLSClientConfig disables HTTP/2 unless this is set. The maps
+	// proxy negotiates h2 when SNI is maps.googleapis.com.
+	xprt.ForceAttemptHTTP2 = true
 	return &http.Client{
 		Transport: libkb.NewInstrumentedRoundTripper(g,
 			func(*http.Request) string { return "LocationShare" }, libkb.NewClosingRoundTripper(&xprt)),

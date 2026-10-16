@@ -14,36 +14,6 @@ import (
 
 const fileScheme = "file"
 
-func discardAndClose(rc io.ReadCloser) error {
-	_, _ = io.Copy(io.Discard, rc)
-	return rc.Close()
-}
-
-// DiscardAndCloseBody reads as much as possible from the body of the
-// given response, and then closes it.
-//
-// This is because, in order to free up the current connection for
-// re-use, a response body must be read from before being closed; see
-// http://stackoverflow.com/a/17953506 .
-//
-// Instead of doing:
-//
-//	res, _ := ...
-//	defer res.Body.Close()
-//
-// do
-//
-//	res, _ := ...
-//	defer DiscardAndCloseBody(res)
-//
-// instead.
-func DiscardAndCloseBody(resp *http.Response) error {
-	if resp == nil {
-		return fmt.Errorf("Nothing to discard (http.Response was nil)")
-	}
-	return discardAndClose(resp.Body)
-}
-
 // SaveHTTPResponse saves an http.Response to path
 func SaveHTTPResponse(resp *http.Response, savePath string, mode os.FileMode, log Log) error {
 	if resp == nil {
@@ -61,16 +31,6 @@ func SaveHTTPResponse(resp *http.Response, savePath string, mode os.FileMode, lo
 		log.Infof("Downloaded %d bytes", n)
 	}
 	return err
-}
-
-// DiscardAndCloseBodyIgnoreError calls DiscardAndCloseBody.
-// This satisfies lint checks when using with defer and you don't care if there
-// is an error, so instead of:
-//
-//	defer func() { _ = DiscardAndCloseBody(resp) }()
-//	defer DiscardAndCloseBodyIgnoreError(resp)
-func DiscardAndCloseBodyIgnoreError(resp *http.Response) {
-	_ = DiscardAndCloseBody(resp)
 }
 
 // parseURL ensures error if parse error or no url was returned from url.Parse
@@ -105,14 +65,14 @@ func URLExists(urlString string, timeout time.Duration, log Log) (bool, error) {
 	client := &http.Client{
 		Timeout: timeout,
 	}
-	resp, requestErr := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after nil checks
+	resp, requestErr := client.Do(req)
 	if requestErr != nil {
 		return false, requestErr
 	}
 	if resp == nil {
 		return false, fmt.Errorf("No response")
 	}
-	defer DiscardAndCloseBodyIgnoreError(resp)
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("Invalid status code (%d)", resp.StatusCode)
 	}
@@ -175,14 +135,14 @@ func downloadURL(urlString string, destinationPath string, options DownloadURLOp
 		client = http.Client{}
 	}
 	log.Infof("Request %s", url.String())
-	resp, requestErr := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
+	resp, requestErr := client.Do(req)
 	if requestErr != nil {
 		return cached, requestErr
 	}
 	if resp == nil {
 		return cached, fmt.Errorf("No response")
 	}
-	defer DiscardAndCloseBodyIgnoreError(resp)
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotModified {
 		cached = true
 		// ETag matched, we already have it

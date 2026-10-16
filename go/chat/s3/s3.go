@@ -353,7 +353,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 			return false, err
 		}
 
-		defer func() { _ = libkb.DiscardAndCloseBody(resp) }()
+		defer resp.Body.Close()
 		if resp.StatusCode/100 == 2 {
 			exists = true
 		}

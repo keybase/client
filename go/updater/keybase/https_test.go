@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/updater/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,9 +17,9 @@ func TestHTTPClient(t *testing.T) {
 	require.NoError(t, err)
 	client, err := httpClient(time.Minute)
 	require.NoError(t, err)
-	resp, err := client.Do(req) //nolint:bodyclose // false positive, body is closed via defer after error check
+	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -73,7 +72,9 @@ OtWvrDGSUA==
 	require.NoError(t, err)
 	client, err := httpClientWithCert(otherCert, time.Minute)
 	require.NoError(t, err)
-	resp, err := client.Do(req) //nolint:bodyclose // resp may be nil on error
-	defer util.DiscardAndCloseBodyIgnoreError(resp)
+	resp, err := client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	require.ErrorContains(t, err, "x509: certificate signed by unknown authority")
 }
