@@ -457,7 +457,12 @@ describe('Send on iOS, with the real export bookkeeping', () => {
   })
 
   // Send, with the export held open until the returned resolve is called.
-  const sendAndHoldExport = async (paths: Array<string>) => {
+  const sendAndHoldExport = async (paths: Array<string>, keepFullSize = false) => {
+    if (keepFullSize) {
+      jest
+        .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
+        .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+    }
     const pending = new Map<string, PromiseWithResolvers<string>>()
     processMediaMock.mockImplementation(async path => {
       const p = Promise.withResolvers<string>()
@@ -529,5 +534,67 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(screen.getByText('nope')).toBeTruthy()
     expect(rpc.calls('postAttachment')).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
+  })
+
+  // Native processMedia always answers with a file:// path, and with
+  // compression off an image comes back as the very file it was given. A pasted
+  // image arrives as a bare path, so the two strings differ for one file.
+  describe('with the native file:// return shape and a bare source path', () => {
+    const passthrough = '/tmp/paste.png'
+    const transcoded = '/tmp/clip.mov'
+    const transcodedOut = 'file:///tmp/clip-small.mp4'
+    // Shown first so the screen previews a file icon: an image preview doesn't
+    // render under jsdom. Not media, so it's never exported.
+    const cover = '/tmp/notes.pdf'
+
+    test('success keeps a passthrough, which is the upload', async () => {
+      const {finish} = await sendAndHoldExport([cover, passthrough], true)
+      await finish(passthrough, `file://${passthrough}`)
+      expect(rpc.params('postAttachment')[1]).toMatchObject({filename: passthrough})
+      expect(deleted).toEqual([])
+    })
+
+    test('success deletes a transcoded original and keeps its output', async () => {
+      const {finish} = await sendAndHoldExport([transcoded])
+      await finish(transcoded, transcodedOut)
+      expect(rpc.params('postAttachment')[0]).toMatchObject({filename: transcodedOut})
+      expect(deleted).toEqual([transcoded])
+    })
+
+    test('dismissing mid-export keeps a passthrough original', async () => {
+      const {finish, view} = await sendAndHoldExport([cover, passthrough], true)
+      view.unmount()
+      await finish(passthrough, `file://${passthrough}`)
+      expect(deleted).toEqual([])
+    })
+
+    test('dismissing mid-export keeps a transcoded original and drops its output', async () => {
+      const {finish, view} = await sendAndHoldExport([transcoded])
+      view.unmount()
+      await finish(transcoded, transcodedOut)
+      expect(deleted).toEqual([transcodedOut])
+    })
+
+    test('an account switch mid-export keeps both originals and drops only the transcoded output', async () => {
+      // with compression off a tiff still becomes a jpeg
+      const {finish} = await sendAndHoldExport([cover, passthrough, '/tmp/scan.tiff'], true)
+      act(() => {
+        useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+        useConfigState.getState().dispatch.setUserSwitching(false)
+        useConfigState.getState().dispatch.setLoggedIn(true)
+      })
+      await finish(passthrough, `file://${passthrough}`)
+      await finish('/tmp/scan.tiff', 'file:///tmp/scan.jpg')
+      expect(rpc.calls('postAttachment')).toEqual([])
+      expect(deleted).toEqual(['file:///tmp/scan.jpg'])
+    })
+
+    test('a failure keeps a passthrough original for Send original', async () => {
+      const {finish} = await sendAndHoldExport([cover, passthrough, '/tmp/b.tiff'], true)
+      await finish(passthrough, `file://${passthrough}`)
+      await finish('/tmp/b.tiff', new Error('nope'))
+      expect(screen.getByText('nope')).toBeTruthy()
+      expect(deleted).toEqual([])
+    })
   })
 })
