@@ -30,11 +30,7 @@ object IncomingShareFileName {
             base = name
         }
         val extBytes = keptExt?.let { utf8Len(it) + 1 } ?: 0
-        // Cut whole code points so a multi-byte one is never split.
-        while (base.isNotEmpty() && utf8Len(base) + extBytes > MAX_NAME_BYTES) {
-            base = base.substring(0, base.offsetByCodePoints(base.length, -1))
-        }
-        base = base.trimEnd('.', ' ')
+        base = truncateUtf8(base, MAX_NAME_BYTES - extBytes).trimEnd('.', ' ')
         if (base.isEmpty()) {
             base = FALLBACK_BASE
         }
@@ -42,7 +38,8 @@ object IncomingShareFileName {
     }
 
     // A path separator would escape the item's directory, a leading dot would
-    // hide the file, and control characters (newlines) garble it in the UI.
+    // hide the file, control characters (newlines) garble it in the UI, and
+    // bidi/format controls (U+202E) make it display other than it is.
     private fun sanitize(candidate: String?): String? {
         if (candidate == null) return null
         val trimmed = candidate.trim { it.isWhitespace() || it == '/' || it == '\\' || it == '.' }
@@ -52,9 +49,34 @@ object IncomingShareFileName {
         return cleaned.takeIf { it.isNotEmpty() }
     }
 
-    private fun isReplaced(c: Char): Boolean =
-        c == '/' || c == '\\' || c == ':' || c == ' ' || c == ' ' ||
-            c.code in 0x00..0x1F || c.code in 0x7F..0x9F
+    // The joiners are format characters too, but they only shape text (emoji
+    // sequences, Persian) and can't reorder it.
+    private fun isReplaced(c: Char): Boolean {
+        if (c == '\u200C' || c == '\u200D') return false
+        return c == '/' || c == '\\' || c == ':' || c == '\u2028' || c == '\u2029' ||
+            Character.getType(c).toByte() == Character.CONTROL ||
+            Character.getType(c).toByte() == Character.FORMAT
+    }
+
+    // The longest prefix of s that fits in maxBytes of UTF-8, cut on a code
+    // point boundary, in one pass.
+    internal fun truncateUtf8(s: String, maxBytes: Int): String {
+        var bytes = 0
+        var i = 0
+        while (i < s.length) {
+            val cp = s.codePointAt(i)
+            val n = when {
+                cp < 0x80 -> 1
+                cp < 0x800 -> 2
+                cp < 0x10000 -> 3
+                else -> 4
+            }
+            if (bytes + n > maxBytes) break
+            bytes += n
+            i += Character.charCount(cp)
+        }
+        return s.substring(0, i)
+    }
 
     private fun utf8Len(s: String): Int = s.toByteArray(Charsets.UTF_8).size
 }
