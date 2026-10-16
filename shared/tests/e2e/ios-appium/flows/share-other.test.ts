@@ -15,6 +15,7 @@ import {
   sharePhotosSheet,
   shareSafariElementSheet,
   shareScreenLifetime,
+  shareToKeybase,
   skipSource,
   startAssetServer,
   suggestionRow,
@@ -49,6 +50,43 @@ describe('Share text and other sources', () => {
     )
   })
 
+  // Under chat's 10000-byte limit, long text is still one message.
+  it('long text selected in Safari', async () => {
+    await runSource(
+      'safari-long-text',
+      {host: SAFARI, open: shareSafariElementSheet(`${server!.origin}/text.html`, 'long text', {selectAll: true})},
+      {items: [{content: /^Share matrix long text (word ){399}word$/, type: 'text'}]}
+    )
+  })
+
+  // Over the limit it is attached as a .txt named after its first words.
+  it('text over the message limit selected in Safari', async () => {
+    await runSource(
+      'safari-huge-text',
+      {host: SAFARI, open: shareSafariElementSheet(`${server!.origin}/text.html`, 'huge text', {selectAll: true})},
+      {
+        delivered: [{name: /^Share matrix huge text word word\.txt$/, type: 'file'}],
+        items: [{name: /^Share matrix huge text word word\.txt$/, type: 'text'}],
+      }
+    )
+  })
+
+  // Whitespace isn't something to share: the extension says it couldn't prepare the item and never
+  // opens the app.
+  it('whitespace-only text selected in Safari', async () => {
+    const share = await shareToKeybase(
+      {host: SAFARI, open: shareSafariElementSheet(`${server!.origin}/text.html`, 'blank text', {selectAll: true})},
+      {timeout: 25_000}
+    )
+    const problems = [
+      ...(share.appOpened ? ['the app opened for a whitespace-only share'] : []),
+      ...(share.extensionFinished ? [] : ['the share extension never finished']),
+      ...(share.manifest?.some(m => !m.error) ? [`the manifest has items: ${JSON.stringify(share.manifest)}`] : []),
+      ...(share.extLog.some(l => l.includes('share failed: none of')) ? [] : ['the extension never logged the failed share']),
+    ]
+    if (problems.length) throw new Error(problems.join('\n'))
+  })
+
   it('a contact card', async function () {
     addMedia(this, 'contact.vcf')
     await runSource(
@@ -58,11 +96,12 @@ describe('Share text and other sources', () => {
     )
   })
 
+  // Maps shares the place's card and its link: the place's name comes along with the link.
   it('a Maps location', async () => {
     await runSource(
       'maps-location',
       {host: MAPS, open: shareMapsPinSheet(37.3349, -122.009, 'Share Matrix')},
-      {items: [{content: /maps\.apple\.com|maps\.apple/, type: 'text'}]}
+      {items: [{content: /^(?=[\s\S]*Share Matrix)(?=[\s\S]*maps\.apple)/, type: 'text'}]}
     )
   })
 
@@ -100,6 +139,11 @@ describe('Share text and other sources', () => {
       keepShareScreen: true,
     })
     addMedia(this, 'photo-e.png')
-    await runSource('photos-unsent-second', {host: PHOTOS, open: sharePhotosSheet(1)}, {items: [{name: /^photo-e\.png$/i, type: 'image'}]})
+    await runSource(
+      'photos-unsent-second',
+      {host: PHOTOS, open: sharePhotosSheet(1)},
+      {items: [{name: /^photo-e\.png$/i, type: 'image'}]},
+      {overShareScreen: true}
+    )
   })
 })

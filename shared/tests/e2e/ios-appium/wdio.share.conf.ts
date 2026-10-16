@@ -3,7 +3,7 @@ import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {BUNDLE_ID} from './helpers/lifecycle'
 import {escapeToTabs} from './helpers/navigate'
-import {prepareSelfConversation, shareDebugDir} from './helpers/share'
+import {leaveSharePicker, prepareSelfConversation, shareDebugDir} from './helpers/share'
 
 // The share-source matrix (share.test.ts): every source shares from another app's share sheet into
 // Keybase, then sends into the smoke user's conversation with themselves. Local only; never in CI.
@@ -44,7 +44,14 @@ export const config: WebdriverIO.Config = {
     if ((await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID})) !== foreground) {
       await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
     }
-    await escapeToTabs().catch(() => {})
+    // A share left on the picker is closed by its own Cancel first: escaping from the picker can pick a
+    // conversation. If that fails, don't escape at all; the test fails on the screen it finds.
+    try {
+      await leaveSharePicker()
+      await escapeToTabs()
+    } catch (e) {
+      console.error(`beforeTest: ${e instanceof Error ? e.message : String(e)}`)
+    }
   },
   afterTest: async (test, _context, result: {passed: boolean; duration: number; error?: Error}) => {
     const skipped = !result.passed && !result.error

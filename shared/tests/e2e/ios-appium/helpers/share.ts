@@ -47,8 +47,12 @@ export const asset = (name: string) => path.join(assetsDir(), name)
 // The name of the first missing asset (an optional tool was absent when they were made), if any.
 export const missingAsset = (...names: Array<string>) => names.find(n => !fs.existsSync(asset(n)))
 
-// Serves the assets to Safari on the loopback interface only; the simulator shares the host's.
+export type ServedRequest = {method: string; path: string; userAgent: string}
+
+// Serves the assets to Safari on the loopback interface only; the simulator shares the host's. Every
+// request is recorded, so a source can check the share extension fetched nothing.
 export const startAssetServer = async () => {
+  const requests: Array<ServedRequest> = []
   const types: Record<string, string> = {
     '.avif': 'image/avif',
     '.html': 'text/html',
@@ -59,6 +63,7 @@ export const startAssetServer = async () => {
     '.webp': 'image/webp',
   }
   const server = http.createServer((req, res) => {
+    requests.push({method: req.method ?? '', path: req.url ?? '', userAgent: req.headers['user-agent'] ?? ''})
     const name = path.basename(decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/'))
     const file = asset(name)
     if (!name || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
@@ -78,8 +83,13 @@ export const startAssetServer = async () => {
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('asset server has no port')
-  return {close: () => server.close(), origin: `http://127.0.0.1:${address.port}`}
+  return {close: () => server.close(), origin: `http://127.0.0.1:${address.port}`, requests}
 }
+
+// The share extension sends a shared link as the link: it must never fetch it. Safari's own preview
+// fetches are not the extension's.
+export const extensionRequests = (requests: ReadonlyArray<ServedRequest>, since: number) =>
+  requests.slice(since).filter(r => /KeybaseShare/i.test(r.userAgent))
 
 // -- the simulator's containers ------------------------------------------------------------------
 
@@ -520,7 +530,8 @@ export const shareDebugDir = () => {
 
 export type ItemType = 'image' | 'video' | 'file' | 'text'
 export type Expected = {
-  // the manifest's items, one per shared item, in any order
+  // the manifest's items, one per shared item, in any order. A text item with a name is text too
+  // long for one message, attached as a .txt.
   items: Array<{type: ItemType; name?: RegExp; content?: RegExp}>
   // what lands in the thread, when it differs from the items (transcoded names, text)
   delivered?: Array<{type: ItemType; name?: RegExp; text?: RegExp}>
@@ -652,7 +663,8 @@ export const sendToSelfConversation = async (
   expected: Expected,
   {suggested = false} = {}
 ): Promise<SendResult> => {
-  const isText = expected.items.every(i => i.type === 'text')
+  // text goes into the composer; text attached as a .txt goes through the send screen like a file
+  const isText = expected.items.every(i => i.type === 'text' && !i.name)
   if (!suggested) {
     await waitForScreen('the share screen', s => s.name === 'incomingShareNew')
     await pickSelfConversation(username)
@@ -736,9 +748,18 @@ export const deliveryProblems = (delivered: ReadonlyArray<Delivered>, expected: 
   return problems
 }
 
-// Leaves the app's share screen without sending.
-export const cancelShareScreen = async () => {
-  if ((await visibleScreen())?.name === 'incomingShareNew') await escapeToTabs()
+// Leaves the app's share picker through its own Cancel, if it is up. Never escapeToTabs from the
+// picker: its taps can land on a conversation row, which picks that conversation and puts the shared
+// text into its draft. Throws if the picker stays up, so the caller doesn't fall back to escaping.
+export const leaveSharePicker = async () => {
+  const cancel = 'type == "XCUIElementTypeButton" AND label == "Cancel" AND visible == 1'
+  const onPicker = async () => (await visibleScreen().catch(() => undefined))?.name === 'incomingShareNew'
+  for (let i = 0; i < 3 && (await onPicker()); i++) {
+    if (await browser.isKeyboardShown().catch(() => false)) await browser.execute('mobile: hideKeyboard').catch(() => {})
+    if (await exists(cancel, 3000)) await pred(cancel).click().catch(() => {})
+    await sleep(1500)
+  }
+  if (await onPicker()) throw new Error("the share picker's Cancel never closed it")
 }
 
 // -- results ---------------------------------------------------------------------------------------
@@ -781,15 +802,17 @@ export const runSource = async (
   source: string,
   sheet: SheetSource,
   expected: Expected,
-  opts: {target?: string; suggested?: boolean; keepShareScreen?: boolean} = {}
+  // overShareScreen: share while an earlier share's picker is still up, to check this one replaces it
+  opts: {target?: string; suggested?: boolean; keepShareScreen?: boolean; overShareScreen?: boolean} = {}
 ) => {
   const r: SourceResult = {problems: [], source}
   try {
     // With no conversation selected, an inbox layout update sends the phone back to the inbox and
     // takes the share screen down with it (see 'the share screen stays up over the inbox'), so the
     // other sources share from an open conversation.
-    if (sending()) {
+    if (sending() && !opts.overShareScreen) {
       await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
+      await leaveSharePicker()
       await openSelfConversation(smokeUser())
     }
     r.share = await shareToKeybase(sheet, {target: opts.target})
@@ -803,7 +826,7 @@ export const runSource = async (
         r.problems.push(...deliveryProblems(r.send.delivered, expected))
       } else {
         await waitForScreen('the share screen', s => s.name === 'incomingShareNew' || s.name === 'chatAttachmentGetTitles')
-        await cancelShareScreen()
+        await leaveSharePicker()
       }
     }
   } catch (e) {
@@ -818,6 +841,7 @@ export const runSource = async (
 // Shares from the inbox with no conversation open, and checks the share screen is still up after
 // `seconds`, sampling the visible screen once a second. Returns when it went away, if it did.
 export const shareScreenLifetime = async (sheet: SheetSource, seconds: number) => {
+  await leaveSharePicker()
   await escapeToTabs()
   await navigateToChat()
   const r: SourceResult = {problems: [], source: 'share-screen-over-inbox'}
@@ -833,7 +857,7 @@ export const shareScreenLifetime = async (sheet: SheetSource, seconds: number) =
       }
       await sleep(1000)
     }
-    await cancelShareScreen()
+    await leaveSharePicker()
   } catch (e) {
     r.problems.push(e instanceof Error ? e.message : String(e))
   } finally {
@@ -845,6 +869,7 @@ export const shareScreenLifetime = async (sheet: SheetSource, seconds: number) =
 // The self conversation, resolved before a source needs it so a share isn't left waiting on it.
 export const prepareSelfConversation = async () => {
   if (!sending()) return
+  await leaveSharePicker()
   await requireSignedInAs(smokeUser())
   await selfConversation()
 }
