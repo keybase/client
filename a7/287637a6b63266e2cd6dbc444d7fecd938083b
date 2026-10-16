@@ -1,0 +1,131 @@
+go/chat/types/interfaces.go
+  s_e4bfa6569dd185::t_b02b75e6ed4000 318
+  s_e4bfa6569dd185::t_f67767aa7608a3 473-474
+  s_e4bfa6569dd185::t_c2e9775cb3db99 360
+go/chat/types/types.go
+  s_e4bfa6569dd185::t_631952c538e92c 473,477
+go/kbfs/libkbfs/chat_rpc.go
+  s_e4bfa6569dd185::t_1cca6900a599a4 786
+  s_e4bfa6569dd185::t_01899cba4bb346 952
+  s_e4bfa6569dd185::t_4c5a9f6da6b603 996
+  s_e4bfa6569dd185::t_10db8c1a611c7d 824
+protocol/avdl/chat1/notify.avdl
+  s_e4bfa6569dd185::t_10c67f4a267f14 271
+  s_e4bfa6569dd185::t_dd115f27b1ff5f 166
+  s_e4bfa6569dd185::t_8fd909da2945d9 251
+  s_e4bfa6569dd185::t_061b145494decd 275
+  s_e4bfa6569dd185::t_cd3594f6cd7f7b 247
+  s_e4bfa6569dd185::t_0128fea5030e66 187
+go/stellar/stellarsvc/frontend_test.go
+  s_e4bfa6569dd185::t_8b97dbed153194 2815,2818
+  s_e4bfa6569dd185::t_612ec2e6d26427 2855
+  s_e4bfa6569dd185::t_ae034b1decaaba 1843-1844
+  s_e4bfa6569dd185::t_768282f5dad4d6 882,886
+go/engine/identify2_with_uid.go
+  s_e4bfa6569dd185::t_0874e786a553ee 340
+  s_e4bfa6569dd185::t_870aa464931c48 396
+  s_e4bfa6569dd185::t_6ced34cfd26230 259-262
+go/chat/teams.go
+  s_e4bfa6569dd185::t_bf71c10a001ff3 580,583
+  s_e4bfa6569dd185::t_ae034b1decaaba 60-61
+go/chat/typingmonitor.go
+  s_e4bfa6569dd185::t_bf8eac23f1535b 24,33-34
+  s_e4bfa6569dd185::t_83a41d35446cab 161-162,164
+  s_e4bfa6569dd185::t_f2afc15fb65fd8 153,159,163
+  s_e4bfa6569dd185::t_46246fbb6576f8 102-103
+  s_e4bfa6569dd185::t_e2f684ed218fef 13-14
+  s_e4bfa6569dd185::t_0fa009e9a967a7 25,31
+  s_e4bfa6569dd185::t_94706448e99d82 96,99,105
+  s_e4bfa6569dd185::t_c9122991f8f233 131
+  s_e4bfa6569dd185::t_4ec18d3e0217ec 84
+go/client/chat_api_listen_display.go
+  s_e4bfa6569dd185::t_098e08729810f9 310
+  s_e4bfa6569dd185::t_45f8e16bc6c37e 206
+  s_e4bfa6569dd185::t_5b14bfaa821b17 286
+  s_e4bfa6569dd185::t_f44b1443661012 222
+go/client/chat_cli_ui.go
+  s_e4bfa6569dd185::t_2e6d7957450041 98
+go/chat/tlf.go
+  s_e4bfa6569dd185::t_a5e4d780af3a1e 196
+  s_e4bfa6569dd185::t_ae034b1decaaba 48-49,214-215,275-276
+  s_e4bfa6569dd185::t_6365a4761d0a79 264
+go/chat/archive.go
+  s_e4bfa6569dd185::t_d22799d2a79696 515
+  s_e4bfa6569dd185::t_dc27608ecce445 739
+go/client/cmd_chat_archive_resume.go
+  s_e4bfa6569dd185::t_22db4fd63b6fc8 58
+go/protocol/chat1/notify.go
+  s_e4bfa6569dd185::t_af625b9dfc921a 946,973,1059,1066,1098,1104,1110,1115,1131,1137,1170,1245,1485,1575,1592,1618,1699,1729
+go/stellar/loader.go
+  s_e4bfa6569dd185::t_f5cf3067f388e9 405-406
+  s_e4bfa6569dd185::t_51b92d8e679aa2 407
+  s_e4bfa6569dd185::t_1348d85b5a08b7 434-436,438
+  s_e4bfa6569dd185::t_241c21af8bafa9 107
+  s_e4bfa6569dd185::t_50b350fbd5e92a 142
+  s_e4bfa6569dd185::t_73fd7d1afb114f 157
+  s_e4bfa6569dd185::t_b2b40457ae69cf 12
+  s_e4bfa6569dd185::t_87559fc0d8a038 384
+  s_e4bfa6569dd185::t_ef0e2aa312da38 20
+  s_e4bfa6569dd185::t_bed12698b9331e 132
+  s_e4bfa6569dd185::t_bae3ecdc4d4fae 177
+go/chat/push.go
+  s_e4bfa6569dd185::t_447b60c83c1837 619
+  s_e4bfa6569dd185::t_ce5ad257d3a088 1001-1002
+  s_e4bfa6569dd185::t_ae034b1decaaba 156-158
+go/chat/utils/utils.go
+  s_e4bfa6569dd185::t_a8945a57a40364 1786
+  s_e4bfa6569dd185::t_fcd834b75d13e9 1796
+  s_e4bfa6569dd185::t_ae034b1decaaba 2489-2490
+  s_e4bfa6569dd185::t_035cbc2d3cc4be 2078-2079
+  s_e4bfa6569dd185::t_0e7b955f38c9cf 1745
+  s_e4bfa6569dd185::t_7aaf8b1cc0fd74 1771
+  s_e4bfa6569dd185::t_1b1a8e0a7daf4f 1756
+protocol/json/chat1/notify.json
+  s_e4bfa6569dd185::t_b4799c86a11ce6 552-555,641-644,928-931,951-954,1057-1060,1076-1079
+go/chat/utils/dummy_chat_ui.go
+  s_e4bfa6569dd185::t_a5de3ac26d56aa 236
+  s_e4bfa6569dd185::t_07568411551c58 260
+  s_e4bfa6569dd185::t_12c2c0184fd33b 172
+  s_e4bfa6569dd185::t_ee1741a69efbed 156
+go/libkb/notify_router.go
+  s_e4bfa6569dd185::t_6c4d026b0d1af2 1668,1680
+  s_e4bfa6569dd185::t_df3ca2386a7ede 1551,1562-1565
+  s_e4bfa6569dd185::t_38f11972bf56da 1694,1705-1708
+  s_e4bfa6569dd185::t_1505e0a0246208 1257,1267-1270
+  s_e4bfa6569dd185::t_5a7c858c7b3ea1 1061,1072-1075
+  s_e4bfa6569dd185::t_c914741f010b1b 1522,1534
+shared/constants/rpc/rpc-chat-gen.tsx
+  s_e4bfa6569dd185::t_5b98a7feabcb4e 19,23,47,67,111,115
+go/chat/activitynotifier.go
+  s_e4bfa6569dd185::t_31533e94bebc4d 94,97
+go/chat/identify.go
+  s_e4bfa6569dd185::t_12900396d1895e 144
+  s_e4bfa6569dd185::t_e03b48a445fb0c 107
+  s_e4bfa6569dd185::t_b2162090c26768 23
+  s_e4bfa6569dd185::t_793c5d79213f8c 43,48
+  s_e4bfa6569dd185::t_28a0500696dfda 84
+  s_e4bfa6569dd185::t_f16fbfb509833a 166
+  s_e4bfa6569dd185::t_f1155b12d7599f 235
+go/service/gregor.go
+  s_e4bfa6569dd185::t_9ecb8f95f0465d 1597-1599
+go/chat/participantsource.go
+  s_e4bfa6569dd185::t_da34075036ae97 51-54,56-61,64
+  s_e4bfa6569dd185::t_aca51123faa9d4 191-195
+  s_e4bfa6569dd185::t_278ac7fb2d0639 20-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a7287637a6b63266e2cd6dbc444d7fecd938083b",
+  "prompts": {},
+  "sessions": {
+    "s_e4bfa6569dd185": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "745c5134-471e-4353-8922-6128cc915d97",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
