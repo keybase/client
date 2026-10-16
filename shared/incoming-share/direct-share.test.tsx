@@ -42,7 +42,7 @@ test('a text share to a suggested conversation carries the dropped-items notice 
   })
 
   expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {notice: "1 of 2 items couldn't be prepared.", text: 'hello', type: 'injectText'},
+    intent: {notice: "1 item couldn't be prepared.", text: 'hello', type: 'injectText'},
   })
 })
 
@@ -68,5 +68,5 @@ test('an attachment share to a suggested conversation carries the notice to the 
     | {name: string; params: {notice?: string}}
     | undefined
   expect(appended?.name).toBe('chatAttachmentGetTitles')
-  expect(appended?.params.notice).toBe("1 of 2 items couldn't be prepared.")
+  expect(appended?.params.notice).toBe("1 item couldn't be prepared.")
 })
