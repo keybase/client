@@ -150,17 +150,10 @@ func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID
 	}
 	res = make(map[string]chat1.Emoji)
 	s.Debug(ctx, "getAliasLookup: missed alias lookup, reading from disk")
-	found, err := s.encryptedDB.Get(ctx, s.dbKey(uid), &res)
-	if encrypteddb.IsUnusableData(err) {
-		// The lookup is rebuilt by the next full emoji fetch.
-		s.Debug(ctx, "getAliasLookup: deleting unreadable alias lookup: %s", err)
-		if err := s.encryptedDB.Delete(ctx, s.dbKey(uid)); err != nil {
-			return make(map[string]chat1.Emoji), err
-		}
-		return make(map[string]chat1.Emoji), nil
-	}
+	// Rebuilt by the next full emoji fetch when the stored lookup is unusable.
+	found, err := s.encryptedDB.GetOrDropUnusable(ctx, s.dbKey(uid), &res)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	if !found {
 		return make(map[string]chat1.Emoji), nil

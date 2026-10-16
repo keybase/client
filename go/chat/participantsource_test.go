@@ -7,6 +7,8 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/teams"
@@ -110,4 +112,62 @@ func TestParticipantsSourceGetPropagatesErrors(t *testing.T) {
 	_, err := tc.Context().ParticipantsSource.Get(ctx, uid, chat1.ConversationID([]byte("missing")),
 		types.InboxSourceDataSourceAll)
 	require.Error(t, err)
+}
+
+func TestParticipantsUnusableCacheRefreshesAndKeyErrorKeepsIt(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestParticipantsUnusable", 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	info := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[1])
+	conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, info.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+
+	ps := tc.Context().ParticipantsSource.(*CachingParticipantSource)
+	var key [32]byte
+	key[0] = 1
+	var keyErr error
+	keyFn := func(context.Context) ([32]byte, error) {
+		if keyErr != nil {
+			return [32]byte{}, keyErr
+		}
+		return key, nil
+	}
+	g := tc.Context().ExternalG()
+	dbKey := ps.dbKey(uid, conv.GetConvID())
+	ps.encryptedDB = encrypteddb.New(g, func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}, keyFn)
+	require.NoError(t, ps.encryptedDB.Put(ctx, dbKey, partDiskStorage{
+		Uids: []gregor1.UID{uid},
+		Hash: "stale",
+	}))
+
+	key[0] = 2
+	got, err := ps.Get(ctx, uid, conv.GetConvID(), types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	require.NotEmpty(t, got)
+	var stored partDiskStorage
+	found, err := ps.encryptedDB.Get(ctx, dbKey, &stored)
+	require.NoError(t, err)
+	require.True(t, found, "a remote refresh rewrites the dropped cache entry")
+	require.NotEqual(t, "stale", stored.Hash)
+
+	require.NoError(t, ps.encryptedDB.Put(ctx, dbKey, partDiskStorage{Uids: got, Hash: stored.Hash}))
+	rawBefore, found, err := g.LocalChatDb.GetRaw(dbKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	keyErr = libkb.KeyCannotDecryptError{}
+	_, err = ps.Get(ctx, uid, conv.GetConvID(), types.InboxSourceDataSourceAll)
+	require.Error(t, err)
+	rawAfter, found, err := g.LocalChatDb.GetRaw(dbKey)
+	require.NoError(t, err)
+	require.True(t, found, "a key-fetch failure must not delete the participants cache")
+	require.Equal(t, rawBefore, rawAfter)
 }

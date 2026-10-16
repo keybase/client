@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -141,6 +142,23 @@ func newDiskStore(g *globals.Context, uid gregor1.UID,
 	}
 }
 
+// errUnusableSearchEntry means the stored box was deleted because this client
+// can never read it. Callers treat that token as empty and, on a search, drop
+// the conversation index so its messages are indexed again. SeenIDs would
+// otherwise record those messages as indexed with the postings gone.
+var errUnusableSearchEntry = errors.New("unusable search entry")
+
+func (d *diskStore) readEncrypted(ctx context.Context, key libkb.DbKey, res any) (bool, error) {
+	found, err := d.edb.Get(ctx, key, res)
+	if derr := d.edb.DropUnusable(ctx, key, err); derr != nil {
+		return false, derr
+	}
+	if encrypteddb.IsUnusableData(err) {
+		return false, errUnusableSearchEntry
+	}
+	return found, err
+}
+
 func (d *diskStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string,
 ) (res *tokenEntry, err error) {
@@ -149,7 +167,7 @@ func (d *diskStore) GetTokenEntry(ctx context.Context, convID chat1.Conversation
 		return nil, err
 	}
 	res = new(tokenEntry)
-	found, err := d.edb.Get(ctx, key, res)
+	found, err := d.readEncrypted(ctx, key, res)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +206,7 @@ func (d *diskStore) GetAliasEntry(ctx context.Context, alias string) (res *alias
 		return nil, err
 	}
 	res = new(aliasEntry)
-	found, err := d.edb.Get(ctx, key, res)
+	found, err := d.readEncrypted(ctx, key, res)
 	if err != nil {
 		return nil, err
 	}
@@ -458,8 +476,25 @@ func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 
 func (s *store) GetHits(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	defer s.Trace(ctx, &err, "GetHits")()
-	s.RLock()
-	defer s.RUnlock()
+	res, err = func() (map[chat1.MessageID]chat1.EmptyStruct, error) {
+		s.RLock()
+		defer s.RUnlock()
+		return s.getHitsLocked(ctx, convID, term)
+	}()
+	if !errors.Is(err, errUnusableSearchEntry) {
+		return res, err
+	}
+	// The postings for this conv cannot be read, and its SeenIDs would skip a
+	// rebuild. Drop the conv index. Clear takes the write lock, so the read
+	// lock above has to be released first.
+	s.Debug(ctx, "GetHits: clearing unreadable index so %s can be reindexed", convID)
+	if cerr := s.Clear(ctx, s.uid, convID); cerr != nil {
+		return nil, cerr
+	}
+	return map[chat1.MessageID]chat1.EmptyStruct{}, nil
+}
+
+func (s *store) getHitsLocked(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
 	// Get all terms and aliases
 	terms := make(map[string]chat1.EmptyStruct)
@@ -504,6 +539,11 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 		return te, nil
 	}
 	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
+		if errors.Is(err, errUnusableSearchEntry) {
+			// Empty, not cached: a search still sees the error and clears the
+			// conv, and an index write overwrites the deleted box.
+			return newTokenEntry(), err
+		}
 		return nil, err
 	}
 	if res == nil {
@@ -531,7 +571,12 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 		return ae, nil
 	}
 	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
-		return nil, err
+		if !errors.Is(err, errUnusableSearchEntry) {
+			return nil, err
+		}
+		// The alias list is an optimization. Dropping it leaves prefix search
+		// to the token itself, and the next index write fills it back in.
+		res = newAliasEntry()
 	}
 	if res == nil {
 		s.deleteOldAliasVersions(ctx, alias)
@@ -644,6 +689,9 @@ func (s *store) addTokens(ctx context.Context,
 	for token, aliases := range tokens {
 		// Update the token entry with the msg ID hit
 		te, err := s.getTokenEntry(ctx, convID, token)
+		if errors.Is(err, errUnusableSearchEntry) {
+			err = nil
+		}
 		if err != nil {
 			return err
 		}
@@ -693,6 +741,9 @@ func (s *store) removeMsg(ctx context.Context, convID chat1.ConversationID,
 	for token, aliases := range tokensFromMsg(msg) {
 		// handle token
 		te, err := s.getTokenEntry(ctx, convID, token)
+		if errors.Is(err, errUnusableSearchEntry) {
+			err = nil
+		}
 		if err != nil {
 			return err
 		}

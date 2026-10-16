@@ -119,12 +119,11 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 		switch dataSource {
 		case types.InboxSourceDataSourceAll, types.InboxSourceDataSourceLocalOnly:
 			var local partDiskStorage
-			found, err := s.encryptedDB.Get(ctx, s.dbKey(uid, conv.GetConvID()), &local)
+			// A key-fetch failure must keep the entry. Unusable bytes are a miss:
+			// the list is loaded from the server below and written back.
+			found, err := s.encryptedDB.GetOrDropUnusable(ctx, s.dbKey(uid, conv.GetConvID()), &local)
 			if err != nil {
 				resCh <- types.ParticipantResult{Err: err}
-				if err := s.encryptedDB.Delete(ctx, s.dbKey(uid, conv.GetConvID())); err != nil {
-					s.Debug(ctx, "GetNonblock: failed to delete after read error: %s", err)
-				}
 				return
 			}
 			if found {
