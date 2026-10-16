@@ -36,6 +36,9 @@ enum PayloadFileName {
       .prefix(maxTextNameWords)
     var snippet = ""
     for word in words {
+      // Only as much of a word as could fit: a text with no whitespace is one
+      // word, and copying all of it would double the text in memory.
+      let word = word.prefix(maxTextNameChars + 1)
       let next = snippet.isEmpty ? String(word) : "\(snippet) \(word)"
       if next.count > maxTextNameChars { break }
       snippet = next
