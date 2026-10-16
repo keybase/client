@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {cleanup, render, screen} from '@testing-library/react'
+import {act, cleanup, render, screen} from '@testing-library/react'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 
@@ -61,4 +61,34 @@ test('a complete Android share shows no notice', () => {
 test('an incoming-share link with no Android share behind it says there is nothing to share', () => {
   render(<IncomingShareMain />)
   expect(screen.getByText("There's nothing to share.")).toBeTruthy()
+})
+
+const settle = async () =>
+  act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+
+test('a new share that replaces the share screen is not cleared by the screen it replaces', async () => {
+  const {setAndroidShare} = useConfigState.getState().dispatch
+  setAndroidShare({droppedCount: 0, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
+  const {rerender} = render(<IncomingShareMain key="a" />)
+
+  const b = {droppedCount: 1, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/b.pdf']} as const
+  act(() => setAndroidShare(b))
+  rerender(<IncomingShareMain key="b" />)
+  await settle()
+
+  expect(useConfigState.getState().androidShare).toEqual(b)
+  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
+})
+
+test('leaving the share screen clears the share', async () => {
+  useConfigState
+    .getState()
+    .dispatch.setAndroidShare({droppedCount: 0, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
+  const {unmount} = render(<IncomingShareMain />)
+  unmount()
+  await settle()
+
+  expect(useConfigState.getState().androidShare).toBeUndefined()
 })
