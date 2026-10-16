@@ -10,7 +10,6 @@ import android.content.ContentResolver
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.FileOutputStream;
 object PathResolver {
     fun getRealPathFromURI(context: Context?, uri: Uri?): String? {
         if (context == null || uri == null) {
@@ -86,16 +85,7 @@ object PathResolver {
                         attachment.use { istream ->
                             val filename = getContentName(context.contentResolver, uri)
                             if (filename != null) {
-                                val file = IncomingShareCache.newItemFile(context, IncomingShareFileName.make(filename, null))
-                                try {
-                                    FileOutputStream(file).use { tmp ->
-                                        istream.copyTo(tmp)
-                                    }
-                                } catch (e: Exception) {
-                                    IncomingShareCache.discardItem(context, file)
-                                    throw e
-                                }
-                                return file.absolutePath
+                                return IncomingShareCache.copyIn(context, istream, IncomingShareFileName.make(filename, null)).absolutePath
                             }
                         }
                     }
@@ -118,18 +108,10 @@ object PathResolver {
         if (resolver == null || uri == null) {
             return null
         }
-        val cursor: Cursor? = resolver.query(uri, null, null, null, null)
-        if (cursor == null) {
-            return null
+        return resolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex: Int = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+            if (nameIndex >= 0 && cursor.moveToFirst() && !cursor.isNull(nameIndex)) cursor.getString(nameIndex) else null
         }
-        cursor.moveToFirst()
-        val nameIndex: Int = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
-        if (nameIndex >= 0) {
-            val name: String = cursor.getString(nameIndex)
-            cursor.close()
-            return name
-        }
-        return null
     }
 
     /**

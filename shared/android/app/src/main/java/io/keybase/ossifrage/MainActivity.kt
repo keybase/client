@@ -18,6 +18,7 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
+import com.reactnativekb.IncomingShareCopy
 import com.reactnativekb.IncomingShareFileName
 import com.reactnativekb.IncomingShareRelay
 import com.reactnativekb.KbModule
@@ -87,23 +88,20 @@ class MainActivity : ReactActivity() {
     // behind, when the item can't be copied whole: a missing or partial file
     // must never be sent.
     private fun copySharedUri(context: Context, uri: Uri): String? {
-        if (uri.scheme != "content") {
-            return uri.path
+        // A file:// (or other) uri from another app is a path we would read with
+        // our own permissions, so only content:// is copied.
+        if (!IncomingShareCopy.isCopyableScheme(uri.scheme)) {
+            NativeLogger.warn("Dropping shared item with scheme ${uri.scheme}")
+            return null
         }
         val resolver = context.contentResolver
-        var file: File? = null
         return try {
             val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
-            val dest = IncomingShareCache.newItemFile(context, IncomingShareFileName.make(queryDisplayName(resolver, uri), ext))
-            file = dest
+            val name = IncomingShareFileName.make(queryDisplayName(resolver, uri), ext)
             val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
-            input.use { istream ->
-                FileOutputStream(dest).use { ostream -> istream.copyTo(ostream, 64 * 1024) }
-            }
-            dest.path
+            input.use { IncomingShareCache.copyIn(context, it, name) }.path
         } catch (e: Exception) {
             NativeLogger.warn("Unable to copy shared item $uri", e)
-            file?.let { IncomingShareCache.discardItem(context, it) }
             null
         }
     }
