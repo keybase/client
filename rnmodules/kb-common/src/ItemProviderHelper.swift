@@ -177,7 +177,9 @@ public class ItemProviderHelper: NSObject {
   }
 
   private func getPayloadURL(from url: URL) throws -> URL {
-    return try getPayloadURL(named: url.lastPathComponent)
+    return try getPayloadURL(
+      named: PayloadFileName.make(
+        candidates: [url.lastPathComponent], type: nil, fallbackBase: "file"))
   }
 
   private func getPayloadURL(withExtension ext: String?) -> URL {
@@ -217,9 +219,10 @@ public class ItemProviderHelper: NSObject {
   }
 
   private func completeItemAndAppendManifestAndLogError(text: String, error: Error?) {
-    let message = "\(text): \(error != nil ? String(describing: error!) : "<empty>")"
-    log.error("item failed: \(message, privacy: .public)")
-    completeItemAndAppend(type: "error", entry: ["error": message])
+    let reason = error != nil ? String(describing: error!) : "<empty>"
+    // The error can carry file paths, so only the static text is public.
+    log.error("item failed: \(text, privacy: .public): \(reason, privacy: .private)")
+    completeItemAndAppend(type: "error", entry: ["error": "\(text): \(reason)"])
   }
 
   private func writeManifest() {
@@ -465,7 +468,10 @@ public class ItemProviderHelper: NSObject {
   private func writeDownloadedMedia(
     _ data: Data, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
   ) {
-    let type = UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased())
+    // An unregistered MIME type yields a dynamic UTType with no extension;
+    // the URL's extension or the sniff knows better.
+    let type = (UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased()))
+      .flatMap { $0.preferredFilenameExtension != nil ? $0 : nil }
 
     if isVideo {
       let name = PayloadFileName.make(
@@ -602,8 +608,13 @@ public class ItemProviderHelper: NSObject {
         self.sendMedia(url, isVideo: false)
         return
       }
+      // Cancel and the watchdog cancel the loads; don't start another.
+      if (error as? CocoaError)?.code == .userCancelled {
+        self.completeItemAndAppendManifestAndLogError(text: "loadImage: cancelled", error: error)
+        return
+      }
       log.info(
-        "loadFileRepresentation(\(typeIdentifier, privacy: .public)) failed (\(String(describing: error), privacy: .public)); loading the item instead"
+        "loadFileRepresentation(\(typeIdentifier, privacy: .public)) failed (\(String(describing: error), privacy: .private)); loading the item instead"
       )
       item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
         switch loaded {
