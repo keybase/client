@@ -48,6 +48,9 @@ public class ShareViewController: UIViewController {
   // present animation takes about 0.45s.
   private static let presentFallback: TimeInterval = 3
   private static let dismissFallback: TimeInterval = 1.5
+  // The share ends this long after the failure alert goes up even if OK is
+  // never tapped, so the alert can't hold the extension open.
+  private static let failureAlertTimeout: TimeInterval = 10
 
   private enum Outcome {
     case done, stalled, cancelled
@@ -88,18 +91,53 @@ public class ShareViewController: UIViewController {
     watchdog = nil
     switch outcome {
     case .done:
-      afterAlert { self.openAppAndComplete() }
+      // Everything failed: say so here rather than opening the app to an empty
+      // share. A share with nothing we could even try still opens the app.
+      let failed = iph?.failedCount ?? 0
+      if !(iph?.hasPreparedItems ?? false) && failed > 0 {
+        log.error("share failed: none of \(failed, privacy: .public) items could be prepared")
+        afterAlert {
+          self.showFailureAndCancel(
+            message: failed == 1
+              ? "This item couldn't be prepared for sharing."
+              : "None of these \(failed) items could be prepared for sharing.")
+        }
+      } else {
+        afterAlert { self.openAppAndComplete() }
+      }
     case .stalled:
       let hasItems = iph?.finishEarly() ?? false
       log.error(
         "share stalled for \(Self.stallTimeout, privacy: .public)s at \(self.lastFraction, privacy: .public); sending partial: \(hasItems, privacy: .public)"
       )
-      afterAlert { hasItems ? self.openAppAndComplete() : self.cancelRequest() }
+      afterAlert {
+        if hasItems {
+          self.openAppAndComplete()
+        } else {
+          self.showFailureAndCancel(message: "Preparing these items took too long.")
+        }
+      }
     case .cancelled:
       log.log("share cancelled by user")
       iph?.cancel()
       afterAlert { self.cancelRequest() }
     }
+  }
+
+  // Tells the user the share couldn't be prepared, then cancels it on OK or
+  // after failureAlertTimeout, whichever comes first.
+  private func showFailureAndCancel(message: String) {
+    var cancelled = false
+    let cancelOnce = { [weak self] in
+      guard !cancelled else { return }
+      cancelled = true
+      self?.cancelRequest()
+    }
+    let failure = UIAlertController(
+      title: "Couldn't prepare these items", message: message, preferredStyle: .alert)
+    failure.addAction(UIAlertAction(title: "OK", style: .default) { _ in cancelOnce() })
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.failureAlertTimeout, execute: cancelOnce)
+    present(failure, animated: true)
   }
 
   // Runs action once the alert is gone, without depending on any one UIKit
