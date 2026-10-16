@@ -12,8 +12,8 @@ struct MediaProcessingConfig {
     // edge is the visible regression users noticed when the share extension's
     // policy took over both flows.
     static let imageCompressionQuality: CGFloat = 0.4
-    // What the share extension encoded non-JPEG/HEIC images at before the app
-    // took over transcoding them.
+    // Higher than imageCompressionQuality: with compression off this is a format
+    // conversion, not a size reduction.
     static let transcodeQuality: CGFloat = 0.85
 }
 

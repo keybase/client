@@ -147,6 +147,10 @@ public class ShareViewController: UIViewController {
       return
     }
     log.log("share cancelled by user while finishing")
+    // Once the request has ended the app may be reading the manifest.
+    guard !requestEnded else { return }
+    // The app isn't opened for this share, so finish's manifest has no reader.
+    iph?.removeManifest()
     cancelRequest()
   }
 

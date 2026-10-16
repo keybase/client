@@ -5,8 +5,9 @@ import UniformTypeIdentifiers
 // Each item already gets its own directory, so the name only has to be
 // readable, not unique.
 enum PayloadFileName {
-  // APFS allows 255 UTF-8 bytes per name; leave room for the app's
-  // ".processed"/".compressed" suffixes on its copies.
+  // APFS allows 255 UTF-8 bytes per name; leave room for the suffixes the app
+  // adds to its copies (".processed.mp4", ".compressed.jpg", ".converted.jpg",
+  // and ".tmp" while it strips GPS in place).
   static let maxNameBytes = 200
   // A longer "extension" is really part of the name.
   private static let maxExtBytes = 16
