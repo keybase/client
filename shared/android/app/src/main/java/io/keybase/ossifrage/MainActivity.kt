@@ -35,6 +35,7 @@ import java.io.IOException
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
 import java.security.cert.CertificateException
+import java.util.UUID
 
 class MainActivity : ReactActivity() {
     private var isUsingHardwareKeyboard = false
@@ -60,7 +61,11 @@ class MainActivity : ReactActivity() {
             captureIntent(intent)
         } else if (!IncomingShareRelay.shared.started()) {
             savedInstanceState.getBundle(HELD_SHARE)?.let { IncomingShareRelay.shared.restore(shareFromBundle(it)) }
-            BundleCompat.getParcelable(savedInstanceState, PREPARING_SHARE, Intent::class.java)?.let { captureIntent(it) }
+            savedInstanceState.getBundle(PREPARING_SHARE)?.let { preparing ->
+                // The copies cut off when the process was killed are made again.
+                preparing.getString(PREPARING_TAG)?.let { IncomingShareCache.discardShare(this, it) }
+                BundleCompat.getParcelable(preparing, PREPARING_INTENT, Intent::class.java)?.let { captureIntent(it) }
+            }
         }
 
         // Before super.onCreate so the first frame after the splash already has the
@@ -96,7 +101,7 @@ class MainActivity : ReactActivity() {
     // Copies a shared item into the share cache. Returns null, leaving nothing
     // behind, when the item can't be copied whole: a missing or partial file
     // must never be sent.
-    private fun copySharedUri(context: Context, uri: Uri): String? {
+    private fun copySharedUri(context: Context, uri: Uri, share: String): String? {
         // A file:// (or other) uri from another app is a path we would read with
         // our own permissions, so only content:// is copied.
         if (!IncomingShareCopy.isCopyableScheme(uri.scheme)) {
@@ -108,7 +113,7 @@ class MainActivity : ReactActivity() {
             val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
             val name = IncomingShareFileName.make(queryDisplayName(resolver, uri), ext)
             val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
-            input.use { IncomingShareCache.copyIn(context, it, name) }.path
+            input.use { IncomingShareCache.copyIn(context, it, name, share) }.path
         } catch (e: Exception) {
             NativeLogger.warn("Unable to copy shared item $uri", e)
             null
@@ -180,12 +185,16 @@ class MainActivity : ReactActivity() {
             }
         } else {
             val token = relay.begin()
-            preparingIntent = intent
+            val tag = UUID.randomUUID().toString()
+            preparing = Bundle().apply {
+                putParcelable(PREPARING_INTENT, intent)
+                putString(PREPARING_TAG, tag)
+            }
             // Copying out of the content providers can be slow for big files; don't
             // block the main thread on it.
             val context: Context = applicationContext
             Thread {
-                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri) }
+                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri, tag) }
                 // How many shared items couldn't be copied.
                 val droppedCount = uris.size - filePaths.size
                 val share = if (filePaths.isEmpty() && textPayload.isNotEmpty()) {
@@ -199,9 +208,9 @@ class MainActivity : ReactActivity() {
         }
     }
 
-    // The share whose copy is under way, if any: what is read again if the process
-    // is killed before the copy finishes.
-    private var preparingIntent: Intent? = null
+    // The share whose copy is under way, if any: its intent, read again if the
+    // process is killed before the copy finishes, and the tag its copies carry.
+    private var preparing: Bundle? = null
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -214,7 +223,7 @@ class MainActivity : ReactActivity() {
                     putInt("droppedCount", share.droppedCount)
                 }
             },
-            preparingIntent?.takeIf { saved.preparing }?.let { PREPARING_SHARE to it },
+            preparing?.takeIf { saved.preparing }?.let { PREPARING_SHARE to it },
         )
         // Saved state goes through a binder transaction, which fails past about 1 MB
         // for everything in it; a share that big is not worth crashing for.
@@ -334,6 +343,8 @@ class MainActivity : ReactActivity() {
         private const val TAG = "ossifrage"
         private const val HELD_SHARE = "heldIncomingShare"
         private const val PREPARING_SHARE = "preparingIncomingShare"
+        private const val PREPARING_INTENT = "intent"
+        private const val PREPARING_TAG = "tag"
         private const val MAX_SAVED_SHARE_BYTES = 200 * 1024
 
         private fun createDummyFile(context: Context) {
