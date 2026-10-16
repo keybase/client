@@ -284,10 +284,16 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
     self.iph = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
       guard let self else { return }
+      defer { self.iph = nil }
+      // The manifest didn't land, so the share screen has nothing (or an older
+      // share) to show.
+      guard self.iph?.manifestWritten == true else {
+        log.error("drop: manifest not written; not opening the share")
+        return
+      }
       let url = URL(string: "keybase://incoming-share")!
       let app = UIApplication.shared
       _ = self.application(app, open: url, options: [:]) || RCTLinkingManager.application(app, open: url, options: [:])
-      self.iph = nil
     }
     self.iph?.startProcessing()
   }

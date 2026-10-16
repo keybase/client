@@ -65,6 +65,11 @@ public class ItemProviderHelper: NSObject {
     return !preparedItems.isEmpty
   }
 
+  // Whether the last manifest write landed. When it didn't, whatever is on
+  // disk isn't this share's manifest and the app must not be opened to it.
+  // Main thread only.
+  @objc public private(set) var manifestWritten = false
+
   private var preparedItems: [[String: Any]] {
     // reconcile what we're sending over. types=text, url, video, image, file
     var toWrite: [[String: Any]] = []
@@ -148,7 +153,7 @@ public class ItemProviderHelper: NSObject {
     done = true
     progress.cancel()
     writeManifest()
-    return hasPreparedItems
+    return hasPreparedItems && manifestWritten
   }
 
   // Abandons the share: in-flight loads are cancelled and an empty manifest
@@ -242,15 +247,15 @@ public class ItemProviderHelper: NSObject {
     completeItemAndAppend(type: "error", entry: ["type": "error", "error": text])
   }
 
+  // Written even if empty so an older share's manifest can't be picked up.
   private func writeManifest() {
-    let toWrite = manifest
-    let fileURL = getManifestFileURL()
-    // write even if empty so we don't keep old manifests around
-    if let outputStream = OutputStream(url: fileURL, append: false) {
-      outputStream.open()
-      defer { outputStream.close() }
-      JSONSerialization.writeJSONObject(toWrite, to: outputStream, options: [], error: nil)
-    }
+    manifestWritten = ShareFiles.writeManifest(manifest, to: getManifestFileURL())
+  }
+
+  // For a share that won't open the app: its manifest would only be read by
+  // some later, unrelated open. Main thread only.
+  @objc public func removeManifest() {
+    ShareFiles.removeManifest(at: getManifestFileURL())
   }
 
   private func sendText(_ text: String) {
@@ -275,7 +280,9 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
-  private func sendFile(_ url: URL?) {
+  // providerTemp: url is a load*Representation temp file, ours to move until
+  // the completion handler returns. Must be called before it returns.
+  private func sendFile(_ url: URL?, providerTemp: Bool) {
     guard let url = url else {
       completeItemAndAppendManifestAndLogError(text: "sendFile: unable to decode share", error: nil)
       return
@@ -283,7 +290,7 @@ public class ItemProviderHelper: NSObject {
 
     do {
       let filePayloadURL = try getPayloadURL(from: url)
-      try FileManager.default.copyItem(at: url, to: filePayloadURL)
+      try ShareFiles.place(url, at: filePayloadURL, move: providerTemp)
       completeItemAndAppendManifest(type: "file", originalFileURL: filePayloadURL)
     } catch {
       completeItemAndAppendManifestAndLogError(text: "fileHandlerSimple: copy error", error: error)
@@ -368,11 +375,12 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
-  // Copy the provider's temporary file into our payload folder (it's deleted when
-  // the completion handler returns). The extension only copies: trimming and
-  // compression happen in the app, which has no extension memory budget and can
-  // let the user edit before encoding.
-  private func sendMedia(_ url: URL?, isVideo: Bool) {
+  // Bring the provider's file into our payload folder: a temp file is moved
+  // (it's deleted when the completion handler returns), anything else copied.
+  // The extension never transcodes: trimming and compression happen in the
+  // app, which has no extension memory budget and can let the user edit before
+  // encoding.
+  private func sendMedia(_ url: URL?, isVideo: Bool, providerTemp: Bool) {
     guard let url = url else {
       completeItemAndAppendManifestAndLogError(text: "sendMedia: unable to decode share", error: nil)
       return
@@ -381,7 +389,7 @@ public class ItemProviderHelper: NSObject {
     let filePayloadURL: URL
     do {
       filePayloadURL = try getPayloadURL(from: url)
-      try FileManager.default.copyItem(at: url, to: filePayloadURL)
+      try ShareFiles.place(url, at: filePayloadURL, move: providerTemp)
     } catch {
       completeItemAndAppendManifestAndLogError(text: "sendMedia: copy error", error: error)
       return
@@ -410,18 +418,18 @@ public class ItemProviderHelper: NSObject {
 
     if let type = type {
       if type.conforms(to: .movie) {
-        sendMedia(url, isVideo: true)
+        sendMedia(url, isVideo: true, providerTemp: false)
         return
       }
       if type.conforms(to: .image) {
-        sendMedia(url, isVideo: false)
+        sendMedia(url, isVideo: false, providerTemp: false)
         return
       }
       // Only inline honest plain text. Plenty of document types (crash reports,
       // logs, source) conform to public.text but are files the user meant to
       // attach, extension and all.
       if !type.conforms(to: .plainText) {
-        sendFile(url)
+        sendFile(url, providerTemp: false)
         return
       }
     }
@@ -613,7 +621,7 @@ public class ItemProviderHelper: NSObject {
   }
 
   // Every image goes through here. A file representation is the cheap path: the
-  // provider's file is copied, never decoded. Two kinds of provider don't get
+  // provider's file is moved, never decoded. Two kinds of provider don't get
   // there. One vends only an in-memory UIImage. The other is Safari sharing an
   // image page, which vends the image as bytes: asking for a file makes
   // NSItemProvider write those bytes to a temp file and copy it, and that copy
@@ -622,7 +630,7 @@ public class ItemProviderHelper: NSObject {
   private func loadImage(_ item: NSItemProvider, typeIdentifier: String) -> Progress {
     return item.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
       if let url = url, error == nil {
-        self.sendMedia(url, isVideo: false)
+        self.sendMedia(url, isVideo: false, providerTemp: true)
         return
       }
       // Cancel and the watchdog cancel the loads; don't start another.
@@ -636,7 +644,7 @@ public class ItemProviderHelper: NSObject {
       item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
         switch loaded {
         case let url as URL where error == nil:
-          self.sendMedia(url, isVideo: false)
+          self.sendMedia(url, isVideo: false, providerTemp: false)
         case let image as UIImage where error == nil:
           self.sendUIImage(image, suggestedName: item.suggestedName)
         case let data as Data where error == nil:
@@ -704,11 +712,11 @@ public class ItemProviderHelper: NSObject {
         self.completeItemAndAppendManifestAndLogError(text: "fileHandler: load error", error: error)
         return
       }
-      self.sendFile(url)
+      self.sendFile(url, providerTemp: true)
     }
 
     let movieHandler: @Sendable (URL?, Error?) -> Void = { url, error in
-      self.sendMedia(error == nil ? url : nil, isVideo: true)
+      self.sendMedia(error == nil ? url : nil, isVideo: true, providerTemp: true)
     }
 
     let contactHandler: @Sendable (Data?, Error?) -> Void = { data, error in
