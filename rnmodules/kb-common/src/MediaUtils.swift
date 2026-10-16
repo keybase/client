@@ -105,10 +105,9 @@ public class MediaUtils: NSObject {
             return jpegURL
         }
 
-        try stripImageExif(at: url)
-
         // Re-encode at the shared quality. Same dimensions, JPEG out, so a HEIC
-        // pick still lands as something every platform can render.
+        // pick still lands as something every platform can render. The encode
+        // writes pixels only, so EXIF and GPS from the source never reach it.
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let compressedURL = parent.appendingPathComponent("\(basename).compressed.jpg")
@@ -417,61 +416,6 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.imageProcessingFailed("Failed to redraw image for the JPEG")
         }
         return redrawn
-    }
-
-    private static func stripImageExif(at url: URL) throws {
-        guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
-        }
-
-        // No type means ImageIO can't read it (empty or corrupt file).
-        guard let type = CGImageSourceGetType(cgSource) else {
-            throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
-        }
-        // ImageIO reads more formats than it writes (RAW, webp). Those can't be
-        // rewritten in place, and the JPEG re-encode carries no metadata anyway.
-        let writable = CGImageDestinationCopyTypeIdentifiers() as? [String] ?? []
-        guard writable.contains(type as String) else {
-            return
-        }
-        let count = CGImageSourceGetCount(cgSource)
-        let tmpDstURL = url.appendingPathExtension("tmp")
-
-        defer {
-            // Cleanup temporary file
-            try? FileManager.default.removeItem(at: tmpDstURL)
-        }
-
-        guard
-            let cgDestination = CGImageDestinationCreateWithURL(
-                tmpDstURL as CFURL, type, count, nil)
-        else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
-        }
-
-        let removeExifProperties =
-            [
-                kCGImagePropertyExifDictionary: kCFNull,
-                kCGImagePropertyGPSDictionary: kCFNull,
-            ] as CFDictionary
-
-        for index in 0..<count {
-            CGImageDestinationAddImageFromSource(
-                cgDestination, cgSource, index, removeExifProperties)
-        }
-
-        guard CGImageDestinationFinalize(cgDestination) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to finalize image destination")
-        }
-
-        do {
-            try FileManager.default.replaceItem(
-                at: url, withItemAt: tmpDstURL, backupItemName: nil, options: [],
-                resultingItemURL: nil)
-        } catch {
-            throw MediaUtilsError.fileOperationFailed(
-                "Failed to replace original file: \(error.localizedDescription)")
-        }
     }
 }
 
