@@ -35,7 +35,7 @@ var ErrUnsupportedVersion = errors.New("unsupported crypto version")
 
 // IsUnusableData reports whether a DecodeBox/Get error means the stored item
 // itself can never be read by this client (as opposed to, say, a failure to
-// fetch the key). Callers backed by a rebuildable cache delete such items.
+// fetch the key). Rebuildable caches drop such items; see GetOrDropUnusable.
 func IsUnusableData(err error) bool {
 	return errors.Is(err, ErrDecryptionFailed) || errors.Is(err, ErrUndecodable) ||
 		errors.Is(err, ErrUnsupportedVersion)
@@ -108,6 +108,31 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res any) (bool, 
 		return false, err
 	}
 	return true, nil
+}
+
+// DropUnusable deletes key when err means the stored bytes can never be read
+// by this client. A nil or transient error, such as a failure to fetch the
+// key, deletes nothing and returns nil.
+func (i *EncryptedDB) DropUnusable(ctx context.Context, key libkb.DbKey, err error) error {
+	if !IsUnusableData(err) {
+		return nil
+	}
+	i.G().Log.CDebugf(ctx, "EncryptedDB: deleting unusable data: %s", err)
+	return i.Delete(ctx, key)
+}
+
+// GetOrDropUnusable is Get for a rebuildable cache. Unusable stored bytes are
+// deleted and reported as a miss. Any other error is returned and the value is
+// left in place. res is valid only if found && err == nil.
+func (i *EncryptedDB) GetOrDropUnusable(ctx context.Context, key libkb.DbKey, res any) (bool, error) {
+	found, err := i.Get(ctx, key, res)
+	if derr := i.DropUnusable(ctx, key, err); derr != nil {
+		return false, derr
+	}
+	if IsUnusableData(err) {
+		return false, nil
+	}
+	return found, err
 }
 
 func EncodeBox(ctx context.Context, data any, getSecretBoxKey KeyFn) ([]byte, error) {

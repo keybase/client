@@ -51,3 +51,40 @@ func TestDecodeBoxErrorClasses(t *testing.T) {
 	require.NotErrorIs(t, err, ErrUnsupportedVersion)
 	require.False(t, IsUnusableData(err))
 }
+
+func TestGetOrDropUnusable(t *testing.T) {
+	tc := libkb.SetupTest(t, "get-or-drop", 0)
+	defer tc.Cleanup()
+	ctx := context.TODO()
+	var key [32]byte
+	key[0] = 1
+	var keyErr error
+	keyFn := func(context.Context) ([32]byte, error) {
+		if keyErr != nil {
+			return [32]byte{}, keyErr
+		}
+		return key, nil
+	}
+	edb := New(tc.G, func(*libkb.GlobalContext) *libkb.JSONLocalDb { return tc.G.LocalChatDb }, keyFn)
+	dbKey := libkb.DbKey{Typ: libkb.DBChatInbox, Key: "drop-unusable"}
+	require.NoError(t, edb.Put(ctx, dbKey, "hello"))
+
+	key[0] = 2
+	var got string
+	found, err := edb.GetOrDropUnusable(ctx, dbKey, &got)
+	require.NoError(t, err)
+	require.False(t, found)
+	_, found, err = tc.G.LocalChatDb.GetRaw(dbKey)
+	require.NoError(t, err)
+	require.False(t, found, "unusable bytes are deleted")
+
+	key[0] = 1
+	require.NoError(t, edb.Put(ctx, dbKey, "hello"))
+	keyErr = errors.New("key unavailable")
+	found, err = edb.GetOrDropUnusable(ctx, dbKey, &got)
+	require.ErrorIs(t, err, keyErr)
+	require.False(t, found)
+	_, found, err = tc.G.LocalChatDb.GetRaw(dbKey)
+	require.NoError(t, err)
+	require.True(t, found, "a key-fetch failure must leave the value in place")
+}
