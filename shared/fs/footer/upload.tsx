@@ -27,6 +27,8 @@ type AnimationState = {
   lastShowing: boolean
 }
 
+const linearEasing = (t: number) => NativeEasing.linear(t)
+
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
 
 const Upload = (props: UploadProps) => {
@@ -86,7 +88,7 @@ const Upload = (props: UploadProps) => {
       const loop = NativeAnimated.loop(
         NativeAnimated.timing(backgroundTop, {
           duration: 2000,
-          easing: NativeEasing.linear,
+          easing: linearEasing,
           toValue: -80,
           useNativeDriver: false,
         })

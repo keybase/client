@@ -218,6 +218,8 @@ type AshTowerProps = {
   numImages: number
 }
 
+const easeInOut = (t: number) => NativeEasing.inOut((x: number) => NativeEasing.ease(x))(t)
+
 const AnimatedAshTower = (p: AshTowerProps) => {
   const styles = useStyles()
   const {exploded, numImages, explodedBy} = p
@@ -231,7 +233,7 @@ const AnimatedAshTower = (p: AshTowerProps) => {
     if (exploded) {
       NativeAnimated.timing(widthAV, {
         duration: animationDuration,
-        easing: NativeEasing.inOut(NativeEasing.ease),
+        easing: easeInOut,
         toValue: 100,
         useNativeDriver: false,
       }).start()

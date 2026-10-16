@@ -8,6 +8,8 @@ type Props = {
   children: React.ReactNode
 }
 
+const linearEasing = (t: number) => NativeEasing.linear(t)
+
 const DownloadWrapper = (props: Props): React.ReactNode => {
   const {children, dismiss, done, isFirst} = props
 
@@ -16,7 +18,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
   const opacityAnimation = React.useRef(
     NativeAnimated.timing(opacity, {
       duration: 3000,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: 0,
       useNativeDriver: false,
     })

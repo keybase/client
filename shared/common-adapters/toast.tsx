@@ -25,6 +25,8 @@ const Kb = {
   Portal,
 }
 
+const linearEasing = (t: number) => NativeEasing.linear(t)
+
 const positionFallbacks = [] as const
 
 const Toast = (props: Props) => {
@@ -71,7 +73,7 @@ const Toast = (props: Props) => {
     }
     const animation = NativeAnimated.timing(opacity, {
       duration: 200,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: visible ? 1 : 0,
       useNativeDriver: false,
     })

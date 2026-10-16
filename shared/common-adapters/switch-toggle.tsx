@@ -8,6 +8,8 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
+const linearEasing = (t: number) => NativeEasing.linear(t)
+
 const nativeDisabledOffset = 2
 const nativeEnabledOffset = 22
 const desktopDisabledOffset = 2
@@ -27,7 +29,7 @@ const SwitchToggle = (props: Props) => {
     animationRef.current?.stop()
     animationRef.current = NativeAnimated.timing(offset, {
       duration: 100,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: _on ? nativeEnabledOffset : nativeDisabledOffset,
       useNativeDriver: false,
     })
