@@ -169,6 +169,52 @@ describe('Send on iOS', () => {
     expect(screen.getByText('Send original')).toBeTruthy()
     expect(isWaitingOrDisabled('Send')).toBe(false)
   })
+
+  test('a failure with no message still shows an error and offers Send original', async () => {
+    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error(''))
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/clip.mov'}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(screen.getByText('Processing failed')).toBeTruthy()
+    expect(screen.getByText('Send original')).toBeTruthy()
+  })
+
+  test('an account switch while Send waits on the preference ends the spinner', async () => {
+    const pref = Promise.withResolvers<{compressPreference: T.RPCGen.IncomingShareCompressPreference}>()
+    jest.spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise').mockReturnValue(pref.promise)
+    jest.spyOn(MediaProcess, 'processPaths')
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/clip.mov'}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(isWaitingOrDisabled('Send')).toBe(true)
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+      useConfigState.getState().dispatch.setUserSwitching(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
+    await act(async () => {
+      pref.resolve({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(MediaProcess.processPaths).not.toHaveBeenCalled()
+    expect(isWaitingOrDisabled('Send')).toBe(false)
+  })
 })
 
 describe('Send with an unresolved tlfName', () => {
@@ -303,5 +349,58 @@ describe('Send with compression off', () => {
     await send('/tmp/a.pdf')
     expect(MediaProcess.processPaths).not.toHaveBeenCalled()
     expect(rpc.params('postAttachment')).toHaveLength(1)
+  })
+})
+
+describe('Send tapped twice', () => {
+  let rpc: FakeChatRpc
+  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+  const g = globalThis as unknown as {isIOS: boolean}
+
+  beforeEach(() => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    rpc = installFakeChatRpc()
+    jest
+      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
+      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+    // the screen stays mounted, as it does while the modal animates away
+    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
+    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    g.isIOS = false
+    cleanup()
+    restoreChatRpc()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  const sendTwice = async () => {
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/a.pdf'}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    for (let i = 0; i < 2; i++) {
+      await act(async () => {
+        fireEvent.click(screen.getByText('Send'))
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+    }
+  }
+
+  test('on desktop it uploads once', async () => {
+    g.isIOS = false
+    await sendTwice()
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
+  })
+
+  test('on iOS, with nothing to process, it uploads once', async () => {
+    g.isIOS = true
+    await sendTwice()
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
   })
 })

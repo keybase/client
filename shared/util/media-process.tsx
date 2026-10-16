@@ -78,6 +78,10 @@ export type ProcessItem = {
 // upload; error says the bytes are the untouched ones, which the caller has to
 // tell the user about rather than quietly sending an uncompressed or untrimmed
 // clip.
+// Never empty: an empty error reads as success to everything that checks it.
+export const processingErrorMessage = (e: unknown) =>
+  (e instanceof Error ? e.message : String(e)) || 'Processing failed'
+
 export type ProcessResult = {
   path: string
   error?: string
@@ -104,7 +108,7 @@ export const processPaths = async (
       })
     } catch (e) {
       logger.warn('processMedia failed', e)
-      out.push({error: e instanceof Error ? e.message : String(e), path})
+      out.push({error: processingErrorMessage(e), path})
     }
     onProgress?.(idx + 1, items.length)
   }

@@ -21,6 +21,7 @@ import {
   isEditNoop,
   isProcessableImagePath,
   isVideoPath,
+  processingErrorMessage,
   processPaths,
   type ProcessResult,
   type VideoEdit,
@@ -71,7 +72,7 @@ const processForSend = async (
     return {failure: processed.find(p => p.error)?.error, processed}
   } catch (e) {
     logger.warn('attachment titles: processing threw', e)
-    return {failure: e instanceof Error ? e.message : String(e), processed: []}
+    return {failure: processingErrorMessage(e), processed: []}
   }
 }
 
@@ -142,8 +143,9 @@ const ContainerInner = (ownProps: OwnProps) => {
   }, [])
   // progress only exists once the export starts, which is after the preference
   // resolves, so it can't gate a double tap on its own. The ref guards a second
-  // tap in the same frame; the state drives Send's spinner, which has to stop when
-  // the export fails or the screen is left with no way to retry.
+  // tap in the same frame; the state drives Send's spinner. Both stay set once an
+  // upload starts, since the screen is on its way out and a second tap would send
+  // again; they're cleared only where the screen stays up for the user to retry.
   const submittingRef = React.useRef(false)
   const [submitting, setSubmitting] = React.useState(false)
   const endSubmit = () => {
@@ -163,6 +165,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
       if (accountChanged()) {
         logger.info('attachment titles: account changed, sending nothing')
+        endSubmit()
         return
       }
       const uploadArgs = {
@@ -191,7 +194,6 @@ const ContainerInner = (ownProps: OwnProps) => {
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
 
     if (!isIOS || skipProcessing) {
-      endSubmit()
       upload(effective)
       return
     }
@@ -199,7 +201,11 @@ const ContainerInner = (ownProps: OwnProps) => {
     const isUnmounted = () => unmountedRef.current
     const f = async () => {
       const compress = (await compressPrefRef.current) ?? true
-      if (isUnmounted() || accountChanged()) {
+      if (isUnmounted()) {
+        return
+      }
+      if (accountChanged()) {
+        endSubmit()
         return
       }
       // Only local media can be handed to the native processor: kbfs paths aren't
@@ -222,7 +228,6 @@ const ContainerInner = (ownProps: OwnProps) => {
       )
 
       if (eligible.length === 0) {
-        endSubmit()
         upload(effective)
         return
       }
@@ -241,11 +246,11 @@ const ContainerInner = (ownProps: OwnProps) => {
         return
       }
       setProgress(undefined)
-      endSubmit()
       // A failed export means the original bytes: an uncompressed upload, or
       // worse a clip the user asked to trim going out full length. Stop and say
       // so instead of sending something they didn't ask for.
       if (failure !== undefined) {
+        endSubmit()
         setError(failure)
         return
       }
