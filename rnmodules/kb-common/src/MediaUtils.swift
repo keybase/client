@@ -119,20 +119,24 @@ public class MediaUtils: NSObject {
         // RAW, jxl before iOS 17) is an error, not a raw share: Send original
         // takes this path too, and must not upload a location it can't strip.
         // An animation goes as it is too, like a gif, since the JPEG would keep
-        // one frame. With stripLocation, an image that would go as it is goes
-        // only once it carries no location; one the strip can't clean becomes a
-        // JPEG instead.
+        // one frame, but only once it carries no location, even here: an
+        // animated webp/avif from the share extension went as a metadata-free
+        // JPEG before, and this path can't tell it from an in-app pick. With
+        // stripLocation, any image that would go as it is goes only once it
+        // carries no location. One the strip can't clean becomes a JPEG instead.
         if !compress {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
                 let typeID = CGImageSourceGetType(cgSource)
             else {
                 throw MediaUtilsError.unrecognizedImageFormat
             }
-            if let type = UTType(typeID as String),
-                !mustTranscode(type) || isAnimation(cgSource, type: type),
-                !stripLocation || removeLocation(at: url)
-            {
-                return url
+            if let type = UTType(typeID as String) {
+                let animated = isAnimation(cgSource, type: type)
+                if animated || !mustTranscode(type),
+                    (!stripLocation && !animated) || removeLocation(at: url)
+                {
+                    return url
+                }
             }
             let basename = url.deletingPathExtension().lastPathComponent
             // Not "<basename>.jpg": a sibling with that name may be another attachment.
@@ -504,6 +508,10 @@ public class MediaUtils: NSObject {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return true }
         let count = CGImageSourceGetCount(source)
         guard count > 0 else { return true }
+        let container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any]
+        if let gps = container?[kCGImagePropertyGPSDictionary] as? [CFString: Any], !gps.isEmpty {
+            return true
+        }
         return (0..<count).contains { index in
             guard let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any],
                 props[kCGImagePropertyPixelWidth] != nil
