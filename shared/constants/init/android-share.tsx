@@ -48,9 +48,9 @@ const openHeldShare = () => {
   if (id === undefined || navigatorShareIDs.has(id) || openingShareID === id) return
   const {loggedIn, userSwitching} = useConfigState.getState()
   const {intent, navigationReady} = useNavigationIntentsState.getState()
-  // A link or tap about to navigate this account goes first, and the share opens above where it
-  // went once it has: its consumption changes the store, which runs this again. One waiting on a
-  // switch to another account doesn't hold the share up.
+  // A link or tap about to navigate this account goes first, and the share opens once it has: its
+  // consumption changes the store, which runs this again. One waiting on a switch to another
+  // account doesn't hold the share up.
   const uid = useCurrentUserState.getState().uid
   const waiting = !!intent && (!intent.targetUid || intent.targetUid === uid)
   if (!loggedIn || userSwitching || !navigationReady || waiting) return
@@ -59,12 +59,9 @@ const openHeldShare = () => {
   // The share screen is one of the logged-in screens: until they are in the state (just after
   // login) a navigation to it would go nowhere. Their arrival is a state report, which runs this.
   if (!routes.some(r => r.name === 'loggedIn')) return
-  const screen = {name: 'incomingShareNew', params: {androidShareID: id}} as const
-  // Over the tabs alone, the chat tab is parked under the share, which always ends in chat. Over
-  // anything else, the share is pushed on top, so nothing already navigated to is replaced.
-  const overTabsOnly = routes.length <= 1
-  const opened = overTabsOnly ? navigator.showAboveTabs(Tabs.chatTab, screen) : navigator.navigateAppend(screen)
-  if (opened) {
+  // As a share link does on iOS: the chat tab is parked under the share, which always ends in chat,
+  // in place of whatever was up.
+  if (navigator.showAboveTabs(Tabs.chatTab, {name: 'incomingShareNew', params: {androidShareID: id}})) {
     logger.info(`[AndroidShare] opening share ${id}`)
     openingShareID = id
   }
