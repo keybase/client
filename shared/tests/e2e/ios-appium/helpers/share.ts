@@ -273,8 +273,14 @@ export const rotateNewestPhotos = async (count: number) => {
     const cells = await photosGrid(i)
     await cells[cells.length - i]!.click()
     await tapWhenExists('name == "PUOneUpBarButtonItemIdentifierEdit"')
-    await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Crop and Rotate"')
-    await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Rotate"')
+    // the editor loads after the Edit tap; its Done button is the sign it is ready
+    await pred('type == "XCUIElementTypeButton" AND label == "Done"').waitForExist({
+      interval: 250,
+      timeout: 30_000,
+      timeoutMsg: 'the Photos editor never loaded',
+    })
+    await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Crop and Rotate"', 20_000)
+    await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Rotate"', 20_000)
     await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Done"')
     // back in the one-up view once the edit is saved
     await pred('name == "PUOneUpBarButtonItemIdentifierDone"').waitForExist({interval: 250, timeout: 30_000})
