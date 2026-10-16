@@ -184,8 +184,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         draftLoaded = false
       }
       editing = false
+      // where the user can't post the composer starts over, set-aside text included
+      appendSetAside = undefined
       if (backAhead) {
-        appendSetAside = undefined
         appendedBeforeDraft = true
       }
     } else {
@@ -291,6 +292,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
             text = ''
             draftLoaded = false
             appendedBeforeDraft = false
+            appendSetAside = undefined
           }
           input = next
           if (editText) {
