@@ -309,6 +309,38 @@ describe('append', () => {
     expect(drafts).toEqual(['my draft\nshared text'])
   })
 
+  test('an edit over an append that ends where the user cannot post drops the set-aside text for good', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('shared text')
+    composer.startEdit('my message')
+    setReadOnly(true)
+    composer.clear()
+    setReadOnly(false)
+    view.offerDraft('my draft')
+    expect(fake.text).toBe('my draft')
+
+    composer.startEdit('another message')
+    composer.clear()
+
+    expect(fake.text).toBe('my draft')
+    fake.type('my draft, typed on')
+    expect(drafts).toContain('my draft, typed on')
+  })
+
+  test('a new view drops text an edit set aside on the old one', () => {
+    const {composer, mount} = setup()
+    const first = mount(undefined)
+    composer.append('shared text')
+    composer.startEdit('my message')
+    first.detach()
+
+    const second = mount('my draft')
+    composer.clear()
+
+    expect(second.fake.text).toBe('my draft')
+  })
+
   test('writes nothing where the user cannot post', () => {
     const {composer, drafts, mount, setReadOnly} = setup()
     const {fake} = mount('my draft')
