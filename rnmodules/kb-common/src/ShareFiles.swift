@@ -124,6 +124,26 @@ enum ShareItemKind: Int {
     return best
   }
 
+  // Whether an attachment is the host's own object for something the share's
+  // text or links already say, like the private map item Maps attaches beside
+  // a place's link and name. Such an object isn't a file and can't be loaded
+  // as one, so it is left out. A document type, or a dynamic type (which only
+  // a file's extension or MIME type yields), is a real file and always kept.
+  static func isHostObject(_ stype: String, besideTextOrLink: Bool) -> Bool {
+    guard besideTextOrLink, of(type: stype) == .data else { return false }
+    guard let type = UTType(stype) else { return true }
+    return !type.isDynamic && !type.conforms(to: .content)
+  }
+
+  // Whether any of a share's attachments, each given by the types it offers,
+  // is loaded as text or a link.
+  static func carriesTextOrLink(_ attachments: [[String]]) -> Bool {
+    return attachments.contains {
+      guard let kind = best(of: $0)?.kind else { return false }
+      return kind == .text || kind == .url
+    }
+  }
+
   // For the log: system types as they are, anything an app declared (which
   // can name the app) redacted, and dynamic types too, which encode the file
   // extension or MIME type they stand for.

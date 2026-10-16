@@ -741,7 +741,9 @@ public class ItemProviderHelper: NSObject {
 
   @objc public func startProcessing() {
     var order = 0
-    for (index, items) in (itemArrs as! [[NSItemProvider]]).enumerated() {
+    let providers = itemArrs as! [[NSItemProvider]]
+    let besideTextOrLink = ShareItemKind.carriesTextOrLink(providers.joined().map { $0.registeredTypeIdentifiers })
+    for (index, items) in providers.enumerated() {
       // The host's own text for this extension item (a post's caption, a
       // page's title) goes ahead of its attachments.
       if index < captions.count, !ShareText.isBlank(captions[index]) {
@@ -752,10 +754,17 @@ public class ItemProviderHelper: NSObject {
       for item in items {
         let itemOrder = order
         order += 1
+        let types = item.registeredTypeIdentifiers
+        let best = ShareItemKind.best(of: types)
+        if let best, ShareItemKind.isHostObject(best.stype, besideTextOrLink: besideTextOrLink) {
+          log.log(
+            "item \(itemOrder, privacy: .public) offers \(ShareItemKind.publicDescription(of: types), privacy: .public); skipped, the share's text or link covers it"
+          )
+          continue
+        }
         itemCount += 1
         incrementUnprocessed()
-        let types = item.registeredTypeIdentifiers
-        guard let best = ShareItemKind.best(of: types) else {
+        guard let best else {
           reserveItemProgress(loaderReportsProgress: false)
           completeItemAndAppendManifestAndLogError(itemOrder, text: "item offers no types", error: nil)
           continue
