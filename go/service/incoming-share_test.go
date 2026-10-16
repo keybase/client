@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	clockwork "github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,14 +68,35 @@ func TestIncomingShareAllDroppedIsNotAnError(t *testing.T) {
 	require.Equal(t, 1, res.DroppedCount)
 }
 
-func TestIncomingShareEmptyManifestIsAnError(t *testing.T) {
+// The extension writes an empty manifest when the user cancels the share.
+func TestIncomingShareEmptyManifestIsNothingToShare(t *testing.T) {
 	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
 		return []map[string]string{}
 	})
 	defer cleanup()
 
-	_, err := h.GetIncomingShareItems(context.Background())
-	require.Error(t, err)
+	res, err := h.GetIncomingShareItems(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, res.Items)
+	require.Zero(t, res.DroppedCount)
+}
+
+func writeIncomingShareManifest(t *testing.T, h *IncomingShareHandler, items []map[string]string) {
+	b, err := json.Marshal(items)
+	require.NoError(t, err)
+	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
+	require.NoError(t, os.WriteFile(filepath.Join(folder, "manifest.json"), b, 0o600))
+}
+
+func incomingShareText(t *testing.T, h *IncomingShareHandler) string {
+	res, err := h.GetIncomingShareItems(context.Background())
+	require.NoError(t, err)
+	require.Zero(t, res.DroppedCount)
+	if len(res.Items) == 0 {
+		return ""
+	}
+	require.Len(t, res.Items, 1)
+	return *res.Items[0].Content
 }
 
 func TestIncomingShareIsReadOnce(t *testing.T) {
@@ -82,22 +104,58 @@ func TestIncomingShareIsReadOnce(t *testing.T) {
 		return []map[string]string{{"type": "text", "content": "hello"}}
 	})
 	defer cleanup()
+	clock := clockwork.NewFakeClock()
+	h.G().SetClock(clock)
 	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
 
-	res, err := h.GetIncomingShareItems(context.Background())
-	require.NoError(t, err)
-	require.Len(t, res.Items, 1)
+	require.Equal(t, "hello", incomingShareText(t, h))
 
 	// Neither the manifest nor the claimed copy is left behind.
 	entries, err := os.ReadDir(folder)
 	require.NoError(t, err)
 	require.Empty(t, entries)
 
-	// A replayed incoming-share link gets nothing, without an error.
-	res, err = h.GetIncomingShareItems(context.Background())
-	require.NoError(t, err)
-	require.Empty(t, res.Items)
-	require.Zero(t, res.DroppedCount)
+	// A reload of an answer the app threw away gets the share again.
+	clock.Advance(incomingShareRepeatWindow - time.Second)
+	require.Equal(t, "hello", incomingShareText(t, h))
+
+	// A replayed incoming-share link later on gets nothing, without an error.
+	clock.Advance(2 * time.Second)
+	require.Empty(t, incomingShareText(t, h))
+}
+
+func TestIncomingShareNewShareReplacesTheLast(t *testing.T) {
+	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
+		return []map[string]string{{"type": "text", "content": "first"}}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+
+	require.Equal(t, "first", incomingShareText(t, h))
+	writeIncomingShareManifest(t, h, []map[string]string{{"type": "text", "content": "second"}})
+
+	require.Equal(t, "second", incomingShareText(t, h))
+	require.Equal(t, "second", incomingShareText(t, h))
+
+	// A cancelled share replaces it too.
+	writeIncomingShareManifest(t, h, []map[string]string{})
+	require.Empty(t, incomingShareText(t, h))
+	require.Empty(t, incomingShareText(t, h))
+}
+
+func TestIncomingShareUnreadableNewShareReplacesTheLast(t *testing.T) {
+	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
+		return []map[string]string{{"type": "text", "content": "first"}}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+	require.Equal(t, "first", incomingShareText(t, h))
+	folder := IncomingShareFolder(h.G().Env.GetMobileSharedHome())
+	require.NoError(t, os.WriteFile(filepath.Join(folder, "manifest.json"), []byte("{not json"), 0o600))
+
+	_, err := h.GetIncomingShareItems(context.Background())
+	require.Error(t, err)
+	require.Empty(t, incomingShareText(t, h))
 }
 
 func TestIncomingShareNoManifestIsNothingToShare(t *testing.T) {
