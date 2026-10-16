@@ -392,6 +392,8 @@ const ContainerInner = (ownProps: OwnProps) => {
   const isLast = index + 1 === pathAndInfos.length
   // Are we trying to upload multiple?
   const multiUpload = pathAndInfos.length > 1
+  // A phone is too narrow for Send, Send All and Send original side by side.
+  const stackButtons = isMobile && !!error
 
   return (
     <Kb.ModalScreen
@@ -405,23 +407,29 @@ const ContainerInner = (ownProps: OwnProps) => {
         />
       }
       footer={
-        <Kb.ButtonBar fullWidth={true} small={true}>
+        <Kb.ButtonBar direction={stackButtons ? 'column' : 'row'} fullWidth={true} small={true}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.Button
               disabled={!!progress || !resolvedTlfName}
               waiting={submitting}
-              fullWidth={!multiUpload}
+              fullWidth={!multiUpload || stackButtons}
               onClick={onSubmit}
               label="Send"
             />
           ) : (
-            <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
+            <Kb.Button
+              disabled={!!progress}
+              fullWidth={!multiUpload || stackButtons}
+              onClick={onNext}
+              label="Next"
+            />
           )}
           {multiUpload ? (
             <Kb.Button
               disabled={!!progress || !resolvedTlfName}
               waiting={submitting}
+              fullWidth={stackButtons}
               onClick={onSubmit}
               label="Send All"
             />
@@ -431,6 +439,7 @@ const ContainerInner = (ownProps: OwnProps) => {
             <Kb.Button
               disabled={!!progress || !resolvedTlfName}
               type="Dim"
+              fullWidth={stackButtons}
               onClick={onSendAnyway}
               label="Send original"
             />
