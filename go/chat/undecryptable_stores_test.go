@@ -88,3 +88,41 @@ func TestArchiveRegistryUndecryptableIsMiss(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, job.Request.JobID, got.Request.JobID)
 }
+
+func TestArchiveRegistryUndecodableIsKept(t *testing.T) {
+	ctc, _ := setupChatTest(t, "archiveundecodable")
+	defer ctc.Cleanup()
+	ctx := context.TODO()
+	g := ctc.Context()
+	var key [32]byte
+
+	newer, err := libkb.MPackEncode(struct {
+		V int
+		N [24]byte
+		E []byte
+	}{V: 2, E: []byte("sealed-by-newer-client")})
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		name   string
+		stored []byte
+		want   error
+	}{
+		{name: "newer crypto version", stored: newer, want: encrypteddb.ErrUnsupportedVersion},
+		{name: "undecodable", stored: []byte("not a box"), want: encrypteddb.ErrUndecodable},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := NewChatArchiveRegistry(g, nil)
+			r.edb = testEncryptedDB(g, &key)
+			r.uid = gregor1.UID(libkb.UsernameToUID("testuser").ToBytes())
+			r.started = true
+			require.NoError(t, g.LocalChatDb.PutRaw(r.dbKey(), tc.stored))
+
+			_, err := r.List(ctx)
+			require.ErrorIs(t, err, tc.want)
+			stored, found, err := g.LocalChatDb.GetRaw(r.dbKey())
+			require.NoError(t, err)
+			require.True(t, found, "job history a newer client may read must be kept")
+			require.Equal(t, tc.stored, stored)
+		})
+	}
+}
