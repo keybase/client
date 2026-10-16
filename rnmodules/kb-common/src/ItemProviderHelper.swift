@@ -55,6 +55,10 @@ public class ItemProviderHelper: NSObject {
     return preparedItems + (typeToArray["error"] ?? [])
   }
 
+  // Items startProcessing recognised and set out to load: not every attachment
+  // a share carries is one. Main thread only.
+  @objc public private(set) var itemCount = 0
+
   // Items that failed to load or copy. Main thread only.
   @objc public var failedCount: Int {
     return typeToArray["error"]?.count ?? 0
@@ -763,6 +767,7 @@ public class ItemProviderHelper: NSObject {
 
       for item in items {
         guard let best = Self.bestType(for: item) else { continue }
+        itemCount += 1
         incrementUnprocessed()
         // Only the load*Representation calls hand back a Progress; loadItem
         // gives us nothing to observe, so those items count all at once.
