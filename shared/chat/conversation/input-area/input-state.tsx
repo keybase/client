@@ -308,7 +308,11 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           break
         case 'injectText':
           if (action.text !== undefined) {
-            injectIntoInput(action.text)
+            if (action.append) {
+              composer.append(action.text)
+            } else {
+              injectIntoInput(action.text)
+            }
           }
           if (action.notice) {
             setCommandStatusInfo({

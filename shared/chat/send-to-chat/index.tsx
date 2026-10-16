@@ -29,7 +29,7 @@ export const SendToChat = (props: Props) => {
     } else {
       clearModals()
       C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files', {
-        intent: text === undefined ? undefined : {text, type: 'injectText'},
+        intent: text === undefined ? undefined : {append: true, text, type: 'injectText'},
       })
     }
   }

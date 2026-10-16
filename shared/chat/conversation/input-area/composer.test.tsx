@@ -191,6 +191,107 @@ describe('inject', () => {
   })
 })
 
+describe('append', () => {
+  test('puts the text on its own line after a loaded draft, and saves both', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('my draft')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+    expect(fake.selection).toEqual({end: 20, start: 20})
+    expect(drafts).toEqual(['my draft\nshared text'])
+  })
+
+  test('adds no blank line after a draft ending in a newline', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('my draft\n')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('is the whole text when there is no draft', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('shared text')
+  })
+
+  test('waiting for an input, lands after the draft that input loads', () => {
+    const {composer, mount} = setup()
+    composer.append('shared text', true)
+
+    const {fake} = mount('my draft')
+
+    expect(fake.text).toBe('my draft\nshared text')
+    expect(fake.focusCount).toBe(1)
+  })
+
+  test('before the draft is known, shows alone, saves nothing, and goes after the draft once it loads', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+
+    composer.append('shared text')
+    expect(fake.text).toBe('shared text')
+    expect(drafts).toEqual([])
+
+    view.offerDraft('my draft')
+
+    expect(fake.text).toBe('my draft\nshared text')
+    expect(drafts).toEqual(['my draft\nshared text'])
+  })
+
+  test('before the draft is known, typing is kept and saved with the draft once it loads', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('shared')
+    fake.type('shared more')
+    expect(drafts).toEqual([])
+
+    view.offerDraft('my draft')
+
+    expect(fake.text).toBe('my draft\nshared more')
+    expect(drafts).toEqual(['my draft\nshared more'])
+  })
+
+  test('before the draft is known, an empty draft arriving saves the text alone', () => {
+    const {composer, drafts, mount} = setup()
+    const {view} = mount(undefined)
+    composer.append('shared text')
+
+    view.offerDraft('')
+
+    expect(drafts).toEqual(['shared text'])
+  })
+
+  test('before the draft is known, a send leaves the draft to come back once it loads', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('shared text')
+
+    composer.submit(jest.fn())
+    view.offerDraft('my draft')
+
+    expect(fake.text).toBe('my draft')
+    expect(drafts).not.toContain('')
+  })
+
+  test('writes nothing where the user cannot post', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
+    const {fake} = mount('my draft')
+    setReadOnly(true)
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft')
+    expect(drafts).toEqual([])
+  })
+})
+
 describe('draft', () => {
   test('loads into an untouched composer on attach', () => {
     const {composer, mount} = setup()

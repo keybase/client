@@ -42,7 +42,7 @@ test('a text share to a suggested conversation carries the dropped-items notice 
   })
 
   expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {notice: "1 item couldn't be prepared.", text: 'hello', type: 'injectText'},
+    intent: {append: true, notice: "1 item couldn't be prepared.", text: 'hello', type: 'injectText'},
   })
 })
 
@@ -53,7 +53,7 @@ test('a complete text share to a suggested conversation carries no notice', asyn
   })
 
   expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {notice: undefined, text: 'hello', type: 'injectText'},
+    intent: {append: true, notice: undefined, text: 'hello', type: 'injectText'},
   })
 })
 
