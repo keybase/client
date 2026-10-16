@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
 type teardowner struct {
@@ -399,4 +401,27 @@ func TestLevelDb(t *testing.T) {
 	}
 
 	td.teardown()
+}
+
+func TestLevelDbKeysWithPrefixes(t *testing.T) {
+	var td teardowner
+	defer td.teardown()
+	tc := SetupTest(t, "LevelDb-keys-with-prefixes", 0)
+	defer tc.Cleanup()
+	db, err := createTempLevelDbForTest(&tc, &td)
+	require.NoError(t, err)
+
+	want := DbKey{Typ: DBChatInboxConvs, Key: "uid-a:conv1"}
+	require.NoError(t, db.Put(want, nil, []byte{1}))
+	require.NoError(t, db.Put(DbKey{Typ: DBChatInboxConvs, Key: "uid-b:conv1"}, nil, []byte{1}))
+	keys, err := db.KeysWithPrefixes(DbKey{Typ: DBChatInboxConvs, Key: "uid-a"}.ToBytes())
+	require.NoError(t, err)
+	require.Equal(t, DBKeySet{want: {}}, keys)
+}
+
+func TestCollectDbKeysReturnsIteratorError(t *testing.T) {
+	iterErr := errors.New("iterator failed")
+	m := make(map[DbKey]struct{})
+	require.ErrorIs(t, collectDbKeys(iterator.NewEmptyIterator(iterErr), m), iterErr)
+	require.NoError(t, collectDbKeys(iterator.NewEmptyIterator(nil), m))
 }
