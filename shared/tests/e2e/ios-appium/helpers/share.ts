@@ -13,7 +13,16 @@ import * as path from 'path'
 import * as T from '../../shared/test-ids'
 import {jsEval, signedInAs, threadStoreBody} from './chat'
 import {el} from './elements'
-import {BUNDLE_ID, appSnapshot, deviceUdid, openSelfConversation, openUrl, simctl, waitFor} from './lifecycle'
+import {
+  BUNDLE_ID,
+  appSnapshot,
+  deviceUdid,
+  openSelfConversation,
+  openUrl,
+  selfConversationID,
+  simctl,
+  waitFor,
+} from './lifecycle'
 import {escapeToTabs, navigateToChat} from './navigate'
 
 export const PHOTOS = 'com.apple.mobileslideshow'
@@ -52,7 +61,7 @@ export const startAssetServer = async () => {
   const server = http.createServer((req, res) => {
     const name = path.basename(decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/'))
     const file = asset(name)
-    if (!name || !fs.existsSync(file)) {
+    if (!name || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
       res.writeHead(404).end()
       return
     }
@@ -257,8 +266,7 @@ export const sharePhotosSheet = (count: number) => async () => {
   await tapWhenExists('type == "XCUIElementTypeButton" AND label == "Share"')
 }
 
-// Photos: edits the newest `count` items (a 90° rotation, saved as an edit, so Photos renders each as
-// FullSizeRender.jpg on export).
+// Photos: edits the newest `count` items (a 90° rotation, saved as an edit).
 export const rotateNewestPhotos = async (count: number) => {
   await photosToGrid()
   for (let i = 1; i <= count; i++) {
@@ -481,13 +489,15 @@ export const shareToKeybase = async (
       timeout: 1_000,
     }).catch(() => false))
   if (!extensionFinished) {
-    // only this share's extension: an older one may belong to a share still on screen
-
+    // only this share's extension: an older one may belong to a share still on screen. pgrep is
+    // host-wide, so with two simulators booted this could also pick up the other one's extension.
     await browser.saveScreenshot(path.join(shareDebugDir(), `stuck-${Date.now()}.png`)).catch(() => {})
     for (const pid of extensionPids().filter(p => !before.has(p))) {
       try {
         execFileSync('kill', ['-9', pid])
-      } catch {}
+      } catch {
+        // already gone
+      }
     }
   }
   await sleep(500)
@@ -543,22 +553,6 @@ export const manifestProblems = (manifest: ReadonlyArray<ManifestItem> | undefin
 }
 
 // -- the app side ---------------------------------------------------------------------------------
-
-// The conversation whose only participant is the smoke user, read from the inbox layout.
-export const selfConversationID = async (username: string) => {
-  await escapeToTabs()
-  await navigateToChat()
-  return waitFor(
-    'the self conversation in the inbox',
-    async () =>
-      jsEval<string | null>(
-        `const layout = kbModule('chat/inbox/layout-state.tsx').useInboxLayoutState.getState().layout
-         const row = layout && layout.smallTeams.find(t => !t.isTeam && t.name === ${quote(username)})
-         return row ? row.convID : null`
-      ).then(id => id ?? undefined),
-    {interval: 500, timeout: 30_000}
-  )
-}
 
 type Screen = {name?: string; params?: Record<string, unknown>}
 const visibleScreen = async (): Promise<Screen | undefined> => (await appSnapshot()).screen
@@ -759,7 +753,7 @@ export const writeResult = (r: SourceResult) => {
 // Whether a run sends at all: KB_SHARE_NO_SEND=1 stops every source at the app's share screen.
 export const sending = () => process.env['KB_SHARE_NO_SEND'] !== '1'
 
-const smokeUser = () => {
+export const smokeUser = () => {
   const u = process.env['KB_SMOKE_USER']
   if (!u) throw new Error('KB_SMOKE_USER is unset')
   return u

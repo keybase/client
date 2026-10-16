@@ -4,10 +4,12 @@
 # Usage: make-assets.sh <out-dir>
 #
 # Uses only what a stock Mac has (perl, sips, cupsfilter, zip). ImageMagick (`magick`) or `cwebp`
-# add webp/avif and ffmpeg adds the videos; without them those files are left out, and the flows
-# that need them skip with the reason.
+# add webp and ffmpeg adds the videos; without them those files are left out, and the flows that
+# need them skip with the reason. photo.avif is a 10-bit AVIF encoded through ImageIO (make-avif.swift),
+# the form Safari re-encodes a page's AVIF to before sharing it.
 set -euo pipefail
 OUT="${1:?usage: make-assets.sh <out-dir>}"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$OUT"
 cd "$OUT"
 
@@ -46,18 +48,20 @@ image 8000 6000 10 80 160 tiff big.tif
 image 8000 6000 160 80 10 png big.png
 image 1200 900 90 160 40 heic photo.heic
 image 1200 900 200 40 90 tiff small.tif
-image 640 480 120 120 30 bmp photo.bmp
 
 if command -v magick > /dev/null; then
   magick -size 1200x900 plasma:fractal photo.webp
-  magick -size 1200x900 plasma:fractal photo.avif
 elif command -v cwebp > /dev/null; then
   sips -s format png small.tif --out .w.png > /dev/null
   cwebp -quiet .w.png -o photo.webp
   rm -f .w.png
-  note "no ImageMagick: photo.avif left out"
 else
-  note "no ImageMagick or cwebp: photo.webp and photo.avif left out"
+  note "no ImageMagick or cwebp: photo.webp left out"
+fi
+
+if ! swift "$HERE/make-avif.swift" photo.avif 1200 900 2> /dev/null; then
+  rm -f photo.avif
+  note "no AVIF encoder: photo.avif left out"
 fi
 
 if command -v ffmpeg > /dev/null; then

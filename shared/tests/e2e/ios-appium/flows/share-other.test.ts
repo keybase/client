@@ -9,6 +9,7 @@ import {
   exists,
   inApp,
   runSource,
+  smokeUser,
   shareContactSheet,
   shareMapsPinSheet,
   sharePhotosSheet,
@@ -71,7 +72,7 @@ describe('Share text and other sources', () => {
 
   // A suggested conversation goes straight to the send screen for it, skipping the picker.
   it("the share sheet's suggested self conversation", async function () {
-    const user = process.env['KB_SMOKE_USER'] ?? ''
+    const user = smokeUser()
     addMedia(this, 'photo-c.png')
     const shown = await inApp(PHOTOS, async () => {
       await sharePhotosSheet(1)()
