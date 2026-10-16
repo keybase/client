@@ -1,6 +1,7 @@
 package com.reactnativekb
 
 import java.io.File
+import java.util.UUID
 
 // Holds the latest incoming share until JS is done with it. It lives as long as
 // the process, not an Activity: a recreated Activity must neither lose a share
@@ -14,7 +15,8 @@ import java.io.File
 // gone for good.
 // log: where it says which share it hands out or releases, by id only.
 class IncomingShareRelay(private val log: (String) -> Unit = {}) {
-    data class Share(val text: String?, val paths: List<String>, val droppedCount: Int)
+    // key: names the share across processes (see IncomingShareDone); given at fill.
+    data class Share(val text: String?, val paths: List<String>, val droppedCount: Int, val key: String = "")
 
     // What the Activity saves: the share JS isn't done with, and what begin was
     // given to resume a share begun and not yet filled (null if none). Read
@@ -48,7 +50,7 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
     fun fill(token: Long, share: Share) {
         if (token != lastToken) return
         lastFilled = token
-        open = share
+        open = if (share.key.isEmpty()) share.copy(key = UUID.randomUUID().toString()) else share
         openID = token
         notified = false
         notifyLocked()
@@ -89,13 +91,15 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
         return share
     }
 
-    // JS is done with the share with this id: it was sent, or left.
+    // JS is done with the share with this id: it was sent, or left. Returns its
+    // key, if it was the open share, for the caller to record as done.
     @Synchronized
-    fun done(id: Long) {
-        if (id == openID && open != null) {
-            log("IncomingShareRelay: share $id released")
-            open = null
-        }
+    fun done(id: Long): String? {
+        val share = open
+        if (id != openID || share == null) return null
+        log("IncomingShareRelay: share $id released")
+        open = null
+        return share.key
     }
 
     @Synchronized
@@ -108,10 +112,15 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
 
     // Puts back a share saved with an Activity's state, for when the process
     // that held it was killed. A share begun in this process is newer, and wins.
-    // Copies purged since (the share cache is swept at startup) count as dropped.
+    // A share done with after the state was saved stays done. Copies gone since
+    // count as dropped.
     @Synchronized
-    fun restore(share: Share, exists: (String) -> Boolean = { File(it).exists() }) {
-        if (started()) return
+    fun restore(
+        share: Share,
+        isDone: (String) -> Boolean,
+        exists: (String) -> Boolean = { File(it).exists() },
+    ) {
+        if (started() || isDone(share.key)) return
         val paths = share.paths.filter(exists)
         fill(begin(), share.copy(paths = paths, droppedCount = share.droppedCount + share.paths.size - paths.size))
     }

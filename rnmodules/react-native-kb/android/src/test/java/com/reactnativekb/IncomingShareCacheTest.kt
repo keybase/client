@@ -24,4 +24,21 @@ class IncomingShareCacheTest {
         others.forEach { assertTrue(it.exists()) }
         assertEquals(2, dir.list()!!.size)
     }
+
+    @Test
+    fun purgingKeepsTheRestoredSharesCopiesHoweverOld() {
+        val dir = tmp.newFolder("incoming-shares")
+        val old = { share: String -> IncomingShareCache.newItemFile(dir, "photo.jpg", share).also { it.writeText("x") }.parentFile!! }
+        val restored = old("restored")
+        val stale = old("stale")
+        val now = System.currentTimeMillis()
+        listOf(restored, stale).forEach { it.setLastModified(now - 25L * 60 * 60 * 1000) }
+        val fresh = old("fresh")
+
+        IncomingShareCache.purgeOld(dir, setOf(restored), now)
+
+        assertTrue(restored.exists())
+        assertFalse(stale.exists())
+        assertTrue(fresh.exists())
+    }
 }

@@ -22,6 +22,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
 import com.reactnativekb.IncomingShareCopy
+import com.reactnativekb.IncomingShareDone
 import com.reactnativekb.IncomingShareFileName
 import com.reactnativekb.IncomingShareRelay
 import com.reactnativekb.KbModule
@@ -57,15 +58,36 @@ class MainActivity : ReactActivity() {
         // process, so if the process was killed in between, the share JS wasn't done
         // with comes back from the saved state, and so does a share whose copy hadn't
         // finished, which is read again from its intent.
+        val relay = IncomingShareRelay.shared
+        var cutOffCopies: String? = null
         if (savedInstanceState == null) {
             captureIntent(intent)
-        } else if (!IncomingShareRelay.shared.started()) {
-            savedInstanceState.getBundle(HELD_SHARE)?.let { IncomingShareRelay.shared.restore(shareFromBundle(it)) }
+        } else if (!relay.started()) {
+            val done = IncomingShareDone.file(this)
+            savedInstanceState.getBundle(HELD_SHARE)?.let { saved ->
+                relay.restore(shareFromBundle(saved), isDone = { IncomingShareDone.contains(done, it) })
+            }
             savedInstanceState.getBundle(PREPARING_SHARE)?.let { preparing ->
-                // The copies cut off when the process was killed are made again.
-                preparing.getString(PREPARING_TAG)?.let { IncomingShareCache.discardShare(this, it) }
+                // The copies cut off when the process was killed are made again, under a new tag.
+                cutOffCopies = preparing.getString(PREPARING_TAG)
                 BundleCompat.getParcelable(preparing, PREPARING_INTENT, Intent::class.java)?.let { captureIntent(it) }
             }
+        }
+        // Once per process, after a restore so its copies are known and kept.
+        if (!cachePurged) {
+            cachePurged = true
+            val keep = relay.saved().share?.paths.orEmpty().mapNotNull { File(it).parentFile }.toSet()
+            val context: Context = applicationContext
+            Thread {
+                try {
+                    cutOffCopies?.let { IncomingShareCache.discardShare(context, it) }
+                    IncomingShareCache.purgeOld(context, keep)
+                } catch (e: Exception) {
+                    NativeLogger.warn("MainActivity: error purging old incoming shares", e)
+                }
+            }.start()
+        } else {
+            cutOffCopies?.let { tag -> Thread { IncomingShareCache.discardShare(applicationContext, tag) }.start() }
         }
 
         // Before super.onCreate so the first frame after the splash already has the
@@ -218,6 +240,7 @@ class MainActivity : ReactActivity() {
                     putString("text", share.text)
                     putStringArrayList("paths", ArrayList(share.paths))
                     putInt("droppedCount", share.droppedCount)
+                    putString("key", share.key)
                 }
             },
             (saved.preparing as? Bundle)?.let { PREPARING_SHARE to it },
@@ -239,7 +262,7 @@ class MainActivity : ReactActivity() {
     }
 
     private fun shareFromBundle(b: Bundle) = IncomingShareRelay.Share(
-        b.getString("text"), b.getStringArrayList("paths").orEmpty(), b.getInt("droppedCount"))
+        b.getString("text"), b.getStringArrayList("paths").orEmpty(), b.getInt("droppedCount"), b.getString("key").orEmpty())
 
     private fun textShare(text: String, droppedCount: Int) = IncomingShareRelay.Share(text, emptyList(), droppedCount)
 
@@ -340,6 +363,9 @@ class MainActivity : ReactActivity() {
         private const val TAG = "ossifrage"
         private const val HELD_SHARE = "heldIncomingShare"
         private const val PREPARING_SHARE = "preparingIncomingShare"
+        // The share cache is purged once per process, by its first Activity.
+        @Volatile
+        private var cachePurged = false
         private const val PREPARING_INTENT = "intent"
         private const val PREPARING_TAG = "tag"
         private const val MAX_SAVED_SHARE_BYTES = 200 * 1024

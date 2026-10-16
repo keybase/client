@@ -7,7 +7,6 @@ export interface Spec extends TurboModule {
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
   readonly onPushToken: EventEmitter<string>
-  // droppedCount: shared items that couldn't be copied
   // Android only: a share is held, under this id (see peekIncomingShare)
   readonly onShareData: EventEmitter<{id: number}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
