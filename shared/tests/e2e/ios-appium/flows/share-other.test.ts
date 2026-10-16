@@ -72,15 +72,16 @@ describe('Share text and other sources', () => {
   })
 
   // Whitespace isn't something to share: the extension says it couldn't prepare the item and never
-  // opens the app. Its process can outlive the share (the alert alone stays up about 10s), so the
-  // log line is the sign it finished, not the process going away.
+  // opens the app. Its process can outlive the share, so the failure alert coming and going is the
+  // sign it finished, not the process going away.
   it('whitespace-only text selected in Safari', async () => {
     const share = await shareToKeybase(
       {host: SAFARI, open: shareSafariElementSheet(`${server!.origin}/text.html`, 'blank text', {selectAll: true})},
-      {timeout: 25_000}
+      {expectFailure: true, timeout: 5_000}
     )
     const problems = [
       ...(share.appOpened ? ['the app opened for a whitespace-only share'] : []),
+      ...(share.extensionFinished ? [] : ["the extension's failure alert never came and went"]),
       ...(share.manifest?.some(m => !m.error) ? [`the manifest has items: ${JSON.stringify(share.manifest)}`] : []),
       ...(share.extLog.some(l => l.includes('share failed: none of')) ? [] : ['the extension never logged the failed share']),
     ]
@@ -96,12 +97,16 @@ describe('Share text and other sources', () => {
     )
   })
 
-  // Maps shares the place's card and its link: the place's name comes along with the link.
+  // Maps shares the place's card and its link: the place's name comes along with the link. Its own
+  // map item beside them is left out, not reported as an item that couldn't be prepared.
   it('a Maps location', async () => {
     await runSource(
       'maps-location',
       {host: MAPS, open: shareMapsPinSheet(37.3349, -122.009, 'Share Matrix')},
-      {items: [{content: /^(?=[\s\S]*Share Matrix)(?=[\s\S]*maps\.apple)/, type: 'text'}]}
+      {
+        extLog: [/item-provider.*com\.apple\.mapkit\.map-item.*skipped, the share's text or link covers it/],
+        items: [{content: /^(?=[\s\S]*Share Matrix)(?=[\s\S]*maps\.apple)/, type: 'text'}],
+      }
     )
   })
 
