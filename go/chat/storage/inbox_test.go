@@ -1115,3 +1115,35 @@ func TestInboxKeyFetchErrorDoesNotClear(t *testing.T) {
 		require.True(t, found, "a key fetch failure reading convs must not clear %v", k)
 	}
 }
+
+func TestInboxNewerCryptoVersionIsClearedThenMisses(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "newercrypto", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	// Same wire shape as encrypteddb's box, written by a client with a newer
+	// crypto version.
+	newer, err := libkb.MPackEncode(struct {
+		V int
+		N [24]byte
+		E []byte
+	}{V: 2, E: []byte("sealed-by-newer-client")})
+	require.NoError(t, err)
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbVersionsKey(uid), newer))
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbIndexKey(uid), newer))
+	inboxMemCache.Clear(uid)
+
+	_, ierr := inbox.Version(ctx, uid)
+	require.Error(t, ierr)
+	require.True(t, ierr.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid)} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "an inbox box from a newer crypto version must be cleared: %v", k)
+	}
+	vers, ierr := inbox.Version(ctx, uid)
+	require.NoError(t, ierr)
+	require.Zero(t, vers)
+}

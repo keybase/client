@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,8 +35,15 @@ func TestDecodeBoxErrorClasses(t *testing.T) {
 	err = DecodeBox(ctx, boxed, keyA, &wrongType)
 	require.ErrorIs(t, err, ErrUndecodable)
 
+	newer, err := libkb.MPackEncode(boxedData{V: cryptoVersion + 1})
+	require.NoError(t, err)
+	err = DecodeBox(ctx, newer, keyA, &res)
+	require.ErrorIs(t, err, ErrUnsupportedVersion)
+	require.NotErrorIs(t, err, ErrUndecodable)
+
 	err = DecodeBox(ctx, boxed, keyFails, &res)
 	require.ErrorIs(t, err, keyErr)
 	require.NotErrorIs(t, err, ErrDecryptionFailed)
 	require.NotErrorIs(t, err, ErrUndecodable)
+	require.NotErrorIs(t, err, ErrUnsupportedVersion)
 }

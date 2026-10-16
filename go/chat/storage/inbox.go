@@ -183,10 +183,13 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 }
 
 // diskReadError returns a clearing InternalError only when the stored bytes
-// themselves are unusable. Anything else, such as failing to fetch the
-// secretbox key, can be transient and must not wipe the inbox.
+// themselves are unusable by this client, including boxes from a newer crypto
+// version (the inbox is rebuilt from the server). Anything else, such as
+// failing to fetch the secretbox key, can be transient and must not wipe the
+// inbox.
 func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
-	if errors.Is(err, encrypteddb.ErrDecryptionFailed) || errors.Is(err, encrypteddb.ErrUndecodable) {
+	if errors.Is(err, encrypteddb.ErrDecryptionFailed) || errors.Is(err, encrypteddb.ErrUndecodable) ||
+		errors.Is(err, encrypteddb.ErrUnsupportedVersion) {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
 	}
 	return MiscError{Msg: fmt.Sprintf("failed to read inbox: uid: %s err: %s", uid, err)}

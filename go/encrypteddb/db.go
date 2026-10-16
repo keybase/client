@@ -29,6 +29,10 @@ var ErrDecryptionFailed = errors.New("failed to decrypt item")
 // unusable, as opposed to a failure to fetch the key.
 var ErrUndecodable = errors.New("failed to decode item")
 
+// ErrUnsupportedVersion wraps a box written with a newer crypto version than
+// this client can open.
+var ErrUnsupportedVersion = errors.New("unsupported crypto version")
+
 // ***
 // If we change this, make sure to update the key derivation reason for all callers of EncryptedDB!
 // ***
@@ -61,7 +65,7 @@ func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
 		return fmt.Errorf("%w: box: %w", ErrUndecodable, err)
 	}
 	if boxed.V > cryptoVersion {
-		return fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
+		return fmt.Errorf("%w: %d current: %d", ErrUnsupportedVersion, boxed.V,
 			cryptoVersion)
 	}
 	enckey, err := getSecretBoxKey(ctx)
