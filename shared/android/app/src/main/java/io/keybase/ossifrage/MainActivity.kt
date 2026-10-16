@@ -184,12 +184,13 @@ class MainActivity : ReactActivity() {
                 NativeLogger.warn("MainActivity.captureIntent: share had no text or files, type=${intent.type}")
             }
         } else {
-            val token = relay.begin()
+            // Its intent, read again if the process is killed before the copy
+            // finishes, and the tag its copies carry.
             val tag = UUID.randomUUID().toString()
-            preparing = Bundle().apply {
+            val token = relay.begin(Bundle().apply {
                 putParcelable(PREPARING_INTENT, intent)
                 putString(PREPARING_TAG, tag)
-            }
+            })
             // Copying out of the content providers can be slow for big files; don't
             // block the main thread on it.
             val context: Context = applicationContext
@@ -208,10 +209,6 @@ class MainActivity : ReactActivity() {
         }
     }
 
-    // The share whose copy is under way, if any: its intent, read again if the
-    // process is killed before the copy finishes, and the tag its copies carry.
-    private var preparing: Bundle? = null
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         val saved = IncomingShareRelay.shared.saved()
@@ -223,7 +220,7 @@ class MainActivity : ReactActivity() {
                     putInt("droppedCount", share.droppedCount)
                 }
             },
-            preparing?.takeIf { saved.preparing }?.let { PREPARING_SHARE to it },
+            (saved.preparing as? Bundle)?.let { PREPARING_SHARE to it },
         )
         // Saved state goes through a binder transaction, which fails past about 1 MB
         // for everything in it; a share that big is not worth crashing for.

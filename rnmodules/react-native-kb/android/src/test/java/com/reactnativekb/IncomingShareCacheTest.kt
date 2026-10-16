@@ -1,10 +1,11 @@
 package com.reactnativekb
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class IncomingShareCacheTest {
     @get:Rule
@@ -13,11 +14,14 @@ class IncomingShareCacheTest {
     @Test
     fun discardingAShareRemovesOnlyItsCopies() {
         val dir = tmp.newFolder("incoming-shares")
-        listOf("a-1", "a-2", "ab-1", "1234").forEach { name ->
-            File(dir, name).mkdirs()
-            File(File(dir, name), "photo.jpg").writeText("partial")
-        }
+        val copy = { share: String? -> IncomingShareCache.newItemFile(dir, "photo.jpg", share).also { it.writeText("partial") } }
+        val a = listOf(copy("a"), copy("a"))
+        val others = listOf(copy("ab"), copy(null))
+
         IncomingShareCache.discardShare(dir, "a")
-        assertEquals(listOf("1234", "ab-1"), dir.list()!!.sorted())
+
+        a.forEach { assertFalse(it.parentFile!!.exists()) }
+        others.forEach { assertTrue(it.exists()) }
+        assertEquals(2, dir.list()!!.size)
     }
 }
