@@ -50,8 +50,8 @@ class MainActivity : ReactActivity() {
         setupKBRuntime(this, true)
         // With saved state this Activity is a recreation, and its intent was already
         // captured by the instance it replaces. The relay lives only as long as the
-        // process, so a share it still held when the process was killed comes back
-        // from the saved state.
+        // process, so a share JS wasn't done with when the process was killed comes
+        // back from the saved state.
         if (savedInstanceState == null) {
             captureIntent(intent)
         } else {
@@ -195,10 +195,10 @@ class MainActivity : ReactActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val share = IncomingShareRelay.shared.peek() ?: return
+        val share = IncomingShareRelay.shared.unfinished() ?: return
         // Saved state goes through a binder transaction, which fails past about 1 MB;
-        // a longer text is not worth crashing for.
-        if ((share.text?.length ?: 0) > MAX_SAVED_SHARE_TEXT) return
+        // a share that big is not worth crashing for.
+        if ((share.text?.length ?: 0) + share.paths.sumOf { it.length } > MAX_SAVED_SHARE_CHARS) return
         outState.putBundle(HELD_SHARE, Bundle().apply {
             putString("text", share.text)
             putStringArrayList("paths", ArrayList(share.paths))
@@ -307,7 +307,7 @@ class MainActivity : ReactActivity() {
     companion object {
         private const val TAG = "ossifrage"
         private const val HELD_SHARE = "heldIncomingShare"
-        private const val MAX_SAVED_SHARE_TEXT = 100_000
+        private const val MAX_SAVED_SHARE_CHARS = 100_000
 
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")

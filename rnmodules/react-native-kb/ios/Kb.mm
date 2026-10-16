@@ -924,6 +924,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekPushTap) {
   return @{@"payload" : kbPushTapPayload, @"id" : @(kbPushTapID)};
 }
 
+// Android only: shares come in through the share extension on iOS.
+RCT_EXPORT_METHOD(ackIncomingShare : (double)shareID) {
+}
+
 RCT_EXPORT_METHOD(ackPushTap : (double)tapID) {
   std::lock_guard<std::mutex> lock(kbPushTapMutex);
   if (kbPushTapPayload && (int64_t)tapID == kbPushTapID) {

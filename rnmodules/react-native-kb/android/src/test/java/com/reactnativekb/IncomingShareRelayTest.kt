@@ -9,8 +9,10 @@ class IncomingShareRelayTest {
 
     private class Sink(var accept: Boolean = true) {
         val got = mutableListOf<IncomingShareRelay.Share>()
-        fun emit(share: IncomingShareRelay.Share): Boolean {
+        val ids = mutableListOf<Long>()
+        fun emit(id: Long, share: IncomingShareRelay.Share): Boolean {
             got.add(share)
+            ids.add(id)
             return accept
         }
     }
@@ -123,5 +125,55 @@ class IncomingShareRelayTest {
         delivered.fill(delivered.begin(), text("newer"))
         delivered.restore(text("saved"))
         assertEquals(listOf(text("newer")), sink.got)
+    }
+
+    @Test
+    fun keptForTheSavedStateUntilJSIsDone() {
+        val relay = IncomingShareRelay()
+        val sink = Sink()
+        relay.attach(sink, sink::emit)
+        relay.fill(relay.begin(), text("a"))
+        assertNull(relay.peek())
+        assertEquals(text("a"), relay.unfinished())
+
+        relay.done(sink.ids[0] + 1)
+        assertEquals(text("a"), relay.unfinished())
+        relay.done(sink.ids[0])
+        assertNull(relay.unfinished())
+    }
+
+    @Test
+    fun doneWithAnOlderShareKeepsTheNewer() {
+        val relay = IncomingShareRelay()
+        val sink = Sink()
+        relay.attach(sink, sink::emit)
+        relay.fill(relay.begin(), text("a"))
+        relay.fill(relay.begin(), text("b"))
+        relay.done(sink.ids[0])
+        assertEquals(text("b"), relay.unfinished())
+    }
+
+    @Test
+    fun aNewRuntimeDoesNotGetADeliveredShareAgain() {
+        val relay = IncomingShareRelay()
+        val first = Sink()
+        relay.attach(first, first::emit)
+        relay.fill(relay.begin(), text("a"))
+        val second = Sink()
+        relay.attach(second, second::emit)
+        relay.flush()
+        assertEquals(listOf(text("a")), first.got)
+        assertEquals(emptyList<IncomingShareRelay.Share>(), second.got)
+    }
+
+    @Test
+    fun aRestoredShareCountsPurgedCopiesAsDropped() {
+        val relay = IncomingShareRelay()
+        relay.restore(IncomingShareRelay.Share(null, listOf("/kept", "/purged"), 1)) { it == "/kept" }
+        assertEquals(IncomingShareRelay.Share(null, listOf("/kept"), 2), relay.peek())
+
+        val allGone = IncomingShareRelay()
+        allGone.restore(IncomingShareRelay.Share(null, listOf("/purged"), 0)) { false }
+        assertEquals(IncomingShareRelay.Share(null, emptyList(), 1), allGone.peek())
     }
 }

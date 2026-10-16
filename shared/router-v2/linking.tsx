@@ -14,6 +14,7 @@ import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
 import {peekPendingAccountSwitchTab} from './account-switch'
 import {takeLaunchURL} from './launch-url'
+import {androidShareURL} from '@/constants/init/android-share'
 import {emitDeepLink, normalizeUrl, setInitialURLOnce} from './deep-link-emitter'
 // Re-exported so existing importers ('@/router-v2/linking') keep working; the
 // definitions live in the dependency-free './deep-link-emitter' leaf.
@@ -199,14 +200,21 @@ const customGetStateFromPath = (
 
     // keybase://incoming-share/{conversationIDKey?} — convID present when the user
     // picked a donated conversation directly in the share sheet
-    case 'incoming-share':
+    // ?androidShare={id} names the Android share the screen is for.
+    case 'incoming-share': {
+      const androidShareID = parseInt(new URLSearchParams(path.split('?')[1]).get('androidShare') ?? '', 10)
+      const params = {
+        ...(parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : {}),
+        ...(Number.isNaN(androidShareID) ? {} : {androidShareID}),
+      }
       // Share always ends in chat, so park the chat tab (inbox) beneath the modal;
       // otherwise dismissing/back lands on the initial people tab.
       return NavTree.modalState(
         'incomingShareNew',
-        parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined,
+        Object.keys(params).length ? params : undefined,
         Tabs.chatTab
       )
+    }
 
     // keybase://settingsPushPrompt
     case 'settingsPushPrompt':
@@ -309,7 +317,7 @@ export const createLinkingConfig = (
       }
 
       if (androidShare && !haveSavedTab) {
-        return setInitialURLOnce('keybase://incoming-share')
+        return setInitialURLOnce(androidShareURL(androidShare.id))
       }
 
       if (startupConversation) {

@@ -2,7 +2,7 @@ import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {subscribeIntentAccountSwitch} from '@/router-v2/account-link-switch'
-import {androidShareFromEvent} from './android-share'
+import {androidShareFromEvent, androidShareURL} from './android-share'
 import {listenForPushTaps} from './shared'
 import {
   getRegistrationToken,
@@ -86,7 +86,7 @@ export const initPushListener = () => {
         const share = androidShareFromEvent(evt)
         if (!share) return
         useConfigState.getState().dispatch.setAndroidShare(share)
-        emitDeepLink('keybase://incoming-share')
+        emitDeepLink(androidShareURL(share.id))
       })
       unsubs.push(() => shareSub.remove())
       // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
