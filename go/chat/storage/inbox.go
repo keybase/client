@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec // G505: SHA1 used for non-cryptographic cache key generation, not for security
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -188,8 +187,7 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 // failing to fetch the secretbox key, can be transient and must not wipe the
 // inbox.
 func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
-	if errors.Is(err, encrypteddb.ErrDecryptionFailed) || errors.Is(err, encrypteddb.ErrUndecodable) ||
-		errors.Is(err, encrypteddb.ErrUnsupportedVersion) {
+	if encrypteddb.IsUnusableData(err) {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
 	}
 	return MiscError{Msg: fmt.Sprintf("failed to read inbox: uid: %s err: %s", uid, err)}

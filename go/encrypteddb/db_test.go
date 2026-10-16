@@ -26,10 +26,12 @@ func TestDecodeBoxErrorClasses(t *testing.T) {
 	err = DecodeBox(ctx, boxed, keyB, &res)
 	require.ErrorIs(t, err, ErrDecryptionFailed)
 	require.NotErrorIs(t, err, ErrUndecodable)
+	require.True(t, IsUnusableData(err))
 
 	err = DecodeBox(ctx, []byte("not-a-box"), keyA, &res)
 	require.ErrorIs(t, err, ErrUndecodable)
 	require.NotErrorIs(t, err, ErrDecryptionFailed)
+	require.True(t, IsUnusableData(err))
 
 	var wrongType map[string]int
 	err = DecodeBox(ctx, boxed, keyA, &wrongType)
@@ -40,10 +42,12 @@ func TestDecodeBoxErrorClasses(t *testing.T) {
 	err = DecodeBox(ctx, newer, keyA, &res)
 	require.ErrorIs(t, err, ErrUnsupportedVersion)
 	require.NotErrorIs(t, err, ErrUndecodable)
+	require.True(t, IsUnusableData(err))
 
 	err = DecodeBox(ctx, boxed, keyFails, &res)
 	require.ErrorIs(t, err, keyErr)
 	require.NotErrorIs(t, err, ErrDecryptionFailed)
 	require.NotErrorIs(t, err, ErrUndecodable)
 	require.NotErrorIs(t, err, ErrUnsupportedVersion)
+	require.False(t, IsUnusableData(err))
 }

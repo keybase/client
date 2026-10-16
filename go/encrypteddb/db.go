@@ -33,6 +33,14 @@ var ErrUndecodable = errors.New("failed to decode item")
 // this client can open.
 var ErrUnsupportedVersion = errors.New("unsupported crypto version")
 
+// IsUnusableData reports whether a DecodeBox/Get error means the stored item
+// itself can never be read by this client (as opposed to, say, a failure to
+// fetch the key). Callers backed by a rebuildable cache delete such items.
+func IsUnusableData(err error) bool {
+	return errors.Is(err, ErrDecryptionFailed) || errors.Is(err, ErrUndecodable) ||
+		errors.Is(err, ErrUnsupportedVersion)
+}
+
 // ***
 // If we change this, make sure to update the key derivation reason for all callers of EncryptedDB!
 // ***

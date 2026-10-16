@@ -114,6 +114,15 @@ func (r *ChatArchiveRegistry) initLocked(ctx context.Context) error {
 		return nil
 	}
 	found, err := r.edb.Get(ctx, r.dbKey(), &r.jobHistory)
+	if encrypteddb.IsUnusableData(err) {
+		// The job history, including any paused or running jobs, cannot be
+		// read by this client ever again, so start over with an empty one.
+		r.G().Log.CWarningf(ctx, "ChatArchiveRegistry: deleting unreadable job history: %s", err)
+		if err := r.edb.Delete(ctx, r.dbKey()); err != nil {
+			return err
+		}
+		found, err = false, nil
+	}
 	if err != nil {
 		return err
 	}
