@@ -804,14 +804,14 @@ test('an intent written before the provider mounts is delivered on mount', () =>
 })
 
 test('an injectText notice shows as a warning in the command status bar', () => {
-  setInputIntent(convID, {notice: "1 of 2 items couldn't be prepared.", text: 'shared text', type: 'injectText'})
+  setInputIntent(convID, {notice: "1 item couldn't be prepared.", text: 'shared text', type: 'injectText'})
 
   const {composerInput, result} = renderInput(convID)
 
   expect(composerInput.text).toBe('shared text')
   expect(result.current.commandStatus).toEqual({
     actions: [],
-    displayText: "1 of 2 items couldn't be prepared.",
+    displayText: "1 item couldn't be prepared.",
     displayType: T.RPCChat.UICommandStatusDisplayTyp.warning,
   })
 })

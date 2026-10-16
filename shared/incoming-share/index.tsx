@@ -41,7 +41,9 @@ export const getDroppedItemsMessage = (sharedCount: number, droppedCount: number
       ? "The shared item couldn't be prepared. Please try sharing it again."
       : `None of the ${droppedCount} shared items could be prepared. Please try sharing them again.`
   }
-  return `${droppedCount} of ${sharedCount + droppedCount} items couldn't be prepared.`
+  // No total: the extension merges a share's links and text into one item, so
+  // the items here don't add up to what the user picked.
+  return droppedCount === 1 ? "1 item couldn't be prepared." : `${droppedCount} items couldn't be prepared.`
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
