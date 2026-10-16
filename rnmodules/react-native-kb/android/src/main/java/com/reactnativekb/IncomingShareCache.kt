@@ -31,9 +31,12 @@ object IncomingShareCache {
     // share or in overlapping ones, never overwrite each other's copy. name must
     // be a single path component (see IncomingShareFileName). share, when given,
     // tags the directory with the share it belongs to (see discardShare).
-    fun newItemFile(context: Context, name: String, share: String? = null): File {
+    fun newItemFile(context: Context, name: String, share: String? = null): File =
+        newItemFile(dir(context), name, share)
+
+    fun newItemFile(dir: File, name: String, share: String? = null): File {
         val uuid = UUID.randomUUID().toString()
-        val itemDir = File(dir(context), if (share == null) uuid else "$share-$uuid")
+        val itemDir = File(dir, if (share == null) uuid else "$share-$uuid")
         if (!itemDir.mkdirs()) {
             throw IOException("unable to create ${itemDir.path}")
         }

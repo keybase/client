@@ -16,14 +16,18 @@ import java.io.File
 class IncomingShareRelay(private val log: (String) -> Unit = {}) {
     data class Share(val text: String?, val paths: List<String>, val droppedCount: Int)
 
-    // What the Activity saves: the share JS isn't done with, and whether another
-    // is begun and not yet filled. Read together, so a fill can't land between.
-    data class Saved(val share: Share?, val preparing: Boolean)
+    // What the Activity saves: the share JS isn't done with, and what begin was
+    // given to resume a share begun and not yet filled (null if none). Read
+    // together, so a fill can't land between.
+    data class Saved(val share: Share?, val preparing: Any?)
 
     private var open: Share? = null
     private var openID = 0L
     private var lastToken = 0L
     private var lastFilled = 0L
+    // What the latest begin was given to resume its share. Held here, not by an
+    // Activity, so whichever Activity is saved while the copy runs saves it.
+    private var resume: Any? = null
     // Whether the current sink has been told about the open share.
     private var notified = false
     private var sinkOwner: Any? = null
@@ -33,7 +37,8 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
     // being prepared. The open share stays until the new one is filled, so it
     // isn't lost if this one never is.
     @Synchronized
-    fun begin(): Long {
+    fun begin(resume: Any? = null): Long {
+        this.resume = resume
         lastToken++
         return lastToken
     }
@@ -94,7 +99,7 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
     }
 
     @Synchronized
-    fun saved(): Saved = Saved(open, lastToken != lastFilled)
+    fun saved(): Saved = Saved(open, if (lastToken != lastFilled) resume else null)
 
     // Whether this process has begun a share. A recreated Activity whose process
     // has not was killed, and puts back what it saved.

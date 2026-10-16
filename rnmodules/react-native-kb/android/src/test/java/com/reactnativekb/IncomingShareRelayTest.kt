@@ -89,13 +89,13 @@ class IncomingShareRelayTest {
     fun theOpenShareStaysWhileTheNextIsPrepared() {
         val relay = IncomingShareRelay()
         val a = relay.add(text("a"))
-        assertFalse(relay.saved().preparing)
-        val b = relay.begin()
-        assertTrue(relay.saved().preparing)
+        assertNull(relay.saved().preparing)
+        val b = relay.begin("resume b")
+        assertEquals("resume b", relay.saved().preparing)
         assertEquals(text("a"), relay.saved().share)
         assertEquals(text("a"), relay.share(a))
         relay.fill(b, text("b"))
-        assertFalse(relay.saved().preparing)
+        assertNull(relay.saved().preparing)
         assertEquals(text("b"), relay.saved().share)
     }
 
@@ -209,5 +209,20 @@ class IncomingShareRelayTest {
             ),
             lines,
         )
+    }
+
+    @Test
+    fun whatResumesAShareBeingPreparedOutlivesTheActivityThatBeganIt() {
+        // Any Activity saved while the copy runs saves it, read from the relay.
+        val relay = IncomingShareRelay()
+        val older = relay.begin("resume older")
+        val newer = relay.begin("resume newer")
+        assertEquals("resume newer", relay.saved().preparing)
+        relay.fill(older, text("older"))
+        assertEquals("resume newer", relay.saved().preparing)
+        relay.fill(newer, text("newer"))
+        assertNull(relay.saved().preparing)
+        relay.add(text("text"))
+        assertNull(relay.saved().preparing)
     }
 }
