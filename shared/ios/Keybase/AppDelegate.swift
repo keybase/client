@@ -298,7 +298,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     session.items.forEach { item in items.append(item.itemProvider) }
 
     weak var dropHelper: ItemProviderHelper?
-    let helper = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
+    let helper = ItemProviderHelper(withItems: [items]) { [weak self] in
       guard let self, let helper = dropHelper else { return }
       self.dropHelpers.removeAll { $0 === helper }
       // Whatever is on disk after a failed write isn't this drop's manifest

@@ -205,14 +205,14 @@ enum ShareText {
     })
   }
 
-  // The URL a link item's text names, if it is one. URL(string:) no longer
-  // fails on plain text (it percent-encodes "hello world"), so a URL without a
-  // scheme is text, not a link.
-  static func linkURL(_ text: String) -> URL? {
-    guard let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-      let scheme = url.scheme, !scheme.isEmpty
-    else { return nil }
-    return url
+  // The URL a link item's text names, if it is one, and the text to send for
+  // it when it isn't fetched: the text as shared, since URL(string:) no longer
+  // fails on plain text but percent-encodes it ("hello world", "café"). That
+  // also makes a URL without a scheme text, not a link.
+  static func link(_ text: String) -> (url: URL, text: String)? {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let url = URL(string: trimmed), let scheme = url.scheme, !scheme.isEmpty else { return nil }
+    return (url, trimmed)
   }
 
   // A lone web address, nothing else.
