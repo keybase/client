@@ -9,7 +9,32 @@ import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {processMedia} from 'react-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
+
+// Native-only packages resolve to this one stub through jest.config's
+// moduleNameMapper, so it carries the export and the file deletes the real
+// processPaths makes.
+jest.mock('@/test/mocks/native-module', () => {
+  const deleted: Array<string> = []
+  return {
+    ...jest.requireActual<object>('@/test/mocks/native-module'),
+    File: class {
+      private readonly path: string
+      constructor(path: string) {
+        this.path = path
+      }
+      delete() {
+        deleted.push(this.path)
+      }
+    },
+    deleted,
+    processMedia: jest.fn(),
+  }
+})
+
+const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
+const {deleted} = jest.requireMock<{deleted: Array<string>}>('@/test/mocks/native-module')
 
 describe('pathToAttachmentType', () => {
   test('common image extensions preview as images, case insensitively', () => {
@@ -402,5 +427,107 @@ describe('Send tapped twice', () => {
     g.isIOS = true
     await sendTwice()
     expect(rpc.calls('postAttachment')).toHaveLength(1)
+  })
+})
+
+describe('Send on iOS, with the real export bookkeeping', () => {
+  const g = globalThis as unknown as {isIOS: boolean}
+  let rpc: FakeChatRpc
+  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+  beforeEach(() => {
+    g.isIOS = true
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    rpc = installFakeChatRpc()
+    processMediaMock.mockReset()
+    deleted.length = 0
+    jest
+      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
+      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
+    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    g.isIOS = false
+    cleanup()
+    restoreChatRpc()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  // Send, with the export held open until the returned resolve is called.
+  const sendAndHoldExport = async (paths: Array<string>) => {
+    const pending = new Map<string, PromiseWithResolvers<string>>()
+    processMediaMock.mockImplementation(async path => {
+      const p = Promise.withResolvers<string>()
+      pending.set(path, p)
+      return p.promise
+    })
+    const view = render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={paths.map((path, i) => ({outboxID: new Uint8Array([7 + i]), path}))}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText(paths.length > 1 ? 'Send All' : 'Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    // processPaths exports one item at a time; an Error fails that item
+    const finish = async (path: string, out: string | Error) => {
+      const p = pending.get(path)
+      expect(p).toBeDefined()
+      await act(async () => {
+        if (typeof out === 'string') {
+          p?.resolve(out)
+        } else {
+          p?.reject(out)
+        }
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+    }
+    return {finish, view}
+  }
+
+  test('a screen dismissed while the export runs keeps the originals and throws away the outputs', async () => {
+    const {finish, view} = await sendAndHoldExport(['/tmp/clip.mov'])
+    expect(processMediaMock).toHaveBeenCalled()
+    view.unmount()
+    await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(deleted).toEqual(['/tmp/clip-small.mp4'])
+  })
+
+  test('an account switch while the export runs keeps the originals and throws away the outputs', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov'])
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+      useConfigState.getState().dispatch.setUserSwitching(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
+    await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(deleted).toEqual(['/tmp/clip-small.mp4'])
+  })
+
+  test('an export handed to upload deletes the originals and keeps the outputs', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov'])
+    expect(deleted).toEqual([])
+    await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
+    const params = rpc.params('postAttachment')
+    expect(params).toHaveLength(1)
+    expect(params[0]).toMatchObject({filename: '/tmp/clip-small.mp4'})
+    expect(deleted).toEqual(['/tmp/clip.mov'])
+  })
+
+  test('a partly failed export keeps every original for Send original and throws away what did export', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.jpg'])
+    await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
+    await finish('/tmp/photo.jpg', new Error('nope'))
+    expect(screen.getByText('nope')).toBeTruthy()
+    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(deleted).toEqual(['/tmp/clip-small.mp4'])
   })
 })

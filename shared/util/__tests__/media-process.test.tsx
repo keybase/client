@@ -1,6 +1,8 @@
 import {
   canProcess,
   clampRange,
+  deleteConsumedSources,
+  discardProcessedOutputs,
   formatDuration,
   isEditNoop,
   isVideoPath,
@@ -147,37 +149,26 @@ describe('processPaths', () => {
     ])
   })
 
-  it('deletes the sources it consumed', async () => {
+  it('leaves every file in place, since the caller may still back out', async () => {
     processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
     await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
-    expect(deleted).toEqual(['/tmp/clip.mp4', '/tmp/photo.jpg'])
-  })
-
-  it('keeps a source the processor handed back untouched', async () => {
-    processMediaMock.mockImplementation(async path => Promise.resolve(path))
-    const out = await processPaths([{path: '/tmp/photo.jpg'}], false)
-    expect(out).toEqual([{path: '/tmp/photo.jpg'}])
-    // that path is the upload, so deleting it would delete the attachment
     expect(deleted).toEqual([])
   })
 
-  it('reports a failure against the original and keeps every source', async () => {
+  it('reports a failure against the original', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
     )
     const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}])
-    // one failure sends the user to "send original", which uploads these very paths
-    expect(deleted).toEqual([])
   })
 
-  it('treats an empty native error as a failure and keeps every source', async () => {
+  it('treats an empty native error as a failure', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('')) : Promise.resolve(`${path}.out`)
     )
     const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
     expect(out[1]).toEqual({error: 'Processing failed', path: '/tmp/photo.jpg'})
-    expect(deleted).toEqual([])
   })
 
   it('keeps going after a failure so the rest of the batch still exports', async () => {
@@ -187,5 +178,49 @@ describe('processPaths', () => {
     const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true)
     expect(processMediaMock).toHaveBeenCalledTimes(2)
     expect(out[1]).toEqual({path: '/tmp/b.jpg.out'})
+  })
+})
+
+describe('deleteConsumedSources', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('deletes the sources an uploaded batch consumed', () => {
+    deleteConsumedSources(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {path: '/tmp/photo.jpg.out'}]
+    )
+    expect(deleted).toEqual(['/tmp/clip.mp4', '/tmp/photo.jpg'])
+  })
+
+  it('keeps a source the processor handed back untouched', () => {
+    // that path is the upload, so deleting it would delete the attachment
+    deleteConsumedSources([{path: '/tmp/photo.jpg'}], [{path: '/tmp/photo.jpg'}])
+    expect(deleted).toEqual([])
+  })
+
+  it('keeps every source when any item failed', () => {
+    // one failure sends the user to "send original", which uploads these very paths
+    deleteConsumedSources(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}]
+    )
+    expect(deleted).toEqual([])
+  })
+})
+
+describe('discardProcessedOutputs', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('deletes the outputs and never an original', () => {
+    discardProcessedOutputs(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}, {path: '/tmp/scan.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}, {path: '/tmp/scan.jpg'}]
+    )
+    // a failed item and a passthrough both report the original
+    expect(deleted).toEqual(['/tmp/clip.mp4.out'])
   })
 })

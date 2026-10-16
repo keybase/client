@@ -112,16 +112,31 @@ export const processPaths = async (
     }
     onProgress?.(idx + 1, items.length)
   }
-  deleteConsumedSources(items, out)
   return out
 }
 
+const deleteFiles = (paths: Iterable<string>, what: string) => {
+  for (const path of paths) {
+    try {
+      new File(path).delete()
+    } catch (e) {
+      logger.warn(`processMedia ${what} cleanup failed`, e)
+    }
+  }
+}
+
+// processPaths leaves every file in place: the caller settles the batch with
+// exactly one of these once it knows whether the outputs are being uploaded.
+
 // The export writes its output alongside the source, so leaving the source
 // behind means every share costs the original plus the processed copy until iOS
-// decides to purge the cache. Once the whole batch has exported, the sources are
-// dead: the compress choice was made before the export and the originals are
-// never offered again.
-const deleteConsumedSources = (items: ReadonlyArray<ProcessItem>, out: ReadonlyArray<ProcessResult>) => {
+// decides to purge the cache. Call this only once the outputs have been handed
+// to upload: until then the user can still back out, and a later retry or "Send
+// original" needs the originals.
+export const deleteConsumedSources = (
+  items: ReadonlyArray<ProcessItem>,
+  out: ReadonlyArray<ProcessResult>
+) => {
   // A single failure sends the user to "Send original", which uploads the very
   // paths we would be deleting, so it's all or nothing.
   if (out.some(r => r.error)) return
@@ -133,11 +148,23 @@ const deleteConsumedSources = (items: ReadonlyArray<ProcessItem>, out: ReadonlyA
       sources.add(path)
     }
   })
-  for (const path of sources) {
-    try {
-      new File(path).delete()
-    } catch (e) {
-      logger.warn('processMedia source cleanup failed', e)
+  deleteFiles(sources, 'source')
+}
+
+// For a batch that won't be uploaded (a failure, or the user backed out while it
+// exported): the outputs are orphans nothing will ever point at again, and the
+// originals stay for whatever comes next.
+export const discardProcessedOutputs = (
+  items: ReadonlyArray<ProcessItem>,
+  out: ReadonlyArray<ProcessResult>
+) => {
+  const sources = new Set(items.map(i => i.path))
+  const outputs = new Set<string>()
+  out.forEach(r => {
+    // A failed item reports its original, and a passthrough is the original.
+    if (!r.error && !sources.has(r.path)) {
+      outputs.add(r.path)
     }
-  }
+  })
+  deleteFiles(outputs, 'output')
 }

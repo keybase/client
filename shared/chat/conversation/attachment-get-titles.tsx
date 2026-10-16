@@ -18,6 +18,8 @@ import {isKbfsPath} from './attachment-path'
 import {
   canEdit,
   canProcess,
+  deleteConsumedSources,
+  discardProcessedOutputs,
   isEditNoop,
   isProcessableImagePath,
   isVideoPath,
@@ -164,11 +166,13 @@ const ContainerInner = (ownProps: OwnProps) => {
     submittingRef.current = true
     setSubmitting(true)
     setError(undefined)
+    // Says whether the paths were handed off, so the caller knows whether the
+    // export's sources are spent.
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
       if (accountChanged()) {
         logger.info('attachment titles: account changed, sending nothing')
         endSubmit()
-        return
+        return false
       }
       const uploadArgs = {
         clientPrev,
@@ -191,6 +195,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           intent: prefill === undefined ? undefined : {text: prefill, type: 'injectText'},
         })
       }
+      return true
     }
 
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
@@ -235,8 +240,9 @@ const ContainerInner = (ownProps: OwnProps) => {
       }
 
       setProgress({done: 0, total: eligible.length})
+      const items = eligible.map(({path, edit}) => ({edit, path}))
       const {processed, failure} = await processForSend(
-        eligible.map(({path, edit}) => ({edit, path})),
+        items,
         compress,
         (done, total) => {
           if (!unmountedRef.current) {
@@ -244,14 +250,19 @@ const ContainerInner = (ownProps: OwnProps) => {
           }
         }
       )
+      // Backed out while it exported: nothing uploads, so the outputs are
+      // orphans, and the originals stay for a retry or a re-share.
       if (unmountedRef.current) {
+        discardProcessedOutputs(items, processed)
         return
       }
       setProgress(undefined)
       // A failed export means the original bytes: an uncompressed upload, or
       // worse a clip the user asked to trim going out full length. Stop and say
-      // so instead of sending something they didn't ask for.
+      // so instead of sending something they didn't ask for. Send exports again,
+      // so whatever did export this time won't be used.
       if (failure !== undefined) {
+        discardProcessedOutputs(items, processed)
         endSubmit()
         setError(failure)
         return
@@ -263,7 +274,11 @@ const ContainerInner = (ownProps: OwnProps) => {
           next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
         }
       })
-      upload(next)
+      if (upload(next)) {
+        deleteConsumedSources(items, processed)
+      } else {
+        discardProcessedOutputs(items, processed)
+      }
     }
     C.ignorePromise(f())
   }
