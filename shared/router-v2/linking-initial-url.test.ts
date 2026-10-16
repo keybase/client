@@ -182,16 +182,16 @@ test('a fresh signup does not get the push prompt deep link', async () => {
 test('an android share opens the share modal when nothing is restored', async () => {
   useConfigState
     .getState()
-    .dispatch.setAndroidShare({text: 'hello', type: T.RPCGen.IncomingShareType.text})
+    .dispatch.setAndroidShare({id: 3, text: 'hello', type: T.RPCGen.IncomingShareType.text})
   setStartup({})
 
-  await expect(getInitialURL()).resolves.toBe('keybase://incoming-share')
+  await expect(getInitialURL()).resolves.toBe('keybase://incoming-share?androidShare=3')
 })
 
 test('an android share does not preempt a restored conversation', async () => {
   useConfigState
     .getState()
-    .dispatch.setAndroidShare({text: 'hello', type: T.RPCGen.IncomingShareType.text})
+    .dispatch.setAndroidShare({id: 3, text: 'hello', type: T.RPCGen.IncomingShareType.text})
   setStartup({conversation: 'conv-1'})
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')

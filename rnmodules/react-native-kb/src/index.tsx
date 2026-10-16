@@ -140,7 +140,7 @@ export const onPushToken = (callback: (token: string) => void): EventSubscriptio
 
 // Android share-into-app intents
 export const onShareData = (
-  callback: (evt: {text?: string; localPaths?: Array<string>; droppedCount?: number}) => void
+  callback: (evt: {text?: string; localPaths?: Array<string>; droppedCount?: number; id: number}) => void
 ): EventSubscription => {
   return Kb.onShareData(callback)
 }
@@ -194,6 +194,9 @@ export const notifyJSReady = (): void => {
 }
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
+}
+export const ackIncomingShare = (id: number): void => {
+  Kb.ackIncomingShare(id)
 }
 
 export const clearLocalLogs = (): Promise<void> => {

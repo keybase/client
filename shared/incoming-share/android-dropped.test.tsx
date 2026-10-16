@@ -5,6 +5,10 @@ import {act, cleanup, render, screen} from '@testing-library/react'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 
+const mockAcks: Array<number> = []
+jest.mock('react-native-kb', () => ({
+  ackIncomingShare: (id: number) => mockAcks.push(id),
+}))
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({setOptions: () => {}}),
 }))
@@ -18,6 +22,7 @@ const g = globalThis as unknown as {isAndroid: boolean}
 
 beforeEach(() => {
   g.isAndroid = true
+  mockAcks.length = 0
 })
 
 afterEach(() => {
@@ -26,69 +31,93 @@ afterEach(() => {
   resetAllStores()
 })
 
+const setShare = (share: NonNullable<ReturnType<typeof useConfigState.getState>['androidShare']>) =>
+  act(() => useConfigState.getState().dispatch.setAndroidShare(share))
+const fileShare = (id: number, droppedCount = 0, urls = [`/tmp/${id}.pdf`]) =>
+  ({droppedCount, id, type: T.RPCGen.IncomingShareType.file, urls}) as const
+const stored = () => useConfigState.getState().androidShare
+
 test('an Android share with dropped files shows the notice on the picker', () => {
-  useConfigState
-    .getState()
-    .dispatch.setAndroidShare({droppedCount: 1, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
-  render(<IncomingShareMain />)
+  setShare(fileShare(1, 1))
+  render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
 })
 
 test('an Android text share sent after every file failed shows the notice', () => {
-  useConfigState
-    .getState()
-    .dispatch.setAndroidShare({droppedCount: 1, text: 'caption', type: T.RPCGen.IncomingShareType.text})
-  render(<IncomingShareMain />)
+  setShare({droppedCount: 1, id: 1, text: 'caption', type: T.RPCGen.IncomingShareType.text})
+  render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
 })
 
 test('an Android share whose files all failed says so instead of spinning', () => {
-  useConfigState.getState().dispatch.setAndroidShare({droppedCount: 2, type: T.RPCGen.IncomingShareType.file, urls: []})
-  render(<IncomingShareMain />)
+  setShare(fileShare(1, 2, []))
+  render(<IncomingShareMain androidShareID={1} />)
   expect(
     screen.getByText('None of the 2 shared items could be prepared. Please try sharing them again.')
   ).toBeTruthy()
 })
 
 test('a complete Android share shows no notice', () => {
-  useConfigState
-    .getState()
-    .dispatch.setAndroidShare({droppedCount: 0, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
-  render(<IncomingShareMain />)
+  setShare(fileShare(1))
+  render(<IncomingShareMain androidShareID={1} />)
   expect(screen.queryByText(/couldn't be prepared/)).toBeNull()
 })
 
 test('an incoming-share link with no Android share behind it says there is nothing to share', () => {
-  render(<IncomingShareMain />)
+  render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("There's nothing to share.")).toBeTruthy()
 })
 
-const settle = async () =>
-  act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0))
-  })
+test('leaving the share screen clears its share and tells the native side', () => {
+  setShare(fileShare(1))
+  const {unmount} = render(<IncomingShareMain androidShareID={1} />)
+  unmount()
+  expect(stored()).toBeUndefined()
+  expect(mockAcks).toEqual([1])
+})
 
-test('a new share that replaces the share screen is not cleared by the screen it replaces', async () => {
-  const {setAndroidShare} = useConfigState.getState().dispatch
-  setAndroidShare({droppedCount: 0, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
-  const {rerender} = render(<IncomingShareMain key="a" />)
+test('a newer share that arrives while the screen is open, before it closes, is left for its own screen', () => {
+  setShare(fileShare(1))
+  const {rerender, unmount} = render(<IncomingShareMain androidShareID={1} />)
+  setShare(fileShare(2, 1))
+  // The old screen waits for the newer share's own link rather than taking it.
+  expect(screen.queryByText("1 item couldn't be prepared.")).toBeNull()
+  rerender(<IncomingShareMain androidShareID={1} />)
+  unmount()
+  expect(stored()).toEqual(fileShare(2, 1))
 
-  const b = {droppedCount: 1, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/b.pdf']} as const
-  act(() => setAndroidShare(b))
-  rerender(<IncomingShareMain key="b" />)
-  await settle()
-
-  expect(useConfigState.getState().androidShare).toEqual(b)
+  // Its screen opens several commits later.
+  render(<IncomingShareMain androidShareID={2} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
 })
 
-test('leaving the share screen clears the share', async () => {
-  useConfigState
-    .getState()
-    .dispatch.setAndroidShare({droppedCount: 0, type: T.RPCGen.IncomingShareType.file, urls: ['/tmp/a.pdf']})
-  const {unmount} = render(<IncomingShareMain />)
+test('a newer share that arrives after the screen closed is not cleared by it', () => {
+  setShare(fileShare(1))
+  const {unmount} = render(<IncomingShareMain androidShareID={1} />)
   unmount()
-  await settle()
+  setShare(fileShare(2, 1))
+  render(<IncomingShareMain androidShareID={2} />)
+  expect(stored()).toEqual(fileShare(2, 1))
+  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
+})
 
-  expect(useConfigState.getState().androidShare).toBeUndefined()
+test('a screen replaced in the same commit leaves the newer share to its replacement', () => {
+  setShare(fileShare(1))
+  const {rerender} = render(<IncomingShareMain key="1" androidShareID={1} />)
+  setShare(fileShare(2, 1))
+  rerender(<IncomingShareMain key="2" androidShareID={2} />)
+  expect(stored()).toEqual(fileShare(2, 1))
+  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
+})
+
+test('a screen reused for the newer share owns it from then on', () => {
+  setShare(fileShare(1))
+  const {rerender, unmount} = render(<IncomingShareMain androidShareID={1} />)
+  setShare(fileShare(2, 1))
+  rerender(<IncomingShareMain androidShareID={2} />)
+  expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
+  expect(stored()).toEqual(fileShare(2, 1))
+  unmount()
+  expect(stored()).toBeUndefined()
+  expect(mockAcks).toEqual([1, 2])
 })

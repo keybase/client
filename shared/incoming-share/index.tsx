@@ -9,6 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
+import {ackIncomingShare} from 'react-native-kb'
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -76,6 +77,10 @@ type IncomingShareProps = {
 
 type SelectedConversationProps = {
   selectedConversationIDKey?: T.Chat.ConversationIDKey
+}
+
+type IncomingShareMainProps = SelectedConversationProps & {
+  androidShareID?: number
 }
 
 const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
@@ -214,23 +219,18 @@ const markShareRouted = (id: string) => {
 }
 const wasShareRouted = (id: string) => id !== '' && id === lastRoutedShareID
 
-// Incoming-share screens mounted on Android. A new share opens a new screen, and this one's cleanup
-// can run before it mounts, so the share is cleared only once no screen is left to show it.
-let androidShareScreens = 0
-const openAndroidShareScreen = () => {
-  androidShareScreens++
-}
-const closeAndroidShareScreen = () => {
-  androidShareScreens--
-  const {androidShare: shown, dispatch} = useConfigState.getState()
-  setTimeout(() => {
-    if (androidShareScreens === 0 && useConfigState.getState().androidShare === shown) {
-      dispatch.setAndroidShare(undefined)
-    }
-  }, 0)
+// Done with an Android share: clears it unless a newer share has replaced it, and lets the native
+// side drop it from the state it saves.
+const finishAndroidShare = (id: number) => {
+  const {androidShare, dispatch} = useConfigState.getState()
+  if (androidShare?.id === id) {
+    dispatch.setAndroidShare(undefined)
+  }
+  ackIncomingShare(id)
 }
 
-const useIncomingShareItems = () => {
+// androidShareID: the Android share this screen is for, from its link.
+const useIncomingShareItems = (androidShareID?: number) => {
   const [incomingShare, setIncomingShare] = React.useState<Share>()
   const {error: incomingShareError} = useRPCLoad(
     T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
@@ -243,7 +243,14 @@ const useIncomingShareItems = () => {
     }
   )
 
-  const androidShare = useConfigState(s => s.androidShare)
+  // A newer share replaces the stored one before its own link arrives, so a screen shows the stored
+  // share only if it is the one its link names. The link either updates this screen or opens a new
+  // one, depending on the navigation, and either way that screen owns the newer share.
+  const storedAndroidShare = useConfigState(s => s.androidShare)
+  const androidShare =
+    storedAndroidShare && (androidShareID === undefined || storedAndroidShare.id === androidShareID)
+      ? storedAndroidShare
+      : undefined
   const androidShareItems =
     isAndroid && androidShare
       ? androidShare.type === T.RPCGen.IncomingShareType.file
@@ -254,10 +261,9 @@ const useIncomingShareItems = () => {
   // The share is consumed by this screen; clear it so a later cold-path
   // getInitialURL doesn't resurface a stale share (see router-v2/linking.tsx).
   React.useEffect(() => {
-    if (!isAndroid) return
-    openAndroidShareScreen()
-    return closeAndroidShareScreen
-  }, [])
+    if (!isAndroid || androidShareID === undefined) return
+    return () => finishAndroidShare(androidShareID)
+  }, [androidShareID])
 
   if (androidShareItems) {
     return {
@@ -274,15 +280,18 @@ const useIncomingShareItems = () => {
     incomingShareError: items.length || droppedCount ? undefined : incomingShareError,
     incomingShareItems: items,
     shareID: id,
-    // A link opened again, or from somewhere other than a share, has no share behind it.
-    nothingToShare: isAndroid || incomingShare !== undefined,
+    // A link opened again, or from somewhere other than a share, has no share behind it. On
+    // Android a newer share than this screen's is waiting for its own link.
+    nothingToShare: isAndroid ? !storedAndroidShare : incomingShare !== undefined,
   }
 }
 
 const LoadingSpinner = () => <Kb.LoadingScreen type="Large" />
 
-const IncomingShareMain = (props: SelectedConversationProps) => {
-  const {droppedCount, incomingShareError, incomingShareItems, nothingToShare, shareID} = useIncomingShareItems()
+const IncomingShareMain = (props: IncomingShareMainProps) => {
+  const {androidShareID, selectedConversationIDKey} = props
+  const {droppedCount, incomingShareError, incomingShareItems, nothingToShare, shareID} =
+    useIncomingShareItems(androidShareID)
   const droppedMessage = getDroppedItemsMessage(incomingShareItems.length, droppedCount)
   return incomingShareError ? (
     <IncomingShareError />
@@ -290,7 +299,7 @@ const IncomingShareMain = (props: SelectedConversationProps) => {
     <IncomingShare
       droppedMessage={droppedMessage}
       incomingShareItems={incomingShareItems}
-      selectedConversationIDKey={props.selectedConversationIDKey}
+      selectedConversationIDKey={selectedConversationIDKey}
       shareID={shareID}
     />
   ) : droppedMessage ? (
