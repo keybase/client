@@ -60,25 +60,28 @@ func IncomingShareFolder(mobileSharedHome string) string {
 	return filepath.Join(mobileSharedHome, "Library", "Caches", "incoming-shares")
 }
 
-func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (items []keybase1.IncomingShareItem, err error) {
+func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res keybase1.IncomingShareItems, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	manifestPath := filepath.Join(IncomingShareFolder(h.G().Env.GetMobileSharedHome()), "manifest.json")
 	f, err := os.Open(manifestPath)
 	if err != nil {
 		mctx.Debug("incoming-share: open manifest.json error: %v", err)
-		return nil, err
+		return res, err
 	}
 	defer f.Close()
 	var jsonItems []shareItemJSON
 	if err = json.NewDecoder(f).Decode(&jsonItems); err != nil {
 		mctx.Debug("incoming-share: decode manifest.json error: %v", err)
-		return nil, err
+		return res, err
 	}
 	mctx.Debug("incoming-share: %d items", len(jsonItems))
 loop:
 	for _, jsonItem := range jsonItems {
 		if len(jsonItem.Error) > 0 {
-			mctx.Debug("incoming-share: error: %s", jsonItem.Error)
+			// The extension writes only its own static description here, never
+			// a path or the shared content.
+			mctx.Warning("incoming-share: dropping item the extension couldn't prepare: %s", jsonItem.Error)
+			res.DroppedCount++
 			continue loop
 		}
 		var t keybase1.IncomingShareType
@@ -104,7 +107,9 @@ loop:
 		if len(jsonItem.OriginalPath) > 0 {
 			fiOriginal, err := os.Stat(jsonItem.OriginalPath)
 			if err != nil {
-				mctx.Debug("incoming-share: stat error on original, skipping item: %v", err)
+				mctx.Warning("incoming-share: dropping %s item (%q) whose file can't be read: missing=%v",
+					jsonItem.Type, filepath.Ext(jsonItem.OriginalPath), os.IsNotExist(err))
+				res.DroppedCount++
 				continue loop
 			}
 			originalSize = int(fiOriginal.Size())
@@ -113,7 +118,7 @@ loop:
 		// ScaledPath/ScaledSize stay unset: the extension now applies the
 		// compression preference itself, so originalPath is already the file we
 		// want to upload and there is no second scaled variant to pick between.
-		items = append(items, keybase1.IncomingShareItem{
+		res.Items = append(res.Items, keybase1.IncomingShareItem{
 			Type:          t,
 			OriginalPath:  strPtr(jsonItem.OriginalPath),
 			OriginalSize:  numPtr(originalSize),
@@ -122,11 +127,13 @@ loop:
 		})
 	}
 
-	if len(items) == 0 {
-		return nil, errors.New("empty incoming share")
+	// A share where every item was dropped still answers, so the app can say
+	// why instead of a generic failure.
+	if len(res.Items) == 0 && res.DroppedCount == 0 {
+		return res, errors.New("empty incoming share")
 	}
 
-	return items, nil
+	return res, nil
 }
 
 func (h *IncomingShareHandler) dbKey() libkb.DbKey {
