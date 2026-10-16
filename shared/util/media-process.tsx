@@ -92,6 +92,15 @@ export type ProcessItem = {
 export type ProcessResult = {
   path: string
   error?: string
+  // Why it failed, when native says (MediaUtils.rejectCode)
+  errorCode?: ProcessErrorCode
+}
+
+export type ProcessErrorCode = 'media_missing' | 'media_unrecognized'
+
+const processErrorCode = (e: unknown): ProcessErrorCode | undefined => {
+  const code = e instanceof Error ? (e as Error & {code?: unknown}).code : undefined
+  return code === 'media_missing' || code === 'media_unrecognized' ? code : undefined
 }
 
 // Never empty: an empty error reads as success to everything that checks it.
@@ -133,7 +142,8 @@ export const processPaths = async (
       out.push({path: barePath(processed) === barePath(path) ? path : processed})
     } catch (e) {
       logger.warn('processMedia failed', e)
-      out.push({error: processingErrorMessage(e), path})
+      const errorCode = processErrorCode(e)
+      out.push({error: processingErrorMessage(e), path, ...(errorCode ? {errorCode} : {})})
     }
     // Once anything has exported this must not throw: the caller would lose the
     // output paths it needs to clean up.

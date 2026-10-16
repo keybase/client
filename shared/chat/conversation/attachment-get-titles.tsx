@@ -71,19 +71,19 @@ export const pathToAttachmentType = (path: string) => {
   return 'file'
 }
 
-// Why Send original couldn't send an image, after its name. The native error
-// strings are MediaUtilsError's.
-const droppedReason = (error?: string) => {
-  if (error === undefined) {
+// Why Send original couldn't send an image, after its name.
+const droppedReason = (r?: ProcessResult) => {
+  if (r?.error === undefined) {
     return "couldn't be prepared."
   }
-  if (error.startsWith('Invalid input: File does not exist')) {
-    return 'is no longer on this device.'
+  switch (r.errorCode) {
+    case 'media_missing':
+      return 'is no longer on this device.'
+    case 'media_unrecognized':
+      return "is in a format this device can't read, and the original can include its location."
+    case undefined:
+      return "couldn't be converted to a JPEG, and the original can include its location."
   }
-  if (error.includes('Unrecognized image format')) {
-    return "is in a format this device can't read, and the original can include its location."
-  }
-  return "couldn't be converted to a JPEG, and the original can include its location."
 }
 
 // A throw is reported like a per-item failure, so Send always comes back to a
@@ -288,7 +288,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           next[idx] = cur && {...cur, path: r.path}
         } else {
           next[idx] = undefined
-          droppedLines.push(`${T.FS.getLocalPathName(path)} ${droppedReason(r?.error)}`)
+          droppedLines.push(`${T.FS.getLocalPathName(path)} ${droppedReason(r)}`)
         }
       })
       if (droppedLines.length === 0) {

@@ -192,6 +192,27 @@ describe('processPaths', () => {
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}])
   })
 
+  it('keeps the native reject code it knows, and only those', async () => {
+    const codes: {[path: string]: string} = {
+      '/tmp/a.jpg': 'media_missing',
+      '/tmp/b.pef': 'media_unrecognized',
+      '/tmp/c.jpg': 'process_media_error',
+    }
+    processMediaMock.mockImplementation(async path =>
+      Promise.reject(Object.assign(new Error('nope'), {code: codes[path]}))
+    )
+    const out = await processPaths(
+      [{path: '/tmp/a.jpg'}, {path: '/tmp/b.pef'}, {path: '/tmp/c.jpg'}],
+      {compress: true}
+    )
+    expect(out).toEqual([
+      {error: 'nope', errorCode: 'media_missing', path: '/tmp/a.jpg'},
+      {error: 'nope', errorCode: 'media_unrecognized', path: '/tmp/b.pef'},
+      {error: 'nope', path: '/tmp/c.jpg'},
+    ])
+    expect(out[2]).not.toHaveProperty('errorCode')
+  })
+
   it('treats an empty native error as a failure', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('')) : Promise.resolve(`${path}.out`)
