@@ -299,7 +299,7 @@ public class ShareViewController: UIViewController {
     let itemArrs = extItems.map { $0.attachments ?? [] }
     let captions = extItems.map { $0.attributedContentText?.string ?? "" }
 
-    iph = ItemProviderHelper(forShare: true, withItems: itemArrs, captions: captions) { [weak self] in
+    iph = ItemProviderHelper(withItems: itemArrs, captions: captions) { [weak self] in
       self?.finish(.done)
     }
     showProgressView()

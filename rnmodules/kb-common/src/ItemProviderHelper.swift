@@ -12,7 +12,6 @@ public class ItemProviderHelper: NSObject {
   private var itemArrs: [Any]
   private var captions: [String]
   private var payloadFolderURL: URL
-  private var isShare: Bool
   private var done = false
   // What each attachment (and each host caption) came to, keyed by its place
   // in the share so text joins in the order it was shared. Main thread only.
@@ -100,10 +99,9 @@ public class ItemProviderHelper: NSObject {
   // itemArrs holds each extension item's attachments; captions, when given,
   // the host's text for the same extension items (empty for none).
   @objc public init(
-    forShare isShare: Bool, withItems itemArrs: [Any], captions: [String] = [],
+    withItems itemArrs: [Any], captions: [String] = [],
     completionHandler: @escaping () -> Void
   ) {
-    self.isShare = isShare
     self.itemArrs = itemArrs
     self.captions = captions
     self.completionHandler = completionHandler
@@ -412,14 +410,15 @@ public class ItemProviderHelper: NSObject {
 
   // A URL item is not necessarily a web link: providers also vend local files
   // this way, and those go by their real content type, never as a pasted
-  // path. A web link may point at media (see sendRemoteURL).
-  private func sendURLItem(_ order: Int, _ url: URL?) {
+  // path. A web link may point at media (see sendRemoteURL); text, when given,
+  // is what is sent if it doesn't, in place of the URL's own string.
+  private func sendURLItem(_ order: Int, _ url: URL?, text: String? = nil) {
     guard let url = url else {
       completeItemAndAppendManifestAndLogError(order, text: "sendURLItem: unable to decode share", error: nil)
       return
     }
     guard url.isFileURL else {
-      sendRemoteURL(order, url)
+      sendRemoteURL(order, url, text: text)
       return
     }
 
@@ -447,8 +446,8 @@ public class ItemProviderHelper: NSObject {
   private static let probeTimeout: TimeInterval = 6
   private static let downloadTimeout: TimeInterval = 30
 
-  private func sendRemoteURL(_ order: Int, _ url: URL) {
-    let sendLink: () -> Void = { [weak self] in self?.sendText(order, url.absoluteString) }
+  private func sendRemoteURL(_ order: Int, _ url: URL, text: String?) {
+    let sendLink: () -> Void = { [weak self] in self?.sendText(order, text ?? url.absoluteString) }
 
     if let type = UTType(filenameExtension: url.pathExtension.lowercased()),
       type.conforms(to: .image) || type.conforms(to: .movie)
@@ -732,8 +731,8 @@ public class ItemProviderHelper: NSObject {
       sendURLItem(order, nil)
       return
     }
-    if let url = ShareText.linkURL(str) {
-      sendURLItem(order, url)
+    if let link = ShareText.link(str) {
+      sendURLItem(order, link.url, text: link.text)
     } else {
       sendText(order, str)
     }
@@ -744,8 +743,8 @@ public class ItemProviderHelper: NSObject {
     let providers = itemArrs as! [[NSItemProvider]]
     let besideTextOrLink = ShareItemKind.carriesTextOrLink(providers.joined().map { $0.registeredTypeIdentifiers })
     for (index, items) in providers.enumerated() {
-      // The host's own text for this extension item (a post's caption, a
-      // page's title) goes ahead of its attachments.
+      // The host's own text for this extension item goes ahead of its
+      // attachments; ShareText.message keeps it only as a shared link's title.
       if index < captions.count, !ShareText.isBlank(captions[index]) {
         pieces.append((order, .caption(captions[index])))
       }
