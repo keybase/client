@@ -33,9 +33,21 @@ let nav: FakeNavigator
 // navigateToInbox defers a tick, so every assertion below has to let that tick run.
 const runDeferredNavigation = () => jest.advanceTimersByTime(1)
 
+// navUpToScreen reads which root-stack routes are modals, so every tree registers them.
+const modalRouteNames = ['incomingShareNew']
+
+// The phone thread screen sits in the root stack above the tab bar; tab is the one beneath it.
+const threadOnTop = (tab: Tabs.AppTab = Tabs.chatTab) =>
+  installFakeNavigator({
+    modalRouteNames,
+    rootState: makeRootState({above: [{name: Common.threadRouteName}], tab}),
+  })
+
+// Every test starts on the thread screen, the one screen the bounce may leave, so each guard
+// below is what decides whether it runs.
 beforeEach(() => {
   jest.useFakeTimers()
-  nav = installFakeNavigator()
+  nav = threadOnTop()
   useConfigState.setState({loggedIn: true})
   global.isMobile = true
 })
@@ -72,10 +84,6 @@ test('a reselect while the create error screen is up does not pop to the inbox',
 
 // the real "we are on a dead conversation" case still has to bounce
 test('a reselect while a phone thread screen has no conversation goes to the inbox', () => {
-  nav = installFakeNavigator({
-    modalRouteNames: ['incomingShareNew'],
-    rootState: makeRootState({above: [{name: Common.threadRouteName}]}),
-  })
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
@@ -86,10 +94,10 @@ test('a reselect while a phone thread screen has no conversation goes to the inb
   expect(nav.lastAction()?.payload).toMatchObject({name: 'chatRoot'})
 })
 
-// The bounce is navigateToInbox(false): it must not pull the user off whatever tab they
-// are on. Only the chat tab's own stack gets popped.
-test('a reselect while another tab is up leaves that tab alone', () => {
-  nav = installFakeNavigator({rootState: makeRootState({tab: Tabs.teamsTab})})
+// The bounce is navigateToInbox(false): a thread opened from another tab (here Teams) sits above
+// that tab, and the bounce must not pull the user off it.
+test('a reselect on a thread screen above another tab leaves that tab alone', () => {
+  nav = threadOnTop(Tabs.teamsTab)
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
@@ -101,6 +109,7 @@ test('a reselect while another tab is up leaves that tab alone', () => {
 // The inbox is already where the bounce would go, and navigateToInbox focusing the chat stack
 // pops every screen above the tabs, so it must not run for screens it does not own.
 test('a reselect while the inbox is showing does not navigate', () => {
+  nav = installFakeNavigator({modalRouteNames, rootState: makeRootState()})
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
@@ -113,7 +122,7 @@ test('a reselect while the inbox is showing does not navigate', () => {
 // arriving while it is up and must not close it.
 test('a reselect while the share picker is over the inbox leaves the picker up', () => {
   nav = installFakeNavigator({
-    modalRouteNames: ['incomingShareNew'],
+    modalRouteNames,
     rootState: makeRootState({above: [{name: 'incomingShareNew'}]}),
   })
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
@@ -126,7 +135,7 @@ test('a reselect while the share picker is over the inbox leaves the picker up',
 
 test('a reselect while a modal is over an empty thread screen leaves the modal up', () => {
   nav = installFakeNavigator({
-    modalRouteNames: ['incomingShareNew'],
+    modalRouteNames,
     rootState: makeRootState({above: [{name: Common.threadRouteName}, {name: 'incomingShareNew'}]}),
   })
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
