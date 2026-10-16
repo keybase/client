@@ -91,10 +91,10 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 	}
 }
 
-func (n *NotifyRouterActivityRouter) TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) {
+func (n *NotifyRouterActivityRouter) TypingUpdate(ctx context.Context, uid gregor1.UID, updates []chat1.ConvTypingUpdate) {
 	ctx = globals.BackgroundChatCtx(ctx, n.G())
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleChatTypingUpdate(ctx, updates)
+		n.G().NotifyRouter.HandleChatTypingUpdate(ctx, n.kuid(uid), updates)
 	}
 }
 

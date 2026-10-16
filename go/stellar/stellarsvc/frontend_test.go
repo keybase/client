@@ -879,11 +879,11 @@ func TestGetPaymentsLocal(t *testing.T) {
 	loader := stellar.DefaultLoader(tcs[0].G)
 	convID := chat1.ConversationID("abcd")
 	msgID := chat1.MessageID(987)
-	loader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+	loader.LoadPayment(context.Background(), tcs[0].Fu.User.GetUID(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
 	// for the recipient too
 	recipLoader := stellar.NewLoader(tcs[1].G)
-	recipLoader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+	recipLoader.LoadPayment(context.Background(), tcs[1].Fu.User.GetUID(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
 	// check the sender chat notification
 	select {
@@ -1840,7 +1840,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 
 	upak, _, err := tcs[0].G.GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(tcs[0].MetaContext()).WithPublicKeyOptional().
-			WithUID(tcs[1].Fu.User.GetUID()).WithForcePoll(true))
+			WithUID(tcs[1].Fu.User.GetUID()).WithForcePoll(true),
+	)
 	require.NoError(t, err)
 	require.NotNil(t, upak.Current.StellarAccountID)
 
@@ -2811,10 +2812,10 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 	loaderSender := stellar.DefaultLoader(tcs[0].G)
 	convID := chat1.ConversationID("efef")
 	msgID := chat1.MessageID(654)
-	loaderSender.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+	loaderSender.LoadRequest(context.Background(), tcs[0].Fu.User.GetUID(), convID, msgID, tcs[0].Fu.Username, reqID)
 
 	loaderRecip := stellar.NewLoader(tcs[1].G)
-	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+	loaderRecip.LoadRequest(context.Background(), tcs[1].Fu.User.GetUID(), convID, msgID, tcs[0].Fu.Username, reqID)
 
 	// check the sender chat notification
 	select {
@@ -2851,7 +2852,7 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 	}
 
 	// load it again, should not get another notification
-	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+	loaderRecip.LoadRequest(context.Background(), tcs[1].Fu.User.GetUID(), convID, msgID, tcs[0].Fu.Username, reqID)
 	select {
 	case info := <-listenerRecip.requestInfos:
 		require.FailNow(t, fmt.Sprintf("received request notification on second load: %+v", info))

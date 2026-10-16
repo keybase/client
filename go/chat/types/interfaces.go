@@ -315,7 +315,7 @@ type TeamChannelSource interface {
 type ActivityNotifier interface {
 	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity,
 		source chat1.ChatActivitySource)
-	TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate)
+	TypingUpdate(ctx context.Context, uid gregor1.UID, updates []chat1.ConvTypingUpdate)
 	JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 	LeftConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -357,7 +357,7 @@ type ActivityNotifier interface {
 type IdentifyNotifier interface {
 	Reset()
 	ResetOnGUIConnect()
-	Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks)
+	Send(ctx context.Context, uid keybase1.UID, update keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 
 type KeyFinder interface {
@@ -470,8 +470,8 @@ type ShareIntentDonator interface {
 }
 
 type StellarLoader interface {
-	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
-	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
+	LoadPayment(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+	LoadRequest(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }
 
 type StellarSender interface {

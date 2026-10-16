@@ -17,6 +17,11 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+type participantNotify struct {
+	uid   keybase1.UID
+	parts map[chat1.ConvIDStr][]chat1.UIParticipant
+}
+
 type partDiskStorage struct {
 	Uids []gregor1.UID
 	Hash string
@@ -43,15 +48,20 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 		return g.LocalChatDb
 	}
 	notify, notifyCancel := libkb.ThrottleBatch(func(batchedInt any) {
-		batched, _ := batchedInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
-		g.NotifyRouter.HandleChatParticipantsInfo(context.Background(), batched)
+		batched, _ := batchedInt.(map[keybase1.UID]map[chat1.ConvIDStr][]chat1.UIParticipant)
+		for uid, parts := range batched {
+			g.NotifyRouter.HandleChatParticipantsInfo(context.Background(), uid, parts)
+		}
 	}, func(batchedInt, singleInt any) any {
-		batched, _ := batchedInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
-		single, _ := singleInt.(map[chat1.ConvIDStr][]chat1.UIParticipant)
-		maps.Copy(batched, single)
+		batched, _ := batchedInt.(map[keybase1.UID]map[chat1.ConvIDStr][]chat1.UIParticipant)
+		single, _ := singleInt.(participantNotify)
+		if batched[single.uid] == nil {
+			batched[single.uid] = make(map[chat1.ConvIDStr][]chat1.UIParticipant)
+		}
+		maps.Copy(batched[single.uid], single.parts)
 		return batched
 	}, func() any {
-		return make(map[chat1.ConvIDStr][]chat1.UIParticipant)
+		return make(map[keybase1.UID]map[chat1.ConvIDStr][]chat1.UIParticipant)
 	},
 		200*time.Millisecond, true)
 	g.PushShutdownHook(func(_ libkb.MetaContext) error {
@@ -178,8 +188,11 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 				s.Debug(ctx, "GetWithNotifyNonblock: failed to map uids: %s", err)
 				continue
 			}
-			s.notify(map[chat1.ConvIDStr][]chat1.UIParticipant{
-				convIDStr: utils.PresentConversationParticipantsLocal(ctx, participants),
+			s.notify(participantNotify{
+				uid: keybase1.UID(uid.String()),
+				parts: map[chat1.ConvIDStr][]chat1.UIParticipant{
+					convIDStr: utils.PresentConversationParticipantsLocal(ctx, participants),
+				},
 			})
 		}
 	}(globals.BackgroundChatCtx(ctx, s.G()))

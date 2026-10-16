@@ -1594,8 +1594,9 @@ func (g *gregorHandler) connectTLS(ctx context.Context) error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.chatLog.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
-	// Let people know we are trying to sync
-	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, g.G().Env.GetUID())
+	// Let people know we are trying to sync. Use the account the device
+	// keys are for; the config uid can move during an account switch.
+	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, g.G().ActiveDevice.UID())
 
 	opts := rpc.ConnectionOpts{
 		TagsFunc:      logger.LogTagsFromContextRPC,

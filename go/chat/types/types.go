@@ -470,11 +470,11 @@ type DummyStellarLoader struct{}
 
 var _ StellarLoader = (*DummyStellarLoader)(nil)
 
-func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+func (d DummyStellarLoader) LoadPayment(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
 	return nil
 }
 
-func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+func (d DummyStellarLoader) LoadRequest(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
 	return nil
 }
 
