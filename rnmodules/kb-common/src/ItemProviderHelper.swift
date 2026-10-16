@@ -49,8 +49,24 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
+  // What the share sends, plus one "error" entry per item that failed so the
+  // app can say how many didn't make it.
   @objc public var manifest: [[String: Any]] {
-    // reconcile what we're sending over. types=text, url, video, image, file, error
+    return preparedItems + (typeToArray["error"] ?? [])
+  }
+
+  // Items that failed to load or copy. Main thread only.
+  @objc public var failedCount: Int {
+    return typeToArray["error"]?.count ?? 0
+  }
+
+  // Whether anything finished that the share can send. Main thread only.
+  @objc public var hasPreparedItems: Bool {
+    return !preparedItems.isEmpty
+  }
+
+  private var preparedItems: [[String: Any]] {
+    // reconcile what we're sending over. types=text, url, video, image, file
     var toWrite: [[String: Any]] = []
     let images = typeToArray["image"] ?? []
     let videos = typeToArray["video"] ?? []
@@ -132,7 +148,7 @@ public class ItemProviderHelper: NSObject {
     done = true
     progress.cancel()
     writeManifest()
-    return !manifest.isEmpty
+    return hasPreparedItems
   }
 
   // Abandons the share: in-flight loads are cancelled and an empty manifest
@@ -222,7 +238,8 @@ public class ItemProviderHelper: NSObject {
     let reason = error != nil ? String(describing: error!) : "<empty>"
     // The error can carry file paths, so only the static text is public.
     log.error("item failed: \(text, privacy: .public): \(reason, privacy: .private)")
-    completeItemAndAppend(type: "error", entry: ["error": "\(text): \(reason)"])
+    // The service logs this, so it gets the static text only.
+    completeItemAndAppend(type: "error", entry: ["type": "error", "error": text])
   }
 
   private func writeManifest() {
@@ -683,6 +700,10 @@ public class ItemProviderHelper: NSObject {
   @objc public func startProcessing() {
     // Handlers for different types
     let fileHandler: @Sendable (URL?, Error?) -> Void = { url, error in
+      if let error {
+        self.completeItemAndAppendManifestAndLogError(text: "fileHandler: load error", error: error)
+        return
+      }
       self.sendFile(url)
     }
 
