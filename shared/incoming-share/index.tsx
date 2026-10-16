@@ -5,11 +5,10 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {SendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
-import {useConfigState} from '@/stores/config'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
-import {ackIncomingShare} from 'react-native-kb'
+import {androidShareShown, finishAndroidShare, readAndroidShare} from '@/constants/init/android-share'
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -219,16 +218,6 @@ const markShareRouted = (id: string) => {
 }
 const wasShareRouted = (id: string) => id !== '' && id === lastRoutedShareID
 
-// Done with an Android share: clears it unless a newer share has replaced it, and lets the native
-// side drop it from the state it saves.
-const finishAndroidShare = (id: number) => {
-  const {androidShare, dispatch} = useConfigState.getState()
-  if (androidShare?.id === id) {
-    dispatch.setAndroidShare(undefined)
-  }
-  ackIncomingShare(id)
-}
-
 // androidShareID: the Android share this screen is for, from its link.
 const useIncomingShareItems = (androidShareID?: number) => {
   const [incomingShare, setIncomingShare] = React.useState<Share>()
@@ -243,34 +232,26 @@ const useIncomingShareItems = (androidShareID?: number) => {
     }
   )
 
-  // A newer share replaces the stored one before its own link arrives, so a screen shows the stored
-  // share only if it is the one its link names. The link either updates this screen or opens a new
-  // one, depending on the navigation, and either way that screen owns the newer share.
-  const storedAndroidShare = useConfigState(s => s.androidShare)
-  const androidShare =
-    storedAndroidShare && (androidShareID === undefined || storedAndroidShare.id === androidShareID)
-      ? storedAndroidShare
-      : undefined
-  const androidShareItems =
-    isAndroid && androidShare
-      ? androidShare.type === T.RPCGen.IncomingShareType.file
-        ? androidShare.urls.map(u => ({originalPath: u, type: T.RPCGen.IncomingShareType.file}))
-        : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]
-      : undefined
-
-  // The share is consumed by this screen; clear it so a later cold-path
-  // getInitialURL doesn't resurface a stale share (see router-v2/linking.tsx).
+  // An Android screen shows only the share its link names, read from native, and is done with it
+  // when its route is removed: not when it is paused under a screen pushed above it.
+  const androidShare = React.useMemo(
+    () => (isAndroid && androidShareID !== undefined ? readAndroidShare(androidShareID) : undefined),
+    [androidShareID]
+  )
+  const navigation = useNavigation()
   React.useEffect(() => {
     if (!isAndroid || androidShareID === undefined) return
-    return () => finishAndroidShare(androidShareID)
-  }, [androidShareID])
+    androidShareShown(androidShareID)
+    return navigation.addListener('beforeRemove', () => finishAndroidShare(androidShareID))
+  }, [androidShareID, navigation])
 
-  if (androidShareItems) {
+  if (isAndroid) {
     return {
       droppedCount: androidShare?.droppedCount ?? 0,
       incomingShareError: undefined,
-      incomingShareItems: androidShareItems,
-      nothingToShare: false,
+      incomingShareItems: androidShare?.items ?? noShareItems,
+      // A link with no share behind it: done with, or opened by hand without an id.
+      nothingToShare: true,
       shareID: '',
     }
   }
@@ -280,9 +261,8 @@ const useIncomingShareItems = (androidShareID?: number) => {
     incomingShareError: items.length || droppedCount ? undefined : incomingShareError,
     incomingShareItems: items,
     shareID: id,
-    // A link opened again, or from somewhere other than a share, has no share behind it. On
-    // Android a newer share than this screen's is waiting for its own link.
-    nothingToShare: isAndroid ? !storedAndroidShare : incomingShare !== undefined,
+    // A link opened again, or from somewhere other than a share, has no share behind it.
+    nothingToShare: incomingShare !== undefined,
   }
 }
 

@@ -14,7 +14,6 @@ import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
 import {peekPendingAccountSwitchTab} from './account-switch'
 import {takeLaunchURL} from './launch-url'
-import {androidShareURL} from '@/constants/init/android-share'
 import {emitDeepLink, normalizeUrl, setInitialURLOnce} from './deep-link-emitter'
 // Re-exported so existing importers ('@/router-v2/linking') keep working; the
 // definitions live in the dependency-free './deep-link-emitter' leaf.
@@ -261,7 +260,7 @@ export const createLinkingConfig = (
 ): LinkingOptions<RootParamList> => {
   return {
     getInitialURL: async () => {
-      const {loggedIn, startup, androidShare} = useConfigState.getState()
+      const {loggedIn, startup} = useConfigState.getState()
       if (!loggedIn) return null
 
       // An account switch remounts the navigator. Start it on the switcher's tab: switching there
@@ -314,10 +313,6 @@ export const createLinkingConfig = (
         (!intent.targetUid || intent.targetUid === currentUid)
       ) {
         return openInitialLink(intent.url, handleAppLink)
-      }
-
-      if (androidShare && !haveSavedTab) {
-        return setInitialURLOnce(androidShareURL(androidShare.id))
       }
 
       if (startupConversation) {

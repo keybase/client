@@ -1,91 +1,143 @@
 package com.reactnativekb
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class IncomingShareRelayTest {
     private fun text(t: String) = IncomingShareRelay.Share(t, emptyList(), 0)
 
     private class Sink(var accept: Boolean = true) {
-        val got = mutableListOf<IncomingShareRelay.Share>()
         val ids = mutableListOf<Long>()
-        fun emit(id: Long, share: IncomingShareRelay.Share): Boolean {
-            got.add(share)
+        fun notify(id: Long): Boolean {
             ids.add(id)
             return accept
         }
     }
 
-    @Test
-    fun heldUntilJSIsReady() {
-        val relay = IncomingShareRelay()
-        relay.fill(relay.begin(), text("a"))
-        assertEquals(text("a"), relay.peek())
-
-        val sink = Sink()
-        relay.attach(sink, sink::emit)
-        assertEquals(listOf(text("a")), sink.got)
-        assertNull(relay.peek())
+    private fun IncomingShareRelay.add(share: IncomingShareRelay.Share): Long {
+        val id = begin()
+        fill(id, share)
+        return id
     }
 
     @Test
-    fun deliveredAtOnceWhenJSIsReady() {
+    fun toldOnceJSIsReady() {
         val relay = IncomingShareRelay()
+        val id = relay.add(text("a"))
         val sink = Sink()
-        relay.attach(sink, sink::emit)
-        relay.fill(relay.begin(), text("a"))
-        assertEquals(listOf(text("a")), sink.got)
-        assertNull(relay.peek())
+        relay.attach(sink, sink::notify)
+        relay.flush()
+        assertEquals(listOf(id), sink.ids)
+        assertEquals(text("a"), relay.share(id))
     }
 
     @Test
-    fun aFailedEmitKeepsTheShareForARetry() {
+    fun toldAtOnceWhenJSIsReady() {
+        val relay = IncomingShareRelay()
+        val sink = Sink()
+        relay.attach(sink, sink::notify)
+        val a = relay.add(text("a"))
+        val b = relay.add(text("b"))
+        assertEquals(listOf(a, b), sink.ids)
+    }
+
+    @Test
+    fun aFailedNotifyIsRetried() {
         val relay = IncomingShareRelay()
         val sink = Sink(accept = false)
-        relay.attach(sink, sink::emit)
-        relay.fill(relay.begin(), text("a"))
-        assertEquals(text("a"), relay.peek())
-
+        relay.attach(sink, sink::notify)
+        val id = relay.add(text("a"))
         sink.accept = true
         relay.flush()
-        assertEquals(listOf(text("a"), text("a")), sink.got)
-        assertNull(relay.peek())
+        relay.flush()
+        assertEquals(listOf(id, id), sink.ids)
     }
 
     @Test
-    fun readinessOutlivesTheActivity() {
-        // JS says it is ready once per runtime; later shares, from any Activity,
-        // still go straight to it.
+    fun aShareIsReadOnlyByItsOwnID() {
         val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::emit)
-        relay.fill(relay.begin(), text("a"))
-        relay.fill(relay.begin(), text("b"))
-        assertEquals(listOf(text("a"), text("b")), sink.got)
+        val a = relay.add(text("a"))
+        val b = relay.add(text("b"))
+        assertNull(relay.share(a))
+        assertEquals(text("b"), relay.share(b))
+    }
+
+    @Test
+    fun keptUntilJSIsDoneWithIt() {
+        val relay = IncomingShareRelay()
+        val id = relay.add(text("a"))
+        relay.done(id + 1)
+        assertEquals(text("a"), relay.unfinished())
+        relay.done(id)
+        assertNull(relay.unfinished())
+        assertNull(relay.share(id))
+    }
+
+    @Test
+    fun doneWithAnOlderShareKeepsTheNewer() {
+        val relay = IncomingShareRelay()
+        val a = relay.add(text("a"))
+        relay.add(text("b"))
+        relay.done(a)
+        assertEquals(text("b"), relay.unfinished())
+    }
+
+    @Test
+    fun theOpenShareStaysWhileTheNextIsPrepared() {
+        val relay = IncomingShareRelay()
+        val a = relay.add(text("a"))
+        assertFalse(relay.preparing())
+        val b = relay.begin()
+        assertTrue(relay.preparing())
+        assertEquals(text("a"), relay.unfinished())
+        assertEquals(text("a"), relay.share(a))
+        relay.fill(b, text("b"))
+        assertFalse(relay.preparing())
+        assertEquals(text("b"), relay.unfinished())
     }
 
     @Test
     fun aNewerShareSupersedesOneStillBeingPrepared() {
         val relay = IncomingShareRelay()
         val sink = Sink()
-        relay.attach(sink, sink::emit)
+        relay.attach(sink, sink::notify)
         val older = relay.begin()
-        relay.fill(relay.begin(), text("newer"))
+        val newer = relay.add(text("newer"))
         relay.fill(older, text("older"))
-        assertEquals(listOf(text("newer")), sink.got)
-        assertNull(relay.peek())
+        assertEquals(listOf(newer), sink.ids)
+        assertEquals(text("newer"), relay.unfinished())
     }
 
     @Test
-    fun aDetachedRuntimeGetsNothing() {
+    fun aNewRuntimeIsToldAboutAShareNotDoneWith() {
+        val relay = IncomingShareRelay()
+        val first = Sink()
+        relay.attach(first, first::notify)
+        val id = relay.add(text("a"))
+        relay.flush()
+        val second = Sink()
+        relay.attach(second, second::notify)
+        assertEquals(listOf(id), first.ids)
+        assertEquals(listOf(id), second.ids)
+
+        relay.done(id)
+        val third = Sink()
+        relay.attach(third, third::notify)
+        assertEquals(emptyList<Long>(), third.ids)
+    }
+
+    @Test
+    fun aDetachedRuntimeIsNotTold() {
         val relay = IncomingShareRelay()
         val sink = Sink()
-        relay.attach(sink, sink::emit)
+        relay.attach(sink, sink::notify)
         relay.detach(sink)
-        relay.fill(relay.begin(), text("a"))
-        assertEquals(emptyList<IncomingShareRelay.Share>(), sink.got)
-        assertEquals(text("a"), relay.peek())
+        val id = relay.add(text("a"))
+        assertEquals(emptyList<Long>(), sink.ids)
+        assertEquals(text("a"), relay.share(id))
     }
 
     @Test
@@ -93,87 +145,44 @@ class IncomingShareRelayTest {
         val relay = IncomingShareRelay()
         val old = Sink()
         val current = Sink()
-        relay.attach(old, old::emit)
-        relay.attach(current, current::emit)
+        relay.attach(old, old::notify)
+        relay.attach(current, current::notify)
         relay.detach(old)
-        relay.fill(relay.begin(), text("a"))
-        assertEquals(emptyList<IncomingShareRelay.Share>(), old.got)
-        assertEquals(listOf(text("a")), current.got)
+        val id = relay.add(text("a"))
+        assertEquals(emptyList<Long>(), old.ids)
+        assertEquals(listOf(id), current.ids)
     }
 
     @Test
-    fun aRestoredShareIsHeldUntilJSIsReady() {
+    fun aRestoredShareIsOpen() {
         val relay = IncomingShareRelay()
+        assertFalse(relay.started())
         relay.restore(text("saved"))
-        assertEquals(text("saved"), relay.peek())
-
-        val sink = Sink()
-        relay.attach(sink, sink::emit)
-        assertEquals(listOf(text("saved")), sink.got)
+        assertTrue(relay.started())
+        assertEquals(text("saved"), relay.unfinished())
     }
 
     @Test
     fun aShareBegunInThisProcessIsNotReplacedByARestoredOne() {
         val relay = IncomingShareRelay()
-        relay.fill(relay.begin(), text("newer"))
+        relay.add(text("newer"))
         relay.restore(text("saved"))
-        assertEquals(text("newer"), relay.peek())
+        assertEquals(text("newer"), relay.unfinished())
 
-        val delivered = IncomingShareRelay()
-        val sink = Sink()
-        delivered.attach(sink, sink::emit)
-        delivered.fill(delivered.begin(), text("newer"))
-        delivered.restore(text("saved"))
-        assertEquals(listOf(text("newer")), sink.got)
-    }
-
-    @Test
-    fun keptForTheSavedStateUntilJSIsDone() {
-        val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::emit)
-        relay.fill(relay.begin(), text("a"))
-        assertNull(relay.peek())
-        assertEquals(text("a"), relay.unfinished())
-
-        relay.done(sink.ids[0] + 1)
-        assertEquals(text("a"), relay.unfinished())
-        relay.done(sink.ids[0])
-        assertNull(relay.unfinished())
-    }
-
-    @Test
-    fun doneWithAnOlderShareKeepsTheNewer() {
-        val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::emit)
-        relay.fill(relay.begin(), text("a"))
-        relay.fill(relay.begin(), text("b"))
-        relay.done(sink.ids[0])
-        assertEquals(text("b"), relay.unfinished())
-    }
-
-    @Test
-    fun aNewRuntimeDoesNotGetADeliveredShareAgain() {
-        val relay = IncomingShareRelay()
-        val first = Sink()
-        relay.attach(first, first::emit)
-        relay.fill(relay.begin(), text("a"))
-        val second = Sink()
-        relay.attach(second, second::emit)
-        relay.flush()
-        assertEquals(listOf(text("a")), first.got)
-        assertEquals(emptyList<IncomingShareRelay.Share>(), second.got)
+        val preparing = IncomingShareRelay()
+        preparing.begin()
+        preparing.restore(text("saved"))
+        assertNull(preparing.unfinished())
     }
 
     @Test
     fun aRestoredShareCountsPurgedCopiesAsDropped() {
         val relay = IncomingShareRelay()
         relay.restore(IncomingShareRelay.Share(null, listOf("/kept", "/purged"), 1)) { it == "/kept" }
-        assertEquals(IncomingShareRelay.Share(null, listOf("/kept"), 2), relay.peek())
+        assertEquals(IncomingShareRelay.Share(null, listOf("/kept"), 2), relay.unfinished())
 
         val allGone = IncomingShareRelay()
         allGone.restore(IncomingShareRelay.Share(null, listOf("/purged"), 0)) { false }
-        assertEquals(IncomingShareRelay.Share(null, emptyList(), 1), allGone.peek())
+        assertEquals(IncomingShareRelay.Share(null, emptyList(), 1), allGone.unfinished())
     }
 }

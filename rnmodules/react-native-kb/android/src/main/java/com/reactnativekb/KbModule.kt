@@ -197,7 +197,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // relay, not any Activity, holds the share until then.
     @ReactMethod
     override fun shareListenersRegistered() {
-        IncomingShareRelay.shared.attach(this) { id, share -> emitShare(id, share) }
+        IncomingShareRelay.shared.attach(this) { id -> emitShare(id) }
     }
 
     // Sharing
@@ -397,28 +397,36 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // JS is done with the share it was handed with this id.
+    // The share with this id, while the relay holds it.
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun peekIncomingShare(id: Double): WritableMap? {
+        val share = IncomingShareRelay.shared.share(id.toLong()) ?: return null
+        val data = Arguments.createMap()
+        if (share.text != null) {
+            data.putString("text", share.text)
+        } else {
+            val paths = Arguments.createArray()
+            share.paths.forEach { paths.pushString(it) }
+            data.putArray("localPaths", paths)
+        }
+        data.putInt("droppedCount", share.droppedCount)
+        return data
+    }
+
+    // JS is done with the share with this id.
     @ReactMethod
     override fun ackIncomingShare(id: Double) {
         IncomingShareRelay.shared.done(id.toLong())
     }
 
-    // True only once the share has been handed to JS.
-    private fun emitShare(id: Long, share: IncomingShareRelay.Share): Boolean {
+    // True only once JS has been told about the share.
+    private fun emitShare(id: Long): Boolean {
         if (!reactContext.hasActiveReactInstance() || !canEmit()) {
             NativeLogger.warn("emitShare: no active react instance, holding the share")
             return false
         }
         return try {
             val data = Arguments.createMap()
-            if (share.text != null) {
-                data.putString("text", share.text)
-            } else {
-                val paths = Arguments.createArray()
-                share.paths.forEach { paths.pushString(it) }
-                data.putArray("localPaths", paths)
-            }
-            data.putInt("droppedCount", share.droppedCount)
             data.putDouble("id", id.toDouble())
             emitOnShareData(data)
             true

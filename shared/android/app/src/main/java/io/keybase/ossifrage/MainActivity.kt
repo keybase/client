@@ -7,10 +7,12 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcel
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.IntentCompat
+import androidx.core.os.BundleCompat
 import androidx.core.text.HtmlCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
@@ -50,12 +52,14 @@ class MainActivity : ReactActivity() {
         setupKBRuntime(this, true)
         // With saved state this Activity is a recreation, and its intent was already
         // captured by the instance it replaces. The relay lives only as long as the
-        // process, so a share JS wasn't done with when the process was killed comes
-        // back from the saved state.
+        // process, so if the process was killed in between, the share JS wasn't done
+        // with comes back from the saved state, and so does a share whose copy hadn't
+        // finished, which is read again from its intent.
         if (savedInstanceState == null) {
             captureIntent(intent)
-        } else {
+        } else if (!IncomingShareRelay.shared.started()) {
             savedInstanceState.getBundle(HELD_SHARE)?.let { IncomingShareRelay.shared.restore(shareFromBundle(it)) }
+            BundleCompat.getParcelable(savedInstanceState, PREPARING_SHARE, Intent::class.java)?.let { captureIntent(it) }
         }
 
         // Before super.onCreate so the first frame after the splash already has the
@@ -175,6 +179,7 @@ class MainActivity : ReactActivity() {
             }
         } else {
             val token = relay.begin()
+            preparingIntent = intent
             // Copying out of the content providers can be slow for big files; don't
             // block the main thread on it.
             val context: Context = applicationContext
@@ -193,8 +198,13 @@ class MainActivity : ReactActivity() {
         }
     }
 
+    // The share whose copy is under way, if any: what is read again if the process
+    // is killed before the copy finishes.
+    private var preparingIntent: Intent? = null
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        savePreparingShare(outState)
         val share = IncomingShareRelay.shared.unfinished() ?: return
         // Saved state goes through a binder transaction, which fails past about 1 MB;
         // a share that big is not worth crashing for.
@@ -204,6 +214,21 @@ class MainActivity : ReactActivity() {
             putStringArrayList("paths", ArrayList(share.paths))
             putInt("droppedCount", share.droppedCount)
         })
+    }
+
+    private fun savePreparingShare(outState: Bundle) {
+        if (!IncomingShareRelay.shared.preparing()) return
+        val intent = preparingIntent ?: return
+        val parcel = Parcel.obtain()
+        val size = try {
+            intent.writeToParcel(parcel, 0)
+            parcel.dataSize()
+        } finally {
+            parcel.recycle()
+        }
+        if (size <= MAX_SAVED_SHARE_CHARS * 2) {
+            outState.putParcelable(PREPARING_SHARE, intent)
+        }
     }
 
     private fun shareFromBundle(b: Bundle) = IncomingShareRelay.Share(
@@ -307,6 +332,7 @@ class MainActivity : ReactActivity() {
     companion object {
         private const val TAG = "ossifrage"
         private const val HELD_SHARE = "heldIncomingShare"
+        private const val PREPARING_SHARE = "preparingIncomingShare"
         private const val MAX_SAVED_SHARE_CHARS = 100_000
 
         private fun createDummyFile(context: Context) {
