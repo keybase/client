@@ -471,13 +471,13 @@ public class ItemProviderHelper: NSObject {
   }
 
   // The body goes to a file, never memory, so a large video can't push the
-  // extension past its memory limit. Above this the link is shared instead: the
-  // copy lands in the shared container, and the app uploads it from there.
-  static let maxDownloadBytes: Int64 = 200 * 1024 * 1024
-
+  // extension past its memory limit. Past ShareDownload.maxBytes the download
+  // is cancelled and the link shared instead.
   private func downloadMedia(_ order: Int, _ url: URL, isVideo: Bool, sendLink: @escaping () -> Void) {
     let request = URLRequest(url: url, timeoutInterval: Self.downloadTimeout)
+    let watches = DownloadWatches()
     let task = URLSession.shared.downloadTask(with: request) { [weak self] location, response, error in
+      watches.stop()
       guard let self = self else { return }
       let mime = response?.mimeType ?? ""
       guard error == nil, let location = location,
@@ -487,7 +487,7 @@ public class ItemProviderHelper: NSObject {
         return
       }
       let size = (try? location.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
-      guard size > 0, Int64(size) <= Self.maxDownloadBytes else {
+      guard size > 0, !ShareDownload.overCap(expected: -1, received: Int64(size)) else {
         if size > 0 {
           log.info("download of \(size) bytes is over the cap; sharing the link")
         }
@@ -510,6 +510,19 @@ public class ItemProviderHelper: NSObject {
           sendLink: sendLink)
       }
     }
+    // Stopped as soon as it is known to be too big: from the announced length,
+    // or as the bytes arrive. The cancel lands in the handler above, which
+    // shares the link.
+    let stopIfOverCap: (URLSessionDownloadTask) -> Void = { task in
+      guard ShareDownload.overCap(expected: task.countOfBytesExpectedToReceive, received: task.countOfBytesReceived)
+      else { return }
+      log.info("download is over the cap; sharing the link")
+      task.cancel()
+    }
+    watches.start([
+      task.observe(\.countOfBytesExpectedToReceive) { task, _ in stopIfOverCap(task) },
+      task.observe(\.countOfBytesReceived) { task, _ in stopIfOverCap(task) },
+    ])
     startTracked(task)
   }
 
@@ -554,7 +567,7 @@ public class ItemProviderHelper: NSObject {
       type.preferredFilenameExtension != nil
     else {
       completeItemAndAppendManifestAndLogError(
-        order, text: "sendImageData: \(data.count) bytes of unknown image type \(typeIdentifier)",
+        order, text: "sendImageData: \(data.count) bytes of unknown image type \(ShareItemKind.publicDescription(of: [typeIdentifier]))",
         error: nil)
       return
     }
@@ -647,7 +660,7 @@ public class ItemProviderHelper: NSObject {
         return
       }
       log.info(
-        "loadFileRepresentation(\(typeIdentifier, privacy: .public)) failed (\(String(describing: error), privacy: .private)); loading the item instead"
+        "loadFileRepresentation(\(ShareItemKind.publicDescription(of: [typeIdentifier]), privacy: .public)) failed (\(String(describing: error), privacy: .private)); loading the item instead"
       )
       item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
         switch loaded {
@@ -666,7 +679,7 @@ public class ItemProviderHelper: NSObject {
           self.completeItemAndAppendManifestAndLogError(
             order,
             text:
-              "loadImage: no file or loadable item for \(typeIdentifier) (got \(loaded.map { String(describing: type(of: $0)) } ?? "nil"))",
+              "loadImage: no file or loadable item for \(ShareItemKind.publicDescription(of: [typeIdentifier])) (got \(loaded.map { String(describing: type(of: $0)) } ?? "nil"))",
             error: error)
         }
       }
@@ -701,20 +714,29 @@ public class ItemProviderHelper: NSObject {
   }
 
   // A link item, which some providers vend as a string or its bytes.
+  // Text that doesn't parse as a URL is still the user's text, and goes as
+  // text.
   private func sendLinkItem(_ order: Int, _ item: NSSecureCoding?, _ error: Error?) {
-    var url: URL?
+    var str: String?
     if error == nil {
       switch item {
-      case let u as URL: url = u
-      case let str as String: url = URL(string: str.trimmingCharacters(in: .whitespacesAndNewlines))
-      case let data as Data:
-        url = String(data: data, encoding: .utf8).flatMap {
-          URL(string: $0.trimmingCharacters(in: .whitespacesAndNewlines))
-        }
+      case let u as URL:
+        sendURLItem(order, u)
+        return
+      case let s as String: str = s
+      case let data as Data: str = String(data: data, encoding: .utf8)
       default: break
       }
     }
-    sendURLItem(order, url)
+    guard let str else {
+      sendURLItem(order, nil)
+      return
+    }
+    if let url = URL(string: str.trimmingCharacters(in: .whitespacesAndNewlines)) {
+      sendURLItem(order, url)
+    } else {
+      sendText(order, str)
+    }
   }
 
   @objc public func startProcessing() {
@@ -811,5 +833,26 @@ public class ItemProviderHelper: NSObject {
     DispatchQueue.main.async { [weak self] in
       self?.finishOneAlreadyInMainThread()
     }
+  }
+}
+
+// Keeps a download's observations alive until its completion handler, which
+// may run on another queue, stops them.
+private final class DownloadWatches: @unchecked Sendable {
+  private let lock = NSLock()
+  private var observations: [NSKeyValueObservation] = []
+
+  func start(_ added: [NSKeyValueObservation]) {
+    lock.lock()
+    observations = added
+    lock.unlock()
+  }
+
+  func stop() {
+    lock.lock()
+    let stopping = observations
+    observations = []
+    lock.unlock()
+    stopping.forEach { $0.invalidate() }
   }
 }

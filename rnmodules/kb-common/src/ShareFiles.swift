@@ -125,10 +125,12 @@ enum ShareItemKind: Int {
   }
 
   // For the log: system types as they are, anything an app declared (which
-  // can name the app) redacted.
+  // can name the app) redacted, and dynamic types too, which encode the file
+  // extension or MIME type they stand for.
   static func publicDescription(of types: [String]) -> String {
     let shown = types.map {
-      $0.hasPrefix("public.") || $0.hasPrefix("com.apple.") || $0.hasPrefix("dyn.") ? $0 : "<app type>"
+      $0.hasPrefix("dyn.")
+        ? "<dynamic type>" : $0.hasPrefix("public.") || $0.hasPrefix("com.apple.") ? $0 : "<app type>"
     }
     return "[" + shown.joined(separator: ", ") + "]"
   }
@@ -223,11 +225,25 @@ enum ShareText {
 // page itself as an extra item (flagged supportsJavaScript, for extensions
 // that run script on it) next to the item it shares, such as an image page's
 // image; that copy of the page isn't something the user picked.
+// Only an item with attachments counts as the content next to the page: one
+// carrying just text would leave the share with nothing to send.
 public enum ShareExtensionItems {
-  public static func shared(pageFlags: [Bool]) -> [Int] {
+  public static func shared(pageFlags: [Bool], attachmentCounts: [Int]) -> [Int] {
     let all = Array(pageFlags.indices)
     guard pageFlags.count > 1 else { return all }
-    let content = all.filter { !pageFlags[$0] }
+    let content = all.filter { !pageFlags[$0] && attachmentCounts[$0] > 0 }
     return content.isEmpty ? all : content
+  }
+}
+
+// Shared media links are downloaded into the shared container for the app to
+// upload. Above this the link is shared instead; a download is stopped as soon
+// as the server announces, or sends, more than this.
+enum ShareDownload {
+  static let maxBytes: Int64 = 200 * 1024 * 1024
+
+  // expected is -1 when the server didn't say.
+  static func overCap(expected: Int64, received: Int64) -> Bool {
+    return expected > maxBytes || received > maxBytes
   }
 }

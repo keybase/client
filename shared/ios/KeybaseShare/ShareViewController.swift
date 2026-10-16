@@ -293,7 +293,8 @@ public class ShareViewController: UIViewController {
     }
     let inputItems = extensionContext?.inputItems.compactMap { $0 as? NSExtensionItem } ?? []
     let extItems = ShareExtensionItems.shared(
-      pageFlags: inputItems.map { ($0.userInfo?["supportsJavaScript"] as? Bool) == true }
+      pageFlags: inputItems.map { ($0.userInfo?["supportsJavaScript"] as? Bool) == true },
+      attachmentCounts: inputItems.map { $0.attachments?.count ?? 0 }
     ).map { inputItems[$0] }
     let itemArrs = extItems.map { $0.attachments ?? [] }
     let captions = extItems.map { $0.attributedContentText?.string ?? "" }
