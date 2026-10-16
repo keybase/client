@@ -87,6 +87,12 @@ export type ProcessResult = {
 export const processingErrorMessage = (e: unknown) =>
   (e instanceof Error ? e.message : String(e)) || 'Processing failed'
 
+// Native hands back every path with a file:// prefix, while a source can arrive
+// bare (pasted images do). The prefix is the only difference — native neither
+// adds nor removes percent-encoding (kbJSPath/kbBarePath in Kb.mm) — so this is
+// the one form any two paths are compared in.
+const barePath = (p: string) => (p.startsWith('file://') ? p.slice('file://'.length) : p)
+
 export const processPaths = async (
   items: ReadonlyArray<ProcessItem>,
   compress: boolean,
@@ -96,27 +102,43 @@ export const processPaths = async (
   const out: Array<ProcessResult> = []
   for (const [idx, {path, edit}] of items.entries()) {
     try {
-      out.push({
-        path: await processMediaNative(
-          path,
-          isVideoPath(path),
-          compress,
-          edit?.startMs ?? 0,
-          edit?.endMs ?? 0,
-          edit?.removeAudio ?? false
-        ),
-      })
+      const processed = await processMediaNative(
+        path,
+        isVideoPath(path),
+        compress,
+        edit?.startMs ?? 0,
+        edit?.endMs ?? 0,
+        edit?.removeAudio ?? false
+      )
+      // A passthrough is the source itself; hand back the caller's own string.
+      out.push({path: barePath(processed) === barePath(path) ? path : processed})
     } catch (e) {
       logger.warn('processMedia failed', e)
       out.push({error: processingErrorMessage(e), path})
     }
-    onProgress?.(idx + 1, items.length)
+    // Once anything has exported this must not throw: the caller would lose the
+    // output paths it needs to clean up.
+    try {
+      onProgress?.(idx + 1, items.length)
+    } catch (e) {
+      logger.warn('processMedia progress callback failed', e)
+    }
   }
   return out
 }
 
-const deleteFiles = (paths: Iterable<string>, what: string) => {
+// Never deletes anything that is, in any form, one of `keep`.
+const deleteFilesExcept = (paths: Iterable<string>, keep: Iterable<string>, what: string) => {
+  const kept = new Set([...keep].map(barePath))
+  // keyed by the bare form so one file given in two forms is deleted once
+  const doomed = new Map<string, string>()
   for (const path of paths) {
+    const bare = barePath(path)
+    if (!kept.has(bare)) {
+      doomed.set(bare, path)
+    }
+  }
+  for (const path of doomed.values()) {
     try {
       new File(path).delete()
     } catch (e) {
@@ -140,15 +162,12 @@ export const deleteConsumedSources = (
   // A single failure sends the user to "Send original", which uploads the very
   // paths we would be deleting, so it's all or nothing.
   if (out.some(r => r.error)) return
-  const sources = new Set<string>()
-  items.forEach(({path}, i) => {
-    // Untouched passthrough (an image with compression off) hands the same path
-    // back — that one is the upload.
-    if (out[i]?.path !== path) {
-      sources.add(path)
-    }
-  })
-  deleteFiles(sources, 'source')
+  // An untouched passthrough (an image with compression off) is the upload.
+  deleteFilesExcept(
+    items.map(i => i.path),
+    out.map(r => r.path),
+    'source'
+  )
 }
 
 // For a batch that won't be uploaded (a failure, or the user backed out while it
@@ -158,13 +177,10 @@ export const discardProcessedOutputs = (
   items: ReadonlyArray<ProcessItem>,
   out: ReadonlyArray<ProcessResult>
 ) => {
-  const sources = new Set(items.map(i => i.path))
-  const outputs = new Set<string>()
-  out.forEach(r => {
-    // A failed item reports its original, and a passthrough is the original.
-    if (!r.error && !sources.has(r.path)) {
-      outputs.add(r.path)
-    }
-  })
-  deleteFiles(outputs, 'output')
+  // A failed item reports its original, and a passthrough is the original.
+  deleteFilesExcept(
+    out.filter(r => !r.error).map(r => r.path),
+    items.map(i => i.path),
+    'output'
+  )
 }

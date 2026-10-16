@@ -171,6 +171,27 @@ describe('processPaths', () => {
     expect(out[1]).toEqual({error: 'Processing failed', path: '/tmp/photo.jpg'})
   })
 
+  it('hands back the source string for a passthrough native reports as file://', async () => {
+    // native always answers file://; a pasted image arrives bare
+    processMediaMock.mockImplementation(async path => Promise.resolve(`file://${path}`))
+    const out = await processPaths([{path: '/tmp/paste.png'}], false)
+    expect(out).toEqual([{path: '/tmp/paste.png'}])
+  })
+
+  it('keeps a transcoded output as native named it', async () => {
+    processMediaMock.mockResolvedValue('file:///tmp/clip-small.mp4')
+    const out = await processPaths([{path: '/tmp/clip.mov'}], true)
+    expect(out).toEqual([{path: 'file:///tmp/clip-small.mp4'}])
+  })
+
+  it('still returns every result when the progress callback throws', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
+    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true, () => {
+      throw new Error('boom')
+    })
+    expect(out).toEqual([{path: '/tmp/a.jpg.out'}, {path: '/tmp/b.jpg.out'}])
+  })
+
   it('keeps going after a failure so the rest of the batch still exports', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
@@ -200,6 +221,11 @@ describe('deleteConsumedSources', () => {
     expect(deleted).toEqual([])
   })
 
+  it('keeps a bare source whose passthrough came back as file://', () => {
+    deleteConsumedSources([{path: '/tmp/paste.png'}], [{path: 'file:///tmp/paste.png'}])
+    expect(deleted).toEqual([])
+  })
+
   it('keeps every source when any item failed', () => {
     // one failure sends the user to "send original", which uploads these very paths
     deleteConsumedSources(
@@ -222,5 +248,19 @@ describe('discardProcessedOutputs', () => {
     )
     // a failed item and a passthrough both report the original
     expect(deleted).toEqual(['/tmp/clip.mp4.out'])
+  })
+})
+
+describe('discardProcessedOutputs with mixed path forms', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('never deletes an output that is a source in another form', () => {
+    discardProcessedOutputs(
+      [{path: '/tmp/paste.png'}, {path: 'file:///tmp/photo.jpg'}, {path: '/tmp/clip.mov'}],
+      [{path: 'file:///tmp/paste.png'}, {path: '/tmp/photo.jpg'}, {path: 'file:///tmp/clip-small.mp4'}]
+    )
+    expect(deleted).toEqual(['file:///tmp/clip-small.mp4'])
   })
 })
