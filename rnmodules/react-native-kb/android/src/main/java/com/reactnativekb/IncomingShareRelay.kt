@@ -15,6 +15,10 @@ import java.io.File
 class IncomingShareRelay {
     data class Share(val text: String?, val paths: List<String>, val droppedCount: Int)
 
+    // What the Activity saves: the share JS isn't done with, and whether another
+    // is begun and not yet filled. Read together, so a fill can't land between.
+    data class Saved(val share: Share?, val preparing: Boolean)
+
     private var open: Share? = null
     private var openID = 0L
     private var lastToken = 0L
@@ -83,13 +87,8 @@ class IncomingShareRelay {
         }
     }
 
-    // The share JS isn't done with: what the Activity saves.
     @Synchronized
-    fun unfinished(): Share? = open
-
-    // Whether a share is begun and not yet filled.
-    @Synchronized
-    fun preparing(): Boolean = lastToken != lastFilled
+    fun saved(): Saved = Saved(open, lastToken != lastFilled)
 
     // Whether this process has begun a share. A recreated Activity whose process
     // has not was killed, and puts back what it saved.
@@ -117,5 +116,12 @@ class IncomingShareRelay {
     companion object {
         @JvmStatic
         val shared = IncomingShareRelay()
+
+        // Which of the parts, by size and in order of priority, go in a saved
+        // state that holds at most budget bytes of them.
+        fun withinBudget(sizes: List<Int>, budget: Int): List<Boolean> {
+            var left = budget
+            return sizes.map { size -> (size <= left).also { if (it) left -= size } }
+        }
     }
 }
