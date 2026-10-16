@@ -1,12 +1,29 @@
 // Share-source matrix: the Files app, from a folder seeded in its "On My iPhone" storage.
 import {FILES, missingAsset, runSource, seedFilesFolder, shareFilesSheet, skipIfMissing} from '../helpers/share'
 
+// Text files are documents the user picked: each goes as a file under its own name, never pasted into
+// the composer (a Latin-1 one used to paste its local path).
+const textFiles = ['notes.txt', 'data.csv', 'README.md', 'main.swift', 'latin1.txt', 'long.md']
+// Types the extension has no special handling for still go as files.
+const documents = ['clip.m4a', 'invite.ics', 'doc.docx', 'data.json', 'page.html', 'note.rtf']
+const exactly = (name: string) => new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
+
 describe('Share from Files', () => {
   let dir = ''
   before(() => {
     dir = seedFilesFolder(
       'ShareMatrix',
-      ['doc.pdf', 'bundle.zip', 'small.tif', 'empty.dat', 'photo-b.png', 'short.mp4'].filter(n => !missingAsset(n))
+      [
+        'doc.pdf',
+        'bundle.zip',
+        'small.tif',
+        'empty.dat',
+        'photo-b.png',
+        'short.mp4',
+        ...textFiles,
+        'notes2.txt',
+        ...documents,
+      ].filter(n => !missingAsset(n))
     )
   })
 
@@ -29,6 +46,21 @@ describe('Share from Files', () => {
 
   it('a 0-byte file', async () => {
     await runSource('files-empty', {host: FILES, open: shareFilesSheet(dir, ['empty.dat'])}, {items: [{name: /^empty\.dat$/, type: 'file'}]})
+  })
+
+  ;[...textFiles, ...documents].forEach(name => {
+    it(`a ${name} file`, async function () {
+      skipIfMissing(this, name)
+      await runSource(`files-${name}`, {host: FILES, open: shareFilesSheet(dir, [name])}, {items: [{name: exactly(name), type: 'file'}]})
+    })
+  })
+
+  it('two text files at once', async () => {
+    await runSource(
+      'files-two-txt',
+      {host: FILES, open: shareFilesSheet(dir, ['notes.txt', 'notes2.txt'])},
+      {items: [{name: /^notes\.txt$/, type: 'file'}, {name: /^notes2\.txt$/, type: 'file'}]}
+    )
   })
 
   it('several mixed files', async function () {

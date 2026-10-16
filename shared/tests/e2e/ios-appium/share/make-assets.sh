@@ -3,7 +3,7 @@
 #
 # Usage: make-assets.sh <out-dir>
 #
-# Uses only what a stock Mac has (perl, sips, cupsfilter, zip). ImageMagick (`magick`) or `cwebp`
+# Uses only what a stock Mac has (perl, sips, cupsfilter, zip, say, afconvert). ImageMagick (`magick`) or `cwebp`
 # add webp and ffmpeg adds the videos; without them those files are left out, and the flows that
 # need them skip with the reason. photo.avif is a 10-bit AVIF encoded through ImageIO (make-avif.swift),
 # the form Safari re-encodes a page's AVIF to before sharing it.
@@ -80,6 +80,42 @@ rm -f bundle.zip
 zip -q -j bundle.zip doc.pdf photo-a.png
 : > empty.dat
 
+# Text files and documents for the Files sources: each must arrive as a file under its own name,
+# never pasted into the composer.
+printf 'Share matrix notes one\nline two\n' > notes.txt
+printf 'Share matrix notes two\n' > notes2.txt
+printf 'name,count\nshare,1\nmatrix,2\n' > data.csv
+printf '# Share Matrix\n\nA *markdown* file.\n' > README.md
+printf 'print("share matrix")\n' > main.swift
+# Latin-1, not UTF-8: "café" with a single 0xE9 byte.
+printf 'caf\351 share matrix\n' > latin1.txt
+perl -e 'print "Share matrix long markdown. " x 600, "\n"' > long.md
+printf '{"share": "matrix"}\n' > data.json
+printf '<!doctype html><html><body><p>Share matrix page file</p></body></html>\n' > page.html
+printf '{\\rtf1\\ansi Share matrix rich text}\n' > note.rtf
+cat > invite.ics << 'ICS'
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Keybase//Share Matrix//EN
+BEGIN:VEVENT
+UID:share-matrix@example.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260102T100000Z
+SUMMARY:Share Matrix
+END:VEVENT
+END:VCALENDAR
+ICS
+# Named .docx, so Files offers it as a Word document; the contents don't matter to the share.
+rm -f doc.docx
+zip -q -j doc.docx notes.txt
+if say -o .clip.aiff 'Share matrix' 2> /dev/null && afconvert -f m4af -d aac .clip.aiff clip.m4a 2> /dev/null; then
+  :
+else
+  rm -f clip.m4a
+  note "no say/afconvert: clip.m4a left out"
+fi
+rm -f .clip.aiff
+
 cat > contact.vcf << 'VCF'
 BEGIN:VCARD
 VERSION:3.0
@@ -95,11 +131,18 @@ VCF
 cat > index.html << 'HTML'
 <!doctype html><html><head><meta name="viewport" content="width=device-width"><title>Share Matrix</title></head>
 <body><h1>Share Matrix</h1><img src="photo-a.png" alt="matrix photo" style="width:300px">
-<p><a href="short.mp4">mp4 link</a></p></body></html>
+<p><a href="short.mp4">mp4 link</a></p><p><a href="photo-b.png">png link</a></p></body></html>
 HTML
-cat > text.html << 'HTML'
+# Long text: about 2000 characters fits in one message; about 12000 is over chat's 10000-byte limit
+# and is attached as a .txt named after its first words.
+long_text=$(perl -e 'print "Share matrix long text " . ("word " x 400)')
+huge_text=$(perl -e 'print "Share matrix huge text " . ("word " x 2400)')
+cat > text.html << HTML
 <!doctype html><html><head><meta name="viewport" content="width=device-width"><title>Share Matrix Text</title></head>
 <body><textarea id="t" aria-label="plain text" rows="4" cols="30">Share matrix plain text</textarea>
-<textarea id="u" aria-label="url text" rows="4" cols="30">Share matrix link https://keybase.io/docs here</textarea></body></html>
+<textarea id="u" aria-label="url text" rows="4" cols="30">Share matrix link https://keybase.io/docs here</textarea>
+<textarea id="l" aria-label="long text" rows="4" cols="30">$long_text</textarea>
+<textarea id="h" aria-label="huge text" rows="4" cols="30">$huge_text</textarea>
+<textarea id="b" aria-label="blank text" rows="4" cols="30">     </textarea></body></html>
 HTML
 note "assets in $OUT"
