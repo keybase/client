@@ -3,6 +3,7 @@ package avatars
 import (
 	"fmt"
 	"maps"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -14,6 +15,10 @@ type URLCachingSource struct {
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   *SimpleSource
+
+	sync.Mutex
+	started bool
+	cancel  func()
 
 	// testing only
 	staleFetchCh chan struct{}
@@ -30,10 +35,25 @@ func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSour
 }
 
 func (c *URLCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	go c.monitorAppState(m)
+	c.Lock()
+	defer c.Unlock()
+	if c.started {
+		return
+	}
+	c.started = true
+	bg, cancel := m.WithContextCancel()
+	c.cancel = cancel
+	go c.monitorAppState(bg)
 }
 
 func (c *URLCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
+	c.Lock()
+	defer c.Unlock()
+	if c.started {
+		c.started = false
+		c.cancel()
+		c.cancel = nil
+	}
 	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
@@ -53,11 +73,15 @@ func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		<-m.G().MobileAppState.NextUpdate(state)
-		state = m.G().MobileAppState.State()
-		if state == keybase1.MobileAppState_BACKGROUND {
-			c.debug(m, "monitorAppState: backgrounded")
-			c.diskLRU.Flush(m.Ctx(), m.G())
+		select {
+		case <-m.Ctx().Done():
+			return
+		case <-m.G().MobileAppState.NextUpdate(state):
+			state = m.G().MobileAppState.State()
+			if state == keybase1.MobileAppState_BACKGROUND {
+				c.debug(m, "monitorAppState: backgrounded")
+				c.diskLRU.Flush(m.Ctx(), m.G())
+			}
 		}
 	}
 }
