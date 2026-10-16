@@ -282,20 +282,28 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
 
-    self.iph = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
-      guard let self else { return }
-      defer { self.iph = nil }
-      // The manifest didn't land, so the share screen has nothing (or an older
-      // share) to show.
-      guard self.iph?.manifestWritten == true else {
-        log.error("drop: manifest not written; not opening the share")
+    // The completion reads this drop's helper; self.iph may already be a
+    // later drop's.
+    weak var dropHelper: ItemProviderHelper?
+    let helper = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
+      guard let self, let helper = dropHelper else { return }
+      if self.iph === helper {
+        self.iph = nil
+      }
+      // With no manifest the share screen shows its load error. One left
+      // behind by a failed write would be an older share's, so don't open to
+      // it.
+      guard helper.manifestWritten || !helper.manifestExists else {
+        log.error("drop: manifest not written and an older one remains; not opening the share")
         return
       }
       let url = URL(string: "keybase://incoming-share")!
       let app = UIApplication.shared
       _ = self.application(app, open: url, options: [:]) || RCTLinkingManager.application(app, open: url, options: [:])
     }
-    self.iph?.startProcessing()
+    dropHelper = helper
+    self.iph = helper
+    helper.startProcessing()
   }
 
   func scheduleAppRefresh() {

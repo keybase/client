@@ -65,10 +65,20 @@ public class ItemProviderHelper: NSObject {
     return !preparedItems.isEmpty
   }
 
+  // What the last manifest write put on disk; nil if it failed.
+  private var writtenManifest: Data?
+
   // Whether the last manifest write landed. When it didn't, whatever is on
   // disk isn't this share's manifest and the app must not be opened to it.
   // Main thread only.
-  @objc public private(set) var manifestWritten = false
+  @objc public var manifestWritten: Bool {
+    return writtenManifest != nil
+  }
+
+  // Whether any manifest is on disk, ours or not.
+  @objc public var manifestExists: Bool {
+    return FileManager.default.fileExists(atPath: getManifestFileURL().path)
+  }
 
   private var preparedItems: [[String: Any]] {
     // reconcile what we're sending over. types=text, url, video, image, file
@@ -249,13 +259,15 @@ public class ItemProviderHelper: NSObject {
 
   // Written even if empty so an older share's manifest can't be picked up.
   private func writeManifest() {
-    manifestWritten = ShareFiles.writeManifest(manifest, to: getManifestFileURL())
+    writtenManifest = ShareFiles.writeManifest(manifest, to: getManifestFileURL())
   }
 
   // For a share that won't open the app: its manifest would only be read by
-  // some later, unrelated open. Main thread only.
+  // some later, unrelated open. A manifest written since by another share is
+  // kept. Main thread only.
   @objc public func removeManifest() {
-    ShareFiles.removeManifest(at: getManifestFileURL())
+    guard let written = writtenManifest else { return }
+    ShareFiles.removeManifest(at: getManifestFileURL(), ifContents: written)
   }
 
   private func sendText(_ text: String) {
