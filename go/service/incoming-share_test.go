@@ -124,6 +124,41 @@ func TestIncomingShareIsReadOnce(t *testing.T) {
 	require.Empty(t, incomingShareText(t, h))
 }
 
+func TestIncomingShareRepeatLeavesOutFilesSinceRemoved(t *testing.T) {
+	var sent, kept string
+	h, cleanup := setupIncomingShare(t, func(folder string) []map[string]string {
+		sent = filepath.Join(folder, "guid", "sent.jpg")
+		kept = filepath.Join(folder, "guid2", "kept.jpg")
+		for _, p := range []string{sent, kept} {
+			require.NoError(t, os.MkdirAll(filepath.Dir(p), 0o700))
+			require.NoError(t, os.WriteFile(p, []byte("jpeg"), 0o600))
+		}
+		return []map[string]string{
+			{"type": "image", "originalPath": sent},
+			{"type": "image", "originalPath": kept},
+			{"type": "error", "error": "loadImage: failed"},
+		}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+	res, err := h.GetIncomingShareItems(context.Background())
+	require.NoError(t, err)
+	require.Len(t, res.Items, 2)
+
+	require.NoError(t, os.Remove(sent))
+	res, err = h.GetIncomingShareItems(context.Background())
+	require.NoError(t, err)
+	require.Len(t, res.Items, 1)
+	require.Equal(t, kept, *res.Items[0].OriginalPath)
+	require.Equal(t, 1, res.DroppedCount)
+
+	require.NoError(t, os.Remove(kept))
+	res, err = h.GetIncomingShareItems(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, res.Items)
+	require.Zero(t, res.DroppedCount)
+}
+
 func TestIncomingShareNewShareReplacesTheLast(t *testing.T) {
 	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
 		return []map[string]string{{"type": "text", "content": "first"}}
