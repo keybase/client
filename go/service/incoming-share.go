@@ -114,10 +114,29 @@ func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res k
 		return res, nil
 	case last.folder == folder && now.Sub(last.at) < incomingShareRepeatWindow:
 		mctx.Debug("incoming-share: handing out the share claimed %v ago again", now.Sub(last.at))
-		return last.res, nil
+		return stillPresentIncomingShare(last.res), nil
 	default:
 		return keybase1.IncomingShareItems{}, nil
 	}
+}
+
+// stillPresentIncomingShare is the share as handed out again: an item whose
+// file is gone was sent or exported since, so it is left out, and a share with
+// nothing left is nothing to share.
+func stillPresentIncomingShare(share keybase1.IncomingShareItems) (res keybase1.IncomingShareItems) {
+	for _, item := range share.Items {
+		if item.OriginalPath != nil {
+			if _, err := os.Stat(*item.OriginalPath); err != nil {
+				continue
+			}
+		}
+		res.Items = append(res.Items, item)
+	}
+	if len(res.Items) == 0 {
+		return keybase1.IncomingShareItems{}
+	}
+	res.DroppedCount = share.DroppedCount
+	return res
 }
 
 // claimIncomingShare reads and removes the manifest; claimed is false when
