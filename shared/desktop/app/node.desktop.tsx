@@ -11,6 +11,7 @@ import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import {EngineRelay} from './engine-relay.desktop'
+import logger from '@/logger'
 import KB2 from '@/util/electron'
 import {
   installCrashReporter,
@@ -99,10 +100,13 @@ const startApp = () => {
       engineRelay.replayLinkState()
       flushDeferredLaunch(runtime, getStartupProcessArgs)
 
+      logger.warn('[Installer]: markAppStartedUp invoking installer', {
+        keybaseOpenFrom: process.env['KEYBASE_OPEN_FROM'] || '',
+        keybaseRestoreUI: process.env['KEYBASE_RESTORE_UI'] || '',
+        keybaseStartUI: process.env['KEYBASE_START_UI'] || '',
+      })
       installer(err => {
-        if (err) {
-          console.log('Error: ', err)
-        }
+        logger.warn('[Installer]: installer callback', {err: err?.message ?? null})
         R.remoteDispatch(RemoteGen.createInstallerRan())
       })
     },
