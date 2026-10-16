@@ -153,7 +153,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			//
 			//nolint:gosec // G115: Version difference for delay calculation, safe to convert
 			max(
-				time.Duration(newVers-vers-1)*time.Second, 0), time.Minute)
+				time.Duration(newVers-vers-1)*time.Second, 0,
+			), time.Minute,
+		)
 
 		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
@@ -614,7 +616,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			}
 
 			// Update typing status to stopped
-			g.typingMonitor.Update(ctx, chat1.TyperInfo{
+			g.typingMonitor.Update(ctx, gregor1.UID(uid), chat1.TyperInfo{
 				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
 				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
 			}, convID, chat1.TeamType_NONE, false)
@@ -996,8 +998,8 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 		return err
 	}
 
-	// Fire off update with all relevant info
-	g.typingMonitor.Update(ctx, chat1.TyperInfo{
+	// The account is the gregor recipient, not the person who is typing.
+	g.typingMonitor.Update(ctx, gregor1.UID(m.UID().Bytes()), chat1.TyperInfo{
 		Uid:      kuid,
 		DeviceID: kdid,
 		Username: user.String(),

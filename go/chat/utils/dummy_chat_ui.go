@@ -153,7 +153,7 @@ func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.N
 	return nil
 }
 
-func (d DummyChatNotifications) ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error {
+func (d DummyChatNotifications) ChatIdentifyUpdate(context.Context, chat1.ChatIdentifyUpdateArg) error {
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (d DummyChatNotifications) ChatThreadsStale(context.Context, chat1.ChatThre
 	return nil
 }
 
-func (d DummyChatNotifications) ChatTypingUpdate(context.Context, []chat1.ConvTypingUpdate) error {
+func (d DummyChatNotifications) ChatTypingUpdate(context.Context, chat1.ChatTypingUpdateArg) error {
 	return nil
 }
 
@@ -233,7 +233,7 @@ func (d DummyChatNotifications) ChatArchiveProgress(context.Context, chat1.ChatA
 	return nil
 }
 
-func (d DummyChatNotifications) ChatArchiveComplete(context.Context, chat1.ArchiveJobID) error {
+func (d DummyChatNotifications) ChatArchiveComplete(context.Context, chat1.ChatArchiveCompleteArg) error {
 	return nil
 }
 
@@ -257,8 +257,6 @@ func (d DummyChatNotifications) ChatWelcomeMessageLoaded(context.Context, chat1.
 	return nil
 }
 
-func (d DummyChatNotifications) ChatParticipantsInfo(context.Context,
-	map[chat1.ConvIDStr][]chat1.UIParticipant,
-) error {
+func (d DummyChatNotifications) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
 	return nil
 }

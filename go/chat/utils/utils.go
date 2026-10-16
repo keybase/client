@@ -1742,7 +1742,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	return nil
 }
 
-func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+func presentPaymentInfo(ctx context.Context, g *globals.Context, uid gregor1.UID, msgID chat1.MessageID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid,
 ) []chat1.UIPaymentInfo {
 	typ, err := msg.MessageBody.MessageType()
@@ -1753,7 +1753,7 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
-		info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		info := g.StellarLoader.LoadPayment(ctx, keybase1.UID(uid.String()), convID, msgID, msg.SenderUsername, body.PaymentID)
 		if info != nil {
 			infos = []chat1.UIPaymentInfo{*info}
 		}
@@ -1768,7 +1768,7 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 			switch rtyp {
 			case chat1.TextPaymentResultTyp_SENT:
 				paymentID := payment.Result.Sent()
-				info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, paymentID)
+				info := g.StellarLoader.LoadPayment(ctx, keybase1.UID(uid.String()), convID, msgID, msg.SenderUsername, paymentID)
 				if info != nil {
 					infos = append(infos, *info)
 				}
@@ -1783,7 +1783,7 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	return infos
 }
 
-func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+func presentRequestInfo(ctx context.Context, g *globals.Context, uid gregor1.UID, msgID chat1.MessageID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid,
 ) *chat1.UIRequestInfo {
 	typ, err := msg.MessageBody.MessageType()
@@ -1793,7 +1793,7 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	switch typ {
 	case chat1.MessageType_REQUESTPAYMENT:
 		body := msg.MessageBody.Requestpayment()
-		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+		return g.StellarLoader.LoadRequest(ctx, keybase1.UID(uid.String()), convID, msgID, msg.SenderUsername, body.RequestID)
 	default:
 		// Nothing to do for other message types.
 	}
@@ -2075,8 +2075,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Reactions:             PresentDecoratedReactionMap(ctx, g, uid, convID, valid, valid.Reactions),
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			FlipGameID:            presentFlipGameID(ctx, g, uid, convID, rawMsg),
-			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
-			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			PaymentInfos:          presentPaymentInfo(ctx, g, uid, rawMsg.GetMessageID(), convID, valid),
+			RequestInfo:           presentRequestInfo(ctx, g, uid, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
 			IsDeleteable:          IsDeleteableByDeleteMessageType(valid),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
@@ -2486,7 +2486,8 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 		chat1.MessageUnboxedPlaceholder{
 			MessageID: msgID,
 			Hidden:    true,
-		})
+		},
+	)
 }
 
 func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,

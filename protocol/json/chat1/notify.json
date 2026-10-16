@@ -550,6 +550,10 @@
     "ChatIdentifyUpdate": {
       "request": [
         {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
           "name": "update",
           "type": "keybase1.CanonicalTLFNameAndIDWithBreaks"
         }
@@ -634,6 +638,10 @@
     },
     "ChatTypingUpdate": {
       "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
         {
           "name": "typingUpdates",
           "type": {
@@ -918,6 +926,10 @@
     "ChatArchiveProgress": {
       "request": [
         {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
           "name": "jobID",
           "type": "ArchiveJobID"
         },
@@ -936,6 +948,10 @@
     },
     "ChatArchiveComplete": {
       "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
         {
           "name": "jobID",
           "type": "ArchiveJobID"
@@ -1039,6 +1055,10 @@
     "ChatWelcomeMessageLoaded": {
       "request": [
         {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
           "name": "teamID",
           "type": "keybase1.TeamID"
         },
@@ -1053,6 +1073,10 @@
     },
     "ChatParticipantsInfo": {
       "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
         {
           "name": "participants",
           "type": {

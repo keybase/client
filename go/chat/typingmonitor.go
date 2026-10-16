@@ -10,6 +10,8 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 )
 
@@ -19,15 +21,17 @@ const (
 )
 
 type typingControlChans struct {
-	typer chat1.TyperInfo
+	typer      chat1.TyperInfo
+	accountUID gregor1.UID
 
 	stopCh   chan struct{}
 	extendCh chan struct{}
 }
 
-func newTypingControlChans(typer chat1.TyperInfo) *typingControlChans {
+func newTypingControlChans(typer chat1.TyperInfo, accountUID gregor1.UID) *typingControlChans {
 	return &typingControlChans{
-		typer: typer,
+		typer:      typer,
+		accountUID: accountUID,
 		// Might not need these buffers, but we really don't want to deadlock
 		stopCh:   make(chan struct{}, 5),
 		extendCh: make(chan struct{}, 5),
@@ -77,7 +81,7 @@ func (t *TypingMonitor) convKey(key string, convID chat1.ConversationID) bool {
 	return toks[2] == convID.String()
 }
 
-func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1.ConversationID) {
+func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, accountUID gregor1.UID, convID chat1.ConversationID) {
 	var typers []chat1.TyperInfo
 	for k, v := range t.typers {
 		if t.convKey(k, convID) {
@@ -89,16 +93,16 @@ func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1
 		ConvID: convID,
 		Typers: typers,
 	}
-	t.G().ActivityNotifier.TypingUpdate(ctx, []chat1.ConvTypingUpdate{update})
+	t.G().ActivityNotifier.TypingUpdate(ctx, accountUID, []chat1.ConvTypingUpdate{update})
 }
 
-func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convID chat1.ConversationID,
+func (t *TypingMonitor) Update(ctx context.Context, accountUID gregor1.UID, typer chat1.TyperInfo, convID chat1.ConversationID,
 	teamType chat1.TeamType, typing bool,
 ) {
-	// If this is about ourselves, then don't bother
-	cuid := t.G().Env.GetUID()
+	// If this is about ourselves, then don't bother. The account is the one
+	// the gregor update was delivered for, not whoever is signed in now.
 	cdid := t.G().Env.GetDeviceID()
-	if cuid.Equal(typer.Uid) && cdid.Eq(typer.DeviceID) {
+	if keybase1.UID(accountUID.String()).Equal(typer.Uid) && cdid.Eq(typer.DeviceID) {
 		return
 	}
 
@@ -124,7 +128,7 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 			}
 		} else {
 			// Not typing yet, just add it in and spawn waiter
-			chans := newTypingControlChans(typer)
+			chans := newTypingControlChans(typer, accountUID)
 			t.insertIntoTypers(ctx, key, chans, convID)
 			t.waitOnTyper(ctx, chans, convID)
 		}
@@ -146,14 +150,18 @@ func (t *TypingMonitor) insertIntoTypers(ctx context.Context, key string, chans 
 	t.Lock()
 	defer t.Unlock()
 	t.typers[key] = chans
-	t.notifyConvUpdateLocked(ctx, convID)
+	t.notifyConvUpdateLocked(ctx, chans.accountUID, convID)
 }
 
 func (t *TypingMonitor) removeFromTypers(ctx context.Context, key string, convID chat1.ConversationID) {
 	t.Lock()
 	defer t.Unlock()
+	chans := t.typers[key]
 	delete(t.typers, key)
-	t.notifyConvUpdateLocked(ctx, convID)
+	if chans == nil {
+		return
+	}
+	t.notifyConvUpdateLocked(ctx, chans.accountUID, convID)
 }
 
 func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlChans,

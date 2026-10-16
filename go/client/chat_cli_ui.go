@@ -95,7 +95,7 @@ func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Contex
 }
 
 func (n *ChatCLINotifications) ChatArchiveComplete(ctx context.Context,
-	arg chat1.ArchiveJobID,
+	arg chat1.ChatArchiveCompleteArg,
 ) error {
 	if n.noOutput {
 		return nil

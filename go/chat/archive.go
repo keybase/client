@@ -512,7 +512,7 @@ func NewChatArchiver(g *globals.Context, uid gregor1.UID, remoteClient func() ch
 
 func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJobID, msgsComplete, msgsTotal int64) {
 	c.Debug(ctx, "notifyProgress(%s) %d/%d", jobID, msgsComplete, msgsTotal)
-	c.G().NotifyRouter.HandleChatArchiveProgress(ctx, jobID, msgsComplete, msgsTotal)
+	c.G().NotifyRouter.HandleChatArchiveProgress(ctx, keybase1.UID(c.uid.String()), jobID, msgsComplete, msgsTotal)
 }
 
 func (c *ChatArchiver) archiveName(conv chat1.ConversationLocal) string {
@@ -736,7 +736,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 		}
 
 		// Alert the UI
-		c.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
+		c.G().NotifyRouter.HandleChatArchiveComplete(ctx, keybase1.UID(c.uid.String()), arg.JobID)
 	}()
 
 	// Presume to resume

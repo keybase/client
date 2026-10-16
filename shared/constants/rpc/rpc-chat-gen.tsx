@@ -16,11 +16,11 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
 export type MessageTypes = {
   'chat.1.NotifyChat.ChatArchiveComplete': {
-    inParam: {readonly jobID: ArchiveJobID},
+    inParam: {readonly uid: Keybase1.UID,readonly jobID: ArchiveJobID},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatArchiveProgress': {
-    inParam: {readonly jobID: ArchiveJobID,readonly messagesComplete: number,readonly messagesTotal: number},
+    inParam: {readonly uid: Keybase1.UID,readonly jobID: ArchiveJobID,readonly messagesComplete: number,readonly messagesTotal: number},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
@@ -44,7 +44,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.NotifyChat.ChatIdentifyUpdate': {
-    inParam: {readonly update: Keybase1.CanonicalTLFNameAndIDWithBreaks},
+    inParam: {readonly uid: Keybase1.UID,readonly update: Keybase1.CanonicalTLFNameAndIDWithBreaks},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatInboxStale': {
@@ -64,7 +64,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.NotifyChat.ChatParticipantsInfo': {
-    inParam: {readonly participants?: {[key: string]: ReadonlyArray<UIParticipant> | null} | null},
+    inParam: {readonly uid: Keybase1.UID,readonly participants?: {[key: string]: ReadonlyArray<UIParticipant> | null} | null},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatPaymentInfo': {
@@ -108,11 +108,11 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.NotifyChat.ChatTypingUpdate': {
-    inParam: {readonly typingUpdates?: ReadonlyArray<ConvTypingUpdate> | null},
+    inParam: {readonly uid: Keybase1.UID,readonly typingUpdates?: ReadonlyArray<ConvTypingUpdate> | null},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
-    inParam: {readonly teamID: Keybase1.TeamID,readonly message: WelcomeMessageDisplay},
+    inParam: {readonly uid: Keybase1.UID,readonly teamID: Keybase1.TeamID,readonly message: WelcomeMessageDisplay},
     outParam: void,
   },
   'chat.1.NotifyChat.NewChatActivity': {

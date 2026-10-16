@@ -1058,7 +1058,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	n.G().Log.CDebugf(ctx, "- Sent NewChatActivity notification")
 }
 
-func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, uid keybase1.UID, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	if n == nil {
 		return
 	}
@@ -1069,7 +1069,10 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 			wg.Go(func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatIdentifyUpdate(context.Background(), update)
+				}).ChatIdentifyUpdate(context.Background(), chat1.ChatIdentifyUpdateArg{
+					Uid:    uid,
+					Update: update,
+				})
 			})
 		}
 		return true
@@ -1251,7 +1254,7 @@ func (n *NotifyRouter) HandleChatInboxSyncStarted(ctx context.Context, uid keyba
 	n.G().Log.CDebugf(ctx, "- Sent ChatInboxSyncStarted notification")
 }
 
-func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) {
+func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, uid keybase1.UID, updates []chat1.ConvTypingUpdate) {
 	if n == nil {
 		return
 	}
@@ -1261,7 +1264,10 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 			wg.Go(func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatTypingUpdate(context.Background(), updates)
+				}).ChatTypingUpdate(context.Background(), chat1.ChatTypingUpdateArg{
+					Uid:           uid,
+					TypingUpdates: updates,
+				})
 			})
 		}
 		return true
@@ -1513,7 +1519,7 @@ func (n *NotifyRouter) HandleChatAttachmentDownloadComplete(ctx context.Context,
 	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentDownloadComplete notification")
 }
 
-func (n *NotifyRouter) HandleChatArchiveProgress(ctx context.Context, jobID chat1.ArchiveJobID, messagesComplete, messagesTotal int64) {
+func (n *NotifyRouter) HandleChatArchiveProgress(ctx context.Context, uid keybase1.UID, jobID chat1.ArchiveJobID, messagesComplete, messagesTotal int64) {
 	if n == nil {
 		return
 	}
@@ -1525,6 +1531,7 @@ func (n *NotifyRouter) HandleChatArchiveProgress(ctx context.Context, jobID chat
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).ChatArchiveProgress(context.Background(), chat1.ChatArchiveProgressArg{
+					Uid:              uid,
 					JobID:            jobID,
 					MessagesComplete: messagesComplete,
 					MessagesTotal:    messagesTotal,
@@ -1541,7 +1548,7 @@ func (n *NotifyRouter) HandleChatArchiveProgress(ctx context.Context, jobID chat
 	n.G().Log.CDebugf(ctx, "- Sent ChatArchiveProgress notification")
 }
 
-func (n *NotifyRouter) HandleChatArchiveComplete(ctx context.Context, jobID chat1.ArchiveJobID) {
+func (n *NotifyRouter) HandleChatArchiveComplete(ctx context.Context, uid keybase1.UID, jobID chat1.ArchiveJobID) {
 	if n == nil {
 		return
 	}
@@ -1552,10 +1559,10 @@ func (n *NotifyRouter) HandleChatArchiveComplete(ctx context.Context, jobID chat
 			wg.Go(func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatArchiveComplete(
-					context.Background(),
-					jobID,
-				)
+				}).ChatArchiveComplete(context.Background(), chat1.ChatArchiveCompleteArg{
+					Uid:   uid,
+					JobID: jobID,
+				})
 			})
 		}
 		return true
@@ -1658,7 +1665,7 @@ func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UI
 		})
 }
 
-func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
+func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context, uid keybase1.UID,
 	teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay,
 ) {
 	if n == nil {
@@ -1670,6 +1677,7 @@ func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).ChatWelcomeMessageLoaded(ctx, chat1.ChatWelcomeMessageLoadedArg{
+					Uid:     uid,
 					TeamID:  teamID,
 					Message: message,
 				})
@@ -1683,7 +1691,7 @@ func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
 	})
 }
 
-func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
+func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context, uid keybase1.UID,
 	participants map[chat1.ConvIDStr][]chat1.UIParticipant,
 ) {
 	if n == nil {
@@ -1694,7 +1702,10 @@ func (n *NotifyRouter) HandleChatParticipantsInfo(ctx context.Context,
 			go func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatParticipantsInfo(ctx, participants)
+				}).ChatParticipantsInfo(ctx, chat1.ChatParticipantsInfoArg{
+					Uid:          uid,
+					Participants: participants,
+				})
 			}()
 		}
 		return true

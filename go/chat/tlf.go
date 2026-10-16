@@ -45,7 +45,8 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}
 	return &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(
-			xp, libkb.NewContextifiedErrorUnwrapper(t.G().ExternalG()), libkb.LogTagsFromContext),
+			xp, libkb.NewContextifiedErrorUnwrapper(t.G().ExternalG()), libkb.LogTagsFromContext,
+		),
 	}, nil
 }
 
@@ -192,6 +193,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		"CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior)()
 
 	username := t.G().Env.GetUsername()
+	accountUID := t.G().Env.GetUID()
 	if len(username) == 0 {
 		return res, libkb.LoginRequiredError{}
 	}
@@ -209,7 +211,8 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		t.Debug(ectx, "CryptKeys: running identify")
 		var err error
 		names := utils.SplitTLFName(tlfName)
-		ib, err = t.Identify(ectx, names, true,
+		ib, err = t.Identify(
+			ectx, accountUID, names, true,
 			func() keybase1.TLFID {
 				<-doneCh
 				return res.NameIDBreaks.TlfID
@@ -258,6 +261,7 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	}
 	defer t.Trace(ctx, &err,
 		"PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior)()
+	accountUID := t.G().Env.GetUID()
 
 	// call Identify and CanonicalTLFNameAndIDWithBreaks concurrently:
 	group, ectx := errgroup.WithContext(globals.BackgroundChatCtx(ctx, t.G()))
@@ -268,7 +272,8 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		group.Go(func() error {
 			var err error
 			names := utils.SplitTLFName(tlfName)
-			ib, err = t.Identify(ectx, names, false,
+			ib, err = t.Identify(
+				ectx, accountUID, names, false,
 				func() keybase1.TLFID {
 					<-doneCh
 					return res.TlfID

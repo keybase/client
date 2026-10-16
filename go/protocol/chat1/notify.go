@@ -943,6 +943,7 @@ type NewChatActivityArg struct {
 }
 
 type ChatIdentifyUpdateArg struct {
+	Uid    keybase1.UID                             `codec:"uid" json:"uid"`
 	Update keybase1.CanonicalTLFNameAndIDWithBreaks `codec:"update" json:"update"`
 }
 
@@ -969,6 +970,7 @@ type ChatThreadsStaleArg struct {
 }
 
 type ChatTypingUpdateArg struct {
+	Uid           keybase1.UID       `codec:"uid" json:"uid"`
 	TypingUpdates []ConvTypingUpdate `codec:"typingUpdates" json:"typingUpdates"`
 }
 
@@ -1054,12 +1056,14 @@ type ChatAttachmentDownloadCompleteArg struct {
 }
 
 type ChatArchiveProgressArg struct {
+	Uid              keybase1.UID `codec:"uid" json:"uid"`
 	JobID            ArchiveJobID `codec:"jobID" json:"jobID"`
 	MessagesComplete int64        `codec:"messagesComplete" json:"messagesComplete"`
 	MessagesTotal    int64        `codec:"messagesTotal" json:"messagesTotal"`
 }
 
 type ChatArchiveCompleteArg struct {
+	Uid   keybase1.UID `codec:"uid" json:"uid"`
 	JobID ArchiveJobID `codec:"jobID" json:"jobID"`
 }
 
@@ -1091,22 +1095,24 @@ type ChatConvUpdateArg struct {
 }
 
 type ChatWelcomeMessageLoadedArg struct {
+	Uid     keybase1.UID          `codec:"uid" json:"uid"`
 	TeamID  keybase1.TeamID       `codec:"teamID" json:"teamID"`
 	Message WelcomeMessageDisplay `codec:"message" json:"message"`
 }
 
 type ChatParticipantsInfoArg struct {
+	Uid          keybase1.UID                  `codec:"uid" json:"uid"`
 	Participants map[ConvIDStr][]UIParticipant `codec:"participants" json:"participants"`
 }
 
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
-	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
+	ChatIdentifyUpdate(context.Context, ChatIdentifyUpdateArg) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
 	ChatInboxStale(context.Context, keybase1.UID) error
 	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
-	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
+	ChatTypingUpdate(context.Context, ChatTypingUpdateArg) error
 	ChatJoinedConversation(context.Context, ChatJoinedConversationArg) error
 	ChatLeftConversation(context.Context, ChatLeftConversationArg) error
 	ChatResetConversation(context.Context, ChatResetConversationArg) error
@@ -1122,13 +1128,13 @@ type NotifyChatInterface interface {
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadComplete(context.Context, ChatAttachmentDownloadCompleteArg) error
 	ChatArchiveProgress(context.Context, ChatArchiveProgressArg) error
-	ChatArchiveComplete(context.Context, ArchiveJobID) error
+	ChatArchiveComplete(context.Context, ChatArchiveCompleteArg) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
 	ChatConvUpdate(context.Context, ChatConvUpdateArg) error
 	ChatWelcomeMessageLoaded(context.Context, ChatWelcomeMessageLoadedArg) error
-	ChatParticipantsInfo(context.Context, map[ConvIDStr][]UIParticipant) error
+	ChatParticipantsInfo(context.Context, ChatParticipantsInfoArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1161,7 +1167,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatIdentifyUpdateArg)(nil), args)
 						return
 					}
-					err = i.ChatIdentifyUpdate(ctx, typedArgs[0].Update)
+					err = i.ChatIdentifyUpdate(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1236,7 +1242,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatTypingUpdateArg)(nil), args)
 						return
 					}
-					err = i.ChatTypingUpdate(ctx, typedArgs[0].TypingUpdates)
+					err = i.ChatTypingUpdate(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1476,7 +1482,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatArchiveCompleteArg)(nil), args)
 						return
 					}
-					err = i.ChatArchiveComplete(ctx, typedArgs[0].JobID)
+					err = i.ChatArchiveComplete(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1566,7 +1572,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatParticipantsInfoArg)(nil), args)
 						return
 					}
-					err = i.ChatParticipantsInfo(ctx, typedArgs[0].Participants)
+					err = i.ChatParticipantsInfo(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1583,8 +1589,7 @@ func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActi
 	return
 }
 
-func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) (err error) {
-	__arg := ChatIdentifyUpdateArg{Update: update}
+func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, __arg ChatIdentifyUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
@@ -1610,8 +1615,7 @@ func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThread
 	return
 }
 
-func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []ConvTypingUpdate) (err error) {
-	__arg := ChatTypingUpdateArg{TypingUpdates: typingUpdates}
+func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, __arg ChatTypingUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
@@ -1692,8 +1696,7 @@ func (c NotifyChatClient) ChatArchiveProgress(ctx context.Context, __arg ChatArc
 	return
 }
 
-func (c NotifyChatClient) ChatArchiveComplete(ctx context.Context, jobID ArchiveJobID) (err error) {
-	__arg := ChatArchiveCompleteArg{JobID: jobID}
+func (c NotifyChatClient) ChatArchiveComplete(ctx context.Context, __arg ChatArchiveCompleteArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveComplete", []any{__arg}, 0*time.Millisecond)
 	return
 }
@@ -1723,8 +1726,7 @@ func (c NotifyChatClient) ChatWelcomeMessageLoaded(ctx context.Context, __arg Ch
 	return
 }
 
-func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, participants map[ConvIDStr][]UIParticipant) (err error) {
-	__arg := ChatParticipantsInfoArg{Participants: participants}
+func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, __arg ChatParticipantsInfoArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []any{__arg}, 0*time.Millisecond)
 	return
 }
