@@ -292,7 +292,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
             text = ''
             draftLoaded = false
             appendedBeforeDraft = false
-            appendSetAside = undefined
           }
           input = next
           if (editText) {

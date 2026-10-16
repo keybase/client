@@ -328,17 +328,19 @@ describe('append', () => {
     expect(drafts).toContain('my draft, typed on')
   })
 
-  test('a new view drops text an edit set aside on the old one', () => {
-    const {composer, mount} = setup()
+  test('text an edit set aside goes after the draft when the edit carries over to a new view', () => {
+    const {composer, drafts, mount} = setup()
     const first = mount(undefined)
     composer.append('shared text')
     composer.startEdit('my message')
     first.detach()
 
     const second = mount('my draft')
+    expect(second.fake.text).toBe('my message')
+    expect(drafts).toContain('my draft\nshared text')
     composer.clear()
 
-    expect(second.fake.text).toBe('my draft')
+    expect(second.fake.text).toBe('my draft\nshared text')
   })
 
   test('writes nothing where the user cannot post', () => {
