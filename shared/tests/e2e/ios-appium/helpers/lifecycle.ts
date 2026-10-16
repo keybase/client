@@ -406,14 +406,12 @@ export const ensureNotificationPermission = async () => {
   )
 }
 
-// Opens the smoke user's conversation with themselves and returns its id. The id comes from
-// the inbox layout, and the conversation is opened by id: a keybase://chat/<user> link resolves
-// the conversation through a lookup that can sit on a placeholder id for a long time.
-export const openSelfConversation = async (username: string) => {
+// The id of the conversation whose only participant is `username`, read from the inbox layout.
+export const selfConversationID = async (username: string) => {
   // The inbox layout loads with the inbox.
   await escapeToTabs()
   await navigateToChat()
-  const convID = await waitFor(
+  return waitFor(
     'the self conversation in the inbox',
     async () =>
       jsEval<string | null>(
@@ -423,6 +421,13 @@ export const openSelfConversation = async (username: string) => {
       ).then(id => id ?? undefined),
     {interval: 500, timeout: 30000}
   )
+}
+
+// Opens the smoke user's conversation with themselves and returns its id. The conversation is
+// opened by id: a keybase://chat/<user> link resolves the conversation through a lookup that can
+// sit on a placeholder id for a long time.
+export const openSelfConversation = async (username: string) => {
+  const convID = await selfConversationID(username)
   openUrl(`keybase://convid/${convID}`)
   await waitFor(
     'the self conversation to open',

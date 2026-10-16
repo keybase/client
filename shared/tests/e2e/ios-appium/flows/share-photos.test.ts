@@ -18,7 +18,7 @@ describe('Share from Photos', () => {
     )
   })
 
-  // Photos exports every edited photo as FullSizeRender.jpg, so two in one share have the same name.
+  // Two edited photos in one share must arrive as two distinct files.
   it('two edited photos', async function () {
     addMedia(this, 'photo-c.png', 'photo-d.png')
     await inApp(PHOTOS, async () => rotateNewestPhotos(2))

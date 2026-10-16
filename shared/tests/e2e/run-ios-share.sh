@@ -32,6 +32,7 @@ LOG="tests/results/run-share-$SLUG.log"
 
 RUN=""
 WATCHDOG=""
+MADE_ASSETS=""
 UDID=""
 stop_run() {
   [ -n "$RUN" ] && kill -- -"$RUN" 2>/dev/null
@@ -41,6 +42,8 @@ stop_run() {
   exit 143
 }
 trap stop_run INT TERM HUP ALRM
+# Only a dir this script generated: a caller's KB_SHARE_ASSETS is left alone.
+trap '[ -n "$MADE_ASSETS" ] && rm -rf "$MADE_ASSETS"' EXIT
 
 if ! curl -sf -m 5 http://127.0.0.1:8081/status >/dev/null; then
   echo "❌ Metro is not running on 8081 (yarn rn:start)"
@@ -63,6 +66,7 @@ fi
 
 if [ -z "${KB_SHARE_ASSETS:-}" ]; then
   KB_SHARE_ASSETS="$(mktemp -d /tmp/kb-share-assets.XXXXXX)"
+  MADE_ASSETS="$KB_SHARE_ASSETS"
   bash "$SCRIPT_DIR/ios-appium/share/make-assets.sh" "$KB_SHARE_ASSETS" || exit 1
 fi
 export KB_SHARE_ASSETS
