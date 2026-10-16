@@ -1,0 +1,27 @@
+go/chat/maps/maps.go
+  s_47b47ff1c0e8d6::t_9e2ad4714adc42 91-93,95
+  s_47b47ff1c0e8d6::t_3c98fb80bb0a9b 98
+go/chat/giphy/search.go
+  s_47b47ff1c0e8d6::t_f04f413987f1c1 123
+  s_47b47ff1c0e8d6::t_490166d929088a 115-117,119
+go/release/update/kbweb.go
+  s_47b47ff1c0e8d6::t_961e6733499d8c 50-56,58
+go/updater/keybase/https.go
+  s_47b47ff1c0e8d6::t_c2fdfd9d2783cc 32-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "307dde36b23eafb5be78ae75d7df279efedd5cab",
+  "prompts": {},
+  "sessions": {
+    "s_47b47ff1c0e8d6": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b9cf124c-2873-4fc6-8c0b-905cc5436a3f",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
