@@ -48,6 +48,19 @@ public class ItemProviderHelper: NSObject {
     progress.addChild(loader, withPendingUnitCount: 90)
   }
 
+  // A download starts after the item load already reported done, so give it
+  // its own slice of the bar instead of leaving it invisible. Resume from
+  // inside the main-queue hop: starting the task first lets a fast download
+  // finish before its units are added, which walks the bar backwards.
+  private func startTracked(_ task: URLSessionTask) {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.progress.totalUnitCount += 100
+      self.progress.addChild(task.progress, withPendingUnitCount: 100)
+      task.resume()
+    }
+  }
+
   // What the share sends, plus one "error" entry per item that failed so the
   // app can say how many didn't make it. Set when the manifest is written.
   private var preparedItems: [[String: Any]] = []
@@ -399,16 +412,14 @@ public class ItemProviderHelper: NSObject {
 
   // A URL item is not necessarily a web link: providers also vend local files
   // this way, and those go by their real content type, never as a pasted
-  // path. A web link is always sent as the link: the extension makes no
-  // network requests, so sharing a link never tells its site, and never
-  // turns into a download the user didn't ask for.
+  // path. A web link may point at media (see sendRemoteURL).
   private func sendURLItem(_ order: Int, _ url: URL?) {
     guard let url = url else {
       completeItemAndAppendManifestAndLogError(order, text: "sendURLItem: unable to decode share", error: nil)
       return
     }
     guard url.isFileURL else {
-      sendText(order, url.absoluteString)
+      sendRemoteURL(order, url)
       return
     }
 
@@ -426,6 +437,114 @@ public class ItemProviderHelper: NSObject {
       // a name, not text to paste.
       sendFile(order, url, providerTemp: false)
     }
+  }
+
+  // Safari's long-press-image share hands over the image's web address, not the
+  // image, so the only way to attach the picture the user pointed at is to
+  // fetch it. A link whose path doesn't name an image or video is probed with
+  // HEAD first, so an ordinary link share doesn't download a whole page before
+  // falling back to sending the link.
+  private static let probeTimeout: TimeInterval = 6
+  private static let downloadTimeout: TimeInterval = 30
+
+  private func sendRemoteURL(_ order: Int, _ url: URL) {
+    let sendLink: () -> Void = { [weak self] in self?.sendText(order, url.absoluteString) }
+
+    if let type = UTType(filenameExtension: url.pathExtension.lowercased()),
+      type.conforms(to: .image) || type.conforms(to: .movie)
+    {
+      downloadMedia(order, url, isVideo: type.conforms(to: .movie), sendLink: sendLink)
+      return
+    }
+
+    var head = URLRequest(url: url, timeoutInterval: Self.probeTimeout)
+    head.httpMethod = "HEAD"
+    URLSession.shared.dataTask(with: head) { [weak self] _, response, _ in
+      guard let self = self else { return }
+      let mime = response?.mimeType ?? ""
+      if mime.hasPrefix("image/") || mime.hasPrefix("video/") {
+        self.downloadMedia(order, url, isVideo: mime.hasPrefix("video/"), sendLink: sendLink)
+      } else {
+        sendLink()
+      }
+    }.resume()
+  }
+
+  // The body goes to a file, never memory, so a large video can't push the
+  // extension past its memory limit. Above this the link is shared instead: the
+  // copy lands in the shared container, and the app uploads it from there.
+  static let maxDownloadBytes: Int64 = 200 * 1024 * 1024
+
+  private func downloadMedia(_ order: Int, _ url: URL, isVideo: Bool, sendLink: @escaping () -> Void) {
+    let request = URLRequest(url: url, timeoutInterval: Self.downloadTimeout)
+    let task = URLSession.shared.downloadTask(with: request) { [weak self] location, response, error in
+      guard let self = self else { return }
+      let mime = response?.mimeType ?? ""
+      guard error == nil, let location = location,
+        mime.isEmpty || mime.hasPrefix("image/") || mime.hasPrefix("video/")
+      else {
+        sendLink()
+        return
+      }
+      let size = (try? location.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+      guard size > 0, Int64(size) <= Self.maxDownloadBytes else {
+        if size > 0 {
+          log.info("download of \(size) bytes is over the cap; sharing the link")
+        }
+        sendLink()
+        return
+      }
+      // URLSession deletes its file when this handler returns, so it is moved
+      // first; the rest runs off the session's queue, as writing out a video is
+      // enough file I/O to stall the extension's UI.
+      let staged = FileManager.default.temporaryDirectory
+        .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+      guard (try? FileManager.default.moveItem(at: location, to: staged)) != nil else {
+        sendLink()
+        return
+      }
+      DispatchQueue.global(qos: .userInitiated).async {
+        defer { try? FileManager.default.removeItem(at: staged) }
+        self.writeDownloadedMedia(
+          order, at: staged, from: url, mime: mime, isVideo: isVideo || mime.hasPrefix("video/"),
+          sendLink: sendLink)
+      }
+    }
+    startTracked(task)
+  }
+
+  private func writeDownloadedMedia(
+    _ order: Int, at file: URL, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
+  ) {
+    let name: String
+    let type: String
+    if isVideo {
+      name = PayloadFileName.downloadedVideo(from: url, mime: mime)
+      type = "video"
+    } else {
+      // Written as served. Decoding a large image would blow the extension's
+      // memory limit, so anything the app can't show as-is (webp, avif) is
+      // transcoded there. The bytes, not the label, decide: a server can serve an
+      // error page as image/*, and then the link is the better share. Mapped, so
+      // the sniff reads only the header.
+      guard let data = try? Data(contentsOf: file, options: .alwaysMapped),
+        let imageType = ShareFiles.imageType(of: data),
+        imageType.preferredFilenameExtension != nil
+      else {
+        sendLink()
+        return
+      }
+      name = PayloadFileName.make(
+        candidates: [url.lastPathComponent], type: imageType, fallbackBase: "image")
+      type = "image"
+    }
+    guard let payloadURL = try? getPayloadURL(named: name),
+      (try? FileManager.default.moveItem(at: file, to: payloadURL)) != nil
+    else {
+      sendLink()
+      return
+    }
+    completeItemAndAppendManifest(order, type: type, originalFileURL: payloadURL)
   }
 
   // A provider that vends the image as bytes rather than a file (Safari's
@@ -532,10 +651,11 @@ public class ItemProviderHelper: NSObject {
       )
       item.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { loaded, error in
         switch loaded {
-        // Some providers vend the image's web address as the image item. Like
-        // any web link it is sent as the link, not fetched.
-        case let url as URL where error == nil && !url.isFileURL:
-          self.sendText(order, url.absoluteString)
+        // Some providers vend the image's web address as the image item.
+        case let url as URL where error == nil && ["http", "https"].contains(url.scheme?.lowercased()):
+          self.downloadMedia(order, url, isVideo: false) {
+            self.sendText(order, url.absoluteString)
+          }
         case let url as URL where error == nil:
           self.sendMedia(order, url, isVideo: false, providerTemp: false)
         case let image as UIImage where error == nil:

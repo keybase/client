@@ -50,7 +50,7 @@ export const missingAsset = (...names: Array<string>) => names.find(n => !fs.exi
 export type ServedRequest = {method: string; path: string; userAgent: string}
 
 // Serves the assets to Safari on the loopback interface only; the simulator shares the host's. Every
-// request is recorded, so a source can check the share extension fetched nothing.
+// request is recorded, so a source can check what the share extension fetched.
 export const startAssetServer = async () => {
   const requests: Array<ServedRequest> = []
   const types: Record<string, string> = {
@@ -86,7 +86,7 @@ export const startAssetServer = async () => {
   return {close: () => server.close(), origin: `http://127.0.0.1:${address.port}`, requests}
 }
 
-// The share extension sends a shared link as the link: it must never fetch it. Safari's own preview
+// The requests the share extension made itself (its probes and downloads); Safari's own preview
 // fetches are not the extension's.
 export const extensionRequests = (requests: ReadonlyArray<ServedRequest>, since: number) =>
   requests.slice(since).filter(r => /KeybaseShare/i.test(r.userAgent))

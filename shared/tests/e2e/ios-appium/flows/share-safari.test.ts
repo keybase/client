@@ -12,9 +12,6 @@ import {
 } from '../helpers/share'
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
-const exactly = (s: string) => new RegExp(`^${escape(s)}$`)
-// A link Safari captions comes after the caption's line.
-const link = (s: string) => new RegExp(`(^|\\n)${escape(s)}$`)
 
 describe('Share from Safari', () => {
   let server: Awaited<ReturnType<typeof startAssetServer>> | undefined
@@ -27,13 +24,13 @@ describe('Share from Safari', () => {
     server?.close()
   })
 
-  // Every Safari source also checks that the share extension made no request of its own: a shared
-  // link is sent as the link, never probed or downloaded.
-  const run = async (source: string, sheet: SheetSource, expected: Expected) => {
+  // linkOnly: a link the extension must send as the link, after at most a HEAD probe; it must never
+  // download the page.
+  const run = async (source: string, sheet: SheetSource, expected: Expected, {linkOnly = false} = {}) => {
     const since = server!.requests.length
     await runSource(source, sheet, expected)
-    const fetched = extensionRequests(server!.requests, since)
-    if (fetched.length) {
+    const fetched = extensionRequests(server!.requests, since).filter(r => r.method !== 'HEAD')
+    if (linkOnly && fetched.length) {
       throw new Error(`the share extension fetched: ${fetched.map(r => `${r.method} ${r.path}`).join(', ')}`)
     }
   }
@@ -41,21 +38,25 @@ describe('Share from Safari', () => {
   // Safari captions the link with the page's title, which goes ahead of it.
   it('the page URL from the toolbar', async () => {
     const page = url('index.html')
-    await run('safari-page-url', {host: SAFARI, open: shareSafariPageSheet(page)}, {
-      items: [{content: new RegExp(`^Share Matrix\\n${escape(page)}$`), type: 'text'}],
-    })
+    await run(
+      'safari-page-url',
+      {host: SAFARI, open: shareSafariPageSheet(page)},
+      {items: [{content: new RegExp(`^Share Matrix\\n${escape(page)}$`), type: 'text'}]},
+      {linkOnly: true}
+    )
   })
 
-  // Safari hands over the image's address, not the image, and a shared address is sent as the link.
+  // Safari hands over the image's address; the extension downloads the image itself.
   it('a long-pressed image', async () => {
     await run('safari-long-press-image', {host: SAFARI, open: shareSafariElementSheet(url('index.html'), 'matrix photo')}, {
-      items: [{content: link(url('photo-a.png')), type: 'text'}],
+      items: [{name: /^photo-a\.png$/i, type: 'image'}],
     })
   })
 
+  // A link whose path names an image is downloaded too.
   it('a long-pressed .png link', async () => {
     await run('safari-png-link', {host: SAFARI, open: shareSafariElementSheet(url('index.html'), 'png link')}, {
-      items: [{content: link(url('photo-b.png')), type: 'text'}],
+      items: [{name: /^photo-b\.png$/i, type: 'image'}],
     })
   })
 
@@ -79,10 +80,12 @@ describe('Share from Safari', () => {
   })
 
   // Shared from the link's menu: opening the .mp4 plays it full screen, where Safari's share sheet
-  // can't be driven. The link arrives as the link, not the video it points at.
-  it('a direct .mp4 link', async () => {
+  // can't be driven. The extension downloads the video the link points at.
+  it('a direct .mp4 link', async function () {
+    skipIfMissing(this, 'short.mp4')
     await run('safari-mp4-link', {host: SAFARI, open: shareSafariElementSheet(url('index.html'), 'mp4 link')}, {
-      items: [{content: exactly(url('short.mp4')), type: 'text'}],
+      items: [{name: /^short\.mp4$/, type: 'video'}],
+      videoSeconds: 5,
     })
   })
 
