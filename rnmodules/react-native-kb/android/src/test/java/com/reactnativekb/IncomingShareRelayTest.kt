@@ -251,4 +251,15 @@ class IncomingShareRelayTest {
         assertNull(relay.saved().share)
         assertFalse(relay.started())
     }
+
+    @Test
+    fun aShareKeepsTheKeyItWasCapturedWith() {
+        // A share read again after its copy was cut off keeps the key it was first captured with,
+        // so the done record of that key covers both.
+        val relay = IncomingShareRelay()
+        val id = relay.begin("resume")
+        relay.fill(id, text("a").copy(key = "captured"))
+        assertEquals("captured", relay.saved().share!!.key)
+        assertEquals("captured", relay.done(id))
+    }
 }
