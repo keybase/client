@@ -29,9 +29,11 @@ object IncomingShareCache {
 
     // Each item gets its own directory so two items with the same name, in one
     // share or in overlapping ones, never overwrite each other's copy. name must
-    // be a single path component (see IncomingShareFileName).
-    fun newItemFile(context: Context, name: String): File {
-        val itemDir = File(dir(context), UUID.randomUUID().toString())
+    // be a single path component (see IncomingShareFileName). share, when given,
+    // tags the directory with the share it belongs to (see discardShare).
+    fun newItemFile(context: Context, name: String, share: String? = null): File {
+        val uuid = UUID.randomUUID().toString()
+        val itemDir = File(dir(context), if (share == null) uuid else "$share-$uuid")
         if (!itemDir.mkdirs()) {
             throw IOException("unable to create ${itemDir.path}")
         }
@@ -40,8 +42,8 @@ object IncomingShareCache {
 
     // Copies input into a new item file named name. On any failure nothing is
     // left behind.
-    fun copyIn(context: Context, input: InputStream, name: String): File {
-        val file = newItemFile(context, name)
+    fun copyIn(context: Context, input: InputStream, name: String, share: String? = null): File {
+        val file = newItemFile(context, name, share)
         try {
             FileOutputStream(file).use { output -> input.copyTo(output, 64 * 1024) }
         } catch (e: Exception) {
@@ -49,6 +51,14 @@ object IncomingShareCache {
             throw e
         }
         return file
+    }
+
+    // Removes every copy made for share, finished or cut off: a copy the process
+    // was killed in the middle of is left as it was.
+    fun discardShare(context: Context, share: String) = discardShare(dir(context), share)
+
+    fun discardShare(dir: File, share: String) {
+        dir.listFiles()?.filter { it.name.startsWith("$share-") }?.forEach { it.deleteRecursively() }
     }
 
     // Removes a copy made by newItemFile, along with its directory.

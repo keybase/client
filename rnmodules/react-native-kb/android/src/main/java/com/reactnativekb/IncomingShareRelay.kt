@@ -12,7 +12,8 @@ import java.io.File
 // state) until JS says it is done with that id or a newer share replaces it.
 // So nothing JS drops before a screen opens can lose it, and once done it is
 // gone for good.
-class IncomingShareRelay {
+// log: where it says which share it hands out or releases, by id only.
+class IncomingShareRelay(private val log: (String) -> Unit = {}) {
     data class Share(val text: String?, val paths: List<String>, val droppedCount: Int)
 
     // What the Activity saves: the share JS isn't done with, and whether another
@@ -77,12 +78,17 @@ class IncomingShareRelay {
 
     // The open share, if id is its id.
     @Synchronized
-    fun share(id: Long): Share? = if (id == openID) open else null
+    fun share(id: Long): Share? {
+        val share = if (id == openID) open else null
+        log("IncomingShareRelay: share $id ${if (share != null) "handed out" else "not held"}")
+        return share
+    }
 
     // JS is done with the share with this id: it was sent, or left.
     @Synchronized
     fun done(id: Long) {
-        if (id == openID) {
+        if (id == openID && open != null) {
+            log("IncomingShareRelay: share $id released")
             open = null
         }
     }
@@ -115,7 +121,7 @@ class IncomingShareRelay {
 
     companion object {
         @JvmStatic
-        val shared = IncomingShareRelay()
+        val shared = IncomingShareRelay { NativeLogger.info(it) }
 
         // Which of the parts, by size and in order of priority, go in a saved
         // state that holds at most budget bytes of them.

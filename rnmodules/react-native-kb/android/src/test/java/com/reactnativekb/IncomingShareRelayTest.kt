@@ -192,4 +192,22 @@ class IncomingShareRelayTest {
         assertEquals(listOf(true, false), IncomingShareRelay.withinBudget(listOf(60, 60), 100))
         assertEquals(listOf(false, true), IncomingShareRelay.withinBudget(listOf(120, 60), 100))
     }
+
+    @Test
+    fun logsHandingOutAndReleasingByIDOnly() {
+        val lines = mutableListOf<String>()
+        val relay = IncomingShareRelay { lines.add(it) }
+        val id = relay.add(text("secret text"))
+        relay.share(id)
+        relay.done(id)
+        relay.share(id)
+        assertEquals(
+            listOf(
+                "IncomingShareRelay: share $id handed out",
+                "IncomingShareRelay: share $id released",
+                "IncomingShareRelay: share $id not held",
+            ),
+            lines,
+        )
+    }
 }
