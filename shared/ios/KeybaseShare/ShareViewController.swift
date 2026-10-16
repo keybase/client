@@ -126,8 +126,9 @@ public class ShareViewController: UIViewController {
         if hasItems {
           self.openAppAndComplete()
         } else {
+          // Items were ready but couldn't be saved, or none were ready in time.
           self.showFailureAndCancel(
-            message: self.iph?.manifestWritten == false
+            message: self.iph?.hasPreparedItems == true
               ? Self.manifestFailedMessage : "Preparing these items took too long.")
         }
       }

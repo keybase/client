@@ -10,20 +10,27 @@ enum ShareFiles {
   // partial one: the JSON is written to a temporary file in the same directory
   // and renamed over the old manifest in one step. If that fails the old
   // manifest is removed too, since it belongs to an earlier share. Returns
-  // whether the new manifest is in place.
-  static func writeManifest(_ items: [[String: Any]], to url: URL) -> Bool {
+  // the bytes written, or nil if the new manifest isn't in place.
+  static func writeManifest(_ items: [[String: Any]], to url: URL) -> Data? {
     do {
       guard JSONSerialization.isValidJSONObject(items) else {
         throw CocoaError(.propertyListWriteInvalid)
       }
       let data = try JSONSerialization.data(withJSONObject: items, options: [])
       try data.write(to: url, options: .atomic)
-      return true
+      return data
     } catch {
       log.error("manifest write failed: \(String(describing: error), privacy: .private)")
       removeManifest(at: url)
-      return false
+      return nil
     }
+  }
+
+  // Removes the manifest only if it still holds contents, so a manifest the
+  // other process (app or extension) wrote since is left alone.
+  static func removeManifest(at url: URL, ifContents contents: Data) {
+    guard (try? Data(contentsOf: url)) == contents else { return }
+    removeManifest(at: url)
   }
 
   static func removeManifest(at url: URL) {
