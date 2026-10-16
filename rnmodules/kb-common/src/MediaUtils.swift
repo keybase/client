@@ -109,10 +109,12 @@ public class MediaUtils: NSObject {
         }
 
         // The source is stripped in place, not only the output: after a failure
-        // Send original uploads the source, and it must not carry GPS that the
-        // compressed send would have removed. Best effort, since ImageIO can read
-        // some files it can't rewrite (a 10-bit AVIF on iOS), and those still
-        // get their JPEG.
+        // Send original uploads what compress off returns, which for a send-as-is
+        // type is the source itself, and it must not carry GPS that the compressed
+        // send would have removed. Best effort, since ImageIO can read some files it
+        // can't rewrite (webp, RAW, a 10-bit AVIF on iOS). Those still get their
+        // JPEG here, and are all mustTranscode types, which Send original converts
+        // to a metadata-free JPEG instead of uploading as they are.
         do {
             try stripImageExif(at: url)
         } catch {
@@ -139,9 +141,12 @@ public class MediaUtils: NSObject {
     }
 
     // Images that may be sent as they are. Everything else (bmp, TIFF, RAW,
-    // webp, avif) is transcoded even with compression off. The JS side sends every
-    // processable image here and leaves this call to us.
-    private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .gif, .heic, .heif]
+    // webp, avif, heif) is transcoded even with compression off. The JS side sends
+    // every processable image here and leaves this call to us. Each of these must be
+    // a type the GPS strip can rewrite in place: Send original uploads them as they
+    // are. public.heic is, public.heif is not, and the two don't conform to each
+    // other.
+    private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .gif, .heic]
 
     private static func mustTranscode(_ type: UTType) -> Bool {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })

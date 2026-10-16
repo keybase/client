@@ -114,6 +114,8 @@ const ContainerInner = (ownProps: OwnProps) => {
   const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
   const [error, setError] = React.useState<string | undefined>()
+  // Send original found an image it can neither convert nor send without its location.
+  const [originalsBlocked, setOriginalsBlocked] = React.useState(false)
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
   const unmountedRef = React.useRef(false)
@@ -157,7 +159,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     setSubmitting(false)
   }
 
-  // skipProcessing is the "Send anyway" path: the user has already been told the
+  // skipProcessing is the "Send original" path: the user has already been told the
   // export failed and wants the originals.
   const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
     if (progress || submittingRef.current || !resolvedTlfName) {
@@ -200,8 +202,73 @@ const ContainerInner = (ownProps: OwnProps) => {
 
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
 
-    if (!isIOS || skipProcessing) {
+    if (!isIOS) {
       upload(effective)
+      return
+    }
+
+    // Send original sends what "Keep full size" would: a format recipients can't
+    // show (webp, avif, tiff, RAW) becomes a metadata-free JPEG, and the rest come
+    // back as the source (stripped of GPS in place by a compressed run, raw with
+    // Keep full size). Those formats can't always be stripped in place, so one
+    // that can't be converted isn't sent at all rather than sent with its location.
+    const sendOriginals = async () => {
+      if (accountChanged()) {
+        endSubmit()
+        return
+      }
+      const eligible = effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
+        if (!isKbfsPath(path) && isProcessableImagePath(path)) {
+          l.push({idx, path})
+        }
+        return l
+      }, [])
+      if (eligible.length === 0) {
+        upload(effective)
+        return
+      }
+      setProgress({done: 0, total: eligible.length})
+      const items = eligible.map(({path}) => ({path}))
+      const {processed} = await processForSend(items, false, (done, total) => {
+        if (!unmountedRef.current) {
+          setProgress({done, total})
+        }
+      })
+      if (unmountedRef.current) {
+        discardProcessedOutputs(items, processed)
+        return
+      }
+      setProgress(undefined)
+      const withheld = eligible.filter((_, i) => {
+        const r = processed[i]
+        return !r || r.error !== undefined
+      })
+      if (withheld.length) {
+        discardProcessedOutputs(items, processed)
+        endSubmit()
+        setOriginalsBlocked(true)
+        const names = withheld.map(({path}) => T.FS.getLocalPathName(path)).join(', ')
+        setError(
+          withheld.length === 1
+            ? `Couldn't convert ${names} to JPEG. The original can include its location, so it isn't sent as is.`
+            : `Couldn't convert ${names} to JPEG. The originals can include their location, so they aren't sent as they are.`
+        )
+        return
+      }
+      const next = [...effective]
+      eligible.forEach(({idx}, i) => {
+        const cur = next[idx]
+        if (cur) {
+          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
+        }
+      })
+      if (!upload(next)) {
+        discardProcessedOutputs(items, processed)
+      }
+    }
+
+    if (skipProcessing) {
+      C.ignorePromise(sendOriginals())
       return
     }
 
@@ -455,7 +522,7 @@ const ContainerInner = (ownProps: OwnProps) => {
             />
           ) : null}
           {/* Send retries the export; this is the way out when it keeps failing. */}
-          {error ? (
+          {error && !originalsBlocked ? (
             <Kb.Button
               disabled={!!progress || !resolvedTlfName}
               type="Dim"

@@ -63,6 +63,17 @@ describe('canProcess', () => {
     expect(canProcess('/tmp/photo.tiff/notanimage')).toBe(false)
   })
 
+  // Each would otherwise be uploaded as is, location metadata included: the
+  // extension names a shared image by its type's preferred extension.
+  it('includes every camera RAW and photo format ImageIO reads', () => {
+    const exts = ['crw', 'nefx', 'nrw', 'srf', 'sr2', 'axr', 'ori', 'raw', 'rwl', 'pef', 'srw', 'erf']
+    exts.push('3fr', 'fff', 'dcr', 'mrw', 'mos', 'iiq', 'dxo', 'heics', 'hif', 'avci', 'jxl', 'jp2')
+    exts.push('jpf', 'jpx', 'j2k', 'mpo', 'psd', 'jpe')
+    for (const ext of exts) {
+      expect(canProcess(`/tmp/photo.${ext}`)).toBe(true)
+    }
+  })
+
   it('excludes gifs and non-media', () => {
     expect(canProcess('/tmp/anim.gif')).toBe(false)
     expect(canProcess('/tmp/doc.pdf')).toBe(false)
