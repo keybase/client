@@ -56,6 +56,14 @@ class IncomingShareRelay {
     @Synchronized
     fun peek(): Share? = held
 
+    // Puts back a share saved with an Activity's state, for when the process
+    // that held it was killed. A share begun in this process is newer, and wins.
+    @Synchronized
+    fun restore(share: Share) {
+        if (lastToken != 0L) return
+        fill(begin(), share)
+    }
+
     private fun deliverLocked() {
         val share = held ?: return
         val emit = sink ?: return

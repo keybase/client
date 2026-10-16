@@ -98,4 +98,30 @@ class IncomingShareRelayTest {
         assertEquals(emptyList<IncomingShareRelay.Share>(), old.got)
         assertEquals(listOf(text("a")), current.got)
     }
+
+    @Test
+    fun aRestoredShareIsHeldUntilJSIsReady() {
+        val relay = IncomingShareRelay()
+        relay.restore(text("saved"))
+        assertEquals(text("saved"), relay.peek())
+
+        val sink = Sink()
+        relay.attach(sink, sink::emit)
+        assertEquals(listOf(text("saved")), sink.got)
+    }
+
+    @Test
+    fun aShareBegunInThisProcessIsNotReplacedByARestoredOne() {
+        val relay = IncomingShareRelay()
+        relay.fill(relay.begin(), text("newer"))
+        relay.restore(text("saved"))
+        assertEquals(text("newer"), relay.peek())
+
+        val delivered = IncomingShareRelay()
+        val sink = Sink()
+        delivered.attach(sink, sink::emit)
+        delivered.fill(delivered.begin(), text("newer"))
+        delivered.restore(text("saved"))
+        assertEquals(listOf(text("newer")), sink.got)
+    }
 }
