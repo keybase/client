@@ -59,7 +59,15 @@ public class ShareViewController: UIViewController {
     case done, stalled, cancelled
   }
 
-  private static let manifestFailedMessage = "These items couldn't be saved for sharing."
+  private var itemCount = 0
+
+  private var manifestFailedMessage: String {
+    itemCount == 1 ? "This item couldn't be saved for sharing." : "These items couldn't be saved for sharing."
+  }
+
+  private var stalledMessage: String {
+    itemCount == 1 ? "Preparing this item took too long." : "Preparing these items took too long."
+  }
 
   func openApp() {
     let path = selectedConvID.map { "keybase://incoming-share/\($0)" } ?? "keybase://incoming-share"
@@ -105,11 +113,12 @@ public class ShareViewController: UIViewController {
       let failed = iph?.failedCount ?? 0
       if iph?.manifestWritten == false {
         log.error("share failed: manifest not written")
-        afterAlert { self.showFailureAndCancel(message: Self.manifestFailedMessage) }
+        afterAlert { self.showFailureAndCancel(plural: self.itemCount != 1, message: self.manifestFailedMessage) }
       } else if !(iph?.hasPreparedItems ?? false) && failed > 0 {
         log.error("share failed: none of \(failed, privacy: .public) items could be prepared")
         afterAlert {
           self.showFailureAndCancel(
+            plural: failed != 1,
             message: failed == 1
               ? "This item couldn't be prepared for sharing."
               : "None of these \(failed) items could be prepared for sharing.")
@@ -128,8 +137,9 @@ public class ShareViewController: UIViewController {
         } else {
           // Items were ready but couldn't be saved, or none were ready in time.
           self.showFailureAndCancel(
+            plural: self.itemCount != 1,
             message: self.iph?.hasPreparedItems == true
-              ? Self.manifestFailedMessage : "Preparing these items took too long.")
+              ? self.manifestFailedMessage : self.stalledMessage)
         }
       }
     case .cancelled:
@@ -158,7 +168,7 @@ public class ShareViewController: UIViewController {
   // after failureAlertTimeout, whichever comes first. If afterAlert gave up on
   // the progress alert it is still on screen and UIKit would refuse a second
   // alert, so the share ends right away instead.
-  private func showFailureAndCancel(message: String) {
+  private func showFailureAndCancel(plural: Bool, message: String) {
     guard !requestEnded else { return }
     // The app isn't opened for this share, so its manifest of failures has no
     // reader.
@@ -169,7 +179,7 @@ public class ShareViewController: UIViewController {
       return
     }
     let failure = UIAlertController(
-      title: "Couldn't prepare these items", message: message, preferredStyle: .alert)
+      title: plural ? "Couldn't prepare these items" : "Couldn't prepare this item", message: message, preferredStyle: .alert)
     failure.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in self?.cancelRequest() })
     DispatchQueue.main.asyncAfter(deadline: .now() + Self.failureAlertTimeout) { [weak self] in
       self?.cancelRequest()
@@ -283,6 +293,7 @@ public class ShareViewController: UIViewController {
       ($0 as? NSExtensionItem)?.attachments
     } ?? []
 
+    itemCount = itemArrs.reduce(0) { $0 + $1.count }
     iph = ItemProviderHelper(forShare: true, withItems: itemArrs) { [weak self] in
       self?.finish(.done)
     }
