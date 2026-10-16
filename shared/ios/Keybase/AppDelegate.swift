@@ -285,7 +285,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     while let presented = top?.presentedViewController {
       top = presented
     }
-    guard let top else { return }
+    // One alert is enough when drops fail back to back.
+    guard let top, !(top is UIAlertController) else { return }
     let alert = UIAlertController(
       title: "Couldn't add these items", message: "Please try dropping them again.", preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: "OK", style: .default))
