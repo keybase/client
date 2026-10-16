@@ -4,11 +4,12 @@ import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 
-// a phone: no split layout
+// a phone: no split layout, so threads open on their own screen
 jest.mock('@/constants/chat/common', () => ({
   ...jest.requireActual('@/constants/chat/common'),
   getSelectedConversation: jest.fn(),
   isSplit: false,
+  threadRouteName: 'chatConversation',
 }))
 
 import * as Common from '@/constants/chat/common'
@@ -70,7 +71,11 @@ test('a reselect while the create error screen is up does not pop to the inbox',
 })
 
 // the real "we are on a dead conversation" case still has to bounce
-test('a reselect with nothing selected still goes to the inbox on mobile', () => {
+test('a reselect while a phone thread screen has no conversation goes to the inbox', () => {
+  nav = installFakeNavigator({
+    modalRouteNames: ['incomingShareNew'],
+    rootState: makeRootState({above: [{name: Common.threadRouteName}]}),
+  })
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
@@ -85,6 +90,45 @@ test('a reselect with nothing selected still goes to the inbox on mobile', () =>
 // are on. Only the chat tab's own stack gets popped.
 test('a reselect while another tab is up leaves that tab alone', () => {
   nav = installFakeNavigator({rootState: makeRootState({tab: Tabs.teamsTab})})
+  mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
+
+  maybeChangeSelectedConversation(layout({newConvID}))
+
+  runDeferredNavigation()
+  expect(nav.actions).toEqual([])
+})
+
+// The inbox is already where the bounce would go, and navigateToInbox focusing the chat stack
+// pops every screen above the tabs, so it must not run for screens it does not own.
+test('a reselect while the inbox is showing does not navigate', () => {
+  mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
+
+  maybeChangeSelectedConversation(layout({newConvID}))
+
+  runDeferredNavigation()
+  expect(nav.actions).toEqual([])
+})
+
+// The share picker opens over the chat tab's inbox, where nothing is selected. Inbox layouts keep
+// arriving while it is up and must not close it.
+test('a reselect while the share picker is over the inbox leaves the picker up', () => {
+  nav = installFakeNavigator({
+    modalRouteNames: ['incomingShareNew'],
+    rootState: makeRootState({above: [{name: 'incomingShareNew'}]}),
+  })
+  mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
+
+  maybeChangeSelectedConversation(layout({newConvID}))
+
+  runDeferredNavigation()
+  expect(nav.actions).toEqual([])
+})
+
+test('a reselect while a modal is over an empty thread screen leaves the modal up', () => {
+  nav = installFakeNavigator({
+    modalRouteNames: ['incomingShareNew'],
+    rootState: makeRootState({above: [{name: Common.threadRouteName}, {name: 'incomingShareNew'}]}),
+  })
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))

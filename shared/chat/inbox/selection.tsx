@@ -9,7 +9,7 @@
 // their open thread stays where the user put it.
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
-import {navigateToInbox, navigateToThread} from '@/constants/router'
+import {getVisibleScreen, navigateToInbox, navigateToThread} from '@/constants/router'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from './layout-state'
@@ -112,8 +112,14 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
   }
 
   if (!Common.isSplit) {
-    // a phone's thread screen with no conversation on it goes back to the inbox
-    if (!T.Chat.isValidConversationIDKey(selected)) {
+    // A phone's thread screen with no conversation on it goes back to the inbox, but only while that
+    // thread screen is what the user sees. Whatever else is up (the inbox, a modal such as the share
+    // picker, another screen pushed above the tabs) belongs to someone else, and navigateToInbox
+    // focuses the chat stack, which pops every screen stacked above the tabs.
+    if (
+      getVisibleScreen(true)?.name === Common.threadRouteName &&
+      !T.Chat.isValidConversationIDKey(selected)
+    ) {
       logger.info('maybeChangeSelectedConversation: no conversation selected, so go to inbox')
       navigateToInbox(false)
     }
