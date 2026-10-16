@@ -114,6 +114,16 @@ func (r *ChatArchiveRegistry) initLocked(ctx context.Context) error {
 		return nil
 	}
 	found, err := r.edb.Get(ctx, r.dbKey(), &r.jobHistory)
+	// The job history (including paused or running jobs) is not rebuildable
+	// from the server, so only drop it when it can never be decrypted on this
+	// device. A box this client can't decode may be readable by a newer one.
+	if errors.Is(err, encrypteddb.ErrDecryptionFailed) {
+		r.G().Log.CWarningf(ctx, "ChatArchiveRegistry: deleting unreadable job history: %s", err)
+		if err := r.edb.Delete(ctx, r.dbKey()); err != nil {
+			return err
+		}
+		found, err = false, nil
+	}
 	if err != nil {
 		return err
 	}

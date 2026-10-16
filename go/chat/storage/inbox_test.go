@@ -3,13 +3,16 @@ package storage
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"slices"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -966,19 +969,273 @@ func TestInboxMemCacheClearOnlyUID(t *testing.T) {
 	inboxMemCache.clearCache()
 }
 
-func TestInboxClearLockedIndexErrorKeepsVersions(t *testing.T) {
-	tc, inbox, uid := setupInboxTest(t, "clridx")
+func TestInboxClearLockedCorruptIndexClearsAll(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clridx", fixedKeyFn(&key))
 	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
 
 	conv := makeConvo(gregor1.Time(1), 1, 1)
-	require.NoError(t, inbox.Merge(context.TODO(), uid, 3, []chat1.Conversation{conv.Conv}, nil))
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 3}))
 	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbIndexKey(uid), []byte("not-a-box")))
 	inboxMemCache.Clear(uid)
 
-	err := inbox.clearLocked(context.TODO(), uid)
-	require.Error(t, err)
+	require.NoError(t, inbox.clearLocked(ctx, uid))
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "clearLocked must clear %v when the index cannot be read", k)
+	}
+}
 
-	_, found, gerr := tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uid))
+// setupInboxNoSignupTest makes uid the active device's user without a server
+// signup and points the inbox at a caller-controlled secretbox key function.
+func setupInboxNoSignupTest(t *testing.T, name string, keyFn encrypteddb.KeyFn) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
+	tc := setupCommonTest(t, name)
+	kuid := libkb.UsernameToUID("testuser")
+	deviceID, err := libkb.NewDeviceID()
+	require.NoError(t, err)
+	require.NoError(t, tc.G.ActiveDevice.Set(libkb.NewMetaContextForTest(tc.TestContext),
+		keybase1.UserVersion{Uid: kuid, EldestSeqno: 1}, deviceID, nil, nil, "testuser-mac", 0,
+		libkb.KeychainModeNone))
+	inbox := NewInbox(tc.Context())
+	inbox.encryptedDB = encrypteddb.New(tc.G,
+		func(g *libkb.GlobalContext) *libkb.JSONLocalDb { return g.LocalChatDb }, keyFn)
+	return tc, inbox, gregor1.UID(kuid.ToBytes())
+}
+
+func fixedKeyFn(key *[32]byte) encrypteddb.KeyFn {
+	return func(context.Context) ([32]byte, error) { return *key, nil }
+}
+
+func TestInboxUndecryptableIsClearedThenMisses(t *testing.T) {
+	var key [32]byte
+	key[0] = 1
+	tc, inbox, uid := setupInboxNoSignupTest(t, "undecryptable", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	convs := []types.RemoteConversation{makeConvo(gregor1.Time(1), 1, 1), makeConvo(gregor1.Time(2), 1, 1)}
+	index := inboxDiskIndex{}
+	keys := []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid)}
+	for _, conv := range convs {
+		convKey := inbox.dbConvKey(uid, conv.GetConvID())
+		require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+		index.ConversationIDs = append(index.ConversationIDs, conv.GetConvID())
+		keys = append(keys, convKey)
+	}
+	// A conv key the index does not list must be cleared too.
+	orphan := makeConvo(gregor1.Time(3), 1, 1)
+	orphanKey := inbox.dbConvKey(uid, orphan.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, orphanKey, orphan))
+	keys = append(keys, orphanKey)
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid), index))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 9}))
+	// Another user's inbox must survive.
+	otherUID := gregor1.UID(libkb.UsernameToUID("testuser-other").ToBytes())
+	otherKey := inbox.dbConvKey(otherUID, orphan.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, otherKey, orphan))
+
+	// The device keys changed, so the stored boxes no longer decrypt.
+	key[0] = 2
+	inboxMemCache.Clear(uid)
+
+	_, err := inbox.Version(ctx, uid)
+	require.Error(t, err)
+	require.True(t, err.ShouldClear())
+	require.Contains(t, err.Error(), encrypteddb.ErrDecryptionFailed.Error())
+
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "undecryptable inbox key %v must be cleared", k)
+	}
+	_, found, gerr := tc.G.LocalChatDb.GetRaw(otherKey)
 	require.NoError(t, gerr)
-	require.True(t, found, "clearLocked must not delete versions when the index cannot be read")
+	require.True(t, found, "another user's inbox must not be cleared")
+	require.ErrorAs(t, inbox.Clear(ctx, otherUID), new(MissError))
+	_, found, gerr = tc.G.LocalChatDb.GetRaw(otherKey)
+	require.NoError(t, gerr)
+	require.True(t, found, "clearing a uid that is not the session's must be a miss")
+
+	vers, err := inbox.Version(ctx, uid)
+	require.NoError(t, err)
+	require.Zero(t, vers)
+	_, _, err = inbox.Read(ctx, uid, nil)
+	require.ErrorAs(t, err, new(MissError))
+}
+
+func TestInboxKeyFetchErrorDoesNotClear(t *testing.T) {
+	var key [32]byte
+	var keyErr error
+	keyFn := func(context.Context) ([32]byte, error) { return key, keyErr }
+	tc, inbox, uid := setupInboxNoSignupTest(t, "keyerr", keyFn)
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	inboxMemCache.Clear(uid)
+
+	keyErr = libkb.KeyCannotDecryptError{}
+	_, err := inbox.Version(ctx, uid)
+	require.Error(t, err)
+	require.False(t, err.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a key fetch failure must not clear %v", k)
+	}
+
+	keyErr = nil
+	vers, err := inbox.Version(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, chat1.InboxVers(5), vers)
+
+	// Versions are now cached in memory; with the index cached too, Read
+	// reaches the conv boxes on disk and the key fetch fails there.
+	inboxMemCache.PutIndex(uid, &inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}})
+	keyErr = libkb.KeyCannotDecryptError{}
+	_, _, err = inbox.Read(ctx, uid, &chat1.GetInboxQuery{AllowUnseenQuery: true})
+	require.Error(t, err)
+	require.False(t, err.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a key fetch failure reading convs must not clear %v", k)
+	}
+}
+
+func TestInboxNewerCryptoVersionIsClearedThenMisses(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "newercrypto", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	// Same wire shape as encrypteddb's box, written by a client with a newer
+	// crypto version.
+	newer, err := libkb.MPackEncode(struct {
+		V int
+		N [24]byte
+		E []byte
+	}{V: 2, E: []byte("sealed-by-newer-client")})
+	require.NoError(t, err)
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbVersionsKey(uid), newer))
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbIndexKey(uid), newer))
+	inboxMemCache.Clear(uid)
+
+	_, ierr := inbox.Version(ctx, uid)
+	require.Error(t, ierr)
+	require.True(t, ierr.ShouldClear())
+	for _, k := range []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid)} {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "an inbox box from a newer crypto version must be cleared: %v", k)
+	}
+	vers, ierr := inbox.Version(ctx, uid)
+	require.NoError(t, ierr)
+	require.Zero(t, vers)
+}
+
+func TestInboxClearAbortedOrStaleSessionKeepsInbox(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clearstale", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	keys := []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey}
+	requireKept := func(msg string) {
+		for _, k := range keys {
+			_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+			require.NoError(t, gerr)
+			require.True(t, found, "%s must not clear %v", msg, k)
+		}
+	}
+
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	require.ErrorAs(t, inbox.Clear(cancelled, uid), new(AbortedError))
+	requireKept("a cancelled request")
+
+	// A request stamped by the previous chat session must not wipe the
+	// inbox the current session owns.
+	stale := globals.CtxStampChatSession(ctx, tc.Context())
+	tc.Context().MarkChatReady()
+	require.ErrorAs(t, inbox.Clear(stale, uid), new(AbortedError))
+	requireKept("a stale chat session")
+
+	require.NoError(t, inbox.Clear(globals.CtxStampChatSession(ctx, tc.Context()), uid))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "a current-session clear must remove %v", k)
+	}
+}
+
+type keyScanFailingDb struct {
+	libkb.LocalDb
+	err error
+}
+
+func (d keyScanFailingDb) KeysWithPrefixes(...[]byte) (libkb.DBKeySet, error) {
+	return nil, d.err
+}
+
+func TestInboxClearKeyScanErrorKeepsInbox(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clearscanerr", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	keys := []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey}
+
+	realDb := tc.G.LocalChatDb
+	tc.G.LocalChatDb = libkb.NewJSONLocalDb(keyScanFailingDb{
+		LocalDb: realDb.GetEngine(),
+		err:     errors.New("iterator failed"),
+	})
+	err := inbox.Clear(ctx, uid)
+	tc.G.LocalChatDb = realDb
+	require.ErrorAs(t, err, new(InternalError))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a failed conv key scan must not clear %v", k)
+	}
+
+	require.NoError(t, inbox.Clear(ctx, uid))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "the retried clear must remove %v", k)
+	}
 }

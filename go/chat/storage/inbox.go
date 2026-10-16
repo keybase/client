@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -179,11 +180,16 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 	}
 }
 
+// diskReadError returns a clearing InternalError only when the stored bytes
+// themselves are unusable by this client, including boxes from a newer crypto
+// version (the inbox is rebuilt from the server). Anything else, such as
+// failing to fetch the secretbox key, can be transient and must not wipe the
+// inbox.
 func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
-	if _, ok := err.(libkb.LoginRequiredError); ok {
-		return MiscError{Msg: err.Error()}
+	if encrypteddb.IsUnusableData(err) {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
 	}
-	return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
+	return MiscError{Msg: fmt.Sprintf("failed to read inbox: uid: %s err: %s", uid, err)}
 }
 
 func (i *Inbox) maybeNuke(ctx context.Context, ef func() Error, uid gregor1.UID) {
@@ -716,6 +722,9 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 		}
 
 		if convs, err = i.readConvs(ctx, uid, iboxIndex.ConversationIDs); err != nil {
+			if _, ok := err.(MissError); !ok {
+				return 0, nil, err
+			}
 			i.Debug(ctx, "Read: unexpected miss on index read: %s", err)
 			return 0, nil, NewInternalError(ctx, i.DebugLabeler, "index out of sync with convs")
 		}
@@ -728,18 +737,32 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	return iboxVers.InboxVersion, res, nil
 }
 
+// clearLocked finds the conversation keys by key prefix instead of through the
+// encrypted index, because it must work when the stored boxes no longer
+// decrypt (the device keys changed).
 func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "clearLocked")()
 	defer func() { ierr = i.castInternalError(err) }()
-	var iboxIndex inboxDiskIndex
-	if iboxIndex, err = i.readDiskIndex(ctx, uid, true); err != nil {
-		i.Debug(ctx, "Clear: failed to read index: %s", err)
+	if err := isAbortedRequest(ctx); err != nil {
 		return err
 	}
-	for _, convID := range iboxIndex.ConversationIDs {
-		if ierr := i.G().LocalChatDb.Delete(i.dbConvKey(uid, convID)); ierr != nil {
-			msg := fmt.Sprintf("error clearing conv: convID: %s err: %s", convID, ierr)
+	if globals.ChatSessionStale(ctx, i.G()) {
+		return NewAbortedError()
+	}
+	if err := i.missIfWrongSessionUID(uid); err != nil {
+		return err
+	}
+	convPrefix := libkb.DbKey{Typ: libkb.DBChatInboxConvs, Key: uid.String()}
+	convKeys, lerr := i.G().LocalChatDb.KeysWithPrefixes(convPrefix.ToBytes())
+	if lerr != nil {
+		// Keep versions and index so the next attempt retries the whole
+		// clear instead of reading a miss over leftover conv keys.
+		return NewInternalError(ctx, i.DebugLabeler, "error listing inbox convs: err: %s", lerr)
+	}
+	for key := range convKeys {
+		if ierr := i.G().LocalChatDb.Delete(key); ierr != nil {
+			msg := fmt.Sprintf("error clearing conv: key: %s err: %s", key.Key, ierr)
 			err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
 			i.Debug(ctx, msg)
 		}

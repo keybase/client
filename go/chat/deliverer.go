@@ -452,10 +452,11 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	status, res, err := s.G().AttachmentUploader.Status(ctx, obr.OutboxID)
 	if err != nil {
 		// If the uploader's stored state cannot be read back (e.g. the encrypted
-		// status file is corrupt and fails to decrypt), retrying can never recover
-		// and would block delivery of every later message queued behind it in this
-		// conversation. Fail permanently in that case so the outbox can drain.
-		perm := errors.Is(err, encrypteddb.ErrDecryptionFailed)
+		// status file is torn, fails to decrypt, or was written by a newer
+		// client), retrying can never recover and would block delivery of every
+		// later message queued behind it in this conversation. Fail permanently
+		// in that case so the outbox can drain.
+		perm := encrypteddb.IsUnusableData(err)
 		return obr, NewAttachmentUploadError(err.Error(), perm)
 	}
 	switch status {

@@ -15,6 +15,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -419,19 +420,8 @@ func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
 		opts := &opt.ReadOptions{DontFillCache: true}
 		for _, prefix := range prefixes {
-			iter := l.db.NewIterator(util.BytesPrefix(prefix), opts)
-			for iter.Next() {
-				_, dbKey, err := DbKeyParse(string(iter.Key()))
-				if err != nil {
-					iter.Release()
-					return err
-				}
-				m[dbKey] = struct{}{}
-			}
-			iter.Release()
-			err := iter.Error()
-			if err != nil {
-				return nil
+			if err := collectDbKeys(l.db.NewIterator(util.BytesPrefix(prefix), opts), m); err != nil {
+				return err
 			}
 		}
 		return nil
@@ -441,6 +431,20 @@ func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	}
 
 	return m, nil
+}
+
+// collectDbKeys adds every key iter yields to m and releases iter. An
+// iterator error means the key list is incomplete, so it is returned.
+func collectDbKeys(iter iterator.Iterator, m map[DbKey]struct{}) error {
+	defer iter.Release()
+	for iter.Next() {
+		_, dbKey, err := DbKeyParse(string(iter.Key()))
+		if err != nil {
+			return err
+		}
+		m[dbKey] = struct{}{}
+	}
+	return iter.Error()
 }
 
 type LevelDbTransaction struct {
