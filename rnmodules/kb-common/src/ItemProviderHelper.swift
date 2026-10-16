@@ -122,24 +122,24 @@ public class ItemProviderHelper: NSObject {
   }
 
   // Stops waiting on loads still in flight and writes the manifest from the
-  // items that finished. Returns whether there is anything to share. Main
-  // thread only.
+  // items that finished (empty if none, so an older share's manifest can't be
+  // picked up). Returns whether there is anything to share. Main thread only.
   @objc public func finishEarly() -> Bool {
     guard !done else { return false }
     done = true
     progress.cancel()
-    let hasItems = !manifest.isEmpty
-    if hasItems {
-      writeManifest()
-    }
-    return hasItems
+    writeManifest()
+    return !manifest.isEmpty
   }
 
-  // Abandons the share: in-flight loads are cancelled and no manifest is
-  // written. Main thread only.
+  // Abandons the share: in-flight loads are cancelled and an empty manifest
+  // replaces any older one. Main thread only.
   @objc public func cancel() {
+    guard !done else { return }
     done = true
     progress.cancel()
+    typeToArray = [:]
+    writeManifest()
   }
 
   private static func getIncomingShareFolder() -> URL {
