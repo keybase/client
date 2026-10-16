@@ -66,8 +66,8 @@ public class ItemProviderHelper: NSObject {
   private var preparedItems: [[String: Any]] = []
   private var failedItems: [[String: Any]] = []
 
-  // The attachments startProcessing set out to load, which is every one the
-  // share carries. Main thread only.
+  // The attachments startProcessing set out to load: every one the share
+  // carries except a host object its text or link covers. Main thread only.
   @objc public private(set) var itemCount = 0
 
   // Items that failed to load or copy. Valid once the manifest is written.
@@ -755,8 +755,8 @@ public class ItemProviderHelper: NSObject {
         let itemOrder = order
         order += 1
         let types = item.registeredTypeIdentifiers
-        let best = ShareItemKind.best(of: types)
-        if let best, ShareItemKind.isHostObject(best.stype, besideTextOrLink: besideTextOrLink) {
+        let best = ShareItemKind.best(of: types, besideTextOrLink: besideTextOrLink)
+        if best == nil, !types.isEmpty {
           log.log(
             "item \(itemOrder, privacy: .public) offers \(ShareItemKind.publicDescription(of: types), privacy: .public); skipped, the share's text or link covers it"
           )

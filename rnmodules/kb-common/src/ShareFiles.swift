@@ -139,6 +139,13 @@ enum ShareItemKind: Int {
       && !type.isDynamic && !type.conforms(to: .content)
   }
 
+  // The type to load an attachment as, passing over host objects, so a real
+  // file the attachment also offers is loaded. nil when it offers no types,
+  // or only host objects.
+  static func best(of types: [String], besideTextOrLink: Bool) -> (stype: String, kind: ShareItemKind)? {
+    return best(of: types.filter { stype in !isHostObject(stype, besideTextOrLink: besideTextOrLink) })
+  }
+
   // Whether any of a share's attachments, each given by the types it offers,
   // is loaded as text or a link.
   static func carriesTextOrLink(_ attachments: [[String]]) -> Bool {
