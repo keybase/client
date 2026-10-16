@@ -757,9 +757,9 @@ func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	convPrefix := libkb.DbKey{Typ: libkb.DBChatInboxConvs, Key: uid.String()}
 	convKeys, lerr := i.G().LocalChatDb.KeysWithPrefixes(convPrefix.ToBytes())
 	if lerr != nil {
-		msg := fmt.Sprintf("error listing inbox convs: err: %s", lerr)
-		err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
-		i.Debug(ctx, msg)
+		// Keep versions and index so the next attempt retries the whole
+		// clear instead of reading a miss over leftover conv keys.
+		return NewInternalError(ctx, i.DebugLabeler, "error listing inbox convs: err: %s", lerr)
 	}
 	for key := range convKeys {
 		if key.Typ != convPrefix.Typ || !strings.HasPrefix(key.Key, convPrefix.Key) {

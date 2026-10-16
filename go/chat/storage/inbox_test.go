@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"slices"
 	"sort"
 	"testing"
@@ -1189,5 +1190,52 @@ func TestInboxClearAbortedOrStaleSessionKeepsInbox(t *testing.T) {
 		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
 		require.NoError(t, gerr)
 		require.False(t, found, "a current-session clear must remove %v", k)
+	}
+}
+
+type keyScanFailingDb struct {
+	libkb.LocalDb
+	err error
+}
+
+func (d keyScanFailingDb) KeysWithPrefixes(...[]byte) (libkb.DBKeySet, error) {
+	return nil, d.err
+}
+
+func TestInboxClearKeyScanErrorKeepsInbox(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clearscanerr", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	keys := []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey}
+
+	realDb := tc.G.LocalChatDb
+	tc.G.LocalChatDb = libkb.NewJSONLocalDb(keyScanFailingDb{
+		LocalDb: realDb.GetEngine(),
+		err:     errors.New("iterator failed"),
+	})
+	err := inbox.Clear(ctx, uid)
+	tc.G.LocalChatDb = realDb
+	require.ErrorAs(t, err, new(InternalError))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.True(t, found, "a failed conv key scan must not clear %v", k)
+	}
+
+	require.NoError(t, inbox.Clear(ctx, uid))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "the retried clear must remove %v", k)
 	}
 }
