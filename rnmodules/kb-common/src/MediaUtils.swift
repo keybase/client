@@ -103,15 +103,18 @@ public class MediaUtils: NSObject {
         // a full-size JPEG. A file this device's ImageIO can't identify (a newer
         // RAW, jxl before iOS 17) is an error, not a raw share: Send original
         // takes this path too, and must not upload a location it can't strip.
-        // With stripLocation, an image that would go as it is goes only once it
-        // carries no location; one the strip can't clean becomes a JPEG instead.
+        // An animation goes as it is too, like a gif, since the JPEG would keep
+        // one frame. With stripLocation, an image that would go as it is goes
+        // only once it carries no location; one the strip can't clean becomes a
+        // JPEG instead.
         if !compress {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
                 let typeID = CGImageSourceGetType(cgSource)
             else {
                 throw MediaUtilsError.imageProcessingFailed("Unrecognized image format")
             }
-            if let type = UTType(typeID as String), !mustTranscode(type),
+            if let type = UTType(typeID as String),
+                !mustTranscode(type) || isAnimation(cgSource, type: type),
                 !stripLocation || removeLocation(at: url)
             {
                 return url
@@ -151,6 +154,14 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
 
+        // An animation goes as it is, like a gif, once it carries no location;
+        // the JPEG would keep one frame.
+        if let typeID = CGImageSourceGetType(cgSource), let type = UTType(typeID as String),
+            isAnimation(cgSource, type: type), !hasLocation(url)
+        {
+            return url
+        }
+
         try recompressCGImageSource(
             cgSource, dstURL: compressedURL, options: fullSizeImageOptions,
             quality: MediaProcessingConfig.imageCompressionQuality)
@@ -167,6 +178,19 @@ public class MediaUtils: NSObject {
 
     private static func mustTranscode(_ type: UTType) -> Bool {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
+    }
+
+    // Formats whose frames are an animation. A multi-page TIFF or an MPO also has
+    // several images, but those aren't animations.
+    private static let animatableImageTypes: [String] = [
+        "com.compuserve.gif", "public.png", "org.webmproject.webp", "public.avif", "public.avis",
+        "public.heic", "public.heics",
+    ]
+
+    // More than one frame, read from the container without decoding any.
+    private static func isAnimation(_ source: CGImageSource, type: UTType) -> Bool {
+        return CGImageSourceGetCount(source) > 1
+            && animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false })
     }
 
     // edit carries the user's trim range and audio choice; nil means "the whole
