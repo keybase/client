@@ -506,7 +506,7 @@ public class ItemProviderHelper: NSObject {
     _ data: Data, from url: URL, mime: String, isVideo: Bool, sendLink: @escaping () -> Void
   ) {
     // An unregistered MIME type yields a dynamic UTType with no extension;
-    // the URL's extension or the sniff knows better.
+    // the URL's extension knows better.
     let type = (UTType(mimeType: mime) ?? UTType(filenameExtension: url.pathExtension.lowercased()))
       .flatMap { $0.preferredFilenameExtension != nil ? $0 : nil }
 
@@ -525,8 +525,9 @@ public class ItemProviderHelper: NSObject {
 
     // Written as served. Decoding a large image would blow the extension's
     // memory limit, so anything the app can't show as-is (webp, avif) is
-    // transcoded there.
-    guard let imageType = type ?? Self.sniffImageType(data),
+    // transcoded there. The bytes, not the label, decide: a server can serve an
+    // error page as image/*, and then the link is the better share.
+    guard let imageType = ShareFiles.imageType(of: data),
       imageType.preferredFilenameExtension != nil
     else {
       sendLink()
@@ -546,7 +547,7 @@ public class ItemProviderHelper: NSObject {
   // A provider that vends the image as bytes rather than a file (Safari's
   // image pages). Written as-is, like a download.
   private func sendImageData(_ data: Data, typeIdentifier: String, suggestedName: String?) {
-    guard let type = Self.sniffImageType(data) ?? UTType(typeIdentifier),
+    guard let type = ShareFiles.imageType(of: data) ?? UTType(typeIdentifier),
       type.preferredFilenameExtension != nil
     else {
       completeItemAndAppendManifestAndLogError(
@@ -562,14 +563,6 @@ public class ItemProviderHelper: NSObject {
     } catch {
       completeItemAndAppendManifestAndLogError(text: "sendImageData: write error", error: error)
     }
-  }
-
-  // Reads only the header, so it costs nothing next to a decode.
-  private static func sniffImageType(_ data: Data) -> UTType? {
-    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
-      let id = CGImageSourceGetType(source)
-    else { return nil }
-    return UTType(id as String)
   }
 
   private enum ImageEncodeError: Error {
