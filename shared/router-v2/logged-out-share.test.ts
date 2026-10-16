@@ -2,12 +2,7 @@
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {
-  holdLoggedOutLaunchLink,
-  holdLoggedOutShare,
-  loggedOutShareToHold,
-  releaseLoggedOutShare,
-} from './logged-out-share'
+import {holdLoggedOutLink, loggedOutShareToHold, releaseLoggedOutLink} from './logged-out-share'
 
 const pendingURL = () => useNavigationIntentsState.getState().intent?.url
 
@@ -16,7 +11,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   resetAllStores()
 })
 
@@ -35,62 +30,69 @@ describe('loggedOutShareToHold', () => {
 })
 
 test('a share made while logged out opens once someone logs in, and only once', () => {
-  holdLoggedOutShare('keybase://incoming-share/0000ab')
+  holdLoggedOutLink('keybase://incoming-share/0000ab')
   expect(pendingURL()).toBeUndefined()
 
   useConfigState.getState().dispatch.setLoggedIn(true)
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
 
   expect(pendingURL()).toBe('keybase://incoming-share')
   const {intent, dispatch} = useNavigationIntentsState.getState()
   dispatch.acknowledge(intent!.id)
 
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   expect(pendingURL()).toBeUndefined()
 })
 
 test('a share read after login has already happened goes straight to the router', () => {
   useConfigState.getState().dispatch.setLoggedIn(true)
 
-  holdLoggedOutShare('keybase://incoming-share')
+  holdLoggedOutLink('keybase://incoming-share')
 
   expect(pendingURL()).toBe('keybase://incoming-share')
 })
 
-test('a link that is not a share is not held', () => {
-  holdLoggedOutShare('keybase://convid/0000ab')
-  holdLoggedOutShare(undefined)
+test('the latest link while logged out wins, a share or not', () => {
+  holdLoggedOutLink('keybase://profile/show/testuser')
+  holdLoggedOutLink('keybase://convid/0000ab')
   useConfigState.getState().dispatch.setLoggedIn(true)
+  releaseLoggedOutLink()
+  expect(pendingURL()).toBe('keybase://convid/0000ab')
+})
 
-  releaseLoggedOutShare()
-
-  expect(pendingURL()).toBeUndefined()
+test('a share made after a launch link replaces it', () => {
+  holdLoggedOutLink('keybase://profile/show/testuser')
+  holdLoggedOutLink('keybase://incoming-share/0000ab')
+  holdLoggedOutLink(undefined)
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  releaseLoggedOutLink()
+  expect(pendingURL()).toBe('keybase://incoming-share')
 })
 
 test('the link that launched the app while logged out, of any kind, opens once someone logs in', () => {
-  holdLoggedOutLaunchLink('keybase://profile/show/testuser')
+  holdLoggedOutLink('keybase://profile/show/testuser')
   expect(pendingURL()).toBeUndefined()
 
   useConfigState.getState().dispatch.setLoggedIn(true)
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   expect(pendingURL()).toBe('keybase://profile/show/testuser')
   const {intent, dispatch} = useNavigationIntentsState.getState()
   dispatch.acknowledge(intent!.id)
 
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   expect(pendingURL()).toBeUndefined()
 })
 
 test('a share that launched the app is held without its conversation', () => {
-  holdLoggedOutLaunchLink('keybase://incoming-share/0000ab')
+  holdLoggedOutLink('keybase://incoming-share/0000ab')
   useConfigState.getState().dispatch.setLoggedIn(true)
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   expect(pendingURL()).toBe('keybase://incoming-share')
 })
 
 test('a link that is not keybase or a keybase web link is not held', () => {
-  holdLoggedOutLaunchLink('mailto:testuser@example.com')
+  holdLoggedOutLink('mailto:testuser@example.com')
   useConfigState.getState().dispatch.setLoggedIn(true)
-  releaseLoggedOutShare()
+  releaseLoggedOutLink()
   expect(pendingURL()).toBeUndefined()
 })

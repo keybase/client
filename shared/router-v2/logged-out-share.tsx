@@ -17,11 +17,13 @@ export const loggedOutShareToHold = (url: string): string | undefined => {
 
 // Logged out, the router has no linking config, so nothing reads the launch URL or listens for
 // links, and logging in keeps the same navigation container, which reads its launch URL only when
-// it mounts. So the link that launched the app, of any kind, and a share made while logged out wait
-// here, for this run only, and open for whoever logs in next. One waits at a time: the latest.
+// it mounts. So a link that arrives while logged out, the one that launched the app or a later one,
+// a share or not, waits here, for this run only, and opens for whoever logs in next. One waits at a
+// time: the latest.
 let heldLink: string | undefined
 
-const holdLink = (link: string | undefined) => {
+export const holdLoggedOutLink = (url: string | undefined) => {
+  const link = url ? (loggedOutShareToHold(url) ?? normalizeUrl(url)) : undefined
   if (!link) return
   if (useConfigState.getState().loggedIn) {
     emitDeepLink(link)
@@ -31,13 +33,7 @@ const holdLink = (link: string | undefined) => {
   heldLink = link
 }
 
-export const holdLoggedOutLaunchLink = (url: string | undefined) =>
-  holdLink(url ? (loggedOutShareToHold(url) ?? normalizeUrl(url)) : undefined)
-
-export const holdLoggedOutShare = (url: string | undefined) =>
-  holdLink(url ? loggedOutShareToHold(url) : undefined)
-
-export const releaseLoggedOutShare = () => {
+export const releaseLoggedOutLink = () => {
   const link = heldLink
   heldLink = undefined
   if (link) {

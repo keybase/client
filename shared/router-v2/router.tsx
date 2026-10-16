@@ -37,7 +37,7 @@ import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {takeLaunchURL} from './launch-url'
-import {holdLoggedOutLaunchLink, holdLoggedOutShare, releaseLoggedOutShare} from './logged-out-share'
+import {holdLoggedOutLink, releaseLoggedOutLink} from './logged-out-share'
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
@@ -707,20 +707,20 @@ function NativeRouter() {
     }
   }, [userSwitching, username])
 
-  // Without a linking config (logged out) the launch link, and a share from the iOS share
-  // extension, would be lost.
+  // Without a linking config (logged out) the launch link, and any link after it (a share from the
+  // iOS share extension among them), would be lost.
   React.useEffect(() => {
     if (!isIOS || !loggedInLoaded || loggedIn) return
     const holdLaunchLink = async () => {
-      holdLoggedOutLaunchLink(await takeLaunchURL())
+      holdLoggedOutLink(await takeLaunchURL())
     }
     C.ignorePromise(holdLaunchLink())
-    const sub = Linking.addEventListener('url', ({url}: {url: string}) => holdLoggedOutShare(url))
+    const sub = Linking.addEventListener('url', ({url}: {url: string}) => holdLoggedOutLink(url))
     return () => sub.remove()
   }, [loggedInLoaded, loggedIn])
   React.useEffect(() => {
     if (loggedIn) {
-      releaseLoggedOutShare()
+      releaseLoggedOutLink()
     }
   }, [loggedIn])
 
