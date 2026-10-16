@@ -28,6 +28,10 @@ protocol incomingShare {
     // Items in the share that can't be sent: ones the share extension failed to
     // prepare, and ones whose file is gone.
     int droppedCount;
+    // Which share this is: the same share handed out again carries the same
+    // id, so the app can tell a repeat from a newer share. Empty when there is
+    // no share.
+    string id;
   }
 
   IncomingShareItems getIncomingShareItems();

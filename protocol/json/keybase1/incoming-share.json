@@ -83,6 +83,10 @@
         {
           "type": "int",
           "name": "droppedCount"
+        },
+        {
+          "type": "string",
+          "name": "id"
         }
       ]
     },
