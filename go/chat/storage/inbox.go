@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"maps"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -728,18 +729,29 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	return iboxVers.InboxVersion, res, nil
 }
 
+// clearLocked finds the conversation keys by key prefix instead of through the
+// encrypted index, because it must work when the stored boxes no longer
+// decrypt (the device keys changed).
 func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "clearLocked")()
 	defer func() { ierr = i.castInternalError(err) }()
-	var iboxIndex inboxDiskIndex
-	if iboxIndex, err = i.readDiskIndex(ctx, uid, true); err != nil {
-		i.Debug(ctx, "Clear: failed to read index: %s", err)
+	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return err
 	}
-	for _, convID := range iboxIndex.ConversationIDs {
-		if ierr := i.G().LocalChatDb.Delete(i.dbConvKey(uid, convID)); ierr != nil {
-			msg := fmt.Sprintf("error clearing conv: convID: %s err: %s", convID, ierr)
+	convPrefix := libkb.DbKey{Typ: libkb.DBChatInboxConvs, Key: uid.String()}
+	convKeys, lerr := i.G().LocalChatDb.KeysWithPrefixes(convPrefix.ToBytes())
+	if lerr != nil {
+		msg := fmt.Sprintf("error listing inbox convs: err: %s", lerr)
+		err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
+		i.Debug(ctx, msg)
+	}
+	for key := range convKeys {
+		if key.Typ != convPrefix.Typ || !strings.HasPrefix(key.Key, convPrefix.Key) {
+			continue
+		}
+		if ierr := i.G().LocalChatDb.Delete(key); ierr != nil {
+			msg := fmt.Sprintf("error clearing conv: key: %s err: %s", key.Key, ierr)
 			err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
 			i.Debug(ctx, msg)
 		}
