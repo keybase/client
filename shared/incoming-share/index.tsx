@@ -104,7 +104,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
     if (shareID) {
-      routedShareIDs.add(shareID)
+      markShareRouted(shareID)
     }
     if (sendPaths.length > 0) {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
@@ -205,9 +205,14 @@ const isEmptyShare = (share: Share) => share.items.length === 0 && share.dropped
 export const nextShare = (prev: Share | undefined, next: Share): Share =>
   prev && !isEmptyShare(prev) && (isEmptyShare(next) || next.id === prev.id) ? prev : next
 
-// Shares sent straight to their conversation, by id. One that is handed out again (the link opened
-// a second time) is not sent there again: its text would be added to the draft twice.
-const routedShareIDs = new Set<string>()
+// The share last sent straight to its conversation. The service only ever hands out its last share
+// again, so if that comes back (the link opened a second time) it is not sent there again: its
+// text would be added to the draft twice.
+let lastRoutedShareID = ''
+const markShareRouted = (id: string) => {
+  lastRoutedShareID = id
+}
+const wasShareRouted = (id: string) => id !== '' && id === lastRoutedShareID
 
 // Incoming-share screens mounted on Android. A new share opens a new screen, and this one's cleanup
 // can run before it mounts, so the share is cleared only once no screen is left to show it.
@@ -234,7 +239,7 @@ const useIncomingShareItems = () => {
       enabled: isIOS,
       map: res => ({droppedCount: res.droppedCount, id: res.id, items: res.items || noShareItems}),
       onResult: next =>
-        setIncomingShare(prev => nextShare(prev, routedShareIDs.has(next.id) ? noIncomingShare : next)),
+        setIncomingShare(prev => nextShare(prev, wasShareRouted(next.id) ? noIncomingShare : next)),
     }
   )
 
