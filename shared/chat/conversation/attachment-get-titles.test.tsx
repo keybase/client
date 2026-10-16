@@ -575,7 +575,9 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       '/tmp/photo.jpg',
       'file:///tmp/photo.converted.jpg',
     ])
-    expect(deleted).toEqual([])
+    // once handed to upload, only the converted image's original is spent: the
+    // passthrough and the clip are the uploads themselves
+    expect(deleted).toEqual(['/tmp/photo.webp'])
   })
 
   test('with Keep full size, Send original keeps an original and its metadata', async () => {
@@ -620,8 +622,9 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     )
     // nothing was cancelled but the dropped item's own handle
     expect(rpc.params('cancelUploadTempFile')).toEqual([new Uint8Array([9])])
-    // the upload reads the converted copy, and no original is ever deleted
-    expect(deleted).toEqual([])
+    // the upload reads the converted copy, so only its original is spent; the
+    // dropped image and the passthrough keep theirs
+    expect(deleted).toEqual(['/tmp/good.webp'])
   })
 
   test('the titles stay with their items when Send original drops one', async () => {

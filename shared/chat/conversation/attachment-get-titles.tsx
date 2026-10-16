@@ -292,7 +292,9 @@ const ContainerInner = (ownProps: OwnProps) => {
         }
       })
       if (droppedLines.length === 0) {
-        if (!upload(effective.map((e, idx) => next[idx] ?? e))) {
+        if (upload(effective.map((e, idx) => next[idx] ?? e))) {
+          deleteConsumedSources(items, processed)
+        } else {
           discardProcessedOutputs(items, processed)
         }
         return
@@ -312,6 +314,12 @@ const ContainerInner = (ownProps: OwnProps) => {
       )
       if (upload(kept, keptTitles, `Not sent: ${droppedLines.join(' ')}`)) {
         cancelAttachmentUploads(droppedOutboxIDs)
+        // Only the sent ones are spent; a dropped image keeps its original.
+        const sentIdx = items.flatMap((_, i) => (processed[i] && processed[i].error === undefined ? [i] : []))
+        deleteConsumedSources(
+          sentIdx.flatMap(i => items[i] ?? []),
+          sentIdx.flatMap(i => processed[i] ?? [])
+        )
       } else {
         discardProcessedOutputs(items, processed)
       }
