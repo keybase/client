@@ -84,18 +84,18 @@ func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
 }
 
 func httpClient(g *libkb.GlobalContext, host string) *http.Client {
-	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
 		MinVersion: tls.VersionTLS12,
 	}
+	// Clone keeps DefaultTransport's dial, handshake, and idle timeouts.
+	// ForceAttemptHTTP2 stays set, so the custom TLS config does not disable HTTP/2.
+	xprt := http.DefaultTransport.(*http.Transport).Clone()
 	xprt.TLSClientConfig = tlsConfig
-	// Custom TLSClientConfig disables HTTP/2 unless this is set. The maps
-	// proxy negotiates h2 when SNI is maps.googleapis.com.
-	xprt.ForceAttemptHTTP2 = true
+	xprt.Proxy = libkb.MakeProxy(g.Env)
 	return &http.Client{
 		Transport: libkb.NewInstrumentedRoundTripper(g,
-			func(*http.Request) string { return "LocationShare" }, libkb.NewClosingRoundTripper(&xprt)),
+			func(*http.Request) string { return "LocationShare" }, libkb.NewClosingRoundTripper(xprt)),
 		Timeout: 10 * time.Second,
 	}
 }
