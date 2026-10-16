@@ -745,6 +745,12 @@ func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	var ierr error
 	defer i.Trace(ctx, &ierr, "clearLocked")()
 	defer func() { ierr = i.castInternalError(err) }()
+	if err := isAbortedRequest(ctx); err != nil {
+		return err
+	}
+	if globals.ChatSessionStale(ctx, i.G()) {
+		return NewAbortedError()
+	}
 	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return err
 	}

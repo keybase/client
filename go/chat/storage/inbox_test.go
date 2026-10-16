@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
@@ -1146,4 +1147,47 @@ func TestInboxNewerCryptoVersionIsClearedThenMisses(t *testing.T) {
 	vers, ierr := inbox.Version(ctx, uid)
 	require.NoError(t, ierr)
 	require.Zero(t, vers)
+}
+
+func TestInboxClearAbortedOrStaleSessionKeepsInbox(t *testing.T) {
+	var key [32]byte
+	tc, inbox, uid := setupInboxNoSignupTest(t, "clearstale", fixedKeyFn(&key))
+	defer tc.Cleanup()
+	defer inboxMemCache.Clear(uid)
+	ctx := context.TODO()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	convKey := inbox.dbConvKey(uid, conv.GetConvID())
+	require.NoError(t, inbox.writeDiskBox(ctx, convKey, conv))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbIndexKey(uid),
+		inboxDiskIndex{ConversationIDs: []chat1.ConversationID{conv.GetConvID()}}))
+	require.NoError(t, inbox.writeDiskBox(ctx, inbox.dbVersionsKey(uid),
+		inboxDiskVersions{Version: inboxVersion, InboxVersion: 5}))
+	keys := []libkb.DbKey{inbox.dbVersionsKey(uid), inbox.dbIndexKey(uid), convKey}
+	requireKept := func(msg string) {
+		for _, k := range keys {
+			_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+			require.NoError(t, gerr)
+			require.True(t, found, "%s must not clear %v", msg, k)
+		}
+	}
+
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	require.ErrorAs(t, inbox.Clear(cancelled, uid), new(AbortedError))
+	requireKept("a cancelled request")
+
+	// A request stamped by the previous chat session must not wipe the
+	// inbox the current session owns.
+	stale := globals.CtxStampChatSession(ctx, tc.Context())
+	tc.Context().MarkChatReady()
+	require.ErrorAs(t, inbox.Clear(stale, uid), new(AbortedError))
+	requireKept("a stale chat session")
+
+	require.NoError(t, inbox.Clear(globals.CtxStampChatSession(ctx, tc.Context()), uid))
+	for _, k := range keys {
+		_, found, gerr := tc.G.LocalChatDb.GetRaw(k)
+		require.NoError(t, gerr)
+		require.False(t, found, "a current-session clear must remove %v", k)
+	}
 }
