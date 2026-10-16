@@ -36,12 +36,17 @@ public class ShareViewController: UIViewController {
   private var lastAdvance = Date()
 
   // A share whose progress hasn't moved for this long is treated as hung and
-  // sent with what finished. iCloud originals that are still downloading keep
-  // advancing, so they are never cut off however long they take; the user can
-  // always tap Cancel.
-  private static let stallTimeout: TimeInterval = 30
-  // UIKit can drop a dismiss completion (e.g. a dismiss issued mid-transition),
-  // so the share never waits on one longer than this.
+  // sent with what finished. This is only a backstop for a loader that never
+  // returns: the user can tap Cancel at any time, and Photos/iCloud loaders
+  // (rendering an edited or slo-mo video, an indeterminate iCloud fetch) can
+  // sit for a long while without reporting progress, so it is generous.
+  private static let stallTimeout: TimeInterval = 120
+  // How often the stall check runs; it doesn't affect the deadline.
+  private static let stallCheckInterval: TimeInterval = 1
+  // UIKit can drop a present or dismiss completion (e.g. a dismiss issued
+  // mid-transition), so the share never waits on one longer than these. The
+  // present animation takes about 0.45s.
+  private static let presentFallback: TimeInterval = 3
   private static let dismissFallback: TimeInterval = 1.5
 
   private enum Outcome {
@@ -100,7 +105,7 @@ public class ShareViewController: UIViewController {
   // Runs action once the alert is gone, without depending on any one UIKit
   // callback: it waits for the present animation if that is still running,
   // skips the dismiss if the alert is already leaving, and falls back to a
-  // timer if the dismiss completion never comes.
+  // timer if a present or dismiss completion never comes.
   private func afterAlert(_ action: @escaping () -> Void) {
     var ran = false
     let once = {
@@ -108,35 +113,43 @@ public class ShareViewController: UIViewController {
       ran = true
       action()
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + Self.dismissFallback) {
-      if !ran {
-        log.error("share: alert never finished dismissing; completing anyway")
+    let dismiss = { [weak self] in
+      guard let alert = self?.alert, alert.presentingViewController != nil, !alert.isBeingDismissed
+      else {
+        once()
+        return
       }
-      once()
+      // Armed when the dismiss is issued, so a present still animating
+      // doesn't eat into it.
+      DispatchQueue.main.asyncAfter(deadline: .now() + Self.dismissFallback) {
+        if !ran {
+          log.error("share: alert never finished dismissing; completing anyway")
+        }
+        once()
+      }
+      alert.dismiss(animated: true) {
+        DispatchQueue.main.async(execute: once)
+      }
     }
     guard alert != nil else {
       once()
       return
     }
     if alertPresented {
-      dismissAlert(then: once)
+      dismiss()
     } else {
-      afterPresent = { [weak self] in self?.dismissAlert(then: once) }
-    }
-  }
-
-  private func dismissAlert(then done: @escaping () -> Void) {
-    guard let alert, alert.presentingViewController != nil, !alert.isBeingDismissed else {
-      done()
-      return
-    }
-    alert.dismiss(animated: true) {
-      DispatchQueue.main.async(execute: done)
+      afterPresent = dismiss
+      DispatchQueue.main.asyncAfter(deadline: .now() + Self.presentFallback) {
+        if !ran {
+          log.error("share: alert never finished presenting; completing anyway")
+        }
+        once()
+      }
     }
   }
 
   private func startWatchdog() {
-    let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+    let timer = Timer(timeInterval: Self.stallCheckInterval, repeats: true) { [weak self] _ in
       self?.checkForStall()
     }
     RunLoop.main.add(timer, forMode: .common)
