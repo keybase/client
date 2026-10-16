@@ -23,7 +23,14 @@ protocol incomingShare {
     union {null, string} content;
   }
 
-  array<IncomingShareItem> getIncomingShareItems();
+  record IncomingShareItems {
+    array<IncomingShareItem> items;
+    // Items in the share that can't be sent: ones the share extension failed to
+    // prepare, and ones whose file is gone.
+    int droppedCount;
+  }
+
+  IncomingShareItems getIncomingShareItems();
 
   enum IncomingShareCompressPreference {
     ORIGINAL_0,
