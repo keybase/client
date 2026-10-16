@@ -171,6 +171,15 @@ describe('processPaths', () => {
     expect(deleted).toEqual([])
   })
 
+  it('treats an empty native error as a failure and keeps every source', async () => {
+    processMediaMock.mockImplementation(async path =>
+      path === '/tmp/photo.jpg' ? Promise.reject(new Error('')) : Promise.resolve(`${path}.out`)
+    )
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    expect(out[1]).toEqual({error: 'Processing failed', path: '/tmp/photo.jpg'})
+    expect(deleted).toEqual([])
+  })
+
   it('keeps going after a failure so the rest of the batch still exports', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
