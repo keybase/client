@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"maps"
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -762,9 +761,6 @@ func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 		return NewInternalError(ctx, i.DebugLabeler, "error listing inbox convs: err: %s", lerr)
 	}
 	for key := range convKeys {
-		if key.Typ != convPrefix.Typ || !strings.HasPrefix(key.Key, convPrefix.Key) {
-			continue
-		}
 		if ierr := i.G().LocalChatDb.Delete(key); ierr != nil {
 			msg := fmt.Sprintf("error clearing conv: key: %s err: %s", key.Key, ierr)
 			err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
