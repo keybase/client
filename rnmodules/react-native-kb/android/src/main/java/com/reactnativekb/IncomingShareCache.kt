@@ -2,7 +2,9 @@ package com.reactnativekb
 
 import android.content.Context
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 
 // Sharing into the app copies the sender's content out of its content:// uri and
@@ -34,6 +36,19 @@ object IncomingShareCache {
             throw IOException("unable to create ${itemDir.path}")
         }
         return File(itemDir, name)
+    }
+
+    // Copies input into a new item file named name. On any failure nothing is
+    // left behind.
+    fun copyIn(context: Context, input: InputStream, name: String): File {
+        val file = newItemFile(context, name)
+        try {
+            FileOutputStream(file).use { output -> input.copyTo(output, 64 * 1024) }
+        } catch (e: Exception) {
+            discardItem(context, file)
+            throw e
+        }
+        return file
     }
 
     // Removes a copy made by newItemFile, along with its directory.
