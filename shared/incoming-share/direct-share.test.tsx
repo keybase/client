@@ -4,7 +4,6 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({setOptions: () => {}}),
@@ -36,39 +35,38 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('a text share to a suggested conversation still says which items were dropped', async () => {
+test('a text share to a suggested conversation carries the dropped-items notice into the thread', async () => {
   await shareToSuggestedConversation({
     droppedCount: 1,
     items: [{content: 'hello', type: T.RPCGen.IncomingShareType.text}],
   })
 
   expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {text: 'hello', type: 'injectText'},
+    intent: {notice: "1 of 2 items couldn't be prepared.", text: 'hello', type: 'injectText'},
   })
-  expect(useConfigState.getState().globalError?.message).toBe("1 of 2 items couldn't be prepared.")
 })
 
-test('a complete text share to a suggested conversation shows no error', async () => {
+test('a complete text share to a suggested conversation carries no notice', async () => {
   await shareToSuggestedConversation({
     droppedCount: 0,
     items: [{content: 'hello', type: T.RPCGen.IncomingShareType.text}],
   })
 
-  expect(C.Router2.navigateToThread).toHaveBeenCalled()
-  expect(useConfigState.getState().globalError).toBeUndefined()
+  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+    intent: {notice: undefined, text: 'hello', type: 'injectText'},
+  })
 })
 
 test('an attachment share to a suggested conversation carries the notice to the send screen', async () => {
+  const navigateAppend = jest.mocked(C.Router2.navigateAppend)
   await shareToSuggestedConversation({
     droppedCount: 1,
     items: [{originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image}],
   })
 
-  expect(C.Router2.navigateAppend).toHaveBeenCalledWith(
-    expect.objectContaining({
-      name: 'chatAttachmentGetTitles',
-      params: expect.objectContaining({notice: "1 of 2 items couldn't be prepared."}),
-    })
-  )
-  expect(useConfigState.getState().globalError).toBeUndefined()
+  const appended = navigateAppend.mock.calls[0]?.[0] as
+    | {name: string; params: {notice?: string}}
+    | undefined
+  expect(appended?.name).toBe('chatAttachmentGetTitles')
+  expect(appended?.params.notice).toBe("1 of 2 items couldn't be prepared.")
 })
