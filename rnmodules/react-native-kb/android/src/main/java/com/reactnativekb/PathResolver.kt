@@ -1,7 +1,6 @@
 package com.reactnativekb
 // part of https://raw.githubusercontent.com/RonRadtke/react-native-blob-util/master/android/src/main/java/com/ReactNativeBlobUtil/Utils/PathResolver.java
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
