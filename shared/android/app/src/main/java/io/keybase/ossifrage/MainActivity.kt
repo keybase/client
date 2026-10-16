@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.IntentCompat
+import androidx.core.text.HtmlCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -158,8 +159,24 @@ class MainActivity : ReactActivity() {
         }
         cachedIntent = intent
         pendingShareUris = extractSharedUris(intent)
-        pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-        pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        pendingShareSubject = sharedText(intent, Intent.EXTRA_SUBJECT)
+        pendingShareText = sharedText(intent, Intent.EXTRA_TEXT)
+            ?: sharedText(intent, Intent.EXTRA_HTML_TEXT)?.let {
+                HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().takeIf { t -> t.isNotBlank() }
+            }
+    }
+
+    // EXTRA_TEXT is a CharSequence, often a Spanned from rich-text senders, and an
+    // ArrayList of them for SEND_MULTIPLE; getStringExtra returns null for both.
+    // Blank text is no share at all.
+    private fun sharedText(intent: Intent, key: String): String? {
+        @Suppress("DEPRECATION")
+        val text = when (val extra = intent.extras?.get(key)) {
+            is CharSequence -> extra.toString()
+            is ArrayList<*> -> extra.filterIsInstance<CharSequence>().joinToString("\n")
+            else -> null
+        }
+        return text?.takeIf { it.isNotBlank() }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -234,6 +251,8 @@ class MainActivity : ReactActivity() {
         } else if (uris.isEmpty()) {
             if (textPayload.isNotEmpty()) {
                 emitShareText(textPayload)
+            } else {
+                NativeLogger.warn("MainActivity.handleIntent: share had no text or files, type=${intent.type}")
             }
         } else {
             // Copying out of the content providers can be slow for big files; don't
