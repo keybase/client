@@ -30,7 +30,10 @@ enum PayloadFileName {
   // The name long shared text is attached under: its first words, so the
   // attachment reads as what it is rather than a random name.
   static func forText(_ text: String) -> String {
-    let words = text.split(whereSeparator: { $0.isWhitespace }).prefix(6)
+    // Bounded: splitting the whole of a multi-megabyte text would build an
+    // array of every word in the extension's small memory budget.
+    let words = text.split(maxSplits: maxTextNameWords, omittingEmptySubsequences: true, whereSeparator: { $0.isWhitespace })
+      .prefix(maxTextNameWords)
     var snippet = ""
     for word in words {
       let next = snippet.isEmpty ? String(word) : "\(snippet) \(word)"
@@ -40,12 +43,17 @@ enum PayloadFileName {
     if snippet.isEmpty, let first = words.first {
       snippet = String(first.prefix(maxTextNameChars))
     }
+    // "word..txt" reads as a typo.
+    while snippet.hasSuffix(".") {
+      snippet.removeLast()
+    }
     // Named with .txt already, so a dot in the words ("see example.com") is
     // never taken for the extension.
     return make(
       candidates: snippet.isEmpty ? [] : ["\(snippet).txt"], type: .plainText, fallbackBase: "shared-text")
   }
   private static let maxTextNameChars = 40
+  private static let maxTextNameWords = 6
 
   // The name a downloaded video is saved under. The served MIME type wins, then
   // the URL's extension; with neither registered the name keeps whatever
