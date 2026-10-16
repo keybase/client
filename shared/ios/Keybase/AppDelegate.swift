@@ -22,7 +22,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
-  var iph: ItemProviderHelper?
+  // One per drop still being processed, so an overlapping drop can't free
+  // an earlier one before its completion runs.
+  private var dropHelpers: [ItemProviderHelper] = []
   private var startupLogFileHandle: FileHandle?
   private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
 
@@ -282,14 +284,10 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
 
-    // The completion reads this drop's helper; self.iph may already be a
-    // later drop's.
     weak var dropHelper: ItemProviderHelper?
     let helper = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
       guard let self, let helper = dropHelper else { return }
-      if self.iph === helper {
-        self.iph = nil
-      }
+      self.dropHelpers.removeAll { $0 === helper }
       // With no manifest the share screen shows its load error. One left
       // behind by a failed write would be an older share's, so don't open to
       // it.
@@ -302,7 +300,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
       _ = self.application(app, open: url, options: [:]) || RCTLinkingManager.application(app, open: url, options: [:])
     }
     dropHelper = helper
-    self.iph = helper
+    dropHelpers.append(helper)
     helper.startProcessing()
   }
 
