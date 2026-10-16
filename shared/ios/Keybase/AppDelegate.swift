@@ -280,6 +280,18 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     return UIDropProposal(operation: .copy)
   }
 
+  private func showDropFailedAlert(in window: UIWindow?) {
+    var top = window?.rootViewController
+    while let presented = top?.presentedViewController {
+      top = presented
+    }
+    guard let top else { return }
+    let alert = UIAlertController(
+      title: "Couldn't add these items", message: "Please try dropping them again.", preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "OK", style: .default))
+    top.present(alert, animated: true)
+  }
+
   public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
@@ -288,11 +300,12 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     let helper = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
       guard let self, let helper = dropHelper else { return }
       self.dropHelpers.removeAll { $0 === helper }
-      // With no manifest the share screen shows its load error. One left
-      // behind by a failed write would be an older share's, so don't open to
-      // it.
-      guard helper.manifestWritten || !helper.manifestExists else {
-        log.error("drop: manifest not written and an older one remains; not opening the share")
+      // Whatever is on disk after a failed write isn't this drop's manifest
+      // (the service may still hand out an older share), so the share is only
+      // opened to a manifest this drop wrote.
+      guard helper.manifestWritten else {
+        log.error("drop: manifest not written; not opening the share")
+        self.showDropFailedAlert(in: interaction.view?.window)
         return
       }
       let url = URL(string: "keybase://incoming-share")!
