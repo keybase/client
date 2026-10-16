@@ -78,7 +78,6 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   const {droppedMessage, incomingShareItems, selectedConversationIDKey} = props
   const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
-  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   // Always the untouched original: trimming and compression happen downstream on
   // the get-titles screen, so the extension's copy must not be pre-processed.
   const {sendPaths, text} = incomingShareItems.reduce(
@@ -119,14 +118,13 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
       })
     } else {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
-        intent: text === undefined ? undefined : {text, type: 'injectText'},
+        intent:
+          text === undefined
+            ? undefined
+            : {notice: droppedMessage || undefined, text, type: 'injectText'},
       })
-      // There is no send screen here to carry the notice.
-      if (droppedMessage) {
-        setGlobalError(new Error(droppedMessage))
-      }
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage, setGlobalError])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage])
 
   const footer = useFooter(incomingShareItems)
   const contentDescription = getContentDescriptionText(incomingShareItems)

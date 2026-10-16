@@ -308,6 +308,13 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           break
         case 'injectText':
           injectIntoInput(action.text)
+          if (action.notice) {
+            setCommandStatusInfo({
+              actions: [],
+              displayText: action.notice,
+              displayType: T.RPCChat.UICommandStatusDisplayTyp.warning,
+            })
+          }
           break
         case 'setEditing':
           setEditing(action.ordinal)
