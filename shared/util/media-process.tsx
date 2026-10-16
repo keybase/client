@@ -12,7 +12,11 @@ const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
 // Which of these are transcoded even with compression off is the native side's
 // call (MediaUtils.mustTranscode), by content type.
 const processableImageFileNameRegex =
-  /[^/]+\.(jpg|jpeg|jpe|png|bmp|heic|heics|heif|hif|avci|tiff|tif|webp|avif|jxl|jp2|jpf|jpx|j2k|mpo|psd|dng|cr2|cr3|crw|nef|nefx|nrw|arw|srf|sr2|axr|raf|orf|ori|rw2|raw|rwl|pef|srw|erf|3fr|fff|dcr|mrw|mos|iiq|dxo)$/i
+  /[^/]+\.(jpg|jpeg|jpe|png|bmp|heic|heics|heif|hif|avci|tiff|tif|webp|avif|jxl|jp2|jpf|jpx|j2k|j2c|mpo|psd|dng|cr2|cr3|crw|nef|nefx|nrw|arw|srf|sr2|axr|raf|orf|ori|rw2|raw|rwl|pef|srw|erf|3fr|fff|dcr|mrw|mos|iiq|dxo)$/i
+
+// A file chosen in the file picker is sent as a file: only these images, which the
+// app has always compressed, are re-encoded, and only when compressing.
+const pickedFileCompressibleImageRegex = /[^/]+\.(jpg|jpeg|png|bmp|heic|heif)$/i
 
 export const isVideoPath = (path: string) => videoFileNameRegex.test(path)
 
@@ -20,6 +24,9 @@ export const isProcessableImagePath = (path: string) => processableImageFileName
 
 // The single source of truth for "the native processor can handle this".
 export const canProcess = (path: string) => isVideoPath(path) || isProcessableImagePath(path)
+
+export const canCompressPickedFile = (path: string) =>
+  isVideoPath(path) || pickedFileCompressibleImageRegex.test(path)
 
 // A trim range plus the audio choice. endMs of 0 means "to the end of the clip",
 // so a range the user never moved off the tail stays a noop.

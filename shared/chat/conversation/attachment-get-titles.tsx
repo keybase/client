@@ -15,7 +15,9 @@ import {useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
 import logger from '@/logger'
 import {isKbfsPath} from './attachment-path'
+import {setInputIntent} from './input-intent-store'
 import {
+  canCompressPickedFile,
   canEdit,
   canProcess,
   deleteConsumedSources,
@@ -42,6 +44,9 @@ type OwnProps = {
   tlfName?: string
   // don't use the drag drop functionality, just upload the outbox IDs
   noDragDrop?: boolean
+  // Chosen in the file picker: sent as files, so only the images the app always
+  // compressed are re-encoded, and nothing is converted to another format.
+  pickedAsFiles?: boolean
 }
 
 type Info = {
@@ -66,6 +71,21 @@ export const pathToAttachmentType = (path: string) => {
   return 'file'
 }
 
+// Why Send original couldn't send an image, after its name. The native error
+// strings are MediaUtilsError's.
+const droppedReason = (error?: string) => {
+  if (error === undefined) {
+    return "couldn't be prepared."
+  }
+  if (error.startsWith('Invalid input: File does not exist')) {
+    return 'is no longer on this device.'
+  }
+  if (error.includes('Unrecognized image format')) {
+    return "is in a format this device can't read, and the original can include its location."
+  }
+  return "couldn't be converted to a JPEG, and the original can include its location."
+}
+
 // A throw is reported like a per-item failure, so Send always comes back to a
 // state the user can act on.
 const processForSend = async (
@@ -82,7 +102,7 @@ const processForSend = async (
 
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()
-  const {notice, titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
+  const {inputPrefillText, notice, pickedAsFiles, titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
@@ -114,7 +134,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
   const [error, setError] = React.useState<string | undefined>()
-  // Send original found an image it can neither convert nor send without its location.
+  // Send original couldn't send any of the items, so offering it again is pointless.
   const [originalsBlocked, setOriginalsBlocked] = React.useState(false)
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
@@ -170,7 +190,12 @@ const ContainerInner = (ownProps: OwnProps) => {
     setError(undefined)
     // Says whether the paths were handed off, so the caller knows whether the
     // export's sources are spent.
-    const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
+    // dropped is shown in the thread's status bar once the screen is gone.
+    const upload = (
+      paths: Array<T.Chat.PathAndOutboxID>,
+      uploadTitles: ReadonlyArray<string> = titles,
+      dropped?: string
+    ) => {
       if (accountChanged()) {
         logger.info('attachment titles: account changed, sending nothing')
         endSubmit()
@@ -181,7 +206,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         conversationIDKey,
         ephemeralLifetime: explodingMode,
         paths,
-        titles,
+        titles: uploadTitles,
         tlfName: resolvedTlfName,
       }
       if (tlfName || noDragDrop) {
@@ -192,10 +217,15 @@ const ContainerInner = (ownProps: OwnProps) => {
       clearModals()
 
       if (selectConversationWithReason) {
-        const prefill = ownProps.inputPrefillText
         C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason, {
-          intent: prefill === undefined ? undefined : {text: prefill, type: 'injectText'},
+          intent:
+            inputPrefillText === undefined && !dropped
+              ? undefined
+              : {notice: dropped, text: inputPrefillText, type: 'injectText'},
         })
+      } else if (dropped) {
+        // The thread is under this modal, so its composer takes this right away.
+        setInputIntent(conversationIDKey, {notice: dropped, type: 'injectText'})
       }
       return true
     }
@@ -210,19 +240,22 @@ const ContainerInner = (ownProps: OwnProps) => {
     // Send original sends what "Keep full size" would: a format recipients can't
     // show (webp, avif, tiff, RAW) becomes a metadata-free JPEG, and the rest come
     // back as the source (stripped of GPS in place by a compressed run, raw with
-    // Keep full size). Those formats can't always be stripped in place, so one
-    // that can't be converted isn't sent at all rather than sent with its location.
+    // Keep full size). Those formats can't always be stripped in place, so one that
+    // can't be converted is dropped rather than sent with its location, and the
+    // rest still go. Files chosen in the file picker go as they are.
     const sendOriginals = async () => {
       if (accountChanged()) {
         endSubmit()
         return
       }
-      const eligible = effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
-        if (!isKbfsPath(path) && isProcessableImagePath(path)) {
-          l.push({idx, path})
-        }
-        return l
-      }, [])
+      const eligible = pickedAsFiles
+        ? []
+        : effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
+            if (!isKbfsPath(path) && isProcessableImagePath(path)) {
+              l.push({idx, path})
+            }
+            return l
+          }, [])
       if (eligible.length === 0) {
         upload(effective)
         return
@@ -239,30 +272,40 @@ const ContainerInner = (ownProps: OwnProps) => {
         return
       }
       setProgress(undefined)
-      const withheld = eligible.filter((_, i) => {
+      const next: Array<T.Chat.PathAndOutboxID | undefined> = [...effective]
+      const droppedLines: Array<string> = []
+      eligible.forEach(({idx, path}, i) => {
         const r = processed[i]
-        return !r || r.error !== undefined
-      })
-      if (withheld.length) {
-        discardProcessedOutputs(items, processed)
-        endSubmit()
-        setOriginalsBlocked(true)
-        const names = withheld.map(({path}) => T.FS.getLocalPathName(path)).join(', ')
-        setError(
-          withheld.length === 1
-            ? `Couldn't convert ${names} to JPEG. The original can include its location, so it isn't sent as is.`
-            : `Couldn't convert ${names} to JPEG. The originals can include their location, so they aren't sent as they are.`
-        )
-        return
-      }
-      const next = [...effective]
-      eligible.forEach(({idx}, i) => {
-        const cur = next[idx]
-        if (cur) {
-          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
+        if (r && r.error === undefined) {
+          const cur = next[idx]
+          next[idx] = cur && {...cur, path: r.path}
+        } else {
+          next[idx] = undefined
+          droppedLines.push(`${T.FS.getLocalPathName(path)} ${droppedReason(r?.error)}`)
         }
       })
-      if (!upload(next)) {
+      if (droppedLines.length === 0) {
+        if (!upload(effective.map((e, idx) => next[idx] ?? e))) {
+          discardProcessedOutputs(items, processed)
+        }
+        return
+      }
+      const keptIdx = effective.flatMap((_, idx) => (next[idx] ? [idx] : []))
+      // Every image failed, so there are no outputs to discard.
+      if (keptIdx.length === 0) {
+        endSubmit()
+        setOriginalsBlocked(true)
+        setError(`Nothing was sent. ${droppedLines.join(' ')}`)
+        return
+      }
+      const kept = keptIdx.flatMap(idx => next[idx] ?? [])
+      const keptTitles = keptIdx.map(idx => titles[idx] ?? '')
+      const droppedOutboxIDs = effective.flatMap(({outboxID}, idx) =>
+        next[idx] || !outboxID ? [] : [outboxID]
+      )
+      if (upload(kept, keptTitles, `Not sent: ${droppedLines.join(' ')}`)) {
+        cancelAttachmentUploads(droppedOutboxIDs)
+      } else {
         discardProcessedOutputs(items, processed)
       }
     }
@@ -287,12 +330,17 @@ const ContainerInner = (ownProps: OwnProps) => {
       // share, so with compression off only an explicit trim still needs the
       // exporter — the cut has to be applied somewhere — and images still go
       // through so formats recipients can't show (tiff, RAW, webp) come out as
-      // JPEG; the rest come back untouched.
+      // JPEG; the rest come back untouched. Picked files are never converted, so
+      // with compression off they go as they are.
       const eligible = effective.reduce(
         (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
           const edit = edits[idx]
-          const needsProcessing =
-            !isEditNoop(edit) || (compress ? canProcess(path) : isProcessableImagePath(path))
+          const needsImageWork = pickedAsFiles
+            ? compress && canCompressPickedFile(path)
+            : compress
+              ? canProcess(path)
+              : isProcessableImagePath(path)
+          const needsProcessing = !isEditNoop(edit) || needsImageWork
           if (!isKbfsPath(path) && needsProcessing) {
             l.push({edit, idx, path})
           }

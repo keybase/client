@@ -307,7 +307,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           )
           break
         case 'injectText':
-          injectIntoInput(action.text)
+          if (action.text !== undefined) {
+            injectIntoInput(action.text)
+          }
           if (action.notice) {
             setCommandStatusInfo({
               actions: [],

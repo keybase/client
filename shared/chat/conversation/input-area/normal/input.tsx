@@ -1157,7 +1157,7 @@ const launchNativeImagePickerImpl = async (
           const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
           C.Router2.navigateAppend({
             name: 'chatAttachmentGetTitles',
-            params: {conversationIDKey, pathAndOutboxIDs},
+            params: {conversationIDKey, pathAndOutboxIDs, pickedAsFiles: true},
           })
         }
       } catch (error) {
