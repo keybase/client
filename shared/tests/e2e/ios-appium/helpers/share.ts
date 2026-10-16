@@ -450,7 +450,8 @@ const logTime = (d: Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-// The extension's own lines (Logger share-ext) and any error it or the system logged for it.
+// The extension's own lines (Logger share-ext and item-provider) and any error it or the system
+// logged for it.
 export const extensionLogSince = (since: Date) =>
   simctl(
     'spawn',
@@ -462,10 +463,10 @@ export const extensionLogSince = (since: Date) =>
     '--style',
     'compact',
     '--predicate',
-    '(subsystem == "com.keybase.app" AND category == "share-ext") OR (process == "KeybaseShare" AND (messageType == error OR messageType == fault))'
+    '(subsystem == "com.keybase.app" AND (category == "share-ext" OR category == "item-provider")) OR (process == "KeybaseShare" AND (messageType == error OR messageType == fault))'
   )
     .split('\n')
-    .filter(l => /share-ext|KeybaseShare/.test(l))
+    .filter(l => /share-ext|item-provider|KeybaseShare/.test(l))
 
 export type ShareOutcome = {
   appOpened: boolean
@@ -482,12 +483,16 @@ export type SheetSource = {host: string; open: () => Promise<void>; fresh?: bool
 export const suggestionRow = (name: string) =>
   `name != "shareCell" AND type == "XCUIElementTypeCell" AND (label == ${quote(name)} OR label BEGINSWITH ${quote(`${name}, `)})`
 
+// The extension's alert for a share it couldn't prepare; it shows in the host app's tree.
+const failureAlert = 'label BEGINSWITH "Couldn\'t prepare" AND visible == 1'
+
 // Opens the host's share sheet and taps Keybase (or `target`, a suggestion row), then waits for the
 // extension to exit and the app to come forward. A share that never finishes is stopped, so the next
-// source starts clean.
+// source starts clean. With expectFailure, the extension finishes when its failure alert has come
+// and gone; its process may linger after that.
 export const shareToKeybase = async (
   source: SheetSource,
-  {target = 'name == "shareCell" AND label == "Keybase"', timeout = 150_000} = {}
+  {target = 'name == "shareCell" AND label == "Keybase"', timeout = 150_000, expectFailure = false} = {}
 ): Promise<ShareOutcome> => {
   removeManifest()
   const since = new Date(Date.now() - 1000)
@@ -495,6 +500,9 @@ export const shareToKeybase = async (
   const before = new Set(extensionPids())
   const extensionRunning = () => extensionPids().some(p => !before.has(p))
   let t0 = 0
+  let alertCameAndWent = false
+  let outcome: Omit<ShareOutcome, 'manifest'>
+  let items: Array<ManifestItem> | undefined
   try {
     await inApp(
       source.host,
@@ -516,6 +524,12 @@ export const shareToKeybase = async (
           },
           {interval: 2500, timeout: 30_000}
         )
+        // the alert dismisses itself after 10s
+        if (expectFailure && (await exists(failureAlert, 30_000))) {
+          alertCameAndWent = await pred(failureAlert)
+            .waitForExist({interval: 500, reverse: true, timeout: 30_000})
+            .then(() => true, () => false)
+        }
       },
       {fresh: source.fresh ?? true}
     )
@@ -528,12 +542,12 @@ export const shareToKeybase = async (
     // The extension opens the app only after its alert is gone, right before it completes the request,
     // so an open app means it finished. Without one, it finished only if its process went away (a
     // cancelled share); iOS may keep a finished extension's process around for a while.
-    const extensionFinished =
-      appOpened ||
-      (await waitFor('the share extension to exit', () => (extensionRunning() ? undefined : true), {
+    const exited = async () =>
+      waitFor('the share extension to exit', () => (extensionRunning() ? undefined : true), {
         interval: 300,
         timeout: 1_000,
-      }).catch(() => false))
+      }).catch(() => false)
+    const extensionFinished = appOpened || (expectFailure ? alertCameAndWent : await exited())
     if (!extensionFinished) {
       // only this share's extension: an older one may belong to a share still on screen. pgrep is
       // host-wide, so with two simulators booted this could also pick up the other one's extension.
@@ -547,10 +561,11 @@ export const shareToKeybase = async (
       }
     }
     await sleep(500)
-    return {appOpened, extLog: extensionLogSince(since), extensionFinished, manifest: manifest.stop(), ms}
+    outcome = {appOpened, extLog: extensionLogSince(since), extensionFinished, ms}
   } finally {
-    manifest.stop()
+    items = manifest.stop()
   }
+  return {...outcome, manifest: items}
 }
 
 export const shareDebugDir = () => {
@@ -570,6 +585,8 @@ export type Expected = {
   delivered?: Array<{type: ItemType; name?: RegExp; text?: RegExp}>
   // a shared video's length, checked against the sent attachment's
   videoSeconds?: number
+  // lines the extension must log
+  extLog?: Array<RegExp>
 }
 
 const matchAll = <I, E>(what: string, got: ReadonlyArray<I>, want: ReadonlyArray<E>, ok: (i: I, e: E) => boolean) => {
@@ -857,6 +874,9 @@ export const runSource = async (
     if (!r.share.extensionFinished) r.problems.push('the share extension never finished')
     if (!r.share.appOpened) r.problems.push('the app never opened')
     r.problems.push(...manifestProblems(r.share.manifest, expected))
+    for (const want of expected.extLog ?? []) {
+      if (!r.share.extLog.some(l => want.test(l))) r.problems.push(`the extension never logged ${String(want)}`)
+    }
     const somethingShared = (r.share.manifest ?? []).some(m => !m.error)
     if (r.share.appOpened && somethingShared && !opts.keepShareScreen) {
       if (sending()) {
