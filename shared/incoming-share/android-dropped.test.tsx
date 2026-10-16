@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {act, cleanup, render, screen} from '@testing-library/react'
+import {cleanup, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 
 type Held = {id: number; text?: string; localPaths?: Array<string>; droppedCount: number}
@@ -15,17 +15,8 @@ jest.mock('react-native-kb', () => ({
     return held?.id === id ? {droppedCount: held.droppedCount, localPaths: held.localPaths, text: held.text} : null
   },
 }))
-// The route's beforeRemove listeners, which fire only when the route leaves the navigator.
-const mockBeforeRemove = new Set<() => void>()
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    addListener: (event: string, listener: () => void) => {
-      if (event !== 'beforeRemove') return () => {}
-      mockBeforeRemove.add(listener)
-      return () => mockBeforeRemove.delete(listener)
-    },
-    setOptions: () => {},
-  }),
+  useNavigation: () => ({setOptions: () => {}}),
 }))
 jest.mock('../chat/send-to-chat', () => ({
   SendToChat: () => null,
@@ -39,7 +30,6 @@ beforeEach(() => {
   g.isAndroid = true
   mockNative.acks = []
   mockNative.held = undefined
-  mockBeforeRemove.clear()
 })
 
 afterEach(() => {
@@ -51,7 +41,6 @@ afterEach(() => {
 const hold = (id: number, droppedCount = 0, localPaths: Array<string> = [`/tmp/${id}.pdf`]) => {
   mockNative.held = {droppedCount, id, localPaths}
 }
-const removeRoute = () => act(() => [...mockBeforeRemove].forEach(l => l()))
 
 test('an Android share with dropped files shows the notice on the picker', () => {
   hold(1, 1)
@@ -88,32 +77,24 @@ test('a link with no id neither shows nor takes the held share', () => {
   hold(1, 1)
   const {unmount} = render(<IncomingShareMain />)
   expect(screen.getByText("There's nothing to share.")).toBeTruthy()
-  removeRoute()
   unmount()
   expect(mockNative.acks).toEqual([])
   expect(mockNative.held?.id).toBe(1)
 })
 
-test('the share is done with only when its route is removed, not when the screen is paused or unmounted', () => {
+test('the screen itself never finishes its share: unmounting it acks nothing', () => {
   hold(1, 1)
   const {unmount} = render(<IncomingShareMain androidShareID={1} />)
-  // Paused under a pushed screen, or torn down with its navigator: effects clean up, the route stays.
   unmount()
   expect(mockNative.acks).toEqual([])
   render(<IncomingShareMain androidShareID={1} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
-
-  removeRoute()
-  expect(mockNative.acks).toEqual([1])
-  expect(mockNative.held).toBeUndefined()
 })
 
-test('a screen reused for a newer share is done with the newer one when removed', () => {
+test('a screen reused for a newer share shows the newer one', () => {
   hold(1)
   const {rerender} = render(<IncomingShareMain androidShareID={1} />)
   hold(2, 1)
   rerender(<IncomingShareMain androidShareID={2} />)
   expect(screen.getByText("1 item couldn't be prepared.")).toBeTruthy()
-  removeRoute()
-  expect(mockNative.acks).toEqual([2])
 })
