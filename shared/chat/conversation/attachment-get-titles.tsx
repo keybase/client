@@ -22,6 +22,7 @@ import {
   isProcessableImagePath,
   isVideoPath,
   processPaths,
+  type ProcessResult,
   type VideoEdit,
 } from '@/util/media-process'
 
@@ -58,6 +59,20 @@ export const pathToAttachmentType = (path: string) => {
     return 'video'
   }
   return 'file'
+}
+
+// A throw is reported like a per-item failure, so Send always comes back to a
+// state the user can act on.
+const processForSend = async (
+  ...args: Parameters<typeof processPaths>
+): Promise<{processed: Array<ProcessResult>; failure?: string}> => {
+  try {
+    const processed = await processPaths(...args)
+    return {failure: processed.find(p => p.error)?.error, processed}
+  } catch (e) {
+    logger.warn('attachment titles: processing threw', e)
+    return {failure: e instanceof Error ? e.message : String(e), processed: []}
+  }
 }
 
 const ContainerInner = (ownProps: OwnProps) => {
@@ -126,8 +141,15 @@ const ContainerInner = (ownProps: OwnProps) => {
     })()
   }, [])
   // progress only exists once the export starts, which is after the preference
-  // resolves, so it can't gate a double tap on its own
+  // resolves, so it can't gate a double tap on its own. The ref guards a second
+  // tap in the same frame; the state drives Send's spinner, which has to stop when
+  // the export fails or the screen is left with no way to retry.
   const submittingRef = React.useRef(false)
+  const [submitting, setSubmitting] = React.useState(false)
+  const endSubmit = () => {
+    submittingRef.current = false
+    setSubmitting(false)
+  }
 
   // skipProcessing is the "Send anyway" path: the user has already been told the
   // export failed and wants the originals.
@@ -136,6 +158,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       return
     }
     submittingRef.current = true
+    setSubmitting(true)
     setError(undefined)
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
       if (accountChanged()) {
@@ -168,7 +191,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
 
     if (!isIOS || skipProcessing) {
-      submittingRef.current = false
+      endSubmit()
       upload(effective)
       return
     }
@@ -199,13 +222,13 @@ const ContainerInner = (ownProps: OwnProps) => {
       )
 
       if (eligible.length === 0) {
-        submittingRef.current = false
+        endSubmit()
         upload(effective)
         return
       }
 
       setProgress({done: 0, total: eligible.length})
-      const processed = await processPaths(
+      const {processed, failure} = await processForSend(
         eligible.map(({path, edit}) => ({edit, path})),
         compress,
         (done, total) => {
@@ -218,13 +241,12 @@ const ContainerInner = (ownProps: OwnProps) => {
         return
       }
       setProgress(undefined)
-      submittingRef.current = false
+      endSubmit()
       // A failed export means the original bytes: an uncompressed upload, or
       // worse a clip the user asked to trim going out full length. Stop and say
       // so instead of sending something they didn't ask for.
-      const failure = processed.find(p => p.error)
-      if (failure) {
-        setError(failure.error)
+      if (failure !== undefined) {
+        setError(failure)
         return
       }
       const next = [...effective]
@@ -381,8 +403,9 @@ const ContainerInner = (ownProps: OwnProps) => {
         <Kb.ButtonBar fullWidth={true} small={true}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
-            <Kb.WaitingButton
+            <Kb.Button
               disabled={!!progress || !resolvedTlfName}
+              waiting={submitting}
               fullWidth={!multiUpload}
               onClick={onSubmit}
               label="Send"
@@ -391,7 +414,12 @@ const ContainerInner = (ownProps: OwnProps) => {
             <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
           {multiUpload ? (
-            <Kb.WaitingButton disabled={!!progress || !resolvedTlfName} onClick={onSubmit} label="Send All" />
+            <Kb.Button
+              disabled={!!progress || !resolvedTlfName}
+              waiting={submitting}
+              onClick={onSubmit}
+              label="Send All"
+            />
           ) : null}
           {/* Send retries the export; this is the way out when it keeps failing. */}
           {error ? (

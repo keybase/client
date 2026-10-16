@@ -110,6 +110,65 @@ describe('Send on iOS', () => {
     expect(rpc.calls('postAttachment')).toEqual([])
     expect(C.Router2.clearModals).not.toHaveBeenCalled()
   })
+
+  const isWaitingOrDisabled = (label: string) =>
+    !!(screen.getByText(label) as unknown as {closest: (selector: string) => unknown}).closest(
+      '.button--disabled'
+    )
+
+  test('a failed export stops the Send spinner, shows the error, and Send retries while Send original stays offered', async () => {
+    const failure = 'Image processing failed: Failed to create JPEG data'
+    jest
+      .spyOn(MediaProcess, 'processPaths')
+      .mockResolvedValue([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/AV1 Image File Format.avif'}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(screen.getByText(failure)).toBeTruthy()
+    expect(screen.getByText('Send original')).toBeTruthy()
+    expect(isWaitingOrDisabled('Send')).toBe(false)
+    expect(rpc.calls('postAttachment')).toEqual([])
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(MediaProcess.processPaths).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send original'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    const params = rpc.params('postAttachment')
+    expect(params).toHaveLength(1)
+    expect(params[0]).toMatchObject({filename: '/tmp/AV1 Image File Format.avif'})
+  })
+
+  test('an export that throws still stops the Send spinner and reports the failure', async () => {
+    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error('export blew up'))
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/clip.mov'}]}
+        tlfName="testuser,testuser2"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(screen.getByText('export blew up')).toBeTruthy()
+    expect(screen.getByText('Send original')).toBeTruthy()
+    expect(isWaitingOrDisabled('Send')).toBe(false)
+  })
 })
 
 describe('Send with an unresolved tlfName', () => {
