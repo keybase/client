@@ -123,7 +123,12 @@ func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res k
 // stillPresentIncomingShare is the share as handed out again: an item whose
 // file is gone was sent or exported since, so it is left out, and a share with
 // nothing left is nothing to share.
+// A share that had no items to begin with (every one dropped) is handed out
+// as it was, so its notice survives a reload.
 func stillPresentIncomingShare(share keybase1.IncomingShareItems) (res keybase1.IncomingShareItems) {
+	if len(share.Items) == 0 {
+		return share
+	}
 	for _, item := range share.Items {
 		if item.OriginalPath != nil {
 			if _, err := os.Stat(*item.OriginalPath); err != nil {

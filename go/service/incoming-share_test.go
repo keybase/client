@@ -159,6 +159,20 @@ func TestIncomingShareRepeatLeavesOutFilesSinceRemoved(t *testing.T) {
 	require.Zero(t, res.DroppedCount)
 }
 
+func TestIncomingShareRepeatOfAllDroppedKeepsItsNotice(t *testing.T) {
+	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
+		return []map[string]string{{"type": "error", "error": "loadImage: failed"}}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+	for i := 0; i < 2; i++ {
+		res, err := h.GetIncomingShareItems(context.Background())
+		require.NoError(t, err)
+		require.Empty(t, res.Items)
+		require.Equal(t, 1, res.DroppedCount)
+	}
+}
+
 func TestIncomingShareNewShareReplacesTheLast(t *testing.T) {
 	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
 		return []map[string]string{{"type": "text", "content": "first"}}
