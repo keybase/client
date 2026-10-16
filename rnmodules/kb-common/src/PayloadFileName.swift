@@ -27,6 +27,26 @@ enum PayloadFileName {
     return ext.map { "\(fallbackBase).\($0)" } ?? fallbackBase
   }
 
+  // The name a downloaded video is saved under. The served MIME type wins, then
+  // the URL's extension; with neither registered the name keeps whatever
+  // extension the URL has, and mp4 is only a guess for a URL with none.
+  static func downloadedVideo(from url: URL, mime: String) -> String {
+    let ext = url.pathExtension.lowercased()
+    let type = declared(UTType(mimeType: mime)) ?? declared(UTType(filenameExtension: ext))
+    return make(
+      candidates: [url.lastPathComponent], type: type ?? (ext.isEmpty ? .mpeg4Movie : nil),
+      fallbackBase: "video")
+  }
+
+  // An unregistered MIME type or extension yields a dynamic UTType, not nil,
+  // and a dynamic type has no extension to name the file with.
+  private static func declared(_ type: UTType?) -> UTType? {
+    guard let type = type, !type.isDynamic, type.preferredFilenameExtension != nil else {
+      return nil
+    }
+    return type
+  }
+
   // A path separator would escape the item's directory, a leading dot would
   // hide the file, and control characters (newlines) garble it in the UI.
   // Only C0/C1 controls and line breaks: .controlCharacters also holds format
