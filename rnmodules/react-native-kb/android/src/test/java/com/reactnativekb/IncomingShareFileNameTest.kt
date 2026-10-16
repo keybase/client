@@ -80,4 +80,37 @@ class IncomingShareFileNameTest {
     fun aMimeExtensionWithASeparatorIsIgnored() {
         assertEquals("file", IncomingShareFileName.make(null, "a/b"))
     }
+
+    @Test
+    fun bidiAndFormatControlsAreReplaced() {
+        // U+202E would show "evil\u202Efdp.exe" as "evilexe.pdf"
+        assertEquals("evil_fdp.exe", IncomingShareFileName.make("evil\u202Efdp.exe", null))
+        assertEquals("a_b_c_d.txt", IncomingShareFileName.make("a\u200Eb\u2066c\uFEFFd.txt", null))
+        assertEquals("a_b_c.txt", IncomingShareFileName.make("a\u2028b\u2029c.txt", null))
+    }
+
+    @Test
+    fun joinersInsideEmojiAreKept() {
+        val family = "\uD83D\uDC68\u200D\uD83D\uDC69"
+        assertEquals("$family.png", IncomingShareFileName.make("$family.png", null))
+    }
+
+    @Test
+    fun aHugeNameIsCappedQuickly() {
+        val start = System.nanoTime()
+        val made = IncomingShareFileName.make("\u00E9".repeat(1_000_000) + ".pdf", null)
+        val elapsedMs = (System.nanoTime() - start) / 1_000_000
+        assertTrue(bytes(made) <= IncomingShareFileName.MAX_NAME_BYTES)
+        assertTrue(made.endsWith(".pdf"))
+        assertTrue("took ${elapsedMs}ms", elapsedMs < 2000)
+    }
+
+    @Test
+    fun truncateUtf8CutsOnCodePoints() {
+        assertEquals("ab", IncomingShareFileName.truncateUtf8("abc", 2))
+        // e-acute is 2 bytes: 3 bytes fits one, not one and a half
+        assertEquals("\u00E9", IncomingShareFileName.truncateUtf8("\u00E9\u00E9", 3))
+        assertEquals("", IncomingShareFileName.truncateUtf8("\uD83D\uDE00", 3))
+        assertEquals("\uD83D\uDE00", IncomingShareFileName.truncateUtf8("\uD83D\uDE00x", 4))
+    }
 }
