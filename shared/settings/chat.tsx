@@ -115,14 +115,15 @@ const useUnfurlSettings = () => {
       onSuccess: () => void
     ) => {
       setSaveError('')
-      // optimistic, the post-save refresh has the final say
-      setData({blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
         return
       }
+      const settings = {blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}
       saveUnfurlSettingsRPC(
-        [{blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
+        [settings, C.waitingKeySettingsChatUnfurl],
         () => {
+          // show what was saved until the refresh brings back the service's normalized form
+          setData(settings)
           onSuccess()
           unfurlSettingsRefresh()
         },
@@ -132,8 +133,6 @@ const useUnfurlSettings = () => {
               ? `Unable to save link preview settings: ${e.desc}`
               : 'Unable to save link preview settings, please try again.'
           )
-          // replace the optimistic data with what the service actually has
-          unfurlSettingsRefresh()
         }
       )
     },
@@ -446,6 +445,7 @@ const DomainList = (p: DomainListProps) => {
           placeholder="Add a website, e.g. example.com"
           value={text}
           onChangeText={setText}
+          disabled={disabled}
           onEnterKeyDown={disabled ? undefined : submit}
         />
         <Kb.Button label="Add" small={true} onClick={submit} disabled={disabled || !text.trim()} />
@@ -469,13 +469,19 @@ const DomainList = (p: DomainListProps) => {
               >
                 <Kb.Text type="BodySemibold">{domain}</Kb.Text>
                 {isRemoved ? (
-                  <Kb.Text type="BodyPrimaryLink" style={styles.removeText} onClick={() => onToggleSaved(domain)}>
+                  <Kb.Text
+                    type="BodyPrimaryLink"
+                    style={styles.removeText}
+                    onClick={disabled ? undefined : () => onToggleSaved(domain)}
+                  >
                     Restore
                   </Kb.Text>
                 ) : (
                   <Kb.WithTooltip tooltip="Remove">
                     <Kb.Icon
-                      onClick={() => (isAdded ? onRemoveAdded(domain) : onToggleSaved(domain))}
+                      onClick={
+                        disabled ? undefined : () => (isAdded ? onRemoveAdded(domain) : onToggleSaved(domain))
+                      }
                       type="iconfont-trash"
                     />
                   </Kb.WithTooltip>
@@ -489,12 +495,15 @@ const DomainList = (p: DomainListProps) => {
   )
 }
 
-const Links = () => {
+export const Links = () => {
   const styles = useStyles()
   const {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
     useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
+  // a save's success clears the edits, so nothing may change while one is in flight
+  const saving = C.Waiting.useAnyWaiting(C.waitingKeySettingsChatUnfurl)
+  const editable = loaded && !saving
   const allowSave = loaded && (mode !== selected || hasUnfurlListEdits(edits))
   const onSave = () => {
     const next = unfurlSaveArgs(selected, {blocklist, whitelist}, edits)
@@ -542,12 +551,14 @@ const Links = () => {
         <Kb.RadioButton
           key="rbalways"
           label="Allow all"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.always)}
           selected={selected === T.RPCChat.UnfurlMode.always}
         />
         <Kb.RadioButton
           key="rbwhitelist"
           label="Ask per domain"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.whitelisted)}
           selected={selected === T.RPCChat.UnfurlMode.whitelisted}
         />
@@ -555,7 +566,7 @@ const Links = () => {
           <>
             <DomainList
               added={edits.added.allow}
-              disabled={!loaded}
+              disabled={!editable}
               heading="Allowed websites"
               onAdd={domain => setEdits(e => addDomain(e, 'allow', domain, whitelist))}
               onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'allow', domain))}
@@ -566,7 +577,7 @@ const Links = () => {
             />
             <DomainList
               added={edits.added.block}
-              disabled={!loaded}
+              disabled={!editable}
               heading="Blocked websites"
               onAdd={domain => setEdits(e => addDomain(e, 'block', domain, blocklist))}
               onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'block', domain))}
@@ -580,6 +591,7 @@ const Links = () => {
         <Kb.RadioButton
           key="rbnever"
           label="Disallow all"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.never)}
           selected={selected === T.RPCChat.UnfurlMode.never}
         />
