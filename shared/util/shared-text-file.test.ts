@@ -83,6 +83,7 @@ test.each([
   ['a\u202ab\u2066c\u2069d\u200ee\u200ff\u061cg', 'a_b_c_d_e_f_g.txt'],
   ['family \u{1F468}\u200d\u{1F469}\u200d\u{1F467}', 'family \u{1F468}\u200d\u{1F469}\u200d\u{1F467}.txt'],
   ['\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645', '\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645.txt'],
+  ['\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F} trip', '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F} trip.txt'],
 ])('a shared text is named after its first words: %j', (text, name) => {
   expect(sharedTextFileName(text)).toBe(name)
 })
