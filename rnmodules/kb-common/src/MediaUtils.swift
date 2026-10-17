@@ -584,8 +584,10 @@ public class MediaUtils: NSObject {
     private static func xmpHasLocation(_ metadata: CGImageMetadata) -> Bool {
         var found = false
         let options = [kCGImageMetadataEnumerateRecursively: true] as CFDictionary
+        // Returning false ends only the current level of a recursive enumeration,
+        // so a later tag must not clear a find.
         CGImageMetadataEnumerateTagsUsingBlock(metadata, nil, options) { _, tag in
-            found = isLocationTag(tag)
+            if isLocationTag(tag) { found = true }
             return !found
         }
         return found
