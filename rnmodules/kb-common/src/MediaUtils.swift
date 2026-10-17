@@ -165,8 +165,14 @@ public class MediaUtils: NSObject {
         guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
-        guard CGImageSourceGetType(cgSource) != nil else {
+        guard let typeID = CGImageSourceGetType(cgSource) else {
             throw MediaUtilsError.unrecognizedImageFormat
+        }
+
+        // GIF content under another name (a web download saved as .jpg) stays
+        // animated, as a .gif does, once the strip above has cleared its location.
+        if UTType(typeID as String)?.conforms(to: .gif) ?? false, !hasLocation(url) {
+            return url
         }
 
         try recompressCGImageSource(
