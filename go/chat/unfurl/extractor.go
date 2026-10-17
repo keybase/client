@@ -58,21 +58,13 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 	return res
 }
 
-func (e *Extractor) isAutoWhitelist(domain string) bool {
-	switch domain {
-	case "giphy.com", types.MapsDomain:
-		return true
-	}
-	return false
-}
-
 func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isAutoWhitelistFromHit: failed to get domain: %s", err)
 		return false
 	}
-	return e.isAutoWhitelist(domain)
+	return isAutoAllowedDomain(domain)
 }
 
 func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -83,7 +75,7 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.Conversatio
 		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
 		return false
 	}
-	if e.isAutoWhitelist(domain) || whitelist[domain] {
+	if isAutoAllowedDomain(domain) || whitelist[domain] {
 		return true
 	}
 	// Check exemptions
