@@ -612,12 +612,7 @@ func TestSubscriptionManagerSlowPollNotification(t *testing.T) {
 	config, smi, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 	sm := smi.(*subscriptionManager)
-	ctx, err := libcontext.NewContextWithCancellationDelayer(
-		libcontext.NewContextReplayable(
-			t.Context(), func(c context.Context) context.Context {
-				return c
-			}))
-	require.NoError(t, err)
+	ctx := t.Context()
 
 	entered := make(chan struct{})
 	release := make(chan struct{})
@@ -631,19 +626,14 @@ func TestSubscriptionManagerSlowPollNotification(t *testing.T) {
 		})
 
 	// No root node yet, so this leaves a poller waiting for one.
-	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+	err := sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN, nil)
 	require.NoError(t, err)
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+	_, _, err = config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, data.MasterBranch)
-	require.NoError(t, err)
-	_, _, err = config.KBFSOps().CreateFile(
-		ctx, rootNode, rootNode.ChildName("file"), false, NoExcl)
-	require.NoError(t, err)
-	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	recvWithin(t, entered, "poll notification")
 
