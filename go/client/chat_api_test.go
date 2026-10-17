@@ -326,6 +326,38 @@ func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptions
 	return Reply{Result: echoOK}
 }
 
+type unfurlRecorder struct {
+	chatEcho
+	opts setUnfurlSettingsOptionsV1
+}
+
+func (r *unfurlRecorder) SetUnfurlSettingsV1(_ context.Context, opts setUnfurlSettingsOptionsV1) Reply {
+	r.opts = opts
+	return Reply{Result: echoOK}
+}
+
+func TestChatAPISetUnfurlSettingsBlocklist(t *testing.T) {
+	run := func(input string) setUnfurlSettingsOptionsV1 {
+		rec := &unfurlRecorder{}
+		d := NewChatAPIVersionHandler(&ChatAPI{svcHandler: rec})
+		var buf bytes.Buffer
+		require.NoError(t, (&cmdAPI{}).decode(context.Background(), strings.NewReader(input), &buf, d))
+		return rec.opts
+	}
+
+	opts := run(`{"method": "setunfurlsettings", "params":{"version": 1, "options": {"mode": "whitelisted", "whitelist": ["a.com"], "blocklist": ["b.com"]}}}`)
+	require.NotNil(t, opts.Blocklist)
+	require.Equal(t, []string{"b.com"}, *opts.Blocklist)
+	require.Equal(t, []string{"a.com"}, opts.Whitelist)
+
+	opts = run(`{"method": "setunfurlsettings", "params":{"version": 1, "options": {"mode": "whitelisted", "whitelist": ["a.com"]}}}`)
+	require.Nil(t, opts.Blocklist)
+
+	opts = run(`{"method": "setunfurlsettings", "params":{"version": 1, "options": {"mode": "whitelisted", "blocklist": []}}}`)
+	require.NotNil(t, opts.Blocklist)
+	require.Empty(t, *opts.Blocklist)
+}
+
 func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }

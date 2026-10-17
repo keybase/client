@@ -270,6 +270,7 @@ func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
 		Result: map[string]any{
 			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
 			"whitelist": res.Whitelist,
+			"blocklist": res.Blocklist,
 		},
 	}
 }
@@ -279,9 +280,20 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 	if err != nil {
 		return c.errReply(err)
 	}
+	var blocklist []string
+	if opts.Blocklist != nil {
+		blocklist = *opts.Blocklist
+	} else {
+		cur, err := client.GetUnfurlSettings(ctx)
+		if err != nil {
+			return c.errReply(err)
+		}
+		blocklist = cur.Blocklist
+	}
 	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
 		Mode:      opts.intMode,
 		Whitelist: opts.Whitelist,
+		Blocklist: blocklist,
 	}); err != nil {
 		return c.errReply(err)
 	}
