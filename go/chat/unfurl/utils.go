@@ -69,6 +69,10 @@ func isAutoAllowedDomain(domain string) bool {
 	return false
 }
 
+func autoAllowedError(domain string) error {
+	return fmt.Errorf("%s is always allowed and cannot be listed", domain)
+}
+
 // NormalizeDomain turns user input (a bare domain or a URL) into the domain
 // form stored on the allow and block lists.
 func NormalizeDomain(input string) (string, error) {
@@ -81,7 +85,7 @@ func NormalizeDomain(input string) (string, error) {
 		return "", fmt.Errorf("invalid domain %q: %w", input, err)
 	}
 	if isAutoAllowedDomain(domain) {
-		return "", fmt.Errorf("%s is always allowed and cannot be listed", domain)
+		return "", autoAllowedError(domain)
 	}
 	if !strings.Contains(domain, ".") && net.ParseIP(domain) == nil {
 		return "", fmt.Errorf("invalid domain %q", input)

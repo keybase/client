@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -171,4 +172,50 @@ func TestUnfurlSettingSetNormalizes(t *testing.T) {
 	after, err = settings.Get(ctx, uid)
 	require.NoError(t, err)
 	require.Equal(t, res, after)
+}
+
+func TestUnfurlSettingGetResolvesOverlap(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	// a client that predates the block list can allow a domain without unblocking it
+	uid := gregor1.UID([]byte{0, 1})
+	storage := newMemConversationBackedStorage()
+	require.NoError(t, storage.Put(ctx, uid, settingsWhitelistName, whitelistRecord{
+		Whitelist: map[string]bool{"a.com": true, "b.com": true},
+	}))
+	require.NoError(t, storage.Put(ctx, uid, settingsBlocklistName, blocklistRecord{
+		Blocklist: map[string]bool{"b.com": true},
+	}))
+	settings := NewSettings(g, storage)
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, map[string]bool{"a.com": true}, res.Whitelist)
+	require.Equal(t, map[string]bool{"b.com": true}, res.Blocklist)
+
+	require.NoError(t, settings.Set(ctx, uid, res))
+	after, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, res, after)
+}
+
+func TestUnfurlSettingAddRejectsAutoAllowed(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	settings := NewSettings(g, newMemConversationBackedStorage())
+	for _, domain := range []string{"giphy.com", types.MapsDomain} {
+		require.Error(t, settings.BlocklistAdd(ctx, uid, domain))
+		require.Error(t, settings.WhitelistAdd(ctx, uid, domain))
+	}
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Empty(t, res.Whitelist)
+	require.Empty(t, res.Blocklist)
+	require.NoError(t, settings.Set(ctx, uid, res))
 }
