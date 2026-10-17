@@ -32,7 +32,10 @@ enum PayloadFileName {
   static func forText(_ text: String) -> String {
     // Bounded: splitting the whole of a multi-megabyte text would build an
     // array of every word in the extension's small memory budget.
-    let words = text.split(maxSplits: maxTextNameWords, omittingEmptySubsequences: true, whereSeparator: { $0.isWhitespace })
+    // U+FEFF separates words too, as JS's \s does on the TS side.
+    let words = text.split(
+      maxSplits: maxTextNameWords, omittingEmptySubsequences: true,
+      whereSeparator: { $0.isWhitespace || $0 == "\u{FEFF}" })
       .prefix(maxTextNameWords)
     var snippet = ""
     for word in words {
@@ -103,7 +106,7 @@ enum PayloadFileName {
   private static func sanitize(_ candidate: String?) -> String? {
     guard let candidate = candidate else { return nil }
     let trimmed = candidate.trimmingCharacters(
-      in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "/.")))
+      in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "/\\.")))
     let cleaned = String(
       String.UnicodeScalarView(trimmed.unicodeScalars.map { isReplaced($0) ? "_" : $0 }))
     return cleaned.isEmpty ? nil : cleaned
