@@ -67,19 +67,6 @@ func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool
 	return isAutoAllowedDomain(domain)
 }
 
-func (e *Extractor) isAllowedHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	domain string, allowlist map[string]bool, exemptions *WhitelistExemptionList,
-) bool {
-	if allowlist[domain] {
-		return true
-	}
-	if exemptions.Use(convID, msgID, domain) {
-		e.Debug(ctx, "isAllowedHit: hit exemption for domain, letting through")
-		return true
-	}
-	return false
-}
-
 func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, body string, userSettings *Settings,
 ) (res []ExtractorHit, err error) {
@@ -111,7 +98,10 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 				ehit.Typ = ExtractorHitUnfurl
 			} else if settings.Blocklist[domain] {
 				continue
-			} else if e.isAllowedHit(ctx, convID, msgID, domain, settings.Whitelist, e.getExemptionList(uid)) {
+			} else if settings.Whitelist[domain] {
+				ehit.Typ = ExtractorHitUnfurl
+			} else if e.getExemptionList(uid).Use(convID, msgID, domain) {
+				e.Debug(ctx, "Extract: hit exemption for domain, letting through")
 				ehit.Typ = ExtractorHitUnfurl
 			}
 		case chat1.UnfurlMode_NEVER:
