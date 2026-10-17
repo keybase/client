@@ -73,6 +73,7 @@ test.each([
   ['x'.repeat(300), 'x'.repeat(40) + '.txt'],
   ['supercalifragilisticexpialidocious and then some more words', 'supercalifragilisticexpialidocious and.txt'],
   ['a/b: c', 'a_b_ c.txt'],
+  ['a\\b', 'a_b.txt'],
   ['   ', 'shared-text.txt'],
   ['...', 'shared-text.txt'],
   ['', 'shared-text.txt'],
