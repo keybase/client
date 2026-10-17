@@ -78,12 +78,13 @@ enum PayloadFileName {
     return type
   }
 
-  // A path separator would escape the item's directory, a leading dot would
-  // hide the file, control characters (newlines) garble it in the UI, and format
-  // characters (bidi overrides and isolates, marks) can make it read as another
-  // name. .controlCharacters isn't used: it holds the format characters below
-  // that must stay.
-  private static let replaced = CharacterSet(charactersIn: "/:")
+  // A path separator would escape the item's directory (a backslash is one on
+  // Windows, where a recipient saves it), a leading dot would hide the file,
+  // control characters (newlines) garble it in the UI, and format characters
+  // (bidi overrides and isolates, marks) can make it read as another name.
+  // .controlCharacters isn't used: it holds the format characters below that
+  // must stay.
+  private static let replaced = CharacterSet(charactersIn: "/\\:")
     .union(.newlines)
     .union(CharacterSet(charactersIn: Unicode.Scalar(0x00)!...Unicode.Scalar(0x1F)!))
     .union(CharacterSet(charactersIn: Unicode.Scalar(0x7F)!...Unicode.Scalar(0x9F)!))
