@@ -605,3 +605,53 @@ func TestSubscriptionManagerShutdownDuringPoll(t *testing.T) {
 		sm.Shutdown(ctx)
 	})
 }
+
+// The client may be slow to take a notification; that mustn't hold up
+// subscribing and unsubscribing.
+func TestSubscriptionManagerSlowPollNotification(t *testing.T) {
+	config, smi, notifier, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	sm := smi.(*subscriptionManager)
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
+			t.Context(), func(c context.Context) context.Context {
+				return c
+			}))
+	require.NoError(t, err)
+
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		[]SubscriptionID{"sid1"}, "/keybase/private/jdoe", gomock.Any()).
+		Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+			[]keybase1.PathSubscriptionTopic,
+		) {
+			close(entered)
+			<-release
+		})
+
+	// No root node yet, so this leaves a poller waiting for one.
+	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	require.NoError(t, err)
+	_, _, err = config.KBFSOps().CreateFile(
+		ctx, rootNode, rootNode.ChildName("file"), false, NoExcl)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	recvWithin(t, entered, "poll notification")
+
+	runWithin(t, 5*time.Second, "subscribe and unsubscribe", func() {
+		err := sm.SubscribePath(ctx, "sid2", "/keybase/private/jdoe",
+			keybase1.PathSubscriptionTopic_STAT, nil)
+		require.NoError(t, err)
+		sm.Unsubscribe(ctx, "sid2")
+	})
+	close(release)
+}

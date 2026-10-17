@@ -212,8 +212,28 @@ func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 	}
 	sm.lock.Unlock()
 	for _, fb := range unregister {
-		_ = sm.config.Notifier().UnregisterFromChanges(
-			[]data.FolderBranch{fb}, sm)
+		sm.unregisterFromChanges(ctx, fb)
+	}
+}
+
+// registerForChanges and unregisterFromChanges call into the folder, so they
+// run under subscribeLock with lock released.
+func (sm *subscriptionManager) registerForChanges(
+	ctx context.Context, fb data.FolderBranch,
+) {
+	err := sm.config.Notifier().RegisterForChanges([]data.FolderBranch{fb}, sm)
+	if err != nil {
+		sm.log.CWarningf(ctx, "RegisterForChanges fb=%s err=%v", fb, err)
+	}
+}
+
+func (sm *subscriptionManager) unregisterFromChanges(
+	ctx context.Context, fb data.FolderBranch,
+) {
+	err := sm.config.Notifier().UnregisterFromChanges(
+		[]data.FolderBranch{fb}, sm)
+	if err != nil {
+		sm.log.CWarningf(ctx, "UnregisterFromChanges fb=%s err=%v", fb, err)
 	}
 }
 
@@ -380,37 +400,48 @@ func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
 }
 
 // completePoll ends a poll, completing the subscription if the lookup found
-// fb, and sends a notification for it.
+// fb, and then sends a notification for it. The notification goes to the
+// client and may block, so it is sent without subscribeLock.
 func (sm *subscriptionManager) completePoll(
 	ctx context.Context, req subscribePathRequest, parsedPath *parsedPath,
 	fb data.FolderBranch, lookupErr error,
 ) {
+	if !sm.subscribePolled(ctx, req, parsedPath, fb, lookupErr) {
+		return
+	}
+	sm.notifier.OnPathChange(
+		sm.clientID, []SubscriptionID{req.sid},
+		req.path, []keybase1.PathSubscriptionTopic{req.topic})
+}
+
+func (sm *subscriptionManager) subscribePolled(
+	ctx context.Context, req subscribePathRequest, parsedPath *parsedPath,
+	fb data.FolderBranch, lookupErr error,
+) (subscribed bool) {
 	sm.subscribeLock.Lock()
 	defer sm.subscribeLock.Unlock()
 	// Pollers are only cancelled under subscribeLock, together with deleting
 	// their canceler, so a live ctx means the canceler is still this one's.
 	if ctx.Err() != nil {
-		return
+		return false
 	}
 	sm.lock.Lock()
 	_ = sm.cancelAndDeleteFolderBranchPollerLocked(req.sid)
 	if lookupErr != nil {
 		sm.lock.Unlock()
-		return
+		return false
 	}
 	first, err := sm.subscribePathWithFolderBranchLocked(req, parsedPath, fb)
 	sm.lock.Unlock()
 	if err != nil {
 		sm.log.CErrorf(ctx,
 			"subscribePathWithFolderBranchLocked sid=%s err=%v", req.sid, err)
+		return false
 	}
 	if first {
-		_ = sm.config.Notifier().RegisterForChanges(
-			[]data.FolderBranch{fb}, sm)
+		sm.registerForChanges(ctx, fb)
 	}
-	sm.notifier.OnPathChange(
-		sm.clientID, []SubscriptionID{req.sid},
-		req.path, []keybase1.PathSubscriptionTopic{req.topic})
+	return true
 }
 
 func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
@@ -459,8 +490,7 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	first, err := sm.subscribePathWithFolderBranchLocked(req, parsedPath, fb)
 	sm.lock.Unlock()
 	if first {
-		_ = sm.config.Notifier().RegisterForChanges(
-			[]data.FolderBranch{fb}, sm)
+		sm.registerForChanges(ctx, fb)
 	}
 	return err
 }
@@ -569,8 +599,7 @@ func (sm *subscriptionManager) Unsubscribe(ctx context.Context, sid Subscription
 	sm.unsubscribeNonPathLocked(ctx, sid)
 	sm.lock.Unlock()
 	if last {
-		_ = sm.config.Notifier().UnregisterFromChanges(
-			[]data.FolderBranch{fb}, sm)
+		sm.unregisterFromChanges(ctx, fb)
 	}
 }
 
