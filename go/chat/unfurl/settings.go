@@ -56,7 +56,7 @@ func (s *Settings) getList(ctx context.Context, uid gregor1.UID, name string) (m
 	if _, err := s.storage.Get(ctx, uid, name, dest); err != nil {
 		return nil, err
 	}
-	return cleanDomainSet(*list), nil
+	return normalizeDomainSet(*list, false)
 }
 
 func (s *Settings) putList(ctx context.Context, uid gregor1.UID, name string, list map[string]bool) error {
@@ -168,7 +168,10 @@ func (s *Settings) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.Unfu
 	})
 }
 
-func normalizeDomainSet(in map[string]bool) (map[string]bool, error) {
+// normalizeDomainSet fails on the first entry that doesn't normalize when
+// strict. Otherwise it drops such entries: stored lists are read that way so
+// ones written before the lists were validated can always be saved back.
+func normalizeDomainSet(in map[string]bool, strict bool) (map[string]bool, error) {
 	res := make(map[string]bool, len(in))
 	for input, on := range in {
 		if !on {
@@ -176,26 +179,14 @@ func normalizeDomainSet(in map[string]bool) (map[string]bool, error) {
 		}
 		domain, err := NormalizeDomain(input)
 		if err != nil {
-			return nil, err
+			if strict {
+				return nil, err
+			}
+			continue
 		}
 		res[domain] = true
 	}
 	return res, nil
-}
-
-// cleanDomainSet drops stored entries that Set would reject, such as ones written
-// before the lists were validated, so a settings round trip can always be saved.
-func cleanDomainSet(in map[string]bool) map[string]bool {
-	res := make(map[string]bool, len(in))
-	for input, on := range in {
-		if !on {
-			continue
-		}
-		if domain, err := NormalizeDomain(input); err == nil {
-			res[domain] = true
-		}
-	}
-	return res
 }
 
 // Set validates both lists before writing anything, so a rejected update
@@ -205,7 +196,7 @@ func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.Unfu
 	defer s.Trace(ctx, &err, "Set")()
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	whitelist, err := normalizeDomainSet(settings.Whitelist)
+	whitelist, err := normalizeDomainSet(settings.Whitelist, true)
 	if err != nil {
 		return err
 	}
@@ -217,7 +208,7 @@ func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.Unfu
 		for domain := range whitelist {
 			delete(blocklist, domain)
 		}
-	} else if blocklist, err = normalizeDomainSet(settings.Blocklist); err != nil {
+	} else if blocklist, err = normalizeDomainSet(settings.Blocklist, true); err != nil {
 		return err
 	}
 	for domain := range whitelist {
