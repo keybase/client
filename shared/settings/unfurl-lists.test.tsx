@@ -71,6 +71,23 @@ test('removing a pending move puts the domain back on its saved list', () => {
   expect(hasEdits(back, saved)).toBe(false)
 })
 
+test('removing a pending move of a removed domain puts it back removed', () => {
+  const moved = addDomain(removeDomain(start, saved, 'allow', 'a.com'), 'block', 'a.com')
+  expect(lists(moved)).toEqual({blocklist: ['x.com', 'a.com'], whitelist: ['b.com']})
+  const back = removeDomain(moved, saved, 'block', 'a.com')
+  expect([...back.removed]).toEqual(['a.com'])
+  expect(lists(back)).toEqual({blocklist: ['x.com'], whitelist: ['b.com']})
+  expect(hasEdits(removeDomain(back, saved, 'allow', 'a.com'), saved)).toBe(false)
+})
+
+test('moving a removed domain back by adding it is live', () => {
+  const moved = addDomain(removeDomain(start, saved, 'allow', 'a.com'), 'block', 'a.com')
+  const back = addDomain(moved, 'allow', 'a.com')
+  expect(back.removed.size).toBe(0)
+  expect(lists(back).whitelist).toEqual(['b.com', 'a.com'])
+  expect(lists(removeDomain(back, saved, 'allow', 'a.com')).whitelist).toEqual(['b.com'])
+})
+
 test('save keeps the selected mode, and defaults to Ask per domain', () => {
   expect(unfurlSaveArgs(T.RPCChat.UnfurlMode.always, start).mode).toBe(T.RPCChat.UnfurlMode.always)
   expect(unfurlSaveArgs(T.RPCChat.UnfurlMode.never, start).mode).toBe(T.RPCChat.UnfurlMode.never)

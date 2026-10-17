@@ -2,10 +2,16 @@ import * as T from '@/constants/types'
 
 export type UnfurlList = 'allow' | 'block'
 export type UnfurlLists = {blocklist: ReadonlyArray<string>; whitelist: ReadonlyArray<string>}
-// removed saved rows stay listed, with Restore, until the save
-export type UnfurlDraft = UnfurlLists & {removed: ReadonlySet<string>}
+// removed saved rows stay listed, with Restore, until the save. movedRemoved
+// holds removed rows since moved to the other list, so undoing the move puts
+// them back removed.
+export type UnfurlDraft = UnfurlLists & {movedRemoved: ReadonlySet<string>; removed: ReadonlySet<string>}
 
-export const draftOf = (saved: UnfurlLists): UnfurlDraft => ({...saved, removed: new Set()})
+export const draftOf = (saved: UnfurlLists): UnfurlDraft => ({
+  ...saved,
+  movedRemoved: new Set(),
+  removed: new Set(),
+})
 
 const listKeys = (list: UnfurlList) =>
   list === 'allow' ? (['whitelist', 'blocklist'] as const) : (['blocklist', 'whitelist'] as const)
@@ -16,15 +22,20 @@ export const addDomain = (draft: UnfurlDraft, list: UnfurlList, input: string): 
   if (!domain) return draft
   const [to, from] = listKeys(list)
   const removed = new Set(draft.removed)
-  removed.delete(domain)
-  const next: UnfurlDraft = {...draft, removed}
+  const wasRemoved = removed.delete(domain)
+  const movedRemoved = new Set(draft.movedRemoved)
+  if (draft[from].includes(domain)) {
+    if (wasRemoved) movedRemoved.add(domain)
+    else movedRemoved.delete(domain)
+  }
+  const next: UnfurlDraft = {...draft, movedRemoved, removed}
   next[from] = draft[from].filter(d => d !== domain)
   next[to] = draft[to].includes(domain) ? draft[to] : [...draft[to], domain]
   return next
 }
 
 // A saved row toggles Restore. A row added in this draft goes away, back to the
-// other list if it was moved from there.
+// other list, in its prior removed state, if it was moved from there.
 export const removeDomain = (
   draft: UnfurlDraft,
   saved: UnfurlLists,
@@ -40,6 +51,12 @@ export const removeDomain = (
   const next: UnfurlDraft = {...draft}
   next[to] = draft[to].filter(d => d !== domain)
   if (saved[from].includes(domain)) next[from] = [...draft[from], domain]
+  if (draft.movedRemoved.has(domain)) {
+    const movedRemoved = new Set(draft.movedRemoved)
+    movedRemoved.delete(domain)
+    next.movedRemoved = movedRemoved
+    next.removed = new Set(draft.removed).add(domain)
+  }
   return next
 }
 
