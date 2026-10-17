@@ -12,6 +12,7 @@ import Rows from './rows/rows-container'
 import * as FS from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {writeSharedTextFile} from '@/util/shared-text-file'
 
 type OwnProps = {
   parentPath: T.FS.Path
@@ -22,42 +23,61 @@ const canBackUp = isMobile
   ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
+// The local file each shared item is saved from: its own file, or for text shared inline, a .txt
+// written for it. remove deletes those written files once the copies are done.
+export const incomingShareLocalFiles = async (items: T.FS.IncomingShareSource['source']) => {
+  const written: Array<{remove: () => void}> = []
+  const remove = () => written.forEach(w => w.remove())
+  try {
+    const paths: Array<string> = []
+    for (const item of items) {
+      if (item.originalPath) {
+        paths.push(item.originalPath)
+      } else if (item.content) {
+        const file = await writeSharedTextFile(item.content)
+        written.push(file)
+        paths.push(file.path)
+      }
+    }
+    return {paths, remove}
+  } catch (error) {
+    remove()
+    throw error
+  }
+}
+
 const doMoveOrCopy = async (
   type: 'move' | 'copy',
   source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
   parentPath: T.FS.Path,
   errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
 ) => {
-  const params =
-    source.type === T.FS.DestinationPickerSource.MoveOrCopy
-      ? [
-          {
-            dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
-            opID: makeUUID(),
-            overwriteExistingFiles: false,
-            src: FS.pathToRPCPath(source.path),
-          },
-        ]
-      : source.source
-          .map(item => item.originalPath ?? '')
-          .filter(originalPath => !!originalPath)
-          .map(originalPath => ({
-            dest: FS.pathToRPCPath(
-              T.FS.pathConcat(
-                parentPath,
-                T.FS.getLocalPathName(originalPath)
-                // We use the local path name here since we only care about file name.
-              )
-            ),
-            opID: makeUUID(),
-            overwriteExistingFiles: false,
-            src: {
-              PathType: T.RPCGen.PathType.local,
-              local: T.FS.getNormalizedLocalPath(originalPath),
-            } as T.RPCGen.Path,
-          }))
-
+  let removeWritten: (() => void) | undefined
   try {
+    let params: Array<Parameters<typeof T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise>[0]>
+    if (source.type === T.FS.DestinationPickerSource.MoveOrCopy) {
+      params = [
+        {
+          dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
+          opID: makeUUID(),
+          overwriteExistingFiles: false,
+          src: FS.pathToRPCPath(source.path),
+        },
+      ]
+    } else {
+      const {paths, remove} = await incomingShareLocalFiles(source.source)
+      removeWritten = remove
+      params = paths.map(localPath => ({
+        // We use the local path name here since we only care about file name.
+        dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getLocalPathName(localPath))),
+        opID: makeUUID(),
+        overwriteExistingFiles: false,
+        src: {
+          PathType: T.RPCGen.PathType.local,
+          local: T.FS.getNormalizedLocalPath(localPath),
+        } as T.RPCGen.Path,
+      }))
+    }
     const rpc =
       type === 'move'
         ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
@@ -66,6 +86,8 @@ const doMoveOrCopy = async (
     await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
   } catch (error) {
     errorToActionOrThrow(error, parentPath)
+  } finally {
+    removeWritten?.()
   }
 }
 
