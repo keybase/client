@@ -28,7 +28,7 @@ const unfurlTimeoutMs = 30_000
 
 const getSettings = async (): Promise<UnfurlSettings> => {
   const r = (await cliChatApi({method: 'getunfurlsettings'})) as Partial<UnfurlSettings> & {mode: Mode}
-  // only a service and CLI with block lists name the field (as null while it is empty)
+  // only a service and CLI with block lists name the field
   if (!('blocklist' in r)) throw new Error('getunfurlsettings has no blocklist: KB_CLI must be the CLI built from this branch')
   return {blocklist: [...(r.blocklist ?? [])].sort(), mode: r.mode, whitelist: [...(r.whitelist ?? [])].sort()}
 }

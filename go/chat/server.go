@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -2735,15 +2736,17 @@ func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSetting
 		return res, err
 	}
 	res.Mode = settings.Mode
-	for w := range settings.Whitelist {
-		res.Whitelist = append(res.Whitelist, w)
-	}
-	slices.Sort(res.Whitelist)
-	for b := range settings.Blocklist {
-		res.Blocklist = append(res.Blocklist, b)
-	}
-	slices.Sort(res.Blocklist)
+	res.Whitelist = slices.Sorted(maps.Keys(settings.Whitelist))
+	res.Blocklist = slices.Sorted(maps.Keys(settings.Blocklist))
 	return res, nil
+}
+
+func toSet(list []string) map[string]bool {
+	res := make(map[string]bool, len(list))
+	for _, item := range list {
+		res[item] = true
+	}
+	return res
 }
 
 func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
@@ -2753,21 +2756,14 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 	if err != nil {
 		return err
 	}
-	wm := make(map[string]bool)
-	for _, w := range arg.Whitelist {
-		wm[w] = true
-	}
-	var bm map[string]bool
+	var blocklist map[string]bool
 	if arg.Blocklist != nil {
-		bm = make(map[string]bool)
-		for _, b := range *arg.Blocklist {
-			bm[b] = true
-		}
+		blocklist = toSet(*arg.Blocklist)
 	}
 	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
 		Mode:      arg.Mode,
-		Whitelist: wm,
-		Blocklist: bm,
+		Whitelist: toSet(arg.Whitelist),
+		Blocklist: blocklist,
 	})
 }
 
