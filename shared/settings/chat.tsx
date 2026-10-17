@@ -78,8 +78,7 @@ const useContactSettings = () => {
 
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
-  const [loadError, setLoadError] = React.useState('')
-  const [saveError, setSaveError] = React.useState('')
+  const [error, setError] = React.useState('')
   const {data, reload, setData} = useRPCLoad(
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
     [undefined, C.waitingKeySettingsChatUnfurl],
@@ -89,13 +88,12 @@ const useUnfurlSettings = () => {
         mode: result.mode,
         whitelist: result.whitelist ?? emptyList,
       }),
-      onError: () => setLoadError('Unable to load link preview settings, please try again.'),
-      onResult: () => setLoadError(''),
+      onError: () => setError('Unable to load link preview settings, please try again.'),
+      onResult: () => setError(''),
       when: 'manual',
     }
   )
   const loaded = data !== undefined
-  const error = saveError || loadError
   const mode = data?.mode
   const whitelist = data?.whitelist ?? emptyList
   const blocklist = data?.blocklist ?? emptyList
@@ -109,7 +107,7 @@ const useUnfurlSettings = () => {
 
   const unfurlSettingsSaved = React.useCallback(
     (settings: ReturnType<typeof unfurlSaveArgs>, onSuccess: () => void) => {
-      setSaveError('')
+      setError('')
       if (!useConfigState.getState().loggedIn) {
         return
       }
@@ -122,7 +120,7 @@ const useUnfurlSettings = () => {
           unfurlSettingsRefresh()
         },
         e => {
-          setSaveError(
+          setError(
             e.desc
               ? `Unable to save link preview settings: ${e.desc}`
               : 'Unable to save link preview settings, please try again.'
