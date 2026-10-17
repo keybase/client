@@ -50,10 +50,11 @@ const firstWords = (text: string) => {
 
 const chars = (s: string) => Array.from(s)
 
-// A path separator would escape the folder, a leading dot would hide the file, and control
-// characters (newlines) garble it in the UI.
+// A path separator would escape the folder, a leading dot would hide the file, control characters
+// (newlines) garble it in the UI, and format characters (bidi overrides) can make it display as
+// something it isn't. ZWJ and ZWNJ stay: emoji sequences and some scripts need them.
 // eslint-disable-next-line no-control-regex
-const unsafe = /[/:\u0000-\u001f\u007f-\u009f\u2028\u2029]/g
+const unsafe = /[/:\u0000-\u001f\u007f-\u009f\u2028\u2029]|(?![\u200c\u200d])\p{Cf}/gu
 
 export const sharedTextFileName = (text: string) => {
   const words = firstWords(text)
