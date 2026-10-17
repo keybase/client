@@ -185,6 +185,17 @@ func TestExtractor(t *testing.T) {
 			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},
 		},
 		{
+			message:   "http://[2001:db8::1]/x",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"2001:db8::1"},
+			result:    []ExtractorHit{{URL: "http://[2001:db8::1]/x", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://[2001:db8::1]/x",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"2001:db8::1"},
+		},
+		{
 			message: "https://GIPHY.com/gifs/x",
 			mode:    chat1.UnfurlMode_NEVER,
 			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},

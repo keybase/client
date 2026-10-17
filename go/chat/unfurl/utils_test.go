@@ -15,6 +15,11 @@ func TestNormalizeDomain(t *testing.T) {
 		{"HTTPS://WWW.Foo.com/x", "foo.com"},
 		{" foo.com ", "foo.com"},
 		{"192.168.1.1", "192.168.1.1"},
+		{"2001:db8::1", "2001:db8::1"},
+		{"2001:DB8:0::1", "2001:db8::1"},
+		{"[2001:db8::1]", "2001:db8::1"},
+		{"http://[2001:db8::1]/x", "2001:db8::1"},
+		{"::1", "::1"},
 	}
 	for _, tc := range good {
 		got, err := NormalizeDomain(tc.in)

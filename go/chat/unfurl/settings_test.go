@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -46,6 +47,31 @@ func (s *memConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 	}
 	s.storage[name] = string(dat)
 	return nil
+}
+
+// countingStorage counts Puts per record and fails the Put numbered failPut
+// (1-based, across all records) when it is set.
+type countingStorage struct {
+	*memConversationBackedStorage
+	puts    map[string]int
+	total   int
+	failPut int
+}
+
+func newCountingStorage() *countingStorage {
+	return &countingStorage{
+		memConversationBackedStorage: newMemConversationBackedStorage(),
+		puts:                         make(map[string]int),
+	}
+}
+
+func (s *countingStorage) Put(ctx context.Context, uid gregor1.UID, name string, src any) error {
+	s.total++
+	if s.total == s.failPut {
+		return errors.New("put failed")
+	}
+	s.puts[name]++
+	return s.memConversationBackedStorage.Put(ctx, uid, name, src)
 }
 
 func TestUnfurlSetting(t *testing.T) {
@@ -165,12 +191,12 @@ func TestUnfurlSettingSetNormalizes(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res, after)
 
-	err = settings.Set(ctx, uid, chat1.UnfurlSettings{
+	// auto-allowed domains are always allowed, so a save that lists them drops them
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
 		Mode:      chat1.UnfurlMode_WHITELISTED,
-		Blocklist: map[string]bool{"giphy.com": true},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "giphy.com")
+		Whitelist: map[string]bool{types.MapsDomain: true, "a.com": true},
+		Blocklist: map[string]bool{"giphy.com": true, "https://GIPHY.com/x": true, "b.com": true},
+	}))
 	after, err = settings.Get(ctx, uid)
 	require.NoError(t, err)
 	require.Equal(t, res, after)
@@ -233,7 +259,7 @@ func TestUnfurlSettingGetCleansLegacyEntries(t *testing.T) {
 	storage := newMemConversationBackedStorage()
 	require.NoError(t, storage.Put(ctx, uid, settingsWhitelistName, whitelistRecord{
 		Whitelist: map[string]bool{
-			"giphy.com": true, "localhost": true, "::1": true, "A.com": true,
+			"giphy.com": true, "localhost": true, "A.com": true,
 			"https://www.a.com/x": true, "https://WWW.C.com/y": true, "d.com": false,
 			"b.com": true,
 		},
@@ -346,4 +372,108 @@ func TestUnfurlSettingSetKeepsBlocklist(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, res.Whitelist)
 	require.Empty(t, res.Blocklist)
+}
+
+func TestUnfurlSettingIPv6RoundTrip(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	settings := NewSettings(g, newMemConversationBackedStorage())
+	domain, err := GetDomain("http://[2001:db8::1]/x")
+	require.NoError(t, err)
+	require.NoError(t, settings.BlocklistAdd(ctx, uid, domain))
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, map[string]bool{"2001:db8::1": true}, res.Blocklist)
+
+	require.NoError(t, settings.Set(ctx, uid, res))
+	after, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, res, after)
+}
+
+func TestUnfurlSettingAddNormalizes(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	for _, input := range []string{"Foo.com", "https://foo.com"} {
+		settings := NewSettings(g, newMemConversationBackedStorage())
+		require.NoError(t, settings.BlocklistAdd(ctx, uid, "foo.com"))
+		require.NoError(t, settings.WhitelistAdd(ctx, uid, input))
+		res, err := settings.Get(ctx, uid)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{"foo.com": true}, res.Whitelist, input)
+		require.Empty(t, res.Blocklist, input)
+	}
+	settings := NewSettings(g, newMemConversationBackedStorage())
+	require.Error(t, settings.BlocklistAdd(ctx, uid, "not a domain"))
+	require.Error(t, settings.BlocklistAdd(ctx, uid, "https://www.giphy.com/x"))
+}
+
+func TestUnfurlSettingAddPartialWrite(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	for _, block := range []bool{true, false} {
+		storage := newCountingStorage()
+		settings := NewSettings(g, storage)
+		if block {
+			require.NoError(t, settings.WhitelistAdd(ctx, uid, "foo.com"))
+		} else {
+			require.NoError(t, settings.BlocklistAdd(ctx, uid, "foo.com"))
+		}
+		storage.failPut = storage.total + 2
+		if block {
+			require.Error(t, settings.BlocklistAdd(ctx, uid, "foo.com"))
+		} else {
+			require.Error(t, settings.WhitelistAdd(ctx, uid, "foo.com"))
+		}
+		// the failed removal leaves the domain on both lists, and the block list wins
+		res, err := settings.Get(ctx, uid)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{"foo.com": true}, res.Blocklist, block)
+		require.Empty(t, res.Whitelist, block)
+	}
+}
+
+func TestUnfurlSettingSetSkipsUnchanged(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	storage := newCountingStorage()
+	settings := NewSettings(g, storage)
+
+	// a user with no block list who saves without one never gets a block list record
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_NEVER,
+		Whitelist: map[string]bool{"a.com": true},
+	}))
+	require.Equal(t, map[string]int{settingsModeName: 1, settingsWhitelistName: 1}, storage.puts)
+
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	storage.puts = make(map[string]int)
+	res.Mode = chat1.UnfurlMode_ALWAYS
+	require.NoError(t, settings.Set(ctx, uid, res))
+	require.Equal(t, map[string]int{settingsModeName: 1}, storage.puts)
+
+	storage.puts = make(map[string]int)
+	require.NoError(t, settings.Set(ctx, uid, res))
+	require.Empty(t, storage.puts)
+
+	after, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, res, after)
 }

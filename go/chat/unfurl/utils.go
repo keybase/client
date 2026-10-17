@@ -55,8 +55,8 @@ func GetDomain(uri string) (res string, err error) {
 	}
 	// Check if hostname is an IP address. If so, return it directly
 	// since publicsuffix.EffectiveTLDPlusOne doesn't work with IPs.
-	if net.ParseIP(hostname) != nil {
-		return hostname, nil
+	if ip := net.ParseIP(hostname); ip != nil {
+		return ip.String(), nil
 	}
 	return publicsuffix.EffectiveTLDPlusOne(hostname)
 }
@@ -71,14 +71,16 @@ func isAutoAllowedDomain(domain string) bool {
 	return false
 }
 
-func autoAllowedError(domain string) error {
-	return fmt.Errorf("%s is always allowed and cannot be listed", domain)
-}
+var errAutoAllowed = errors.New("is always allowed and cannot be listed")
 
 // NormalizeDomain turns user input (a bare domain or a URL) into the domain
 // form stored on the allow and block lists.
 func NormalizeDomain(input string) (string, error) {
 	uri := strings.ToLower(strings.TrimSpace(input))
+	// a bare IPv6 address only parses as a URL host inside brackets
+	if ip := net.ParseIP(uri); ip != nil {
+		return ip.String(), nil
+	}
 	if !strings.Contains(uri, "://") {
 		uri = "http://" + uri
 	}
@@ -87,7 +89,7 @@ func NormalizeDomain(input string) (string, error) {
 		return "", fmt.Errorf("invalid domain %q: %w", input, err)
 	}
 	if isAutoAllowedDomain(domain) {
-		return "", autoAllowedError(domain)
+		return "", fmt.Errorf("%s %w", domain, errAutoAllowed)
 	}
 	if !strings.Contains(domain, ".") && net.ParseIP(domain) == nil {
 		return "", fmt.Errorf("invalid domain %q", input)
