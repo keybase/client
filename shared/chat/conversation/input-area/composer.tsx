@@ -45,8 +45,8 @@ export type Composer = {
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
   // Adds a share's text on its own line after the draft, with the caret at the end: never over the
-  // draft, and never into an edit (it goes after the draft the edit set aside). It waits for the
-  // draft to be known, and for the user to be able to post.
+  // draft, and never into an edit. Where the composer can't show it now (no input, an edit on, the
+  // user can't post) it is saved after the draft, and shows once the composer loads that.
   append: (text: string) => void
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
@@ -121,8 +121,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let editing = false
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
-  // appended text waiting for the draft to load, or for the user to be able to post
-  let appendWaiting: string | undefined
 
   // only a restore saves where the user can't post: it puts back the user's own text
   const saveDraft = (next: string, evenReadOnly = false) => {
@@ -212,7 +210,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // Loaded only once it is written, so a draft known before the view's input is attached, or
   // offered while the user can't post, loads on the next try: the input attaching reads it from the
   // store, and read-only clearing offers it again.
-  const loadDraft = (draft: string | undefined) => {
+  const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     if (editing) {
       draftLoaded = true
@@ -232,25 +230,30 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     write(input, draft, false)
   }
 
-  const offerDraft = (draft: string | undefined) => {
-    loadDraft(draft)
-    if (appendWaiting === undefined || !draftLoaded || !input || deps.isReadOnly()) return
-    const s = appendWaiting
-    appendWaiting = undefined
-    if (editing) {
-      saved = appendLine(saved ?? '', s)
-      deps.saveDraft(saved)
-    } else {
-      write(input, appendLine(text, s), false)
-    }
-  }
-
   return {
     append: s => {
-      whenAttached(() => {
-        appendWaiting = appendLine(appendWaiting ?? '', s)
-        offerDraft(deps.getDraft())
-      })
+      const draft = deps.getDraft()
+      // The share path loads the draft first. One that couldn't be loaded counts as empty: the text
+      // goes in as an inject's would.
+      if (draft === undefined) {
+        whenAttached(target => write(target, appendLine(text, s), false))
+        return
+      }
+      if (input && !editing && !deps.isReadOnly()) {
+        offerDraft(draft)
+        if (draftLoaded) {
+          write(input, appendLine(text, s), false)
+          return
+        }
+      }
+      saved = appendLine(draftLoaded ? (saved ?? draft) : draft, s)
+      deps.saveDraft(saved)
+      deps.flushDraft()
+      // what the composer holds is that draft no longer: it loads the new one once it can show it
+      if (!editing) {
+        draftLoaded = false
+        text = ''
+      }
     },
     clear: () => {
       whenAttached(target => clear(target, false))
