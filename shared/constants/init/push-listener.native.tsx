@@ -84,8 +84,6 @@ export const initPushListener = () => {
       const shareSub = onShareData(evt => onAndroidShareHeld(evt.id))
       unsubs.push(() => shareSub.remove())
       unsubs.push(subscribeAndroidShareOpener())
-      // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
-      // router subscriber controls when native flushes pending share intents.
     }
   } catch (e) {
     logger.error('[Push] failed to set up listeners: ', e)

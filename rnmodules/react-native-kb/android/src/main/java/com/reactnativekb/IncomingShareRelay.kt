@@ -1,26 +1,23 @@
 package com.reactnativekb
 
 // Holds the latest incoming share until JS is done with it. It lives as long as
-// the process, not an Activity: a recreated Activity must neither lose a share
-// nor wait for a ready signal JS sends only once per runtime. The sink is the
-// JS runtime that said it is ready; it is replaced when a new runtime says so.
+// the process, not an Activity, so a recreated Activity doesn't lose a share.
 //
-// JS keeps no copy: the sink is told a share's id, a share screen reads the
-// share by that id, and the share stays here until JS says it is done with
-// that id or a newer share replaces it.
-// So nothing JS drops before a screen opens can lose it, and once done it is
-// gone for good.
+// JS keeps no copy: it is told a share's id (by notify, and by asking for
+// heldID once it listens, for a share held before then), a share screen reads
+// the share by that id, and the share stays here until JS says it is done with
+// that id or a newer share replaces it. So nothing JS drops before a screen
+// opens can lose it, and once done it is gone for good.
 // log: where it says which share it hands out or releases, by id only.
-class IncomingShareRelay(private val log: (String) -> Unit = {}) {
+class IncomingShareRelay(
+    private val log: (String) -> Unit = {},
+    private val notify: (Long) -> Unit = {},
+) {
     data class Share(val text: String?, val paths: List<String>, val droppedCount: Int)
 
     private var open: Share? = null
     private var openID = 0L
     private var lastToken = 0L
-    // Whether the current sink has been told about the open share.
-    private var notified = false
-    private var sinkOwner: Any? = null
-    private var sink: ((Long) -> Boolean)? = null
 
     // Starts a new share, superseding any begun earlier whose contents are still
     // being prepared. The open share stays until the new one is filled, so it
@@ -37,36 +34,12 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
         if (token != lastToken) return
         open = share
         openID = token
-        notified = false
-        notifyLocked()
+        notify(token)
     }
 
-    // notify returns true only once JS has been told; until then it is retried.
-    // A new runtime is told about the open share again: whatever screen the old
-    // one had for it is gone.
+    // The open share's id, if there is one.
     @Synchronized
-    fun attach(owner: Any, notify: (Long) -> Boolean) {
-        sinkOwner = owner
-        sink = notify
-        notified = false
-        notifyLocked()
-    }
-
-    // No-op unless owner is the attached one, so a stale runtime's teardown
-    // can't detach its successor.
-    @Synchronized
-    fun detach(owner: Any) {
-        if (sinkOwner === owner) {
-            sinkOwner = null
-            sink = null
-        }
-    }
-
-    // Retries telling JS, e.g. after an emit failed.
-    @Synchronized
-    fun flush() {
-        notifyLocked()
-    }
+    fun heldID(): Long? = if (open != null) openID else null
 
     // The open share, if id is its id.
     @Synchronized
@@ -84,16 +57,8 @@ class IncomingShareRelay(private val log: (String) -> Unit = {}) {
         open = null
     }
 
-    private fun notifyLocked() {
-        if (open == null || notified) return
-        val notify = sink ?: return
-        if (notify(openID)) {
-            notified = true
-        }
-    }
-
     companion object {
         @JvmStatic
-        val shared = IncomingShareRelay { NativeLogger.info(it) }
+        val shared = IncomingShareRelay({ NativeLogger.info(it) }, { KbModule.instance?.emitShare(it) })
     }
 }

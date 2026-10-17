@@ -110,8 +110,6 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         (application as MainApplication).lifecycleReporter.onMainActivityResume()
-        // Retries a share whose emit failed.
-        IncomingShareRelay.shared.flush()
     }
 
     override fun onStart() {

@@ -192,8 +192,8 @@ export const addPushTapListener = (callback: () => void): (() => void) => {
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }
-export const shareListenersRegistered = (): void => {
-  return Kb.shareListenersRegistered()
+export const heldIncomingShareID = (): number => {
+  return Kb.heldIncomingShareID()
 }
 export const peekIncomingShare = (
   id: number

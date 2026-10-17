@@ -7,13 +7,7 @@ import org.junit.Test
 class IncomingShareRelayTest {
     private fun text(t: String) = IncomingShareRelay.Share(t, emptyList(), 0)
 
-    private class Sink(var accept: Boolean = true) {
-        val ids = mutableListOf<Long>()
-        fun notify(id: Long): Boolean {
-            ids.add(id)
-            return accept
-        }
-    }
+    private val told = mutableListOf<Long>()
 
     private fun IncomingShareRelay.add(share: IncomingShareRelay.Share): Long {
         val id = begin()
@@ -22,36 +16,25 @@ class IncomingShareRelayTest {
     }
 
     @Test
-    fun toldOnceJSIsReady() {
-        val relay = IncomingShareRelay()
-        val id = relay.add(text("a"))
-        val sink = Sink()
-        relay.attach(sink, sink::notify)
-        relay.flush()
-        assertEquals(listOf(id), sink.ids)
-        assertEquals(text("a"), relay.share(id))
-    }
-
-    @Test
-    fun toldAtOnceWhenJSIsReady() {
-        val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::notify)
+    fun jsIsToldOfEachShareFilled() {
+        val relay = IncomingShareRelay(notify = { told.add(it) })
         val a = relay.add(text("a"))
         val b = relay.add(text("b"))
-        assertEquals(listOf(a, b), sink.ids)
+        assertEquals(listOf(a, b), told)
     }
 
     @Test
-    fun aFailedNotifyIsRetried() {
+    fun jsThatWasNotListeningAsksForTheHeldShare() {
         val relay = IncomingShareRelay()
-        val sink = Sink(accept = false)
-        relay.attach(sink, sink::notify)
-        val id = relay.add(text("a"))
-        sink.accept = true
-        relay.flush()
-        relay.flush()
-        assertEquals(listOf(id, id), sink.ids)
+        assertNull(relay.heldID())
+        relay.begin()
+        assertNull(relay.heldID())
+        val a = relay.add(text("a"))
+        assertEquals(a, relay.heldID())
+        val b = relay.add(text("b"))
+        assertEquals(b, relay.heldID())
+        relay.done(b)
+        assertNull(relay.heldID())
     }
 
     @Test
@@ -95,63 +78,19 @@ class IncomingShareRelayTest {
 
     @Test
     fun aNewerShareSupersedesOneStillBeingPrepared() {
-        val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::notify)
+        val relay = IncomingShareRelay(notify = { told.add(it) })
         val older = relay.begin()
         val newer = relay.add(text("newer"))
         relay.fill(older, text("older"))
-        assertEquals(listOf(newer), sink.ids)
+        assertEquals(listOf(newer), told)
         assertEquals(text("newer"), relay.share(newer))
         assertNull(relay.share(older))
     }
 
     @Test
-    fun aNewRuntimeIsToldAboutAShareNotDoneWith() {
-        val relay = IncomingShareRelay()
-        val first = Sink()
-        relay.attach(first, first::notify)
-        val id = relay.add(text("a"))
-        relay.flush()
-        val second = Sink()
-        relay.attach(second, second::notify)
-        assertEquals(listOf(id), first.ids)
-        assertEquals(listOf(id), second.ids)
-
-        relay.done(id)
-        val third = Sink()
-        relay.attach(third, third::notify)
-        assertEquals(emptyList<Long>(), third.ids)
-    }
-
-    @Test
-    fun aDetachedRuntimeIsNotTold() {
-        val relay = IncomingShareRelay()
-        val sink = Sink()
-        relay.attach(sink, sink::notify)
-        relay.detach(sink)
-        val id = relay.add(text("a"))
-        assertEquals(emptyList<Long>(), sink.ids)
-        assertEquals(text("a"), relay.share(id))
-    }
-
-    @Test
-    fun aStaleRuntimeCannotDetachItsSuccessor() {
-        val relay = IncomingShareRelay()
-        val old = Sink()
-        val current = Sink()
-        relay.attach(old, old::notify)
-        relay.attach(current, current::notify)
-        relay.detach(old)
-        val id = relay.add(text("a"))
-        assertEquals(emptyList<Long>(), old.ids)
-        assertEquals(listOf(id), current.ids)
-    }
-
-    @Test
     fun logsHandingOutAndReleasingByIDOnly() {
         val lines = mutableListOf<String>()
-        val relay = IncomingShareRelay { lines.add(it) }
+        val relay = IncomingShareRelay(log = { lines.add(it) })
         val id = relay.add(text("secret text"))
         relay.share(id)
         relay.done(id)

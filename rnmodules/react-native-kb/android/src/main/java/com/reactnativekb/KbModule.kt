@@ -193,13 +193,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // JS calls this once per runtime, when it is ready to route a share. The
-    // relay, not any Activity, holds the share until then.
-    @ReactMethod
-    override fun shareListenersRegistered() {
-        IncomingShareRelay.shared.attach(this) { id -> emitShare(id) }
-    }
-
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {
@@ -413,26 +406,25 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return data
     }
 
+    // The held share's id, 0 if none: JS asks once it listens, for a share held before then.
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun heldIncomingShareID(): Double = (IncomingShareRelay.shared.heldID() ?: 0L).toDouble()
+
     // JS is done with the share with this id.
     @ReactMethod
     override fun ackIncomingShare(id: Double) {
         IncomingShareRelay.shared.done(id.toLong())
     }
 
-    // True only once JS has been told about the share.
-    private fun emitShare(id: Long): Boolean {
-        if (!reactContext.hasActiveReactInstance() || !canEmit()) {
-            NativeLogger.warn("emitShare: no active react instance, holding the share")
-            return false
-        }
-        return try {
+    // Best effort: JS that isn't listening yet asks for heldIncomingShareID once it is.
+    internal fun emitShare(id: Long) {
+        if (!reactContext.hasActiveReactInstance() || !canEmit()) return
+        try {
             val data = Arguments.createMap()
             data.putDouble("id", id.toDouble())
             emitOnShareData(data)
-            true
         } catch (e: Exception) {
             NativeLogger.error("emitShare failed to emit: " + e.message)
-            false
         }
     }
 
@@ -627,7 +619,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // dies while the ReactInstance and this module survive. This is the only
     // place that should ever clear the native bridge.
     override fun invalidate() {
-        IncomingShareRelay.shared.detach(this)
         val wasCurrent = nativeInvalidate()
         // Mirrors iOS invalidate's identity-gated KeybaseReset. Replacing the
         // runtime replaces the JS transport: it starts with fresh seqids and

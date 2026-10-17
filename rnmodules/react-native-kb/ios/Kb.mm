@@ -509,9 +509,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
   return constants;
 }
 
-RCT_EXPORT_METHOD(shareListenersRegistered) {
-}
-
 RCT_EXPORT_METHOD(notifyJSReady) {
   // KeybaseNotifyJSReady is a sync.Once on the Go side, so repeat calls after
   // a reload are free. It must not run on the JS thread — do it on the reader
@@ -930,6 +927,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekIncomingShare : (double)shareID) {
 }
 
 RCT_EXPORT_METHOD(ackIncomingShare : (double)shareID) {
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(heldIncomingShareID) {
+  return @0;
 }
 
 RCT_EXPORT_METHOD(ackPushTap : (double)tapID) {

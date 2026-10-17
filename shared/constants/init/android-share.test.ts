@@ -17,6 +17,7 @@ jest.mock('react-native-kb', () => ({
     mockNative.acks.push(id)
     if (mockNative.held?.id === id) mockNative.held = undefined
   },
+  heldIncomingShareID: () => mockNative.held?.id ?? 0,
   peekIncomingShare: (id: number) => {
     const held = mockNative.held
     return held?.id === id ? {droppedCount: held.droppedCount, localPaths: held.localPaths, text: held.text} : null
@@ -99,6 +100,15 @@ test('a held share opens over the chat tab once logged in with the navigator rea
   expect(opened).toEqual([])
   ready()
   expect(opened).toEqual(['over tabs 1'])
+})
+
+test('a share held before JS listened is asked for once it does, and opens', () => {
+  unsubscribe()
+  resetAndroidShareForTest()
+  mockNative.held = {droppedCount: 0, id: 3, text: 'share 3'}
+  unsubscribe = subscribeAndroidShareOpener()
+  ready()
+  expect(opened).toEqual(['over tabs 3'])
 })
 
 test('a share resets to the chat tab with the share above it, whatever was pushed', () => {

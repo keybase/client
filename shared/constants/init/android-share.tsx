@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
 import {getNavigator, navigationRef} from '@/constants/navigator'
-import {ackIncomingShare, peekIncomingShare} from 'react-native-kb'
+import {ackIncomingShare, heldIncomingShareID, peekIncomingShare} from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
@@ -110,6 +110,9 @@ export const subscribeAndroidShareOpener = () => {
     useNavigationIntentsState.subscribe(openHeldShare),
     useConfigState.subscribe(onConfig),
   ]
+  // Native tells us of a share only if we're listening, so ask for one held before we were.
+  const id = heldIncomingShareID()
+  if (id) onAndroidShareHeld(id)
   return () => unsubs.forEach(u => u())
 }
 

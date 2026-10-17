@@ -72,7 +72,8 @@ export interface Spec extends TurboModule {
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
   notifyJSReady(): void
-  shareListenersRegistered(): void
+  // Android only: the id of the share native holds, 0 if none.
+  heldIncomingShareID(): number
   // Android only: the held share with this id; null once it is done with or replaced.
   // droppedCount: shared items that couldn't be copied
   peekIncomingShare(id: number): {text?: string; localPaths?: Array<string>; droppedCount: number} | null

@@ -14,7 +14,7 @@ import logger from '@/logger'
 import {getEngine} from '@/engine'
 import {registerIncomingAnswerer} from '@/engine/incoming-answerers'
 import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
-import {logState, setThreadInputCommandStatus} from '@/constants/router'
+import {setThreadInputCommandStatus} from '@/constants/router'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
@@ -470,19 +470,9 @@ const _initNativePlatformListener = () => {
     ignorePromise(f())
   }))
 
-  // we call this when we're logged in.
-  let calledShareListenersRegistered = false
   _platformUnsubs.push(useRouterState.subscribe((s, old) => {
-    const next = s.navState
-    const prev = old.navState
-    if (next === prev) return
+    if (s.navState === old.navState) return
     persistRoute(false, false, () => useConfigState.getState().startup.loaded)
-
-    if (!calledShareListenersRegistered && logState().loggedIn) {
-      calledShareListenersRegistered = true
-      const {shareListenersRegistered} = _getNativeSync()
-      shareListenersRegistered()
-    }
   }))
 
   // Default to screen capture prevention on Android (matches native default of secure).
