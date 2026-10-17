@@ -37,6 +37,7 @@ import logger from '@/logger'
 import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
 const g = globalThis as unknown as {isIOS: boolean}
+const pendingIntent = () => useInputIntentState.getState().intents.get(conversationIDKey)
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 let lastShareID = 0
@@ -70,8 +71,12 @@ test('a text share to a suggested conversation carries the dropped-items notice 
     items: [{content: 'hello', type: T.RPCGen.IncomingShareType.text}],
   })
 
-  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {append: true, notice: "1 item couldn't be prepared.", text: 'hello', type: 'injectText'},
+  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension')
+  expect(pendingIntent()).toEqual({
+    append: true,
+    notice: "1 item couldn't be prepared.",
+    text: 'hello',
+    type: 'injectText',
   })
 })
 
@@ -81,9 +86,7 @@ test('a complete text share to a suggested conversation carries no notice', asyn
     items: [{content: 'hello', type: T.RPCGen.IncomingShareType.text}],
   })
 
-  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-    intent: {append: true, notice: undefined, text: 'hello', type: 'injectText'},
-  })
+  expect(pendingIntent()).toEqual({append: true, notice: undefined, text: 'hello', type: 'injectText'})
 })
 
 test('an attachment share to a suggested conversation carries the notice to the send screen', async () => {
@@ -153,7 +156,9 @@ describe('shared text and the draft', () => {
         }
     )
   const share = async (text: string, withFile: boolean) => {
-    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+      force: true,
+    })
     await shareToSuggestedConversation({
       droppedCount: 1,
       items: [
@@ -166,9 +171,7 @@ describe('shared text and the draft', () => {
   test('with files, text that fits goes after the draft before the titles screen opens, so a cancel leaves it there', async () => {
     await share(fits, true)
 
-    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-      intent: {append: true, notice: undefined, text: fits, type: 'injectText'},
-    })
+    expect(pendingIntent()).toEqual({append: true, notice: undefined, text: fits, type: 'injectText'})
     expect(getTitles()).toHaveLength(1)
     expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
@@ -179,7 +182,7 @@ describe('shared text and the draft', () => {
   test('with files, text the draft has no room for goes as a .txt in the same batch, the draft untouched', async () => {
     await share(over, true)
 
-    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {intent: undefined})
+    expect(pendingIntent()).toBeUndefined()
     expect(getTitles()).toHaveLength(1)
     expect(getTitles()[0]?.name).toBe('chatAttachmentGetTitles')
     expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
@@ -192,11 +195,7 @@ describe('shared text and the draft', () => {
     mockWriteFails = true
     await share(over, true)
 
-    expect(useInputIntentState.getState().intents.get(conversationIDKey)).toEqual({
-      append: true,
-      text: over,
-      type: 'injectText',
-    })
+    expect(pendingIntent()).toEqual({append: true, notice: undefined, text: over, type: 'injectText'})
     expect(getTitles()).toHaveLength(1)
     expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
@@ -205,18 +204,40 @@ describe('shared text and the draft', () => {
   test('alone, text the draft has no room for goes as a .txt through the titles screen, with the notice', async () => {
     await share(over, false)
 
-    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {intent: undefined})
+    expect(pendingIntent()).toBeUndefined()
     expect(getTitles()).toHaveLength(1)
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([txt])
     expect(getTitles()[0]?.params.notice).toBe("1 item couldn't be prepared.")
     expect(mockWrites).toEqual([over])
   })
 
+  test('the draft is loaded before anything is decided', async () => {
+    // the store has only an untrusted row, its draft not the service's
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft: ''}], undefined, {force: true})
+    const load = jest.spyOn(T.RPCChat, 'localGetInboxAndUnboxUILocalRpcPromise').mockImplementation(async () => {
+      metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+        force: true,
+      })
+      return Promise.resolve({conversations: null, offline: false} as never)
+    })
+    await shareToSuggestedConversation({
+      droppedCount: 0,
+      items: [{content: over, type: T.RPCGen.IncomingShareType.text}],
+    })
+
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([txt])
+    expect(pendingIntent()).toBeUndefined()
+  })
+
   test('alone, text that fits goes after the draft, with no titles screen', async () => {
     await share(fits, false)
 
-    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-      intent: {append: true, notice: "1 item couldn't be prepared.", text: fits, type: 'injectText'},
+    expect(pendingIntent()).toEqual({
+      append: true,
+      notice: "1 item couldn't be prepared.",
+      text: fits,
+      type: 'injectText',
     })
     expect(getTitles()).toEqual([])
     expect(mockWrites).toEqual([])

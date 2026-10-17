@@ -2,78 +2,78 @@ import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {getAccountGeneration} from '@/engine/account-generation'
 import {clearModals, navigateAppend, navigateToThread} from '@/constants/router'
-import {getInboxConversationMeta} from '../inbox/metadata'
+import {getInboxConversationMeta, loadConversationMeta} from '../inbox/metadata'
 import {toAttachmentPath} from '../conversation/attachment-path'
-import {setInputIntent} from '../conversation/input-intent-store'
+import {setInputIntent, type InputIntent} from '../conversation/input-intent-store'
 import {sharedTextFitsAfter, writeSharedTextFile} from '@/util/shared-text-file'
 
-const knownMeta = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const meta = getInboxConversationMeta(conversationIDKey)
-  return meta?.conversationIDKey === conversationIDKey ? meta : undefined
-}
-
-// Where a share's text goes, decided once as the share opens, against the draft the conversation
-// has then: after the draft when chat's message limit leaves room for both, else as a .txt in the
-// batch, the draft untouched.
-export const sharedTextFits = (conversationIDKey: T.Chat.ConversationIDKey, text: string) =>
-  sharedTextFitsAfter(knownMeta(conversationIDKey)?.draft ?? '', text)
-
-// Opens the attachment titles screen for files going to a conversation, or the conversation itself
-// when there are none. Text going with them follows them into the draft once they are sent, or,
-// when the draft has no room for it, goes as a .txt in the same batch. Text that can't be written
-// as a file goes after the draft after all: with threadBeneath (nothing else holds the share) now,
-// so cancelling the batch can't lose it, else once the files are sent. tlfName undefined takes the
-// meta's.
-export const sendFilesToConversation = async (p: {
+// Sends a share to a conversation: its files through the attachment titles screen, its text after
+// the conversation's draft. Where the text goes is decided once, against the draft as the service
+// has it (the meta is loaded first; one that can't be loaded counts as an empty draft): after the
+// draft when chat's message limit leaves room for both, else as a .txt in the batch, the draft
+// untouched. Text that can't be written as a file goes after the draft after all.
+// threadBeneath: the conversation is already shown under this, and nothing else holds the share,
+// so the text goes after the draft now, and a cancelled batch can't lose it. Otherwise (the picker
+// is beneath, still holding the share) it follows the files into the draft once they are sent.
+// tlfName undefined takes the meta's.
+export const sendShareToConversation = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   paths: ReadonlyArray<string>
   text?: string
   notice?: string
   reason: 'extension' | 'files'
-  threadBeneath?: boolean
+  threadBeneath: boolean
   tlfName?: string
 }) => {
   const {conversationIDKey, notice, reason, text, threadBeneath, tlfName} = p
   const generation = getAccountGeneration()
-  let prefill = text
   let paths = p.paths
-  if (text !== undefined && !sharedTextFits(conversationIDKey, text)) {
-    try {
-      paths = [...paths, (await writeSharedTextFile(text)).path]
-      prefill = undefined
-    } catch (error) {
-      logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
+  let afterDraft = text
+  if (text !== undefined) {
+    const meta = await loadConversationMeta(conversationIDKey)
+    if (!sharedTextFitsAfter(meta?.draft ?? '', text)) {
+      try {
+        paths = [...paths, (await writeSharedTextFile(text)).path]
+        afterDraft = undefined
+      } catch (error) {
+        logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
+      }
     }
   }
-  // the write outlasted the account the share was for
+  // the load or the write outlasted the account the share was for
   if (getAccountGeneration() !== generation) {
-    logger.info('send files: account changed, not opening the titles screen')
+    logger.info('send share: account changed, sending nothing')
     return
   }
-  if (paths.length === 0) {
+  const withTitles = paths.length > 0
+  // a titles screen shows the notice itself
+  const threadNotice = withTitles ? undefined : notice
+  // the text goes after the draft now unless it follows the files from a titles screen over the picker
+  const textNow = threadBeneath || !withTitles ? afterDraft : undefined
+  const intent: InputIntent | undefined =
+    textNow === undefined && !threadNotice
+      ? undefined
+      : {append: true, notice: threadNotice, text: textNow, type: 'injectText'}
+  if (threadBeneath) {
+    if (intent) {
+      setInputIntent(conversationIDKey, intent)
+    }
+  } else if (!withTitles) {
     clearModals()
-    navigateToThread(conversationIDKey, reason, {
-      intent:
-        prefill === undefined && !notice
-          ? undefined
-          : {append: true, notice, text: prefill, type: 'injectText'},
-    })
-    return
+    navigateToThread(conversationIDKey, reason, {intent})
   }
-  if (threadBeneath && prefill !== undefined) {
-    setInputIntent(conversationIDKey, {append: true, text: prefill, type: 'injectText'})
-    prefill = undefined
-  }
+  if (!withTitles) return
+  const meta = getInboxConversationMeta(conversationIDKey)
   navigateAppend({
     name: 'chatAttachmentGetTitles',
     params: {
       conversationIDKey,
-      inputPrefillText: prefill,
+      inputPrefillText: threadBeneath ? undefined : afterDraft,
       notice,
       pathAndOutboxIDs: paths.map(path => ({path: toAttachmentPath(path)})),
       selectConversationWithReason: reason,
       // the picker's own, even empty: an empty one takes the drag-and-drop upload
-      tlfName: tlfName ?? (knownMeta(conversationIDKey)?.tlfname || undefined),
+      tlfName: tlfName ?? (meta?.conversationIDKey === conversationIDKey ? meta.tlfname || undefined : undefined),
     },
   })
 }

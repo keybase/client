@@ -448,6 +448,22 @@ const fetchConversationData = async (id: T.Chat.ConversationIDKey) => {
   })
 }
 
+// The conversation's trusted meta, fetched first when the store doesn't hold one: a share decides
+// where its text goes against the draft in it. Undefined when it can't be loaded.
+export const loadConversationMeta = async (id: T.Chat.ConversationIDKey) => {
+  const trusted = () => {
+    const meta = getInboxConversationMeta(id)
+    return meta?.conversationIDKey === id && meta.trustedState === 'trusted' ? meta : undefined
+  }
+  if (trusted()) return trusted()
+  try {
+    await Promise.race([fetchConversationData(id), timeoutPromise(10000)])
+  } catch (error) {
+    logger.info(`loadConversationMeta: load failed for ${id}`, error)
+  }
+  return trusted()
+}
+
 export const ensureConversationMetaLoaded = (id: T.Chat.ConversationIDKey) => {
   if (!T.Chat.isValidConversationIDKey(id) || metaLoadRetries.has(id)) {
     return

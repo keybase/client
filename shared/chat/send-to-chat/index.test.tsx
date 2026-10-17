@@ -45,7 +45,9 @@ const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]
 const draft = 'd'.repeat(100)
 
 const pick = async (text: string, tlfName = 'testuser,testuser-mac', sendPaths = ['/tmp/a.jpg']) => {
-  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+    force: true,
+  })
   render(<SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />)
   await act(async () => {
     mockOnSelect?.(conversationIDKey, tlfName)
@@ -130,7 +132,9 @@ test('text that cannot be written as a file goes after the draft after all', asy
 })
 
 test('an account switch while the text is written opens no titles screen', async () => {
-  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+    force: true,
+  })
   render(<SendToChat isFromShareExtension={true} sendPaths={['/tmp/a.jpg']} text={'s'.repeat(10000)} />)
   await act(async () => {
     mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
