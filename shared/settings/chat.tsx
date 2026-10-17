@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
-import {addDomain, emptyUnfurlListEdits, hasUnfurlListEdits, nextLists, removeAddedDomain} from './unfurl-lists'
+import {addDomain, emptyUnfurlListEdits, hasUnfurlListEdits, removeAddedDomain, unfurlSaveArgs} from './unfurl-lists'
 import {loadSettings} from './load-settings'
 import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
@@ -496,10 +496,8 @@ const Links = () => {
   const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
   const allowSave = loaded && (mode !== selected || hasUnfurlListEdits(edits))
   const onSave = () => {
-    const next = nextLists({blocklist, whitelist}, edits)
-    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.whitelisted, next.whitelist, next.blocklist, () =>
-      setEdits(emptyUnfurlListEdits)
-    )
+    const next = unfurlSaveArgs(selected, {blocklist, whitelist}, edits)
+    unfurlSettingsSaved(next.mode, next.whitelist, next.blocklist, () => setEdits(emptyUnfurlListEdits))
   }
 
   const toggleSaved = (domain: string) => {
