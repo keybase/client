@@ -378,7 +378,11 @@ func TestSubscriptionManagerNotifyDuringSubscribeLookup(t *testing.T) {
 	require.NoError(t, recvWithin(t, subscribed, "subscribe"))
 }
 
-func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
+// testStopDuringSubscribeLookup stops a subscription while SubscribePath is
+// still looking up its folderBranch, and checks it leaves nothing behind.
+func testStopDuringSubscribeLookup(
+	t *testing.T, stop func(context.Context, *subscriptionManager),
+) {
 	config, smi, _, finish := initSubscriptionManagerTest(t)
 	defer finish()
 	sm := smi.(*subscriptionManager)
@@ -391,6 +395,7 @@ func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
 		ctx, tlfHandle, data.MasterBranch)
 	require.NoError(t, err)
 	fb := rootNode.GetFolderBranch()
+	fbo := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(ctx, fb)
 
 	realOps := config.KBFSOps()
 	gated := &gatedRootNodeOps{
@@ -406,11 +411,14 @@ func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
 			keybase1.PathSubscriptionTopic_CHILDREN, nil)
 	}()
 	recvWithin(t, gated.entered, "root node lookup")
-	runWithin(t, 5*time.Second, "unsubscribe", func() {
-		sm.Unsubscribe(ctx, "sid1")
-	})
+	stopped := make(chan struct{})
+	go func() {
+		stop(ctx, sm)
+		close(stopped)
+	}()
 	close(gated.release)
 	require.NoError(t, recvWithin(t, subscribed, "subscribe"))
+	recvWithin(t, stopped, "stop")
 	config.(*ConfigLocal).SetKBFSOps(realOps)
 
 	sm.lock.RLock()
@@ -421,10 +429,25 @@ func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
 	require.Zero(t, refs)
 	require.Zero(t, sids)
 	require.Zero(t, count)
+	require.False(t, smRegisteredOn(fbo, sm))
 
 	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN, nil)
 	require.NoError(t, err)
+}
+
+func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
+	testStopDuringSubscribeLookup(t,
+		func(ctx context.Context, sm *subscriptionManager) {
+			sm.Unsubscribe(ctx, "sid1")
+		})
+}
+
+func TestSubscriptionManagerShutdownDuringSubscribeLookup(t *testing.T) {
+	testStopDuringSubscribeLookup(t,
+		func(ctx context.Context, sm *subscriptionManager) {
+			sm.Shutdown(ctx)
+		})
 }
 
 func TestSubscriptionManagerUnsubscribeDuringNotification(t *testing.T) {
@@ -520,99 +543,6 @@ func smRegisteredOn(fbo *folderBranchOps, sm *subscriptionManager) bool {
 	return false
 }
 
-func TestSubscriptionManagerShutdownDuringSubscribeLookup(t *testing.T) {
-	config, smi, _, finish := initSubscriptionManagerTest(t)
-	defer finish()
-	sm := smi.(*subscriptionManager)
-	ctx := t.Context()
-
-	tlfHandle, err := GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
-	require.NoError(t, err)
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlfHandle, data.MasterBranch)
-	require.NoError(t, err)
-	fbo := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
-		ctx, rootNode.GetFolderBranch())
-
-	realOps := config.KBFSOps()
-	gated := &gatedRootNodeOps{
-		KBFSOps: realOps,
-		entered: make(chan struct{}),
-		release: make(chan struct{}),
-	}
-	config.(*ConfigLocal).SetKBFSOps(gated)
-	subscribed := make(chan error, 1)
-	go func() {
-		subscribed <- sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
-			keybase1.PathSubscriptionTopic_CHILDREN, nil)
-	}()
-	recvWithin(t, gated.entered, "root node lookup")
-	sm.Shutdown(ctx)
-	close(gated.release)
-	require.ErrorIs(t, recvWithin(t, subscribed, "subscribe"),
-		errSubscriptionManagerShutDown)
-	config.(*ConfigLocal).SetKBFSOps(realOps)
-
-	sm.lock.RLock()
-	refs := len(sm.pathSubscriptionIDToRef)
-	sm.lock.RUnlock()
-	require.Zero(t, refs)
-	require.False(t, smRegisteredOn(fbo, sm))
-}
-
-func TestSubscriptionManagerResubscribeDuringSubscribeLookup(t *testing.T) {
-	config, smi, _, finish := initSubscriptionManagerTest(t)
-	defer finish()
-	sm := smi.(*subscriptionManager)
-	ctx := t.Context()
-
-	tlfHandle, err := GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
-	require.NoError(t, err)
-	_, _, err = config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlfHandle, data.MasterBranch)
-	require.NoError(t, err)
-
-	realOps := config.KBFSOps()
-	gated := &gatedRootNodeOps{
-		KBFSOps: realOps,
-		entered: make(chan struct{}),
-		release: make(chan struct{}),
-	}
-	config.(*ConfigLocal).SetKBFSOps(gated)
-	first := make(chan error, 1)
-	go func() {
-		first <- sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
-			keybase1.PathSubscriptionTopic_CHILDREN, nil)
-	}()
-	recvWithin(t, gated.entered, "root node lookup")
-	sm.Unsubscribe(ctx, "sid1")
-	second := make(chan error, 1)
-	go func() {
-		second <- sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe/dir",
-			keybase1.PathSubscriptionTopic_CHILDREN, nil)
-	}()
-	// Let the second call reserve the sid before either lookup finishes.
-	require.Eventually(t, func() bool {
-		sm.lock.RLock()
-		defer sm.lock.RUnlock()
-		req := sm.pendingPathSubscriptions["sid1"]
-		return req != nil && req.path == "/keybase/private/jdoe/dir"
-	}, 5*time.Second, time.Millisecond)
-	close(gated.release)
-	require.NoError(t, recvWithin(t, first, "subscribe"))
-	require.NoError(t, recvWithin(t, second, "subscribe"))
-	config.(*ConfigLocal).SetKBFSOps(realOps)
-
-	sm.lock.RLock()
-	ref := sm.pathSubscriptionIDToRef["sid1"]
-	sm.lock.RUnlock()
-	require.Equal(t, cleanInTlfPath("/dir"), ref.path)
-}
-
-// testStopDuringPoll stops a subscription whose poller is about to find its
-// folderBranch, and checks the poller then adds nothing.
 func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionManager)) {
 	config, smi, _, finish := initSubscriptionManagerTest(t)
 	defer finish()
@@ -650,9 +580,9 @@ func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionMa
 	recvWithin(t, gated.entered, "poller lookup")
 	stop(ctx, sm)
 	sm.lock.RLock()
-	pending := len(sm.pendingPathSubscriptions)
+	pollers := len(sm.folderBranchPollerCancelers)
 	sm.lock.RUnlock()
-	require.Zero(t, pending, "the poller's reservation is dropped")
+	require.Zero(t, pollers, "the poller is cancelled")
 	close(gated.release)
 
 	// The mock notifier fails the test on any OnPathChange.
@@ -674,19 +604,4 @@ func TestSubscriptionManagerShutdownDuringPoll(t *testing.T) {
 	testStopDuringPoll(t, func(ctx context.Context, sm *subscriptionManager) {
 		sm.Shutdown(ctx)
 	})
-}
-
-func TestSubscriptionManagerRefusesAfterShutdown(t *testing.T) {
-	_, smi, _, finish := initSubscriptionManagerTest(t)
-	defer finish()
-	sm := smi.(*subscriptionManager)
-	ctx := t.Context()
-
-	sm.Shutdown(ctx)
-	err := sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
-		keybase1.PathSubscriptionTopic_CHILDREN, nil)
-	require.Error(t, err)
-	err = sm.SubscribeNonPath(ctx, "sid2",
-		keybase1.SubscriptionTopic_JOURNAL_STATUS, nil)
-	require.Error(t, err)
 }
