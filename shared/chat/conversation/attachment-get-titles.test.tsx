@@ -11,7 +11,9 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {processMedia} from 'react-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
-import {peekInputIntent} from './input-intent-store'
+import {consumeInputIntent, peekInputIntent} from './input-intent-store'
+import {useNavigation} from '@react-navigation/native'
+import * as React from 'react'
 
 // Native-only packages resolve to this one stub through jest.config's
 // moduleNameMapper, so it carries the export and the file deletes the real
@@ -858,12 +860,22 @@ describe('shared text sent as a file', () => {
   let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
   const text = 's'.repeat(10001)
+  // the screen's removal, as React Navigation reports it
+  let beforeRemove: (() => void) | undefined
 
   beforeEach(() => {
+    beforeRemove = undefined
     useConfigState.getState().dispatch.setLoggedIn(true)
     rpc = installFakeChatRpc()
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateUp').mockImplementation(() => {})
+    jest.spyOn(useNavigation(), 'addListener').mockImplementation(((event: string, cb: () => void) => {
+      if (event !== 'beforeRemove') return () => {}
+      beforeRemove = cb
+      return () => {
+        if (beforeRemove === cb) beforeRemove = undefined
+      }
+    }) as never)
   })
 
   afterEach(() => {
@@ -873,8 +885,8 @@ describe('shared text sent as a file', () => {
     resetAllStores()
   })
 
-  const open = () =>
-    render(
+  const screenFor = (strict = false) => {
+    const el = (
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
         pathAndOutboxIDs={[{path: '/tmp/shared.txt'}]}
@@ -882,36 +894,58 @@ describe('shared text sent as a file', () => {
         tlfName="testuser,testuser2"
       />
     )
+    return render(strict ? <React.StrictMode>{el}</React.StrictMode> : el)
+  }
+  const removed = () => {
+    const cb = beforeRemove
+    act(() => cb?.())
+  }
+  const putBack = () => peekInputIntent(conversationIDKey, ['injectText'])
 
-  test('comes back after the draft when the screen is cancelled', () => {
-    const {unmount} = open()
+  test('comes back after the draft, once, when the screen is removed unsent', () => {
+    screenFor()
     fireEvent.click(screen.getByText('Cancel'))
-    unmount()
+    removed()
+    expect(consumeInputIntent(conversationIDKey, ['injectText'])).toEqual({putBack: true, text, type: 'injectText'})
 
-    expect(peekInputIntent(conversationIDKey, ['injectText'])).toEqual({putBack: true, text, type: 'injectText'})
+    removed()
+    expect(putBack()).toBeUndefined()
+  })
+
+  test('an effect cleanup without a removal, as on a screen hidden under others, puts nothing back', () => {
+    const {unmount} = screenFor()
+    unmount()
+    expect(putBack()).toBeUndefined()
+  })
+
+  test('StrictMode running the effects twice at mount puts nothing back', () => {
+    screenFor(true)
+    expect(putBack()).toBeUndefined()
+    removed()
+    expect(putBack()).toEqual({putBack: true, text, type: 'injectText'})
   })
 
   test('stays out of the draft once it is handed to upload', async () => {
-    const {unmount} = open()
+    screenFor()
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
       await new Promise(resolve => setTimeout(resolve, 0))
     })
-    unmount()
+    removed()
 
     expect(rpc.calls('postAttachment')).toHaveLength(1)
-    expect(peekInputIntent(conversationIDKey, ['injectText'])).toBeUndefined()
+    expect(putBack()).toBeUndefined()
   })
 
   test('is not put back into a conversation of an account that has gone', () => {
-    const {unmount} = open()
+    screenFor()
     act(() => {
       useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
       useConfigState.getState().dispatch.setUserSwitching(false)
       useConfigState.getState().dispatch.setLoggedIn(true)
     })
-    unmount()
+    removed()
 
-    expect(peekInputIntent(conversationIDKey, ['injectText'])).toBeUndefined()
+    expect(putBack()).toBeUndefined()
   })
 })

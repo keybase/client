@@ -1536,6 +1536,28 @@ describe('append over the message limit', () => {
     expect(attached).toEqual([])
   })
 
+  test('text put back before the draft is known is the user\'s: a draft with no room for it attaches nothing', () => {
+    const {attached, composer, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.putBack(over)
+
+    view.offerDraft(draft)
+
+    expect(fake.text).toBe(`${draft}\n${over}`)
+    expect(attached).toEqual([])
+  })
+
+  test('text held while the user cannot post is saved into a known draft at once', () => {
+    const {attached, composer, drafts, mount, setReadOnly} = setup()
+    mount(draft)
+    composer.append(over)
+    setReadOnly(true)
+
+    attached[0]?.onFailed()
+
+    expect(drafts).toEqual([`${draft}\n${over}`])
+  })
+
   test('where the user cannot post, nothing is attached', () => {
     const {attached, composer, mount, setReadOnly} = setup()
     mount(draft)

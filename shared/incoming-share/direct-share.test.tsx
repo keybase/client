@@ -163,6 +163,8 @@ describe('files with text', () => {
     expect(getTitles()[0]?.params.inputPrefillText).toBe(text)
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
     expect(mockWrites).toEqual([])
+    // the thread is beneath, with nothing else holding the share: a cancel puts the text back there
+    expect(getTitles()[0]?.params.textBack).toBe(text)
   })
 
   test('text the draft has no room for goes as a .txt in the same batch as the files', async () => {
