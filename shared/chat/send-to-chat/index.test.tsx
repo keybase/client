@@ -146,6 +146,29 @@ test('an account switch while the text is written opens no titles screen', async
   expect(C.Router2.navigateAppend).not.toHaveBeenCalled()
 })
 
+test('a second pick while the first is still being sent is ignored', async () => {
+  const text = 's'.repeat(10000 - draft.length)
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+    force: true,
+  })
+  render(<SendToChat isFromShareExtension={true} sendPaths={['/tmp/a.jpg']} text={text} />)
+  await act(async () => {
+    mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
+    mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+
+  expect(mockWrites).toHaveLength(1)
+  expect(C.Router2.navigateAppend).toHaveBeenCalledTimes(1)
+
+  // once it is through, the picker takes picks again (a cancelled titles screen comes back to it)
+  await act(async () => {
+    mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+  expect(C.Router2.navigateAppend).toHaveBeenCalledTimes(2)
+})
+
 test('the picker\'s empty tlfName goes as it is, so the upload takes the drag-and-drop path', async () => {
   const calls = await pick('a caption', '')
 
