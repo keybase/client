@@ -655,3 +655,35 @@ func TestSubscriptionManagerSlowPollNotification(t *testing.T) {
 	})
 	close(release)
 }
+
+func TestSubscriptionManagerDuplicateRefusedBeforeLookup(t *testing.T) {
+	config, smi, _, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	sm := smi.(*subscriptionManager)
+	ctx := t.Context()
+
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
+	require.NoError(t, err)
+	_, _, err = config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	require.NoError(t, err)
+	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+
+	// A lookup would block here until released.
+	realOps := config.KBFSOps()
+	gated := &gatedRootNodeOps{
+		KBFSOps: realOps,
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+	config.(*ConfigLocal).SetKBFSOps(gated)
+	defer config.(*ConfigLocal).SetKBFSOps(realOps)
+	runWithin(t, 5*time.Second, "duplicate subscribe", func() {
+		err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+			keybase1.PathSubscriptionTopic_STAT, nil)
+	})
+	require.Error(t, err)
+}

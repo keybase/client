@@ -472,6 +472,12 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	sm.subscribeLock.Lock()
 	defer sm.subscribeLock.Unlock()
 
+	sm.lock.Lock()
+	_, err = sm.checkSubscriptionIDLocked(sid)
+	sm.lock.Unlock()
+	if err != nil {
+		return err
+	}
 	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
 	if err != nil {
 		return err
