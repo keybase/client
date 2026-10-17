@@ -379,5 +379,59 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlMode_NEVER, settings.Mode)
 		require.Equal(t, []string{"cnn.com", "nytimes.com"}, settings.Whitelist)
+
+		t.Logf("block list round trip normalizes and sorts")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{
+				Mode:      chat1.UnfurlMode_WHITELISTED,
+				Whitelist: []string{"a.com"},
+				Blocklist: []string{"https://www.b.com/"},
+			}))
+		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
+		require.NoError(t, err)
+		require.Equal(t, chat1.UnfurlMode_WHITELISTED, settings.Mode)
+		require.Equal(t, []string{"a.com"}, settings.Whitelist)
+		require.Equal(t, []string{"b.com"}, settings.Blocklist)
+
+		t.Logf("a domain on both lists is rejected")
+		require.Error(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{
+				Mode:      chat1.UnfurlMode_WHITELISTED,
+				Whitelist: []string{"a.com"},
+				Blocklist: []string{"a.com"},
+			}))
+
+		t.Logf("block from the prompt")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{Mode: chat1.UnfurlMode_WHITELISTED}))
+		blockID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		select {
+		case notificationID := <-listener0.unfurlPrompt:
+			require.Equal(t, blockID, notificationID)
+		case <-time.After(timeout):
+			require.Fail(t, "no prompt")
+		}
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            blockID,
+				Result:           chat1.NewUnfurlPromptResultWithBlock("127.0.0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
+		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
+		require.NoError(t, err)
+		require.Equal(t, []string{"127.0.0.1"}, settings.Blocklist)
+		require.Nil(t, recvUnfurl())
+
+		t.Logf("blocked domain no longer prompts")
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		select {
+		case <-listener0.unfurlPrompt:
+			require.Fail(t, "unexpected prompt")
+		case <-time.After(2 * time.Second):
+		}
+		require.Nil(t, recvUnfurl())
 	})
 }

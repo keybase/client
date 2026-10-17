@@ -2698,6 +2698,10 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}
+	case chat1.UnfurlPromptAction_BLOCK:
+		if err = h.G().Unfurler.BlocklistAdd(ctx, uid, arg.Result.Block()); err != nil {
+			return fmt.Errorf("failed to add to block list, doing nothing: %s", err)
+		}
 	case chat1.UnfurlPromptAction_ONETIME:
 		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
 			unfurl.NewSingleMessageWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
@@ -2735,6 +2739,10 @@ func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSetting
 		res.Whitelist = append(res.Whitelist, w)
 	}
 	slices.Sort(res.Whitelist)
+	for b := range settings.Blocklist {
+		res.Blocklist = append(res.Blocklist, b)
+	}
+	slices.Sort(res.Blocklist)
 	return res, nil
 }
 
@@ -2749,9 +2757,14 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 	for _, w := range arg.Whitelist {
 		wm[w] = true
 	}
+	bm := make(map[string]bool)
+	for _, b := range arg.Blocklist {
+		bm[b] = true
+	}
 	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
 		Mode:      arg.Mode,
 		Whitelist: wm,
+		Blocklist: bm,
 	})
 }
 
