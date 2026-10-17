@@ -433,10 +433,6 @@ func (d *Service) purgeOldIncomingShareData() {
 	if dir == "" {
 		return
 	}
-	// A read holds this while the claimed manifest is in use; it keeps the
-	// manifest's old mtime, so the purge must not run during one.
-	lastIncomingShare.Lock()
-	defer lastIncomingShare.Unlock()
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -445,11 +441,11 @@ func (d *Service) purgeOldIncomingShareData() {
 		return
 	}
 	cutoff := time.Now().Add(-incomingShareMaxAge)
+	d.purgeOldClaimedIncomingShareManifest(dir, cutoff)
 	for _, entry := range entries {
 		// manifest.json lives alongside the payload dirs and is the live handoff
-		// to the app. Besides the directories, only a claimed manifest that a
-		// crash left mid-read is ours to remove.
-		if !entry.IsDir() && entry.Name() != incomingShareClaimedManifest {
+		// to the app; only the directories are ours to remove.
+		if !entry.IsDir() {
 			continue
 		}
 		info, err := entry.Info()
@@ -467,6 +463,23 @@ func (d *Service) purgeOldIncomingShareData() {
 		if err := os.RemoveAll(p); err != nil {
 			d.G().Log.Debug("purgeOldIncomingShareData: failed to remove %s: %s", p, err)
 		}
+	}
+}
+
+// purgeOldClaimedIncomingShareManifest removes a claimed manifest that a crash
+// left mid-read. A read holds lastIncomingShare while it uses the claimed
+// manifest, which keeps the manifest's old mtime, so this must not run during
+// one.
+func (d *Service) purgeOldClaimedIncomingShareManifest(dir string, cutoff time.Time) {
+	lastIncomingShare.Lock()
+	defer lastIncomingShare.Unlock()
+	p := filepath.Join(dir, incomingShareClaimedManifest)
+	info, err := os.Stat(p)
+	if err != nil || info.ModTime().After(cutoff) {
+		return
+	}
+	if err := os.Remove(p); err != nil {
+		d.G().Log.Debug("purgeOldIncomingShareData: failed to remove %s: %s", p, err)
 	}
 }
 
