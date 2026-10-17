@@ -1,5 +1,13 @@
 /// <reference types="jest" />
-import {addDomain, emptyUnfurlListEdits, nextLists, removeAddedDomain, type UnfurlListEdits} from './unfurl-lists'
+import * as T from '@/constants/types'
+import {
+  addDomain,
+  emptyUnfurlListEdits,
+  nextLists,
+  removeAddedDomain,
+  unfurlSaveArgs,
+  type UnfurlListEdits,
+} from './unfurl-lists'
 
 const saved = {blocklist: ['x.com'], whitelist: ['a.com', 'b.com']}
 
@@ -63,4 +71,21 @@ test('removeAddedDomain drops a pending add only', () => {
   const edits = addDomain(addDomain(emptyUnfurlListEdits, 'allow', 'c.com'), 'block', 'd.com')
   const next = removeAddedDomain(edits, 'allow', 'c.com')
   expect(next.added).toEqual({allow: [], block: ['d.com']})
+})
+
+test('save keeps Allow all instead of falling back to Ask per domain', () => {
+  expect(unfurlSaveArgs(T.RPCChat.UnfurlMode.always, saved, emptyUnfurlListEdits).mode).toBe(
+    T.RPCChat.UnfurlMode.always
+  )
+  expect(unfurlSaveArgs(T.RPCChat.UnfurlMode.never, saved, emptyUnfurlListEdits).mode).toBe(
+    T.RPCChat.UnfurlMode.never
+  )
+})
+
+test('save with no selected mode defaults to Ask per domain', () => {
+  expect(unfurlSaveArgs(undefined, saved, addDomain(emptyUnfurlListEdits, 'allow', 'c.com'))).toEqual({
+    blocklist: ['x.com'],
+    mode: T.RPCChat.UnfurlMode.whitelisted,
+    whitelist: ['a.com', 'b.com', 'c.com'],
+  })
 })

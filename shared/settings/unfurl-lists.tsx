@@ -1,3 +1,5 @@
+import * as T from '@/constants/types'
+
 export type UnfurlList = 'allow' | 'block'
 
 export type UnfurlListEdits = {
@@ -51,3 +53,9 @@ export const nextLists = (
     whitelist: uniqueSorted([...keep(saved.whitelist, added.block), ...added.allow]),
   }
 }
+
+export const unfurlSaveArgs = (
+  selected: T.RPCChat.UnfurlMode | undefined,
+  saved: {whitelist: ReadonlyArray<string>; blocklist: ReadonlyArray<string>},
+  edits: UnfurlListEdits
+) => ({mode: selected ?? T.RPCChat.UnfurlMode.whitelisted, ...nextLists(saved, edits)})
