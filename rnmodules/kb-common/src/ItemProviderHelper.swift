@@ -91,11 +91,6 @@ public class ItemProviderHelper: NSObject {
     return writtenManifest != nil
   }
 
-  // Whether any manifest is on disk, ours or not.
-  @objc public var manifestExists: Bool {
-    return FileManager.default.fileExists(atPath: getManifestFileURL().path)
-  }
-
   // itemArrs holds each extension item's attachments; captions, when given,
   // the host's text for the same extension items (empty for none).
   @objc public init(
