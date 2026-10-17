@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {navigationIntentLifetimeMs, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {holdLoggedOutLink, loggedOutShareToHold, releaseLoggedOutLink} from './logged-out-share'
 
 const pendingURL = () => useNavigationIntentsState.getState().intent?.url
@@ -95,4 +95,51 @@ test('a link that is not keybase or a keybase web link is not held', () => {
   useConfigState.getState().dispatch.setLoggedIn(true)
   releaseLoggedOutLink()
   expect(pendingURL()).toBeUndefined()
+})
+
+test('a chat link that arrives while logged out is never followed, and clears an older one', () => {
+  holdLoggedOutLink('keybase://profile/show/testuser')
+  holdLoggedOutLink('keybase://chat/testuser,testuser-mac')
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  releaseLoggedOutLink()
+  expect(pendingURL()).toBeUndefined()
+})
+
+test('a chat link while logged in is followed as before', () => {
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  holdLoggedOutLink('keybase://chat/testuser,testuser-mac')
+  expect(pendingURL()).toBe('keybase://chat/testuser,testuser-mac')
+})
+
+describe('how long a held link waits', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('a link other than a share is dropped once a navigation intent would have expired', () => {
+    holdLoggedOutLink('keybase://profile/show/testuser')
+    jest.advanceTimersByTime(navigationIntentLifetimeMs + 1)
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    releaseLoggedOutLink()
+    expect(pendingURL()).toBeUndefined()
+  })
+
+  test('a link other than a share still opens within that time', () => {
+    holdLoggedOutLink('keybase://profile/show/testuser')
+    jest.advanceTimersByTime(navigationIntentLifetimeMs - 1000)
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    releaseLoggedOutLink()
+    expect(pendingURL()).toBe('keybase://profile/show/testuser')
+  })
+
+  test('a share waits until login however long it takes', () => {
+    holdLoggedOutLink('keybase://incoming-share')
+    jest.advanceTimersByTime(10 * navigationIntentLifetimeMs)
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    releaseLoggedOutLink()
+    expect(pendingURL()).toBe('keybase://incoming-share')
+  })
 })
