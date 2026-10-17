@@ -47,6 +47,9 @@ type OwnProps = {
   // Chosen in the file picker: sent as files, so only the images the app always
   // compressed are re-encoded, and nothing is converted to another format.
   pickedAsFiles?: boolean
+  // Shared text one of these files carries, put back after the conversation's draft if the files
+  // are never handed to upload, so it is not lost with a cancel
+  textBack?: string
 }
 
 type Info = {
@@ -102,7 +105,8 @@ const processForSend = async (
 
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()
-  const {inputPrefillText, notice, pickedAsFiles, titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
+  const {inputPrefillText, notice, pickedAsFiles, textBack, titles: _titles, tlfName, pathAndOutboxIDs} =
+    ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
@@ -150,6 +154,15 @@ const ContainerInner = (ownProps: OwnProps) => {
     }
   }, [])
   const accountChanged = () => getAccountGeneration() !== generationRef.current
+  const handedOffRef = React.useRef(false)
+  React.useEffect(
+    () => () => {
+      if (textBack !== undefined && !handedOffRef.current && getAccountGeneration() === generationRef.current) {
+        setInputIntent(conversationIDKey, {putBack: true, text: textBack, type: 'injectText'})
+      }
+    },
+    [conversationIDKey, textBack]
+  )
   // Send awaits this instead of racing it: a fast tap must not apply the
   // default policy when the user has chosen "Keep full size". A failed lookup
   // resolves to true so we never quietly upload originals either.
@@ -201,6 +214,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         endSubmit()
         return false
       }
+      handedOffRef.current = true
       const uploadArgs = {
         clientPrev,
         conversationIDKey,

@@ -29,7 +29,8 @@ export type InputIntent =
   // text the composer is left as it is. append puts the text on its own line after the draft
   // instead of replacing it: a share must never discard what the user had written. Text the draft
   // has no room for under chat's message limit goes as a .txt attachment instead.
-  | {type: 'injectText'; text?: string; notice?: string; append?: boolean}
+  // putBack is shared text handed back unsent, which goes after the draft whatever its size.
+  | {type: 'injectText'; text?: string; notice?: string; append?: boolean; putBack?: boolean}
   | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
   | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
   | {type: 'highlight'; messageID: T.Chat.MessageID}

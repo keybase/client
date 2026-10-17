@@ -853,3 +853,65 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     })
   })
 })
+
+describe('shared text sent as a file', () => {
+  let rpc: FakeChatRpc
+  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+  const text = 's'.repeat(10001)
+
+  beforeEach(() => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    rpc = installFakeChatRpc()
+    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
+    jest.spyOn(C.Router2, 'navigateUp').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    cleanup()
+    restoreChatRpc()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  const open = () =>
+    render(
+      <AttachmentGetTitles
+        conversationIDKey={conversationIDKey}
+        pathAndOutboxIDs={[{path: '/tmp/shared.txt'}]}
+        textBack={text}
+        tlfName="testuser,testuser2"
+      />
+    )
+
+  test('comes back after the draft when the screen is cancelled', () => {
+    const {unmount} = open()
+    fireEvent.click(screen.getByText('Cancel'))
+    unmount()
+
+    expect(peekInputIntent(conversationIDKey, ['injectText'])).toEqual({putBack: true, text, type: 'injectText'})
+  })
+
+  test('stays out of the draft once it is handed to upload', async () => {
+    const {unmount} = open()
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    unmount()
+
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    expect(peekInputIntent(conversationIDKey, ['injectText'])).toBeUndefined()
+  })
+
+  test('is not put back into a conversation of an account that has gone', () => {
+    const {unmount} = open()
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+      useConfigState.getState().dispatch.setUserSwitching(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
+    unmount()
+
+    expect(peekInputIntent(conversationIDKey, ['injectText'])).toBeUndefined()
+  })
+})

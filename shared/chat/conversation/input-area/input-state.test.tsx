@@ -12,6 +12,7 @@ import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {Freeze} from 'react-freeze'
 import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
+import {startNewAccountGeneration} from '@/engine/account-generation'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {
   clearModals,
@@ -901,6 +902,7 @@ describe('shared text over the message limit', () => {
         params: {
           conversationIDKey: convID,
           pathAndOutboxIDs: [{path: '/cache/shared-text/1/shared.txt'}],
+          textBack: text,
           tlfName: 'testuser,testuser-mac',
         },
         replace: false,
@@ -932,6 +934,33 @@ describe('shared text over the message limit', () => {
 
     expect(mockSharedTextWrites).toHaveLength(1)
     expect(attachments(nav)).toHaveLength(1)
+  })
+
+  test('text handed back by a cancelled titles screen goes after the draft, not to another titles screen', async () => {
+    const nav = installFakeNavigator()
+    const draft = 'd'.repeat(100)
+    withDraft(draft)
+    const text = 's'.repeat(limit)
+    setInputIntent(convID, {putBack: true, text, type: 'injectText'})
+
+    const {composerInput} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe(`${draft}\n${text}`)
+    expect(attachments(nav)).toEqual([])
+    expect(mockSharedTextWrites).toEqual([])
+  })
+
+  test('a write that outlasts the account opens no titles screen', async () => {
+    const nav = installFakeNavigator()
+    setInputIntent(convID, {append: true, text: 's'.repeat(limit + 1), type: 'injectText'})
+
+    renderInput(convID)
+    startNewAccountGeneration()
+    await act(flushPromises)
+
+    expect(mockSharedTextWrites).toHaveLength(1)
+    expect(attachments(nav)).toEqual([])
   })
 
   test('text that cannot be written as a file is appended rather than lost', async () => {

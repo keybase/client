@@ -138,7 +138,11 @@ describe('files with text', () => {
   const draft = 'd'.repeat(100)
   const getTitles = () =>
     jest.mocked(C.Router2.navigateAppend).mock.calls.map(
-      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: Array<{path: string}>}}
+      c =>
+        c[0] as {
+          name: string
+          params: {inputPrefillText?: string; pathAndOutboxIDs: Array<{path: string}>; textBack?: string}
+        }
     )
   const share = async (text: string) => {
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
@@ -173,5 +177,7 @@ describe('files with text', () => {
       {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
     ])
     expect(mockWrites).toEqual([text])
+    // the thread is beneath, with nothing else holding the share: a cancel puts the text back there
+    expect(getTitles()[0]?.params.textBack).toBe(text)
   })
 })

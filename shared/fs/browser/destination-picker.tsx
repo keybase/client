@@ -12,7 +12,7 @@ import Rows from './rows/rows-container'
 import * as FS from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import {writeSharedTextFile} from '@/util/shared-text-file'
+import {uniqueSharedTextFileName, writeSharedTextFile} from '@/util/shared-text-file'
 
 type OwnProps = {
   parentPath: T.FS.Path
@@ -24,17 +24,27 @@ const canBackUp = isMobile
   : () => false
 
 // The local file each shared item is saved from: its own file, or for text shared inline, a .txt
-// written for it. remove deletes those written files once the copies are done.
-export const incomingShareLocalFiles = async (items: T.FS.IncomingShareSource['source']) => {
+// written for it, named apart from the share's other files and from what inFolder says the
+// destination already holds. remove deletes those written files once the copies are done.
+export const incomingShareLocalFiles = async (
+  items: T.FS.IncomingShareSource['source'],
+  inFolder: (name: string) => Promise<boolean> = async () => Promise.resolve(false)
+) => {
   const written: Array<{remove: () => void}> = []
   const remove = () => written.forEach(w => w.remove())
+  const names = new Set(items.flatMap(i => (i.originalPath ? [T.FS.getLocalPathName(i.originalPath)] : [])))
   try {
     const paths: Array<string> = []
     for (const item of items) {
       if (item.originalPath) {
         paths.push(item.originalPath)
       } else if (item.content) {
-        const file = await writeSharedTextFile(item.content)
+        const name = await uniqueSharedTextFileName(
+          item.content,
+          async n => names.has(n) || (await inFolder(n))
+        )
+        names.add(name)
+        const file = await writeSharedTextFile(item.content, name)
         written.push(file)
         paths.push(file.path)
       }
@@ -65,7 +75,18 @@ export const doMoveOrCopy = async (
         },
       ]
     } else {
-      const {paths, remove} = await incomingShareLocalFiles(source.source)
+      const inFolder = async (name: string) => {
+        try {
+          await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+            path: FS.pathToRPCPath(T.FS.pathConcat(parentPath, name)),
+            refreshSubscription: false,
+          })
+          return true
+        } catch {
+          return false
+        }
+      }
+      const {paths, remove} = await incomingShareLocalFiles(source.source, inFolder)
       removeWritten = remove
       params = paths.map(localPath => ({
         // We use the local path name here since we only care about file name.

@@ -7,17 +7,11 @@ import {makeUUID} from '@/util/uuid'
 // larger dev-topic limit never applies.
 export const textMessageMaxBytes = 10000
 
-const utf8Bytes = (cp: number) => (cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4)
-
 export const fitsInTextMessage = (text: string) => {
   // every UTF-16 unit is at least one byte, and at most three
   if (text.length > textMessageMaxBytes) return false
   if (text.length * 3 <= textMessageMaxBytes) return true
-  let bytes = 0
-  for (const ch of text) {
-    bytes += utf8Bytes(ch.codePointAt(0) ?? 0)
-  }
-  return bytes <= textMessageMaxBytes
+  return new TextEncoder().encode(text).length <= textMessageMaxBytes
 }
 
 // How shared text joins a draft: on its own line after it.
@@ -77,15 +71,30 @@ export const sharedTextFileName = (text: string) => {
   return `${base || fallbackName}.txt`
 }
 
+// The text's name, or when that is taken, the first free "<name> (n).txt".
+export const uniqueSharedTextFileName = async (text: string, taken: (name: string) => Promise<boolean>) => {
+  const name = sharedTextFileName(text)
+  const base = name.slice(0, -'.txt'.length)
+  const candidate = (n: number) => (n === 1 ? name : `${base} (${n}).txt`)
+  // bounded: past this the copy's own name-exists error says what went wrong
+  for (let n = 1; n < maxSuffix; n++) {
+    if (!(await taken(candidate(n)))) return candidate(n)
+  }
+  return candidate(maxSuffix)
+}
+const maxSuffix = 100
+
 const sharedTextDir = 'shared-text'
 
 // Writes the text to a new file in the app's cache, named from its first words. Each file gets its
 // own folder, so two texts with the same first words never meet; remove deletes it. The folder's
 // name starts with when it was made, for purgeStaleSharedTextFiles. Mobile only.
-export const writeSharedTextFile = async (text: string): Promise<{path: string; remove: () => void}> => {
+export const writeSharedTextFile = async (
+  text: string,
+  name = sharedTextFileName(text)
+): Promise<{path: string; remove: () => void}> => {
   const dir = new Directory(Paths.cache, sharedTextDir, `${Date.now()}-${makeUUID()}`)
   dir.create({intermediates: true})
-  const name = sharedTextFileName(text)
   await new File(dir, name).write(text)
   // the folder's uri is all safe characters, the name is not: build the path from the raw name
   const dirPath = decodeURIComponent(dir.uri.replace(/^file:\/\//, '')).replace(/\/$/, '')
