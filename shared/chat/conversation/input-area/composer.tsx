@@ -121,8 +121,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let editing = false
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
-  // a draft append saved for the composer to load next
-  let ownDraft: string | undefined
 
   // only a restore saves where the user can't post: it puts back the user's own text
   const saveDraft = (next: string, evenReadOnly = false) => {
@@ -212,7 +210,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // Loaded only once it is written, so a draft known before the view's input is attached, or
   // offered while the user can't post, loads on the next try: the input attaching reads it from the
   // store, and read-only clearing offers it again.
-  const loadDraft = (draft: string | undefined) => {
+  const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     if (editing) {
       draftLoaded = true
@@ -232,14 +230,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     write(input, draft, false)
   }
 
-  // An append saved while the composer couldn't show it is the draft it loads next, over the one
-  // offered: the store can still offer an older draft until that save is back from the service.
-  const offerDraft = (draft: string | undefined) => {
-    loadDraft(ownDraft ?? draft)
-    if (draftLoaded) {
-      ownDraft = undefined
-    }
-  }
 
   return {
     append: s => {
@@ -255,12 +245,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       saved = appendLine(draftLoaded ? (saved ?? draft) : draft, s)
       deps.saveDraft(saved)
       deps.flushDraft()
+      // an edit gives this draft back as it ends, so it is never loaded again; anywhere else the
+      // composer loads it once it can show it
+      draftLoaded = editing
       if (!editing) {
-        draftLoaded = false
         text = ''
-      }
-      if (!draftLoaded) {
-        ownDraft = saved
       }
     },
     clear: () => {
