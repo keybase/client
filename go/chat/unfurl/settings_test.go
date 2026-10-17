@@ -116,7 +116,8 @@ func TestUnfurlSettingBlocklist(t *testing.T) {
 	require.True(t, res.Blocklist["foo.com"])
 	require.Empty(t, res.Whitelist)
 
-	require.NoError(t, settings.BlocklistRemove(ctx, uid, "foo.com"))
+	require.NoError(t, settings.WhitelistAdd(ctx, uid, "foo.com"))
+	require.NoError(t, settings.WhitelistRemove(ctx, uid, "foo.com"))
 	res, err = settings.Get(ctx, uid)
 	require.NoError(t, err)
 	require.Empty(t, res.Blocklist)
