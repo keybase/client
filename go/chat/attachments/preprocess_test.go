@@ -26,3 +26,9 @@ func TestDetectMIMETypeSmallFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "image/png", typ)
 }
+
+func TestDetectMIMETypeEmptyFile(t *testing.T) {
+	typ, err := DetectMIMEType(context.Background(), NewBufReadResetter(nil), "testuser.png")
+	require.NoError(t, err)
+	require.Empty(t, typ)
+}
