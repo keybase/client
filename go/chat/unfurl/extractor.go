@@ -58,37 +58,23 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 	return res
 }
 
-func (e *Extractor) isAutoWhitelist(domain string) bool {
-	switch domain {
-	case "giphy.com", types.MapsDomain:
-		return true
-	}
-	return false
-}
-
 func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isAutoWhitelistFromHit: failed to get domain: %s", err)
 		return false
 	}
-	return e.isAutoWhitelist(domain)
+	return isAutoAllowedDomain(domain)
 }
 
-func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList,
+func (e *Extractor) isAllowedHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	domain string, allowlist map[string]bool, exemptions *WhitelistExemptionList,
 ) bool {
-	domain, err := GetDomain(hit)
-	if err != nil {
-		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
-		return false
-	}
-	if e.isAutoWhitelist(domain) || whitelist[domain] {
+	if allowlist[domain] {
 		return true
 	}
-	// Check exemptions
 	if exemptions.Use(convID, msgID, domain) {
-		e.Debug(ctx, "isWhitelistHit: hit exemption for domain, letting through")
+		e.Debug(ctx, "isAllowedHit: hit exemption for domain, letting through")
 		return true
 	}
 	return false
@@ -116,7 +102,16 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 		case chat1.UnfurlMode_ALWAYS:
 			ehit.Typ = ExtractorHitUnfurl
 		case chat1.UnfurlMode_WHITELISTED:
-			if e.isWhitelistHit(ctx, convID, msgID, h, settings.Whitelist, e.getExemptionList(uid)) {
+			domain, err := GetDomain(h)
+			if err != nil {
+				e.Debug(ctx, "Extract: failed to get domain: %s", err)
+				break
+			}
+			if isAutoAllowedDomain(domain) {
+				ehit.Typ = ExtractorHitUnfurl
+			} else if settings.Blocklist[domain] {
+				continue
+			} else if e.isAllowedHit(ctx, convID, msgID, domain, settings.Whitelist, e.getExemptionList(uid)) {
 				ehit.Typ = ExtractorHitUnfurl
 			}
 		case chat1.UnfurlMode_NEVER:

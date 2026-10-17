@@ -682,6 +682,11 @@ func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 	return u.settings.WhitelistRemove(ctx, uid, domain)
 }
 
+func (u *Unfurler) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer u.Trace(ctx, nil, "BlocklistAdd")()
+	return u.settings.BlocklistAdd(ctx, uid, domain)
+}
+
 func (u *Unfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
 	exemption types.WhitelistExemption,
 ) {

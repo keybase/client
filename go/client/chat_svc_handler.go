@@ -11,6 +11,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -270,8 +271,28 @@ func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
 		Result: map[string]any{
 			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
 			"whitelist": res.Whitelist,
+			"blocklist": res.Blocklist,
 		},
 	}
+}
+
+// keptBlocklist is the block list to save when a caller sends only an allow
+// list: the current one, minus anything that allow list now allows. Entries
+// that don't normalize are left for the service to reject.
+func keptBlocklist(current, whitelist []string) []string {
+	allowed := make(map[string]bool, len(whitelist))
+	for _, w := range whitelist {
+		if domain, err := unfurl.NormalizeDomain(w); err == nil {
+			allowed[domain] = true
+		}
+	}
+	var res []string
+	for _, b := range current {
+		if !allowed[b] {
+			res = append(res, b)
+		}
+	}
+	return res
 }
 
 func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUnfurlSettingsOptionsV1) Reply {
@@ -279,9 +300,20 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 	if err != nil {
 		return c.errReply(err)
 	}
+	var blocklist []string
+	if opts.Blocklist != nil {
+		blocklist = *opts.Blocklist
+	} else {
+		cur, err := client.GetUnfurlSettings(ctx)
+		if err != nil {
+			return c.errReply(err)
+		}
+		blocklist = keptBlocklist(cur.Blocklist, opts.Whitelist)
+	}
 	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
 		Mode:      opts.intMode,
 		Whitelist: opts.Whitelist,
+		Blocklist: blocklist,
 	}); err != nil {
 		return c.errReply(err)
 	}

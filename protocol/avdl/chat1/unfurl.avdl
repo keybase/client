@@ -143,10 +143,12 @@ protocol unfurl {
   record UnfurlSettings {
     UnfurlMode mode;
     map<string, boolean> whitelist;
+    map<string, boolean> blocklist;
   }
 
   record UnfurlSettingsDisplay {
     UnfurlMode mode;
     array<string> whitelist;
+    array<string> blocklist;
   }
 }

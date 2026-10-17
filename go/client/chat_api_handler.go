@@ -571,6 +571,8 @@ func (o loadFlipOptionsV1) Check() error {
 type setUnfurlSettingsOptionsV1 struct {
 	Mode      string
 	Whitelist []string
+	// nil keeps the current block list.
+	Blocklist *[]string
 	intMode   chat1.UnfurlMode
 }
 

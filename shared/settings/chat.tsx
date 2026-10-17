@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
+import {addDomain, emptyUnfurlListEdits, hasUnfurlListEdits, removeAddedDomain, unfurlSaveArgs} from './unfurl-lists'
 import {loadSettings} from './load-settings'
 import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
@@ -77,19 +78,27 @@ const useContactSettings = () => {
 
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
-  const [error, setError] = React.useState('')
+  const [loadError, setLoadError] = React.useState('')
+  const [saveError, setSaveError] = React.useState('')
   const {data, reload, setData} = useRPCLoad(
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
     [undefined, C.waitingKeySettingsChatUnfurl],
     {
-      map: result => ({mode: result.mode, whitelist: result.whitelist ?? emptyList}),
-      onError: () => setError('Unable to load link preview settings, please try again.'),
-      onResult: () => setError(''),
+      map: result => ({
+        blocklist: result.blocklist ?? emptyList,
+        mode: result.mode,
+        whitelist: result.whitelist ?? emptyList,
+      }),
+      onError: () => setLoadError('Unable to load link preview settings, please try again.'),
+      onResult: () => setLoadError(''),
       when: 'manual',
     }
   )
+  const loaded = data !== undefined
+  const error = saveError || loadError
   const mode = data?.mode
   const whitelist = data?.whitelist ?? emptyList
+  const blocklist = data?.blocklist ?? emptyList
 
   const unfurlSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
@@ -99,27 +108,38 @@ const useUnfurlSettings = () => {
   }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
-    (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
-      setError('')
-      // optimistic, the post-save refresh has the final say
-      setData({mode: unfurlMode, whitelist: unfurlWhitelist})
+    (
+      unfurlMode: T.RPCChat.UnfurlMode,
+      unfurlWhitelist: ReadonlyArray<string>,
+      unfurlBlocklist: ReadonlyArray<string>,
+      onSuccess: () => void
+    ) => {
+      setSaveError('')
       if (!useConfigState.getState().loggedIn) {
         return
       }
+      const settings = {blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}
       saveUnfurlSettingsRPC(
-        [{mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
+        [settings, C.waitingKeySettingsChatUnfurl],
         () => {
+          // show what was saved until the refresh brings back the service's normalized form
+          setData(settings)
+          onSuccess()
           unfurlSettingsRefresh()
         },
-        () => {
-          setError('Unable to save link preview settings, please try again.')
+        e => {
+          setSaveError(
+            e.desc
+              ? `Unable to save link preview settings: ${e.desc}`
+              : 'Unable to save link preview settings, please try again.'
+          )
         }
       )
     },
     [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
-  return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+  return {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
 }
 
 const useCompressPreference = () => {
@@ -391,28 +411,111 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
   )
 }
 
-const Links = () => {
+type DomainListProps = {
+  added: ReadonlyArray<string>
+  disabled: boolean
+  heading: string
+  onAdd: (domain: string) => void
+  onRemoveAdded: (domain: string) => void
+  onToggleSaved: (domain: string) => void
+  removed: ReadonlySet<string>
+  saved: ReadonlyArray<string>
+  testID: string
+}
+
+const DomainList = (p: DomainListProps) => {
+  const {added, disabled, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved, testID} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
+  const [text, setText] = React.useState('')
+  const submit = () => {
+    onAdd(text)
+    setText('')
+  }
+  const rows = [
+    ...saved.map(domain => ({domain, isAdded: false})),
+    ...added.filter(domain => !saved.includes(domain)).map(domain => ({domain, isAdded: true})),
+  ]
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection} testID={testID}>
+      <Kb.Text type="BodySmallSemibold">{heading}</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
+        <Kb.Input3
+          containerStyle={styles.listInput}
+          placeholder="Add a website, e.g. example.com"
+          value={text}
+          onChangeText={setText}
+          disabled={disabled}
+          onEnterKeyDown={disabled ? undefined : submit}
+        />
+        <Kb.Button label="Add" small={true} onClick={submit} disabled={disabled || !text.trim()} />
+      </Kb.Box2>
+      {rows.length > 0 && (
+        <Kb.ScrollView style={styles.list}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.listOuter} />
+          {rows.map(({domain, isAdded}) => {
+            const isRemoved = !isAdded && removed.has(domain)
+            return (
+              <Kb.Box2
+                key={domain}
+                alignSelf="center"
+                direction="horizontal"
+                justifyContent="space-between"
+                noShrink={true}
+                style={Kb.Styles.collapseStyles([
+                  styles.listRowContainer,
+                  isRemoved ? {backgroundColor: theme.red_20} : undefined,
+                ])}
+              >
+                <Kb.Text type="BodySemibold">{domain}</Kb.Text>
+                {isRemoved ? (
+                  <Kb.Text
+                    type="BodyPrimaryLink"
+                    style={styles.removeText}
+                    onClick={disabled ? undefined : () => onToggleSaved(domain)}
+                  >
+                    Restore
+                  </Kb.Text>
+                ) : (
+                  <Kb.WithTooltip tooltip="Remove">
+                    <Kb.Icon
+                      onClick={
+                        disabled ? undefined : () => (isAdded ? onRemoveAdded(domain) : onToggleSaved(domain))
+                      }
+                      type="iconfont-trash"
+                    />
+                  </Kb.WithTooltip>
+                )}
+              </Kb.Box2>
+            )
+          })}
+        </Kb.ScrollView>
+      )}
+    </Kb.Box2>
+  )
+}
+
+export const Links = () => {
+  const styles = useStyles()
+  const {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
+    useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
-  const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
-  const getUnfurlWhitelist = (filtered: boolean) =>
-    filtered ? whitelist.filter(w => !unfurlWhitelistRemoved[w]) : whitelist
-  const allowSave = mode !== selected || Object.keys(unfurlWhitelistRemoved).length > 0
+  const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
+  // a save's success clears the edits, so nothing may change while one is in flight
+  const saving = C.Waiting.useAnyWaiting(C.waitingKeySettingsChatUnfurl)
+  const editable = loaded && !saving
+  const allowSave = loaded && (mode !== selected || hasUnfurlListEdits(edits))
   const onSave = () => {
-    const next = whitelist.filter(w => {
-      return !unfurlWhitelistRemoved[w]
-    })
-    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next)
+    const next = unfurlSaveArgs(selected, {blocklist, whitelist}, edits)
+    unfurlSettingsSaved(next.mode, next.whitelist, next.blocklist, () => setEdits(emptyUnfurlListEdits))
   }
 
-  const toggleUnfurlWhitelist = (domain: string) => {
-    setUnfurlWhitelistRemoved(
-      produce(draft => {
-        draft[domain] = !draft[domain]
-      })
-    )
+  const toggleSaved = (domain: string) => {
+    setEdits(e => {
+      const removed = new Set(e.removed)
+      if (!removed.delete(domain)) removed.add(domain)
+      return {...e, removed}
+    })
   }
 
   // not keyed on unfurlSettingsRefresh: its identity changes with every load result
@@ -447,55 +550,48 @@ const Links = () => {
       >
         <Kb.RadioButton
           key="rbalways"
-          label="Always"
+          label="Allow all"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.always)}
           selected={selected === T.RPCChat.UnfurlMode.always}
         />
         <Kb.RadioButton
           key="rbwhitelist"
-          label="Only for some websites"
+          label="Ask per domain"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.whitelisted)}
           selected={selected === T.RPCChat.UnfurlMode.whitelisted}
         />
         {selected === T.RPCChat.UnfurlMode.whitelisted && (
-          <Kb.ScrollView style={styles.whitelist}>
-            {getUnfurlWhitelist(false).map((w, idx) => {
-              const wlremoved = unfurlWhitelistRemoved[w]
-              return (
-                <React.Fragment key={w}>
-                  {idx === 0 && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.whitelistOuter} />}
-                  <Kb.Box2 alignSelf="center"
-                    direction="horizontal"
-                    justifyContent="space-between"
-                    noShrink={true}
-                    style={Kb.Styles.collapseStyles([
-                      styles.whitelistRowContainer,
-                      wlremoved ? {backgroundColor: theme.red_20} : undefined,
-                    ])}
-                  >
-                    <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    {wlremoved ? (
-                      <Kb.Text
-                        type="BodyPrimaryLink"
-                        style={styles.removeText}
-                        onClick={() => toggleUnfurlWhitelist(w)}
-                      >
-                        Restore
-                      </Kb.Text>
-                    ) : (
-                      <Kb.WithTooltip tooltip="Remove">
-                        <Kb.Icon onClick={() => toggleUnfurlWhitelist(w)} type="iconfont-trash" />
-                      </Kb.WithTooltip>
-                    )}
-                  </Kb.Box2>
-                </React.Fragment>
-              )
-            })}
-          </Kb.ScrollView>
+          <>
+            <DomainList
+              added={edits.added.allow}
+              disabled={!editable}
+              heading="Allowed websites"
+              onAdd={domain => setEdits(e => addDomain(e, 'allow', domain, whitelist))}
+              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'allow', domain))}
+              onToggleSaved={toggleSaved}
+              removed={edits.removed}
+              saved={whitelist.filter(w => !edits.added.block.includes(w))}
+              testID={TestIDs.SETTINGS_UNFURL_ALLOWED}
+            />
+            <DomainList
+              added={edits.added.block}
+              disabled={!editable}
+              heading="Blocked websites"
+              onAdd={domain => setEdits(e => addDomain(e, 'block', domain, blocklist))}
+              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'block', domain))}
+              onToggleSaved={toggleSaved}
+              removed={edits.removed}
+              saved={blocklist.filter(w => !edits.added.allow.includes(w))}
+              testID={TestIDs.SETTINGS_UNFURL_BLOCKED}
+            />
+          </>
         )}
         <Kb.RadioButton
           key="rbnever"
-          label="Never"
+          label="Disallow all"
+          disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.never)}
           selected={selected === T.RPCChat.UnfurlMode.never}
         />
@@ -508,6 +604,7 @@ const Links = () => {
           style={styles.save}
           disabled={!allowSave}
           waitingKey={C.waitingKeySettingsChatUnfurl}
+          testID={TestIDs.SETTINGS_UNFURL_SAVE}
         />
         {error ? (
           <Kb.Text type="BodySmall" style={styles.error}>
@@ -655,12 +752,11 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       isMobile ? Kb.Styles.globalMargins.large : 48
     ),
   },
-  whitelist: Kb.Styles.platformStyles({
+  list: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
       backgroundColor: theme.blueGrey,
       marginBottom: Kb.Styles.globalMargins.xtiny,
-      marginLeft: 22,
       marginTop: Kb.Styles.globalMargins.xtiny,
       paddingRight: Kb.Styles.globalMargins.medium,
     },
@@ -672,10 +768,11 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       width: '95%',
     },
   }),
-  whitelistOuter: {
+  listInput: {flexGrow: 1, flexShrink: 1},
+  listOuter: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
-  whitelistRowContainer: {
+  listRowContainer: {
     backgroundColor: theme.white,
     height: 40,
     marginBottom: 1,
@@ -684,6 +781,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     padding: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,
   },
+  listSection: {marginLeft: 22, marginTop: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default Chat

@@ -104,7 +104,8 @@ Get unfurl settings:
     {"method": "getunfurlsettings"}
 
 Set unfurl settings (thumbnails for sent links):
-    {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"]}}}
+    {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"], "blocklist":["blocked.example"]}}}
+    The lists only apply in whitelisted mode. Omit blocklist to keep the current block list.
 
 Advertise available bot commands in the UI:
     {"method": "advertisecommands", "params": {"options":{"alias": "helpbot", "advertisements":[{"type": "public", "commands": [{"name": "help", "description": "Get help using this bot"}]}]}}}
