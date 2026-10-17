@@ -44,26 +44,18 @@ func NewSettings(g *globals.Context, storage types.UserConversationBackedStorage
 
 func (s *Settings) getWhitelist(ctx context.Context, uid gregor1.UID) (map[string]bool, error) {
 	var wr whitelistRecord
-	found, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr)
-	if err != nil {
+	if _, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr); err != nil {
 		return nil, err
 	}
-	if !found || wr.Whitelist == nil {
-		return make(map[string]bool), nil
-	}
-	return wr.Whitelist, nil
+	return cleanDomainSet(wr.Whitelist), nil
 }
 
 func (s *Settings) getBlocklist(ctx context.Context, uid gregor1.UID) (map[string]bool, error) {
 	var br blocklistRecord
-	found, err := s.storage.Get(ctx, uid, settingsBlocklistName, &br)
-	if err != nil {
+	if _, err := s.storage.Get(ctx, uid, settingsBlocklistName, &br); err != nil {
 		return nil, err
 	}
-	if !found || br.Blocklist == nil {
-		return make(map[string]bool), nil
-	}
-	return br.Blocklist, nil
+	return cleanDomainSet(br.Blocklist), nil
 }
 
 func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
@@ -88,10 +80,8 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 	}
 	// clients that predate the block list can allow a domain without unblocking
 	// it. The block list wins, as it does when unfurling, so Set accepts the result.
-	for domain, blocked := range blocklist {
-		if blocked {
-			delete(whitelist, domain)
-		}
+	for domain := range blocklist {
+		delete(whitelist, domain)
 	}
 	return chat1.UnfurlSettings{
 		Mode:      mr.Mode,
@@ -202,6 +192,21 @@ func normalizeDomainSet(in map[string]bool) (map[string]bool, error) {
 		res[domain] = true
 	}
 	return res, nil
+}
+
+// cleanDomainSet drops stored entries that Set would reject, such as ones written
+// before the lists were validated, so a settings round trip can always be saved.
+func cleanDomainSet(in map[string]bool) map[string]bool {
+	res := make(map[string]bool, len(in))
+	for input, on := range in {
+		if !on {
+			continue
+		}
+		if domain, err := NormalizeDomain(input); err == nil {
+			res[domain] = true
+		}
+	}
+	return res
 }
 
 // Set validates both lists before writing anything, so a rejected update

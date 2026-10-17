@@ -219,3 +219,44 @@ func TestUnfurlSettingAddRejectsAutoAllowed(t *testing.T) {
 	require.Empty(t, res.Blocklist)
 	require.NoError(t, settings.Set(ctx, uid, res))
 }
+
+func TestUnfurlSettingGetCleansLegacyEntries(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	// entries written before the lists were validated
+	uid := gregor1.UID([]byte{0, 1})
+	storage := newMemConversationBackedStorage()
+	require.NoError(t, storage.Put(ctx, uid, settingsWhitelistName, whitelistRecord{
+		Whitelist: map[string]bool{
+			"giphy.com": true, "localhost": true, "::1": true, "A.com": true,
+			"https://www.a.com/x": true, "https://WWW.C.com/y": true, "d.com": false,
+			"b.com": true,
+		},
+	}))
+	require.NoError(t, storage.Put(ctx, uid, settingsBlocklistName, blocklistRecord{
+		Blocklist: map[string]bool{"WWW.B.com": true, types.MapsDomain: true, "not a domain": true},
+	}))
+	settings := NewSettings(g, storage)
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, map[string]bool{"a.com": true, "c.com": true}, res.Whitelist)
+	require.Equal(t, map[string]bool{"b.com": true}, res.Blocklist)
+
+	require.NoError(t, settings.Set(ctx, uid, res))
+	after, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, res, after)
+
+	// allowing a domain also clears a legacy spelling of it from the block list
+	require.NoError(t, storage.Put(ctx, uid, settingsBlocklistName, blocklistRecord{
+		Blocklist: map[string]bool{"WWW.E.com": true},
+	}))
+	require.NoError(t, settings.WhitelistAdd(ctx, uid, "e.com"))
+	res, err = settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.True(t, res.Whitelist["e.com"])
+	require.Empty(t, res.Blocklist)
+}
