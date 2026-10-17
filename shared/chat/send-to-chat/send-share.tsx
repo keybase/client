@@ -1,18 +1,11 @@
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {getAccountGeneration} from '@/engine/account-generation'
-import {clearModals, getVisibleScreen, navigateAppend, navigateToThread} from '@/constants/router'
-import {threadRouteName} from '@/constants/chat/common'
+import {clearModals, navigateAppend, navigateToThread} from '@/constants/router'
 import {loadConversationMeta} from '../inbox/metadata'
 import {toAttachmentPath} from '../conversation/attachment-path'
 import {setInputIntent, type InputIntent} from '../conversation/input-intent-store'
 import {sharedTextFitsAfter, writeSharedTextFile} from '@/util/shared-text-file'
-
-const threadVisible = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const visible = getVisibleScreen(true)
-  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-  return visible?.name === threadRouteName && params?.conversationIDKey === conversationIDKey
-}
 
 // Sends a share to a conversation: its files through the attachment titles screen, its text after
 // the conversation's draft. Where the text goes is decided once, against the draft as the service
@@ -37,17 +30,12 @@ export const sendShareToConversation = async (p: {
   const meta = await loadConversationMeta(conversationIDKey)
   let paths = p.paths
   let afterDraft = text
-  // A text-only share whose thread the user has left goes after the draft whatever its size,
-  // rather than opening a titles screen over whatever they moved on to. Files always get one.
-  const titlesWelcome = !threadBeneath || paths.length > 0 || threadVisible(conversationIDKey)
-  if (text !== undefined && titlesWelcome) {
-    if (!sharedTextFitsAfter(meta?.draft ?? '', text)) {
-      try {
-        paths = [...paths, (await writeSharedTextFile(text)).path]
-        afterDraft = undefined
-      } catch (error) {
-        logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
-      }
+  if (text !== undefined && !sharedTextFitsAfter(meta?.draft ?? '', text)) {
+    try {
+      paths = [...paths, (await writeSharedTextFile(text)).path]
+      afterDraft = undefined
+    } catch (error) {
+      logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
     }
   }
   // the load or the write outlasted the account the share was for
