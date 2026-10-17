@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -259,4 +260,33 @@ func TestUnfurlSettingGetCleansLegacyEntries(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, res.Whitelist["e.com"])
 	require.Empty(t, res.Blocklist)
+}
+
+func TestUnfurlSettingConcurrentAdds(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	settings := NewSettings(g, newMemConversationBackedStorage())
+	const n = 50
+	var wg sync.WaitGroup
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			domain := fmt.Sprintf("d%d.com", i)
+			if i%2 == 0 {
+				require.NoError(t, settings.BlocklistAdd(ctx, uid, domain))
+			} else {
+				require.NoError(t, settings.WhitelistAdd(ctx, uid, domain))
+			}
+		}(i)
+	}
+	wg.Wait()
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Len(t, res.Blocklist, n/2)
+	require.Len(t, res.Whitelist, n/2)
 }
