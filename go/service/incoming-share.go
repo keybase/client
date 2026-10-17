@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -64,16 +63,10 @@ func IncomingShareFolder(mobileSharedHome string) string {
 
 const (
 	incomingShareManifest = "manifest.json"
-	// A manifest being read is moved to manifest.<random>.claimed first.
-	incomingShareClaimedPrefix = "manifest."
-	incomingShareClaimedSuffix = ".claimed"
+	// A manifest being read is moved here first. Reads are serialized by
+	// lastIncomingShare, and one a crash left behind is replaced by the next.
+	incomingShareClaimedManifest = "manifest.claimed"
 )
-
-func isClaimedIncomingShareManifest(name string) bool {
-	return name != incomingShareManifest &&
-		strings.HasPrefix(name, incomingShareClaimedPrefix) &&
-		strings.HasSuffix(name, incomingShareClaimedSuffix)
-}
 
 // How long a claimed share is still handed out again. The app can throw an
 // answer away (a newer load superseded it, a disconnect cancelled it) and load
@@ -157,11 +150,11 @@ func stillPresentIncomingShare(share keybase1.IncomingShareItems) (res keybase1.
 func (h *IncomingShareHandler) claimIncomingShare(mctx libkb.MetaContext, folder string) (
 	res keybase1.IncomingShareItems, claimed bool, err error,
 ) {
-	suffix, err := libkb.RandHexString("", 8)
+	id, err := libkb.RandHexString("", 8)
 	if err != nil {
 		return res, false, err
 	}
-	claimedPath := filepath.Join(folder, incomingShareClaimedPrefix+suffix+incomingShareClaimedSuffix)
+	claimedPath := filepath.Join(folder, incomingShareClaimedManifest)
 	// A rename is atomic, so of two calls racing for one manifest only one gets it.
 	if err := os.Rename(filepath.Join(folder, incomingShareManifest), claimedPath); err != nil {
 		if os.IsNotExist(err) {
@@ -170,12 +163,6 @@ func (h *IncomingShareHandler) claimIncomingShare(mctx libkb.MetaContext, folder
 		}
 		mctx.Debug("incoming-share: claim manifest.json error: %v", err)
 		return res, false, err
-	}
-	// The rename keeps the manifest's mtime, and the purge removes claimed
-	// manifests by age: make it read as new so the purge can't take it mid-read.
-	now := time.Now()
-	if err := os.Chtimes(claimedPath, now, now); err != nil {
-		mctx.Debug("incoming-share: touch claimed manifest error: %v", err)
 	}
 	defer func() {
 		if err := os.Remove(claimedPath); err != nil {
@@ -194,7 +181,7 @@ func (h *IncomingShareHandler) claimIncomingShare(mctx libkb.MetaContext, folder
 		return res, true, err
 	}
 	mctx.Debug("incoming-share: %d items", len(jsonItems))
-	res.Id = suffix
+	res.Id = id
 loop:
 	for _, jsonItem := range jsonItems {
 		if len(jsonItem.Error) > 0 {

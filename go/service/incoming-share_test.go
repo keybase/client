@@ -236,32 +236,16 @@ func TestIncomingShareUnreadableManifestIsStillConsumed(t *testing.T) {
 	require.Empty(t, res.Items)
 }
 
-func TestIncomingSharePurgeRemovesOldClaimedManifests(t *testing.T) {
-	tc := libkb.SetupTest(t, "incoming-share", 1)
-	defer tc.Cleanup()
-	tc.G.Env.Test.MobileSharedHome = t.TempDir()
-	folder := IncomingShareFolder(tc.G.Env.GetMobileSharedHome())
-	require.NoError(t, os.MkdirAll(folder, 0o700))
-	old := time.Now().Add(-2 * incomingShareMaxAge)
-	write := func(name string, mtime time.Time) {
-		p := filepath.Join(folder, name)
-		require.NoError(t, os.WriteFile(p, []byte("[]"), 0o600))
-		require.NoError(t, os.Chtimes(p, mtime, mtime))
-	}
-	write("manifest.json", old)
-	write("manifest.abc.claimed", old)
-	write("manifest.def.claimed", time.Now())
-	write("other.txt", old)
+// A claimed manifest a crash left behind doesn't block the next share.
+func TestIncomingShareReplacesLeftoverClaimedManifest(t *testing.T) {
+	h, cleanup := setupIncomingShare(t, func(folder string) []map[string]string {
+		require.NoError(t, os.WriteFile(filepath.Join(folder, "manifest.claimed"),
+			[]byte(`[{"type":"text","content":"stale"}]`), 0o600))
+		return []map[string]string{{"type": "text", "content": "hello"}}
+	})
+	defer cleanup()
 
-	(&Service{Contextified: libkb.NewContextified(tc.G)}).purgeOldIncomingShareData()
-
-	entries, err := os.ReadDir(folder)
-	require.NoError(t, err)
-	var names []string
-	for _, e := range entries {
-		names = append(names, e.Name())
-	}
-	require.ElementsMatch(t, []string{"manifest.json", "manifest.def.claimed", "other.txt"}, names)
+	require.Equal(t, "hello", incomingShareText(t, h))
 }
 
 // The app tells a repeat from a newer share by its id.
