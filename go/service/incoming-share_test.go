@@ -302,3 +302,36 @@ func TestIncomingShareRepeatIsOnlyForTheSameUser(t *testing.T) {
 	setUser(keybase1.UID("00000000000000000000000000000119"))
 	require.Equal(t, "hello", incomingShareText(t, h))
 }
+
+func TestIncomingSharePurgeRemovesOldClaimedManifest(t *testing.T) {
+	tc := libkb.SetupTest(t, "incoming-share", 1)
+	defer tc.Cleanup()
+	tc.G.Env.Test.MobileSharedHome = t.TempDir()
+	folder := IncomingShareFolder(tc.G.Env.GetMobileSharedHome())
+	require.NoError(t, os.MkdirAll(folder, 0o700))
+	write := func(name string, mtime time.Time) {
+		p := filepath.Join(folder, name)
+		require.NoError(t, os.WriteFile(p, []byte("[]"), 0o600))
+		require.NoError(t, os.Chtimes(p, mtime, mtime))
+	}
+	names := func() (names []string) {
+		entries, err := os.ReadDir(folder)
+		require.NoError(t, err)
+		for _, e := range entries {
+			names = append(names, e.Name())
+		}
+		return names
+	}
+	purge := (&Service{Contextified: libkb.NewContextified(tc.G)}).purgeOldIncomingShareData
+	old := time.Now().Add(-2 * incomingShareMaxAge)
+	write("manifest.json", old)
+	write("other.txt", old)
+
+	write("manifest.claimed", time.Now())
+	purge()
+	require.ElementsMatch(t, []string{"manifest.json", "manifest.claimed", "other.txt"}, names())
+
+	write("manifest.claimed", old)
+	purge()
+	require.ElementsMatch(t, []string{"manifest.json", "other.txt"}, names())
+}

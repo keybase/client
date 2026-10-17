@@ -64,7 +64,8 @@ func IncomingShareFolder(mobileSharedHome string) string {
 const (
 	incomingShareManifest = "manifest.json"
 	// A manifest being read is moved here first. Reads are serialized by
-	// lastIncomingShare, and one a crash left behind is replaced by the next.
+	// lastIncomingShare; one a crash left behind is replaced by the next read,
+	// or purged.
 	incomingShareClaimedManifest = "manifest.claimed"
 )
 
