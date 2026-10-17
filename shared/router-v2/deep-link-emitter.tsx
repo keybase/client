@@ -77,10 +77,10 @@ export const setInitialURLOnce = (url: string) => {
 //
 // A link here can come from any app, web page or typed URL, so it never carries
 // a targetUid: only enqueuePushTapRoute may target (and so switch) an account.
-export const emitDeepLink = (url: string, createdAt?: number) => {
+export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
-  useNavigationIntentsState.getState().dispatch.enqueue(normalized, {createdAt})
+  useNavigationIntentsState.getState().dispatch.enqueue(normalized)
 }
 
 // ---- Notification taps ----
