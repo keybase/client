@@ -47,6 +47,8 @@ export type Composer = {
   // lands next to the draft instead of over it. Before the draft is known the text shows alone and
   // nothing is saved; the draft goes in front of it once it loads.
   append: (text: string, focus?: boolean) => void
+  // What the composer would hold once append(text) lands, a draft not loaded yet included.
+  textAfterAppend: (text: string) => string
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
@@ -324,6 +326,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     getSelection: () => input?.getSelection(),
     getText: () => text,
+    textAfterAppend: s => appendLine(draftLoaded || editing ? text : appendLine(deps.getDraft() ?? '', text), s),
     inject: (next, focus = false) => {
       whenAttached(target => write(target, next, focus))
     },

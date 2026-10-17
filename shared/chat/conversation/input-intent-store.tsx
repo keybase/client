@@ -27,7 +27,8 @@ export type InputIntent =
   // notice is shown in the command status bar above the composer, e.g. that some of a share
   // didn't make it; it rides here because the mailbox holds one intent per conversation. With no
   // text the composer is left as it is. append puts the text on its own line after the draft
-  // instead of replacing it: a share must never discard what the user had written.
+  // instead of replacing it: a share must never discard what the user had written. Text the draft
+  // has no room for under chat's message limit goes as a .txt attachment instead.
   | {type: 'injectText'; text?: string; notice?: string; append?: boolean}
   | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
   | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
