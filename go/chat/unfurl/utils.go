@@ -45,6 +45,8 @@ func GetDomain(uri string) (res string, err error) {
 	if err != nil {
 		return res, err
 	}
+	// hostnames are case-insensitive and the allow and block lists store lowercase
+	hostname = strings.ToLower(hostname)
 	if len(hostname) == 0 {
 		return res, errors.New("no hostname")
 	}
