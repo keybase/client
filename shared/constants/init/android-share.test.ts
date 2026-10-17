@@ -201,15 +201,35 @@ test('no state is no navigator: nothing is left or opened again', () => {
   expect(opened).toEqual(['over tabs 1'])
 })
 
-test('logging out is not leaving the share: it opens again after login', () => {
+test('logging out ends a held share: whoever logs in next may not be who it was shared to', () => {
   ready()
   hold(1)
   useConfigState.getState().dispatch.setLoggedIn(false)
   setState({index: 0, routes: [{key: 'o', name: 'loggedOut'}]})
+  expect(mockNative.acks).toEqual([1])
+
+  ready()
+  setState(tabs)
+  expect(opened).toEqual(['over tabs 1'])
+})
+
+test('a share made while logged out is not ended by staying logged out, and opens after login', () => {
+  hold(1)
+  useConfigState.getState().dispatch.setLoggedIn(false)
+  expect(mockNative.acks).toEqual([])
+  ready()
+  expect(opened).toEqual(['over tabs 1'])
+})
+
+test('an account switch is not leaving the share: it opens again in the account switched to', () => {
+  ready()
+  hold(1)
+  useConfigState.setState({userSwitching: true})
+  useConfigState.getState().dispatch.setLoggedIn(false)
+  setState({index: 0, routes: [{key: 'o', name: 'loggedOut'}]})
   expect(mockNative.acks).toEqual([])
 
-  // Logging out reset the stores; logging in marks the same navigator ready again, and the
-  // logged-in screens come back.
+  useConfigState.setState({userSwitching: false})
   ready()
   expect(opened).toEqual(['over tabs 1'])
   setState(tabs)
