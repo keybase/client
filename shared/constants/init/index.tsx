@@ -33,6 +33,7 @@ import type {ExpoLocationObject, ExpoTaskManagerModule} from './platform-types'
 import {shouldRecordFix, type Fix, type FixThrottle} from './location-throttle'
 import {openAtLoginKey} from '@/stores/shell'
 import * as ScreenCapture from 'expo-screen-capture'
+import {purgeStaleSharedTextFiles} from '@/util/shared-text-file'
 
 const _getOpenAtLoginKey = () => openAtLoginKey
 
@@ -515,6 +516,8 @@ const _initNativePlatformListener = () => {
 
   const {setupAudioMode} = _getNative()
   ignorePromise(setupAudioMode(false))
+
+  purgeStaleSharedTextFiles()
 
   if (isAndroid) {
     // HMR re-init after the handshake already finished: the bootstrap step won't run again

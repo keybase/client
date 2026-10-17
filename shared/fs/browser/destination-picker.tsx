@@ -46,7 +46,7 @@ export const incomingShareLocalFiles = async (items: T.FS.IncomingShareSource['s
   }
 }
 
-const doMoveOrCopy = async (
+export const doMoveOrCopy = async (
   type: 'move' | 'copy',
   source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
   parentPath: T.FS.Path,
