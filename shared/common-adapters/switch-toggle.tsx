@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
+import {linearEasing} from './native-easing'
 import * as Styles from '@/styles'
 
 type Props = {
@@ -27,7 +28,7 @@ const SwitchToggle = (props: Props) => {
     animationRef.current?.stop()
     animationRef.current = NativeAnimated.timing(offset, {
       duration: 100,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: _on ? nativeEnabledOffset : nativeDisabledOffset,
       useNativeDriver: false,
     })

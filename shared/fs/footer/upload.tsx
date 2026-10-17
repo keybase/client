@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
+import {linearEasing} from '@/common-adapters/native-easing'
 // url on desktop, Metro asset number on native; only used in the native footer.
 import uploadPatternRaw from '../../images/upload-pattern-80.png'
 import darkUploadPatternRaw from '../../images/dark-upload-pattern-80.png'
@@ -86,7 +87,7 @@ const Upload = (props: UploadProps) => {
       const loop = NativeAnimated.loop(
         NativeAnimated.timing(backgroundTop, {
           duration: 2000,
-          easing: NativeEasing.linear,
+          easing: linearEasing,
           toValue: -80,
           useNativeDriver: false,
         })

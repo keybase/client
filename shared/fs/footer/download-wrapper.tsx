@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
+import {linearEasing} from '@/common-adapters/native-easing'
 
 type Props = {
   dismiss: () => void
@@ -16,7 +17,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
   const opacityAnimation = React.useRef(
     NativeAnimated.timing(opacity, {
       duration: 3000,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: 0,
       useNativeDriver: false,
     })

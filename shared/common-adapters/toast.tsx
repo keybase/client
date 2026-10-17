@@ -4,7 +4,8 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import {AnchoredPopup} from './popup/anchored'
 import {Portal} from './portal'
-import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
+import {Animated as NativeAnimated, useColorScheme} from 'react-native'
+import {linearEasing} from './native-easing'
 import {colors, darkColors} from '@/styles/colors'
 import './toast.css'
 import type {Position, StylesCrossPlatform} from '@/styles'
@@ -71,7 +72,7 @@ const Toast = (props: Props) => {
     }
     const animation = NativeAnimated.timing(opacity, {
       duration: 200,
-      easing: NativeEasing.linear,
+      easing: linearEasing,
       toValue: visible ? 1 : 0,
       useNativeDriver: false,
     })
