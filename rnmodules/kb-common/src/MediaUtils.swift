@@ -200,17 +200,43 @@ public class MediaUtils: NSObject {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
     }
 
-    // Formats whose frames are an animation. A multi-page TIFF or an MPO also has
+    // Formats whose frames can be an animation. A multi-page TIFF or an MPO also has
     // several images, but those aren't animations.
     private static let animatableImageTypes: [String] = [
         "com.compuserve.gif", "public.png", "org.webmproject.webp", "public.avif", "public.avis",
         "public.heic", "public.heics",
     ]
 
-    // More than one frame, read from the container without decoding any.
+    // Where each animated format keeps a frame's delay. Several images alone don't
+    // make an animation: a HEIC also holds a photo's depth or gain map, or a burst,
+    // and those carry no delay. AVIS has no key constants of its own; ImageIO uses
+    // the same "DelayTime" and "UnclampedDelayTime" names in every format.
+    private static let frameDelayKeys: [(CFString, [CFString])] = {
+        var keys: [(CFString, [CFString])] = [
+            (kCGImagePropertyGIFDictionary, [kCGImagePropertyGIFDelayTime, kCGImagePropertyGIFUnclampedDelayTime]),
+            (kCGImagePropertyPNGDictionary, [kCGImagePropertyAPNGDelayTime, kCGImagePropertyAPNGUnclampedDelayTime]),
+            (kCGImagePropertyWebPDictionary, [kCGImagePropertyWebPDelayTime, kCGImagePropertyWebPUnclampedDelayTime]),
+            (kCGImagePropertyHEICSDictionary, [kCGImagePropertyHEICSDelayTime, kCGImagePropertyHEICSUnclampedDelayTime]),
+        ]
+        // The pod builds for an older iOS than the app, which needs 16.4.
+        if #available(iOS 16.0, *) {
+            keys.append(
+                (kCGImagePropertyAVISDictionary, [kCGImagePropertyHEICSDelayTime, kCGImagePropertyHEICSUnclampedDelayTime]))
+        }
+        return keys
+    }()
+
+    // More than one frame, the first with a frame delay, read from the container
+    // without decoding any.
     private static func isAnimation(_ source: CGImageSource, type: UTType) -> Bool {
-        return CGImageSourceGetCount(source) > 1
-            && animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false })
+        guard CGImageSourceGetCount(source) > 1,
+            animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }),
+            let frame = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        else { return false }
+        return frameDelayKeys.contains { dictionary, keys in
+            guard let properties = frame[dictionary] as? [CFString: Any] else { return false }
+            return keys.contains { properties[$0] != nil }
+        }
     }
 
     // edit carries the user's trim range and audio choice; nil means "the whole
