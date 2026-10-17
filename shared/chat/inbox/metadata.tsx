@@ -438,7 +438,8 @@ const conversationMetaIncomplete = (id: T.Chat.ConversationIDKey) => {
 const fetchConversationDataWithin = async (id: T.Chat.ConversationIDKey, ms: number) => {
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    await Promise.race([fetchConversationData(id), new Promise<void>(resolve => (timer = setTimeout(resolve, ms)))])
+    const fetched = fetchConversationData(id)
+    await Promise.race([fetched, new Promise<void>(resolve => (timer = setTimeout(resolve, ms)))])
   } finally {
     clearTimeout(timer)
   }

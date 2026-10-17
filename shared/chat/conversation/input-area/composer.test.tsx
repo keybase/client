@@ -28,8 +28,12 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
     },
     getDraft: () => stored,
     isReadOnly: () => readOnly,
+    // as the provider's save writes the draft into the conversation's meta, once there is one
     saveDraft: text => {
       drafts.push(text)
+      if (stored !== undefined) {
+        stored = text
+      }
     },
     takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot),
   })
@@ -51,7 +55,9 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const setReadOnly = (next: boolean) => {
     readOnly = next
   }
-  return {composer, drafts, mount, reports, send, setReadOnly, store}
+  // a view mounting on whatever draft the store holds now
+  const mountOnStore = () => mount(stored)
+  return {composer, drafts, mount, mountOnStore, reports, send, setReadOnly, store}
 }
 
 afterEach(() => {
@@ -221,6 +227,27 @@ describe('append', () => {
     expect(fake.text).toBe('shared text')
   })
 
+  test('goes after a draft the store has before the view offers it', () => {
+    const {composer, mount, store} = setup()
+    const {fake} = mount(undefined)
+    store('my draft')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('with no input attached, is saved after the draft, and shows once an input loads it', () => {
+    const {composer, drafts, mountOnStore, store} = setup()
+    store('my draft')
+
+    composer.append('shared text')
+    expect(drafts).toEqual(['my draft\nshared text', 'flush'])
+
+    const {fake} = mountOnStore()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
   test('with no input and no draft known, is saved at once as the whole draft, and an input then shows it', () => {
     const {composer, drafts, mount} = setup()
     composer.append('shared text')
@@ -233,14 +260,13 @@ describe('append', () => {
   })
 
   test('with its input detached, is saved after the draft, and shows when that input attaches again', () => {
-    const {composer, drafts, mount, store} = setup()
+    const {composer, drafts, mount} = setup()
     const {attach, detach, fake} = mount('my draft')
     detach()
 
     composer.append('shared text')
     expect(drafts).toContain('my draft\nshared text')
 
-    store('my draft\nshared text')
     attach()
     expect(fake.text).toBe('my draft\nshared text')
   })

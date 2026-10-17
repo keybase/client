@@ -211,6 +211,13 @@ describe('shared text and the draft', () => {
     expect(mockWrites).toEqual([over])
   })
 
+  test('with files, the titles screen opens even when the thread is not what the user sees', async () => {
+    jest.spyOn(C.Router2, 'getVisibleScreen').mockReturnValue({key: 'inbox', name: 'chatRoot', params: {}} as never)
+    await share(over, true)
+
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}, txt])
+  })
+
   test('the titles screen takes the tlfName of the meta the share loaded', async () => {
     metasReceived(
       [{...Meta.makeConversationMeta(), conversationIDKey, draft, tlfname: 'testuser,testuser-mac', trustedState: 'trusted'}],

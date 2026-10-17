@@ -230,7 +230,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     write(input, draft, false)
   }
 
-
   return {
     append: s => {
       if (input && !editing && !deps.isReadOnly()) {

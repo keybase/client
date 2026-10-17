@@ -13,8 +13,10 @@ import {sharedTextFitsAfter, writeSharedTextFile} from '@/util/shared-text-file'
 // draft when chat's message limit leaves room for both, else as a .txt in the batch, the draft
 // untouched. Text that can't be written as a file goes after the draft after all.
 // threadBeneath: the conversation is already shown under this, and nothing else holds the share,
-// so the text goes after the draft now, and a cancelled batch can't lose it. Otherwise (the picker
-// is beneath, still holding the share) it follows the files into the draft once they are sent.
+// so text that goes after the draft goes there now, before any titles screen, and a cancelled
+// batch leaves it there. An overflow .txt is an attachment like the files: a cancelled titles
+// screen drops it with them. Otherwise (the picker is beneath, still holding the share) the text
+// follows the files into the draft once they are sent.
 // tlfName undefined takes the meta's.
 export const sendShareToConversation = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
