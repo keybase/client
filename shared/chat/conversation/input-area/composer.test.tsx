@@ -192,6 +192,33 @@ describe('inject', () => {
 })
 
 describe('append', () => {
+  test('textAfterAppend is what an append to a loaded draft comes to', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('my draft')
+
+    const expected = composer.textAfterAppend('shared text')
+    composer.append('shared text')
+
+    expect(expected).toBe('my draft\nshared text')
+    expect(fake.text).toBe(expected)
+  })
+
+  test('textAfterAppend counts a draft no input has loaded yet', () => {
+    const {composer, store} = setup()
+    store('my draft')
+
+    expect(composer.textAfterAppend('shared text')).toBe('my draft\nshared text')
+  })
+
+  test('textAfterAppend counts an earlier append made before the draft was known, and the draft', () => {
+    const {composer, mount, store} = setup()
+    mount(undefined)
+    composer.append('first share')
+    store('my draft')
+
+    expect(composer.textAfterAppend('second share')).toBe('my draft\nfirst share\nsecond share')
+  })
+
   test('puts the text on its own line after a loaded draft, and saves both', () => {
     const {composer, drafts, mount} = setup()
     const {fake} = mount('my draft')

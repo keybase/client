@@ -5,7 +5,9 @@ import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
-import {whenModalsGone} from '@/constants/router'
+import {navigateAppend, whenModalsGone} from '@/constants/router'
+import {fitsInTextMessage, writeSharedTextFile} from '@/util/shared-text-file'
+import {toAttachmentPath} from '../attachment-path'
 import {useThrottledCallback} from '@/util/use-debounce'
 import {
   useConversationThreadActions,
@@ -292,6 +294,32 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     toggleGiphyPrefill,
   }))
 
+  // Shared text the draft has no room for goes as a .txt attachment, through the screen a shared file
+  // goes through, and the draft is left as it was. Navigated to once the file is written, so after
+  // any navigation that delivered the text has landed.
+  const attachText = (text: string) => {
+    const f = async () => {
+      let path: string
+      try {
+        path = (await writeSharedTextFile(text)).path
+      } catch (error) {
+        logger.warn('[chat] shared text: unable to write it as a file, appending it instead', error)
+        composer.append(text)
+        return
+      }
+      const meta = getMeta()
+      navigateAppend({
+        name: 'chatAttachmentGetTitles',
+        params: {
+          conversationIDKey: id,
+          pathAndOutboxIDs: [{path: toAttachmentPath(path)}],
+          tlfName: meta?.conversationIDKey === id ? meta.tlfname || undefined : undefined,
+        },
+      })
+    }
+    ignorePromise(f())
+  }
+
   const applyInputAction = React.useEffectEvent(
     (action: T.Immutable<Exclude<InputIntent, {type: 'highlight'}>>) => {
       switch (action.type) {
@@ -308,10 +336,12 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           break
         case 'injectText':
           if (action.text !== undefined) {
-            if (action.append) {
+            if (!action.append) {
+              injectIntoInput(action.text)
+            } else if (getMeta()?.cannotWrite || fitsInTextMessage(composer.textAfterAppend(action.text))) {
               composer.append(action.text)
             } else {
-              injectIntoInput(action.text)
+              attachText(action.text)
             }
           }
           if (action.notice) {
