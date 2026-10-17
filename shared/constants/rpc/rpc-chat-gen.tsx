@@ -556,7 +556,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.local.saveUnfurlSettings': {
-    inParam: {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null},
+    inParam: {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,readonly blocklist?: ReadonlyArray<string> | null},
     outParam: void,
   },
   'chat.1.local.searchInbox': {
@@ -1169,6 +1169,7 @@ export enum UnfurlPromptAction {
   accept = 2,
   notnow = 3,
   onetime = 4,
+  block = 5,
 }
 
 export enum UnfurlType {
@@ -1590,11 +1591,11 @@ export type UnfurlGiphyRaw = {readonly imageUrl?: string | null,readonly video?:
 export type UnfurlImageDisplay = {readonly url: string,readonly height: number,readonly width: number,readonly isVideo: boolean,}
 export type UnfurlMapsRaw = {readonly title: string,readonly url: string,readonly siteName: string,readonly imageUrl: string,readonly historyImageUrl?: string | null,readonly description: string,readonly coord: Coordinate,readonly time: Gregor1.Time,readonly liveLocationEndTime?: Gregor1.Time | null,readonly liveLocationDone: boolean,}
 export type UnfurlPreviewInfo = {readonly url: string,readonly unfurl?: UnfurlDisplay | null,}
-export type UnfurlPromptResult ={ actionType: UnfurlPromptAction.always } | { actionType: UnfurlPromptAction.never } | { actionType: UnfurlPromptAction.notnow } | { actionType: UnfurlPromptAction.accept, accept: string } | { actionType: UnfurlPromptAction.onetime, onetime: string }
+export type UnfurlPromptResult ={ actionType: UnfurlPromptAction.always } | { actionType: UnfurlPromptAction.never } | { actionType: UnfurlPromptAction.notnow } | { actionType: UnfurlPromptAction.accept, accept: string } | { actionType: UnfurlPromptAction.onetime, onetime: string } | { actionType: UnfurlPromptAction.block, block: string }
 export type UnfurlRaw ={ unfurlType: UnfurlType.generic, generic: UnfurlGenericRaw } | { unfurlType: UnfurlType.youtube, youtube: UnfurlYoutubeRaw } | { unfurlType: UnfurlType.giphy, giphy: UnfurlGiphyRaw } | { unfurlType: UnfurlType.maps, maps: UnfurlMapsRaw }
 export type UnfurlResult = {readonly unfurl: Unfurl,readonly url: string,}
-export type UnfurlSettings = {readonly mode: UnfurlMode,readonly whitelist?: {[key: string]: boolean} | null,}
-export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,}
+export type UnfurlSettings = {readonly mode: UnfurlMode,readonly whitelist?: {[key: string]: boolean} | null,readonly blocklist?: {[key: string]: boolean} | null,}
+export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,readonly blocklist?: ReadonlyArray<string> | null,}
 export type UnfurlVideo = {readonly url: string,readonly mimeType: string,readonly height: number,readonly width: number,}
 export type UnfurlYoutube = {}
 export type UnfurlYoutubeDisplay = {}

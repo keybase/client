@@ -3631,7 +3631,8 @@
         "NEVER_1",
         "ACCEPT_2",
         "NOTNOW_3",
-        "ONETIME_4"
+        "ONETIME_4",
+        "BLOCK_5"
       ]
     },
     {
@@ -3673,6 +3674,13 @@
         {
           "label": {
             "name": "ONETIME",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "BLOCK",
             "def": false
           },
           "body": "string"
@@ -5948,6 +5956,13 @@
         },
         {
           "name": "whitelist",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "blocklist",
           "type": {
             "type": "array",
             "items": "string"

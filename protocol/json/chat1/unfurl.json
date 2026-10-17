@@ -536,6 +536,14 @@
             "keys": "string"
           },
           "name": "whitelist"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "string"
+          },
+          "name": "blocklist"
         }
       ]
     },
@@ -553,6 +561,13 @@
             "items": "string"
           },
           "name": "whitelist"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blocklist"
         }
       ]
     }
