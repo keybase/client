@@ -422,7 +422,16 @@ func TestChatSrvUnfurl(t *testing.T) {
 		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
 		require.NoError(t, err)
 		require.Equal(t, []string{"127.0.0.1"}, settings.Blocklist)
-		require.Nil(t, recvUnfurl())
+		select {
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "no unfurl message after block")
+		default:
+		}
+		select {
+		case <-unfurlCh:
+			require.Fail(t, "unexpected unfurl")
+		case <-time.After(2 * time.Second):
+		}
 
 		t.Logf("blocked domain no longer prompts")
 		mustPostLocalForTest(t, ctc, users[0], conv, msg)
@@ -432,6 +441,10 @@ func TestChatSrvUnfurl(t *testing.T) {
 			require.Fail(t, "unexpected prompt")
 		case <-time.After(2 * time.Second):
 		}
-		require.Nil(t, recvUnfurl())
+		select {
+		case <-unfurlCh:
+			require.Fail(t, "unexpected unfurl")
+		case <-time.After(2 * time.Second):
+		}
 	})
 }
