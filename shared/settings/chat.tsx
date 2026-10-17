@@ -82,7 +82,11 @@ const useUnfurlSettings = () => {
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
     [undefined, C.waitingKeySettingsChatUnfurl],
     {
-      map: result => ({mode: result.mode, whitelist: result.whitelist ?? emptyList}),
+      map: result => ({
+        blocklist: result.blocklist ?? emptyList,
+        mode: result.mode,
+        whitelist: result.whitelist ?? emptyList,
+      }),
       onError: () => setError('Unable to load link preview settings, please try again.'),
       onResult: () => setError(''),
       when: 'manual',
@@ -90,6 +94,7 @@ const useUnfurlSettings = () => {
   )
   const mode = data?.mode
   const whitelist = data?.whitelist ?? emptyList
+  const blocklist = data?.blocklist ?? emptyList
 
   const unfurlSettingsRefresh = React.useCallback(() => {
     if (!useConfigState.getState().loggedIn) {
@@ -99,15 +104,19 @@ const useUnfurlSettings = () => {
   }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
-    (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
+    (
+      unfurlMode: T.RPCChat.UnfurlMode,
+      unfurlWhitelist: ReadonlyArray<string>,
+      unfurlBlocklist: ReadonlyArray<string>
+    ) => {
       setError('')
       // optimistic, the post-save refresh has the final say
-      setData({mode: unfurlMode, whitelist: unfurlWhitelist})
+      setData({blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
         return
       }
       saveUnfurlSettingsRPC(
-        [{mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
+        [{blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
         () => {
           unfurlSettingsRefresh()
         },
@@ -119,7 +128,7 @@ const useUnfurlSettings = () => {
     [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
-  return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+  return {blocklist, error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
 }
 
 const useCompressPreference = () => {
@@ -394,7 +403,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 const Links = () => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
+  const {blocklist, error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
   const getUnfurlWhitelist = (filtered: boolean) =>
@@ -404,7 +413,7 @@ const Links = () => {
     const next = whitelist.filter(w => {
       return !unfurlWhitelistRemoved[w]
     })
-    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next)
+    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next, blocklist)
   }
 
   const toggleUnfurlWhitelist = (domain: string) => {

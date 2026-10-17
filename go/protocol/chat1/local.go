@@ -5735,6 +5735,7 @@ const (
 	UnfurlPromptAction_ACCEPT  UnfurlPromptAction = 2
 	UnfurlPromptAction_NOTNOW  UnfurlPromptAction = 3
 	UnfurlPromptAction_ONETIME UnfurlPromptAction = 4
+	UnfurlPromptAction_BLOCK   UnfurlPromptAction = 5
 )
 
 func (o UnfurlPromptAction) DeepCopy() UnfurlPromptAction { return o }
@@ -5745,6 +5746,7 @@ var UnfurlPromptActionMap = map[string]UnfurlPromptAction{
 	"ACCEPT":  2,
 	"NOTNOW":  3,
 	"ONETIME": 4,
+	"BLOCK":   5,
 }
 
 var UnfurlPromptActionRevMap = map[UnfurlPromptAction]string{
@@ -5753,6 +5755,7 @@ var UnfurlPromptActionRevMap = map[UnfurlPromptAction]string{
 	2: "ACCEPT",
 	3: "NOTNOW",
 	4: "ONETIME",
+	5: "BLOCK",
 }
 
 func (o UnfurlPromptAction) String() string {
@@ -5766,6 +5769,7 @@ type UnfurlPromptResult struct {
 	ActionType__ UnfurlPromptAction `codec:"actionType" json:"actionType"`
 	Accept__     *string            `codec:"accept,omitempty" json:"accept,omitempty"`
 	Onetime__    *string            `codec:"onetime,omitempty" json:"onetime,omitempty"`
+	Block__      *string            `codec:"block,omitempty" json:"block,omitempty"`
 }
 
 func (o *UnfurlPromptResult) ActionType() (ret UnfurlPromptAction, err error) {
@@ -5778,6 +5782,11 @@ func (o *UnfurlPromptResult) ActionType() (ret UnfurlPromptAction, err error) {
 	case UnfurlPromptAction_ONETIME:
 		if o.Onetime__ == nil {
 			err = errors.New("unexpected nil value for Onetime__")
+			return ret, err
+		}
+	case UnfurlPromptAction_BLOCK:
+		if o.Block__ == nil {
+			err = errors.New("unexpected nil value for Block__")
 			return ret, err
 		}
 	}
@@ -5802,6 +5811,16 @@ func (o UnfurlPromptResult) Onetime() (res string) {
 		return
 	}
 	return *o.Onetime__
+}
+
+func (o UnfurlPromptResult) Block() (res string) {
+	if o.ActionType__ != UnfurlPromptAction_BLOCK {
+		panic("wrong case accessed")
+	}
+	if o.Block__ == nil {
+		return
+	}
+	return *o.Block__
 }
 
 func NewUnfurlPromptResultWithAlways() UnfurlPromptResult {
@@ -5836,6 +5855,13 @@ func NewUnfurlPromptResultWithOnetime(v string) UnfurlPromptResult {
 	}
 }
 
+func NewUnfurlPromptResultWithBlock(v string) UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: UnfurlPromptAction_BLOCK,
+		Block__:      &v,
+	}
+}
+
 func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	return UnfurlPromptResult{
 		ActionType__: o.ActionType__.DeepCopy(),
@@ -5853,6 +5879,13 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 			tmp := (*x)
 			return &tmp
 		})(o.Onetime__),
+		Block__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Block__),
 	}
 }
 
@@ -7264,6 +7297,7 @@ type GetUnfurlSettingsArg struct {
 type SaveUnfurlSettingsArg struct {
 	Mode      UnfurlMode `codec:"mode" json:"mode"`
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
+	Blocklist []string   `codec:"blocklist" json:"blocklist"`
 }
 
 type UnfurlPreviewLocalArg struct {

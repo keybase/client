@@ -1233,7 +1233,8 @@ protocol local {
     NEVER_1,
     ACCEPT_2,
     NOTNOW_3,
-    ONETIME_4
+    ONETIME_4,
+    BLOCK_5
   }
   variant UnfurlPromptResult switch (UnfurlPromptAction actionType) {
     case ALWAYS: void;
@@ -1241,10 +1242,11 @@ protocol local {
     case NOTNOW: void;
     case ACCEPT: string;
     case ONETIME: string;
+    case BLOCK: string;
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
-  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist, array<string> blocklist);
 
   record UnfurlPreviewInfo {
     string url;

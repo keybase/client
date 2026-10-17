@@ -808,6 +808,7 @@ func (o UnfurlMode) String() string {
 type UnfurlSettings struct {
 	Mode      UnfurlMode      `codec:"mode" json:"mode"`
 	Whitelist map[string]bool `codec:"whitelist" json:"whitelist"`
+	Blocklist map[string]bool `codec:"blocklist" json:"blocklist"`
 }
 
 func (o UnfurlSettings) DeepCopy() UnfurlSettings {
@@ -825,12 +826,25 @@ func (o UnfurlSettings) DeepCopy() UnfurlSettings {
 			}
 			return ret
 		})(o.Whitelist),
+		Blocklist: (func(x map[string]bool) map[string]bool {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]bool, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Blocklist),
 	}
 }
 
 type UnfurlSettingsDisplay struct {
 	Mode      UnfurlMode `codec:"mode" json:"mode"`
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
+	Blocklist []string   `codec:"blocklist" json:"blocklist"`
 }
 
 func (o UnfurlSettingsDisplay) DeepCopy() UnfurlSettingsDisplay {
@@ -847,6 +861,17 @@ func (o UnfurlSettingsDisplay) DeepCopy() UnfurlSettingsDisplay {
 			}
 			return ret
 		})(o.Whitelist),
+		Blocklist: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocklist),
 	}
 }
 
