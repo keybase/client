@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
+import {startNewAccountGeneration} from '@/engine/account-generation'
 import {SendToChat} from './index'
 
 // the picker: the test chooses the conversation through the onSelect it was given
@@ -49,7 +50,9 @@ const pick = async (text: string) => {
   })
   return jest
     .mocked(C.Router2.navigateAppend)
-    .mock.calls.map(c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown}})
+    .mock.calls.map(
+      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown; textBack?: string}}
+    )
 }
 
 beforeEach(() => {
@@ -85,4 +88,19 @@ test('picked for files and text the draft has no room for, the text goes as a .t
     {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
   ])
   expect(mockWrites).toEqual([text])
+  // a cancel comes back to the list, which still holds the share
+  expect(calls[0]?.params.textBack).toBeUndefined()
+})
+
+test('an account switch while the text is written opens no titles screen', async () => {
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
+  render(<SendToChat isFromShareExtension={true} sendPaths={['/tmp/a.jpg']} text={'s'.repeat(10000)} />)
+  await act(async () => {
+    mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
+    startNewAccountGeneration()
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+
+  expect(mockWrites).toHaveLength(1)
+  expect(C.Router2.navigateAppend).not.toHaveBeenCalled()
 })

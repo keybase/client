@@ -6,10 +6,9 @@ import {useNavigation} from '@react-navigation/native'
 import {SendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useRPCLoad} from '@/util/use-rpc-load'
-import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {IncomingShareHeaderTitle} from './routes'
 import {readAndroidShare} from '@/constants/init/android-share'
-import {sharedTextForBatch} from '@/util/shared-text-file'
+import {sendFilesToConversation} from '@/chat/send-to-chat/send-share'
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -85,7 +84,6 @@ type IncomingShareMainProps = SelectedConversationProps & {
 
 const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) => {
   const {droppedMessage, incomingShareItems, selectedConversationIDKey, shareID} = props
-  const navigateAppend = C.Router2.navigateAppend
   const navigation = useNavigation()
   // Always the untouched original: trimming and compression happen downstream on
   // the get-titles screen, so the extension's copy must not be pre-processed.
@@ -113,25 +111,17 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
     }
     if (sendPaths.length > 0) {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
-      const meta = getInboxConversationMeta(selectedConversationIDKey)
-      const ours = meta?.conversationIDKey === selectedConversationIDKey ? meta : undefined
-      const f = async () => {
-        const shared = await sharedTextForBatch(ours?.draft ?? '', text)
-        navigateAppend({
-          name: 'chatAttachmentGetTitles',
-          params: {
-            conversationIDKey: selectedConversationIDKey,
-            inputPrefillText: shared.text,
-            notice: droppedMessage || undefined,
-            pathAndOutboxIDs: [...sendPaths, ...(shared.path ? [shared.path] : [])].map(p => ({
-              path: Kb.Styles.normalizePath(p),
-            })),
-            selectConversationWithReason: 'extension' as const,
-            tlfName: ours?.tlfname || undefined,
-          },
+      C.ignorePromise(
+        sendFilesToConversation({
+          conversationIDKey: selectedConversationIDKey,
+          notice: droppedMessage || undefined,
+          paths: sendPaths,
+          reason: 'extension',
+          text,
+          // the thread is beneath: nothing else holds the share
+          textBack: true,
         })
-      }
-      C.ignorePromise(f())
+      )
     } else {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
         intent:
@@ -140,7 +130,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
             : {append: true, notice: droppedMessage || undefined, text, type: 'injectText'},
       })
     }
-  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend, droppedMessage, shareID])
+  }, [canDirectNav, selectedConversationIDKey, sendPaths, text, droppedMessage, shareID])
 
   const footer = useFooter(incomingShareItems)
   const contentDescription = getContentDescriptionText(incomingShareItems)

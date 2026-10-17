@@ -50,6 +50,9 @@ export type Composer = {
   // Text the draft has no room for under chat's message limit is handed to attachText instead, the
   // draft left as it is, and so is text appended before the draft was known once the draft loads.
   append: (text: string, focus?: boolean) => void
+  // Shared text handed back unsent (its attachment cancelled): after the draft whatever its size,
+  // never attached again. Held while the user can't post.
+  putBack: (text: string) => void
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
@@ -130,6 +133,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let appendSetAside: string | undefined
   // the shared text at the start of that text, apart from what the user typed after it
   let sharedAhead: string | undefined
+  // text put back while the user couldn't post, to go after the draft once they can
+  let heldBack: string | undefined
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
 
@@ -237,19 +242,24 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     whenAttached(target => appendInto(target, s, focus))
   }
 
-  // whole as the shared text ahead of the draft and what the user typed after it, or undefined
-  // once the user has changed the shared text itself: then all of it is theirs
-  const splitShared = (whole: string) => {
-    const shared = sharedAhead
-    sharedAhead = undefined
-    if (shared === undefined || !whole.startsWith(shared)) return undefined
-    return {rest: whole.slice(shared.length).replace(/^\n/, ''), shared}
+  // whole as the shared text ahead of the draft and the lines the user typed after it, or undefined
+  // once the user has changed the shared text or typed onto its last line: then all of it is theirs
+  const splitShared = (whole: string, shared: string | undefined) => {
+    if (shared === undefined) return undefined
+    if (whole === shared) return {rest: '', shared}
+    const head = shared.endsWith('\n') ? shared : `${shared}\n`
+    return whole.startsWith(head) ? {rest: whole.slice(head.length), shared} : undefined
   }
 
-  // Where text that could not be attached goes: after the draft, as an append always did.
+  // Text that could not be attached goes after the draft. Where the user can't post nothing is
+  // written, so it is held until they can.
   const putBack = (s: string) => {
     if (!editing) {
-      appendNow(s, false)
+      if (deps.isReadOnly()) {
+        heldBack = appendLine(heldBack ?? '', s)
+      } else {
+        appendNow(s, false)
+      }
     } else if (saved === undefined) {
       appendSetAside = appendLine(appendSetAside ?? '', s)
     } else {
@@ -266,16 +276,19 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // offered while the user can't post, loads on the next try: the input attaching reads it from the
   // store, and read-only clearing offers it again. Shared text a draft that loads late has no room
   // for is taken out and attached, and only that: what the user typed after it stays.
-  const offerDraft = (draft: string | undefined) => {
+  const loadDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     // an edit is never merged with the draft: the draft and any append set aside wait for it to end
+    // what is ahead of the draft is merged with it now, so it is no longer told apart
+    const shared = sharedAhead
     if (editing) {
       draftLoaded = true
+      sharedAhead = undefined
       saved = draft
       if (appendSetAside !== undefined) {
         const aside = appendSetAside
         appendSetAside = undefined
-        const split = sharedTextFitsAfter(draft, aside) ? undefined : splitShared(aside)
+        const split = sharedTextFitsAfter(draft, aside) ? undefined : splitShared(aside, shared)
         saved = appendLine(draft, split ? split.rest : aside)
         if (saved !== draft) {
           deps.saveDraft(saved)
@@ -290,8 +303,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       if (!input || deps.isReadOnly()) return
       draftLoaded = true
       appendedBeforeDraft = false
+      sharedAhead = undefined
       saved = draft
-      const split = sharedTextFitsAfter(draft, text) ? undefined : splitShared(text)
+      const split = sharedTextFitsAfter(draft, text) ? undefined : splitShared(text, shared)
       write(input, appendLine(draft, split ? split.rest : text), false)
       if (split) {
         attach(split.shared)
@@ -300,6 +314,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
     if (text !== '' || !draft) {
       draftLoaded = true
+      sharedAhead = undefined
       if (text === '') {
         saved = draft
       }
@@ -307,11 +322,25 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
     if (!input || deps.isReadOnly()) return
     draftLoaded = true
+    sharedAhead = undefined
     saved = draft
     write(input, draft, false)
   }
 
+  // offered again as read-only clears, which is when held text can land
+  const offerDraft = (draft: string | undefined) => {
+    loadDraft(draft)
+    if (heldBack !== undefined && input && !deps.isReadOnly()) {
+      const held = heldBack
+      heldBack = undefined
+      appendNow(held, false)
+    }
+  }
+
   return {
+    putBack: s => {
+      putBack(s)
+    },
     append: (s, focus = false) => {
       whenAttached(target => {
         // decided as it lands, against a draft not loaded yet too if the store already has it

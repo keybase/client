@@ -5,12 +5,14 @@ import {doMoveOrCopy, incomingShareLocalFiles} from './destination-picker'
 const mockWrites = new Array<string>()
 const mockRemoved = new Array<string>()
 const mockEvents = new Array<string>()
+// writing is native; the naming is the real one
 jest.mock('@/util/shared-text-file', () => ({
-  writeSharedTextFile: async (text: string) => {
+  ...jest.requireActual<object>('@/util/shared-text-file'),
+  writeSharedTextFile: async (text: string, name: string) => {
     await Promise.resolve()
     if (text === 'unwritable') throw new Error('disk full')
     mockWrites.push(text)
-    const path = `/cache/shared-text/${mockWrites.length}/${text}.txt`
+    const path = `/cache/shared-text/${mockWrites.length}/${name}`
     return {
       path,
       remove: () => {
@@ -38,6 +40,27 @@ test('Save in Files saves inline shared text as a .txt next to the shared files'
   // only the files written here are removed: the shared ones belong to the share
   remove()
   expect(mockRemoved).toEqual(['/cache/shared-text/1/a caption.txt'])
+})
+
+test('texts with the same name, or the name of a shared file, are named apart', async () => {
+  const {paths} = await incomingShareLocalFiles([
+    {originalPath: '/share/notes.txt', type: T.RPCGen.IncomingShareType.file},
+    {content: 'notes', type: T.RPCGen.IncomingShareType.text},
+    {content: 'notes', type: T.RPCGen.IncomingShareType.text},
+    {content: 'other', type: T.RPCGen.IncomingShareType.text},
+  ])
+
+  expect(paths.map(p => p.split('/').pop())).toEqual(['notes.txt', 'notes (2).txt', 'notes (3).txt', 'other.txt'])
+})
+
+test('a text is named apart from what the folder already holds', async () => {
+  const held = new Set(['a caption.txt', 'a caption (2).txt'])
+  const {paths} = await incomingShareLocalFiles(
+    [{content: 'a caption', type: T.RPCGen.IncomingShareType.text}],
+    async name => Promise.resolve(held.has(name))
+  )
+
+  expect(paths).toEqual(['/cache/shared-text/1/a caption (3).txt'])
 })
 
 test('a text that cannot be written fails the save and leaves no written file behind', async () => {
@@ -68,6 +91,7 @@ describe('saving a share with text', () => {
       await Promise.resolve()
       copies.push({dest: p.dest, src: p.src})
     })
+    jest.spyOn(T.RPCGen, 'SimpleFSSimpleFSStatRpcPromise').mockRejectedValue(new Error('not found'))
     jest.spyOn(T.RPCGen, 'SimpleFSSimpleFSWaitRpcPromise').mockImplementation(async () => {
       await Promise.resolve()
       mockEvents.push('wait')
@@ -91,6 +115,22 @@ describe('saving a share with text', () => {
     expect(mockRemoved).toEqual(['/cache/shared-text/1/a caption.txt'])
     // removed only after the service has finished reading it
     expect(mockEvents).toEqual(['wait', 'wait', 'remove'])
+  })
+
+  test('the text is named apart from a file the folder already has', async () => {
+    jest.spyOn(T.RPCGen, 'SimpleFSSimpleFSStatRpcPromise').mockImplementation(async p => {
+      await Promise.resolve()
+      if ((p.path as {kbfs?: {path: string}}).kbfs?.path === '/private/testuser/notes/a caption.txt') {
+        return {} as Awaited<ReturnType<typeof T.RPCGen.SimpleFSSimpleFSStatRpcPromise>>
+      }
+      throw new Error('not found')
+    })
+    await doMoveOrCopy('copy', share('a caption'), parentPath, jest.fn())
+
+    expect(copies.map(c => (c.dest as {kbfs?: {path: string}}).kbfs?.path)).toEqual([
+      '/private/testuser/notes/photo.jpg',
+      '/private/testuser/notes/a caption (2).txt',
+    ])
   })
 
   test('a failed copy is reported, and the written file is still removed', async () => {

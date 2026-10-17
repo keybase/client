@@ -1480,6 +1480,62 @@ describe('append over the message limit', () => {
     expect(fake.text).toBe(`${draft}\nshared text`)
   })
 
+  test('text typed onto the shared text\'s last line makes all of it the user\'s: nothing is split off', () => {
+    const {attached, composer, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append(over)
+    fake.type(`${over} and more`)
+
+    view.offerDraft(draft)
+
+    expect(fake.text).toBe(`${draft}\n${over} and more`)
+    expect(attached).toEqual([])
+  })
+
+  test('shared text that fit when its draft loaded is not told apart later', () => {
+    const {attached, composer, mount, setReadOnly} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append('Hello')
+    view.offerDraft('')
+    expect(fake.text).toBe('Hello')
+    // read-only ending an edit starts the composer over, the draft to load again
+    composer.startEdit('my message')
+    setReadOnly(true)
+    composer.clear()
+    setReadOnly(false)
+    fake.type('Hello\nmine')
+    composer.append(over)
+
+    view.offerDraft(draft)
+
+    expect(attached).toEqual([])
+    expect(fake.text).toBe(`${draft}\nHello\nmine\n${over}`)
+  })
+
+  test('text that cannot be attached while the user cannot post is held, and lands once they can', () => {
+    const {attached, composer, mount, setReadOnly} = setup()
+    const {fake, view} = mount(draft)
+    composer.append(over)
+    setReadOnly(true)
+
+    attached[0]?.onFailed()
+    expect(fake.text).toBe(draft)
+
+    setReadOnly(false)
+    view.offerDraft(draft)
+    expect(fake.text).toBe(`${draft}\n${over}`)
+  })
+
+  test('text handed back unsent goes after the draft whatever its size, and is not attached again', () => {
+    const {attached, composer, mount} = setup()
+    const {fake} = mount(draft)
+
+    composer.putBack(over)
+
+    expect(fake.text).toBe(`${draft}\n${over}`)
+    expect(attached).toEqual([])
+  })
+
   test('where the user cannot post, nothing is attached', () => {
     const {attached, composer, mount, setReadOnly} = setup()
     mount(draft)

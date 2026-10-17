@@ -6,6 +6,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
 import {navigateAppend, whenModalsGone} from '@/constants/router'
+import {getAccountGeneration} from '@/engine/account-generation'
 import {writeSharedTextFile} from '@/util/shared-text-file'
 import {toAttachmentPath} from '../attachment-path'
 import {useThrottledCallback} from '@/util/use-debounce'
@@ -120,6 +121,7 @@ const storeInputIntentTypes = ['commandStatus', 'injectText', 'setEditing', 'set
 // goes through. Navigated to once the file is written, so after any navigation that delivered the
 // text has landed.
 const attachSharedText = (id: T.Chat.ConversationIDKey, text: string, onFailed: () => void) => {
+  const generation = getAccountGeneration()
   const f = async () => {
     let path: string
     try {
@@ -129,12 +131,18 @@ const attachSharedText = (id: T.Chat.ConversationIDKey, text: string, onFailed: 
       onFailed()
       return
     }
+    // the write outlasted the account whose conversation this is
+    if (getAccountGeneration() !== generation) {
+      logger.info('[chat] shared text: account changed, not opening the titles screen')
+      return
+    }
     const meta = useInboxMetadataState.getState().metas.get(id)
     navigateAppend({
       name: 'chatAttachmentGetTitles',
       params: {
         conversationIDKey: id,
         pathAndOutboxIDs: [{path: toAttachmentPath(path)}],
+        textBack: text,
         tlfName: meta?.conversationIDKey === id ? meta.tlfname || undefined : undefined,
       },
     })
@@ -339,7 +347,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           break
         case 'injectText':
           if (action.text !== undefined) {
-            if (action.append) {
+            if (action.putBack) {
+              composer.putBack(action.text)
+            } else if (action.append) {
               composer.append(action.text)
             } else {
               injectIntoInput(action.text)
