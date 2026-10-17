@@ -200,20 +200,20 @@ public class MediaUtils: NSObject {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
     }
 
-    // Formats whose frames can be an animation. A multi-page TIFF or an MPO also has
-    // several images, but those aren't animations.
+    // Formats besides GIF whose frames can be an animation. A multi-page TIFF or an
+    // MPO also has several images, but those aren't animations.
     private static let animatableImageTypes: [String] = [
-        "com.compuserve.gif", "public.png", "org.webmproject.webp", "public.avif", "public.avis",
+        "public.png", "org.webmproject.webp", "public.avif", "public.avis",
         "public.heic", "public.heics",
     ]
 
     // Where each animated format keeps a frame's delay. Several images alone don't
-    // make an animation: a HEIC also holds a photo's depth or gain map, or a burst,
-    // and those carry no delay. AVIS has no key constants of its own; ImageIO uses
-    // the same "DelayTime" and "UnclampedDelayTime" names in every format.
+    // make an animation: a HEIC can hold several primary images (a collection, a
+    // burst written as one file), and those carry no delay. AVIS has no key
+    // constants of its own; ImageIO uses the same "DelayTime" and
+    // "UnclampedDelayTime" names in every format.
     private static let frameDelayKeys: [(CFString, [CFString])] = {
         var keys: [(CFString, [CFString])] = [
-            (kCGImagePropertyGIFDictionary, [kCGImagePropertyGIFDelayTime, kCGImagePropertyGIFUnclampedDelayTime]),
             (kCGImagePropertyPNGDictionary, [kCGImagePropertyAPNGDelayTime, kCGImagePropertyAPNGUnclampedDelayTime]),
             (kCGImagePropertyWebPDictionary, [kCGImagePropertyWebPDelayTime, kCGImagePropertyWebPUnclampedDelayTime]),
             (kCGImagePropertyHEICSDictionary, [kCGImagePropertyHEICSDelayTime, kCGImagePropertyHEICSUnclampedDelayTime]),
@@ -227,10 +227,12 @@ public class MediaUtils: NSObject {
     }()
 
     // More than one frame, the first with a frame delay, read from the container
-    // without decoding any.
+    // without decoding any. Several frames in a GIF are always an animation, and
+    // a frame's delay is optional there (its Graphic Control Extension is).
     private static func isAnimation(_ source: CGImageSource, type: UTType) -> Bool {
-        guard CGImageSourceGetCount(source) > 1,
-            animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }),
+        guard CGImageSourceGetCount(source) > 1 else { return false }
+        if type.conforms(to: .gif) { return true }
+        guard animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }),
             let frame = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
         else { return false }
         return frameDelayKeys.contains { dictionary, keys in
