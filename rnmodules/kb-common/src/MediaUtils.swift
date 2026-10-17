@@ -535,18 +535,22 @@ public class MediaUtils: NSObject {
         return redrawn
     }
 
-    // IPTC fields that name a place. ImageIO also fills these from a file's XMP.
+    // The IPTC fields that name a place: the location check and both strips
+    // read this one table. ImageIO also fills these from a file's XMP.
     private static let iptcLocationKeys: [CFString] = [
         kCGImagePropertyIPTCCity, kCGImagePropertyIPTCProvinceState,
         kCGImagePropertyIPTCCountryPrimaryLocationName, kCGImagePropertyIPTCCountryPrimaryLocationCode,
         kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCContentLocationName,
         kCGImagePropertyIPTCContentLocationCode,
     ]
-    // The address in the creator's contact info. Its email, phone and URL aren't a place.
-    private static let iptcContactAddressKeys: [CFString] = [
-        kCGImagePropertyIPTCContactInfoAddress, kCGImagePropertyIPTCContactInfoCity,
-        kCGImagePropertyIPTCContactInfoStateProvince, kCGImagePropertyIPTCContactInfoPostalCode,
-        kCGImagePropertyIPTCContactInfoCountry,
+    // Nested dictionaries, by key, and the fields in them that name a place: the
+    // address in the creator's contact info (its email, phone and URL aren't one).
+    private static let iptcNestedLocationKeys: [CFString: [CFString]] = [
+        kCGImagePropertyIPTCCreatorContactInfo: [
+            kCGImagePropertyIPTCContactInfoAddress, kCGImagePropertyIPTCContactInfoCity,
+            kCGImagePropertyIPTCContactInfoStateProvince, kCGImagePropertyIPTCContactInfoPostalCode,
+            kCGImagePropertyIPTCContactInfoCountry,
+        ]
     ]
 
     // XMP properties that name a place without saying so in their name, by
@@ -564,10 +568,10 @@ public class MediaUtils: NSObject {
 
     private static func iptcHasLocation(_ iptc: [CFString: Any]) -> Bool {
         if iptcLocationKeys.contains(where: { iptc[$0] != nil }) { return true }
-        guard let contact = iptc[kCGImagePropertyIPTCCreatorContactInfo] as? [CFString: Any] else {
-            return false
+        return iptcNestedLocationKeys.contains { key, fields in
+            guard let nested = iptc[key] as? [CFString: Any] else { return false }
+            return fields.contains { nested[$0] != nil }
         }
-        return iptcContactAddressKeys.contains { contact[$0] != nil }
     }
 
     private static func propertiesHaveLocation(_ props: [CFString: Any]) -> Bool {
@@ -645,9 +649,13 @@ public class MediaUtils: NSObject {
     // only the location fields of IPTC (a null value removes a key; the rest of
     // the dictionary, copyright and caption among it, is kept).
     private static let locationRemoval: [CFString: Any] = {
-        var iptc = [CFString: Any](uniqueKeysWithValues: iptcLocationKeys.map { ($0, kCFNull as Any) })
-        iptc[kCGImagePropertyIPTCCreatorContactInfo] = [CFString: Any](
-            uniqueKeysWithValues: iptcContactAddressKeys.map { ($0, kCFNull as Any) })
+        func nulls(_ keys: [CFString]) -> [CFString: Any] {
+            return [CFString: Any](uniqueKeysWithValues: keys.map { ($0, kCFNull as Any) })
+        }
+        var iptc = nulls(iptcLocationKeys)
+        for (key, fields) in iptcNestedLocationKeys {
+            iptc[key] = nulls(fields)
+        }
         return [
             kCGImagePropertyExifDictionary: kCFNull as Any,
             kCGImagePropertyGPSDictionary: kCFNull as Any,
@@ -655,12 +663,13 @@ public class MediaUtils: NSObject {
         ]
     }()
 
-    private static func withoutLocation(_ iptc: [CFString: Any]) -> [CFString: Any] {
+    private static func iptcWithoutLocation(_ iptc: [CFString: Any]) -> [CFString: Any] {
         var kept = iptc
         iptcLocationKeys.forEach { kept[$0] = nil }
-        if var contact = kept[kCGImagePropertyIPTCCreatorContactInfo] as? [CFString: Any] {
-            iptcContactAddressKeys.forEach { contact[$0] = nil }
-            kept[kCGImagePropertyIPTCCreatorContactInfo] = contact
+        for (key, fields) in iptcNestedLocationKeys {
+            guard var nested = kept[key] as? [CFString: Any] else { continue }
+            fields.forEach { nested[$0] = nil }
+            kept[key] = nested
         }
         return kept
     }
@@ -714,7 +723,7 @@ public class MediaUtils: NSObject {
         // the paths the enumeration hands out for a structure's fields.
         let stripped = CGImageMetadataCreateMutable()
         for tag in CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] ?? [] {
-            guard let kept = withoutLocation(tag),
+            guard let kept = xmpTagWithoutLocation(tag),
                 let namespace = CGImageMetadataTagCopyNamespace(kept),
                 let prefix = CGImageMetadataTagCopyPrefix(kept),
                 let name = CGImageMetadataTagCopyName(kept)
@@ -742,11 +751,13 @@ public class MediaUtils: NSObject {
     private static let strippedXMPTags: Set<String> = ["http://ns.adobe.com/photoshop/1.0/DateCreated"]
 
     // The tag without its location fields, or nil when it is one (or Exif).
-    private static func withoutLocation(_ tag: CGImageMetadataTag) -> CGImageMetadataTag? {
-        let namespace = CGImageMetadataTagCopyNamespace(tag) as String?
-        let qualified = namespace.map { $0 + ((CGImageMetadataTagCopyName(tag) as String?) ?? "") }
-        if isLocationTag(tag) || namespace.map(strippedXMPNamespaces.contains) == true
-            || qualified.map(strippedXMPTags.contains) == true
+    private static func xmpTagWithoutLocation(_ tag: CGImageMetadataTag) -> CGImageMetadataTag? {
+        guard let namespace = CGImageMetadataTagCopyNamespace(tag),
+            let prefix = CGImageMetadataTagCopyPrefix(tag),
+            let name = CGImageMetadataTagCopyName(tag)
+        else { return nil }
+        if isLocationTag(tag) || strippedXMPNamespaces.contains(namespace as String)
+            || strippedXMPTags.contains((namespace as String) + (name as String))
         {
             return nil
         }
@@ -754,20 +765,16 @@ public class MediaUtils: NSObject {
         let value = CGImageMetadataTagCopyValue(tag)
         let cleaned: CFTypeRef
         if let fields = value as? [String: AnyObject], fields.values.allSatisfy(isTag) {
-            let kept = fields.compactMapValues { withoutLocation($0 as! CGImageMetadataTag) }
+            let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
             if kept.count == fields.count { return tag }
             cleaned = kept as CFDictionary
         } else if let items = value as? [AnyObject], items.allSatisfy(isTag) {
-            let kept = items.compactMap { withoutLocation($0 as! CGImageMetadataTag) }
+            let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
             if kept.count == items.count { return tag }
             cleaned = kept as CFArray
         } else {
             return tag
         }
-        guard let namespace = CGImageMetadataTagCopyNamespace(tag),
-            let prefix = CGImageMetadataTagCopyPrefix(tag),
-            let name = CGImageMetadataTagCopyName(tag)
-        else { return nil }
         return CGImageMetadataTagCreate(namespace, prefix, name, CGImageMetadataTagGetType(tag), cleaned)
     }
 
@@ -784,7 +791,7 @@ public class MediaUtils: NSObject {
             container[kCGImagePropertyExifDictionary] = nil
             container[kCGImagePropertyGPSDictionary] = nil
             if let iptc = container[kCGImagePropertyIPTCDictionary] as? [CFString: Any] {
-                container[kCGImagePropertyIPTCDictionary] = withoutLocation(iptc)
+                container[kCGImagePropertyIPTCDictionary] = iptcWithoutLocation(iptc)
             }
             CGImageDestinationSetProperties(destination, container as CFDictionary)
         }
