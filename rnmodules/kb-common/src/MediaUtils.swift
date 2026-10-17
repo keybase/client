@@ -118,11 +118,7 @@ public class MediaUtils: NSObject {
         // a full-size JPEG. A file this device's ImageIO can't identify (a newer
         // RAW, jxl before iOS 17) is an error, not a raw share: Send original
         // takes this path too, and must not upload a location it can't strip.
-        // An animation goes as it is too, like a gif, since the JPEG would keep
-        // one frame, but only once it carries no location, IPTC or XMP, even here: an
-        // animated webp/avif from the share extension went as a metadata-free
-        // JPEG before, and this path can't tell it from an in-app pick. With
-        // stripLocation, any image that would go as it is goes only once it
+        // With stripLocation, an image that would go as it is goes only once it
         // carries no location. One the strip can't clean becomes a JPEG instead.
         if !compress {
             guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil),
@@ -130,14 +126,10 @@ public class MediaUtils: NSObject {
             else {
                 throw MediaUtilsError.unrecognizedImageFormat
             }
-            if let type = UTType(typeID as String) {
-                if isAnimation(cgSource, type: type) {
-                    if removeLocation(at: url), !hasIPTCOrXMP(url) {
-                        return url
-                    }
-                } else if !mustTranscode(type), !stripLocation || removeLocation(at: url) {
-                    return url
-                }
+            if let type = UTType(typeID as String), !mustTranscode(type),
+                !stripLocation || removeLocation(at: url)
+            {
+                return url
             }
             let basename = url.deletingPathExtension().lastPathComponent
             // Not "<basename>.jpg": a sibling with that name may be another attachment.
@@ -173,16 +165,8 @@ public class MediaUtils: NSObject {
         guard let cgSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image source")
         }
-        guard let typeID = CGImageSourceGetType(cgSource) else {
+        guard CGImageSourceGetType(cgSource) != nil else {
             throw MediaUtilsError.unrecognizedImageFormat
-        }
-
-        // An animation goes as it is, like a gif, once it carries no location,
-        // IPTC or XMP; the JPEG would keep one frame.
-        if let type = UTType(typeID as String), isAnimation(cgSource, type: type), !hasLocation(url),
-            !hasIPTCOrXMP(url)
-        {
-            return url
         }
 
         try recompressCGImageSource(
@@ -201,53 +185,6 @@ public class MediaUtils: NSObject {
 
     private static func mustTranscode(_ type: UTType) -> Bool {
         return !sendAsIsImageTypes.contains(where: { type.conforms(to: $0) })
-    }
-
-    // Formats besides GIF whose frames can be an animation. A multi-page TIFF or an
-    // MPO also has several images, but those aren't animations.
-    private static let animatableImageTypes: [String] = [
-        "public.png", "org.webmproject.webp", "public.avif", "public.avis",
-        "public.heic", "public.heics",
-    ]
-
-    // Where each animated format keeps a frame's delay. Several images alone don't
-    // make an animation: a HEIC can hold several primary images (a collection, a
-    // burst written as one file), and those carry no delay. AVIS has no key
-    // constants of its own; ImageIO uses the same "DelayTime" and
-    // "UnclampedDelayTime" names in every format.
-    private static let frameDelayKeys: [(CFString, [CFString])] = {
-        var keys: [(CFString, [CFString])] = [
-            (kCGImagePropertyPNGDictionary, [kCGImagePropertyAPNGDelayTime, kCGImagePropertyAPNGUnclampedDelayTime]),
-            (kCGImagePropertyWebPDictionary, [kCGImagePropertyWebPDelayTime, kCGImagePropertyWebPUnclampedDelayTime]),
-            (kCGImagePropertyHEICSDictionary, [kCGImagePropertyHEICSDelayTime, kCGImagePropertyHEICSUnclampedDelayTime]),
-        ]
-        // The pod builds for an older iOS than the app, which needs 16.4.
-        if #available(iOS 16.0, *) {
-            keys.append(
-                (kCGImagePropertyAVISDictionary, [kCGImagePropertyHEICSDelayTime, kCGImagePropertyHEICSUnclampedDelayTime]))
-        }
-        return keys
-    }()
-
-    // More than one frame, one of the first two with a frame delay, read from the
-    // container without decoding any. The second is read too: an APNG's default
-    // image can sit outside the animation, and a sequence's first frame need not
-    // carry a delay. Several frames in a GIF are always an animation, and a
-    // frame's delay is optional there (its Graphic Control Extension is).
-    private static func isAnimation(_ source: CGImageSource, type: UTType) -> Bool {
-        guard CGImageSourceGetCount(source) > 1 else { return false }
-        if type.conforms(to: .gif) { return true }
-        guard animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }) else {
-            return false
-        }
-        return (0..<2).contains { index in
-            guard let frame = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
-            else { return false }
-            return frameDelayKeys.contains { dictionary, keys in
-                guard let properties = frame[dictionary] as? [CFString: Any] else { return false }
-                return keys.contains { properties[$0] != nil }
-            }
-        }
     }
 
     // edit carries the user's trim range and audio choice; nil means "the whole
@@ -558,26 +495,6 @@ public class MediaUtils: NSObject {
         }
     }
 
-    // IPTC and XMP can name a place in more fields than any check could list, and
-    // the GPS strip leaves them, so an animation carrying either is sent as a
-    // JPEG instead, like any other image. XMP is looked for as a packet in the
-    // file: ImageIO also reports a frame's own Exif and TIFF properties as XMP
-    // tags, and a packet stored for the whole file shows up at no frame.
-    private static let xmpPacketMarkers = ["<x:xmpmeta", "<x:xapmeta", "<?xpacket"].map { Data($0.utf8) }
-
-    private static func hasIPTCOrXMP(_ url: URL) -> Bool {
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-            let data = try? Data(contentsOf: url, options: .alwaysMapped)
-        else { return true }
-        if xmpPacketMarkers.contains(where: { data.range(of: $0) != nil }) { return true }
-        let container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any]
-        if container?[kCGImagePropertyIPTCDictionary] != nil { return true }
-        return (0..<CGImageSourceGetCount(source)).contains { index in
-            let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
-            return props?[kCGImagePropertyIPTCDictionary] != nil
-        }
-    }
-
     // Strips the image in place if it carries GPS. Returns whether it is free of
     // GPS afterwards: the strip skips formats ImageIO can't write, and can fail.
     private static func removeLocation(at url: URL) -> Bool {
@@ -629,7 +546,7 @@ public class MediaUtils: NSObject {
                 kCGImagePropertyGPSDictionary: kCFNull,
             ] as CFDictionary
 
-        // The container's own properties (an animation's loop count) aren't
+        // The container's own properties (an APNG's loop count) aren't
         // copied with the frames; without them an APNG plays forever.
         if var container = CGImageSourceCopyProperties(cgSource, nil) as? [CFString: Any] {
             container[kCGImagePropertyExifDictionary] = nil

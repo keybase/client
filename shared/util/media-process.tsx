@@ -10,9 +10,7 @@ const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
 // location metadata included. gif is not here, because scaling one would flatten
 // an animation to a single frame.
 // Which of these are transcoded even with compression off is the native side's
-// call (MediaUtils.mustTranscode), by content type. An animated webp, avif, png or
-// heics comes back as is (MediaUtils.isAnimation) once it carries no location, IPTC
-// or XMP, in every mode; any other becomes a JPEG.
+// call (MediaUtils.mustTranscode), by content type.
 const processableImageFileNameRegex =
   /[^/]+\.(jpg|jpeg|jpe|png|bmp|heic|heics|heif|hif|avci|tiff|tif|webp|avif|jxl|jp2|jpf|jpx|j2k|j2c|mpo|psd|dng|cr2|cr3|crw|nef|nefx|nrw|arw|srf|sr2|axr|raf|orf|ori|rw2|raw|rwl|pef|srw|erf|3fr|fff|dcr|mrw|mos|iiq|dxo)$/i
 
