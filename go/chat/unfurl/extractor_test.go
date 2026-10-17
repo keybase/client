@@ -28,6 +28,7 @@ func TestExtractor(t *testing.T) {
 		message   string
 		mode      chat1.UnfurlMode
 		whitelist []string
+		blocklist []string
 		result    []ExtractorHit
 	}
 	var maxCase strings.Builder
@@ -139,12 +140,44 @@ func TestExtractor(t *testing.T) {
 				},
 			},
 		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"wsj.com"},
+			result:    []ExtractorHit{{URL: "http://www.twitter.com/mike/1", Typ: ExtractorHitPrompt}},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_ALWAYS,
+			blocklist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "http://www.twitter.com/mike/1", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_NEVER,
+			whitelist: []string{"twitter.com"},
+		},
+		{
+			message:   "https://giphy.com/gifs/x http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "https://giphy.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
 	}
 	for _, tcase := range cases {
 		settings := chat1.NewUnfurlSettings()
 		settings.Mode = tcase.mode
 		for _, w := range tcase.whitelist {
 			settings.Whitelist[w] = true
+		}
+		settings.Blocklist = make(map[string]bool)
+		for _, b := range tcase.blocklist {
+			settings.Blocklist[b] = true
 		}
 		require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
 		res, err := extractor.Extract(context.TODO(), uid, convID, 1, tcase.message, settingsMod)
@@ -205,6 +238,20 @@ func TestExtractorExemptions(t *testing.T) {
 
 	require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
 	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://amazon.com", settingsMod)
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+
+	blocked := chat1.NewUnfurlSettings()
+	blocked.Mode = chat1.UnfurlMode_WHITELISTED
+	blocked.Blocklist = map[string]bool{"google.com": true}
+	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
+	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	require.NoError(t, err)
+	require.Empty(t, res)
+	blocked.Blocklist = map[string]bool{}
+	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
+	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
