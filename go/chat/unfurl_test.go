@@ -401,11 +401,44 @@ func TestChatSrvUnfurl(t *testing.T) {
 				Blocklist: []string{"a.com"},
 			}))
 
+		// Every settings write posts a TEXT to its own DEV conversation, and those arrive on
+		// newMessageRemote too, at no fixed time. Only messages in conv count from here on.
+		consumeConvText := func(msgID chat1.MessageID) {
+			deadline := time.After(timeout)
+			for {
+				select {
+				case m := <-listener0.newMessageRemote:
+					if !m.ConvID.Eq(conv.Id) {
+						continue
+					}
+					require.Equal(t, chat1.MessageType_TEXT, m.Message.GetMessageType())
+					require.Equal(t, msgID, m.Message.GetMessageID())
+					return
+				case <-deadline:
+					require.Fail(t, "no message")
+					return
+				}
+			}
+		}
+		requireNoUnfurlActivity := func() {
+			deadline := time.After(2 * time.Second)
+			for {
+				select {
+				case <-unfurlCh:
+					require.Fail(t, "unexpected unfurl")
+				case m := <-listener0.newMessageRemote:
+					require.False(t, m.ConvID.Eq(conv.Id), "unexpected message: %v", m.Message.GetMessageType())
+				case <-deadline:
+					return
+				}
+			}
+		}
+
 		t.Logf("block from the prompt")
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
 			chat1.SaveUnfurlSettingsArg{Mode: chat1.UnfurlMode_WHITELISTED}))
 		blockID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		consumeConvText(blockID)
 		select {
 		case notificationID := <-listener0.unfurlPrompt:
 			require.Equal(t, blockID, notificationID)
@@ -422,28 +455,16 @@ func TestChatSrvUnfurl(t *testing.T) {
 		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
 		require.NoError(t, err)
 		require.Equal(t, []string{"127.0.0.1"}, settings.Blocklist)
-		select {
-		case <-unfurlCh:
-			require.Fail(t, "unexpected unfurl")
-		case <-listener0.newMessageRemote:
-			require.Fail(t, "unexpected message")
-		case <-time.After(2 * time.Second):
-		}
+		requireNoUnfurlActivity()
 
 		t.Logf("blocked domain no longer prompts")
-		mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		blockedID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeConvText(blockedID)
 		select {
 		case <-listener0.unfurlPrompt:
 			require.Fail(t, "unexpected prompt")
 		case <-time.After(2 * time.Second):
 		}
-		select {
-		case <-unfurlCh:
-			require.Fail(t, "unexpected unfurl")
-		case <-listener0.newMessageRemote:
-			require.Fail(t, "unexpected message")
-		case <-time.After(2 * time.Second):
-		}
+		requireNoUnfurlActivity()
 	})
 }
