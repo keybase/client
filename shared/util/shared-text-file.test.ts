@@ -79,6 +79,10 @@ test.each([
   ['one two three four five six. seven', 'one two three four five six.txt'],
   ['.hidden file', 'hidden file.txt'],
   ['a\u0000b\u0085c', 'a_b_c.txt'],
+  ['clip\u202emp4.exe', 'clip_mp4.exe.txt'],
+  ['a\u202ab\u2066c\u2069d\u200ee\u200ff\u061cg', 'a_b_c_d_e_f_g.txt'],
+  ['family \u{1F468}\u200d\u{1F469}\u200d\u{1F467}', 'family \u{1F468}\u200d\u{1F469}\u200d\u{1F467}.txt'],
+  ['\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645', '\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645.txt'],
 ])('a shared text is named after its first words: %j', (text, name) => {
   expect(sharedTextFileName(text)).toBe(name)
 })
