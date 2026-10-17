@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import {
   fitsInTextMessage,
+  purgeStaleSharedTextFiles,
   sharedTextFileName,
   sharedTextFitsAfter,
   sharedTextForBatch,
@@ -13,6 +14,8 @@ type MockEntry = {kind: 'dir' | 'file'; uri: string; content?: string}
 const mockWritten = new Array<MockEntry>()
 const mockDeleted = new Array<string>()
 let mockWriteFails = false
+// the folders already in <cache>/shared-text, by name
+let mockListing: Array<string> | undefined
 jest.mock('expo-file-system', () => {
   const join = (parts: Array<unknown>) =>
     parts
@@ -32,6 +35,15 @@ jest.mock('expo-file-system', () => {
     delete() {
       mockDeleted.push(this.uri)
     }
+    get name() {
+      return decodeURIComponent(this.uri.replace(/\/$/, '').split('/').pop() ?? '')
+    }
+    get exists() {
+      return mockListing !== undefined
+    }
+    list() {
+      return (mockListing ?? []).map(n => new Directory(this, n))
+    }
   }
   class File {
     uri: string
@@ -48,6 +60,7 @@ jest.mock('expo-file-system', () => {
 })
 
 beforeEach(() => {
+  mockListing = undefined
   mockWriteFails = false
   mockWritten.length = 0
   mockDeleted.length = 0
@@ -128,4 +141,34 @@ test('a batch keeps text it cannot write as text, for the composer', async () =>
   mockWriteFails = true
   const over = 's'.repeat(textMessageMaxBytes + 1)
   expect(await sharedTextForBatch('', over)).toEqual({text: over})
+})
+
+describe('purging old shared text', () => {
+  const now = 1_800_000_000_000
+  const hour = 60 * 60 * 1000
+
+  test('removes folders more than a day old, and keeps newer ones, whose uploads may not have read them', () => {
+    mockListing = [`${now - 25 * hour}-abc-1`, `${now - 23 * hour}-abc-2`, `${now}-abc-3`]
+    purgeStaleSharedTextFiles(now)
+    expect(mockDeleted).toEqual([`file:///data/cache/shared-text/${now - 25 * hour}-abc-1/`])
+  })
+
+  test('a folder whose name carries no time is removed', () => {
+    mockListing = ['stray']
+    purgeStaleSharedTextFiles(now)
+    expect(mockDeleted).toEqual(['file:///data/cache/shared-text/stray/'])
+  })
+
+  test('with no folder yet there is nothing to do', () => {
+    purgeStaleSharedTextFiles(now)
+    expect(mockDeleted).toEqual([])
+  })
+
+  test('a written file lives in a folder named for when it was made', async () => {
+    const before = Date.now()
+    const {path} = await writeSharedTextFile('hello')
+    const made = Number(path.split('/')[4]?.split('-')[0])
+    expect(made).toBeGreaterThanOrEqual(before)
+    expect(made).toBeLessThanOrEqual(Date.now())
+  })
 })

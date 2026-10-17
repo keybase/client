@@ -29,8 +29,8 @@ export const appendLine = (text: string, s: string) =>
 export const sharedTextFitsAfter = (draft: string, text: string) => fitsInTextMessage(appendLine(draft, text))
 
 // Mirrors PayloadFileName in rnmodules/kb-common, which names the long text the iOS share
-// extension attaches, so a text file reads the same whichever side made it.
-const maxNameBytes = 200
+// extension attaches, so a text file reads the same whichever side made it. Its 200-byte name cap
+// is not needed here: 40 code points and ".txt" never come near it.
 const maxTextNameChars = 40
 const maxTextNameWords = 6
 const fallbackName = 'shared-text'
@@ -61,8 +61,6 @@ const chars = (s: string) => Array.from(s)
 // eslint-disable-next-line no-control-regex
 const unsafe = /[/:\u0000-\u001f\u007f-\u009f\u2028\u2029]/g
 
-const byteLength = (s: string) => chars(s).reduce((n, c) => n + utf8Bytes(c.codePointAt(0) ?? 0), 0)
-
 export const sharedTextFileName = (text: string) => {
   const words = firstWords(text)
   let snippet = ''
@@ -75,21 +73,17 @@ export const sharedTextFileName = (text: string) => {
     snippet = chars(words[0]).slice(0, maxTextNameChars).join('')
   }
   // trimmed of what sanitize trims from the ends; "word..txt" reads as a typo
-  let base = snippet
-    .replace(/^[\s/.]+|[\s/.]+$/g, '')
-    .replace(unsafe, '_')
-  const cut = chars(base)
-  while (cut.length && byteLength(cut.join('')) + '.txt'.length > maxNameBytes) {
-    cut.pop()
-  }
-  base = cut.join('')
+  const base = snippet.replace(/^[\s/.]+|[\s/.]+$/g, '').replace(unsafe, '_')
   return `${base || fallbackName}.txt`
 }
 
+const sharedTextDir = 'shared-text'
+
 // Writes the text to a new file in the app's cache, named from its first words. Each file gets its
-// own folder, so two texts with the same first words never meet; remove deletes it. Mobile only.
+// own folder, so two texts with the same first words never meet; remove deletes it. The folder's
+// name starts with when it was made, for purgeStaleSharedTextFiles. Mobile only.
 export const writeSharedTextFile = async (text: string): Promise<{path: string; remove: () => void}> => {
-  const dir = new Directory(Paths.cache, 'shared-text', makeUUID())
+  const dir = new Directory(Paths.cache, sharedTextDir, `${Date.now()}-${makeUUID()}`)
   dir.create({intermediates: true})
   const name = sharedTextFileName(text)
   await new File(dir, name).write(text)
@@ -118,5 +112,25 @@ export const sharedTextForBatch = async (
   } catch (error) {
     logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
     return {text}
+  }
+}
+
+// A chat attachment is read by the service's upload, which can run again after a restart, so its
+// .txt can't be removed when the attachment is handed over. Like the Android share cache, files
+// are kept a day and swept at startup. Mobile only.
+const maxAgeMs = 24 * 60 * 60 * 1000
+export const purgeStaleSharedTextFiles = (now = Date.now()) => {
+  try {
+    const root = new Directory(Paths.cache, sharedTextDir)
+    if (!root.exists) return
+    for (const entry of root.list()) {
+      const made = Number(entry.name.split('-')[0])
+      // a name that isn't one of ours is old enough to go
+      if (!(made > now - maxAgeMs)) {
+        entry.delete()
+      }
+    }
+  } catch (error) {
+    logger.warn('shared text: unable to sweep old files', error)
   }
 }
