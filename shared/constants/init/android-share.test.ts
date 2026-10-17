@@ -229,8 +229,9 @@ test('an account switch is not leaving the share: it opens again in the account 
   setState({index: 0, routes: [{key: 'o', name: 'loggedOut'}]})
   expect(mockNative.acks).toEqual([])
 
-  useConfigState.setState({userSwitching: false})
+  // The switch ends once the new account's navigator is up, which is after login.
   ready()
+  useConfigState.setState({userSwitching: false})
   expect(opened).toEqual(['over tabs 1'])
   setState(tabs)
   expect(mockNative.acks).toEqual([])
@@ -246,4 +247,14 @@ test('a share is read by its own id only', () => {
   })
   mockNative.held = {droppedCount: 0, id: 3, text: 'hi'}
   expect(readAndroidShare(3)?.items).toEqual([{content: 'hi', type: T.RPCGen.IncomingShareType.text}])
+})
+
+test('a switch that never reaches its account ends a held share', () => {
+  ready()
+  hold(1)
+  useConfigState.setState({userSwitching: true})
+  useConfigState.getState().dispatch.setLoggedIn(false)
+  expect(mockNative.acks).toEqual([])
+  useConfigState.setState({userSwitching: false})
+  expect(mockNative.acks).toEqual([1])
 })

@@ -85,12 +85,13 @@ const onNavState = (state: StateLike) => {
   openHeldShare()
 }
 
-const onConfig = (
-  s: {loggedIn: boolean; userSwitching: boolean},
-  old: {loggedIn: boolean; userSwitching: boolean}
-) => {
-  // An account switch sets userSwitching before it logs the old account out.
-  if (old.loggedIn && !s.loggedIn && !s.userSwitching && heldShareID !== undefined) {
+type SignInState = {loggedIn: boolean; userSwitching: boolean}
+const loggedOutForGood = (s: SignInState) => !s.loggedIn && !s.userSwitching
+
+const onConfig = (s: SignInState, old: SignInState) => {
+  // An account switch sets userSwitching before it logs the old account out, so landing logged out
+  // and not switching is a logout, or a switch that never reached its account.
+  if (loggedOutForGood(s) && !loggedOutForGood(old) && heldShareID !== undefined) {
     finishAndroidShare(heldShareID)
   }
   openHeldShare()
