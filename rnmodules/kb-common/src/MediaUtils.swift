@@ -542,6 +542,16 @@ public class MediaUtils: NSObject {
         kCGImagePropertyIPTCCountryPrimaryLocationName, kCGImagePropertyIPTCCountryPrimaryLocationCode,
         kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCContentLocationName,
         kCGImagePropertyIPTCContentLocationCode,
+        // IPTC Extension: the two location structures, and their fields in case
+        // one turns up on its own. ExtLocationCity is "City", already listed;
+        // ExtLocationIdentifier is the bare "Identifier", too generic to remove
+        // outside a location structure, which goes whole.
+        kCGImagePropertyIPTCExtLocationCreated, kCGImagePropertyIPTCExtLocationShown,
+        kCGImagePropertyIPTCExtLocationCountryCode, kCGImagePropertyIPTCExtLocationCountryName,
+        kCGImagePropertyIPTCExtLocationProvinceState, kCGImagePropertyIPTCExtLocationSublocation,
+        kCGImagePropertyIPTCExtLocationWorldRegion, kCGImagePropertyIPTCExtLocationGPSLatitude,
+        kCGImagePropertyIPTCExtLocationGPSLongitude, kCGImagePropertyIPTCExtLocationGPSAltitude,
+        kCGImagePropertyIPTCExtLocationLocationId, kCGImagePropertyIPTCExtLocationLocationName,
     ]
     // Nested dictionaries, by key, and the fields in them that name a place: the
     // address in the creator's contact info (its email, phone and URL aren't one).
