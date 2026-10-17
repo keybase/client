@@ -49,6 +49,10 @@ func initSubscriptionManagerTest(t *testing.T) (config Config,
 	sm = config.SubscriptionManager(
 		testSubscriptionManagerClientID, false, notifier)
 	return config, sm, notifier, func() {
+		if t.Failed() {
+			// A failed test may leave a goroutine blocked in a gate.
+			return
+		}
 		err := config.Shutdown(context.Background())
 		require.NoError(t, err)
 		ctl.Finish()
@@ -275,8 +279,9 @@ func TestSubscriptionManagerSubscribePathNoFolderBranch(t *testing.T) {
 	waiter0()
 }
 
-// gatedRootNodeOps holds GetRootNode's result until release is closed,
-// standing in for a folder whose head lock is held by an in-progress write.
+// gatedRootNodeOps holds a found root node until release is closed, standing
+// in for a folder whose head lock is held by an in-progress write. Lookups
+// that find nothing pass straight through.
 type gatedRootNodeOps struct {
 	KBFSOps
 	enteredOnce sync.Once
@@ -289,6 +294,9 @@ func (o *gatedRootNodeOps) GetRootNode(
 	Node, data.EntryInfo, error,
 ) {
 	node, ei, err := o.KBFSOps.GetRootNode(ctx, h, branch)
+	if node == nil {
+		return node, ei, err
+	}
 	o.enteredOnce.Do(func() { close(o.entered) })
 	<-o.release
 	return node, ei, err
@@ -334,11 +342,7 @@ func runWithin(t *testing.T, timeout time.Duration, what string, f func()) {
 
 func TestSubscriptionManagerNotifyDuringSubscribeLookup(t *testing.T) {
 	config, smi, _, finish := initSubscriptionManagerTest(t)
-	defer func() {
-		if !t.Failed() {
-			finish()
-		}
-	}()
+	defer finish()
 	sm := smi.(*subscriptionManager)
 	ctx := t.Context()
 
@@ -376,11 +380,7 @@ func TestSubscriptionManagerNotifyDuringSubscribeLookup(t *testing.T) {
 
 func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
 	config, smi, _, finish := initSubscriptionManagerTest(t)
-	defer func() {
-		if !t.Failed() {
-			finish()
-		}
-	}()
+	defer finish()
 	sm := smi.(*subscriptionManager)
 	ctx := t.Context()
 
@@ -429,11 +429,7 @@ func TestSubscriptionManagerUnsubscribeDuringSubscribeLookup(t *testing.T) {
 
 func TestSubscriptionManagerUnsubscribeDuringNotification(t *testing.T) {
 	config, smi, _, finish := initSubscriptionManagerTest(t)
-	defer func() {
-		if !t.Failed() {
-			finish()
-		}
-	}()
+	defer finish()
 	sm := smi.(*subscriptionManager)
 	ctx := t.Context()
 
@@ -554,7 +550,8 @@ func TestSubscriptionManagerShutdownDuringSubscribeLookup(t *testing.T) {
 	recvWithin(t, gated.entered, "root node lookup")
 	sm.Shutdown(ctx)
 	close(gated.release)
-	require.NoError(t, recvWithin(t, subscribed, "subscribe"))
+	require.ErrorIs(t, recvWithin(t, subscribed, "subscribe"),
+		errSubscriptionManagerShutDown)
 	config.(*ConfigLocal).SetKBFSOps(realOps)
 
 	sm.lock.RLock()
@@ -622,6 +619,16 @@ func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionMa
 	sm := smi.(*subscriptionManager)
 	ctx := t.Context()
 
+	// Installed first, so the first lookup that finds the root is gated.
+	realOps := config.KBFSOps()
+	gated := &gatedRootNodeOps{
+		KBFSOps: realOps,
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+	config.(*ConfigLocal).SetKBFSOps(gated)
+	defer config.(*ConfigLocal).SetKBFSOps(realOps)
+
 	// No root node yet, so this leaves a poller waiting for one.
 	err := sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN, nil)
@@ -630,17 +637,9 @@ func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionMa
 		keybase1.PathSubscriptionTopic_STAT, nil)
 	require.Error(t, err, "a polling sid is still in use")
 
-	realOps := config.KBFSOps()
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
-	gated := &gatedRootNodeOps{
-		KBFSOps: realOps,
-		entered: make(chan struct{}),
-		release: make(chan struct{}),
-	}
-	config.(*ConfigLocal).SetKBFSOps(gated)
-	defer config.(*ConfigLocal).SetKBFSOps(realOps)
 	rootNode, _, err := realOps.GetOrCreateRootNode(
 		ctx, tlfHandle, data.MasterBranch)
 	require.NoError(t, err)
@@ -650,6 +649,10 @@ func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionMa
 	// The poller is now looking up the root it will find.
 	recvWithin(t, gated.entered, "poller lookup")
 	stop(ctx, sm)
+	sm.lock.RLock()
+	pending := len(sm.pendingPathSubscriptions)
+	sm.lock.RUnlock()
+	require.Zero(t, pending, "the poller's reservation is dropped")
 	close(gated.release)
 
 	// The mock notifier fails the test on any OnPathChange.
