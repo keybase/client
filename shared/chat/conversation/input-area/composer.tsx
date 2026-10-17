@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 import {standardTransformer} from './suggestors/common'
+import {appendLine, sharedTextFitsAfter} from '@/util/shared-text-file'
 import type {Selection, TextInfo} from './normal/input.shared'
 
 // The platform input the composer writes through: the desktop textarea, the native TextInput,
@@ -46,9 +47,9 @@ export type Composer = {
   // Adds text on its own line after what the composer holds, with the caret at the end: a share
   // lands next to the draft instead of over it. Before the draft is known the text shows alone and
   // nothing is saved; the draft goes in front of it once it loads.
+  // Text the draft has no room for under chat's message limit is handed to attachText instead, the
+  // draft left as it is, and so is text appended before the draft was known once the draft loads.
   append: (text: string, focus?: boolean) => void
-  // What the composer would hold once append(text) lands, a draft not loaded yet included.
-  textAfterAppend: (text: string) => string
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
@@ -80,6 +81,9 @@ export type Composer = {
 }
 
 type ComposerDeps = {
+  // Sends shared text the draft has no room for as a .txt attachment; onFailed when it can't, to
+  // put the text after the draft after all.
+  attachText: (text: string, onFailed: () => void) => void
   // The conversation's saved draft as the store holds it now, undefined while it is not known. Read
   // as an input attaches, so the draft loads ahead of the writes waiting for that input.
   getDraft: () => string | undefined
@@ -100,8 +104,6 @@ const spoiler = '!>spoiler<!'
 // long enough for an input on its way (a screen mounting, or shown again) to attach; one turning up
 // later is not one the user just asked to focus
 const focusWaitMs = 1000
-const appendLine = (text: string, s: string) =>
-  !text ? s : !s ? text : text.endsWith('\n') ? `${text}${s}` : `${text}\n${s}`
 const injectedSelection = (text: string): Selection =>
   text === spoiler
     ? {end: text.length - 2, start: text.length - 2 - 7}
@@ -224,6 +226,31 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // Loaded only once it is written, so a draft known before the view's input is attached, or
   // offered while the user can't post, loads on the next try: the input attaching reads it from the
   // store, and read-only clearing offers it again.
+  const appendNow = (s: string, focus: boolean) => {
+    whenAttached(target => {
+      if (!draftLoaded && !editing && !deps.isReadOnly()) {
+        appendedBeforeDraft = true
+      }
+      write(target, appendLine(text, s), focus)
+    })
+  }
+
+  // Where text that could not be attached goes: after the draft, as an append always did.
+  const putBack = (s: string) => {
+    if (!editing) {
+      appendNow(s, false)
+    } else if (saved === undefined) {
+      appendSetAside = appendLine(appendSetAside ?? '', s)
+    } else {
+      saved = appendLine(saved, s)
+      deps.saveDraft(saved)
+    }
+  }
+
+  const attach = (s: string) => {
+    deps.attachText(s, () => putBack(s))
+  }
+
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     // an edit is never merged with the draft: the draft and any append set aside wait for it to end
@@ -231,9 +258,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       draftLoaded = true
       saved = draft
       if (appendSetAside !== undefined) {
-        saved = appendLine(draft, appendSetAside)
+        const aside = appendSetAside
         appendSetAside = undefined
-        deps.saveDraft(saved)
+        if (sharedTextFitsAfter(draft, aside)) {
+          saved = appendLine(draft, aside)
+          deps.saveDraft(saved)
+        } else {
+          attach(aside)
+        }
       }
       return
     }
@@ -242,7 +274,13 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       draftLoaded = true
       appendedBeforeDraft = false
       saved = draft
-      write(input, appendLine(draft, text), false)
+      if (sharedTextFitsAfter(draft, text)) {
+        write(input, appendLine(draft, text), false)
+      } else {
+        const ahead = text
+        write(input, draft, false)
+        attach(ahead)
+      }
       return
     }
     if (text !== '' || !draft) {
@@ -260,12 +298,13 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
 
   return {
     append: (s, focus = false) => {
-      whenAttached(target => {
-        if (!draftLoaded && !editing && !deps.isReadOnly()) {
-          appendedBeforeDraft = true
-        }
-        write(target, appendLine(text, s), focus)
-      })
+      // a draft not loaded yet counts if the store already has it
+      const before = draftLoaded || editing ? text : appendLine(deps.getDraft() ?? '', text)
+      if (!deps.isReadOnly() && !sharedTextFitsAfter(before, s)) {
+        attach(s)
+      } else {
+        appendNow(s, focus)
+      }
     },
     clear: () => {
       whenAttached(target => clear(target, false))
@@ -326,7 +365,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     getSelection: () => input?.getSelection(),
     getText: () => text,
-    textAfterAppend: s => appendLine(draftLoaded || editing ? text : appendLine(deps.getDraft() ?? '', text), s),
     inject: (next, focus = false) => {
       whenAttached(target => write(target, next, focus))
     },

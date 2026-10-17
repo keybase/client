@@ -9,7 +9,28 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({setOptions: () => {}}),
 }))
 
+// the file system is native: this one records what is written, under a uri with the raw name
+const mockWrites = new Array<string>()
+jest.mock('expo-file-system', () => {
+  class Directory {
+    uri: string
+    constructor(...parts: Array<string | {uri: string}>) {
+      this.uri = parts.map(p => (typeof p === 'string' ? p : p.uri.replace(/\/$/, ''))).join('/') + '/'
+    }
+    create() {}
+  }
+  class File {
+    async write(text: string) {
+      await Promise.resolve()
+      mockWrites.push(text)
+    }
+  }
+  return {Directory, File, Paths: {cache: new Directory('file:///cache')}}
+})
+
 import IncomingShareMain, {nextShare} from './index'
+import {metasReceived} from '@/chat/inbox/metadata'
+import * as Meta from '@/constants/chat/meta'
 
 const g = globalThis as unknown as {isIOS: boolean}
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -25,6 +46,7 @@ const shareToSuggestedConversation = async (share: Omit<T.RPCGen.IncomingShareIt
 }
 
 beforeEach(() => {
+  mockWrites.length = 0
   g.isIOS = true
   jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   jest.spyOn(C.Router2, 'navigateAppend').mockReturnValue(true)
@@ -110,4 +132,46 @@ test('a share handed out again is not sent to its conversation a second time', a
 
   await shareToSuggestedConversation(share)
   expect(C.Router2.navigateToThread).toHaveBeenCalledTimes(2)
+})
+
+describe('files with text', () => {
+  const draft = 'd'.repeat(100)
+  const getTitles = () =>
+    jest.mocked(C.Router2.navigateAppend).mock.calls.map(
+      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: Array<{path: string}>}}
+    )
+  const share = async (text: string) => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
+    await shareToSuggestedConversation({
+      droppedCount: 0,
+      items: [
+        {originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image},
+        {content: text, type: T.RPCGen.IncomingShareType.text},
+      ],
+    })
+  }
+
+  test('text that fits after the draft follows the files into it', async () => {
+    const text = 's'.repeat(10000 - draft.length - 1)
+    await share(text)
+
+    expect(getTitles()).toHaveLength(1)
+    expect(getTitles()[0]?.params.inputPrefillText).toBe(text)
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
+    expect(mockWrites).toEqual([])
+  })
+
+  test('text the draft has no room for goes as a .txt in the same batch as the files', async () => {
+    const text = 's'.repeat(10000 - draft.length)
+    await share(text)
+
+    expect(getTitles()).toHaveLength(1)
+    expect(getTitles()[0]?.name).toBe('chatAttachmentGetTitles')
+    expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([
+      {path: '/tmp/a.jpg'},
+      {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
+    ])
+    expect(mockWrites).toEqual([text])
+  })
 })
