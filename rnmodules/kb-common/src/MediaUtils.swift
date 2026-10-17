@@ -725,11 +725,7 @@ public class MediaUtils: NSObject {
         // the paths the enumeration hands out for a structure's fields.
         let stripped = CGImageMetadataCreateMutable()
         for tag in CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] ?? [] {
-            guard let kept = xmpTagWithoutLocation(tag),
-                let namespace = CGImageMetadataTagCopyNamespace(kept),
-                let prefix = CGImageMetadataTagCopyPrefix(kept),
-                let name = CGImageMetadataTagCopyName(kept)
-            else { continue }
+            guard let (kept, namespace, prefix, name) = xmpTagWithoutLocation(tag) else { continue }
             // Fails harmlessly for a namespace ImageIO already knows. A prefix
             // already bound to another namespace would file the tag under that
             // one, so that is checked on the tag as written.
@@ -758,8 +754,11 @@ public class MediaUtils: NSObject {
     ]
     private static let strippedXMPTags: Set<String> = ["http://ns.adobe.com/photoshop/1.0/DateCreated"]
 
-    // The tag without its location fields, or nil when it is one (or Exif).
-    private static func xmpTagWithoutLocation(_ tag: CGImageMetadataTag) -> CGImageMetadataTag? {
+    // The tag without its location fields, with its namespace, prefix and name,
+    // or nil when it is one (or Exif).
+    private static func xmpTagWithoutLocation(
+        _ tag: CGImageMetadataTag
+    ) -> (tag: CGImageMetadataTag, namespace: CFString, prefix: CFString, name: CFString)? {
         guard let namespace = CGImageMetadataTagCopyNamespace(tag),
             let prefix = CGImageMetadataTagCopyPrefix(tag),
             let name = CGImageMetadataTagCopyName(tag)
@@ -775,20 +774,26 @@ public class MediaUtils: NSObject {
         // A child counts as changed when it comes back as another tag (its own
         // children changed) or not at all.
         if let fields = value as? [String: AnyObject], fields.values.allSatisfy(isTag) {
-            let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
-            if kept.count == fields.count && kept.allSatisfy({ $0.value === fields[$0.key] }) { return tag }
+            let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag)?.tag }
+            if kept.count == fields.count && kept.allSatisfy({ $0.value === fields[$0.key] }) {
+                return (tag, namespace, prefix, name)
+            }
             // An empty structure or array is no tag at all.
             if kept.isEmpty { return nil }
             cleaned = kept as CFDictionary
         } else if let items = value as? [AnyObject], items.allSatisfy(isTag) {
-            let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
-            if kept.count == items.count && zip(kept, items).allSatisfy({ $0 === $1 }) { return tag }
+            let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag)?.tag }
+            if kept.count == items.count && zip(kept, items).allSatisfy({ $0 === $1 }) {
+                return (tag, namespace, prefix, name)
+            }
             if kept.isEmpty { return nil }
             cleaned = kept as CFArray
         } else {
-            return tag
+            return (tag, namespace, prefix, name)
         }
-        return CGImageMetadataTagCreate(namespace, prefix, name, CGImageMetadataTagGetType(tag), cleaned)
+        guard let rebuilt = CGImageMetadataTagCreate(namespace, prefix, name, CGImageMetadataTagGetType(tag), cleaned)
+        else { return nil }
+        return (rebuilt, namespace, prefix, name)
     }
 
     private static func reencodeWithoutLocation(
