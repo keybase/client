@@ -535,46 +535,63 @@ public class MediaUtils: NSObject {
         return redrawn
     }
 
-    // IPTC fields that name a place, the creator's address among them. ImageIO
-    // also fills these from a file's XMP.
+    // IPTC fields that name a place. ImageIO also fills these from a file's XMP.
     private static let iptcLocationKeys: [CFString] = [
         kCGImagePropertyIPTCCity, kCGImagePropertyIPTCProvinceState,
         kCGImagePropertyIPTCCountryPrimaryLocationName, kCGImagePropertyIPTCCountryPrimaryLocationCode,
-        kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCCreatorContactInfo,
+        kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCContentLocationName,
+        kCGImagePropertyIPTCContentLocationCode,
+    ]
+    // The address in the creator's contact info. Its email, phone and URL aren't a place.
+    private static let iptcContactAddressKeys: [CFString] = [
+        kCGImagePropertyIPTCContactInfoAddress, kCGImagePropertyIPTCContactInfoCity,
+        kCGImagePropertyIPTCContactInfoStateProvince, kCGImagePropertyIPTCContactInfoPostalCode,
+        kCGImagePropertyIPTCContactInfoCountry,
     ]
 
-    // XMP properties that name a place, by namespace. Every exif:GPS* tag counts
-    // too: ImageIO leaves one it can't parse out of the GPS dictionary.
-    private static let xmpExifNamespace = "http://ns.adobe.com/exif/1.0/"
+    // XMP properties that name a place without saying so in their name, by
+    // namespace.
     private static let xmpLocationNames: [String: Set<String>] = [
         "http://ns.adobe.com/photoshop/1.0/": ["City", "State", "Country"],
         "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/": [
-            "Location", "CountryCode",
-            "CreatorContactInfo", "CiAdrExtadr", "CiAdrCity", "CiAdrRegion", "CiAdrCtry", "CiAdrPcode",
+            "CountryCode", "CiAdrExtadr", "CiAdrCity", "CiAdrRegion", "CiAdrCtry", "CiAdrPcode",
         ],
-        "http://iptc.org/std/Iptc4xmpExt/2008-02-29/": ["LocationShown", "LocationCreated"],
     ]
+    // Any other XMP tag counts by its name, in any namespace: exif:GPS* that
+    // ImageIO can't parse into the GPS dictionary, IPTC's Location*, and the
+    // namespaces cameras and drones write their own GPS to.
+    private static let xmpLocationWords = ["gps", "latitude", "longitude", "location"]
+
+    private static func iptcHasLocation(_ iptc: [CFString: Any]) -> Bool {
+        if iptcLocationKeys.contains(where: { iptc[$0] != nil }) { return true }
+        guard let contact = iptc[kCGImagePropertyIPTCCreatorContactInfo] as? [CFString: Any] else {
+            return false
+        }
+        return iptcContactAddressKeys.contains { contact[$0] != nil }
+    }
 
     private static func propertiesHaveLocation(_ props: [CFString: Any]) -> Bool {
         if let gps = props[kCGImagePropertyGPSDictionary] as? [CFString: Any], !gps.isEmpty {
             return true
         }
         guard let iptc = props[kCGImagePropertyIPTCDictionary] as? [CFString: Any] else { return false }
-        return iptcLocationKeys.contains { iptc[$0] != nil }
+        return iptcHasLocation(iptc)
+    }
+
+    private static func isLocationTag(_ tag: CGImageMetadataTag) -> Bool {
+        guard let namespace = CGImageMetadataTagCopyNamespace(tag) as String?,
+            let name = CGImageMetadataTagCopyName(tag) as String?
+        else { return false }
+        if xmpLocationNames[namespace]?.contains(name) == true { return true }
+        let lowered = name.lowercased()
+        return xmpLocationWords.contains { lowered.contains($0) }
     }
 
     private static func xmpHasLocation(_ metadata: CGImageMetadata) -> Bool {
         var found = false
         let options = [kCGImageMetadataEnumerateRecursively: true] as CFDictionary
         CGImageMetadataEnumerateTagsUsingBlock(metadata, nil, options) { _, tag in
-            guard let namespace = CGImageMetadataTagCopyNamespace(tag) as String?,
-                let name = CGImageMetadataTagCopyName(tag) as String?
-            else { return true }
-            if (namespace == xmpExifNamespace && name.hasPrefix("GPS"))
-                || xmpLocationNames[namespace]?.contains(name) == true
-            {
-                found = true
-            }
+            found = isLocationTag(tag)
             return !found
         }
         return found
