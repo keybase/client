@@ -13,9 +13,10 @@ import {useRouterState} from '@/stores/router'
 // both come from one place, the current navigator's state: a share is shown while a route in it
 // names the share's id, and done with when such a route leaves it. A screen paused under pushed
 // screens is still in the state, and clearModals or a reset takes it out. A navigator torn down
-// (logout, account switch, the app's surface going away) is not the user leaving the share, so its
+// (an account switch, the app's surface going away) is not the user leaving the share, so its
 // shares are not done with: the next navigator opens them again. A new navigator is told apart by
-// its container, so its first state is never compared with an older navigator's.
+// its container, so its first state is never compared with an older navigator's. A logout does end
+// a held share: whoever logs in next may not be who it was shared to.
 
 type StateLike = {routes?: ReadonlyArray<{params?: object; state?: StateLike}>} | undefined
 
@@ -84,6 +85,17 @@ const onNavState = (state: StateLike) => {
   openHeldShare()
 }
 
+const onConfig = (
+  s: {loggedIn: boolean; userSwitching: boolean},
+  old: {loggedIn: boolean; userSwitching: boolean}
+) => {
+  // An account switch sets userSwitching before it logs the old account out.
+  if (old.loggedIn && !s.loggedIn && !s.userSwitching && heldShareID !== undefined) {
+    finishAndroidShare(heldShareID)
+  }
+  openHeldShare()
+}
+
 export const onAndroidShareHeld = (id: number) => {
   heldShareID = id
   openHeldShare()
@@ -95,7 +107,7 @@ export const subscribeAndroidShareOpener = () => {
       if (s.navState !== old.navState) onNavState(s.navState as StateLike)
     }),
     useNavigationIntentsState.subscribe(openHeldShare),
-    useConfigState.subscribe(openHeldShare),
+    useConfigState.subscribe(onConfig),
   ]
   return () => unsubs.forEach(u => u())
 }
