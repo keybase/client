@@ -218,13 +218,20 @@ func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 
 // registerForChanges and unregisterFromChanges call into the folder, so they
 // run under subscribeLock with lock released.
+//
+// registerForChanges registers for fb's first subscription, sid. If that
+// fails it removes sid, so the next subscription to fb tries again.
 func (sm *subscriptionManager) registerForChanges(
-	ctx context.Context, fb data.FolderBranch,
-) {
+	ctx context.Context, sid SubscriptionID, fb data.FolderBranch,
+) error {
 	err := sm.config.Notifier().RegisterForChanges([]data.FolderBranch{fb}, sm)
 	if err != nil {
 		sm.log.CWarningf(ctx, "RegisterForChanges fb=%s err=%v", fb, err)
+		sm.lock.Lock()
+		_, _ = sm.unsubscribePathLocked(ctx, sid)
+		sm.lock.Unlock()
 	}
+	return err
 }
 
 func (sm *subscriptionManager) unregisterFromChanges(
@@ -439,7 +446,7 @@ func (sm *subscriptionManager) subscribePolled(
 		return false
 	}
 	if first {
-		sm.registerForChanges(ctx, fb)
+		return sm.registerForChanges(ctx, req.sid, fb) == nil
 	}
 	return true
 }
@@ -496,7 +503,7 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	first, err := sm.subscribePathWithFolderBranchLocked(req, parsedPath, fb)
 	sm.lock.Unlock()
 	if first {
-		sm.registerForChanges(ctx, fb)
+		return sm.registerForChanges(ctx, sid, fb)
 	}
 	return err
 }

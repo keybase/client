@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"sync"
@@ -676,4 +677,95 @@ func TestSubscriptionManagerDuplicateRefusedBeforeLookup(t *testing.T) {
 			keybase1.PathSubscriptionTopic_STAT, nil)
 	})
 	require.Error(t, err)
+}
+
+// failingRegisterNotifier fails the first RegisterForChanges.
+type failingRegisterNotifier struct {
+	Notifier
+	failed bool
+}
+
+func (n *failingRegisterNotifier) RegisterForChanges(
+	fbs []data.FolderBranch, obs Observer,
+) error {
+	if !n.failed {
+		n.failed = true
+		return errors.New("register failed")
+	}
+	return n.Notifier.RegisterForChanges(fbs, obs)
+}
+
+func smPathSubscriptionCount(sm *subscriptionManager) int {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	return len(sm.pathSubscriptionIDToRef) + len(sm.subscriptionIDs) +
+		len(sm.subscriptionCountByFolderBranch)
+}
+
+func TestSubscriptionManagerRegisterFailureRollsBack(t *testing.T) {
+	config, smi, _, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	sm := smi.(*subscriptionManager)
+	ctx := t.Context()
+
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	require.NoError(t, err)
+	fbo := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
+		ctx, rootNode.GetFolderBranch())
+	realNotifier := config.Notifier()
+	config.(*ConfigLocal).SetNotifier(
+		&failingRegisterNotifier{Notifier: realNotifier})
+	defer config.(*ConfigLocal).SetNotifier(realNotifier)
+
+	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.Error(t, err)
+	require.Zero(t, smPathSubscriptionCount(sm))
+	require.False(t, smRegisteredOn(fbo, sm))
+
+	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+	require.True(t, smRegisteredOn(fbo, sm))
+}
+
+func TestSubscriptionManagerPollRegisterFailureRollsBack(t *testing.T) {
+	config, smi, _, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	sm := smi.(*subscriptionManager)
+	ctx := t.Context()
+
+	realNotifier := config.Notifier()
+	config.(*ConfigLocal).SetNotifier(
+		&failingRegisterNotifier{Notifier: realNotifier})
+	defer config.(*ConfigLocal).SetNotifier(realNotifier)
+
+	// No root node yet, so this leaves a poller waiting for one.
+	err := sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	require.NoError(t, err)
+	fbo := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
+		ctx, rootNode.GetFolderBranch())
+
+	require.Eventually(t, func() bool {
+		sm.lock.RLock()
+		defer sm.lock.RUnlock()
+		return len(sm.folderBranchPollerCancelers) == 0
+	}, 5*time.Second, 10*time.Millisecond)
+	// The mock notifier fails the test on any OnPathChange.
+	sm.subscribeLock.Lock()
+	n := smPathSubscriptionCount(sm)
+	sm.subscribeLock.Unlock()
+	require.Zero(t, n)
+	require.False(t, smRegisteredOn(fbo, sm))
 }
