@@ -29,8 +29,9 @@ const maxTextNameChars = 40
 const maxTextNameWords = 6
 const fallbackName = 'shared-text'
 
-const nonSpace = /\S/g
-const space = /\s/g
+// \s plus NEL, which Swift counts as whitespace and JS does not
+const nonSpace = /[^\s\u0085]/g
+const space = /[\s\u0085]/g
 
 // The first words, each cut to what could fit, without copying or splitting the whole text.
 const firstWords = (text: string) => {
@@ -69,7 +70,7 @@ export const sharedTextFileName = (text: string) => {
     snippet = chars(words[0]).slice(0, maxTextNameChars).join('')
   }
   // trimmed of what sanitize trims from the ends; "word..txt" reads as a typo
-  const base = snippet.replace(/^[\s/.]+|[\s/.]+$/g, '').replace(unsafe, '_')
+  const base = snippet.replace(/^[\s\u0085/\\.]+|[\s\u0085/\\.]+$/g, '').replace(unsafe, '_')
   return `${base || fallbackName}.txt`
 }
 
