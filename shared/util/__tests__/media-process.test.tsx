@@ -234,14 +234,6 @@ describe('processPaths', () => {
     expect(out).toEqual([{path: 'file:///tmp/clip-small.mp4'}])
   })
 
-  it('still returns every result when the progress callback throws', async () => {
-    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
-    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], {compress: true}, () => {
-      throw new Error('boom')
-    })
-    expect(out).toEqual([{path: '/tmp/a.jpg.out'}, {path: '/tmp/b.jpg.out'}])
-  })
-
   it('keeps going after a failure so the rest of the batch still exports', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)

@@ -143,13 +143,7 @@ export const processPaths = async (
       const errorCode = processErrorCode(e)
       out.push({error: processingErrorMessage(e), path, ...(errorCode ? {errorCode} : {})})
     }
-    // Once anything has exported this must not throw: the caller would lose the
-    // output paths it needs to clean up.
-    try {
-      onProgress?.(idx + 1, items.length)
-    } catch (e) {
-      logger.warn('processMedia progress callback failed', e)
-    }
+    onProgress?.(idx + 1, items.length)
   }
   return out
 }

@@ -25,7 +25,6 @@ import {
   isEditNoop,
   isProcessableImagePath,
   isVideoPath,
-  processingErrorMessage,
   processPaths,
   type ProcessResult,
   type VideoEdit,
@@ -83,20 +82,6 @@ const droppedReason = (r?: ProcessResult) => {
       return "is in a format this device can't read, and the original can include its location."
     case undefined:
       return "couldn't be converted to a JPEG, and the original can include its location."
-  }
-}
-
-// A throw is reported like a per-item failure, so Send always comes back to a
-// state the user can act on.
-const processForSend = async (
-  ...args: Parameters<typeof processPaths>
-): Promise<{processed: Array<ProcessResult>; failure?: string}> => {
-  try {
-    const processed = await processPaths(...args)
-    return {failure: processed.find(p => p.error)?.error, processed}
-  } catch (e) {
-    logger.warn('attachment titles: processing threw', e)
-    return {failure: processingErrorMessage(e), processed: []}
   }
 }
 
@@ -237,48 +222,77 @@ const ContainerInner = (ownProps: OwnProps) => {
       return
     }
 
-    // Send original sends what "Keep full size" would: a format recipients can't
-    // show (webp, avif, tiff, RAW) becomes a metadata-free JPEG, and the rest come
-    // back as the source. After a compressed run that source must carry no
-    // location (stripLocation): native strips it, or converts it to a JPEG, or
-    // fails it. With Keep full size it is the raw original, metadata and all. One
-    // that can't be cleaned is dropped rather than sent with its location, and the
-    // rest still go. Files chosen in the file picker go as they are.
-    const sendOriginals = async () => {
+    // Send compresses per the preference, and any failure stops the batch: a failed export means
+    // the original bytes, an uncompressed upload or a clip the user asked to trim going out full
+    // length. Send exports again, so whatever did export this time won't be used.
+    // Send original sends what "Keep full size" would: a format recipients can't show (webp, avif,
+    // tiff, RAW) becomes a metadata-free JPEG, and the rest come back as the source. After a
+    // compressed run that source must carry no location (stripLocation): native strips it, or
+    // converts it to a JPEG, or fails it. With Keep full size it is the raw original, metadata and
+    // all. One that can't be cleaned is dropped rather than sent with its location, and the rest
+    // still go. Files chosen in the file picker go as they are.
+    const isUnmounted = () => unmountedRef.current
+    const send = async (original: boolean) => {
+      const compressPref = (await compressPrefRef.current) ?? true
+      if (isUnmounted()) {
+        return
+      }
       if (accountChanged()) {
         endSubmit()
         return
       }
-      const eligible = pickedAsFiles
-        ? []
-        : effective.reduce((l: Array<{idx: number; path: string}>, {path}, idx) => {
-            if (!isKbfsPath(path) && isProcessableImagePath(path)) {
-              l.push({idx, path})
-            }
-            return l
-          }, [])
+      const compress = !original && compressPref
+      // Only local media can be handed to the native processor: kbfs paths aren't real files and
+      // non-media has nothing to compress. "Keep full size" is a raw share, so with compression off
+      // only an explicit trim still needs the exporter (the cut has to be applied somewhere) and
+      // images still go through so formats recipients can't show come out as JPEG; the rest come
+      // back untouched. Picked files are never converted, so with compression off they go as they
+      // are.
+      const eligible = effective.reduce(
+        (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
+          const edit = original ? undefined : edits[idx]
+          const needsImageWork = pickedAsFiles
+            ? compress && canCompressPickedFile(path)
+            : compress
+              ? canProcess(path)
+              : isProcessableImagePath(path)
+          if (!isKbfsPath(path) && (!isEditNoop(edit) || needsImageWork)) {
+            l.push({edit, idx, path})
+          }
+          return l
+        },
+        []
+      )
       if (eligible.length === 0) {
         upload(effective)
         return
       }
       setProgress({done: 0, total: eligible.length})
-      const items = eligible.map(({path}) => ({path}))
-      // The failed run that led here used the same preference.
-      const stripLocation = (await compressPrefRef.current) ?? true
-      const {processed} = await processForSend(
+      const items = eligible.map(({path, edit}) => ({edit, path}))
+      // The failed run that led to Send original used the same preference.
+      const processed = await processPaths(
         items,
-        {compress: false, stripLocation},
+        original ? {compress: false, stripLocation: compressPref} : {compress},
         (done, total) => {
           if (!unmountedRef.current) {
             setProgress({done, total})
           }
         }
       )
-      if (unmountedRef.current) {
+      // Backed out while it exported: nothing uploads, so the outputs are orphans, and the
+      // originals stay for a retry or a re-share.
+      if (isUnmounted()) {
         discardProcessedOutputs(items, processed)
         return
       }
       setProgress(undefined)
+      const failure = processed.find(p => p.error)?.error
+      if (!original && failure !== undefined) {
+        discardProcessedOutputs(items, processed)
+        endSubmit()
+        setError(failure)
+        return
+      }
       const next: Array<T.Chat.PathAndOutboxID | undefined> = [...effective]
       const droppedLines: Array<string> = []
       eligible.forEach(({idx, path}, i) => {
@@ -324,93 +338,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         discardProcessedOutputs(items, processed)
       }
     }
-
-    if (skipProcessing) {
-      C.ignorePromise(sendOriginals())
-      return
-    }
-
-    const isUnmounted = () => unmountedRef.current
-    const f = async () => {
-      const compress = (await compressPrefRef.current) ?? true
-      if (isUnmounted()) {
-        return
-      }
-      if (accountChanged()) {
-        endSubmit()
-        return
-      }
-      // Only local media can be handed to the native processor: kbfs paths aren't
-      // real files and non-media has nothing to compress. "Keep full size" is a raw
-      // share, so with compression off only an explicit trim still needs the
-      // exporter — the cut has to be applied somewhere — and images still go
-      // through so formats recipients can't show (tiff, RAW, webp) come out as
-      // JPEG; the rest come back untouched. Picked files are never converted, so
-      // with compression off they go as they are.
-      const eligible = effective.reduce(
-        (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
-          const edit = edits[idx]
-          const needsImageWork = pickedAsFiles
-            ? compress && canCompressPickedFile(path)
-            : compress
-              ? canProcess(path)
-              : isProcessableImagePath(path)
-          const needsProcessing = !isEditNoop(edit) || needsImageWork
-          if (!isKbfsPath(path) && needsProcessing) {
-            l.push({edit, idx, path})
-          }
-          return l
-        },
-        []
-      )
-
-      if (eligible.length === 0) {
-        upload(effective)
-        return
-      }
-
-      setProgress({done: 0, total: eligible.length})
-      const items = eligible.map(({path, edit}) => ({edit, path}))
-      const {processed, failure} = await processForSend(
-        items,
-        {compress},
-        (done, total) => {
-          if (!unmountedRef.current) {
-            setProgress({done, total})
-          }
-        }
-      )
-      // Backed out while it exported: nothing uploads, so the outputs are
-      // orphans, and the originals stay for a retry or a re-share.
-      if (unmountedRef.current) {
-        discardProcessedOutputs(items, processed)
-        return
-      }
-      setProgress(undefined)
-      // A failed export means the original bytes: an uncompressed upload, or
-      // worse a clip the user asked to trim going out full length. Stop and say
-      // so instead of sending something they didn't ask for. Send exports again,
-      // so whatever did export this time won't be used.
-      if (failure !== undefined) {
-        discardProcessedOutputs(items, processed)
-        endSubmit()
-        setError(failure)
-        return
-      }
-      const next = [...effective]
-      eligible.forEach(({idx}, i) => {
-        const cur = next[idx]
-        if (cur) {
-          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
-        }
-      })
-      if (upload(next)) {
-        deleteConsumedSources(items, processed)
-      } else {
-        discardProcessedOutputs(items, processed)
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(send(skipProcessing))
   }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)

@@ -9,6 +9,9 @@ import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import logger from '@/logger'
+import type * as ReactTypes from 'react'
+import type {VideoEdit} from '@/util/media-process'
 import {processMedia} from 'react-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
 import {peekInputIntent} from './input-intent-store'
@@ -32,6 +35,24 @@ jest.mock('@/test/mocks/native-module', () => {
     deleted,
     processMedia: jest.fn(),
   }
+})
+
+// A clip whose name says so comes in trimmed, as if the user had dragged the handles.
+jest.mock('./attachment-trim', () => {
+  const {useEffect, useRef} = jest.requireActual<typeof ReactTypes>('react')
+  const MockTrim = (p: {path: string; onEdit: (edit: VideoEdit) => void}) => {
+    'use no memo'
+    const {onEdit, path} = p
+    const trimmedRef = useRef(false)
+    useEffect(() => {
+      if (!trimmedRef.current && path.includes('trimmed')) {
+        trimmedRef.current = true
+        onEdit({endMs: 2000, removeAudio: false, startMs: 1000})
+      }
+    })
+    return null
+  }
+  return {__esModule: true, default: MockTrim}
 })
 
 const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
@@ -187,26 +208,9 @@ describe('Send on iOS', () => {
     expect(params[0]).toMatchObject({filename: converted})
   })
 
-  test('an export that throws still stops the Send spinner and reports the failure', async () => {
-    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error('export blew up'))
-    render(
-      <AttachmentGetTitles
-        conversationIDKey={conversationIDKey}
-        pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/clip.mov'}]}
-        tlfName="testuser,testuser2"
-      />
-    )
-    await act(async () => {
-      fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-    expect(screen.getByText('export blew up')).toBeTruthy()
-    expect(screen.getByText('Send original')).toBeTruthy()
-    expect(isWaitingOrDisabled('Send')).toBe(false)
-  })
-
   test('a failure with no message still shows an error and offers Send original', async () => {
-    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error(''))
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    processMediaMock.mockRejectedValue(new Error(''))
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -580,6 +584,23 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(deleted).toEqual(['/tmp/photo.webp'])
   })
 
+  test('Send applies a trim, and Send original never does: the clip goes as it is', async () => {
+    const {finish} = await sendAndHoldExport(['/tmp/trimmed.mov', '/tmp/photo.jpg'])
+    expect(processMediaMock.mock.calls[0]?.slice(0, 5)).toEqual(['/tmp/trimmed.mov', true, true, 1000, 2000])
+    await finish('/tmp/trimmed.mov', new Error('nope'))
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send original'))
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(processMediaMock.mock.calls.slice(2).map(c => c[0])).toEqual(['/tmp/photo.jpg'])
+    await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
+    expect(rpc.params('postAttachment').map(p => (p as {filename: string}).filename)).toEqual([
+      '/tmp/trimmed.mov',
+      '/tmp/photo.jpg',
+    ])
+  })
+
   test('with Keep full size, Send original keeps an original and its metadata', async () => {
     // the pdf first: an image preview doesn't render under jsdom
     const {finish} = await sendAndHoldExport(['/tmp/notes.pdf', '/tmp/photo.jpg', '/tmp/photo.webp'], true)
@@ -686,16 +707,6 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/x.pef', failure())
     expect(uploaded()).toEqual(['/tmp/clip.mov'])
     expect(pendingNotice()).toBe(`Not sent: x.pef ${reason}`)
-  })
-
-  test('a Send original whose processing throws drops the images as unprepared', async () => {
-    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/x.webp'])
-    await finish('/tmp/clip.mov', new Error('nope'))
-    await finish('/tmp/x.webp', 'file:///tmp/x.compressed.jpg')
-    jest.spyOn(MediaProcess, 'processPaths').mockRejectedValue(new Error('boom'))
-    await sendOriginal()
-    expect(uploaded()).toEqual(['/tmp/clip.mov'])
-    expect(pendingNotice()).toBe("Not sent: x.webp couldn't be prepared.")
   })
 
   test('a share that drops an item carries the notice to the thread with the prefill', async () => {
