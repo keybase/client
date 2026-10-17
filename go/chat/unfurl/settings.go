@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -32,6 +33,9 @@ type blocklistRecord struct {
 type Settings struct {
 	utils.DebugLabeler
 
+	// held across each read-modify-write of the stored lists, so concurrent
+	// changes (such as quick prompt answers) don't drop each other's updates
+	mu      sync.Mutex
 	storage types.UserConversationBackedStorage
 }
 
@@ -60,6 +64,8 @@ func (s *Settings) getBlocklist(ctx context.Context, uid gregor1.UID) (map[strin
 
 func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
 	defer s.Trace(ctx, &err, "Get")()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	var mr modeRecord
 	found, err := s.storage.Get(ctx, uid, settingsModeName, &mr)
@@ -94,6 +100,8 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 // NormalizeDomain, and move it off the opposite list.
 func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "WhitelistAdd(%s)", domain)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if isAutoAllowedDomain(domain) {
 		return autoAllowedError(domain)
 	}
@@ -120,6 +128,8 @@ func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain str
 
 func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "WhitelistRemove(%s)", domain)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	whitelist, err := s.getWhitelist(ctx, uid)
 	if err != nil {
 		return err
@@ -134,6 +144,8 @@ func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 
 func (s *Settings) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "BlocklistAdd(%s)", domain)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if isAutoAllowedDomain(domain) {
 		return autoAllowedError(domain)
 	}
@@ -160,6 +172,8 @@ func (s *Settings) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain str
 
 func (s *Settings) BlocklistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "BlocklistRemove(%s)", domain)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	blocklist, err := s.getBlocklist(ctx, uid)
 	if err != nil {
 		return err
@@ -174,6 +188,8 @@ func (s *Settings) BlocklistRemove(ctx context.Context, uid gregor1.UID, domain 
 
 func (s *Settings) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer s.Trace(ctx, &err, "SetMode(%v)", mode)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.storage.Put(ctx, uid, settingsModeName, modeRecord{
 		Mode: mode,
 	})
@@ -213,6 +229,8 @@ func cleanDomainSet(in map[string]bool) map[string]bool {
 // leaves the stored settings untouched.
 func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
 	defer s.Trace(ctx, &err, "Set")()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	whitelist, err := normalizeDomainSet(settings.Whitelist)
 	if err != nil {
 		return err
