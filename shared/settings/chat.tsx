@@ -78,7 +78,8 @@ const useContactSettings = () => {
 
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
-  const [error, setError] = React.useState('')
+  const [loadError, setLoadError] = React.useState('')
+  const [saveError, setSaveError] = React.useState('')
   const {data, reload, setData} = useRPCLoad(
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
     [undefined, C.waitingKeySettingsChatUnfurl],
@@ -88,11 +89,13 @@ const useUnfurlSettings = () => {
         mode: result.mode,
         whitelist: result.whitelist ?? emptyList,
       }),
-      onError: () => setError('Unable to load link preview settings, please try again.'),
-      onResult: () => setError(''),
+      onError: () => setLoadError('Unable to load link preview settings, please try again.'),
+      onResult: () => setLoadError(''),
       when: 'manual',
     }
   )
+  const loaded = data !== undefined
+  const error = saveError || loadError
   const mode = data?.mode
   const whitelist = data?.whitelist ?? emptyList
   const blocklist = data?.blocklist ?? emptyList
@@ -108,9 +111,10 @@ const useUnfurlSettings = () => {
     (
       unfurlMode: T.RPCChat.UnfurlMode,
       unfurlWhitelist: ReadonlyArray<string>,
-      unfurlBlocklist: ReadonlyArray<string>
+      unfurlBlocklist: ReadonlyArray<string>,
+      onSuccess: () => void
     ) => {
-      setError('')
+      setSaveError('')
       // optimistic, the post-save refresh has the final say
       setData({blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist})
       if (!useConfigState.getState().loggedIn) {
@@ -119,17 +123,24 @@ const useUnfurlSettings = () => {
       saveUnfurlSettingsRPC(
         [{blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
         () => {
+          onSuccess()
           unfurlSettingsRefresh()
         },
-        () => {
-          setError('Unable to save link preview settings, please try again.')
+        e => {
+          setSaveError(
+            e.desc
+              ? `Unable to save link preview settings: ${e.desc}`
+              : 'Unable to save link preview settings, please try again.'
+          )
+          // replace the optimistic data with what the service actually has
+          unfurlSettingsRefresh()
         }
       )
     },
     [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
-  return {blocklist, error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+  return {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
 }
 
 const useCompressPreference = () => {
@@ -403,6 +414,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 
 type DomainListProps = {
   added: ReadonlyArray<string>
+  disabled: boolean
   heading: string
   onAdd: (domain: string) => void
   onRemoveAdded: (domain: string) => void
@@ -412,7 +424,7 @@ type DomainListProps = {
 }
 
 const DomainList = (p: DomainListProps) => {
-  const {added, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved} = p
+  const {added, disabled, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const [text, setText] = React.useState('')
@@ -433,9 +445,9 @@ const DomainList = (p: DomainListProps) => {
           placeholder="Add a website, e.g. example.com"
           value={text}
           onChangeText={setText}
-          onEnterKeyDown={submit}
+          onEnterKeyDown={disabled ? undefined : submit}
         />
-        <Kb.Button label="Add" small={true} onClick={submit} disabled={!text.trim()} />
+        <Kb.Button label="Add" small={true} onClick={submit} disabled={disabled || !text.trim()} />
       </Kb.Box2>
       {rows.length > 0 && (
         <Kb.ScrollView style={styles.list}>
@@ -478,14 +490,16 @@ const DomainList = (p: DomainListProps) => {
 
 const Links = () => {
   const styles = useStyles()
-  const {blocklist, error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
+  const {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
+    useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
-  const allowSave = mode !== selected || hasUnfurlListEdits(edits)
+  const allowSave = loaded && (mode !== selected || hasUnfurlListEdits(edits))
   const onSave = () => {
     const next = nextLists({blocklist, whitelist}, edits)
-    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.whitelisted, next.whitelist, next.blocklist)
-    setEdits(emptyUnfurlListEdits)
+    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.whitelisted, next.whitelist, next.blocklist, () =>
+      setEdits(emptyUnfurlListEdits)
+    )
   }
 
   const toggleSaved = (domain: string) => {
@@ -542,8 +556,9 @@ const Links = () => {
           <>
             <DomainList
               added={edits.added.allow}
+              disabled={!loaded}
               heading="Allowed websites"
-              onAdd={domain => setEdits(e => addDomain(e, 'allow', domain))}
+              onAdd={domain => setEdits(e => addDomain(e, 'allow', domain, whitelist))}
               onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'allow', domain))}
               onToggleSaved={toggleSaved}
               removed={edits.removed}
@@ -551,8 +566,9 @@ const Links = () => {
             />
             <DomainList
               added={edits.added.block}
+              disabled={!loaded}
               heading="Blocked websites"
-              onAdd={domain => setEdits(e => addDomain(e, 'block', domain))}
+              onAdd={domain => setEdits(e => addDomain(e, 'block', domain, blocklist))}
               onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'block', domain))}
               onToggleSaved={toggleSaved}
               removed={edits.removed}
