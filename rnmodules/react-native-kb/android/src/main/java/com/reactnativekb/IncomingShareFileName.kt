@@ -43,19 +43,27 @@ object IncomingShareFileName {
     private fun sanitize(candidate: String?): String? {
         if (candidate == null) return null
         val trimmed = candidate.trim { it.isWhitespace() || it == '/' || it == '\\' || it == '.' }
+        // By code point: a format character above U+FFFF is two UTF-16 units,
+        // neither of them a format character on its own.
         val cleaned = buildString {
-            trimmed.forEach { c -> append(if (isReplaced(c)) '_' else c) }
+            var i = 0
+            while (i < trimmed.length) {
+                val cp = trimmed.codePointAt(i)
+                if (isReplaced(cp)) append('_') else appendCodePoint(cp)
+                i += Character.charCount(cp)
+            }
         }
         return cleaned.takeIf { it.isNotEmpty() }
     }
 
-    // The joiners are format characters too, but they only shape text (emoji
-    // sequences, Persian) and can't reorder it.
-    private fun isReplaced(c: Char): Boolean {
-        if (c == '\u200C' || c == '\u200D') return false
-        return c == '/' || c == '\\' || c == ':' || c == '\u2028' || c == '\u2029' ||
-            Character.getType(c).toByte() == Character.CONTROL ||
-            Character.getType(c).toByte() == Character.FORMAT
+    // The joiners and the tag characters of subdivision flags are format
+    // characters too, but they only shape text (emoji sequences, Persian) and
+    // can't reorder it.
+    private fun isReplaced(cp: Int): Boolean {
+        if (cp == 0x200C || cp == 0x200D || cp in 0xE0020..0xE007F) return false
+        val type = Character.getType(cp)
+        return cp == '/'.code || cp == '\\'.code || cp == ':'.code || cp == 0x2028 || cp == 0x2029 ||
+            type == Character.CONTROL.toInt() || type == Character.FORMAT.toInt()
     }
 
     // The longest prefix of s that fits in maxBytes of UTF-8, cut on a code

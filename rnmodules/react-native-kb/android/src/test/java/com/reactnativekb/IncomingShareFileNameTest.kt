@@ -96,6 +96,20 @@ class IncomingShareFileNameTest {
     }
 
     @Test
+    fun formatCharactersAboveTheBmpAreReplaced() {
+        // U+E0001 language tag, U+110BD Kaithi number sign, U+1D173 musical begin beam
+        assertEquals("a_b_c_d.txt", IncomingShareFileName.make("a\uDB40\uDC01b\uD804\uDCBDc\uD834\uDD73d.txt", null))
+    }
+
+    @Test
+    fun zwnjAndFlagTagCharactersAreKept() {
+        assertEquals("a\u200Cb.txt", IncomingShareFileName.make("a\u200Cb.txt", null))
+        // England: U+1F3F4 then tags U+E0067 U+E0062 U+E0065 U+E006E U+E0067 and cancel tag U+E007F
+        val england = "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F"
+        assertEquals("$england trip.png", IncomingShareFileName.make("$england trip.png", null))
+    }
+
+    @Test
     fun aHugeNameIsCappedQuickly() {
         val start = System.nanoTime()
         val made = IncomingShareFileName.make("\u00E9".repeat(1_000_000) + ".pdf", null)
