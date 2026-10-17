@@ -58,12 +58,14 @@ object IncomingShareFileName {
 
     // The joiners and the tag characters of subdivision flags are format
     // characters too, but they only shape text (emoji sequences, Persian) and
-    // can't reorder it.
+    // can't reorder it. A surrogate here is an unpaired one: it isn't text, and
+    // can't be encoded in a file name.
     private fun isReplaced(cp: Int): Boolean {
         if (cp == 0x200C || cp == 0x200D || cp in 0xE0020..0xE007F) return false
         val type = Character.getType(cp)
         return cp == '/'.code || cp == '\\'.code || cp == ':'.code || cp == 0x2028 || cp == 0x2029 ||
-            type == Character.CONTROL.toInt() || type == Character.FORMAT.toInt()
+            type == Character.CONTROL.toInt() || type == Character.FORMAT.toInt() ||
+            type == Character.SURROGATE.toInt()
     }
 
     // The longest prefix of s that fits in maxBytes of UTF-8, cut on a code

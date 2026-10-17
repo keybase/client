@@ -102,6 +102,13 @@ class IncomingShareFileNameTest {
     }
 
     @Test
+    fun unpairedSurrogatesAreReplaced() {
+        assertEquals("a_b_c.txt", IncomingShareFileName.make("a\uD800b\uDC00c.txt", null))
+        // a pair is one character and stays
+        assertEquals("a\uD83D\uDE00b.txt", IncomingShareFileName.make("a\uD83D\uDE00b.txt", null))
+    }
+
+    @Test
     fun zwnjAndFlagTagCharactersAreKept() {
         assertEquals("a\u200Cb.txt", IncomingShareFileName.make("a\u200Cb.txt", null))
         // England: U+1F3F4 then tags U+E0067 U+E0062 U+E0065 U+E006E U+E0067 and cancel tag U+E007F
