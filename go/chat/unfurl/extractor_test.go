@@ -242,16 +242,21 @@ func TestExtractorExemptions(t *testing.T) {
 	require.Len(t, res, 1)
 	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
 
+	// a one-time exemption proves the block check runs first: had the blocked
+	// extract consumed it, the unblocked extract would prompt
+	blockedMsgID := chat1.MessageID(2)
+	extractor.AddWhitelistExemption(context.TODO(), uid,
+		NewOneTimeWhitelistExemption(convID, blockedMsgID, "yahoo.com"))
 	blocked := chat1.NewUnfurlSettings()
 	blocked.Mode = chat1.UnfurlMode_WHITELISTED
-	blocked.Blocklist = map[string]bool{"google.com": true}
+	blocked.Blocklist = map[string]bool{"yahoo.com": true}
 	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
-	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	res, err = extractor.Extract(context.TODO(), uid, convID, blockedMsgID, "http://yahoo.com", settingsMod)
 	require.NoError(t, err)
 	require.Empty(t, res)
 	blocked.Blocklist = map[string]bool{}
 	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
-	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	res, err = extractor.Extract(context.TODO(), uid, convID, blockedMsgID, "http://yahoo.com", settingsMod)
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
