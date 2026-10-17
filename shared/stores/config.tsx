@@ -32,9 +32,6 @@ import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean;
-  androidShare?:
-    | { type: T.RPCGen.IncomingShareType.file; urls: Array<string> }
-    | { type: T.RPCGen.IncomingShareType.text; text: string };
   badgeState?: T.RPCGen.BadgeState;
   chatBuiltinCommands?: T.Chat.StaticConfig["builtinCommands"];
   chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>;
@@ -73,7 +70,6 @@ type Store = T.Immutable<{
 
 const initialStore: Store = {
   allowAnimatedEmojis: true,
-  androidShare: undefined,
   badgeState: undefined,
   chatBuiltinCommands: undefined,
   chatDeletableByDeleteHistory: undefined,
@@ -127,7 +123,6 @@ export type State = Store & {
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void;
     refreshAccounts: () => Promise<void>;
     setAccounts: (a: Store["configuredAccounts"]) => void;
-    setAndroidShare: (s: Store["androidShare"]) => void;
     setBadgeState: (b: State["badgeState"]) => void;
     setChatStaticConfig: (s: T.Chat.StaticConfig) => void;
     setDefaultUsername: (u: string) => void;
@@ -561,11 +556,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       if (isEqual(a, get().configuredAccounts)) return;
       set((s) => {
         s.configuredAccounts = T.castDraft(a);
-      });
-    },
-    setAndroidShare: (share) => {
-      set((s) => {
-        s.androidShare = T.castDraft(share);
       });
     },
     setBadgeState: (b) => {

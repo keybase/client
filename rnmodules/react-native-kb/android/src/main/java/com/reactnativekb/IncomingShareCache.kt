@@ -2,6 +2,10 @@ package com.reactnativekb
 
 import android.content.Context
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.UUID
 
 // Sharing into the app copies the sender's content out of its content:// uri and
 // into our cache, because the uri is only readable for as long as the intent
@@ -23,20 +27,67 @@ object IncomingShareCache {
         return dir
     }
 
-    fun file(context: Context, filename: String): File = File(dir(context), filename)
+    // Each item gets its own directory so two items with the same name, in one
+    // share or in overlapping ones, never overwrite each other's copy. name must
+    // be a single path component (see IncomingShareFileName). share, when given,
+    // tags the directory with the share it belongs to (see discardShare).
+    fun newItemFile(context: Context, name: String, share: String? = null): File =
+        newItemFile(dir(context), name, share)
 
-    // Call off the main thread: this stats every file in the directory.
-    fun purgeOld(context: Context) {
-        val cutoff = System.currentTimeMillis() - MAX_AGE_MS
+    fun newItemFile(dir: File, name: String, share: String? = null): File {
+        val uuid = UUID.randomUUID().toString()
+        val itemDir = File(dir, if (share == null) uuid else "$share-$uuid")
+        if (!itemDir.mkdirs()) {
+            throw IOException("unable to create ${itemDir.path}")
+        }
+        return File(itemDir, name)
+    }
+
+    // Copies input into a new item file named name. On any failure nothing is
+    // left behind.
+    fun copyIn(context: Context, input: InputStream, name: String, share: String? = null): File {
+        val file = newItemFile(context, name, share)
+        try {
+            FileOutputStream(file).use { output -> input.copyTo(output, 64 * 1024) }
+        } catch (e: Exception) {
+            discardItem(context, file)
+            throw e
+        }
+        return file
+    }
+
+    // Removes every copy made for share, finished or cut off: a copy the process
+    // was killed in the middle of is left as it was.
+    fun discardShare(context: Context, share: String) = discardShare(dir(context), share)
+
+    fun discardShare(dir: File, share: String) {
+        dir.listFiles()?.filter { it.name.startsWith("$share-") }?.forEach { it.deleteRecursively() }
+    }
+
+    // Removes a copy made by newItemFile, along with its directory.
+    fun discardItem(context: Context, file: File) {
+        val itemDir = file.parentFile ?: return
+        if (itemDir.parentFile == dir(context)) {
+            itemDir.deleteRecursively()
+        }
+    }
+
+    // Call off the main thread: this stats every file in the directory. keep: the
+    // item directories of a share restored after the process was killed, which
+    // may well be old but are still to be sent.
+    fun purgeOld(context: Context, keep: Set<File>) = purgeOld(dir(context), keep, System.currentTimeMillis())
+
+    fun purgeOld(dir: File, keep: Set<File>, now: Long) {
+        val cutoff = now - MAX_AGE_MS
         // null means the listing itself failed, which is not the same as an empty
         // directory: the copies are still there, so say so rather than looking swept
-        val files = dir(context).listFiles()
+        val files = dir.listFiles()
         if (files == null) {
             NativeLogger.warn("IncomingShareCache: unable to list the cache directory, skipping purge")
             return
         }
         files.forEach { file ->
-            if (file.lastModified() < cutoff) {
+            if (file.lastModified() < cutoff && file !in keep) {
                 file.deleteRecursively()
             }
         }

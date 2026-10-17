@@ -132,6 +132,7 @@ export const uploadAttachments = (p: {
     const {clientPrev, conversationIDKey, ephemeralLifetime, paths, titles, tlfName} = p
     if (!tlfName) {
       logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
+      useConfigState.getState().dispatch.setGlobalError(new Error('Failed to send the attachment.'))
       return
     }
     const outboxIDs = paths.map(pathInfo => pathInfo.outboxID ?? Common.generateOutboxID())

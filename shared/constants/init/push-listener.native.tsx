@@ -1,8 +1,7 @@
-import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {subscribeIntentAccountSwitch} from '@/router-v2/account-link-switch'
+import {onAndroidShareHeld, subscribeAndroidShareOpener} from './android-share'
 import {listenForPushTaps} from './shared'
 import {
   getRegistrationToken,
@@ -82,22 +81,9 @@ export const initPushListener = () => {
     }
 
     if (isAndroid) {
-      const shareSub = onShareData(evt => {
-        const {setAndroidShare} = useConfigState.getState().dispatch
-
-        const text = evt.text
-        const urls = evt.localPaths
-
-        if (urls) {
-          setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-        } else if (text) {
-          setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-        } else {
-          return
-        }
-        emitDeepLink('keybase://incoming-share')
-      })
+      const shareSub = onShareData(evt => onAndroidShareHeld(evt.id))
       unsubs.push(() => shareSub.remove())
+      unsubs.push(subscribeAndroidShareOpener())
       // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
       // router subscriber controls when native flushes pending share intents.
     }

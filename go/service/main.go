@@ -443,16 +443,19 @@ func (d *Service) purgeOldIncomingShareData() {
 	cutoff := time.Now().Add(-incomingShareMaxAge)
 	for _, entry := range entries {
 		// manifest.json lives alongside the payload dirs and is the live handoff
-		// to the app; only the directories are ours to remove.
-		if !entry.IsDir() {
+		// to the app. Besides the directories, only a claimed manifest that a
+		// read never got to remove is ours.
+		if !entry.IsDir() && !isClaimedIncomingShareManifest(entry.Name()) {
 			continue
 		}
 		info, err := entry.Info()
 		if err != nil {
 			continue
 		}
-		// Writing the processed copy into the payload dir bumps its mtime, so a
-		// share still being worked on keeps renewing its lease.
+		// The payload dir's mtime is when the extension last added an item to
+		// it. Each item lives in its own subdirectory, so the app's processed
+		// copies land there and don't renew it: a share left unsent past the
+		// cutoff is removed.
 		if info.ModTime().After(cutoff) {
 			continue
 		}

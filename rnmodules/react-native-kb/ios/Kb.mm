@@ -670,11 +670,11 @@ static NSString *kbJSPath(NSString *p) {
   return [p hasPrefix:@"/"] ? [@"file://" stringByAppendingString:p] : p;
 }
 
-RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress startMs:(double)startMs endMs:(double)endMs removeAudio:(BOOL)removeAudio resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(BOOL)compress startMs:(double)startMs endMs:(double)endMs removeAudio:(BOOL)removeAudio stripLocation:(BOOL)stripLocation resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   NSURL *url = [NSURL fileURLWithPath:kbBarePath(path)];
   void (^done)(NSError *, NSURL *) = ^(NSError *error, NSURL *out) {
     if (error) {
-      reject(@"process_media_error", error.localizedDescription, error);
+      reject([MediaUtils rejectCodeFor:error], error.localizedDescription, error);
     } else if (out) {
       resolve(kbJSPath(out.path));
     } else {
@@ -687,7 +687,7 @@ RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(
                                             removeAudio:removeAudio];
     [MediaUtils processVideoFromOriginal:url compress:compress edit:(edit.isNoop ? nil : edit) completion:done];
   } else {
-    [MediaUtils processImageFromOriginal:url compress:compress completion:done];
+    [MediaUtils processImageFromOriginal:url compress:compress stripLocation:stripLocation completion:done];
   }
 }
 
@@ -922,6 +922,14 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekPushTap) {
     return (id)kCFNull;
   }
   return @{@"payload" : kbPushTapPayload, @"id" : @(kbPushTapID)};
+}
+
+// Android only: shares come in through the share extension on iOS.
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peekIncomingShare : (double)shareID) {
+  return (id)kCFNull;
+}
+
+RCT_EXPORT_METHOD(ackIncomingShare : (double)shareID) {
 }
 
 RCT_EXPORT_METHOD(ackPushTap : (double)tapID) {

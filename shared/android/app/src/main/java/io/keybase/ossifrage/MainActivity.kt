@@ -7,17 +7,24 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
+import android.os.Parcel
+import android.os.Parcelable
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.IntentCompat
+import androidx.core.os.BundleCompat
+import androidx.core.text.HtmlCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
+import com.reactnativekb.IncomingShareCopy
+import com.reactnativekb.IncomingShareDone
+import com.reactnativekb.IncomingShareFileName
+import com.reactnativekb.IncomingShareRelay
 import com.reactnativekb.KbModule
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.util.DNSNSFetcher
@@ -46,7 +53,46 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
-        captureIntent(intent)
+        // With saved state this Activity is a recreation, and its intent was already
+        // captured by the instance it replaces. The relay lives only as long as the
+        // process, so if the process was killed in between, the share JS wasn't done
+        // with comes back from the saved state, and so does a share whose copy hadn't
+        // finished, which is read again from its intent.
+        val relay = IncomingShareRelay.shared
+        var cutOffCopies: String? = null
+        if (savedInstanceState == null) {
+            captureIntent(intent)
+        } else if (!relay.started()) {
+            val done = IncomingShareDone.file(this)
+            savedInstanceState.getBundle(HELD_SHARE)?.let { saved ->
+                relay.restore(shareFromBundle(saved), isDone = { IncomingShareDone.contains(done, it) })
+            }
+            savedInstanceState.getBundle(PREPARING_SHARE)?.let { preparing ->
+                // The copies cut off when the process was killed are made again, under a new tag,
+                // and the share keeps its key, so it isn't read again once it was sent.
+                cutOffCopies = preparing.getString(PREPARING_TAG)
+                val key = preparing.getString(PREPARING_KEY) ?: UUID.randomUUID().toString()
+                if (!IncomingShareDone.contains(done, key)) {
+                    BundleCompat.getParcelable(preparing, PREPARING_INTENT, Intent::class.java)?.let { captureIntent(it, key) }
+                }
+            }
+        }
+        // The purge runs once per process, after a restore so its copies are known and kept.
+        val purge = !cachePurged
+        cachePurged = true
+        val keep = relay.saved().share?.paths.orEmpty().mapNotNull { File(it).parentFile }.toSet()
+        val discard = cutOffCopies
+        if (purge || discard != null) {
+            val context: Context = applicationContext
+            Thread {
+                try {
+                    discard?.let { IncomingShareCache.discardShare(context, it) }
+                    if (purge) IncomingShareCache.purgeOld(context, keep)
+                } catch (e: Exception) {
+                    NativeLogger.warn("MainActivity: error clearing old incoming shares", e)
+                }
+            }.start()
+        }
 
         // Before super.onCreate so the first frame after the splash already has the
         // right background; a delayed call here shows a white flash in dark mode.
@@ -68,65 +114,44 @@ class MainActivity : ReactActivity() {
         super.onPause()
     }
 
-    private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
-        // Use a GUID default.
-        var filename = String.format("%s.%s", UUID.randomUUID().toString(), extension)
-        val nameProjection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
-        resolver.query(uri, nameProjection, null, null, null).use { cursor ->
-            if (cursor != null && cursor.moveToFirst()) {
-                filename = cursor.getString(0)
-            }
+    private fun queryDisplayName(resolver: ContentResolver, uri: Uri): String? = try {
+        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getString(0) else null
         }
-        val cut = filename.lastIndexOf('/')
-        if (cut != -1) {
-            filename = filename.substring(cut + 1)
-        }
-        return filename
+    } catch (e: Exception) {
+        // Some providers lack the column or throw on query; the name is optional.
+        NativeLogger.warn("Unable to read the display name of $uri", e)
+        null
     }
 
-    private fun saveFileToCache(context: Context, uri: Uri, filename: String): File {
-        val file = IncomingShareCache.file(context, filename)
-        try {
-            context.contentResolver.openInputStream(uri).use { istream ->
-                FileOutputStream(file).use { ostream ->
-                    val buf = ByteArray(64 * 1024)
-                    var len: Int
-                    while (istream!!.read(buf).also { len = it } != -1) {
-                        ostream.write(buf, 0, len)
-                    }
-                }
-            }
-        } catch (ex: IOException) {
-            Log.w(TAG, "Error writing shared file $uri", ex)
+    // Copies a shared item into the share cache. Returns null, leaving nothing
+    // behind, when the item can't be copied whole: a missing or partial file
+    // must never be sent.
+    private fun copySharedUri(context: Context, uri: Uri, share: String): String? {
+        // A file:// (or other) uri from another app is a path we would read with
+        // our own permissions, so only content:// is copied.
+        if (!IncomingShareCopy.isCopyableScheme(uri.scheme)) {
+            NativeLogger.warn("Dropping shared item with scheme ${uri.scheme}")
+            return null
         }
-        return file
-    }
-
-    private fun readFileFromUri(context: Context, uri: Uri?): String? {
-        if (uri == null) return null
-        var filePath: String?
-        filePath = if (uri.scheme == "content") {
-            val resolver = context.contentResolver
-            val mimeType = resolver.getType(uri)
-            val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
-
-            // Load the filename from the resolver.
-            val filename = getFileNameFromResolver(resolver, uri, extension)
-
-            // Now load the file itself.
-            val file = saveFileToCache(context, uri, filename)
-            file.path
-        } else {
-            uri.path
+        val resolver = context.contentResolver
+        return try {
+            val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            val name = IncomingShareFileName.make(queryDisplayName(resolver, uri), ext)
+            val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
+            input.use { IncomingShareCache.copyIn(context, it, name, share) }.path
+        } catch (e: Exception) {
+            NativeLogger.warn("Unable to copy shared item $uri", e)
+            null
         }
-        return filePath
     }
 
     override fun onResume() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         (application as MainApplication).lifecycleReporter.onMainActivityResume()
-        handleIntent()
+        // Retries a share whose emit failed.
+        IncomingShareRelay.shared.flush()
     }
 
     override fun onStart() {
@@ -140,42 +165,131 @@ class MainActivity : ReactActivity() {
         (application as MainApplication).lifecycleReporter.onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
-    // A share intent parks here until JS asks for it. Nothing else is parked: deep links go
-    // through super.onNewIntent -> RCTLinkingManager, and a notification tap goes through
-    // PushTapActivity to KbModule, so a plain launch leaves this null.
-    private var cachedIntent: Intent? = null
-
-    private var pendingShareUris: List<Uri>? = null
-    private var pendingShareSubject: String? = null
-    private var pendingShareText: String? = null
-
-    // Snapshot share data out of the intent right away: share URI permission grants and clip
-    // data are tied to the delivered intent, and JS may not be ready to route them until much
-    // later (see shareListenersRegistered).
-    private fun captureIntent(intent: Intent) {
+    // Snapshot share data out of the intent right away and hand it to the relay, which holds
+    // it until JS is ready to route it: URI permission grants and clip data are tied to the
+    // delivered intent, and JS may not be ready until much later (after login).
+    // key: names the share across processes (see IncomingShareDone).
+    private fun captureIntent(intent: Intent, key: String = UUID.randomUUID().toString()) {
         if (Intent.ACTION_SEND != intent.action && Intent.ACTION_SEND_MULTIPLE != intent.action) {
             return
         }
-        cachedIntent = intent
-        pendingShareUris = extractSharedUris(intent)
-        pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-        pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        // Reopening from recents hands back the share intent the task started with.
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) {
+            return
+        }
+        // Reading the extras unparcels the sender's bundle, which throws on a class we
+        // don't have (BadParcelableException); that share is unusable, not a crash.
+        val (uris, subject, text) = try {
+            Triple(
+                extractSharedUris(intent),
+                sharedText(intent, Intent.EXTRA_SUBJECT),
+                sharedText(intent, Intent.EXTRA_TEXT)
+                    ?: sharedText(intent, Intent.EXTRA_HTML_TEXT)?.let {
+                        // fromHtml leaves an object-replacement character where each image was.
+                        HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                            .replace("\uFFFC", "").trim().takeIf { t -> t.isNotEmpty() }
+                    },
+            )
+        } catch (e: Exception) {
+            NativeLogger.warn("MainActivity.captureIntent: unreadable share extras, ignoring the share", e)
+            return
+        }
+        NativeLogger.info("MainActivity.captureIntent: action=${intent.action}, uriCount=${uris.size}")
+
+        val textPayload = listOfNotNull(subject, text).joinToString(" ")
+        // Only a single SEND: a SEND_MULTIPLE of text files is files, whatever text rides along.
+        val isTextSend = Intent.ACTION_SEND == intent.action && intent.type?.startsWith("text/") == true
+        val relay = IncomingShareRelay.shared
+
+        if (isTextSend && textPayload.isNotEmpty()) {
+            // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
+            relay.fill(relay.begin(), textShare(text ?: textPayload, 0, key))
+        } else if (uris.isEmpty()) {
+            if (textPayload.isNotEmpty()) {
+                relay.fill(relay.begin(), textShare(textPayload, 0, key))
+            } else {
+                NativeLogger.warn("MainActivity.captureIntent: share had no text or files, type=${intent.type}")
+            }
+        } else {
+            // Its intent, read again if the process is killed before the copy
+            // finishes, and the tag its copies carry.
+            val tag = UUID.randomUUID().toString()
+            val token = relay.begin(Bundle().apply {
+                putParcelable(PREPARING_INTENT, intent)
+                putString(PREPARING_TAG, tag)
+                putString(PREPARING_KEY, key)
+            })
+            // Copying out of the content providers can be slow for big files; don't
+            // block the main thread on it.
+            val context: Context = applicationContext
+            Thread {
+                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri, tag) }
+                // How many shared items couldn't be copied.
+                val droppedCount = uris.size - filePaths.size
+                val share = if (filePaths.isEmpty() && textPayload.isNotEmpty()) {
+                    // Fallback: non-text MIME but no files resolved, send text
+                    textShare(textPayload, droppedCount, key)
+                } else {
+                    IncomingShareRelay.Share(null, filePaths, droppedCount, key)
+                }
+                relay.fill(token, share)
+            }.start()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val saved = IncomingShareRelay.shared.saved()
+        val parts = listOfNotNull(
+            saved.share?.let { share ->
+                HELD_SHARE to Bundle().apply {
+                    putString("text", share.text)
+                    putStringArrayList("paths", ArrayList(share.paths))
+                    putInt("droppedCount", share.droppedCount)
+                    putString("key", share.key)
+                }
+            },
+            (saved.preparing as? Bundle)?.let { PREPARING_SHARE to it },
+        )
+        // Saved state goes through a binder transaction, which fails past about 1 MB
+        // for everything in it; a share that big is not worth crashing for.
+        val fits = IncomingShareRelay.withinBudget(parts.map { parcelSize(it.second) }, MAX_SAVED_SHARE_BYTES)
+        parts.zip(fits).forEach { (part, fit) -> if (fit) outState.putParcelable(part.first, part.second) }
+    }
+
+    private fun parcelSize(value: Parcelable): Int {
+        val parcel = Parcel.obtain()
+        return try {
+            parcel.writeParcelable(value, 0)
+            parcel.dataSize()
+        } finally {
+            parcel.recycle()
+        }
+    }
+
+    private fun shareFromBundle(b: Bundle) = IncomingShareRelay.Share(
+        b.getString("text"), b.getStringArrayList("paths").orEmpty(), b.getInt("droppedCount"), b.getString("key").orEmpty())
+
+    private fun textShare(text: String, droppedCount: Int, key: String) =
+        IncomingShareRelay.Share(text, emptyList(), droppedCount, key)
+
+    // EXTRA_TEXT is a CharSequence, often a Spanned from rich-text senders, and an
+    // ArrayList of them for SEND_MULTIPLE; getStringExtra returns null for both.
+    // Blank text is no share at all.
+    private fun sharedText(intent: Intent, key: String): String? {
+        @Suppress("DEPRECATION")
+        val text = when (val extra = intent.extras?.get(key)) {
+            is CharSequence -> extra.toString()
+            is ArrayList<*> -> extra.filterIsInstance<CharSequence>().joinToString("\n")
+            else -> null
+        }
+        return text?.takeIf { it.isNotBlank() }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         captureIntent(intent)
-        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}")
-    }
-
-    private var jsIsListening = false
-
-    // JS calls this once it is ready to route a share. That is the only signal the parked
-    // intent waits on.
-    public fun shareListenersRegistered() {
-        jsIsListening = true
-        handleIntent()
     }
 
     private fun extractSharedUris(intent: Intent): List<Uri> {
@@ -207,74 +321,6 @@ class MainActivity : ReactActivity() {
         }
 
         return uris.distinct()
-    }
-
-    private fun handleIntent() {
-        val intent = cachedIntent ?: return
-        if (!jsIsListening) return
-        NativeLogger.info("MainActivity.handleIntent: processing intent action=${intent.action}")
-
-        val uris = pendingShareUris.orEmpty().also { pendingShareUris = null }
-        val subject = pendingShareSubject.also { pendingShareSubject = null }
-        val text = pendingShareText.also { pendingShareText = null }
-
-        // Strip consumed extras so an activity recreation (which redelivers this
-        // same intent instance) doesn't re-share.
-        intent.removeExtra(Intent.EXTRA_STREAM)
-        intent.removeExtra(Intent.EXTRA_SUBJECT)
-        intent.removeExtra(Intent.EXTRA_TEXT)
-        intent.setClipData(null)
-
-        val textPayload = listOfNotNull(subject, text).joinToString(" ")
-        val isTextMime = intent.type?.startsWith("text/") == true
-
-        if (isTextMime && textPayload.isNotEmpty()) {
-            // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
-            emitShareText(text ?: textPayload)
-        } else if (uris.isEmpty()) {
-            if (textPayload.isNotEmpty()) {
-                emitShareText(textPayload)
-            }
-        } else {
-            // Copying out of the content providers can be slow for big files; don't
-            // block the main thread on it.
-            val context: Context = this
-            Thread {
-                val filePaths = uris.mapNotNull { uri ->
-                    try {
-                        readFileFromUri(context, uri)
-                    } catch (e: SecurityException) {
-                        null
-                    }
-                }
-                if (filePaths.isNotEmpty()) {
-                    emitShareFiles(filePaths)
-                } else if (textPayload.isNotEmpty()) {
-                    // Fallback: non-text MIME but no files resolved, send text
-                    emitShareText(textPayload)
-                } else {
-                    emitShareFiles(emptyList())
-                }
-            }.start()
-        }
-
-        cachedIntent = null
-    }
-
-    private fun emitShareText(text: String) {
-        val args = Arguments.createMap()
-        args.putString("text", text)
-        KbModule.emitShareData(args)
-    }
-
-    private fun emitShareFiles(paths: List<String>) {
-        val args = Arguments.createMap()
-        val lPaths = Arguments.createArray()
-        for (path in paths) {
-            lPaths.pushString(path)
-        }
-        args.putArray("localPaths", lPaths)
-        KbModule.emitShareData(args)
     }
 
     override fun getMainComponentName(): String = "Keybase"
@@ -322,6 +368,15 @@ class MainActivity : ReactActivity() {
 
     companion object {
         private const val TAG = "ossifrage"
+        private const val HELD_SHARE = "heldIncomingShare"
+        private const val PREPARING_SHARE = "preparingIncomingShare"
+        // The share cache is purged once per process, by its first Activity.
+        @Volatile
+        private var cachePurged = false
+        private const val PREPARING_INTENT = "intent"
+        private const val PREPARING_TAG = "tag"
+        private const val PREPARING_KEY = "key"
+        private const val MAX_SAVED_SHARE_BYTES = 200 * 1024
 
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")

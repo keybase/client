@@ -2,6 +2,9 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 
 export type NavigationIntentOptions = {
+  // When what asked for this navigation happened, if earlier than now: the intent's lifetime counts
+  // from then.
+  createdAt?: number
   pushTapID?: number
   targetUid?: string
 }
@@ -86,7 +89,7 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
       },
       enqueue: (url, options) => {
         const now = Date.now()
-        const {pushTapID, targetUid} = options ?? {}
+        const {createdAt, pushTapID, targetUid} = options ?? {}
         const {intent: pending, lastHandledIntent} = get()
 
         if (pushTapID !== undefined) {
@@ -163,7 +166,7 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
         const id = ++nextIntentID
         set(s => {
           s.intent = {
-            createdAt: now,
+            createdAt: Math.min(createdAt ?? now, now),
             id,
             pushTapID,
             targetUid,

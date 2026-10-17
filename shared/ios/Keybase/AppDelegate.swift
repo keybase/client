@@ -22,7 +22,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
-  var iph: ItemProviderHelper?
+  // One per drop still being processed, so an overlapping drop can't free
+  // an earlier one before its completion runs.
+  private var dropHelpers: [ItemProviderHelper] = []
   private var startupLogFileHandle: FileHandle?
   private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
 
@@ -278,18 +280,42 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     return UIDropProposal(operation: .copy)
   }
 
+  private func showDropFailedAlert(in window: UIWindow?) {
+    var top = window?.rootViewController
+    while let presented = top?.presentedViewController {
+      top = presented
+    }
+    // One alert is enough when drops fail back to back.
+    guard let top, !(top is UIAlertController) else { return }
+    let alert = UIAlertController(
+      title: "Couldn't add these items", message: "Please try dropping them again.", preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "OK", style: .default))
+    top.present(alert, animated: true)
+  }
+
   public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
 
-    self.iph = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
-      guard let self else { return }
+    weak var dropHelper: ItemProviderHelper?
+    let helper = ItemProviderHelper(withItems: [items]) { [weak self] in
+      guard let self, let helper = dropHelper else { return }
+      self.dropHelpers.removeAll { $0 === helper }
+      // Whatever is on disk after a failed write isn't this drop's manifest
+      // (the service may still hand out an older share), so the share is only
+      // opened to a manifest this drop wrote.
+      guard helper.manifestWritten else {
+        log.error("drop: manifest not written; not opening the share")
+        self.showDropFailedAlert(in: interaction.view?.window)
+        return
+      }
       let url = URL(string: "keybase://incoming-share")!
       let app = UIApplication.shared
       _ = self.application(app, open: url, options: [:]) || RCTLinkingManager.application(app, open: url, options: [:])
-      self.iph = nil
     }
-    self.iph?.startProcessing()
+    dropHelper = helper
+    dropHelpers.append(helper)
+    helper.startProcessing()
   }
 
   func scheduleAppRefresh() {

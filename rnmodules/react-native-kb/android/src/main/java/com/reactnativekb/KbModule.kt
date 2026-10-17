@@ -1,6 +1,5 @@
 package com.reactnativekb
 
-import android.app.Activity
 import android.app.DownloadManager
 import android.app.KeyguardManager
 import android.content.Context
@@ -31,7 +30,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
-import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 import keybase.Keybase
 import keybase.Keybase.readArr
@@ -195,17 +193,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // JS calls this once per runtime, when it is ready to route a share. The
+    // relay, not any Activity, holds the share until then.
     @ReactMethod
     override fun shareListenersRegistered() {
-        try {
-            val activity: Activity? = reactContext.currentActivity
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("shareListenersRegistered")
-                m.invoke(activity)
-            }
-        } catch (ex: Exception) {
-            NativeLogger.warn("Error calling shareListenersRegistered", ex)
-        }
+        IncomingShareRelay.shared.attach(this) { id -> emitShare(id) }
     }
 
     // Sharing
@@ -405,15 +397,42 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    internal fun emitShareDataInternal(data: WritableMap) {
-        if (reactContext.hasActiveReactInstance() && canEmit()) {
-            try {
-                emitOnShareData(data)
-            } catch (e: Exception) {
-                NativeLogger.error("emitShareDataInternal failed to emit: " + e.message)
-            }
+    // The share with this id, while the relay holds it.
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun peekIncomingShare(id: Double): WritableMap? {
+        val share = IncomingShareRelay.shared.share(id.toLong()) ?: return null
+        val data = Arguments.createMap()
+        if (share.text != null) {
+            data.putString("text", share.text)
         } else {
-            NativeLogger.warn("emitShareDataInternal no active react instance")
+            val paths = Arguments.createArray()
+            share.paths.forEach { paths.pushString(it) }
+            data.putArray("localPaths", paths)
+        }
+        data.putInt("droppedCount", share.droppedCount)
+        return data
+    }
+
+    // JS is done with the share with this id.
+    @ReactMethod
+    override fun ackIncomingShare(id: Double) {
+        IncomingShareRelay.shared.done(id.toLong())?.let { IncomingShareDone.record(IncomingShareDone.file(reactContext), it) }
+    }
+
+    // True only once JS has been told about the share.
+    private fun emitShare(id: Long): Boolean {
+        if (!reactContext.hasActiveReactInstance() || !canEmit()) {
+            NativeLogger.warn("emitShare: no active react instance, holding the share")
+            return false
+        }
+        return try {
+            val data = Arguments.createMap()
+            data.putDouble("id", id.toDouble())
+            emitOnShareData(data)
+            true
+        } catch (e: Exception) {
+            NativeLogger.error("emitShare failed to emit: " + e.message)
+            false
         }
     }
 
@@ -608,6 +627,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // dies while the ReactInstance and this module survive. This is the only
     // place that should ever clear the native bridge.
     override fun invalidate() {
+        IncomingShareRelay.shared.detach(this)
         val wasCurrent = nativeInvalidate()
         // Mirrors iOS invalidate's identity-gated KeybaseReset. Replacing the
         // runtime replaces the JS transport: it starts with fresh seqids and
@@ -737,6 +757,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         startMs: Double,
         endMs: Double,
         removeAudio: Boolean,
+        stripLocation: Boolean,
         promise: Promise
     ) {
         promise.reject(Exception("wrong platform"))
@@ -796,16 +817,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         fun emitAppLifecycle(state: String) {
             lastAppLifecycleState = state
             instance?.emitAppLifecycleInternal(state)
-        }
-
-        @JvmStatic
-        fun emitShareData(data: WritableMap) {
-            val module = instance
-            if (module == null) {
-                android.util.Log.w("KbModule", "emitShareData called but instance is null (app may not be running)")
-                return
-            }
-            module.emitShareDataInternal(data)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)

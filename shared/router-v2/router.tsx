@@ -29,13 +29,15 @@ import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
 import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {Platform, View} from 'react-native'
+import {Linking, Platform, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
 import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {takeLaunchURL} from './launch-url'
+import {holdLoggedOutLink, releaseLoggedOutLink} from './logged-out-share'
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
@@ -704,6 +706,23 @@ function NativeRouter() {
       clearPendingAccountSwitch(username)
     }
   }, [userSwitching, username])
+
+  // Without a linking config (logged out) the launch link, and any link after it (a share from the
+  // iOS share extension among them), would be lost.
+  React.useEffect(() => {
+    if (!isIOS || !loggedInLoaded || loggedIn) return
+    const holdLaunchLink = async () => {
+      holdLoggedOutLink(await takeLaunchURL())
+    }
+    C.ignorePromise(holdLaunchLink())
+    const sub = Linking.addEventListener('url', ({url}: {url: string}) => holdLoggedOutLink(url))
+    return () => sub.remove()
+  }, [loggedInLoaded, loggedIn])
+  React.useEffect(() => {
+    if (loggedIn) {
+      releaseLoggedOutLink()
+    }
+  }, [loggedIn])
 
   const onNativeReady = () => {
     onStateChange()

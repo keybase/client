@@ -12,6 +12,7 @@ import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {Freeze} from 'react-freeze'
 import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
+import {startNewAccountGeneration} from '@/engine/account-generation'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {
   clearModals,
@@ -79,6 +80,19 @@ jest.mock('./normal/input', () => ({
     const {useImperativeHandle} = require('react') as typeof React
     useImperativeHandle(mockNullInputRef ? undefined : p.setInputRef, mockHandle)
     return null
+  },
+}))
+
+// writing the file is native; the rest of the module (the limit, the naming) is the real one
+const mockSharedTextWrites = new Array<string>()
+let mockSharedTextWriteFails = false
+jest.mock('@/util/shared-text-file', () => ({
+  ...jest.requireActual<object>('@/util/shared-text-file'),
+  writeSharedTextFile: async (text: string) => {
+    await Promise.resolve()
+    if (mockSharedTextWriteFails) throw new Error('disk full')
+    mockSharedTextWrites.push(text)
+    return {path: `/cache/shared-text/${mockSharedTextWrites.length}/shared.txt`, remove: () => {}}
   },
 }))
 
@@ -801,6 +815,174 @@ test('an intent written before the provider mounts is delivered on mount', () =>
   const {composerInput} = renderInput(convID)
 
   expect(composerInput.text).toBe('prefill from store')
+})
+
+test('an injectText notice shows as a warning in the command status bar', () => {
+  setInputIntent(convID, {notice: "1 item couldn't be prepared.", text: 'shared text', type: 'injectText'})
+
+  const {composerInput, result} = renderInput(convID)
+
+  expect(composerInput.text).toBe('shared text')
+  expect(result.current.commandStatus).toEqual({
+    actions: [],
+    displayText: "1 item couldn't be prepared.",
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.warning,
+  })
+})
+
+test('an injectText with only a notice leaves the composer text alone', () => {
+  setInputIntent(convID, {text: 'a draft', type: 'injectText'})
+  const {composerInput, result} = renderInput(convID)
+  expect(composerInput.text).toBe('a draft')
+
+  act(() => {
+    setInputIntent(convID, {notice: "Not sent: a.webp couldn't be converted.", type: 'injectText'})
+  })
+
+  expect(composerInput.text).toBe('a draft')
+  expect(result.current.commandStatus?.displayText).toBe("Not sent: a.webp couldn't be converted.")
+})
+
+test('a shared text (append) goes after the conversation\'s draft instead of replacing it', () => {
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft: 'my draft'}], undefined, {
+    force: true,
+  })
+  setInputIntent(convID, {append: true, text: 'shared text', type: 'injectText'})
+
+  const {composerInput} = renderInput(convID)
+
+  expect(composerInput.text).toBe('my draft\nshared text')
+})
+
+describe('shared text over the message limit', () => {
+  const limit = 10000
+  const withDraft = (draft: string) =>
+    metasReceived(
+      [{...Meta.makeConversationMeta(), conversationIDKey: convID, draft, tlfname: 'testuser,testuser-mac'}],
+      undefined,
+      {force: true}
+    )
+  const attachments = (nav: ReturnType<typeof installFakeNavigator>) =>
+    nav.navigations().filter(n => n.name === 'chatAttachmentGetTitles')
+
+  beforeEach(() => {
+    mockSharedTextWrites.length = 0
+    mockSharedTextWriteFails = false
+  })
+
+  test('text that fits after the draft, newline included, is appended', async () => {
+    const nav = installFakeNavigator()
+    const draft = 'd'.repeat(100)
+    withDraft(draft)
+    const text = 's'.repeat(limit - draft.length - 1)
+    setInputIntent(convID, {append: true, text, type: 'injectText'})
+
+    const {composerInput} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe(`${draft}\n${text}`)
+    expect(attachments(nav)).toEqual([])
+  })
+
+  test('text the draft has no room for goes as a .txt attachment, the draft untouched', async () => {
+    const nav = installFakeNavigator()
+    const draft = 'd'.repeat(100)
+    withDraft(draft)
+    const text = 's'.repeat(limit - draft.length)
+    setInputIntent(convID, {append: true, notice: "1 item couldn't be prepared.", text, type: 'injectText'})
+
+    const {composerInput, result} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe(draft)
+    expect(mockSharedTextWrites).toEqual([text])
+    expect(attachments(nav)).toEqual([
+      {
+        name: 'chatAttachmentGetTitles',
+        params: {
+          conversationIDKey: convID,
+          pathAndOutboxIDs: [{path: '/cache/shared-text/1/shared.txt'}],
+          textBack: text,
+          tlfName: 'testuser,testuser-mac',
+        },
+        replace: false,
+      },
+    ])
+    expect(result.current.commandStatus?.displayText).toBe("1 item couldn't be prepared.")
+  })
+
+  test('text over the limit on its own is attached, measured in UTF-8 bytes as the service does', async () => {
+    const nav = installFakeNavigator()
+    // 3334 characters, 10002 bytes
+    const text = '写'.repeat(3334)
+    setInputIntent(convID, {append: true, text, type: 'injectText'})
+
+    const {composerInput} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe('')
+    expect(attachments(nav)).toHaveLength(1)
+  })
+
+  test('an attached share is attached once: its intent does not replay on remount', async () => {
+    const nav = installFakeNavigator()
+    setInputIntent(convID, {append: true, text: 's'.repeat(limit + 1), type: 'injectText'})
+
+    renderInput(convID).unmount()
+    renderInput(convID)
+    await act(flushPromises)
+
+    expect(mockSharedTextWrites).toHaveLength(1)
+    expect(attachments(nav)).toHaveLength(1)
+  })
+
+  test('text handed back by a cancelled titles screen goes after the draft, not to another titles screen', async () => {
+    const nav = installFakeNavigator()
+    const draft = 'd'.repeat(100)
+    withDraft(draft)
+    const text = 's'.repeat(limit)
+    setInputIntent(convID, {putBack: true, text, type: 'injectText'})
+
+    const {composerInput} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe(`${draft}\n${text}`)
+    expect(attachments(nav)).toEqual([])
+    expect(mockSharedTextWrites).toEqual([])
+  })
+
+  test('a write that outlasts the account opens no titles screen', async () => {
+    const nav = installFakeNavigator()
+    setInputIntent(convID, {append: true, text: 's'.repeat(limit + 1), type: 'injectText'})
+
+    renderInput(convID)
+    startNewAccountGeneration()
+    await act(flushPromises)
+
+    expect(mockSharedTextWrites).toHaveLength(1)
+    expect(attachments(nav)).toEqual([])
+  })
+
+  test('text that cannot be written as a file is appended rather than lost', async () => {
+    const nav = installFakeNavigator()
+    mockSharedTextWriteFails = true
+    const text = 's'.repeat(limit + 1)
+    setInputIntent(convID, {append: true, text, type: 'injectText'})
+
+    const {composerInput} = renderInput(convID)
+    await act(flushPromises)
+
+    expect(composerInput.text).toBe(text)
+    expect(attachments(nav)).toEqual([])
+  })
+})
+
+test('an injectText without a notice leaves the command status bar alone', () => {
+  setInputIntent(convID, {text: 'shared text', type: 'injectText'})
+
+  const {result} = renderInput(convID)
+
+  expect(result.current.commandStatus).toBeUndefined()
 })
 
 test('a consumed intent does not replay on remount', () => {

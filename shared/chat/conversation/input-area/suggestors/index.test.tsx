@@ -52,6 +52,7 @@ const makeInput = (getSelection: () => Selection | undefined, showsWrites: boole
 const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites = true) => {
   const input = makeInput(getSelection, showsWrites)
   const composer = makeComposer({
+    attachText: () => {},
     flushDraft: () => {},
     getDraft: () => undefined,
     isReadOnly: () => false,

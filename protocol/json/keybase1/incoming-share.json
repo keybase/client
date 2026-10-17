@@ -70,6 +70,27 @@
       ]
     },
     {
+      "type": "record",
+      "name": "IncomingShareItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "IncomingShareItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": "int",
+          "name": "droppedCount"
+        },
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "IncomingShareCompressPreference",
       "symbols": [
@@ -91,10 +112,7 @@
   "messages": {
     "getIncomingShareItems": {
       "request": [],
-      "response": {
-        "type": "array",
-        "items": "IncomingShareItem"
-      }
+      "response": "IncomingShareItems"
     },
     "getPreference": {
       "request": [],

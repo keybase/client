@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import ConversationList from './conversation-list/conversation-list'
-import {toAttachmentPath} from '../conversation/attachment-path'
+import {sendFilesToConversation} from './send-share'
 
 type Props = {
   isFromShareExtension?: boolean
@@ -12,24 +12,24 @@ type Props = {
 
 export const SendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     if (sendPaths?.length) {
-      navigateAppend({
-        name: 'chatAttachmentGetTitles',
-        params: {
+      C.ignorePromise(
+        sendFilesToConversation({
           conversationIDKey,
-          inputPrefillText: text,
-          pathAndOutboxIDs: sendPaths.map(p => ({path: toAttachmentPath(p)})),
-          selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
+          paths: sendPaths,
+          reason: isFromShareExtension ? 'extension' : 'files',
+          text,
+          // a cancel comes back to this list, which still holds the share
+          textBack: false,
           tlfName,
-        },
-      })
+        })
+      )
     } else {
       clearModals()
       C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files', {
-        intent: text === undefined ? undefined : {text, type: 'injectText'},
+        intent: text === undefined ? undefined : {append: true, text, type: 'injectText'},
       })
     }
   }
