@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
+import {addDomain, emptyUnfurlListEdits, hasUnfurlListEdits, nextLists, removeAddedDomain} from './unfurl-lists'
 import {loadSettings} from './load-settings'
 import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
@@ -400,28 +401,99 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
   )
 }
 
-const Links = () => {
+type DomainListProps = {
+  added: ReadonlyArray<string>
+  heading: string
+  onAdd: (domain: string) => void
+  onRemoveAdded: (domain: string) => void
+  onToggleSaved: (domain: string) => void
+  removed: ReadonlySet<string>
+  saved: ReadonlyArray<string>
+}
+
+const DomainList = (p: DomainListProps) => {
+  const {added, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
+  const [text, setText] = React.useState('')
+  const submit = () => {
+    onAdd(text)
+    setText('')
+  }
+  const rows = [
+    ...saved.map(domain => ({domain, isAdded: false})),
+    ...added.filter(domain => !saved.includes(domain)).map(domain => ({domain, isAdded: true})),
+  ]
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection}>
+      <Kb.Text type="BodySmallSemibold">{heading}</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
+        <Kb.Input3
+          containerStyle={styles.listInput}
+          placeholder="Add a website, e.g. example.com"
+          value={text}
+          onChangeText={setText}
+          onEnterKeyDown={submit}
+        />
+        <Kb.Button label="Add" small={true} onClick={submit} disabled={!text.trim()} />
+      </Kb.Box2>
+      {rows.length > 0 && (
+        <Kb.ScrollView style={styles.list}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.listOuter} />
+          {rows.map(({domain, isAdded}) => {
+            const isRemoved = !isAdded && removed.has(domain)
+            return (
+              <Kb.Box2
+                key={domain}
+                alignSelf="center"
+                direction="horizontal"
+                justifyContent="space-between"
+                noShrink={true}
+                style={Kb.Styles.collapseStyles([
+                  styles.listRowContainer,
+                  isRemoved ? {backgroundColor: theme.red_20} : undefined,
+                ])}
+              >
+                <Kb.Text type="BodySemibold">{domain}</Kb.Text>
+                {isRemoved ? (
+                  <Kb.Text type="BodyPrimaryLink" style={styles.removeText} onClick={() => onToggleSaved(domain)}>
+                    Restore
+                  </Kb.Text>
+                ) : (
+                  <Kb.WithTooltip tooltip="Remove">
+                    <Kb.Icon
+                      onClick={() => (isAdded ? onRemoveAdded(domain) : onToggleSaved(domain))}
+                      type="iconfont-trash"
+                    />
+                  </Kb.WithTooltip>
+                )}
+              </Kb.Box2>
+            )
+          })}
+        </Kb.ScrollView>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const Links = () => {
+  const styles = useStyles()
   const {blocklist, error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
-  const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
-  const getUnfurlWhitelist = (filtered: boolean) =>
-    filtered ? whitelist.filter(w => !unfurlWhitelistRemoved[w]) : whitelist
-  const allowSave = mode !== selected || Object.keys(unfurlWhitelistRemoved).length > 0
+  const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
+  const allowSave = mode !== selected || hasUnfurlListEdits(edits)
   const onSave = () => {
-    const next = whitelist.filter(w => {
-      return !unfurlWhitelistRemoved[w]
-    })
-    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next, blocklist)
+    const next = nextLists({blocklist, whitelist}, edits)
+    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.whitelisted, next.whitelist, next.blocklist)
+    setEdits(emptyUnfurlListEdits)
   }
 
-  const toggleUnfurlWhitelist = (domain: string) => {
-    setUnfurlWhitelistRemoved(
-      produce(draft => {
-        draft[domain] = !draft[domain]
-      })
-    )
+  const toggleSaved = (domain: string) => {
+    setEdits(e => {
+      const removed = new Set(e.removed)
+      if (!removed.delete(domain)) removed.add(domain)
+      return {...e, removed}
+    })
   }
 
   // not keyed on unfurlSettingsRefresh: its identity changes with every load result
@@ -456,55 +528,41 @@ const Links = () => {
       >
         <Kb.RadioButton
           key="rbalways"
-          label="Always"
+          label="Allow all"
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.always)}
           selected={selected === T.RPCChat.UnfurlMode.always}
         />
         <Kb.RadioButton
           key="rbwhitelist"
-          label="Only for some websites"
+          label="Ask per domain"
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.whitelisted)}
           selected={selected === T.RPCChat.UnfurlMode.whitelisted}
         />
         {selected === T.RPCChat.UnfurlMode.whitelisted && (
-          <Kb.ScrollView style={styles.whitelist}>
-            {getUnfurlWhitelist(false).map((w, idx) => {
-              const wlremoved = unfurlWhitelistRemoved[w]
-              return (
-                <React.Fragment key={w}>
-                  {idx === 0 && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.whitelistOuter} />}
-                  <Kb.Box2 alignSelf="center"
-                    direction="horizontal"
-                    justifyContent="space-between"
-                    noShrink={true}
-                    style={Kb.Styles.collapseStyles([
-                      styles.whitelistRowContainer,
-                      wlremoved ? {backgroundColor: theme.red_20} : undefined,
-                    ])}
-                  >
-                    <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    {wlremoved ? (
-                      <Kb.Text
-                        type="BodyPrimaryLink"
-                        style={styles.removeText}
-                        onClick={() => toggleUnfurlWhitelist(w)}
-                      >
-                        Restore
-                      </Kb.Text>
-                    ) : (
-                      <Kb.WithTooltip tooltip="Remove">
-                        <Kb.Icon onClick={() => toggleUnfurlWhitelist(w)} type="iconfont-trash" />
-                      </Kb.WithTooltip>
-                    )}
-                  </Kb.Box2>
-                </React.Fragment>
-              )
-            })}
-          </Kb.ScrollView>
+          <>
+            <DomainList
+              added={edits.added.allow}
+              heading="Allowed websites"
+              onAdd={domain => setEdits(e => addDomain(e, 'allow', domain))}
+              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'allow', domain))}
+              onToggleSaved={toggleSaved}
+              removed={edits.removed}
+              saved={whitelist.filter(w => !edits.added.block.includes(w))}
+            />
+            <DomainList
+              added={edits.added.block}
+              heading="Blocked websites"
+              onAdd={domain => setEdits(e => addDomain(e, 'block', domain))}
+              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'block', domain))}
+              onToggleSaved={toggleSaved}
+              removed={edits.removed}
+              saved={blocklist.filter(w => !edits.added.allow.includes(w))}
+            />
+          </>
         )}
         <Kb.RadioButton
           key="rbnever"
-          label="Never"
+          label="Disallow all"
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.never)}
           selected={selected === T.RPCChat.UnfurlMode.never}
         />
@@ -664,12 +722,11 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       isMobile ? Kb.Styles.globalMargins.large : 48
     ),
   },
-  whitelist: Kb.Styles.platformStyles({
+  list: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
       backgroundColor: theme.blueGrey,
       marginBottom: Kb.Styles.globalMargins.xtiny,
-      marginLeft: 22,
       marginTop: Kb.Styles.globalMargins.xtiny,
       paddingRight: Kb.Styles.globalMargins.medium,
     },
@@ -681,10 +738,11 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       width: '95%',
     },
   }),
-  whitelistOuter: {
+  listInput: {flexGrow: 1, flexShrink: 1},
+  listOuter: {
     ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
-  whitelistRowContainer: {
+  listRowContainer: {
     backgroundColor: theme.white,
     height: 40,
     marginBottom: 1,
@@ -693,6 +751,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     padding: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,
   },
+  listSection: {marginLeft: 22, marginTop: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default Chat
