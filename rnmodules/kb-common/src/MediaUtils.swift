@@ -535,53 +535,35 @@ public class MediaUtils: NSObject {
         return redrawn
     }
 
-    // The IPTC fields that name a place: the location check and both strips
-    // read this one table. ImageIO also fills these from a file's XMP.
-    private static let iptcLocationKeys: [CFString] = [
-        kCGImagePropertyIPTCCity, kCGImagePropertyIPTCProvinceState,
-        kCGImagePropertyIPTCCountryPrimaryLocationName, kCGImagePropertyIPTCCountryPrimaryLocationCode,
-        kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCContentLocationName,
-        kCGImagePropertyIPTCContentLocationCode,
-        // IPTC Extension: the two location structures, and their fields in case
-        // one turns up on its own. ExtLocationCity is "City", already listed;
-        // ExtLocationIdentifier is the bare "Identifier", too generic to remove
-        // outside a location structure, which goes whole.
-        kCGImagePropertyIPTCExtLocationCreated, kCGImagePropertyIPTCExtLocationShown,
-        kCGImagePropertyIPTCExtLocationCountryCode, kCGImagePropertyIPTCExtLocationCountryName,
-        kCGImagePropertyIPTCExtLocationProvinceState, kCGImagePropertyIPTCExtLocationSublocation,
-        kCGImagePropertyIPTCExtLocationWorldRegion, kCGImagePropertyIPTCExtLocationGPSLatitude,
-        kCGImagePropertyIPTCExtLocationGPSLongitude, kCGImagePropertyIPTCExtLocationGPSAltitude,
-        kCGImagePropertyIPTCExtLocationLocationId, kCGImagePropertyIPTCExtLocationLocationName,
+    // Words in a field's name that make it a place, at any depth, in XMP (any
+    // namespace, cameras' and drones' own included) and in the IPTC dictionary
+    // alike: exif:GPS*, IPTC's City, Province/State, Country*, *Location*, the
+    // fields of an IPTC Extension structure, a PLUS licensor's address. The
+    // location check and both strips read these. A false match only costs a JPEG.
+    private static let locationWords = [
+        "gps", "latitude", "longitude", "altitude", "location", "address", "street", "city", "postal",
+        "country", "region", "province",
     ]
-    // Nested dictionaries, by key, and the fields in them that name a place: the
-    // address in the creator's contact info (its email, phone and URL aren't one).
-    private static let iptcNestedLocationKeys: [CFString: [CFString]] = [
-        kCGImagePropertyIPTCCreatorContactInfo: [
-            kCGImagePropertyIPTCContactInfoAddress, kCGImagePropertyIPTCContactInfoCity,
-            kCGImagePropertyIPTCContactInfoStateProvince, kCGImagePropertyIPTCContactInfoPostalCode,
-            kCGImagePropertyIPTCContactInfoCountry,
-        ]
+    // Names that are a place without one of the words: the rest of a creator's
+    // contact address, named the same in the IPTC dictionary and in XMP.
+    private static let locationNames: Set<String> = [
+        kCGImagePropertyIPTCContactInfoAddress as String, kCGImagePropertyIPTCContactInfoPostalCode as String,
+        kCGImagePropertyIPTCContactInfoCountry as String,
     ]
+    private static let xmpPhotoshopNamespace = "http://ns.adobe.com/photoshop/1.0/"
 
-    // XMP properties that name a place without saying so in their name, by
-    // namespace.
-    private static let xmpLocationNames: [String: Set<String>] = [
-        "http://ns.adobe.com/photoshop/1.0/": ["City", "State", "Country"],
-        "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/": [
-            "CountryCode", "CiAdrExtadr", "CiAdrCity", "CiAdrRegion", "CiAdrCtry", "CiAdrPcode",
-        ],
-    ]
-    // Any other XMP tag counts by its name, in any namespace: exif:GPS* that
-    // ImageIO can't parse into the GPS dictionary, IPTC's Location*, and the
-    // namespaces cameras and drones write their own position to.
-    private static let xmpLocationWords = ["gps", "latitude", "longitude", "altitude", "location"]
+    private static func isLocationName(_ name: String) -> Bool {
+        if locationNames.contains(name) { return true }
+        let lowered = name.lowercased()
+        return locationWords.contains { lowered.contains($0) }
+    }
 
-    private static func iptcHasLocation(_ iptc: [CFString: Any]) -> Bool {
-        if iptcLocationKeys.contains(where: { iptc[$0] != nil }) { return true }
-        return iptcNestedLocationKeys.contains { key, fields in
-            guard let nested = iptc[key] as? [CFString: Any] else { return false }
-            return fields.contains { nested[$0] != nil }
+    private static func iptcHasLocation(_ value: Any) -> Bool {
+        if let fields = value as? [CFString: Any] {
+            return fields.contains { isLocationName($0.key as String) || iptcHasLocation($0.value) }
         }
+        if let items = value as? [Any] { return items.contains(where: iptcHasLocation) }
+        return false
     }
 
     private static func propertiesHaveLocation(_ props: [CFString: Any]) -> Bool {
@@ -596,9 +578,7 @@ public class MediaUtils: NSObject {
         guard let namespace = CGImageMetadataTagCopyNamespace(tag) as String?,
             let name = CGImageMetadataTagCopyName(tag) as String?
         else { return false }
-        if xmpLocationNames[namespace]?.contains(name) == true { return true }
-        let lowered = name.lowercased()
-        return xmpLocationWords.contains { lowered.contains($0) }
+        return (namespace == xmpPhotoshopNamespace && name == "State") || isLocationName(name)
     }
 
     private static func xmpHasLocation(_ metadata: CGImageMetadata) -> Bool {
@@ -655,33 +635,40 @@ public class MediaUtils: NSObject {
     // there but leaves the metadata as it was. GIF and HEICS refuse outright.
     private static let losslessMetadataTypes: Set<String> = ["public.jpeg", "public.heic", "public.tiff"]
 
-    // What the re-encoding path removes from each frame: Exif and GPS whole, and
-    // only the location fields of IPTC (a null value removes a key; the rest of
-    // the dictionary, copyright and caption among it, is kept).
-    private static let locationRemoval: [CFString: Any] = {
-        func nulls(_ keys: [CFString]) -> [CFString: Any] {
-            return [CFString: Any](uniqueKeysWithValues: keys.map { ($0, kCFNull as Any) })
+    // The IPTC value without its location fields, at any depth.
+    private static func iptcWithoutLocation(_ value: Any) -> Any {
+        if let fields = value as? [CFString: Any] {
+            var kept: [CFString: Any] = [:]
+            for (key, field) in fields where !isLocationName(key as String) {
+                kept[key] = iptcWithoutLocation(field)
+            }
+            return kept
         }
-        var iptc = nulls(iptcLocationKeys)
-        for (key, fields) in iptcNestedLocationKeys {
-            iptc[key] = nulls(fields)
-        }
-        return [
-            kCGImagePropertyExifDictionary: kCFNull as Any,
-            kCGImagePropertyGPSDictionary: kCFNull as Any,
-            kCGImagePropertyIPTCDictionary: iptc,
-        ]
-    }()
+        if let items = value as? [Any] { return items.map(iptcWithoutLocation) }
+        return value
+    }
 
-    private static func iptcWithoutLocation(_ iptc: [CFString: Any]) -> [CFString: Any] {
-        var kept = iptc
-        iptcLocationKeys.forEach { kept[$0] = nil }
-        for (key, fields) in iptcNestedLocationKeys {
-            guard var nested = kept[key] as? [CFString: Any] else { continue }
-            fields.forEach { nested[$0] = nil }
-            kept[key] = nested
+    // What CGImageDestinationAddImageFromSource must merge over an IPTC value to
+    // remove its location fields, or nil when it has none. A dictionary merges
+    // key by key, so a field to remove is a null; an array is replaced whole, so
+    // it comes cleaned. The rest of the dictionary (copyright, caption,
+    // keywords) is left as it is.
+    private static func iptcLocationRemoval(_ value: Any) -> Any? {
+        if let fields = value as? [CFString: Any] {
+            var changes: [CFString: Any] = [:]
+            for (key, field) in fields {
+                if isLocationName(key as String) {
+                    changes[key] = kCFNull
+                } else if let change = iptcLocationRemoval(field) {
+                    changes[key] = change
+                }
+            }
+            return changes.isEmpty ? nil : changes
         }
-        return kept
+        if let items = value as? [Any], items.contains(where: iptcHasLocation) {
+            return items.map(iptcWithoutLocation)
+        }
+        return nil
     }
 
     private static func stripImageExif(at url: URL) throws {
@@ -783,15 +770,17 @@ public class MediaUtils: NSObject {
         func isTag(_ value: AnyObject) -> Bool { CFGetTypeID(value) == CGImageMetadataTagGetTypeID() }
         let value = CGImageMetadataTagCopyValue(tag)
         let cleaned: CFTypeRef
+        // A child counts as changed when it comes back as another tag (its own
+        // children changed) or not at all.
         if let fields = value as? [String: AnyObject], fields.values.allSatisfy(isTag) {
             let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
-            if kept.count == fields.count { return tag }
+            if kept.count == fields.count && kept.allSatisfy({ $0.value === fields[$0.key] }) { return tag }
             // An empty structure or array is no tag at all.
             if kept.isEmpty { return nil }
             cleaned = kept as CFDictionary
         } else if let items = value as? [AnyObject], items.allSatisfy(isTag) {
             let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
-            if kept.count == items.count { return tag }
+            if kept.count == items.count && zip(kept, items).allSatisfy({ $0 === $1 }) { return tag }
             if kept.isEmpty { return nil }
             cleaned = kept as CFArray
         } else {
@@ -812,14 +801,23 @@ public class MediaUtils: NSObject {
         if var container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any] {
             container[kCGImagePropertyExifDictionary] = nil
             container[kCGImagePropertyGPSDictionary] = nil
-            if let iptc = container[kCGImagePropertyIPTCDictionary] as? [CFString: Any] {
+            if let iptc = container[kCGImagePropertyIPTCDictionary] {
                 container[kCGImagePropertyIPTCDictionary] = iptcWithoutLocation(iptc)
             }
             CGImageDestinationSetProperties(destination, container as CFDictionary)
         }
 
+        // Exif and GPS go whole; IPTC loses only its location fields.
         for index in 0..<count {
-            CGImageDestinationAddImageFromSource(destination, source, index, locationRemoval as CFDictionary)
+            var removal: [CFString: Any] = [
+                kCGImagePropertyExifDictionary: kCFNull as Any,
+                kCGImagePropertyGPSDictionary: kCFNull as Any,
+            ]
+            let frame = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
+            if let iptc = frame?[kCGImagePropertyIPTCDictionary], let change = iptcLocationRemoval(iptc) {
+                removal[kCGImagePropertyIPTCDictionary] = change
+            }
+            CGImageDestinationAddImageFromSource(destination, source, index, removal as CFDictionary)
         }
 
         guard CGImageDestinationFinalize(destination) else {
