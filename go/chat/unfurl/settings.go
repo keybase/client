@@ -86,6 +86,13 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 	if err != nil {
 		return res, err
 	}
+	// clients that predate the block list can allow a domain without unblocking
+	// it. The block list wins, as it does when unfurling, so Set accepts the result.
+	for domain, blocked := range blocklist {
+		if blocked {
+			delete(whitelist, domain)
+		}
+	}
 	return chat1.UnfurlSettings{
 		Mode:      mr.Mode,
 		Whitelist: whitelist,
@@ -97,6 +104,9 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 // NormalizeDomain, and move it off the opposite list.
 func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "WhitelistAdd(%s)", domain)()
+	if isAutoAllowedDomain(domain) {
+		return autoAllowedError(domain)
+	}
 	blocklist, err := s.getBlocklist(ctx, uid)
 	if err != nil {
 		return err
@@ -134,6 +144,9 @@ func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 
 func (s *Settings) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "BlocklistAdd(%s)", domain)()
+	if isAutoAllowedDomain(domain) {
+		return autoAllowedError(domain)
+	}
 	whitelist, err := s.getWhitelist(ctx, uid)
 	if err != nil {
 		return err
