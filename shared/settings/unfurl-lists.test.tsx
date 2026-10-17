@@ -46,8 +46,16 @@ test('duplicate add appears once', () => {
   expect(nextLists(saved, edits).whitelist).toEqual(['a.com', 'b.com', 'c.com'])
 })
 
-test('adding an already saved domain does not duplicate it', () => {
-  const edits = addDomain(emptyUnfurlListEdits, 'allow', 'a.com')
+test('adding an already saved domain is not a pending edit', () => {
+  const edits = addDomain(emptyUnfurlListEdits, 'allow', 'a.com', saved.whitelist)
+  expect(edits.added.allow).toEqual([])
+  expect(nextLists(saved, edits).whitelist).toEqual(['a.com', 'b.com'])
+})
+
+test('adding an already saved domain restores it if it was removed', () => {
+  const removed: UnfurlListEdits = {...emptyUnfurlListEdits, removed: new Set(['a.com'])}
+  const edits = addDomain(removed, 'allow', 'a.com', saved.whitelist)
+  expect(edits.removed.has('a.com')).toBe(false)
   expect(nextLists(saved, edits).whitelist).toEqual(['a.com', 'b.com'])
 })
 

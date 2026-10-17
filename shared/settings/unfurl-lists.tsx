@@ -11,7 +11,12 @@ export const hasUnfurlListEdits = (edits: UnfurlListEdits) =>
   edits.removed.size > 0 || edits.added.allow.length > 0 || edits.added.block.length > 0
 
 // The service normalizes domains on save; this only keeps the pending rows tidy.
-export const addDomain = (edits: UnfurlListEdits, list: UnfurlList, domain: string): UnfurlListEdits => {
+export const addDomain = (
+  edits: UnfurlListEdits,
+  list: UnfurlList,
+  domain: string,
+  saved: ReadonlyArray<string> = []
+): UnfurlListEdits => {
   const d = domain.trim().toLowerCase()
   if (!d) return edits
   const other = list === 'allow' ? 'block' : 'allow'
@@ -20,7 +25,7 @@ export const addDomain = (edits: UnfurlListEdits, list: UnfurlList, domain: stri
   return {
     added: {
       ...edits.added,
-      [list]: edits.added[list].includes(d) ? edits.added[list] : [...edits.added[list], d],
+      [list]: edits.added[list].includes(d) || saved.includes(d) ? edits.added[list] : [...edits.added[list], d],
       [other]: edits.added[other].filter(x => x !== d),
     },
     removed,
