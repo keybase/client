@@ -79,20 +79,32 @@ enum PayloadFileName {
   }
 
   // A path separator would escape the item's directory, a leading dot would
-  // hide the file, and control characters (newlines) garble it in the UI.
-  // Only C0/C1 controls and line breaks: .controlCharacters also holds format
-  // characters such as the zero-width joiner inside emoji sequences.
+  // hide the file, control characters (newlines) garble it in the UI, and format
+  // characters (bidi overrides and isolates, marks) can make it read as another
+  // name. .controlCharacters isn't used: it holds the format characters below
+  // that must stay.
   private static let replaced = CharacterSet(charactersIn: "/:")
     .union(.newlines)
     .union(CharacterSet(charactersIn: Unicode.Scalar(0x00)!...Unicode.Scalar(0x1F)!))
     .union(CharacterSet(charactersIn: Unicode.Scalar(0x7F)!...Unicode.Scalar(0x9F)!))
+
+  // Format characters that only shape text and can't reorder it: the joiners
+  // (emoji sequences, Persian) and the tag characters of subdivision flags.
+  private static func isKeptFormat(_ scalar: Unicode.Scalar) -> Bool {
+    return scalar.value == 0x200C || scalar.value == 0x200D || (0xE0020...0xE007F).contains(scalar.value)
+  }
+
+  private static func isReplaced(_ scalar: Unicode.Scalar) -> Bool {
+    if replaced.contains(scalar) { return true }
+    return scalar.properties.generalCategory == .format && !isKeptFormat(scalar)
+  }
 
   private static func sanitize(_ candidate: String?) -> String? {
     guard let candidate = candidate else { return nil }
     let trimmed = candidate.trimmingCharacters(
       in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "/.")))
     let cleaned = String(
-      String.UnicodeScalarView(trimmed.unicodeScalars.map { replaced.contains($0) ? "_" : $0 }))
+      String.UnicodeScalarView(trimmed.unicodeScalars.map { isReplaced($0) ? "_" : $0 }))
     return cleaned.isEmpty ? nil : cleaned
   }
 
