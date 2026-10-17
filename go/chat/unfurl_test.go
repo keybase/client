@@ -423,13 +423,10 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []string{"127.0.0.1"}, settings.Blocklist)
 		select {
-		case <-listener0.newMessageRemote:
-			require.Fail(t, "no unfurl message after block")
-		default:
-		}
-		select {
 		case <-unfurlCh:
 			require.Fail(t, "unexpected unfurl")
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "unexpected message")
 		case <-time.After(2 * time.Second):
 		}
 
@@ -444,6 +441,8 @@ func TestChatSrvUnfurl(t *testing.T) {
 		select {
 		case <-unfurlCh:
 			require.Fail(t, "unexpected unfurl")
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "unexpected message")
 		case <-time.After(2 * time.Second):
 		}
 	})
