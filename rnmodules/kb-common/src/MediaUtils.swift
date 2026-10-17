@@ -535,11 +535,12 @@ public class MediaUtils: NSObject {
         return redrawn
     }
 
-    // IPTC fields that name a place. ImageIO also fills these from a file's XMP.
+    // IPTC fields that name a place, the creator's address among them. ImageIO
+    // also fills these from a file's XMP.
     private static let iptcLocationKeys: [CFString] = [
         kCGImagePropertyIPTCCity, kCGImagePropertyIPTCProvinceState,
         kCGImagePropertyIPTCCountryPrimaryLocationName, kCGImagePropertyIPTCCountryPrimaryLocationCode,
-        kCGImagePropertyIPTCSubLocation,
+        kCGImagePropertyIPTCSubLocation, kCGImagePropertyIPTCCreatorContactInfo,
     ]
 
     // XMP properties that name a place, by namespace. Every exif:GPS* tag counts
@@ -547,7 +548,10 @@ public class MediaUtils: NSObject {
     private static let xmpExifNamespace = "http://ns.adobe.com/exif/1.0/"
     private static let xmpLocationNames: [String: Set<String>] = [
         "http://ns.adobe.com/photoshop/1.0/": ["City", "State", "Country"],
-        "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/": ["Location", "CountryCode"],
+        "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/": [
+            "Location", "CountryCode",
+            "CreatorContactInfo", "CiAdrExtadr", "CiAdrCity", "CiAdrRegion", "CiAdrCtry", "CiAdrPcode",
+        ],
         "http://iptc.org/std/Iptc4xmpExt/2008-02-29/": ["LocationShown", "LocationCreated"],
     ]
 
