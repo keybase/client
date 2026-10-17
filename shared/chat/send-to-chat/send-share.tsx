@@ -1,11 +1,18 @@
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {getAccountGeneration} from '@/engine/account-generation'
-import {clearModals, navigateAppend, navigateToThread} from '@/constants/router'
-import {getInboxConversationMeta, loadConversationMeta} from '../inbox/metadata'
+import {clearModals, getVisibleScreen, navigateAppend, navigateToThread} from '@/constants/router'
+import {threadRouteName} from '@/constants/chat/common'
+import {loadConversationMeta} from '../inbox/metadata'
 import {toAttachmentPath} from '../conversation/attachment-path'
 import {setInputIntent, type InputIntent} from '../conversation/input-intent-store'
 import {sharedTextFitsAfter, writeSharedTextFile} from '@/util/shared-text-file'
+
+const threadVisible = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const visible = getVisibleScreen(true)
+  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+  return visible?.name === threadRouteName && params?.conversationIDKey === conversationIDKey
+}
 
 // Sends a share to a conversation: its files through the attachment titles screen, its text after
 // the conversation's draft. Where the text goes is decided once, against the draft as the service
@@ -27,10 +34,13 @@ export const sendShareToConversation = async (p: {
 }) => {
   const {conversationIDKey, notice, reason, text, threadBeneath, tlfName} = p
   const generation = getAccountGeneration()
+  const meta = await loadConversationMeta(conversationIDKey)
   let paths = p.paths
   let afterDraft = text
-  if (text !== undefined) {
-    const meta = await loadConversationMeta(conversationIDKey)
+  // A text-only share whose thread the user has left goes after the draft whatever its size,
+  // rather than opening a titles screen over whatever they moved on to. Files always get one.
+  const titlesWelcome = !threadBeneath || paths.length > 0 || threadVisible(conversationIDKey)
+  if (text !== undefined && titlesWelcome) {
     if (!sharedTextFitsAfter(meta?.draft ?? '', text)) {
       try {
         paths = [...paths, (await writeSharedTextFile(text)).path]
@@ -63,7 +73,6 @@ export const sendShareToConversation = async (p: {
     navigateToThread(conversationIDKey, reason, {intent})
   }
   if (!withTitles) return
-  const meta = getInboxConversationMeta(conversationIDKey)
   navigateAppend({
     name: 'chatAttachmentGetTitles',
     params: {
@@ -73,7 +82,7 @@ export const sendShareToConversation = async (p: {
       pathAndOutboxIDs: paths.map(path => ({path: toAttachmentPath(path)})),
       selectConversationWithReason: reason,
       // the picker's own, even empty: an empty one takes the drag-and-drop upload
-      tlfName: tlfName ?? (meta?.conversationIDKey === conversationIDKey ? meta.tlfname || undefined : undefined),
+      tlfName: tlfName ?? (meta?.tlfname || undefined),
     },
   })
 }

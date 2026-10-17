@@ -33,6 +33,7 @@ jest.mock('expo-file-system', () => {
 import IncomingShareMain, {nextShare} from './index'
 import {metasReceived} from '@/chat/inbox/metadata'
 import * as Meta from '@/constants/chat/meta'
+import {threadRouteName} from '@/constants/chat/common'
 import logger from '@/logger'
 import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
@@ -56,6 +57,12 @@ beforeEach(() => {
   g.isIOS = true
   jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   jest.spyOn(C.Router2, 'navigateAppend').mockReturnValue(true)
+  // the thread the share went to is what the user sees
+  jest.spyOn(C.Router2, 'getVisibleScreen').mockReturnValue({
+    key: 'thread',
+    name: threadRouteName,
+    params: {conversationIDKey},
+  } as never)
 })
 
 afterEach(() => {
@@ -209,6 +216,41 @@ describe('shared text and the draft', () => {
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([txt])
     expect(getTitles()[0]?.params.notice).toBe("1 item couldn't be prepared.")
     expect(mockWrites).toEqual([over])
+  })
+
+  test('alone, text the draft has no room for goes after it once the user has left the thread, with no titles screen', async () => {
+    jest.mocked(C.Router2.getVisibleScreen).mockReturnValue({key: 'inbox', name: 'chatRoot', params: {}} as never)
+    await share(over, false)
+
+    expect(getTitles()).toEqual([])
+    expect(mockWrites).toEqual([])
+    expect(pendingIntent()).toEqual({
+      append: true,
+      notice: "1 item couldn't be prepared.",
+      text: over,
+      type: 'injectText',
+    })
+  })
+
+  test('with files, the titles screen opens even once the user has left the thread, so the files are not lost', async () => {
+    jest.mocked(C.Router2.getVisibleScreen).mockReturnValue({key: 'inbox', name: 'chatRoot', params: {}} as never)
+    await share(over, true)
+
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}, txt])
+  })
+
+  test('the titles screen takes the tlfName of the meta the share loaded', async () => {
+    metasReceived(
+      [{...Meta.makeConversationMeta(), conversationIDKey, draft, tlfname: 'testuser,testuser-mac', trustedState: 'trusted'}],
+      undefined,
+      {force: true}
+    )
+    await shareToSuggestedConversation({
+      droppedCount: 0,
+      items: [{originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image}],
+    })
+
+    expect((getTitles()[0]?.params as {tlfName?: string} | undefined)?.tlfName).toBe('testuser,testuser-mac')
   })
 
   test('the draft is loaded before anything is decided', async () => {
