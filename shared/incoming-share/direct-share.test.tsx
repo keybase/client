@@ -11,6 +11,7 @@ jest.mock('@react-navigation/native', () => ({
 
 // the file system is native: this one records what is written, under a uri with the raw name
 const mockWrites = new Array<string>()
+let mockWriteFails = false
 jest.mock('expo-file-system', () => {
   class Directory {
     uri: string
@@ -22,6 +23,7 @@ jest.mock('expo-file-system', () => {
   class File {
     async write(text: string) {
       await Promise.resolve()
+      if (mockWriteFails) throw new Error('disk full')
       mockWrites.push(text)
     }
   }
@@ -31,6 +33,8 @@ jest.mock('expo-file-system', () => {
 import IncomingShareMain, {nextShare} from './index'
 import {metasReceived} from '@/chat/inbox/metadata'
 import * as Meta from '@/constants/chat/meta'
+import logger from '@/logger'
+import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
 const g = globalThis as unknown as {isIOS: boolean}
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -47,6 +51,7 @@ const shareToSuggestedConversation = async (share: Omit<T.RPCGen.IncomingShareIt
 
 beforeEach(() => {
   mockWrites.length = 0
+  mockWriteFails = false
   g.isIOS = true
   jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   jest.spyOn(C.Router2, 'navigateAppend').mockReturnValue(true)
@@ -180,6 +185,21 @@ describe('shared text and the draft', () => {
     expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}, txt])
     expect(mockWrites).toEqual([over])
+  })
+
+  test('with files, text that cannot be written as a file goes after the draft before the titles screen opens', async () => {
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    mockWriteFails = true
+    await share(over, true)
+
+    expect(useInputIntentState.getState().intents.get(conversationIDKey)).toEqual({
+      append: true,
+      text: over,
+      type: 'injectText',
+    })
+    expect(getTitles()).toHaveLength(1)
+    expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
   })
 
   test('alone, text the draft has no room for goes as a .txt through the titles screen, with the notice', async () => {

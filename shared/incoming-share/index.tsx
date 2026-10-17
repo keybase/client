@@ -131,6 +131,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
           paths: sendPaths,
           reason: 'extension',
           text: fits ? undefined : text,
+          threadBeneath: true,
         })
       )
     }
