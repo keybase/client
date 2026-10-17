@@ -226,18 +226,24 @@ public class MediaUtils: NSObject {
         return keys
     }()
 
-    // More than one frame, the first with a frame delay, read from the container
-    // without decoding any. Several frames in a GIF are always an animation, and
-    // a frame's delay is optional there (its Graphic Control Extension is).
+    // More than one frame, one of the first two with a frame delay, read from the
+    // container without decoding any. The second is read too: an APNG's default
+    // image can sit outside the animation, and a sequence's first frame need not
+    // carry a delay. Several frames in a GIF are always an animation, and a
+    // frame's delay is optional there (its Graphic Control Extension is).
     private static func isAnimation(_ source: CGImageSource, type: UTType) -> Bool {
         guard CGImageSourceGetCount(source) > 1 else { return false }
         if type.conforms(to: .gif) { return true }
-        guard animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }),
-            let frame = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
-        else { return false }
-        return frameDelayKeys.contains { dictionary, keys in
-            guard let properties = frame[dictionary] as? [CFString: Any] else { return false }
-            return keys.contains { properties[$0] != nil }
+        guard animatableImageTypes.contains(where: { UTType($0).map(type.conforms) ?? false }) else {
+            return false
+        }
+        return (0..<2).contains { index in
+            guard let frame = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
+            else { return false }
+            return frameDelayKeys.contains { dictionary, keys in
+                guard let properties = frame[dictionary] as? [CFString: Any] else { return false }
+                return keys.contains { properties[$0] != nil }
+            }
         }
     }
 
