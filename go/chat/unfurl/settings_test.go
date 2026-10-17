@@ -272,6 +272,7 @@ func TestUnfurlSettingConcurrentAdds(t *testing.T) {
 	uid := gregor1.UID([]byte{0, 1})
 	settings := NewSettings(g, newMemConversationBackedStorage())
 	const n = 50
+	errs := make([]error, n)
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {
 		wg.Add(1)
@@ -279,13 +280,16 @@ func TestUnfurlSettingConcurrentAdds(t *testing.T) {
 			defer wg.Done()
 			domain := fmt.Sprintf("d%d.com", i)
 			if i%2 == 0 {
-				require.NoError(t, settings.BlocklistAdd(ctx, uid, domain))
+				errs[i] = settings.BlocklistAdd(ctx, uid, domain)
 			} else {
-				require.NoError(t, settings.WhitelistAdd(ctx, uid, domain))
+				errs[i] = settings.WhitelistAdd(ctx, uid, domain)
 			}
 		}(i)
 	}
 	wg.Wait()
+	for _, err := range errs {
+		require.NoError(t, err)
+	}
 	res, err := settings.Get(ctx, uid)
 	require.NoError(t, err)
 	require.Len(t, res.Blocklist, n/2)
