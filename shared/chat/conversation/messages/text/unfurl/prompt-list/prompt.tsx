@@ -1,13 +1,11 @@
+import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   domain: string
-  onAlways: () => void
-  onAccept: () => void
-  onOnetime: () => void
-  onNotnow: () => void
-  onNever: () => void
+  onAnswer: (accept: boolean, remember: boolean) => void
+  onDismiss: () => void
 }
 
 const promptIcon = isMobile
@@ -17,7 +15,8 @@ const promptIcon = isMobile
 const UnfurlPrompt = (p: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
+  const {domain, onAnswer, onDismiss} = p
+  const [remember, setRemember] = React.useState(false)
   return (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.container} fullWidth={true} testID={TestIDs.CHAT_UNFURL_PROMPT}>
       {!isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
@@ -26,24 +25,14 @@ const UnfurlPrompt = (p: Props) => {
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
         </Kb.Box2>
-        <Kb.Text onClick={onAlways} type="BodyPrimaryLink">
-          Always, for any site
-        </Kb.Text>
-        <Kb.Text onClick={onAccept} type="BodyPrimaryLink">
-          Always, for {domain}
-        </Kb.Text>
-        <Kb.Text onClick={onOnetime} type="BodyPrimaryLink">
-          Yes, but ask me again for {domain}
-        </Kb.Text>
-        <Kb.Text onClick={onNotnow} type="BodyPrimaryLink">
-          Not now
-        </Kb.Text>
-        <Kb.Text onClick={onNever} type="BodyPrimaryLink">
-          Never, for any site
-        </Kb.Text>
+        <Kb.Checkbox checked={remember} onCheck={setRemember} label={`Remember for ${domain}`} />
+        <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+          <Kb.Button label="Yes" small={true} onClick={() => onAnswer(true, remember)} />
+          <Kb.Button label="No" mode="Secondary" small={true} onClick={() => onAnswer(false, remember)} />
+        </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.closeContainer}>
-        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={onNotnow} fontSize={16} padding="xtiny" />
+        <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={onDismiss} fontSize={16} padding="xtiny" />
       </Kb.Box2>
     </Kb.Box2>
   )
