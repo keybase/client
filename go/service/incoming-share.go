@@ -80,18 +80,21 @@ func isClaimedIncomingShareManifest(name string) bool {
 // again; that reload has to get the share, not nothing.
 const incomingShareRepeatWindow = 30 * time.Second
 
-// The last share claimed, guarded by its mutex, which also serializes reads.
+// The last share claimed, and the user it was handed to, guarded by its mutex,
+// which also serializes reads.
 var lastIncomingShare struct {
 	sync.Mutex
 	folder string
+	uid    keybase1.UID
 	at     time.Time
 	res    keybase1.IncomingShareItems
 }
 
 // GetIncomingShareItems hands out each share once. The manifest is moved aside
 // before it is read and removed after; a repeat call within
-// incomingShareRepeatWindow gets the same share again, and any later one (a
-// stale or replayed keybase://incoming-share link) gets no items and no error.
+// incomingShareRepeatWindow, by the same user, gets the same share again, and
+// any other (a stale or replayed keybase://incoming-share link, or another
+// account after a switch) gets no items and no error.
 // The payload files stay until they are sent or purged.
 // A repeat carries the share's id, and only the app knows whether it already
 // acted on that share, so keeping a share from being acted on twice is up to it.
@@ -105,6 +108,7 @@ func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res k
 	last.Lock()
 	defer last.Unlock()
 	now := h.G().Clock().Now()
+	uid := mctx.CurrentUID()
 	res, claimed, err := h.claimIncomingShare(mctx, folder)
 	switch {
 	case err != nil:
@@ -112,9 +116,10 @@ func (h *IncomingShareHandler) GetIncomingShareItems(ctx context.Context) (res k
 		last.folder = ""
 		return res, err
 	case claimed:
-		last.folder, last.at, last.res = folder, now, res
+		last.folder, last.uid, last.at, last.res = folder, uid, now, res
 		return res, nil
-	case last.folder == folder && now.Sub(last.at) < incomingShareRepeatWindow:
+	case last.folder == folder && last.uid.Equal(uid) &&
+		now.Sub(last.at) < incomingShareRepeatWindow:
 		mctx.Debug("incoming-share: handing out the share claimed %v ago again", now.Sub(last.at))
 		return stillPresentIncomingShare(last.res), nil
 	default:
