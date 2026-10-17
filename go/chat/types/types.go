@@ -612,6 +612,14 @@ func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, dom
 	return nil
 }
 
+func (d DummyUnfurler) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) BlocklistRemove(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
 func (d DummyUnfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
 	exemption WhitelistExemption) {
 }
