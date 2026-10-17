@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
 import UnfurlImage from './image'
 import {formatTimeForMessages} from '@/util/timestamp'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type UnfurlGenericViewProps = {
   description?: string
@@ -92,7 +93,13 @@ export default function UnfurlGenericView(p: UnfurlGenericViewProps) {
     ) : null
 
   return (
-    <Kb.Box2 alignSelf="flex-start" gap="tiny" direction="horizontal" style={styles.container}>
+    <Kb.Box2
+      alignSelf="flex-start"
+      gap="tiny"
+      direction="horizontal"
+      style={styles.container}
+      testID={TestIDs.CHAT_UNFURL_GENERIC}
+    >
       {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 alignSelf="flex-start" gap="xxtiny" direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {publisher}
