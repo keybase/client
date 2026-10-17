@@ -8,7 +8,7 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {IncomingShareHeaderTitle} from './routes'
 import {readAndroidShare} from '@/constants/init/android-share'
-import {sendFilesToConversation} from '@/chat/send-to-chat/send-share'
+import {sendFilesToConversation, sharedTextFits} from '@/chat/send-to-chat/send-share'
 
 export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
@@ -109,26 +109,30 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
     if (shareID) {
       markShareRouted(shareID)
     }
-    if (sendPaths.length > 0) {
-      C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
+    const notice = droppedMessage || undefined
+    // The text goes after the draft now, before any titles screen, so cancelling that leaves it
+    // where it is. Text the draft has no room for goes in the batch as a .txt instead.
+    const fits = text === undefined || sharedTextFits(selectedConversationIDKey, text)
+    const toBatch = sendPaths.length > 0 || !fits
+    const appended = fits ? text : undefined
+    // a titles screen shows the notice itself
+    const threadNotice = toBatch ? undefined : notice
+    C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
+      intent:
+        appended === undefined && !threadNotice
+          ? undefined
+          : {append: true, notice: threadNotice, text: appended, type: 'injectText'},
+    })
+    if (toBatch) {
       C.ignorePromise(
         sendFilesToConversation({
           conversationIDKey: selectedConversationIDKey,
-          notice: droppedMessage || undefined,
+          notice,
           paths: sendPaths,
           reason: 'extension',
-          text,
-          // the thread is beneath: nothing else holds the share
-          textBack: true,
+          text: fits ? undefined : text,
         })
       )
-    } else {
-      C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
-        intent:
-          text === undefined
-            ? undefined
-            : {append: true, notice: droppedMessage || undefined, text, type: 'injectText'},
-      })
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, droppedMessage, shareID])
 

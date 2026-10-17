@@ -11,9 +11,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {processMedia} from 'react-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
-import {consumeInputIntent, peekInputIntent} from './input-intent-store'
-import {useNavigation} from '@react-navigation/native'
-import * as React from 'react'
+import {peekInputIntent} from './input-intent-store'
 
 // Native-only packages resolve to this one stub through jest.config's
 // moduleNameMapper, so it carries the export and the file deletes the real
@@ -853,99 +851,5 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       expect(screen.getByText('nope')).toBeTruthy()
       expect(deleted).toEqual([])
     })
-  })
-})
-
-describe('shared text sent as a file', () => {
-  let rpc: FakeChatRpc
-  const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-  const text = 's'.repeat(10001)
-  // the screen's removal, as React Navigation reports it
-  let beforeRemove: (() => void) | undefined
-
-  beforeEach(() => {
-    beforeRemove = undefined
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateUp').mockImplementation(() => {})
-    jest.spyOn(useNavigation(), 'addListener').mockImplementation(((event: string, cb: () => void) => {
-      if (event !== 'beforeRemove') return () => {}
-      beforeRemove = cb
-      return () => {
-        if (beforeRemove === cb) beforeRemove = undefined
-      }
-    }) as never)
-  })
-
-  afterEach(() => {
-    cleanup()
-    restoreChatRpc()
-    jest.restoreAllMocks()
-    resetAllStores()
-  })
-
-  const screenFor = (strict = false) => {
-    const el = (
-      <AttachmentGetTitles
-        conversationIDKey={conversationIDKey}
-        pathAndOutboxIDs={[{path: '/tmp/shared.txt'}]}
-        textBack={text}
-        tlfName="testuser,testuser2"
-      />
-    )
-    return render(strict ? <React.StrictMode>{el}</React.StrictMode> : el)
-  }
-  const removed = () => {
-    const cb = beforeRemove
-    act(() => cb?.())
-  }
-  const putBack = () => peekInputIntent(conversationIDKey, ['injectText'])
-
-  test('comes back after the draft, once, when the screen is removed unsent', () => {
-    screenFor()
-    fireEvent.click(screen.getByText('Cancel'))
-    removed()
-    expect(consumeInputIntent(conversationIDKey, ['injectText'])).toEqual({putBack: true, text, type: 'injectText'})
-
-    removed()
-    expect(putBack()).toBeUndefined()
-  })
-
-  test('an effect cleanup without a removal, as on a screen hidden under others, puts nothing back', () => {
-    const {unmount} = screenFor()
-    unmount()
-    expect(putBack()).toBeUndefined()
-  })
-
-  test('StrictMode running the effects twice at mount puts nothing back', () => {
-    screenFor(true)
-    expect(putBack()).toBeUndefined()
-    removed()
-    expect(putBack()).toEqual({putBack: true, text, type: 'injectText'})
-  })
-
-  test('stays out of the draft once it is handed to upload', async () => {
-    screenFor()
-    await act(async () => {
-      fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-    removed()
-
-    expect(rpc.calls('postAttachment')).toHaveLength(1)
-    expect(putBack()).toBeUndefined()
-  })
-
-  test('is not put back into a conversation of an account that has gone', () => {
-    screenFor()
-    act(() => {
-      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
-      useConfigState.getState().dispatch.setUserSwitching(false)
-      useConfigState.getState().dispatch.setLoggedIn(true)
-    })
-    removed()
-
-    expect(putBack()).toBeUndefined()
   })
 })

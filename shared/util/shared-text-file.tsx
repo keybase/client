@@ -111,22 +111,6 @@ export const writeSharedTextFile = async (
   }
 }
 
-// A share's text going out with its files: the text to follow them into the draft, or, when it
-// has no room after the draft, the path of a .txt to send in the same batch. A text that can't be
-// written stays text, and the composer has its own go at attaching it.
-export const sharedTextForBatch = async (
-  draft: string,
-  text: string | undefined
-): Promise<{text?: string; path?: string}> => {
-  if (text === undefined || sharedTextFitsAfter(draft, text)) return {text}
-  try {
-    return {path: (await writeSharedTextFile(text)).path}
-  } catch (error) {
-    logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
-    return {text}
-  }
-}
-
 // A chat attachment is read by the service's upload, which can run again after a restart, so its
 // .txt can't be removed when the attachment is handed over. Like the Android share cache, files
 // are kept a day and swept at startup. Mobile only.

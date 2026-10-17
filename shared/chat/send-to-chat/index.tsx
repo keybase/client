@@ -12,26 +12,16 @@ type Props = {
 
 export const SendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const clearModals = C.Router2.clearModals
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    if (sendPaths?.length) {
-      C.ignorePromise(
-        sendFilesToConversation({
-          conversationIDKey,
-          paths: sendPaths,
-          reason: isFromShareExtension ? 'extension' : 'files',
-          text,
-          // a cancel comes back to this list, which still holds the share
-          textBack: false,
-          tlfName,
-        })
-      )
-    } else {
-      clearModals()
-      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files', {
-        intent: text === undefined ? undefined : {append: true, text, type: 'injectText'},
+    C.ignorePromise(
+      sendFilesToConversation({
+        conversationIDKey,
+        paths: sendPaths ?? [],
+        reason: isFromShareExtension ? 'extension' : 'files',
+        text,
+        tlfName,
       })
-    }
+    )
   }
   return <ConversationList onSelect={onSelect} />
 }

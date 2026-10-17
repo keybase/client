@@ -1,48 +1,71 @@
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {getAccountGeneration} from '@/engine/account-generation'
-import {navigateAppend} from '@/constants/router'
+import {clearModals, navigateAppend, navigateToThread} from '@/constants/router'
 import {getInboxConversationMeta} from '../inbox/metadata'
 import {toAttachmentPath} from '../conversation/attachment-path'
-import {sharedTextForBatch} from '@/util/shared-text-file'
+import {sharedTextFitsAfter, writeSharedTextFile} from '@/util/shared-text-file'
 
-// Opens the attachment titles screen for files going to a conversation. Text going with them
-// follows them into the draft, or, when the draft has no room for it, goes as a .txt in the same
-// batch. textBack: that text comes back after the draft if the batch is cancelled, for a screen
-// with nothing else holding the share beneath it. tlfName undefined takes the meta's.
+const knownMeta = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const meta = getInboxConversationMeta(conversationIDKey)
+  return meta?.conversationIDKey === conversationIDKey ? meta : undefined
+}
+
+// Where a share's text goes, decided once as the share opens, against the draft the conversation
+// has then: after the draft when chat's message limit leaves room for both, else as a .txt in the
+// batch, the draft untouched.
+export const sharedTextFits = (conversationIDKey: T.Chat.ConversationIDKey, text: string) =>
+  sharedTextFitsAfter(knownMeta(conversationIDKey)?.draft ?? '', text)
+
+// Opens the attachment titles screen for files going to a conversation, or the conversation itself
+// when there are none. Text going with them follows them into the draft once they are sent, or,
+// when the draft has no room for it, goes as a .txt in the same batch. Text that can't be written
+// as a file goes after the draft after all. tlfName undefined takes the meta's.
 export const sendFilesToConversation = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   paths: ReadonlyArray<string>
   text?: string
   notice?: string
   reason: 'extension' | 'files'
-  textBack: boolean
   tlfName?: string
 }) => {
-  const {conversationIDKey, notice, paths, reason, text, textBack, tlfName} = p
+  const {conversationIDKey, notice, reason, text, tlfName} = p
   const generation = getAccountGeneration()
-  const meta = getInboxConversationMeta(conversationIDKey)
-  const ours = meta?.conversationIDKey === conversationIDKey ? meta : undefined
-  const shared = await sharedTextForBatch(ours?.draft ?? '', text)
+  let prefill = text
+  let paths = p.paths
+  if (text !== undefined && !sharedTextFits(conversationIDKey, text)) {
+    try {
+      paths = [...paths, (await writeSharedTextFile(text)).path]
+      prefill = undefined
+    } catch (error) {
+      logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
+    }
+  }
   // the write outlasted the account the share was for
   if (getAccountGeneration() !== generation) {
     logger.info('send files: account changed, not opening the titles screen')
+    return
+  }
+  if (paths.length === 0) {
+    clearModals()
+    navigateToThread(conversationIDKey, reason, {
+      intent:
+        prefill === undefined && !notice
+          ? undefined
+          : {append: true, notice, text: prefill, type: 'injectText'},
+    })
     return
   }
   navigateAppend({
     name: 'chatAttachmentGetTitles',
     params: {
       conversationIDKey,
-      inputPrefillText: shared.text,
+      inputPrefillText: prefill,
       notice,
-      pathAndOutboxIDs: [...paths, ...(shared.path ? [shared.path] : [])].map(path => ({
-        path: toAttachmentPath(path),
-      })),
+      pathAndOutboxIDs: paths.map(path => ({path: toAttachmentPath(path)})),
       selectConversationWithReason: reason,
-      // into the draft or as a .txt, cancelling the batch must not lose it
-      textBack: textBack ? text : undefined,
       // the picker's own, even empty: an empty one takes the drag-and-drop upload
-      tlfName: tlfName ?? (ours?.tlfname || undefined),
+      tlfName: tlfName ?? (knownMeta(conversationIDKey)?.tlfname || undefined),
     },
   })
 }

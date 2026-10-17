@@ -7,6 +7,7 @@ import {act, cleanup, render} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {startNewAccountGeneration} from '@/engine/account-generation'
+import logger from '@/logger'
 import {SendToChat} from './index'
 
 // the picker: the test chooses the conversation through the onSelect it was given
@@ -21,6 +22,7 @@ jest.mock('./conversation-list/conversation-list', () => ({
 
 // the file system is native: this one records what is written, under a uri with the raw name
 const mockWrites = new Array<string>()
+let mockWriteFails = false
 jest.mock('expo-file-system', () => {
   class Directory {
     uri: string
@@ -32,6 +34,7 @@ jest.mock('expo-file-system', () => {
   class File {
     async write(text: string) {
       await Promise.resolve()
+      if (mockWriteFails) throw new Error('disk full')
       mockWrites.push(text)
     }
   }
@@ -41,9 +44,9 @@ jest.mock('expo-file-system', () => {
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const draft = 'd'.repeat(100)
 
-const pick = async (text: string, tlfName = 'testuser,testuser-mac') => {
+const pick = async (text: string, tlfName = 'testuser,testuser-mac', sendPaths = ['/tmp/a.jpg']) => {
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
-  render(<SendToChat isFromShareExtension={true} sendPaths={['/tmp/a.jpg']} text={text} />)
+  render(<SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />)
   await act(async () => {
     mockOnSelect?.(conversationIDKey, tlfName)
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -51,13 +54,16 @@ const pick = async (text: string, tlfName = 'testuser,testuser-mac') => {
   return jest
     .mocked(C.Router2.navigateAppend)
     .mock.calls.map(
-      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown; textBack?: string; tlfName?: string}}
+      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown; tlfName?: string}}
     )
 }
 
 beforeEach(() => {
   mockWrites.length = 0
+  mockWriteFails = false
   jest.spyOn(C.Router2, 'navigateAppend').mockReturnValue(true)
+  jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
+  jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
 })
 
 afterEach(() => {
@@ -88,8 +94,39 @@ test('picked for files and text the draft has no room for, the text goes as a .t
     {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
   ])
   expect(mockWrites).toEqual([text])
-  // a cancel comes back to the list, which still holds the share
-  expect(calls[0]?.params.textBack).toBeUndefined()
+})
+
+test('picked for text alone that fits after the draft, the text goes after it, with no titles screen', async () => {
+  const text = 's'.repeat(10000 - draft.length - 1)
+  const calls = await pick(text, 'testuser,testuser-mac', [])
+
+  expect(calls).toEqual([])
+  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+    intent: {append: true, notice: undefined, text, type: 'injectText'},
+  })
+})
+
+test('picked for text alone the draft has no room for, the text goes as a .txt through the titles screen', async () => {
+  const text = 's'.repeat(10000 - draft.length)
+  const calls = await pick(text, 'testuser,testuser-mac', [])
+
+  expect(calls).toHaveLength(1)
+  expect(calls[0]?.params.pathAndOutboxIDs).toEqual([
+    {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
+  ])
+  expect(C.Router2.navigateToThread).not.toHaveBeenCalled()
+})
+
+test('text that cannot be written as a file goes after the draft after all', async () => {
+  jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  mockWriteFails = true
+  const text = 's'.repeat(10000 - draft.length)
+  const calls = await pick(text, 'testuser,testuser-mac', [])
+
+  expect(calls).toEqual([])
+  expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+    intent: {append: true, notice: undefined, text, type: 'injectText'},
+  })
 })
 
 test('an account switch while the text is written opens no titles screen', async () => {

@@ -134,52 +134,71 @@ test('a share handed out again is not sent to its conversation a second time', a
   expect(C.Router2.navigateToThread).toHaveBeenCalledTimes(2)
 })
 
-describe('files with text', () => {
+describe('shared text and the draft', () => {
   const draft = 'd'.repeat(100)
+  const fits = 's'.repeat(10000 - draft.length - 1)
+  const over = 's'.repeat(10000 - draft.length)
+  const txt = {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string}
   const getTitles = () =>
     jest.mocked(C.Router2.navigateAppend).mock.calls.map(
       c =>
         c[0] as {
           name: string
-          params: {inputPrefillText?: string; pathAndOutboxIDs: Array<{path: string}>; textBack?: string}
+          params: {inputPrefillText?: string; notice?: string; pathAndOutboxIDs: Array<{path: string}>}
         }
     )
-  const share = async (text: string) => {
+  const share = async (text: string, withFile: boolean) => {
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
     await shareToSuggestedConversation({
-      droppedCount: 0,
+      droppedCount: 1,
       items: [
-        {originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image},
+        ...(withFile ? [{originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image}] : []),
         {content: text, type: T.RPCGen.IncomingShareType.text},
       ],
     })
   }
 
-  test('text that fits after the draft follows the files into it', async () => {
-    const text = 's'.repeat(10000 - draft.length - 1)
-    await share(text)
+  test('with files, text that fits goes after the draft before the titles screen opens, so a cancel leaves it there', async () => {
+    await share(fits, true)
 
+    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+      intent: {append: true, notice: undefined, text: fits, type: 'injectText'},
+    })
     expect(getTitles()).toHaveLength(1)
-    expect(getTitles()[0]?.params.inputPrefillText).toBe(text)
+    expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}])
+    expect(getTitles()[0]?.params.notice).toBe("1 item couldn't be prepared.")
     expect(mockWrites).toEqual([])
-    // the thread is beneath, with nothing else holding the share: a cancel puts the text back there
-    expect(getTitles()[0]?.params.textBack).toBe(text)
   })
 
-  test('text the draft has no room for goes as a .txt in the same batch as the files', async () => {
-    const text = 's'.repeat(10000 - draft.length)
-    await share(text)
+  test('with files, text the draft has no room for goes as a .txt in the same batch, the draft untouched', async () => {
+    await share(over, true)
 
+    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {intent: undefined})
     expect(getTitles()).toHaveLength(1)
     expect(getTitles()[0]?.name).toBe('chatAttachmentGetTitles')
     expect(getTitles()[0]?.params.inputPrefillText).toBeUndefined()
-    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([
-      {path: '/tmp/a.jpg'},
-      {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
-    ])
-    expect(mockWrites).toEqual([text])
-    // the thread is beneath, with nothing else holding the share: a cancel puts the text back there
-    expect(getTitles()[0]?.params.textBack).toBe(text)
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}, txt])
+    expect(mockWrites).toEqual([over])
+  })
+
+  test('alone, text the draft has no room for goes as a .txt through the titles screen, with the notice', async () => {
+    await share(over, false)
+
+    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {intent: undefined})
+    expect(getTitles()).toHaveLength(1)
+    expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([txt])
+    expect(getTitles()[0]?.params.notice).toBe("1 item couldn't be prepared.")
+    expect(mockWrites).toEqual([over])
+  })
+
+  test('alone, text that fits goes after the draft, with no titles screen', async () => {
+    await share(fits, false)
+
+    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
+      intent: {append: true, notice: "1 item couldn't be prepared.", text: fits, type: 'injectText'},
+    })
+    expect(getTitles()).toEqual([])
+    expect(mockWrites).toEqual([])
   })
 })
