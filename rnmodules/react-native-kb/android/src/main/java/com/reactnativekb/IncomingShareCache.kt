@@ -29,14 +29,11 @@ object IncomingShareCache {
 
     // Each item gets its own directory so two items with the same name, in one
     // share or in overlapping ones, never overwrite each other's copy. name must
-    // be a single path component (see IncomingShareFileName). share, when given,
-    // tags the directory with the share it belongs to (see discardShare).
-    fun newItemFile(context: Context, name: String, share: String? = null): File =
-        newItemFile(dir(context), name, share)
+    // be a single path component (see IncomingShareFileName).
+    fun newItemFile(context: Context, name: String): File = newItemFile(dir(context), name)
 
-    fun newItemFile(dir: File, name: String, share: String? = null): File {
-        val uuid = UUID.randomUUID().toString()
-        val itemDir = File(dir, if (share == null) uuid else "$share-$uuid")
+    fun newItemFile(dir: File, name: String): File {
+        val itemDir = File(dir, UUID.randomUUID().toString())
         if (!itemDir.mkdirs()) {
             throw IOException("unable to create ${itemDir.path}")
         }
@@ -45,8 +42,8 @@ object IncomingShareCache {
 
     // Copies input into a new item file named name. On any failure nothing is
     // left behind.
-    fun copyIn(context: Context, input: InputStream, name: String, share: String? = null): File {
-        val file = newItemFile(context, name, share)
+    fun copyIn(context: Context, input: InputStream, name: String): File {
+        val file = newItemFile(context, name)
         try {
             FileOutputStream(file).use { output -> input.copyTo(output, 64 * 1024) }
         } catch (e: Exception) {
@@ -54,14 +51,6 @@ object IncomingShareCache {
             throw e
         }
         return file
-    }
-
-    // Removes every copy made for share, finished or cut off: a copy the process
-    // was killed in the middle of is left as it was.
-    fun discardShare(context: Context, share: String) = discardShare(dir(context), share)
-
-    fun discardShare(dir: File, share: String) {
-        dir.listFiles()?.filter { it.name.startsWith("$share-") }?.forEach { it.deleteRecursively() }
     }
 
     // Removes a copy made by newItemFile, along with its directory.
@@ -72,12 +61,10 @@ object IncomingShareCache {
         }
     }
 
-    // Call off the main thread: this stats every file in the directory. keep: the
-    // item directories of a share restored after the process was killed, which
-    // may well be old but are still to be sent.
-    fun purgeOld(context: Context, keep: Set<File>) = purgeOld(dir(context), keep, System.currentTimeMillis())
+    // Call off the main thread: this stats every file in the directory.
+    fun purgeOld(context: Context) = purgeOld(dir(context), System.currentTimeMillis())
 
-    fun purgeOld(dir: File, keep: Set<File>, now: Long) {
+    fun purgeOld(dir: File, now: Long) {
         val cutoff = now - MAX_AGE_MS
         // null means the listing itself failed, which is not the same as an empty
         // directory: the copies are still there, so say so rather than looking swept
@@ -87,7 +74,7 @@ object IncomingShareCache {
             return
         }
         files.forEach { file ->
-            if (file.lastModified() < cutoff && file !in keep) {
+            if (file.lastModified() < cutoff) {
                 file.deleteRecursively()
             }
         }

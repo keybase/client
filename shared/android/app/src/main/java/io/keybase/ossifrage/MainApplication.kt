@@ -22,6 +22,7 @@ import com.facebook.react.common.ReleaseLevel
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import com.reactnativekb.DarkModePreference
 import com.reactnativekb.GuiConfig
+import com.reactnativekb.IncomingShareCache
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
 import expo.modules.ExpoReactHostFactory
@@ -77,6 +78,14 @@ class MainApplication : Application(), ReactApplication {
 
         // KB
         onApplicationCreate(this)
+
+        Thread {
+            try {
+                IncomingShareCache.purgeOld(this)
+            } catch (e: Exception) {
+                NativeLogger.warn("MainApplication: error purging old incoming shares", e)
+            }
+        }.start()
 
         Thread {
             try {
