@@ -297,3 +297,24 @@ func TestIncomingShareRepeatCarriesTheShareID(t *testing.T) {
 	require.NotEqual(t, first.Id, second.Id)
 	require.Equal(t, second.Id, get().Id)
 }
+
+func TestIncomingShareRepeatIsOnlyForTheSameUser(t *testing.T) {
+	h, cleanup := setupIncomingShare(t, func(string) []map[string]string {
+		return []map[string]string{{"type": "text", "content": "hello"}}
+	})
+	defer cleanup()
+	h.G().SetClock(clockwork.NewFakeClock())
+	mctx := libkb.NewMetaContextBackground(h.G())
+	setUser := func(uid keybase1.UID) {
+		h.G().ActiveDevice = libkb.NewProvisionalActiveDevice(mctx,
+			keybase1.UserVersion{Uid: uid}, keybase1.DeviceID(""), nil, nil, "",
+			libkb.KeychainModeNone)
+	}
+
+	setUser(keybase1.UID("00000000000000000000000000000119"))
+	require.Equal(t, "hello", incomingShareText(t, h))
+	setUser(keybase1.UID("11111111111111111111111111111119"))
+	require.Empty(t, incomingShareText(t, h))
+	setUser(keybase1.UID("00000000000000000000000000000119"))
+	require.Equal(t, "hello", incomingShareText(t, h))
+}
