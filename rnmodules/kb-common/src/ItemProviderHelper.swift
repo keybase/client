@@ -580,60 +580,17 @@ public class ItemProviderHelper: NSObject {
     }
   }
 
-  private enum ImageEncodeError: Error {
-    case encodeFailed
-  }
-
-  private static func encodeJPEG(
-    _ image: CGImage, orientation: CGImagePropertyOrientation, to url: URL
-  ) throws {
-    guard
-      let dest = CGImageDestinationCreateWithURL(
-        url as CFURL, UTType.jpeg.identifier as CFString, 1, nil)
-    else {
-      throw ImageEncodeError.encodeFailed
-    }
-    let props =
-      [
-        kCGImageDestinationLossyCompressionQuality: 0.85,
-        kCGImagePropertyOrientation: orientation.rawValue,
-      ] as CFDictionary
-    CGImageDestinationAddImage(dest, image, props)
-    guard CGImageDestinationFinalize(dest) else {
-      throw ImageEncodeError.encodeFailed
-    }
-  }
-
-  private static func cgOrientation(_ o: UIImage.Orientation) -> CGImagePropertyOrientation {
-    switch o {
-    case .up: return .up
-    case .down: return .down
-    case .left: return .left
-    case .right: return .right
-    case .upMirrored: return .upMirrored
-    case .downMirrored: return .downMirrored
-    case .leftMirrored: return .leftMirrored
-    case .rightMirrored: return .rightMirrored
-    @unknown default: return .up
-    }
-  }
-
   // A provider that vends only an in-memory UIImage has no file to copy. The
   // image is already decoded, so encoding it costs little extra memory.
   private func sendUIImage(_ order: Int, _ image: UIImage, suggestedName: String?) {
     do {
       let payloadURL = try getPayloadURL(
         named: PayloadFileName.make(candidates: [suggestedName], type: .jpeg, fallbackBase: "image"))
-      if let cgImage = image.cgImage {
-        try Self.encodeJPEG(
-          cgImage, orientation: Self.cgOrientation(image.imageOrientation), to: payloadURL)
-      } else {
-        // CIImage-backed: no CGImage to hand ImageIO.
-        guard let jpeg = image.jpegData(compressionQuality: 0.85) else {
-          throw ImageEncodeError.encodeFailed
-        }
-        try jpeg.write(to: payloadURL, options: .atomic)
+      guard let jpeg = image.jpegData(compressionQuality: 0.85) else {
+        completeItemAndAppendManifestAndLogError(order, text: "sendUIImage: unable to encode share", error: nil)
+        return
       }
+      try jpeg.write(to: payloadURL, options: .atomic)
       completeItemAndAppendManifest(order, type: "image", originalFileURL: payloadURL)
     } catch {
       completeItemAndAppendManifestAndLogError(order, text: "sendUIImage: unable to encode share", error: error)
