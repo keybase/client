@@ -1,9 +1,9 @@
 import {defineConfig} from '@playwright/test'
 
-// The chat flows over the seeded e2e team. They check behaviour, not colours, so they run in the
+// The chat flows over the seeded e2e team and the self conversation. They check behaviour, not colours, so they run in the
 // light project only; each also turns retries off for itself (a retry would let an intermittent
 // scroll race pass).
-const chatFlows = ['composer', 'data', 'parity', 'scroll', 'selection'].map(n => `flows/chat-${n}.test.ts`)
+const chatFlows = ['composer', 'data', 'parity', 'scroll', 'selection', 'unfurl'].map(n => `flows/chat-${n}.test.ts`)
 
 export default defineConfig({
   testDir: './',

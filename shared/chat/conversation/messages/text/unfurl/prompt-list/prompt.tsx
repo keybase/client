@@ -27,8 +27,14 @@ const UnfurlPrompt = (p: Props) => {
         </Kb.Box2>
         <Kb.Checkbox checked={remember} onCheck={setRemember} label={`Remember for ${domain}`} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-          <Kb.Button label="Yes" small={true} onClick={() => onAnswer(true, remember)} />
-          <Kb.Button label="No" mode="Secondary" small={true} onClick={() => onAnswer(false, remember)} />
+          <Kb.Button label="Yes" small={true} onClick={() => onAnswer(true, remember)} testID={TestIDs.CHAT_UNFURL_PROMPT_YES} />
+          <Kb.Button
+            label="No"
+            mode="Secondary"
+            small={true}
+            onClick={() => onAnswer(false, remember)}
+            testID={TestIDs.CHAT_UNFURL_PROMPT_NO}
+          />
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.closeContainer}>

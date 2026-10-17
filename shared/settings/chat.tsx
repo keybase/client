@@ -421,10 +421,11 @@ type DomainListProps = {
   onToggleSaved: (domain: string) => void
   removed: ReadonlySet<string>
   saved: ReadonlyArray<string>
+  testID: string
 }
 
 const DomainList = (p: DomainListProps) => {
-  const {added, disabled, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved} = p
+  const {added, disabled, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved, testID} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const [text, setText] = React.useState('')
@@ -437,7 +438,7 @@ const DomainList = (p: DomainListProps) => {
     ...added.filter(domain => !saved.includes(domain)).map(domain => ({domain, isAdded: true})),
   ]
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection} testID={testID}>
       <Kb.Text type="BodySmallSemibold">{heading}</Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
         <Kb.Input3
@@ -561,6 +562,7 @@ const Links = () => {
               onToggleSaved={toggleSaved}
               removed={edits.removed}
               saved={whitelist.filter(w => !edits.added.block.includes(w))}
+              testID={TestIDs.SETTINGS_UNFURL_ALLOWED}
             />
             <DomainList
               added={edits.added.block}
@@ -571,6 +573,7 @@ const Links = () => {
               onToggleSaved={toggleSaved}
               removed={edits.removed}
               saved={blocklist.filter(w => !edits.added.allow.includes(w))}
+              testID={TestIDs.SETTINGS_UNFURL_BLOCKED}
             />
           </>
         )}
@@ -589,6 +592,7 @@ const Links = () => {
           style={styles.save}
           disabled={!allowSave}
           waitingKey={C.waitingKeySettingsChatUnfurl}
+          testID={TestIDs.SETTINGS_UNFURL_SAVE}
         />
         {error ? (
           <Kb.Text type="BodySmall" style={styles.error}>
