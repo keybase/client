@@ -707,8 +707,11 @@ public class MediaUtils: NSObject {
             try? FileManager.default.removeItem(at: tmpDstURL)
         }
 
+        // The copy keeps what ImageIO doesn't show as XMP (IIM ContentLocation,
+        // say); the re-encode drops more, so it gets a turn before the caller's
+        // JPEG fallback.
         if !(count == 1 && losslessMetadataTypes.contains(type as String)
-            && copyWithoutLocation(cgSource, type: type, to: tmpDstURL))
+            && copyWithoutLocation(cgSource, type: type, to: tmpDstURL) && !hasLocation(tmpDstURL))
         {
             try reencodeWithoutLocation(cgSource, type: type, count: count, to: tmpDstURL)
         }
@@ -738,9 +741,15 @@ public class MediaUtils: NSObject {
                 let prefix = CGImageMetadataTagCopyPrefix(kept),
                 let name = CGImageMetadataTagCopyName(kept)
             else { continue }
-            // Fails harmlessly for a namespace ImageIO already knows.
+            // Fails harmlessly for a namespace ImageIO already knows. A prefix
+            // already bound to another namespace would file the tag under that
+            // one, so that is checked on the tag as written.
             _ = CGImageMetadataRegisterNamespaceForPrefix(stripped, namespace, prefix, nil)
-            guard CGImageMetadataSetTagWithPath(stripped, nil, "\(prefix):\(name)" as CFString, kept) else {
+            let path = "\(prefix):\(name)" as CFString
+            guard CGImageMetadataSetTagWithPath(stripped, nil, path, kept),
+                let written = CGImageMetadataCopyTagWithPath(stripped, nil, path),
+                CGImageMetadataTagCopyNamespace(written).map({ CFEqual($0, namespace) }) == true
+            else {
                 return false
             }
         }
@@ -777,10 +786,13 @@ public class MediaUtils: NSObject {
         if let fields = value as? [String: AnyObject], fields.values.allSatisfy(isTag) {
             let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
             if kept.count == fields.count { return tag }
+            // An empty structure or array is no tag at all.
+            if kept.isEmpty { return nil }
             cleaned = kept as CFDictionary
         } else if let items = value as? [AnyObject], items.allSatisfy(isTag) {
             let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag) }
             if kept.count == items.count { return tag }
+            if kept.isEmpty { return nil }
             cleaned = kept as CFArray
         } else {
             return tag
