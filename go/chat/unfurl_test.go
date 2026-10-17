@@ -367,6 +367,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		require.NotNil(t, recvUnfurl())
 		recvAndCheckUnfurlMsg(origExplodeID)
 
 		t.Logf("try get/set settings")
