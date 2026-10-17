@@ -22,7 +22,12 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   }
   // stands in for the conversation's cannotWrite in the inbox metadata store
   let readOnly = false
+  // the texts handed over to go as a .txt attachment, and each one's way back when that fails
+  const attached: Array<{onFailed: () => void; text: string}> = []
   const composer = makeComposer({
+    attachText: (text, onFailed) => {
+      attached.push({onFailed, text})
+    },
     flushDraft: () => {
       drafts.push('flush')
     },
@@ -51,7 +56,7 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const setReadOnly = (next: boolean) => {
     readOnly = next
   }
-  return {composer, drafts, mount, reports, send, setReadOnly, store}
+  return {attached, composer, drafts, mount, reports, send, setReadOnly, store}
 }
 
 afterEach(() => {
@@ -192,33 +197,6 @@ describe('inject', () => {
 })
 
 describe('append', () => {
-  test('textAfterAppend is what an append to a loaded draft comes to', () => {
-    const {composer, mount} = setup()
-    const {fake} = mount('my draft')
-
-    const expected = composer.textAfterAppend('shared text')
-    composer.append('shared text')
-
-    expect(expected).toBe('my draft\nshared text')
-    expect(fake.text).toBe(expected)
-  })
-
-  test('textAfterAppend counts a draft no input has loaded yet', () => {
-    const {composer, store} = setup()
-    store('my draft')
-
-    expect(composer.textAfterAppend('shared text')).toBe('my draft\nshared text')
-  })
-
-  test('textAfterAppend counts an earlier append made before the draft was known, and the draft', () => {
-    const {composer, mount, store} = setup()
-    mount(undefined)
-    composer.append('first share')
-    store('my draft')
-
-    expect(composer.textAfterAppend('second share')).toBe('my draft\nfirst share\nsecond share')
-  })
-
   test('puts the text on its own line after a loaded draft, and saves both', () => {
     const {composer, drafts, mount} = setup()
     const {fake} = mount('my draft')
@@ -1341,5 +1319,93 @@ describe('read-only', () => {
 
     expect(fake.text).toBe('saved')
     expect(composer.getText()).toBe('saved')
+  })
+})
+
+// chat's message limit is 10000 UTF-8 bytes
+describe('append over the message limit', () => {
+  const draft = 'd'.repeat(100)
+  const fits = 's'.repeat(10000 - draft.length - 1)
+  const over = 's'.repeat(10000 - draft.length)
+
+  test('text that fits after a loaded draft, newline included, is appended', () => {
+    const {attached, composer, mount} = setup()
+    const {fake} = mount(draft)
+
+    composer.append(fits)
+
+    expect(fake.text).toBe(`${draft}\n${fits}`)
+    expect(attached).toEqual([])
+  })
+
+  test('text a loaded draft has no room for is attached instead, the draft untouched', () => {
+    const {attached, composer, drafts, mount} = setup()
+    const {fake} = mount(draft)
+
+    composer.append(over)
+
+    expect(fake.text).toBe(draft)
+    expect(drafts).toEqual([])
+    expect(attached.map(a => a.text)).toEqual([over])
+  })
+
+  test('a draft the store has before any input loads it counts', () => {
+    const {attached, composer, mount, store} = setup()
+    store(draft)
+
+    composer.append(over)
+    const {fake} = mount(draft)
+
+    expect(fake.text).toBe(draft)
+    expect(attached.map(a => a.text)).toEqual([over])
+  })
+
+  test('text appended before the draft was known is attached when the draft that loads leaves it no room', () => {
+    const {attached, composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append(over)
+    expect(fake.text).toBe(over)
+    expect(attached).toEqual([])
+
+    view.offerDraft(draft)
+
+    expect(fake.text).toBe(draft)
+    expect(drafts).toEqual([])
+    expect(attached.map(a => a.text)).toEqual([over])
+  })
+
+  test('an append set aside by an edit is attached when the draft that loads leaves it no room', () => {
+    const {attached, composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.append(over)
+    composer.startEdit('my message')
+
+    view.offerDraft(draft)
+
+    expect(fake.text).toBe('my message')
+    expect(drafts).toEqual([])
+    expect(attached.map(a => a.text)).toEqual([over])
+    composer.clear()
+    expect(fake.text).toBe(draft)
+  })
+
+  test('text that cannot be attached goes after the draft after all', () => {
+    const {attached, composer, mount} = setup()
+    const {fake} = mount(draft)
+    composer.append(over)
+
+    attached[0]?.onFailed()
+
+    expect(fake.text).toBe(`${draft}\n${over}`)
+  })
+
+  test('where the user cannot post, nothing is attached', () => {
+    const {attached, composer, mount, setReadOnly} = setup()
+    mount(draft)
+    setReadOnly(true)
+
+    composer.append(over)
+
+    expect(attached).toEqual([])
   })
 })

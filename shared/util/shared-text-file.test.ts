@@ -1,9 +1,18 @@
 /// <reference types="jest" />
-import {fitsInTextMessage, sharedTextFileName, textMessageMaxBytes, writeSharedTextFile} from './shared-text-file'
+import {
+  fitsInTextMessage,
+  sharedTextFileName,
+  sharedTextFitsAfter,
+  sharedTextForBatch,
+  textMessageMaxBytes,
+  writeSharedTextFile,
+} from './shared-text-file'
+import logger from '@/logger'
 
 type MockEntry = {kind: 'dir' | 'file'; uri: string; content?: string}
 const mockWritten = new Array<MockEntry>()
 const mockDeleted = new Array<string>()
+let mockWriteFails = false
 jest.mock('expo-file-system', () => {
   const join = (parts: Array<unknown>) =>
     parts
@@ -31,6 +40,7 @@ jest.mock('expo-file-system', () => {
     }
     async write(content: string) {
       await Promise.resolve()
+      if (mockWriteFails) throw new Error('disk full')
       mockWritten.push({content, kind: 'file', uri: this.uri})
     }
   }
@@ -38,6 +48,7 @@ jest.mock('expo-file-system', () => {
 })
 
 beforeEach(() => {
+  mockWriteFails = false
   mockWritten.length = 0
   mockDeleted.length = 0
 })
@@ -87,4 +98,34 @@ test('the text is written to its own folder in the cache under its name, and rem
   first.remove()
   expect(mockDeleted).toHaveLength(1)
   expect(first.path.startsWith(decodeURIComponent(mockDeleted[0]!.replace('file://', '')))).toBe(true)
+})
+
+test('shared text fits after a draft when both, joined by a newline, are within the limit', () => {
+  const draft = 'd'.repeat(100)
+  expect(sharedTextFitsAfter(draft, 's'.repeat(textMessageMaxBytes - 101))).toBe(true)
+  expect(sharedTextFitsAfter(draft, 's'.repeat(textMessageMaxBytes - 100))).toBe(false)
+  // a draft ending in a newline gets no second one
+  expect(sharedTextFitsAfter(`${draft}\n`, 's'.repeat(textMessageMaxBytes - 101))).toBe(true)
+  expect(sharedTextFitsAfter('', 's'.repeat(textMessageMaxBytes))).toBe(true)
+})
+
+test('a batch keeps text that fits as text, and writes text that does not as a .txt', async () => {
+  const draft = 'd'.repeat(100)
+  expect(await sharedTextForBatch(draft, undefined)).toEqual({text: undefined})
+  const fits = 's'.repeat(textMessageMaxBytes - 101)
+  expect(await sharedTextForBatch(draft, fits)).toEqual({text: fits})
+  expect(mockWritten).toEqual([])
+
+  const over = 's'.repeat(textMessageMaxBytes - 100)
+  const batched = await sharedTextForBatch(draft, over)
+  expect(batched.text).toBeUndefined()
+  expect(batched.path).toMatch(/^\/data\/cache\/shared-text\/[^/]+\/s+\.txt$/)
+  expect(mockWritten.filter(w => w.kind === 'file').map(w => w.content)).toEqual([over])
+})
+
+test('a batch keeps text it cannot write as text, for the composer', async () => {
+  jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  mockWriteFails = true
+  const over = 's'.repeat(textMessageMaxBytes + 1)
+  expect(await sharedTextForBatch('', over)).toEqual({text: over})
 })

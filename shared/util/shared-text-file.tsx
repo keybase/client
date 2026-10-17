@@ -1,4 +1,5 @@
 import {Directory, File, Paths} from 'expo-file-system'
+import logger from '@/logger'
 import {makeUUID} from '@/util/uuid'
 
 // Chat's limit on a text message, in UTF-8 bytes: TextMessageMaxLength in go/chat/msgchecker,
@@ -18,6 +19,14 @@ export const fitsInTextMessage = (text: string) => {
   }
   return bytes <= textMessageMaxBytes
 }
+
+// How shared text joins a draft: on its own line after it.
+export const appendLine = (text: string, s: string) =>
+  !text ? s : !s ? text : text.endsWith('\n') ? `${text}${s}` : `${text}\n${s}`
+
+// The one rule for where shared text goes: after the draft when chat's message limit leaves room
+// for both, else as a .txt attachment, the draft untouched.
+export const sharedTextFitsAfter = (draft: string, text: string) => fitsInTextMessage(appendLine(draft, text))
 
 // Mirrors PayloadFileName in rnmodules/kb-common, which names the long text the iOS share
 // extension attaches, so a text file reads the same whichever side made it.
@@ -93,5 +102,21 @@ export const writeSharedTextFile = async (text: string): Promise<{path: string; 
         dir.delete()
       } catch {}
     },
+  }
+}
+
+// A share's text going out with its files: the text to follow them into the draft, or, when it
+// has no room after the draft, the path of a .txt to send in the same batch. A text that can't be
+// written stays text, and the composer has its own go at attaching it.
+export const sharedTextForBatch = async (
+  draft: string,
+  text: string | undefined
+): Promise<{text?: string; path?: string}> => {
+  if (text === undefined || sharedTextFitsAfter(draft, text)) return {text}
+  try {
+    return {path: (await writeSharedTextFile(text)).path}
+  } catch (error) {
+    logger.warn('shared text: unable to write it as a file, leaving it for the draft', error)
+    return {text}
   }
 }
