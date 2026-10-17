@@ -170,22 +170,6 @@ func (s *Settings) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain str
 	return s.storage.Put(ctx, uid, settingsBlocklistName, blocklistRecord{Blocklist: blocklist})
 }
 
-func (s *Settings) BlocklistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
-	defer s.Trace(ctx, &err, "BlocklistRemove(%s)", domain)()
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	blocklist, err := s.getBlocklist(ctx, uid)
-	if err != nil {
-		return err
-	}
-	if !blocklist[domain] {
-		s.Debug(ctx, "BlocklistRemove: not found, doing nothing")
-		return nil
-	}
-	delete(blocklist, domain)
-	return s.storage.Put(ctx, uid, settingsBlocklistName, blocklistRecord{Blocklist: blocklist})
-}
-
 func (s *Settings) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer s.Trace(ctx, &err, "SetMode(%v)", mode)()
 	s.mu.Lock()
