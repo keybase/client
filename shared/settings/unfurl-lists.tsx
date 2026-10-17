@@ -1,61 +1,61 @@
 import * as T from '@/constants/types'
 
 export type UnfurlList = 'allow' | 'block'
+export type UnfurlLists = {blocklist: ReadonlyArray<string>; whitelist: ReadonlyArray<string>}
+// removed saved rows stay listed, with Restore, until the save
+export type UnfurlDraft = UnfurlLists & {removed: ReadonlySet<string>}
 
-export type UnfurlListEdits = {
-  added: {allow: ReadonlyArray<string>; block: ReadonlyArray<string>}
-  removed: ReadonlySet<string>
+export const draftOf = (saved: UnfurlLists): UnfurlDraft => ({...saved, removed: new Set()})
+
+const listKeys = (list: UnfurlList) =>
+  list === 'allow' ? (['whitelist', 'blocklist'] as const) : (['blocklist', 'whitelist'] as const)
+
+// The service normalizes domains on save; this only keeps the rows tidy.
+export const addDomain = (draft: UnfurlDraft, list: UnfurlList, input: string): UnfurlDraft => {
+  const domain = input.trim().toLowerCase()
+  if (!domain) return draft
+  const [to, from] = listKeys(list)
+  const removed = new Set(draft.removed)
+  removed.delete(domain)
+  const next: UnfurlDraft = {...draft, removed}
+  next[from] = draft[from].filter(d => d !== domain)
+  next[to] = draft[to].includes(domain) ? draft[to] : [...draft[to], domain]
+  return next
 }
 
-export const emptyUnfurlListEdits: UnfurlListEdits = {added: {allow: [], block: []}, removed: new Set()}
-
-export const hasUnfurlListEdits = (edits: UnfurlListEdits) =>
-  edits.removed.size > 0 || edits.added.allow.length > 0 || edits.added.block.length > 0
-
-// The service normalizes domains on save; this only keeps the pending rows tidy.
-export const addDomain = (
-  edits: UnfurlListEdits,
+// A saved row toggles Restore. A row added in this draft goes away, back to the
+// other list if it was moved from there.
+export const removeDomain = (
+  draft: UnfurlDraft,
+  saved: UnfurlLists,
   list: UnfurlList,
-  domain: string,
-  saved: ReadonlyArray<string> = []
-): UnfurlListEdits => {
-  const d = domain.trim().toLowerCase()
-  if (!d) return edits
-  const other = list === 'allow' ? 'block' : 'allow'
-  const removed = new Set(edits.removed)
-  removed.delete(d)
-  return {
-    added: {
-      ...edits.added,
-      [list]: edits.added[list].includes(d) || saved.includes(d) ? edits.added[list] : [...edits.added[list], d],
-      [other]: edits.added[other].filter(x => x !== d),
-    },
-    removed,
+  domain: string
+): UnfurlDraft => {
+  const [to, from] = listKeys(list)
+  if (saved[to].includes(domain)) {
+    const removed = new Set(draft.removed)
+    if (!removed.delete(domain)) removed.add(domain)
+    return {...draft, removed}
   }
+  const next: UnfurlDraft = {...draft}
+  next[to] = draft[to].filter(d => d !== domain)
+  if (saved[from].includes(domain)) next[from] = [...draft[from], domain]
+  return next
 }
 
-export const removeAddedDomain = (edits: UnfurlListEdits, list: UnfurlList, domain: string): UnfurlListEdits => ({
-  ...edits,
-  added: {...edits.added, [list]: edits.added[list].filter(x => x !== domain)},
-})
+const sameDomains = (a: ReadonlyArray<string>, b: ReadonlyArray<string>) =>
+  a.length === b.length && a.every(d => b.includes(d))
 
-const uniqueSorted = (xs: ReadonlyArray<string>) => [...new Set(xs)].sort()
+export const hasEdits = (draft: UnfurlDraft, saved: UnfurlLists) =>
+  draft.removed.size > 0 ||
+  !sameDomains(draft.whitelist, saved.whitelist) ||
+  !sameDomains(draft.blocklist, saved.blocklist)
 
-export const nextLists = (
-  saved: {whitelist: ReadonlyArray<string>; blocklist: ReadonlyArray<string>},
-  edits: UnfurlListEdits
-) => {
-  const {added, removed} = edits
-  const keep = (xs: ReadonlyArray<string>, otherAdded: ReadonlyArray<string>) =>
-    xs.filter(x => !removed.has(x) && !otherAdded.includes(x))
+export const unfurlSaveArgs = (selected: T.RPCChat.UnfurlMode | undefined, draft: UnfurlDraft) => {
+  const keep = (d: string) => !draft.removed.has(d)
   return {
-    blocklist: uniqueSorted([...keep(saved.blocklist, added.allow), ...added.block]),
-    whitelist: uniqueSorted([...keep(saved.whitelist, added.block), ...added.allow]),
+    blocklist: draft.blocklist.filter(keep),
+    mode: selected ?? T.RPCChat.UnfurlMode.whitelisted,
+    whitelist: draft.whitelist.filter(keep),
   }
 }
-
-export const unfurlSaveArgs = (
-  selected: T.RPCChat.UnfurlMode | undefined,
-  saved: {whitelist: ReadonlyArray<string>; blocklist: ReadonlyArray<string>},
-  edits: UnfurlListEdits
-) => ({mode: selected ?? T.RPCChat.UnfurlMode.whitelisted, ...nextLists(saved, edits)})

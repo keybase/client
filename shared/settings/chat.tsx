@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import SettingsSectionTitle from './section-title'
-import {addDomain, emptyUnfurlListEdits, hasUnfurlListEdits, removeAddedDomain, unfurlSaveArgs} from './unfurl-lists'
+import {addDomain, draftOf, hasEdits, removeDomain, unfurlSaveArgs, type UnfurlDraft, type UnfurlList} from './unfurl-lists'
 import {loadSettings} from './load-settings'
 import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
@@ -108,17 +108,11 @@ const useUnfurlSettings = () => {
   }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
-    (
-      unfurlMode: T.RPCChat.UnfurlMode,
-      unfurlWhitelist: ReadonlyArray<string>,
-      unfurlBlocklist: ReadonlyArray<string>,
-      onSuccess: () => void
-    ) => {
+    (settings: ReturnType<typeof unfurlSaveArgs>, onSuccess: () => void) => {
       setSaveError('')
       if (!useConfigState.getState().loggedIn) {
         return
       }
-      const settings = {blocklist: unfurlBlocklist, mode: unfurlMode, whitelist: unfurlWhitelist}
       saveUnfurlSettingsRPC(
         [settings, C.waitingKeySettingsChatUnfurl],
         () => {
@@ -412,19 +406,17 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 }
 
 type DomainListProps = {
-  added: ReadonlyArray<string>
   disabled: boolean
+  domains: ReadonlyArray<string>
   heading: string
   onAdd: (domain: string) => void
-  onRemoveAdded: (domain: string) => void
-  onToggleSaved: (domain: string) => void
+  onRemove: (domain: string) => void
   removed: ReadonlySet<string>
-  saved: ReadonlyArray<string>
   testID: string
 }
 
 const DomainList = (p: DomainListProps) => {
-  const {added, disabled, heading, onAdd, onRemoveAdded, onToggleSaved, removed, saved, testID} = p
+  const {disabled, domains, heading, onAdd, onRemove, removed, testID} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const [text, setText] = React.useState('')
@@ -432,10 +424,6 @@ const DomainList = (p: DomainListProps) => {
     onAdd(text)
     setText('')
   }
-  const rows = [
-    ...saved.map(domain => ({domain, isAdded: false})),
-    ...added.filter(domain => !saved.includes(domain)).map(domain => ({domain, isAdded: true})),
-  ]
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection} testID={testID}>
       <Kb.Text type="BodySmallSemibold">{heading}</Kb.Text>
@@ -450,11 +438,12 @@ const DomainList = (p: DomainListProps) => {
         />
         <Kb.Button label="Add" small={true} onClick={submit} disabled={disabled || !text.trim()} />
       </Kb.Box2>
-      {rows.length > 0 && (
+      {domains.length > 0 && (
         <Kb.ScrollView style={styles.list}>
           <Kb.Box2 alignSelf="center" direction="vertical" style={styles.listOuter} />
-          {rows.map(({domain, isAdded}) => {
-            const isRemoved = !isAdded && removed.has(domain)
+          {domains.map(domain => {
+            const isRemoved = removed.has(domain)
+            const onClick = disabled ? undefined : () => onRemove(domain)
             return (
               <Kb.Box2
                 key={domain}
@@ -469,21 +458,12 @@ const DomainList = (p: DomainListProps) => {
               >
                 <Kb.Text type="BodySemibold">{domain}</Kb.Text>
                 {isRemoved ? (
-                  <Kb.Text
-                    type="BodyPrimaryLink"
-                    style={styles.removeText}
-                    onClick={disabled ? undefined : () => onToggleSaved(domain)}
-                  >
+                  <Kb.Text type="BodyPrimaryLink" style={styles.removeText} onClick={onClick}>
                     Restore
                   </Kb.Text>
                 ) : (
                   <Kb.WithTooltip tooltip="Remove">
-                    <Kb.Icon
-                      onClick={
-                        disabled ? undefined : () => (isAdded ? onRemoveAdded(domain) : onToggleSaved(domain))
-                      }
-                      type="iconfont-trash"
-                    />
+                    <Kb.Icon onClick={onClick} type="iconfont-trash" />
                   </Kb.WithTooltip>
                 )}
               </Kb.Box2>
@@ -500,23 +480,20 @@ export const Links = () => {
   const {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
     useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
-  const [edits, setEdits] = React.useState(emptyUnfurlListEdits)
-  // a save's success clears the edits, so nothing may change while one is in flight
+  const [draft, setDraft] = React.useState<UnfurlDraft>()
+  const saved = {blocklist, whitelist}
+  const lists = draft ?? draftOf(saved)
+  // a save's success clears the draft, so nothing may change while one is in flight
   const saving = C.Waiting.useAnyWaiting(C.waitingKeySettingsChatUnfurl)
   const editable = loaded && !saving
-  const allowSave = loaded && (mode !== selected || hasUnfurlListEdits(edits))
+  const allowSave = loaded && (mode !== selected || hasEdits(lists, saved))
   const onSave = () => {
-    const next = unfurlSaveArgs(selected, {blocklist, whitelist}, edits)
-    unfurlSettingsSaved(next.mode, next.whitelist, next.blocklist, () => setEdits(emptyUnfurlListEdits))
+    unfurlSettingsSaved(unfurlSaveArgs(selected, lists), () => setDraft(undefined))
   }
-
-  const toggleSaved = (domain: string) => {
-    setEdits(e => {
-      const removed = new Set(e.removed)
-      if (!removed.delete(domain)) removed.add(domain)
-      return {...e, removed}
-    })
-  }
+  const onAdd = (list: UnfurlList) => (domain: string) =>
+    setDraft(d => addDomain(d ?? draftOf(saved), list, domain))
+  const onRemove = (list: UnfurlList) => (domain: string) =>
+    setDraft(d => removeDomain(d ?? draftOf(saved), saved, list, domain))
 
   // not keyed on unfurlSettingsRefresh: its identity changes with every load result
   const refreshOnMount = React.useEffectEvent(() => {
@@ -565,25 +542,21 @@ export const Links = () => {
         {selected === T.RPCChat.UnfurlMode.whitelisted && (
           <>
             <DomainList
-              added={edits.added.allow}
               disabled={!editable}
+              domains={lists.whitelist}
               heading="Allowed websites"
-              onAdd={domain => setEdits(e => addDomain(e, 'allow', domain, whitelist))}
-              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'allow', domain))}
-              onToggleSaved={toggleSaved}
-              removed={edits.removed}
-              saved={whitelist.filter(w => !edits.added.block.includes(w))}
+              onAdd={onAdd('allow')}
+              onRemove={onRemove('allow')}
+              removed={lists.removed}
               testID={TestIDs.SETTINGS_UNFURL_ALLOWED}
             />
             <DomainList
-              added={edits.added.block}
               disabled={!editable}
+              domains={lists.blocklist}
               heading="Blocked websites"
-              onAdd={domain => setEdits(e => addDomain(e, 'block', domain, blocklist))}
-              onRemoveAdded={domain => setEdits(e => removeAddedDomain(e, 'block', domain))}
-              onToggleSaved={toggleSaved}
-              removed={edits.removed}
-              saved={blocklist.filter(w => !edits.added.allow.includes(w))}
+              onAdd={onAdd('block')}
+              onRemove={onRemove('block')}
+              removed={lists.removed}
               testID={TestIDs.SETTINGS_UNFURL_BLOCKED}
             />
           </>

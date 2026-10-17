@@ -104,12 +104,12 @@ const mockRPCs = (initial: Saved) => {
     reject: (e: RPCError) => void
     resolve: () => void
   }>()
-  const submit = jest.fn((args: [{settings: Saved}, string], resolve: () => void, reject: (e: RPCError) => void) => {
+  const submit = jest.fn((args: [Saved, string], resolve: () => void, reject: (e: RPCError) => void) => {
     saves.push({
-      args: args[0].settings,
+      args: args[0],
       reject,
       resolve: () => {
-        stored = args[0].settings
+        stored = args[0]
         resolve()
       },
     })
@@ -161,6 +161,7 @@ test('a rejected save keeps the chosen mode and pending edits', async () => {
 
   fireEvent.click(screen.getByText('Save'))
   expect(saves).toHaveLength(1)
+  expect(saves[0]!.args).toEqual({blocklist: ['foo.com'], mode: T.RPCChat.UnfurlMode.whitelisted, whitelist: []})
   await act(async () => {
     saves[0]!.reject(new RPCError('bad domain', 0))
     await Promise.resolve()
