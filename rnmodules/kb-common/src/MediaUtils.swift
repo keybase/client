@@ -119,7 +119,7 @@ public class MediaUtils: NSObject {
         // RAW, jxl before iOS 17) is an error, not a raw share: Send original
         // takes this path too, and must not upload a location it can't strip.
         // An animation goes as it is too, like a gif, since the JPEG would keep
-        // one frame, but only once it carries no location, even here: an
+        // one frame, but only once it carries no location, IPTC or XMP, even here: an
         // animated webp/avif from the share extension went as a metadata-free
         // JPEG before, and this path can't tell it from an in-app pick. With
         // stripLocation, any image that would go as it is goes only once it
@@ -131,10 +131,11 @@ public class MediaUtils: NSObject {
                 throw MediaUtilsError.unrecognizedImageFormat
             }
             if let type = UTType(typeID as String) {
-                let animated = isAnimation(cgSource, type: type)
-                if animated || !mustTranscode(type),
-                    (!stripLocation && !animated) || removeLocation(at: url)
-                {
+                if isAnimation(cgSource, type: type) {
+                    if removeLocation(at: url), !hasIPTCOrXMP(url) {
+                        return url
+                    }
+                } else if !mustTranscode(type), !stripLocation || removeLocation(at: url) {
                     return url
                 }
             }
@@ -164,7 +165,7 @@ public class MediaUtils: NSObject {
 
         // Re-encode at the shared quality. Same dimensions, JPEG out, so a HEIC
         // pick still lands as something every platform can render. The encode
-        // writes pixels only, so no metadata from the source reaches it.
+        // writes pixels only, so EXIF and GPS from the source never reach it.
         let basename = url.deletingPathExtension().lastPathComponent
         let parent = url.deletingLastPathComponent()
         let compressedURL = parent.appendingPathComponent("\(basename).compressed.jpg")
@@ -176,9 +177,11 @@ public class MediaUtils: NSObject {
             throw MediaUtilsError.unrecognizedImageFormat
         }
 
-        // An animation goes as it is, like a gif, once it carries no location;
-        // the JPEG would keep one frame.
-        if let type = UTType(typeID as String), isAnimation(cgSource, type: type), !hasLocation(url) {
+        // An animation goes as it is, like a gif, once it carries no location,
+        // IPTC or XMP; the JPEG would keep one frame.
+        if let type = UTType(typeID as String), isAnimation(cgSource, type: type), !hasLocation(url),
+            !hasIPTCOrXMP(url)
+        {
             return url
         }
 
@@ -191,9 +194,9 @@ public class MediaUtils: NSObject {
     // Images that may be sent as they are. Everything else (bmp, TIFF, RAW,
     // webp, avif, heif) is transcoded even with compression off. The JS side sends
     // every processable image here and leaves this call to us. Each of these should
-    // be a type the location strip can rewrite in place, since Send original uploads
-    // them as they are once stripped (and as a JPEG when it can't strip one).
-    // public.heic is, public.heif is not, and the two don't conform to each other.
+    // be a type the GPS strip can rewrite in place, since Send original uploads them
+    // as they are once stripped (and as a JPEG when it can't strip one). public.heic
+    // is, public.heif is not, and the two don't conform to each other.
     private static let sendAsIsImageTypes: [UTType] = [.jpeg, .png, .gif, .heic]
 
     private static func mustTranscode(_ type: UTType) -> Bool {
@@ -535,90 +538,48 @@ public class MediaUtils: NSObject {
         return redrawn
     }
 
-    // Words in a field's name that make it a place, at any depth, in XMP (any
-    // namespace, cameras' and drones' own included) and in the IPTC dictionary
-    // alike: exif:GPS*, IPTC's City, Province/State, Country*, *Location*, the
-    // fields of an IPTC Extension structure, a PLUS licensor's address. The
-    // location check and both strips read these. A false match only costs a JPEG.
-    private static let locationWords = [
-        "gps", "latitude", "longitude", "altitude", "location", "address", "street", "city", "postal",
-        "country", "region", "province",
-    ]
-    // Names that are a place without one of the words: the rest of a creator's
-    // contact address, named the same in the IPTC dictionary and in XMP.
-    private static let locationNames: Set<String> = [
-        kCGImagePropertyIPTCContactInfoAddress as String, kCGImagePropertyIPTCContactInfoPostalCode as String,
-        kCGImagePropertyIPTCContactInfoCountry as String,
-    ]
-    private static let xmpPhotoshopNamespace = "http://ns.adobe.com/photoshop/1.0/"
-
-    private static func isLocationName(_ name: String) -> Bool {
-        if locationNames.contains(name) { return true }
-        let lowered = name.lowercased()
-        return locationWords.contains { lowered.contains($0) }
-    }
-
-    private static func iptcHasLocation(_ value: Any) -> Bool {
-        if let fields = value as? [CFString: Any] {
-            return fields.contains { isLocationName($0.key as String) || iptcHasLocation($0.value) }
-        }
-        if let items = value as? [Any] { return items.contains(where: iptcHasLocation) }
-        return false
-    }
-
-    private static func propertiesHaveLocation(_ props: [CFString: Any]) -> Bool {
-        if let gps = props[kCGImagePropertyGPSDictionary] as? [CFString: Any], !gps.isEmpty {
-            return true
-        }
-        guard let iptc = props[kCGImagePropertyIPTCDictionary] as? [CFString: Any] else { return false }
-        return iptcHasLocation(iptc)
-    }
-
-    private static func isLocationTag(_ tag: CGImageMetadataTag) -> Bool {
-        guard let namespace = CGImageMetadataTagCopyNamespace(tag) as String?,
-            let name = CGImageMetadataTagCopyName(tag) as String?
-        else { return false }
-        return (namespace == xmpPhotoshopNamespace && name == "State") || isLocationName(name)
-    }
-
-    private static func xmpHasLocation(_ metadata: CGImageMetadata) -> Bool {
-        var found = false
-        let options = [kCGImageMetadataEnumerateRecursively: true] as CFDictionary
-        // Returning false ends only the current level of a recursive enumeration,
-        // so a later tag must not clear a find.
-        CGImageMetadataEnumerateTagsUsingBlock(metadata, nil, options) { _, tag in
-            if isLocationTag(tag) { found = true }
-            return !found
-        }
-        return found
-    }
-
-    // Whether the container or any frame carries a location: GPS, an IPTC place,
-    // or XMP naming either. A frame ImageIO can't read properties for is assumed
-    // to: it reports none at all, not even a pixel size, for a truncated JPEG
-    // whose header still holds the GPS.
+    // Whether any frame of the image carries GPS. A frame ImageIO can't read
+    // properties for is assumed to: it reports none at all, not even a pixel
+    // size, for a truncated JPEG whose header still holds the GPS.
     private static func hasLocation(_ url: URL) -> Bool {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return true }
         let count = CGImageSourceGetCount(source)
         guard count > 0 else { return true }
-        if let container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any],
-            propertiesHaveLocation(container)
-        {
+        let container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any]
+        if let gps = container?[kCGImagePropertyGPSDictionary] as? [CFString: Any], !gps.isEmpty {
             return true
         }
         return (0..<count).contains { index in
             guard let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any],
                 props[kCGImagePropertyPixelWidth] != nil
             else { return true }
-            if propertiesHaveLocation(props) { return true }
-            return CGImageSourceCopyMetadataAtIndex(source, index, nil).map(xmpHasLocation) ?? false
+            let gps = props[kCGImagePropertyGPSDictionary] as? [CFString: Any]
+            return !(gps?.isEmpty ?? true)
         }
     }
 
-    // Strips the image in place if it carries a location. Returns whether it is
-    // free of one afterwards, which the strip alone doesn't promise: it skips
-    // formats ImageIO can't write, can fail, and can't vouch for metadata
-    // ImageIO carries over unasked.
+    // IPTC and XMP can name a place in more fields than any check could list, and
+    // the GPS strip leaves them, so an animation carrying either is sent as a
+    // JPEG instead, like any other image. XMP is looked for as a packet in the
+    // file: ImageIO also reports a frame's own Exif and TIFF properties as XMP
+    // tags, and a packet stored for the whole file shows up at no frame.
+    private static let xmpPacketMarkers = ["<x:xmpmeta", "<x:xapmeta", "<?xpacket"].map { Data($0.utf8) }
+
+    private static func hasIPTCOrXMP(_ url: URL) -> Bool {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+            let data = try? Data(contentsOf: url, options: .alwaysMapped)
+        else { return true }
+        if xmpPacketMarkers.contains(where: { data.range(of: $0) != nil }) { return true }
+        let container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any]
+        if container?[kCGImagePropertyIPTCDictionary] != nil { return true }
+        return (0..<CGImageSourceGetCount(source)).contains { index in
+            let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
+            return props?[kCGImagePropertyIPTCDictionary] != nil
+        }
+    }
+
+    // Strips the image in place if it carries GPS. Returns whether it is free of
+    // GPS afterwards: the strip skips formats ImageIO can't write, and can fail.
     private static func removeLocation(at url: URL) -> Bool {
         guard hasLocation(url) else { return true }
         do {
@@ -630,47 +591,6 @@ public class MediaUtils: NSObject {
             return false
         }
         return !hasLocation(url)
-    }
-
-    // Single images whose metadata ImageIO can rewrite without re-encoding the
-    // pixels. PNG isn't one: CGImageDestinationCopyImageSource reports success
-    // there but leaves the metadata as it was. GIF and HEICS refuse outright.
-    private static let losslessMetadataTypes: Set<String> = ["public.jpeg", "public.heic", "public.tiff"]
-
-    // The IPTC value without its location fields, at any depth.
-    private static func iptcWithoutLocation(_ value: Any) -> Any {
-        if let fields = value as? [CFString: Any] {
-            var kept: [CFString: Any] = [:]
-            for (key, field) in fields where !isLocationName(key as String) {
-                kept[key] = iptcWithoutLocation(field)
-            }
-            return kept
-        }
-        if let items = value as? [Any] { return items.map(iptcWithoutLocation) }
-        return value
-    }
-
-    // What CGImageDestinationAddImageFromSource must merge over an IPTC value to
-    // remove its location fields, or nil when it has none. A dictionary merges
-    // key by key, so a field to remove is a null; an array is replaced whole, so
-    // it comes cleaned. The rest of the dictionary (copyright, caption,
-    // keywords) is left as it is.
-    private static func iptcLocationRemoval(_ value: Any) -> Any? {
-        if let fields = value as? [CFString: Any] {
-            var changes: [CFString: Any] = [:]
-            for (key, field) in fields {
-                if isLocationName(key as String) {
-                    changes[key] = kCFNull
-                } else if let change = iptcLocationRemoval(field) {
-                    changes[key] = change
-                }
-            }
-            return changes.isEmpty ? nil : changes
-        }
-        if let items = value as? [Any], items.contains(where: iptcHasLocation) {
-            return items.map(iptcWithoutLocation)
-        }
-        return nil
     }
 
     private static func stripImageExif(at url: URL) throws {
@@ -696,13 +616,34 @@ public class MediaUtils: NSObject {
             try? FileManager.default.removeItem(at: tmpDstURL)
         }
 
-        // The copy keeps what ImageIO doesn't show as XMP (IIM ContentLocation,
-        // say); the re-encode drops more, so it gets a turn before the caller's
-        // JPEG fallback.
-        if !(count == 1 && losslessMetadataTypes.contains(type as String)
-            && copyWithoutLocation(cgSource, type: type, to: tmpDstURL) && !hasLocation(tmpDstURL))
-        {
-            try reencodeWithoutLocation(cgSource, type: type, count: count, to: tmpDstURL)
+        guard
+            let cgDestination = CGImageDestinationCreateWithURL(
+                tmpDstURL as CFURL, type, count, nil)
+        else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
+        }
+
+        let removeExifProperties =
+            [
+                kCGImagePropertyExifDictionary: kCFNull,
+                kCGImagePropertyGPSDictionary: kCFNull,
+            ] as CFDictionary
+
+        // The container's own properties (an animation's loop count) aren't
+        // copied with the frames; without them an APNG plays forever.
+        if var container = CGImageSourceCopyProperties(cgSource, nil) as? [CFString: Any] {
+            container[kCGImagePropertyExifDictionary] = nil
+            container[kCGImagePropertyGPSDictionary] = nil
+            CGImageDestinationSetProperties(cgDestination, container as CFDictionary)
+        }
+
+        for index in 0..<count {
+            CGImageDestinationAddImageFromSource(
+                cgDestination, cgSource, index, removeExifProperties)
+        }
+
+        guard CGImageDestinationFinalize(cgDestination) else {
+            throw MediaUtilsError.imageProcessingFailed("Failed to finalize image destination")
         }
 
         do {
@@ -712,123 +653,6 @@ public class MediaUtils: NSObject {
         } catch {
             throw MediaUtilsError.fileOperationFailed(
                 "Failed to replace original file: \(error.localizedDescription)")
-        }
-    }
-
-    // Rewrites the metadata alone, the encoded image untouched: everything but
-    // Exif, GPS and the location tags is kept.
-    private static func copyWithoutLocation(_ source: CGImageSource, type: CFString, to url: URL) -> Bool {
-        guard let metadata = CGImageSourceCopyMetadataAtIndex(source, 0, nil),
-            let destination = CGImageDestinationCreateWithURL(url as CFURL, type, 1, nil)
-        else { return false }
-        // Rebuilt rather than edited: CGImageMetadataRemoveTagWithPath can't take
-        // the paths the enumeration hands out for a structure's fields.
-        let stripped = CGImageMetadataCreateMutable()
-        for tag in CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] ?? [] {
-            guard let (kept, namespace, prefix, name) = xmpTagWithoutLocation(tag) else { continue }
-            // Fails harmlessly for a namespace ImageIO already knows. A prefix
-            // already bound to another namespace would file the tag under that
-            // one, so that is checked on the tag as written.
-            _ = CGImageMetadataRegisterNamespaceForPrefix(stripped, namespace, prefix, nil)
-            let path = "\(prefix):\(name)" as CFString
-            guard CGImageMetadataSetTagWithPath(stripped, nil, path, kept),
-                let written = CGImageMetadataCopyTagWithPath(stripped, nil, path),
-                CGImageMetadataTagCopyNamespace(written).map({ CFEqual($0, namespace) }) == true
-            else {
-                return false
-            }
-        }
-        let options =
-            [
-                kCGImageDestinationMetadata: stripped,
-                kCGImageDestinationMergeMetadata: false,
-                kCGImageMetadataShouldExcludeGPS: true,
-            ] as CFDictionary
-        return CGImageDestinationCopyImageSource(destination, source, options, nil)
-    }
-
-    // Exif goes whole, as on the re-encoding path. ImageIO also presents the Exif
-    // capture time as photoshop:DateCreated, so that goes with it.
-    private static let strippedXMPNamespaces: Set<String> = [
-        kCGImageMetadataNamespaceExif as String, kCGImageMetadataNamespaceExifEX as String,
-    ]
-    private static let strippedXMPTags: Set<String> = ["http://ns.adobe.com/photoshop/1.0/DateCreated"]
-
-    // The tag without its location fields, with its namespace, prefix and name,
-    // or nil when it is one (or Exif).
-    private static func xmpTagWithoutLocation(
-        _ tag: CGImageMetadataTag
-    ) -> (tag: CGImageMetadataTag, namespace: CFString, prefix: CFString, name: CFString)? {
-        guard let namespace = CGImageMetadataTagCopyNamespace(tag),
-            let prefix = CGImageMetadataTagCopyPrefix(tag),
-            let name = CGImageMetadataTagCopyName(tag)
-        else { return nil }
-        if isLocationTag(tag) || strippedXMPNamespaces.contains(namespace as String)
-            || strippedXMPTags.contains((namespace as String) + (name as String))
-        {
-            return nil
-        }
-        func isTag(_ value: AnyObject) -> Bool { CFGetTypeID(value) == CGImageMetadataTagGetTypeID() }
-        let value = CGImageMetadataTagCopyValue(tag)
-        let cleaned: CFTypeRef
-        // A child counts as changed when it comes back as another tag (its own
-        // children changed) or not at all.
-        if let fields = value as? [String: AnyObject], fields.values.allSatisfy(isTag) {
-            let kept = fields.compactMapValues { xmpTagWithoutLocation($0 as! CGImageMetadataTag)?.tag }
-            if kept.count == fields.count && kept.allSatisfy({ $0.value === fields[$0.key] }) {
-                return (tag, namespace, prefix, name)
-            }
-            // An empty structure or array is no tag at all.
-            if kept.isEmpty { return nil }
-            cleaned = kept as CFDictionary
-        } else if let items = value as? [AnyObject], items.allSatisfy(isTag) {
-            let kept = items.compactMap { xmpTagWithoutLocation($0 as! CGImageMetadataTag)?.tag }
-            if kept.count == items.count && zip(kept, items).allSatisfy({ $0 === $1 }) {
-                return (tag, namespace, prefix, name)
-            }
-            if kept.isEmpty { return nil }
-            cleaned = kept as CFArray
-        } else {
-            return (tag, namespace, prefix, name)
-        }
-        guard let rebuilt = CGImageMetadataTagCreate(namespace, prefix, name, CGImageMetadataTagGetType(tag), cleaned)
-        else { return nil }
-        return (rebuilt, namespace, prefix, name)
-    }
-
-    private static func reencodeWithoutLocation(
-        _ source: CGImageSource, type: CFString, count: Int, to url: URL
-    ) throws {
-        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, type, count, nil) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
-        }
-
-        // The container's own properties (an animation's loop count) aren't
-        // copied with the frames; without them an APNG plays forever.
-        if var container = CGImageSourceCopyProperties(source, nil) as? [CFString: Any] {
-            container[kCGImagePropertyExifDictionary] = nil
-            container[kCGImagePropertyGPSDictionary] = nil
-            if let iptc = container[kCGImagePropertyIPTCDictionary] {
-                container[kCGImagePropertyIPTCDictionary] = iptcWithoutLocation(iptc)
-            }
-            CGImageDestinationSetProperties(destination, container as CFDictionary)
-        }
-
-        // Exif and GPS go whole; IPTC loses only its location fields.
-        for index in 0..<count {
-            var removal: [CFString: Any] = [
-                kCGImagePropertyExifDictionary: kCFNull as Any,
-                kCGImagePropertyGPSDictionary: kCFNull as Any,
-            ]
-            let frame = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
-            if let iptc = frame?[kCGImagePropertyIPTCDictionary], let change = iptcLocationRemoval(iptc) {
-                removal[kCGImagePropertyIPTCDictionary] = change
-            }
-            CGImageDestinationAddImageFromSource(destination, source, index, removal as CFDictionary)
-        }
-
-        guard CGImageDestinationFinalize(destination) else {
-            throw MediaUtilsError.imageProcessingFailed("Failed to finalize image destination")
         }
     }
 }
