@@ -230,16 +230,20 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     replace(target, {selection: inserted.selection, text: inserted.text}, true)
   }
 
-  const appendInto = (target: ComposerInput, s: string, focus: boolean) => {
+  // shared: s is a share's text, to be told apart from the user's if the draft that loads late has
+  // no room for it; text put back is the user's
+  const appendInto = (target: ComposerInput, s: string, focus: boolean, shared: boolean) => {
     if (!draftLoaded && !editing && !deps.isReadOnly()) {
       appendedBeforeDraft = true
-      sharedAhead = text === '' ? s : text === sharedAhead ? appendLine(text, s) : sharedAhead
+      if (shared) {
+        sharedAhead = text === '' ? s : text === sharedAhead ? appendLine(text, s) : sharedAhead
+      }
     }
     write(target, appendLine(text, s), focus)
   }
 
   const appendNow = (s: string, focus: boolean) => {
-    whenAttached(target => appendInto(target, s, focus))
+    whenAttached(target => appendInto(target, s, focus, false))
   }
 
   // whole as the shared text ahead of the draft and the lines the user typed after it, or undefined
@@ -257,6 +261,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     if (!editing) {
       if (deps.isReadOnly()) {
         heldBack = appendLine(heldBack ?? '', s)
+        // saved now where the draft is known, so it outlasts this composer
+        if (draftLoaded && saved !== undefined) {
+          saveDraft(appendLine(saved, s), true)
+        }
       } else {
         appendNow(s, false)
       }
@@ -348,7 +356,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         if (!deps.isReadOnly() && !sharedTextFitsAfter(before, s)) {
           attach(s)
         } else {
-          appendInto(target, s, focus)
+          appendInto(target, s, focus, true)
         }
       })
     },

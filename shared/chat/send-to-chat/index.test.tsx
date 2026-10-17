@@ -41,17 +41,17 @@ jest.mock('expo-file-system', () => {
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const draft = 'd'.repeat(100)
 
-const pick = async (text: string) => {
+const pick = async (text: string, tlfName = 'testuser,testuser-mac') => {
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft}], undefined, {force: true})
   render(<SendToChat isFromShareExtension={true} sendPaths={['/tmp/a.jpg']} text={text} />)
   await act(async () => {
-    mockOnSelect?.(conversationIDKey, 'testuser,testuser-mac')
+    mockOnSelect?.(conversationIDKey, tlfName)
     await new Promise(resolve => setTimeout(resolve, 0))
   })
   return jest
     .mocked(C.Router2.navigateAppend)
     .mock.calls.map(
-      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown; textBack?: string}}
+      c => c[0] as {name: string; params: {inputPrefillText?: string; pathAndOutboxIDs: unknown; textBack?: string; tlfName?: string}}
     )
 }
 
@@ -103,4 +103,10 @@ test('an account switch while the text is written opens no titles screen', async
 
   expect(mockWrites).toHaveLength(1)
   expect(C.Router2.navigateAppend).not.toHaveBeenCalled()
+})
+
+test('the picker\'s empty tlfName goes as it is, so the upload takes the drag-and-drop path', async () => {
+  const calls = await pick('a caption', '')
+
+  expect(calls[0]?.params.tlfName).toBe('')
 })

@@ -9,7 +9,7 @@ import {sharedTextForBatch} from '@/util/shared-text-file'
 // Opens the attachment titles screen for files going to a conversation. Text going with them
 // follows them into the draft, or, when the draft has no room for it, goes as a .txt in the same
 // batch. textBack: that text comes back after the draft if the batch is cancelled, for a screen
-// with nothing else holding the share beneath it.
+// with nothing else holding the share beneath it. tlfName undefined takes the meta's.
 export const sendFilesToConversation = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   paths: ReadonlyArray<string>
@@ -39,8 +39,10 @@ export const sendFilesToConversation = async (p: {
         path: toAttachmentPath(path),
       })),
       selectConversationWithReason: reason,
-      textBack: shared.path && textBack ? text : undefined,
-      tlfName: tlfName || ours?.tlfname || undefined,
+      // into the draft or as a .txt, cancelling the batch must not lose it
+      textBack: textBack ? text : undefined,
+      // the picker's own, even empty: an empty one takes the drag-and-drop upload
+      tlfName: tlfName ?? (ours?.tlfname || undefined),
     },
   })
 }
