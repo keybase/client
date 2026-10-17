@@ -26,3 +26,15 @@ func TestNormalizeDomain(t *testing.T) {
 		require.Error(t, err, in)
 	}
 }
+
+func TestGetDomainLowercases(t *testing.T) {
+	for _, tc := range []struct{ in, want string }{
+		{"https://BLOCKED.example/x", "blocked.example"},
+		{"https://www.GIPHY.com/gifs/x", "giphy.com"},
+		{"https://KEYBASEMAPS/?lat=1", types.MapsDomain},
+	} {
+		got, err := GetDomain(tc.in)
+		require.NoError(t, err, tc.in)
+		require.Equal(t, tc.want, got, tc.in)
+	}
+}

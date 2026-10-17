@@ -168,6 +168,27 @@ func TestExtractor(t *testing.T) {
 			blocklist: []string{"twitter.com"},
 			result:    []ExtractorHit{{URL: "https://giphy.com/gifs/x", Typ: ExtractorHitUnfurl}},
 		},
+		{
+			message:   "http://www.TWITTER.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+		},
+		{
+			message:   "http://www.Twitter.COM/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "http://www.Twitter.COM/mike/1", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message: "https://GIPHY.com/gifs/x",
+			mode:    chat1.UnfurlMode_WHITELISTED,
+			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message: "https://GIPHY.com/gifs/x",
+			mode:    chat1.UnfurlMode_NEVER,
+			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
 	}
 	for _, tcase := range cases {
 		settings := chat1.NewUnfurlSettings()
