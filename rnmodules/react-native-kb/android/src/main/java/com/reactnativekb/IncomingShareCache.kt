@@ -27,45 +27,29 @@ object IncomingShareCache {
         return dir
     }
 
-    // Each item gets its own directory so two items with the same name, in one
-    // share or in overlapping ones, never overwrite each other's copy. name must
-    // be a single path component (see IncomingShareFileName).
-    fun newItemFile(context: Context, name: String): File = newItemFile(dir(context), name)
-
-    fun newItemFile(dir: File, name: String): File {
+    // Copies input into a new item file named name, in dir (see dir). Each item
+    // gets its own directory so two items with the same name, in one share or in
+    // overlapping ones, never overwrite each other's copy. name must be a single
+    // path component (see IncomingShareFileName). On any failure nothing is left
+    // behind.
+    fun copyIn(dir: File, input: InputStream, name: String): File {
         val itemDir = File(dir, UUID.randomUUID().toString())
         if (!itemDir.mkdirs()) {
             throw IOException("unable to create ${itemDir.path}")
         }
-        return File(itemDir, name)
-    }
-
-    // Copies input into a new item file named name. On any failure nothing is
-    // left behind.
-    fun copyIn(context: Context, input: InputStream, name: String): File {
-        val file = newItemFile(context, name)
+        val file = File(itemDir, name)
         try {
             FileOutputStream(file).use { output -> input.copyTo(output, 64 * 1024) }
         } catch (e: Exception) {
-            discardItem(context, file)
+            itemDir.deleteRecursively()
             throw e
         }
         return file
     }
 
-    // Removes a copy made by newItemFile, along with its directory.
-    fun discardItem(context: Context, file: File) {
-        val itemDir = file.parentFile ?: return
-        if (itemDir.parentFile == dir(context)) {
-            itemDir.deleteRecursively()
-        }
-    }
-
-    // Call off the main thread: this stats every file in the directory.
-    fun purgeOld(context: Context) = purgeOld(dir(context), System.currentTimeMillis())
-
-    fun purgeOld(dir: File, now: Long) {
-        val cutoff = now - MAX_AGE_MS
+    // Call off the main thread: this stats every file in dir (see dir).
+    fun purgeOld(dir: File) {
+        val cutoff = System.currentTimeMillis() - MAX_AGE_MS
         // null means the listing itself failed, which is not the same as an empty
         // directory: the copies are still there, so say so rather than looking swept
         val files = dir.listFiles()

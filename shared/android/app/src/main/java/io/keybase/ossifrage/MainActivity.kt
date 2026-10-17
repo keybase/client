@@ -18,7 +18,6 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
-import com.reactnativekb.IncomingShareCopy
 import com.reactnativekb.IncomingShareFileName
 import com.reactnativekb.IncomingShareRelay
 import com.reactnativekb.KbModule
@@ -90,7 +89,7 @@ class MainActivity : ReactActivity() {
     private fun copySharedUri(context: Context, uri: Uri): String? {
         // A file:// (or other) uri from another app is a path we would read with
         // our own permissions, so only content:// is copied.
-        if (!IncomingShareCopy.isCopyableScheme(uri.scheme)) {
+        if (!"content".equals(uri.scheme, ignoreCase = true)) {
             NativeLogger.warn("Dropping shared item with scheme ${uri.scheme}")
             return null
         }
@@ -99,7 +98,7 @@ class MainActivity : ReactActivity() {
             val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
             val name = IncomingShareFileName.make(queryDisplayName(resolver, uri), ext)
             val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
-            input.use { IncomingShareCache.copyIn(context, it, name) }.path
+            input.use { IncomingShareCache.copyIn(IncomingShareCache.dir(context), it, name) }.path
         } catch (e: Exception) {
             NativeLogger.warn("Unable to copy shared item $uri", e)
             null

@@ -81,7 +81,7 @@ class MainApplication : Application(), ReactApplication {
 
         Thread {
             try {
-                IncomingShareCache.purgeOld(this)
+                IncomingShareCache.purgeOld(IncomingShareCache.dir(this))
             } catch (e: Exception) {
                 NativeLogger.warn("MainApplication: error purging old incoming shares", e)
             }
