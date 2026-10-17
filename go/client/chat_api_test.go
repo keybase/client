@@ -358,13 +358,6 @@ func TestChatAPISetUnfurlSettingsBlocklist(t *testing.T) {
 	require.Empty(t, *opts.Blocklist)
 }
 
-func TestUnfurlKeptBlocklist(t *testing.T) {
-	require.Equal(t, []string{"c.com"},
-		keptBlocklist([]string{"b.com", "c.com"}, []string{"a.com", "https://www.B.com/x"}))
-	require.Equal(t, []string{"b.com"}, keptBlocklist([]string{"b.com"}, []string{"not a domain"}))
-	require.Empty(t, keptBlocklist(nil, []string{"a.com"}))
-}
-
 func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }

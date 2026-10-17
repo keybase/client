@@ -7297,7 +7297,7 @@ type GetUnfurlSettingsArg struct {
 type SaveUnfurlSettingsArg struct {
 	Mode      UnfurlMode `codec:"mode" json:"mode"`
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
-	Blocklist []string   `codec:"blocklist" json:"blocklist"`
+	Blocklist *[]string  `codec:"blocklist,omitempty" json:"blocklist,omitempty"`
 }
 
 type UnfurlPreviewLocalArg struct {

@@ -1246,7 +1246,7 @@ protocol local {
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
-  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist, array<string> blocklist);
+  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist, union { null, array<string> } blocklist);
 
   record UnfurlPreviewInfo {
     string url;

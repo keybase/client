@@ -307,6 +307,10 @@ function figureType(type: TypeRef | undefined, prefix = ''): string {
 
   if (Array.isArray(type)) {
     if (type.length === 2) {
+      const inner = type[0] === null ? type[1] : type[1] === null ? type[0] : undefined
+      if (inner !== undefined && typeof inner !== 'string') {
+        return maybeIfNot(figureType(inner, prefix))
+      }
       if (type[0] === null) {
         return `${renderTypeName(type[1], prefix)} | null`
       }

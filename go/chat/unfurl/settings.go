@@ -210,7 +210,8 @@ func cleanDomainSet(in map[string]bool) map[string]bool {
 }
 
 // Set validates both lists before writing anything, so a rejected update
-// leaves the stored settings untouched.
+// leaves the stored settings untouched. A nil Blocklist keeps the stored block
+// list, minus any domain the new allow list allows.
 func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
 	defer s.Trace(ctx, &err, "Set")()
 	s.mu.Lock()
@@ -219,8 +220,15 @@ func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.Unfu
 	if err != nil {
 		return err
 	}
-	blocklist, err := normalizeDomainSet(settings.Blocklist)
-	if err != nil {
+	var blocklist map[string]bool
+	if settings.Blocklist == nil {
+		if blocklist, err = s.getBlocklist(ctx, uid); err != nil {
+			return err
+		}
+		for domain := range whitelist {
+			delete(blocklist, domain)
+		}
+	} else if blocklist, err = normalizeDomainSet(settings.Blocklist); err != nil {
 		return err
 	}
 	for domain := range whitelist {

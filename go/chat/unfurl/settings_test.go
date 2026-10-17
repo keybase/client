@@ -295,3 +295,55 @@ func TestUnfurlSettingConcurrentAdds(t *testing.T) {
 	require.Len(t, res.Blocklist, n/2)
 	require.Len(t, res.Whitelist, n/2)
 }
+
+func TestUnfurlSettingSetKeepsBlocklist(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_settings", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	ctx := context.TODO()
+
+	uid := gregor1.UID([]byte{0, 1})
+	settings := NewSettings(g, newMemConversationBackedStorage())
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_WHITELISTED,
+		Whitelist: map[string]bool{"a.com": true},
+	}))
+	res, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Empty(t, res.Blocklist)
+
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_WHITELISTED,
+		Blocklist: map[string]bool{"b.com": true, "c.com": true, "d.com": true},
+	}))
+
+	// a nil block list keeps the stored one, minus what the new allow list allows
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_NEVER,
+		Whitelist: map[string]bool{"a.com": true, "https://www.B.com/x": true},
+	}))
+	res, err = settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlMode_NEVER, res.Mode)
+	require.Equal(t, map[string]bool{"a.com": true, "b.com": true}, res.Whitelist)
+	require.Equal(t, map[string]bool{"c.com": true, "d.com": true}, res.Blocklist)
+
+	err = settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_WHITELISTED,
+		Whitelist: map[string]bool{"c.com": true, "not a domain": true},
+	})
+	require.Error(t, err)
+	after, err := settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Equal(t, res, after)
+
+	// an empty, non-nil block list clears it
+	require.NoError(t, settings.Set(ctx, uid, chat1.UnfurlSettings{
+		Mode:      chat1.UnfurlMode_WHITELISTED,
+		Blocklist: map[string]bool{},
+	}))
+	res, err = settings.Get(ctx, uid)
+	require.NoError(t, err)
+	require.Empty(t, res.Whitelist)
+	require.Empty(t, res.Blocklist)
+}

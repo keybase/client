@@ -5963,10 +5963,13 @@
         },
         {
           "name": "blocklist",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "string"
+            }
+          ]
         }
       ],
       "response": null

@@ -385,7 +385,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			chat1.SaveUnfurlSettingsArg{
 				Mode:      chat1.UnfurlMode_WHITELISTED,
 				Whitelist: []string{"a.com"},
-				Blocklist: []string{"https://www.b.com/"},
+				Blocklist: &[]string{"https://www.b.com/"},
 			}))
 		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
 		require.NoError(t, err)
@@ -398,7 +398,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			chat1.SaveUnfurlSettingsArg{
 				Mode:      chat1.UnfurlMode_WHITELISTED,
 				Whitelist: []string{"a.com"},
-				Blocklist: []string{"a.com"},
+				Blocklist: &[]string{"a.com"},
 			}))
 
 		// Every settings write posts a TEXT to its own DEV conversation, and those arrive on
@@ -436,7 +436,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 
 		t.Logf("block from the prompt")
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
-			chat1.SaveUnfurlSettingsArg{Mode: chat1.UnfurlMode_WHITELISTED}))
+			chat1.SaveUnfurlSettingsArg{Mode: chat1.UnfurlMode_WHITELISTED, Blocklist: &[]string{}}))
 		blockID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeConvText(blockID)
 		select {

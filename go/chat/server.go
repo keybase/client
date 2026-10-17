@@ -2757,9 +2757,12 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 	for _, w := range arg.Whitelist {
 		wm[w] = true
 	}
-	bm := make(map[string]bool)
-	for _, b := range arg.Blocklist {
-		bm[b] = true
+	var bm map[string]bool
+	if arg.Blocklist != nil {
+		bm = make(map[string]bool)
+		for _, b := range *arg.Blocklist {
+			bm[b] = true
+		}
 	}
 	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
 		Mode:      arg.Mode,
