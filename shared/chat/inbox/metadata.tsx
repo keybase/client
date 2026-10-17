@@ -433,25 +433,14 @@ const conversationMetaIncomplete = (id: T.Chat.ConversationIDKey) => {
   return !meta.teamname && !s.participants.get(id)?.name.length
 }
 
-// One fetch per conversation at a time: a share loading the meta and the thread's self-heal share it.
-const fetchesInFlight = new Map<T.Chat.ConversationIDKey, Promise<void>>()
 // Raced against a timeout so an engine reset (which orphans in-flight promises) can't wedge a
 // caller; the timer goes when the race settles.
 const fetchConversationDataWithin = async (id: T.Chat.ConversationIDKey, ms: number) => {
-  let fetch = fetchesInFlight.get(id)
-  if (!fetch) {
-    fetch = fetchConversationData(id)
-    fetchesInFlight.set(id, fetch)
-  }
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    await Promise.race([fetch, new Promise<void>(resolve => (timer = setTimeout(resolve, ms)))])
+    await Promise.race([fetchConversationData(id), new Promise<void>(resolve => (timer = setTimeout(resolve, ms)))])
   } finally {
     clearTimeout(timer)
-    // a fetch that timed out is not waited on again: the next try asks anew
-    if (fetchesInFlight.get(id) === fetch) {
-      fetchesInFlight.delete(id)
-    }
   }
 }
 
