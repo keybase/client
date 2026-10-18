@@ -178,6 +178,10 @@ Dependabot also watches `protocol/yarn.lock` and `rnmodules/react-native-kb/yarn
 - The app consumes the module's `src/` directly via the `file:` dep + postinstall sync; bob's `lib/` output is gitignored and unused. After changing the module's `package.json`, run `yarn sync:kb-modules` from `shared/` then `yarn lint:all`.
 - Everything vulnerable here is transitive dev tooling (babel/metro chain). Fix by deleting the vulnerable entry blocks from `yarn.lock` and re-running `yarn` — the ranges are loose (`^`), so they re-resolve to patched versions with no `package.json` change.
 
+### Go modules — out of scope
+
+Dependabot also flags `go/go.mod` and `packaging/**/go.mod`. Don't touch them on a deps pass, even for patch bumps. List those alerts in the report as not addressed. (`yarn audit` only covers npm; read the full alert list with `gh api repos/keybase/client/dependabot/alerts -f state=open`, read-only.)
+
 ### go/chat/flip/
 
 Has a `package.json` solely so `make` can `npm i` the avdl compiler for one-off codegen. Its `package-lock.json` was deliberately deleted (2026-07) to kill stale dependabot alerts — don't recreate it; if `npm i` regenerates one during codegen, don't commit it.
