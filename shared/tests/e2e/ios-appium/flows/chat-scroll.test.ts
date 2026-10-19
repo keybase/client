@@ -653,6 +653,15 @@ describe('chat scroll: paging', () => {
       check(!t.moreToLoadForward, `the thread still has newer rows to load: ${summary(t, v)}`)
       check(Math.abs(t.offset) <= 1, `the thread is not at rest at its end: ${summary(t, v)}`)
       await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
+
+      // at the present, a message from the second account is revealed
+      if (how === 'dragging down') {
+        const text = `e2e-ios-scroll-incoming-present-${Date.now()}`
+        await sendFromCli(E2E_CHANNELS.long, text)
+        const incoming = await waitForRow(text, 20_000)
+        const end = await expectAtEnd('after an incoming message at the present, the thread')
+        check(end.t.rows.at(-1)?.ordinal === incoming, `the newest row is not the incoming one: ${summary(end.t, end.v)}`)
+      }
     })
   }
 
@@ -667,15 +676,38 @@ describe('chat scroll: paging', () => {
     await closeSearch()
     const before = await waitForThreadStable()
     check(before.moreToLoadForward, `the hit's page holds the newest message: ${summary(before)}`)
-    await tapStatusBar()
-    const rest = await waitForThreadStable()
-    const rv = await viewport(rest)
+    // The hit's page holds only about ten rows newer than it, so a newer page can be requested
+    // while the tap scrolls and may already be in `rest`. Tap until the reader rests on the newest
+    // row of a window that still lacks the newest message, then wait for the page that lands next.
+    let rest = before
+    let rv = await viewport(rest)
+    for (let i = 0; i < 5; i++) {
+      await tapStatusBar()
+      rest = await waitForThreadStable()
+      rv = await viewport(rest)
+      if (Math.abs(rest.offset) <= 1 && rest.moreToLoadForward) {
+        const landed = rest.ordinals.length
+        try {
+          await waitFor(
+            'the next page of newer rows',
+            async () => ((await requireThread()).ordinals.length > landed ? true : undefined),
+            {timeout: 4_000}
+          )
+          break
+        } catch {
+          // no page yet: tap again
+        }
+      }
+    }
+    check(
+      Math.abs(rest.offset) <= 1 && rest.moreToLoadForward,
+      `the reader is not on the newest row of a window lacking the newest message: ${summary(rest, rv)}`
+    )
     const bottom = rowToFollow(rest, rv, -1)
     if (!bottom) throw new Error(`no row in view to follow: ${summary(rest, rv)}`)
-    await waitFor(
-      'the next page of newer rows',
-      async () => ((await requireThread()).ordinals.length > rest.ordinals.length ? true : undefined),
-      {timeout: 15_000}
+    check(
+      (await requireThread()).ordinals.length > rest.ordinals.length,
+      `no newer page landed after resting on the newest row: ${summary(rest, rv)}`
     )
     const after = await waitForThreadStable()
     const now = rowOf(after, bottom.ordinal)
