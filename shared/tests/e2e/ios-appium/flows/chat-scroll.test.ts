@@ -661,6 +661,21 @@ describe('chat scroll: paging', () => {
       check(!t.moreToLoadForward, `the thread still has newer rows to load: ${summary(t, v)}`)
       check(Math.abs(t.offset) <= 1, `the thread is not at rest at its end: ${summary(t, v)}`)
       await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
+
+      // Reaching the present by newer pages leaves older paging working: scrolling back up past
+      // where the window started loads older rows.
+      if (how === 'a status-bar tap') {
+        const startOldest = start.ordinals[0]!
+        let up = await waitForThreadStable()
+        for (let i = 0; i < 30 && up.ordinals[0]! >= startOldest; i++) {
+          await flickThread(600)
+          up = await waitForThreadStable()
+        }
+        check(
+          up.ordinals[0]! < startOldest,
+          `scrolling back up from the present loaded nothing older than ${startOldest}: ${summary(up)}`
+        )
+      }
     })
   }
 
