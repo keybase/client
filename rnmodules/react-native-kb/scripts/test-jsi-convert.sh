@@ -24,7 +24,8 @@ HERMES="$PODS/hermes-engine/destroot"
 source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
 
 for p in "$MSGPACK_INCLUDE" "$HERMES/include" \
-         "$PODS/Headers/Public/React-callinvoker"; do
+         "$PODS/Headers/Public/React-callinvoker" \
+         "$PODS/Headers/Public/React-cxxstableapi"; do
   test -d "$p" || {
     echo "missing $p -- run yarn and yarn ios:pod:install first" >&2
     exit 1
@@ -55,6 +56,7 @@ clang++ -std=c++20 -O1 -g -DMSGPACK_NO_BOOST \
   -I "$MSGPACK_INCLUDE" \
   -I "$HERMES/include" \
   -I "$PODS/Headers/Public/React-callinvoker" \
+  -I "$PODS/Headers/Public/React-cxxstableapi" \
   -I "$CPP_DIR" \
   -F "$FRAMEWORKS" -framework hermesvm \
   -Wl,-rpath,"$FRAMEWORKS" \

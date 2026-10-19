@@ -22,7 +22,8 @@ ITERS="${2:-5}"
 source "$(dirname "${BASH_SOURCE[0]}")/msgpack-include.sh"
 
 for p in "$HERMES/include" \
-         "$PODS/Headers/Public/React-callinvoker"; do
+         "$PODS/Headers/Public/React-callinvoker" \
+         "$PODS/Headers/Public/React-cxxstableapi"; do
   test -d "$p" || { echo "missing $p -- run yarn and yarn ios:pod:install first" >&2; exit 1; }
 done
 test -f "$CORPUS" || {
@@ -50,6 +51,7 @@ COMMON=(
   -I "$MSGPACK_INCLUDE"
   -I "$HERMES/include"
   -I "$PODS/Headers/Public/React-callinvoker"
+  -I "$PODS/Headers/Public/React-cxxstableapi"
   -F "$FRAMEWORKS" -framework hermesvm
   -Wl,-rpath,"$FRAMEWORKS"
 )
