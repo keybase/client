@@ -87,6 +87,7 @@ const defaultScripts: {[M in ChatRpcMethod]: ChatRpcScript<M>} = {
   showPendingRekeyStatus: nothing,
   toggleCollapse: nothing,
   trackGiphySelect: nothing,
+  unfurlMessage: nothing,
   unpinMessage: nothing,
   updateLocation: nothing,
 }

@@ -40,13 +40,8 @@ test('re-adding a removed domain restores it', () => {
   expect(hasEdits(draft, saved)).toBe(false)
 })
 
-test('empty or whitespace input changes nothing', () => {
-  expect(addDomain(start, 'allow', '')).toBe(start)
-  expect(addDomain(start, 'block', '   ')).toBe(start)
-})
-
-test('input is trimmed and lowercased, and a duplicate add appears once', () => {
-  const draft = addDomain(addDomain(start, 'allow', '  Example.COM '), 'allow', 'example.com')
+test('a duplicate add appears once', () => {
+  const draft = addDomain(addDomain(start, 'allow', 'example.com'), 'allow', 'example.com')
   expect(draft.whitelist).toEqual(['a.com', 'b.com', 'example.com'])
 })
 

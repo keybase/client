@@ -76,6 +76,7 @@ type Unfurler struct {
 	packager        *Packager
 	settings        *Settings
 	sender          UnfurlMessageSender
+	outbox          func(uid gregor1.UID) unfurlOutbox
 
 	// testing
 	unfurlCh chan *chat1.Unfurl
@@ -102,7 +103,19 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		packager:        packager,
 		settings:        settings,
 		sender:          sender,
+		outbox:          newUnfurlOutbox(g),
 	}
+}
+
+// unfurlOutbox is the part of the outbox a forced unfurl reads to tell an earlier attempt
+// that is still in flight from one that will never deliver
+type unfurlOutbox interface {
+	GetRecord(ctx context.Context, outboxID chat1.OutboxID) (chat1.OutboxRecord, error)
+	RemoveMessage(ctx context.Context, outboxID chat1.OutboxID) (chat1.OutboxRecord, error)
+}
+
+func newUnfurlOutbox(g *globals.Context) func(uid gregor1.UID) unfurlOutbox {
+	return func(uid gregor1.UID) unfurlOutbox { return storage.NewOutbox(g, uid) }
 }
 
 func (u *Unfurler) SetClock(clock clockwork.Clock) {
@@ -184,7 +197,7 @@ func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
 }
 
 func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed,
+	msg chat1.MessageUnboxed, force bool,
 ) (res []ExtractorHit) {
 	if !msg.IsValid() {
 		return nil
@@ -196,6 +209,9 @@ func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
+		if force {
+			return u.extractor.ExtractAll(body.Text().Body)
+		}
 		hits, err := u.extractor.Extract(ctx, uid, convID, msg.GetMessageID(), body.Text().Body, u.settings)
 		if err != nil {
 			u.Debug(ctx, "extractURLs: failed to extract: %s", err)
@@ -297,13 +313,61 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	msg chat1.MessageUnboxed, suppress []string,
 ) {
 	defer u.Trace(ctx, nil, "UnfurlAndSend")()
+	u.unfurlAndSend(ctx, uid, convID, msg, suppress, false)
+}
+
+// UnfurlMessage unfurls every URL in msg that is not already unfurled, because the sender
+// asked for it. That choice overrides the mode, both lists and any dismissal for this one
+// message, and leaves the settings as they are.
+func (u *Unfurler) UnfurlMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed,
+) {
+	defer u.Trace(ctx, nil, "UnfurlMessage")()
+	u.unfurlAndSend(ctx, uid, convID, msg, nil, true)
+}
+
+// clearFailedTask drops a task that failed and will never deliver: its outbox record errored
+// out or is gone. Anything else is in flight, including a task saved a moment ago whose outbox
+// record is not written yet, and is left alone so the url does not unfurl twice.
+func (u *Unfurler) clearFailedTask(ctx context.Context, uid gregor1.UID, outboxID chat1.OutboxID) bool {
+	var status types.UnfurlerTaskStatus
+	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
+	if err != nil || !found ||
+		(status != types.UnfurlerTaskStatusFailed && status != types.UnfurlerTaskStatusPermFailed) {
+		return false
+	}
+	outbox := u.outbox(uid)
+	obr, err := outbox.GetRecord(ctx, outboxID)
+	switch err.(type) {
+	case nil:
+		state, err := obr.State.State()
+		if err != nil || state != chat1.OutboxStateType_ERROR {
+			return false
+		}
+		// removing the record completes its task
+		if _, err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+			u.Debug(ctx, "clearFailedTask: failed to remove outbox record: %s", err)
+			return false
+		}
+	case storage.MissError:
+		u.Complete(ctx, outboxID)
+	default:
+		u.Debug(ctx, "clearFailedTask: failed to read outbox record: %s", err)
+		return false
+	}
+	return true
+}
+
+func (u *Unfurler) unfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed, suppress []string, force bool,
+) {
 	// early out for errors
 	if !msg.IsValid() {
 		u.Debug(ctx, "UnfurlAndSend: skipping invalid")
 		return
 	}
 	// get URL hits
-	hits := u.extractURLs(ctx, uid, convID, msg)
+	hits := u.extractURLs(ctx, uid, convID, msg, force)
 	if len(hits) == 0 {
 		return
 	}
@@ -329,8 +393,8 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 		// url the sender dismissed may have become a prompt hit in the meantime. prompting
 		// for a link they declined is the same broken promise as unfurling it
 		urlOutboxID := storage.GetOutboxIDFromURL(hit.URL, convID, msg)
-		marked := u.isSuppressed(ctx, urlOutboxID)
-		if suppressed[hit.URL] || marked {
+		marked := !force && u.isSuppressed(ctx, urlOutboxID)
+		if !force && (suppressed[hit.URL] || marked) {
 			u.Debug(ctx, "UnfurlAndSend: skipping suppressed URL: outboxID: %s", urlOutboxID)
 			if !marked {
 				// remember it: this runs again when the user resolves a prompt for another
@@ -352,7 +416,8 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
 			outboxID := urlOutboxID
-			if _, err := u.getTask(ctx, outboxID); err == nil {
+			if _, err := u.getTask(ctx, outboxID); err == nil &&
+				(!force || !u.clearFailedTask(ctx, uid, outboxID)) {
 				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue
 			}

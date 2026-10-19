@@ -114,7 +114,26 @@ const mockRPCs = (initial: Saved) => {
       },
     })
   })
-  jest.spyOn(C, 'useRPC').mockImplementation((() => submit) as never)
+  // stands in for the service's NormalizeDomain: a url or www. host is its bare domain
+  const normalize = jest.fn(
+    (args: [{input: string}], resolve: (d: string) => void, reject: (e: RPCError) => void) => {
+      const domain = args[0].input
+        .trim()
+        .toLowerCase()
+        .replace(/^[a-z]+:\/\//, '')
+        .replace(/^www\./, '')
+        .replace(/[/:].*$/, '')
+      if (domain.includes('.')) {
+        resolve(domain)
+      } else {
+        reject(new RPCError(`invalid domain "${args[0].input}"`, 0))
+      }
+    }
+  )
+  jest
+    .spyOn(C, 'useRPC')
+    .mockImplementation(((call: unknown) =>
+      call === T.RPCChat.localNormalizeUnfurlDomainRpcPromise ? normalize : submit) as never)
   return {getRPC, saves}
 }
 
@@ -199,4 +218,27 @@ test('list edits are disabled while a save is in flight', async () => {
     expect(attr(add, 'disabled')).not.toBeNull()
   }
   expect(attr(radio('Disallow all'), 'disabled')).not.toBeNull()
+  // resetAllStores keeps waiting counts, so a count left here would freeze the next test's screen
+  act(() => useWaitingState.getState().dispatch.decrement(C.waitingKeySettingsChatUnfurl))
+})
+
+test('a typed url is added as its domain, so it matches the saved row', async () => {
+  const {saves} = await renderLoaded({mode: T.RPCChat.UnfurlMode.whitelisted, whitelist: ['yahoo.com']})
+  fireEvent.change(blockInput(), {target: {value: 'https://www.Yahoo.com/news'}})
+  fireEvent.keyDown(blockInput(), {key: 'Enter'})
+
+  expect(screen.getAllByText('yahoo.com')).toHaveLength(1)
+  expect((blockInput() as unknown as {value: string}).value).toBe('')
+  fireEvent.click(screen.getByText('Save'))
+  expect(saves[0]!.args).toEqual({blocklist: ['yahoo.com'], mode: T.RPCChat.UnfurlMode.whitelisted, whitelist: []})
+})
+
+test('input that cannot be listed shows the error and stays in the box', async () => {
+  await renderLoaded({mode: T.RPCChat.UnfurlMode.whitelisted})
+  fireEvent.change(blockInput(), {target: {value: 'nodots'}})
+  fireEvent.keyDown(blockInput(), {key: 'Enter'})
+
+  expect(screen.getByText('invalid domain "nodots"')).toBeTruthy()
+  expect((blockInput() as unknown as {value: string}).value).toBe('nodots')
+  expect(attr(screen.getByText('Save'), 'disabled')).not.toBeNull()
 })

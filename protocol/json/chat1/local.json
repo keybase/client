@@ -5944,6 +5944,23 @@
       ],
       "response": null
     },
+    "unfurlMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
+    },
     "getUnfurlSettings": {
       "request": [],
       "response": "UnfurlSettingsDisplay"
@@ -5973,6 +5990,15 @@
         }
       ],
       "response": null
+    },
+    "normalizeUnfurlDomain": {
+      "request": [
+        {
+          "name": "input",
+          "type": "string"
+        }
+      ],
+      "response": "string"
     },
     "unfurlPreviewLocal": {
       "request": [

@@ -1,7 +1,9 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import HiddenString from '@/util/hidden-string'
 import {
   getMapUnfurl,
+  hasUnfurlableLink,
   isSpecialMention,
   makeChatPaymentInfo,
   makeMessageSystemText,
@@ -390,6 +392,49 @@ describe('getMapUnfurl', () => {
   test('returns the generic display for map unfurls', () => {
     const message = makeMessageText({unfurls: new Map([['u', unfurl({mapInfo})]])})
     expect(getMapUnfurl(message)?.mapInfo).toBe(mapInfo)
+  })
+})
+
+describe('hasUnfurlableLink', () => {
+  const text = (body: string, unfurlURLs: Array<string> = []) =>
+    makeMessageText({
+      text: new HiddenString(body),
+      unfurls: unfurlURLs.length
+        ? new Map(unfurlURLs.map(url => [url, {url} as T.RPCChat.UIMessageUnfurlInfo]))
+        : undefined,
+    })
+
+  test('a link with a scheme that has not unfurled', () => {
+    expect(hasUnfurlableLink(text('see https://example.com/a'))).toBe(true)
+  })
+
+  test('not when every link has unfurled, trailing punctuation included', () => {
+    expect(hasUnfurlableLink(text('see https://example.com/a.', ['https://example.com/a']))).toBe(false)
+  })
+
+  test('when one of several links has not unfurled', () => {
+    expect(
+      hasUnfurlableLink(text('https://example.com/a and http://other.com/b', ['https://example.com/a']))
+    ).toBe(true)
+  })
+
+  test('a closing paren inside the link is kept, a closing brace after it is not', () => {
+    const wiki = 'https://en.wikipedia.org/wiki/Foo_(bar)'
+    expect(hasUnfurlableLink(text(`see ${wiki}.`, [wiki]))).toBe(false)
+    expect(hasUnfurlableLink(text('(see https://example.com/a)', ['https://example.com/a']))).toBe(false)
+    expect(hasUnfurlableLink(text('{https://example.com/a}', ['https://example.com/a']))).toBe(false)
+  })
+
+  test('only the first five distinct links count, as the service unfurls no more', () => {
+    const urls = ['a', 'b', 'c', 'd', 'e'].map(s => `https://${s}.com/`)
+    expect(hasUnfurlableLink(text([...urls, urls[0], 'https://f.com/'].join(' '), urls))).toBe(false)
+    expect(hasUnfurlableLink(text([...urls, 'https://f.com/'].join(' '), urls.slice(1)))).toBe(true)
+  })
+
+  test('not for bare domains, quoted links or non-text messages', () => {
+    expect(hasUnfurlableLink(text('see example.com'))).toBe(false)
+    expect(hasUnfurlableLink(text('run `curl https://example.com/a`'))).toBe(false)
+    expect(hasUnfurlableLink(makeMessageAttachment())).toBe(false)
   })
 })
 

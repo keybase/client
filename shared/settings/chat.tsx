@@ -78,6 +78,7 @@ const useContactSettings = () => {
 
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
+  const normalizeUnfurlDomainRPC = C.useRPC(T.RPCChat.localNormalizeUnfurlDomainRpcPromise)
   const [error, setError] = React.useState('')
   const {data, reload, setData} = useRPCLoad(
     T.RPCChat.localGetUnfurlSettingsRpcPromise,
@@ -131,7 +132,31 @@ const useUnfurlSettings = () => {
     [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
   )
 
-  return {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+  // the draft keys rows by the domain the service stores, so a url and its bare domain are one row
+  const normalizeDomain = React.useCallback(
+    (input: string, onNormalized: (domain: string) => void) => {
+      normalizeUnfurlDomainRPC(
+        [{input}],
+        domain => {
+          setError('')
+          onNormalized(domain)
+        },
+        e => setError(e.desc || 'Unable to add that website, please try again.')
+      )
+    },
+    [normalizeUnfurlDomainRPC]
+  )
+
+  return {
+    blocklist,
+    error,
+    loaded,
+    mode,
+    normalizeDomain,
+    unfurlSettingsRefresh,
+    unfurlSettingsSaved,
+    whitelist,
+  }
 }
 
 const useCompressPreference = () => {
@@ -407,7 +432,7 @@ type DomainListProps = {
   disabled: boolean
   domains: ReadonlyArray<string>
   heading: string
-  onAdd: (domain: string) => void
+  onAdd: (input: string, onAdded: () => void) => void
   onRemove: (domain: string) => void
   removed: ReadonlySet<string>
   testID: string
@@ -418,9 +443,9 @@ const DomainList = (p: DomainListProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const [text, setText] = React.useState('')
+  // the text stays until the add goes through, so a rejected entry can be fixed
   const submit = () => {
-    onAdd(text)
-    setText('')
+    onAdd(text, () => setText(''))
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.listSection} testID={testID}>
@@ -475,7 +500,7 @@ const DomainList = (p: DomainListProps) => {
 
 export const Links = () => {
   const styles = useStyles()
-  const {blocklist, error, loaded, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
+  const {blocklist, error, loaded, mode, normalizeDomain, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
     useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [draft, setDraft] = React.useState<UnfurlDraft>()
@@ -488,8 +513,11 @@ export const Links = () => {
   const onSave = () => {
     unfurlSettingsSaved(unfurlSaveArgs(selected, lists), () => setDraft(undefined))
   }
-  const onAdd = (list: UnfurlList) => (domain: string) =>
-    setDraft(d => addDomain(d ?? draftOf(saved), list, domain))
+  const onAdd = (list: UnfurlList) => (input: string, onAdded: () => void) =>
+    normalizeDomain(input, domain => {
+      setDraft(d => addDomain(d ?? draftOf(saved), list, domain))
+      onAdded()
+    })
   const onRemove = (list: UnfurlList) => (domain: string) =>
     setDraft(d => removeDomain(d ?? draftOf(saved), saved, list, domain))
 

@@ -98,6 +98,8 @@ export type ChatThreadRpc = {
     messageID: T.Chat.MessageID
     result: T.RPCChat.UnfurlPromptResult
   }) => Promise<void>
+  // unfurls your own message's links once, whatever the unfurl settings say
+  unfurlMessage: (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => Promise<void>
   dismissJourneycard: (
     conversationIDKey: T.Chat.ConversationIDKey,
     cardType: T.RPCChat.JourneycardType
@@ -671,6 +673,13 @@ const serviceChatRpc: ChatThreadRpc = {
   },
   trackGiphySelect: async result => {
     await T.RPCChat.localTrackGiphySelectRpcPromise({result})
+  },
+  unfurlMessage: async (conversationIDKey, messageID) => {
+    await T.RPCChat.localUnfurlMessageRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      identifyBehavior,
+      msgID: T.Chat.messageIDToNumber(messageID),
+    })
   },
   unpinMessage: async (conversationIDKey, waitingKey) => {
     await T.RPCChat.localUnpinMessageRpcPromise({convID: T.Chat.keyToConversationID(conversationIDKey)}, waitingKey)

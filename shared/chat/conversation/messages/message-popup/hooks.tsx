@@ -3,7 +3,13 @@ import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {deleteMessage, pinMessage, toggleReaction, useThreadMessageTarget} from '../../message-commands'
+import {
+  deleteMessage,
+  pinMessage,
+  toggleReaction,
+  unfurlMessage,
+  useThreadMessageTarget,
+} from '../../message-commands'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import {useConversationParticipants} from '../../data-hooks'
@@ -47,6 +53,7 @@ type ItemActions = {
   markAsUnread: (id: T.Chat.MessageID) => void
   pinMessage: () => void
   toggleReaction: (emoji: string) => void
+  unfurlMessage: () => void
 }
 
 const useItemsForMessage = (p: {
@@ -195,6 +202,13 @@ const useItemsForMessage = (p: {
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
 
+  // an unfurl is a message the sender's device posts, so only your own messages can unfurl
+  const canUnfurl = hasMessageID && yourMessage && !message.exploded && !cannotWrite
+  const itemUnfurl =
+    canUnfurl && Chat.hasUnfurlableLink(message)
+      ? ([{icon: 'iconfont-identity-website', onClick: actions.unfurlMessage, title: 'Unfurl link'}] as const)
+      : []
+
   const onMarkAsUnread = () => {
     if (id) {
       actions.markAsUnread(id)
@@ -293,6 +307,7 @@ const useItemsForMessage = (p: {
     itemProfile,
     itemReaction,
     itemReply,
+    itemUnfurl,
     itemUnread,
   }
 }
@@ -367,6 +382,7 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       markAsUnread: setMarkAsUnread,
       pinMessage: () => pinMessage(target),
       toggleReaction: emoji => toggleReaction(target, emoji),
+      unfurlMessage: () => unfurlMessage(target),
     },
     conversationIDKey,
     inputDispatch,
@@ -392,6 +408,7 @@ export const useStorelessItems = (p: {
       pinMessage: () => pinMessage({conversationIDKey: p.conversationIDKey, messageID: p.message.id}),
       toggleReaction: emoji =>
         toggleReaction({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}, emoji),
+      unfurlMessage: () => unfurlMessage({conversationIDKey: p.conversationIDKey, messageID: p.message.id}),
     },
     conversationIDKey: p.conversationIDKey,
     message: p.message,

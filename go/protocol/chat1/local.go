@@ -7291,6 +7291,12 @@ type ResolveUnfurlPromptArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type UnfurlMessageArg struct {
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type GetUnfurlSettingsArg struct {
 }
 
@@ -7298,6 +7304,10 @@ type SaveUnfurlSettingsArg struct {
 	Mode      UnfurlMode `codec:"mode" json:"mode"`
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 	Blocklist *[]string  `codec:"blocklist,omitempty" json:"blocklist,omitempty"`
+}
+
+type NormalizeUnfurlDomainArg struct {
+	Input string `codec:"input" json:"input"`
 }
 
 type UnfurlPreviewLocalArg struct {
@@ -7622,8 +7632,10 @@ type LocalInterface interface {
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[ConvIDStr]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
+	UnfurlMessage(context.Context, UnfurlMessageArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
+	NormalizeUnfurlDomain(context.Context, string) (string, error)
 	UnfurlPreviewLocal(context.Context, UnfurlPreviewLocalArg) ([]UnfurlPreviewInfo, error)
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
@@ -8824,6 +8836,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"unfurlMessage": {
+				MakeArg: func() any {
+					var ret [1]UnfurlMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]UnfurlMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UnfurlMessageArg)(nil), args)
+						return
+					}
+					err = i.UnfurlMessage(ctx, typedArgs[0])
+					return
+				},
+			},
 			"getUnfurlSettings": {
 				MakeArg: func() any {
 					var ret [1]GetUnfurlSettingsArg
@@ -8846,6 +8873,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.SaveUnfurlSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"normalizeUnfurlDomain": {
+				MakeArg: func() any {
+					var ret [1]NormalizeUnfurlDomainArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]NormalizeUnfurlDomainArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NormalizeUnfurlDomainArg)(nil), args)
+						return
+					}
+					ret, err = i.NormalizeUnfurlDomain(ctx, typedArgs[0].Input)
 					return
 				},
 			},
@@ -9998,6 +10040,11 @@ func (c LocalClient) ResolveUnfurlPrompt(ctx context.Context, __arg ResolveUnfur
 	return
 }
 
+func (c LocalClient) UnfurlMessage(ctx context.Context, __arg UnfurlMessageArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.unfurlMessage", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsDisplay, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getUnfurlSettings", []any{GetUnfurlSettingsArg{}}, &res, 0*time.Millisecond)
 	return
@@ -10005,6 +10052,12 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) NormalizeUnfurlDomain(ctx context.Context, input string) (res string, err error) {
+	__arg := NormalizeUnfurlDomainArg{Input: input}
+	err = c.Cli.Call(ctx, "chat.1.local.normalizeUnfurlDomain", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

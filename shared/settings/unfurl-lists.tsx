@@ -16,10 +16,9 @@ export const draftOf = (saved: UnfurlLists): UnfurlDraft => ({
 const listKeys = (list: UnfurlList) =>
   list === 'allow' ? (['whitelist', 'blocklist'] as const) : (['blocklist', 'whitelist'] as const)
 
-// The service normalizes domains on save; this only keeps the rows tidy.
-export const addDomain = (draft: UnfurlDraft, list: UnfurlList, input: string): UnfurlDraft => {
-  const domain = input.trim().toLowerCase()
-  if (!domain) return draft
+// domain is already in the service's stored form (normalizeUnfurlDomain), so a url and its bare
+// domain are one row
+export const addDomain = (draft: UnfurlDraft, list: UnfurlList, domain: string): UnfurlDraft => {
   const [to, from] = listKeys(list)
   const removed = new Set(draft.removed)
   const wasRemoved = removed.delete(domain)

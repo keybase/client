@@ -807,6 +807,42 @@ export const getMapUnfurl = (message: T.Chat.Message): T.RPCChat.UnfurlGenericDi
   return mapInfo || undefined
 }
 
+// Mirrors what a forced unfurl picks up in the service (Extractor.ExtractAll): http(s) links outside
+// backtick quotes, the first maxUnfurlLinks distinct ones. A bare domain renders as a link but never
+// unfurls.
+const unfurlableLinkRegex = /\bhttps?:\/\/[^\s<>`]+/gi
+const quotedRegex = /`[^`]*`/g
+const maxUnfurlLinks = 5
+
+// The service's url matcher leaves trailing punctuation off a link, but keeps a closing paren or
+// bracket that closes one opened inside it, as in a wikipedia link. The link has to come out the same
+// here or it never matches its unfurl.
+const trimLinkEnd = (link: string) => {
+  let end = link.length
+  for (;;) {
+    const c = link[end - 1]
+    if (c === undefined) break
+    const pair = c === ')' ? '(' : c === ']' ? '[' : undefined
+    if (pair) {
+      const head = link.slice(0, end)
+      if (head.split(pair).length > head.split(c).length - 1) break
+    } else if (!".,!?;:'\"}>".includes(c)) {
+      break
+    }
+    end--
+  }
+  return link.slice(0, end)
+}
+
+export const hasUnfurlableLink = (message: T.Chat.Message) => {
+  if (message.type !== 'text') {
+    return false
+  }
+  const body = message.text.stringValue().replace(quotedRegex, '')
+  const links = [...new Set((body.match(unfurlableLinkRegex) ?? []).map(trimLinkEnd))].slice(0, maxUnfurlLinks)
+  return links.some(link => !message.unfurls?.has(link))
+}
+
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const validUIMessagetoMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,

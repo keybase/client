@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"regexp"
+	"strings"
 	"sync"
 
 	"mvdan.cc/xurls/v2"
@@ -118,6 +119,28 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 		}
 	}
 	return res, nil
+}
+
+// ExtractAll returns the distinct http(s) URLs in body as unfurl hits, ignoring the user's
+// settings. It is for an explicit request to unfurl one message, which overrides the mode and
+// both lists. Unlike Extract it skips schemes that cannot be scraped and counts a repeated URL
+// once toward maxHits; the client mirrors both to decide when to offer the request.
+func (e *Extractor) ExtractAll(body string) (res []ExtractorHit) {
+	body = e.quoteRegexp.ReplaceAllString(body, "")
+	seen := make(map[string]bool)
+	for _, h := range e.urlRegexp.FindAllString(body, -1) {
+		lower := strings.ToLower(h)
+		scrapeable := strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://")
+		if seen[h] || !scrapeable {
+			continue
+		}
+		seen[h] = true
+		res = append(res, ExtractorHit{URL: h, Typ: ExtractorHitUnfurl})
+		if len(res) >= e.maxHits {
+			break
+		}
+	}
+	return res
 }
 
 func (e *Extractor) AddWhitelistExemption(ctx context.Context, uid gregor1.UID,

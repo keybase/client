@@ -172,6 +172,8 @@ test('Ask per domain saves normalized allow and block lists', async ({page}) => 
   await radio(page, 'Ask per domain').click()
   await expectRadioSelected(page, 'Ask per domain')
   await addToList(page, 'blocked', 'https://www.Example.org/x')
+  // the row is the domain the service stores, before any save
+  await expect(listRow(page, 'blocked', 'example.org')).toBeVisible()
   await addToList(page, 'allowed', 'example.net')
   await save(page)
 
@@ -179,9 +181,6 @@ test('Ask per domain saves normalized allow and block lists', async ({page}) => 
   await expect
     .poll(async () => getSettings(), {timeout: 10_000})
     .toEqual({blocklist: ['example.org'], mode: 'whitelisted', whitelist: ['example.net']})
-  // the screen shows what the service normalized it to
-  await expect(listRow(page, 'blocked', 'example.org')).toBeVisible({timeout: 10_000})
-
   await reloadChatSettings(page)
   await expectRadioSelected(page, 'Ask per domain')
   await expect(listRow(page, 'blocked', 'example.org')).toBeVisible({timeout: 10_000})

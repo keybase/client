@@ -2724,6 +2724,35 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 	return nil
 }
 
+func (h *Server) UnfurlMessage(ctx context.Context, arg chat1.UnfurlMessageArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "UnfurlMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	msgs, err := h.G().ConvSource.GetMessages(ctx, arg.ConvID, uid, []chat1.MessageID{arg.MsgID},
+		nil, nil, true)
+	if err != nil {
+		return err
+	}
+	if len(msgs) != 1 || !msgs[0].IsValid() {
+		return errors.New("message not found")
+	}
+	// unfurls are posted by the sender's device, so only the sender can unfurl a message
+	if !msgs[0].Valid().ClientHeader.Sender.Eq(uid) {
+		return errors.New("can only unfurl your own messages")
+	}
+	h.G().Unfurler.UnfurlMessage(ctx, uid, arg.ConvID, msgs[0])
+	return nil
+}
+
+func (h *Server) NormalizeUnfurlDomain(ctx context.Context, input string) (res string, err error) {
+	defer h.Trace(ctx, &err, "NormalizeUnfurlDomain")()
+	return unfurl.NormalizeDomain(input)
+}
+
 func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSettingsDisplay, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, &err, "GetUnfurlSettings")()

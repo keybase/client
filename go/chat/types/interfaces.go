@@ -505,6 +505,8 @@ type WhitelistExemption interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed, suppress []string)
+	UnfurlMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msg chat1.MessageUnboxed)
 	Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int
 	PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		text string) []chat1.UnfurlPreviewInfo

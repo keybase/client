@@ -1245,8 +1245,14 @@ protocol local {
     case BLOCK: string;
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
+  // unfurls every url in one of your own messages that is not unfurled yet, whatever the
+  // unfurl settings say. the settings are left as they are
+  void unfurlMessage(ConversationID convID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist, union { null, array<string> } blocklist);
+  // the domain a typed entry (a bare domain or a url) is stored as on the allow and block lists.
+  // errors for input that cannot be listed
+  string normalizeUnfurlDomain(string input);
 
   record UnfurlPreviewInfo {
     string url;

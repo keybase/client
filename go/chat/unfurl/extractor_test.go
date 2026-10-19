@@ -293,3 +293,23 @@ func TestExtractorExemptions(t *testing.T) {
 	require.Len(t, res, 1)
 	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
 }
+
+func TestExtractorExtractAll(t *testing.T) {
+	tc := externalstest.SetupTest(t, "extractor", 0)
+	defer tc.Cleanup()
+	extractor := NewExtractor(globals.NewContext(tc.G, &globals.ChatContext{}))
+
+	urls := func(hits []ExtractorHit) (res []string) {
+		for _, h := range hits {
+			require.Equal(t, ExtractorHitUnfurl, h.Typ)
+			res = append(res, h.URL)
+		}
+		return res
+	}
+	// schemes that cannot be scraped are not unfurled, and neither is a quoted link
+	require.Equal(t, []string{"https://a.com"},
+		urls(extractor.ExtractAll("https://a.com mailto:testuser@a.com ftp://a.com/x `https://b.com`")))
+	// a repeated url counts once toward the cap, so the fifth distinct one still makes it
+	require.Equal(t, []string{"http://a.com", "http://b.com", "http://c.com", "http://d.com", "http://e.com"},
+		urls(extractor.ExtractAll("http://a.com http://a.com http://b.com http://c.com http://d.com http://e.com http://f.com")))
+}
