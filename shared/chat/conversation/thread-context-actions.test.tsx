@@ -510,6 +510,47 @@ describe('load throttle', () => {
     expect(loads().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([1, 100, 1, 5, 1, 100])
   })
 
+  test('a centered, message-id or jump-to-recent load drops a pending newer scroll load', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    const pending = () => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 1, reason: 'scroll forward', scrollDirection: 'forward'})
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 2, reason: 'scroll forward', scrollDirection: 'forward'})
+    }
+    act(pending)
+    act(() => h().actions.loadMoreMessages({reason: 'jump to recent'}))
+    act(pending)
+    act(() =>
+      h().actions.loadMoreMessages({
+        messageIDControl: {mode: T.RPCChat.MessageIDControlMode.newermessages, num: 5, pivot: T.Chat.numberToMessageID(3)},
+        reason: 'pivot',
+      })
+    )
+    act(pending)
+    act(() =>
+      h().actions.loadMoreMessages({
+        centeredMessageID: {conversationIDKey: convID, highlightMode: 'flash', messageID: T.Chat.numberToMessageID(4)},
+        reason: 'centered',
+      })
+    )
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(loads().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([1, 100, 1, 5, 1, 100])
+  })
+
+  test('cancel drops a pending newer scroll load', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    act(() => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 1, reason: 'scroll forward', scrollDirection: 'forward'})
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 2, reason: 'scroll forward', scrollDirection: 'forward'})
+      h().actions.loadMoreMessages.cancel()
+      jest.advanceTimersByTime(1000)
+    })
+    expect(loads()).toHaveLength(1)
+  })
+
   test('cancel drops the pending load', () => {
     jest.useFakeTimers()
     const {h} = renderThread()
