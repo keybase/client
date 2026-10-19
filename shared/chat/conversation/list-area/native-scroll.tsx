@@ -83,6 +83,7 @@ export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
+  clearCenter: () => void
   containsLatestMessage: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   // Changes with the conversation and with every clear of its thread (a centred reload, jump to
@@ -96,7 +97,7 @@ export const useNativeThreadScroll = (p: {
   loaded: boolean
 }) => {
   const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
-  const {isKeyboardVisible, loadNewer, loadOlder} = p
+  const {clearCenter, isKeyboardVisible, loadNewer, loadOlder} = p
   const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
@@ -538,6 +539,14 @@ export const useNativeThreadScroll = (p: {
     centreKeyRef.current = key
     if (key !== undefined) readerMovedSinceCentreRef.current = false
   }, [centeredOrdinal, datasetKey])
+  // A reader who scrolled from a centred row on to the present is done with it: the centre would keep
+  // the end anchor off, and new messages would no longer come into view. A centred window that already
+  // holds the newest message, with the reader still on its row, keeps its centre.
+  React.useLayoutEffect(() => {
+    if (containsLatestMessage && centeredOrdinal !== undefined && readerMovedSinceCentreRef.current) {
+      clearCenter()
+    }
+  }, [centeredOrdinal, clearCenter, containsLatestMessage])
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
     const oldestLaidOut = oldestLaidOutRef.current

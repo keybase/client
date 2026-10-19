@@ -10,7 +10,7 @@ import {MessageRow} from '../messages/wrapper'
 import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
-import {useConversationCenter} from '../center-context'
+import {useConversationCenter, useConversationCenterActions} from '../center-context'
 import {
   ShownUsernameCacheContext,
   useConversationThreadID,
@@ -492,6 +492,7 @@ const NativeConversationList = function NativeConversationList() {
   const conversationIDKey = useConversationThreadID()
   const listData = useThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {clearCenter} = useConversationCenterActions()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   // Ordinals start at 1; this list takes anything else as no centre.
@@ -558,6 +559,7 @@ const NativeConversationList = function NativeConversationList() {
     scrollToBottom,
   } = useNativeThreadScroll({
     centeredOrdinal: centeredTarget,
+    clearCenter,
     containsLatestMessage,
     conversationIDKey,
     datasetKey: `${conversationIDKey}:${clearVersion}`,

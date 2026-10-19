@@ -36,6 +36,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
   const resting = keyboardVisible ? keyboardOffset : 0
   const scrollToOffset = jest.fn()
   const scrollToItem = jest.fn()
+  const clearCenter = jest.fn()
   const loadNewer = jest.fn()
   const loadOlder = jest.fn()
   const listRef: React.RefObject<NativeListRef | null> = {current: {scrollToItem, scrollToOffset}}
@@ -60,6 +61,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
     (p: Props) =>
       useNativeThreadScroll({
         centeredOrdinal: p.centeredOrdinal,
+        clearCenter,
         containsLatestMessage: p.containsLatestMessage,
         conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
         datasetKey: p.datasetKey,
@@ -75,6 +77,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
   )
   let props = initialProps
   return {
+    clearCenter,
     hook,
     // Scrolls to the row, whatever for.
     itemScrolls: (item: T.Chat.Ordinal) =>
@@ -336,6 +339,18 @@ test('a status-bar tap measures from where it came to rest, not the last scroll 
   expect(m.loadNewer).not.toHaveBeenCalled()
   act(() => m.hook.result.current.onScrollToTop({nativeEvent: {contentOffset: {y: 0}}}))
   expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a reader who scrolls from a centred row to the present lets the centre go', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  m.set({containsLatestMessage: true})
+  // a centred window that already holds the newest message keeps its centre
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  m.set({containsLatestMessage: false})
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  m.set({containsLatestMessage: true})
+  expect(m.clearCenter).toHaveBeenCalledTimes(1)
 })
 
 test('a thread holding the newest message asks for no newer page', () => {
