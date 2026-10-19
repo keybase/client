@@ -47,21 +47,85 @@ enum ShareFiles {
   // Puts src at dst. A provider's temporary file is ours until its completion
   // handler returns, so it is moved, which costs nothing on the same volume
   // where a copy would double the disk used by a large video. A move that fails
-  // (another volume, a source we can't remove) falls back to a copy.
-  static func place(_ src: URL, at dst: URL, move: Bool) throws {
+  // (another volume, a source we can't remove) falls back to a copy. Anything
+  // else is a file the provider points at (see copyProviderFile).
+  static func place(_ src: URL, at dst: URL, move: Bool, roots: [String] = ownRoots) throws {
+    guard move else {
+      try copyProviderFile(src, to: dst, roots: roots)
+      return
+    }
     let fm = FileManager.default
-    if move {
-      do {
-        try fm.moveItem(at: src, to: dst)
-        return
-      } catch {
-        log.info("payload move failed, copying: \(String(describing: error), privacy: .private)")
-        // dst is in a fresh per-item directory, so anything there is a
-        // leftover of the failed move.
-        try? fm.removeItem(at: dst)
-      }
+    do {
+      try fm.moveItem(at: src, to: dst)
+      return
+    } catch {
+      log.info("payload move failed, copying: \(String(describing: error), privacy: .private)")
+      // dst is in a fresh per-item directory, so anything there is a
+      // leftover of the failed move.
+      try? fm.removeItem(at: dst)
     }
     try fm.copyItem(at: src, to: dst)
+  }
+
+  // Nothing a user shares or drops lives in the app's (or extension's) own
+  // sandbox or in the app group, which hold the service's data (its
+  // attachment stash is in tmp), so a file a provider points at there is
+  // never sent. Real paths, as F_GETPATH reports them.
+  static let ownRoots: [String] = {
+    var roots = [NSHomeDirectory()]
+    if let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.keybase") {
+      roots.append(group.path)
+    }
+    return roots.compactMap(realPath)
+  }()
+
+  static func realPath(_ path: String) -> String? {
+    guard let p = realpath(path, nil) else { return nil }
+    defer { free(p) }
+    return String(cString: p)
+  }
+
+  // Whether path is one of roots or inside one. Case-insensitive, since an iOS
+  // app can run on a Mac's case-insensitive volume.
+  static func isUnder(_ path: String, roots: [String]) -> Bool {
+    let path = path.lowercased()
+    return roots.contains { root in
+      let root = root.lowercased()
+      return path == root || path.hasPrefix(root.hasSuffix("/") ? root : root + "/")
+    }
+  }
+
+  // Copies the regular file src names, unless it is one of ours. The file is
+  // opened once and everything after works on that descriptor: what is
+  // checked is the file the kernel opened, wherever links led, and what is
+  // copied is that same file, so swapping a link in after the check gains
+  // nothing. Folders and other non-files are refused: an upload reads its
+  // path as one file, and a folder could hold links into our data.
+  static func copyProviderFile(_ src: URL, to dst: URL, roots: [String]) throws {
+    // O_NONBLOCK so opening a FIFO can't hang; it doesn't affect a regular file.
+    let fd = open(src.path, O_RDONLY | O_NONBLOCK | O_CLOEXEC)
+    guard fd >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+    let input = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+
+    var info = stat()
+    guard fstat(fd, &info) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+    guard info.st_mode & S_IFMT == S_IFREG else { throw CocoaError(.fileReadUnknown) }
+
+    var buf = [CChar](repeating: 0, count: Int(MAXPATHLEN))
+    guard fcntl(fd, F_GETPATH, &buf) != -1 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+    if isUnder(String(cString: buf), roots: roots) {
+      throw CocoaError(.fileReadNoPermission)
+    }
+
+    if fclonefileat(fd, AT_FDCWD, dst.path, 0) == 0 { return }
+    guard FileManager.default.createFile(atPath: dst.path, contents: nil) else {
+      throw CocoaError(.fileWriteUnknown)
+    }
+    let output = try FileHandle(forWritingTo: dst)
+    defer { try? output.close() }
+    while let chunk = try input.read(upToCount: 1 << 20), !chunk.isEmpty {
+      try output.write(contentsOf: chunk)
+    }
   }
 
   // The image format of data, from its header alone, so it costs nothing next
