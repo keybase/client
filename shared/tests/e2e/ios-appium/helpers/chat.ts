@@ -618,9 +618,12 @@ export const chooseMenuItem = async (label: string) => {
     async () => {
       const item = menuItem(label)
       if (await item.isExisting()) {
+        // A tap lands at the item's middle; once that is on screen the item can be tapped. The sheet
+        // tops out with its last items low on the screen, where no drag moves them further up.
         const {y} = await item.getLocation()
+        const {height: itemHeight} = await item.getSize()
         const {height} = await browser.getWindowRect()
-        if (y < height - 60) return true
+        if (y + itemHeight / 2 < height) return true
       }
       const {height, width} = await browser.getWindowRect()
       const x = Math.round(width / 2)
