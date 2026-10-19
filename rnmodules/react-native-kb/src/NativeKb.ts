@@ -7,7 +7,8 @@ export interface Spec extends TurboModule {
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
   readonly onPushToken: EventEmitter<string>
-  readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
+  // Android only: a share is held, under this id (see peekIncomingShare)
+  readonly onShareData: EventEmitter<{id: number}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
   readonly onAppLifecycle: EventEmitter<{state: string}>
   // iOS only: every fix the location watch receives, accuracy in metres
@@ -39,14 +40,17 @@ export interface Spec extends TurboModule {
   // iOS only: the Android impl rejects, so call the processMedia wrapper in
   // index.tsx rather than this directly — it hands the path back untouched off
   // iOS. startMs/endMs are the trim range, both 0 meaning the whole clip
-  // (codegen only allows plain types here, so no nullable).
+  // (codegen only allows plain types here, so no nullable). stripLocation
+  // (images, compress off) guarantees an image sent as it is carries no
+  // location: Send original after a compressed run.
   processMedia(
     path: string,
     isVideo: boolean,
     compress: boolean,
     startMs: number,
     endMs: number,
-    removeAudio: boolean
+    removeAudio: boolean,
+    stripLocation: boolean
   ): Promise<string>
   // iOS only: presents the system share sheet for a local file. `text` is the
   // file's contents when it is worth offering as text, '' otherwise (codegen
@@ -68,7 +72,13 @@ export interface Spec extends TurboModule {
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
   notifyJSReady(): void
-  shareListenersRegistered(): void
+  // Android only: the id of the share native holds, 0 if none.
+  heldIncomingShareID(): number
+  // Android only: the held share with this id; null once it is done with or replaced.
+  // droppedCount: shared items that couldn't be copied
+  peekIncomingShare(id: number): {text?: string; localPaths?: Array<string>; droppedCount: number} | null
+  // Android only: JS is done with the share with this id.
+  ackIncomingShare(id: number): void
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
   // the last state onAppLifecycle carried, including one sent before JS listened

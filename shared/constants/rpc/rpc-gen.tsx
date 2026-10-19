@@ -701,7 +701,7 @@ export type MessageTypes = {
   },
   'keybase.1.incomingShare.getIncomingShareItems': {
     inParam: undefined,
-    outParam: ReadonlyArray<IncomingShareItem> | null,
+    outParam: IncomingShareItems,
   },
   'keybase.1.incomingShare.getPreference': {
     inParam: undefined,
@@ -2709,6 +2709,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration,
 export type ImplicitTeamDisplayName = {readonly isPublic: boolean,readonly writers: ImplicitTeamUserSet,readonly readers: ImplicitTeamUserSet,readonly conflictInfo?: ImplicitTeamConflictInfo | null,}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: ReadonlyArray<string> | null,readonly unresolvedUsers?: ReadonlyArray<SocialAssertion> | null,}
 export type IncomingShareItem = {readonly type: IncomingShareType,readonly originalPath?: string | null,readonly originalSize?: number | null,readonly scaledPath?: string | null,readonly scaledSize?: number | null,readonly thumbnailPath?: string | null,readonly content?: string | null,}
+export type IncomingShareItems = {readonly items?: ReadonlyArray<IncomingShareItem> | null,readonly droppedCount: number,readonly id: string,}
 export type IncomingSharePreference = {readonly compressPreference: IncomingShareCompressPreference,}
 export type IndexProgressRecord = {readonly endEstimate: Time,readonly bytesTotal: number,readonly bytesSoFar: number,}
 export type InstallResult = {readonly componentResults?: ReadonlyArray<ComponentResult> | null,readonly status: Status,readonly fatal: boolean,}

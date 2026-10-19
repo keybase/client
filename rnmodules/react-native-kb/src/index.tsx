@@ -30,10 +30,11 @@ export const processMedia = (
   compress: boolean,
   startMs = 0,
   endMs = 0,
-  removeAudio = false
+  removeAudio = false,
+  stripLocation = false
 ): Promise<string> => {
   if (Platform.OS === 'ios') {
-    return Kb.processMedia(path, isVideo, compress, startMs, endMs, removeAudio)
+    return Kb.processMedia(path, isVideo, compress, startMs, endMs, removeAudio, stripLocation)
   }
   return Promise.resolve(path)
 }
@@ -139,7 +140,7 @@ export const onPushToken = (callback: (token: string) => void): EventSubscriptio
 
 // Android share-into-app intents
 export const onShareData = (
-  callback: (evt: {text?: string; localPaths?: Array<string>}) => void
+  callback: (evt: {id: number}) => void
 ): EventSubscription => {
   return Kb.onShareData(callback)
 }
@@ -191,8 +192,16 @@ export const addPushTapListener = (callback: () => void): (() => void) => {
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }
-export const shareListenersRegistered = (): void => {
-  return Kb.shareListenersRegistered()
+export const heldIncomingShareID = (): number => {
+  return Kb.heldIncomingShareID()
+}
+export const peekIncomingShare = (
+  id: number
+): {text?: string; localPaths?: Array<string>; droppedCount: number} | null => {
+  return Kb.peekIncomingShare(id)
+}
+export const ackIncomingShare = (id: number): void => {
+  Kb.ackIncomingShare(id)
 }
 
 export const clearLocalLogs = (): Promise<void> => {

@@ -803,6 +803,51 @@ test('an intent written before the provider mounts is delivered on mount', () =>
   expect(composerInput.text).toBe('prefill from store')
 })
 
+test('an injectText notice shows as a warning in the command status bar', () => {
+  setInputIntent(convID, {notice: "1 item couldn't be prepared.", text: 'shared text', type: 'injectText'})
+
+  const {composerInput, result} = renderInput(convID)
+
+  expect(composerInput.text).toBe('shared text')
+  expect(result.current.commandStatus).toEqual({
+    actions: [],
+    displayText: "1 item couldn't be prepared.",
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.warning,
+  })
+})
+
+test('an injectText with only a notice leaves the composer text alone', () => {
+  setInputIntent(convID, {text: 'a draft', type: 'injectText'})
+  const {composerInput, result} = renderInput(convID)
+  expect(composerInput.text).toBe('a draft')
+
+  act(() => {
+    setInputIntent(convID, {notice: "Not sent: a.webp couldn't be converted.", type: 'injectText'})
+  })
+
+  expect(composerInput.text).toBe('a draft')
+  expect(result.current.commandStatus?.displayText).toBe("Not sent: a.webp couldn't be converted.")
+})
+
+test('a shared text (append) goes after the conversation\'s draft instead of replacing it', () => {
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft: 'my draft'}], undefined, {
+    force: true,
+  })
+  setInputIntent(convID, {append: true, text: 'shared text', type: 'injectText'})
+
+  const {composerInput} = renderInput(convID)
+
+  expect(composerInput.text).toBe('my draft\nshared text')
+})
+
+test('an injectText without a notice leaves the command status bar alone', () => {
+  setInputIntent(convID, {text: 'shared text', type: 'injectText'})
+
+  const {result} = renderInput(convID)
+
+  expect(result.current.commandStatus).toBeUndefined()
+})
+
 test('a consumed intent does not replay on remount', () => {
   setInputIntent(convID, {text: 'only once', type: 'injectText'})
 

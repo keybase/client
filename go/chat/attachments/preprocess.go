@@ -194,16 +194,16 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 
 func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res string, err error) {
 	head := make([]byte, 512)
-	_, err = io.ReadFull(src, head)
+	n, err := io.ReadFull(src, head)
 	switch {
-	case err == nil:
-	case errors.Is(err, io.EOF), errors.Is(err, io.ErrUnexpectedEOF):
+	case err == nil, errors.Is(err, io.ErrUnexpectedEOF):
+	case errors.Is(err, io.EOF):
 		return "", nil
 	default:
 		return res, err
 	}
 
-	res = http.DetectContentType(head)
+	res = http.DetectContentType(head[:n])
 	if err = src.Reset(); err != nil {
 		return res, err
 	}

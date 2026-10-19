@@ -101,6 +101,30 @@ func (o IncomingShareItem) DeepCopy() IncomingShareItem {
 	}
 }
 
+type IncomingShareItems struct {
+	Items        []IncomingShareItem `codec:"items" json:"items"`
+	DroppedCount int                 `codec:"droppedCount" json:"droppedCount"`
+	Id           string              `codec:"id" json:"id"`
+}
+
+func (o IncomingShareItems) DeepCopy() IncomingShareItems {
+	return IncomingShareItems{
+		Items: (func(x []IncomingShareItem) []IncomingShareItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]IncomingShareItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Items),
+		DroppedCount: o.DroppedCount,
+		Id:           o.Id,
+	}
+}
+
 type IncomingShareCompressPreference int
 
 const (
@@ -148,7 +172,7 @@ type SetPreferenceArg struct {
 }
 
 type IncomingShareInterface interface {
-	GetIncomingShareItems(context.Context) ([]IncomingShareItem, error)
+	GetIncomingShareItems(context.Context) (IncomingShareItems, error)
 	GetPreference(context.Context) (IncomingSharePreference, error)
 	SetPreference(context.Context, IncomingSharePreference) error
 }
@@ -200,7 +224,7 @@ type IncomingShareClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c IncomingShareClient) GetIncomingShareItems(ctx context.Context) (res []IncomingShareItem, err error) {
+func (c IncomingShareClient) GetIncomingShareItems(ctx context.Context) (res IncomingShareItems, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getIncomingShareItems", []any{GetIncomingShareItemsArg{}}, &res, 0*time.Millisecond)
 	return
 }

@@ -15,12 +15,27 @@ import {useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
 import logger from '@/logger'
 import {isKbfsPath} from './attachment-path'
-import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
+import {setInputIntent} from './input-intent-store'
+import {
+  canCompressPickedFile,
+  canEdit,
+  canProcess,
+  deleteConsumedSources,
+  discardProcessedOutputs,
+  isEditNoop,
+  isProcessableImagePath,
+  isVideoPath,
+  processPaths,
+  type ProcessResult,
+  type VideoEdit,
+} from '@/util/media-process'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
   inputPrefillText?: string
+  // Shown above the preview, e.g. that some shared items didn't make it
+  notice?: string
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
@@ -28,6 +43,9 @@ type OwnProps = {
   tlfName?: string
   // don't use the drag drop functionality, just upload the outbox IDs
   noDragDrop?: boolean
+  // Chosen in the file picker: sent as files, so only the images the app always
+  // compressed are re-encoded, and nothing is converted to another format.
+  pickedAsFiles?: boolean
 }
 
 type Info = {
@@ -52,14 +70,34 @@ export const pathToAttachmentType = (path: string) => {
   return 'file'
 }
 
+// Why Send original couldn't send an image, after its name.
+const droppedReason = (r?: ProcessResult) => {
+  if (r?.error === undefined) {
+    return "couldn't be prepared."
+  }
+  switch (r.errorCode) {
+    case 'media_missing':
+      return 'is no longer on this device.'
+    case 'media_unrecognized':
+      return "is in a format this device can't read, and the original can include its location."
+    case undefined:
+      return "couldn't be converted to a JPEG, and the original can include its location."
+  }
+}
+
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()
-  const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
+  const {inputPrefillText, notice, pickedAsFiles, titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
-  const metaTlfName = useConversationMeta(conversationIDKey).tlfname
+  const meta = useConversationMeta(conversationIDKey)
+  const metaTlfName = meta.tlfname
+  const metaFailed = meta.trustedState === 'error'
+  // A share to a suggested conversation can arrive before the inbox meta has loaded; the meta hook
+  // above triggers that load, and Send waits for it.
+  const resolvedTlfName = tlfName || metaTlfName || undefined
   const explodingMode = useConversationExplodingMode(conversationIDKey)
   const clientPrev = getConversationClientPrev(conversationIDKey)
   const onCancel = () => {
@@ -81,6 +119,8 @@ const ContainerInner = (ownProps: OwnProps) => {
   const [edits, setEdits] = React.useState<{[index: number]: VideoEdit}>({})
   const [progress, setProgress] = React.useState<{done: number; total: number} | undefined>()
   const [error, setError] = React.useState<string | undefined>()
+  // Send original couldn't send any of the items, so offering it again is pointless.
+  const [originalsBlocked, setOriginalsBlocked] = React.useState(false)
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
   const unmountedRef = React.useRef(false)
@@ -113,29 +153,46 @@ const ContainerInner = (ownProps: OwnProps) => {
     })()
   }, [])
   // progress only exists once the export starts, which is after the preference
-  // resolves, so it can't gate a double tap on its own
+  // resolves, so it can't gate a double tap on its own. The ref guards a second
+  // tap in the same frame; the state drives Send's spinner. Both stay set once an
+  // upload starts, since the screen is on its way out and a second tap would send
+  // again; they're cleared only where the screen stays up for the user to retry.
   const submittingRef = React.useRef(false)
+  const [submitting, setSubmitting] = React.useState(false)
+  const endSubmit = () => {
+    submittingRef.current = false
+    setSubmitting(false)
+  }
 
-  // skipProcessing is the "Send anyway" path: the user has already been told the
+  // skipProcessing is the "Send original" path: the user has already been told the
   // export failed and wants the originals.
   const _onSubmit = (titles: Array<string>, skipProcessing = false) => {
-    if (progress || submittingRef.current) {
+    if (progress || submittingRef.current || !resolvedTlfName) {
       return
     }
     submittingRef.current = true
+    setSubmitting(true)
     setError(undefined)
-    const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
+    // Says whether the paths were handed off, so the caller knows whether the
+    // export's sources are spent.
+    // dropped is shown in the thread's status bar once the screen is gone.
+    const upload = (
+      paths: Array<T.Chat.PathAndOutboxID>,
+      uploadTitles: ReadonlyArray<string> = titles,
+      dropped?: string
+    ) => {
       if (accountChanged()) {
         logger.info('attachment titles: account changed, sending nothing')
-        return
+        endSubmit()
+        return false
       }
       const uploadArgs = {
         clientPrev,
         conversationIDKey,
         ephemeralLifetime: explodingMode,
         paths,
-        titles,
-        tlfName: tlfName ?? metaTlfName,
+        titles: uploadTitles,
+        tlfName: resolvedTlfName,
       }
       if (tlfName || noDragDrop) {
         uploadAttachments(uploadArgs)
@@ -145,82 +202,143 @@ const ContainerInner = (ownProps: OwnProps) => {
       clearModals()
 
       if (selectConversationWithReason) {
-        const prefill = ownProps.inputPrefillText
         C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason, {
-          intent: prefill === undefined ? undefined : {text: prefill, type: 'injectText'},
+          intent:
+            inputPrefillText === undefined && !dropped
+              ? undefined
+              : {append: true, notice: dropped, text: inputPrefillText, type: 'injectText'},
         })
+      } else if (dropped) {
+        // The thread is under this modal, so its composer takes this right away.
+        setInputIntent(conversationIDKey, {notice: dropped, type: 'injectText'})
       }
+      return true
     }
 
     const effective = pathAndOutboxIDs.map(({path, outboxID, url}) => ({outboxID, path, url}))
 
-    if (!isIOS || skipProcessing) {
-      submittingRef.current = false
+    if (!isIOS) {
       upload(effective)
       return
     }
 
+    // Send compresses per the preference, and any failure stops the batch: a failed export means
+    // the original bytes, an uncompressed upload or a clip the user asked to trim going out full
+    // length. Send exports again, so whatever did export this time won't be used.
+    // Send original sends what "Keep full size" would: a format recipients can't show (webp, avif,
+    // tiff, RAW) becomes a metadata-free JPEG, and the rest come back as the source. After a
+    // compressed run that source must carry no location (stripLocation): native strips it, or
+    // converts it to a JPEG, or fails it. With Keep full size it is the raw original, metadata and
+    // all. One that can't be cleaned is dropped rather than sent with its location, and the rest
+    // still go. Files chosen in the file picker go as they are.
     const isUnmounted = () => unmountedRef.current
-    const f = async () => {
-      const compress = (await compressPrefRef.current) ?? true
-      if (isUnmounted() || accountChanged()) {
+    const send = async (original: boolean) => {
+      const compressPref = (await compressPrefRef.current) ?? true
+      if (isUnmounted()) {
         return
       }
-      // Only local media can be handed to the native processor: kbfs paths aren't
-      // real files and non-media has nothing to compress. "Keep full size" is a raw
-      // share, so with compression off only an explicit trim still needs the
-      // exporter — the cut has to be applied somewhere.
+      if (accountChanged()) {
+        endSubmit()
+        return
+      }
+      const compress = !original && compressPref
+      // Only local media can be handed to the native processor: kbfs paths aren't real files and
+      // non-media has nothing to compress. "Keep full size" is a raw share, so with compression off
+      // only an explicit trim still needs the exporter (the cut has to be applied somewhere) and
+      // images still go through so formats recipients can't show come out as JPEG; the rest come
+      // back untouched. Picked files are never converted, so with compression off they go as they
+      // are.
       const eligible = effective.reduce(
         (l: Array<{edit?: VideoEdit; idx: number; path: string}>, {path}, idx) => {
-          const edit = edits[idx]
-          const needsProcessing = compress ? canProcess(path) || !isEditNoop(edit) : !isEditNoop(edit)
-          if (!isKbfsPath(path) && needsProcessing) {
+          const edit = original ? undefined : edits[idx]
+          const needsImageWork = pickedAsFiles
+            ? compress && canCompressPickedFile(path)
+            : compress
+              ? canProcess(path)
+              : isProcessableImagePath(path)
+          if (!isKbfsPath(path) && (!isEditNoop(edit) || needsImageWork)) {
             l.push({edit, idx, path})
           }
           return l
         },
         []
       )
-
       if (eligible.length === 0) {
-        submittingRef.current = false
         upload(effective)
         return
       }
-
       setProgress({done: 0, total: eligible.length})
+      const items = eligible.map(({path, edit}) => ({edit, path}))
+      // The failed run that led to Send original used the same preference.
       const processed = await processPaths(
-        eligible.map(({path, edit}) => ({edit, path})),
-        compress,
+        items,
+        original ? {compress: false, stripLocation: compressPref} : {compress},
         (done, total) => {
           if (!unmountedRef.current) {
             setProgress({done, total})
           }
         }
       )
-      if (unmountedRef.current) {
+      // Backed out while it exported: nothing uploads, so the outputs are orphans, and the
+      // originals stay for a retry or a re-share.
+      if (isUnmounted()) {
+        discardProcessedOutputs(items, processed)
         return
       }
       setProgress(undefined)
-      submittingRef.current = false
-      // A failed export means the original bytes: an uncompressed upload, or
-      // worse a clip the user asked to trim going out full length. Stop and say
-      // so instead of sending something they didn't ask for.
-      const failure = processed.find(p => p.error)
-      if (failure) {
-        setError(failure.error)
+      const failure = processed.find(p => p.error)?.error
+      if (!original && failure !== undefined) {
+        discardProcessedOutputs(items, processed)
+        endSubmit()
+        setError(failure)
         return
       }
-      const next = [...effective]
-      eligible.forEach(({idx}, i) => {
-        const cur = next[idx]
-        if (cur) {
-          next[idx] = {...cur, path: processed[i]?.path ?? cur.path}
+      const next: Array<T.Chat.PathAndOutboxID | undefined> = [...effective]
+      const droppedLines: Array<string> = []
+      eligible.forEach(({idx, path}, i) => {
+        const r = processed[i]
+        if (r && r.error === undefined) {
+          const cur = next[idx]
+          next[idx] = cur && {...cur, path: r.path}
+        } else {
+          next[idx] = undefined
+          droppedLines.push(`${T.FS.getLocalPathName(path)} ${droppedReason(r)}`)
         }
       })
-      upload(next)
+      if (droppedLines.length === 0) {
+        if (upload(effective.map((e, idx) => next[idx] ?? e))) {
+          deleteConsumedSources(items, processed)
+        } else {
+          discardProcessedOutputs(items, processed)
+        }
+        return
+      }
+      const keptIdx = effective.flatMap((_, idx) => (next[idx] ? [idx] : []))
+      // Every image failed, so there are no outputs to discard.
+      if (keptIdx.length === 0) {
+        endSubmit()
+        setOriginalsBlocked(true)
+        setError(`Nothing was sent. ${droppedLines.join(' ')}`)
+        return
+      }
+      const kept = keptIdx.flatMap(idx => next[idx] ?? [])
+      const keptTitles = keptIdx.map(idx => titles[idx] ?? '')
+      const droppedOutboxIDs = effective.flatMap(({outboxID}, idx) =>
+        next[idx] || !outboxID ? [] : [outboxID]
+      )
+      if (upload(kept, keptTitles, `Not sent: ${droppedLines.join(' ')}`)) {
+        cancelAttachmentUploads(droppedOutboxIDs)
+        // Only the sent ones are spent; a dropped image keeps its original.
+        const sentIdx = items.flatMap((_, i) => (processed[i] && processed[i].error === undefined ? [i] : []))
+        deleteConsumedSources(
+          sentIdx.flatMap(i => items[i] ?? []),
+          sentIdx.flatMap(i => processed[i] ?? [])
+        )
+      } else {
+        discardProcessedOutputs(items, processed)
+      }
     }
-    C.ignorePromise(f())
+    C.ignorePromise(send(skipProcessing))
   }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)
@@ -349,39 +467,57 @@ const ContainerInner = (ownProps: OwnProps) => {
   const isLast = index + 1 === pathAndInfos.length
   // Are we trying to upload multiple?
   const multiUpload = pathAndInfos.length > 1
+  // A phone is too narrow for Send, Send All and Send original side by side.
+  const stackButtons = isMobile && !!error
 
   return (
     <Kb.ModalScreen
       scroll={false}
       banner={
-        <Kb.ErrorBanner
-          error={error}
-          onClose={() => {
-            setError(undefined)
-          }}
-        />
+        <>
+          {notice ? <Kb.Banner color="yellow">{notice}</Kb.Banner> : null}
+          <Kb.ErrorBanner
+            error={error}
+            onClose={() => {
+              setError(undefined)
+            }}
+          />
+        </>
       }
       footer={
-        <Kb.ButtonBar fullWidth={true} small={true}>
+        <Kb.ButtonBar direction={stackButtons ? 'column' : 'row'} fullWidth={true} small={true}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
-            <Kb.WaitingButton
-              disabled={!!progress}
-              fullWidth={!multiUpload}
+            <Kb.Button
+              disabled={!!progress || !resolvedTlfName}
+              waiting={submitting}
+              fullWidth={!multiUpload || stackButtons}
               onClick={onSubmit}
               label="Send"
             />
           ) : (
-            <Kb.Button disabled={!!progress} fullWidth={!multiUpload} onClick={onNext} label="Next" />
-          )}
-          {multiUpload ? (
-            <Kb.WaitingButton disabled={!!progress} onClick={onSubmit} label="Send All" />
-          ) : null}
-          {/* Send retries the export; this is the way out when it keeps failing. */}
-          {error ? (
             <Kb.Button
               disabled={!!progress}
+              fullWidth={!multiUpload || stackButtons}
+              onClick={onNext}
+              label="Next"
+            />
+          )}
+          {multiUpload ? (
+            <Kb.Button
+              disabled={!!progress || !resolvedTlfName}
+              waiting={submitting}
+              fullWidth={stackButtons}
+              onClick={onSubmit}
+              label="Send All"
+            />
+          ) : null}
+          {/* Send retries the export; this is the way out when it keeps failing. */}
+          {error && !originalsBlocked ? (
+            <Kb.Button
+              disabled={!!progress || !resolvedTlfName}
               type="Dim"
+              fullWidth={stackButtons}
               onClick={onSendAnyway}
               label="Send original"
             />
@@ -420,6 +556,11 @@ const ContainerInner = (ownProps: OwnProps) => {
           />
         </Kb.Box2>
       </Kb.ClickableBox>
+      {resolvedTlfName ? null : (
+        <Kb.Text type="BodySmall" center={true} style={styles.progress}>
+          {metaFailed ? "Couldn't load this conversation." : 'Loading conversation...'}
+        </Kb.Text>
+      )}
       {progress ? (
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.progress}>
           <Kb.ProgressIndicator />

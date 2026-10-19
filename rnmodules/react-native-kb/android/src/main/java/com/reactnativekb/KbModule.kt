@@ -1,6 +1,5 @@
 package com.reactnativekb
 
-import android.app.Activity
 import android.app.DownloadManager
 import android.app.KeyguardManager
 import android.content.Context
@@ -31,7 +30,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
-import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 import keybase.Keybase
 import keybase.Keybase.readArr
@@ -195,19 +193,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    @ReactMethod
-    override fun shareListenersRegistered() {
-        try {
-            val activity: Activity? = reactContext.currentActivity
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("shareListenersRegistered")
-                m.invoke(activity)
-            }
-        } catch (ex: Exception) {
-            NativeLogger.warn("Error calling shareListenersRegistered", ex)
-        }
-    }
-
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {
@@ -246,13 +231,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
+        var item: File? = null
         try {
-            // note in JS initPlatformSpecific changes the cache dir so this works
-            val fileUri: Uri = FileProvider.getUriForFile(reactContext, "${reactContext.packageName}.fileprovider", file)
+            item = ShareOutbox.add(reactContext, file)
+            val fileUri: Uri = FileProvider.getUriForFile(reactContext, ShareOutbox.authority(reactContext), item)
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startSharing(intent, promise)
         } catch (ex: Exception) {
+            item?.let { ShareOutbox.remove(it) }
             promise.reject(Error("Error sharing file ${ex.localizedMessage}"))
         }
     }
@@ -405,15 +392,41 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    internal fun emitShareDataInternal(data: WritableMap) {
-        if (reactContext.hasActiveReactInstance() && canEmit()) {
-            try {
-                emitOnShareData(data)
-            } catch (e: Exception) {
-                NativeLogger.error("emitShareDataInternal failed to emit: " + e.message)
-            }
+    // The share with this id, while the relay holds it.
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun peekIncomingShare(id: Double): WritableMap? {
+        val share = IncomingShareRelay.shared.share(id.toLong()) ?: return null
+        val data = Arguments.createMap()
+        if (share.text != null) {
+            data.putString("text", share.text)
         } else {
-            NativeLogger.warn("emitShareDataInternal no active react instance")
+            val paths = Arguments.createArray()
+            share.paths.forEach { paths.pushString(it) }
+            data.putArray("localPaths", paths)
+        }
+        data.putInt("droppedCount", share.droppedCount)
+        return data
+    }
+
+    // The held share's id, 0 if none: JS asks once it listens, for a share held before then.
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun heldIncomingShareID(): Double = (IncomingShareRelay.shared.heldID() ?: 0L).toDouble()
+
+    // JS is done with the share with this id.
+    @ReactMethod
+    override fun ackIncomingShare(id: Double) {
+        IncomingShareRelay.shared.done(id.toLong())
+    }
+
+    // Best effort: JS that isn't listening yet asks for heldIncomingShareID once it is.
+    internal fun emitShare(id: Long) {
+        if (!reactContext.hasActiveReactInstance() || !canEmit()) return
+        try {
+            val data = Arguments.createMap()
+            data.putDouble("id", id.toDouble())
+            emitOnShareData(data)
+        } catch (e: Exception) {
+            NativeLogger.error("emitShare failed to emit: " + e.message)
         }
     }
 
@@ -737,6 +750,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         startMs: Double,
         endMs: Double,
         removeAudio: Boolean,
+        stripLocation: Boolean,
         promise: Promise
     ) {
         promise.reject(Exception("wrong platform"))
@@ -796,16 +810,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         fun emitAppLifecycle(state: String) {
             lastAppLifecycleState = state
             instance?.emitAppLifecycleInternal(state)
-        }
-
-        @JvmStatic
-        fun emitShareData(data: WritableMap) {
-            val module = instance
-            if (module == null) {
-                android.util.Log.w("KbModule", "emitShareData called but instance is null (app may not be running)")
-                return
-            }
-            module.emitShareDataInternal(data)
         }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)

@@ -28,8 +28,12 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
     },
     getDraft: () => stored,
     isReadOnly: () => readOnly,
+    // as the provider's save writes the draft into the conversation's meta, once there is one
     saveDraft: text => {
       drafts.push(text)
+      if (stored !== undefined) {
+        stored = text
+      }
     },
     takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot),
   })
@@ -51,7 +55,9 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const setReadOnly = (next: boolean) => {
     readOnly = next
   }
-  return {composer, drafts, mount, reports, send, setReadOnly, store}
+  // a view mounting on whatever draft the store holds now
+  const mountOnStore = () => mount(stored)
+  return {composer, drafts, mount, mountOnStore, reports, send, setReadOnly, store}
 }
 
 afterEach(() => {
@@ -188,6 +194,190 @@ describe('inject', () => {
 
     expect(fake.text).toBe('not lost')
     expect(composer.getText()).toBe('not lost')
+  })
+})
+
+describe('append', () => {
+  test('puts the text on its own line after a loaded draft, and saves both', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('my draft')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+    expect(fake.selection).toEqual({end: 20, start: 20})
+    expect(drafts).toEqual(['my draft\nshared text'])
+  })
+
+  test('adds no blank line after a draft ending in a newline', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('my draft\n')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('is the whole text when there is no draft', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('shared text')
+  })
+
+  test('goes after a draft the store has before the view offers it', () => {
+    const {composer, mount, store} = setup()
+    const {fake} = mount(undefined)
+    store('my draft')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('with no input attached, is saved after the draft, and shows once an input loads it', () => {
+    const {composer, drafts, mountOnStore, store} = setup()
+    store('my draft')
+
+    composer.append('shared text')
+    expect(drafts).toEqual(['my draft\nshared text', 'flush'])
+
+    const {fake} = mountOnStore()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('with no input and no draft known, is saved at once as the whole draft, and an input then shows it', () => {
+    const {composer, drafts, mount} = setup()
+    composer.append('shared text')
+    expect(drafts).toEqual(['shared text', 'flush'])
+
+    // the provider's save puts it in the store
+    const {fake} = mount('shared text')
+
+    expect(fake.text).toBe('shared text')
+  })
+
+  test('with its input detached, is saved after the draft, and shows when that input attaches again', () => {
+    const {composer, drafts, mount} = setup()
+    const {attach, detach, fake} = mount('my draft')
+    detach()
+
+    composer.append('shared text')
+    expect(drafts).toContain('my draft\nshared text')
+
+    attach()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('two appends land in order, each on its own line', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount('my draft')
+    composer.append('one')
+    composer.append('two')
+
+    expect(fake.text).toBe('my draft\none\ntwo')
+  })
+
+  test('during an edit, is saved after the draft the edit set aside, never into the edit', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('my draft')
+    composer.startEdit('my message')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my message')
+    expect(drafts).toEqual(['my draft\nshared text', 'flush'])
+    composer.clear()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('during an edit started before the draft loaded, is saved after the store\'s draft', () => {
+    const {composer, drafts, mount, store} = setup()
+    const {fake} = mount(undefined)
+    composer.startEdit('my message')
+    store('my draft')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my message')
+    expect(drafts).toEqual(['my draft\nshared text', 'flush'])
+    composer.clear()
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('where the user cannot post, is saved after the draft, and shows once they can', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
+    const {fake, view} = mount('my draft')
+    setReadOnly(true)
+
+    composer.append('shared text')
+    expect(fake.text).toBe('my draft')
+    expect(drafts).toEqual(['my draft\nshared text', 'flush'])
+
+    setReadOnly(false)
+    view.offerDraft('my draft\nshared text')
+    expect(fake.text).toBe('my draft\nshared text')
+  })
+
+  test('with no draft known (its load failed), goes in as the whole text, as an inject does', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount(undefined)
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('shared text')
+    expect(drafts).toEqual(['shared text'])
+  })
+
+  test('with no draft known, during an edit, is saved as the whole draft and the edit is left alone', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount(undefined)
+    composer.startEdit('my message')
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('my message')
+    expect(drafts).toEqual(['shared text', 'flush'])
+    composer.clear()
+    expect(fake.text).toBe('shared text')
+  })
+
+  test('saved during an edit, comes back as the edit ends, and once sent is not loaded again', () => {
+    const {composer, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.startEdit('my message')
+    composer.append('shared text')
+    composer.clear()
+    expect(fake.text).toBe('shared text')
+
+    composer.submit(jest.fn())
+    // the store offering the draft as the append saved it
+    view.offerDraft('shared text')
+
+    expect(fake.text).toBe('')
+  })
+
+  test('with no draft known, where the user cannot post, is saved as the whole draft', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
+    const {fake} = mount(undefined)
+    setReadOnly(true)
+
+    composer.append('shared text')
+
+    expect(fake.text).toBe('')
+    expect(drafts).toEqual(['shared text', 'flush'])
+  })
+
+  test('with no input attached, is saved before anything else happens: nothing waits on an input', () => {
+    const {composer, drafts, mount} = setup()
+    const {detach} = mount(undefined)
+    detach()
+
+    composer.append('shared text')
+
+    expect(drafts).toContain('shared text')
   })
 })
 

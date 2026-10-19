@@ -1,6 +1,9 @@
 import {
+  canCompressPickedFile,
   canProcess,
   clampRange,
+  deleteConsumedSources,
+  discardProcessedOutputs,
   formatDuration,
   isEditNoop,
   isVideoPath,
@@ -54,9 +57,38 @@ describe('canProcess', () => {
     expect(canProcess('/tmp/photo.heif')).toBe(true)
   })
 
+  it('includes formats the share extension passes through for the app to transcode', () => {
+    for (const ext of ['tiff', 'TIF', 'dng', 'CR2', 'cr3', 'nef', 'arw', 'raf', 'orf', 'rw2', 'webp', 'avif']) {
+      expect(canProcess(`/tmp/photo.${ext}`)).toBe(true)
+    }
+    expect(canProcess('/tmp/photo.tiff/notanimage')).toBe(false)
+  })
+
+  // Each would otherwise be uploaded as is, location metadata included: the
+  // extension names a shared image by its type's preferred extension.
+  it('includes every camera RAW and photo format ImageIO reads', () => {
+    const exts = ['crw', 'nefx', 'nrw', 'srf', 'sr2', 'axr', 'ori', 'raw', 'rwl', 'pef', 'srw', 'erf']
+    exts.push('3fr', 'fff', 'dcr', 'mrw', 'mos', 'iiq', 'dxo', 'heics', 'hif', 'avci', 'jxl', 'jp2')
+    exts.push('jpf', 'jpx', 'j2k', 'j2c', 'mpo', 'psd', 'jpe')
+    for (const ext of exts) {
+      expect(canProcess(`/tmp/photo.${ext}`)).toBe(true)
+    }
+  })
+
   it('excludes gifs and non-media', () => {
     expect(canProcess('/tmp/anim.gif')).toBe(false)
     expect(canProcess('/tmp/doc.pdf')).toBe(false)
+  })
+})
+
+describe('canCompressPickedFile', () => {
+  it('takes only videos and the images the app always compressed', () => {
+    for (const p of ['clip.mov', 'a.jpg', 'a.JPEG', 'a.png', 'a.bmp', 'a.heic', 'a.heif']) {
+      expect(canCompressPickedFile(`/tmp/${p}`)).toBe(true)
+    }
+    for (const p of ['a.psd', 'a.pef', 'a.dng', 'a.webp', 'a.tiff', 'a.raw', 'a.gif', 'a.pdf']) {
+      expect(canCompressPickedFile(`/tmp/${p}`)).toBe(false)
+    }
   })
 })
 
@@ -117,7 +149,7 @@ describe('processPaths', () => {
 
   it('hands the paths straight back off iOS', async () => {
     global.isIOS = false
-    const out = await processPaths([{path: '/tmp/clip.mp4'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mp4'}], {compress: true})
     expect(out).toEqual([{path: '/tmp/clip.mp4'}])
     expect(processMediaMock).not.toHaveBeenCalled()
     expect(deleted).toEqual([])
@@ -128,48 +160,149 @@ describe('processPaths', () => {
     const onProgress = jest.fn()
     const out = await processPaths(
       [{edit: {endMs: 9000, removeAudio: true, startMs: 500}, path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
-      true,
+      {compress: true},
       onProgress
     )
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {path: '/tmp/photo.jpg.out'}])
-    expect(processMediaMock).toHaveBeenNthCalledWith(1, '/tmp/clip.mp4', true, true, 500, 9000, true)
-    expect(processMediaMock).toHaveBeenNthCalledWith(2, '/tmp/photo.jpg', false, true, 0, 0, false)
+    expect(processMediaMock).toHaveBeenNthCalledWith(1, '/tmp/clip.mp4', true, true, 500, 9000, true, false)
+    expect(processMediaMock).toHaveBeenNthCalledWith(2, '/tmp/photo.jpg', false, true, 0, 0, false, false)
     expect(onProgress.mock.calls).toEqual([
       [1, 2],
       [2, 2],
     ])
   })
 
-  it('deletes the sources it consumed', async () => {
-    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
-    await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
-    expect(deleted).toEqual(['/tmp/clip.mp4', '/tmp/photo.jpg'])
+  it('forwards stripLocation for Send original', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(path))
+    await processPaths([{path: '/tmp/photo.jpg'}], {compress: false, stripLocation: true})
+    expect(processMediaMock).toHaveBeenCalledWith('/tmp/photo.jpg', false, false, 0, 0, false, true)
   })
 
-  it('keeps a source the processor handed back untouched', async () => {
-    processMediaMock.mockImplementation(async path => Promise.resolve(path))
-    const out = await processPaths([{path: '/tmp/photo.jpg'}], false)
-    expect(out).toEqual([{path: '/tmp/photo.jpg'}])
-    // that path is the upload, so deleting it would delete the attachment
+  it('leaves every file in place, since the caller may still back out', async () => {
+    processMediaMock.mockImplementation(async path => Promise.resolve(`${path}.out`))
+    await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
     expect(deleted).toEqual([])
   })
 
-  it('reports a failure against the original and keeps every source', async () => {
+  it('reports a failure against the original', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/photo.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
     )
-    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], true)
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
     expect(out).toEqual([{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}])
-    // one failure sends the user to "send original", which uploads these very paths
-    expect(deleted).toEqual([])
+  })
+
+  it('keeps the native reject code it knows, and only those', async () => {
+    const codes: {[path: string]: string} = {
+      '/tmp/a.jpg': 'media_missing',
+      '/tmp/b.pef': 'media_unrecognized',
+      '/tmp/c.jpg': 'process_media_error',
+    }
+    processMediaMock.mockImplementation(async path =>
+      Promise.reject(Object.assign(new Error('nope'), {code: codes[path]}))
+    )
+    const out = await processPaths(
+      [{path: '/tmp/a.jpg'}, {path: '/tmp/b.pef'}, {path: '/tmp/c.jpg'}],
+      {compress: true}
+    )
+    expect(out).toEqual([
+      {error: 'nope', errorCode: 'media_missing', path: '/tmp/a.jpg'},
+      {error: 'nope', errorCode: 'media_unrecognized', path: '/tmp/b.pef'},
+      {error: 'nope', path: '/tmp/c.jpg'},
+    ])
+    expect(out[2]).not.toHaveProperty('errorCode')
+  })
+
+  it('treats an empty native error as a failure', async () => {
+    processMediaMock.mockImplementation(async path =>
+      path === '/tmp/photo.jpg' ? Promise.reject(new Error('')) : Promise.resolve(`${path}.out`)
+    )
+    const out = await processPaths([{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}], {compress: true})
+    expect(out[1]).toEqual({error: 'Processing failed', path: '/tmp/photo.jpg'})
+  })
+
+  it('hands back the source string for a passthrough native reports as file://', async () => {
+    // native always answers file://; a pasted image arrives bare
+    processMediaMock.mockImplementation(async path => Promise.resolve(`file://${path}`))
+    const out = await processPaths([{path: '/tmp/paste.png'}], {compress: false})
+    expect(out).toEqual([{path: '/tmp/paste.png'}])
+  })
+
+  it('keeps a transcoded output as native named it', async () => {
+    processMediaMock.mockResolvedValue('file:///tmp/clip-small.mp4')
+    const out = await processPaths([{path: '/tmp/clip.mov'}], {compress: true})
+    expect(out).toEqual([{path: 'file:///tmp/clip-small.mp4'}])
   })
 
   it('keeps going after a failure so the rest of the batch still exports', async () => {
     processMediaMock.mockImplementation(async path =>
       path === '/tmp/a.jpg' ? Promise.reject(new Error('nope')) : Promise.resolve(`${path}.out`)
     )
-    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], true)
+    const out = await processPaths([{path: '/tmp/a.jpg'}, {path: '/tmp/b.jpg'}], {compress: true})
     expect(processMediaMock).toHaveBeenCalledTimes(2)
     expect(out[1]).toEqual({path: '/tmp/b.jpg.out'})
+  })
+})
+
+describe('deleteConsumedSources', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('deletes the sources an uploaded batch consumed', () => {
+    deleteConsumedSources(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {path: '/tmp/photo.jpg.out'}]
+    )
+    expect(deleted).toEqual(['/tmp/clip.mp4', '/tmp/photo.jpg'])
+  })
+
+  it('keeps a source the processor handed back untouched', () => {
+    // that path is the upload, so deleting it would delete the attachment
+    deleteConsumedSources([{path: '/tmp/photo.jpg'}], [{path: '/tmp/photo.jpg'}])
+    expect(deleted).toEqual([])
+  })
+
+  it('keeps a bare source whose passthrough came back as file://', () => {
+    deleteConsumedSources([{path: '/tmp/paste.png'}], [{path: 'file:///tmp/paste.png'}])
+    expect(deleted).toEqual([])
+  })
+
+  it('keeps every source when any item failed', () => {
+    // one failure sends the user to "send original", which uploads these very paths
+    deleteConsumedSources(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}]
+    )
+    expect(deleted).toEqual([])
+  })
+})
+
+describe('discardProcessedOutputs', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('deletes the outputs and never an original', () => {
+    discardProcessedOutputs(
+      [{path: '/tmp/clip.mp4'}, {path: '/tmp/photo.jpg'}, {path: '/tmp/scan.jpg'}],
+      [{path: '/tmp/clip.mp4.out'}, {error: 'nope', path: '/tmp/photo.jpg'}, {path: '/tmp/scan.jpg'}]
+    )
+    // a failed item and a passthrough both report the original
+    expect(deleted).toEqual(['/tmp/clip.mp4.out'])
+  })
+})
+
+describe('discardProcessedOutputs with mixed path forms', () => {
+  beforeEach(() => {
+    deleted.length = 0
+  })
+
+  it('never deletes an output that is a source in another form', () => {
+    discardProcessedOutputs(
+      [{path: '/tmp/paste.png'}, {path: 'file:///tmp/photo.jpg'}, {path: '/tmp/clip.mov'}],
+      [{path: 'file:///tmp/paste.png'}, {path: '/tmp/photo.jpg'}, {path: 'file:///tmp/clip-small.mp4'}]
+    )
+    expect(deleted).toEqual(['file:///tmp/clip-small.mp4'])
   })
 })

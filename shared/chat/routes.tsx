@@ -197,7 +197,12 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {modalSize: 'medium', title: 'Send attachment(s)'}}
+    {
+      getOptions: ({route}) => ({
+        modalSize: 'medium',
+        title: route.params.pathAndOutboxIDs.length === 1 ? 'Send attachment' : 'Send attachments',
+      }),
+    }
   ),
   chatBlockingModal: {
     ...makeChatScreen(

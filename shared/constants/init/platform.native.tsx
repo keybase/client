@@ -9,7 +9,6 @@ import {
   fsCacheDir,
   fsDownloadDir,
   guiConfig,
-  shareListenersRegistered,
   startLocationWatch,
   stopLocationWatch,
 } from 'react-native-kb'
@@ -60,7 +59,6 @@ export const getNative = (): NativeModules =>
     guiConfig,
     requestLocationPermission,
     setupAudioMode,
-    shareListenersRegistered,
     startLocationWatch,
     stopLocationWatch,
   }) as unknown as NativeModules
@@ -70,7 +68,6 @@ export const getNativeSync = (): NativeSyncModules =>
     fsCacheDir,
     fsDownloadDir,
     guiConfig,
-    shareListenersRegistered,
   }) as unknown as NativeSyncModules
 
 export {initPushListener} from './push-listener.native'

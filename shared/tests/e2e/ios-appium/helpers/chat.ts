@@ -15,7 +15,7 @@ const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, m
 
 // Metro's inspector connection to the app drops now and then for a moment (the app keeps running);
 // an eval that fails to connect is tried again for a few seconds before it counts.
-const jsEval = async <R>(body: string): Promise<R> => {
+export const jsEval = async <R>(body: string): Promise<R> => {
   const end = Date.now() + 10_000
   for (;;) {
     try {
@@ -252,7 +252,7 @@ export const requireThread = async () => {
 
 // The visible conversation's thread store (from the provider above its list), as `store` and `st`;
 // both undefined while no thread list is mounted.
-const threadStoreBody = `${threadListPrelude}
+export const threadStoreBody = `${threadListPrelude}
   const convID = e2eVisibleConvID()
   const listFiber = convID ? e2eThreadList(convID) : null
   const store = listFiber ? e2eThreadContexts(listFiber).store : undefined

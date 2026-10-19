@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {
   canChat,
   escapePath,
+  getDestinationPickerPathName,
   getChatTarget,
   getSharePathArrayDescription,
   getUploadedPath,
@@ -274,5 +275,24 @@ describe('getSharePathArrayDescription', () => {
     expect(getSharePathArrayDescription([])).toBe('')
     expect(getSharePathArrayDescription(['/tmp/a.png'])).toBe('a.png')
     expect(getSharePathArrayDescription(['/tmp/a.png', '/tmp/b.png'])).toBe('2 items')
+  })
+})
+
+describe('getDestinationPickerPathName', () => {
+  const share = (source: T.FS.IncomingShareSource['source']) =>
+    getDestinationPickerPathName({source, type: T.FS.DestinationPickerSource.IncomingShare})
+
+  test('counts inline text, which is saved as a .txt of its own', () => {
+    expect(
+      share([
+        {originalPath: '/tmp/a.png', type: T.RPCGen.IncomingShareType.image},
+        {originalPath: '/tmp/b.png', type: T.RPCGen.IncomingShareType.image},
+        {content: 'a caption', type: T.RPCGen.IncomingShareType.text},
+      ])
+    ).toBe('3 items')
+  })
+
+  test('names inline text alone by the .txt it is saved as', () => {
+    expect(share([{content: 'a caption', type: T.RPCGen.IncomingShareType.text}])).toBe('a caption.txt')
   })
 })

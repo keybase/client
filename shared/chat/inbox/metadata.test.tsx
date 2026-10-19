@@ -7,6 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {
   ensureConversationMetaLoaded,
   forceUnboxRowsForService,
+  loadConversationMeta,
   getInboxConversationMeta,
   metasReceived,
   participantInfoReceived,
@@ -287,6 +288,27 @@ test('a hung fetch times out instead of wedging the loop', async () => {
   expect(rpc).toHaveBeenCalledTimes(1)
   await jest.advanceTimersByTimeAsync(4000)
   expect(rpc).toHaveBeenCalledTimes(2)
+})
+
+test('loading the meta waits on its fetch, and leaves no timer once it lands', async () => {
+  jest.useFakeTimers()
+  const rpc = jest
+    .spyOn(T.RPCChat, 'localGetInboxAndUnboxUILocalRpcPromise')
+    .mockResolvedValue({conversations: [makeInboxUIItem()], offline: false})
+
+  const meta = await loadConversationMeta(convID)
+
+  expect(rpc).toHaveBeenCalledTimes(1)
+  expect(meta?.trustedState).toBe('trusted')
+  expect(jest.getTimerCount()).toBe(0)
+})
+
+test('loading the meta of a conversation the store already trusts asks nothing', async () => {
+  const rpc = mockFetch()
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, trustedState: 'trusted'}])
+
+  expect((await loadConversationMeta(convID))?.conversationIDKey).toBe(convID)
+  expect(rpc).not.toHaveBeenCalled()
 })
 
 test('ensure does not run while logged out and can re-arm after login', async () => {

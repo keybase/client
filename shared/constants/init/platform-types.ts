@@ -42,7 +42,6 @@ export type NativeModules = {
   guiConfig: string
   requestLocationPermission: (perm?: unknown) => Promise<void>
   setupAudioMode: (allowRecord: boolean) => Promise<void>
-  shareListenersRegistered: () => void
   // iOS only
   startLocationWatch: () => void
   stopLocationWatch: () => void
@@ -52,5 +51,4 @@ export type NativeSyncModules = {
   fsCacheDir: string
   fsDownloadDir: string
   guiConfig: string
-  shareListenersRegistered: () => void
 }

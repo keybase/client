@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import {isLinux} from '@/constants/platform'
 import {navigateAppend} from '@/constants/router'
+import {sharedTextFileName} from '@/util/shared-text-file'
 
 // Prefetch Constants
 const prefetchNotStarted = {
@@ -485,8 +486,11 @@ export const getDestinationPickerPathName = (
   source.type === T.FS.DestinationPickerSource.MoveOrCopy
     ? T.FS.getPathName(source.path)
     : getSharePathArrayDescription(
+        // inline text is saved as a .txt of its own
         source.source
-          .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
+          .map(({content, originalPath}) =>
+            originalPath ? T.FS.getLocalPathName(originalPath) : content ? sharedTextFileName(content) : ''
+          )
           .filter(Boolean)
       )
 

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 import {standardTransformer} from './suggestors/common'
+import {appendLine} from '@/util/shared-text-file'
 import type {Selection, TextInfo} from './normal/input.shared'
 
 // The platform input the composer writes through: the desktop textarea, the native TextInput,
@@ -43,6 +44,10 @@ export type Composer = {
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
+  // Adds a share's text on its own line after the draft, with the caret at the end: never over the
+  // draft, and never into an edit. Where the composer can't show it now (no input, an edit on, the
+  // user can't post) it is saved after the draft, and shows once the composer loads that.
+  append: (text: string) => void
   // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
@@ -226,6 +231,26 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   }
 
   return {
+    append: s => {
+      if (input && !editing && !deps.isReadOnly()) {
+        // a draft the store has loads first; one that couldn't be loaded counts as empty
+        offerDraft(deps.getDraft())
+        write(input, appendLine(text, s), false)
+        return
+      }
+      // Not shown now (no input, an edit on, the user can't post): saved straight after the draft,
+      // as the whole draft where none could be loaded. The composer loads it once it can show it.
+      const draft = deps.getDraft() ?? ''
+      saved = appendLine(draftLoaded ? (saved ?? draft) : draft, s)
+      deps.saveDraft(saved)
+      deps.flushDraft()
+      // an edit gives this draft back as it ends, so it is never loaded again; anywhere else the
+      // composer loads it once it can show it
+      draftLoaded = editing
+      if (!editing) {
+        text = ''
+      }
+    },
     clear: () => {
       whenAttached(target => clear(target, false))
     },

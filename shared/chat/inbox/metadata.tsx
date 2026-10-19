@@ -433,6 +433,18 @@ const conversationMetaIncomplete = (id: T.Chat.ConversationIDKey) => {
   return !meta.teamname && !s.participants.get(id)?.name.length
 }
 
+// Raced against a timeout so an engine reset (which orphans in-flight promises) can't wedge a
+// caller; the timer goes when the race settles.
+const fetchConversationDataWithin = async (id: T.Chat.ConversationIDKey, ms: number) => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const fetched = fetchConversationData(id)
+    await Promise.race([fetched, new Promise<void>(resolve => (timer = setTimeout(resolve, ms)))])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const fetchConversationData = async (id: T.Chat.ConversationIDKey) => {
   const res = await T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise({
     identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -446,6 +458,22 @@ const fetchConversationData = async (id: T.Chat.ConversationIDKey) => {
   res.conversations?.forEach(conv => {
     onIncomingInboxUIItem(conv)
   })
+}
+
+// The conversation's trusted meta, fetched first when the store doesn't hold one: a share decides
+// where its text goes against the draft in it. Undefined when it can't be loaded.
+export const loadConversationMeta = async (id: T.Chat.ConversationIDKey) => {
+  const trusted = () => {
+    const meta = getInboxConversationMeta(id)
+    return meta?.conversationIDKey === id && meta.trustedState === 'trusted' ? meta : undefined
+  }
+  if (trusted()) return trusted()
+  try {
+    await fetchConversationDataWithin(id, 10000)
+  } catch (error) {
+    logger.info(`loadConversationMeta: load failed for ${id}`, error)
+  }
+  return trusted()
 }
 
 export const ensureConversationMetaLoaded = (id: T.Chat.ConversationIDKey) => {
@@ -465,8 +493,7 @@ export const ensureConversationMetaLoaded = (id: T.Chat.ConversationIDKey) => {
         return
       }
       try {
-        // race a timeout so an engine reset (which orphans in-flight promises) can't wedge the loop
-        await Promise.race([fetchConversationData(id), timeoutPromise(10000)])
+        await fetchConversationDataWithin(id, 10000)
       } catch (error) {
         if (error instanceof RPCError) {
           logger.info(`ensureConversationMetaLoaded: load failed for ${id}: ${error.desc}`)
