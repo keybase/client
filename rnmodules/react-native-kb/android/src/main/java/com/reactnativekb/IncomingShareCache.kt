@@ -48,8 +48,8 @@ object IncomingShareCache {
     }
 
     // Call off the main thread: this stats every file in dir (see dir).
-    fun purgeOld(dir: File) {
-        val cutoff = System.currentTimeMillis() - MAX_AGE_MS
+    fun purgeOld(dir: File, maxAgeMs: Long = MAX_AGE_MS) {
+        val cutoff = System.currentTimeMillis() - maxAgeMs
         // null means the listing itself failed, which is not the same as an empty
         // directory: the copies are still there, so say so rather than looking swept
         val files = dir.listFiles()

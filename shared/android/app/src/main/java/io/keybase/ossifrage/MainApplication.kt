@@ -23,6 +23,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import com.reactnativekb.DarkModePreference
 import com.reactnativekb.GuiConfig
 import com.reactnativekb.IncomingShareCache
+import com.reactnativekb.ShareOutbox
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
 import expo.modules.ExpoReactHostFactory
@@ -84,6 +85,11 @@ class MainApplication : Application(), ReactApplication {
                 IncomingShareCache.purgeOld(IncomingShareCache.dir(this))
             } catch (e: Exception) {
                 NativeLogger.warn("MainApplication: error purging old incoming shares", e)
+            }
+            try {
+                ShareOutbox.purgeOld(this)
+            } catch (e: Exception) {
+                NativeLogger.warn("MainApplication: error purging old outgoing shares", e)
             }
         }.start()
 

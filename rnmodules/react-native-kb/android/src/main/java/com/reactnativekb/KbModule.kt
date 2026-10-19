@@ -231,13 +231,15 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
+        var item: File? = null
         try {
-            // note in JS initPlatformSpecific changes the cache dir so this works
-            val fileUri: Uri = FileProvider.getUriForFile(reactContext, "${reactContext.packageName}.fileprovider", file)
+            item = ShareOutbox.add(reactContext, file)
+            val fileUri: Uri = FileProvider.getUriForFile(reactContext, ShareOutbox.authority(reactContext), item)
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startSharing(intent, promise)
         } catch (ex: Exception) {
+            item?.let { ShareOutbox.remove(it) }
             promise.reject(Error("Error sharing file ${ex.localizedMessage}"))
         }
     }

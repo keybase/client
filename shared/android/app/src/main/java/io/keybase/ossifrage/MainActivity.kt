@@ -3,6 +3,7 @@ package io.keybase.ossifrage
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -20,6 +21,8 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.reactnativekb.IncomingShareCache
 import com.reactnativekb.IncomingShareFileName
 import com.reactnativekb.IncomingShareRelay
+import com.reactnativekb.IncomingShareSource
+import com.reactnativekb.ShareOutbox
 import com.reactnativekb.KbModule
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.util.DNSNSFetcher
@@ -83,18 +86,29 @@ class MainActivity : ReactActivity() {
         null
     }
 
+    private fun ownProviderAuthorities(context: Context): Set<String> {
+        val pm = context.packageManager
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PROVIDERS.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(context.packageName, PackageManager.GET_PROVIDERS)
+        }
+        return IncomingShareSource.authorities(info.providers?.map { it.authority }.orEmpty())
+    }
+
     // Copies a shared item into the share cache. Returns null, leaving nothing
     // behind, when the item can't be copied whole: a missing or partial file
     // must never be sent.
-    private fun copySharedUri(context: Context, uri: Uri): String? {
-        // A file:// (or other) uri from another app is a path we would read with
-        // our own permissions, so only content:// is copied.
-        if (!"content".equals(uri.scheme, ignoreCase = true)) {
-            NativeLogger.warn("Dropping shared item with scheme ${uri.scheme}")
-            return null
-        }
+    // ownAuthorities is null when they couldn't be read; then nothing is copied.
+    private fun copySharedUri(context: Context, uri: Uri, ownAuthorities: Set<String>?): String? {
+        if (ownAuthorities == null) return null
         val resolver = context.contentResolver
         return try {
+            if (!IncomingShareSource.canCopy(uri.scheme, uri.authority, ownAuthorities, ShareOutbox.authority(context))) {
+                NativeLogger.warn("Dropping shared item: scheme=${uri.scheme} authority=${uri.authority} is not another app's provider")
+                return null
+            }
             val ext = resolver.getType(uri)?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
             val name = IncomingShareFileName.make(queryDisplayName(resolver, uri), ext)
             val input = resolver.openInputStream(uri) ?: throw IOException("no stream for $uri")
@@ -172,7 +186,13 @@ class MainActivity : ReactActivity() {
             // block the main thread on it.
             val context: Context = applicationContext
             Thread {
-                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri) }
+                val ownAuthorities = try {
+                    ownProviderAuthorities(context)
+                } catch (e: Exception) {
+                    NativeLogger.warn("Unable to read the app's provider authorities", e)
+                    null
+                }
+                val filePaths = uris.mapNotNull { uri -> copySharedUri(context, uri, ownAuthorities) }
                 // How many shared items couldn't be copied.
                 val droppedCount = uris.size - filePaths.size
                 val share = if (filePaths.isEmpty() && textPayload.isNotEmpty()) {
