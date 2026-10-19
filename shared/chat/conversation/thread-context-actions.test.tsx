@@ -469,6 +469,17 @@ describe('load throttle', () => {
     expect(loads().map(p => p.pagination?.num)).toEqual([1, 3])
   })
 
+  test('a scroll back and a scroll forward close together both load', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    act(() => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 1, reason: 'scroll back', scrollDirection: 'back'})
+      jest.advanceTimersByTime(100)
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 2, reason: 'scroll forward', scrollDirection: 'forward'})
+    })
+    expect(loads().map(p => p.pagination?.num)).toEqual([1, 2])
+  })
+
   test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', () => {
     jest.useFakeTimers()
     const {h} = renderThread()

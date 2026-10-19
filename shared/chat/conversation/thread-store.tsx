@@ -629,24 +629,29 @@ export const makeThreadStore = (
       actions
     )
   }
+  // Newer-page scroll loads get their own throttle so an older and a newer page asked for together
+  // do not drop each other.
   const throttledLoad = throttle(loadImmediately, 500)
-  // The throttle keeps only the last trailing call, so a centered or jump-to-recent
+  const throttledForwardLoad = throttle(loadImmediately, 500)
+  const cancelThrottledLoads = () => {
+    throttledLoad.cancel()
+    throttledForwardLoad.cancel()
+  }
+  // A throttle keeps only its last trailing call, so a centered or jump-to-recent
   // load issued between two other loads would be silently dropped — after
   // loadMessagesCentered already cleared the thread. Run those immediately instead.
   const loadMoreMessages: LoadMoreMessages = Object.assign(
     (p: LoadMoreMessagesParams) => {
       if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
-        throttledLoad.cancel()
+        cancelThrottledLoads()
         loadImmediately(p)
+      } else if (p.scrollDirection === 'forward') {
+        throttledForwardLoad(p)
       } else {
         throttledLoad(p)
       }
     },
-    {
-      cancel: () => {
-        throttledLoad.cancel()
-      },
-    }
+    {cancel: cancelThrottledLoads}
   )
 
   const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'isRetired' | 'loadMoreMessages' | 'rpc'> = {
