@@ -507,6 +507,7 @@ const NativeConversationList = function NativeConversationList() {
   const numOrdinals = messageOrdinals.length
   const loadPageArgs = useLoadPageArgs(numOrdinals)
   const loadOlder = useLoadOlder(loadPageArgs)
+  const loadNewer = useLoadNewer({containsLatestMessage, loadPageArgs})
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -564,6 +565,7 @@ const NativeConversationList = function NativeConversationList() {
     editingOrdinal,
     isKeyboardVisible,
     listRef,
+    loadNewer,
     loadOlder,
     loaded,
     messageOrdinals,
