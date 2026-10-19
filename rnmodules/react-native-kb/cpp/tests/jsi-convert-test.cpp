@@ -840,8 +840,8 @@ void testEncodeTypedArrayProbeRepeats() {
   }
 }
 
-// A bridge reinstalled on a second runtime (a JS reload) keeps packing views
-// correctly on both runtimes.
+// The cached probe names follow whichever runtime is converting, so sends that
+// alternate between two runtimes sharing one bridge all pack views correctly.
 void testEncodeTypedArrayProbeAcrossRuntimes() {
   Harness h;
   auto other = facebook::hermes::makeHermesRuntime();

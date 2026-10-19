@@ -761,12 +761,14 @@ test('malformed packets of every type are dropped without dispatching or answeri
     [3, 'x'],
     [9, 1],
   ]
-  for (const m of malformed) {
-    transport.dispatchDecodedMessage(m)
+  try {
+    for (const m of malformed) {
+      transport.dispatchDecodedMessage(m)
+    }
+    expect(warn).toHaveBeenCalledTimes(malformed.length)
+  } finally {
+    warn.mockRestore()
   }
-
-  expect(warn).toHaveBeenCalledTimes(malformed.length)
-  warn.mockRestore()
   expect(incoming).not.toHaveBeenCalled()
   expect(cb).not.toHaveBeenCalled()
   expect(transport.sent).toEqual([])

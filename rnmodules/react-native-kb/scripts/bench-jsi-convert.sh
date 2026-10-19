@@ -2,7 +2,8 @@
 # Builds and runs cpp/tests/jsi-convert-bench.cpp twice -- once against this
 # branch's bridge, once against KB_BENCH_BASE's (default origin/master) -- on
 # a real Hermes runtime, replaying the corpus built by make-bench-corpus.mjs
-# from a real mobile session's RPC traffic.
+# from a real mobile session's RPC traffic. KB_BENCH_BASE must already have the
+# current bridge API (frame-parser.cpp, epoch-taking onDataFromGo).
 #
 # Hermes comes from the already-installed iOS pod, which ships a macOS slice, so
 # nothing has to be built from source. Development-only; not part of the shipped

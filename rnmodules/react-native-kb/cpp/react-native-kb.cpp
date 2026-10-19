@@ -373,6 +373,11 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
 void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
                               void *packer) {
   auto &pk = *static_cast<msgpack::packer<msgpack::sbuffer> *>(packer);
+  const auto &byteLengthName =
+      cachedName(runtime, cachedByteLengthName_, "byteLength");
+  const auto &bufferName = cachedName(runtime, cachedBufferName_, "buffer");
+  const auto &byteOffsetName =
+      cachedName(runtime, cachedByteOffsetName_, "byteOffset");
   std::vector<PackFrame> stack;
   stack.reserve(16);
 
@@ -401,16 +406,14 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
   // byteLength/buffer fields is never mistaken for binary. The range is
   // always bounds-checked against the backing buffer.
   auto tryPackTypedArray = [&](Object &obj) -> bool {
-    auto byteLengthProp = obj.getProperty(
-        runtime, cachedName(runtime, cachedByteLengthName_, "byteLength"));
+    auto byteLengthProp = obj.getProperty(runtime, byteLengthName);
     if (!byteLengthProp.isNumber()) {
       return false;
     }
     if (!isArrayBufferView(runtime, obj)) {
       return false;
     }
-    auto bufferProp = obj.getProperty(
-        runtime, cachedName(runtime, cachedBufferName_, "buffer"));
+    auto bufferProp = obj.getProperty(runtime, bufferName);
     if (!bufferProp.isObject()) {
       return false;
     }
@@ -419,8 +422,7 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
       return false;
     }
     auto arrayBuf = bufferObj.getArrayBuffer(runtime);
-    auto byteOffsetProp = obj.getProperty(
-        runtime, cachedName(runtime, cachedByteOffsetName_, "byteOffset"));
+    auto byteOffsetProp = obj.getProperty(runtime, byteOffsetName);
     packArrayBufferRange(
         arrayBuf, byteOffsetProp.isNumber() ? byteOffsetProp.getNumber() : 0,
         byteLengthProp.getNumber());
