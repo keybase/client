@@ -124,6 +124,16 @@ export const threadLoadReasonToRPCReason = (reason: string): T.RPCChat.GetThread
 export const getLastOrdinalFromSnapshot = (snapshot: ConversationThreadState) =>
   snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
+// The newest message the window holds that the service knows (pending sends have no ID yet).
+const newestLoadedMessageID = (snapshot: ConversationThreadState) => {
+  const ordinals = snapshot.messageOrdinals ?? []
+  for (let i = ordinals.length - 1; i >= 0; i--) {
+    const id = snapshot.messageMap.get(ordinals[i]!)?.id
+    if (id && T.Chat.messageIDToNumber(id) > 0) return id
+  }
+  return undefined
+}
+
 export const getOrdinalForMessageIDInSnapshot = (
   snapshot: ConversationThreadState,
   messageID: T.Chat.MessageID
@@ -427,14 +437,22 @@ export const loadConversationThreadMessages = (
       }
     }
 
-    const pagination = messageIDControl
-      ? null
-      : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
+    // A newer page is asked for from the newest message loaded, not from the cursor the service keeps:
+    // every newest-page load (focus, stale) resets that cursor, and a newer page read from it would come
+    // back empty and end paging with the messages between the window and the present never loaded.
+    const newerFrom =
+      !messageIDControl && scrollDirection === 'forward' ? newestLoadedMessageID(actions.getSnapshot()) : undefined
+    const control: T.RPCChat.MessageIDControl | undefined =
+      messageIDControl ??
+      (newerFrom
+        ? {mode: T.RPCChat.MessageIDControlMode.newermessages, num: numberOfMessagesToLoad, pivot: newerFrom}
+        : undefined)
+    const pagination = control ? null : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
     try {
       const results = await actions.rpc.loadThread({
         conversationIDKey,
         knownRemotes,
-        messageIDControl,
+        messageIDControl: control,
         onCachedThread: thread => {
           sawCachedReport = true
           onGotThread(thread, 'cached')

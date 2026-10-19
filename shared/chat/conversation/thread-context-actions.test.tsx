@@ -480,6 +480,32 @@ describe('load throttle', () => {
     expect(loads().map(p => p.pagination?.num)).toEqual([1, 2])
   })
 
+  // The service's own cursor is reset by every newest-page reload (focus, stale), and a newer page read
+  // from it would come back empty and end paging; one asked for from the newest row loaded cannot.
+  test('a scroll forward asks for messages newer than the newest one loaded', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [textAt(10), textAt(11)],
+        moreToLoad: true,
+        scrollDirection: 'none',
+      })
+    })
+    act(() => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll forward', scrollDirection: 'forward'})
+    })
+    const sent = loads().at(-1)
+    expect(sent?.pagination).toBeFalsy()
+    expect(sent?.messageIDControl).toEqual({
+      mode: T.RPCChat.MessageIDControlMode.newermessages,
+      num: 7,
+      pivot: T.Chat.numberToMessageID(11),
+    })
+  })
+
   test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', () => {
     jest.useFakeTimers()
     const {h} = renderThread()
