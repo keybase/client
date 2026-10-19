@@ -517,7 +517,7 @@ export const useNativeThreadScroll = (p: {
     loadsRef.current = {newer: loadNewer, older: loadOlder}
   }, [loadNewer, loadOlder])
   const containsLatestRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     containsLatestRef.current = containsLatestMessage
   }, [containsLatestMessage])
   const nextLoadRef = React.useRef({newer: 0, older: 0})

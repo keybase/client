@@ -120,10 +120,9 @@ const useLoadOlder = (loadPageArgs: LoadPageArgs) => {
   }, [loadOlderMessagesDueToScroll, loadPageArgs])
 }
 
-// Only the desktop list loads a newer page, as the reader nears the newest row loaded while the
-// thread does not hold the newest message (after a jump to an old hit). On mobile a newer page
-// landing mid-drag, mid-fling or after a status-bar tap throws the reader ahead. Refs keep the
-// throttled callback stable.
+// Both lists load a newer page as the reader nears the newest row loaded, while the thread does not
+// hold the newest message (after a jump to an old hit or Catch up). Refs keep the throttled
+// callback stable.
 const useLoadNewer = (p: {containsLatestMessage: boolean; loadPageArgs: LoadPageArgs}) => {
   const {containsLatestMessage, loadPageArgs} = p
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
