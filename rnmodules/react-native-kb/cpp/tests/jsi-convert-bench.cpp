@@ -2,7 +2,7 @@
 // Hermes runtime against a corpus of real RPC payloads.
 //
 // The corpus comes from an actual mobile session's Metro log; see
-// scripts/make-bench-corpus.mjs. Build and run both this and the base
+// scripts/make-bench-corpus.mjs. Build and run both this and the
 // baseline with scripts/bench-jsi-convert.sh.
 //
 // Decode direction (msgpack -> JSI): frames are handed to onDataFromGo exactly
