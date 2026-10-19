@@ -71,7 +71,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLocalization (58.0.5):
     - ExpoModulesCore
-  - ExpoLocation (58.0.17):
+  - ExpoLocation (58.0.18):
     - ExpoModulesCore
   - ExpoLogBox (58.0.12):
     - React-Core
@@ -2817,7 +2817,7 @@ SPEC CHECKSUMS:
   ExpoImagePicker: a466134ec92fed0b38bbf9062c7eb5f3c8c49d94
   ExpoKeepAwake: fd18a5d233329013c578030ad399d8e10b252b5f
   ExpoLocalization: ed930f5d68e7b3c2073a04787358839e1a8e1680
-  ExpoLocation: 8bd5f5af8ce2f6abb310446344239f86975afe54
+  ExpoLocation: c079271e83490f69d29502dd90de48a60fd8c7cf
   ExpoLogBox: 14c42e5429c85e1e2acfb9316b4e821db8e40d42
   ExpoMediaLibrary: 536f542d5fc1266c99627f66bdee9493b8139de9
   ExpoModulesCore: 1921d4d93d3d395a33a5742f7e50dc2d469eab51
