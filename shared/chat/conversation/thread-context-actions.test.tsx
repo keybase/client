@@ -506,6 +506,30 @@ describe('load throttle', () => {
     })
   })
 
+  test('a scroll back asks for messages older than the oldest one loaded', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [textAt(10), textAt(11)],
+        moreToLoad: true,
+        scrollDirection: 'none',
+      })
+    })
+    act(() => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
+    })
+    const sent = loads().at(-1)
+    expect(sent?.pagination).toBeFalsy()
+    expect(sent?.messageIDControl).toEqual({
+      mode: T.RPCChat.MessageIDControlMode.oldermessages,
+      num: 7,
+      pivot: T.Chat.numberToMessageID(10),
+    })
+  })
+
   test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', () => {
     jest.useFakeTimers()
     const {h} = renderThread()
@@ -605,8 +629,19 @@ describe('load throttle', () => {
 })
 
 describe('scroll gate', () => {
-  const back = () => loads().filter(p => p.pagination?.next === 'deadbeef')
-  const forward = () => loads().filter(p => p.pagination?.previous === 'deadbeef')
+  // A scroll page from a thread with rows asks by message ID; one with none falls back to the cursor.
+  const back = () =>
+    loads().filter(
+      p =>
+        p.pagination?.next === 'deadbeef' ||
+        p.messageIDControl?.mode === T.RPCChat.MessageIDControlMode.oldermessages
+    )
+  const forward = () =>
+    loads().filter(
+      p =>
+        p.pagination?.previous === 'deadbeef' ||
+        p.messageIDControl?.mode === T.RPCChat.MessageIDControlMode.newermessages
+    )
 
   test('older: nothing at the top of the thread or with no rows', () => {
     const {h} = renderThread()
@@ -624,7 +659,7 @@ describe('scroll gate', () => {
     act(() => h().loadOlder(0))
     expect(back()).toHaveLength(0)
     act(() => h().loadOlder(5))
-    expect(back().map(p => p.pagination?.num)).toEqual([100])
+    expect(back().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([100])
   })
 
   test('older: the same row count inside 500ms is refused, after it or a new count is not', () => {
@@ -665,7 +700,7 @@ describe('scroll gate', () => {
     act(() => {
       jest.advanceTimersByTime(1000)
     })
-    expect(forward().map(p => p.pagination?.num)).toEqual([100])
+    expect(forward().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([100])
   })
 
   test('scroll options reach the load', () => {

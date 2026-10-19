@@ -124,11 +124,12 @@ export const threadLoadReasonToRPCReason = (reason: string): T.RPCChat.GetThread
 export const getLastOrdinalFromSnapshot = (snapshot: ConversationThreadState) =>
   snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
-// The newest message the window holds that the service knows (pending sends have no ID yet).
-const newestLoadedMessageID = (snapshot: ConversationThreadState) => {
+// The newest or oldest message the window holds that the service knows (pending sends have no ID yet).
+const loadedMessageIDAtEnd = (snapshot: ConversationThreadState, end: 'newest' | 'oldest') => {
   const ordinals = snapshot.messageOrdinals ?? []
-  for (let i = ordinals.length - 1; i >= 0; i--) {
-    const id = snapshot.messageMap.get(ordinals[i]!)?.id
+  for (let n = 0; n < ordinals.length; n++) {
+    const ordinal = ordinals[end === 'newest' ? ordinals.length - 1 - n : n]!
+    const id = snapshot.messageMap.get(ordinal)?.id
     if (id && T.Chat.messageIDToNumber(id) > 0) return id
   }
   return undefined
@@ -437,15 +438,30 @@ export const loadConversationThreadMessages = (
       }
     }
 
-    // A newer page is asked for from the newest message loaded, not from the cursor the service keeps:
-    // every newest-page load (focus, stale) resets that cursor, and a newer page read from it would come
-    // back empty and end paging with the messages between the window and the present never loaded.
-    const newerFrom =
-      !messageIDControl && scrollDirection === 'forward' ? newestLoadedMessageID(actions.getSnapshot()) : undefined
+    // A scroll page is asked for from the window's own end, not from the cursor the service keeps:
+    // every newest-page load (focus, stale) resets that cursor, and a page read from it after one
+    // comes from the newest page instead (a newer one back empty, ending paging with the messages
+    // between the window and the present never loaded). A back page reloading past an all-tombstone
+    // page asks from below the oldest message that page carried, as the rows it added did not move
+    // the window's end.
+    const pivot = messageIDControl
+      ? undefined
+      : scrollDirection === 'forward'
+        ? loadedMessageIDAtEnd(actions.getSnapshot(), 'newest')
+        : scrollDirection === 'back'
+          ? (retryBelowMessageID ?? loadedMessageIDAtEnd(actions.getSnapshot(), 'oldest'))
+          : undefined
     const control: T.RPCChat.MessageIDControl | undefined =
       messageIDControl ??
-      (newerFrom
-        ? {mode: T.RPCChat.MessageIDControlMode.newermessages, num: numberOfMessagesToLoad, pivot: newerFrom}
+      (pivot
+        ? {
+            mode:
+              scrollDirection === 'forward'
+                ? T.RPCChat.MessageIDControlMode.newermessages
+                : T.RPCChat.MessageIDControlMode.oldermessages,
+            num: numberOfMessagesToLoad,
+            pivot,
+          }
         : undefined)
     const pagination = control ? null : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
     try {

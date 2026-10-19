@@ -307,6 +307,19 @@ describe('a back page that adds no ordinals reloads itself', () => {
     expect(rpc()).toHaveLength(2)
   })
 
+  // A page of tombstones adds no rows, so the oldest row loaded does not move: the reload asks from
+  // below the oldest message the page carried.
+  test('reloads from below the oldest message the empty page carried', async () => {
+    const rpc = mockWalkingBack(6952)
+    loadBack(trackingActions())
+    await flushPromises()
+    expect(rpc().at(1)?.[0].messageIDControl).toEqual({
+      mode: T.RPCChat.MessageIDControlMode.oldermessages,
+      num: numMessagesOnScrollback,
+      pivot: T.Chat.numberToMessageID(7052),
+    })
+  })
+
   test('walks a run of tombstones that ends before the cap', async () => {
     const oldest = 6752
     const rpc = mockWalkingBack(oldest)
