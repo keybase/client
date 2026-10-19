@@ -29,12 +29,33 @@ export const shouldShowCatchUp = (p: {
   if (oldestVisibleOrdinal === undefined || !T.Chat.ordinalToNumber(orangeLineOrdinal)) {
     return false
   }
-  // Dismissal is remembered per orange line, not per visit, so marking an older message unread
-  // re-arms the pill for the new boundary.
+  // Dismissal is remembered per orange line, not per visit, so a new boundary re-arms the pill. One
+  // set by marking a message unread is on screen as it lands, so it is seen, and dismissed, at once.
   if (dismissedOrdinal === orangeLineOrdinal) {
     return false
   }
   return orangeLineOrdinal < oldestVisibleOrdinal
+}
+
+// Seeing the orange line is catching up: once it has been on screen the pill is dismissed for it, so
+// the keyboard rising or a scroll carrying it away later does not bring the pill back. The line is
+// drawn at the top edge of its row, and a row counts as visible with a sliver on screen, so the line
+// counts as seen only with visible rows on both sides of its own: the oldest visible row's top can be
+// cut off, and the newest can sit under the composer.
+export const orangeLineInView = (p: {
+  loaded: boolean
+  newestVisibleOrdinal: T.Chat.Ordinal | undefined
+  oldestVisibleOrdinal: T.Chat.Ordinal | undefined
+  orangeLineOrdinal: T.Chat.Ordinal
+}) => {
+  const {loaded, newestVisibleOrdinal, oldestVisibleOrdinal, orangeLineOrdinal} = p
+  if (!loaded || !T.Chat.ordinalToNumber(orangeLineOrdinal)) {
+    return false
+  }
+  if (oldestVisibleOrdinal === undefined || newestVisibleOrdinal === undefined) {
+    return false
+  }
+  return orangeLineOrdinal > oldestVisibleOrdinal && orangeLineOrdinal < newestVisibleOrdinal
 }
 
 // The viewport moves on every scroll frame, so the viewable ordinal lives in a ref and only the
@@ -48,11 +69,21 @@ export const useCatchUp = (p: {loaded: boolean}) => {
   const [dismissedOrdinal, setDismissedOrdinal] = React.useState(noOrdinal)
   const [showCatchUp, setShowCatchUp] = React.useState(false)
   const oldestVisibleOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  const newestVisibleOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
 
   const recompute = React.useEffectEvent(() => {
+    const inView = orangeLineInView({
+      loaded,
+      newestVisibleOrdinal: newestVisibleOrdinalRef.current,
+      oldestVisibleOrdinal: oldestVisibleOrdinalRef.current,
+      orangeLineOrdinal,
+    })
+    if (inView && dismissedOrdinal !== orangeLineOrdinal) {
+      setDismissedOrdinal(orangeLineOrdinal)
+    }
     setShowCatchUp(
       shouldShowCatchUp({
-        dismissedOrdinal,
+        dismissedOrdinal: inView ? orangeLineOrdinal : dismissedOrdinal,
         loaded,
         oldestVisibleOrdinal: oldestVisibleOrdinalRef.current,
         orangeLineOrdinal,
@@ -68,8 +99,9 @@ export const useCatchUp = (p: {loaded: boolean}) => {
   // Held in state rather than a useCallback so the identity is stable for the lists, which capture
   // this once inside their own scroll handlers.
   const [onViewableOrdinalsChanged] = React.useState(
-    () => (oldestVisibleOrdinal?: T.Chat.Ordinal) => {
+    () => (oldestVisibleOrdinal?: T.Chat.Ordinal, newestVisibleOrdinal?: T.Chat.Ordinal) => {
       oldestVisibleOrdinalRef.current = oldestVisibleOrdinal
+      newestVisibleOrdinalRef.current = newestVisibleOrdinal
       recompute()
     }
   )

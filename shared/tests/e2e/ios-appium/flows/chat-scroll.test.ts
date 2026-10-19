@@ -976,7 +976,9 @@ describe('chat scroll: editing', () => {
   })
 })
 
-it('chat scroll: mark unread shows the catch-up pill, which centres the unread message', async () => {
+// Seeing the unread line is catching up: the pill shows only for a line the reader has not had on
+// screen, and once the line has been in view nothing brings the pill back for it.
+it('chat scroll: an unread line above the view shows the catch-up pill, which centres the unread message', async () => {
   await openLong()
   await expectAtEnd()
   await dragThread(500)
@@ -990,13 +992,44 @@ it('chat scroll: mark unread shows the catch-up pill, which centres the unread m
     await waitForThreadStable()
     check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
 
-    await tapStatusBar()
+    // a fresh open lands at the end, with the unread line above the view, never seen there
+    await openLong()
     await expectAtEnd()
     await catchUpPill().waitForExist({timeout: 5_000})
     await catchUpPill().click()
     await expectCentred(target.ordinal)
     await catchUpPill().waitForExist({reverse: true, timeout: 5_000})
   } finally {
+    // a fresh open marks the thread read again
+    await openLong()
+  }
+})
+
+it('chat scroll: once the unread line has been in view, the keyboard carrying it away does not show the catch-up pill', async () => {
+  await openLong()
+  await expectAtEnd()
+  const t = await waitForThreadStable()
+  const v = await viewport(t)
+  // near the top of the view, so the rising keyboard carries the line off it
+  const target = pickAnchor(t, v, 40)
+  try {
+    await openMessageMenu(await rowText(target.ordinal))
+    await chooseMenuItem('Mark as unread')
+    await waitForThreadStable()
+    // a fresh open, as on a visit with unread messages: the line is in view at the end
+    await openLong()
+    await expectAtEnd()
+    check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
+
+    await el(T.CHAT_INPUT).click()
+    await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+    const k = await waitForThreadStable()
+    const kv = await viewport(k)
+    const carried = rowOf(k, target.ordinal)
+    check(!carried || carried.bottom <= kv.top, `row ${target.ordinal} is still in view with the keyboard up: ${summary(k, kv)}`)
+    check(!(await catchUpPill().isExisting()), 'the catch-up pill shows for an unread line already seen')
+  } finally {
+    await hideKeyboard()
     // a fresh open marks the thread read again
     await openLong()
   }

@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {OrangeLineContext} from '../orange-line-context'
-import {CatchUp, shouldShowCatchUp, useCatchUp} from './catch-up'
+import {CatchUp, orangeLineInView, shouldShowCatchUp, useCatchUp} from './catch-up'
 
 const ord = T.Chat.numberToOrdinal
 
@@ -52,6 +52,30 @@ test('comes back when a newer orange line replaces the dismissed one', () => {
   ).toBe(true)
 })
 
+const lineInView = {loaded: true, newestVisibleOrdinal: ord(60), oldestVisibleOrdinal: ord(40), orangeLineOrdinal: ord(50)}
+
+test('the orange line is in view between the oldest and newest visible messages', () => {
+  expect(orangeLineInView(lineInView)).toBe(true)
+})
+
+// the oldest visible row may show only its bottom, without the line at its top edge, and the newest
+// may sit under the composer
+test('the orange line on the oldest or newest visible message is not counted as seen', () => {
+  expect(orangeLineInView({...lineInView, orangeLineOrdinal: ord(40)})).toBe(false)
+  expect(orangeLineInView({...lineInView, orangeLineOrdinal: ord(60)})).toBe(false)
+})
+
+test('the orange line is not in view above or below the viewport', () => {
+  expect(orangeLineInView({...lineInView, orangeLineOrdinal: ord(30)})).toBe(false)
+  expect(orangeLineInView({...lineInView, orangeLineOrdinal: ord(70)})).toBe(false)
+})
+
+test('the orange line is not in view without a line, a viewport or a loaded thread', () => {
+  expect(orangeLineInView({...lineInView, orangeLineOrdinal: ord(0)})).toBe(false)
+  expect(orangeLineInView({...lineInView, newestVisibleOrdinal: undefined, oldestVisibleOrdinal: undefined})).toBe(false)
+  expect(orangeLineInView({...lineInView, loaded: false})).toBe(false)
+})
+
 const mockCenterOnMessage = jest.fn()
 let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 
@@ -89,15 +113,50 @@ describe('useCatchUp', () => {
     render(<Tree orangeLineOrdinal={ord(10)} />)
     expect(seen?.showCatchUp).toBe(false)
     act(() => {
-      seen?.onViewableOrdinalsChanged(ord(50))
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
     })
+    expect(seen?.showCatchUp).toBe(true)
+  })
+
+  test('once the orange line has been in view, moving past it keeps the pill hidden', () => {
+    render(<Tree orangeLineOrdinal={ord(10)} />)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(5), ord(20))
+    })
+    expect(seen?.showCatchUp).toBe(false)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    expect(seen?.showCatchUp).toBe(false)
+  })
+
+  test('a viewport of messages older than the orange line does not count as having seen it', () => {
+    render(<Tree orangeLineOrdinal={ord(10)} />)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(1), ord(5))
+    })
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    expect(seen?.showCatchUp).toBe(true)
+  })
+
+  test('a newer orange line shows the pill again after the old one was seen', () => {
+    const {rerender} = render(<Tree orangeLineOrdinal={ord(10)} />)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(5), ord(20))
+    })
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    rerender(<Tree orangeLineOrdinal={ord(30)} />)
     expect(seen?.showCatchUp).toBe(true)
   })
 
   test('tapping centers on the orange line with no highlight', () => {
     render(<Tree orangeLineOrdinal={ord(10)} />)
     act(() => {
-      seen?.onViewableOrdinalsChanged(ord(50))
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
     })
     act(() => {
       seen?.onCatchUp()
@@ -108,7 +167,7 @@ describe('useCatchUp', () => {
   test('tapping dismisses the pill even though the viewport has not moved', () => {
     render(<Tree orangeLineOrdinal={ord(10)} />)
     act(() => {
-      seen?.onViewableOrdinalsChanged(ord(50))
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
     })
     act(() => {
       seen?.onCatchUp()

@@ -301,10 +301,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
-  // Data runs oldest-first here, so the first viewable row is the oldest one on screen.
+  // Data runs oldest-first here, so the first viewable row is the oldest one on screen and the last the newest.
   const onViewableItemsChanged = React.useCallback(
     (info: {viewableItems: ReadonlyArray<{item: T.Chat.Ordinal}>}) => {
-      onViewableOrdinalsChanged(info.viewableItems.at(0)?.item)
+      onViewableOrdinalsChanged(info.viewableItems.at(0)?.item, info.viewableItems.at(-1)?.item)
     },
     [onViewableOrdinalsChanged]
   )
@@ -582,8 +582,8 @@ const NativeConversationList = function NativeConversationList() {
     {
       onViewableItemsChanged: (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
         onViewableRange(info.viewableItems.at(0)?.index, info.viewableItems.at(-1)?.index)
-        // The list is inverted and its data reversed, so the last viewable row is the oldest.
-        onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
+        // The list is inverted and its data reversed, so the last viewable row is the oldest and the first the newest.
+        onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item, info.viewableItems.at(0)?.item)
       },
       viewabilityConfig: {viewAreaCoveragePercentThreshold: 0},
     },
