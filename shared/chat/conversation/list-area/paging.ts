@@ -3,10 +3,15 @@ import sortedIndexBy from 'lodash/sortedIndexBy'
 
 // How near either end of the rows loaded the reader comes before the next page loads there, in
 // screens (the list's viewport heights): desktop's list takes its thresholds in that unit, and the
-// mobile list, which pages only older rows, measures its scroll offset against it. Early enough that
-// a page lands before a reader's fling reaches the edge of the rows it has.
+// mobile list measures its distance to each end against it. Early enough that a page lands before a
+// reader's fling reaches the edge of the rows it has.
 export const pageLoadScreens = 2
 export const withinPageLoad = (distance: number, viewport: number) => distance <= pageLoadScreens * viewport
+
+// How far the inverted native list is from its newest row, which rests at the resting offset (0 with
+// no keyboard, negative while it is up). The offset rises toward older rows, so the distance is how
+// far it has moved past that rest.
+export const nativeNewerPageDistance = (p: {offset: number; resting: number}) => p.offset - p.resting
 
 // How far the inverted native list is from the oldest row loaded (ordinals newest first). Its content
 // ends at the oldest row laid out, which the list keeps within a screen of the view however many rows
