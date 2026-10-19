@@ -32,6 +32,8 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/SplashTheme"
+            android:requireContentUriPermissionFromCaller="read"
+            tools:targetApi="35"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
