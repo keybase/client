@@ -2,7 +2,7 @@
 // Hermes runtime against a corpus of real RPC payloads.
 //
 // The corpus comes from an actual mobile session's Metro log; see
-// scripts/make-bench-corpus.mjs. Build and run both this and the master
+// scripts/make-bench-corpus.mjs. Build and run both this and the base
 // baseline with scripts/bench-jsi-convert.sh.
 //
 // Decode direction (msgpack -> JSI): frames are handed to onDataFromGo exactly
@@ -82,12 +82,6 @@ int main(int argc, char **argv) {
     }
   };
 
-#ifdef KB_BASELINE
-  bridge->install(
-      rt, invoker,
-      [&](void *, size_t size) { bytesWritten += size; },
-      onError);
-#else
   bridge->install(
       rt, invoker,
       [&](void *, size_t size) {
@@ -95,7 +89,6 @@ int main(int argc, char **argv) {
         return true;
       },
       onError, [&](int64_t) { fprintf(stderr, "fatal\n"); });
-#endif
 
   // Collects everything the decode pass produced so the encode pass has real
   // JSI values to pack. Held in JS so the values stay exactly what rpcOnJs got.
@@ -138,7 +131,7 @@ int main(int argc, char **argv) {
   printf("corpus %s: %zu frames, %.2f MB\n", corpusPath, frames,
          double(corpus.size()) / (1024 * 1024));
 #ifdef KB_BASELINE
-  printf("build: baseline (origin/master)\n");
+  printf("build: baseline\n");
 #else
   printf("build: branch\n");
 #endif
@@ -151,17 +144,11 @@ int main(int argc, char **argv) {
     // way they do on device rather than as one impossible 10MB read.
     constexpr size_t kReadSize = 300 * 1024;
     rt.global().setProperty(rt, "received", jsi::Array(rt, 0));
-#ifndef KB_BASELINE
     bridge->resetRecv();
-#endif
     auto t0 = std::chrono::steady_clock::now();
     for (size_t off = 0; off < corpus.size(); off += kReadSize) {
       const size_t n = std::min(kReadSize, corpus.size() - off);
-#ifdef KB_BASELINE
-      bridge->onDataFromGo(corpus.data() + off, int(n));
-#else
       bridge->onDataFromGo(corpus.data() + off, int(n), 1);
-#endif
     }
     double decodeMs = msSince(t0);
 

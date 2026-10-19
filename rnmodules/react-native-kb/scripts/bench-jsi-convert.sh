@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds and runs cpp/tests/jsi-convert-bench.cpp twice -- once against this
-# branch's bridge, once against origin/master's -- on a real Hermes runtime,
-# replaying the corpus built by make-bench-corpus.mjs from a real mobile
+# branch's bridge, once against KB_BENCH_BASE's (default origin/master) -- on
+# a real Hermes runtime, replaying the corpus built by make-bench-corpus.mjs from a real mobile
 # session's RPC traffic.
 #
 # Hermes comes from the already-installed iOS pod, which ships a macOS slice, so
@@ -16,6 +16,7 @@ PODS="$ROOT/shared/ios/Pods"
 HERMES="$PODS/hermes-engine/destroot"
 CORPUS="${1:-/tmp/kb-bench-corpus.bin}"
 ITERS="${2:-5}"
+BASE="${KB_BENCH_BASE:-origin/master}"
 
 # Sets MSGPACK_INCLUDE, fetching the headers if yarn hasn't unpacked them.
 # shellcheck source=./msgpack-include.sh
@@ -38,12 +39,11 @@ test -f "$CORPUS" || {
 WORK="$(mktemp -d /tmp/kb-bench.XXXXXX)"
 trap 'rm -rf "$WORK"' EXIT
 
-# The baseline is master's bridge, checked out to its own directory so the two
-# builds each see their own react-native-kb.h.
+# The baseline is BASE's bridge (origin/master unless overridden), checked out
+# to its own directory so the two builds each see their own headers.
 mkdir -p "$WORK/baseline"
-for f in react-native-kb.cpp react-native-kb.h msgpack-safe.hpp; do
-  git -C "$ROOT" show "origin/master:rnmodules/react-native-kb/cpp/$f" > "$WORK/baseline/$f"
-done
+git -C "$ROOT" archive "$BASE" rnmodules/react-native-kb/cpp |
+  tar -x -C "$WORK/baseline" --strip-components=3 --exclude='*/tests/*'
 
 FRAMEWORKS="$HERMES/Library/Frameworks/macosx"
 COMMON=(
@@ -58,14 +58,12 @@ COMMON=(
 
 build() { # build <outfile> <src-dir> [extra flags...]
   local out="$1" dir="$2"; shift 2
-  local srcs=("$dir/react-native-kb.cpp")
-  # frame-parser.cpp only exists on the branch.
-  [ -f "$dir/frame-parser.cpp" ] && srcs+=("$dir/frame-parser.cpp")
+  local srcs=("$dir/react-native-kb.cpp" "$dir/frame-parser.cpp")
   clang++ "${COMMON[@]}" "$@" -I "$dir" \
     "${srcs[@]}" "$CPP_DIR/tests/jsi-convert-bench.cpp" -o "$out"
 }
 
-echo "building baseline (origin/master)..."
+echo "building baseline ($BASE)..."
 build "$WORK/bench-baseline" "$WORK/baseline" -DKB_BASELINE=1
 echo "building branch..."
 build "$WORK/bench-branch" "$CPP_DIR"
