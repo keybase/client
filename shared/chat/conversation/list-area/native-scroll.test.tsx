@@ -25,6 +25,7 @@ const newestFirst = (from: number, to: number) => {
 type Props = {
   centeredOrdinal: T.Chat.Ordinal | undefined
   containsLatestMessage: boolean
+  datasetKey: string
   editingOrdinal: T.Chat.Ordinal | undefined
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
 }
@@ -51,6 +52,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
   const initialProps: Props = {
     centeredOrdinal: undefined,
     containsLatestMessage,
+    datasetKey: 'conv1:0',
     editingOrdinal: undefined,
     messageOrdinals: newestFirst(1, 60),
   }
@@ -60,7 +62,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
         centeredOrdinal: p.centeredOrdinal,
         containsLatestMessage: p.containsLatestMessage,
         conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
-        datasetKey: 'conv1:0',
+        datasetKey: p.datasetKey,
         editingOrdinal: p.editingOrdinal,
         isKeyboardVisible: keyboardVisible,
         listRef,
@@ -288,6 +290,45 @@ test('a window of history asks for a newer page near its newest row, once a gate
   expect(m.loadNewer).toHaveBeenCalledTimes(2)
 })
 
+test('after a jump to a centred row, no newer page is asked for until the reader moves the list', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  // centring settled and the centre closed, the reader still has not moved the list
+  act(() => jest.advanceTimersByTime(5000))
+  m.set({centeredOrdinal: undefined})
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollIn(590, 6000)))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a search for the same hit again waits for the reader again', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  // the same hit, reloaded as a fresh window
+  m.set({datasetKey: 'conv1:1'})
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+})
+
+test('after a jump to a centred row, only a drag or a status-bar tap lets a newer page be asked for', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  // the list moving with no finger on it (its own centring included) is not the reader
+  act(() => m.hook.result.current.onScroll(scrollIn(900, 6000)))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollToTop({nativeEvent: {contentOffset: {y: 600}}}))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
 test('a thread holding the newest message asks for no newer page', () => {
   const m = mount()
   act(() => jest.advanceTimersByTime(1001))
@@ -306,13 +347,13 @@ test('an older page asked for does not hold back a newer one', () => {
   expect(m.loadNewer).toHaveBeenCalledTimes(1)
 })
 
-test('a window of history keeps the end anchor off, a reader resting at its newest row too', () => {
+test('a window of history keeps the end anchor off and anchors on its rows, a reader resting at its newest row too', () => {
   const m = windowOfHistory({keyboardVisible: false})
-  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 0})
+  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 1})
   act(() => m.hook.result.current.onScrollBeginDrag())
   act(() => m.hook.result.current.onScroll(scrollIn(0, 6000)))
   act(() => m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: 0}, velocity: {y: 0}}}))
-  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 0})
+  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 1})
 })
 
 test('rows landing at the newest end of a window of history are not re-pinned', () => {
