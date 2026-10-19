@@ -155,6 +155,9 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 			oldStored := t.convPageStatus[convID.ConvIDStr()]
 			if len(incoming.Next) > 0 {
 				oldStored.Next = pagination.Next
+				// Last is only read back for older pages, so a newer page reaching the newest
+				// message must not end paging toward the oldest.
+				oldStored.Last = pagination.Last
 				t.Debug(ctx, "applyPagerModeOutgoing: setting next pagination: convID: %s p: %s", convID,
 					pagination)
 			} else if len(incoming.Previous) > 0 {
@@ -162,7 +165,6 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 					pagination)
 				oldStored.Previous = pagination.Previous
 			}
-			oldStored.Last = pagination.Last
 			t.convPageStatus[convID.ConvIDStr()] = oldStored
 		}
 	default:

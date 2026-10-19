@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -543,4 +545,30 @@ func TestUIThreadLoaderKnownRemotes(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no end cb")
 	}
+}
+
+// A newer page that reaches the newest message is the last one in its direction only: older pages
+// must still load after it.
+func TestUIThreadLoaderLastIsPerDirection(t *testing.T) {
+	tc := externalstest.SetupTest(t, "pager", 0)
+	defer tc.Cleanup()
+	l := NewUIThreadLoader(globals.NewContext(tc.G, &globals.ChatContext{}), nil)
+	ctx := context.TODO()
+	convID := chat1.ConversationID([]byte{1, 2, 3})
+	mode := chat1.GetThreadNonblockPgMode_SERVER
+	stored := func() chat1.Pagination { return l.convPageStatus[convID.ConvIDStr()] }
+
+	first := &chat1.Pagination{Num: 50}
+	l.applyPagerModeOutgoing(ctx, convID, &chat1.Pagination{Next: []byte("older"), Previous: []byte("newer")}, first, mode)
+
+	forward := &chat1.Pagination{Num: 50, Previous: []byte("x")}
+	l.applyPagerModeOutgoing(ctx, convID, &chat1.Pagination{Previous: []byte("newest"), Last: true}, forward, mode)
+	require.False(t, stored().Last)
+
+	back := l.applyPagerModeIncoming(ctx, convID, &chat1.Pagination{Num: 50, Next: []byte("x")}, mode)
+	require.False(t, back.Last)
+	require.Equal(t, []byte("older"), back.Next)
+
+	l.applyPagerModeOutgoing(ctx, convID, &chat1.Pagination{Next: []byte("oldest"), Last: true}, back, mode)
+	require.True(t, stored().Last)
 }
