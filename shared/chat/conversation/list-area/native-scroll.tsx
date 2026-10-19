@@ -528,9 +528,15 @@ export const useNativeThreadScroll = (p: {
   }, [containsLatestMessage])
   const nextLoadRef = React.useRef({newer: 0, older: 0})
   const readerMovedSinceCentreRef = React.useRef(true)
-  // A centre set, or reloaded as a fresh window (a search for the same hit again).
+  // A centre set, or reloaded as a fresh window (a search for the same hit again). Compared by value,
+  // so a freeze/thaw re-mount, which re-runs this with nothing changed, does not make the reader
+  // move the list again.
+  const centreKeyRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
-    if (centeredOrdinal !== undefined) readerMovedSinceCentreRef.current = false
+    const key = centeredOrdinal === undefined ? undefined : `${centeredOrdinal}:${datasetKey}`
+    if (key === centreKeyRef.current) return
+    centreKeyRef.current = key
+    if (key !== undefined) readerMovedSinceCentreRef.current = false
   }, [centeredOrdinal, datasetKey])
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
@@ -630,6 +636,7 @@ export const useNativeThreadScroll = (p: {
   const onScrollToTop = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
       readerMovedSinceCentreRef.current = true
+      metricsRef.current = {...metricsRef.current, offset: e.nativeEvent.contentOffset.y}
       rested(e)
       loadPages()
     },

@@ -329,6 +329,15 @@ test('after a jump to a centred row, only a drag or a status-bar tap lets a newe
   expect(m.loadNewer).toHaveBeenCalledTimes(1)
 })
 
+test('a status-bar tap measures from where it came to rest, not the last scroll event', () => {
+  const m = windowOfHistory()
+  // the last scroll event seen was far from the newest row
+  act(() => m.hook.result.current.onScroll(scrollIn(5000, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollToTop({nativeEvent: {contentOffset: {y: 0}}}))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
 test('a thread holding the newest message asks for no newer page', () => {
   const m = mount()
   act(() => jest.advanceTimersByTime(1001))
