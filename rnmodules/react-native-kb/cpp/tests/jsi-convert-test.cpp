@@ -820,6 +820,65 @@ void testEncodeTypedArrayViews() {
             "ArrayBuffer packed the wrong bytes");
 }
 
+// The typed-array probe names are cached on the bridge, so repeated sends on
+// one runtime must keep telling views from look-alike plain objects.
+void testEncodeTypedArrayProbeRepeats() {
+  Harness h;
+  for (int i = 0; i < 3; ++i) {
+    h.send("{bin: new Uint8Array([1, 2, 3]).subarray(1),"
+           " fake: {byteLength: 2, buffer: new ArrayBuffer(2), byteOffset: 0}}");
+    auto oh = h.lastPayload();
+    const auto &o = oh.get();
+    CHECK(o.type == msgpack::type::MAP);
+    CHECK_EQ(o.via.map.size, uint32_t(2));
+    CHECK_MSG(mpBinToString(o.via.map.ptr[0].val) == std::string("\x02\x03", 2),
+              "subarray view packed the wrong bytes on send " +
+                  std::to_string(i));
+    CHECK_MSG(o.via.map.ptr[1].val.type == msgpack::type::MAP,
+              "look-alike object packed as binary on send " + std::to_string(i));
+    CHECK_EQ(o.via.map.ptr[1].val.via.map.size, uint32_t(3));
+  }
+}
+
+// A bridge reinstalled on a second runtime (a JS reload) keeps packing views
+// correctly on both runtimes.
+void testEncodeTypedArrayProbeAcrossRuntimes() {
+  Harness h;
+  auto other = facebook::hermes::makeHermesRuntime();
+  auto sendOn = [&](jsi::Runtime &rt, const char *src) {
+    auto value = rt.evaluateJavaScript(
+        std::make_shared<jsi::StringBuffer>(std::string("(") + src + ")"),
+        "test.js");
+    rt.global().getPropertyAsFunction(rt, "rpcOnGo").call(rt, value);
+  };
+  auto checkBin = [&](const std::string &want, const std::string &label) {
+    auto oh = h.lastPayload();
+    CHECK_MSG(oh.get().type == msgpack::type::BIN, label + ": not BIN");
+    CHECK_MSG(mpBinToString(oh.get()) == want, label + ": wrong bytes");
+  };
+
+  try {
+    sendOn(h.rt(), "new Uint8Array([1, 2])");
+    checkBin(std::string("\x01\x02", 2), "first runtime");
+
+    h.bridge->install(
+        *other, std::make_shared<InlineCallInvoker>(*other),
+        [&h](void *ptr, size_t size) {
+          const auto *p = static_cast<const uint8_t *>(ptr);
+          h.writes.emplace_back(p, p + size);
+          return true;
+        },
+        [](const std::string &) {}, [](int64_t) {});
+    sendOn(*other, "new Uint8Array([3, 4, 5]).subarray(1)");
+    checkBin(std::string("\x04\x05", 2), "second runtime");
+
+    sendOn(h.rt(), "new Uint8Array([6])");
+    checkBin(std::string("\x06", 1), "back on the first runtime");
+  } catch (const jsi::JSError &e) {
+    throw kbtest::CheckFailed("JS threw: " + e.getMessage());
+  }
+}
+
 void testEncodeEmptyContainers() {
   Harness h;
   h.send("{arr: [], map: {}, str: '', bin: new Uint8Array(0)}");
@@ -1204,6 +1263,10 @@ int main() {
              testEncodeIsViewNotDigitHeuristic);
   runner.add("encode: typed array byteOffset/byteLength bounds",
              testEncodeTypedArrayViews);
+  runner.add("encode: cached probe names across repeated sends",
+             testEncodeTypedArrayProbeRepeats);
+  runner.add("encode: cached probe names across a runtime switch",
+             testEncodeTypedArrayProbeAcrossRuntimes);
   runner.add("encode: empty containers", testEncodeEmptyContainers);
   runner.add("encode: UTF-8, multibyte, embedded NUL", testEncodeUtf8Strings);
   runner.add("encode: kMaxDepth", testEncodeDepthLimit);
