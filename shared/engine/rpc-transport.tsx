@@ -401,10 +401,12 @@ export abstract class RPCTransport {
       return
     }
 
-    const [type, ...rest] = message
+    const type = message[0]
     switch (type) {
       case MESSAGE_TYPE_INVOKE: {
-        const [seqid, method, param] = rest
+        const seqid = message[1]
+        const method = message[2]
+        const param = message[3]
         if (typeof seqid !== 'number' || typeof method !== 'string' || !Array.isArray(param)) {
           console.warn('Invalid invoke packet received')
           return
@@ -435,7 +437,8 @@ export abstract class RPCTransport {
         return
       }
       case MESSAGE_TYPE_NOTIFY: {
-        const [method, param] = rest
+        const method = message[1]
+        const param = message[2]
         if (typeof method !== 'string' || !Array.isArray(param)) {
           console.warn('Invalid notify packet received')
           return
@@ -447,7 +450,9 @@ export abstract class RPCTransport {
         return
       }
       case MESSAGE_TYPE_RESPONSE: {
-        const [seqid, error, result] = rest
+        const seqid = message[1]
+        const error = message[2]
+        const result = message[3]
         if (typeof seqid !== 'number') {
           console.warn('Invalid response packet received')
           return
@@ -461,7 +466,7 @@ export abstract class RPCTransport {
         return
       }
       case MESSAGE_TYPE_CANCEL: {
-        const [seqid] = rest
+        const seqid = message[1]
         if (typeof seqid !== 'number') {
           console.warn('Invalid cancel packet received')
           return

@@ -67,6 +67,9 @@ void KBBridge::releaseJSIState() {
   cachedUint8ArrayCtor_.reset();
   cachedIsView_.reset();
   cachedRpcOnJsName_.reset();
+  cachedByteLengthName_.reset();
+  cachedBufferName_.reset();
+  cachedByteOffsetName_.reset();
   cachedPropNames_.clear();
   cachedRuntime_ = nullptr;
 }
@@ -95,6 +98,16 @@ void KBBridge::resetRecvLocked() {
   } else {
     recv_ = std::make_unique<RecvState>();
   }
+}
+
+const PropNameID &KBBridge::cachedName(Runtime &runtime,
+                                       std::unique_ptr<PropNameID> &slot,
+                                       const char *name) {
+  resetCaches(runtime);
+  if (!slot) {
+    slot = std::make_unique<PropNameID>(PropNameID::forAscii(runtime, name));
+  }
+  return *slot;
 }
 
 Function &KBBridge::uint8ArrayCtor(Runtime &runtime) {
@@ -360,6 +373,11 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
 void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
                               void *packer) {
   auto &pk = *static_cast<msgpack::packer<msgpack::sbuffer> *>(packer);
+  const auto &byteLengthName =
+      cachedName(runtime, cachedByteLengthName_, "byteLength");
+  const auto &bufferName = cachedName(runtime, cachedBufferName_, "buffer");
+  const auto &byteOffsetName =
+      cachedName(runtime, cachedByteOffsetName_, "byteOffset");
   std::vector<PackFrame> stack;
   stack.reserve(16);
 
@@ -388,14 +406,14 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
   // byteLength/buffer fields is never mistaken for binary. The range is
   // always bounds-checked against the backing buffer.
   auto tryPackTypedArray = [&](Object &obj) -> bool {
-    auto byteLengthProp = obj.getProperty(runtime, "byteLength");
+    auto byteLengthProp = obj.getProperty(runtime, byteLengthName);
     if (!byteLengthProp.isNumber()) {
       return false;
     }
     if (!isArrayBufferView(runtime, obj)) {
       return false;
     }
-    auto bufferProp = obj.getProperty(runtime, "buffer");
+    auto bufferProp = obj.getProperty(runtime, bufferName);
     if (!bufferProp.isObject()) {
       return false;
     }
@@ -404,7 +422,7 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
       return false;
     }
     auto arrayBuf = bufferObj.getArrayBuffer(runtime);
-    auto byteOffsetProp = obj.getProperty(runtime, "byteOffset");
+    auto byteOffsetProp = obj.getProperty(runtime, byteOffsetName);
     packArrayBufferRange(
         arrayBuf, byteOffsetProp.isNumber() ? byteOffsetProp.getNumber() : 0,
         byteLengthProp.getNumber());
@@ -716,15 +734,12 @@ void KBBridge::onDataFromGo(uint8_t *data, int size, int64_t epoch) {
       }
 
       self->resetCaches(runtime);
-      if (!self->cachedRpcOnJsName_) {
-        self->cachedRpcOnJsName_ = std::make_unique<PropNameID>(
-            PropNameID::forAscii(runtime, "rpcOnJs"));
-      }
       // Deliberately re-read the global each batch instead of caching the
       // function: JS installs a fresh rpcOnJs whenever the engine client is
       // recreated, and a cached handle would keep feeding the dead one.
-      auto onJsValue =
-          runtime.global().getProperty(runtime, *self->cachedRpcOnJsName_);
+      auto onJsValue = runtime.global().getProperty(
+          runtime,
+          self->cachedName(runtime, self->cachedRpcOnJsName_, "rpcOnJs"));
       if (!onJsValue.isObject() ||
           !onJsValue.getObject(runtime).isFunction(runtime)) {
         // These messages are already consumed from the unpacker and cannot be

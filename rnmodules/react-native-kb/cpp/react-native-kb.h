@@ -90,6 +90,10 @@ private:
   std::unique_ptr<facebook::jsi::Function> cachedUint8ArrayCtor_;
   std::unique_ptr<facebook::jsi::Function> cachedIsView_;
   std::unique_ptr<facebook::jsi::PropNameID> cachedRpcOnJsName_;
+  // Typed-array probe names, looked up on every outgoing plain object.
+  std::unique_ptr<facebook::jsi::PropNameID> cachedByteLengthName_;
+  std::unique_ptr<facebook::jsi::PropNameID> cachedBufferName_;
+  std::unique_ptr<facebook::jsi::PropNameID> cachedByteOffsetName_;
   std::unordered_map<std::string, facebook::jsi::PropNameID> cachedPropNames_;
   std::string propNameScratch_;
   facebook::jsi::Runtime *cachedRuntime_ = nullptr;
@@ -104,6 +108,10 @@ private:
   void setObjectKey(facebook::jsi::Runtime &runtime,
                     facebook::jsi::Object &obj, const char *ptr, size_t size,
                     const facebook::jsi::Value &value);
+  const facebook::jsi::PropNameID &
+  cachedName(facebook::jsi::Runtime &runtime,
+             std::unique_ptr<facebook::jsi::PropNameID> &slot,
+             const char *name);
   facebook::jsi::Function &uint8ArrayCtor(facebook::jsi::Runtime &runtime);
   facebook::jsi::Function &arrayBufferIsView(facebook::jsi::Runtime &runtime);
   bool isArrayBufferView(facebook::jsi::Runtime &runtime,

@@ -729,6 +729,55 @@ test('cancel packets surface a cancelled response payload', () => {
   )
 })
 
+test('notify packets dispatch method and params with no response handlers', () => {
+  const incoming = jest.fn()
+  const transport = new TestTransport({incomingRPCCallback: incoming})
+
+  transport.dispatchDecodedMessage([2, 'keybase.1.test.notify', [{sessionID: 3}]])
+
+  expect(incoming).toHaveBeenCalledTimes(1)
+  expect(incoming).toHaveBeenCalledWith({method: 'keybase.1.test.notify', param: [{sessionID: 3}]})
+  expect(transport.sent).toEqual([])
+})
+
+test('malformed packets of every type are dropped without dispatching or answering', () => {
+  const incoming = jest.fn()
+  const transport = new TestTransport({incomingRPCCallback: incoming})
+  const cb = jest.fn()
+  transport.invoke('keybase.1.test.pending', [{}], cb)
+  const [, seqid] = transport.sent[0]!
+  transport.sent.length = 0
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+  const malformed: Array<unknown> = [
+    [0],
+    ['0', 1, 'keybase.1.test.hello', [{}]],
+    [0, 'x', 'keybase.1.test.hello', [{}]],
+    [0, 1, 5, [{}]],
+    [0, 1, 'keybase.1.test.hello', {}],
+    [2, 5, [{}]],
+    [2, 'keybase.1.test.notify', {}],
+    [1, String(seqid), null, {ok: true}],
+    [3, 'x'],
+    [9, 1],
+  ]
+  try {
+    for (const m of malformed) {
+      transport.dispatchDecodedMessage(m)
+    }
+    expect(warn).toHaveBeenCalledTimes(malformed.length)
+  } finally {
+    warn.mockRestore()
+  }
+  expect(incoming).not.toHaveBeenCalled()
+  expect(cb).not.toHaveBeenCalled()
+  expect(transport.sent).toEqual([])
+
+  // The pending invoke was untouched by the bad response and still settles.
+  transport.dispatchDecodedMessage([1, seqid, null, {ok: true}])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
 test('close settles every queued invoke exactly once with EOF and drops queued sends', () => {
   const transport = new TestTransport({connected: false})
   const calls: Array<Array<unknown>> = []
