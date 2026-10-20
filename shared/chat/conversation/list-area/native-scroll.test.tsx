@@ -387,6 +387,26 @@ test('a reader who scrolls from a centred row to the present lets the centre go'
   expect(m.clearCenter).toHaveBeenCalledTimes(1)
 })
 
+test('a centred window holding the newest message lets the centre go once the reader moves on to the end', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => jest.advanceTimersByTime(1000))
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  // The reader drags away from the centred row and lets go short of the end: the centre stays.
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollAt(1500)))
+  act(() => m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: 1500}, velocity: {y: 0}}}))
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  // On to the end, coming to rest there.
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  act(() =>
+    m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: keyboardOffset}, velocity: {y: 0}}})
+  )
+  expect(m.clearCenter).toHaveBeenCalledTimes(1)
+})
+
 test('a thread holding the newest message asks for no newer page', () => {
   const m = mount()
   act(() => jest.advanceTimersByTime(1001))

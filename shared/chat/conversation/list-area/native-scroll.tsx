@@ -553,12 +553,18 @@ export const useNativeThreadScroll = (p: {
   }, [centeredOrdinal, datasetKey])
   // A reader who scrolled from a centred row on to the present is done with it: the centre would keep
   // the end anchor off, and new messages would no longer come into view. A centred window that already
-  // holds the newest message, with the reader still on its row, keeps its centre.
+  // holds the newest message keeps its centre until the reader moves the list on to the end, which
+  // hands the end back to the list.
   React.useLayoutEffect(() => {
     if (containsLatestMessage && centeredOrdinal !== undefined && readerMovedSinceCentreRef.current) {
       clearCenter()
     }
   }, [centeredOrdinal, clearCenter, containsLatestMessage])
+  React.useLayoutEffect(() => {
+    if (listOwnsEnd && containsLatestMessage && centeredOrdinal !== undefined && readerMovedSinceCentreRef.current) {
+      clearCenter()
+    }
+  }, [centeredOrdinal, clearCenter, containsLatestMessage, listOwnsEnd])
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
     const oldestLaidOut = oldestLaidOutRef.current
