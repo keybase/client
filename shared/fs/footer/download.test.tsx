@@ -25,18 +25,23 @@ jest.mock('../common', () => ({
   useFsDismissDownload: () => () => {},
   useFsDownloadInfo: () => ({filename: 'a.pdf', path: '/keybase/private/testuser/a.pdf'}),
   useFsDownloadState: () => ({done: true, localPath: '/cache/a.pdf', progress: 1}),
-  useFsFileContext: () => ({fileContext: {contentType: 'application/pdf'}}),
   useFsRedbarActions: () => ({redbar: () => {}}),
   useFsWatchDownloadForMobile: () => false,
 }))
-jest.mock('@/util/fs-platform', () => ({useSavedDownloadUri: () => 'content://dl/1'}))
+let mockSaved: {uri: string; mime: string} | undefined
+jest.mock('@/util/fs-platform', () => ({useSavedDownload: () => mockSaved}))
 jest.mock('@/util/fs-storeless-actions', () => ({openLocalPathInSystemFileManagerDesktop: jest.fn()}))
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 import * as PlatformSpecific from '@/util/platform-specific'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import Download from './download'
 
 const g = globalThis as unknown as {isMobile: boolean; isAndroid: boolean}
+
+beforeEach(() => {
+  mockSaved = {mime: 'application/pdf', uri: 'content://dl/1'}
+})
 
 afterEach(() => {
   cleanup()
@@ -52,6 +57,20 @@ test('on Android, tapping a saved download\'s name opens it', () => {
   render(<Download downloadID="id1" isFirst={true} />)
   fireEvent.click(screen.getByText('a.pdf'))
   expect(open).toHaveBeenCalledWith('content://dl/1', 'application/pdf')
+})
+
+test('on Android with no saved download yet, the name is not tappable', () => {
+  g.isMobile = true
+  g.isAndroid = true
+  mockSaved = undefined
+  render(<Download downloadID="id1" isFirst={true} />)
+  expect(screen.getByText('a.pdf (static)')).toBeTruthy()
+})
+
+test('on desktop, tapping the name opens the local path', () => {
+  render(<Download downloadID="id1" isFirst={true} />)
+  fireEvent.click(screen.getByText('a.pdf'))
+  expect(openLocalPathInSystemFileManagerDesktop).toHaveBeenCalledWith('/cache/a.pdf')
 })
 
 test('on iOS the name is not tappable', () => {

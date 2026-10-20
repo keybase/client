@@ -5,7 +5,7 @@ import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
 import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {useSavedDownloadUri} from '@/util/fs-platform'
+import {useSavedDownload} from '@/util/fs-platform'
 import {openSavedFile} from '@/util/platform-specific'
 
 export type Props = {
@@ -38,15 +38,14 @@ const Download = (props: Props) => {
   const theme = Kb.Styles.useTheme()
   const dlInfo = Kbfs.useFsDownloadInfo(downloadID)
   const dlState = Kbfs.useFsDownloadState(downloadID)
-  const {fileContext} = Kbfs.useFsFileContext(dlInfo.path)
-  const savedUri = useSavedDownloadUri(downloadID)
+  const saved = useSavedDownload(downloadID)
   const {redbar} = Kbfs.useFsRedbarActions()
   const dismissDownload = Kbfs.useFsDismissDownload()
   const cancelDownload = Kbfs.useFsCancelDownload()
   const open = isMobile
-    ? isAndroid && savedUri
+    ? isAndroid && saved
       ? () => {
-          openSavedFile(savedUri, fileContext.contentType).catch((e: unknown) => {
+          openSavedFile(saved.uri, saved.mime).catch((e: unknown) => {
             redbar(e instanceof Error ? e.message : `Couldn't open ${dlInfo.filename}`)
           })
         }

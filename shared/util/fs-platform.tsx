@@ -303,7 +303,7 @@ export const afterKbfsDaemonRpcStatusChangedMobile = async () => {
 }
 
 const finishedRegularDownloadIDs = new Set<string>()
-const savedDownloadUris = new Map<string, string>()
+const savedDownloads = new Map<string, {uri: string; mime: string}>()
 const savedDownloadListeners = new Set<() => void>()
 
 const notifySavedDownloadListeners = () => {
@@ -313,7 +313,7 @@ const notifySavedDownloadListeners = () => {
 // module scope outlives sign-out; holds the previous user's download ids
 registerExternalResetter('fs-finished-regular-downloads', () => {
   finishedRegularDownloadIDs.clear()
-  savedDownloadUris.clear()
+  savedDownloads.clear()
   notifySavedDownloadListeners()
 })
 
@@ -324,8 +324,8 @@ const subscribeSavedDownloads = (l: () => void) => {
   }
 }
 
-export const useSavedDownloadUri = (downloadID: string): string | undefined =>
-  React.useSyncExternalStore(subscribeSavedDownloads, () => savedDownloadUris.get(downloadID))
+export const useSavedDownload = (downloadID: string): {uri: string; mime: string} | undefined =>
+  React.useSyncExternalStore(subscribeSavedDownloads, () => savedDownloads.get(downloadID))
 
 export const saveFinishedDownloadToPublicDownloads = async (
   downloadID: string,
@@ -348,7 +348,7 @@ export const saveFinishedDownloadToPublicDownloads = async (
     const uri = await saveFileToDownloads(downloadState.localPath, downloadInfo.filename, mimeType)
     // a reset while saving means this download belongs to the previous user
     if (finishedRegularDownloadIDs.has(downloadID)) {
-      savedDownloadUris.set(downloadID, uri)
+      savedDownloads.set(downloadID, {mime: mimeType, uri})
       notifySavedDownloadListeners()
     }
   } catch {
