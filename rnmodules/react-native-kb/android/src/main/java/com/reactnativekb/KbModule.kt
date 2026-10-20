@@ -10,6 +10,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
 import android.app.PendingIntent
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.text.format.DateFormat
 import androidx.core.app.NotificationCompat
@@ -370,11 +371,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     @ReactMethod
     override fun androidSaveToDownloads(config: ReadableMap, promise: Promise) {
         val path = config.getString("path") ?: ""
-        val filename = config.getString("filename") ?: ""
+        val filename = sanitizeFilename(config.getString("filename") ?: "")
         val mime = (config.getString("mime") ?: "").ifEmpty { "application/octet-stream" }
         val deleteSource = config.hasKey("deleteSource") && config.getBoolean("deleteSource")
-        if (path.isEmpty() || filename.isEmpty()) {
-            promise.reject("EINVAL", "path and filename are required")
+        if (path.isEmpty()) {
+            promise.reject("EINVAL", "path is required")
             return
         }
         saveExecutor.execute {
@@ -385,8 +386,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                 } else {
                     saveToPublicDownloads(source, filename, mime)
                 }
-                if (deleteSource) {
-                    source.delete()
+                if (deleteSource && !source.delete()) {
+                    NativeLogger.warn("$NAME: could not delete source after save")
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     notifySaved(filename, mime, Uri.parse(result))
@@ -396,6 +397,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                 promise.reject("ESAVE", ex.message ?: "save failed")
             }
         }
+    }
+
+    // Names come from remote parties: keep only the last path segment, no control characters.
+    private fun sanitizeFilename(name: String): String {
+        val last = name.substringAfterLast('/').substringAfterLast('\\')
+        val clean = last.filter { !it.isISOControl() }
+        return if (clean.isEmpty() || clean == "." || clean == "..") "download" else clean
     }
 
     private fun saveViaMediaStore(source: File, filename: String, mime: String): String {
@@ -433,6 +441,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         while (target.exists()) {
             target = File(dir, "$base ($n)$ext")
             n++
+        }
+        if (!target.canonicalPath.startsWith(dir.canonicalPath + File.separator)) {
+            throw IOException("invalid filename")
         }
         try {
             source.inputStream().buffered().use { src -> target.outputStream().buffered().use { src.copyTo(it) } }
@@ -493,13 +504,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             val view = Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, mime)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            if (view.resolveActivity(reactContext.packageManager) == null) {
-                promise.reject("ENOAPP", "No app can open this file")
-                return
-            }
             val chooser = Intent.createChooser(view, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             reactContext.startActivity(chooser)
             promise.resolve(null)
+        } catch (ex: ActivityNotFoundException) {
+            promise.reject("ENOAPP", "No app can open this file")
         } catch (ex: Exception) {
             promise.reject("EOPEN", ex.message ?: "open failed")
         }
