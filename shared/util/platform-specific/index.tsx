@@ -3,7 +3,7 @@ import logger from '@/logger'
 import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
 import {File} from 'expo-file-system'
-import {isAndroidPreQ} from '@/constants/platform'
+import {isAndroidPreQ, isAndroidPreR} from '@/constants/platform'
 import {
   addNotificationRequest,
   androidOpenFile,
@@ -14,13 +14,17 @@ import {
 } from 'react-native-kb'
 import {ActionSheetIOS, PermissionsAndroid} from 'react-native'
 
-// Android 10+ writes through MediaStore and needs no storage permission.
+const requestWriteExternalStorage = async () => {
+  const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+  if (r !== PermissionsAndroid.RESULTS.GRANTED) {
+    throw new Error('Unable to acquire storage permissions')
+  }
+}
+
+// Saving to Downloads goes through MediaStore from Android 10 and needs no storage permission.
 export const requestPermissionsToWrite = async () => {
-  if (isAndroid && isAndroidPreQ) {
-    const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
-    if (r !== PermissionsAndroid.RESULTS.GRANTED) {
-      throw new Error('Unable to acquire storage permissions')
-    }
+  if (isAndroidPreQ) {
+    await requestWriteExternalStorage()
   }
 }
 
@@ -89,10 +93,10 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       if (!p.granted) {
         throw new Error('Please allow Keybase to add to your Photos in the phone settings.')
       }
-    } else {
+    } else if (isAndroidPreR) {
       try {
-        // see if we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
-        await requestPermissionsToWrite()
+        // expo-media-library writes through its legacy path below Android 11, which needs this
+        await requestWriteExternalStorage()
       } catch (e) {
         logger.warn(logPrefix + 'write permission denied, attempting save anyway: ' + String(e))
       }

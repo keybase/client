@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-const mockPlatform = {isAndroidPreQ: false}
+const mockPlatform = {isAndroidPreQ: false, isAndroidPreR: false}
 const mockPerm = {request: jest.fn()}
 const mockMedia = {requestPermissionsAsync: jest.fn(), createAsset: jest.fn()}
 const mockKb = {
@@ -38,12 +38,16 @@ jest.mock('@/constants/platform', () => ({
   get isAndroidPreQ() {
     return mockPlatform.isAndroidPreQ
   },
+  get isAndroidPreR() {
+    return mockPlatform.isAndroidPreR
+  },
 }))
 
 const g = globalThis as unknown as {isMobile: boolean; isAndroid: boolean; isIOS: boolean}
 
-const load = (isAndroidPreQ: boolean) => {
-  mockPlatform.isAndroidPreQ = isAndroidPreQ
+const atAndroidSdk = (sdk: number) => {
+  mockPlatform.isAndroidPreQ = sdk < 29
+  mockPlatform.isAndroidPreR = sdk < 30
   return PlatformSpecific
 }
 
@@ -68,14 +72,14 @@ afterEach(() => {
 import * as PlatformSpecific from './index'
 
 test('requestPermissionsToWrite on Android 10+ resolves without prompting', async () => {
-  const {requestPermissionsToWrite} = load(false)
+  const {requestPermissionsToWrite} = atAndroidSdk(29)
   await requestPermissionsToWrite()
   expect(mockPerm.request).not.toHaveBeenCalled()
   expect(mockMedia.requestPermissionsAsync).not.toHaveBeenCalled()
 })
 
 test('requestPermissionsToWrite before Android 10 asks for WRITE_EXTERNAL_STORAGE', async () => {
-  const {requestPermissionsToWrite} = load(true)
+  const {requestPermissionsToWrite} = atAndroidSdk(28)
   await requestPermissionsToWrite()
   expect(mockPerm.request).toHaveBeenCalledWith('android.permission.WRITE_EXTERNAL_STORAGE')
   mockPerm.request.mockResolvedValue('denied')
@@ -83,7 +87,7 @@ test('requestPermissionsToWrite before Android 10 asks for WRITE_EXTERNAL_STORAG
 })
 
 test('saveFileToDownloads passes path, filename, mime and deleteSource true', async () => {
-  const {saveFileToDownloads} = load(false)
+  const {saveFileToDownloads} = atAndroidSdk(30)
   await expect(saveFileToDownloads('/cache/a.pdf', 'a.pdf', 'application/pdf')).resolves.toBe(
     'content://downloads/1'
   )
@@ -96,7 +100,7 @@ test('saveFileToDownloads passes path, filename, mime and deleteSource true', as
 })
 
 test('saveFileToDownloads requests write permission first on Android before 10', async () => {
-  const {saveFileToDownloads} = load(true)
+  const {saveFileToDownloads} = atAndroidSdk(28)
   mockPerm.request.mockResolvedValue('denied')
   await expect(saveFileToDownloads('/cache/a.pdf', 'a.pdf', 'application/pdf')).rejects.toThrow(
     'Unable to acquire storage permissions'
@@ -105,7 +109,7 @@ test('saveFileToDownloads requests write permission first on Android before 10',
 })
 
 test('saveFileToDownloads failure posts a local notification and rethrows', async () => {
-  const {saveFileToDownloads} = load(false)
+  const {saveFileToDownloads} = atAndroidSdk(30)
   mockKb.androidSaveToDownloads.mockRejectedValue(new Error('boom'))
   await expect(saveFileToDownloads('/cache/a.pdf', 'a.pdf', 'application/pdf')).rejects.toThrow('boom')
   expect(mockKb.addNotificationRequest).toHaveBeenCalledWith(
@@ -114,13 +118,34 @@ test('saveFileToDownloads failure posts a local notification and rethrows', asyn
 })
 
 test('openSavedFile wraps androidOpenFile', async () => {
-  const {openSavedFile} = load(false)
+  const {openSavedFile} = atAndroidSdk(30)
   await openSavedFile('content://downloads/1', 'application/pdf')
   expect(mockKb.androidOpenFile).toHaveBeenCalledWith({mime: 'application/pdf', uri: 'content://downloads/1'})
 })
 
-test('saveAttachmentToCameraRoll on Android 10+ never requests permission', async () => {
-  const {saveAttachmentToCameraRoll} = load(false)
+test('saveFileToDownloads on Android 10 does not request write permission', async () => {
+  const {saveFileToDownloads} = atAndroidSdk(29)
+  await saveFileToDownloads('/cache/a.pdf', 'a.pdf', 'application/pdf')
+  expect(mockPerm.request).not.toHaveBeenCalled()
+  expect(mockKb.androidSaveToDownloads).toHaveBeenCalled()
+})
+
+test('saveAttachmentToCameraRoll on Android 10 requests WRITE_EXTERNAL_STORAGE', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(29)
+  await saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')
+  expect(mockPerm.request).toHaveBeenCalledWith('android.permission.WRITE_EXTERNAL_STORAGE')
+  expect(mockMedia.createAsset).toHaveBeenCalledWith('file:///cache/a.jpg')
+})
+
+test('saveAttachmentToCameraRoll still saves when WRITE_EXTERNAL_STORAGE is denied', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(29)
+  mockPerm.request.mockResolvedValue('denied')
+  await saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')
+  expect(mockMedia.createAsset).toHaveBeenCalledWith('file:///cache/a.jpg')
+})
+
+test('saveAttachmentToCameraRoll on Android 11+ never requests permission', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(30)
   await saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')
   expect(mockPerm.request).not.toHaveBeenCalled()
   expect(mockMedia.requestPermissionsAsync).not.toHaveBeenCalled()

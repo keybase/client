@@ -331,9 +331,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             promise.reject("EINVAL", "path is required")
             return
         }
+        val source = File(path)
+        if (!isAppDownloadSource(source)) {
+            promise.reject("EINVAL", "path is outside the app download dirs")
+            return
+        }
         saveExecutor.execute {
             try {
-                val source = File(path)
                 val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     saveViaMediaStore(source, filename, mime)
                 } else {
@@ -352,11 +356,62 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Names come from remote parties: keep only the last path segment, no control characters.
+    // The source is moved, not just copied, so only files the app itself downloaded qualify:
+    // chat attachments land in cacheDir and Files downloads in the app's external Downloads dir.
+    private fun isAppDownloadSource(source: File): Boolean {
+        val canonical = try { source.canonicalPath } catch (ex: IOException) { return false }
+        val roots = listOfNotNull(
+            reactContext.cacheDir,
+            reactContext.externalCacheDir,
+            reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+        )
+        return roots.any { root ->
+            try {
+                canonical.startsWith(root.canonicalPath + File.separator)
+            } catch (ex: IOException) {
+                false
+            }
+        }
+    }
+
+    // Names come from remote parties: keep only the last path segment, no control characters,
+    // and at most the 255 bytes a filesystem name allows.
     private fun sanitizeFilename(name: String): String {
         val last = name.substringAfterLast('/').substringAfterLast('\\')
         val clean = last.filter { !it.isISOControl() }
-        return if (clean.isEmpty() || clean == "." || clean == "..") "download" else clean
+        if (clean.isEmpty() || clean == "." || clean == "..") {
+            return "download"
+        }
+        return capFilenameBytes(clean, 255)
+    }
+
+    private fun capFilenameBytes(name: String, maxBytes: Int): String {
+        if (name.toByteArray(Charsets.UTF_8).size <= maxBytes) {
+            return name
+        }
+        val dot = name.lastIndexOf('.')
+        val ext = if (dot > 0) name.substring(dot) else ""
+        val extBytes = ext.toByteArray(Charsets.UTF_8).size
+        // an extension that alone fills the budget is not worth keeping
+        if (extBytes >= maxBytes / 2) {
+            return truncateUtf8(name, maxBytes)
+        }
+        return truncateUtf8(name.substring(0, name.length - ext.length), maxBytes - extBytes) + ext
+    }
+
+    private fun truncateUtf8(s: String, maxBytes: Int): String {
+        var bytes = 0
+        var end = 0
+        while (end < s.length) {
+            val cp = s.codePointAt(end)
+            val len = String(Character.toChars(cp)).toByteArray(Charsets.UTF_8).size
+            if (bytes + len > maxBytes) {
+                break
+            }
+            bytes += len
+            end += Character.charCount(cp)
+        }
+        return s.substring(0, end)
     }
 
     private fun saveViaMediaStore(source: File, filename: String, mime: String): String {
@@ -428,9 +483,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             val pending = PendingIntent.getActivity(
                 reactContext, uri.hashCode(), view, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
+            val publicVersion = NotificationCompat.Builder(reactContext, channelId)
+                .setContentTitle("Keybase")
+                .setContentText("Saved a file to Downloads")
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .build()
             val notification = NotificationCompat.Builder(reactContext, channelId)
+                .setContentTitle("Download complete")
                 .setContentText("Saved $filename to Downloads")
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setPublicVersion(publicVersion)
                 .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build()
@@ -452,7 +515,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             val uri = if (uriString.startsWith("/")) {
                 FileProvider.getUriForFile(reactContext, ShareOutbox.authority(reactContext), File(uriString))
             } else {
-                Uri.parse(uriString)
+                val parsed = Uri.parse(uriString)
+                // only what androidSaveToDownloads hands back: a MediaStore entry from Android 10
+                if (parsed.scheme != "content" || parsed.authority != MediaStore.AUTHORITY) {
+                    promise.reject("EINVAL", "unsupported uri")
+                    return
+                }
+                parsed
             }
             val view = Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, mime)
