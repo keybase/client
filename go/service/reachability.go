@@ -90,8 +90,8 @@ func (h *reachability) check(ctx context.Context) (k keybase1.Reachability) {
 	return k
 }
 
-func (h *reachability) ConnectedSince(ctx context.Context) time.Time {
-	return h.gh.connectedSince()
+func (h *reachability) ConnectedSince(ctx context.Context) (time.Time, bool) {
+	return h.gh.connectedSince(), true
 }
 
 func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {

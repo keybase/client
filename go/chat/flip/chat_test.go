@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -33,6 +34,7 @@ type chatClient struct {
 	history    map[chat1.ConvIDStr]bool
 	clock      clockwork.FakeClock
 	deliver    func(m GameMessageWrappedEncoded)
+	optOut     bool
 }
 
 var (
@@ -73,7 +75,7 @@ func (c *chatClient) SendChat(ctx context.Context, initiatorUID gregor1.UID, con
 }
 
 func (c *chatClient) ShouldCommit(ctx context.Context) bool {
-	return true
+	return !c.optOut
 }
 
 func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
@@ -282,6 +284,56 @@ func testHappyChat(t *testing.T, n int) {
 	res, err := Replay(ctx, clients[0], srv.gameHistories[GameIDToKey(gameID)])
 	require.NoError(t, err)
 	require.Equal(t, 0, b.Cmp(res.Result.Big))
+}
+
+func TestOptedOutFollowerDoesNotReveal(t *testing.T) {
+	srv := newChatServer()
+	var mu sync.Mutex
+	var revealers []UserDevice
+	srv.corruptor = func(m GameMessageWrappedEncoded) GameMessageWrappedEncoded {
+		if getType(t, m) == MessageType_REVEAL {
+			mu.Lock()
+			revealers = append(revealers, m.Sender)
+			mu.Unlock()
+		}
+		return m
+	}
+	ctx := context.Background()
+	go srv.run(ctx)
+	defer srv.stop()
+	conversationID := genConversationID()
+	gameID := GenerateGameID()
+	n := 4
+	for range n {
+		srv.newClient()
+	}
+	clients := srv.chatClients
+	optedOut := clients[n-1]
+	optedOut.optOut = true
+	forAllClients(clients, func(c *chatClient) { go c.run(ctx, conversationID) })
+	defer srv.stopClients()
+
+	start := NewStartWithBigInt(srv.clock.Now(), pi(), 5)
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
+	require.NoError(t, err)
+	forAllClients(clients, func(c *chatClient) { nTimes(n-1, func() { c.consumeCommitment(t) }) })
+	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
+	forAllClients(clients, func(c *chatClient) { c.consumeCommitmentComplete(t, n-1) })
+	forAllClients(clients, func(c *chatClient) { nTimes(n-1, func() { c.consumeReveal(t) }) })
+	var b *big.Int
+	forAllClients(clients, func(c *chatClient) { c.consumeResult(t, &b) })
+
+	revealed := func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		for _, u := range revealers {
+			if u.Eq(optedOut.me) {
+				return true
+			}
+		}
+		return false
+	}
+	require.Never(t, revealed, 200*time.Millisecond, 10*time.Millisecond)
 }
 
 func getType(t *testing.T, m GameMessageWrappedEncoded) MessageType {

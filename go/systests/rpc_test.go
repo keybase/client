@@ -45,8 +45,8 @@ func (f *fakeConnectivityMonitor) Set(r libkb.ConnectivityMonitorResult) {
 	f.res = r
 }
 
-func (f *fakeConnectivityMonitor) ConnectedSince(ctx context.Context) time.Time {
-	return time.Time{}
+func (f *fakeConnectivityMonitor) ConnectedSince(ctx context.Context) (time.Time, bool) {
+	return time.Time{}, false
 }
 
 func (f *fakeConnectivityMonitor) CheckReachability(ctx context.Context) error {

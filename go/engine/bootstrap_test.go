@@ -95,8 +95,8 @@ func (s OfflineConnectivityMonitor) IsConnected(ctx context.Context) libkb.Conne
 	return libkb.ConnectivityMonitorNo
 }
 
-func (s OfflineConnectivityMonitor) ConnectedSince(ctx context.Context) time.Time {
-	return time.Time{}
+func (s OfflineConnectivityMonitor) ConnectedSince(ctx context.Context) (time.Time, bool) {
+	return time.Time{}, true
 }
 
 func (s OfflineConnectivityMonitor) CheckReachability(ctx context.Context) error {

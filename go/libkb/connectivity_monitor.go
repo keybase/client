@@ -11,8 +11,8 @@ func (s NullConnectivityMonitor) IsConnected(ctx context.Context) ConnectivityMo
 	return ConnectivityMonitorYes
 }
 
-func (s NullConnectivityMonitor) ConnectedSince(ctx context.Context) time.Time {
-	return time.Time{}
+func (s NullConnectivityMonitor) ConnectedSince(ctx context.Context) (time.Time, bool) {
+	return time.Time{}, false
 }
 
 func (s NullConnectivityMonitor) CheckReachability(ctx context.Context) error {

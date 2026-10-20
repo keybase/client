@@ -1587,9 +1587,14 @@ func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
 	}
 	// A gregor connection this fresh usually means the machine just woke up
 	// or reconnected (dark wakes included), and may vanish again before it
-	// can reveal; sit this game out. Zero means no connection-age data
-	// available, which is not grounds for a veto.
-	if cs := m.G().ConnectivityMonitor.ConnectedSince(ctx); !cs.IsZero() {
+	// can reveal; sit this game out. A zero time means we're disconnected or
+	// still inside OnConnect, replaying what we missed, which is the freshest
+	// connection of all.
+	if cs, known := m.G().ConnectivityMonitor.ConnectedSince(ctx); known {
+		if cs.IsZero() {
+			m.Debug(ctx, "ShouldCommit -> false (gregor not connected yet)")
+			return false
+		}
 		if age := m.clock.Now().Sub(cs); age < minFlipConnAge {
 			m.Debug(ctx, "ShouldCommit -> false (gregor connection too young: %v)", age)
 			return false

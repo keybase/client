@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
@@ -558,4 +559,37 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	res1 = consumeFlipToResult(t, ui1, listener1, gameID, 2)
 	require.Equal(t, res, res1)
 	close(stopCh)
+}
+
+type flipConnMonitor struct {
+	libkb.NullConnectivityMonitor
+	since time.Time
+	known bool
+}
+
+func (f flipConnMonitor) ConnectedSince(context.Context) (time.Time, bool) {
+	return f.since, f.known
+}
+
+func TestFlipManagerShouldCommit(t *testing.T) {
+	tc := externalstest.SetupTest(t, "flip", 0)
+	defer tc.Cleanup()
+
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	fm := NewFlipManager(g, nil)
+	clock := clockwork.NewFakeClock()
+	fm.clock = clock
+	ctx := context.TODO()
+
+	tc.G.ConnectivityMonitor = flipConnMonitor{}
+	require.True(t, fm.ShouldCommit(ctx), "no connection data")
+
+	tc.G.ConnectivityMonitor = flipConnMonitor{known: true}
+	require.False(t, fm.ShouldCommit(ctx), "disconnected or mid-connect")
+
+	tc.G.ConnectivityMonitor = flipConnMonitor{known: true, since: clock.Now().Add(-5 * time.Second)}
+	require.False(t, fm.ShouldCommit(ctx), "young connection")
+
+	tc.G.ConnectivityMonitor = flipConnMonitor{known: true, since: clock.Now().Add(-time.Minute)}
+	require.True(t, fm.ShouldCommit(ctx), "settled connection")
 }

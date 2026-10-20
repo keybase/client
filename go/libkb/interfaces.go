@@ -708,8 +708,9 @@ const (
 type ConnectivityMonitor interface {
 	IsConnected(ctx context.Context) ConnectivityMonitorResult
 	// ConnectedSince returns when the current gregor connection was
-	// established, or the zero time if disconnected or unknown.
-	ConnectedSince(ctx context.Context) time.Time
+	// established, or the zero time while disconnected or still connecting.
+	// known is false when this monitor doesn't track connections at all.
+	ConnectedSince(ctx context.Context) (since time.Time, known bool)
 	CheckReachability(ctx context.Context) error
 }
 

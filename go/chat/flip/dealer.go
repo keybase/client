@@ -377,7 +377,10 @@ func (g *Game) maybeReveal(ctx context.Context) (err error) {
 		return nil
 	}
 
-	if !g.iWasIncluded && !g.iOptedOutOfCommit {
+	if g.iOptedOutOfCommit {
+		return nil
+	}
+	if !g.iWasIncluded {
 		g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		return nil
 	}
