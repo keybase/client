@@ -24,36 +24,52 @@ const newestFirst = (from: number, to: number) => {
 
 type Props = {
   centeredOrdinal: T.Chat.Ordinal | undefined
+  containsLatestMessage: boolean
+  datasetKey: string
   editingOrdinal: T.Chat.Ordinal | undefined
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
 }
 
-const mount = () => {
+// The keyboard is up unless asked otherwise, so the list rests over it.
+const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean} = {}) => {
+  const {containsLatestMessage = true, keyboardVisible = true} = opts
+  const resting = keyboardVisible ? keyboardOffset : 0
   const scrollToOffset = jest.fn()
   const scrollToItem = jest.fn()
+  const clearCenter = jest.fn()
+  const loadNewer = jest.fn()
+  const loadOlder = jest.fn()
   const listRef: React.RefObject<NativeListRef | null> = {current: {scrollToItem, scrollToOffset}}
   const wrapper = ({children}: {children: React.ReactNode}) => (
     <ComposerProvider
       bottomInset={0}
-      keyboardHeight={shared(keyboardOffset)}
+      keyboardHeight={shared(resting)}
       keyboardProgress={shared(1)}
       measuredHeight={800}
     >
       {children}
     </ComposerProvider>
   )
-  const initialProps: Props = {centeredOrdinal: undefined, editingOrdinal: undefined, messageOrdinals: newestFirst(1, 60)}
+  const initialProps: Props = {
+    centeredOrdinal: undefined,
+    containsLatestMessage,
+    datasetKey: 'conv1:0',
+    editingOrdinal: undefined,
+    messageOrdinals: newestFirst(1, 60),
+  }
   const hook = renderHook(
     (p: Props) =>
       useNativeThreadScroll({
         centeredOrdinal: p.centeredOrdinal,
-        containsLatestMessage: true,
+        clearCenter,
+        containsLatestMessage: p.containsLatestMessage,
         conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
-        datasetKey: 'conv1:0',
+        datasetKey: p.datasetKey,
         editingOrdinal: p.editingOrdinal,
-        isKeyboardVisible: true,
+        isKeyboardVisible: keyboardVisible,
         listRef,
-        loadOlder: () => {},
+        loadNewer,
+        loadOlder,
         loaded: true,
         messageOrdinals: p.messageOrdinals,
       }),
@@ -61,14 +77,17 @@ const mount = () => {
   )
   let props = initialProps
   return {
+    clearCenter,
     hook,
     // Scrolls to the row, whatever for.
     itemScrolls: (item: T.Chat.Ordinal) =>
       scrollToItem.mock.calls.filter(([o]) => (o as {item: T.Chat.Ordinal}).item === item).length,
-    // Pins to the end: the resting offset over the keyboard.
-    pins: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset === keyboardOffset).length,
+    loadNewer,
+    loadOlder,
+    // Pins to the end: the resting offset.
+    pins: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset === resting).length,
     // Scrolls to an offset other than the end: the centring corrector's steps.
-    steps: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset !== keyboardOffset),
+    steps: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset !== resting),
     set: (p: Partial<Props>) => {
       props = {...props, ...p}
       act(() => hook.rerender(props))
@@ -170,6 +189,40 @@ const scrollAt = (y: number) => ({
   nativeEvent: {contentOffset: {y}, contentSize: {height: 6000}, layoutMeasurement: {height: 800}},
 })
 
+// FlatList's viewability counts rows under the keyboard as on screen; the line's own position decides.
+test('an orange line among several short rows under the keyboard is not uncovered, one above them is', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  // Short rows from the newest up: 60 at the bottom, each 50 high, and an older row 100 high.
+  for (const [n, y, height] of [
+    [60, 0, 50],
+    [59, 50, 50],
+    [58, 100, 50],
+    [57, 150, 50],
+    [56, 200, 100],
+  ] as const) {
+    act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(n), {height, y}))
+  }
+  // Scrolled up off the end: the keyboard covers the bottom 300 points, the rows from 0 to 300.
+  act(() => m.hook.result.current.onScroll(scrollAt(0)))
+  const uncovered = (n: number) => m.hook.result.current.lineAboveUncovered(T.Chat.numberToOrdinal(n))
+  expect([59, 58, 57].map(uncovered)).toEqual([false, false, false])
+  expect(uncovered(56)).toBe(true)
+  // Not laid out yet, so not known to be in view.
+  expect(uncovered(5)).toBe(false)
+  // At rest over the keyboard nothing is under it.
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  expect(uncovered(59)).toBe(true)
+})
+
+test('an orange line in view on a thread opened at the end, with no scroll since, is uncovered', () => {
+  const m = mount({keyboardVisible: false})
+  act(() => jest.advanceTimersByTime(1000))
+  act(() => m.hook.result.current.onLayout({nativeEvent: {layout: {height: 800}}}))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(58), {height: 100, y: 200}))
+  expect(m.hook.result.current.lineAboveUncovered(T.Chat.numberToOrdinal(58))).toBe(true)
+})
+
 test('a reveal that brings its row into view is done: a later failure for that row is not retried', () => {
   const m = mount()
   const edited = T.Chat.numberToOrdinal(5)
@@ -248,4 +301,162 @@ test('centring steps again once a scroll the list reports nothing for has had ti
   expect(m.steps()).toHaveLength(1)
   act(() => jest.advanceTimersByTime(10))
   expect(m.steps()).toHaveLength(2)
+})
+
+// A window of history, out past the first gate after its rows came in, with its oldest row laid out.
+const windowOfHistory = (opts: {keyboardVisible?: boolean} = {}) => {
+  const m = mount({containsLatestMessage: false, ...opts})
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
+  return m
+}
+const scrollIn = (y: number, content: number) => ({
+  nativeEvent: {contentOffset: {y}, contentSize: {height: content}, layoutMeasurement: {height: 663}},
+})
+
+test('a window of history asks for a newer page near its newest row, once a gate', () => {
+  const m = windowOfHistory()
+  // 900pt past the resting offset, within two screens of the newest row.
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+  act(() => jest.advanceTimersByTime(500))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+  act(() => jest.advanceTimersByTime(501))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).toHaveBeenCalledTimes(2)
+})
+
+test('after a jump to a centred row, no newer page is asked for until the reader moves the list', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  // centring settled and the centre closed, the reader still has not moved the list
+  act(() => jest.advanceTimersByTime(5000))
+  m.set({centeredOrdinal: undefined})
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollIn(590, 6000)))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a search for the same hit again waits for the reader again', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  // the same hit, reloaded as a fresh window
+  m.set({datasetKey: 'conv1:1'})
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+})
+
+test('after a jump to a centred row, only a drag or a status-bar tap lets a newer page be asked for', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  // the list moving with no finger on it (its own centring included) is not the reader
+  act(() => m.hook.result.current.onScroll(scrollIn(900, 6000)))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollToTop({nativeEvent: {contentOffset: {y: 600}}}))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a status-bar tap measures from where it came to rest, not the last scroll event', () => {
+  const m = windowOfHistory()
+  // the last scroll event seen was far from the newest row
+  act(() => m.hook.result.current.onScroll(scrollIn(5000, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+  act(() => m.hook.result.current.onScrollToTop({nativeEvent: {contentOffset: {y: 0}}}))
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a reader who scrolls from a centred row to the present lets the centre go', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  m.set({containsLatestMessage: true})
+  // a centred window that already holds the newest message keeps its centre
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  m.set({containsLatestMessage: false})
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  m.set({containsLatestMessage: true})
+  expect(m.clearCenter).toHaveBeenCalledTimes(1)
+})
+
+test('a centred window holding the newest message lets the centre go once the reader moves on to the end', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => jest.advanceTimersByTime(1000))
+  // The list's own scroll coming to rest at the end is not the reader moving on to it.
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  act(() => m.hook.result.current.onMomentumScrollEnd({nativeEvent: {contentOffset: {y: keyboardOffset}}}))
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  // The reader drags away from the centred row and lets go short of the end: the centre stays.
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollAt(1500)))
+  act(() => m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: 1500}, velocity: {y: 0}}}))
+  expect(m.clearCenter).not.toHaveBeenCalled()
+  // On to the end, coming to rest there.
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  act(() =>
+    m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: keyboardOffset}, velocity: {y: 0}}})
+  )
+  expect(m.clearCenter).toHaveBeenCalledTimes(1)
+})
+
+test('a thread holding the newest message asks for no newer page', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+})
+
+test('an older page asked for does not hold back a newer one', () => {
+  const m = windowOfHistory()
+  // A short thread: near both its oldest and its newest row.
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 2000)))
+  expect(m.loadOlder).toHaveBeenCalledTimes(1)
+  expect(m.loadNewer).toHaveBeenCalledTimes(1)
+})
+
+test('a window of history keeps the end anchor off and anchors on its rows, a reader resting at its newest row too', () => {
+  const m = windowOfHistory({keyboardVisible: false})
+  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 1})
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollIn(0, 6000)))
+  act(() => m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: 0}, velocity: {y: 0}}}))
+  expect(m.hook.result.current.maintainVisibleContentPosition).toEqual({minIndexForVisible: 1})
+})
+
+test('rows landing at the newest end of a window of history are not re-pinned', () => {
+  const m = windowOfHistory()
+  const before = m.pins()
+  m.set({messageOrdinals: newestFirst(1, 61)})
+  act(() => jest.advanceTimersByTime(10))
+  expect(m.pins()).toBe(before)
+})
+
+test('a reader resting at the newest row of a window of history does not get the end back', () => {
+  const m = windowOfHistory()
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => m.hook.result.current.onScroll(scrollIn(keyboardOffset, 6000)))
+  act(() =>
+    m.hook.result.current.onScrollEndDrag({nativeEvent: {contentOffset: {y: keyboardOffset}, velocity: {y: 0}}})
+  )
+  const before = m.pins()
+  // The page bringing the newest message, then a new message after it.
+  m.set({containsLatestMessage: true, messageOrdinals: newestFirst(1, 61)})
+  act(() => jest.advanceTimersByTime(10))
+  m.set({messageOrdinals: newestFirst(1, 62)})
+  act(() => jest.advanceTimersByTime(10))
+  expect(m.pins()).toBe(before)
 })

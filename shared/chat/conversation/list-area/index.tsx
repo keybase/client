@@ -10,7 +10,7 @@ import {MessageRow} from '../messages/wrapper'
 import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
-import {useConversationCenter} from '../center-context'
+import {useConversationCenter, useConversationCenterActions} from '../center-context'
 import {
   ShownUsernameCacheContext,
   useConversationThreadID,
@@ -120,10 +120,9 @@ const useLoadOlder = (loadPageArgs: LoadPageArgs) => {
   }, [loadOlderMessagesDueToScroll, loadPageArgs])
 }
 
-// Only the desktop list loads a newer page, as the reader nears the newest row loaded while the
-// thread does not hold the newest message (after a jump to an old hit). On mobile a newer page
-// landing mid-drag, mid-fling or after a status-bar tap throws the reader ahead. Refs keep the
-// throttled callback stable.
+// Both lists load a newer page as the reader nears the newest row loaded, while the thread does not
+// hold the newest message (after a jump to an old hit or Catch up). Refs keep the throttled
+// callback stable.
 const useLoadNewer = (p: {containsLatestMessage: boolean; loadPageArgs: LoadPageArgs}) => {
   const {containsLatestMessage, loadPageArgs} = p
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
@@ -302,10 +301,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
-  // Data runs oldest-first here, so the first viewable row is the oldest one on screen.
+  // Data runs oldest-first here, so the first viewable row is the oldest one on screen and the last the newest.
   const onViewableItemsChanged = React.useCallback(
     (info: {viewableItems: ReadonlyArray<{item: T.Chat.Ordinal}>}) => {
-      onViewableOrdinalsChanged(info.viewableItems.at(0)?.item)
+      onViewableOrdinalsChanged(info.viewableItems.at(0)?.item, info.viewableItems.at(-1)?.item)
     },
     [onViewableOrdinalsChanged]
   )
@@ -493,6 +492,7 @@ const NativeConversationList = function NativeConversationList() {
   const conversationIDKey = useConversationThreadID()
   const listData = useThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {clearCenter} = useConversationCenterActions()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   // Ordinals start at 1; this list takes anything else as no centre.
@@ -507,6 +507,7 @@ const NativeConversationList = function NativeConversationList() {
   const numOrdinals = messageOrdinals.length
   const loadPageArgs = useLoadPageArgs(numOrdinals)
   const loadOlder = useLoadOlder(loadPageArgs)
+  const loadNewer = useLoadNewer({containsLatestMessage, loadPageArgs})
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -544,6 +545,7 @@ const NativeConversationList = function NativeConversationList() {
   }, [conversationIDKey, loaded, markInitiallyLoadedThreadAsRead])
 
   const {
+    lineAboveUncovered,
     maintainVisibleContentPosition,
     onCellLayout,
     onContentSizeChange,
@@ -558,12 +560,14 @@ const NativeConversationList = function NativeConversationList() {
     scrollToBottom,
   } = useNativeThreadScroll({
     centeredOrdinal: centeredTarget,
+    clearCenter,
     containsLatestMessage,
     conversationIDKey,
     datasetKey: `${conversationIDKey}:${clearVersion}`,
     editingOrdinal,
     isKeyboardVisible,
     listRef,
+    loadNewer,
     loadOlder,
     loaded,
     messageOrdinals,
@@ -571,7 +575,10 @@ const NativeConversationList = function NativeConversationList() {
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
+  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({
+    lineUncovered: lineAboveUncovered,
+    loaded,
+  })
 
   // The rows in view at all (the default viewability). FlatList takes the pairs once, so they never
   // change identity.
@@ -579,8 +586,8 @@ const NativeConversationList = function NativeConversationList() {
     {
       onViewableItemsChanged: (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
         onViewableRange(info.viewableItems.at(0)?.index, info.viewableItems.at(-1)?.index)
-        // The list is inverted and its data reversed, so the last viewable row is the oldest.
-        onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
+        // The list is inverted and its data reversed, so the last viewable row is the oldest and the first the newest.
+        onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item, info.viewableItems.at(0)?.item)
       },
       viewabilityConfig: {viewAreaCoveragePercentThreshold: 0},
     },

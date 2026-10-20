@@ -14,7 +14,7 @@ import {
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
   loadConversationThreadMessages,
-  maxBackPageReloads,
+  maxPageReloads,
   numMessagesOnScrollback,
   persistExplodingMode,
   scrollDirectionToPagination,
@@ -212,19 +212,30 @@ describe('a back page that adds no ordinals reloads itself', () => {
   // ordinal per message EXCEPT the ones addMessagesToThreadState drops, which is `deleted`. A fake
   // that grows unconditionally would make every page look productive and hide the bug; one that
   // never grows would make every page look empty and hide the opposite bug.
+  // It also keeps how far each direction's pages reached, as the store does.
   const trackingActions = () => {
     const ordinals = new Set<T.Chat.Ordinal>([
       T.Chat.numberToOrdinal(7152),
       T.Chat.numberToOrdinal(7153),
     ])
+    let pagedOldestMessageID: T.Chat.MessageID | undefined
+    let pagedNewestMessageID: T.Chat.MessageID | undefined
     const actions = {
-      applyThreadLoad: jest.fn((p: {messages: ReadonlyArray<T.Chat.Message>}) => {
-        for (const m of p.messages) {
-          if (m.type !== 'deleted') {
-            ordinals.add(m.ordinal)
+      applyThreadLoad: jest.fn(
+        (p: {messages: ReadonlyArray<T.Chat.Message>; scrollDirection: LoadMoreMessagesParams['scrollDirection']}) => {
+          for (const m of p.messages) {
+            if (m.type !== 'deleted') {
+              ordinals.add(m.ordinal)
+            }
+            if (p.scrollDirection === 'back' && m.id < (pagedOldestMessageID ?? Number.MAX_SAFE_INTEGER)) {
+              pagedOldestMessageID = m.id
+            }
+            if (p.scrollDirection === 'forward' && m.id > (pagedNewestMessageID ?? 0)) {
+              pagedNewestMessageID = m.id
+            }
           }
         }
-      }),
+      ),
       claimWindowGate: jest.fn(),
       clearWindowGate: jest.fn(),
       getSnapshot: () =>
@@ -234,6 +245,8 @@ describe('a back page that adds no ordinals reloads itself', () => {
           messageIDToOrdinal: new Map(),
           messageMap: new Map(),
           messageOrdinals: [...ordinals].sort((a, b) => a - b),
+          pagedNewestMessageID,
+          pagedOldestMessageID,
           pendingOutboxToOrdinal: new Map(),
         }) as unknown as ConversationThreadState,
       // The reload goes through the action, which in the store is the throttled loadMoreMessages.
@@ -307,6 +320,19 @@ describe('a back page that adds no ordinals reloads itself', () => {
     expect(rpc()).toHaveLength(2)
   })
 
+  // A page of tombstones adds no rows, so the oldest row loaded does not move: the reload asks from
+  // below the oldest message the page carried.
+  test('reloads from below the oldest message the empty page carried', async () => {
+    const rpc = mockWalkingBack(6952)
+    loadBack(trackingActions())
+    await flushPromises()
+    expect(rpc().at(1)?.[0].messageIDControl).toEqual({
+      mode: T.RPCChat.MessageIDControlMode.oldermessages,
+      num: numMessagesOnScrollback,
+      pivot: T.Chat.numberToMessageID(7052),
+    })
+  })
+
   test('walks a run of tombstones that ends before the cap', async () => {
     const oldest = 6752
     const rpc = mockWalkingBack(oldest)
@@ -322,7 +348,44 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const rpc = mockWalkingBack(1)
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc()).toHaveLength(maxBackPageReloads + 1)
+    expect(rpc()).toHaveLength(maxPageReloads + 1)
+  })
+
+  test('a fresh gesture after the cap carries on from where the chain stopped', async () => {
+    const rpc = mockWalkingBack(1)
+    const actions = trackingActions()
+    loadBack(actions)
+    await flushPromises()
+    loadBack(actions)
+    await flushPromises()
+    const pivots = rpc().map(([p]) => p.messageIDControl?.pivot)
+    expect(pivots).toHaveLength(2 * (maxPageReloads + 1))
+    // No page is asked for twice.
+    expect(new Set(pivots).size).toBe(pivots.length)
+  })
+
+  test('keeps paging forward through a run of tombstones', async () => {
+    // Newer than the window: 7154 up to 7353 is two pages of 100, then a page of real messages.
+    let next = 7154
+    const rpc = scriptLoadThread(async p => {
+      const from = next
+      next = from + numMessagesOnScrollback
+      await Promise.resolve()
+      const page = from > 7353 ? visible(from + 99, from) : tombstones(from + 99, from)
+      p.onFullThread?.(JSON.stringify({messages: page, pagination: {last: false, num: 100}}))
+      return undefined as never
+    })
+    loadConversationThreadMessages(
+      conversationIDKey,
+      {numberOfMessagesToLoad: numMessagesOnScrollback, reason: 'scroll forward', scrollDirection: 'forward'},
+      trackingActions()
+    )
+    await flushPromises()
+    expect(rpc().map(([p]) => p.messageIDControl?.pivot)).toEqual([
+      undefined,
+      T.Chat.numberToMessageID(7253),
+      T.Chat.numberToMessageID(7353),
+    ])
   })
 
   test('stops if a page fails to reach further back', async () => {

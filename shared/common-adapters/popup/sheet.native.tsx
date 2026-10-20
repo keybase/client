@@ -69,6 +69,9 @@ export function Sheet(props: SheetProps) {
   return (
     <BottomSheetModal
       ref={setBottomSheetRef}
+      // the library makes the sheet one accessibility element, which hides every row in it from
+      // VoiceOver and UI automation
+      accessible={false}
       enableDynamicSizing={true}
       // no snapPoints -> dynamic sizing only: sheet hugs content and can't be dragged taller
       snapPoints={snapPoints}

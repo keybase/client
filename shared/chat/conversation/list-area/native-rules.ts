@@ -22,6 +22,14 @@ export const atRestingEnd = (offset: number, resting: number) => offset <= resti
 export const rowUncovered = (frame: RowFrame, p: {offset: number; resting: number; viewport: number}) =>
   frame.y >= p.offset - p.resting - rowEdgeTolerance && frame.y + frame.height <= p.offset + p.viewport + rowEdgeTolerance
 
+// Whether a row's top edge is in the part of the list nothing covers. The list is inverted, so the
+// edge on screen is the far end of its frame: there the orange line is drawn, the row's cell carrying
+// the separator above it.
+export const rowTopUncovered = (frame: RowFrame, p: {offset: number; resting: number; viewport: number}) => {
+  const top = frame.y + frame.height
+  return top >= p.offset - p.resting - rowEdgeTolerance && top <= p.offset + p.viewport + rowEdgeTolerance
+}
+
 export type ScrollReport = {content: number; offset: number; resting: number}
 
 // Whether the list moving from one scroll report to the next is the reader. The list moves itself only
@@ -87,7 +95,12 @@ export const correctorStep = (p: {
   return {offset: next, type: 'step'}
 }
 
-// Whether a newest row is a new message appended to the thread: not older rows loading, or a cleared
-// thread refilling.
-export const isAppend = (p: {newest: number | undefined; previousNewest: number | undefined; sameDataset: boolean}) =>
-  p.sameDataset && p.newest !== undefined && p.previousNewest !== undefined && p.newest > p.previousNewest
+// Whether a newest row is a new message appended to a thread that held the newest message: not older
+// rows loading, a page of newer rows landing in a window of history, or a cleared thread refilling.
+export const isAppend = (p: {
+  heldLatest: boolean
+  newest: number | undefined
+  previousNewest: number | undefined
+  sameDataset: boolean
+}) =>
+  p.sameDataset && p.heldLatest && p.newest !== undefined && p.previousNewest !== undefined && p.newest > p.previousNewest

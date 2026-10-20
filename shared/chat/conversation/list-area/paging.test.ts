@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {nativeOlderPageDistance, withinPageLoad} from './paging'
+import {nativeNewerPageDistance, nativeOlderPageDistance, withinPageLoad} from './paging'
 
 const ords = (from: number, to: number) => {
   const out: Array<T.Chat.Ordinal> = []
@@ -29,5 +29,18 @@ describe('nativeOlderPageDistance', () => {
   test('an oldest laid out row no longer loaded counts the rows newer than it as laid out', () => {
     const d = nativeOlderPageDistance({...base, oldestLaidOut: T.Chat.numberToOrdinal(20), ordinals: ords(21, 60)})
     expect(d).toBe(4000 - 1000 - 800)
+  })
+})
+
+describe('nativeNewerPageDistance', () => {
+  test('the newest row rests at the resting offset, so the distance is how far the offset is past it', () => {
+    expect(nativeNewerPageDistance({offset: 0, resting: 0})).toBe(0)
+    expect(nativeNewerPageDistance({offset: 1200, resting: 0})).toBe(1200)
+    expect(nativeNewerPageDistance({offset: -300, resting: -300})).toBe(0)
+    expect(nativeNewerPageDistance({offset: 500, resting: -300})).toBe(800)
+  })
+  test('a distance within two screens of the viewport is within reach of the next page', () => {
+    expect(withinPageLoad(nativeNewerPageDistance({offset: 1300, resting: 0}), 663)).toBe(true)
+    expect(withinPageLoad(nativeNewerPageDistance({offset: 1400, resting: 0}), 663)).toBe(false)
   })
 })

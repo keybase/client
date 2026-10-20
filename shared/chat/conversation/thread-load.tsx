@@ -26,9 +26,9 @@ import type {
 let nextLoadID = 0
 
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
-// How far the no-new-ordinals back-page chain will walk on its own before handing the thread back to
-// the reader. See the reload block in loadConversationThreadMessages.
-export const maxBackPageReloads = 10
+// How far the no-new-ordinals scroll-page chain will walk on its own before handing the thread back
+// to the reader. See the reload block in loadConversationThreadMessages.
+export const maxPageReloads = 10
 export const numMessagesOnScrollback = 100
 
 const ignoreErrors = [
@@ -124,6 +124,24 @@ export const threadLoadReasonToRPCReason = (reason: string): T.RPCChat.GetThread
 export const getLastOrdinalFromSnapshot = (snapshot: ConversationThreadState) =>
   snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
+// Where the next scroll page that way is asked from: the newest or oldest message the window holds
+// that the service knows (pending sends have no ID yet), or past it, as far as earlier pages that
+// way carried messages the thread never renders.
+const pagingPivot = (snapshot: ConversationThreadState, direction: 'back' | 'forward') => {
+  const newest = direction === 'forward'
+  const paged = newest ? snapshot.pagedNewestMessageID : snapshot.pagedOldestMessageID
+  const ordinals = snapshot.messageOrdinals ?? []
+  for (let n = 0; n < ordinals.length; n++) {
+    const ordinal = ordinals[newest ? ordinals.length - 1 - n : n]!
+    const id = snapshot.messageMap.get(ordinal)?.id
+    if (id && T.Chat.messageIDToNumber(id) > 0) {
+      if (paged === undefined) return id
+      return newest ? (id > paged ? id : paged) : id < paged ? id : paged
+    }
+  }
+  return paged
+}
+
 export const getOrdinalForMessageIDInSnapshot = (
   snapshot: ConversationThreadState,
   messageID: T.Chat.MessageID
@@ -176,7 +194,6 @@ export const loadConversationThreadMessages = (
   const {
     scrollDirection = 'none',
     numberOfMessagesToLoad = numMessagesOnInitialLoad,
-    retryBelowMessageID,
     retryCount = 0,
   } = p
   const {
@@ -276,8 +293,14 @@ export const loadConversationThreadMessages = (
     // changed, so measuring the full pass alone says "added nothing" for a perfectly good page.
     // Measuring from before either pass tells the two apart: a page of real messages moves this,
     // a page of tombstones does not, wherever it arrived.
-    const floorAtLoadStart = loadStartedSnapshot.messageOrdinals?.[0]
-    let oldestSeenThisLoad = Number.MAX_SAFE_INTEGER as T.Chat.MessageID
+    const loadStartOrdinals = loadStartedSnapshot.messageOrdinals
+    const windowEndAtLoadStart = scrollDirection === 'back' ? loadStartOrdinals?.[0] : loadStartOrdinals?.at(-1)
+    // A scroll page is asked for from the window's own end, not from the cursor the service keeps:
+    // every newest-page load (focus, stale) resets that cursor, and a page read from it after one
+    // comes from the newest page instead (a newer one back empty, ending paging with the messages
+    // between the window and the present never loaded).
+    const pivot =
+      messageIDControl || scrollDirection === 'none' ? undefined : pagingPivot(loadStartedSnapshot, scrollDirection)
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
         return
@@ -351,11 +374,6 @@ export const loadConversationThreadMessages = (
       // are least likely to be: a reopened conversation is warm every time.
       const reconcile: ThreadLoadReconcile | undefined =
         scrollDirection === 'none' ? {carried, prune: why === 'full' && sawCachedReport} : undefined
-      for (const m of messages) {
-        if (m.id > 0 && m.id < oldestSeenThisLoad) {
-          oldestSeenThisLoad = m.id
-        }
-      }
       actions.applyThreadLoad({
         centered: !!centeredMessageID,
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
@@ -366,60 +384,53 @@ export const loadConversationThreadMessages = (
         reconcile,
         scrollDirection,
       })
-      const after = actions.getSnapshot()
-      // A back page can be composed entirely of messages the thread will never render: a message
+      // A scroll page can be composed entirely of messages the thread will never render: a message
       // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
       // drops it. The ordinal list is then identical to what it was, so the list never fires
-      // onStartReached again and scrollback stops even though the pager says there is more. Ask for
-      // the next page ourselves.
+      // onStartReached / onEndReached again and paging stops even though the pager says there is
+      // more. Ask for the next page ourselves, from past the messages this one carried.
       //
-      // The tombstones still carry message IDs, and each page reaches further back than the last,
-      // so requiring strict progress terminates: message IDs are finite and only ever decrease
-      // here. Strict progress alone is a weak bound though - a channel whose history was largely
-      // expunged has tens of thousands of them, which is minutes of paging off one gesture - so the
-      // chain also stops after maxBackPageReloads. Stopping is safe: the reader is still pinned at
-      // the top with an unchanged list, and scrolling away and back fires onStartReached again,
-      // which starts a fresh chain from wherever this one left off.
-      const floorAfter = after.messageOrdinals?.[0]
-      const windowGrewDownward =
-        floorAfter !== undefined && (floorAtLoadStart === undefined || floorAfter < floorAtLoadStart)
+      // The tombstones still carry message IDs, and each page must reach strictly further than the
+      // last, so the chain terminates: message IDs are finite. Strict progress alone is a weak bound
+      // though - a channel whose history was largely expunged has tens of thousands of them, which is
+      // minutes of paging off one gesture - so the chain also stops after maxPageReloads. Stopping is
+      // safe: the reader is still pinned at the end with an unchanged list, and scrolling away and
+      // back fires the end callback again, which starts a fresh chain from wherever this one left
+      // off, as the window keeps how far its pages reached.
       if (
-        scrollDirection === 'back' &&
+        scrollDirection !== 'none' &&
         // The full pass is the last one of a load, so by here the whole load has been applied.
         why === 'full' &&
         moreToLoad &&
-        // The floor, not the count: a page can add real messages while its `deleted` entries
-        // remove more from the window, which nets negative on a count but is real progress.
-        !windowGrewDownward &&
-        oldestSeenThisLoad < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER) &&
-        retryCount < maxBackPageReloads
+        retryCount < maxPageReloads
       ) {
-        logger.info(
-          `loadMoreMessages: back page added no ordinals, reloading below ${oldestSeenThisLoad} (${
-            retryCount + 1
-          }/${maxBackPageReloads}): convID: ${conversationIDKey}`
-        )
-        // Through the action, not loadConversationThreadMessages directly: the action carries the
-        // 500ms throttle and the unmount cancel(), and a long run of tombstones would otherwise
-        // issue these back to back with no pacing. The throttle only ever drops a call that a
-        // later load supersedes, and that load extends the window or retries in turn.
-        //
-        // The delay has a cost: the next page comes from a cursor the daemon holds, not one we
-        // send. pgmode is SERVER (see chat-rpc), so `next` resolves against convPageStatus in the
-        // service, and any first-page request resets it (applyPagerModeOutgoing in
-        // go/chat/uithreadloader.go) - which every scrollDirection 'none' load is, stale and focus
-        // reloads included. One landing inside the throttle window makes this retry fetch near the
-        // top of the thread instead of the next page back. It fails closed rather than looping:
-        // oldestSeenThisLoad is then no lower than retryBelowMessageID, so the chain stops and the
-        // reader is left where another scroll gesture starts a fresh one.
-        //
-        // Sizing, for the same reason the chain is bounded at all: a full run is 11 sequential
-        // 100-message RPCs off one gesture, several seconds of paging with nothing visible moving.
-        actions.loadMoreMessages({
-          ...p,
-          retryBelowMessageID: oldestSeenThisLoad,
-          retryCount: retryCount + 1,
-        })
+        const back = scrollDirection === 'back'
+        const after = actions.getSnapshot()
+        // The window's end, not its count: a page can add real messages while its `deleted` entries
+        // remove more from the window, which nets negative on a count but is real progress.
+        const windowEnd = back ? after.messageOrdinals?.[0] : after.messageOrdinals?.at(-1)
+        const windowGrew =
+          windowEnd !== undefined &&
+          (windowEndAtLoadStart === undefined ||
+            (back ? windowEnd < windowEndAtLoadStart : windowEnd > windowEndAtLoadStart))
+        const pivotAfter = pagingPivot(after, scrollDirection)
+        const pagedFurther =
+          pivotAfter !== undefined && (pivot === undefined || (back ? pivotAfter < pivot : pivotAfter > pivot))
+        if (!windowGrew && pagedFurther) {
+          logger.info(
+            `loadMoreMessages: ${scrollDirection} page added no ordinals, reloading from ${pivotAfter} (${
+              retryCount + 1
+            }/${maxPageReloads}): convID: ${conversationIDKey}`
+          )
+          // Through the action, not loadConversationThreadMessages directly: the action carries the
+          // 500ms throttle and the unmount cancel(), and a long run of tombstones would otherwise
+          // issue these back to back with no pacing. The throttle only ever drops a call that a
+          // later load supersedes, and that load extends the window or retries in turn.
+          //
+          // Sizing, for the same reason the chain is bounded at all: a full run is 11 sequential
+          // 100-message RPCs off one gesture, several seconds of paging with nothing visible moving.
+          actions.loadMoreMessages({...p, retryCount: retryCount + 1})
+        }
       }
 
       if (canMarkReadForThreadWindow) {
@@ -427,6 +438,22 @@ export const loadConversationThreadMessages = (
       }
     }
 
+    const control: T.RPCChat.MessageIDControl | undefined =
+      messageIDControl ??
+      (pivot
+        ? {
+            mode:
+              scrollDirection === 'forward'
+                ? T.RPCChat.MessageIDControlMode.newermessages
+                : T.RPCChat.MessageIDControlMode.oldermessages,
+            num: numberOfMessagesToLoad,
+            pivot,
+          }
+        : undefined)
+    // A scroll page still says which way it pages, though the service fetches by the ID control: a
+    // pagination with no cursor (or none at all) is a first page, and the service cancels any other
+    // first-page load of the conversation in flight - an older and a newer page, or a scroll page
+    // and a centred reload, would cancel each other.
     const pagination = messageIDControl
       ? null
       : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
@@ -434,7 +461,7 @@ export const loadConversationThreadMessages = (
       const results = await actions.rpc.loadThread({
         conversationIDKey,
         knownRemotes,
-        messageIDControl,
+        messageIDControl: control,
         onCachedThread: thread => {
           sawCachedReport = true
           onGotThread(thread, 'cached')

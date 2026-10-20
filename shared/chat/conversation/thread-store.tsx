@@ -65,6 +65,11 @@ export type ConversationThreadState = {
   moreToLoadBack: boolean
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
+  // The furthest message each direction's scroll pages have carried, rendered or not. A page of
+  // messages the thread never renders (DELETE tombstones) leaves the window's ends where they were,
+  // so the next page is asked for from past these instead. Dropped with the window by messagesClear.
+  pagedNewestMessageID?: T.Chat.MessageID
+  pagedOldestMessageID?: T.Chat.MessageID
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
   // clearPendingDeletesInThreadState), when the delete fails (its RPC or, once queued, its outbox
@@ -99,11 +104,8 @@ export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   messageIDControl?: T.RPCChat.MessageIDControl | null
   numberOfMessagesToLoad?: number
   reason: string
-  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
-  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
-  // which is what stops it looping. Callers leave it unset.
-  retryBelowMessageID?: T.Chat.MessageID
-  // How many times the back-page reload has already chained. See maxBackPageReloads.
+  // Internal: how many times the empty-scroll-page reload in thread-load.tsx has already chained.
+  // See maxPageReloads. Callers leave it unset.
   retryCount?: number
   scrollDirection?: ScrollDirection
 }
@@ -459,9 +461,15 @@ export const makeThreadStore = (
       switch (p.scrollDirection) {
         case 'forward':
           s.moreToLoadForward = p.moreToLoad
+          for (const {id} of p.messages) {
+            if (id > 0 && id > (s.pagedNewestMessageID ?? 0)) s.pagedNewestMessageID = id
+          }
           break
         case 'back':
           s.moreToLoadBack = p.moreToLoad
+          for (const {id} of p.messages) {
+            if (id > 0 && id < (s.pagedOldestMessageID ?? Number.MAX_SAFE_INTEGER)) s.pagedOldestMessageID = id
+          }
           break
         case 'none': {
           s.moreToLoadBack = p.moreToLoad
@@ -613,6 +621,8 @@ export const makeThreadStore = (
       s.messageOrdinals = undefined
       s.messageTypeMap.clear()
       s.optimisticReactionMap.clear()
+      s.pagedNewestMessageID = undefined
+      s.pagedOldestMessageID = undefined
       s.pendingDeleteMap.clear()
     })
   }
@@ -629,24 +639,29 @@ export const makeThreadStore = (
       actions
     )
   }
+  // Newer-page scroll loads get their own throttle so an older and a newer page asked for together
+  // do not drop each other.
   const throttledLoad = throttle(loadImmediately, 500)
-  // The throttle keeps only the last trailing call, so a centered or jump-to-recent
+  const throttledForwardLoad = throttle(loadImmediately, 500)
+  const cancelThrottledLoads = () => {
+    throttledLoad.cancel()
+    throttledForwardLoad.cancel()
+  }
+  // A throttle keeps only its last trailing call, so a centered or jump-to-recent
   // load issued between two other loads would be silently dropped — after
   // loadMessagesCentered already cleared the thread. Run those immediately instead.
   const loadMoreMessages: LoadMoreMessages = Object.assign(
     (p: LoadMoreMessagesParams) => {
       if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
-        throttledLoad.cancel()
+        cancelThrottledLoads()
         loadImmediately(p)
+      } else if (p.scrollDirection === 'forward') {
+        throttledForwardLoad(p)
       } else {
         throttledLoad(p)
       }
     },
-    {
-      cancel: () => {
-        throttledLoad.cancel()
-      },
-    }
+    {cancel: cancelThrottledLoads}
   )
 
   const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'isRetired' | 'loadMoreMessages' | 'rpc'> = {
