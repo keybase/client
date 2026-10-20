@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.BaseColumns
 import android.provider.MediaStore
 import android.provider.Settings
 import android.app.PendingIntent
@@ -455,14 +456,51 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return s.substring(0, end)
     }
 
+    // "name (n).ext", capped to MAX_FILENAME_BYTES. Android 10's MediaStore would instead
+    // rename a duplicate to "name.ext (n)", losing the extension.
+    private fun numberedFilename(filename: String, n: Int): String {
+        val dot = filename.lastIndexOf('.')
+        val base = if (dot > 0) filename.substring(0, dot) else filename
+        val ext = if (dot > 0) filename.substring(dot) else ""
+        val extBytes = ext.toByteArray(Charsets.UTF_8).size
+        val suffix = " ($n)"
+        val budget = MAX_FILENAME_BYTES - suffix.toByteArray(Charsets.UTF_8).size
+        // same rule as capFilenameBytes: an extension that fills half the budget is dropped
+        return if (extBytes < MAX_FILENAME_BYTES / 2) {
+            truncateUtf8(base, budget - extBytes) + suffix + ext
+        } else {
+            truncateUtf8(filename, budget) + suffix
+        }
+    }
+
+    // Only rows this app owns are visible to the query, so a clash with another app's file is
+    // still left to MediaStore's own renaming.
+    private fun freeMediaStoreName(collection: Uri, relativePath: String, filename: String): String {
+        val resolver = reactContext.contentResolver
+        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
+        val projection = arrayOf(BaseColumns._ID)
+        var candidate = filename
+        for (n in 1..MAX_NAME_TRIES) {
+            val taken = resolver.query(collection, projection, selection, arrayOf(relativePath, candidate), null)
+                ?.use { it.count > 0 } ?: false
+            if (!taken) {
+                return candidate
+            }
+            candidate = numberedFilename(filename, n)
+        }
+        return filename
+    }
+
     private fun saveViaMediaStore(
         source: File, filename: String, mime: String, collection: Uri, relativeDir: String
     ): String {
         val resolver = reactContext.contentResolver
+        // MediaStore stores RELATIVE_PATH with a trailing slash
+        val relativePath = "$relativeDir/Keybase/"
         val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, freeMediaStoreName(collection, relativePath, filename))
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "$relativeDir/Keybase")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val uri = resolver.insert(collection, values)
@@ -486,22 +524,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         if (!dir.isDirectory && !dir.mkdirs()) {
             throw IOException("could not create ${dir.absolutePath}")
         }
-        val dot = filename.lastIndexOf('.')
-        val base = if (dot > 0) filename.substring(0, dot) else filename
-        val ext = if (dot > 0) filename.substring(dot) else ""
-        val extBytes = ext.toByteArray(Charsets.UTF_8).size
         var target = File(dir, filename)
         var n = 1
         while (target.exists()) {
-            val suffix = " ($n)"
-            val budget = MAX_FILENAME_BYTES - suffix.toByteArray(Charsets.UTF_8).size
-            // same rule as capFilenameBytes: an extension that fills half the budget is dropped
-            val name = if (extBytes < MAX_FILENAME_BYTES / 2) {
-                truncateUtf8(base, budget - extBytes) + suffix + ext
-            } else {
-                truncateUtf8(filename, budget) + suffix
-            }
-            target = File(dir, name)
+            target = File(dir, numberedFilename(filename, n))
             n++
         }
         if (!target.canonicalPath.startsWith(dir.canonicalPath + File.separator)) {
@@ -994,6 +1020,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         const val NAME: String = "Kb"
         private val saveExecutor = Executors.newSingleThreadExecutor()
         private const val MAX_FILENAME_BYTES = 255
+        private const val MAX_NAME_TRIES = 1000
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
 
         // Process-wide, not per-instance: a reload creates a new KbModule but
