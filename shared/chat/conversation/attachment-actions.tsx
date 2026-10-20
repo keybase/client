@@ -272,6 +272,30 @@ export const messageAttachmentNativeSaveMessage = (
   ignorePromise(f())
 }
 
+export const messageAttachmentAndroidDownloadMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.MessageAttachment
+) => {
+  if (!isAndroid) {
+    return
+  }
+  const f = async () => {
+    const {fileName, fileType} = message
+    const filePath = await downloadAttachmentMessage(conversationIDKey, message, true)
+    if (!filePath) {
+      logger.info('Downloading attachment failed')
+      return
+    }
+    try {
+      await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
+    } catch (err) {
+      // saveFileToDownloads already fired a local notification for this failure
+      logger.error('Failed to save attachment to Downloads: ' + String(err))
+    }
+  }
+  ignorePromise(f())
+}
+
 export const messageAttachmentNativeShareMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   message: T.Chat.MessageAttachment,
@@ -408,6 +432,36 @@ export const useConversationAttachmentActions = () => {
     ignorePromise(f())
   }
 
+  const messageAttachmentAndroidDownload = (ordinal: T.Chat.Ordinal) => {
+    if (!isAndroid) {
+      return
+    }
+    const existing = threadStore.getState().messageMap.get(ordinal)
+    if (existing?.type !== 'attachment') {
+      throw new Error('Invalid share message')
+    }
+
+    const f = async () => {
+      const {fileName, fileType} = existing
+      const filePath = await downloadAttachment(true, ordinal)
+      if (!filePath) {
+        logger.info('Downloading attachment failed')
+        return
+      }
+      try {
+        actions.setAttachmentMobileSaving(ordinal, true)
+        await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
+        actions.clearAttachmentDownloadPath(ordinal)
+        actions.setAttachmentMobileSaving(ordinal, false)
+      } catch (err) {
+        const errString = err instanceof Error ? err.message : String(err)
+        logger.error('Failed to save attachment to Downloads: ' + errString)
+        actions.failAttachmentDownload(ordinal, 'Failed to save to Downloads: ' + errString)
+      }
+    }
+    ignorePromise(f())
+  }
+
   const messageAttachmentNativeShare = (ordinal: T.Chat.Ordinal, fromDownload = false) => {
     const message = threadStore.getState().messageMap.get(ordinal)
     if (message?.type !== 'attachment') {
@@ -437,6 +491,7 @@ export const useConversationAttachmentActions = () => {
 
   return {
     attachmentDownload,
+    messageAttachmentAndroidDownload,
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     pasteAttachment: (data: Uint8Array) => makePasteAttachment(conversationIDKey, data, rpc),

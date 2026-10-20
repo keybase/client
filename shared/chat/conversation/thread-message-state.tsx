@@ -758,3 +758,13 @@ export const setAttachmentMobileSavingInThreadState = (
   m.transferState = saving ? 'mobileSaving' : undefined
   return true
 }
+
+export const clearAttachmentDownloadPathInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal
+) => {
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.downloadPath = ''
+  return true
+}

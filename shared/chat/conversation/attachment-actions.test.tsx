@@ -22,6 +22,7 @@ import {
   cancelAttachmentUploads,
   loadNextAttachmentMessage,
   makePasteAttachment,
+  messageAttachmentAndroidDownloadMessage,
   messageAttachmentNativeSaveMessage,
   messageAttachmentNativeShareMessage,
   showAttachmentPreview,
@@ -474,13 +475,15 @@ describe('storeless attachment download', () => {
   })
 
   describe('on mobile', () => {
-    const g = globalThis as unknown as {isMobile: boolean; isIOS: boolean}
+    const g = globalThis as unknown as {isMobile: boolean; isIOS: boolean; isAndroid: boolean}
     beforeEach(() => {
       g.isMobile = true
+      g.isAndroid = true
     })
     afterEach(() => {
       g.isMobile = false
       g.isIOS = false
+      g.isAndroid = false
     })
 
     test('native save downloads to the cache and saves that file to the camera roll', async () => {
@@ -497,6 +500,23 @@ describe('storeless attachment download', () => {
       const save = jest.spyOn(PlatformSpecific, 'saveAttachmentToCameraRoll').mockResolvedValue()
       messageAttachmentNativeSaveMessage(convKey, downloadable())
       await flushPromises()
+      expect(save).not.toHaveBeenCalled()
+    })
+
+    test('android download saves the cached file under the attachment name and type', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      const save = jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
+      messageAttachmentAndroidDownloadMessage(convKey, downloadable())
+      await flushPromises()
+      expect(rpc.params('downloadAttachment')[0]).toEqual(expect.objectContaining({downloadToCache: true}))
+      expect(save).toHaveBeenCalledWith('/cache/doc.pdf', 'doc.pdf', 'application/pdf')
+    })
+
+    test('android download of a message with no id does nothing', async () => {
+      const save = jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
+      messageAttachmentAndroidDownloadMessage(convKey, downloadable({id: T.Chat.numberToMessageID(0)}))
+      await flushPromises()
+      expect(rpc.calls('downloadAttachment')).toEqual([])
       expect(save).not.toHaveBeenCalled()
     })
 
@@ -677,12 +697,14 @@ describe('useConversationAttachmentActions', () => {
   })
 
   describe('on mobile', () => {
-    const g = globalThis as unknown as {isMobile: boolean}
+    const g = globalThis as unknown as {isMobile: boolean; isAndroid: boolean}
     beforeEach(() => {
       g.isMobile = true
+      g.isAndroid = true
     })
     afterEach(() => {
       g.isMobile = false
+      g.isAndroid = false
     })
 
     test('native save downloads to the cache then saves, clearing the saving state', async () => {
@@ -708,6 +730,55 @@ describe('useConversationAttachmentActions', () => {
         await flushPromises()
       })
       expect((current() as T.Chat.MessageAttachment).transferErrMsg).toBe('Failed to save attachment: denied')
+    })
+
+    test('android download saves the cached file under the attachment name and type', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      const save = jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
+      const {result} = renderWith(threadAttachment())
+      await act(async () => {
+        result.current.attachmentActions.messageAttachmentAndroidDownload(ordinal)
+        await flushPromises()
+      })
+      expect(rpc.params('downloadAttachment')[0]).toEqual(expect.objectContaining({downloadToCache: true}))
+      expect(save).toHaveBeenCalledWith('/cache/doc.pdf', 'doc.pdf', 'application/pdf')
+    })
+
+    test('android download clears downloadPath and the saving state on success', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
+      const {current, result} = renderWith(threadAttachment())
+      await act(async () => {
+        result.current.attachmentActions.messageAttachmentAndroidDownload(ordinal)
+        await flushPromises()
+      })
+      const done = current() as T.Chat.MessageAttachment
+      expect(done.downloadPath).toBe('')
+      expect(done.transferState).toBeUndefined()
+      expect(done.transferErrMsg).toBeUndefined()
+    })
+
+    test('android download failure fails the attachment', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockRejectedValue(new Error('denied'))
+      jest.spyOn(logger, 'error').mockImplementation(() => {})
+      const {current, result} = renderWith(threadAttachment())
+      await act(async () => {
+        result.current.attachmentActions.messageAttachmentAndroidDownload(ordinal)
+        await flushPromises()
+      })
+      expect((current() as T.Chat.MessageAttachment).transferErrMsg).toBe(
+        'Failed to save to Downloads: denied'
+      )
+    })
+
+    test('android download refuses a non-attachment', () => {
+      const {result} = renderWith(
+        makeMessageText({conversationIDKey: convKey, id: T.Chat.numberToMessageID(42), ordinal})
+      )
+      expect(() => result.current.attachmentActions.messageAttachmentAndroidDownload(ordinal)).toThrow(
+        'Invalid share message'
+      )
     })
 
     test('native share opens the share sheet on the cached file', async () => {
