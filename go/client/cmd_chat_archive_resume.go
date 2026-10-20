@@ -55,7 +55,7 @@ func (n *ArchiveCompleteWaiter) Done() chan struct{} {
 }
 
 func (n *ArchiveCompleteWaiter) ChatArchiveComplete(ctx context.Context,
-	arg chat1.ArchiveJobID,
+	arg chat1.ChatArchiveCompleteArg,
 ) error {
 	err := n.cli.ChatArchiveComplete(ctx, arg)
 	close(n.ch)

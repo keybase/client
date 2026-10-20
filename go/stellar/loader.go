@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
@@ -16,6 +17,7 @@ type chatMsg struct {
 	convID chat1.ConversationID
 	msgID  chat1.MessageID
 	sender libkb.NormalizedUsername
+	uid    keybase1.UID
 }
 
 type PaymentStatusUpdate struct {
@@ -102,7 +104,7 @@ func (p *Loader) getPaymentLocalLocked(ctx context.Context, paymentID stellar1.P
 	return pmt, ok
 }
 
-func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+func (p *Loader) LoadPayment(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
 	defer p.G().CTrace(ctx, fmt.Sprintf("Loader.LoadPayment(cid=%s,mid=%s,pid=%s)", convID, msgID, paymentID), nil)()
 
 	p.Lock()
@@ -127,6 +129,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 			convID: convID,
 			msgID:  msgID,
 			sender: libkb.NewNormalizedUsername(senderUsername),
+			uid:    uid,
 		}
 		p.pmessages[paymentID] = msg
 	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
@@ -136,7 +139,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 	payment, ok := p.getPaymentLocalLocked(ctx, paymentID)
 	if ok {
 		info := p.uiPaymentInfo(m, payment, msg)
-		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), p.G().ActiveDevice.UID(), convID, msgID, *info)
+		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, convID, msgID, *info)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
@@ -151,7 +154,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 	return nil
 }
 
-func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+func (p *Loader) LoadRequest(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
 	defer p.G().CTrace(ctx, fmt.Sprintf("Loader.LoadRequest(cid=%s,mid=%s,rid=%s)", convID, msgID, requestID), nil)()
 
 	p.Lock()
@@ -171,6 +174,7 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 			convID: convID,
 			msgID:  msgID,
 			sender: libkb.NewNormalizedUsername(senderUsername),
+			uid:    uid,
 		}
 		p.rmessages[requestID] = msg
 	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
@@ -377,14 +381,12 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	p.Unlock()
 
 	if !ok {
-		// this is ok: frontend only needs the payment ID
-		m.Debug("sending chat notification for payment %s using empty msg info", id)
+		m.Debug("payment %s has no chat message; skipping chat notification", id)
 		msg = chatMsg{}
 	} else {
 		m.Debug("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
 
-	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
 
 	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
@@ -400,7 +402,9 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 		p.Unlock()
 	}
 
-	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
+	if !msg.uid.IsNil() {
+		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), msg.uid, msg.convID, msg.msgID, *info)
+	}
 }
 
 func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDetailsLocal, msg chatMsg) *chat1.UIRequestInfo {
@@ -427,9 +431,11 @@ func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.Keybas
 	}
 
 	m.Debug("sending chat notification for request %s to %s, %s", id, msg.convID, msg.msgID)
-	uid := p.G().ActiveDevice.UID()
+	if msg.uid.IsNil() {
+		return
+	}
 	info := p.uiRequestInfo(m, details, msg)
-	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
+	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), msg.uid, msg.convID, msg.msgID, *info)
 }
 
 func (p *Loader) enqueuePayment(paymentID stellar1.PaymentID) {

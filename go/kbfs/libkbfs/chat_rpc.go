@@ -783,7 +783,7 @@ func (c *ChatRPC) NewChatActivity(
 // ChatIdentifyUpdate implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatIdentifyUpdate(
-	_ context.Context, _ keybase1.CanonicalTLFNameAndIDWithBreaks,
+	_ context.Context, _ chat1.ChatIdentifyUpdateArg,
 ) error {
 	return nil
 }
@@ -821,7 +821,7 @@ func (c *ChatRPC) ChatThreadsStale(
 // ChatTypingUpdate implements the chat1.NotifyChatInterface for
 // ChatRPC.
 func (c *ChatRPC) ChatTypingUpdate(
-	_ context.Context, _ []chat1.ConvTypingUpdate,
+	_ context.Context, _ chat1.ChatTypingUpdateArg,
 ) error {
 	return nil
 }
@@ -949,7 +949,7 @@ func (c *ChatRPC) ChatArchiveProgress(
 // ChatArchiveComplete implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatArchiveComplete(
-	_ context.Context, _ chat1.ArchiveJobID,
+	_ context.Context, _ chat1.ChatArchiveCompleteArg,
 ) error {
 	return nil
 }
@@ -993,6 +993,6 @@ func (c *ChatRPC) ChatWelcomeMessageLoaded(
 }
 
 // ChatParticipantsInfo is the greatest function ever written
-func (c *ChatRPC) ChatParticipantsInfo(context.Context, map[chat1.ConvIDStr][]chat1.UIParticipant) error {
+func (c *ChatRPC) ChatParticipantsInfo(context.Context, chat1.ChatParticipantsInfoArg) error {
 	return nil
 }

@@ -163,7 +163,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatIdentifyUpdate(keybase1.CanonicalTLFNameAndIDWithBreaks update);
+  void ChatIdentifyUpdate(keybase1.UID uid, keybase1.CanonicalTLFNameAndIDWithBreaks update);
 
   @notify("")
   @lint("ignore")
@@ -184,7 +184,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
+  void ChatTypingUpdate(keybase1.UID uid, array<ConvTypingUpdate> typingUpdates);
 
   @notify("")
   @lint("ignore")
@@ -244,11 +244,11 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatArchiveProgress(ArchiveJobID jobID, long messagesComplete, long messagesTotal);
+  void ChatArchiveProgress(keybase1.UID uid, ArchiveJobID jobID, long messagesComplete, long messagesTotal);
 
   @notify("")
   @lint("ignore")
-  void ChatArchiveComplete(ArchiveJobID jobID);
+  void ChatArchiveComplete(keybase1.UID uid, ArchiveJobID jobID);
 
   @notify("")
   @lint("ignore")
@@ -268,9 +268,9 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatWelcomeMessageLoaded(keybase1.TeamID teamID, WelcomeMessageDisplay message);
+  void ChatWelcomeMessageLoaded(keybase1.UID uid, keybase1.TeamID teamID, WelcomeMessageDisplay message);
 
   @notify("")
   @lint("ignore")
-  void ChatParticipantsInfo(map<ConvIDStr, array<UIParticipant>> participants);
+  void ChatParticipantsInfo(keybase1.UID uid, map<ConvIDStr, array<UIParticipant>> participants);
 }

@@ -57,7 +57,8 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 	// Need to convert this key in to a TeambotKey
 	if botUID != nil {
 		res, _, err = mctx.G().GetTeambotMemberKeyer().GetOrCreateTeambotKey(
-			mctx, team.ID, *botUID, appKey)
+			mctx, team.ID, *botUID, appKey,
+		)
 		return res, err
 	}
 	return appKey, nil
@@ -576,9 +577,10 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.
 		return errors.New("invalid context with no chat metadata")
 	}
 	cb := make(chan struct{})
+	accountUID := t.G().Env.GetUID()
 	go func(ctx context.Context) {
 		var idFails []keybase1.TLFIdentifyFailure
-		idFails, err = t.Identify(ctx, names, true,
+		idFails, err = t.Identify(ctx, accountUID, names, true,
 			func() keybase1.TLFID {
 				return keybase1.TLFID(team.ID.String())
 			},

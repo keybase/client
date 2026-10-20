@@ -256,6 +256,10 @@ type Identify2WithUID struct {
 	// the same user, it may reuse proof results produced after this point.
 	requestedAt time.Time
 
+	// Account the identify was run for. Captured when the run starts so a
+	// later chat notification still names that account.
+	viewerUID keybase1.UID
+
 	// For eagerly checking remote Assertions as they come in, these
 	// member variables maintain state, protected by the remotesMutex.
 	remotesMutex     sync.Mutex
@@ -333,6 +337,7 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
+	e.viewerUID = m.ActiveDevice().UID()
 
 	// This identify may reuse proof results produced by an identify already
 	// running for the same user, but only results completed after it was
@@ -388,7 +393,7 @@ func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
 		}}
 	}
 	m.Debug("Identify2WithUID.run: running HandleChatIdentifyUpdate: %#v", update)
-	m.G().NotifyRouter.HandleChatIdentifyUpdate(m.Ctx(), update)
+	m.G().NotifyRouter.HandleChatIdentifyUpdate(m.Ctx(), e.viewerUID, update)
 
 	return nil
 }

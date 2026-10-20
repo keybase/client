@@ -20,7 +20,7 @@ type DummyIdentifyNotifier struct{}
 
 func (d DummyIdentifyNotifier) Reset()             {}
 func (d DummyIdentifyNotifier) ResetOnGUIConnect() {}
-func (d DummyIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (d DummyIdentifyNotifier) Send(ctx context.Context, uid keybase1.UID, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 }
 
 type SimpleIdentifyNotifier struct {
@@ -40,12 +40,12 @@ func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
 func (d *SimpleIdentifyNotifier) Reset()             {}
 func (d *SimpleIdentifyNotifier) ResetOnGUIConnect() {}
 
-func (d *SimpleIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (d *SimpleIdentifyNotifier) Send(ctx context.Context, uid keybase1.UID, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	// Send to storage as well (charge forward on error)
 	if err := d.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
 		d.Debug(ctx, "failed to update storage with TLF identify info: %s", err.Error())
 	}
-	d.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, update)
+	d.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, uid, update)
 }
 
 type CachingIdentifyNotifier struct {
@@ -81,7 +81,7 @@ func (i *CachingIdentifyNotifier) Reset() {
 	i.identCache = make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 
-func (i *CachingIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (i *CachingIdentifyNotifier) Send(ctx context.Context, uid keybase1.UID, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	// Send to storage as well (charge forward on error)
 	if err := i.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
 		i.Debug(ctx, "failed to update storage with TLF identify info: %s", err.Error())
@@ -104,7 +104,7 @@ func (i *CachingIdentifyNotifier) Send(ctx context.Context, update keybase1.Cano
 	i.Unlock()
 
 	i.Debug(ctx, "cache miss, sending notify: %s dat: %v", tlfName, update)
-	i.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, update)
+	i.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, uid, update)
 }
 
 type IdentifyChangedHandler struct {
@@ -141,7 +141,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	if err != nil {
 		return err
 	}
-	if _, err := NewNameIdentifier(h.G()).Identify(ctx, []string{username}, true, func() keybase1.TLFID {
+	if _, err := NewNameIdentifier(h.G()).Identify(ctx, me, []string{username}, true, func() keybase1.TLFID {
 		return ""
 	}, func() keybase1.CanonicalTlfName {
 		return keybase1.CanonicalTlfName(username)
@@ -163,7 +163,7 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	}
 }
 
-func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
+func (t *NameIdentifier) Identify(ctx context.Context, uid keybase1.UID, names []string, private bool,
 	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName,
 ) (res []keybase1.TLFIdentifyFailure, err error) {
 	idNotifier := globals.CtxIdentifyNotifier(ctx)
@@ -232,7 +232,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 	// Run the updates through the identify notifier
 	if idNotifier != nil {
 		t.Debug(ctx, "sending update through ident notifier: %d breaks", len(res))
-		idNotifier.Send(ctx, keybase1.CanonicalTLFNameAndIDWithBreaks{
+		idNotifier.Send(ctx, uid, keybase1.CanonicalTLFNameAndIDWithBreaks{
 			Breaks: keybase1.TLFBreak{
 				Breaks: res,
 			},
