@@ -552,19 +552,23 @@ export const useNativeThreadScroll = (p: {
     if (key !== undefined) readerMovedSinceCentreRef.current = false
   }, [centeredOrdinal, datasetKey])
   // A reader who scrolled from a centred row on to the present is done with it: the centre would keep
-  // the end anchor off, and new messages would no longer come into view. A centred window that already
-  // holds the newest message keeps its centre until the reader moves the list on to the end, which
-  // hands the end back to the list.
+  // the end anchor off, and new messages would no longer come into view. Two ways on to the present:
+  // newer pages bringing the newest message into the window (the first effect, run as the window
+  // comes to hold it), and, in a centred window that already held it, moving the list on to the end,
+  // which hands the end back to the list (the second). Each runs only on its own change: re-run for
+  // anything else, the first would drop the centre of a window that already held the newest message
+  // with the reader still on its row. clearCenter changes with thread search, so it is not a dependency.
+  const clearCenterEvent = React.useEffectEvent(clearCenter)
   React.useLayoutEffect(() => {
     if (containsLatestMessage && centeredOrdinal !== undefined && readerMovedSinceCentreRef.current) {
-      clearCenter()
+      clearCenterEvent()
     }
-  }, [centeredOrdinal, clearCenter, containsLatestMessage])
+  }, [centeredOrdinal, containsLatestMessage])
   React.useLayoutEffect(() => {
     if (listOwnsEnd && containsLatestMessage && centeredOrdinal !== undefined && readerMovedSinceCentreRef.current) {
-      clearCenter()
+      clearCenterEvent()
     }
-  }, [centeredOrdinal, clearCenter, containsLatestMessage, listOwnsEnd])
+  }, [centeredOrdinal, containsLatestMessage, listOwnsEnd])
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
     const oldestLaidOut = oldestLaidOutRef.current

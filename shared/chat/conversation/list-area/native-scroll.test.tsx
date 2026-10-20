@@ -392,6 +392,9 @@ test('a centred window holding the newest message lets the centre go once the re
   act(() => jest.advanceTimersByTime(1000))
   m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
   act(() => jest.advanceTimersByTime(1000))
+  // The list's own scroll coming to rest at the end is not the reader moving on to it.
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  act(() => m.hook.result.current.onMomentumScrollEnd({nativeEvent: {contentOffset: {y: keyboardOffset}}}))
   expect(m.clearCenter).not.toHaveBeenCalled()
   // The reader drags away from the centred row and lets go short of the end: the centre stays.
   act(() => m.hook.result.current.onScrollBeginDrag())
