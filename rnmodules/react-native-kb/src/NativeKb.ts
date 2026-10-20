@@ -65,6 +65,8 @@ export interface Spec extends TurboModule {
     showNotification: boolean
     title: string
   }): Promise<void>
+  androidSaveToDownloads(o: {path: string; filename: string; mime: string; deleteSource: boolean}): Promise<string>
+  androidOpenFile(o: {uri: string; mime: string}): Promise<void>
   checkPushPermissions(): Promise<boolean>
   requestPushPermissions(): Promise<boolean>
   getRegistrationToken(): Promise<string>

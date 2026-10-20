@@ -2,4 +2,6 @@
 <paths>
   <!-- Only ShareOutbox's directory; path must match ShareOutbox.DIR_NAME. -->
   <cache-path name="outbox" path="share-outbox/" />
+  <!-- Files saved by androidSaveToDownloads on API < 29. -->
+  <external-path name="downloads" path="Download/Keybase/" />
 </paths>

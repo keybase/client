@@ -76,6 +76,25 @@ export const androidAddCompleteDownload = (o: {
   return Promise.reject(new Error('wrong platform'))
 }
 
+export const androidSaveToDownloads = (o: {
+  path: string
+  filename: string
+  mime: string
+  deleteSource: boolean
+}): Promise<string> => {
+  if (Platform.OS === 'android') {
+    return Kb.androidSaveToDownloads(o)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
+export const androidOpenFile = (o: {uri: string; mime: string}): Promise<void> => {
+  if (Platform.OS === 'android') {
+    return Kb.androidOpenFile(o)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
 export const checkPushPermissions = (): Promise<boolean> => {
   return Kb.checkPushPermissions()
 }

@@ -7,7 +7,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
+import android.app.PendingIntent
+import android.content.ContentValues
 import android.text.format.DateFormat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -30,6 +33,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import keybase.Keybase
 import keybase.Keybase.readArr
@@ -360,6 +364,144 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             promise.resolve(null)
         } catch (ex: Exception) {
             promise.reject("EUNSPECIFIED", ex.localizedMessage)
+        }
+    }
+
+    @ReactMethod
+    override fun androidSaveToDownloads(config: ReadableMap, promise: Promise) {
+        val path = config.getString("path") ?: ""
+        val filename = config.getString("filename") ?: ""
+        val mime = (config.getString("mime") ?: "").ifEmpty { "application/octet-stream" }
+        val deleteSource = config.hasKey("deleteSource") && config.getBoolean("deleteSource")
+        if (path.isEmpty() || filename.isEmpty()) {
+            promise.reject("EINVAL", "path and filename are required")
+            return
+        }
+        saveExecutor.execute {
+            try {
+                val source = File(path)
+                val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    saveViaMediaStore(source, filename, mime)
+                } else {
+                    saveToPublicDownloads(source, filename, mime)
+                }
+                if (deleteSource) {
+                    source.delete()
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    notifySaved(filename, mime, Uri.parse(result))
+                }
+                promise.resolve(result)
+            } catch (ex: Exception) {
+                promise.reject("ESAVE", ex.message ?: "save failed")
+            }
+        }
+    }
+
+    private fun saveViaMediaStore(source: File, filename: String, mime: String): String {
+        val resolver = reactContext.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/Keybase")
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            ?: throw IOException("could not create Downloads entry")
+        try {
+            val out = resolver.openOutputStream(uri) ?: throw IOException("could not open Downloads entry")
+            out.buffered().use { dst -> source.inputStream().buffered().use { it.copyTo(dst) } }
+            val done = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
+            resolver.update(uri, done, null, null)
+        } catch (ex: Exception) {
+            resolver.delete(uri, null, null)
+            throw ex
+        }
+        return uri.toString()
+    }
+
+    private fun saveToPublicDownloads(source: File, filename: String, mime: String): String {
+        val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Keybase")
+        if (!dir.isDirectory && !dir.mkdirs()) {
+            throw IOException("could not create ${dir.absolutePath}")
+        }
+        val dot = filename.lastIndexOf('.')
+        val base = if (dot > 0) filename.substring(0, dot) else filename
+        val ext = if (dot > 0) filename.substring(dot) else ""
+        var target = File(dir, filename)
+        var n = 1
+        while (target.exists()) {
+            target = File(dir, "$base ($n)$ext")
+            n++
+        }
+        try {
+            source.inputStream().buffered().use { src -> target.outputStream().buffered().use { src.copyTo(it) } }
+            val dm = reactContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            @Suppress("DEPRECATION")
+            dm.addCompletedDownload(target.name, "Keybase downloaded ${target.name}", true, mime, target.absolutePath, target.length(), true)
+        } catch (ex: Exception) {
+            target.delete()
+            throw ex
+        }
+        return target.absolutePath
+    }
+
+    private fun notifySaved(filename: String, mime: String, uri: Uri) {
+        try {
+            if (!NotificationManagerCompat.from(reactContext).areNotificationsEnabled()) {
+                return
+            }
+            val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            val channelId = "keybase_notifications"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                notificationManager.createNotificationChannel(
+                    android.app.NotificationChannel(channelId, "Keybase Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT)
+                )
+            }
+            val view = Intent(Intent.ACTION_VIEW)
+                .setDataAndType(uri, mime)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            val pending = PendingIntent.getActivity(
+                reactContext, uri.hashCode(), view, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            val notification = NotificationCompat.Builder(reactContext, channelId)
+                .setContentText("Saved $filename to Downloads")
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentIntent(pending)
+                .setAutoCancel(true)
+                .build()
+            notificationManager.notify(uri.hashCode(), notification)
+        } catch (ex: Exception) {
+            NativeLogger.info("$NAME: save notification failed: ${ex.message}")
+        }
+    }
+
+    @ReactMethod
+    override fun androidOpenFile(config: ReadableMap, promise: Promise) {
+        val uriString = config.getString("uri") ?: ""
+        val mime = (config.getString("mime") ?: "").ifEmpty { "application/octet-stream" }
+        if (uriString.isEmpty()) {
+            promise.reject("EINVAL", "uri is required")
+            return
+        }
+        try {
+            val uri = if (uriString.startsWith("/")) {
+                FileProvider.getUriForFile(reactContext, ShareOutbox.authority(reactContext), File(uriString))
+            } else {
+                Uri.parse(uriString)
+            }
+            val view = Intent(Intent.ACTION_VIEW)
+                .setDataAndType(uri, mime)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (view.resolveActivity(reactContext.packageManager) == null) {
+                promise.reject("ENOAPP", "No app can open this file")
+                return
+            }
+            val chooser = Intent.createChooser(view, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            reactContext.startActivity(chooser)
+            promise.resolve(null)
+        } catch (ex: Exception) {
+            promise.reject("EOPEN", ex.message ?: "open failed")
         }
     }
 
@@ -768,6 +910,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         const val NAME: String = "Kb"
+        private val saveExecutor = Executors.newSingleThreadExecutor()
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
 
         // Process-wide, not per-instance: a reload creates a new KbModule but
