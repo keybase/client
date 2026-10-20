@@ -26,6 +26,15 @@ const run = async (args: Array<string>, timeoutMs: number) =>
 
 export const cliWhoami = async () => run(['whoami'], 15_000)
 
+// One `keybase chat api` call as the host's service account: its result, or a throw with the error
+// it answered.
+export const cliChatApi = async (message: object, timeoutMs = 30_000): Promise<unknown> => {
+  const out = await run(['chat', 'api', '-m', JSON.stringify(message)], timeoutMs)
+  const reply = JSON.parse(out) as {error?: {message?: string}; result?: unknown}
+  if (reply.error) throw new Error(`keybase chat api ${JSON.stringify(message)}: ${reply.error.message ?? out}`)
+  return reply.result
+}
+
 // Switches the host's service to `username` and checks it took.
 export const switchCliAccount = async (username: string) => {
   if ((await cliWhoami().catch(() => '')) === username) return

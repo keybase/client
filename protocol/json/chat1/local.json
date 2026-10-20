@@ -3631,7 +3631,8 @@
         "NEVER_1",
         "ACCEPT_2",
         "NOTNOW_3",
-        "ONETIME_4"
+        "ONETIME_4",
+        "BLOCK_5"
       ]
     },
     {
@@ -3673,6 +3674,13 @@
         {
           "label": {
             "name": "ONETIME",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "BLOCK",
             "def": false
           },
           "body": "string"
@@ -5936,6 +5944,23 @@
       ],
       "response": null
     },
+    "unfurlMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
+    },
     "getUnfurlSettings": {
       "request": [],
       "response": "UnfurlSettingsDisplay"
@@ -5952,9 +5977,28 @@
             "type": "array",
             "items": "string"
           }
+        },
+        {
+          "name": "blocklist",
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "string"
+            }
+          ]
         }
       ],
       "response": null
+    },
+    "normalizeUnfurlDomain": {
+      "request": [
+        {
+          "name": "input",
+          "type": "string"
+        }
+      ],
+      "response": "string"
     },
     "unfurlPreviewLocal": {
       "request": [

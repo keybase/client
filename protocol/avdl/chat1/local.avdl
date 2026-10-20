@@ -1233,7 +1233,8 @@ protocol local {
     NEVER_1,
     ACCEPT_2,
     NOTNOW_3,
-    ONETIME_4
+    ONETIME_4,
+    BLOCK_5
   }
   variant UnfurlPromptResult switch (UnfurlPromptAction actionType) {
     case ALWAYS: void;
@@ -1241,10 +1242,17 @@ protocol local {
     case NOTNOW: void;
     case ACCEPT: string;
     case ONETIME: string;
+    case BLOCK: string;
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
+  // unfurls every url in one of your own messages that is not unfurled yet, whatever the
+  // unfurl settings say. the settings are left as they are
+  void unfurlMessage(ConversationID convID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
-  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist, union { null, array<string> } blocklist);
+  // the domain a typed entry (a bare domain or a url) is stored as on the allow and block lists.
+  // errors for input that cannot be listed
+  string normalizeUnfurlDomain(string input);
 
   record UnfurlPreviewInfo {
     string url;

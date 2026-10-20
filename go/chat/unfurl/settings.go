@@ -2,6 +2,10 @@ package unfurl
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"maps"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -13,6 +17,7 @@ import (
 const (
 	settingsModeName      = "__unfurl_settings_mode"
 	settingsWhitelistName = "__unfurl_settings_whitelist"
+	settingsBlocklistName = "__unfurl_settings_blocklist"
 )
 
 type modeRecord struct {
@@ -23,9 +28,16 @@ type whitelistRecord struct {
 	Whitelist map[string]bool
 }
 
+type blocklistRecord struct {
+	Blocklist map[string]bool
+}
+
 type Settings struct {
 	utils.DebugLabeler
 
+	// held across each read-modify-write of the stored lists, so concurrent
+	// changes (such as quick prompt answers) don't drop each other's updates
+	mu      sync.Mutex
 	storage types.UserConversationBackedStorage
 }
 
@@ -36,8 +48,30 @@ func NewSettings(g *globals.Context, storage types.UserConversationBackedStorage
 	}
 }
 
+func (s *Settings) getList(ctx context.Context, uid gregor1.UID, name string) (map[string]bool, error) {
+	var wr whitelistRecord
+	var br blocklistRecord
+	dest, list := any(&wr), &wr.Whitelist
+	if name == settingsBlocklistName {
+		dest, list = &br, &br.Blocklist
+	}
+	if _, err := s.storage.Get(ctx, uid, name, dest); err != nil {
+		return nil, err
+	}
+	return normalizeDomainSet(*list, false)
+}
+
+func (s *Settings) putList(ctx context.Context, uid gregor1.UID, name string, list map[string]bool) error {
+	if name == settingsBlocklistName {
+		return s.storage.Put(ctx, uid, name, blocklistRecord{Blocklist: list})
+	}
+	return s.storage.Put(ctx, uid, name, whitelistRecord{Whitelist: list})
+}
+
 func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
 	defer s.Trace(ctx, &err, "Get")()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	var mr modeRecord
 	found, err := s.storage.Get(ctx, uid, settingsModeName, &mr)
@@ -48,74 +82,174 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 		s.Debug(ctx, "Get: no mode setting found, using whitelisted")
 		mr.Mode = chat1.UnfurlMode_WHITELISTED
 	}
-
-	var wr whitelistRecord
-	whitelist := make(map[string]bool)
-	if found, err = s.storage.Get(ctx, uid, settingsWhitelistName, &wr); err != nil {
+	whitelist, err := s.getList(ctx, uid, settingsWhitelistName)
+	if err != nil {
 		return res, err
 	}
-	if found {
-		whitelist = wr.Whitelist
+	blocklist, err := s.getList(ctx, uid, settingsBlocklistName)
+	if err != nil {
+		return res, err
+	}
+	// clients that predate the block list can allow a domain without unblocking
+	// it. The block list wins, as it does when unfurling, so Set accepts the result.
+	for domain := range blocklist {
+		delete(whitelist, domain)
 	}
 	return chat1.UnfurlSettings{
 		Mode:      mr.Mode,
 		Whitelist: whitelist,
+		Blocklist: blocklist,
 	}, nil
+}
+
+// addToList adds to the target list before taking the domain off the opposite
+// one: if the second write fails, the domain is left on both lists, where the
+// block list wins, rather than on neither.
+func (s *Settings) addToList(ctx context.Context, uid gregor1.UID, input string, block bool) error {
+	domain, err := NormalizeDomain(input)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	name, other := settingsWhitelistName, settingsBlocklistName
+	if block {
+		name, other = other, name
+	}
+	list, err := s.getList(ctx, uid, name)
+	if err != nil {
+		return err
+	}
+	if !list[domain] {
+		list[domain] = true
+		if err := s.putList(ctx, uid, name, list); err != nil {
+			return err
+		}
+	}
+	otherList, err := s.getList(ctx, uid, other)
+	if err != nil {
+		return err
+	}
+	if !otherList[domain] {
+		return nil
+	}
+	delete(otherList, domain)
+	return s.putList(ctx, uid, other, otherList)
 }
 
 func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "WhitelistAdd(%s)", domain)()
-	var wr whitelistRecord
-	found, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr)
-	if err != nil {
-		return err
-	}
-	if !found {
-		wr.Whitelist = make(map[string]bool)
-	}
-	if wr.Whitelist[domain] {
-		return nil
-	}
-	wr.Whitelist[domain] = true
-	return s.storage.Put(ctx, uid, settingsWhitelistName, wr)
+	return s.addToList(ctx, uid, domain, false)
+}
+
+func (s *Settings) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer s.Trace(ctx, &err, "BlocklistAdd(%s)", domain)()
+	return s.addToList(ctx, uid, domain, true)
 }
 
 func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, &err, "WhitelistRemove(%s)", domain)()
-	var wr whitelistRecord
-	found, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	whitelist, err := s.getList(ctx, uid, settingsWhitelistName)
 	if err != nil {
 		return err
 	}
-	if !found {
-		return nil
-	}
-	if !wr.Whitelist[domain] {
+	if !whitelist[domain] {
 		s.Debug(ctx, "WhitelistRemove: not found, doing nothing")
 		return nil
 	}
-	delete(wr.Whitelist, domain)
-	return s.storage.Put(ctx, uid, settingsWhitelistName, wr)
+	delete(whitelist, domain)
+	return s.putList(ctx, uid, settingsWhitelistName, whitelist)
 }
 
 func (s *Settings) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer s.Trace(ctx, &err, "SetMode(%v)", mode)()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.storage.Put(ctx, uid, settingsModeName, modeRecord{
 		Mode: mode,
 	})
 }
 
+// normalizeDomainSet fails on the first entry that doesn't normalize when
+// strict. Otherwise it drops such entries: stored lists are read that way so
+// ones written before the lists were validated can always be saved back.
+// Auto-allowed domains are dropped either way, since they always unfurl.
+func normalizeDomainSet(in map[string]bool, strict bool) (map[string]bool, error) {
+	res := make(map[string]bool, len(in))
+	for input, on := range in {
+		if !on {
+			continue
+		}
+		domain, err := NormalizeDomain(input)
+		if err != nil {
+			if strict && !errors.Is(err, errAutoAllowed) {
+				return nil, err
+			}
+			continue
+		}
+		res[domain] = true
+	}
+	return res, nil
+}
+
+// Set validates both lists before writing anything, so an invalid entry leaves
+// the stored settings untouched. A nil Blocklist keeps the stored block list,
+// minus any domain the new allow list allows. Only changed records are written:
+// each write to conversation-backed storage posts a message, and the first one
+// creates its conversation.
 func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
 	defer s.Trace(ctx, &err, "Set")()
-	if err = s.storage.Put(ctx, uid, settingsModeName, modeRecord{
-		Mode: settings.Mode,
-	}); err != nil {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	whitelist, err := normalizeDomainSet(settings.Whitelist, true)
+	if err != nil {
 		return err
 	}
-	if err = s.storage.Put(ctx, uid, settingsWhitelistName, whitelistRecord{
-		Whitelist: settings.Whitelist,
-	}); err != nil {
+	blocklist := settings.Blocklist
+	if blocklist != nil {
+		if blocklist, err = normalizeDomainSet(blocklist, true); err != nil {
+			return err
+		}
+	}
+	stored := modeRecord{Mode: chat1.UnfurlMode_WHITELISTED}
+	if _, err = s.storage.Get(ctx, uid, settingsModeName, &stored); err != nil {
 		return err
 	}
-	return nil
+	storedWhitelist, err := s.getList(ctx, uid, settingsWhitelistName)
+	if err != nil {
+		return err
+	}
+	storedBlocklist, err := s.getList(ctx, uid, settingsBlocklistName)
+	if err != nil {
+		return err
+	}
+	if blocklist == nil {
+		blocklist = maps.Clone(storedBlocklist)
+		for domain := range whitelist {
+			delete(blocklist, domain)
+		}
+	}
+	for domain := range whitelist {
+		if blocklist[domain] {
+			return fmt.Errorf("%s cannot be on both the allow list and the block list", domain)
+		}
+	}
+	if stored.Mode != settings.Mode {
+		if err = s.storage.Put(ctx, uid, settingsModeName, modeRecord{
+			Mode: settings.Mode,
+		}); err != nil {
+			return err
+		}
+	}
+	if !maps.Equal(whitelist, storedWhitelist) {
+		if err = s.putList(ctx, uid, settingsWhitelistName, whitelist); err != nil {
+			return err
+		}
+	}
+	if maps.Equal(blocklist, storedBlocklist) {
+		return nil
+	}
+	return s.putList(ctx, uid, settingsBlocklistName, blocklist)
 }

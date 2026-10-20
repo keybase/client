@@ -505,6 +505,8 @@ type WhitelistExemption interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed, suppress []string)
+	UnfurlMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msg chat1.MessageUnboxed)
 	Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int
 	PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		text string) []chat1.UnfurlPreviewInfo
@@ -516,6 +518,7 @@ type Unfurler interface {
 	SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error
 	WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error
 	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
+	BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) error
 	WhitelistAddExemption(ctx context.Context, uid gregor1.UID, exemption WhitelistExemption)
 	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
 }

@@ -584,6 +584,10 @@ func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 	msg chat1.MessageUnboxed, suppress []string) {
 }
 
+func (d DummyUnfurler) UnfurlMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) {
+}
+
 func (d DummyUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int {
 	return 0
 }
@@ -609,6 +613,10 @@ func (d DummyUnfurler) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain
 }
 
 func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) BlocklistAdd(ctx context.Context, uid gregor1.UID, domain string) error {
 	return nil
 }
 

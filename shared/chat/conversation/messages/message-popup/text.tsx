@@ -96,7 +96,7 @@ const PopTextLoaded = (ownProps: OwnProps & {
 
   const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey, isTeam, numPart)
 
-  const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
+  const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnfurl, itemUnread} = i
   const {itemDelete, itemExplode, itemKick, itemProfile} = i
 
   const itemMap = onViewMap
@@ -114,6 +114,7 @@ const PopTextLoaded = (ownProps: OwnProps & {
     ...itemEdit,
     ...itemExplode,
     ...itemCopyText,
+    ...itemUnfurl,
     ...itemReply,
     ...itemUnread,
     'Divider' as const,

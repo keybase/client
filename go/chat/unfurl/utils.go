@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -44,6 +45,8 @@ func GetDomain(uri string) (res string, err error) {
 	if err != nil {
 		return res, err
 	}
+	// hostnames are case-insensitive and the allow and block lists store lowercase
+	hostname = strings.ToLower(hostname)
 	if len(hostname) == 0 {
 		return res, errors.New("no hostname")
 	}
@@ -52,10 +55,46 @@ func GetDomain(uri string) (res string, err error) {
 	}
 	// Check if hostname is an IP address. If so, return it directly
 	// since publicsuffix.EffectiveTLDPlusOne doesn't work with IPs.
-	if net.ParseIP(hostname) != nil {
-		return hostname, nil
+	if ip := net.ParseIP(hostname); ip != nil {
+		return ip.String(), nil
 	}
 	return publicsuffix.EffectiveTLDPlusOne(hostname)
+}
+
+// isAutoAllowedDomain reports domains that always unfurl, in every mode, and
+// so can never be stored on either list.
+func isAutoAllowedDomain(domain string) bool {
+	switch domain {
+	case "giphy.com", types.MapsDomain:
+		return true
+	}
+	return false
+}
+
+var errAutoAllowed = errors.New("is always allowed and cannot be listed")
+
+// NormalizeDomain turns user input (a bare domain or a URL) into the domain
+// form stored on the allow and block lists.
+func NormalizeDomain(input string) (string, error) {
+	uri := strings.ToLower(strings.TrimSpace(input))
+	// a bare IPv6 address only parses as a URL host inside brackets
+	if ip := net.ParseIP(uri); ip != nil {
+		return ip.String(), nil
+	}
+	if !strings.Contains(uri, "://") {
+		uri = "http://" + uri
+	}
+	domain, err := GetDomain(uri)
+	if err != nil {
+		return "", fmt.Errorf("invalid domain %q: %w", input, err)
+	}
+	if isAutoAllowedDomain(domain) {
+		return "", fmt.Errorf("%s %w", domain, errAutoAllowed)
+	}
+	if !strings.Contains(domain, ".") && net.ParseIP(domain) == nil {
+		return "", fmt.Errorf("invalid domain %q", input)
+	}
+	return domain, nil
 }
 
 func IsDomain(domain, target string) bool {

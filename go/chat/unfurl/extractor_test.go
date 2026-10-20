@@ -28,6 +28,7 @@ func TestExtractor(t *testing.T) {
 		message   string
 		mode      chat1.UnfurlMode
 		whitelist []string
+		blocklist []string
 		result    []ExtractorHit
 	}
 	var maxCase strings.Builder
@@ -139,12 +140,76 @@ func TestExtractor(t *testing.T) {
 				},
 			},
 		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"wsj.com"},
+			result:    []ExtractorHit{{URL: "http://www.twitter.com/mike/1", Typ: ExtractorHitPrompt}},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_ALWAYS,
+			blocklist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "http://www.twitter.com/mike/1", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_NEVER,
+			whitelist: []string{"twitter.com"},
+		},
+		{
+			message:   "https://giphy.com/gifs/x http://www.twitter.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "https://giphy.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://www.TWITTER.com/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"twitter.com"},
+		},
+		{
+			message:   "http://www.Twitter.COM/mike/1",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"twitter.com"},
+			result:    []ExtractorHit{{URL: "http://www.Twitter.COM/mike/1", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message: "https://GIPHY.com/gifs/x",
+			mode:    chat1.UnfurlMode_WHITELISTED,
+			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://[2001:db8::1]/x",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"2001:db8::1"},
+			result:    []ExtractorHit{{URL: "http://[2001:db8::1]/x", Typ: ExtractorHitUnfurl}},
+		},
+		{
+			message:   "http://[2001:db8::1]/x",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			blocklist: []string{"2001:db8::1"},
+		},
+		{
+			message: "https://GIPHY.com/gifs/x",
+			mode:    chat1.UnfurlMode_NEVER,
+			result:  []ExtractorHit{{URL: "https://GIPHY.com/gifs/x", Typ: ExtractorHitUnfurl}},
+		},
 	}
 	for _, tcase := range cases {
 		settings := chat1.NewUnfurlSettings()
 		settings.Mode = tcase.mode
 		for _, w := range tcase.whitelist {
 			settings.Whitelist[w] = true
+		}
+		settings.Blocklist = make(map[string]bool)
+		for _, b := range tcase.blocklist {
+			settings.Blocklist[b] = true
 		}
 		require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
 		res, err := extractor.Extract(context.TODO(), uid, convID, 1, tcase.message, settingsMod)
@@ -208,4 +273,43 @@ func TestExtractorExemptions(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+
+	// a one-time exemption proves the block check runs first: had the blocked
+	// extract consumed it, the unblocked extract would prompt
+	blockedMsgID := chat1.MessageID(2)
+	extractor.AddWhitelistExemption(context.TODO(), uid,
+		NewOneTimeWhitelistExemption(convID, blockedMsgID, "yahoo.com"))
+	blocked := chat1.NewUnfurlSettings()
+	blocked.Mode = chat1.UnfurlMode_WHITELISTED
+	blocked.Blocklist = map[string]bool{"yahoo.com": true}
+	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
+	res, err = extractor.Extract(context.TODO(), uid, convID, blockedMsgID, "http://yahoo.com", settingsMod)
+	require.NoError(t, err)
+	require.Empty(t, res)
+	blocked.Blocklist = map[string]bool{}
+	require.NoError(t, settingsMod.Set(context.TODO(), uid, blocked))
+	res, err = extractor.Extract(context.TODO(), uid, convID, blockedMsgID, "http://yahoo.com", settingsMod)
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+}
+
+func TestExtractorExtractAll(t *testing.T) {
+	tc := externalstest.SetupTest(t, "extractor", 0)
+	defer tc.Cleanup()
+	extractor := NewExtractor(globals.NewContext(tc.G, &globals.ChatContext{}))
+
+	urls := func(hits []ExtractorHit) (res []string) {
+		for _, h := range hits {
+			require.Equal(t, ExtractorHitUnfurl, h.Typ)
+			res = append(res, h.URL)
+		}
+		return res
+	}
+	// schemes that cannot be scraped are not unfurled, and neither is a quoted link
+	require.Equal(t, []string{"https://a.com"},
+		urls(extractor.ExtractAll("https://a.com mailto:testuser@a.com ftp://a.com/x `https://b.com`")))
+	// a repeated url counts once toward the cap, so the fifth distinct one still makes it
+	require.Equal(t, []string{"http://a.com", "http://b.com", "http://c.com", "http://d.com", "http://e.com"},
+		urls(extractor.ExtractAll("http://a.com http://a.com http://b.com http://c.com http://d.com http://e.com http://f.com")))
 }

@@ -467,6 +467,10 @@ export type MessageTypes = {
     inParam: {readonly tlfName: string,readonly topicType: TopicType,readonly tlfVisibility: Keybase1.TLFVisibility,readonly topicName?: string | null,readonly membersType: ConversationMembersType,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
     outParam: NewConversationLocalRes,
   },
+  'chat.1.local.normalizeUnfurlDomain': {
+    inParam: {readonly input: string},
+    outParam: string,
+  },
   'chat.1.local.pinMessage': {
     inParam: {readonly convID: ConversationID,readonly msgID: MessageID},
     outParam: PinMessageRes,
@@ -556,7 +560,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.local.saveUnfurlSettings': {
-    inParam: {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null},
+    inParam: {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,readonly blocklist?: ReadonlyArray<string> | null},
     outParam: void,
   },
   'chat.1.local.searchInbox': {
@@ -615,6 +619,10 @@ export type MessageTypes = {
     inParam: {readonly payload: string,readonly convID: string,readonly membersType: ConversationMembersType},
     outParam: string,
   },
+  'chat.1.local.unfurlMessage': {
+    inParam: {readonly convID: ConversationID,readonly msgID: MessageID,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
+    outParam: void,
+  },
   'chat.1.local.unfurlPreviewLocal': {
     inParam: {readonly convID: ConversationID,readonly text: string},
     outParam: ReadonlyArray<UnfurlPreviewInfo> | null,
@@ -640,7 +648,7 @@ export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
 export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
 export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
-type PromiseMethod = 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.CancelPost' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getGlobalAppNotificationSettingsLocal' | 'chat.1.local.getInboxAndUnboxUILocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.RetryPost' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setGlobalAppNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unfurlPreviewLocal' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
+type PromiseMethod = 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.CancelPost' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getGlobalAppNotificationSettingsLocal' | 'chat.1.local.getInboxAndUnboxUILocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.normalizeUnfurlDomain' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.RetryPost' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setGlobalAppNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unfurlMessage' | 'chat.1.local.unfurlPreviewLocal' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
 export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
   ? (params?: undefined, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
   : (params: RpcIn<M>, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
@@ -1169,6 +1177,7 @@ export enum UnfurlPromptAction {
   accept = 2,
   notnow = 3,
   onetime = 4,
+  block = 5,
 }
 
 export enum UnfurlType {
@@ -1590,11 +1599,11 @@ export type UnfurlGiphyRaw = {readonly imageUrl?: string | null,readonly video?:
 export type UnfurlImageDisplay = {readonly url: string,readonly height: number,readonly width: number,readonly isVideo: boolean,}
 export type UnfurlMapsRaw = {readonly title: string,readonly url: string,readonly siteName: string,readonly imageUrl: string,readonly historyImageUrl?: string | null,readonly description: string,readonly coord: Coordinate,readonly time: Gregor1.Time,readonly liveLocationEndTime?: Gregor1.Time | null,readonly liveLocationDone: boolean,}
 export type UnfurlPreviewInfo = {readonly url: string,readonly unfurl?: UnfurlDisplay | null,}
-export type UnfurlPromptResult ={ actionType: UnfurlPromptAction.always } | { actionType: UnfurlPromptAction.never } | { actionType: UnfurlPromptAction.notnow } | { actionType: UnfurlPromptAction.accept, accept: string } | { actionType: UnfurlPromptAction.onetime, onetime: string }
+export type UnfurlPromptResult ={ actionType: UnfurlPromptAction.always } | { actionType: UnfurlPromptAction.never } | { actionType: UnfurlPromptAction.notnow } | { actionType: UnfurlPromptAction.accept, accept: string } | { actionType: UnfurlPromptAction.onetime, onetime: string } | { actionType: UnfurlPromptAction.block, block: string }
 export type UnfurlRaw ={ unfurlType: UnfurlType.generic, generic: UnfurlGenericRaw } | { unfurlType: UnfurlType.youtube, youtube: UnfurlYoutubeRaw } | { unfurlType: UnfurlType.giphy, giphy: UnfurlGiphyRaw } | { unfurlType: UnfurlType.maps, maps: UnfurlMapsRaw }
 export type UnfurlResult = {readonly unfurl: Unfurl,readonly url: string,}
-export type UnfurlSettings = {readonly mode: UnfurlMode,readonly whitelist?: {[key: string]: boolean} | null,}
-export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,}
+export type UnfurlSettings = {readonly mode: UnfurlMode,readonly whitelist?: {[key: string]: boolean} | null,readonly blocklist?: {[key: string]: boolean} | null,}
+export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode,readonly whitelist?: ReadonlyArray<string> | null,readonly blocklist?: ReadonlyArray<string> | null,}
 export type UnfurlVideo = {readonly url: string,readonly mimeType: string,readonly height: number,readonly width: number,}
 export type UnfurlYoutube = {}
 export type UnfurlYoutubeDisplay = {}
@@ -1676,6 +1685,7 @@ export const localMakeUploadTempFileRpcPromise = createRpc('chat.1.local.makeUpl
 export const localMarkAsReadLocalRpcPromise = createRpc('chat.1.local.markAsReadLocal')
 export const localMarkTLFAsReadLocalRpcPromise = createRpc('chat.1.local.markTLFAsReadLocal')
 export const localNewConversationLocalRpcPromise = createRpc('chat.1.local.newConversationLocal')
+export const localNormalizeUnfurlDomainRpcPromise = createRpc('chat.1.local.normalizeUnfurlDomain')
 export const localPinMessageRpcPromise = createRpc('chat.1.local.pinMessage')
 export const localPostDeleteHistoryByAgeRpcPromise = createRpc('chat.1.local.postDeleteHistoryByAge')
 export const localPostDeleteNonblockRpcPromise = createRpc('chat.1.local.postDeleteNonblock')
@@ -1715,6 +1725,7 @@ export const localToggleEmojiAnimationsRpcPromise = createRpc('chat.1.local.togg
 export const localToggleMessageCollapseRpcPromise = createRpc('chat.1.local.toggleMessageCollapse')
 export const localTrackGiphySelectRpcPromise = createRpc('chat.1.local.trackGiphySelect')
 export const localUnboxMobilePushNotificationRpcPromise = createRpc('chat.1.local.unboxMobilePushNotification')
+export const localUnfurlMessageRpcPromise = createRpc('chat.1.local.unfurlMessage')
 export const localUnfurlPreviewLocalRpcPromise = createRpc('chat.1.local.unfurlPreviewLocal')
 export const localUnpinMessageRpcPromise = createRpc('chat.1.local.unpinMessage')
 export const localUpdateTypingRpcPromise = createRpc('chat.1.local.updateTyping')

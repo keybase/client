@@ -24,6 +24,7 @@ import {
   replyPrivately,
   toggleCollapse,
   toggleReaction,
+  unfurlMessage,
   type MessageCommandThread,
 } from './message-commands'
 
@@ -54,6 +55,7 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
     messageOrdinals: messages.map(m => m.ordinal),
     optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
     pendingDeleteMap: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
+    unfurlPrompt: new Map<T.Chat.MessageID, Set<string>>(),
   } as unknown as ConversationThreadState
   const writes: Array<ReadonlyArray<unknown>> = []
   const thread: MessageCommandThread = {
@@ -62,6 +64,9 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
       const optimisticReactionMap = new Map(state.optimisticReactionMap)
       optimisticReactionMap.set(outboxID, reaction)
       state = {...state, optimisticReactionMap}
+    },
+    clearUnfurlPrompt: (messageID, domain) => {
+      writes.push(['clearUnfurlPrompt', messageID, domain])
     },
     deleteMessages: p => {
       writes.push(['deleteMessages', p])
@@ -87,7 +92,10 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
     },
     rpc: makeThreadChatRpc(() => false),
   }
-  return {thread, writes}
+  const setUnfurlPrompts = (messageID: T.Chat.MessageID, domains: ReadonlyArray<string>) => {
+    state = {...state, unfurlPrompt: new Map([[messageID, new Set(domains)]])}
+  }
+  return {setUnfurlPrompts, thread, writes}
 }
 
 beforeEach(() => {
@@ -309,6 +317,23 @@ describe('the thread-only and storeless-only commands', () => {
     expect(rpc.calls('pinMessage')).toEqual([
       [conversationIDKey, T.Chat.numberToMessageID(10)],
       [conversationIDKey, T.Chat.numberToMessageID(12)],
+    ])
+  })
+
+  test('unfurlMessage unfurls by id: a thread row by the id it holds, otherwise the id given', async () => {
+    const {setUnfurlPrompts, thread, writes} = makeThread([textAt(10)])
+    setUnfurlPrompts(T.Chat.numberToMessageID(10), ['a.com', 'b.com'])
+    unfurlMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    unfurlMessage({conversationIDKey, messageID: T.Chat.numberToMessageID(12)})
+    await flushPromises()
+    expect(rpc.calls('unfurlMessage')).toEqual([
+      [conversationIDKey, T.Chat.numberToMessageID(10)],
+      [conversationIDKey, T.Chat.numberToMessageID(12)],
+    ])
+    // the thread row's open prompts are answered by the unfurl
+    expect(writes).toEqual([
+      ['clearUnfurlPrompt', T.Chat.numberToMessageID(10), 'a.com'],
+      ['clearUnfurlPrompt', T.Chat.numberToMessageID(10), 'b.com'],
     ])
   })
 

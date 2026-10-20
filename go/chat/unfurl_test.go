@@ -367,6 +367,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		require.NotNil(t, recvUnfurl())
 		recvAndCheckUnfurlMsg(origExplodeID)
 
 		t.Logf("try get/set settings")
@@ -379,5 +380,92 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlMode_NEVER, settings.Mode)
 		require.Equal(t, []string{"cnn.com", "nytimes.com"}, settings.Whitelist)
+
+		t.Logf("block list round trip normalizes and sorts")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{
+				Mode:      chat1.UnfurlMode_WHITELISTED,
+				Whitelist: []string{"a.com"},
+				Blocklist: &[]string{"https://www.b.com/"},
+			}))
+		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
+		require.NoError(t, err)
+		require.Equal(t, chat1.UnfurlMode_WHITELISTED, settings.Mode)
+		require.Equal(t, []string{"a.com"}, settings.Whitelist)
+		require.Equal(t, []string{"b.com"}, settings.Blocklist)
+
+		t.Logf("a domain on both lists is rejected")
+		require.Error(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{
+				Mode:      chat1.UnfurlMode_WHITELISTED,
+				Whitelist: []string{"a.com"},
+				Blocklist: &[]string{"a.com"},
+			}))
+
+		// Every settings write posts a TEXT to its own DEV conversation, and those arrive on
+		// newMessageRemote too, at no fixed time. Only messages in conv count from here on.
+		consumeConvText := func(msgID chat1.MessageID) {
+			deadline := time.After(timeout)
+			for {
+				select {
+				case m := <-listener0.newMessageRemote:
+					if !m.ConvID.Eq(conv.Id) {
+						continue
+					}
+					require.Equal(t, chat1.MessageType_TEXT, m.Message.GetMessageType())
+					require.Equal(t, msgID, m.Message.GetMessageID())
+					return
+				case <-deadline:
+					require.Fail(t, "no message")
+					return
+				}
+			}
+		}
+		requireNoUnfurlActivity := func() {
+			deadline := time.After(2 * time.Second)
+			for {
+				select {
+				case <-unfurlCh:
+					require.Fail(t, "unexpected unfurl")
+				case m := <-listener0.newMessageRemote:
+					require.False(t, m.ConvID.Eq(conv.Id), "unexpected message: %v", m.Message.GetMessageType())
+				case <-deadline:
+					return
+				}
+			}
+		}
+
+		t.Logf("block from the prompt")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{Mode: chat1.UnfurlMode_WHITELISTED, Blocklist: &[]string{}}))
+		blockID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeConvText(blockID)
+		select {
+		case notificationID := <-listener0.unfurlPrompt:
+			require.Equal(t, blockID, notificationID)
+		case <-time.After(timeout):
+			require.Fail(t, "no prompt")
+		}
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            blockID,
+				Result:           chat1.NewUnfurlPromptResultWithBlock("127.0.0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
+		settings, err = ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
+		require.NoError(t, err)
+		require.Equal(t, []string{"127.0.0.1"}, settings.Blocklist)
+		requireNoUnfurlActivity()
+
+		t.Logf("blocked domain no longer prompts")
+		blockedID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeConvText(blockedID)
+		select {
+		case <-listener0.unfurlPrompt:
+			require.Fail(t, "unexpected prompt")
+		case <-time.After(2 * time.Second):
+		}
+		requireNoUnfurlActivity()
 	})
 }

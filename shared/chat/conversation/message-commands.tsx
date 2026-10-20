@@ -32,6 +32,7 @@ export type MessageCommandThread = Pick<
   ConversationThreadActions,
   | 'addOptimisticReaction'
   | 'addPendingDelete'
+  | 'clearUnfurlPrompt'
   | 'deleteMessages'
   | 'getSnapshot'
   | 'removeOptimisticReaction'
@@ -435,6 +436,43 @@ const pinConversationMessage = (
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`pinConversationMessage: ${error.message}`)
+      }
+    }
+  }
+  ignorePromise(f())
+}
+
+// A thread row is unfurled by the id it holds when this runs.
+export const unfurlMessage = (target: ThreadMessage | StorelessMessageID) => {
+  onTarget(
+    target,
+    ({conversationIDKey, ordinal, thread}) => {
+      const messageID = thread.getSnapshot().messageMap.get(ordinal)?.id
+      if (!messageID) {
+        logger.warn('unfurlMessage: message has no id in the thread')
+        return
+      }
+      // the forced unfurl answers every prompt the message is showing
+      for (const domain of [...(thread.getSnapshot().unfurlPrompt.get(messageID) ?? [])]) {
+        thread.clearUnfurlPrompt(messageID, domain)
+      }
+      unfurlConversationMessage(conversationIDKey, messageID, thread.rpc)
+    },
+    ({conversationIDKey, messageID}) => unfurlConversationMessage(conversationIDKey, messageID, getChatRpc())
+  )
+}
+
+const unfurlConversationMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID,
+  rpc: ChatThreadRpc
+) => {
+  const f = async () => {
+    try {
+      await rpc.unfurlMessage(conversationIDKey, messageID)
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.error(`unfurlConversationMessage: ${error.message}`)
       }
     }
   }

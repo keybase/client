@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"regexp"
+	"strings"
 	"sync"
 
 	"mvdan.cc/xurls/v2"
@@ -58,40 +59,13 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 	return res
 }
 
-func (e *Extractor) isAutoWhitelist(domain string) bool {
-	switch domain {
-	case "giphy.com", types.MapsDomain:
-		return true
-	}
-	return false
-}
-
 func (e *Extractor) isAutoWhitelistFromHit(ctx context.Context, hit string) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isAutoWhitelistFromHit: failed to get domain: %s", err)
 		return false
 	}
-	return e.isAutoWhitelist(domain)
-}
-
-func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList,
-) bool {
-	domain, err := GetDomain(hit)
-	if err != nil {
-		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
-		return false
-	}
-	if e.isAutoWhitelist(domain) || whitelist[domain] {
-		return true
-	}
-	// Check exemptions
-	if exemptions.Use(convID, msgID, domain) {
-		e.Debug(ctx, "isWhitelistHit: hit exemption for domain, letting through")
-		return true
-	}
-	return false
+	return isAutoAllowedDomain(domain)
 }
 
 func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -116,7 +90,19 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 		case chat1.UnfurlMode_ALWAYS:
 			ehit.Typ = ExtractorHitUnfurl
 		case chat1.UnfurlMode_WHITELISTED:
-			if e.isWhitelistHit(ctx, convID, msgID, h, settings.Whitelist, e.getExemptionList(uid)) {
+			domain, err := GetDomain(h)
+			if err != nil {
+				e.Debug(ctx, "Extract: failed to get domain: %s", err)
+				break
+			}
+			if isAutoAllowedDomain(domain) {
+				ehit.Typ = ExtractorHitUnfurl
+			} else if settings.Blocklist[domain] {
+				continue
+			} else if settings.Whitelist[domain] {
+				ehit.Typ = ExtractorHitUnfurl
+			} else if e.getExemptionList(uid).Use(convID, msgID, domain) {
+				e.Debug(ctx, "Extract: hit exemption for domain, letting through")
 				ehit.Typ = ExtractorHitUnfurl
 			}
 		case chat1.UnfurlMode_NEVER:
@@ -133,6 +119,28 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 		}
 	}
 	return res, nil
+}
+
+// ExtractAll returns the distinct http(s) URLs in body as unfurl hits, ignoring the user's
+// settings. It is for an explicit request to unfurl one message, which overrides the mode and
+// both lists. Unlike Extract it skips schemes that cannot be scraped and counts a repeated URL
+// once toward maxHits; the client mirrors both to decide when to offer the request.
+func (e *Extractor) ExtractAll(body string) (res []ExtractorHit) {
+	body = e.quoteRegexp.ReplaceAllString(body, "")
+	seen := make(map[string]bool)
+	for _, h := range e.urlRegexp.FindAllString(body, -1) {
+		lower := strings.ToLower(h)
+		scrapeable := strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://")
+		if seen[h] || !scrapeable {
+			continue
+		}
+		seen[h] = true
+		res = append(res, ExtractorHit{URL: h, Typ: ExtractorHitUnfurl})
+		if len(res) >= e.maxHits {
+			break
+		}
+	}
+	return res
 }
 
 func (e *Extractor) AddWhitelistExemption(ctx context.Context, uid gregor1.UID,

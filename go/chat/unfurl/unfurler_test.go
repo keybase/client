@@ -690,3 +690,255 @@ func TestUnfurlerSuppressClearedWhenNoPrompt(t *testing.T) {
 		require.Fail(t, "marker from a no-prompt pass must not outlive that pass")
 	}
 }
+
+type fakeUnfurlOutbox struct {
+	records map[string]chat1.OutboxRecord
+	removed []chat1.OutboxID
+	// the real outbox completes a removed record's unfurl task
+	complete func(context.Context, chat1.OutboxID)
+}
+
+func (f *fakeUnfurlOutbox) GetRecord(ctx context.Context, outboxID chat1.OutboxID) (chat1.OutboxRecord, error) {
+	obr, ok := f.records[outboxID.String()]
+	if !ok {
+		return obr, storage.MissError{}
+	}
+	return obr, nil
+}
+
+func (f *fakeUnfurlOutbox) RemoveMessage(ctx context.Context, outboxID chat1.OutboxID) (chat1.OutboxRecord, error) {
+	obr := f.records[outboxID.String()]
+	delete(f.records, outboxID.String())
+	f.removed = append(f.removed, outboxID)
+	f.complete(ctx, outboxID)
+	return obr, nil
+}
+
+type unfurlMessageTest struct {
+	unfurler *Unfurler
+	notifier *dummyActivityNotifier
+	sender   *dummySender
+	outbox   *fakeUnfurlOutbox
+	uid      gregor1.UID
+	convID   chat1.ConversationID
+	url      string
+	msg      chat1.MessageUnboxed
+}
+
+func setupUnfurlMessageTest(t *testing.T) (*unfurlMessageTest, func()) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	notifier := makeDummyActivityNotifier()
+	g.ActivityNotifier = notifier
+	g.MessageDeliverer = dummyDeliverer{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	unfurler := NewUnfurler(g, attachments.NewStoreTesting(g, nil), &ptsigner{},
+		newMemConversationBackedStorage(), sender, ri)
+	outbox := &fakeUnfurlOutbox{records: make(map[string]chat1.OutboxRecord), complete: unfurler.Complete}
+	unfurler.outbox = func(gregor1.UID) unfurlOutbox { return outbox }
+	srv := createTestCaseHTTPSrv(t)
+	addr := srv.Start()
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	m := &unfurlMessageTest{
+		unfurler: unfurler,
+		notifier: notifier,
+		sender:   sender,
+		outbox:   outbox,
+		uid:      gregor1.UID([]byte{0, 1}),
+		convID:   chat1.ConversationID([]byte{0, 1, 2}),
+		url:      url,
+		msg:      makeTextMsgWithMsgID("check out this link! "+url, outboxID, 4),
+	}
+	return m, func() {
+		srv.Stop()
+		tc.Cleanup()
+	}
+}
+
+func (m *unfurlMessageTest) requireSent(t *testing.T) {
+	select {
+	case msg := <-m.sender.ch:
+		require.Equal(t, chat1.MessageType_UNFURL, msg.ClientHeader.MessageType)
+		require.Equal(t, m.msg.GetMessageID(), msg.ClientHeader.Supersedes)
+	case n := <-m.notifier.ch:
+		require.Failf(t, "prompted instead of unfurling", "domain: %s", n.domain)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no unfurl sent")
+	}
+}
+
+func (m *unfurlMessageTest) requireNotSent(t *testing.T) {
+	select {
+	case <-m.sender.ch:
+		require.Fail(t, "should not have sent an unfurl")
+	case n := <-m.notifier.ch:
+		require.Failf(t, "should not have prompted", "domain: %s", n.domain)
+	case <-time.After(2 * time.Second):
+	}
+}
+
+// an explicit request to unfurl one message overrides whatever the settings say, and leaves
+// them as they were
+func TestUnfurlMessageOverridesSettings(t *testing.T) {
+	cases := []struct {
+		name  string
+		setup func(t *testing.T, m *unfurlMessageTest)
+	}{
+		{
+			name: "mode never",
+			setup: func(t *testing.T, m *unfurlMessageTest) {
+				require.NoError(t, m.unfurler.SetMode(context.TODO(), m.uid, chat1.UnfurlMode_NEVER))
+			},
+		},
+		{
+			name: "blocked domain",
+			setup: func(t *testing.T, m *unfurlMessageTest) {
+				require.NoError(t, m.unfurler.BlocklistAdd(context.TODO(), m.uid, "127.0.0.1"))
+			},
+		},
+		{
+			name:  "domain on neither list",
+			setup: func(t *testing.T, m *unfurlMessageTest) {},
+		},
+	}
+	for _, tcase := range cases {
+		t.Run(tcase.name, func(t *testing.T) {
+			m, cleanup := setupUnfurlMessageTest(t)
+			defer cleanup()
+			tcase.setup(t, m)
+			before, err := m.unfurler.GetSettings(context.TODO(), m.uid)
+			require.NoError(t, err)
+
+			// the ordinary pass holds back, so the forced one below is what unfurls
+			m.unfurler.UnfurlAndSend(context.TODO(), m.uid, m.convID, m.msg, nil)
+			select {
+			case <-m.sender.ch:
+				require.Fail(t, "the ordinary pass should not unfurl here")
+			case <-m.notifier.ch:
+			case <-time.After(2 * time.Second):
+			}
+
+			m.unfurler.UnfurlMessage(context.TODO(), m.uid, m.convID, m.msg)
+			m.requireSent(t)
+
+			after, err := m.unfurler.GetSettings(context.TODO(), m.uid)
+			require.NoError(t, err)
+			require.Equal(t, before, after)
+		})
+	}
+}
+
+func TestUnfurlMessageOverridesDismissal(t *testing.T) {
+	m, cleanup := setupUnfurlMessageTest(t)
+	defer cleanup()
+	require.NoError(t, m.unfurler.WhitelistAdd(context.TODO(), m.uid, "127.0.0.1"))
+	// a second url that prompts keeps the dismissal marker for the first one alive
+	m.msg = makeTextMsgWithMsgID("check out this link! "+m.url+" and http://example.com/other",
+		*m.msg.Valid().ClientHeader.OutboxID, 4)
+
+	m.unfurler.UnfurlAndSend(context.TODO(), m.uid, m.convID, m.msg, []string{m.url})
+	select {
+	case n := <-m.notifier.ch:
+		require.Equal(t, "example.com", n.domain)
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "expected a prompt for the un-dismissed url")
+	}
+	m.unfurler.UnfurlAndSend(context.TODO(), m.uid, m.convID, m.msg, nil)
+	select {
+	case <-m.sender.ch:
+		require.Fail(t, "the dismissal should hold on an ordinary pass")
+	case <-m.notifier.ch:
+	case <-time.After(2 * time.Second):
+	}
+
+	// two sends, and the dummy sender buffers one
+	go m.unfurler.UnfurlMessage(context.TODO(), m.uid, m.convID, m.msg)
+	unfurled := make(map[chat1.MessageID]int)
+	for range 2 {
+		select {
+		case msg := <-m.sender.ch:
+			unfurled[msg.ClientHeader.Supersedes]++
+		case n := <-m.notifier.ch:
+			require.Failf(t, "prompted instead of unfurling", "domain: %s", n.domain)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "expected both urls to unfurl")
+		}
+	}
+	require.Equal(t, 2, unfurled[m.msg.GetMessageID()])
+}
+
+func TestUnfurlMessageSkipsAlreadyUnfurled(t *testing.T) {
+	m, cleanup := setupUnfurlMessageTest(t)
+	defer cleanup()
+	valid := m.msg.Valid()
+	valid.Unfurls = map[chat1.MessageID]chat1.UnfurlResult{5: {Url: m.url}}
+	m.msg = chat1.NewMessageUnboxedWithValid(valid)
+
+	m.unfurler.UnfurlMessage(context.TODO(), m.uid, m.convID, m.msg)
+	m.requireNotSent(t)
+}
+
+// an earlier attempt that will never deliver is replaced, and one still in flight is left to
+// finish, so the url never unfurls twice
+func TestUnfurlMessageEarlierAttempt(t *testing.T) {
+	permFailed := types.UnfurlerTaskStatusPermFailed
+	cases := []struct {
+		name        string
+		status      *types.UnfurlerTaskStatus
+		record      *chat1.OutboxState
+		wantSent    bool
+		wantRemoved bool
+	}{
+		{name: "failed, record gone", status: &permFailed, wantSent: true},
+		// a task is saved before its outbox record is written, so a task with no status and
+		// no record yet is in flight
+		{name: "just saved, no record yet"},
+		{
+			name:   "failed, record errored",
+			status: &permFailed,
+			record: func() *chat1.OutboxState {
+				s := chat1.NewOutboxStateWithError(chat1.OutboxStateError{Typ: chat1.OutboxErrorType_MISC})
+				return &s
+			}(),
+			wantSent:    true,
+			wantRemoved: true,
+		},
+		{
+			name:   "failed, record still sending",
+			status: &permFailed,
+			record: func() *chat1.OutboxState {
+				s := chat1.NewOutboxStateWithSending(0)
+				return &s
+			}(),
+		},
+	}
+	for _, tcase := range cases {
+		t.Run(tcase.name, func(t *testing.T) {
+			m, cleanup := setupUnfurlMessageTest(t)
+			defer cleanup()
+			outboxID := storage.GetOutboxIDFromURL(m.url, m.convID, m.msg)
+			require.NoError(t, m.unfurler.saveTask(context.TODO(), outboxID, m.uid, m.convID, m.url))
+			if tcase.status != nil {
+				require.NoError(t, m.unfurler.setStatus(context.TODO(), outboxID, *tcase.status))
+			}
+			if tcase.record != nil {
+				m.outbox.records[outboxID.String()] = chat1.OutboxRecord{OutboxID: outboxID, State: *tcase.record}
+			}
+
+			m.unfurler.UnfurlMessage(context.TODO(), m.uid, m.convID, m.msg)
+			if tcase.wantSent {
+				m.requireSent(t)
+			} else {
+				m.requireNotSent(t)
+			}
+			if tcase.wantRemoved {
+				require.Equal(t, []chat1.OutboxID{outboxID}, m.outbox.removed)
+			} else {
+				require.Empty(t, m.outbox.removed)
+			}
+		})
+	}
+}
