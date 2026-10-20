@@ -339,7 +339,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         saveExecutor.execute {
             try {
                 val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    saveViaMediaStore(source, filename, mime)
+                    saveViaMediaStore(
+                        source, filename, mime,
+                        MediaStore.Downloads.EXTERNAL_CONTENT_URI, Environment.DIRECTORY_DOWNLOADS
+                    )
                 } else {
                     saveToPublicDownloads(source, filename, mime)
                 }
@@ -356,28 +359,51 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // The source is moved, not just copied, so only files the app itself downloaded qualify:
-    // chat attachments land in the cacheDir root and Files downloads in the app's external
-    // Downloads dir. cacheDir also holds files that are not downloads, so those dirs are excluded.
-    private fun isAppDownloadSource(source: File): Boolean {
-        val canonical = try { source.canonicalPath } catch (ex: IOException) { return false }
-        val under = { root: File? ->
-            root != null && try {
-                canonical.startsWith(root.canonicalPath + File.separator)
-            } catch (ex: IOException) {
-                false
+    @ReactMethod
+    override fun androidSaveToGallery(config: ReadableMap, promise: Promise) {
+        val path = config.getString("path") ?: ""
+        val mime = config.getString("mime") ?: ""
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            promise.reject("EINVAL", "requires Android 10")
+            return
+        }
+        if (path.isEmpty() || mime.isEmpty()) {
+            promise.reject("EINVAL", "path and mime are required")
+            return
+        }
+        val source = File(path)
+        if (!isAppDownloadSource(source)) {
+            promise.reject("EINVAL", "path is outside the app download dirs")
+            return
+        }
+        val (collection, dir) = if (mime.startsWith("video/")) {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_MOVIES
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_PICTURES
+        }
+        saveExecutor.execute {
+            try {
+                promise.resolve(saveViaMediaStore(source, sanitizeFilename(source.name), mime, collection, dir))
+            } catch (ex: Exception) {
+                promise.reject("ESAVE", ex.message ?: "save failed")
             }
         }
-        val cacheDir = reactContext.cacheDir
-        val excluded = listOf(
-            ShareOutbox.dir(reactContext),
-            IncomingShareCache.dir(reactContext),
-            File(cacheDir, "Keybase"),
-        )
-        if (under(cacheDir) && excluded.none(under)) {
-            return true
+    }
+
+    // Saves can move the source, so only files the app itself downloaded qualify: chat
+    // attachments, which Go writes directly into cacheDir, and Files downloads under the app's
+    // external Downloads dir. Subfolders of cacheDir hold other app data and are refused.
+    private fun isAppDownloadSource(source: File): Boolean {
+        return try {
+            val canonical = source.canonicalFile
+            if (canonical.parentFile?.path == reactContext.cacheDir.canonicalPath) {
+                return true
+            }
+            val downloads = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return false
+            canonical.path.startsWith(downloads.canonicalPath + File.separator)
+        } catch (ex: IOException) {
+            false
         }
-        return under(reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS))
     }
 
     // Names come from remote parties: keep only the last path segment, no control or format
@@ -429,22 +455,24 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return s.substring(0, end)
     }
 
-    private fun saveViaMediaStore(source: File, filename: String, mime: String): String {
+    private fun saveViaMediaStore(
+        source: File, filename: String, mime: String, collection: Uri, relativeDir: String
+    ): String {
         val resolver = reactContext.contentResolver
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/Keybase")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "$relativeDir/Keybase")
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            ?: throw IOException("could not create Downloads entry")
+        val uri = resolver.insert(collection, values)
+            ?: throw IOException("could not create MediaStore entry")
         try {
-            val out = resolver.openOutputStream(uri) ?: throw IOException("could not open Downloads entry")
+            val out = resolver.openOutputStream(uri) ?: throw IOException("could not open MediaStore entry")
             out.buffered().use { dst -> source.inputStream().buffered().use { it.copyTo(dst) } }
             val done = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
             if (resolver.update(uri, done, null, null) != 1) {
-                throw IOException("could not publish Downloads entry")
+                throw IOException("could not publish MediaStore entry")
             }
         } catch (ex: Exception) {
             resolver.delete(uri, null, null)

@@ -59,6 +59,8 @@ export interface Spec extends TurboModule {
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
   androidSaveToDownloads(o: {path: string; filename: string; mime: string; deleteSource: boolean}): Promise<string>
+  // Android 10+ only: copies an app download into Pictures/Keybase or Movies/Keybase
+  androidSaveToGallery(o: {path: string; mime: string}): Promise<string>
   androidOpenFile(o: {uri: string; mime: string}): Promise<void>
   checkPushPermissions(): Promise<boolean>
   requestPushPermissions(): Promise<boolean>

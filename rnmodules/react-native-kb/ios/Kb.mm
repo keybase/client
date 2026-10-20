@@ -1000,6 +1000,7 @@ RCT_EXPORT_METHOD(stopLocationWatch) {
 
 // Android-only spec methods; stubs satisfy the NativeKbSpec protocol
 - (void)androidSaveToDownloads:(JS::NativeKb::SpecAndroidSaveToDownloadsO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidSaveToGallery:(JS::NativeKb::SpecAndroidSaveToGalleryO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidOpenFile:(JS::NativeKb::SpecAndroidOpenFileO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}

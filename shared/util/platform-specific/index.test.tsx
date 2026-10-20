@@ -1,11 +1,12 @@
 /// <reference types="jest" />
-const mockPlatform = {isAndroidPreQ: false, isAndroidPreR: false}
+const mockPlatform = {isAndroidPreQ: false, isAndroidQ: false}
 const mockPerm = {request: jest.fn()}
 const mockMedia = {requestPermissionsAsync: jest.fn(), createAsset: jest.fn()}
 const mockKb = {
   addNotificationRequest: jest.fn(),
   androidOpenFile: jest.fn(),
   androidSaveToDownloads: jest.fn(),
+  androidSaveToGallery: jest.fn(),
 }
 
 jest.mock('react-native', () => ({
@@ -28,6 +29,7 @@ jest.mock('../../test/mocks/native-module.js', () => ({
   addNotificationRequest: (...a: Array<unknown>) => mockKb.addNotificationRequest(...a),
   androidOpenFile: (...a: Array<unknown>) => mockKb.androidOpenFile(...a),
   androidSaveToDownloads: (...a: Array<unknown>) => mockKb.androidSaveToDownloads(...a),
+  androidSaveToGallery: (...a: Array<unknown>) => mockKb.androidSaveToGallery(...a),
   androidShare: jest.fn(),
   androidShareText: jest.fn(),
   iosShareFile: jest.fn(),
@@ -38,8 +40,8 @@ jest.mock('@/constants/platform', () => ({
   get isAndroidPreQ() {
     return mockPlatform.isAndroidPreQ
   },
-  get isAndroidPreR() {
-    return mockPlatform.isAndroidPreR
+  get isAndroidQ() {
+    return mockPlatform.isAndroidQ
   },
 }))
 
@@ -47,7 +49,7 @@ const g = globalThis as unknown as {isMobile: boolean; isAndroid: boolean; isIOS
 
 const atAndroidSdk = (sdk: number) => {
   mockPlatform.isAndroidPreQ = sdk < 29
-  mockPlatform.isAndroidPreR = sdk < 30
+  mockPlatform.isAndroidQ = sdk === 29
   return PlatformSpecific
 }
 
@@ -61,6 +63,7 @@ beforeEach(() => {
   mockKb.addNotificationRequest.mockReset().mockResolvedValue(undefined)
   mockKb.androidOpenFile.mockReset().mockResolvedValue(undefined)
   mockKb.androidSaveToDownloads.mockReset().mockResolvedValue('content://downloads/1')
+  mockKb.androidSaveToGallery.mockReset().mockResolvedValue('content://media/1')
 })
 
 afterEach(() => {
@@ -130,15 +133,34 @@ test('saveFileToDownloads on Android 10 does not request write permission', asyn
   expect(mockKb.androidSaveToDownloads).toHaveBeenCalled()
 })
 
-test('saveAttachmentToCameraRoll on Android 10 requests WRITE_EXTERNAL_STORAGE', async () => {
+test('saveAttachmentToCameraRoll on Android 10 saves through androidSaveToGallery without prompting', async () => {
   const {saveAttachmentToCameraRoll} = atAndroidSdk(29)
+  await saveAttachmentToCameraRoll('/cache/a.mp4', 'video/mp4')
+  expect(mockKb.androidSaveToGallery).toHaveBeenCalledWith({mime: 'video/mp4', path: '/cache/a.mp4'})
+  expect(mockPerm.request).not.toHaveBeenCalled()
+  expect(mockMedia.requestPermissionsAsync).not.toHaveBeenCalled()
+  expect(mockMedia.createAsset).not.toHaveBeenCalled()
+})
+
+test('saveAttachmentToCameraRoll on Android 10 failure posts a local notification and rethrows', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(29)
+  mockKb.androidSaveToGallery.mockRejectedValue(new Error('boom'))
+  await expect(saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')).rejects.toThrow('boom')
+  expect(mockKb.addNotificationRequest).toHaveBeenCalledWith(
+    expect.objectContaining({body: 'Failed to save photo to camera roll'})
+  )
+})
+
+test('saveAttachmentToCameraRoll before Android 10 requests WRITE_EXTERNAL_STORAGE', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(28)
   await saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')
   expect(mockPerm.request).toHaveBeenCalledWith('android.permission.WRITE_EXTERNAL_STORAGE')
   expect(mockMedia.createAsset).toHaveBeenCalledWith('file:///cache/a.jpg')
+  expect(mockKb.androidSaveToGallery).not.toHaveBeenCalled()
 })
 
-test('saveAttachmentToCameraRoll still saves when WRITE_EXTERNAL_STORAGE is denied', async () => {
-  const {saveAttachmentToCameraRoll} = atAndroidSdk(29)
+test('saveAttachmentToCameraRoll before Android 10 still saves when WRITE_EXTERNAL_STORAGE is denied', async () => {
+  const {saveAttachmentToCameraRoll} = atAndroidSdk(28)
   mockPerm.request.mockResolvedValue('denied')
   await saveAttachmentToCameraRoll('/cache/a.jpg', 'image/jpeg')
   expect(mockMedia.createAsset).toHaveBeenCalledWith('file:///cache/a.jpg')
@@ -150,4 +172,5 @@ test('saveAttachmentToCameraRoll on Android 11+ never requests permission', asyn
   expect(mockPerm.request).not.toHaveBeenCalled()
   expect(mockMedia.requestPermissionsAsync).not.toHaveBeenCalled()
   expect(mockMedia.createAsset).toHaveBeenCalledWith('file:///cache/a.jpg')
+  expect(mockKb.androidSaveToGallery).not.toHaveBeenCalled()
 })

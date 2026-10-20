@@ -75,6 +75,13 @@ export const androidSaveToDownloads = (o: {
   return Promise.reject(new Error('wrong platform'))
 }
 
+export const androidSaveToGallery = (o: {path: string; mime: string}): Promise<string> => {
+  if (Platform.OS === 'android') {
+    return Kb.androidSaveToGallery(o)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
 export const androidOpenFile = (o: {uri: string; mime: string}): Promise<void> => {
   if (Platform.OS === 'android') {
     return Kb.androidOpenFile(o)

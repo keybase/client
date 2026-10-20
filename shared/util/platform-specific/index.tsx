@@ -3,11 +3,12 @@ import logger from '@/logger'
 import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
 import {File} from 'expo-file-system'
-import {isAndroidPreQ, isAndroidPreR} from '@/constants/platform'
+import {isAndroidPreQ, isAndroidQ} from '@/constants/platform'
 import {
   addNotificationRequest,
   androidOpenFile,
   androidSaveToDownloads,
+  androidSaveToGallery,
   androidShare,
   androidShareText,
   iosShareFile,
@@ -93,16 +94,21 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       if (!p.granted) {
         throw new Error('Please allow Keybase to add to your Photos in the phone settings.')
       }
-    } else if (isAndroidPreR) {
+    } else if (isAndroidPreQ) {
       try {
-        // expo-media-library writes through its legacy path below Android 11, which needs this
+        // expo-media-library writes through its legacy path below Android 10, which needs this
         await requestWriteExternalStorage()
       } catch (e) {
         logger.warn(logPrefix + 'write permission denied, attempting save anyway: ' + String(e))
       }
     }
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.Asset.create(fileURL)
+    if (isAndroidQ) {
+      // expo-media-library's legacy path on Android 10 writes with java.io.File, which scoped storage blocks
+      await androidSaveToGallery({mime: mimeType, path: filePath})
+    } else {
+      await MediaLibrary.Asset.create(fileURL)
+    }
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
