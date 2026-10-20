@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-  <!-- Only ShareOutbox's directory; path must match ShareOutbox.DIR_NAME. -->
+  <!-- Only ShareOutbox's directory and Download/Keybase/. -->
+  <!-- Path must match ShareOutbox.DIR_NAME. -->
   <cache-path name="outbox" path="share-outbox/" />
-  <!-- Files saved by androidSaveToDownloads on API < 29. -->
+  <!-- Files saved below Android 10, which androidOpenFile opens through this provider. -->
   <external-path name="downloads" path="Download/Keybase/" />
 </paths>

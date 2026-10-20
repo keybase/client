@@ -357,32 +357,47 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     // The source is moved, not just copied, so only files the app itself downloaded qualify:
-    // chat attachments land in cacheDir and Files downloads in the app's external Downloads dir.
+    // chat attachments land in the cacheDir root and Files downloads in the app's external
+    // Downloads dir. cacheDir also holds files that are not downloads, so those dirs are excluded.
     private fun isAppDownloadSource(source: File): Boolean {
         val canonical = try { source.canonicalPath } catch (ex: IOException) { return false }
-        val roots = listOfNotNull(
-            reactContext.cacheDir,
-            reactContext.externalCacheDir,
-            reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-        )
-        return roots.any { root ->
-            try {
+        val under = { root: File? ->
+            root != null && try {
                 canonical.startsWith(root.canonicalPath + File.separator)
             } catch (ex: IOException) {
                 false
             }
         }
+        val cacheDir = reactContext.cacheDir
+        val excluded = listOf(
+            ShareOutbox.dir(reactContext),
+            IncomingShareCache.dir(reactContext),
+            File(cacheDir, "Keybase"),
+        )
+        if (under(cacheDir) && excluded.none(under)) {
+            return true
+        }
+        return under(reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS))
     }
 
-    // Names come from remote parties: keep only the last path segment, no control characters,
-    // and at most the 255 bytes a filesystem name allows.
+    // Names come from remote parties: keep only the last path segment, no control or format
+    // characters (e.g. right-to-left override), and at most the bytes a filesystem name allows.
     private fun sanitizeFilename(name: String): String {
         val last = name.substringAfterLast('/').substringAfterLast('\\')
-        val clean = last.filter { !it.isISOControl() }
-        if (clean.isEmpty() || clean == "." || clean == "..") {
+        val clean = StringBuilder()
+        var i = 0
+        while (i < last.length) {
+            val cp = last.codePointAt(i)
+            if (!Character.isISOControl(cp) && Character.getType(cp) != Character.FORMAT.toInt()) {
+                clean.appendCodePoint(cp)
+            }
+            i += Character.charCount(cp)
+        }
+        val cleaned = clean.toString()
+        if (cleaned.isEmpty() || cleaned == "." || cleaned == "..") {
             return "download"
         }
-        return capFilenameBytes(clean, 255)
+        return capFilenameBytes(cleaned, MAX_FILENAME_BYTES)
     }
 
     private fun capFilenameBytes(name: String, maxBytes: Int): String {
@@ -428,7 +443,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             val out = resolver.openOutputStream(uri) ?: throw IOException("could not open Downloads entry")
             out.buffered().use { dst -> source.inputStream().buffered().use { it.copyTo(dst) } }
             val done = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
-            resolver.update(uri, done, null, null)
+            if (resolver.update(uri, done, null, null) != 1) {
+                throw IOException("could not publish Downloads entry")
+            }
         } catch (ex: Exception) {
             resolver.delete(uri, null, null)
             throw ex
@@ -444,10 +461,19 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         val dot = filename.lastIndexOf('.')
         val base = if (dot > 0) filename.substring(0, dot) else filename
         val ext = if (dot > 0) filename.substring(dot) else ""
+        val extBytes = ext.toByteArray(Charsets.UTF_8).size
         var target = File(dir, filename)
         var n = 1
         while (target.exists()) {
-            target = File(dir, "$base ($n)$ext")
+            val suffix = " ($n)"
+            val budget = MAX_FILENAME_BYTES - suffix.toByteArray(Charsets.UTF_8).size
+            // same rule as capFilenameBytes: an extension that fills half the budget is dropped
+            val name = if (extBytes < MAX_FILENAME_BYTES / 2) {
+                truncateUtf8(base, budget - extBytes) + suffix + ext
+            } else {
+                truncateUtf8(filename, budget) + suffix
+            }
+            target = File(dir, name)
             n++
         }
         if (!target.canonicalPath.startsWith(dir.canonicalPath + File.separator)) {
@@ -465,18 +491,24 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return target.absolutePath
     }
 
+    private fun ensureNotificationChannel(): String {
+        val channelId = "keybase_notifications"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.createNotificationChannel(
+                android.app.NotificationChannel(channelId, "Keybase Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT)
+            )
+        }
+        return channelId
+    }
+
     private fun notifySaved(filename: String, mime: String, uri: Uri) {
         try {
             if (!NotificationManagerCompat.from(reactContext).areNotificationsEnabled()) {
                 return
             }
             val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            val channelId = "keybase_notifications"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                notificationManager.createNotificationChannel(
-                    android.app.NotificationChannel(channelId, "Keybase Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT)
-                )
-            }
+            val channelId = ensureNotificationChannel()
             val view = Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, mime)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -618,16 +650,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         val notificationManager = reactContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        val channelId = "keybase_notifications"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = android.app.NotificationChannel(
-                channelId,
-                "Keybase Notifications",
-                android.app.NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channelId = ensureNotificationChannel()
 
         val notification = NotificationCompat.Builder(reactContext, channelId)
             .setContentText(body)
@@ -942,6 +965,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
         const val NAME: String = "Kb"
         private val saveExecutor = Executors.newSingleThreadExecutor()
+        private const val MAX_FILENAME_BYTES = 255
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
 
         // Process-wide, not per-instance: a reload creates a new KbModule but

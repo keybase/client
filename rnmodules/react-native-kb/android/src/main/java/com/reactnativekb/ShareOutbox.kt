@@ -7,9 +7,10 @@ import java.io.File
 import java.io.IOException
 import java.util.UUID
 
-// Files shared out of the app are placed here first, and the outbox provider
-// serves only this directory (res/xml/fileprovider.xml), so a uri it hands out
-// can only ever name an item put here for sharing.
+// Files shared out of the app are placed here first. The outbox provider
+// (res/xml/fileprovider.xml) serves only this directory and Download/Keybase/,
+// where androidOpenFile finds files saved below Android 10, so a uri it hands
+// out can only ever name an item put here for sharing or a saved download.
 object ShareOutbox {
     // Must match the cache-path in res/xml/fileprovider.xml.
     private const val DIR_NAME = "share-outbox"
