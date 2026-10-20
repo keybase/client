@@ -24,7 +24,7 @@ import {
 } from './error-state'
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
-  finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
+  saveFinishedDownloadToPublicDownloads,
 } from '@/util/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
 import {clientID as fsClientID, makeUUID} from './client'
@@ -1338,7 +1338,7 @@ export const useFsWatchDownloadForMobile = isMobile
         }
         const f = async () => {
           if (downloadIntent === T.FS.DownloadIntent.None) {
-            await finishedRegularDownloadInPlatform(downloadID, dlState, dlInfo, mimeType)
+            await saveFinishedDownloadToPublicDownloads(downloadID, dlState, dlInfo, mimeType)
             handledIntentKeyRef.current = handledIntentKey
             return
           }

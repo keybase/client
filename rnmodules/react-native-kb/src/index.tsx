@@ -63,19 +63,6 @@ export const androidShare = (text: string, mimeType: string): Promise<boolean> =
   return Promise.resolve(false)
 }
 
-export const androidAddCompleteDownload = (o: {
-  description: string
-  mime: string
-  path: string
-  showNotification: boolean
-  title: string
-}): Promise<void> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidAddCompleteDownload(o)
-  }
-  return Promise.reject(new Error('wrong platform'))
-}
-
 export const androidSaveToDownloads = (o: {
   path: string
   filename: string

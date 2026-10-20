@@ -58,13 +58,6 @@ export interface Spec extends TurboModule {
   iosShareFile(path: string, text: string): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
-  androidAddCompleteDownload(o: {
-    description: string
-    mime: string
-    path: string
-    showNotification: boolean
-    title: string
-  }): Promise<void>
   androidSaveToDownloads(o: {path: string; filename: string; mime: string; deleteSource: boolean}): Promise<string>
   androidOpenFile(o: {uri: string; mime: string}): Promise<void>
   checkPushPermissions(): Promise<boolean>

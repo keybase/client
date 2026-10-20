@@ -321,53 +321,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         instance = this
     }
 
-    private fun normalizePath(path: String): String {
-        if (!Regex("""\w+\:.*""").matches(path)) {
-            return path
-        }
-        if (path.startsWith("file://")) {
-            return path.replace("file://", "")
-        }
-        val uri: Uri = Uri.parse(path)
-        if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
-            return path
-        } else {
-            return PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
-        }
-    }
-
-    @ReactMethod
-    override fun androidAddCompleteDownload(config: ReadableMap, promise: Promise) {
-        val dm: DownloadManager = reactContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        if (!config.hasKey("path")) {
-            promise.reject("EINVAL", "addCompleteDownload config or path missing.")
-            return
-        }
-        val path = normalizePath(config.getString("path") ?: "")
-
-        if (path == "") {
-            promise.reject("EINVAL", "addCompleteDownload can not resolve URI:" + config.getString("path"))
-            return
-        }
-        try {
-            val target = File(path)
-            val size = if (target.exists()) target.length() else 0L
-            @Suppress("DEPRECATION")
-            dm.addCompletedDownload(
-                    if (config.hasKey("title")) config.getString("title") else "",
-                    if (config.hasKey("description")) config.getString("description") else "",
-                    true,
-                    if (config.hasKey("mime")) config.getString("mime") else null,
-                    path,
-                    size,
-                    config.hasKey("showNotification") && config.getBoolean("showNotification")
-            )
-            promise.resolve(null)
-        } catch (ex: Exception) {
-            promise.reject("EUNSPECIFIED", ex.localizedMessage)
-        }
-    }
-
     @ReactMethod
     override fun androidSaveToDownloads(config: ReadableMap, promise: Promise) {
         val path = config.getString("path") ?: ""
@@ -969,7 +922,5 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             val testLabSetting: String? = Settings.System.getString(context.contentResolver, "firebase.test.lab")
             return "true".equals(testLabSetting)
         }
-
-        private const val FILE_PREFIX_BUNDLE_ASSET: String = "bundle-assets://"
     }
 }

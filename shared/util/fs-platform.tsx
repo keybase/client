@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import logger from '@/logger'
@@ -9,9 +10,10 @@ import {ExitCodeFuseKextPermissionError} from '@/constants/values'
 import {unnormalizePath} from '@/styles'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
-import {saveAttachmentToCameraRoll, showShareActionSheet} from '@/util/platform-specific'
-import {fsCacheDir, fsDownloadDir, androidAddCompleteDownload} from 'react-native-kb'
+import {saveAttachmentToCameraRoll, saveFileToDownloads, showShareActionSheet} from '@/util/platform-specific'
+import {fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import {registerExternalResetter} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
@@ -301,13 +303,31 @@ export const afterKbfsDaemonRpcStatusChangedMobile = async () => {
 }
 
 const finishedRegularDownloadIDs = new Set<string>()
+const savedDownloadUris = new Map<string, string>()
+const savedDownloadListeners = new Set<() => void>()
+
+const notifySavedDownloadListeners = () => {
+  savedDownloadListeners.forEach(l => l())
+}
 
 // module scope outlives sign-out; holds the previous user's download ids
 registerExternalResetter('fs-finished-regular-downloads', () => {
   finishedRegularDownloadIDs.clear()
+  savedDownloadUris.clear()
+  notifySavedDownloadListeners()
 })
 
-export const finishedRegularDownloadMobile = async (
+const subscribeSavedDownloads = (l: () => void) => {
+  savedDownloadListeners.add(l)
+  return () => {
+    savedDownloadListeners.delete(l)
+  }
+}
+
+export const useSavedDownloadUri = (downloadID: string): string | undefined =>
+  React.useSyncExternalStore(subscribeSavedDownloads, () => savedDownloadUris.get(downloadID))
+
+export const saveFinishedDownloadToPublicDownloads = async (
   downloadID: string,
   downloadState: T.FS.DownloadState,
   downloadInfo: T.FS.DownloadInfo,
@@ -325,14 +345,13 @@ export const finishedRegularDownloadMobile = async (
   finishedRegularDownloadIDs.add(downloadID)
 
   try {
-    await androidAddCompleteDownload({
-      description: `Keybase downloaded ${downloadInfo.filename}`,
-      mime: mimeType,
-      path: downloadState.localPath,
-      showNotification: true,
-      title: downloadInfo.filename,
-    })
+    const uri = await saveFileToDownloads(downloadState.localPath, downloadInfo.filename, mimeType)
+    // a reset while saving means this download belongs to the previous user
+    if (finishedRegularDownloadIDs.has(downloadID)) {
+      savedDownloadUris.set(downloadID, uri)
+      notifySavedDownloadListeners()
+    }
   } catch {
-    logger.warn('Failed to addCompleteDownload')
+    useConfigState.getState().dispatch.setGlobalError(new Error(`Couldn't save ${downloadInfo.filename} to Downloads`))
   }
 }

@@ -5,6 +5,8 @@ import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
 import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {useSavedDownloadUri} from '@/util/fs-platform'
+import {openSavedFile} from '@/util/platform-specific'
 
 export type Props = {
   downloadID: string
@@ -31,20 +33,32 @@ const getProgress = (dlState: T.FS.DownloadState, styles: ReturnType<typeof useS
 )
 
 const Download = (props: Props) => {
+  const {downloadID, isFirst} = props
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const dlState = Kbfs.useFsDownloadState(props.downloadID)
+  const dlInfo = Kbfs.useFsDownloadInfo(downloadID)
+  const dlState = Kbfs.useFsDownloadState(downloadID)
+  const {fileContext} = Kbfs.useFsFileContext(dlInfo.path)
+  const savedUri = useSavedDownloadUri(downloadID)
+  const {redbar} = Kbfs.useFsRedbarActions()
   const dismissDownload = Kbfs.useFsDismissDownload()
   const cancelDownload = Kbfs.useFsCancelDownload()
-  const open = dlState.localPath
-    ? () => openLocalPathInSystemFileManagerDesktop(dlState.localPath)
-    : () => {}
-  const dismiss = () => dismissDownload(props.downloadID)
-  const cancel = () => cancelDownload(props.downloadID)
-  Kbfs.useFsWatchDownloadForMobile(props.downloadID, T.FS.DownloadIntent.None)
+  const open = isMobile
+    ? isAndroid && savedUri
+      ? () => {
+          openSavedFile(savedUri, fileContext.contentType).catch((e: unknown) => {
+            redbar(e instanceof Error ? e.message : `Couldn't open ${dlInfo.filename}`)
+          })
+        }
+      : undefined
+    : dlState.localPath
+      ? () => openLocalPathInSystemFileManagerDesktop(dlState.localPath)
+      : () => {}
+  const dismiss = () => dismissDownload(downloadID)
+  const cancel = () => cancelDownload(downloadID)
+  Kbfs.useFsWatchDownloadForMobile(downloadID, T.FS.DownloadIntent.None)
   return (
-    <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
+    <DownloadWrapper dismiss={dismiss} isFirst={isFirst} done={dlState.done}>
       <Kb.Box2 alignSelf="center"
         direction="horizontal"
         centerChildren={true}
@@ -62,7 +76,7 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
-            onClick={isMobile ? undefined : open}
+            onClick={open}
             style={styles.filename}
             lineClamp={isMobile ? 1 : undefined}
           >
