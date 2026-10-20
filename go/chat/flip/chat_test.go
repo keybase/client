@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -22,6 +23,7 @@ type chatServer struct {
 	clock            clockwork.FakeClock
 	clockForArchiver clockwork.FakeClock
 	corruptor        func(GameMessageWrappedEncoded) GameMessageWrappedEncoded
+	historiesMu      sync.Mutex
 	gameHistories    map[GameIDKey]GameHistory
 }
 
@@ -79,6 +81,8 @@ func (c *chatClient) ShouldCommit(ctx context.Context) bool {
 }
 
 func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
+	s.historiesMu.Lock()
+	defer s.historiesMu.Unlock()
 	v := s.gameHistories[GameIDToKey(msg.GameID)]
 	cl := s.clock
 	if s.clockForArchiver != nil {
@@ -89,6 +93,14 @@ func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
 	}
 	v = append(v, GameMessageReplayed{GameMessageWrappedEncoded: msg, Time: cl.Now()})
 	s.gameHistories[GameIDToKey(msg.GameID)] = v
+}
+
+// gameHistory snapshots a game's archive; the server goroutine keeps
+// archiving messages that arrive after a test stops consuming.
+func (s *chatServer) gameHistory(gameID chat1.FlipGameID) GameHistory {
+	s.historiesMu.Lock()
+	defer s.historiesMu.Unlock()
+	return slices.Clone(s.gameHistories[GameIDToKey(gameID)])
 }
 
 func (s *chatServer) run(ctx context.Context) {
@@ -281,7 +293,7 @@ func testHappyChat(t *testing.T, n int) {
 	var b *big.Int
 	forAllClients(clients, func(c *chatClient) { c.consumeResult(t, &b) })
 
-	res, err := Replay(ctx, clients[0], srv.gameHistories[GameIDToKey(gameID)])
+	res, err := Replay(ctx, clients[0], srv.gameHistory(gameID))
 	require.NoError(t, err)
 	require.Equal(t, 0, b.Cmp(res.Result.Big))
 }
@@ -499,7 +511,7 @@ func testAbsentees(t *testing.T, nTotal int, nAbsentees int) {
 	srv.clock.Advance(time.Duration(31001) * time.Millisecond)
 	forAllClients(clients, func(c *chatClient) { c.consumeAbsteneesError(t, nAbsentees) })
 
-	_, err = Replay(ctx, clients[0], srv.gameHistories[GameIDToKey(gameID)])
+	_, err = Replay(ctx, clients[0], srv.gameHistory(gameID))
 	require.Error(t, err)
 	require.ErrorAs(t, err, new(AbsenteesError))
 	ae, ok := err.(AbsenteesError)
@@ -597,7 +609,7 @@ func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 	forAllClients(clients, func(c *chatClient) { c.consumeCommitmentComplete(t, nTotal) })
 	forAllClients(clients[0:good], func(c *chatClient) { c.consumeRevealsAndError(t, good) })
 
-	_, err = Replay(ctx, clients[0], srv.gameHistories[GameIDToKey(gameID)])
+	_, err = Replay(ctx, clients[0], srv.gameHistory(gameID))
 	require.Error(t, err)
 	require.ErrorAs(t, err, new(BadRevealError))
 }
@@ -663,7 +675,7 @@ func testLeaderClockSkew(t *testing.T, skew time.Duration) {
 	require.NoError(t, err)
 	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, BadLeaderClockError{}) })
 
-	_, err = Replay(ctx, clients[0], srv.gameHistories[GameIDToKey(gameID)])
+	_, err = Replay(ctx, clients[0], srv.gameHistory(gameID))
 	require.Error(t, err)
 	require.ErrorAs(t, err, new(BadLeaderClockError))
 }
