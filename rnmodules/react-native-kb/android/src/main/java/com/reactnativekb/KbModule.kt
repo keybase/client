@@ -351,7 +351,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     NativeLogger.warn("$NAME: could not delete source after save")
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    notifySaved(filename, mime, Uri.parse(result))
+                    val uri = Uri.parse(result)
+                    notifySaved(savedDisplayName(uri) ?: filename, mime, uri)
                 }
                 promise.resolve(result)
             } catch (ex: Exception) {
@@ -489,6 +490,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             candidate = numberedFilename(filename, n)
         }
         return filename
+    }
+
+    private fun savedDisplayName(uri: Uri): String? = try {
+        reactContext.contentResolver
+            .query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
+            ?.use { if (it.moveToFirst()) it.getString(0) else null }
+    } catch (ex: Exception) {
+        null
     }
 
     private fun saveViaMediaStore(
