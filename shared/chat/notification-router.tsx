@@ -38,7 +38,7 @@ import {
   unboxRows,
   updateInboxConversationMeta,
 } from '@/chat/inbox/metadata'
-import {conversationGoneForUser} from '@/chat/inbox/selection'
+import {conversationGone} from '@/chat/inbox/selection'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
@@ -96,6 +96,17 @@ const chatNotificationTypeSet: ReadonlySet<string> = new Set(chatNotificationTyp
 
 export const isChatNotification = (action: EngineGen.Actions): action is ChatNotification =>
   chatNotificationTypeSet.has(action.type)
+
+type NotifyChatAction = Extract<EngineGen.Actions, {readonly type: `chat.1.NotifyChat.${string}`}>
+
+const isNotifyChat = (action: EngineGen.Actions): action is NotifyChatAction =>
+  action.type.startsWith('chat.1.NotifyChat.')
+
+// The service tags each chat notification with the uid of the account it was made for. Login and
+// logout are not serialized against them, so through an account switch the previous account's can
+// still arrive; while no account is signed in (uid '') none are ours.
+export const isChatNotificationNotForSignedInAccount = (action: EngineGen.Actions, currentUID: string) =>
+  isNotifyChat(action) && (!currentUID || action.payload.params.uid !== currentUID)
 
 // What one notification does at each stage. The thread and reload parts are built when asked for.
 type Stages = {
@@ -371,12 +382,12 @@ const stagesOf = (action: ChatNotification): Stages => {
       }
     }
     case 'chat.1.NotifyChat.ChatLeftConversation': {
-      const {convID, uid} = action.payload.params
-      return {inbox: () => conversationGoneForUser(uid, T.Chat.conversationIDToKey(convID), 'left or removed')}
+      const {convID} = action.payload.params
+      return {inbox: () => conversationGone(T.Chat.conversationIDToKey(convID), 'left or removed')}
     }
     case 'chat.1.NotifyChat.ChatResetConversation': {
-      const {convID, uid} = action.payload.params
-      return {inbox: () => conversationGoneForUser(uid, T.Chat.conversationIDToKey(convID), 'reset')}
+      const {convID} = action.payload.params
+      return {inbox: () => conversationGone(T.Chat.conversationIDToKey(convID), 'reset')}
     }
     case 'chat.1.NotifyChat.ChatInboxStale':
       return {inbox: () => ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))}

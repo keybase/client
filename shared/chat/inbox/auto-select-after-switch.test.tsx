@@ -286,9 +286,8 @@ test('a layout naming a conversation a popup loaded leaves a picked conversation
 test('leaving the selected conversation moves the selection to the newest other one', () => {
   pickAfterSwitch()
 
-  // another account's notification, and one about a conversation not selected, change nothing
+  // one about a conversation not selected changes nothing
   step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(newest), uid: 'uid-2'}))
-  step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(picked), uid: 'uid-1'}))
   expect(selected()).toBe(picked)
 
   step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(picked), uid: 'uid-2'}))

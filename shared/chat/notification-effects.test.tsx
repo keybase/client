@@ -15,6 +15,9 @@ import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {NotifyPopup} from '@/util/misc'
 import {_onEngineIncoming} from '@/constants/init/shared'
+import {subscribeToEngineAction} from '@/engine/action-listener'
+import {useWaitingState} from '@/stores/waiting'
+import {waitingKeyChatInboxSyncStarted} from '@/constants/waiting-keys'
 import * as InboxMetadata from '@/chat/inbox/metadata'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useInboxTypingState} from '@/chat/inbox/typing-state'
@@ -268,7 +271,14 @@ const pendingText = (id: T.Chat.ConversationIDKey, outboxID: string) =>
     timestamp: 100,
   })
 
-const engineAction = (type: string, params: object) => ({payload: {params}, type}) as never
+// a chat notification is the service's for the signed-in account
+const engineAction = (type: string, params: object) =>
+  ({
+    payload: {
+      params: type.startsWith('chat.1.NotifyChat.') ? {uid: useCurrentUserState.getState().uid, ...params} : params,
+    },
+    type,
+  }) as never
 
 const activity = (a: object) => engineAction('chat.1.NotifyChat.NewChatActivity', {activity: a})
 
@@ -788,7 +798,6 @@ const cases: Array<Case> = [
   {
     action: () =>
       engineAction('chat.1.NotifyChat.ChatThreadsStale', {
-        uid: '',
         updates: [
           {convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.clear},
           {convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity},
@@ -1174,7 +1183,6 @@ const loadThread = (tag: string, enableActiveMarkRead: boolean) => {
 
 const staleThread = (id: T.Chat.ConversationIDKey) =>
   engineAction('chat.1.NotifyChat.ChatThreadsStale', {
-    uid: '',
     updates: [{convID: rpcConvID(id), updateType: T.RPCChat.StaleUpdateType.newactivity}],
   })
 
@@ -1472,5 +1480,93 @@ describe('a channel minimum writer role', () => {
       setMinWriterRole({cannotWrite: true, changedBy: 'testuser-mac', role: T.RPCGen.TeamRole.admin})
     )
     expect(writability()).toEqual({cannotWrite: true, minWriterRole: 'admin'})
+  })
+})
+
+// The service tags each NotifyChat with the account it was made for, and an account switch can
+// deliver the previous account's late. The chatUi calls answer this client's own requests.
+describe("another account's chat notifications", () => {
+  const unsubscribes: Array<() => void> = []
+  afterEach(() => {
+    unsubscribes.splice(0).forEach(unsubscribe => unsubscribe())
+  })
+  const heard = (type: 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.chatUi.chatCommandMarkdown') => {
+    const params: Array<unknown> = []
+    unsubscribes.push(subscribeToEngineAction(type, action => params.push(action.payload.params)))
+    return params
+  }
+  const typingFor = (uid: string) =>
+    engineAction('chat.1.NotifyChat.ChatTypingUpdate', {
+      typingUpdates: [{convID: rpcConvID(convA), typers: [{deviceID: 'd', uid: 'u', username: 'testuser-2'}]}],
+      uid,
+    })
+  // the archive job's progress, which no chat screen routes; settings listens for it
+  const archiveProgressFor = (uid: string) =>
+    engineAction('chat.1.NotifyChat.ChatArchiveProgress', {jobID: 'job', messagesComplete: 1, messagesTotal: 2, uid})
+  const commandMarkdown = () =>
+    engineAction('chat.1.chatUi.chatCommandMarkdown', {convID: convIDString(convA)})
+
+  test('one for another uid reaches neither the router nor an engine action listener', async () => {
+    await mountScreens([convA])
+    loadThread('A', false)
+    const archive = heard('chat.1.NotifyChat.ChatArchiveProgress')
+    timeline = []
+
+    await notify(typingFor('uid-2'))
+    await notify(archiveProgressFor('uid-2'))
+
+    expect(timeline).toEqual([])
+    expect(typersIn('A')).toEqual([])
+    expect(archive).toEqual([])
+  })
+
+  test('one for the signed-in uid reaches the router and engine action listeners', async () => {
+    await mountScreens([convA])
+    loadThread('A', false)
+    const archive = heard('chat.1.NotifyChat.ChatArchiveProgress')
+
+    await notify(typingFor('uid'))
+    await notify(archiveProgressFor('uid'))
+
+    expect(typersIn('A')).toEqual(['testuser-2'])
+    expect(archive).toEqual([{jobID: 'job', messagesComplete: 1, messagesTotal: 2, uid: 'uid'}])
+  })
+
+  test('while no account is signed in every one is dropped, an empty uid included', async () => {
+    const archive = heard('chat.1.NotifyChat.ChatArchiveProgress')
+    await startSwitch('testuser-mac')
+
+    await notify(archiveProgressFor('uid'))
+    await notify(archiveProgressFor(''))
+    await notify(typingFor(''))
+
+    expect(archive).toEqual([])
+    expect(useInboxTypingState.getState().typing.size).toBe(0)
+  })
+
+  test("a sync the leaving account started does not keep the next account's inbox loading", async () => {
+    const syncing = () => useWaitingState.getState().counts.get(waitingKeyChatInboxSyncStarted) ?? 0
+    await notify(engineAction('chat.1.NotifyChat.ChatInboxSyncStarted', {}))
+    expect(syncing()).toBe(1)
+
+    await startSwitch('testuser-mac')
+    await notify(
+      engineAction('chat.1.NotifyChat.ChatInboxSynced', {
+        syncRes: {syncType: T.RPCChat.SyncInboxResType.clear},
+        uid: 'uid',
+      })
+    )
+
+    expect(syncing()).toBe(0)
+  })
+
+  test('chatUi calls carry no uid and pass whoever is signed in', async () => {
+    const markdown = heard('chat.1.chatUi.chatCommandMarkdown')
+
+    await notify(commandMarkdown())
+    await startSwitch('testuser-mac')
+    await notify(commandMarkdown())
+
+    expect(markdown).toEqual([{convID: convIDString(convA)}, {convID: convIDString(convA)}])
   })
 })

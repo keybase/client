@@ -6,6 +6,8 @@ import {isChatSessionReady} from '@/stores/config'
 import {ignorePromise} from '@/constants/utils'
 import {registerInboxRefresh} from './inbox-refresh'
 import {withChatSessionRetry} from './session-rpc'
+import {useWaitingState} from '@/stores/waiting'
+import {waitingKeyChatInboxSyncStarted} from '@/constants/waiting-keys'
 
 type Store = T.Immutable<{
   hasLoaded: boolean
@@ -80,6 +82,9 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
   const dispatch: State['dispatch'] = {
     refresh: async reason => requestInboxLayout(reason),
     resetState: () => {
+      // Sync notifications hold this key, not a call, and the leaving account's closing one is dropped
+      // as another account's, so nothing else would release it.
+      useWaitingState.getState().dispatch.clear(waitingKeyChatInboxSyncStarted)
       set(s => ({
         ...s,
         ...initialStore,

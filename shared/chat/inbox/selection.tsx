@@ -46,14 +46,6 @@ export const conversationGone = (id: T.Chat.ConversationIDKey, why: string) => {
   moveSelectionOff(id, why)
 }
 
-// A notification about the current user's membership; the service sends these to every client.
-export const conversationGoneForUser = (uid: string, id: T.Chat.ConversationIDKey, why: string) => {
-  if (uid !== useCurrentUserState.getState().uid) {
-    return
-  }
-  conversationGone(id, why)
-}
-
 // The conversation selected when the signed-in account last changed. A split layout keeps it
 // selected through the switch, but it is the previous account's.
 let previousAccountSelection = T.Chat.noConversationIDKey
