@@ -303,7 +303,12 @@ func TestOptedOutFollowerDoesNotReveal(t *testing.T) {
 	var mu sync.Mutex
 	var revealers []UserDevice
 	srv.corruptor = func(m GameMessageWrappedEncoded) GameMessageWrappedEncoded {
-		if getType(t, m) == MessageType_REVEAL {
+		// Runs on the server goroutine, where require can't fail the test.
+		w, err := m.Decode()
+		if err != nil {
+			return m
+		}
+		if typ, err := w.Msg.Body.T(); err == nil && typ == MessageType_REVEAL {
 			mu.Lock()
 			revealers = append(revealers, m.Sender)
 			mu.Unlock()
