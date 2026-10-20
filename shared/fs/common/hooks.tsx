@@ -1338,7 +1338,7 @@ export const useFsWatchDownloadForMobile = isMobile
         }
         const f = async () => {
           if (downloadIntent === T.FS.DownloadIntent.None) {
-            await saveFinishedDownloadToPublicDownloads(downloadID, dlState, dlInfo, mimeType)
+            await saveFinishedDownloadToPublicDownloads(downloadID, dlState, dlInfo, mimeType, redbar)
             handledIntentKeyRef.current = handledIntentKey
             return
           }

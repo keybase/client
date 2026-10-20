@@ -35,6 +35,22 @@ import {
 } from './attachment-actions'
 import {ConversationThreadProvider, useConversationThreadActions, useConversationThreadStore} from './thread-context'
 
+const mockDeleteFile = jest.fn()
+// jest.config maps every native-only package (expo-file-system among them) to one
+// stub file, so extend that file rather than mocking the package by name.
+jest.mock('../../test/mocks/native-module.js', () => ({
+  ...jest.requireActual('../../test/mocks/native-module.js'),
+  File: class {
+    uri: string
+    constructor(uri: string) {
+      this.uri = uri
+    }
+    delete() {
+      mockDeleteFile(this.uri)
+    }
+  },
+}))
+
 const conversationIDKey = T.Chat.stringToConversationIDKey('conv1')
 const messageID = T.Chat.numberToMessageID(42)
 
@@ -44,6 +60,7 @@ const attachment = (id: number) =>
 let navigateAppend: jest.SpyInstance
 
 beforeEach(() => {
+  mockDeleteFile.mockReset()
   navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -512,6 +529,23 @@ describe('storeless attachment download', () => {
       expect(save).toHaveBeenCalledWith('/cache/doc.pdf', 'doc.pdf', 'application/pdf')
     })
 
+    test('android download deletes the cached file when the save fails', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockRejectedValue(new Error('denied'))
+      jest.spyOn(logger, 'error').mockImplementation(() => {})
+      messageAttachmentAndroidDownloadMessage(convKey, downloadable())
+      await flushPromises()
+      expect(mockDeleteFile).toHaveBeenCalledWith('file:///cache/doc.pdf')
+    })
+
+    test('android download leaves the file to the native move on success', async () => {
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
+      jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
+      messageAttachmentAndroidDownloadMessage(convKey, downloadable())
+      await flushPromises()
+      expect(mockDeleteFile).not.toHaveBeenCalled()
+    })
+
     test('android download of a message with no id does nothing', async () => {
       const save = jest.spyOn(PlatformSpecific, 'saveFileToDownloads').mockResolvedValue('content://dl/1')
       messageAttachmentAndroidDownloadMessage(convKey, downloadable({id: T.Chat.numberToMessageID(0)}))
@@ -770,6 +804,7 @@ describe('useConversationAttachmentActions', () => {
       expect((current() as T.Chat.MessageAttachment).transferErrMsg).toBe(
         'Failed to save to Downloads: denied'
       )
+      expect(mockDeleteFile).toHaveBeenCalledWith('file:///cache/doc.pdf')
     })
 
     test('android download refuses a non-attachment', () => {
@@ -777,7 +812,7 @@ describe('useConversationAttachmentActions', () => {
         makeMessageText({conversationIDKey: convKey, id: T.Chat.numberToMessageID(42), ordinal})
       )
       expect(() => result.current.attachmentActions.messageAttachmentAndroidDownload(ordinal)).toThrow(
-        'Invalid share message'
+        'Invalid download message'
       )
     })
 

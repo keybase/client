@@ -13,7 +13,6 @@ import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {saveAttachmentToCameraRoll, saveFileToDownloads, showShareActionSheet} from '@/util/platform-specific'
 import {fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import {registerExternalResetter} from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
 
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
@@ -331,7 +330,8 @@ export const saveFinishedDownloadToPublicDownloads = async (
   downloadID: string,
   downloadState: T.FS.DownloadState,
   downloadInfo: T.FS.DownloadInfo,
-  mimeType: string
+  mimeType: string,
+  redbar: (error: string) => void
 ) => {
   if (
     !isMobile ||
@@ -351,7 +351,8 @@ export const saveFinishedDownloadToPublicDownloads = async (
       savedDownloads.set(downloadID, {mime: mimeType, uri})
       notifySavedDownloadListeners()
     }
-  } catch {
-    useConfigState.getState().dispatch.setGlobalError(new Error(`Couldn't save ${downloadInfo.filename} to Downloads`))
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e)
+    redbar(`Couldn't save ${downloadInfo.filename} to Downloads: ${reason}`)
   }
 }

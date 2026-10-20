@@ -8,6 +8,7 @@ import {navigateAppend} from '@/constants/router'
 import {ignorePromise} from '@/constants/utils'
 import {isDarwin} from '@/constants/platform'
 import * as PlatformSpecific from '@/util/platform-specific'
+import {File} from 'expo-file-system'
 import {RPCError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -272,6 +273,15 @@ export const messageAttachmentNativeSaveMessage = (
   ignorePromise(f())
 }
 
+// saveFileToDownloads moves the cached copy on success; on failure nothing else reads it
+const deleteCachedDownload = (filePath: string) => {
+  try {
+    new File('file://' + filePath).delete()
+  } catch {
+    logger.warn('failed to unlink cached download')
+  }
+}
+
 export const messageAttachmentAndroidDownloadMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   message: T.Chat.MessageAttachment
@@ -289,6 +299,7 @@ export const messageAttachmentAndroidDownloadMessage = (
     try {
       await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
     } catch (err) {
+      deleteCachedDownload(filePath)
       // saveFileToDownloads already fired a local notification for this failure
       logger.error('Failed to save attachment to Downloads: ' + String(err))
     }
@@ -438,7 +449,7 @@ export const useConversationAttachmentActions = () => {
     }
     const existing = threadStore.getState().messageMap.get(ordinal)
     if (existing?.type !== 'attachment') {
-      throw new Error('Invalid share message')
+      throw new Error('Invalid download message')
     }
 
     const f = async () => {
@@ -454,6 +465,7 @@ export const useConversationAttachmentActions = () => {
         actions.clearAttachmentDownloadPath(ordinal)
         actions.setAttachmentMobileSaving(ordinal, false)
       } catch (err) {
+        deleteCachedDownload(filePath)
         const errString = err instanceof Error ? err.message : String(err)
         logger.error('Failed to save attachment to Downloads: ' + errString)
         actions.failAttachmentDownload(ordinal, 'Failed to save to Downloads: ' + errString)
