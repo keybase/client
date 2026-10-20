@@ -20,6 +20,9 @@ If no PR number is given, it uses the current branch's PR.
 2. **Review bodies** — as of 2026-09 Copilot frequently posts `Comments generated: 0` and puts
    its real findings in the review body instead, under `### Suppressed comments`. These never
    appear as threads.
+   Its later reviews (`ccr-overview-v2`) also list **previously missed issues**: findings in code
+   unchanged since the last review, in their own collapsed block. Those are full findings that
+   exist nowhere else; the headline concern line often names them. The script prints them.
 
 **An empty "Inline review threads" section does NOT mean the review was clean.** That is the
 trap this skill exists to avoid: a thread-only query returns nothing and the PR looks unreviewed
