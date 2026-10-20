@@ -333,7 +333,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             return
         }
         val source = File(path)
-        if (!isAppDownloadSource(source)) {
+        val downloads = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        if (!isAppDownloadSource(source, listOf(reactContext.cacheDir), downloads)) {
             promise.reject("EINVAL", "path is outside the app download dirs")
             return
         }
@@ -374,7 +375,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             return
         }
         val source = File(path)
-        if (!isAppDownloadSource(source)) {
+        val cacheDir = reactContext.cacheDir
+        if (!isAppDownloadSource(source, listOf(cacheDir, File(cacheDir, "simplefsdownload")), null)) {
             promise.reject("EINVAL", "path is outside the app download dirs")
             return
         }
@@ -395,21 +397,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Saves can move the source, so only files the app itself downloaded qualify: chat
-    // attachment downloads, which Go writes directly into cacheDir; Files media downloads
-    // (save to photos / share), directly in cacheDir/simplefsdownload; and Files regular
-    // downloads under the app's external Downloads dir. Other cacheDir subfolders hold other
-    // app data and are refused.
-    private fun isAppDownloadSource(source: File): Boolean {
+    // Saves can move the source, so each save method accepts only the files the app itself
+    // downloads for it: a file directly in one of directParents, or anywhere under tree.
+    // Downloads takes chat attachment downloads (Go writes them directly into cacheDir) and
+    // Files regular downloads (under the app's external Downloads dir). Gallery takes chat
+    // attachment downloads and Files media downloads (directly in cacheDir/simplefsdownload).
+    // Other cacheDir subfolders hold other app data and are refused.
+    private fun isAppDownloadSource(source: File, directParents: List<File>, tree: File?): Boolean {
         return try {
             val canonical = source.canonicalFile
-            val cacheDir = reactContext.cacheDir
             val parent = canonical.parentFile?.path
-            if (parent == cacheDir.canonicalPath || parent == File(cacheDir, "simplefsdownload").canonicalPath) {
+            if (directParents.any { parent == it.canonicalPath }) {
                 return true
             }
-            val downloads = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return false
-            canonical.path.startsWith(downloads.canonicalPath + File.separator)
+            tree != null && canonical.path.startsWith(tree.canonicalPath + File.separator)
         } catch (ex: IOException) {
             false
         }
@@ -491,10 +492,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     // Android 11+ names a duplicate "name (n).ext" itself. On Android 10 the app picks a free
     // name: the query only sees rows this app owns, so a clash with any other file (another
-    // app's, or ours from before a reinstall) shows up as MediaStore renaming the inserted row,
-    // which is then deleted and retried under the next name. Renames that are not clashes
-    // (e.g. an extension added to match the mime) would repeat for every candidate, so those
-    // retries are capped and MediaStore's name is accepted after that.
+    // app's, or ours from before a reinstall) shows up as MediaStore renaming the inserted row
+    // to "candidate (n)", which is then deleted and retried under the next name. Any other
+    // rename (invalid characters, an extension fixed to match the mime) is MediaStore's final
+    // name and is accepted.
     private fun insertPendingMediaStoreRow(collection: Uri, relativePath: String, filename: String, mime: String): Uri {
         val resolver = reactContext.contentResolver
         val pickName = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
@@ -513,8 +514,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             }
             val uri = resolver.insert(collection, values)
                 ?: throw IOException("could not create MediaStore entry")
-            val saved = if (last) null else savedDisplayName(uri)
-            if (saved == null || saved == candidate) {
+            val saved = if (last) null else savedDisplayName(uri, pending = true)
+            val clash = Regex("^${Regex.escape(candidate)} \\(\\d+\\)$")
+            if (saved == null || !clash.matches(saved)) {
                 return uri
             }
             resolver.delete(uri, null, null)
@@ -523,9 +525,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         throw IOException("could not create MediaStore entry")
     }
 
-    private fun savedDisplayName(uri: Uri): String? = try {
+    // Android 10 hides IS_PENDING rows from queries unless the uri opts in via setIncludePending
+    // (replaced in Android 11 by QUERY_ARG_MATCH_PENDING).
+    private fun savedDisplayName(uri: Uri, pending: Boolean = false): String? = try {
+        @Suppress("DEPRECATION")
+        val queryUri = if (pending && Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) MediaStore.setIncludePending(uri) else uri
         reactContext.contentResolver
-            .query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
+            .query(queryUri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
             ?.use { if (it.moveToFirst()) it.getString(0) else null }
     } catch (ex: Exception) {
         null
