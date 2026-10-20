@@ -10,7 +10,7 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
-import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
+import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -498,7 +498,8 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll forward', scrollDirection: 'forward'})
     })
     const sent = loads().at(-1)
-    expect(sent?.pagination).toBeFalsy()
+    // Still a forward page to the service, which cancels overlapping first-page loads.
+    expect(sent?.pagination?.previous).toBeTruthy()
     expect(sent?.messageIDControl).toEqual({
       mode: T.RPCChat.MessageIDControlMode.newermessages,
       num: 7,
@@ -522,12 +523,72 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
     })
     const sent = loads().at(-1)
-    expect(sent?.pagination).toBeFalsy()
+    expect(sent?.pagination?.next).toBeTruthy()
     expect(sent?.messageIDControl).toEqual({
       mode: T.RPCChat.MessageIDControlMode.oldermessages,
       num: 7,
       pivot: T.Chat.numberToMessageID(10),
     })
+  })
+
+  // A page of messages the thread never renders leaves the window's ends where they were; asking
+  // from those again would fetch the same page for good.
+  test('a scroll page asks from past the messages earlier pages that way carried, rendered or not', () => {
+    jest.useFakeTimers()
+    const {h} = renderThread()
+    const deletedAt = (n: number) =>
+      makeMessageDeleted({
+        conversationIDKey: convID,
+        id: T.Chat.numberToMessageID(n),
+        ordinal: T.Chat.numberToOrdinal(n),
+      })
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: true,
+        enableActiveMarkRead: false,
+        messages: [textAt(10), textAt(11)],
+        moreToLoad: true,
+        scrollDirection: 'none',
+      })
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [deletedAt(8), deletedAt(9)],
+        moreToLoad: true,
+        scrollDirection: 'back',
+      })
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [deletedAt(12), deletedAt(13)],
+        moreToLoad: true,
+        scrollDirection: 'forward',
+      })
+    })
+    act(() => {
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll forward', scrollDirection: 'forward'})
+    })
+    expect(loads().slice(-2).map(p => p.messageIDControl?.pivot)).toEqual([
+      T.Chat.numberToMessageID(8),
+      T.Chat.numberToMessageID(13),
+    ])
+    // Clearing the window forgets how far its pages reached.
+    act(() => h().jumpToRecent())
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [textAt(20)],
+        moreToLoad: true,
+        scrollDirection: 'none',
+      })
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+      h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
+    })
+    expect(loads().at(-1)?.messageIDControl?.pivot).toEqual(T.Chat.numberToMessageID(20))
   })
 
   test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', () => {

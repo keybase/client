@@ -65,6 +65,11 @@ export type ConversationThreadState = {
   moreToLoadBack: boolean
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
+  // The furthest message each direction's scroll pages have carried, rendered or not. A page of
+  // messages the thread never renders (DELETE tombstones) leaves the window's ends where they were,
+  // so the next page is asked for from past these instead. Dropped with the window by messagesClear.
+  pagedNewestMessageID?: T.Chat.MessageID
+  pagedOldestMessageID?: T.Chat.MessageID
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
   // clearPendingDeletesInThreadState), when the delete fails (its RPC or, once queued, its outbox
@@ -99,11 +104,8 @@ export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   messageIDControl?: T.RPCChat.MessageIDControl | null
   numberOfMessagesToLoad?: number
   reason: string
-  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
-  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
-  // which is what stops it looping. Callers leave it unset.
-  retryBelowMessageID?: T.Chat.MessageID
-  // How many times the back-page reload has already chained. See maxBackPageReloads.
+  // Internal: how many times the empty-scroll-page reload in thread-load.tsx has already chained.
+  // See maxPageReloads. Callers leave it unset.
   retryCount?: number
   scrollDirection?: ScrollDirection
 }
@@ -459,9 +461,15 @@ export const makeThreadStore = (
       switch (p.scrollDirection) {
         case 'forward':
           s.moreToLoadForward = p.moreToLoad
+          for (const {id} of p.messages) {
+            if (id > 0 && id > (s.pagedNewestMessageID ?? 0)) s.pagedNewestMessageID = id
+          }
           break
         case 'back':
           s.moreToLoadBack = p.moreToLoad
+          for (const {id} of p.messages) {
+            if (id > 0 && id < (s.pagedOldestMessageID ?? Number.MAX_SAFE_INTEGER)) s.pagedOldestMessageID = id
+          }
           break
         case 'none': {
           s.moreToLoadBack = p.moreToLoad
@@ -613,6 +621,8 @@ export const makeThreadStore = (
       s.messageOrdinals = undefined
       s.messageTypeMap.clear()
       s.optimisticReactionMap.clear()
+      s.pagedNewestMessageID = undefined
+      s.pagedOldestMessageID = undefined
       s.pendingDeleteMap.clear()
     })
   }
