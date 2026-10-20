@@ -1,0 +1,8 @@
+<resources>
+    <!-- React Native measures text by glyph advances; from Android 15 a TextView lays
+         out by glyph bounds, so text measured to fit can wrap and lose its last word. -->
+    <style name="Widget.App.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:useBoundsForWidth">false</item>
+        <item name="android:shiftDrawingOffsetForStartOverhang">false</item>
+    </style>
+</resources>

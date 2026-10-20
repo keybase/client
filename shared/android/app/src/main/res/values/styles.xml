@@ -5,7 +5,10 @@
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
         <item name="android:windowBackground">@color/white</item>
         <item name="android:colorBackground">@color/white</item>
+        <item name="android:textViewStyle">@style/Widget.App.TextView</item>
     </style>
+
+    <style name="Widget.App.TextView" parent="Widget.AppCompat.TextView" />
 
     <style name="SplashTheme" parent="AppTheme">
         <item name="android:windowBackground">@drawable/splash_screen</item>
