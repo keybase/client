@@ -378,10 +378,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             promise.reject("EINVAL", "path is outside the app download dirs")
             return
         }
-        val (collection, dir) = if (mime.startsWith("video/")) {
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_MOVIES
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_PICTURES
+        val (collection, dir) = when {
+            mime.startsWith("image/") -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_PICTURES
+            mime.startsWith("video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI to Environment.DIRECTORY_MOVIES
+            else -> {
+                promise.reject("EINVAL", "not a photo or video")
+                return
+            }
         }
         saveExecutor.execute {
             try {
@@ -393,12 +396,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     // Saves can move the source, so only files the app itself downloaded qualify: chat
-    // attachments, which Go writes directly into cacheDir, and Files downloads under the app's
-    // external Downloads dir. Subfolders of cacheDir hold other app data and are refused.
+    // attachment downloads, which Go writes directly into cacheDir; Files media downloads
+    // (save to photos / share), directly in cacheDir/simplefsdownload; and Files regular
+    // downloads under the app's external Downloads dir. Other cacheDir subfolders hold other
+    // app data and are refused.
     private fun isAppDownloadSource(source: File): Boolean {
         return try {
             val canonical = source.canonicalFile
-            if (canonical.parentFile?.path == reactContext.cacheDir.canonicalPath) {
+            val cacheDir = reactContext.cacheDir
+            val parent = canonical.parentFile?.path
+            if (parent == cacheDir.canonicalPath || parent == File(cacheDir, "simplefsdownload").canonicalPath) {
                 return true
             }
             val downloads = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return false
@@ -474,22 +481,46 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Only rows this app owns are visible to the query, so a clash with another app's file is
-    // still left to MediaStore's own renaming.
-    private fun freeMediaStoreName(collection: Uri, relativePath: String, filename: String): String {
+    private fun isMediaStoreNameTaken(collection: Uri, relativePath: String, name: String): Boolean {
+        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND " +
+            "${MediaStore.MediaColumns.DISPLAY_NAME}=? COLLATE NOCASE"
+        return reactContext.contentResolver
+            .query(collection, arrayOf(BaseColumns._ID), selection, arrayOf(relativePath, name), null)
+            ?.use { it.count > 0 } ?: false
+    }
+
+    // Android 11+ names a duplicate "name (n).ext" itself. On Android 10 the app picks a free
+    // name: the query only sees rows this app owns, so a clash with any other file (another
+    // app's, or ours from before a reinstall) shows up as MediaStore renaming the inserted row,
+    // which is then deleted and retried under the next name. Renames that are not clashes
+    // (e.g. an extension added to match the mime) would repeat for every candidate, so those
+    // retries are capped and MediaStore's name is accepted after that.
+    private fun insertPendingMediaStoreRow(collection: Uri, relativePath: String, filename: String, mime: String): Uri {
         val resolver = reactContext.contentResolver
-        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
-        val projection = arrayOf(BaseColumns._ID)
-        var candidate = filename
-        for (n in 1..MAX_NAME_TRIES) {
-            val taken = resolver.query(collection, projection, selection, arrayOf(relativePath, candidate), null)
-                ?.use { it.count > 0 } ?: false
-            if (!taken) {
-                return candidate
+        val pickName = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
+        var renames = 0
+        for (n in 0..MAX_NAME_TRIES) {
+            val candidate = if (n == 0) filename else numberedFilename(filename, n)
+            val last = !pickName || n == MAX_NAME_TRIES || renames == MAX_RENAME_RETRIES
+            if (!last && isMediaStoreNameTaken(collection, relativePath, candidate)) {
+                continue
             }
-            candidate = numberedFilename(filename, n)
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, candidate)
+                put(MediaStore.MediaColumns.MIME_TYPE, mime)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+            val uri = resolver.insert(collection, values)
+                ?: throw IOException("could not create MediaStore entry")
+            val saved = if (last) null else savedDisplayName(uri)
+            if (saved == null || saved == candidate) {
+                return uri
+            }
+            resolver.delete(uri, null, null)
+            renames++
         }
-        return filename
+        throw IOException("could not create MediaStore entry")
     }
 
     private fun savedDisplayName(uri: Uri): String? = try {
@@ -506,14 +537,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         val resolver = reactContext.contentResolver
         // MediaStore stores RELATIVE_PATH with a trailing slash
         val relativePath = "$relativeDir/Keybase/"
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, freeMediaStoreName(collection, relativePath, filename))
-            put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-            put(MediaStore.MediaColumns.IS_PENDING, 1)
-        }
-        val uri = resolver.insert(collection, values)
-            ?: throw IOException("could not create MediaStore entry")
+        val uri = insertPendingMediaStoreRow(collection, relativePath, filename, mime)
         try {
             val out = resolver.openOutputStream(uri) ?: throw IOException("could not open MediaStore entry")
             out.buffered().use { dst -> source.inputStream().buffered().use { it.copyTo(dst) } }
@@ -1030,6 +1054,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         private val saveExecutor = Executors.newSingleThreadExecutor()
         private const val MAX_FILENAME_BYTES = 255
         private const val MAX_NAME_TRIES = 1000
+        private const val MAX_RENAME_RETRIES = 10
         private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
 
         // Process-wide, not per-instance: a reload creates a new KbModule but
