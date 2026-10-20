@@ -24,6 +24,7 @@ import {
   isAppend,
   itemScrollHeading,
   readerMovedList,
+  rowTopUncovered,
   rowUncovered,
   type RowFrame,
   type ScrollReport,
@@ -404,6 +405,17 @@ export const useNativeThreadScroll = (p: {
     if (!frame || offset === undefined || viewport === undefined) return false
     return rowUncovered(frame, {offset, resting: restingOffset(), viewport})
   })
+  // The orange line for `ordinal` sits above the oldest loaded row at or after it (the rows are newest
+  // first), so it is in view when that row's top edge is. A list that has not scrolled since it opened
+  // is at rest: pinning a thread that is already at the end moves nothing, so no offset is reported.
+  const [lineAboveUncovered] = React.useState(() => (ordinal: T.Chat.Ordinal) => {
+    const row = ordsRef.current.findLast(o => o >= ordinal)
+    const frame = row === undefined ? undefined : rowFramesRef.current.get(row)
+    const {offset, viewport} = metricsRef.current
+    if (!frame || viewport === undefined) return false
+    const resting = restingOffset()
+    return rowTopUncovered(frame, {offset: offset ?? resting, resting, viewport})
+  })
   // A reveal is done once its row is wholly in view, and over once its edit is no longer held.
   const [dropFinishedReveals] = React.useState(() => () => {
     itemScrollsRef.current.forEach((request, item) => {
@@ -690,6 +702,7 @@ export const useNativeThreadScroll = (p: {
     listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
 
   return {
+    lineAboveUncovered,
     maintainVisibleContentPosition: !heldLatest
       ? maintainVisibleContentPositionHistory
       : mvpAutoscroll

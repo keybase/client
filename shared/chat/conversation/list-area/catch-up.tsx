@@ -41,7 +41,8 @@ export const shouldShowCatchUp = (p: {
 // the keyboard rising or a scroll carrying it away later does not bring the pill back. The line is
 // drawn at the top edge of its row, and a row counts as visible with a sliver on screen, so the line
 // counts as seen only with visible rows on both sides of its own: the oldest visible row's top can be
-// cut off, and the newest can sit under the composer.
+// cut off, and the newest can sit under the composer. Where the list's viewability counts rows under
+// the keyboard as visible (native), the list also says whether the line itself is uncovered.
 export const orangeLineInView = (p: {
   loaded: boolean
   newestVisibleOrdinal: T.Chat.Ordinal | undefined
@@ -60,8 +61,8 @@ export const orangeLineInView = (p: {
 
 // The viewport moves on every scroll frame, so the viewable ordinal lives in a ref and only the
 // show/hide answer is state: an unchanged answer bails out of re-rendering the message list.
-export const useCatchUp = (p: {loaded: boolean}) => {
-  const {loaded} = p
+export const useCatchUp = (p: {lineUncovered?: (orangeLineOrdinal: T.Chat.Ordinal) => boolean; loaded: boolean}) => {
+  const {lineUncovered, loaded} = p
   const orangeLineOrdinal = React.useContext(OrangeLineContext)
   const routeParams = useChatThreadRouteParams()
   const threadSearchVisible = !!routeParams?.threadSearch
@@ -72,12 +73,13 @@ export const useCatchUp = (p: {loaded: boolean}) => {
   const newestVisibleOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
 
   const recompute = React.useEffectEvent(() => {
-    const inView = orangeLineInView({
-      loaded,
-      newestVisibleOrdinal: newestVisibleOrdinalRef.current,
-      oldestVisibleOrdinal: oldestVisibleOrdinalRef.current,
-      orangeLineOrdinal,
-    })
+    const inView =
+      orangeLineInView({
+        loaded,
+        newestVisibleOrdinal: newestVisibleOrdinalRef.current,
+        oldestVisibleOrdinal: oldestVisibleOrdinalRef.current,
+        orangeLineOrdinal,
+      }) && (lineUncovered?.(orangeLineOrdinal) ?? true)
     if (inView && dismissedOrdinal !== orangeLineOrdinal) {
       setDismissedOrdinal(orangeLineOrdinal)
     }

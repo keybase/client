@@ -189,6 +189,40 @@ const scrollAt = (y: number) => ({
   nativeEvent: {contentOffset: {y}, contentSize: {height: 6000}, layoutMeasurement: {height: 800}},
 })
 
+// FlatList's viewability counts rows under the keyboard as on screen; the line's own position decides.
+test('an orange line among several short rows under the keyboard is not uncovered, one above them is', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  // Short rows from the newest up: 60 at the bottom, each 50 high, and an older row 100 high.
+  for (const [n, y, height] of [
+    [60, 0, 50],
+    [59, 50, 50],
+    [58, 100, 50],
+    [57, 150, 50],
+    [56, 200, 100],
+  ] as const) {
+    act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(n), {height, y}))
+  }
+  // Scrolled up off the end: the keyboard covers the bottom 300 points, the rows from 0 to 300.
+  act(() => m.hook.result.current.onScroll(scrollAt(0)))
+  const uncovered = (n: number) => m.hook.result.current.lineAboveUncovered(T.Chat.numberToOrdinal(n))
+  expect([59, 58, 57].map(uncovered)).toEqual([false, false, false])
+  expect(uncovered(56)).toBe(true)
+  // Not laid out yet, so not known to be in view.
+  expect(uncovered(5)).toBe(false)
+  // At rest over the keyboard nothing is under it.
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+  expect(uncovered(59)).toBe(true)
+})
+
+test('an orange line in view on a thread opened at the end, with no scroll since, is uncovered', () => {
+  const m = mount({keyboardVisible: false})
+  act(() => jest.advanceTimersByTime(1000))
+  act(() => m.hook.result.current.onLayout({nativeEvent: {layout: {height: 800}}}))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(58), {height: 100, y: 200}))
+  expect(m.hook.result.current.lineAboveUncovered(T.Chat.numberToOrdinal(58))).toBe(true)
+})
+
 test('a reveal that brings its row into view is done: a later failure for that row is not retried', () => {
   const m = mount()
   const edited = T.Chat.numberToOrdinal(5)

@@ -545,6 +545,7 @@ const NativeConversationList = function NativeConversationList() {
   }, [conversationIDKey, loaded, markInitiallyLoadedThreadAsRead])
 
   const {
+    lineAboveUncovered,
     maintainVisibleContentPosition,
     onCellLayout,
     onContentSizeChange,
@@ -574,7 +575,10 @@ const NativeConversationList = function NativeConversationList() {
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
+  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({
+    lineUncovered: lineAboveUncovered,
+    loaded,
+  })
 
   // The rows in view at all (the default viewability). FlatList takes the pairs once, so they never
   // change identity.

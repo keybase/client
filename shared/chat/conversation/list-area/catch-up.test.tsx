@@ -86,8 +86,8 @@ jest.mock('../thread-search-route', () => ({useChatThreadRouteParams: () => mock
 
 let seen: ReturnType<typeof useCatchUp> | undefined
 
-const Probe = (p: {loaded: boolean}) => {
-  const catchUp = useCatchUp({loaded: p.loaded})
+const Probe = (p: {lineUncovered?: () => boolean; loaded: boolean}) => {
+  const catchUp = useCatchUp({lineUncovered: p.lineUncovered, loaded: p.loaded})
   // captured in an effect: assigning module state during render is a side effect the lint rejects
   React.useEffect(() => {
     seen = catchUp
@@ -95,9 +95,9 @@ const Probe = (p: {loaded: boolean}) => {
   return null
 }
 
-const Tree = (p: {loaded?: boolean; orangeLineOrdinal: T.Chat.Ordinal}) => (
+const Tree = (p: {lineUncovered?: () => boolean; loaded?: boolean; orangeLineOrdinal: T.Chat.Ordinal}) => (
   <OrangeLineContext value={p.orangeLineOrdinal}>
-    <Probe loaded={p.loaded ?? true} />
+    <Probe lineUncovered={p.lineUncovered} loaded={p.loaded ?? true} />
   </OrangeLineContext>
 )
 
@@ -124,6 +124,26 @@ describe('useCatchUp', () => {
       seen?.onViewableOrdinalsChanged(ord(5), ord(20))
     })
     expect(seen?.showCatchUp).toBe(false)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    expect(seen?.showCatchUp).toBe(false)
+  })
+
+  test('rows around the orange line do not count as seeing it while the list says the line is covered', () => {
+    let covered = true
+    render(<Tree lineUncovered={() => !covered} orangeLineOrdinal={ord(10)} />)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(5), ord(20))
+    })
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    expect(seen?.showCatchUp).toBe(true)
+    covered = false
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(5), ord(20))
+    })
     act(() => {
       seen?.onViewableOrdinalsChanged(ord(50), ord(90))
     })
