@@ -3,19 +3,42 @@ import logger from '@/logger'
 import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
 import {File} from 'expo-file-system'
-import {addNotificationRequest, androidShare, androidShareText, iosShareFile} from 'react-native-kb'
-import {ActionSheetIOS} from 'react-native'
+import {isAndroidPreQ} from '@/constants/platform'
+import {
+  addNotificationRequest,
+  androidOpenFile,
+  androidSaveToDownloads,
+  androidShare,
+  androidShareText,
+  iosShareFile,
+} from 'react-native-kb'
+import {ActionSheetIOS, PermissionsAndroid} from 'react-native'
 
+// Android 10+ writes through MediaStore and needs no storage permission.
 export const requestPermissionsToWrite = async () => {
-  if (!isMobile) {
-    return Promise.resolve(true)
+  if (isAndroid && isAndroidPreQ) {
+    const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+    if (r !== PermissionsAndroid.RESULTS.GRANTED) {
+      throw new Error('Unable to acquire storage permissions')
+    }
   }
-  if (isAndroid) {
-    const p = await MediaLibrary.requestPermissionsAsync(false)
-    return p.granted ? Promise.resolve() : Promise.reject(new Error('Unable to acquire storage permissions'))
-  }
-  return Promise.resolve()
 }
+
+export async function saveFileToDownloads(path: string, filename: string, mime: string): Promise<string> {
+  try {
+    await requestPermissionsToWrite()
+    return await androidSaveToDownloads({deleteSource: true, filename, mime, path})
+  } catch (e) {
+    addNotificationRequest({
+      body: `Failed to save ${filename} to Downloads`,
+      id: Math.floor(Math.random() * 2 ** 32).toString(),
+    }).catch(() => {})
+    logger.debug('[saveFileToDownloads] failed to save: ' + String(e))
+    throw e
+  }
+}
+
+export const openSavedFile = async (uri: string, mime: string): Promise<void> => androidOpenFile({mime, uri})
 
 export const requestLocationPermission = async (mode?: T.RPCChat.UIWatchPositionPerm) => {
   if (!isMobile) {

@@ -67,6 +67,7 @@ const _mobileOsVersionNumber: number = isMobile
 
 export const isAndroidNewerThanM: boolean = isAndroid && _mobileOsVersionNumber > 22
 export const isAndroidNewerThanN: boolean = isAndroid && _mobileOsVersionNumber >= 26
+export const isAndroidPreQ: boolean = isAndroid && _mobileOsVersionNumber < 29
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid: boolean = isMobile ? _getRNKB().androidIsDeviceSecure : false
