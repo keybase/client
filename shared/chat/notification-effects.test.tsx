@@ -16,6 +16,8 @@ import {act, cleanup, render} from '@testing-library/react'
 import {NotifyPopup} from '@/util/misc'
 import {_onEngineIncoming} from '@/constants/init/shared'
 import {subscribeToEngineAction} from '@/engine/action-listener'
+import {useWaitingState} from '@/stores/waiting'
+import {waitingKeyChatInboxSyncStarted} from '@/constants/waiting-keys'
 import * as InboxMetadata from '@/chat/inbox/metadata'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useInboxTypingState} from '@/chat/inbox/typing-state'
@@ -1540,6 +1542,22 @@ describe("another account's chat notifications", () => {
 
     expect(archive).toEqual([])
     expect(useInboxTypingState.getState().typing.size).toBe(0)
+  })
+
+  test("a sync the leaving account started does not keep the next account's inbox loading", async () => {
+    const syncing = () => useWaitingState.getState().counts.get(waitingKeyChatInboxSyncStarted) ?? 0
+    await notify(engineAction('chat.1.NotifyChat.ChatInboxSyncStarted', {}))
+    expect(syncing()).toBe(1)
+
+    await startSwitch('testuser-mac')
+    await notify(
+      engineAction('chat.1.NotifyChat.ChatInboxSynced', {
+        syncRes: {syncType: T.RPCChat.SyncInboxResType.clear},
+        uid: 'uid',
+      })
+    )
+
+    expect(syncing()).toBe(0)
   })
 
   test('chatUi calls carry no uid and pass whoever is signed in', async () => {

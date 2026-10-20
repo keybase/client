@@ -41,7 +41,7 @@ import { useRouterState } from "@/stores/router";
 import * as NavTree from "@/constants/nav-tree";
 import {
   isChatNotification,
-  isOtherAccountsChatNotification,
+  isChatNotificationNotForSignedInAccount,
   routeChatNotification,
 } from "@/chat/notification-router";
 import { onChatRouteChanged } from "@/chat/inbox/metadata";
@@ -610,7 +610,7 @@ export const initSharedSubscriptions = (
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   if (
-    isOtherAccountsChatNotification(action, useCurrentUserState.getState().uid)
+    isChatNotificationNotForSignedInAccount(action, useCurrentUserState.getState().uid)
   ) {
     return;
   }

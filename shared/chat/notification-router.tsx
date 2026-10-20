@@ -105,7 +105,7 @@ const isNotifyChat = (action: EngineGen.Actions): action is NotifyChatAction =>
 // The service tags each chat notification with the uid of the account it was made for. Login and
 // logout are not serialized against them, so through an account switch the previous account's can
 // still arrive; while no account is signed in (uid '') none are ours.
-export const isOtherAccountsChatNotification = (action: EngineGen.Actions, currentUID: string) =>
+export const isChatNotificationNotForSignedInAccount = (action: EngineGen.Actions, currentUID: string) =>
   isNotifyChat(action) && (!currentUID || action.payload.params.uid !== currentUID)
 
 // What one notification does at each stage. The thread and reload parts are built when asked for.
