@@ -45,22 +45,39 @@ query($owner:String!,$repo:String!,$pr:Int!){
 ' || true
 
 echo
-echo "=== Review bodies (verdict + suppressed comments) ==="
-# Copilot's body is markdown with collapsible <details>. The parts worth reading are the
-# headline verdict, the one-line concern under it, and the "Suppressed comments" block -
-# NOT the per-file summary table, which is a restatement of the diff.
+echo "=== Review bodies (verdict + findings) ==="
+# Copilot's body is markdown with collapsible <details>. The parts worth reading are the headline
+# verdict, the one-line concern under it, and the findings - NOT the per-file summary table, which
+# restates the diff. Findings live in <details> blocks whose summary names them: "Suppressed
+# comments", "N open issue(s)", "N previously missed issue(s)" (findings in code unchanged since the
+# last review, which appear nowhere else). "Resolved since last review" is skipped.
 gh api "repos/$OWNER/$REPO/pulls/$PR/reviews" --paginate --jq '
   .[]
   | select(.user.login == "Copilot" or .user.login == "copilot-pull-request-reviewer[bot]" or .user.login == "copilot-pull-request-reviewer")
   | select(.body != null and .body != "")
   | "--- \(.submitted_at) [\(.state)] ---\n\(.body)\n"
 ' | awk '
-  /^--- / { print; next }
-  /^### / && !/Suppressed/ { print; next }                 # headline verdict
-  /^<details>/ { indetails=1 }
-  /^<\/details>/ { indetails=0; next }
-  /Suppressed comments/ { suppressed=1; print; next }
-  /^- \*\*Files reviewed:/ { suppressed=0 }
-  suppressed { print; next }
-  !indetails && NF && !/^<\/?details/ && !/^<summary>/ && !/^💡/ && !/^\| / && !/^\| ?-/ { print }
+  # Copilot draws severity as an inline <picture> badge; keep the text after it.
+  { gsub(/<picture>.*<\/picture> */, "") }
+  /^--- / { depth=0; keepdepth=0; print; next }
+  /^<details/ {
+    depth++
+    pendingsummary=1
+    next
+  }
+  /^<\/details>/ {
+    if (keepdepth && depth == keepdepth) keepdepth=0
+    depth--
+    next
+  }
+  /<summary>/ {
+    text=$0; gsub(/<[^>]*>/, "", text)
+    if (pendingsummary && !keepdepth && text ~ /Suppressed comments|open issue|previously missed/) keepdepth=depth
+    pendingsummary=0
+    if (keepdepth) print "## " text
+    next
+  }
+  /^- \*\*Files reviewed:/ { next }
+  keepdepth { print; next }
+  depth == 0 && NF && !/^💡/ && !/^\| / && !/^<!--/ && !/^<sub>/ { print }
 ' | sed '/^$/N;/^\n$/D'
