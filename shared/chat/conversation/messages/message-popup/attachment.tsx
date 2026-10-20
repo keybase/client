@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {
   attachmentDownloadMessage,
   messageAttachmentAndroidDownloadMessage,
@@ -64,7 +64,12 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     clearModals()
     showConversationInfoPanel(conversationIDKey, true, 'attachments')
   }
-  const onDownload = isAndroid ? actions.download : !isMobile && !message.downloadPath ? actions.download : undefined
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
+  const onDownload = isAndroid
+    ? hasMessageID
+      ? actions.download
+      : undefined
+    : !isMobile && !message.downloadPath ? actions.download : undefined
   const onSaveAttachment =
     isMobile && (attachmentType === 'image' || Chat.isImageViewable(message)) ? actions.save : undefined
   const onShareAttachment = isMobile ? actions.share : undefined

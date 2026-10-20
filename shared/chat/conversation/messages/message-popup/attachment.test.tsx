@@ -87,6 +87,12 @@ test('Android still offers Download after a Save (downloadPath set)', () => {
   expect(titlesFor({downloadPath: '/cache/doc.pdf'})).toContain('Download')
 })
 
+test('Android hides Download for a message with no id', () => {
+  g.isMobile = true
+  g.isAndroid = true
+  expect(titlesFor({id: T.Chat.numberToMessageID(0)})).not.toContain('Download')
+})
+
 test('iOS offers no Download', () => {
   g.isMobile = true
   g.isIOS = true
