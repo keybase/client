@@ -17,6 +17,7 @@ import {
   clearPendingDeletesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
+  clearAttachmentDownloadPathInThreadState,
   failAttachmentDownloadInThreadState,
   finishAttachmentDownloadInThreadState,
   type OptimisticReaction,
@@ -181,6 +182,7 @@ export type ConversationThreadActions = {
   finishAttachmentDownload: (ordinal: T.Chat.Ordinal, path: string) => void
   failAttachmentDownload: (ordinal: T.Chat.Ordinal, errMsg: string) => void
   setAttachmentMobileSaving: (ordinal: T.Chat.Ordinal, saving: boolean) => void
+  clearAttachmentDownloadPath: (ordinal: T.Chat.Ordinal) => void
   updateAttachmentDownloadProgress: (msgID: number, bytesComplete: number, bytesTotal: number) => void
   completeAttachmentDownload: (msgID: number) => void
   updateAttachmentUploadProgress: (
@@ -682,6 +684,11 @@ export const makeThreadStore = (
       updateThreadState(s => {
         const prompts = s.unfurlPrompt.get(messageID)
         prompts?.delete(domain)
+      })
+    },
+    clearAttachmentDownloadPath: ordinal => {
+      updateThreadState(s => {
+        clearAttachmentDownloadPathInThreadState(s, ordinal)
       })
     },
     clearWindowGate,

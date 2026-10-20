@@ -63,15 +63,28 @@ export const androidShare = (text: string, mimeType: string): Promise<boolean> =
   return Promise.resolve(false)
 }
 
-export const androidAddCompleteDownload = (o: {
-  description: string
-  mime: string
+export const androidSaveToDownloads = (o: {
   path: string
-  showNotification: boolean
-  title: string
-}): Promise<void> => {
+  filename: string
+  mime: string
+  deleteSource: boolean
+}): Promise<string> => {
   if (Platform.OS === 'android') {
-    return Kb.androidAddCompleteDownload(o)
+    return Kb.androidSaveToDownloads(o)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
+export const androidSaveToGallery = (o: {path: string; mime: string}): Promise<string> => {
+  if (Platform.OS === 'android') {
+    return Kb.androidSaveToGallery(o)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
+export const androidOpenFile = (o: {uri: string; mime: string}): Promise<void> => {
+  if (Platform.OS === 'android') {
+    return Kb.androidOpenFile(o)
   }
   return Promise.reject(new Error('wrong platform'))
 }

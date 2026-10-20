@@ -3,19 +3,47 @@ import logger from '@/logger'
 import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
 import {File} from 'expo-file-system'
-import {addNotificationRequest, androidShare, androidShareText, iosShareFile} from 'react-native-kb'
-import {ActionSheetIOS} from 'react-native'
+import {isAndroidPreQ, isAndroidQ} from '@/constants/platform'
+import {
+  addNotificationRequest,
+  androidOpenFile,
+  androidSaveToDownloads,
+  androidSaveToGallery,
+  androidShare,
+  androidShareText,
+  iosShareFile,
+} from 'react-native-kb'
+import {ActionSheetIOS, PermissionsAndroid} from 'react-native'
 
-export const requestPermissionsToWrite = async () => {
-  if (!isMobile) {
-    return Promise.resolve(true)
+const requestWriteExternalStorage = async () => {
+  const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+  if (r !== PermissionsAndroid.RESULTS.GRANTED) {
+    throw new Error('Unable to acquire storage permissions')
   }
-  if (isAndroid) {
-    const p = await MediaLibrary.requestPermissionsAsync(false)
-    return p.granted ? Promise.resolve() : Promise.reject(new Error('Unable to acquire storage permissions'))
-  }
-  return Promise.resolve()
 }
+
+// Saving to Downloads goes through MediaStore from Android 10 and needs no storage permission.
+export const requestPermissionsToWrite = async () => {
+  if (isAndroidPreQ) {
+    await requestWriteExternalStorage()
+  }
+}
+
+export async function saveFileToDownloads(path: string, filename: string, mime: string): Promise<string> {
+  try {
+    await requestPermissionsToWrite()
+    return await androidSaveToDownloads({deleteSource: true, filename, mime, path})
+  } catch (e) {
+    addNotificationRequest({
+      body: `Failed to save ${filename} to Downloads`,
+      id: Math.floor(Math.random() * 2 ** 32).toString(),
+    }).catch(() => {})
+    logger.debug('[saveFileToDownloads] failed to save: ' + String(e))
+    throw e
+  }
+}
+
+export const openSavedFile = async (uri: string, mime: string): Promise<void> => androidOpenFile({mime, uri})
 
 export const requestLocationPermission = async (mode?: T.RPCChat.UIWatchPositionPerm) => {
   if (!isMobile) {
@@ -66,16 +94,21 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       if (!p.granted) {
         throw new Error('Please allow Keybase to add to your Photos in the phone settings.')
       }
-    } else {
+    } else if (isAndroidPreQ) {
       try {
-        // see if we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
-        await requestPermissionsToWrite()
+        // expo-media-library writes through its legacy path below Android 10, which needs this
+        await requestWriteExternalStorage()
       } catch (e) {
         logger.warn(logPrefix + 'write permission denied, attempting save anyway: ' + String(e))
       }
     }
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.Asset.create(fileURL)
+    if (isAndroidQ) {
+      // expo-media-library's legacy path on Android 10 writes with java.io.File, which scoped storage blocks
+      await androidSaveToGallery({mime: mimeType, path: filePath})
+    } else {
+      await MediaLibrary.Asset.create(fileURL)
+    }
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification

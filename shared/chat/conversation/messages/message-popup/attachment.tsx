@@ -2,9 +2,10 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {
   attachmentDownloadMessage,
+  messageAttachmentAndroidDownloadMessage,
   messageAttachmentNativeSaveMessage,
   messageAttachmentNativeShareMessage,
   useConversationAttachmentActions,
@@ -63,9 +64,12 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     clearModals()
     showConversationInfoPanel(conversationIDKey, true, 'attachments')
   }
-  const onDownload = !isMobile && !message.downloadPath ? actions.download : undefined
   const onSaveAttachment =
     isMobile && (attachmentType === 'image' || Chat.isImageViewable(message)) ? actions.save : undefined
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
+  const androidDownload = hasMessageID && !onSaveAttachment
+  const desktopDownload = !isMobile && !message.downloadPath
+  const onDownload = (isAndroid ? androidDownload : desktopDownload) ? actions.download : undefined
   const onShareAttachment = isMobile ? actions.share : undefined
 
   const _onShowInFinder = () => {
@@ -109,7 +113,7 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     ? ([{icon: 'iconfont-search', onClick: onJump, title: 'Jump to message'}] as const)
     : []
 
-  const topSection = [...itemSave, ...itemShare, ...itemDelete, ...itemExplode]
+  const topSection = [...itemSave, ...(isAndroid ? itemDownload : []), ...itemShare, ...itemDelete, ...itemExplode]
 
   const items = [
     ...itemReaction,
@@ -120,7 +124,7 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     ...itemEdit,
     ...itemReply,
     ...itemForward,
-    ...itemDownload,
+    ...(isAndroid ? [] : itemDownload),
     ...itemJump,
     ...itemUnread,
     ...itemFinder,
@@ -157,7 +161,7 @@ const PopAttachThread = (ownProps: OwnProps) => {
   const conversationIDKey = useConversationThreadID()
   const loadedMessage = useConversationThreadMessage(ordinal)
   const message = loadedMessage?.type === 'attachment' ? loadedMessage : emptyMessage
-  const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
+  const {attachmentDownload, messageAttachmentAndroidDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
     useConversationAttachmentActions()
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
@@ -171,7 +175,7 @@ const PopAttachThread = (ownProps: OwnProps) => {
     <PopAttachLoaded
       {...ownProps}
       actions={{
-        download: () => attachmentDownload(ordinal),
+        download: () => (isAndroid ? messageAttachmentAndroidDownload(ordinal) : attachmentDownload(ordinal)),
         save: () => messageAttachmentNativeSave(ordinal),
         share: () => messageAttachmentNativeShare(ordinal),
       }}
@@ -198,7 +202,10 @@ const PopAttachStoreless = (ownProps: OwnProps & {
     <PopAttachLoaded
       {...ownProps}
       actions={{
-        download: () => attachmentDownloadMessage(conversationIDKey, message),
+        download: () =>
+          isAndroid
+            ? messageAttachmentAndroidDownloadMessage(conversationIDKey, message)
+            : attachmentDownloadMessage(conversationIDKey, message),
         save: () => messageAttachmentNativeSaveMessage(conversationIDKey, message),
         share: () => messageAttachmentNativeShareMessage(conversationIDKey, message),
       }}
