@@ -5,7 +5,7 @@ PODS:
     - ReactNativeDependencies
   - EXConstants (58.0.12):
     - ExpoModulesCore
-  - Expo (58.0.15):
+  - Expo (58.0.16):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -52,7 +52,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (58.0.10):
     - ExpoModulesCore
-  - ExpoFont (58.0.8):
+  - ExpoFont (58.0.9):
     - ExpoModulesCore
   - ExpoGlassEffect (58.0.4):
     - ExpoModulesCore
@@ -2800,7 +2800,7 @@ SPEC CHECKSUMS:
   boost: 8502bfdc46e2804408af2e163049ece181009af4
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
   EXConstants: ff5c226215048137ea31d39fa460027a6daeeadc
-  Expo: 9c3b0091dd507bc91c6c2a1772c11d33c70aef80
+  Expo: 4c3483457cc4a623cc77e6aa2f752d40cf7e0c16
   ExpoAsset: a21dfe76346f30e600f2cc9cc835a6ede18ca39f
   ExpoAudio: 7963cae3818d0a9f9b6ac927b7f5401b2539daa6
   ExpoCamera: 9b757be605fc66d1fb4a51376d7c9450843221d9
@@ -2810,7 +2810,7 @@ SPEC CHECKSUMS:
   ExpoDocumentPicker: af0917aa6f1b54ab3a0f47977935a1e20ffb1537
   ExpoDomWebView: b2a6d681b9d34c23b1f584321386ca8da1d36afb
   ExpoFileSystem: 6e11203047bfcbd318e6db7bb91210a95a4162b3
-  ExpoFont: 8c11c15724418e0fc2f4cd410afa49686d55a6c4
+  ExpoFont: 1d6500b0c451edb1f9676276b477fb1838190ccb
   ExpoGlassEffect: 008d906ff11ffeb03a8e702af9d6a471c16c10eb
   ExpoHaptics: c95d1e2162895e710b68dd912eec619900ebdf33
   ExpoImage: 002ec1de17e9d4328d7b930ed112244227b69a5c

@@ -33,7 +33,7 @@ export const installCrashReporter = () => {
     console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)
     Electron.app.setPath('crashDumps', cacheRoot)
     Electron.crashReporter.start({
-      companyName: 'Keybase',
+      globalExtra: {_companyName: 'Keybase'},
       productName: 'Keybase',
       submitURL: '',
       uploadToServer: false,
