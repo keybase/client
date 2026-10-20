@@ -766,5 +766,6 @@ export const clearAttachmentDownloadPathInThreadState = (
   const m = state.messageMap.get(ordinal)
   if (m?.type !== 'attachment') return false
   m.downloadPath = ''
+  m.transferProgress = 0
   return true
 }

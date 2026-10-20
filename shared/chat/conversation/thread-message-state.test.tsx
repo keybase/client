@@ -5,12 +5,15 @@ import HiddenString from '@/util/hidden-string'
 import {
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
+  clearAttachmentDownloadPathInThreadState,
   clearPendingDeletesInThreadState,
   clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
+  finishAttachmentDownloadInThreadState,
   setMessageErroredInThreadState,
   type OptimisticReaction,
+  updateAttachmentDownloadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
 
@@ -742,4 +745,16 @@ describe('clearPendingDeletesInThreadState', () => {
     clearPendingDeletesInThreadState(state)
     expect([...state.pendingDeleteMap.values()]).toEqual([o(4), o(5)])
   })
+})
+
+test('a download after clearAttachmentDownloadPathInThreadState shows progress again', () => {
+  const attachment = makeAttachmentMessage()
+  const state = makeThreadState([attachment])
+  finishAttachmentDownloadInThreadState(state, attachment.ordinal, '/tmp/cached.png')
+  clearAttachmentDownloadPathInThreadState(state, attachment.ordinal)
+
+  expect(updateAttachmentDownloadProgressInThreadState(state, attachment.id, 5, 10)).toBe(true)
+  const m = state.messageMap.get(attachment.ordinal)
+  expect(m?.type === 'attachment' && m.transferProgress).toBe(0.5)
+  expect(m?.type === 'attachment' && m.transferState).toBe('downloading')
 })

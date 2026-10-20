@@ -273,12 +273,18 @@ export const messageAttachmentNativeSaveMessage = (
   ignorePromise(f())
 }
 
-// saveFileToDownloads moves the cached copy on success; on failure nothing else reads it
-const deleteCachedDownload = (filePath: string) => {
+// saveFileToDownloads moves the cached copy on success; on failure nothing else reads it,
+// so it is deleted before the error is rethrown
+const saveCachedDownloadToDownloads = async (filePath: string, fileName: string, fileType: string) => {
   try {
-    new File('file://' + filePath).delete()
-  } catch {
-    logger.warn('failed to unlink cached download')
+    await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
+  } catch (err) {
+    try {
+      new File('file://' + filePath).delete()
+    } catch {
+      logger.warn('failed to unlink cached download')
+    }
+    throw err
   }
 }
 
@@ -297,9 +303,8 @@ export const messageAttachmentAndroidDownloadMessage = (
       return
     }
     try {
-      await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
+      await saveCachedDownloadToDownloads(filePath, fileName, fileType)
     } catch (err) {
-      deleteCachedDownload(filePath)
       // saveFileToDownloads already fired a local notification for this failure
       logger.error('Failed to save attachment to Downloads: ' + String(err))
     }
@@ -461,11 +466,10 @@ export const useConversationAttachmentActions = () => {
       }
       try {
         actions.setAttachmentMobileSaving(ordinal, true)
-        await PlatformSpecific.saveFileToDownloads(filePath, fileName, fileType)
+        await saveCachedDownloadToDownloads(filePath, fileName, fileType)
         actions.clearAttachmentDownloadPath(ordinal)
         actions.setAttachmentMobileSaving(ordinal, false)
       } catch (err) {
-        deleteCachedDownload(filePath)
         const errString = err instanceof Error ? err.message : String(err)
         logger.error('Failed to save attachment to Downloads: ' + errString)
         actions.failAttachmentDownload(ordinal, 'Failed to save to Downloads: ' + errString)
