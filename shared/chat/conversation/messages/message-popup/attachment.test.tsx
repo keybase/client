@@ -81,7 +81,28 @@ test('Android offers Download for a non-media file, in the top section', () => {
   expect(titles.indexOf('Download')).toBe(titles.indexOf('Share') - 1)
 })
 
-test('Android still offers Download after a Save (downloadPath set)', () => {
+test('Android offers only Save for an image', () => {
+  g.isMobile = true
+  g.isAndroid = true
+  const titles = titlesFor({attachmentType: 'image', fileName: 'pic.png', fileType: 'image/png'})
+  expect(titles).toContain('Save')
+  expect(titles).not.toContain('Download')
+})
+
+test('Android offers only Save for a video', () => {
+  g.isMobile = true
+  g.isAndroid = true
+  const titles = titlesFor({
+    attachmentType: 'image',
+    fileName: 'clip.mp4',
+    fileType: 'video/mp4',
+    showPlayButton: true,
+  })
+  expect(titles).toContain('Save')
+  expect(titles).not.toContain('Download')
+})
+
+test('Android still offers Download for a file whose downloadPath is set', () => {
   g.isMobile = true
   g.isAndroid = true
   expect(titlesFor({downloadPath: '/cache/doc.pdf'})).toContain('Download')

@@ -64,14 +64,12 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     clearModals()
     showConversationInfoPanel(conversationIDKey, true, 'attachments')
   }
-  const hasMessageID = !!T.Chat.messageIDToNumber(id)
-  const onDownload = isAndroid
-    ? hasMessageID
-      ? actions.download
-      : undefined
-    : !isMobile && !message.downloadPath ? actions.download : undefined
   const onSaveAttachment =
     isMobile && (attachmentType === 'image' || Chat.isImageViewable(message)) ? actions.save : undefined
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
+  const androidDownload = hasMessageID && !onSaveAttachment
+  const desktopDownload = !isMobile && !message.downloadPath
+  const onDownload = (isAndroid ? androidDownload : desktopDownload) ? actions.download : undefined
   const onShareAttachment = isMobile ? actions.share : undefined
 
   const _onShowInFinder = () => {
