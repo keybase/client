@@ -56,20 +56,20 @@ const (
 	ComponentNameApp ComponentName = "app"
 	// ComponentNameFuse is the Fuse component
 	ComponentNameFuse ComponentName = "fuse"
-	// ComponentNameHelper is the privileged helper tool
+	// ComponentNameHelper is the legacy privileged helper tool. It can only
+	// be uninstalled; install-auto reports it while it is still installed.
 	ComponentNameHelper ComponentName = "helper"
-	// ComponentNameMountDir is the mount directory
-	ComponentNameMountDir ComponentName = "mountdir"
 	// ComponentNameCLIPaths links the CLI into /usr/local/bin as an administrator
 	ComponentNameCLIPaths ComponentName = "clipaths"
-	// ComponentNameRedirector is the KBFS redirector
-	ComponentNameRedirector ComponentName = "redirector"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
-// ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameRedirector, ComponentNameCLIPaths}
+// InstallComponentNames are the components `keybase install` handles
+var InstallComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameCLIPaths}
+
+// UninstallComponentNames are the components `keybase uninstall` handles
+var UninstallComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -99,56 +99,6 @@ func SetMountOptIn(context Context, enabled bool) error {
 		return err
 	}
 	return os.WriteFile(path, nil, 0o600)
-}
-
-// Description returns description for component name
-func (c ComponentName) Description() string {
-	switch c {
-	case ComponentNameService:
-		return "Service"
-	case ComponentNameKBFS:
-		return "KBFS"
-	case ComponentNameApp:
-		return "App"
-	case ComponentNameCLI:
-		return "Command Line"
-	case ComponentNameUpdater:
-		return "Updater"
-	case ComponentNameFuse:
-		return "Fuse"
-	case ComponentNameHelper:
-		return "Privileged Helper Tool"
-	case ComponentNameCLIPaths:
-		return "Command Line (privileged)"
-	case ComponentNameRedirector:
-		return "Redirector (privileged)"
-	}
-	return "Unknown"
-}
-
-// ComponentNameFromString returns ComponentName from a string
-func ComponentNameFromString(s string) ComponentName {
-	switch s {
-	case string(ComponentNameCLI):
-		return ComponentNameCLI
-	case string(ComponentNameService):
-		return ComponentNameService
-	case string(ComponentNameKBFS):
-		return ComponentNameKBFS
-	case string(ComponentNameUpdater):
-		return ComponentNameUpdater
-	case string(ComponentNameApp):
-		return ComponentNameApp
-	case string(ComponentNameFuse):
-		return ComponentNameFuse
-	case string(ComponentNameHelper):
-		return ComponentNameHelper
-	case string(ComponentNameCLIPaths):
-		return ComponentNameCLIPaths
-	case string(ComponentNameRedirector):
-		return ComponentNameRedirector
-	}
-	return ComponentNameUnknown
 }
 
 // ResolveInstallStatus will determine necessary install actions for the current environment
