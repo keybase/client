@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce'
 import {htmlURL, pageOrigin, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
 import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
-import {isSamePage, pageKey} from './bridge-rules.desktop'
+import {isSamePage, localServerResponseHeaders, pageKey} from './bridge-rules.desktop'
 
 const {env} = KB2.constants
 
@@ -53,12 +53,14 @@ const setupDefaultSession = () => {
   ds.setDevicePermissionHandler(() => false)
   ds.setDisplayMediaRequestHandler((_request, callback) => callback(null))
 
-  // The renderer's XHRs to the KBFS http server (text previews) are
-  // cross-origin, and that server sends no CORS headers, so allow the page origin.
-  ds.webRequest.onHeadersReceived({urls: ['http://127.0.0.1:*/files/*']}, (details, callback) => {
-    callback({
-      responseHeaders: {...details.responseHeaders, 'Access-Control-Allow-Origin': [pageOrigin]},
-    })
+  // A session keeps only its last onHeadersReceived listener, so every local server response that
+  // needs a header goes through this one. Images and media never load as documents, so they skip it.
+  const localServerFilter: Electron.WebRequestFilter = {
+    types: ['mainFrame', 'subFrame', 'object', 'xhr'],
+    urls: ['http://127.0.0.1:*/*'],
+  }
+  ds.webRequest.onHeadersReceived(localServerFilter, (details, callback) => {
+    callback({responseHeaders: localServerResponseHeaders(details.url, details.responseHeaders, pageOrigin)})
   })
 }
 

@@ -183,29 +183,49 @@ const joinCsp = (sources: Array<string | false | undefined>, separator = ' ') =>
 // expressions want the trailing colon.
 const localFileCspSource = 'kbfile:'
 
+// The service's local http servers listen on 127.0.0.1 on random ports: avatars (/av), chat
+// attachments, emoji, unfurls and giphy (/at), map images (/map), all three on one port, and KBFS
+// (/files/...) on another. A path without a trailing slash matches only that path, one with a slash
+// is a prefix, and the query string is never matched. A redirect target is matched on scheme, host
+// and port only, so any path on 127.0.0.1 passes after a redirect.
+const localServer = 'http://127.0.0.1:*'
+const avatarSrc = `${localServer}/av`
+const chatSrc = `${localServer}/at`
+const mapSrc = `${localServer}/map`
+const kbfsSrc = `${localServer}/files/`
+
 // The main window embeds previews and plays local media. Remote windows (menubar, tracker, pinentry,
-// unlock folders) only show the app's own page and images: avatars from the service's local http
-// server and the image hosts below.
-const makeCsp = (isDev: boolean, isMain: boolean) =>
+// unlock folders) only show the app's own page and images: avatars and the tracker's proof icons.
+// Trusted Types is enforced in the builds loaded through the app scheme (cold dev and prod), not on
+// the hot dev server.
+const makeCsp = (isDev: boolean, isHot: boolean, isMain: boolean) =>
   joinCsp(
     [
       "default-src 'none'",
       "base-uri 'none'",
       "form-action 'none'",
-      isMain && 'object-src http://127.0.0.1:*',
-      isMain && 'frame-src http://127.0.0.1:*',
+      // PDF previews: an <embed> of the PDF, which the built-in viewer then loads in a frame
+      isMain && `object-src ${joinCsp([chatSrc, kbfsSrc])}`,
+      isMain && `frame-src ${joinCsp([chatSrc, kbfsSrc])}`,
       `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
-      isMain && `media-src ${joinCsp(['http://127.0.0.1:*', localFileCspSource])}`,
+      isMain && `media-src ${joinCsp([chatSrc, kbfsSrc, localFileCspSource])}`,
       `img-src ${joinCsp([
         "'self'",
-        'data:',
-        'http://127.0.0.1:*',
+        avatarSrc,
         'https://keybase.io/',
-        'https://pbs.twimg.com/',
-        'https://avatars.githubusercontent.com/',
-        'https://s3.amazonaws.com/keybase_processed_uploads/',
         isDev && devOrigin,
-        isMain && localFileCspSource,
+        ...(isMain
+          ? [
+              chatSrc,
+              mapSrc,
+              kbfsSrc,
+              localFileCspSource,
+              'data:',
+              'https://pbs.twimg.com/',
+              'https://avatars.githubusercontent.com/',
+              'https://s3.amazonaws.com/keybase_processed_uploads/',
+            ]
+          : []),
       ])}`,
       // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
       // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.
@@ -216,13 +236,18 @@ const makeCsp = (isDev: boolean, isMain: boolean) =>
       `script-src ${joinCsp(
         isDev ? ["'self'", devOrigin, remoteDebugURL, "'unsafe-inline'", "'unsafe-eval'"] : ["'self'"]
       )}`,
+      // KBFS text previews are read with XHR
       `connect-src ${joinCsp([
         "'self'",
-        isMain && 'http://127.0.0.1:*',
+        isMain && kbfsSrc,
         isDev && devOrigin,
         isDev && `ws://localhost:${devServerPort}`,
         isDev && 'ws://localhost:8097',
       ])}`,
+      !isHot && "require-trusted-types-for 'script'",
+      // google-libphonenumber's bundled Closure library creates this policy when it loads; it is
+      // never exported, and no other policy may be created
+      !isHot && 'trusted-types goog#html',
     ],
     ';\n '
   )
@@ -231,13 +256,13 @@ const makeCsp = (isDev: boolean, isMain: boolean) =>
 // the main window in dev. The shells keep their source paths in the output
 // (desktop/renderer/main.html, desktop/remote/remote.html) so Vite's relative
 // asset URLs stay correct; html-root.desktop.tsx loads those same paths.
-const htmlPlugin = (isDev: boolean): Plugin => ({
+const htmlPlugin = (isDev: boolean, isHot: boolean): Plugin => ({
   name: 'kb-html',
   transformIndexHtml: {
     order: 'pre',
     handler(html, ctx) {
       const isMain = path.relative(rootDir, ctx.filename) === path.join('desktop', 'renderer', 'main.html')
-      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev, isMain)}">`
+      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev, isHot, isMain)}">`
       const devtools = isDev && isMain ? `\n    <script src="${remoteDebugURL}"></script>` : ''
       return html.replace('<!--kb-csp-->', csp + devtools)
     },
@@ -285,7 +310,7 @@ export default defineConfig(({mode}) => {
       // the visual gate's opt-in call-site coverage (tests/e2e/visual/coverage)
       ...(isDev && process.env['KB_VISUAL_COVERAGE'] === '1' ? [visualCoveragePlugin()] : []),
       ...makeReactPlugins(),
-      htmlPlugin(isDev),
+      htmlPlugin(isDev, isHot),
     ],
     server: {
       port: devServerPort,
