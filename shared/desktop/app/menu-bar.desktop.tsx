@@ -123,7 +123,7 @@ const MenuBar = () => {
       Electron.app.badgeCount = action.payload.desktopAppBadgeCount
     } else if (isLinux) {
       // shown by docks and taskbars that support the LauncherEntry API, on the launcher for
-      // keybase.desktop (the name Electron derives from the app name 'Keybase')
+      // keybase.desktop (the desktopName package.desktop.mts writes into the app's package.json)
       Electron.app.setBadgeCount(action.payload.desktopAppBadgeCount)
     }
 
