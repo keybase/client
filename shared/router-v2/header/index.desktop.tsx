@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
 import {useLoggedInScreens} from '../logged-in-screens'
-import {useWindowControlsWidth} from '@/util/window-controls-overlay.desktop'
+import {useWindowControlsInsets, type WindowControlsInsets} from '@/util/window-controls-overlay.desktop'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 
@@ -41,8 +41,8 @@ type Props = {
   options: Options
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
-  // width of the OS window controls at the top right, 0 when there are none
-  windowControlsWidth: number
+  // space the OS window controls cover at the top, all zeros when there are none
+  windowControls: WindowControlsInsets
   navigation: {
     pop: () => void
   }
@@ -59,19 +59,16 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => {
   )
 }
 
-// The OS draws the window controls over the top right of the page (Windows and Linux without the
+// The OS draws the window controls over the top corners of the page (Windows and Linux without the
 // native frame); keep the header's own controls out from under them
-const WindowControlsSpace = ({width}: {width: number}) => {
-  const styles = useStyles()
-  return (
-    <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.windowControlsSpace, {width}])} />
-  )
-}
+const WindowControlsSpace = ({width}: {width: number}) => (
+  <Kb.Box2 direction="horizontal" style={{flexShrink: 0, width}} />
+)
 
 function DesktopHeader(p: Props) {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {back, navigation, options, loggedIn, windowControlsWidth} = p
+  const {back, navigation, options, loggedIn, windowControls} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
@@ -111,7 +108,7 @@ function DesktopHeader(p: Props) {
   }
 
   const showDivider = headerShadowVisible !== false
-  const windowControlsOverlay = windowControlsWidth > 0
+  const windowControlsOverlay = windowControls.left > 0 || windowControls.right > 0
 
   // The whole header normally clears the system icons (traffic lights on Mac) because the left nav
   // bar pushes it down/right -- unless you're logged out, in which case there's no nav bar and the
@@ -183,7 +180,7 @@ function DesktopHeader(p: Props) {
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
-            style={windowControlsOverlay ? styles.loggedOutTopStripOverlay : styles.loggedOutTopStrip}
+            style={windowControlsOverlay ? {height: windowControls.height} : styles.loggedOutTopStrip}
           />
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.singleRow}>
@@ -232,6 +229,7 @@ function DesktopHeader(p: Props) {
           style={styles.headerBack}
           alignItems="center"
         >
+          {windowControls.left > 0 && <WindowControlsSpace width={windowControls.left} />}
           {/* TODO have headerLeft be the back button */}
           {backButton}
           <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
@@ -242,7 +240,7 @@ function DesktopHeader(p: Props) {
               }
             />
             {!title && rightActions}
-            {windowControlsOverlay && <WindowControlsSpace width={windowControlsWidth} />}
+            {windowControls.right > 0 && <WindowControlsSpace width={windowControls.right} />}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -308,10 +306,6 @@ const useStyles = Kb.Styles.createStyleHook(
       loggedOutTopStrip: Kb.Styles.platformStyles({
         isElectron: {height: 28},
       }),
-      // the main process sets the controls overlay to this height
-      loggedOutTopStripOverlay: Kb.Styles.platformStyles({
-        isElectron: {height: 40},
-      }),
       singleRow: Kb.Styles.platformStyles({
         isElectron: {
           minHeight: 48,
@@ -325,11 +319,10 @@ const useStyles = Kb.Styles.createStyleHook(
       plainText: {
         ...Kb.Styles.globalStyles.flexGrow,
       },
-      windowControlsSpace: {flexShrink: 0},
     }) as const
 )
 
-type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControlsWidth'> & {
+type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControls'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
   params?: unknown
@@ -337,7 +330,7 @@ type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControlsWidth'> & {
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
-  const windowControlsWidth = useWindowControlsWidth()
+  const windowControls = useWindowControlsInsets()
   const loggedIn = useLoggedInScreens()
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
   const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
@@ -375,7 +368,7 @@ function DesktopHeaderWrapper(p: HeaderProps) {
 
   return (
     <DesktopHeader
-      windowControlsWidth={windowControlsWidth}
+      windowControls={windowControls}
       loggedIn={loggedIn}
       options={options}
       back={!!back /* not a bool upstream */}
