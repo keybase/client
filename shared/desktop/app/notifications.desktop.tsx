@@ -50,7 +50,10 @@ export const showNotification = (request: unknown) => {
     send({id, reply: details.reply, type: 'reply'})
     forget()
   })
-  notification.on('close', () => {
+  notification.on('close', details => {
+    // A timed-out Windows toast moves to the Action Center: it can still be clicked there, and
+    // clearNotificationGroup closing it then removes it from the Action Center.
+    if (details.reason === 'timedOut') return
     send({id, type: 'close'})
     forget()
   })
