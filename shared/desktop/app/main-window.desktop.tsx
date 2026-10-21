@@ -107,15 +107,6 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
-
-  if (!isDarwin) {
-    const emitMaxChange = () => {
-      R.remoteDispatch(RemoteGen.createUpdateWindowMaxState({max: win.isMaximized()}))
-    }
-
-    win.on('maximize', emitMaxChange)
-    win.on('unmaximize', emitMaxChange)
-  }
 }
 
 const changeDock = (show: boolean) => {
@@ -144,10 +135,31 @@ export const isScreenshotDisabled = () => disableScreenshot
 
 const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
 
+// Without the native frame, Windows and Linux draw their own window controls over the top of the page
+// (right, left or both, by the OS button layout), at the height of the header's top row. The overlay is
+// see-through so the header's own color shows under the controls; it keeps the theme background's RGB
+// because Linux blends the button hover against the overlay color with its alpha dropped. Spelled as
+// rgba() since Electron reads 8-digit hex as #AARRGGBB. The symbols use the header's black_50_on_white.
+let windowControlsOverlay = false
+const transparentThemeBackground = () => {
+  const hex = themeBackgroundColor()
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
+  return `rgba(${r}, ${g}, ${b}, 0)`
+}
+const titleBarOverlay = () => ({
+  color: transparentThemeBackground(),
+  height: 40,
+  symbolColor: Electron.nativeTheme.shouldUseDarkColors ? '#808080' : '#7f7f7f',
+})
+
 // only the main window uses themeBackgroundColor; the others (menubar, tracker) are transparent
 export const registerThemeBackgrounds = () => {
   Electron.nativeTheme.on('updated', () => {
-    getMainWindow()?.setBackgroundColor(themeBackgroundColor())
+    const win = getMainWindow()
+    win?.setBackgroundColor(themeBackgroundColor())
+    if (windowControlsOverlay) {
+      win?.setTitleBarOverlay(titleBarOverlay())
+    }
   })
 }
 
@@ -330,9 +342,12 @@ const MainWindow = () => {
   setupDefaultSession()
   loadWindowState()
 
+  windowControlsOverlay = !isDarwin && !useNativeFrame
   const win = new Electron.BrowserWindow({
     backgroundColor: themeBackgroundColor(),
-    frame: useNativeFrame,
+    ...(windowControlsOverlay
+      ? {titleBarOverlay: titleBarOverlay(), titleBarStyle: 'hidden' as const}
+      : {frame: useNativeFrame}),
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
     minWidth: 740,

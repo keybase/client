@@ -117,7 +117,6 @@ export type KB2 = {
     mainWindowDispatchEngineIncoming?: (data: Uint8Array | EngineLinkFrame) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
-    minimizeWindow?: () => void
     openPathInFinder?: (path: string, isFolder: boolean) => Promise<void>
     openURL?: (url: string) => Promise<void>
     requestWindowsStartService?: () => void
@@ -143,7 +142,6 @@ export type KB2 = {
     showInactive?: () => void
     showNotification?: (notification: DesktopNotification) => void
     showMainWindow?: () => void
-    toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>
     windowsCheckMountFromOtherDokanInstall?: (
       mountPoint: string,

@@ -125,11 +125,11 @@ const knownActions: {[K in Action['type']]: true} = {
   closeWindows: true, copyToClipboard: true, ctlQuit: true, darwinCopyToChatTempUploadFile: true,
   darwinCopyToKBFSTempUploadFile: true, dumpNodeLogger: true, exitApp: true, getPathType: true,
   getRemoteProps: true, hideWindow: true, installCachedDokan: true, isDirectory: true, makeRenderer: true,
-  minimizeWindow: true, openPathInFinder: true, openURL: true, quitApp: true, readImageFromClipboard: true,
+  openPathInFinder: true, openURL: true, quitApp: true, readImageFromClipboard: true,
   relaunchApp: true, rendererNewProps: true, requestWindowsStartService: true,
   selectFilesToUploadDialog: true, setNativeTheme: true, setOpenAtLogin: true, showContextMenu: true,
   showInactive: true, showMainWindow: true, showNotification: true, showOpenDialog: true, showSaveDialog: true,
-  toggleMaximizeWindow: true, uninstallDokan: true, uninstallDokanDialog: true, uninstallKBFSDialog: true,
+  uninstallDokan: true, uninstallDokanDialog: true, uninstallKBFSDialog: true,
   winCheckRPCOwnership: true, windowsCheckMountFromOtherDokanInstall: true,
 }
 const knownForwards: ReadonlySet<unknown> = new Set(Object.values(RemoteGen).filter(v => typeof v === 'string'))

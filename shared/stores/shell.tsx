@@ -14,7 +14,6 @@ type WindowState = T.Immutable<{
   dockHidden: boolean
   height: number
   isFullScreen: boolean
-  isMaximized: boolean
   width: number
   windowHidden: boolean
   x: number
@@ -52,7 +51,6 @@ const initialStore: Store = {
     dockHidden: false,
     height: 800,
     isFullScreen: false,
-    isMaximized: false,
     width: 600,
     windowHidden: false,
     x: 0,
@@ -78,8 +76,7 @@ export type State = Store & {
     setNotifySound: (n: boolean) => void
     setOpenAtLogin: (open: boolean) => void
     setUseNativeFrame: (use: boolean) => void
-    setWindowMaximized: (isMaximized: boolean) => void
-    updateWindowState: (ws: Omit<WindowState, 'isMaximized'>) => void
+    updateWindowState: (ws: WindowState) => void
   }
 }
 
@@ -282,12 +279,6 @@ export const useShellState = Z.createZustand<State>('shell', (set, get) => {
           },
         })
       )
-    },
-    setWindowMaximized: isMaximized => {
-      if (get().windowState.isMaximized === isMaximized) return
-      set(s => {
-        s.windowState.isMaximized = isMaximized
-      })
     },
     updateWindowState: ws => {
       const old = get().windowState

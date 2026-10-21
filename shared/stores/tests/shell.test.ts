@@ -7,7 +7,6 @@ const defaultWindowState = {
   dockHidden: false,
   height: 800,
   isFullScreen: false,
-  isMaximized: false,
   width: 600,
   windowHidden: false,
   x: 0,
@@ -46,14 +45,12 @@ test('local shell actions update focus and activity state', () => {
   dispatch.changedFocus(false)
   dispatch.setActive(false)
   dispatch.setMobileAppState('background')
-  dispatch.setWindowMaximized(true)
 
   expect(useShellState.getState()).toEqual(
     expect.objectContaining({
       active: false,
       appFocused: false,
       mobileAppState: 'background',
-      windowState: expect.objectContaining({isMaximized: true}),
     })
   )
 })
@@ -74,7 +71,6 @@ test('resetState preserves shell-owned fields across store resets', () => {
       ...defaultWindowState,
       dockHidden: true,
       height: 720,
-      isMaximized: true,
       width: 1024,
       x: 10,
       y: 20,
@@ -97,7 +93,6 @@ test('resetState preserves shell-owned fields across store resets', () => {
         ...defaultWindowState,
         dockHidden: true,
         height: 720,
-        isMaximized: true,
         width: 1024,
         x: 10,
         y: 20,

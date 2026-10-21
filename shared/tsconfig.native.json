@@ -43,6 +43,7 @@
     "./common-adapters/floating-menu/index.test.tsx",
     "./common-adapters/hot-key.test.tsx",
     "./common-adapters/hot-key-overlay.desktop.test.tsx",
+    "./util/window-controls-overlay.desktop.test.ts",
     "./common-adapters/icon.test.tsx",
     "./common-adapters/name-with-icon.test.tsx",
     "./common-adapters/popup/floating-box/relative-floating-box.test.tsx",

@@ -2,13 +2,10 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
-import KB2 from '@/util/electron'
 import {useLoggedInScreens} from '../logged-in-screens'
-import {useShellState} from '@/stores/shell'
+import {useWindowControlsInsets, type WindowControlsInsets} from '@/util/window-controls-overlay.desktop'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
-
-const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
 type HeaderTitleProps = {
   children: React.ReactNode
@@ -44,8 +41,8 @@ type Props = {
   options: Options
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
-  useNativeFrame: boolean
-  isMaximized: boolean
+  // space the OS window controls cover at the top, all zeros when there are none
+  windowControls: WindowControlsInsets
   navigation: {
     pop: () => void
   }
@@ -62,56 +59,16 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => {
   )
 }
 
-const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
-  const styles = useStyles()
-  const onMinimize = () => {
-    minimizeWindow?.()
-  }
-  const onToggleMaximizeWindow = () => {
-    toggleMaximizeWindow?.()
-  }
-  const onCloseWindow = () => {
-    closeWindow?.()
-  }
-  return (
-    <Kb.Box2 alignSelf="center" direction="horizontal">
-      <Kb.ClickableBox alignSelf="center"
-        className="hover_background_color_black_05  color_black_50 hover_color_black"
-        onClick={onMinimize}
-        style={styles.appIconBox}
-        direction="vertical"
-      >
-        <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
-      </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
-        className="hover_background_color_black_05 color_black_50 hover_color_black"
-        onClick={onToggleMaximizeWindow}
-        style={styles.appIconBox}
-        direction="vertical"
-      >
-        <Kb.Icon
-          color="inherit"
-          onClick={onToggleMaximizeWindow}
-          style={styles.appIcon}
-          type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
-        />
-      </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
-        className="hover_background_color_red hover_color_white color_black_50"
-        onClick={onCloseWindow}
-        style={styles.appIconBox}
-        direction="vertical"
-      >
-        <Kb.Icon color="inherit" onClick={onCloseWindow} style={styles.appIcon} type="iconfont-app-close" />
-      </Kb.ClickableBox>
-    </Kb.Box2>
-  )
-}
+// The OS draws the window controls over the top corners of the page (Windows and Linux without the
+// native frame); keep the header's own controls out from under them
+const WindowControlsSpace = ({width}: {width: number}) => (
+  <Kb.Box2 direction="horizontal" style={{flexShrink: 0, width}} />
+)
 
 function DesktopHeader(p: Props) {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {back, navigation, options, loggedIn, useNativeFrame, isMaximized} = p
+  const {back, navigation, options, loggedIn, windowControls} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
@@ -151,7 +108,7 @@ function DesktopHeader(p: Props) {
   }
 
   const showDivider = headerShadowVisible !== false
-  const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
+  const windowControlsOverlay = windowControls.left > 0 || windowControls.right > 0
 
   // The whole header normally clears the system icons (traffic lights on Mac) because the left nav
   // bar pushes it down/right -- unless you're logged out, in which case there's no nav bar and the
@@ -200,13 +157,13 @@ function DesktopHeader(p: Props) {
     backButton = defaultBackButton
   }
 
-  // Logged out: a top strip that holds only the system buttons (or, on Mac, just reserves space so the
-  // OS traffic lights have nothing beside them), then a row below with back on the left, title centered,
+  // Logged out: a top strip that only reserves space for the OS window controls (the traffic lights on
+  // Mac, the controls overlay elsewhere), then a row below with back on the left, title centered,
   // actions on the right. The side sections share the same flex so the title stays centered regardless
   // of their widths. Keeping the back/title/actions row in a fixed spot below the strip stops it from
   // jumping between screens.
   if (!loggedIn) {
-    const showTopStrip = loggedOutDarwin || windowDecorationsAreNeeded
+    const showTopStrip = loggedOutDarwin || windowControlsOverlay
     return (
       <Kb.Box2
         noShrink={true}
@@ -223,12 +180,8 @@ function DesktopHeader(p: Props) {
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
-            alignItems="center"
-            justifyContent="flex-end"
-            style={styles.loggedOutTopStrip}
-          >
-            {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
-          </Kb.Box2>
+            style={windowControlsOverlay ? {height: windowControls.height} : styles.loggedOutTopStrip}
+          />
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.singleRow}>
           <Kb.Box2 direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
@@ -276,6 +229,7 @@ function DesktopHeader(p: Props) {
           style={styles.headerBack}
           alignItems="center"
         >
+          {windowControls.left > 0 && <WindowControlsSpace width={windowControls.left} />}
           {/* TODO have headerLeft be the back button */}
           {backButton}
           <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
@@ -286,7 +240,7 @@ function DesktopHeader(p: Props) {
               }
             />
             {!title && rightActions}
-            {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
+            {windowControls.right > 0 && <WindowControlsSpace width={windowControls.right} />}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -309,23 +263,6 @@ function DesktopHeader(p: Props) {
 const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      appIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          padding: Kb.Styles.globalMargins.xtiny,
-          position: 'relative',
-          top: Kb.Styles.globalMargins.xxtiny,
-        },
-      }),
-      appIconBox: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          padding: Kb.Styles.globalMargins.tiny,
-          position: 'relative',
-          right: -Kb.Styles.globalMargins.tiny,
-          top: -Kb.Styles.globalMargins.xtiny,
-        },
-      }),
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomTitle: {height: '100%', maxHeight: '100%'},
       headerBack: Kb.Styles.platformStyles({
@@ -367,10 +304,7 @@ const useStyles = Kb.Styles.createStyleHook(
         isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
       }),
       loggedOutTopStrip: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 28,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-        },
+        isElectron: {height: 28},
       }),
       singleRow: Kb.Styles.platformStyles({
         isElectron: {
@@ -388,7 +322,7 @@ const useStyles = Kb.Styles.createStyleHook(
     }) as const
 )
 
-type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
+type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControls'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
   params?: unknown
@@ -396,9 +330,8 @@ type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaxim
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
-  const useNativeFrame = useShellState(s => s.useNativeFrame)
+  const windowControls = useWindowControlsInsets()
   const loggedIn = useLoggedInScreens()
-  const isMaximized = useShellState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
   const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
     _options
@@ -435,10 +368,8 @@ function DesktopHeaderWrapper(p: HeaderProps) {
 
   return (
     <DesktopHeader
-      useNativeFrame={useNativeFrame}
+      windowControls={windowControls}
       loggedIn={loggedIn}
-      key={String(isMaximized)}
-      isMaximized={isMaximized}
       options={options}
       back={!!back /* not a bool upstream */}
       style={style}

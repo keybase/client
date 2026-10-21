@@ -56,8 +56,6 @@ export type Action =
   | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
   | {type: 'darwinCopyToChatTempUploadFile'; payload: {originalFilePath: string; dst: string}}
   | {type: 'closeWindow'}
-  | {type: 'minimizeWindow'}
-  | {type: 'toggleMaximizeWindow'}
   | {type: 'openURL'; payload: {url: string}}
   | {type: 'showInactive'}
   | {type: 'showNotification'; payload: DesktopNotification}
