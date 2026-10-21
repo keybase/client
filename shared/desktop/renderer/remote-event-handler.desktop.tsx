@@ -193,9 +193,6 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     case RemoteGen.dumpLogs:
       ignorePromise(dumpLogs(action.payload.reason))
       break
-    case RemoteGen.updateWindowMaxState:
-      useShellState.getState().dispatch.setWindowMaximized(action.payload.max)
-      break
     case RemoteGen.updateWindowState:
       useShellState.getState().dispatch.updateWindowState(action.payload.windowState)
       break

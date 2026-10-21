@@ -27,7 +27,6 @@ export const trackerIgnore = 'remote:trackerIgnore'
 export const trackerLoad = 'remote:trackerLoad'
 export const unlockFoldersSubmitPaperKey = 'remote:unlockFoldersSubmitPaperKey'
 export const updateNow = 'remote:updateNow'
-export const updateWindowMaxState = 'remote:updateWindowMaxState'
 export const updateWindowShown = 'remote:updateWindowShown'
 export const updateWindowState = 'remote:updateWindowState'
 
@@ -95,8 +94,6 @@ export const createTrackerLoad = (payload: {
 export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: string}) =>
   ({payload, type: unlockFoldersSubmitPaperKey}) as const
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow}) as const
-export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) =>
-  ({payload, type: updateWindowMaxState}) as const
 export const createUpdateWindowShown = (payload: {readonly component: string}) =>
   ({payload, type: updateWindowShown}) as const
 
@@ -124,7 +121,6 @@ export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
 export type TrackerLoadPayload = ReturnType<typeof createTrackerLoad>
 type UnlockFoldersSubmitPaperKeyPayload = ReturnType<typeof createUnlockFoldersSubmitPaperKey>
 type UpdateNowPayload = ReturnType<typeof createUpdateNow>
-type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
 type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
 
@@ -154,7 +150,6 @@ export type Actions =
   | TrackerLoadPayload
   | UnlockFoldersSubmitPaperKeyPayload
   | UpdateNowPayload
-  | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload
   | UpdateWindowStatePayload
   | {readonly payload: undefined; readonly type: 'common:resetStore'}

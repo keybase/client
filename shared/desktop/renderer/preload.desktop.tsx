@@ -154,9 +154,6 @@ if (isRenderer) {
         })
       )
     },
-    minimizeWindow: () => {
-      ignorePromise(invoke({type: 'minimizeWindow'}))
-    },
     openPathInFinder: async (path: string, isFolder: boolean) => {
       const res = await invoke({
         payload: {isFolder, path},
@@ -239,9 +236,6 @@ if (isRenderer) {
           type: 'showTray',
         })
       )
-    },
-    toggleMaximizeWindow: () => {
-      ignorePromise(invoke({type: 'toggleMaximizeWindow'}))
     },
     uninstallDokan: async (execPath: string) => {
       return invoke({payload: {execPath}, type: 'uninstallDokan'})

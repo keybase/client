@@ -107,15 +107,6 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
-
-  if (!isDarwin) {
-    const emitMaxChange = () => {
-      R.remoteDispatch(RemoteGen.createUpdateWindowMaxState({max: win.isMaximized()}))
-    }
-
-    win.on('maximize', emitMaxChange)
-    win.on('unmaximize', emitMaxChange)
-  }
 }
 
 const changeDock = (show: boolean) => {
@@ -144,10 +135,23 @@ export const isScreenshotDisabled = () => disableScreenshot
 
 const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
 
+// Without the native frame, Windows and Linux draw their own window controls over the top right of the
+// page, in the header's colors (white and black_50_on_white) and at the height of its top row
+let windowControlsOverlay = false
+const titleBarOverlay = () => ({
+  color: themeBackgroundColor(),
+  height: 40,
+  symbolColor: Electron.nativeTheme.shouldUseDarkColors ? '#808080' : '#7f7f7f',
+})
+
 // only the main window uses themeBackgroundColor; the others (menubar, tracker) are transparent
 export const registerThemeBackgrounds = () => {
   Electron.nativeTheme.on('updated', () => {
-    getMainWindow()?.setBackgroundColor(themeBackgroundColor())
+    const win = getMainWindow()
+    win?.setBackgroundColor(themeBackgroundColor())
+    if (windowControlsOverlay) {
+      win?.setTitleBarOverlay(titleBarOverlay())
+    }
   })
 }
 
@@ -330,9 +334,12 @@ const MainWindow = () => {
   setupDefaultSession()
   loadWindowState()
 
+  windowControlsOverlay = !isDarwin && !useNativeFrame
   const win = new Electron.BrowserWindow({
     backgroundColor: themeBackgroundColor(),
-    frame: useNativeFrame,
+    ...(windowControlsOverlay
+      ? {titleBarOverlay: titleBarOverlay(), titleBarStyle: 'hidden' as const}
+      : {frame: useNativeFrame}),
     height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
     minWidth: 740,

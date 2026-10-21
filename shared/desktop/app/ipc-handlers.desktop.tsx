@@ -495,21 +495,6 @@ export const setupIPCHandlers = (deps: {
         Electron.BrowserWindow.fromWebContents(event.sender)?.close()
         return
       }
-      case 'minimizeWindow': {
-        Electron.BrowserWindow.getFocusedWindow()?.minimize()
-        return
-      }
-      case 'toggleMaximizeWindow': {
-        const win = Electron.BrowserWindow.getFocusedWindow()
-        if (win) {
-          if (win.isMaximized()) {
-            win.unmaximize()
-          } else {
-            win.maximize()
-          }
-        }
-        return
-      }
       case 'darwinCopyToChatTempUploadFile': {
         try {
           return await darwinCopyToChatTempUploadFile(action.payload)
