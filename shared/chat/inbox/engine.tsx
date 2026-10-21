@@ -7,6 +7,10 @@ import type * as EngineGen from '@/constants/rpc'
 import {navigateToThread as routerNavigateToThread} from '@/constants/router'
 import logger from '@/logger'
 import {NotifyPopup} from '@/util/misc'
+import {emojiShortcodesToText} from '@/util/emoji-text'
+import {conversationNotificationGroup} from '@/util/desktop-notifications'
+import {sendNotificationReply} from '@/chat/conversation/send-actions'
+import {useCurrentUserState} from '@/stores/current-user'
 import {showMain} from '@/util/storeless-actions'
 import {useDaemonState} from '@/stores/daemon'
 import {useShellState} from '@/stores/shell'
@@ -86,10 +90,29 @@ export const maybeShowIncomingMessageDesktopNotification = (incomingMessage: T.R
     routerNavigateToThread(conversationIDKey, 'desktopNotification')
   }
   const onClose = () => {}
+  // a reply is sent as whoever got the notification, and only while they are still logged in
+  const uid = useCurrentUserState.getState().uid
+  const onReply = meta?.cannotWrite
+    ? undefined
+    : (text: string) => {
+        const tlfName = getInboxConversationMeta(conversationIDKey)?.tlfname || meta?.tlfname
+        if (!tlfName || useCurrentUserState.getState().uid !== uid) {
+          logger.info('not sending notification reply')
+          return
+        }
+        sendNotificationReply(conversationIDKey, tlfName, text)
+      }
   logger.info('invoking NotifyPopup for chat notification')
   const sound = useShellState.getState().notifySound
-  const cleanBody = incomingMessage.desktopNotificationSnippet.replaceAll(/!>(.*?)<!/g, '•••')
-  NotifyPopup(title, {body: cleanBody, sound}, -1, senderUsername, onClick, onClose)
+  const cleanBody = emojiShortcodesToText(incomingMessage.desktopNotificationSnippet.replaceAll(/!>(.*?)<!/g, '•••'))
+  NotifyPopup(
+    title,
+    {body: cleanBody, groupId: conversationNotificationGroup(conversationIDKey), groupTitle: title, onReply, sound},
+    -1,
+    senderUsername,
+    onClick,
+    onClose
+  )
 }
 
 // Marks each user an identify failure names as broken.

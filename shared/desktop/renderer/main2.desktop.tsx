@@ -13,6 +13,7 @@ import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
+import {ignorePromise} from '@/constants/utils'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -21,6 +22,7 @@ import {eventFromRemoteWindows} from './remote-event-handler.desktop'
 import type {default as NewMainType} from '../../app/main'
 import {dumpLogs} from '@/util/storeless-actions'
 import {listenForCspViolations} from './csp-violations.desktop'
+import {onDesktopNotificationEvent} from '@/util/desktop-notifications'
 // the visual gate's dev-only fixture runtime; production builds resolve this to an empty module
 import '@/tests/e2e/visual/fixtures/runtime'
 setServiceDecoration(ServiceDecoration)
@@ -55,12 +57,15 @@ const setupApp = async () => {
     }, 0)
   })
 
+  ipcRendererOn?.('KBnotification', onDesktopNotificationEvent)
+
   initPlatformListener()
 
   // The main process sends this renderer the engine link's state, a fresh link on a reload
   await appStartedUp?.()
 
   useShellState.getState().dispatch.initNotifySound()
+  ignorePromise(useShellState.getState().dispatch.initDesktopNotifications())
   useShellState.getState().dispatch.initForceSmallNav()
   useShellState.getState().dispatch.initOpenAtLogin()
   useConfigState.getState().dispatch.initAppUpdateLoop()

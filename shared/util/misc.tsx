@@ -8,6 +8,7 @@ import type {ImageInfo} from './expo-image-picker'
 import {Linking} from 'react-native'
 import {clearLocalLogs as clearLocalLogsNative, addNotificationRequest} from 'react-native-kb'
 import {filePickerError} from '@/util/storeless-actions'
+import {showDesktopNotification, type DesktopNotificationOptions} from './desktop-notifications'
 
 // ─── openURL ────────────────────────────────────────────────────────────────
 
@@ -119,7 +120,8 @@ export const pickSave = async (options: SaveDialogOptions): Promise<string> => {
 
 // ─── NotifyPopup ─────────────────────────────────────────────────────────────
 
-type NotifyPopupOpts = {body?: string; sound?: boolean}
+// groupId/groupTitle/onReply are desktop only
+type NotifyPopupOpts = Pick<DesktopNotificationOptions, 'body' | 'groupId' | 'groupTitle' | 'onReply' | 'sound'>
 
 // Desktop rate-limiting state
 const _rateLimit: {[K in string]: () => void} = {}
@@ -146,8 +148,7 @@ export function NotifyPopup(
     return
   }
 
-  // Desktop: use Web Notification API with optional rate-limiting
-  const sound = opts?.sound
+  // Desktop: the main process shows it, with optional rate-limiting
   if (rateLimitSeconds > 0) {
     const key = rateLimitKey || title
 
@@ -161,15 +162,11 @@ export function NotifyPopup(
       if (_rateLimitPayloads[key]) {
         const payload = _rateLimitPayloads[key]
         _rateLimitPayloads[key] = undefined
-        const notification = new Notification(payload.title, {...payload.opts, silent: !payload.opts?.sound})
-        notification.onclick = payload.onClick ?? null
-        notification.onclose = onClose ?? null
+        showDesktopNotification({...payload.opts, onClick: payload.onClick, onClose, title: payload.title})
       }
     }, rateLimitSeconds * 1_000)
   }
 
   logger.info('NotifyPopup: creating notification')
-  const notification = new Notification(title, {...opts, silent: !sound})
-  notification.onclick = onClick ?? null
-  notification.onclose = onClose ?? null
+  showDesktopNotification({...opts, onClick, onClose, title})
 }

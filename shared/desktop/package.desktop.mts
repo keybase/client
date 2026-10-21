@@ -144,7 +144,17 @@ async function main() {
 
   const buildPkgPath = desktopPath('build/package.json')
   fs.mkdirSync(path.dirname(buildPkgPath), {recursive: true})
-  fs.writeFileSync(buildPkgPath, JSON.stringify({main: 'desktop/dist/node.bundle.js', name: appName, version: appVersion}))
+  // desktopName is the launcher packaging/linux installs (usr/share/applications/keybase.desktop);
+  // Linux badge counts are shown on that launcher
+  fs.writeFileSync(
+    buildPkgPath,
+    JSON.stringify({
+      desktopName: 'keybase.desktop',
+      main: 'desktop/dist/node.bundle.js',
+      name: appName,
+      version: appVersion,
+    })
+  )
 
   try {
     await startPack()

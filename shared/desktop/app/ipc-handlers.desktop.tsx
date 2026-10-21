@@ -41,6 +41,7 @@ import {
   parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
 import {handleFromApp, onFromApp, onSyncFromApp} from './ipc-sender.desktop'
+import {clearNotificationGroup, showNotification} from './notifications.desktop'
 
 const execFileAsync = promisify(execFile)
 
@@ -474,6 +475,14 @@ export const setupIPCHandlers = (deps: {
         menu.popup({window: win})
         return
       }
+      case 'showNotification': {
+        showNotification(action.payload)
+        return
+      }
+      case 'clearNotificationGroup': {
+        clearNotificationGroup(action.payload.groupId)
+        return
+      }
       case 'showInactive': {
         Electron.BrowserWindow.fromWebContents(event.sender)?.showInactive()
         return
@@ -583,6 +592,8 @@ export const setupIPCHandlers = (deps: {
       }
       case 'getRemoteProps': {
         const {windowComponent, windowParam} = action.payload
+        // a window may only read the props cached for itself
+        if (getRemoteWindow(windowComponent, windowParam)?.webContents !== event.sender) return ''
         return getCachedRemoteProps(windowComponent, windowParam) ?? ''
       }
       case 'closeRenderer': {

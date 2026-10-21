@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {defaultUseNativeFrame} from '../../constants/platform'
+import * as T from '@/constants/types'
 import {useShellState} from '../shell'
 
 const defaultWindowState = {
@@ -18,6 +19,8 @@ const resetShellState = () => {
   useShellState.setState({
     active: true,
     appFocused: true,
+    desktopNotifications: true,
+    desktopNotificationsLoaded: false,
     forceSmallNav: false,
     mobileAppState: 'unknown',
     networkStatus: undefined,
@@ -101,4 +104,46 @@ test('resetState preserves shell-owned fields across store resets', () => {
       },
     })
   )
+})
+
+test('initDesktopNotifications applies the saved setting', async () => {
+  const getValue = jest
+    .spyOn(T.RPCGen, 'configGuiGetValueRpcPromise')
+    .mockResolvedValue({b: false, isNull: false} as T.RPCGen.ConfigValue)
+
+  await useShellState.getState().dispatch.initDesktopNotifications()
+
+  expect(getValue).toHaveBeenCalledWith({path: 'desktopNotifications'})
+  expect(useShellState.getState().desktopNotifications).toBe(false)
+  expect(useShellState.getState().desktopNotificationsLoaded).toBe(true)
+  getValue.mockRestore()
+})
+
+test('initDesktopNotifications keeps the default when nothing is saved', async () => {
+  const getValue = jest
+    .spyOn(T.RPCGen, 'configGuiGetValueRpcPromise')
+    .mockResolvedValue({isNull: true} as T.RPCGen.ConfigValue)
+  await useShellState.getState().dispatch.initDesktopNotifications()
+  expect(useShellState.getState().desktopNotifications).toBe(true)
+  expect(useShellState.getState().desktopNotificationsLoaded).toBe(true)
+  getValue.mockRestore()
+})
+
+test('initDesktopNotifications keeps the default and finishes loading when the read fails', async () => {
+  const getValue = jest.spyOn(T.RPCGen, 'configGuiGetValueRpcPromise').mockRejectedValue(new Error('no service'))
+  await useShellState.getState().dispatch.initDesktopNotifications()
+  expect(useShellState.getState().desktopNotifications).toBe(true)
+  expect(useShellState.getState().desktopNotificationsLoaded).toBe(true)
+  getValue.mockRestore()
+})
+
+test('setDesktopNotifications saves the setting', async () => {
+  const setValue = jest.spyOn(T.RPCGen, 'configGuiSetValueRpcPromise').mockResolvedValue(undefined)
+
+  useShellState.getState().dispatch.setDesktopNotifications(false)
+  expect(useShellState.getState().desktopNotifications).toBe(false)
+  await new Promise(resolve => setTimeout(resolve, 0))
+
+  expect(setValue).toHaveBeenCalledWith({path: 'desktopNotifications', value: {b: false, isNull: false}})
+  setValue.mockRestore()
 })

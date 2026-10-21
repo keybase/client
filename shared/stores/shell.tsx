@@ -24,6 +24,8 @@ type WindowState = T.Immutable<{
 type Store = T.Immutable<{
   active: boolean
   appFocused: boolean
+  desktopNotifications: boolean
+  desktopNotificationsLoaded: boolean
   forceSmallNav: boolean
   fsCriticalUpdate: boolean
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
@@ -37,6 +39,8 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   active: true,
   appFocused: true,
+  desktopNotifications: true,
+  desktopNotificationsLoaded: false,
   forceSmallNav: false,
   fsCriticalUpdate: false,
   mobileAppState: 'unknown',
@@ -59,6 +63,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     changedFocus: (f: boolean) => void
+    initDesktopNotifications: () => Promise<void>
     initNotifySound: () => void
     initForceSmallNav: () => void
     initOpenAtLogin: () => void
@@ -66,6 +71,7 @@ export type State = Store & {
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => void
     resetState: (isDebug?: boolean) => void
     setActive: (a: boolean) => void
+    setDesktopNotifications: (on: boolean) => void
     setForceSmallNav: (f: boolean) => void
     setFsCriticalUpdate: (u: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
@@ -82,6 +88,7 @@ export const openAtLoginKey = 'openAtLogin'
 export const useShellState = Z.createZustand<State>('shell', (set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
+  const desktopNotificationsKey = 'desktopNotifications'
   const forceSmallNavKey = 'ui.forceSmallNav'
   const windowStateKey = 'windowState'
 
@@ -90,6 +97,22 @@ export const useShellState = Z.createZustand<State>('shell', (set, get) => {
       if (get().appFocused === f) return
       set(s => {
         s.appFocused = f
+      })
+    },
+    initDesktopNotifications: async () => {
+      try {
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: desktopNotificationsKey})
+        const on = val.b
+        if (typeof on === 'boolean') {
+          set(s => {
+            s.desktopNotifications = on
+          })
+        }
+      } catch (error) {
+        logger.warn('failed to load desktop notifications setting', error)
+      }
+      set(s => {
+        s.desktopNotificationsLoaded = true
       })
     },
     initForceSmallNav: () => {
@@ -201,6 +224,19 @@ export const useShellState = Z.createZustand<State>('shell', (set, get) => {
         })
       }
       ignorePromise(f())
+    },
+    setDesktopNotifications: on => {
+      set(s => {
+        s.desktopNotifications = on
+      })
+      ignorePromise(
+        T.RPCGen.configGuiSetValueRpcPromise({
+          path: desktopNotificationsKey,
+          value: {b: on, isNull: false},
+        }).catch((error: unknown) => {
+          logger.warn('failed to save desktop notifications setting', error)
+        })
+      )
     },
     setFsCriticalUpdate: u => {
       if (get().fsCriticalUpdate === u) return

@@ -30,10 +30,26 @@ export type EngineLinkFrame = {type: 'link'; up: boolean; epoch: number}
 export type EngineSend = {epoch: number; message: EngineRPCMessage}
 
 // The channels main sends to a renderer; the preload refuses to subscribe to any other
-export const rendererChannels = ['KBdispatchAction', 'KBprops', 'engineIncoming'] as const
+export const rendererChannels = ['KBdispatchAction', 'KBnotification', 'KBprops', 'engineIncoming'] as const
 export type RendererChannel = (typeof rendererChannels)[number]
 export const isRendererChannel = (channel: unknown): channel is RendererChannel =>
   rendererChannels.some(c => c === channel)
+
+// A notification the main process shows for the main window. `groupId` gathers a conversation's
+// notifications so they can be cleared together.
+export type DesktopNotification = {
+  body: string
+  groupId?: string
+  groupTitle?: string
+  hasReply: boolean
+  id: string
+  silent: boolean
+  title: string
+}
+// What the person did with a notification, sent back to the main window on KBnotification
+export type DesktopNotificationEvent =
+  | {type: 'click' | 'close'; id: string}
+  | {type: 'reply'; id: string; reply: string}
 
 export type KB2 = {
   constants: {
@@ -86,6 +102,7 @@ export type KB2 = {
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
+    clearNotificationGroup?: (groupId: string) => void
     closeWindow?: () => void
     showContextMenu?: (url: string) => void
     installCachedDokan?: () => Promise<void>
@@ -124,6 +141,7 @@ export type KB2 = {
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => void
     showInactive?: () => void
+    showNotification?: (notification: DesktopNotification) => void
     showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>

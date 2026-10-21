@@ -44,6 +44,9 @@ const getIcons = (iconType: BadgeType, badges: number) => {
 
 const htmlFile = htmlURL('remote', 'component=menubar&param=menubar')
 
+// A fixed id lets macOS keep the menu bar icon where the person put it across launches
+const darwinTrayGUID = '1f6ff0e1-805f-43a6-bf95-2e62ac4839d8'
+
 let badgeType: BadgeType = 'regular'
 let badges = 0
 
@@ -65,6 +68,7 @@ type Bounds = {
 const MenuBar = () => {
   const icon = getIcon()
   const mb = menubar({
+    ...(isDarwin ? {tray: new Electron.Tray(icon, darwinTrayGUID)} : {}),
     browserWindow: {
       ...(isDarwin ? {type: 'panel'} : {}),
       hasShadow: true,
@@ -117,6 +121,10 @@ const MenuBar = () => {
     const dock = Electron.app.dock
     if (dock?.isVisible()) {
       Electron.app.badgeCount = action.payload.desktopAppBadgeCount
+    } else if (isLinux) {
+      // shown by docks and taskbars that support the LauncherEntry API, on the launcher for
+      // keybase.desktop (the desktopName package.desktop.mts writes into the app's package.json)
+      Electron.app.setBadgeCount(action.payload.desktopAppBadgeCount)
     }
 
     // Windows just lets us set (or unset, with null) a single 16x16 icon
