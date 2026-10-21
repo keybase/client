@@ -2,6 +2,7 @@
 // person did, which runs the handlers kept here under the notification's id.
 import KB2, {type DesktopNotificationEvent} from './electron'
 import {makeUUID} from './uuid'
+import {useShellState} from '@/stores/shell'
 
 type Handlers = {
   onClick?: () => void
@@ -34,9 +35,29 @@ const maxBody = 1000
 export const truncateNotificationText = (s: string, max: number) =>
   s.length <= max ? s : `${s.slice(0, max - 1).replace(/[\uD800-\uDBFF]$/, '')}…`
 
+// Notifications that arrive before the saved setting has loaded wait for it
+const pending: Array<DesktopNotificationOptions> = []
+let stopWaiting: (() => void) | undefined
+const holdUntilSettingLoaded = (o: DesktopNotificationOptions) => {
+  pending.push(o)
+  if (pending.length > maxHandlers) pending.shift()
+  stopWaiting ??= useShellState.subscribe(s => {
+    if (!s.desktopNotificationsLoaded) return
+    stopWaiting?.()
+    stopWaiting = undefined
+    for (const p of pending.splice(0)) showDesktopNotification(p)
+  })
+}
+
 export const showDesktopNotification = (o: DesktopNotificationOptions) => {
   const {showNotification} = KB2.functions
   if (!showNotification) return
+  const {desktopNotifications, desktopNotificationsLoaded} = useShellState.getState()
+  if (!desktopNotificationsLoaded) {
+    holdUntilSettingLoaded(o)
+    return
+  }
+  if (!desktopNotifications) return
   const {body, groupId, groupTitle, onClick, onClose, onReply, sound, title} = o
   const id = makeUUID()
   handlers.set(id, {onClick, onClose, onReply})

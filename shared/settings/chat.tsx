@@ -617,8 +617,9 @@ export const Links = () => {
 
 const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
   const styles = useStyles()
-  const {onToggleSound, sound} = useShellState(
+  const {desktopNotifications, onToggleSound, sound} = useShellState(
     C.useShallow(s => ({
+      desktopNotifications: s.desktopNotifications,
       onToggleSound: s.dispatch.setNotifySound,
       sound: s.notifySound,
     }))
@@ -632,7 +633,12 @@ const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
         <Kb.Text type="Header">Sounds</Kb.Text>
         {showDesktopSound && (
-          <Kb.Checkbox onCheck={onToggleSound} checked={sound} label="Play a sound for new messages" />
+          <Kb.Checkbox
+            onCheck={onToggleSound}
+            checked={sound}
+            disabled={!desktopNotifications}
+            label="Play a sound for new messages"
+          />
         )}
         {showMobileSound && (
           <Group

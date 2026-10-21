@@ -13,6 +13,7 @@ import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
+import {ignorePromise} from '@/constants/utils'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -64,6 +65,7 @@ const setupApp = async () => {
   await appStartedUp?.()
 
   useShellState.getState().dispatch.initNotifySound()
+  ignorePromise(useShellState.getState().dispatch.initDesktopNotifications())
   useShellState.getState().dispatch.initForceSmallNav()
   useShellState.getState().dispatch.initOpenAtLogin()
   useConfigState.getState().dispatch.initAppUpdateLoop()

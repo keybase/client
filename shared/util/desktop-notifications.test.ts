@@ -7,12 +7,14 @@ import {
   showDesktopNotification,
   truncateNotificationText,
 } from './desktop-notifications'
+import {useShellState} from '@/stores/shell'
 
 const functions = (globalThis._fromPreload as {functions: Record<string, unknown>}).functions
 const shown: Array<DesktopNotification> = []
 const cleared: Array<string> = []
 
 beforeEach(() => {
+  useShellState.setState({desktopNotificationsLoaded: true})
   shown.length = 0
   cleared.length = 0
   functions['showNotification'] = (n: DesktopNotification) => shown.push(n)
@@ -20,6 +22,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  useShellState.setState({desktopNotifications: true})
   delete functions['showNotification']
   delete functions['clearNotificationGroup']
 })
@@ -112,4 +115,26 @@ test('long titles and bodies are shortened before they are sent', () => {
   const n = shown.at(-1)
   expect(n?.title).toBe(`${'t'.repeat(199)}…`)
   expect(n?.body).toBe(`${'b'.repeat(999)}…`)
+})
+
+test('shows nothing while desktop notifications are turned off', () => {
+  useShellState.setState({desktopNotifications: false})
+  showDesktopNotification({body: 'hi', title: 'testuser'})
+  expect(shown).toEqual([])
+  useShellState.setState({desktopNotifications: true})
+  showDesktopNotification({body: 'hi', title: 'testuser'})
+  expect(shown).toHaveLength(1)
+})
+
+test('waits for the saved setting before showing or dropping', () => {
+  useShellState.setState({desktopNotificationsLoaded: false})
+  showDesktopNotification({body: 'early', title: 'testuser'})
+  expect(shown).toEqual([])
+  useShellState.setState({desktopNotifications: false, desktopNotificationsLoaded: true})
+  expect(shown).toEqual([])
+
+  useShellState.setState({desktopNotificationsLoaded: false})
+  showDesktopNotification({body: 'early', title: 'testuser'})
+  useShellState.setState({desktopNotifications: true, desktopNotificationsLoaded: true})
+  expect(shown.map(n => n.body)).toEqual(['early'])
 })
