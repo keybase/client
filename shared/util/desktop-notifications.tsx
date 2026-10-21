@@ -26,6 +26,14 @@ const groupsShown = new Set<string>()
 export const conversationNotificationGroup = (conversationIDKey: string) =>
   `chat:${conversationIDKey.slice(0, 40)}`
 
+// Within the main process's limits, so a long message is shortened rather than dropped there
+const maxTitle = 200
+const maxBody = 1000
+
+// Never splits a surrogate pair
+export const truncateNotificationText = (s: string, max: number) =>
+  s.length <= max ? s : `${s.slice(0, max - 1).replace(/[\uD800-\uDBFF]$/, '')}…`
+
 export const showDesktopNotification = (o: DesktopNotificationOptions) => {
   const {showNotification} = KB2.functions
   if (!showNotification) return
@@ -38,11 +46,11 @@ export const showDesktopNotification = (o: DesktopNotificationOptions) => {
   }
   if (groupId) groupsShown.add(groupId)
   showNotification({
-    body: body ?? '',
+    body: truncateNotificationText(body ?? '', maxBody),
     hasReply: !!onReply,
     id,
     silent: !sound,
-    title,
+    title: truncateNotificationText(title, maxTitle),
     ...(groupId ? {groupId} : {}),
     ...(groupTitle ? {groupTitle} : {}),
   })

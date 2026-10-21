@@ -5,6 +5,7 @@ import {
   conversationNotificationGroup,
   onDesktopNotificationEvent,
   showDesktopNotification,
+  truncateNotificationText,
 } from './desktop-notifications'
 
 const functions = (globalThis._fromPreload as {functions: Record<string, unknown>}).functions
@@ -98,4 +99,17 @@ test('a conversation group fits a Windows toast group and is the same for show a
   expect(group).toBe(`chat:${'a'.repeat(40)}`)
   expect(group.length).toBeLessThanOrEqual(64)
   expect(conversationNotificationGroup(conv)).toBe(group)
+})
+
+test('truncateNotificationText keeps short text and marks cut text', () => {
+  expect(truncateNotificationText('hello', 5)).toBe('hello')
+  expect(truncateNotificationText('hello!', 5)).toBe('hell…')
+  expect(truncateNotificationText('abc😀def', 5)).toBe('abc…')
+})
+
+test('long titles and bodies are shortened before they are sent', () => {
+  showDesktopNotification({body: 'b'.repeat(5000), title: 't'.repeat(500)})
+  const n = shown.at(-1)
+  expect(n?.title).toBe(`${'t'.repeat(199)}…`)
+  expect(n?.body).toBe(`${'b'.repeat(999)}…`)
 })
