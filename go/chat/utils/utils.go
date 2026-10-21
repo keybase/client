@@ -22,7 +22,7 @@ import (
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/kyokomi/emoji"
+	"github.com/kyokomi/emoji/v2"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
