@@ -1,8 +1,9 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
-import {app, nativeTheme} from 'electron'
+import {nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
 import type {KB2} from '@/util/electron'
+import {pageOrigin} from './html-root.desktop'
 const {env, argv, pid} = process
 
 const platform = process.platform
@@ -16,12 +17,9 @@ if (_pathSep !== '/' && _pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
-  // In hot dev the renderer is served over http from the Vite root, so images must
-  // be root-relative (Vite serves /images/... from the shared dir). Cold dev + prod
-  // load from file://, where an absolute filesystem path is correct.
-  assetRoot: __HOT__
-    ? '/'
-    : path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
+  // The page origin serves /images/...: the Vite dev server in hot dev, the app
+  // scheme otherwise.
+  assetRoot: `${pageOrigin}/`,
   configOverload: {}, // filled in later
   dokanPath: path.resolve(
     (env['LOCALAPPDATA'] as string | undefined) ?? '',

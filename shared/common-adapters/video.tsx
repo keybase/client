@@ -49,9 +49,8 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
     if (parsed.protocol === 'file:' && parsed.hostname === '') {
       return true
     }
-    // hot dev serves local files through our own scheme instead of file://; the
-    // scheme only exists there, so don't accept it anywhere else
-    if (__HOT__ && parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
+    // desktop serves local files through its own scheme (util/file-url.tsx)
+    if (!isMobile && parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
       return true
     }
   } catch {}

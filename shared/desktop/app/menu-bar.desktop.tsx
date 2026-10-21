@@ -7,13 +7,13 @@ import {isDarwin, isWindows, isLinux} from '@/constants/platform'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window-ref.desktop'
-import {htmlURL, preloadPath} from './html-root.desktop'
+import {appRoot, htmlURL, preloadPath} from './html-root.desktop'
 import {registerRemoteWindow} from './remote-windows.desktop'
 import {handleFromApp} from './ipc-sender.desktop'
-import path from 'path'
 import type {BadgeType} from '@/stores/notifications'
 
-const fsAssetRoot = path.resolve(__DEV__ || __PROFILE__ ? '.' : Electron.app.getAppPath()).replaceAll('\\', '/') + '/'
+// nativeImage reads these as filesystem paths (inside app.asar when packaged)
+const fsAssetRoot = appRoot.replaceAll('\\', '/') + '/'
 
 const getIcons = (iconType: BadgeType, badges: number) => {
   const size = isWindows ? 16 : 22

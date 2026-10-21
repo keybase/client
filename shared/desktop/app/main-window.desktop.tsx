@@ -7,7 +7,7 @@ import {showDevTools} from '@/local-debug'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
+import {htmlURL, pageOrigin, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
 import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
 import {isSamePage, pageKey} from './bridge-rules.desktop'
@@ -53,16 +53,13 @@ const setupDefaultSession = () => {
   ds.setDevicePermissionHandler(() => false)
   ds.setDisplayMediaRequestHandler((_request, callback) => callback(null))
 
-  // In hot dev the renderer lives on the Vite http origin, so its XHRs to the
-  // KBFS http server (text previews) are cross-origin, and that server sends no
-  // CORS headers. Packaged builds load from file:// and don't need this.
-  if (__HOT__) {
-    ds.webRequest.onHeadersReceived({urls: ['http://127.0.0.1:*/files/*']}, (details, callback) => {
-      callback({
-        responseHeaders: {...details.responseHeaders, 'Access-Control-Allow-Origin': [devServerOrigin]},
-      })
+  // The renderer's XHRs to the KBFS http server (text previews) are
+  // cross-origin, and that server sends no CORS headers, so allow the page origin.
+  ds.webRequest.onHeadersReceived({urls: ['http://127.0.0.1:*/files/*']}, (details, callback) => {
+    callback({
+      responseHeaders: {...details.responseHeaders, 'Access-Control-Allow-Origin': [pageOrigin]},
     })
-  }
+  })
 }
 
 const defaultWindowState = {

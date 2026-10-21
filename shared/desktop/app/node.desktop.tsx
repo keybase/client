@@ -28,6 +28,8 @@ import {
 } from './app-events.desktop'
 import {setupIPCHandlers} from './ipc-handlers.desktop'
 import {localFileScheme} from '@/util/file-url'
+import {appScheme, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {appRoot} from './html-root.desktop'
 import {pathToFileURL} from 'url'
 
 type DeferredLaunch = {
@@ -131,22 +133,7 @@ const startApp = () => {
     .then(() => {
       registerPowerMonitorEvents()
       registerThemeBackgrounds()
-      // See registerSchemesAsPrivileged below.
-      if (__HOT__) {
-        Electron.protocol.handle(localFileScheme, async req => {
-          try {
-            // Windows paths are carried with a leading slash (/C:/...) so the URL
-            // stays absolute; pathToFileURL wants them without it.
-            const path = decodeURIComponent(new URL(req.url).pathname).replace(/^\/([a-zA-Z]:)/, '$1')
-            return await Electron.net.fetch(pathToFileURL(path).toString())
-          } catch (e) {
-            // a malformed percent-escape throws out of decodeURIComponent; answer
-            // the request instead of leaving it to reject unhandled
-            console.log('local file scheme failed', req.url, e)
-            return new Response(undefined, {status: 400})
-          }
-        })
-      }
+      registerAppProtocols()
       if (!process.env['KB_E2E_TEST']) {
         menuBar()
       }
@@ -158,21 +145,35 @@ const startApp = () => {
     })
 }
 
-// In hot dev the renderer's document comes from the Vite dev server, and Chromium
-// refuses to load file:// subresources into an http origin, so local previews
-// (drag-and-drop attachments, video, avatar overrides) fail with "Not allowed to
-// load local resource". A custom scheme isn't subject to that rule, so the
-// renderer addresses local files through this one instead. Registering it has to
-// happen before the app is ready. Packaged builds serve the document from file://
-// and keep using plain file:// URLs.
-if (__HOT__) {
-  Electron.protocol.registerSchemesAsPrivileged([
-    {
-      privileges: {secure: true, standard: true, stream: true, supportFetchAPI: true},
-      scheme: localFileScheme,
-    },
-  ])
+const fileResponse = async (filePath: string | undefined) => {
+  if (!filePath) return new Response(undefined, {status: 404})
+  try {
+    return await Electron.net.fetch(pathToFileURL(filePath).toString())
+  } catch {
+    return new Response(undefined, {status: 404})
+  }
 }
+
+// The app scheme serves the app's own files (see html-root.desktop.tsx). Pages
+// on it can't load file:// subresources, so local files (drag-and-drop
+// attachments, video, avatar overrides) are addressed through the local file
+// scheme instead; util/file-url.tsx builds those URLs.
+const registerAppProtocols = () => {
+  Electron.protocol.handle(appScheme, async req => fileResponse(resolveAppFilePath(appRoot, req.url)))
+  Electron.protocol.handle(localFileScheme, async req => fileResponse(localFilePathFromURL(req.url)))
+}
+
+// Schemes have to be registered before the app is ready.
+Electron.protocol.registerSchemesAsPrivileged([
+  {
+    privileges: {codeCache: true, corsEnabled: true, secure: true, standard: true, supportFetchAPI: true},
+    scheme: appScheme,
+  },
+  {
+    privileges: {secure: true, standard: true, stream: true, supportFetchAPI: true},
+    scheme: localFileScheme,
+  },
+])
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 // Disable OS keychain prompts — auth state lives in the Go service; we don't use safeStorage, cookie persistence, or any other keychain-backed Chromium feature

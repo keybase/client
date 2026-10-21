@@ -1,17 +1,20 @@
 import {app} from 'electron'
 import path from 'path'
+import {appOrigin} from './app-protocol.desktop'
 
-const isWindows = process.platform === 'win32'
-const htmlPrefix = isWindows ? `file:///` : `file://`
-const distRoot = path.resolve(__DEV__ || __PROFILE__ ? './desktop/dist' : path.join(app.getAppPath(), './desktop/dist'))
-const fileRoot = `${htmlPrefix}${(`${distRoot}/`).replaceAll(path.sep, '/')}`
+// Filesystem root of the app's files (app.asar when packaged); the app scheme
+// serves from here.
+export const appRoot = path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath())
+const distRoot = path.join(appRoot, 'desktop', 'dist')
 
 // In hot dev the renderer is served as an unbundled ESM graph by the Vite dev
-// server, so windows must load their document from that http origin (they can't
-// be loaded from file://). Cold dev + prod load the built html from file://.
-// Vite keeps the shells at their source paths in both cases, so the same
-// relative path is used for the http origin and the dist file root.
-export const devServerOrigin = 'http://localhost:4000'
+// server, so windows load their document from that http origin. Cold dev + prod
+// load the built html through the app scheme. Vite keeps the shells at their
+// source paths in both cases, so the same relative path is used for the http
+// origin and the dist root.
+const devServerOrigin = 'http://localhost:4000'
+export const pageOrigin = __HOT__ ? devServerOrigin : appOrigin
+const pageRoot = __HOT__ ? devServerOrigin : `${appOrigin}/desktop/dist`
 const htmlRelPath: Record<string, string> = {
   main: 'desktop/renderer/main.html',
   remote: 'desktop/remote/remote.html',
@@ -19,7 +22,7 @@ const htmlRelPath: Record<string, string> = {
 
 export const htmlURL = (name: string, query?: string) => {
   const rel = htmlRelPath[name] ?? `${name}.html`
-  const base = __HOT__ ? `${devServerOrigin}/${rel}` : `${fileRoot}${rel}`
+  const base = `${pageRoot}/${rel}`
   return query ? `${base}?${query}` : base
 }
 
