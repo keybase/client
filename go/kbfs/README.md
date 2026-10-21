@@ -14,7 +14,8 @@ service](https://github.com/keybase/client/tree/master/go).
 ### Architecture
 
 This client allows you to mount KBFS as a proper filesystem at some
-mountpoint on your local device (by default, `/keybase/`). It
+mountpoint on your local device (by default, `/keybase` on Linux and
+`/Volumes/Keybase (<username>)` on macOS). It
 communicates locally with the Keybase service, and remotely with three
 types of KBFS servers (block servers, metadata servers, and key
 servers).
@@ -67,7 +68,7 @@ The code is organized as follows:
 - [metricsutil](metricsutil/): Helper code for collecting metrics.
 - [redirector](redirector/): The executable that redirects user FUSe
   requests to the correct user KBFS mount. The redirector is usually
-  mounted at `/keybase` on Linux and macOS.
+  mounted at `/keybase` on Linux. It is not used on macOS.
 - [simplefs](simplefs/): A simple RPC-based interface to KBFS.
 - [stderrutils](stderrutils/): A simple library for dealing with
   stderr on different platforms.
@@ -92,7 +93,7 @@ KBFS depends in part on the following awesome technologies to present
 a mountpoint on your device:
 
 - [FUSE](https://github.com/libfuse/) (on Linux)
-- [FUSE for OS X](https://osxfuse.github.io/) (on OS X)
+- [macFUSE](https://macfuse.io) 5 or later (on macOS)
 - [Dokany](https://github.com/dokan-dev/dokany) (on Windows)
 
 See [our vendor directory](vendor/) for a complete list of open source
@@ -102,15 +103,14 @@ Currently, our server implementations are not open source.
 
 ### To run from source against production KBFS servers
 
-#### On Linux or OS X:
+#### On Linux or macOS:
 
 Prerequisites:
 
 - [Go 1.15](https://golang.org/dl/) or higher.
 - A running Keybase client service (see [instructions](https://github.com/keybase/client/tree/master/go)).
-- On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
-  - You may need to pass the `--use-system-fuse` flag to `kbfsfuse` if
-    you install FUSE yourself.
+- On macOS, install [macFUSE](https://macfuse.io) 5 or later yourself, and
+  allow its kernel extension. Keybase does not bundle a FUSE driver.
 - Then, mount KBFS at `/keybase/` as follows:
 
 ```bash
@@ -120,11 +120,8 @@ Prerequisites:
     KEYBASE_RUN_MODE=prod kbfsfuse /keybase
 ```
 
-Note that our pre-built packages for OS X include a branded version of
-FUSE for OS X, to ensure that it doesn't conflict with other local
-FUSE installations. It is still open source -- see
-[here](https://github.com/keybase/client/blob/master/osx/Fuse/build.sh)
-to see how we build it.
+On macOS the system volume is read-only, so `/keybase` cannot be created;
+mount at a directory you own instead, for example `~/kbfs`.
 
 #### On Windows:
 
