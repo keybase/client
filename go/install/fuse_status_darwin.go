@@ -9,111 +9,197 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/mounter"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-kext"
+	"golang.org/x/sys/unix"
 )
 
-const installPath = "/Library/Filesystems/kbfuse.fs"
+const (
+	minMacfuseMajor = 5
 
-// KeybaseFuseStatus returns Fuse status
-func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
-	st := keybase1.FuseStatus{
-		BundleVersion: bundleVersion,
-		InstallStatus: keybase1.InstallStatus_UNKNOWN,
-		InstallAction: keybase1.InstallAction_UNKNOWN,
-	}
+	msgNotInstalled     = "macFUSE is not installed. To use Keybase in Finder, install macFUSE 5 or later from https://macfuse.io"
+	msgOutdated         = "macFUSE %s is installed, but Keybase needs macFUSE 5 or later. Update it from https://macfuse.io"
+	msgUnsupportedMacos = "macFUSE %s does not support macOS %s. Update it from https://macfuse.io"
 
-	var kextInfo *kext.Info
+	// statusUnsupportedMacos names the status of a macFUSE with no kext for
+	// the running macOS, which usually follows a macOS update.
+	statusUnsupportedMacos = "MACOS_UNSUPPORTED"
+)
 
-	if _, err := os.Stat(installPath); err == nil {
-		st.Path = installPath
-		kextID := "com.github.kbfuse.filesystems.kbfuse"
-		var loadErr error
-		kextInfo, loadErr = kext.LoadInfo(kextID)
-		if loadErr != nil {
-			st.InstallStatus = keybase1.InstallStatus_ERROR
-			st.InstallAction = keybase1.InstallAction_REINSTALL
-			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading kext info: %s", loadErr)}
-			return st
-		}
-		if kextInfo == nil {
-			log.Debug("No kext info available (kext not loaded)")
-			// This means the kext isn't loaded, which is ok, kbfs will call
-			// load_kbfuse when it starts up.
-			// We have to get the version from the installed plist.
-			installedVersion, fivErr := fuseInstallVersion(log)
-			if fivErr != nil {
-				st.InstallStatus = keybase1.InstallStatus_ERROR
-				st.InstallAction = keybase1.InstallAction_REINSTALL
-				st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading (plist) info: %s", fivErr)}
-				return st
-			}
-			if installedVersion != "" {
-				kextInfo = &kext.Info{
-					Version: installedVersion,
-					Started: false,
-				}
-			}
-		}
+// macfuseProbe is what KeybaseFuseStatus reads from the system.
+type macfuseProbe struct {
+	BundleExists bool
+	PlistErr     error
+	PlistVersion string
+	// KextID is the bundle ID of the loaded macFUSE kext. macFUSE ships one
+	// kext per macOS version, each with its own ID suffix.
+	KextID       string
+	KextInfo     *kext.Info
+	KextInfoErr  error
+	LegacyKbfuse bool
+	// MacosMajor is the running macOS major version, empty when unknown.
+	MacosMajor string
+	// KextForMacos reports whether the bundle has a kext for MacosMajor.
+	KextForMacos bool
+}
 
-		// Installed
-		st.KextID = kextID
-	}
-
-	// If neither is found, we have no install
-	if st.KextID == "" || kextInfo == nil {
-		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
-		st.InstallAction = keybase1.InstallAction_INSTALL
-		return st
-	}
-
-	// Try to get mount info, it's non-critical if we fail though.
-	mountInfos, err := mountInfo("kbfuse")
+// KeybaseFuseStatus returns the status of the stock macFUSE install. The
+// bundle version is ignored on macOS. MountInfos holds only mounts the current
+// user owns.
+func KeybaseFuseStatus(_ string, log Log) keybase1.FuseStatus {
+	st := deriveFuseStatus(probeMacfuse(log))
+	mounts, err := listMounts()
 	if err != nil {
 		log.Errorf("Error trying to read mount info: %s", err)
+		return st
 	}
-	st.MountInfos = mountInfos
-
-	st.Version = kextInfo.Version
-	st.KextStarted = kextInfo.Started
-
-	installStatus, installAction, status := ResolveInstallStatus(st.Version, st.BundleVersion, "", log)
-	st.InstallStatus = installStatus
-	st.InstallAction = installAction
-	st.Status = status
-
+	st.MountInfos = mountInfosOwnedBy(mounts, mounter.KBFSFstypes, uint32(os.Getuid()))
 	return st
 }
 
-func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
-	out, err := exec.Command("/sbin/mount", "-t", fstype).Output()
-	if err != nil {
-		return nil, err
+// FilterKBFSMountInfos keeps only the mount at the user's KBFS mount
+// directory, since other apps mount with fstype macfuse too.
+func FilterKBFSMountInfos(st *keybase1.FuseStatus, mountDir string) {
+	mountDir = resolveMountDir(mountDir)
+	var kept []keybase1.FuseMountInfo
+	for _, info := range st.MountInfos {
+		if info.Path == mountDir {
+			kept = append(kept, info)
+		}
 	}
-	lines := strings.Split(string(out), "\n")
-	mountInfos := []keybase1.FuseMountInfo{}
-	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
+	st.MountInfos = kept
+}
+
+func probeMacfuse(log Log) macfuseProbe {
+	p := macfuseProbe{}
+	if _, err := os.Stat(legacyKbfusePath); err == nil {
+		p.LegacyKbfuse = true
+	}
+	if _, err := os.Stat(macfusePath); err != nil {
+		return p
+	}
+	p.BundleExists = true
+	plistData, err := loadPlist(filepath.Join(macfusePath, "Contents/Info.plist"), log)
+	if err != nil {
+		p.PlistErr = err
+		return p
+	}
+	p.PlistVersion = findStringInPlist("CFBundleShortVersionString", plistData, log)
+	if p.PlistVersion == "" {
+		p.PlistVersion = findStringInPlist("CFBundleVersion", plistData, log)
+	}
+	p.KextID, p.KextInfo, p.KextInfoErr = loadedMacfuseKext(log)
+	p.MacosMajor = macosMajor(log)
+	if p.MacosMajor != "" {
+		_, err := os.Stat(filepath.Join(macfusePath, "Contents/Extensions", p.MacosMajor, "macfuse.kext"))
+		p.KextForMacos = err == nil
+	}
+	return p
+}
+
+// macosMajor returns the running macOS major version, e.g. "27", or "" if it
+// cannot be read.
+func macosMajor(log Log) string {
+	version, err := unix.Sysctl("kern.osproductversion")
+	if err != nil {
+		log.Debug("Unable to read the macOS version: %s", err)
+		return ""
+	}
+	major, _, _ := strings.Cut(version, ".")
+	return major
+}
+
+// loadedMacfuseKext returns the ID and info of whichever of the bundle's kexts
+// is loaded, or nil info if none is.
+func loadedMacfuseKext(log Log) (string, *kext.Info, error) {
+	plists, err := filepath.Glob(filepath.Join(macfusePath, "Contents/Extensions/*/macfuse.kext/Contents/Info.plist"))
+	if err != nil {
+		return "", nil, err
+	}
+	seen := map[string]bool{}
+	for _, plistPath := range plists {
+		plistData, err := loadPlist(plistPath, log)
+		if err != nil {
 			continue
 		}
-		info := strings.SplitN(line, " ", 4)
-		path := ""
-		if len(info) >= 2 {
-			path = info[2]
+		kextID := findStringInPlist("CFBundleIdentifier", plistData, log)
+		if kextID == "" || seen[kextID] {
+			continue
 		}
-		mountInfos = append(mountInfos, keybase1.FuseMountInfo{
-			Fstype: fstype,
-			Path:   path,
-			Output: line,
-		})
+		seen[kextID] = true
+		info, err := kext.LoadInfo(kextID)
+		if err != nil {
+			return kextID, nil, err
+		}
+		if info != nil {
+			return kextID, info, nil
+		}
 	}
-	return mountInfos, nil
+	return "", nil, nil
+}
+
+// deriveFuseStatus maps a probe to a status. The first matching case wins.
+func deriveFuseStatus(p macfuseProbe) keybase1.FuseStatus {
+	st := keybase1.FuseStatus{}
+	if p.BundleExists {
+		st.Path = macfusePath
+	}
+	var version semver.Version
+	var versionErr error
+	if p.BundleExists && p.PlistErr == nil {
+		version, versionErr = semver.ParseTolerant(p.PlistVersion)
+	}
+	switch {
+	case !p.BundleExists:
+		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
+		st.InstallAction = keybase1.InstallAction_INSTALL
+		st.Status = keybase1.Status{Desc: msgNotInstalled}
+	case p.PlistErr != nil || versionErr != nil:
+		err := p.PlistErr
+		if err == nil {
+			err = fmt.Errorf("invalid macFUSE version %q: %w", p.PlistVersion, versionErr)
+		}
+		st.InstallStatus = keybase1.InstallStatus_ERROR
+		st.InstallAction = keybase1.InstallAction_REINSTALL
+		st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error reading the macFUSE version: %s", err)}
+	case version.Major < minMacfuseMajor:
+		st.InstallStatus = keybase1.InstallStatus_INSTALLED
+		st.InstallAction = keybase1.InstallAction_UPGRADE
+		st.Version = p.PlistVersion
+		st.Status = keybase1.Status{Desc: fmt.Sprintf(msgOutdated, p.PlistVersion)}
+	case p.KextInfo == nil && p.MacosMajor != "" && !p.KextForMacos:
+		st.InstallStatus = keybase1.InstallStatus_INSTALLED
+		st.InstallAction = keybase1.InstallAction_UPGRADE
+		st.Version = p.PlistVersion
+		st.Status = keybase1.Status{
+			Name:   statusUnsupportedMacos,
+			Desc:   fmt.Sprintf(msgUnsupportedMacos, p.PlistVersion, p.MacosMajor),
+			Fields: []keybase1.StringKVPair{{Key: "macosVersion", Value: p.MacosMajor}},
+		}
+	case p.KextInfoErr != nil:
+		st.InstallStatus = keybase1.InstallStatus_ERROR
+		st.InstallAction = keybase1.InstallAction_NONE
+		st.Version = p.PlistVersion
+		st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading kext info: %s", p.KextInfoErr)}
+	default:
+		st.InstallStatus = keybase1.InstallStatus_INSTALLED
+		st.InstallAction = keybase1.InstallAction_NONE
+		st.Version = p.PlistVersion
+		st.KextID = p.KextID
+		st.KextStarted = p.KextInfo != nil && p.KextInfo.Started
+		st.Status = keybase1.StatusOK("")
+	}
+	if p.LegacyKbfuse {
+		st.Status.Fields = append(st.Status.Fields, keybase1.StringKVPair{Key: "legacyKbfuse", Value: legacyKbfusePath})
+	}
+	return st
 }
 
 func findStringInPlist(key string, plistData []byte, log Log) string {
@@ -144,13 +230,4 @@ func loadPlist(plistPath string, log Log) ([]byte, error) {
 		return nil, err
 	}
 	return io.ReadAll(plistFile)
-}
-
-func fuseInstallVersion(log Log) (string, error) {
-	plistPath := filepath.Join(installPath, "Contents/Info.plist")
-	plistData, err := loadPlist(plistPath, log)
-	if err != nil {
-		return "", err
-	}
-	return findStringInPlist("CFBundleVersion", plistData, log), nil
 }
