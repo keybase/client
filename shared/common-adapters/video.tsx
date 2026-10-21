@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {localFileHost, localFileScheme, normalizeFilePathURL} from '@/util/file-url'
+import {localFileScheme, normalizeFilePathURL} from '@/util/file-url'
+import KB2 from '@/util/electron'
 import {Box2} from './box'
 import Text from './text'
 import {StatusBar} from 'expo-status-bar'
@@ -49,9 +50,8 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
     if (parsed.protocol === 'file:' && parsed.hostname === '') {
       return true
     }
-    // hot dev serves local files through our own scheme instead of file://; the
-    // scheme only exists there, so don't accept it anywhere else
-    if (__HOT__ && parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
+    // desktop serves local files through its own scheme (util/file-url.tsx)
+    if (!isMobile && parsed.protocol === `${localFileScheme}:` && !!KB2.constants.localFileHost && parsed.hostname === KB2.constants.localFileHost) {
       return true
     }
   } catch {}

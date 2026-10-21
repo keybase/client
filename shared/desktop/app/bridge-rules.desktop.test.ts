@@ -11,6 +11,8 @@ import {
   isSamePage,
   isSubframeURLAllowed,
   isUploadTempPath,
+  localServerResponseHeaders,
+  localServerSandboxPolicy,
   pageKey,
   parseDokanUninstallCommand,
   remoteForwards,
@@ -256,12 +258,22 @@ describe('external links', () => {
 describe('isSubframeURLAllowed', () => {
   test('allows the local preview servers and the PDF viewer', () => {
     expect(isSubframeURLAllowed('http://127.0.0.1:52345/files/x.pdf?token=abc')).toBe(true)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/files/private/testuser/a%20b.pdf?token=abc')).toBe(true)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52346/at?key=abc&prev=false&noanim=false&isemoji=false')).toBe(true)
     expect(isSubframeURLAllowed('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html')).toBe(true)
     expect(isSubframeURLAllowed('about:blank')).toBe(true)
   })
 
   test('blocks everything else', () => {
     expect(isSubframeURLAllowed('https://127.0.0.1:52345/x')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/x')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/av?typ=user&name=testuser')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/map?lat=1&lon=2')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/at/x')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/attach?key=abc')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/files')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/filesx/a.pdf')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/')).toBe(false)
     expect(isSubframeURLAllowed('http://localhost:52345/x')).toBe(false)
     expect(isSubframeURLAllowed('http://127.0.0.1.example.com/x')).toBe(false)
     expect(isSubframeURLAllowed('https://example.com')).toBe(false)
@@ -269,6 +281,76 @@ describe('isSubframeURLAllowed', () => {
     expect(isSubframeURLAllowed('chrome-extension://abcdefghijklmnopabcdefghijklmnop/index.html')).toBe(false)
     expect(isSubframeURLAllowed('about:srcdoc')).toBe(false)
     expect(isSubframeURLAllowed('')).toBe(false)
+  })
+})
+
+describe('localServerResponseHeaders', () => {
+  const origin = 'kbapp://app'
+  const sandbox = localServerSandboxPolicy
+  const kbfsText = 'http://127.0.0.1:52345/files/private/testuser/a.txt?token=abc&viewTypeInvariance=1'
+  const chatPDF = 'http://127.0.0.1:52346/at?key=abc&prev=false'
+
+  test('lets the page origin read KBFS files, and nothing else', () => {
+    const kbfs = localServerResponseHeaders(kbfsText, {'Content-Type': ['text/plain; charset=utf-8']}, origin)
+    expect(kbfs['Access-Control-Allow-Origin']).toEqual([origin])
+    const chat = localServerResponseHeaders(chatPDF, {'Content-Type': ['image/png']}, origin)
+    expect(Object.keys(chat).some(k => k.toLowerCase() === 'access-control-allow-origin')).toBe(false)
+    expect(localServerResponseHeaders('http://127.0.0.1:52345/filesx/a', {}, origin)).not.toHaveProperty(
+      'Access-Control-Allow-Origin'
+    )
+  })
+
+  test('sandboxes everything but PDFs', () => {
+    const csp = (contentType?: Array<string>) =>
+      localServerResponseHeaders(chatPDF, contentType ? {'Content-Type': contentType} : {}, origin)[
+        'Content-Security-Policy'
+      ]
+    expect(csp(['application/pdf'])).toBeUndefined()
+    expect(csp(['Application/PDF; charset=binary'])).toBeUndefined()
+    expect(csp(['image/png'])).toEqual([sandbox])
+    expect(csp(['video/mp4'])).toEqual([sandbox])
+    expect(csp(['text/html'])).toEqual([sandbox])
+    expect(csp(['application/pdf', 'text/html'])).toEqual([sandbox])
+    expect(csp([])).toEqual([sandbox])
+    expect(csp()).toEqual([sandbox])
+  })
+
+  test('replaces headers whatever their case, without duplicating them', () => {
+    const headers = localServerResponseHeaders(
+      kbfsText,
+      {
+        'access-control-allow-origin': ['*'],
+        'content-security-policy': ["default-src 'self'", sandbox],
+        'content-type': ['TEXT/plain'],
+        'x-content-type-options': ['NOSNIFF', 'other'],
+        'X-Other': ['1'],
+      },
+      origin
+    )
+    expect(headers).toEqual({
+      'Access-Control-Allow-Origin': [origin],
+      'Content-Security-Policy': ["default-src 'self'", sandbox],
+      'X-Other': ['1'],
+      'content-type': ['TEXT/plain'],
+      'x-content-type-options': ['NOSNIFF', 'other'],
+    })
+  })
+
+  test('reads a PDF content type in any case', () => {
+    expect(localServerResponseHeaders(chatPDF, {'content-type': ['application/pdf']}, origin)).toEqual({
+      'content-type': ['application/pdf'],
+    })
+  })
+
+  test('leaves other hosts alone and does not change the input', () => {
+    const input = {'Content-Type': ['text/html']}
+    expect(localServerResponseHeaders('http://localhost:4000/x', input, origin)).toEqual(input)
+    expect(localServerResponseHeaders('https://127.0.0.1:1/x', input, origin)).toEqual(input)
+    localServerResponseHeaders(chatPDF, input, origin)
+    expect(input).toEqual({'Content-Type': ['text/html']})
+    expect(localServerResponseHeaders(chatPDF, undefined, origin)).toEqual({
+      'Content-Security-Policy': [sandbox],
+    })
   })
 })
 

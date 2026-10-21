@@ -54,6 +54,7 @@ global._fromPreload = {
       version: 'test',
     },
     isRenderer: true,
+    localFileHost: 'local',
     pathSep: '/',
     platform: 'darwin',
     startDarkMode: false,

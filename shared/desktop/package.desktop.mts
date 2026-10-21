@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import os from 'os'
+import {FuseState, FuseV1Options, FuseVersion, flipFuses, getCurrentFuseWire} from '@electron/fuses'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import {build} from 'vite'
@@ -53,7 +54,6 @@ const {values} = parseArgs({
 const stringArg = (v: string | boolean | undefined) => (typeof v === 'string' ? v : '')
 
 const appName = 'Keybase'
-const shouldUseAsar = false
 const arch = stringArg(values.arch) || os.arch()
 const platform = stringArg(values.platform) || os.platform()
 const appVersion = stringArg(values.appVersion) || '0.0.0'
@@ -70,7 +70,7 @@ const packagerOpts: Options = {
   appBundleId: 'keybase.Electron',
   appCopyright: appCopyright,
   appVersion: appVersion,
-  asar: shouldUseAsar,
+  asar: true,
   buildVersion: String(appVersion) + String(comment),
   darwinDarkModeSupport: true,
   dir: desktopPath('./build'),
@@ -177,7 +177,7 @@ async function startPack() {
       aps.map(async ([plat, arch]) => {
         try {
           const appPaths = await pack(plat!, arch!)
-          postPack(appPaths, plat!, arch!)
+          await postPack(appPaths, plat!, arch!)
         } catch (err) {
           console.error(err)
           process.exit(1)
@@ -220,31 +220,89 @@ async function pack(plat: string, arch: string) {
   return ret
 }
 
-function postPack(appPaths: Array<string>, plat: string, arch: string) {
+// Fuses are baked into the Electron binary. The packaging scripts sign after
+// this script exits, so they always sign the fused binary.
+const fuseConfig = {
+  [FuseV1Options.RunAsNode]: false,
+  [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+  [FuseV1Options.EnableNodeCliInspectArguments]: false,
+  [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+  [FuseV1Options.OnlyLoadAppFromAsar]: true,
+  [FuseV1Options.GrantFileProtocolExtraPrivileges]: false,
+} as const
+
+// What @electron/fuses expects: the .app bundle on macOS, the executable elsewhere
+const electronBinaryPath = (appPath: string, plat: string) =>
+  path.join(appPath, plat === 'darwin' ? `${appName}.app` : plat === 'win32' ? `${appName}.exe` : appName)
+
+async function applyFuses(appPath: string, plat: string, arch: string) {
+  const binary = electronBinaryPath(appPath, plat)
+  await flipFuses(binary, {
+    version: FuseVersion.V1,
+    // flipping invalidates the ad-hoc signature Apple Silicon requires to launch
+    resetAdHocDarwinSignature: plat === 'darwin' && arch === 'arm64',
+    ...fuseConfig,
+  })
+  const wire = await getCurrentFuseWire(binary)
+  const wrong = Object.entries(fuseConfig).filter(
+    ([fuse, on]) => wire[Number(fuse) as FuseV1Options] !== (on ? FuseState.ENABLE : FuseState.DISABLE)
+  )
+  if (wrong.length) {
+    throw new Error(`Fuses not applied: ${wrong.map(([fuse]) => FuseV1Options[Number(fuse)]).join(', ')}`)
+  }
+}
+
+// Lists the files inside an asar archive. Layout: an 8-byte size pickle, then a
+// pickle holding the JSON header (4-byte payload size, 4-byte string length, string).
+type AsarEntry = {files?: Record<string, AsarEntry>; size?: number}
+const listAsar = (asarPath: string) => {
+  const fd = fs.openSync(asarPath, 'r')
+  try {
+    const sizeBuf = Buffer.alloc(8)
+    fs.readSync(fd, sizeBuf, 0, 8, 0)
+    const headerBuf = Buffer.alloc(sizeBuf.readUInt32LE(4))
+    fs.readSync(fd, headerBuf, 0, headerBuf.length, 8)
+    const header = JSON.parse(headerBuf.toString('utf8', 8, 8 + headerBuf.readUInt32LE(4))) as AsarEntry
+    const files = new Map<string, number>()
+    const walk = (entry: AsarEntry, prefix: string) => {
+      Object.entries(entry.files ?? {}).forEach(([name, child]) => {
+        const p = prefix ? `${prefix}/${name}` : name
+        if (child.files) {
+          walk(child, p)
+        } else {
+          files.set(p, child.size ?? 0)
+        }
+      })
+    }
+    walk(header, '')
+    return files
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
+async function postPack(appPaths: Array<string>, plat: string, arch: string) {
   if (appPaths.length === 0) {
     console.log(`${plat}-${arch} finished with no app bundles`)
     return
   }
-  const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
-  const dir = path.join(appPaths[0]!, subdir, 'app/desktop/dist')
+  const appPath = appPaths[0]!
+  await applyFuses(appPath, plat, arch)
+
+  const subdir = plat === 'darwin' ? `${appName}.app/Contents/Resources` : 'resources'
+  const asarPath = path.join(appPath, subdir, 'app.asar')
+  const files = listAsar(asarPath)
   // Vite emits node/preload as *.bundle.js at dist root, and the renderer shells
   // at their source paths (their hashed js/css live under assets/).
-  const files = [
-    'node.bundle.js',
-    'preload.bundle.js',
-    'desktop/renderer/main.html',
-    'desktop/remote/remote.html',
+  const expected = [
+    'desktop/dist/node.bundle.js',
+    'desktop/dist/preload.bundle.js',
+    'desktop/dist/desktop/renderer/main.html',
+    'desktop/dist/desktop/remote/remote.html',
   ]
-  files.forEach(file => {
-    try {
-      const stats = fs.statSync(path.join(dir, file))
-      if (!stats.isFile() && stats.size > 0) {
-        console.error(`Detected a problem with packaging ${file}: ${stats.isFile()} ${stats.size}`)
-        process.exit(1)
-      }
-    } catch (err) {
-      console.error(`${path.join(dir, file)} doesn't exist`)
-      console.error(err)
+  expected.forEach(file => {
+    if (!files.get(file)) {
+      console.error(`${file} is missing or empty in ${asarPath}`)
       process.exit(1)
     }
   })

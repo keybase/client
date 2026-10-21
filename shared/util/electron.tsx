@@ -69,6 +69,8 @@ export type KB2 = {
       version: string
     }
     isRenderer: boolean
+    // host of the local file scheme's URLs for this launch; see util/file-url.tsx
+    localFileHost: string
     pathSep: '/' | '\\'
     platform: 'win32' | 'darwin' | 'linux'
     startDarkMode: boolean

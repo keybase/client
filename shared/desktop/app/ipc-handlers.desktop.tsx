@@ -262,9 +262,11 @@ export const setupIPCHandlers = (deps: {
     }
   )
 
-  // read at window load so it reflects the saved preference (applied as themeSource) or the OS
-  onSyncFromApp('KBsetupPreloadKB2', () => ({
+  // read at window load so it reflects the saved preference (applied as themeSource) or the OS.
+  // Only the main window shows local files, so remote windows don't get the local file host.
+  onSyncFromApp('KBsetupPreloadKB2', event => ({
     ...KB2.constants,
+    localFileHost: getMainWindow()?.webContents === event.sender ? KB2.constants.localFileHost : '',
     startDarkMode: Electron.nativeTheme.shouldUseDarkColors,
   }))
 

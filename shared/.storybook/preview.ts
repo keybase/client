@@ -34,6 +34,7 @@ const kb2Stub: KB2 = {
     },
     helloDetails: {argv: [], clientType: 2 as const, desc: 'Main Renderer', pid: 0, version: ''},
     isRenderer: true,
+    localFileHost: 'local',
     pathSep: '/' as const,
     platform: 'darwin' as const,
     startDarkMode: false,

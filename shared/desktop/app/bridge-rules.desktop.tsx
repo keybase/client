@@ -19,7 +19,7 @@ type Channel =
   | 'engineSend'
 export type BridgeRequest = {channel: string} | {action: string} | {forward: string; payload?: unknown}
 
-// file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
+// The main and remote windows share an origin, so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
 export const pageKey = (url: unknown) => {
   if (typeof url !== 'string') return undefined
@@ -168,15 +168,67 @@ export const isBrowserURL = (url: unknown) => {
   return protocol === 'http:' || protocol === 'https:'
 }
 
-// Subframes may only show the service's local http servers (file and attachment previews) and the
-// built-in PDF viewer those previews open in
+// The service's local http servers on 127.0.0.1: chat attachments are served at /at
+// (go/chat/attachment_httpsrv.go) and KBFS files under /files/ (go/kbfs/libhttpserver)
+const localServerURL = (url: unknown) => {
+  const u = parseURL(url)
+  return u?.protocol === 'http:' && u.hostname === '127.0.0.1' ? u : undefined
+}
+const isKbfsPath = (pathname: string) => pathname.startsWith('/files/')
+const isPreviewPath = (pathname: string) => pathname === '/at' || isKbfsPath(pathname)
+
+// Subframes may only show PDF previews of chat attachments and KBFS files, and the built-in PDF
+// viewer those previews open in
 const pdfViewerID = 'mhjfbmdgcfjbbpaeojofohoefgiehjai'
 export const isSubframeURLAllowed = (url: unknown) => {
   const u = parseURL(url)
   if (!u) return false
   if (u.href === 'about:blank') return true
-  if (u.protocol === 'http:' && u.hostname === '127.0.0.1') return true
+  const local = localServerURL(url)
+  if (local) return isPreviewPath(local.pathname)
   return u.protocol === 'chrome-extension:' && u.host === pdfViewerID
+}
+
+export type ResponseHeaders = Record<string, Array<string>>
+
+// Header names are case-insensitive: every spelling of the name is replaced by the given one
+const headerValues = (headers: ResponseHeaders, name: string) =>
+  Object.keys(headers)
+    .filter(k => k.toLowerCase() === name.toLowerCase())
+    .flatMap(k => headers[k] ?? [])
+const withHeader = (headers: ResponseHeaders, name: string, values: Array<string>): ResponseHeaders => ({
+  ...Object.fromEntries(Object.entries(headers).filter(([k]) => k.toLowerCase() !== name.toLowerCase())),
+  [name]: values,
+})
+
+const mimeEssence = (contentType: string) => (contentType.split(';')[0] ?? '').trim().toLowerCase()
+export const localServerSandboxPolicy = "sandbox; default-src 'none'"
+
+// What the local http servers' documents and XHRs get on their way to the renderer. Nothing they
+// send is meant to run as a page: everything but a PDF (which the built-in viewer has to load as a
+// document) is sandboxed with no sources should it ever be opened as one. KBFS text previews are
+// XHRs from the page's origin, and that server sends no CORS headers.
+export const localServerResponseHeaders = (
+  url: string,
+  responseHeaders: ResponseHeaders | undefined,
+  pageOrigin: string
+): ResponseHeaders => {
+  let headers: ResponseHeaders = {...responseHeaders}
+  const local = localServerURL(url)
+  if (!local) return headers
+  if (isKbfsPath(local.pathname)) {
+    headers = withHeader(headers, 'Access-Control-Allow-Origin', [pageOrigin])
+  }
+  const contentTypes = headerValues(headers, 'Content-Type')
+  const isPDF = contentTypes.length > 0 && contentTypes.every(t => mimeEssence(t) === 'application/pdf')
+  if (!isPDF) {
+    const policies = headerValues(headers, 'Content-Security-Policy')
+    headers = withHeader(headers, 'Content-Security-Policy', [
+      ...policies.filter(p => p !== localServerSandboxPolicy),
+      localServerSandboxPolicy,
+    ])
+  }
+  return headers
 }
 
 // The Dokan bundle's registry UninstallString: a quoted (or space-free) path to the cached

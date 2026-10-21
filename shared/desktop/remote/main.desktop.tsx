@@ -1,6 +1,9 @@
 // Entry point for all remote render windows. The window's URL says which
 // component to load: remote.html?component=<name>&param=<param>
 import '../renderer/globals.desktop'
+import {listenForCspViolations} from '../renderer/csp-violations.desktop'
+
+listenForCspViolations()
 
 const component = new URLSearchParams(window.location.search).get('component')
 const onErr = (e: unknown) => {

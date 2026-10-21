@@ -175,63 +175,94 @@ export const emptyFileModulesPlugin = (isDev: boolean): Plugin => {
   }
 }
 
-const joinCsp = (sources: Array<string | false | undefined>) => sources.filter(Boolean).join(' ')
+const joinCsp = (sources: Array<string | false | undefined>, separator = ' ') =>
+  sources.filter(Boolean).join(separator)
 
-// Local files reach the dev renderer through this scheme; keep in sync with
+// Local files reach the renderer through this scheme; keep in sync with
 // util/file-url.tsx (a .tsx module the config can't import). CSP source
-// expressions want the trailing colon, so callers below add it.
-const localFileScheme = 'kbfile'
-const localFileCspSource = `${localFileScheme}:`
+// expressions want the trailing colon.
+const localFileCspSource = 'kbfile:'
 
-const makeCsp = (isDev: boolean) =>
-  [
-    "default-src 'none'",
-    "base-uri 'none'",
-    "form-action 'none'",
-    'object-src http://127.0.0.1:*',
-    'frame-src http://127.0.0.1:*',
-    `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
-    `media-src ${joinCsp(['http://127.0.0.1:*', isDev && localFileCspSource])}`,
-    `img-src ${joinCsp([
-      "'self'",
-      'data:',
-      'http://127.0.0.1:*',
-      'https://keybase.io/',
-      'https://pbs.twimg.com/',
-      'https://avatars.githubusercontent.com/',
-      'https://s3.amazonaws.com/keybase_processed_uploads/',
-      isDev && devOrigin,
-      isDev && localFileCspSource,
-    ])}`,
-    // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
-    // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.
-    `style-src ${joinCsp(["'self'", "'unsafe-inline'", isDev && devOrigin])}`,
-    // In dev the renderer is the Vite ESM graph served from devOrigin, and
-    // @vitejs/plugin-react injects an inline refresh preamble, so we need
-    // 'unsafe-inline'/'unsafe-eval' + the dev origin. Prod stays strict.
-    `script-src ${joinCsp(
-      isDev ? ["'self'", devOrigin, remoteDebugURL, "'unsafe-inline'", "'unsafe-eval'"] : ["'self'"]
-    )}`,
-    `connect-src ${joinCsp([
-      "'self'",
-      'http://127.0.0.1:*',
-      isDev && devOrigin,
-      isDev && `ws://localhost:${devServerPort}`,
-      isDev && 'ws://localhost:8097',
-    ])}`,
-  ].join(';\n ')
+// The service's local http servers listen on 127.0.0.1 on random ports: avatars (/av), chat
+// attachments, emoji, unfurls and giphy (/at), map images (/map), all three on one port, and KBFS
+// (/files/...) on another. A path without a trailing slash matches only that path, one with a slash
+// is a prefix, and the query string is never matched. A redirect target is matched on scheme, host
+// and port only, so any path on 127.0.0.1 passes after a redirect.
+const localServer = 'http://127.0.0.1:*'
+const avatarSrc = `${localServer}/av`
+const chatSrc = `${localServer}/at`
+const mapSrc = `${localServer}/map`
+const kbfsSrc = `${localServer}/files/`
+
+// The main window embeds previews and plays local media. Remote windows (menubar, tracker, pinentry,
+// unlock folders) only show the app's own page and images: avatars and the tracker's proof icons.
+// Trusted Types is enforced in the builds loaded through the app scheme (cold dev and prod), not on
+// the hot dev server.
+const makeCsp = (isDev: boolean, isHot: boolean, isMain: boolean) =>
+  joinCsp(
+    [
+      "default-src 'none'",
+      "base-uri 'none'",
+      "form-action 'none'",
+      // PDF previews: an <embed> of the PDF, which the built-in viewer then loads in a frame
+      isMain && `object-src ${joinCsp([chatSrc, kbfsSrc])}`,
+      isMain && `frame-src ${joinCsp([chatSrc, kbfsSrc])}`,
+      `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
+      isMain && `media-src ${joinCsp([chatSrc, kbfsSrc, localFileCspSource])}`,
+      `img-src ${joinCsp([
+        "'self'",
+        avatarSrc,
+        'https://keybase.io/',
+        isDev && devOrigin,
+        ...(isMain
+          ? [
+              chatSrc,
+              mapSrc,
+              kbfsSrc,
+              localFileCspSource,
+              'data:',
+              'https://pbs.twimg.com/',
+              'https://avatars.githubusercontent.com/',
+              'https://s3.amazonaws.com/keybase_processed_uploads/',
+            ]
+          : []),
+      ])}`,
+      // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
+      // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.
+      `style-src ${joinCsp(["'self'", "'unsafe-inline'", isDev && devOrigin])}`,
+      // In dev the renderer is the Vite ESM graph served from devOrigin, and
+      // @vitejs/plugin-react injects an inline refresh preamble, so we need
+      // 'unsafe-inline'/'unsafe-eval' + the dev origin. Prod stays strict.
+      `script-src ${joinCsp(
+        isDev ? ["'self'", devOrigin, remoteDebugURL, "'unsafe-inline'", "'unsafe-eval'"] : ["'self'"]
+      )}`,
+      // KBFS text previews are read with XHR
+      `connect-src ${joinCsp([
+        "'self'",
+        isMain && kbfsSrc,
+        isDev && devOrigin,
+        isDev && `ws://localhost:${devServerPort}`,
+        isDev && 'ws://localhost:8097',
+      ])}`,
+      !isHot && "require-trusted-types-for 'script'",
+      // google-libphonenumber's bundled Closure library creates this policy when it loads; it is
+      // never exported, and no other policy may be created
+      !isHot && 'trusted-types goog#html',
+    ],
+    ';\n '
+  )
 
 // Inject CSP <meta> into every html shell, plus the react-devtools <script> into
 // the main window in dev. The shells keep their source paths in the output
 // (desktop/renderer/main.html, desktop/remote/remote.html) so Vite's relative
 // asset URLs stay correct; html-root.desktop.tsx loads those same paths.
-const htmlPlugin = (isDev: boolean): Plugin => ({
+const htmlPlugin = (isDev: boolean, isHot: boolean): Plugin => ({
   name: 'kb-html',
   transformIndexHtml: {
     order: 'pre',
     handler(html, ctx) {
-      const isMain = ctx.path.includes('/renderer/') || ctx.filename.includes('renderer')
-      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
+      const isMain = path.relative(rootDir, ctx.filename) === path.join('desktop', 'renderer', 'main.html')
+      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev, isHot, isMain)}">`
       const devtools = isDev && isMain ? `\n    <script src="${remoteDebugURL}"></script>` : ''
       return html.replace('<!--kb-csp-->', csp + devtools)
     },
@@ -270,7 +301,7 @@ export default defineConfig(({mode}) => {
   return {
     root: rootDir,
     // Only the hot dev server loads the renderer over an http origin (base '/').
-    // Cold dev builds + prod are loaded from file:// (relative base).
+    // Cold dev builds + prod are loaded through the app scheme (relative base).
     base: isHot ? '/' : './',
     define: makeDefines(isDev, isHot, isProfile, fileSuffix),
     resolve: {...sharedResolve, alias: makeAlias(isDev)},
@@ -279,7 +310,7 @@ export default defineConfig(({mode}) => {
       // the visual gate's opt-in call-site coverage (tests/e2e/visual/coverage)
       ...(isDev && process.env['KB_VISUAL_COVERAGE'] === '1' ? [visualCoveragePlugin()] : []),
       ...makeReactPlugins(),
-      htmlPlugin(isDev),
+      htmlPlugin(isDev, isHot),
     ],
     server: {
       port: devServerPort,

@@ -10,6 +10,9 @@ const benignPageErrors: ReadonlyArray<{pattern: RegExp; why: string}> = []
 
 const isBenign = (message: string) => benignPageErrors.some(b => b.pattern.test(message))
 
+// Chromium's own console error for each Content Security Policy or Trusted Types violation
+const cspViolation = /violates the following Content Security Policy directive|requires 'Trusted(?:HTML|Script|ScriptURL)' assignment/
+
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   _electronPage: [
     // Playwright requires object destructuring syntax here — it uses static analysis to
@@ -39,7 +42,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   },
 
   // Listens from before the test body runs to after it ends: renderer console errors are attached
-  // to the results, and any uncaught page error not listed as benign fails the test.
+  // to the results, and a Content Security Policy violation or any uncaught page error not listed as
+  // benign fails the test.
   _rendererErrors: [
     async ({page}, setup, testInfo) => {
       const consoleErrors: Array<string> = []
@@ -65,9 +69,12 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       if (pageErrors.length) {
         await testInfo.attach('renderer-page-errors', {body: pageErrors.join('\n\n'), contentType: 'text/plain'})
       }
-      const failing = pageErrors.filter(e => !isBenign(e.replace(/^\w+: /, '')))
+      const failing = [
+        ...consoleErrors.filter(e => cspViolation.test(e)),
+        ...pageErrors.filter(e => !isBenign(e.replace(/^\w+: /, ''))),
+      ]
       if (failing.length) {
-        throw new Error(`uncaught renderer error(s) during the test:\n${failing.join('\n\n')}`)
+        throw new Error(`CSP violation(s) or uncaught renderer error(s) during the test:\n${failing.join('\n\n')}`)
       }
     },
     {auto: true},
