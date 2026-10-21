@@ -7,6 +7,7 @@ import type * as EngineGen from '@/constants/rpc'
 import {navigateToThread as routerNavigateToThread} from '@/constants/router'
 import logger from '@/logger'
 import {NotifyPopup} from '@/util/misc'
+import {emojiShortcodesToText} from '@/util/emoji-text'
 import {conversationNotificationGroup} from '@/util/desktop-notifications'
 import {sendNotificationReply} from '@/chat/conversation/send-actions'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -103,7 +104,7 @@ export const maybeShowIncomingMessageDesktopNotification = (incomingMessage: T.R
       }
   logger.info('invoking NotifyPopup for chat notification')
   const sound = useShellState.getState().notifySound
-  const cleanBody = incomingMessage.desktopNotificationSnippet.replaceAll(/!>(.*?)<!/g, '•••')
+  const cleanBody = emojiShortcodesToText(incomingMessage.desktopNotificationSnippet.replaceAll(/!>(.*?)<!/g, '•••'))
   NotifyPopup(
     title,
     {body: cleanBody, groupId: conversationNotificationGroup(conversationIDKey), groupTitle: title, onReply, sound},
