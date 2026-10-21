@@ -28,8 +28,15 @@ import {
 } from './app-events.desktop'
 import {setupIPCHandlers} from './ipc-handlers.desktop'
 import {localFileScheme} from '@/util/file-url'
-import {appScheme, localFilePathFromURL, parseByteRange, resolveAppFilePath} from './app-protocol.desktop'
+import {
+  appScheme,
+  localFilePathFromURL,
+  mimeTypeForPath,
+  requestedRange,
+  resolveAppFilePath,
+} from './app-protocol.desktop'
 import fs from 'fs'
+import {Readable} from 'stream'
 import {localFileHost} from './local-file-host.desktop'
 import {appRoot} from './html-root.desktop'
 import {pathToFileURL} from 'url'
@@ -156,32 +163,42 @@ const fileResponse = async (filePath: string | undefined) => {
   }
 }
 
-// net.fetch reads just the requested bytes of a file:// URL but answers 200 with
-// no Content-Range, so media elements couldn't seek; answer ranges with a 206.
-const localFileResponse = async (filePath: string, rangeHeader: string | null) => {
+// Headers and body come from one open handle, so they describe the same file. Ranges are
+// answered with a 206 so media elements can seek.
+const localFileResponse = async (filePath: string, req: Request) => {
+  let handle: fs.promises.FileHandle | undefined
   try {
-    const stat = await fs.promises.stat(filePath)
-    if (!stat.isFile()) return new Response(undefined, {status: 404})
-    const range = parseByteRange(rangeHeader, stat.size)
-    if (range === 'unsatisfiable') {
-      return new Response(undefined, {headers: {'Content-Range': `bytes */${stat.size}`}, status: 416})
+    handle = await fs.promises.open(filePath, 'r')
+    const stat = await handle.stat()
+    if (!stat.isFile()) {
+      await handle.close()
+      return new Response(undefined, {status: 404})
     }
-    const url = pathToFileURL(filePath).toString()
-    const res = await Electron.net.fetch(
-      url,
-      range ? {headers: {Range: `bytes=${range.start}-${range.end}`}} : undefined
-    )
-    const headers = new Headers({'Accept-Ranges': 'bytes'})
-    const type = res.headers.get('content-type')
+    const lastModified = stat.mtime.toUTCString()
+    const headers = new Headers({'Accept-Ranges': 'bytes', 'Last-Modified': lastModified})
+    const range = requestedRange(req.headers.get('range'), req.headers.get('if-range'), lastModified, stat.size)
+    if (range === 'unsatisfiable') {
+      await handle.close()
+      headers.set('Content-Range', `bytes */${stat.size}`)
+      return new Response(undefined, {headers, status: 416})
+    }
+    const type = mimeTypeForPath(filePath)
     if (type) headers.set('Content-Type', type)
+    const stream = fs.createReadStream('', {
+      autoClose: true,
+      fd: handle,
+      ...(range ? {end: range.end, start: range.start} : {}),
+    })
+    const body = Readable.toWeb(stream) as unknown as ReadableStream<Uint8Array>
     if (!range) {
       headers.set('Content-Length', String(stat.size))
-      return new Response(res.body, {headers, status: 200})
+      return new Response(body, {headers, status: 200})
     }
     headers.set('Content-Length', String(range.end - range.start + 1))
     headers.set('Content-Range', `bytes ${range.start}-${range.end}/${stat.size}`)
-    return new Response(res.body, {headers, status: 206})
+    return new Response(body, {headers, status: 206})
   } catch {
+    await handle?.close().catch(() => {})
     return new Response(undefined, {status: 404})
   }
 }
@@ -195,7 +212,7 @@ const registerAppProtocols = () => {
   Electron.protocol.handle(localFileScheme, async req => {
     const filePath = localFilePathFromURL(req.url, localFileHost, process.platform)
     if (!filePath) return new Response(undefined, {status: 403})
-    return localFileResponse(filePath, req.headers.get('range'))
+    return localFileResponse(filePath, req)
   })
 }
 

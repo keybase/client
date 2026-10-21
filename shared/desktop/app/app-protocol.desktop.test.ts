@@ -1,5 +1,11 @@
 import path from 'path'
-import {localFilePathFromURL, parseByteRange, resolveAppFilePath} from './app-protocol.desktop'
+import {
+  localFilePathFromURL,
+  mimeTypeForPath,
+  parseByteRange,
+  requestedRange,
+  resolveAppFilePath,
+} from './app-protocol.desktop'
 
 describe('resolveAppFilePath', () => {
   describe('posix', () => {
@@ -85,7 +91,7 @@ describe('resolveAppFilePath', () => {
 })
 
 describe('localFilePathFromURL', () => {
-  const host = '0123456789abcdef0123456789abcdef.fedcba9876543210fedcba9876543210'
+  const host = 'k0123456789abcdef0123456789abcdef.kfedcba9876543210fedcba9876543210'
   const posix = (url: string) => localFilePathFromURL(url, host, 'darwin')
   const win = (url: string) => localFilePathFromURL(url, host, 'win32')
 
@@ -125,6 +131,10 @@ describe('localFilePathFromURL', () => {
       '/C:/folder/nul.txt',
       '/C:/folder/com1.png',
       '/C:/folder/LPT9. ',
+      '/C:/folder/CON .txt',
+      '/C:/folder/NUL  .png',
+      '/C:/folder/aux. .x',
+      '/C:/folder/com1 . .tar.gz',
       '/C:x.png',
       '/C:',
       '/x.png',
@@ -137,6 +147,8 @@ describe('localFilePathFromURL', () => {
   it('keeps a windows path inside its drive', () => {
     expect(win(`kbfile://${host}/C:/a%5C..%5C..%5C..%5Cx.png`)).toBe('C:\\x.png')
     expect(win(`kbfile://${host}/C:/console.png`)).toBe('C:\\console.png')
+    expect(win(`kbfile://${host}/C:/my con.txt`)).toBe('C:\\my con.txt')
+    expect(win(`kbfile://${host}/C:/.nul`)).toBe('C:\\.nul')
   })
 })
 
@@ -160,5 +172,45 @@ describe('parseByteRange', () => {
   it('rejects ranges past the end', () => {
     expect(parseByteRange('bytes=1000-', 1000)).toBe('unsatisfiable')
     expect(parseByteRange('bytes=0-', 0)).toBe('unsatisfiable')
+  })
+})
+
+describe('requestedRange', () => {
+  const lastModified = 'Wed, 21 Oct 2026 07:28:00 GMT'
+
+  it('serves the range when there is no If-Range or it matches', () => {
+    expect(requestedRange('bytes=0-9', null, lastModified, 100)).toEqual({end: 9, start: 0})
+    expect(requestedRange('bytes=0-9', lastModified, lastModified, 100)).toEqual({end: 9, start: 0})
+    expect(requestedRange('bytes=200-', lastModified, lastModified, 100)).toBe('unsatisfiable')
+  })
+
+  it('serves the whole file when If-Range does not match', () => {
+    expect(requestedRange('bytes=0-9', 'Tue, 20 Oct 2026 07:28:00 GMT', lastModified, 100)).toBeUndefined()
+    expect(requestedRange('bytes=0-9', '"etag"', lastModified, 100)).toBeUndefined()
+    expect(requestedRange('bytes=200-', '', lastModified, 100)).toBeUndefined()
+  })
+
+  it('serves the whole file without a Range', () => {
+    expect(requestedRange(null, lastModified, lastModified, 100)).toBeUndefined()
+  })
+})
+
+describe('mimeTypeForPath', () => {
+  it('types the media the renderer loads', () => {
+    expect(mimeTypeForPath('/tmp/a.PNG')).toBe('image/png')
+    expect(mimeTypeForPath('/tmp/a.jpeg')).toBe('image/jpeg')
+    expect(mimeTypeForPath('/tmp/a.svg')).toBe('image/svg+xml')
+    expect(mimeTypeForPath('/tmp/a.b.mp4')).toBe('video/mp4')
+    expect(mimeTypeForPath('C:\\Users\\testuser\\clip.mov')).toBe('video/quicktime')
+    expect(mimeTypeForPath('/tmp/a.opus')).toBe('audio/opus')
+  })
+
+  it('leaves everything else untyped', () => {
+    expect(mimeTypeForPath('/tmp/a.html')).toBeUndefined()
+    expect(mimeTypeForPath('/tmp/a')).toBeUndefined()
+    expect(mimeTypeForPath('/tmp/png')).toBeUndefined()
+    expect(mimeTypeForPath('/tmp/a.png/')).toBeUndefined()
+    expect(mimeTypeForPath('/tmp/a.constructor')).toBeUndefined()
+    expect(mimeTypeForPath('/tmp/a.toString')).toBeUndefined()
   })
 })

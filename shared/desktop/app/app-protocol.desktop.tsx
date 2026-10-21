@@ -43,11 +43,16 @@ export const resolveAppFilePath = (root: string, url: string, p: PathModule = pa
 // Windows device names, which name a device rather than a file in any folder
 const windowsDeviceName = /^(con|prn|aux|nul|conin\$|conout\$|com[0-9\u00b9\u00b2\u00b3]|lpt[0-9\u00b9\u00b2\u00b3])(\..*)?$/i
 
+// Windows ignores trailing dots and spaces, both on a whole name and before its extension
+const trimWindowsName = (seg: string) => seg.replace(/[. ]+$/, '')
+const isWindowsDeviceSegment = (seg: string) =>
+  windowsDeviceName.test(trimWindowsName(seg)) || windowsDeviceName.test(trimWindowsName(seg.split('.')[0] ?? ''))
+
 // A drive-absolute path (C:\...) naming a file, not a share, device or stream
 const isWindowsDrivePath = (p: string) =>
   /^[a-zA-Z]:\\/.test(p) &&
   !p.slice(2).includes(':') &&
-  !p.split('\\').some(seg => windowsDeviceName.test(seg.replace(/[. ]+$/, '')))
+  !p.split('\\').some(isWindowsDeviceSegment)
 
 // The local path a local-file-scheme request names, for a URL carrying this
 // launch's host. Windows paths are carried with a leading slash (/C:/...) so the
@@ -80,4 +85,49 @@ export const parseByteRange = (header: string | null, size: number) => {
   }
   if (start >= size || size === 0) return 'unsatisfiable'
   return {end, start}
+}
+
+// The range to serve for a request whose file was last modified at `lastModified` (an HTTP date).
+// An If-Range that is not that date means the caller's copy is stale, so it gets the whole file.
+export const requestedRange = (
+  rangeHeader: string | null,
+  ifRangeHeader: string | null,
+  lastModified: string,
+  size: number
+) => {
+  if (ifRangeHeader !== null && ifRangeHeader.trim() !== lastModified) return undefined
+  return parseByteRange(rangeHeader, size)
+}
+
+// Content types for the media the renderer loads through the local file scheme
+const mimeTypes: {[ext: string]: string} = {
+  aac: 'audio/aac',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
+  flac: 'audio/flac',
+  gif: 'image/gif',
+  heic: 'image/heic',
+  heif: 'image/heif',
+  ico: 'image/x-icon',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  m4a: 'audio/mp4',
+  m4v: 'video/x-m4v',
+  mkv: 'video/x-matroska',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  mp4: 'video/mp4',
+  oga: 'audio/ogg',
+  ogg: 'audio/ogg',
+  opus: 'audio/opus',
+  png: 'image/png',
+  svg: 'image/svg+xml',
+  wav: 'audio/wav',
+  webm: 'video/webm',
+  webp: 'image/webp',
+}
+
+export const mimeTypeForPath = (filePath: string) => {
+  const ext = /\.([^./\\]+)$/.exec(filePath)?.[1]?.toLowerCase()
+  return ext && Object.hasOwn(mimeTypes, ext) ? mimeTypes[ext] : undefined
 }
