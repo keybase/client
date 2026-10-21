@@ -1380,32 +1380,3 @@ export const useFsWatchDownloadForMobile = isMobile
       return justDoneWithIntent
     }
   : () => false
-
-export const useFuseClosedSourceConsent = (disabled: boolean, invert = false) => {
-  const theme = Kb.Styles.useTheme()
-  const [agreed, setAgreed] = React.useState(false)
-
-  const component = C.isDarwin ? (
-    <Kb.Checkbox
-      disabled={disabled}
-      checked={agreed}
-      onCheck={(v: boolean) => setAgreed(v)}
-      checkboxStyle={invert ? {backgroundColor: theme.white} : undefined}
-      checkboxColor={invert ? theme.black : undefined}
-      labelComponent={
-        <Kb.Text
-          type="BodySmall"
-          style={invert ? {color: theme.white} : undefined}
-          onClick={() => setAgreed(a => !a)}
-        >
-          {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
-        </Kb.Text>
-      }
-    />
-  ) : undefined
-
-  return {
-    canContinue: !C.isDarwin || agreed,
-    component,
-  }
-}

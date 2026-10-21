@@ -3,9 +3,42 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
+import {isAppleSilicon} from '@/constants/platform'
 import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/util/fs-platform'
 
-const InstallSecurityPrefs = () => {
+const allowSteps = [
+  'Open System Settings › Privacy & Security.',
+  "Under Security, click Allow next to the message about system software from macFUSE's developer.",
+  'Restart your Mac if asked.',
+]
+
+// Apple silicon needs a one-time Recovery step before any third-party kext can load
+const reducedSecuritySteps = [
+  'Shut down your Mac.',
+  'Press and hold the power button until "Loading startup options" appears, then choose Options › Continue.',
+  'Choose Utilities › Startup Security Utility, select your startup disk, and click Security Policy.',
+  'Choose Reduced Security, check "Allow user management of kernel extensions from identified developers", click OK and restart.',
+]
+
+const StepList = ({steps}: {steps: ReadonlyArray<string>}) => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      {steps.map((step, idx) => (
+        <Kb.Box2 key={idx} direction="horizontal" fullWidth={true}>
+          <Kb.Text type="BodySemibold" style={styles.stepNumber}>
+            {`${idx + 1}.`}
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.stepText}>
+            {step}
+          </Kb.Text>
+        </Kb.Box2>
+      ))}
+    </Kb.Box2>
+  )
+}
+
+const KextPermission = () => {
   const styles = useStyles()
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const {driverStatus} = Kbfs.useSystemFileManagerIntegration()
@@ -21,35 +54,45 @@ const InstallSecurityPrefs = () => {
     C.ignorePromise(f())
   }
 
+  const kextError = driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError
+  const enabled = driverStatus.type === T.FS.DriverStatusType.Enabled
+  // Unknown while KBFS reconnects; the kext error comes back with the next status
+  const unknown = driverStatus.type === T.FS.DriverStatusType.Unknown
+  const sawKextErrorRef = React.useRef(false)
   const autoCancelledRef = React.useRef(false)
   React.useEffect(() => {
-    if (autoCancelledRef.current) return
-    if (driverStatus.type === T.FS.DriverStatusType.Enabled) {
+    if (autoCancelledRef.current || unknown) return
+    if (kextError) {
+      sawKextErrorRef.current = true
+      return
+    }
+    if (enabled || sawKextErrorRef.current) {
       autoCancelledRef.current = true
       onCancel()
     }
-  }, [driverStatus, onCancel])
+  }, [kextError, enabled, unknown, onCancel])
 
   return (
-    <Kb.ModalScreen centered={true}>
-      <Kb.Box2 direction="vertical" gap="small" alignItems="center" fullWidth={true}>
-        <Kb.Text type="Body" center={true}>
-          Open your macOS Security & Privacy Settings and follow these steps.
+    <Kb.ModalScreen>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+        <Kb.Text type="Body">
+          macFUSE is installed, but macOS hasn&apos;t allowed its system extension yet. macOS may also have
+          shown a &quot;System Extension Blocked&quot; message.
         </Kb.Text>
-        <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
-            •
-          </Kb.Text>
-          <Kb.Text type="BodySemibold" style={styles.listText}>
-            {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
-          </Kb.Text>
-        </Kb.Box2>
+        {isAppleSilicon ? (
+          <>
+            <Kb.Text type="BodySemibold">First, once on this Mac:</Kb.Text>
+            <StepList steps={reducedSecuritySteps} />
+            <Kb.Text type="BodySemibold">Then:</Kb.Text>
+          </>
+        ) : null}
+        <StepList steps={allowSteps} />
         <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
-          Open Security & Privacy Settings
+          Open Privacy & Security
         </Kb.Text>
+        <Kb.Text type="BodySmall">This page updates when you come back to Keybase.</Kb.Text>
       </Kb.Box2>
-      {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
+      {((driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling) || unknown) && (
         <Kb.Box2 alignSelf="center" direction="vertical" style={styles.enablingContainer}>
           <Kb.Box2
             direction="vertical"
@@ -76,23 +119,9 @@ const useStyles = Kb.Styles.createStyleHook(
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: theme.black_63,
       },
-      image: {maxWidth: '100%'},
-      listText: {flexShrink: 1, paddingTop: 1},
-      numberList: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.size(20),
-          minWidth: 20,
-          paddingTop: 1,
-          textAlign: 'center',
-        },
-      }),
+      stepNumber: {minWidth: Kb.Styles.globalMargins.medium},
+      stepText: {flexShrink: 1},
     }) as const
 )
 
-const InstallSecurityPrefsContainer = () => (
-  <Kbfs.SystemFileManagerIntegrationProvider initialKextPermissionError={true}>
-    <InstallSecurityPrefs />
-  </Kbfs.SystemFileManagerIntegrationProvider>
-)
-
-export default InstallSecurityPrefsContainer
+export default KextPermission

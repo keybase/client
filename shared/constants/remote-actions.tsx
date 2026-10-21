@@ -17,7 +17,6 @@ export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
 export const previewConversation = 'remote:previewConversation'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
-export const setCriticalUpdate = 'remote:setCriticalUpdate'
 export const showMain = 'remote:showMain'
 export const stop = 'remote:stop'
 export const switchTab = 'remote:switchTab'
@@ -71,8 +70,6 @@ export const createPreviewConversation = (payload: {readonly participant: string
   ({payload, type: previewConversation}) as const
 export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) =>
   ({payload, type: saltpackFileOpen}) as const
-export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) =>
-  ({payload, type: setCriticalUpdate}) as const
 export const createShowMain = (payload?: undefined) => ({payload, type: showMain}) as const
 export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) =>
   ({payload, type: stop}) as const
@@ -114,7 +111,6 @@ export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
-type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 type ShowMainPayload = ReturnType<typeof createShowMain>
 type StopPayload = ReturnType<typeof createStop>
 type SwitchTabPayload = ReturnType<typeof createSwitchTab>
@@ -144,7 +140,6 @@ export type Actions =
   | PowerMonitorEventPayload
   | PreviewConversationPayload
   | SaltpackFileOpenPayload
-  | SetCriticalUpdatePayload
   | ShowMainPayload
   | StopPayload
   | SwitchTabPayload

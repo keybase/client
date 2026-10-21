@@ -383,11 +383,31 @@ export type DriverStatusUnknown = Readonly<{
   type: DriverStatusType.Unknown
 }>
 
+// The user's own macFUSE install (macOS only; always Ready elsewhere)
+export enum MacfuseState {
+  NotInstalled = 'notInstalled',
+  Outdated = 'outdated',
+  // installed, but it has no kext for the running macOS, usually after a macOS update
+  UnsupportedMacos = 'unsupportedMacos',
+  // installed, but the service can't use it (e.g. unreadable version, kext info error)
+  Error = 'error',
+  Ready = 'ready',
+}
+
 export type DriverStatusDisabled = Readonly<{
   type: DriverStatusType.Disabled
   isEnabling: boolean
-  // macOS only
+  // macOS only: macFUSE is installed but macOS has not allowed its kext
   kextPermissionError: boolean
+  macfuse: MacfuseState
+  // macOS only: the installed version when macfuse is Outdated or UnsupportedMacos
+  macfuseVersion: string
+  // macOS only: the running macOS major version when macfuse is UnsupportedMacos
+  macosVersion: string
+  // macOS only: the user turned Finder access on, so KBFS mounts once it can
+  finderAccessOn: boolean
+  // macOS only: the service's description when macfuse is Error
+  macfuseError: string
 }>
 
 export type DriverStatusEnabled = Readonly<{

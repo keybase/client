@@ -14,26 +14,67 @@ import {saveAttachmentToCameraRoll, saveFileToDownloads, showShareActionSheet} f
 import {fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import {registerExternalResetter} from '@/util/zustand'
 
+// Matches statusUnsupportedMacos in go/install/fuse_status_darwin.go: macFUSE has no kext for the running macOS.
+const statusUnsupportedMacos = 'MACOS_UNSUPPORTED'
+
+// The service narrows mountInfos to this user's KBFS mount, so any entry means KBFS is mounted.
+export const darwinFuseStatusToDriverStatus = (status: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
+  if (status.mountInfos?.length) {
+    return Constants.emptyDriverStatusEnabled
+  }
+  switch (status.installStatus) {
+    case T.RPCGen.InstallStatus.installed:
+      if (status.installAction !== T.RPCGen.InstallAction.upgrade) {
+        return {
+          ...Constants.emptyDriverStatusDisabled,
+          finderAccessOn: !!status.status.fields?.some(f => f.key === 'finderAccess' && f.value === 'on'),
+        }
+      }
+      return status.status.name === statusUnsupportedMacos
+        ? {
+            ...Constants.emptyDriverStatusDisabled,
+            macfuse: T.FS.MacfuseState.UnsupportedMacos,
+            macfuseVersion: status.version,
+            macosVersion: status.status.fields?.find(f => f.key === 'macosVersion')?.value ?? '',
+          }
+        : {
+            ...Constants.emptyDriverStatusDisabled,
+            macfuse: T.FS.MacfuseState.Outdated,
+            macfuseVersion: status.version,
+          }
+    case T.RPCGen.InstallStatus.error:
+      return {
+        ...Constants.emptyDriverStatusDisabled,
+        macfuse: T.FS.MacfuseState.Error,
+        macfuseError: status.status.desc,
+      }
+    default:
+      return {...Constants.emptyDriverStatusDisabled, macfuse: T.FS.MacfuseState.NotInstalled}
+  }
+}
+
+export const otherFuseStatusToDriverStatus = (
+  status: T.RPCGen.FuseStatus,
+  windows: boolean
+): T.FS.DriverStatus => {
+  if (status.kextStarted) {
+    return {
+      ...Constants.emptyDriverStatusEnabled,
+      dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
+      dokanUninstallExecPath: windows
+        ? status.status.fields?.find(({key}) => key === 'uninstallString')?.value
+        : undefined,
+    }
+  }
+  return Constants.emptyDriverStatusDisabled
+}
+
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
   if (isMobile || !status) {
     return Constants.defaultDriverStatus
   }
-  const getUninstallExecPath = isWindows
-    ? (s: T.RPCGen.FuseStatus) => {
-        const field = s.status.fields?.find(({key}) => key === 'uninstallString')
-        return field?.value
-      }
-    : () => undefined
-
-  if (status.kextStarted) {
-    return {
-      ...Constants.emptyDriverStatusEnabled,
-      dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
-      dokanUninstallExecPath: getUninstallExecPath(status),
-    }
-  }
-  return Constants.emptyDriverStatusDisabled
+  return isDarwin ? darwinFuseStatusToDriverStatus(status) : otherFuseStatusToDriverStatus(status, isWindows)
 }
 
 export const openLocalPathInSystemFileManagerDesktop = async (localPath: string) => {
@@ -167,7 +208,7 @@ export const afterDriverDisableDesktop = async (
     await Promise.resolve()
     return 'noop'
   }
-  const {uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
+  const {uninstallDokanDialog} = KB2.functions
 
   if (isWindows) {
     if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
@@ -180,15 +221,15 @@ export const afterDriverDisableDesktop = async (
     return 'disabling'
   }
 
-  const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
-  return remove ? 'disabling' : 'noop'
+  // Turning Finder access off only unmounts; KBFS keeps running, so there is nothing to confirm.
+  return 'disabling'
 }
 
 export const afterDriverDisablingDesktop = async (driverStatus: T.FS.DriverStatus) => {
   if (isMobile) {
     return
   }
-  const {relaunchApp, exitApp, uninstallDokan} = KB2.functions
+  const {uninstallDokan} = KB2.functions
 
   if (isWindows) {
     if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
@@ -202,8 +243,6 @@ export const afterDriverDisablingDesktop = async (driverStatus: T.FS.DriverStatu
   }
 
   await T.RPCGen.installUninstallKBFSRpcPromise()
-  relaunchApp?.()
-  exitApp?.(0)
 }
 
 export const openSecurityPreferencesDesktop = async () => {
@@ -211,7 +250,15 @@ export const openSecurityPreferencesDesktop = async () => {
     return
   }
   const {openURL} = KB2.functions
-  await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+  await openURL?.('x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension', {activate: true})
+}
+
+export const openMacfuseSiteDesktop = async () => {
+  if (isMobile) {
+    return
+  }
+  const {openURL} = KB2.functions
+  await openURL?.(Constants.macfuseURL)
 }
 
 export const selectFilesToUploadDesktop = async (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => {

@@ -10,7 +10,7 @@ import path from 'path'
 import {promisify} from 'util'
 import {spawn, execFile, exec} from 'child_process'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
+import {isDarwin, isLinux, isWindows, socketPath, dokanPath, windowsBinPath} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
@@ -21,6 +21,8 @@ import {
   registerRemoteWindow,
 } from './remote-windows.desktop'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
+import {installCommandLineTool} from './installer.desktop'
+import {commandLineToolResult, type CommandLineToolResult} from './install-result.desktop'
 import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {EngineRelay} from './engine-relay.desktop'
@@ -304,6 +306,18 @@ export const setupIPCHandlers = (deps: {
         }
         return
       }
+      case 'installCommandLineTool': {
+        // it shows an administrator prompt: only the main window's own page may ask
+        const mainContents = getMainWindow()?.webContents
+        if (!mainContents || event.sender !== mainContents || event.senderFrame !== mainContents.mainFrame) {
+          return {desc: 'Not allowed from this window.', ok: false}
+        }
+        return new Promise<CommandLineToolResult>(resolve => {
+          installCommandLineTool((err, attempted, stdout) => {
+            resolve(commandLineToolResult(err?.message, attempted, stdout))
+          })
+        })
+      }
       case 'exitApp': {
         return Electron.app.exit(action.payload.code)
       }
@@ -316,18 +330,6 @@ export const setupIPCHandlers = (deps: {
           type: 'info',
         })
         return
-      }
-      case 'uninstallKBFSDialog': {
-        const {response} = await Electron.dialog.showMessageBox({
-          buttons: ['Remove & Restart', 'Cancel'],
-          detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
-          message: `Remove Keybase from ${fileUIName}`,
-          type: 'question',
-        })
-        return response === 0
-      }
-      case 'relaunchApp': {
-        return Electron.app.relaunch()
       }
       case 'quitApp': {
         return Electron.app.quit()

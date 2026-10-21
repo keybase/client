@@ -1,11 +1,7 @@
 export const maxHandshakeTries = 3
 export const maxUsernameLength = 16
 
-// Exit Codes
-export const ExitCodeFuseKextError = 4
+// See install_darwin.go: exitCodeKextNotLoadable
 export const ExitCodeFuseKextPermissionError = 5
-export const ExitCodeAuthCanceledError = 6
-// See Installer.m: KBExitFuseCriticalUpdate
-export const ExitFuseCriticalUpdate = 8
-// See install_darwin.go: exitCodeFuseCriticalUpdateFailed
-export const ExitFuseCriticalUpdateFailed = 300
+// See install_darwin.go: exitCodeLegacyHelperInstalled
+export const ExitCodeLegacyHelperInstalled = 7

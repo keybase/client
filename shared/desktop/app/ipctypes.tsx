@@ -67,9 +67,8 @@ export type Action =
   | {type: 'quitApp'}
   | {type: 'exitApp'; payload: {code: number}}
   | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
+  | {type: 'installCommandLineTool'}
   | {type: 'setNativeTheme'; payload: {theme: 'system' | 'dark' | 'light'}}
-  | {type: 'relaunchApp'}
-  | {type: 'uninstallKBFSDialog'}
   | {type: 'uninstallDokanDialog'}
   | {type: 'selectFilesToUploadDialog'; payload: {parent?: string; type: 'file' | 'directory' | 'both'}}
   | {type: 'ctlQuit'}

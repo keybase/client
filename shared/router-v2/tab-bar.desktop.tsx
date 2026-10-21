@@ -249,9 +249,7 @@ type TabProps = {
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumber = useNotifState(s => s.navBadges.get(name) ?? 0)
-  const fsCriticalUpdate = useShellState(s => s.fsCriticalUpdate)
-  const badge = badgeNumber + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
-  return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
+  return badgeNumber ? <Kb.Badge className="tab-badge" badgeNumber={badgeNumber} /> : null
 }
 
 function Tab(props: TabProps) {

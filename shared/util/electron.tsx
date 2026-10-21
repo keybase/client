@@ -37,6 +37,7 @@ export const isRendererChannel = (channel: unknown): channel is RendererChannel 
 
 export type KB2 = {
   constants: {
+    arch: 'arm64' | 'x64'
     assetRoot: string
     configOverload: object
     dokanPath: string
@@ -117,6 +118,8 @@ export type KB2 = {
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
     readImageFromClipboard?: () => Promise<Uint8Array | undefined>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
+    // macOS: links the CLI into /usr/local/bin behind an administrator prompt
+    installCommandLineTool?: () => Promise<{ok: boolean; desc: string}>
     setNativeTheme?: (theme: 'dark' | 'light' | 'system') => Promise<void>
     showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
@@ -134,8 +137,6 @@ export type KB2 = {
     copyToClipboard?: (text: string) => void
     DEVwriteMenuIcons?: () => void
     ctlQuit?: () => void
-    relaunchApp?: () => void
-    uninstallKBFSDialog?: () => Promise<boolean>
     uninstallDokanDialog?: () => Promise<void>
     selectFilesToUploadDialog?: (
       type: 'file' | 'directory' | 'both',
