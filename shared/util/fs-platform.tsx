@@ -211,7 +211,7 @@ export const openSecurityPreferencesDesktop = async () => {
     return
   }
   const {openURL} = KB2.functions
-  await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+  await openURL?.('x-apple.systempreferences:com.apple.preference.security?General')
 }
 
 export const selectFilesToUploadDesktop = async (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => {

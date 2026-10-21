@@ -18,19 +18,20 @@ type BridgeRequest =
 
 // file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
-const pageKey = (url: string) => {
-  const u = new URL(url)
-  return `${u.protocol}//${u.host}${u.pathname.toLowerCase()}`
+export const pageKey = (url: unknown) => {
+  if (typeof url !== 'string') return undefined
+  try {
+    const u = new URL(url)
+    return `${u.protocol}//${u.host}${u.pathname.toLowerCase()}`
+  } catch {
+    return undefined
+  }
 }
 
-// Same document, ignoring query and hash
-export const isSamePage = (url: unknown, page: string) => {
-  if (typeof url !== 'string') return false
-  try {
-    return pageKey(url) === pageKey(page)
-  } catch {
-    return false
-  }
+// Same document as the page whose pageKey is given, ignoring query and hash
+export const isSamePage = (url: unknown, key: string | undefined) => {
+  const k = pageKey(url)
+  return k !== undefined && k === key
 }
 
 // Every remote window loads remote.html, picks its component from the query, then reads its props
@@ -136,3 +137,21 @@ export const isUploadTempPath = (dst: string, cacheRoot: string, kind: 'chat' | 
     ? parts.length === 3 && /^uploadtemps(_v\d+)?$/.test(top)
     : parts.length === 2 && /^uploads-./.test(top)
 }
+
+// macOS directories that Finder opens as a program or installs rather than browses
+const darwinBundleExtensions = new Set([
+  '.app',
+  '.appex',
+  '.bundle',
+  '.component',
+  '.framework',
+  '.kext',
+  '.mdimporter',
+  '.plugin',
+  '.prefpane',
+  '.qlgenerator',
+  '.saver',
+  '.service',
+  '.workflow',
+])
+export const isDarwinBundleName = (p: string) => darwinBundleExtensions.has(path.posix.extname(p).toLowerCase())

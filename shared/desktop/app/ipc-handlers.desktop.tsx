@@ -36,11 +36,12 @@ import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 import {
   isBrowserURL,
+  isDarwinBundleName,
   isExternalURLAllowed,
   isUploadTempPath,
   parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
-import {isSenderAllowed} from './ipc-sender.desktop'
+import {handleFromApp, onFromApp, onSyncFromApp} from './ipc-sender.desktop'
 
 const execFileAsync = promisify(execFile)
 
@@ -120,35 +121,69 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
   }
 }
 
+// The service creates the parent directory before asking for the copy; the file itself may not exist
+// yet. Compare real paths, so a symlinked cache dir still matches.
+const realUploadTempPath = async (dst: string, kind: 'chat' | 'kbfs') => {
+  try {
+    const [root, parent] = await Promise.all([
+      fs.promises.realpath(cacheRoot),
+      fs.promises.realpath(path.dirname(dst)),
+    ])
+    const real = path.join(parent, path.basename(dst))
+    return isUploadTempPath(real, root, kind) ? real : undefined
+  } catch {
+    return undefined
+  }
+}
+
 const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string; dir: string}) => {
   if (!isDarwin) {
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
-  if (!isUploadTempPath(dst, cacheRoot, 'kbfs')) {
+  const real = await realUploadTempPath(dst, 'kbfs')
+  if (!real) {
     logger.warn('darwinCopyToKBFSTempUploadFile: the destination is not a KBFS upload temp dir')
     throw new Error('not an upload temp dir')
   }
-  await fs.promises.cp(options.originalFilePath, dst, {recursive: true})
+  await fs.promises.cp(options.originalFilePath, real, {recursive: true})
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
-  if (!isUploadTempPath(options.dst, cacheRoot, 'chat')) {
+  const real = await realUploadTempPath(options.dst, 'chat')
+  if (!real) {
     logger.warn('darwinCopyToChatTempUploadFile: the destination is not a chat upload temp file')
     throw new Error('not an upload temp file')
   }
-  await fs.promises.cp(options.originalFilePath, options.dst, {recursive: true})
+  await fs.promises.cp(options.originalFilePath, real, {recursive: true})
   return true
 }
 
-// Opens a folder in the file manager, or reveals anything else in its folder; never opens a file
+const exists = async (p: string) =>
+  fs.promises.access(p).then(
+    () => true,
+    () => false
+  )
+
+// A macOS bundle is a directory Finder would launch or install rather than browse
+const isDarwinBundle = async (dir: string) =>
+  isDarwinBundleName(dir) ||
+  (await exists(path.join(dir, 'Contents', 'Info.plist'))) ||
+  (await exists(path.join(dir, 'Contents', 'MacOS')))
+
+// Opens a folder in the file manager, or reveals anything else in its folder; never opens a file or
+// launches a program
 const openPathInFileManager = async (openPath: string, isFolder: boolean) => {
   try {
     if (isFolder && (await fs.promises.stat(openPath)).isDirectory()) {
       // Paths in directories might be symlinks, so resolve using realpath. For example
       // /keybase/private/gabrielh,chris gets redirected to /keybase/private/chris,gabrielh.
       const resolvedPath = isWindows ? openPath : await fs.promises.realpath(openPath)
+      if (isDarwin && (await isDarwinBundle(resolvedPath))) {
+        Electron.shell.showItemInFolder(resolvedPath)
+        return true
+      }
       const err = await Electron.shell.openPath(resolvedPath)
       if (err) {
         logger.warn('openPathInFinder: opening the folder failed', err)
@@ -213,38 +248,29 @@ export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
-  Electron.ipcMain.handle('KBdispatchAction', (event, action: unknown) => {
-    if (!isSenderAllowed(event, 'KBdispatchAction')) return
+  handleFromApp('KBdispatchAction', (_event, action: unknown) => {
     getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.on('KBsetupPreloadKB2', event => {
-    if (!isSenderAllowed(event, 'KBsetupPreloadKB2')) {
-      event.returnValue = undefined
-      return
-    }
-    // read at window load so it reflects the saved preference (applied as themeSource) or the OS
-    event.returnValue = {...KB2.constants, startDarkMode: Electron.nativeTheme.shouldUseDarkColors}
-  })
+  // read at window load so it reflects the saved preference (applied as themeSource) or the OS
+  onSyncFromApp('KBsetupPreloadKB2', () => ({
+    ...KB2.constants,
+    startDarkMode: Electron.nativeTheme.shouldUseDarkColors,
+  }))
 
-  Electron.ipcMain.on('engineSend', (event, send: unknown) => {
-    if (!isSenderAllowed(event, 'engineSend')) return
+  onFromApp('engineSend', (_event, send: unknown) => {
     deps.engineRelay.send(send)
   })
 
-  Electron.ipcMain.on('engineRestartLink', event => {
-    if (!isSenderAllowed(event, 'engineRestartLink')) return
+  onFromApp('engineRestartLink', () => {
     deps.engineRelay.restartLink({afterDelay: true})
   })
 
-  Electron.ipcMain.on('engineDropLink', event => {
-    if (!isSenderAllowed(event, 'engineDropLink')) return
+  onFromApp('engineDropLink', () => {
     deps.engineRelay.dropLink()
   })
 
-  Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
-    const type: unknown = (action as {type?: unknown} | undefined)?.type
-    if (typeof type !== 'string' || !isSenderAllowed(event, type)) return undefined
+  const handleAction = async (event: Electron.IpcMainInvokeEvent, action: Action) => {
     switch (action.type) {
       case 'uninstallDokan': {
         await uninstallDokan(action.payload.execPath)
@@ -392,14 +418,13 @@ export const setupIPCHandlers = (deps: {
         throw new Error(`Unable to open: Not a file or directory`)
       }
       case 'openURL': {
-        const {url, options} = action.payload
+        const {url} = action.payload
         if (!isExternalURLAllowed(url, process.platform)) {
           logger.warn('openURL: only http(s), mailto and system settings links are opened')
           return false
         }
         try {
-          const activate = options?.activate
-          await Electron.shell.openExternal(url, activate === undefined ? undefined : {activate: !!activate})
+          await Electron.shell.openExternal(url)
           return true
         } catch {
           return false
@@ -614,5 +639,7 @@ export const setupIPCHandlers = (deps: {
       }
     }
     return undefined
-  })
+  }
+  // each action is checked as its own request
+  handleFromApp('KBkeybase', handleAction, (action: Action) => (action as {type?: unknown} | undefined)?.type)
 }

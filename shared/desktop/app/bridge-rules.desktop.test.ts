@@ -1,12 +1,14 @@
 /// <reference types="jest" />
 import {
   isBrowserURL,
+  isDarwinBundleName,
   isExternalURLAllowed,
   isRemoteKind,
   isRequestAllowed,
   isSamePage,
   isSubframeURLAllowed,
   isUploadTempPath,
+  pageKey,
   parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
 
@@ -14,29 +16,36 @@ describe('isSamePage', () => {
   const prodMain = 'file:///Applications/Keybase.app/Contents/Resources/app/desktop/dist/desktop/renderer/main.html'
   const winMain = 'file:///C:/Users/testuser/AppData/Local/Keybase/Gui/resources/app/desktop/dist/desktop/renderer/main.html'
   const hotMain = 'http://localhost:4000/desktop/renderer/main.html'
+  const same = (url: unknown, page: string) => isSamePage(url, pageKey(page))
 
   test('matches the same document whatever the query or hash', () => {
-    expect(isSamePage(prodMain, prodMain)).toBe(true)
-    expect(isSamePage(`${prodMain}?x=1#/chat`, prodMain)).toBe(true)
-    expect(isSamePage(`${hotMain}?component=menubar`, hotMain)).toBe(true)
+    expect(same(prodMain, prodMain)).toBe(true)
+    expect(same(`${prodMain}?x=1#/chat`, prodMain)).toBe(true)
+    expect(same(`${hotMain}?component=menubar`, hotMain)).toBe(true)
   })
 
   test('matches Windows paths that differ only in case', () => {
-    expect(isSamePage(winMain.replace('/Users/', '/users/'), winMain)).toBe(true)
+    expect(same(winMain.replace('/Users/', '/users/'), winMain)).toBe(true)
   })
 
   test('rejects other documents, hosts, ports and schemes', () => {
-    expect(isSamePage(prodMain.replace('main.html', 'remote.html'), prodMain)).toBe(false)
-    expect(isSamePage('file:///tmp/desktop/dist/desktop/renderer/main.html', prodMain)).toBe(false)
-    expect(isSamePage('http://localhost:4001/desktop/renderer/main.html', hotMain)).toBe(false)
-    expect(isSamePage('http://127.0.0.1:4000/desktop/renderer/main.html', hotMain)).toBe(false)
-    expect(isSamePage('https://localhost:4000/desktop/renderer/main.html', hotMain)).toBe(false)
+    expect(same(prodMain.replace('main.html', 'remote.html'), prodMain)).toBe(false)
+    expect(same('file:///tmp/desktop/dist/desktop/renderer/main.html', prodMain)).toBe(false)
+    expect(same('http://localhost:4001/desktop/renderer/main.html', hotMain)).toBe(false)
+    expect(same('http://127.0.0.1:4000/desktop/renderer/main.html', hotMain)).toBe(false)
+    expect(same('https://localhost:4000/desktop/renderer/main.html', hotMain)).toBe(false)
+  })
+
+  test('a page key that failed to parse matches nothing', () => {
+    expect(pageKey('not a url')).toBeUndefined()
+    expect(isSamePage('not a url', undefined)).toBe(false)
+    expect(isSamePage(undefined, undefined)).toBe(false)
   })
 
   test('rejects what is not a URL', () => {
-    expect(isSamePage('', prodMain)).toBe(false)
-    expect(isSamePage('not a url', prodMain)).toBe(false)
-    expect(isSamePage(undefined, prodMain)).toBe(false)
+    expect(same('', prodMain)).toBe(false)
+    expect(same('not a url', prodMain)).toBe(false)
+    expect(same(undefined, prodMain)).toBe(false)
   })
 })
 
@@ -220,10 +229,47 @@ describe('isUploadTempPath', () => {
     expect(isUploadTempPath(`${cacheRoot}uploadtemps_v1/abc/x`, cacheRoot, 'kbfs')).toBe(false)
   })
 
+  test('takes a real cache root with or without a trailing slash', () => {
+    const real = '/private/var/folders/ab/testuser/Caches/Keybase'
+    expect(isUploadTempPath(`${real}/uploads-123456/folder`, real, 'kbfs')).toBe(true)
+    expect(isUploadTempPath(`${real}/uploads-123456/folder`, `${real}/`, 'kbfs')).toBe(true)
+    expect(isUploadTempPath(`/var/folders/ab/testuser/Caches/Keybase/uploads-123456/folder`, real, 'kbfs')).toBe(false)
+  })
+
   test('nothing outside the cache root', () => {
     expect(isUploadTempPath('/Users/testuser/Library/LaunchAgents/uploads-1/x.plist', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath('/Users/testuser/Library/Caches/KeybaseDevel/uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath('uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath(`${cacheRoot}uploads-1/x`, '', 'kbfs')).toBe(false)
+  })
+})
+
+describe('isDarwinBundleName', () => {
+  test('directories macOS launches or installs', () => {
+    for (const p of [
+      '/Applications/Calculator.app',
+      '/keybase/private/testuser/Thing.APP',
+      '/keybase/public/testuser/x.prefPane',
+      '/tmp/a.workflow',
+      '/tmp/a.saver',
+      '/tmp/a.bundle',
+      '/tmp/a.plugin',
+      '/tmp/a.kext',
+      '/tmp/a.framework',
+      '/tmp/a.appex',
+      '/tmp/a.qlgenerator',
+      '/tmp/a.mdimporter',
+      '/tmp/a.component',
+      '/tmp/a.service',
+      '/tmp/a.app/',
+    ]) {
+      expect(isDarwinBundleName(p)).toBe(true)
+    }
+  })
+
+  test('ordinary folders', () => {
+    for (const p of ['/keybase/private/testuser', '/tmp/my.app.notes', '/tmp/app', '/tmp/.app', '/tmp/a.apps', '/']) {
+      expect(isDarwinBundleName(p)).toBe(false)
+    }
   })
 })

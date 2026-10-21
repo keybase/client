@@ -10,12 +10,13 @@ import debounce from 'lodash/debounce'
 import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
 import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
-import {isSamePage} from './bridge-rules.desktop'
+import {isSamePage, pageKey} from './bridge-rules.desktop'
 
 const {env} = KB2.constants
 
 const htmlFile = htmlURL('main')
-const remoteFile = htmlURL('remote')
+const mainPage = pageKey(htmlFile)
+const remotePage = pageKey(htmlURL('remote'))
 
 // Fullscreen for any page; notifications only for the main window's own page in its top frame. Match
 // the requesting frame itself, not its top-level page, so a subframe can't borrow the main window's grant.
@@ -24,12 +25,12 @@ const isPermissionGranted = (permission: string, isMainFrame: boolean, requestin
     case 'fullscreen':
       return true
     case 'notifications':
-      return isMainFrame && isSamePage(requestingUrl, htmlFile)
+      return isMainFrame && isSamePage(requestingUrl, mainPage)
     // the app's pages load previews and avatars from the service's local http servers
     case 'local-network-access':
     case 'local-network':
     case 'loopback-network':
-      return isMainFrame && (isSamePage(requestingUrl, htmlFile) || isSamePage(requestingUrl, remoteFile))
+      return isMainFrame && (isSamePage(requestingUrl, mainPage) || isSamePage(requestingUrl, remotePage))
     default:
       return false
   }

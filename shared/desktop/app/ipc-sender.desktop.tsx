@@ -1,12 +1,12 @@
-import type * as Electron from 'electron'
+import * as Electron from 'electron'
 import logger from '@/logger'
 import {htmlURL} from './html-root.desktop'
 import {getMainWindow} from './main-window-ref.desktop'
 import {getRemoteWindowComponent} from './remote-windows.desktop'
-import {isRemoteKind, isRequestAllowed, isSamePage, type WindowKind} from './bridge-rules.desktop'
+import {isRemoteKind, isRequestAllowed, isSamePage, pageKey, type WindowKind} from './bridge-rules.desktop'
 
-const mainPage = htmlURL('main')
-const remotePage = htmlURL('remote')
+const mainPage = pageKey(htmlURL('main'))
+const remotePage = pageKey(htmlURL('remote'))
 
 const windowKind = (contents: Electron.WebContents): WindowKind | undefined => {
   if (getMainWindow()?.webContents === contents) return 'main'
@@ -30,7 +30,7 @@ const isWindowPage = (event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent
 const warned = new Set<string>()
 
 // Only the app's own pages may call into the main process, and each window only with the calls it makes
-export const isSenderAllowed = (
+const isSenderAllowed = (
   event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent,
   request: string
 ) => {
@@ -42,4 +42,35 @@ export const isSenderAllowed = (
     logger.warn(`IPC: refused ${key}`)
   }
   return false
+}
+
+type InvokeEvent = Electron.IpcMainInvokeEvent
+type SendEvent = Electron.IpcMainEvent
+
+// Every ipcMain registration goes through these, so each call is checked against its sender.
+// The request checked is the channel name, or what requestOf derives from the arguments.
+export const handleFromApp = <A extends Array<unknown>>(
+  channel: string,
+  fn: (event: InvokeEvent, ...args: A) => unknown,
+  requestOf: (...args: A) => unknown = () => channel
+) => {
+  Electron.ipcMain.handle(channel, (event, ...args: Array<unknown>) => {
+    const request = requestOf(...(args as A))
+    if (typeof request !== 'string' || !isSenderAllowed(event, request)) return undefined
+    return fn(event, ...(args as A))
+  })
+}
+
+export const onFromApp = <A extends Array<unknown>>(channel: string, fn: (event: SendEvent, ...args: A) => void) => {
+  Electron.ipcMain.on(channel, (event, ...args: Array<unknown>) => {
+    if (!isSenderAllowed(event, channel)) return
+    fn(event, ...(args as A))
+  })
+}
+
+// For sendSync: a refused caller gets undefined back rather than hanging
+export const onSyncFromApp = (channel: string, fn: (event: SendEvent) => unknown) => {
+  Electron.ipcMain.on(channel, (event: SendEvent) => {
+    event.returnValue = isSenderAllowed(event, channel) ? fn(event) : undefined
+  })
 }
