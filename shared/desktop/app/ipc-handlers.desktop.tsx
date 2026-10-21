@@ -159,17 +159,14 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
   return true
 }
 
-// The first visible entry in a directory, if any
+// The first visible entry in a directory; undefined if there is none or it can't be listed
 const firstVisibleEntry = async (dir: string) => {
-  const d = await fs.promises.opendir(dir)
   try {
-    for await (const entry of d) {
+    for await (const entry of await fs.promises.opendir(dir)) {
       if (!entry.name.startsWith('.')) return entry.name
     }
-    return undefined
-  } finally {
-    await d.close().catch(() => {})
-  }
+  } catch {}
+  return undefined
 }
 
 // Opens a folder in the file manager, or reveals anything else in its folder; never opens a file or
