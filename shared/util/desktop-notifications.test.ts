@@ -91,3 +91,11 @@ test('clears a conversation group only after showing one, and only once', () => 
   clearDesktopNotificationGroup(group)
   expect(cleared).toEqual([group])
 })
+
+test('a conversation group fits a Windows toast group and is the same for show and clear', () => {
+  const conv = 'a'.repeat(40) + 'b'.repeat(24)
+  const group = conversationNotificationGroup(conv)
+  expect(group).toBe(`chat:${'a'.repeat(40)}`)
+  expect(group.length).toBeLessThanOrEqual(64)
+  expect(conversationNotificationGroup(conv)).toBe(group)
+})

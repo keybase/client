@@ -22,7 +22,9 @@ const maxHandlers = 100
 const handlers = new Map<string, Handlers>()
 const groupsShown = new Set<string>()
 
-export const conversationNotificationGroup = (conversationIDKey: string) => `chat:${conversationIDKey}`
+// Windows caps a toast's group at 64 characters; 40 hex characters of the id keep groups distinct
+export const conversationNotificationGroup = (conversationIDKey: string) =>
+  `chat:${conversationIDKey.slice(0, 40)}`
 
 export const showDesktopNotification = (o: DesktopNotificationOptions) => {
   const {showNotification} = KB2.functions
