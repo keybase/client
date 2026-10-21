@@ -13,7 +13,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-cmd /C yarn run desktop:package --arch=x64 --platform=win32 --appVersion=%KEYBASE_VERSION% --icon=%GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
+cmd /C yarn run desktop:package --arch=x64 --platform=win32 --appVersion=%KEYBASE_VERSION% --icon=%GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico --saltpackIcon=%GOPATH%\src\github.com\keybase\client\shared\images\windows\Saltpack.ico
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

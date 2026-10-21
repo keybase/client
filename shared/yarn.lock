@@ -1265,6 +1265,11 @@
     glob "^13.0.2"
     minimatch "^10.0.1"
 
+"@electron/fuses@2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@electron/fuses/-/fuses-2.1.3.tgz#9a63a0ab88da9433417b3d5a3a95487e461488d6"
+  integrity sha512-LoKJUXNiJ4JM8IIrUltSHI+8pkogaGj5wmJx81jE/Wk3g2w1/kfMbTEKNoY5kitGE8hiC12h32R/1SlywFtxXg==
+
 "@electron/get@^5.0.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@electron/get/-/get-5.1.0.tgz#f96ca2a0e89b27490ff8f7b5a392bd4df6942998"
