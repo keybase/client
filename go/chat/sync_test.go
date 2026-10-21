@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -913,4 +914,28 @@ func TestSyncerStorageClear(t *testing.T) {
 	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.ErrorAs(t, err, new(storage.MissError))
+}
+
+// cancelledSyncRemote fails SyncChat with its ctx's error, as a remote on a
+// connection that has shut down does.
+type cancelledSyncRemote struct {
+	chat1.RemoteInterface
+}
+
+func (cancelledSyncRemote) SyncChat(ctx context.Context, _ chat1.SyncChatArg) (chat1.SyncChatRes, error) {
+	return chat1.SyncChatRes{}, ctx.Err()
+}
+
+// Connected with a ctx its connection's Shutdown has already cancelled must
+// not mark the syncer connected: the Disconnected that follows the cancel may
+// already have run.
+func TestSyncerConnectedAfterCancelIsIgnored(t *testing.T) {
+	tc := externalstest.SetupTest(t, "syncer-connected-cancel", 0)
+	defer tc.Cleanup()
+	syncer := NewSyncer(globals.NewContext(tc.G, &globals.ChatContext{}))
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := syncer.Connected(ctx, cancelledSyncRemote{}, gregor1.UID(make([]byte, 16)), nil)
+	require.False(t, syncer.IsConnected(context.Background()), "a cancelled Connected marked the syncer connected")
+	require.ErrorIs(t, err, context.Canceled)
 }
