@@ -592,6 +592,8 @@ export const setupIPCHandlers = (deps: {
       }
       case 'getRemoteProps': {
         const {windowComponent, windowParam} = action.payload
+        // a window may only read the props cached for itself
+        if (getRemoteWindow(windowComponent, windowParam)?.webContents !== event.sender) return ''
         return getCachedRemoteProps(windowComponent, windowParam) ?? ''
       }
       case 'closeRenderer': {
