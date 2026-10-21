@@ -1,4 +1,4 @@
-import type {OpenDialogOptions, SaveDialogOptions} from '@/util/electron'
+import type {DesktopNotification, OpenDialogOptions, SaveDialogOptions} from '@/util/electron'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
 export type Action =
@@ -60,6 +60,8 @@ export type Action =
   | {type: 'toggleMaximizeWindow'}
   | {type: 'openURL'; payload: {url: string}}
   | {type: 'showInactive'}
+  | {type: 'showNotification'; payload: DesktopNotification}
+  | {type: 'clearNotificationGroup'; payload: {groupId: string}}
   | {type: 'hideWindow'}
   | {type: 'openPathInFinder'; payload: {path: string; isFolder: boolean}}
   | {type: 'getPathType'; payload: {path: string}}

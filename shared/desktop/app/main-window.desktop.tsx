@@ -18,14 +18,12 @@ const htmlFile = htmlURL('main')
 const mainPage = pageKey(htmlFile)
 const remotePage = pageKey(htmlURL('remote'))
 
-// Fullscreen for any page; notifications only for the main window's own page in its top frame. Match
-// the requesting frame itself, not its top-level page, so a subframe can't borrow the main window's grant.
+// Fullscreen for any page. Notifications are shown by the main process, so pages get none. Match the
+// requesting frame itself, not its top-level page, so a subframe can't borrow a window's grant.
 const isPermissionGranted = (permission: string, isMainFrame: boolean, requestingUrl: string | undefined) => {
   switch (permission) {
     case 'fullscreen':
       return true
-    case 'notifications':
-      return isMainFrame && isSamePage(requestingUrl, mainPage)
     // the app's pages load previews and avatars from the service's local http servers
     case 'local-network-access':
     case 'local-network':

@@ -4,6 +4,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './client-prev'
+import {getExplodingModeFromConfig} from './thread-load'
 import {getChatRpc, type ChatThreadRpc, type PostTextParams} from './chat-rpc'
 import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
@@ -59,6 +60,18 @@ export const sendTextToConversation = (
   text: string
 ) => {
   sendText(getChatRpc(), plainText(conversationIDKey, tlfName, text))
+}
+
+// A reply typed into a desktop notification, exploding as the conversation's composer starts out
+export const sendNotificationReply = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  tlfName: string,
+  text: string
+) => {
+  sendText(getChatRpc(), {
+    ...plainText(conversationIDKey, tlfName, text),
+    ephemeralLifetime: getExplodingModeFromConfig(conversationIDKey),
+  })
 }
 
 // A screen kept through an account switch sends nothing: every call goes through the thread's rpc.

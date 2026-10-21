@@ -1,6 +1,7 @@
 import * as Electron from 'electron'
 import type {Actions} from '@/constants/remote-actions'
 import {
+  type DesktopNotification,
   type EngineLinkFrame,
   type EngineSend,
   isRendererChannel,
@@ -36,6 +37,9 @@ if (isRenderer) {
       ignorePromise(invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'}))
     },
     appStartedUp: async () => invoke({type: 'appStartedUp'}),
+    clearNotificationGroup: (groupId: string) => {
+      ignorePromise(invoke({payload: {groupId}, type: 'clearNotificationGroup'}))
+    },
     closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
       const {windowComponent, windowParam} = options
       ignorePromise(invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'}))
@@ -212,6 +216,9 @@ if (isRenderer) {
     },
     showMainWindow: () => {
       ignorePromise(invoke({type: 'showMainWindow'}))
+    },
+    showNotification: (notification: DesktopNotification) => {
+      ignorePromise(invoke({payload: notification, type: 'showNotification'}))
     },
     showOpenDialog: async (options: OpenDialogOptions) => {
       return await invoke({

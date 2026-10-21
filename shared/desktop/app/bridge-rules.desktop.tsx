@@ -4,6 +4,7 @@ import path from 'path'
 import type {Action} from './ipctypes'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
+import type {DesktopNotification} from '@/util/electron'
 import type {RemoteComponentName} from '../remote/remote-component.desktop'
 
 export type WindowKind = 'main' | RemoteComponentName
@@ -120,14 +121,14 @@ const knownChannels: ReadonlySet<string> = new Set<Channel>([
   'engineSend',
 ])
 const knownActions: {[K in Action['type']]: true} = {
-  DEVwriteMenuIcons: true, activeChanged: true, appStartedUp: true, closeRenderer: true, closeWindow: true,
+  DEVwriteMenuIcons: true, activeChanged: true, appStartedUp: true, clearNotificationGroup: true, closeRenderer: true, closeWindow: true,
   closeWindows: true, copyToClipboard: true, ctlQuit: true, darwinCopyToChatTempUploadFile: true,
   darwinCopyToKBFSTempUploadFile: true, dumpNodeLogger: true, exitApp: true, getPathType: true,
   getRemoteProps: true, hideWindow: true, installCachedDokan: true, isDirectory: true, makeRenderer: true,
   minimizeWindow: true, openPathInFinder: true, openURL: true, quitApp: true, readImageFromClipboard: true,
   relaunchApp: true, rendererNewProps: true, requestWindowsStartService: true,
   selectFilesToUploadDialog: true, setNativeTheme: true, setOpenAtLogin: true, showContextMenu: true,
-  showInactive: true, showMainWindow: true, showOpenDialog: true, showSaveDialog: true,
+  showInactive: true, showMainWindow: true, showNotification: true, showOpenDialog: true, showSaveDialog: true,
   toggleMaximizeWindow: true, uninstallDokan: true, uninstallDokanDialog: true, uninstallKBFSDialog: true,
   winCheckRPCOwnership: true, windowsCheckMountFromOtherDokanInstall: true,
 }
@@ -272,4 +273,29 @@ export const isUploadTempPath = (dst: string, cacheRoot: string, kind: 'chat' | 
   return kind === 'chat'
     ? parts.length === 3 && /^uploadtemps(_v\d+)?$/.test(top)
     : parts.length === 2 && /^uploads-./.test(top)
+}
+
+
+const isText = (s: unknown, max: number): s is string => typeof s === 'string' && s.length <= max
+const isID = (s: unknown): s is string => isText(s, 200) && s.length > 0
+
+export const isNotificationGroupID = isID
+
+// A notification as the renderer asks for it: an id, plain text, and nothing that names a file
+export const parseNotificationRequest = (request: unknown): DesktopNotification | undefined => {
+  if (typeof request !== 'object' || request === null) return undefined
+  const {body, groupId, groupTitle, hasReply, id, silent, title} = request as {[K in string]?: unknown}
+  if (!isID(id) || !isText(title, 1000) || !isText(body, 5000)) return undefined
+  if (typeof hasReply !== 'boolean' || typeof silent !== 'boolean') return undefined
+  if (groupId !== undefined && !isID(groupId)) return undefined
+  if (groupTitle !== undefined && !isText(groupTitle, 1000)) return undefined
+  return {
+    body,
+    hasReply,
+    id,
+    silent,
+    title,
+    ...(groupId === undefined ? {} : {groupId}),
+    ...(groupTitle === undefined ? {} : {groupTitle}),
+  }
 }

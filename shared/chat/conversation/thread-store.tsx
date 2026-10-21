@@ -32,6 +32,7 @@ import {
 } from './thread-message-state'
 import {makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {markConversationUnread} from './mark-unread'
+import {clearDesktopNotificationGroup, conversationNotificationGroup} from '@/util/desktop-notifications'
 import {
   getExplodingModeFromConfig,
   getMeta,
@@ -316,6 +317,10 @@ export const makeThreadStore = (
       if (!T.Chat.isValidConversationIDKey(id)) {
         logger.info('mark read bail on no selected conversation')
         return
+      }
+      // the person is looking at it here, so its notifications have done their job
+      if (isLookingAtThread()) {
+        clearDesktopNotificationGroup(conversationNotificationGroup(id))
       }
       if (!activeMarkReadEnabled) {
         logger.info('mark read bail on no eligible thread load')

@@ -41,6 +41,7 @@ import {
   parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
 import {handleFromApp, onFromApp, onSyncFromApp} from './ipc-sender.desktop'
+import {clearNotificationGroup, showNotification} from './notifications.desktop'
 
 const execFileAsync = promisify(execFile)
 
@@ -472,6 +473,14 @@ export const setupIPCHandlers = (deps: {
             : []),
         ])
         menu.popup({window: win})
+        return
+      }
+      case 'showNotification': {
+        showNotification(action.payload)
+        return
+      }
+      case 'clearNotificationGroup': {
+        clearNotificationGroup(action.payload.groupId)
         return
       }
       case 'showInactive': {

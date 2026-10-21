@@ -17,6 +17,7 @@ import {
   parseDokanUninstallCommand,
   remoteForwards,
   requestLogName,
+  parseNotificationRequest,
 } from './bridge-rules.desktop'
 
 describe('isSamePage', () => {
@@ -123,6 +124,8 @@ describe('isRequestAllowed', () => {
         'openPathInFinder',
         'darwinCopyToChatTempUploadFile',
         'exitApp',
+        'showNotification',
+        'clearNotificationGroup',
         'not-an-action',
       ]) {
         expect(isRequestAllowed(kind, action(a))).toBe(false)
@@ -513,5 +516,41 @@ describe('remote window forwards match their dispatch sites', () => {
     expect(follows.length).toBeGreaterThan(0)
     expect(new Set(follows)).toEqual(new Set(['true']))
     expect(isRequestAllowed('tracker', {forward: RemoteGen.trackerChangeFollow, payload: {follow: true, guiID: 'g'}})).toBe(true)
+  })
+})
+
+describe('parseNotificationRequest', () => {
+  const chat = {
+    body: 'hello',
+    groupId: 'chat:abc',
+    groupTitle: 'testuser',
+    hasReply: true,
+    id: 'n1',
+    silent: false,
+    title: 'testuser',
+  }
+
+  test('keeps a well formed notification', () => {
+    expect(parseNotificationRequest(chat)).toEqual(chat)
+    const plain = {body: '', hasReply: false, id: 'n2', silent: true, title: 'Sync Error'}
+    expect(parseNotificationRequest(plain)).toEqual(plain)
+  })
+
+  test('drops keys it does not know', () => {
+    expect(parseNotificationRequest({...chat, icon: '/tmp/x.png', toastXml: '<toast/>'})).toEqual(chat)
+  })
+
+  test('rejects missing or mistyped fields', () => {
+    expect(parseNotificationRequest(undefined)).toBeUndefined()
+    expect(parseNotificationRequest('hello')).toBeUndefined()
+    expect(parseNotificationRequest({...chat, id: ''})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, id: 7})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, title: undefined})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, body: undefined})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, hasReply: 'yes'})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, silent: undefined})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, groupId: ''})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, groupTitle: 3})).toBeUndefined()
+    expect(parseNotificationRequest({...chat, body: 'x'.repeat(5001)})).toBeUndefined()
   })
 })

@@ -21,6 +21,7 @@ import {eventFromRemoteWindows} from './remote-event-handler.desktop'
 import type {default as NewMainType} from '../../app/main'
 import {dumpLogs} from '@/util/storeless-actions'
 import {listenForCspViolations} from './csp-violations.desktop'
+import {onDesktopNotificationEvent} from '@/util/desktop-notifications'
 // the visual gate's dev-only fixture runtime; production builds resolve this to an empty module
 import '@/tests/e2e/visual/fixtures/runtime'
 setServiceDecoration(ServiceDecoration)
@@ -54,6 +55,8 @@ const setupApp = async () => {
       } catch {}
     }, 0)
   })
+
+  ipcRendererOn?.('KBnotification', onDesktopNotificationEvent)
 
   initPlatformListener()
 
