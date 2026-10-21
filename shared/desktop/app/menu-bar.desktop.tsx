@@ -73,6 +73,7 @@ const MenuBar = () => {
       transparent: true,
       webPreferences: {
         contextIsolation: true,
+        devTools: showDevTools,
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
         preload: preloadPath,

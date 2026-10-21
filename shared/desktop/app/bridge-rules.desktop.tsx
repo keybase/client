@@ -83,6 +83,17 @@ export const isBrowserURL = (url: unknown) => {
   return protocol === 'http:' || protocol === 'https:'
 }
 
+// Subframes may only show the service's local http servers (file and attachment previews) and the
+// built-in PDF viewer those previews open in
+const pdfViewerID = 'mhjfbmdgcfjbbpaeojofohoefgiehjai'
+export const isSubframeURLAllowed = (url: unknown) => {
+  const u = parseURL(url)
+  if (!u) return false
+  if (u.href === 'about:blank') return true
+  if (u.protocol === 'http:' && u.hostname === '127.0.0.1') return true
+  return u.protocol === 'chrome-extension:' && u.host === pdfViewerID
+}
+
 // The Dokan bundle's registry UninstallString: a quoted (or space-free) path to the cached
 // DokanSetup executable under the per-machine Package Cache, followed by switches
 export const parseDokanUninstallCommand = (command: unknown, programData: string | undefined) => {

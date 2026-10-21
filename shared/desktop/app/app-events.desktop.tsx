@@ -8,6 +8,7 @@ import {ctlQuit} from './ctl.desktop'
 import {showDockIcon} from './main-window.desktop'
 import {allowMultipleInstances} from '@/local-debug'
 import KB2 from '@/util/electron'
+import {isSubframeURLAllowed} from './bridge-rules.desktop'
 const {env} = KB2.constants
 
 const isPathSaltpack = (p: string) =>
@@ -106,8 +107,19 @@ export const registerNavigationGuards = () => {
     contents.on('will-navigate', event => {
       event.preventDefault()
     })
+    contents.on('will-attach-webview', event => {
+      event.preventDefault()
+    })
     contents.setWindowOpenHandler(() => {
       return {action: 'deny'}
+    })
+  })
+  // Only the app's windows: devtools and the PDF viewer run their own frames
+  Electron.app.on('browser-window-created', (_, win) => {
+    win.webContents.on('will-frame-navigate', event => {
+      if (!event.isMainFrame && !isSubframeURLAllowed(event.url)) {
+        event.preventDefault()
+      }
     })
   })
 }

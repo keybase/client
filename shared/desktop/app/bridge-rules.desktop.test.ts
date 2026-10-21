@@ -5,6 +5,7 @@ import {
   isRemoteKind,
   isRequestAllowed,
   isSamePage,
+  isSubframeURLAllowed,
   isUploadTempPath,
   parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
@@ -131,6 +132,25 @@ describe('external links', () => {
     expect(isBrowserURL('mailto:testuser@example.com')).toBe(false)
     expect(isBrowserURL('file:///tmp')).toBe(false)
     expect(isBrowserURL('nope')).toBe(false)
+  })
+})
+
+describe('isSubframeURLAllowed', () => {
+  test('allows the local preview servers and the PDF viewer', () => {
+    expect(isSubframeURLAllowed('http://127.0.0.1:52345/files/x.pdf?token=abc')).toBe(true)
+    expect(isSubframeURLAllowed('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html')).toBe(true)
+    expect(isSubframeURLAllowed('about:blank')).toBe(true)
+  })
+
+  test('blocks everything else', () => {
+    expect(isSubframeURLAllowed('https://127.0.0.1:52345/x')).toBe(false)
+    expect(isSubframeURLAllowed('http://localhost:52345/x')).toBe(false)
+    expect(isSubframeURLAllowed('http://127.0.0.1.example.com/x')).toBe(false)
+    expect(isSubframeURLAllowed('https://example.com')).toBe(false)
+    expect(isSubframeURLAllowed('file:///tmp/x.html')).toBe(false)
+    expect(isSubframeURLAllowed('chrome-extension://abcdefghijklmnopabcdefghijklmnop/index.html')).toBe(false)
+    expect(isSubframeURLAllowed('about:srcdoc')).toBe(false)
+    expect(isSubframeURLAllowed('')).toBe(false)
   })
 })
 

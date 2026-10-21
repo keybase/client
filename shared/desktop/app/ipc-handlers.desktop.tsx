@@ -565,6 +565,7 @@ export const setupIPCHandlers = (deps: {
           titleBarStyle: 'customButtonsOnHover',
           webPreferences: {
             contextIsolation: true,
+            devTools: showDevTools,
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: preloadPath,
