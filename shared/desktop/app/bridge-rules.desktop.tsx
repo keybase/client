@@ -19,7 +19,7 @@ type Channel =
   | 'engineSend'
 export type BridgeRequest = {channel: string} | {action: string} | {forward: string; payload?: unknown}
 
-// file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
+// The main and remote windows share an origin, so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
 export const pageKey = (url: unknown) => {
   if (typeof url !== 'string') return undefined
