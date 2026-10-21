@@ -28,7 +28,8 @@ import {
 } from './app-events.desktop'
 import {setupIPCHandlers} from './ipc-handlers.desktop'
 import {localFileScheme} from '@/util/file-url'
-import {appScheme, fileRequestHeaders, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {appScheme, localFilePathFromURL, parseByteRange, resolveAppFilePath} from './app-protocol.desktop'
+import fs from 'fs'
 import {localFileHost} from './local-file-host.desktop'
 import {appRoot} from './html-root.desktop'
 import {pathToFileURL} from 'url'
@@ -146,10 +147,40 @@ const startApp = () => {
     })
 }
 
-const fileResponse = async (filePath: string | undefined, init?: RequestInit) => {
+const fileResponse = async (filePath: string | undefined) => {
   if (!filePath) return new Response(undefined, {status: 404})
   try {
-    return await Electron.net.fetch(pathToFileURL(filePath).toString(), init)
+    return await Electron.net.fetch(pathToFileURL(filePath).toString())
+  } catch {
+    return new Response(undefined, {status: 404})
+  }
+}
+
+// net.fetch reads just the requested bytes of a file:// URL but answers 200 with
+// no Content-Range, so media elements couldn't seek; answer ranges with a 206.
+const localFileResponse = async (filePath: string, rangeHeader: string | null) => {
+  try {
+    const stat = await fs.promises.stat(filePath)
+    if (!stat.isFile()) return new Response(undefined, {status: 404})
+    const range = parseByteRange(rangeHeader, stat.size)
+    if (range === 'unsatisfiable') {
+      return new Response(undefined, {headers: {'Content-Range': `bytes */${stat.size}`}, status: 416})
+    }
+    const url = pathToFileURL(filePath).toString()
+    const res = await Electron.net.fetch(
+      url,
+      range ? {headers: {Range: `bytes=${range.start}-${range.end}`}} : undefined
+    )
+    const headers = new Headers({'Accept-Ranges': 'bytes'})
+    const type = res.headers.get('content-type')
+    if (type) headers.set('Content-Type', type)
+    if (!range) {
+      headers.set('Content-Length', String(stat.size))
+      return new Response(res.body, {headers, status: 200})
+    }
+    headers.set('Content-Length', String(range.end - range.start + 1))
+    headers.set('Content-Range', `bytes ${range.start}-${range.end}/${stat.size}`)
+    return new Response(res.body, {headers, status: 206})
   } catch {
     return new Response(undefined, {status: 404})
   }
@@ -164,7 +195,7 @@ const registerAppProtocols = () => {
   Electron.protocol.handle(localFileScheme, async req => {
     const filePath = localFilePathFromURL(req.url, localFileHost, process.platform)
     if (!filePath) return new Response(undefined, {status: 403})
-    return fileResponse(filePath, {headers: fileRequestHeaders(req.headers)})
+    return localFileResponse(filePath, req.headers.get('range'))
   })
 }
 

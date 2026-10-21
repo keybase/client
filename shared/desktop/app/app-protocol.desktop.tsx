@@ -60,14 +60,24 @@ export const localFilePathFromURL = (url: string, host: string, platform: string
   return isWindowsDrivePath(p) ? p : undefined
 }
 
-// The request headers passed on when reading a local file: just what media
-// elements need to seek
-const forwardedFileHeaders = ['range', 'if-range']
-export const fileRequestHeaders = (headers: Headers) => {
-  const out = new Headers()
-  for (const name of forwardedFileHeaders) {
-    const value = headers.get(name)
-    if (value !== null) out.set(name, value)
+// The byte range a Range header asks for in a file of `size` bytes, so media
+// elements can seek. A missing, malformed or multi-range header means the whole
+// file; 'unsatisfiable' means the range starts past the end.
+export const parseByteRange = (header: string | null, size: number) => {
+  const m = header ? /^bytes=(\d*)-(\d*)$/.exec(header.trim()) : null
+  if (!m) return undefined
+  const [, first = '', last = ''] = m
+  if (!first && !last) return undefined
+  let start: number
+  let end: number
+  if (first) {
+    start = Number(first)
+    end = last ? Math.min(Number(last), size - 1) : size - 1
+    if (last && Number(last) < start) return undefined
+  } else {
+    start = Math.max(size - Number(last), 0)
+    end = size - 1
   }
-  return out
+  if (start >= size || size === 0) return 'unsatisfiable'
+  return {end, start}
 }

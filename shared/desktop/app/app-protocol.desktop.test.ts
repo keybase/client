@@ -1,5 +1,5 @@
 import path from 'path'
-import {fileRequestHeaders, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {localFilePathFromURL, parseByteRange, resolveAppFilePath} from './app-protocol.desktop'
 
 describe('resolveAppFilePath', () => {
   describe('posix', () => {
@@ -140,24 +140,25 @@ describe('localFilePathFromURL', () => {
   })
 })
 
-describe('fileRequestHeaders', () => {
-  it('passes on only the range headers media seeking needs', () => {
-    const out = fileRequestHeaders(
-      new Headers({
-        Cookie: 'a=b',
-        'If-Range': 'W/"x"',
-        Origin: 'kbapp://app',
-        Range: 'bytes=100-',
-        Referer: 'kbapp://app/',
-      })
-    )
-    expect([...out.entries()]).toEqual([
-      ['if-range', 'W/"x"'],
-      ['range', 'bytes=100-'],
-    ])
+describe('parseByteRange', () => {
+  it('reads open, closed and suffix ranges', () => {
+    expect(parseByteRange('bytes=0-', 1000)).toEqual({end: 999, start: 0})
+    expect(parseByteRange('bytes=100-199', 1000)).toEqual({end: 199, start: 100})
+    expect(parseByteRange('bytes=900-5000', 1000)).toEqual({end: 999, start: 900})
+    expect(parseByteRange('bytes=-100', 1000)).toEqual({end: 999, start: 900})
+    expect(parseByteRange('bytes=-5000', 1000)).toEqual({end: 999, start: 0})
   })
 
-  it('sends nothing when there is no range', () => {
-    expect([...fileRequestHeaders(new Headers({Accept: '*/*'})).entries()]).toEqual([])
+  it('serves the whole file for no, malformed or multiple ranges', () => {
+    expect(parseByteRange(null, 1000)).toBeUndefined()
+    expect(parseByteRange('bytes=-', 1000)).toBeUndefined()
+    expect(parseByteRange('bytes=5-2', 1000)).toBeUndefined()
+    expect(parseByteRange('bytes=0-1,5-6', 1000)).toBeUndefined()
+    expect(parseByteRange('items=0-1', 1000)).toBeUndefined()
+  })
+
+  it('rejects ranges past the end', () => {
+    expect(parseByteRange('bytes=1000-', 1000)).toBe('unsatisfiable')
+    expect(parseByteRange('bytes=0-', 0)).toBe('unsatisfiable')
   })
 })
