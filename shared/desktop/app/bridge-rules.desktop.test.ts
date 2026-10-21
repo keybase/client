@@ -52,7 +52,7 @@ describe('isRequestAllowed', () => {
   const remoteKinds = ['menubar', 'pinentry', 'tracker', 'unlock-folders'] as const
   const action = (a: string) => ({action: a})
   const channel = (c: string) => ({channel: c})
-  const forward = (f: string) => ({forward: f})
+  const forward = (f: string, payload?: unknown) => ({forward: f, payload})
 
   test('the main window may make every call', () => {
     for (const c of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'KBdispatchAction']) {
@@ -141,9 +141,19 @@ describe('isRequestAllowed', () => {
     const all = new Set(Object.values(forwards).flat())
     for (const kind of remoteKinds) {
       for (const f of all) {
-        expect(isRequestAllowed(kind, forward(f))).toBe((forwards[kind] as Array<string>).includes(f))
+        const payload = f === 'remote:openPathInSystemFileManager' ? {path: '/keybase'} : undefined
+        expect(isRequestAllowed(kind, forward(f, payload))).toBe((forwards[kind] as Array<string>).includes(f))
       }
     }
+  })
+
+  test('the menubar may only open the KBFS mount', () => {
+    const open = 'remote:openPathInSystemFileManager'
+    expect(isRequestAllowed('menubar', forward(open, {path: '/keybase'}))).toBe(true)
+    for (const payload of [{path: '/Users/testuser'}, {path: '/keybase/../etc'}, {}, undefined, 'x']) {
+      expect(isRequestAllowed('menubar', forward(open, payload))).toBe(false)
+    }
+    expect(isRequestAllowed('main', forward(open, {path: '/Users/testuser'}))).toBe(true)
   })
 
   test('remote windows may not relay other remote actions', () => {

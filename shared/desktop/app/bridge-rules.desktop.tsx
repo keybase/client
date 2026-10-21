@@ -16,7 +16,7 @@ type Channel =
   | 'engineDropLink'
   | 'engineRestartLink'
   | 'engineSend'
-export type BridgeRequest = {channel: string} | {action: string} | {forward: string}
+export type BridgeRequest = {channel: string} | {action: string} | {forward: string; payload?: unknown}
 
 // file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
@@ -79,6 +79,12 @@ const remoteAllowed: {[K in RemoteComponentName]: RemoteAllowed} = {
   'unlock-folders': remoteActions([], [RemoteGen.closeUnlockFolders, RemoteGen.unlockFoldersSubmitPaperKey]),
 }
 
+// Forwarded payloads the main window would act on more broadly than the remote window needs are pinned
+// to what the window sends: the menubar only opens the KBFS mount
+const pinnedForwardPayloads: {[type: string]: (payload: unknown) => boolean} = {
+  [RemoteGen.openPathInSystemFileManager]: payload => (payload as {path?: unknown} | undefined)?.path === '/keybase',
+}
+
 export const isRemoteKind = (component: string): component is RemoteComponentName =>
   Object.hasOwn(remoteAllowed, component)
 
@@ -87,7 +93,10 @@ export const isRequestAllowed = (kind: WindowKind, request: BridgeRequest) => {
   if (kind === 'main') return true
   const allowed = remoteAllowed[kind]
   if ('channel' in request) return allowed.channels.has(request.channel)
-  if ('forward' in request) return allowed.forwards.has(request.forward)
+  if ('forward' in request) {
+    const pinned = pinnedForwardPayloads[request.forward]
+    return allowed.forwards.has(request.forward) && (!pinned || pinned(request.payload))
+  }
   return allowed.actions.has(request.action)
 }
 

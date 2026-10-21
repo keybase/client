@@ -252,8 +252,8 @@ export const setupIPCHandlers = (deps: {
       getMainWindow()?.webContents.send('KBdispatchAction', action)
     },
     (action: unknown) => {
-      const type = (action as {type?: unknown} | null | undefined)?.type
-      return {forward: typeof type === 'string' ? type : ''}
+      const {payload, type} = (action ?? {}) as {payload?: unknown; type?: unknown}
+      return {forward: typeof type === 'string' ? type : '', payload}
     }
   )
 
