@@ -175,50 +175,57 @@ export const emptyFileModulesPlugin = (isDev: boolean): Plugin => {
   }
 }
 
-const joinCsp = (sources: Array<string | false | undefined>) => sources.filter(Boolean).join(' ')
+const joinCsp = (sources: Array<string | false | undefined>, separator = ' ') =>
+  sources.filter(Boolean).join(separator)
 
 // Local files reach the renderer through this scheme; keep in sync with
 // util/file-url.tsx (a .tsx module the config can't import). CSP source
 // expressions want the trailing colon.
 const localFileCspSource = 'kbfile:'
 
-const makeCsp = (isDev: boolean) =>
-  [
-    "default-src 'none'",
-    "base-uri 'none'",
-    "form-action 'none'",
-    'object-src http://127.0.0.1:*',
-    'frame-src http://127.0.0.1:*',
-    `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
-    `media-src ${joinCsp(['http://127.0.0.1:*', localFileCspSource])}`,
-    `img-src ${joinCsp([
-      "'self'",
-      'data:',
-      'http://127.0.0.1:*',
-      'https://keybase.io/',
-      'https://pbs.twimg.com/',
-      'https://avatars.githubusercontent.com/',
-      'https://s3.amazonaws.com/keybase_processed_uploads/',
-      isDev && devOrigin,
-      localFileCspSource,
-    ])}`,
-    // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
-    // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.
-    `style-src ${joinCsp(["'self'", "'unsafe-inline'", isDev && devOrigin])}`,
-    // In dev the renderer is the Vite ESM graph served from devOrigin, and
-    // @vitejs/plugin-react injects an inline refresh preamble, so we need
-    // 'unsafe-inline'/'unsafe-eval' + the dev origin. Prod stays strict.
-    `script-src ${joinCsp(
-      isDev ? ["'self'", devOrigin, remoteDebugURL, "'unsafe-inline'", "'unsafe-eval'"] : ["'self'"]
-    )}`,
-    `connect-src ${joinCsp([
-      "'self'",
-      'http://127.0.0.1:*',
-      isDev && devOrigin,
-      isDev && `ws://localhost:${devServerPort}`,
-      isDev && 'ws://localhost:8097',
-    ])}`,
-  ].join(';\n ')
+// The main window embeds previews and plays local media. Remote windows (menubar, tracker, pinentry,
+// unlock folders) only show the app's own page and images: avatars from the service's local http
+// server and the image hosts below.
+const makeCsp = (isDev: boolean, isMain: boolean) =>
+  joinCsp(
+    [
+      "default-src 'none'",
+      "base-uri 'none'",
+      "form-action 'none'",
+      isMain && 'object-src http://127.0.0.1:*',
+      isMain && 'frame-src http://127.0.0.1:*',
+      `font-src ${joinCsp(["'self'", isDev && devOrigin])}`,
+      isMain && `media-src ${joinCsp(['http://127.0.0.1:*', localFileCspSource])}`,
+      `img-src ${joinCsp([
+        "'self'",
+        'data:',
+        'http://127.0.0.1:*',
+        'https://keybase.io/',
+        'https://pbs.twimg.com/',
+        'https://avatars.githubusercontent.com/',
+        'https://s3.amazonaws.com/keybase_processed_uploads/',
+        isDev && devOrigin,
+        isMain && localFileCspSource,
+      ])}`,
+      // Vite emits app CSS as external <link> stylesheets (webpack's style-loader
+      // inlined them), so 'self'/dev-origin must be allowed, not just 'unsafe-inline'.
+      `style-src ${joinCsp(["'self'", "'unsafe-inline'", isDev && devOrigin])}`,
+      // In dev the renderer is the Vite ESM graph served from devOrigin, and
+      // @vitejs/plugin-react injects an inline refresh preamble, so we need
+      // 'unsafe-inline'/'unsafe-eval' + the dev origin. Prod stays strict.
+      `script-src ${joinCsp(
+        isDev ? ["'self'", devOrigin, remoteDebugURL, "'unsafe-inline'", "'unsafe-eval'"] : ["'self'"]
+      )}`,
+      `connect-src ${joinCsp([
+        "'self'",
+        isMain && 'http://127.0.0.1:*',
+        isDev && devOrigin,
+        isDev && `ws://localhost:${devServerPort}`,
+        isDev && 'ws://localhost:8097',
+      ])}`,
+    ],
+    ';\n '
+  )
 
 // Inject CSP <meta> into every html shell, plus the react-devtools <script> into
 // the main window in dev. The shells keep their source paths in the output
@@ -229,8 +236,8 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
   transformIndexHtml: {
     order: 'pre',
     handler(html, ctx) {
-      const isMain = ctx.path.includes('/renderer/') || ctx.filename.includes('renderer')
-      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev)}">`
+      const isMain = path.relative(rootDir, ctx.filename) === path.join('desktop', 'renderer', 'main.html')
+      const csp = `<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="${makeCsp(isDev, isMain)}">`
       const devtools = isDev && isMain ? `\n    <script src="${remoteDebugURL}"></script>` : ''
       return html.replace('<!--kb-csp-->', csp + devtools)
     },

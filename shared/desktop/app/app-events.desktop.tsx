@@ -9,6 +9,7 @@ import {showDockIcon} from './main-window.desktop'
 import {allowMultipleInstances} from '@/local-debug'
 import KB2 from '@/util/electron'
 import {isSubframeURLAllowed} from './bridge-rules.desktop'
+import {getMainWindow} from './main-window-ref.desktop'
 const {env} = KB2.constants
 
 const isPathSaltpack = (p: string) =>
@@ -114,10 +115,11 @@ export const registerNavigationGuards = () => {
       return {action: 'deny'}
     })
   })
-  // Only the app's windows: devtools and the PDF viewer run their own frames
+  // Only the app's windows: devtools and the PDF viewer run their own frames. Only the main window
+  // shows previews; remote windows get no subframes.
   Electron.app.on('browser-window-created', (_, win) => {
     win.webContents.on('will-frame-navigate', event => {
-      if (!event.isMainFrame && !isSubframeURLAllowed(event.url)) {
+      if (!event.isMainFrame && (getMainWindow() !== win || !isSubframeURLAllowed(event.url))) {
         event.preventDefault()
       }
     })

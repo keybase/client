@@ -51,7 +51,7 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
       return true
     }
     // desktop serves local files through its own scheme (util/file-url.tsx)
-    if (!isMobile && parsed.protocol === `${localFileScheme}:` && parsed.hostname === KB2.constants.localFileHost) {
+    if (!isMobile && parsed.protocol === `${localFileScheme}:` && !!KB2.constants.localFileHost && parsed.hostname === KB2.constants.localFileHost) {
       return true
     }
   } catch {}

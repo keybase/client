@@ -354,6 +354,8 @@ const MainWindow = () => {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
 
+  // before the page loads: the IPC sender checks and the subframe guard recognize the main window by this
+  setMainWindow(win)
   win.setContentProtection(disableScreenshot)
 
   win
@@ -381,7 +383,6 @@ const MainWindow = () => {
   maybeShowWindowOrDock(win)
 
   setupWindowEvents(win)
-  setMainWindow(win)
 }
 
 export default MainWindow
