@@ -36,7 +36,6 @@ import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 import {
   isBrowserURL,
-  isDarwinBundleName,
   isExternalURLAllowed,
   isUploadTempPath,
   parseDokanUninstallCommand,
@@ -160,28 +159,30 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
   return true
 }
 
-const exists = async (p: string) =>
-  fs.promises.access(p).then(
-    () => true,
-    () => false
-  )
-
-// A macOS bundle is a directory Finder would launch or install rather than browse
-const isDarwinBundle = async (dir: string) =>
-  isDarwinBundleName(dir) ||
-  (await exists(path.join(dir, 'Contents', 'Info.plist'))) ||
-  (await exists(path.join(dir, 'Contents', 'MacOS')))
+// The first visible entry in a directory, if any
+const firstVisibleEntry = async (dir: string) => {
+  const d = await fs.promises.opendir(dir)
+  try {
+    for await (const entry of d) {
+      if (!entry.name.startsWith('.')) return entry.name
+    }
+    return undefined
+  } finally {
+    await d.close().catch(() => {})
+  }
+}
 
 // Opens a folder in the file manager, or reveals anything else in its folder; never opens a file or
-// launches a program
+// launches a program. On macOS a folder is shown by revealing its contents, so showing one never runs it.
 const openPathInFileManager = async (openPath: string, isFolder: boolean) => {
   try {
     if (isFolder && (await fs.promises.stat(openPath)).isDirectory()) {
       // Paths in directories might be symlinks, so resolve using realpath. For example
       // /keybase/private/gabrielh,chris gets redirected to /keybase/private/chris,gabrielh.
       const resolvedPath = isWindows ? openPath : await fs.promises.realpath(openPath)
-      if (isDarwin && (await isDarwinBundle(resolvedPath))) {
-        Electron.shell.showItemInFolder(resolvedPath)
+      if (isDarwin) {
+        const entry = await firstVisibleEntry(resolvedPath)
+        Electron.shell.showItemInFolder(entry ? path.join(resolvedPath, entry) : resolvedPath)
         return true
       }
       const err = await Electron.shell.openPath(resolvedPath)
@@ -641,5 +642,8 @@ export const setupIPCHandlers = (deps: {
     return undefined
   }
   // each action is checked as its own request
-  handleFromApp('KBkeybase', handleAction, (action: Action) => (action as {type?: unknown} | undefined)?.type)
+  handleFromApp('KBkeybase', handleAction, (action: Action) => {
+    const type = (action as {type?: unknown} | undefined)?.type
+    return typeof type === 'string' ? {action: type} : undefined
+  })
 }

@@ -6,15 +6,15 @@ import type {RemoteComponentName} from '../remote/remote-component.desktop'
 
 export type WindowKind = 'main' | RemoteComponentName
 
-// KBkeybase action types plus the other ipcMain channels
-type BridgeRequest =
-  | Action['type']
+// A call is either an ipcMain channel, or a KBkeybase action named by its type
+type Channel =
   | 'KBdispatchAction'
   | 'KBmenu'
   | 'KBsetupPreloadKB2'
   | 'engineDropLink'
   | 'engineRestartLink'
   | 'engineSend'
+export type BridgeRequest = {channel: string} | {action: string}
 
 // file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
@@ -34,27 +34,29 @@ export const isSamePage = (url: unknown, key: string | undefined) => {
   return k !== undefined && k === key
 }
 
+type RemoteAllowed = {channels: ReadonlySet<string>; actions: ReadonlySet<string>}
+const remoteChannels: ReadonlySet<string> = new Set<Channel>(['KBdispatchAction', 'KBsetupPreloadKB2'])
 // Every remote window loads remote.html, picks its component from the query, then reads its props
-const remoteCommon: ReadonlyArray<BridgeRequest> = [
-  'KBdispatchAction',
-  'KBsetupPreloadKB2',
-  'closeWindow',
-  'getRemoteProps',
-  'showInactive',
-]
-const remoteAllowed: {[K in RemoteComponentName]: ReadonlySet<string>} = {
-  menubar: new Set<BridgeRequest>([...remoteCommon, 'ctlQuit', 'hideWindow', 'openURL']),
-  pinentry: new Set<BridgeRequest>(remoteCommon),
-  tracker: new Set<BridgeRequest>([...remoteCommon, 'openURL']),
-  'unlock-folders': new Set<BridgeRequest>(remoteCommon),
+const remoteActions = (...extra: Array<Action['type']>): RemoteAllowed => ({
+  actions: new Set<Action['type']>(['closeWindow', 'getRemoteProps', 'showInactive', ...extra]),
+  channels: remoteChannels,
+})
+const remoteAllowed: {[K in RemoteComponentName]: RemoteAllowed} = {
+  menubar: remoteActions('ctlQuit', 'hideWindow', 'openURL'),
+  pinentry: remoteActions(),
+  tracker: remoteActions('openURL'),
+  'unlock-folders': remoteActions(),
 }
 
 export const isRemoteKind = (component: string): component is RemoteComponentName =>
   Object.hasOwn(remoteAllowed, component)
 
 // The main window may make every call; each remote window only the ones its component makes
-export const isRequestAllowed = (kind: WindowKind, request: string) =>
-  kind === 'main' || remoteAllowed[kind].has(request)
+export const isRequestAllowed = (kind: WindowKind, request: BridgeRequest) => {
+  if (kind === 'main') return true
+  const allowed = remoteAllowed[kind]
+  return 'channel' in request ? allowed.channels.has(request.channel) : allowed.actions.has(request.action)
+}
 
 const parseURL = (url: unknown) => {
   if (typeof url !== 'string') return undefined
@@ -137,21 +139,3 @@ export const isUploadTempPath = (dst: string, cacheRoot: string, kind: 'chat' | 
     ? parts.length === 3 && /^uploadtemps(_v\d+)?$/.test(top)
     : parts.length === 2 && /^uploads-./.test(top)
 }
-
-// macOS directories that Finder opens as a program or installs rather than browses
-const darwinBundleExtensions = new Set([
-  '.app',
-  '.appex',
-  '.bundle',
-  '.component',
-  '.framework',
-  '.kext',
-  '.mdimporter',
-  '.plugin',
-  '.prefpane',
-  '.qlgenerator',
-  '.saver',
-  '.service',
-  '.workflow',
-])
-export const isDarwinBundleName = (p: string) => darwinBundleExtensions.has(path.posix.extname(p).toLowerCase())

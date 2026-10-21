@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 import {
   isBrowserURL,
-  isDarwinBundleName,
   isExternalURLAllowed,
   isRemoteKind,
   isRequestAllowed,
@@ -50,37 +49,56 @@ describe('isSamePage', () => {
 })
 
 describe('isRequestAllowed', () => {
+  const remoteKinds = ['menubar', 'pinentry', 'tracker', 'unlock-folders'] as const
+  const action = (a: string) => ({action: a})
+  const channel = (c: string) => ({channel: c})
+
   test('the main window may make every call', () => {
-    for (const r of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'uninstallDokan', 'makeRenderer']) {
-      expect(isRequestAllowed('main', r)).toBe(true)
+    for (const c of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'KBdispatchAction']) {
+      expect(isRequestAllowed('main', channel(c))).toBe(true)
+    }
+    for (const a of ['uninstallDokan', 'makeRenderer', 'openPathInFinder']) {
+      expect(isRequestAllowed('main', action(a))).toBe(true)
     }
   })
 
   test('every remote window may load, read its props, show and close itself, and dispatch', () => {
-    for (const kind of ['menubar', 'pinentry', 'tracker', 'unlock-folders'] as const) {
-      for (const r of ['KBsetupPreloadKB2', 'KBdispatchAction', 'getRemoteProps', 'showInactive', 'closeWindow']) {
-        expect(isRequestAllowed(kind, r)).toBe(true)
+    for (const kind of remoteKinds) {
+      for (const c of ['KBsetupPreloadKB2', 'KBdispatchAction']) {
+        expect(isRequestAllowed(kind, channel(c))).toBe(true)
+      }
+      for (const a of ['getRemoteProps', 'showInactive', 'closeWindow']) {
+        expect(isRequestAllowed(kind, action(a))).toBe(true)
       }
     }
   })
 
   test('remote windows get only the extra calls their component makes', () => {
-    expect(isRequestAllowed('menubar', 'openURL')).toBe(true)
-    expect(isRequestAllowed('menubar', 'hideWindow')).toBe(true)
-    expect(isRequestAllowed('menubar', 'ctlQuit')).toBe(true)
-    expect(isRequestAllowed('tracker', 'openURL')).toBe(true)
-    expect(isRequestAllowed('tracker', 'ctlQuit')).toBe(false)
-    expect(isRequestAllowed('pinentry', 'openURL')).toBe(false)
-    expect(isRequestAllowed('unlock-folders', 'openURL')).toBe(false)
+    expect(isRequestAllowed('menubar', action('openURL'))).toBe(true)
+    expect(isRequestAllowed('menubar', action('hideWindow'))).toBe(true)
+    expect(isRequestAllowed('menubar', action('ctlQuit'))).toBe(true)
+    expect(isRequestAllowed('tracker', action('openURL'))).toBe(true)
+    expect(isRequestAllowed('tracker', action('ctlQuit'))).toBe(false)
+    expect(isRequestAllowed('pinentry', action('openURL'))).toBe(false)
+    expect(isRequestAllowed('unlock-folders', action('openURL'))).toBe(false)
+  })
+
+  test('channels and actions are separate lists', () => {
+    for (const kind of remoteKinds) {
+      expect(isRequestAllowed(kind, action('KBdispatchAction'))).toBe(false)
+      expect(isRequestAllowed(kind, action('KBsetupPreloadKB2'))).toBe(false)
+      expect(isRequestAllowed(kind, channel('getRemoteProps'))).toBe(false)
+      expect(isRequestAllowed(kind, channel('closeWindow'))).toBe(false)
+    }
+    expect(isRequestAllowed('menubar', channel('openURL'))).toBe(false)
   })
 
   test('remote windows may not use the engine, the tray or the broad bridge calls', () => {
-    for (const kind of ['menubar', 'pinentry', 'tracker', 'unlock-folders'] as const) {
-      for (const r of [
-        'engineSend',
-        'engineRestartLink',
-        'engineDropLink',
-        'KBmenu',
+    for (const kind of remoteKinds) {
+      for (const c of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'KBkeybase', 'not-a-channel']) {
+        expect(isRequestAllowed(kind, channel(c))).toBe(false)
+      }
+      for (const a of [
         'uninstallDokan',
         'installCachedDokan',
         'makeRenderer',
@@ -90,7 +108,7 @@ describe('isRequestAllowed', () => {
         'exitApp',
         'not-an-action',
       ]) {
-        expect(isRequestAllowed(kind, r)).toBe(false)
+        expect(isRequestAllowed(kind, action(a))).toBe(false)
       }
     }
   })
@@ -241,35 +259,5 @@ describe('isUploadTempPath', () => {
     expect(isUploadTempPath('/Users/testuser/Library/Caches/KeybaseDevel/uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath('uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath(`${cacheRoot}uploads-1/x`, '', 'kbfs')).toBe(false)
-  })
-})
-
-describe('isDarwinBundleName', () => {
-  test('directories macOS launches or installs', () => {
-    for (const p of [
-      '/Applications/Calculator.app',
-      '/keybase/private/testuser/Thing.APP',
-      '/keybase/public/testuser/x.prefPane',
-      '/tmp/a.workflow',
-      '/tmp/a.saver',
-      '/tmp/a.bundle',
-      '/tmp/a.plugin',
-      '/tmp/a.kext',
-      '/tmp/a.framework',
-      '/tmp/a.appex',
-      '/tmp/a.qlgenerator',
-      '/tmp/a.mdimporter',
-      '/tmp/a.component',
-      '/tmp/a.service',
-      '/tmp/a.app/',
-    ]) {
-      expect(isDarwinBundleName(p)).toBe(true)
-    }
-  })
-
-  test('ordinary folders', () => {
-    for (const p of ['/keybase/private/testuser', '/tmp/my.app.notes', '/tmp/app', '/tmp/.app', '/tmp/a.apps', '/']) {
-      expect(isDarwinBundleName(p)).toBe(false)
-    }
   })
 })
