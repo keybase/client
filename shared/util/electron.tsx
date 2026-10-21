@@ -100,7 +100,7 @@ export type KB2 = {
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
     openPathInFinder?: (path: string, isFolder: boolean) => Promise<void>
-    openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
+    openURL?: (url: string) => Promise<void>
     requestWindowsStartService?: () => void
     rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
     makeRenderer?: (options: {

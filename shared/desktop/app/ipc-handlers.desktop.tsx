@@ -8,9 +8,18 @@ import menuHelper from './menu-helper.desktop'
 import fs from 'fs'
 import path from 'path'
 import {promisify} from 'util'
-import {spawn, execFile, exec} from 'child_process'
+import {spawn, execFile} from 'child_process'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
+import {
+  cacheRoot,
+  isDarwin,
+  isLinux,
+  isWindows,
+  socketPath,
+  fileUIName,
+  dokanPath,
+  windowsBinPath,
+} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
@@ -25,6 +34,13 @@ import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
+import {
+  isBrowserURL,
+  isExternalURLAllowed,
+  isUploadTempPath,
+  parseDokanUninstallCommand,
+} from './bridge-rules.desktop'
+import {handleFromApp, onFromApp, onSyncFromApp} from './ipc-sender.desktop'
 
 const execFileAsync = promisify(execFile)
 
@@ -104,51 +120,114 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
   }
 }
 
+// The service creates the parent directory before asking for the copy; the file itself may not exist
+// yet. Compare real paths, so a symlinked cache dir still matches.
+const realUploadTempPath = async (dst: string, kind: 'chat' | 'kbfs') => {
+  try {
+    const [root, parent] = await Promise.all([
+      fs.promises.realpath(cacheRoot),
+      fs.promises.realpath(path.dirname(dst)),
+    ])
+    const real = path.join(parent, path.basename(dst))
+    return isUploadTempPath(real, root, kind) ? real : undefined
+  } catch {
+    return undefined
+  }
+}
+
 const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string; dir: string}) => {
   if (!isDarwin) {
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
-  await fs.promises.cp(options.originalFilePath, dst, {recursive: true})
+  const real = await realUploadTempPath(dst, 'kbfs')
+  if (!real) {
+    logger.warn('darwinCopyToKBFSTempUploadFile: the destination is not a KBFS upload temp dir')
+    throw new Error('not an upload temp dir')
+  }
+  await fs.promises.cp(options.originalFilePath, real, {recursive: true})
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
-  await fs.promises.cp(options.originalFilePath, options.dst, {recursive: true})
+  const real = await realUploadTempPath(options.dst, 'chat')
+  if (!real) {
+    logger.warn('darwinCopyToChatTempUploadFile: the destination is not a chat upload temp file')
+    throw new Error('not an upload temp file')
+  }
+  await fs.promises.cp(options.originalFilePath, real, {recursive: true})
   return true
 }
 
-const openInDefaultDirectory = async (openPath: string) => {
-  // pathToURL takes path and converts to (file://) url.
-  // See https://github.com/sindresorhus/file-url
-  const pathToURL = (p: string) => {
-    let goodPath = p.replace(/\\/g, '/')
-
-    // Windows drive letter must be prefixed with a slash
-    if (!goodPath.startsWith('/')) {
-      goodPath = '/' + goodPath
-    }
-
-    return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-  }
+// The first visible entry in a directory; undefined if there is none or it can't be listed
+const firstVisibleEntry = async (dir: string) => {
   try {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    const resolvedPath = await fs.promises.realpath(openPath)
-    // Convert to URL for openExternal call.
-    // We use openExternal instead of openItem because it
-    // correctly focuses' the Finder, and also uses a newer
-    // native API on macOS.
-    const url = pathToURL(resolvedPath)
-    logger.info('Open URL (directory):', url)
-    await Electron.shell.openExternal(url, {activate: true})
-    logger.info('Opened directory:', openPath)
+    for await (const entry of await fs.promises.opendir(dir)) {
+      if (!entry.name.startsWith('.')) return entry.name
+    }
+  } catch {}
+  return undefined
+}
+
+// Opens a folder in the file manager, or reveals anything else in its folder; never opens a file or
+// launches a program. On macOS a folder is shown by revealing its contents, so showing one never runs it.
+const openPathInFileManager = async (openPath: string, isFolder: boolean) => {
+  try {
+    if (isFolder && (await fs.promises.stat(openPath)).isDirectory()) {
+      // Paths in directories might be symlinks, so resolve using realpath. For example
+      // /keybase/private/gabrielh,chris gets redirected to /keybase/private/chris,gabrielh.
+      const resolvedPath = isWindows ? openPath : await fs.promises.realpath(openPath)
+      if (isDarwin) {
+        const entry = await firstVisibleEntry(resolvedPath)
+        Electron.shell.showItemInFolder(entry ? path.join(resolvedPath, entry) : resolvedPath)
+        return true
+      }
+      const err = await Electron.shell.openPath(resolvedPath)
+      if (err) {
+        logger.warn('openPathInFinder: opening the folder failed', err)
+        return false
+      }
+      return true
+    }
+    Electron.shell.showItemInFolder(openPath)
     return true
   } catch {
     return false
   }
+}
+
+// Runs the Dokan uninstaller named by the registry, without a shell, if it is where Dokan keeps it
+const uninstallDokan = async (command: string) => {
+  const parsed = parseDokanUninstallCommand(command, process.env['ProgramData'])
+  const isFile = parsed
+    ? await fs.promises.stat(parsed.file).then(
+        s => s.isFile(),
+        () => false
+      )
+    : false
+  if (!parsed || !isFile) {
+    logger.warn('uninstallDokan: the uninstall command is not the Dokan uninstaller; not running it')
+    await showUninstallDokanFromControlPanel()
+    return
+  }
+  await new Promise<void>(resolve => {
+    try {
+      execFile(parsed.file, parsed.args, {windowsHide: true}, () => resolve())
+    } catch (e) {
+      logger.error('uninstallDokan caught', e)
+      resolve()
+    }
+  })
+}
+
+const showUninstallDokanFromControlPanel = async () => {
+  await Electron.dialog.showMessageBox({
+    buttons: ['Got it'],
+    detail:
+      'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+    message: 'Please uninstall Dokan from the Control Panel.',
+    type: 'info',
+  })
 }
 
 // Sync so the last state lands before quit; written aside and renamed over so the updater never reads partial JSON
@@ -167,38 +246,45 @@ export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
-  Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
-    getMainWindow()?.webContents.send('KBdispatchAction', action)
-  })
+  // The main window gets only the type and payload that were checked
+  const remoteActionOf = (action: unknown) => {
+    const {payload, type} = (action ?? {}) as {payload?: unknown; type?: unknown}
+    return {payload, type: typeof type === 'string' ? type : ''}
+  }
+  handleFromApp(
+    'KBdispatchAction',
+    (_event, action: unknown) => {
+      getMainWindow()?.webContents.send('KBdispatchAction', remoteActionOf(action))
+    },
+    (action: unknown) => {
+      const {payload, type} = remoteActionOf(action)
+      return {forward: type, payload}
+    }
+  )
 
-  Electron.ipcMain.on('KBsetupPreloadKB2', event => {
-    // read at window load so it reflects the saved preference (applied as themeSource) or the OS
-    event.returnValue = {...KB2.constants, startDarkMode: Electron.nativeTheme.shouldUseDarkColors}
-  })
+  // read at window load so it reflects the saved preference (applied as themeSource) or the OS
+  onSyncFromApp('KBsetupPreloadKB2', () => ({
+    ...KB2.constants,
+    startDarkMode: Electron.nativeTheme.shouldUseDarkColors,
+  }))
 
-  Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
+  onFromApp('engineSend', (_event, send: unknown) => {
     deps.engineRelay.send(send)
   })
 
-  Electron.ipcMain.on('engineRestartLink', () => {
+  onFromApp('engineRestartLink', () => {
     deps.engineRelay.restartLink({afterDelay: true})
   })
 
-  Electron.ipcMain.on('engineDropLink', () => {
+  onFromApp('engineDropLink', () => {
     deps.engineRelay.dropLink()
   })
 
-  Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
+  const handleAction = async (event: Electron.IpcMainInvokeEvent, action: Action) => {
     switch (action.type) {
       case 'uninstallDokan': {
-        return new Promise<void>(resolve => {
-          try {
-            exec(action.payload.execPath, {windowsHide: true}, () => resolve())
-          } catch (e) {
-            logger.error('uninstallDokan caught', e)
-            resolve(undefined)
-          }
-        })
+        await uninstallDokan(action.payload.execPath)
+        return
       }
       case 'installCachedDokan': {
         logger.info('Invoking dokan installer')
@@ -308,13 +394,7 @@ export const setupIPCHandlers = (deps: {
         return Electron.app.exit(action.payload.code)
       }
       case 'uninstallDokanDialog': {
-        await Electron.dialog.showMessageBox({
-          buttons: ['Got it'],
-          detail:
-            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
-          message: 'Please uninstall Dokan from the Control Panel.',
-          type: 'info',
-        })
+        await showUninstallDokanFromControlPanel()
         return
       }
       case 'uninstallKBFSDialog': {
@@ -348,9 +428,13 @@ export const setupIPCHandlers = (deps: {
         throw new Error(`Unable to open: Not a file or directory`)
       }
       case 'openURL': {
-        const {url, options} = action.payload
+        const {url} = action.payload
+        if (!isExternalURLAllowed(url, process.platform)) {
+          logger.warn('openURL: only http(s), mailto and system settings links are opened')
+          return false
+        }
         try {
-          await Electron.shell.openExternal(url, options)
+          await Electron.shell.openExternal(url)
           return true
         } catch {
           return false
@@ -358,21 +442,7 @@ export const setupIPCHandlers = (deps: {
       }
       case 'openPathInFinder': {
         const {isFolder, path} = action.payload
-        try {
-          if (isFolder) {
-            if (isWindows) {
-              await Electron.shell.openPath(path)
-              return true
-            } else {
-              return await openInDefaultDirectory(path)
-            }
-          } else {
-            Electron.shell.showItemInFolder(path)
-            return true
-          }
-        } catch {
-          return false
-        }
+        return await openPathInFileManager(path, isFolder)
       }
       case 'showContextMenu': {
         const {url} = action.payload
@@ -385,15 +455,19 @@ export const setupIPCHandlers = (deps: {
             },
             label: 'Copy URL',
           },
-          {
-            click: () => {
-              Electron.shell
-                .openExternal(url)
-                .then(() => {})
-                .catch(() => {})
-            },
-            label: 'Open in browser',
-          },
+          ...(isBrowserURL(url)
+            ? [
+                {
+                  click: () => {
+                    Electron.shell
+                      .openExternal(url)
+                      .then(() => {})
+                      .catch(() => {})
+                  },
+                  label: 'Open in browser',
+                },
+              ]
+            : []),
         ])
         menu.popup({window: win})
         return
@@ -526,6 +600,7 @@ export const setupIPCHandlers = (deps: {
           titleBarStyle: 'customButtonsOnHover',
           webPreferences: {
             contextIsolation: true,
+            devTools: showDevTools,
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: preloadPath,
@@ -574,5 +649,10 @@ export const setupIPCHandlers = (deps: {
       }
     }
     return undefined
+  }
+  // each action is checked as its own request
+  handleFromApp('KBkeybase', handleAction, (action: Action) => {
+    const type = (action as {type?: unknown} | undefined)?.type
+    return typeof type === 'string' ? {action: type} : undefined
   })
 }

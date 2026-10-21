@@ -9,6 +9,7 @@ import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window-ref.desktop'
 import {htmlURL, preloadPath} from './html-root.desktop'
 import {registerRemoteWindow} from './remote-windows.desktop'
+import {handleFromApp} from './ipc-sender.desktop'
 import path from 'path'
 import type {BadgeType} from '@/stores/notifications'
 
@@ -72,6 +73,7 @@ const MenuBar = () => {
       transparent: true,
       webPreferences: {
         contextIsolation: true,
+        devTools: showDevTools,
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
         preload: preloadPath,
@@ -105,7 +107,7 @@ const MenuBar = () => {
     }
   }
 
-  Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
+  handleFromApp('KBmenu', (_event, action: Action) => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (action.type !== 'showTray') return
 

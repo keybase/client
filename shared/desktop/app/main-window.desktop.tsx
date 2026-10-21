@@ -10,18 +10,31 @@ import debounce from 'lodash/debounce'
 import {devServerOrigin, htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron'
 import {getMainWindow, setMainWindow} from './main-window-ref.desktop'
+import {isSamePage, pageKey} from './bridge-rules.desktop'
 
 const {env} = KB2.constants
 
 const htmlFile = htmlURL('main')
+const mainPage = pageKey(htmlFile)
+const remotePage = pageKey(htmlURL('remote'))
 
-// file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
-// Paths compare case-insensitively, as Windows file paths can differ in case.
-const pageKey = (url: string) => {
-  const u = new URL(url)
-  return `${u.protocol}//${u.host}${u.pathname.toLowerCase()}`
+// Fullscreen for any page; notifications only for the main window's own page in its top frame. Match
+// the requesting frame itself, not its top-level page, so a subframe can't borrow the main window's grant.
+const isPermissionGranted = (permission: string, isMainFrame: boolean, requestingUrl: string | undefined) => {
+  switch (permission) {
+    case 'fullscreen':
+      return true
+    case 'notifications':
+      return isMainFrame && isSamePage(requestingUrl, mainPage)
+    // the app's pages load previews and avatars from the service's local http servers
+    case 'local-network-access':
+    case 'local-network':
+    case 'loopback-network':
+      return isMainFrame && (isSamePage(requestingUrl, mainPage) || isSamePage(requestingUrl, remotePage))
+    default:
+      return false
+  }
 }
-const mainPageKey = pageKey(htmlFile)
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -31,28 +44,14 @@ const setupDefaultSession = () => {
   // webviews, we should make sure to attach this to those partitions too.
   ds.on('will-download', event => event.preventDefault())
 
-  // Disallow any permissions requests except for notifications and fullscreen
   ds.setPermissionRequestHandler((_webContents, permission, callback, details) => {
-    // allow fullscreen
-    if (permission === 'fullscreen') {
-      return callback(true)
-    }
-
-    // Match the requesting frame itself, not its top-level page, so a subframe can't borrow the
-    // main window's grant.
-    let requestPageKey: string
-    try {
-      requestPageKey = pageKey(details.requestingUrl)
-    } catch {
-      return callback(false)
-    }
-
-    if (permission === 'notifications' && details.isMainFrame && requestPageKey === mainPageKey) {
-      // Allow notifications
-      return callback(true)
-    }
-    return callback(false)
+    callback(isPermissionGranted(permission, details.isMainFrame, details.requestingUrl))
   })
+  ds.setPermissionCheckHandler((_webContents, permission, _requestingOrigin, details) =>
+    isPermissionGranted(permission, details.isMainFrame, details.requestingUrl)
+  )
+  ds.setDevicePermissionHandler(() => false)
+  ds.setDisplayMediaRequestHandler((_request, callback) => callback(null))
 
   // In hot dev the renderer lives on the Vite http origin, so its XHRs to the
   // KBFS http server (text previews) are cross-origin, and that server sends no

@@ -58,7 +58,7 @@ export type Action =
   | {type: 'closeWindow'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
-  | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
+  | {type: 'openURL'; payload: {url: string}}
   | {type: 'showInactive'}
   | {type: 'hideWindow'}
   | {type: 'openPathInFinder'; payload: {path: string; isFolder: boolean}}

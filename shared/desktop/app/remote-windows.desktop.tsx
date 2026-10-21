@@ -6,6 +6,7 @@ import type * as Electron from 'electron'
 
 const windows = new Map<string, Electron.BrowserWindow>()
 const propsCache = new Map<string, string>()
+const componentByContentsID = new Map<number, string>()
 
 const windowKey = (windowComponent: string, windowParam: string) => `${windowComponent}:${windowParam}`
 
@@ -15,8 +16,11 @@ export const registerRemoteWindow = (
   win: Electron.BrowserWindow
 ) => {
   const key = windowKey(windowComponent, windowParam)
+  const contentsID = win.webContents.id
   windows.set(key, win)
+  componentByContentsID.set(contentsID, windowComponent)
   win.on('closed', () => {
+    componentByContentsID.delete(contentsID)
     if (windows.get(key) === win) {
       windows.delete(key)
       propsCache.delete(key)
@@ -26,6 +30,9 @@ export const registerRemoteWindow = (
 
 export const getRemoteWindow = (windowComponent: string, windowParam: string) =>
   windows.get(windowKey(windowComponent, windowParam))
+
+export const getRemoteWindowComponent = (contents: Electron.WebContents) =>
+  componentByContentsID.get(contents.id)
 
 export const cacheRemoteProps = (windowComponent: string, windowParam: string, propsStr: string) => {
   propsCache.set(windowKey(windowComponent, windowParam), propsStr)
