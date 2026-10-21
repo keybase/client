@@ -136,10 +136,12 @@ export const isScreenshotDisabled = () => disableScreenshot
 const themeBackgroundColor = () => (Electron.nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff')
 
 // Without the native frame, Windows and Linux draw their own window controls over the top right of the
-// page, in the header's colors (white and black_50_on_white) and at the height of its top row
+// page, at the height of the header's top row. The overlay is see-through so the header's own color shows
+// under the controls; it keeps the theme background's RGB because Linux blends the button hover against
+// the overlay color with its alpha dropped. The symbols use the header's black_50_on_white.
 let windowControlsOverlay = false
 const titleBarOverlay = () => ({
-  color: themeBackgroundColor(),
+  color: `${themeBackgroundColor()}00`,
   height: 40,
   symbolColor: Electron.nativeTheme.shouldUseDarkColors ? '#808080' : '#7f7f7f',
 })

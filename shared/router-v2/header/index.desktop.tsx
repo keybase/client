@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
 import {useLoggedInScreens} from '../logged-in-screens'
-import {useShellState} from '@/stores/shell'
+import {useWindowControlsWidth} from '@/util/window-controls-overlay.desktop'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 
@@ -41,7 +41,8 @@ type Props = {
   options: Options
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
-  useNativeFrame: boolean
+  // width of the OS window controls at the top right, 0 when there are none
+  windowControlsWidth: number
   navigation: {
     pop: () => void
   }
@@ -60,15 +61,17 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => {
 
 // The OS draws the window controls over the top right of the page (Windows and Linux without the
 // native frame); keep the header's own controls out from under them
-const WindowControlsSpace = () => {
+const WindowControlsSpace = ({width}: {width: number}) => {
   const styles = useStyles()
-  return <Kb.Box2 direction="horizontal" style={styles.windowControlsSpace} />
+  return (
+    <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.windowControlsSpace, {width}])} />
+  )
 }
 
 function DesktopHeader(p: Props) {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {back, navigation, options, loggedIn, useNativeFrame} = p
+  const {back, navigation, options, loggedIn, windowControlsWidth} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
@@ -108,7 +111,7 @@ function DesktopHeader(p: Props) {
   }
 
   const showDivider = headerShadowVisible !== false
-  const windowControlsOverlay = !Platform.isMac && !useNativeFrame
+  const windowControlsOverlay = windowControlsWidth > 0
 
   // The whole header normally clears the system icons (traffic lights on Mac) because the left nav
   // bar pushes it down/right -- unless you're logged out, in which case there's no nav bar and the
@@ -239,7 +242,7 @@ function DesktopHeader(p: Props) {
               }
             />
             {!title && rightActions}
-            {windowControlsOverlay && <WindowControlsSpace />}
+            {windowControlsOverlay && <WindowControlsSpace width={windowControlsWidth} />}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -322,17 +325,11 @@ const useStyles = Kb.Styles.createStyleHook(
       plainText: {
         ...Kb.Styles.globalStyles.flexGrow,
       },
-      // the width the controls overlay takes at the right of the title bar area
-      windowControlsSpace: Kb.Styles.platformStyles({
-        isElectron: {
-          flexShrink: 0,
-          width: 'calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))',
-        },
-      }),
+      windowControlsSpace: {flexShrink: 0},
     }) as const
 )
 
-type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame'> & {
+type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControlsWidth'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
   params?: unknown
@@ -340,7 +337,7 @@ type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame'> & {
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
-  const useNativeFrame = useShellState(s => s.useNativeFrame)
+  const windowControlsWidth = useWindowControlsWidth()
   const loggedIn = useLoggedInScreens()
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
   const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
@@ -378,7 +375,7 @@ function DesktopHeaderWrapper(p: HeaderProps) {
 
   return (
     <DesktopHeader
-      useNativeFrame={useNativeFrame}
+      windowControlsWidth={windowControlsWidth}
       loggedIn={loggedIn}
       options={options}
       back={!!back /* not a bool upstream */}
