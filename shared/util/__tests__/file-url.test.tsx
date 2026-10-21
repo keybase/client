@@ -1,5 +1,6 @@
 import {localFileScheme, normalizeFilePathURL} from '../file-url'
 
+// jest.setup.js stubs KB2.constants.localFileHost as 'local'
 const local = `${localFileScheme}://local`
 
 describe('normalizeFilePathURL', () => {

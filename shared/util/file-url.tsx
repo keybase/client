@@ -1,15 +1,17 @@
 import {urlEscapeFilePath} from '@/styles/styles-base'
+import KB2 from '@/util/electron'
 
 // The renderer's pages can't load file:// subresources, so the main process
 // registers this scheme and serves local files through it; see node.desktop.tsx.
-// The CSP in vite.config.mts has to allow it too.
+// The CSP in vite.config.mts has to allow it too. Its URLs carry the per-launch
+// host from KB2.constants.localFileHost, so build them at render time and never
+// store them.
 export const localFileScheme = 'kbfile'
-export const localFileHost = 'local'
 
 const filePrefix = 'file://'
 
-// Desktop: normalize absolute file paths (posix or windows) and file:// URLs to
-// encoded local file scheme URLs
+// Normalize absolute file paths (posix or windows) and file:// URLs to encoded
+// local file scheme URLs on desktop, encoded file:// URLs on mobile
 export const normalizeFilePathURL = (url: string) => {
   const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
   if (url.startsWith('/') || isWindowsPath) {
@@ -52,5 +54,5 @@ const restoreDriveColon = (path: string) => path.replace(/^\/([a-zA-Z])%3A(?=\/|
 // which rejects the !'()*~,;@+[]? that encodeURI/encodeURIComponent leave alone.
 const encodeFilePathURL = (path: string) => {
   const encoded = restoreDriveColon(urlEscapeFilePath(`${filePrefix}${path}`).slice(filePrefix.length))
-  return `${localFileScheme}://${localFileHost}${encoded}`
+  return isMobile ? `${filePrefix}${encoded}` : `${localFileScheme}://${KB2.constants.localFileHost}${encoded}`
 }

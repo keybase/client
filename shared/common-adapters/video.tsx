@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {localFileHost, localFileScheme, normalizeFilePathURL} from '@/util/file-url'
+import {localFileScheme, normalizeFilePathURL} from '@/util/file-url'
+import KB2 from '@/util/electron'
 import {Box2} from './box'
 import Text from './text'
 import {StatusBar} from 'expo-status-bar'
@@ -50,7 +51,7 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
       return true
     }
     // desktop serves local files through its own scheme (util/file-url.tsx)
-    if (!isMobile && parsed.protocol === `${localFileScheme}:` && parsed.hostname === localFileHost) {
+    if (!isMobile && parsed.protocol === `${localFileScheme}:` && parsed.hostname === KB2.constants.localFileHost) {
       return true
     }
   } catch {}

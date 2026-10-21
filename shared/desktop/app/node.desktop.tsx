@@ -28,7 +28,8 @@ import {
 } from './app-events.desktop'
 import {setupIPCHandlers} from './ipc-handlers.desktop'
 import {localFileScheme} from '@/util/file-url'
-import {appScheme, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {appScheme, fileRequestHeaders, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {localFileHost} from './local-file-host.desktop'
 import {appRoot} from './html-root.desktop'
 import {pathToFileURL} from 'url'
 
@@ -145,10 +146,10 @@ const startApp = () => {
     })
 }
 
-const fileResponse = async (filePath: string | undefined) => {
+const fileResponse = async (filePath: string | undefined, init?: RequestInit) => {
   if (!filePath) return new Response(undefined, {status: 404})
   try {
-    return await Electron.net.fetch(pathToFileURL(filePath).toString())
+    return await Electron.net.fetch(pathToFileURL(filePath).toString(), init)
   } catch {
     return new Response(undefined, {status: 404})
   }
@@ -160,7 +161,11 @@ const fileResponse = async (filePath: string | undefined) => {
 // scheme instead; util/file-url.tsx builds those URLs.
 const registerAppProtocols = () => {
   Electron.protocol.handle(appScheme, async req => fileResponse(resolveAppFilePath(appRoot, req.url)))
-  Electron.protocol.handle(localFileScheme, async req => fileResponse(localFilePathFromURL(req.url)))
+  Electron.protocol.handle(localFileScheme, async req => {
+    const filePath = localFilePathFromURL(req.url, localFileHost, process.platform)
+    if (!filePath) return new Response(undefined, {status: 403})
+    return fileResponse(filePath, {headers: fileRequestHeaders(req.headers)})
+  })
 }
 
 // Schemes have to be registered before the app is ready.

@@ -1,5 +1,5 @@
 import path from 'path'
-import {localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
+import {fileRequestHeaders, localFilePathFromURL, resolveAppFilePath} from './app-protocol.desktop'
 
 describe('resolveAppFilePath', () => {
   describe('posix', () => {
@@ -85,18 +85,79 @@ describe('resolveAppFilePath', () => {
 })
 
 describe('localFilePathFromURL', () => {
+  const host = '0123456789abcdef0123456789abcdef.fedcba9876543210fedcba9876543210'
+  const posix = (url: string) => localFilePathFromURL(url, host, 'darwin')
+  const win = (url: string) => localFilePathFromURL(url, host, 'win32')
+
   it('reads posix paths', () => {
-    expect(localFilePathFromURL('kbfile://local/tmp/my%20clip.mp4')).toBe('/tmp/my clip.mp4')
-    expect(localFilePathFromURL('kbfile://local/tmp/a%23b.png')).toBe('/tmp/a#b.png')
+    expect(posix(`kbfile://${host}/tmp/my%20clip.mp4`)).toBe('/tmp/my clip.mp4')
+    expect(posix(`kbfile://${host}/tmp/a%23b.png`)).toBe('/tmp/a#b.png')
   })
 
-  it('drops the leading slash before a windows drive', () => {
-    expect(localFilePathFromURL('kbfile://local/C:/Users/testuser/clip.mp4')).toBe('C:/Users/testuser/clip.mp4')
+  it('serves only URLs carrying this launch\'s host', () => {
+    expect(posix('kbfile://local/tmp/a.png')).toBeUndefined()
+    expect(posix(`kbfile://${host.slice(0, -1)}1/tmp/a.png`)).toBeUndefined()
+    expect(posix(`kbfile://${host}x/tmp/a.png`)).toBeUndefined()
+    expect(posix(`kbfile://${host}:1/tmp/a.png`)).toBeUndefined()
+    expect(posix('kbfile:///tmp/a.png')).toBeUndefined()
   })
 
-  it('rejects other hosts, schemes and malformed escapes', () => {
-    expect(localFilePathFromURL('kbfile://other/tmp/a.png')).toBeUndefined()
-    expect(localFilePathFromURL('kbapp://local/tmp/a.png')).toBeUndefined()
-    expect(localFilePathFromURL('kbfile://local/tmp/50%.png')).toBeUndefined()
+  it('rejects other schemes and malformed escapes', () => {
+    expect(posix(`kbapp://${host}/tmp/a.png`)).toBeUndefined()
+    expect(posix(`kbfile://${host}/tmp/50%.png`)).toBeUndefined()
+    expect(posix(`kbfile://${host}/tmp/a%00.png`)).toBeUndefined()
+  })
+
+  it('reads drive-absolute windows paths', () => {
+    expect(win(`kbfile://${host}/C:/Users/testuser/clip.mp4`)).toBe('C:\\Users\\testuser\\clip.mp4')
+    expect(win(`kbfile://${host}/d:/a%20b/c.png`)).toBe('d:\\a b\\c.png')
+  })
+
+  it('rejects windows shares, device paths, streams, devices and relative paths', () => {
+    for (const p of [
+      '//server/share/x.png',
+      '/%5C%5Cserver%5Cshare%5Cx.png',
+      '/%5C%5C%3F%5CC:%5Cx.png',
+      '/%5C%5C.%5CC:%5Cx.png',
+      '/%5C%5C.%5CPhysicalDrive0',
+      '/C:/x.png:stream',
+      '/C:/folder/CON',
+      '/C:/folder/nul.txt',
+      '/C:/folder/com1.png',
+      '/C:/folder/LPT9. ',
+      '/C:x.png',
+      '/C:',
+      '/x.png',
+      '/Users/testuser/x.png',
+    ]) {
+      expect(win(`kbfile://${host}${p}`)).toBeUndefined()
+    }
+  })
+
+  it('keeps a windows path inside its drive', () => {
+    expect(win(`kbfile://${host}/C:/a%5C..%5C..%5C..%5Cx.png`)).toBe('C:\\x.png')
+    expect(win(`kbfile://${host}/C:/console.png`)).toBe('C:\\console.png')
+  })
+})
+
+describe('fileRequestHeaders', () => {
+  it('passes on only the range headers media seeking needs', () => {
+    const out = fileRequestHeaders(
+      new Headers({
+        Cookie: 'a=b',
+        'If-Range': 'W/"x"',
+        Origin: 'kbapp://app',
+        Range: 'bytes=100-',
+        Referer: 'kbapp://app/',
+      })
+    )
+    expect([...out.entries()]).toEqual([
+      ['if-range', 'W/"x"'],
+      ['range', 'bytes=100-'],
+    ])
+  })
+
+  it('sends nothing when there is no range', () => {
+    expect([...fileRequestHeaders(new Headers({Accept: '*/*'})).entries()]).toEqual([])
   })
 })

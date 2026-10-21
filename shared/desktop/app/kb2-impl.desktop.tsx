@@ -4,6 +4,7 @@ import os from 'os'
 import path from 'path'
 import type {KB2} from '@/util/electron'
 import {pageOrigin} from './html-root.desktop'
+import {localFileHost} from './local-file-host.desktop'
 const {env, argv, pid} = process
 
 const platform = process.platform
@@ -55,6 +56,7 @@ const kb2: KB2['constants'] = {
     version: __VERSION__,
   },
   isRenderer: process.type === 'renderer',
+  localFileHost,
   pathSep,
   platform,
   startDarkMode: nativeTheme.shouldUseDarkColors,
