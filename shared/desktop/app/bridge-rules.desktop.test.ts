@@ -1,8 +1,12 @@
 /// <reference types="jest" />
 import {
+  isBrowserURL,
+  isExternalURLAllowed,
   isRemoteKind,
   isRequestAllowed,
   isSamePage,
+  isUploadTempPath,
+  parseDokanUninstallCommand,
 } from './bridge-rules.desktop'
 
 describe('isSamePage', () => {
@@ -87,5 +91,119 @@ describe('isRequestAllowed', () => {
     expect(isRemoteKind('main')).toBe(false)
     expect(isRemoteKind('toString')).toBe(false)
     expect(isRemoteKind('')).toBe(false)
+  })
+})
+
+describe('external links', () => {
+  test('opens http(s) and mailto links', () => {
+    expect(isExternalURLAllowed('https://keybase.io/docs', 'linux')).toBe(true)
+    expect(isExternalURLAllowed('http://example.com', 'win32')).toBe(true)
+    expect(isExternalURLAllowed('mailto:testuser@example.com', 'darwin')).toBe(true)
+  })
+
+  test('opens System Settings links on macOS only', () => {
+    const url = 'x-apple.systempreferences:com.apple.preference.security?General'
+    expect(isExternalURLAllowed(url, 'darwin')).toBe(true)
+    expect(isExternalURLAllowed(url, 'win32')).toBe(false)
+    expect(isExternalURLAllowed(url, 'linux')).toBe(false)
+  })
+
+  test('opens nothing else', () => {
+    for (const url of [
+      'file:///etc/passwd',
+      'smb://host/share',
+      'ms-settings:privacy',
+      'keybase://chat/testuser',
+      'data:text/html,hi',
+      'C:\\Windows\\notepad.exe',
+      '/Applications/Calculator.app',
+      '',
+      undefined,
+      42,
+    ]) {
+      expect(isExternalURLAllowed(url, 'darwin')).toBe(false)
+    }
+  })
+
+  test('"Open in browser" takes http(s) only', () => {
+    expect(isBrowserURL('https://keybase.io')).toBe(true)
+    expect(isBrowserURL('HTTP://KEYBASE.IO')).toBe(true)
+    expect(isBrowserURL('mailto:testuser@example.com')).toBe(false)
+    expect(isBrowserURL('file:///tmp')).toBe(false)
+    expect(isBrowserURL('nope')).toBe(false)
+  })
+})
+
+describe('parseDokanUninstallCommand', () => {
+  const programData = 'C:\\ProgramData'
+  const exe = 'C:\\ProgramData\\Package Cache\\{4f0a2fbe-7a7b-4bd3-a1b0-4c3c1d3a0e0c}\\DokanSetup_redist.exe'
+
+  test('splits the quoted uninstaller path from its switches', () => {
+    expect(parseDokanUninstallCommand(`"${exe}" /uninstall`, programData)).toEqual({args: ['/uninstall'], file: exe})
+    expect(parseDokanUninstallCommand(`"${exe}"  /uninstall /quiet`, programData)).toEqual({
+      args: ['/uninstall', '/quiet'],
+      file: exe,
+    })
+    expect(parseDokanUninstallCommand(`"${exe}"`, programData)).toEqual({args: [], file: exe})
+  })
+
+  test('matches the location ignoring case, and other DokanSetup names', () => {
+    const plain = 'c:\\programdata\\package cache\\{x}\\DokanSetup.exe'
+    expect(parseDokanUninstallCommand(`"${plain}" -uninstall`, programData)).toEqual({args: ['-uninstall'], file: plain})
+  })
+
+  test('rejects other executables and locations', () => {
+    for (const command of [
+      '"C:\\ProgramData\\Package Cache\\{x}\\setup.exe" /uninstall',
+      '"C:\\Windows\\System32\\cmd.exe" /c whoami',
+      '"C:\\Users\\testuser\\Downloads\\DokanSetup.exe" /uninstall',
+      '"C:\\ProgramData\\Package Cache\\..\\DokanSetup.exe" /uninstall',
+      '"C:\\ProgramData\\Package Cache\\{x}\\..\\..\\DokanSetup.exe" /uninstall',
+      '"\\\\server\\share\\Package Cache\\DokanSetup.exe" /uninstall',
+      '"Package Cache\\DokanSetup.exe" /uninstall',
+      'C:\\ProgramData\\Package Cache\\{x}\\DokanSetup.exe /uninstall',
+    ]) {
+      expect(parseDokanUninstallCommand(command, programData)).toBeUndefined()
+    }
+  })
+
+  test('rejects anything but plain switches after the path', () => {
+    for (const rest of [' /uninstall & calc.exe', ' /log C:\\x.txt', ' "/uninstall"', '/uninstall', ' /uninstall | x']) {
+      expect(parseDokanUninstallCommand(`"${exe}"${rest}`, programData)).toBeUndefined()
+    }
+  })
+
+  test('rejects missing input', () => {
+    expect(parseDokanUninstallCommand('', programData)).toBeUndefined()
+    expect(parseDokanUninstallCommand(`"${exe}`, programData)).toBeUndefined()
+    expect(parseDokanUninstallCommand(`"${exe}" /uninstall`, undefined)).toBeUndefined()
+    expect(parseDokanUninstallCommand(undefined, programData)).toBeUndefined()
+  })
+})
+
+describe('isUploadTempPath', () => {
+  const cacheRoot = '/Users/testuser/Library/Caches/Keybase/'
+
+  test('chat copies go into uploadtemps/<outboxID>/<name>', () => {
+    expect(isUploadTempPath(`${cacheRoot}uploadtemps_v1/abc123/photo.jpg`, cacheRoot, 'chat')).toBe(true)
+    expect(isUploadTempPath(`${cacheRoot}uploadtemps/abc123/photo.jpg`, cacheRoot, 'chat')).toBe(true)
+    expect(isUploadTempPath(`${cacheRoot}uploadtemps_v1/photo.jpg`, cacheRoot, 'chat')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploads-x/abc/photo.jpg`, cacheRoot, 'chat')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploadtemps_v1/abc/../../photo.jpg`, cacheRoot, 'chat')).toBe(false)
+  })
+
+  test('KBFS copies go into uploads-<random>/<name>', () => {
+    expect(isUploadTempPath(`${cacheRoot}uploads-123456/folder`, cacheRoot, 'kbfs')).toBe(true)
+    expect(isUploadTempPath(`${cacheRoot}uploads-123456`, cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploads-123456/..`, cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploads-/x`, cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploadtemps_v1/abc/x`, cacheRoot, 'kbfs')).toBe(false)
+  })
+
+  test('nothing outside the cache root', () => {
+    expect(isUploadTempPath('/Users/testuser/Library/LaunchAgents/uploads-1/x.plist', cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath('/Users/testuser/Library/Caches/KeybaseDevel/uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath('uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
+    expect(isUploadTempPath(`${cacheRoot}uploads-1/x`, '', 'kbfs')).toBe(false)
   })
 })

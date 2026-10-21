@@ -1,5 +1,6 @@
-// What the main process accepts from renderer pages: which window may make which call. No electron
-// imports, so it unit tests.
+// What the main process accepts from renderer pages: which window may make which call, and the
+// shape of the URLs and paths the bridge functions act on. No electron imports, so it unit tests.
+import path from 'path'
 import type {Action} from './ipctypes'
 import type {RemoteComponentName} from '../remote/remote-component.desktop'
 
@@ -53,3 +54,74 @@ export const isRemoteKind = (component: string): component is RemoteComponentNam
 // The main window may make every call; each remote window only the ones its component makes
 export const isRequestAllowed = (kind: WindowKind, request: string) =>
   kind === 'main' || remoteAllowed[kind].has(request)
+
+const parseURL = (url: unknown) => {
+  if (typeof url !== 'string') return undefined
+  try {
+    return new URL(url)
+  } catch {
+    return undefined
+  }
+}
+
+// Opens http(s) and mailto links, and on macOS the System Settings links the files tab uses
+export const isExternalURLAllowed = (url: unknown, platform: string) => {
+  switch (parseURL(url)?.protocol) {
+    case 'http:':
+    case 'https:':
+    case 'mailto:':
+      return true
+    case 'x-apple.systempreferences:':
+      return platform === 'darwin'
+    default:
+      return false
+  }
+}
+
+export const isBrowserURL = (url: unknown) => {
+  const protocol = parseURL(url)?.protocol
+  return protocol === 'http:' || protocol === 'https:'
+}
+
+// The Dokan bundle's registry UninstallString: a quoted (or space-free) path to the cached
+// DokanSetup executable under the per-machine Package Cache, followed by switches
+export const parseDokanUninstallCommand = (command: unknown, programData: string | undefined) => {
+  if (typeof command !== 'string' || !programData) return undefined
+  const w = path.win32
+  const trimmed = command.trim()
+  let file: string
+  let rest: string
+  if (trimmed.startsWith('"')) {
+    const end = trimmed.indexOf('"', 1)
+    if (end < 0) return undefined
+    file = trimmed.slice(1, end)
+    rest = trimmed.slice(end + 1)
+  } else {
+    const m = /^(\S+)(.*)$/s.exec(trimmed)
+    if (!m) return undefined
+    file = m[1] ?? ''
+    rest = m[2] ?? ''
+  }
+  if (!w.isAbsolute(file) || !/^[a-zA-Z]:\\/.test(file)) return undefined
+  file = w.normalize(file)
+  if (!/^DokanSetup[\w.-]*\.exe$/i.test(w.basename(file))) return undefined
+  const rel = w.relative(w.join(programData, 'Package Cache'), file)
+  if (!rel || rel.startsWith('..') || w.isAbsolute(rel)) return undefined
+  if (rest && !/^\s/.test(rest)) return undefined
+  const args = rest.split(/\s+/).filter(Boolean)
+  if (!args.every(a => /^[/-][a-zA-Z]+$/.test(a))) return undefined
+  return {args, file}
+}
+
+// Drag-and-drop uploads on macOS copy into the service's temp dirs under the cache root:
+// chat into uploadtemps[_vN]/<outboxID>/<name>, KBFS into uploads-<random>/<name>
+export const isUploadTempPath = (dst: string, cacheRoot: string, kind: 'chat' | 'kbfs') => {
+  if (!cacheRoot || !path.isAbsolute(cacheRoot) || !path.isAbsolute(dst)) return false
+  const rel = path.relative(path.resolve(cacheRoot), path.resolve(dst))
+  const parts = rel.split(path.sep)
+  if (parts.some(p => !p || p === '..')) return false
+  const [top = ''] = parts
+  return kind === 'chat'
+    ? parts.length === 3 && /^uploadtemps(_v\d+)?$/.test(top)
+    : parts.length === 2 && /^uploads-./.test(top)
+}

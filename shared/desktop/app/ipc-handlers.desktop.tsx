@@ -8,9 +8,18 @@ import menuHelper from './menu-helper.desktop'
 import fs from 'fs'
 import path from 'path'
 import {promisify} from 'util'
-import {spawn, execFile, exec} from 'child_process'
+import {spawn, execFile} from 'child_process'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
+import {
+  cacheRoot,
+  isDarwin,
+  isLinux,
+  isWindows,
+  socketPath,
+  fileUIName,
+  dokanPath,
+  windowsBinPath,
+} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
@@ -25,6 +34,12 @@ import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
+import {
+  isBrowserURL,
+  isExternalURLAllowed,
+  isUploadTempPath,
+  parseDokanUninstallCommand,
+} from './bridge-rules.desktop'
 import {isSenderAllowed} from './ipc-sender.desktop'
 
 const execFileAsync = promisify(execFile)
@@ -110,46 +125,76 @@ const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
+  if (!isUploadTempPath(dst, cacheRoot, 'kbfs')) {
+    logger.warn('darwinCopyToKBFSTempUploadFile: the destination is not a KBFS upload temp dir')
+    throw new Error('not an upload temp dir')
+  }
   await fs.promises.cp(options.originalFilePath, dst, {recursive: true})
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
+  if (!isUploadTempPath(options.dst, cacheRoot, 'chat')) {
+    logger.warn('darwinCopyToChatTempUploadFile: the destination is not a chat upload temp file')
+    throw new Error('not an upload temp file')
+  }
   await fs.promises.cp(options.originalFilePath, options.dst, {recursive: true})
   return true
 }
 
-const openInDefaultDirectory = async (openPath: string) => {
-  // pathToURL takes path and converts to (file://) url.
-  // See https://github.com/sindresorhus/file-url
-  const pathToURL = (p: string) => {
-    let goodPath = p.replace(/\\/g, '/')
-
-    // Windows drive letter must be prefixed with a slash
-    if (!goodPath.startsWith('/')) {
-      goodPath = '/' + goodPath
-    }
-
-    return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-  }
+// Opens a folder in the file manager, or reveals anything else in its folder; never opens a file
+const openPathInFileManager = async (openPath: string, isFolder: boolean) => {
   try {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    const resolvedPath = await fs.promises.realpath(openPath)
-    // Convert to URL for openExternal call.
-    // We use openExternal instead of openItem because it
-    // correctly focuses' the Finder, and also uses a newer
-    // native API on macOS.
-    const url = pathToURL(resolvedPath)
-    logger.info('Open URL (directory):', url)
-    await Electron.shell.openExternal(url, {activate: true})
-    logger.info('Opened directory:', openPath)
+    if (isFolder && (await fs.promises.stat(openPath)).isDirectory()) {
+      // Paths in directories might be symlinks, so resolve using realpath. For example
+      // /keybase/private/gabrielh,chris gets redirected to /keybase/private/chris,gabrielh.
+      const resolvedPath = isWindows ? openPath : await fs.promises.realpath(openPath)
+      const err = await Electron.shell.openPath(resolvedPath)
+      if (err) {
+        logger.warn('openPathInFinder: opening the folder failed', err)
+        return false
+      }
+      return true
+    }
+    Electron.shell.showItemInFolder(openPath)
     return true
   } catch {
     return false
   }
+}
+
+// Runs the Dokan uninstaller named by the registry, without a shell, if it is where Dokan keeps it
+const uninstallDokan = async (command: string) => {
+  const parsed = parseDokanUninstallCommand(command, process.env['ProgramData'])
+  const isFile = parsed
+    ? await fs.promises.stat(parsed.file).then(
+        s => s.isFile(),
+        () => false
+      )
+    : false
+  if (!parsed || !isFile) {
+    logger.warn('uninstallDokan: the uninstall command is not the Dokan uninstaller; not running it')
+    await showUninstallDokanFromControlPanel()
+    return
+  }
+  await new Promise<void>(resolve => {
+    try {
+      execFile(parsed.file, parsed.args, {windowsHide: true}, () => resolve())
+    } catch (e) {
+      logger.error('uninstallDokan caught', e)
+      resolve()
+    }
+  })
+}
+
+const showUninstallDokanFromControlPanel = async () => {
+  await Electron.dialog.showMessageBox({
+    buttons: ['Got it'],
+    detail:
+      'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+    message: 'Please uninstall Dokan from the Control Panel.',
+    type: 'info',
+  })
 }
 
 // Sync so the last state lands before quit; written aside and renamed over so the updater never reads partial JSON
@@ -202,14 +247,8 @@ export const setupIPCHandlers = (deps: {
     if (typeof type !== 'string' || !isSenderAllowed(event, type)) return undefined
     switch (action.type) {
       case 'uninstallDokan': {
-        return new Promise<void>(resolve => {
-          try {
-            exec(action.payload.execPath, {windowsHide: true}, () => resolve())
-          } catch (e) {
-            logger.error('uninstallDokan caught', e)
-            resolve(undefined)
-          }
-        })
+        await uninstallDokan(action.payload.execPath)
+        return
       }
       case 'installCachedDokan': {
         logger.info('Invoking dokan installer')
@@ -319,13 +358,7 @@ export const setupIPCHandlers = (deps: {
         return Electron.app.exit(action.payload.code)
       }
       case 'uninstallDokanDialog': {
-        await Electron.dialog.showMessageBox({
-          buttons: ['Got it'],
-          detail:
-            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
-          message: 'Please uninstall Dokan from the Control Panel.',
-          type: 'info',
-        })
+        await showUninstallDokanFromControlPanel()
         return
       }
       case 'uninstallKBFSDialog': {
@@ -360,8 +393,13 @@ export const setupIPCHandlers = (deps: {
       }
       case 'openURL': {
         const {url, options} = action.payload
+        if (!isExternalURLAllowed(url, process.platform)) {
+          logger.warn('openURL: only http(s), mailto and system settings links are opened')
+          return false
+        }
         try {
-          await Electron.shell.openExternal(url, options)
+          const activate = options?.activate
+          await Electron.shell.openExternal(url, activate === undefined ? undefined : {activate: !!activate})
           return true
         } catch {
           return false
@@ -369,21 +407,7 @@ export const setupIPCHandlers = (deps: {
       }
       case 'openPathInFinder': {
         const {isFolder, path} = action.payload
-        try {
-          if (isFolder) {
-            if (isWindows) {
-              await Electron.shell.openPath(path)
-              return true
-            } else {
-              return await openInDefaultDirectory(path)
-            }
-          } else {
-            Electron.shell.showItemInFolder(path)
-            return true
-          }
-        } catch {
-          return false
-        }
+        return await openPathInFileManager(path, isFolder)
       }
       case 'showContextMenu': {
         const {url} = action.payload
@@ -396,15 +420,19 @@ export const setupIPCHandlers = (deps: {
             },
             label: 'Copy URL',
           },
-          {
-            click: () => {
-              Electron.shell
-                .openExternal(url)
-                .then(() => {})
-                .catch(() => {})
-            },
-            label: 'Open in browser',
-          },
+          ...(isBrowserURL(url)
+            ? [
+                {
+                  click: () => {
+                    Electron.shell
+                      .openExternal(url)
+                      .then(() => {})
+                      .catch(() => {})
+                  },
+                  label: 'Open in browser',
+                },
+              ]
+            : []),
         ])
         menu.popup({window: win})
         return
