@@ -25,6 +25,7 @@ import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
+import {isSenderAllowed} from './ipc-sender.desktop'
 
 const execFileAsync = promisify(execFile)
 
@@ -167,28 +168,38 @@ export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
-  Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
+  Electron.ipcMain.handle('KBdispatchAction', (event, action: unknown) => {
+    if (!isSenderAllowed(event, 'KBdispatchAction')) return
     getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
   Electron.ipcMain.on('KBsetupPreloadKB2', event => {
+    if (!isSenderAllowed(event, 'KBsetupPreloadKB2')) {
+      event.returnValue = undefined
+      return
+    }
     // read at window load so it reflects the saved preference (applied as themeSource) or the OS
     event.returnValue = {...KB2.constants, startDarkMode: Electron.nativeTheme.shouldUseDarkColors}
   })
 
-  Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
+  Electron.ipcMain.on('engineSend', (event, send: unknown) => {
+    if (!isSenderAllowed(event, 'engineSend')) return
     deps.engineRelay.send(send)
   })
 
-  Electron.ipcMain.on('engineRestartLink', () => {
+  Electron.ipcMain.on('engineRestartLink', event => {
+    if (!isSenderAllowed(event, 'engineRestartLink')) return
     deps.engineRelay.restartLink({afterDelay: true})
   })
 
-  Electron.ipcMain.on('engineDropLink', () => {
+  Electron.ipcMain.on('engineDropLink', event => {
+    if (!isSenderAllowed(event, 'engineDropLink')) return
     deps.engineRelay.dropLink()
   })
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
+    const type: unknown = (action as {type?: unknown} | undefined)?.type
+    if (typeof type !== 'string' || !isSenderAllowed(event, type)) return undefined
     switch (action.type) {
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {

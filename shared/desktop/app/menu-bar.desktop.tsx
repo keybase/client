@@ -9,6 +9,7 @@ import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window-ref.desktop'
 import {htmlURL, preloadPath} from './html-root.desktop'
 import {registerRemoteWindow} from './remote-windows.desktop'
+import {isSenderAllowed} from './ipc-sender.desktop'
 import path from 'path'
 import type {BadgeType} from '@/stores/notifications'
 
@@ -105,7 +106,8 @@ const MenuBar = () => {
     }
   }
 
-  Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
+  Electron.ipcMain.handle('KBmenu', (event, action: Action) => {
+    if (!isSenderAllowed(event, 'KBmenu')) return
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (action.type !== 'showTray') return
 
