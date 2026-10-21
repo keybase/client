@@ -131,3 +131,15 @@ export const mimeTypeForPath = (filePath: string) => {
   const ext = /\.([^./\\]+)$/.exec(filePath)?.[1]?.toLowerCase()
   return ext && Object.hasOwn(mimeTypes, ext) ? mimeTypes[ext] : undefined
 }
+
+// Flags for opening a local file to serve. Non-blocking on posix so opening a
+// path that turns out not to be a regular file returns at once.
+export const localFileOpenFlags = (
+  platform: string,
+  constants: {O_NONBLOCK?: number; O_RDONLY: number}
+): number | string =>
+  platform === 'win32' ? 'r' : constants.O_RDONLY | (constants.O_NONBLOCK ?? 0)
+
+// Whether two stats describe the same file
+export const isSameFile = (a: {dev: number; ino: number}, b: {dev: number; ino: number}) =>
+  a.dev === b.dev && a.ino === b.ino

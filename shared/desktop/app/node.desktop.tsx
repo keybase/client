@@ -30,6 +30,8 @@ import {setupIPCHandlers} from './ipc-handlers.desktop'
 import {localFileScheme} from '@/util/file-url'
 import {
   appScheme,
+  isSameFile,
+  localFileOpenFlags,
   localFilePathFromURL,
   mimeTypeForPath,
   requestedRange,
@@ -163,16 +165,20 @@ const fileResponse = async (filePath: string | undefined) => {
   }
 }
 
-// Headers and body come from one open handle, so they describe the same file. Ranges are
-// answered with a 206 so media elements can seek.
+// Only regular files are opened. Headers and body come from one open handle, checked to be
+// the file that was stat'd, so they describe the same file. Ranges are answered with a 206 so
+// media elements can seek.
 const localFileResponse = async (filePath: string, req: Request) => {
+  const notFound = () => new Response(undefined, {status: 404})
   let handle: fs.promises.FileHandle | undefined
   try {
-    handle = await fs.promises.open(filePath, 'r')
+    const pathStat = await fs.promises.stat(filePath)
+    if (!pathStat.isFile()) return notFound()
+    handle = await fs.promises.open(filePath, localFileOpenFlags(process.platform, fs.constants))
     const stat = await handle.stat()
-    if (!stat.isFile()) {
+    if (!stat.isFile() || !isSameFile(pathStat, stat)) {
       await handle.close()
-      return new Response(undefined, {status: 404})
+      return notFound()
     }
     const lastModified = stat.mtime.toUTCString()
     const headers = new Headers({'Accept-Ranges': 'bytes', 'Last-Modified': lastModified})
@@ -199,7 +205,7 @@ const localFileResponse = async (filePath: string, req: Request) => {
     return new Response(body, {headers, status: 206})
   } catch {
     await handle?.close().catch(() => {})
-    return new Response(undefined, {status: 404})
+    return notFound()
   }
 }
 

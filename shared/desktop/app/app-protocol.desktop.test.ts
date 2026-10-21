@@ -1,5 +1,7 @@
 import path from 'path'
 import {
+  isSameFile,
+  localFileOpenFlags,
   localFilePathFromURL,
   mimeTypeForPath,
   parseByteRange,
@@ -212,5 +214,24 @@ describe('mimeTypeForPath', () => {
     expect(mimeTypeForPath('/tmp/a.png/')).toBeUndefined()
     expect(mimeTypeForPath('/tmp/a.constructor')).toBeUndefined()
     expect(mimeTypeForPath('/tmp/a.toString')).toBeUndefined()
+  })
+})
+
+describe('localFileOpenFlags', () => {
+  const constants = {O_NONBLOCK: 4, O_RDONLY: 0}
+  it('opens read-only and non-blocking on posix', () => {
+    expect(localFileOpenFlags('darwin', constants)).toBe(4)
+    expect(localFileOpenFlags('linux', constants)).toBe(4)
+  })
+  it('opens for reading on windows', () => {
+    expect(localFileOpenFlags('win32', constants)).toBe('r')
+  })
+})
+
+describe('isSameFile', () => {
+  it('matches on device and inode', () => {
+    expect(isSameFile({dev: 1, ino: 2}, {dev: 1, ino: 2})).toBe(true)
+    expect(isSameFile({dev: 1, ino: 2}, {dev: 1, ino: 3})).toBe(false)
+    expect(isSameFile({dev: 1, ino: 2}, {dev: 9, ino: 2})).toBe(false)
   })
 })
