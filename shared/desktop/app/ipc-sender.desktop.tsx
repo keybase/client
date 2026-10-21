@@ -43,7 +43,12 @@ const isSenderAllowed = (
 ) => {
   const kind = windowKind(event.sender)
   if (kind && isWindowPage(event, kind) && isRequestAllowed(kind, request)) return true
-  const name = 'channel' in request ? `channel:${request.channel}` : `action:${request.action}`
+  const name =
+    'channel' in request
+      ? `channel:${request.channel}`
+      : 'forward' in request
+        ? `forward:${request.forward}`
+        : `action:${request.action}`
   const key = `${kind ?? 'unknown'}:${name.slice(0, 64)}`
   if (!warned.has(key) && warned.size < 100) {
     warned.add(key)

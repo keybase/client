@@ -2,11 +2,13 @@
 // shape of the URLs and paths the bridge functions act on. No electron imports, so it unit tests.
 import path from 'path'
 import type {Action} from './ipctypes'
+import * as RemoteGen from '@/constants/remote-actions'
 import type {RemoteComponentName} from '../remote/remote-component.desktop'
 
 export type WindowKind = 'main' | RemoteComponentName
 
-// A call is either an ipcMain channel, or a KBkeybase action named by its type
+// A call is an ipcMain channel, a KBkeybase action named by its type, or an action relayed to the
+// main window over KBdispatchAction, named by its type
 type Channel =
   | 'KBdispatchAction'
   | 'KBmenu'
@@ -14,7 +16,7 @@ type Channel =
   | 'engineDropLink'
   | 'engineRestartLink'
   | 'engineSend'
-export type BridgeRequest = {channel: string} | {action: string}
+export type BridgeRequest = {channel: string} | {action: string} | {forward: string}
 
 // file: URLs all share the opaque origin 'null', so compare scheme + host + path instead of origin.
 // Paths compare case-insensitively, as Windows file paths can differ in case.
@@ -34,18 +36,47 @@ export const isSamePage = (url: unknown, key: string | undefined) => {
   return k !== undefined && k === key
 }
 
-type RemoteAllowed = {channels: ReadonlySet<string>; actions: ReadonlySet<string>}
-const remoteChannels: ReadonlySet<string> = new Set<Channel>(['KBdispatchAction', 'KBsetupPreloadKB2'])
-// Every remote window loads remote.html, picks its component from the query, then reads its props
-const remoteActions = (...extra: Array<Action['type']>): RemoteAllowed => ({
+type RemoteAllowed = {
+  channels: ReadonlySet<string>
+  actions: ReadonlySet<string>
+  forwards: ReadonlySet<string>
+}
+type RemoteActionType = RemoteGen.Actions['type']
+const remoteChannels: ReadonlySet<string> = new Set<Channel>(['KBsetupPreloadKB2'])
+// Every remote window loads remote.html, picks its component from the query, then reads its props.
+// forwards are the remote actions the window's component dispatches to the main window.
+const remoteActions = (extra: Array<Action['type']>, forwards: Array<RemoteActionType>): RemoteAllowed => ({
   actions: new Set<Action['type']>(['closeWindow', 'getRemoteProps', 'showInactive', ...extra]),
   channels: remoteChannels,
+  forwards: new Set<RemoteActionType>(forwards),
 })
 const remoteAllowed: {[K in RemoteComponentName]: RemoteAllowed} = {
-  menubar: remoteActions('ctlQuit', 'hideWindow', 'openURL'),
-  pinentry: remoteActions(),
-  tracker: remoteActions('openURL'),
-  'unlock-folders': remoteActions(),
+  menubar: remoteActions(
+    ['ctlQuit', 'hideWindow', 'openURL'],
+    [
+      RemoteGen.dumpLogs,
+      RemoteGen.openChatFromWidget,
+      RemoteGen.openFilesFromWidget,
+      RemoteGen.openPathInSystemFileManager,
+      RemoteGen.showMain,
+      RemoteGen.stop,
+      RemoteGen.switchTab,
+      RemoteGen.updateNow,
+    ]
+  ),
+  pinentry: remoteActions([], [RemoteGen.pinentryOnCancel, RemoteGen.pinentryOnSubmit]),
+  tracker: remoteActions(
+    ['openURL'],
+    [
+      RemoteGen.previewConversation,
+      RemoteGen.showMain,
+      RemoteGen.trackerChangeFollow,
+      RemoteGen.trackerCloseTracker,
+      RemoteGen.trackerIgnore,
+      RemoteGen.trackerLoad,
+    ]
+  ),
+  'unlock-folders': remoteActions([], [RemoteGen.closeUnlockFolders, RemoteGen.unlockFoldersSubmitPaperKey]),
 }
 
 export const isRemoteKind = (component: string): component is RemoteComponentName =>
@@ -55,7 +86,9 @@ export const isRemoteKind = (component: string): component is RemoteComponentNam
 export const isRequestAllowed = (kind: WindowKind, request: BridgeRequest) => {
   if (kind === 'main') return true
   const allowed = remoteAllowed[kind]
-  return 'channel' in request ? allowed.channels.has(request.channel) : allowed.actions.has(request.action)
+  if ('channel' in request) return allowed.channels.has(request.channel)
+  if ('forward' in request) return allowed.forwards.has(request.forward)
+  return allowed.actions.has(request.action)
 }
 
 const parseURL = (url: unknown) => {

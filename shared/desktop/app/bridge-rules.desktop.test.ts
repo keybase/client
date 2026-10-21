@@ -52,6 +52,7 @@ describe('isRequestAllowed', () => {
   const remoteKinds = ['menubar', 'pinentry', 'tracker', 'unlock-folders'] as const
   const action = (a: string) => ({action: a})
   const channel = (c: string) => ({channel: c})
+  const forward = (f: string) => ({forward: f})
 
   test('the main window may make every call', () => {
     for (const c of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'KBdispatchAction']) {
@@ -60,13 +61,14 @@ describe('isRequestAllowed', () => {
     for (const a of ['uninstallDokan', 'makeRenderer', 'openPathInFinder']) {
       expect(isRequestAllowed('main', action(a))).toBe(true)
     }
+    for (const f of ['remote:stop', 'remote:dumpLogs', 'common:resetStore', 'remote:link', 'anything']) {
+      expect(isRequestAllowed('main', forward(f))).toBe(true)
+    }
   })
 
-  test('every remote window may load, read its props, show and close itself, and dispatch', () => {
+  test('every remote window may load, read its props, and show and close itself', () => {
     for (const kind of remoteKinds) {
-      for (const c of ['KBsetupPreloadKB2', 'KBdispatchAction']) {
-        expect(isRequestAllowed(kind, channel(c))).toBe(true)
-      }
+      expect(isRequestAllowed(kind, channel('KBsetupPreloadKB2'))).toBe(true)
       for (const a of ['getRemoteProps', 'showInactive', 'closeWindow']) {
         expect(isRequestAllowed(kind, action(a))).toBe(true)
       }
@@ -110,6 +112,49 @@ describe('isRequestAllowed', () => {
       ]) {
         expect(isRequestAllowed(kind, action(a))).toBe(false)
       }
+    }
+  })
+
+  test('each remote window may relay the remote actions its component dispatches', () => {
+    const forwards = {
+      menubar: [
+        'remote:dumpLogs',
+        'remote:openChatFromWidget',
+        'remote:openFilesFromWidget',
+        'remote:openPathInSystemFileManager',
+        'remote:showMain',
+        'remote:stop',
+        'remote:switchTab',
+        'remote:updateNow',
+      ],
+      pinentry: ['remote:pinentryOnCancel', 'remote:pinentryOnSubmit'],
+      tracker: [
+        'remote:previewConversation',
+        'remote:showMain',
+        'remote:trackerChangeFollow',
+        'remote:trackerCloseTracker',
+        'remote:trackerIgnore',
+        'remote:trackerLoad',
+      ],
+      'unlock-folders': ['remote:closeUnlockFolders', 'remote:unlockFoldersSubmitPaperKey'],
+    }
+    const all = new Set(Object.values(forwards).flat())
+    for (const kind of remoteKinds) {
+      for (const f of all) {
+        expect(isRequestAllowed(kind, forward(f))).toBe((forwards[kind] as Array<string>).includes(f))
+      }
+    }
+  })
+
+  test('remote windows may not relay other remote actions', () => {
+    expect(isRequestAllowed('pinentry', forward('remote:stop'))).toBe(false)
+    expect(isRequestAllowed('pinentry', forward('remote:dumpLogs'))).toBe(false)
+    for (const kind of remoteKinds) {
+      for (const f of ['common:resetStore', 'remote:link', 'remote:saltpackFileOpen', 'remote:installerRan', '']) {
+        expect(isRequestAllowed(kind, forward(f))).toBe(false)
+      }
+      expect(isRequestAllowed(kind, channel('KBdispatchAction'))).toBe(false)
+      expect(isRequestAllowed(kind, action('remote:showMain'))).toBe(false)
     }
   })
 

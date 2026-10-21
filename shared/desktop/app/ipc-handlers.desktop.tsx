@@ -246,9 +246,16 @@ export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
-  handleFromApp('KBdispatchAction', (_event, action: unknown) => {
-    getMainWindow()?.webContents.send('KBdispatchAction', action)
-  })
+  handleFromApp(
+    'KBdispatchAction',
+    (_event, action: unknown) => {
+      getMainWindow()?.webContents.send('KBdispatchAction', action)
+    },
+    (action: unknown) => {
+      const type = (action as {type?: unknown} | null | undefined)?.type
+      return {forward: typeof type === 'string' ? type : ''}
+    }
+  )
 
   // read at window load so it reflects the saved preference (applied as themeSource) or the OS
   onSyncFromApp('KBsetupPreloadKB2', () => ({
