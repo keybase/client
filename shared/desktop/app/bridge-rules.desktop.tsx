@@ -3,6 +3,7 @@
 import path from 'path'
 import type {Action} from './ipctypes'
 import * as RemoteGen from '@/constants/remote-actions'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {RemoteComponentName} from '../remote/remote-component.desktop'
 
 export type WindowKind = 'main' | RemoteComponentName
@@ -80,10 +81,20 @@ const remoteAllowed: {[K in RemoteComponentName]: RemoteAllowed} = {
 }
 
 // Forwarded payloads the main window would act on more broadly than the remote window needs are pinned
-// to what the window sends: the menubar only opens the KBFS mount
-const pinnedForwardPayloads: {[type: string]: (payload: unknown) => boolean} = {
-  [RemoteGen.openPathInSystemFileManager]: payload => (payload as {path?: unknown} | undefined)?.path === '/keybase',
-}
+// to what the window sends: the menubar only opens the KBFS mount, quits cleanly and dumps logs on quit,
+// and the tracker only follows
+const payloadField = (payload: unknown, key: string): unknown =>
+  typeof payload === 'object' && payload !== null && Object.hasOwn(payload, key)
+    ? (payload as {[k: string]: unknown})[key]
+    : undefined
+const pinnedForwardPayloads = new Map<string, (payload: unknown) => boolean>([
+  [RemoteGen.dumpLogs, p => payloadField(p, 'reason') === 'quitting through menu'],
+  [RemoteGen.openPathInSystemFileManager, p => payloadField(p, 'path') === '/keybase'],
+  [RemoteGen.stop, p => payloadField(p, 'exitCode') === RPCTypes.ExitCode.ok],
+  [RemoteGen.trackerChangeFollow, p => payloadField(p, 'follow') === true],
+])
+
+export const remoteForwards = (kind: RemoteComponentName): ReadonlySet<string> => remoteAllowed[kind].forwards
 
 export const isRemoteKind = (component: string): component is RemoteComponentName =>
   Object.hasOwn(remoteAllowed, component)
@@ -94,10 +105,39 @@ export const isRequestAllowed = (kind: WindowKind, request: BridgeRequest) => {
   const allowed = remoteAllowed[kind]
   if ('channel' in request) return allowed.channels.has(request.channel)
   if ('forward' in request) {
-    const pinned = pinnedForwardPayloads[request.forward]
+    const pinned = pinnedForwardPayloads.get(request.forward)
     return allowed.forwards.has(request.forward) && (!pinned || pinned(request.payload))
   }
   return allowed.actions.has(request.action)
+}
+
+const knownChannels: ReadonlySet<string> = new Set<Channel>([
+  'KBdispatchAction',
+  'KBmenu',
+  'KBsetupPreloadKB2',
+  'engineDropLink',
+  'engineRestartLink',
+  'engineSend',
+])
+const knownActions: {[K in Action['type']]: true} = {
+  DEVwriteMenuIcons: true, activeChanged: true, appStartedUp: true, closeRenderer: true, closeWindow: true,
+  closeWindows: true, copyToClipboard: true, ctlQuit: true, darwinCopyToChatTempUploadFile: true,
+  darwinCopyToKBFSTempUploadFile: true, dumpNodeLogger: true, exitApp: true, getPathType: true,
+  getRemoteProps: true, hideWindow: true, installCachedDokan: true, isDirectory: true, makeRenderer: true,
+  minimizeWindow: true, openPathInFinder: true, openURL: true, quitApp: true, readImageFromClipboard: true,
+  relaunchApp: true, rendererNewProps: true, requestWindowsStartService: true,
+  selectFilesToUploadDialog: true, setNativeTheme: true, setOpenAtLogin: true, showContextMenu: true,
+  showInactive: true, showMainWindow: true, showOpenDialog: true, showSaveDialog: true,
+  toggleMaximizeWindow: true, uninstallDokan: true, uninstallDokanDialog: true, uninstallKBFSDialog: true,
+  winCheckRPCOwnership: true, windowsCheckMountFromOtherDokanInstall: true,
+}
+const knownForwards: ReadonlySet<unknown> = new Set(Object.values(RemoteGen).filter(v => typeof v === 'string'))
+
+// How a refused request is named in the log: only names the app defines, anything else is 'unknown'
+export const requestLogName = (request: BridgeRequest) => {
+  if ('channel' in request) return `channel:${knownChannels.has(request.channel) ? request.channel : 'unknown'}`
+  if ('forward' in request) return `forward:${knownForwards.has(request.forward) ? request.forward : 'unknown'}`
+  return `action:${Object.hasOwn(knownActions, request.action) ? request.action : 'unknown'}`
 }
 
 const parseURL = (url: unknown) => {

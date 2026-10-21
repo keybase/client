@@ -1,4 +1,8 @@
 /// <reference types="jest" />
+import fs from 'fs'
+import path from 'path'
+import * as RemoteGen from '@/constants/remote-actions'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import {
   isBrowserURL,
   isExternalURLAllowed,
@@ -9,6 +13,8 @@ import {
   isUploadTempPath,
   pageKey,
   parseDokanUninstallCommand,
+  remoteForwards,
+  requestLogName,
 } from './bridge-rules.desktop'
 
 describe('isSamePage', () => {
@@ -53,6 +59,13 @@ describe('isRequestAllowed', () => {
   const action = (a: string) => ({action: a})
   const channel = (c: string) => ({channel: c})
   const forward = (f: string, payload?: unknown) => ({forward: f, payload})
+  // the payloads the remote windows send for the forwards whose payload is pinned
+  const sent: {[type: string]: unknown} = {
+    'remote:dumpLogs': {reason: 'quitting through menu'},
+    'remote:openPathInSystemFileManager': {path: '/keybase'},
+    'remote:stop': {exitCode: RPCTypes.ExitCode.ok},
+    'remote:trackerChangeFollow': {follow: true, guiID: 'g'},
+  }
 
   test('the main window may make every call', () => {
     for (const c of ['engineSend', 'engineRestartLink', 'engineDropLink', 'KBmenu', 'KBdispatchAction']) {
@@ -141,26 +154,49 @@ describe('isRequestAllowed', () => {
     const all = new Set(Object.values(forwards).flat())
     for (const kind of remoteKinds) {
       for (const f of all) {
-        const payload = f === 'remote:openPathInSystemFileManager' ? {path: '/keybase'} : undefined
-        expect(isRequestAllowed(kind, forward(f, payload))).toBe((forwards[kind] as Array<string>).includes(f))
+        expect(isRequestAllowed(kind, forward(f, sent[f]))).toBe((forwards[kind] as Array<string>).includes(f))
       }
     }
   })
 
-  test('the menubar may only open the KBFS mount', () => {
-    const open = 'remote:openPathInSystemFileManager'
-    expect(isRequestAllowed('menubar', forward(open, {path: '/keybase'}))).toBe(true)
-    for (const payload of [{path: '/Users/testuser'}, {path: '/keybase/../etc'}, {}, undefined, 'x']) {
-      expect(isRequestAllowed('menubar', forward(open, payload))).toBe(false)
+  test('pinned forwards carry only the payload the window sends', () => {
+    const refused: {[type: string]: Array<unknown>} = {
+      'remote:dumpLogs': [{reason: 'other'}, {}, undefined],
+      'remote:openPathInSystemFileManager': [
+        {path: '/Users/testuser'},
+        {path: '/keybase/../etc'},
+        {},
+        undefined,
+        'x',
+        Object.create({path: '/keybase'}),
+      ],
+      'remote:stop': [{exitCode: RPCTypes.ExitCode.notok}, {exitCode: RPCTypes.ExitCode.restart}, {}, undefined],
+      'remote:trackerChangeFollow': [{follow: false, guiID: 'g'}, {follow: 'true', guiID: 'g'}, {guiID: 'g'}],
     }
-    expect(isRequestAllowed('main', forward(open, {path: '/Users/testuser'}))).toBe(true)
+    const kindOf = (f: string) => (f === 'remote:trackerChangeFollow' ? 'tracker' : 'menubar')
+    for (const [f, payloads] of Object.entries(refused)) {
+      expect(isRequestAllowed(kindOf(f), forward(f, sent[f]))).toBe(true)
+      for (const payload of payloads) {
+        expect(isRequestAllowed(kindOf(f), forward(f, payload))).toBe(false)
+        expect(isRequestAllowed('main', forward(f, payload))).toBe(true)
+      }
+    }
   })
 
   test('remote windows may not relay other remote actions', () => {
     expect(isRequestAllowed('pinentry', forward('remote:stop'))).toBe(false)
     expect(isRequestAllowed('pinentry', forward('remote:dumpLogs'))).toBe(false)
     for (const kind of remoteKinds) {
-      for (const f of ['common:resetStore', 'remote:link', 'remote:saltpackFileOpen', 'remote:installerRan', '']) {
+      for (const f of [
+        'common:resetStore',
+        'remote:link',
+        'remote:saltpackFileOpen',
+        'remote:installerRan',
+        '',
+        'constructor',
+        '__proto__',
+        'toString',
+      ]) {
         expect(isRequestAllowed(kind, forward(f))).toBe(false)
       }
       expect(isRequestAllowed(kind, channel('KBdispatchAction'))).toBe(false)
@@ -314,5 +350,86 @@ describe('isUploadTempPath', () => {
     expect(isUploadTempPath('/Users/testuser/Library/Caches/KeybaseDevel/uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath('uploads-1/x', cacheRoot, 'kbfs')).toBe(false)
     expect(isUploadTempPath(`${cacheRoot}uploads-1/x`, '', 'kbfs')).toBe(false)
+  })
+})
+
+describe('requestLogName', () => {
+  test('names only the channels, actions and remote actions the app defines', () => {
+    expect(requestLogName({channel: 'KBmenu'})).toBe('channel:KBmenu')
+    expect(requestLogName({action: 'openURL'})).toBe('action:openURL')
+    expect(requestLogName({forward: 'remote:stop'})).toBe('forward:remote:stop')
+    for (const name of ['made-up', 'toString', '__proto__', 'x'.repeat(200)]) {
+      expect(requestLogName({channel: name})).toBe('channel:unknown')
+      expect(requestLogName({action: name})).toBe('action:unknown')
+      expect(requestLogName({forward: name})).toBe('forward:unknown')
+    }
+  })
+})
+
+// The remote windows' allowlists must match what their components dispatch. These are the files
+// each remote window's component dispatches from (the sources that call R.remoteDispatch).
+describe('remote window forwards match their dispatch sites', () => {
+  const root = path.join(__dirname, '../..')
+  const dispatchSites = {
+    menubar: ['menubar/index.desktop.tsx', 'menubar/out-of-date.tsx'],
+    pinentry: ['pinentry/main2.desktop.tsx'],
+    tracker: ['tracker/main2.desktop.tsx'],
+    'unlock-folders': ['unlock-folders/main2.desktop.tsx'],
+  } as const
+  const source = (files: ReadonlyArray<string>) =>
+    files.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n')
+  const creators = RemoteGen as unknown as {[name: string]: unknown}
+  // RemoteGen.createFoo builds the action whose type is RemoteGen.foo
+  const dispatched = (src: string) =>
+    new Set(
+      [...src.matchAll(/RemoteGen\.(create\w+)\(/g)].map(([, name = '']) => {
+        const create = creators[name]
+        expect(typeof create).toBe('function')
+        const {type} = (create as (p: unknown) => {type: string})(undefined)
+        expect(type).toBe(creators[name.charAt(6).toLowerCase() + name.slice(7)])
+        return type
+      })
+    )
+
+  test('every remote window file that dispatches is listed', () => {
+    const listed = new Set<string>(Object.values(dispatchSites).flat())
+    for (const dir of new Set([...listed].map(f => path.dirname(f)))) {
+      for (const f of fs.readdirSync(path.join(root, dir))) {
+        const rel = `${dir}/${f}`
+        if ((f.endsWith('.tsx') || f.endsWith('.ts')) && !f.includes('.test.') && source([rel]).includes('R.remoteDispatch(')) {
+          expect(listed.has(rel)).toBe(true)
+        }
+      }
+    }
+  })
+
+  test('each allowlist is exactly the set its window dispatches', () => {
+    for (const [kind, files] of Object.entries(dispatchSites)) {
+      const want = [...dispatched(source(files))].sort()
+      expect(want.length).toBeGreaterThan(0)
+      expect([...remoteForwards(kind as keyof typeof dispatchSites)].sort()).toEqual(want)
+    }
+  })
+
+  test('the pinned payloads are the literals the windows send', () => {
+    const menubar = source(dispatchSites.menubar)
+    const tracker = source(dispatchSites.tracker)
+    const literal = (src: string, re: RegExp) => [...src.matchAll(re)].map(([, v]) => v)
+    const paths = literal(menubar, /createOpenPathInSystemFileManager\(\{path: '([^']*)'\}\)/g)
+    expect(paths.length).toBeGreaterThan(0)
+    for (const p of paths) {
+      expect(isRequestAllowed('menubar', {forward: RemoteGen.openPathInSystemFileManager, payload: {path: p}})).toBe(true)
+    }
+    const reasons = literal(menubar, /createDumpLogs\(\{reason: '([^']*)'\}\)/g)
+    expect(reasons.length).toBeGreaterThan(0)
+    for (const reason of reasons) {
+      expect(isRequestAllowed('menubar', {forward: RemoteGen.dumpLogs, payload: {reason}})).toBe(true)
+    }
+    const exitCodes = literal(menubar, /createStop\(\{exitCode: ([^}]*)\}\)/g)
+    expect(exitCodes).toEqual(['T.RPCGen.ExitCode.ok'])
+    const follows = literal(tracker, /createTrackerChangeFollow\(\{follow: ([^,}]*)/g)
+    expect(follows.length).toBeGreaterThan(0)
+    expect(new Set(follows)).toEqual(new Set(['true']))
+    expect(isRequestAllowed('tracker', {forward: RemoteGen.trackerChangeFollow, payload: {follow: true, guiID: 'g'}})).toBe(true)
   })
 })

@@ -8,6 +8,7 @@ import {
   isRequestAllowed,
   isSamePage,
   pageKey,
+  requestLogName,
   type BridgeRequest,
   type WindowKind,
 } from './bridge-rules.desktop'
@@ -43,13 +44,7 @@ const isSenderAllowed = (
 ) => {
   const kind = windowKind(event.sender)
   if (kind && isWindowPage(event, kind) && isRequestAllowed(kind, request)) return true
-  const name =
-    'channel' in request
-      ? `channel:${request.channel}`
-      : 'forward' in request
-        ? `forward:${request.forward}`
-        : `action:${request.action}`
-  const key = `${kind ?? 'unknown'}:${name.slice(0, 64)}`
+  const key = `${kind ?? 'unknown'}:${requestLogName(request)}`
   if (!warned.has(key) && warned.size < 100) {
     warned.add(key)
     logger.warn(`IPC: refused ${key}`)

@@ -246,14 +246,19 @@ export const setupIPCHandlers = (deps: {
   markAppStartedUp: () => void
   engineRelay: EngineRelay
 }) => {
+  // The main window gets only the type and payload that were checked
+  const remoteActionOf = (action: unknown) => {
+    const {payload, type} = (action ?? {}) as {payload?: unknown; type?: unknown}
+    return {payload, type: typeof type === 'string' ? type : ''}
+  }
   handleFromApp(
     'KBdispatchAction',
     (_event, action: unknown) => {
-      getMainWindow()?.webContents.send('KBdispatchAction', action)
+      getMainWindow()?.webContents.send('KBdispatchAction', remoteActionOf(action))
     },
     (action: unknown) => {
-      const {payload, type} = (action ?? {}) as {payload?: unknown; type?: unknown}
-      return {forward: typeof type === 'string' ? type : '', payload}
+      const {payload, type} = remoteActionOf(action)
+      return {forward: type, payload}
     }
   )
 
