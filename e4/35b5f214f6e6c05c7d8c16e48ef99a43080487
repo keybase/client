@@ -1,0 +1,27 @@
+packaging/linux/docker/node-slim/Dockerfile
+  s_aa5392090d26d8::t_6322681b6310c4 4
+packaging/linux/docker_build.sh
+  s_aa5392090d26d8::t_8bd3f995d10543 73
+packaging/linux/Dockerfile
+  s_aa5392090d26d8::t_1cb29caca74cd3 37
+Jenkinsfile
+  s_aa5392090d26d8::t_b97736e010f246 119
+packaging/linux/docker/node/Dockerfile
+  s_aa5392090d26d8::t_e48388905926ef 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e435b5f214f6e6c05c7d8c16e48ef99a43080487",
+  "prompts": {},
+  "sessions": {
+    "s_aa5392090d26d8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a70db1ce-b35b-458d-95e7-54d5a6bcf359",
+        "model": "grok-4.6"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
