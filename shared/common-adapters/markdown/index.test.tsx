@@ -315,3 +315,24 @@ test('Markdown spoilers reveal content when clicked', () => {
   fireEvent.click(screen.getByTitle('Click to reveal'))
   expect(screen.getByText('secret')).toBeTruthy()
 })
+
+// Any member of a conversation can send these, so parsing them has to stay linear in their length:
+// a rule that rescans the rest of the line or a dotted run at every position is quadratic.
+test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com'])(
+  'Markdown parses a long run of %j in linear time',
+  unit => {
+    const parseTime = (length: number) => {
+      const s = unit.repeat(Math.ceil(length / unit.length))
+      let best = Infinity
+      for (let i = 0; i < 5; ++i) {
+        const start = performance.now()
+        parseMarkdown(s, {shouldUseMarkdownParser: true})
+        best = Math.min(best, performance.now() - start)
+      }
+      return best
+    }
+    parseTime(4000)
+    // linear is ~4x for 4x the input, quadratic ~16x
+    expect(parseTime(16000) / parseTime(4000)).toBeLessThan(8)
+  }
+)

@@ -32,6 +32,7 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
   quotedFenceDeclined?: {at: number; base: string}
+  urlStarts?: Map<string, Array<number>>
   isMobile?: boolean
 }
 
@@ -120,11 +121,10 @@ const closesOnLine = (state: State, closerAhead: RegExp, openerLength: number) =
   return lineEnd === -1 || lineEnd > close
 }
 
-const makeTextRegexp = () => {
-  const anyCharOne = /^[\s\S]+?/ // [\s\S]+? any char, at least 1 - lazy
-  // (?= // Positive look ahead. It should have these chars ahead
-  // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
-
+// Text runs up to (not including) the first position after its first char where one of these is
+// ahead. Whether it stops at a position only depends on the string around it, not where the run
+// started, so the search for the next stop is remembered (indexAhead) instead of redone each run.
+const makeTextStopRegexp = () => {
   // OR a character that some other rule could start with, so that rule gets a chance at this
   // position. Everything else -- ordinary punctuation -- stays inside the text run; stopping on all
   // of it (the original was [^0-9A-Za-z\s\u00c0-\uffff]) emits a node, and a react element, per
@@ -140,34 +140,95 @@ const makeTextRegexp = () => {
   const anyUnicode = emojiUnicodeRegex
   // [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
   // The repetitions below are bounded (a dns label is at most 63 chars): unbounded they rescan the
-  // rest of the message at every position the lazy [\s\S]+? stops at, which is quadratic.
+  // rest of the message at every position checked, which is quadratic.
   const emaily = /[\w-_.]{1,64}@/
-  // (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-  // The lookbehind matters: without it the url is "ahead" from every position inside the word that
-  // starts it, so the text rule stops after a single character over and over and emits one node --
-  // and one react element -- per character. 'https://keybase.io/docs' used to parse to 17 of them.
-  // \b so a tld only counts at a word end: x.comx is not a url, x.com/y is.
-  const tldsPrefix = /(?<![0-9A-Za-z])(\w{1,63}\.)+/
-  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})\\b`)
-  const tlds = new RegExp([tldsPrefix.source, tldsPosfix.source].join(''))
+  // OR there is a url with a common tld ahead: see findUrlStarts, checked alongside these.
   const newline = /\n/
   // | \w+:\S // OR there's letters before a : so stop here. Same word-start anchor as the tlds.
   const lettersColon = /(?<![0-9A-Za-z])\w{1,64}:\S/
   const end = /$/ //   | $ // OR we reach the end of the line
   return new RegExp(
-    `${anyCharOne.source}(?=${[
+    `(?=${[
       notNormal.source,
       anyUnicode.source,
       emaily.source,
-      tlds.source,
       newline.source,
       lettersColon.source,
       end.source,
-    ].join('|')})`
+    ].join('|')})`,
+    'g'
   )
 }
-// Only allow a small set of characters before a url
-const textMatch = anyScopeRegex(makeTextRegexp())
+const textStopAhead = makeTextStopRegexp()
+
+const tlds = new Set(commonTlds)
+const tldMin = Math.min(...commonTlds.map(t => t.length))
+const tldMax = Math.max(...commonTlds.map(t => t.length))
+const isWordChar = (c: number) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95
+const dotChar = 46
+const underscoreChar = 95
+
+// The text rule also stops where a url with a common tld starts, i.e. where
+// /(?<![0-9A-Za-z])(\w{1,63}\.)+(tld)\b/ matches, so it doesn't swallow the common case of
+// 'Checkout google.com, they got all the cool gizmos'.
+// The lookbehind matters: without it the url is "ahead" from every position inside the word that
+// starts it, so the text rule stops after a single character over and over and emits one node --
+// and one react element -- per character. 'https://keybase.io/docs' used to parse to 17 of them.
+// \b so a tld only counts at a word end: x.comx is not a url, x.com/y is.
+// As a regex lookahead that re-reads a whole dotted run (a.b.c.d...) at every position in it, which
+// is quadratic, so instead this finds every such position in one pass from the end. Tlds are all
+// letters, so "tld\b" at i means the word starting at i is exactly a tld.
+const findUrlStarts = (s: string): Array<number> => {
+  const n = s.length
+  // wordEnd[i]: where the run of \w chars starting at i ends (i itself if s[i] isn't one)
+  const wordEnd = new Int32Array(n + 1)
+  wordEnd[n] = n
+  // tldAhead[i]: (\w{1,63}\.)*(tld)\b matches at i
+  const tldAhead = new Uint8Array(n + 2)
+  const starts: Array<number> = []
+  for (let i = n - 1; i >= 0; --i) {
+    const end = isWordChar(s.charCodeAt(i)) ? wordEnd[i + 1]! : i
+    wordEnd[i] = end
+    const length = end - i
+    const isTld = length >= tldMin && length <= tldMax && tlds.has(s.slice(i, end))
+    const labelThenTld = length >= 1 && length <= 63 && s.charCodeAt(end) === dotChar && tldAhead[end + 1] === 1
+    tldAhead[i] = isTld || labelThenTld ? 1 : 0
+    const prev = i > 0 ? s.charCodeAt(i - 1) : 0
+    if (labelThenTld && !(isWordChar(prev) && prev !== underscoreChar)) {
+      starts.push(i)
+    }
+  }
+  return starts.reverse()
+}
+
+// Index in the current source of the first url start after its first char, or -1.
+const urlAhead = (state: State) => {
+  const {base, pos} = state.cursor!
+  state.urlStarts ??= new Map()
+  let starts = state.urlStarts.get(base)
+  if (!starts) {
+    starts = findUrlStarts(base)
+    state.urlStarts.set(base, starts)
+  }
+  let lo = 0
+  let hi = starts.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (starts[mid]! <= pos) {
+      lo = mid + 1
+    } else {
+      hi = mid
+    }
+  }
+  return lo < starts.length ? starts[lo]! - pos : -1
+}
+
+const textMatch = (source: string, state: State): Capture => {
+  // the end of the source is always a stop
+  const stop = indexAhead(state, textStopAhead, 1)
+  const url = urlAhead(state)
+  return [source.slice(0, url !== -1 && url < stop ? url : stop)]
+}
 
 const wrapInParagraph = (parse: Parser, content: string, state: State): Array<SingleASTNode> => {
   const oldInParagraph = state['inParagraph'] as boolean
@@ -491,8 +552,8 @@ const rules: {[type: string]: ParserRule} = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: (source: string, state: State, prevCapture: string) =>
-      isMarkdownMobile(state) && !state['inParagraph'] ? null : textMatch(source, state, prevCapture),
+    match: (source: string, state: State) =>
+      isMarkdownMobile(state) && !state['inParagraph'] ? null : textMatch(source, state),
   },
 }
 
