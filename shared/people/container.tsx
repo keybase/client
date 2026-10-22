@@ -320,19 +320,23 @@ const usePeoplePageState = () => {
   const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
   const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
   const mountedRef = React.useRef(true)
+  // Loads can overlap (a pull while a focus load is out); only the latest one may write
+  const loadSeqRef = React.useRef(0)
   const debouncedLoadPeopleRef = React.useRef<DebouncedFunc<
     (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
   > | null>(null)
 
   const loadPeople = React.useEffectEvent(
-    (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
+    async (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
+      const seq = ++loadSeqRef.current
+      const superseded = () => !mountedRef.current || seq !== loadSeqRef.current
       const f = async () => {
         try {
           const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
             {markViewed, numFollowSuggestionsWanted},
             C.waitingKeyPeopleGetData
           )
-          if (!mountedRef.current) {
+          if (superseded()) {
             return
           }
 
@@ -347,14 +351,14 @@ const usePeoplePageState = () => {
           // Keep People resilient to transient RPC failures.
         }
       }
-      ignorePromise(f())
+      return f()
     }
   )
 
   if (debouncedLoadPeopleRef.current == null) {
     debouncedLoadPeopleRef.current = debounce(
       (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-        loadPeople(markViewed, numFollowSuggestionsWanted)
+        ignorePromise(loadPeople(markViewed, numFollowSuggestionsWanted))
       },
       1000,
       {leading: true, trailing: false}
@@ -400,6 +404,7 @@ const usePeoplePageState = () => {
     dismissAnnouncement,
     followSuggestions,
     loadPeople: queueLoadPeople,
+    loadPeopleNow: loadPeople,
     newItems,
     oldItems,
     resentEmail,
@@ -413,6 +418,7 @@ const PeopleReloadable = () => {
     dismissAnnouncement,
     followSuggestions,
     loadPeople,
+    loadPeopleNow,
     newItems,
     oldItems,
     resentEmail,
@@ -432,6 +438,15 @@ const PeopleReloadable = () => {
       lastRefreshRef.current = now
       loadPeople(markViewed, 10)
     }
+  })
+  // A pull to refresh: settles when the load does, so the spinner shows for exactly that load
+  const refreshNow = React.useEffectEvent(async () => {
+    lastRefreshRef.current = Date.now()
+    await loadPeopleNow(false, 10)
+  })
+  // frozen wrapper, like onReload below: effect-event identities change every render
+  const [refresh] = React.useState(() => async () => {
+    await refreshNow()
   })
 
   React.useEffect(() => {
@@ -469,6 +484,7 @@ const PeopleReloadable = () => {
       <People
         followSuggestions={followSuggestions}
         getData={getData}
+        refresh={refresh}
         myUsername={username}
         newItems={newItems}
         oldItems={oldItems}

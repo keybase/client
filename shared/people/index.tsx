@@ -16,6 +16,7 @@ type Props = {
   oldItems: T.Immutable<Array<T.People.PeopleScreenItem>>
   newItems: T.Immutable<Array<T.People.PeopleScreenItem>>
   onClickUser: (username: string) => void
+  refresh: () => Promise<void>
   resentEmail: string
   setResentEmail: (email: string) => void
   signupEmail: string
@@ -145,11 +146,18 @@ function PeoplePageList(props: Props) {
 function People(props: WrapProps) {
   const styles = useStyles()
   const {waiting, ...rest} = props
-  // destructure so the compiler keys onRefresh on getData, not the whole props object
-  const {getData} = props
-  const onRefresh = () => getData(false, true)
+  // destructure so the compiler keys onRefresh on refresh, not the whole props object
+  const {refresh} = props
+  // Only a pull shows the refresh spinner. On iOS a refreshing RefreshControl insets the content by
+  // the spinner's height, so background loads (mount, focus, account switch) would drop the page and
+  // slide it back up when they finish.
+  const [pulled, setPulled] = React.useState(false)
+  const onRefresh = () => {
+    setPulled(true)
+    C.ignorePromise(refresh().finally(() => setPulled(false)))
+  }
   return (
-    <Kb.ScrollView style={styles.container} refreshing={waiting} onRefresh={onRefresh}>
+    <Kb.ScrollView style={styles.container} refreshing={pulled} onRefresh={onRefresh}>
       {!isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
       <PeoplePageList {...rest} />
     </Kb.ScrollView>
