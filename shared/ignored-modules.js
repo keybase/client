@@ -4,7 +4,7 @@
 // Each entry maps to nullModulePath in webpack makeAlias.
 //
 // Node built-ins / legacy non-RN packages (webpack-only, not stubbed in Jest):
-const webpackOnly = ['net', 'tls', 'msgpack', 'process', 'purepack', '@khanacademy/perseus-core']
+const webpackOnly = ['net', 'tls', 'msgpack', 'process', 'purepack']
 
 // Native-only RN packages — also stubbed in Jest via jest.config.js + native-only-modules.js:
 const nativeOnly = require('./native-only-modules')
