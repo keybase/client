@@ -2771,18 +2771,6 @@
   resolved "https://registry.yarnpkg.com/@keyv/serialize/-/serialize-1.1.1.tgz#0c01dd3a3483882af7cf3878d4e71d505c81fc4a"
   integrity sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==
 
-"@khanacademy/perseus-utils@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@khanacademy/perseus-utils/-/perseus-utils-3.0.1.tgz#56fce1321439fc95c0ec452123e2d3a684208450"
-  integrity sha512-TKQ3WoZT6JV5Sh1GfZXi+JVXjjLZmOc0sr9id4YI/PzepXP7DZUEYpoOxxDYM5Od6LHpKe7i3mChcJQChmk1XA==
-
-"@khanacademy/simple-markdown@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@khanacademy/simple-markdown/-/simple-markdown-4.0.1.tgz#b60fdd54357a01ec1cbd3869ac5da3d3417cfd1f"
-  integrity sha512-iLZtQWDcxjiISRudChCrSfGQcLqx7hTQrh+UIHBXUr6WJX/BQjh5HvaPA53zhBjcgjGnO9PDR7akRn4nXgCjcQ==
-  dependencies:
-    "@khanacademy/perseus-utils" "3.0.1"
-
 "@legendapp/list@3.6.0":
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/@legendapp/list/-/list-3.6.0.tgz#4f4fe797b6d4e1ebd5813e8e0c95c508656d3741"
