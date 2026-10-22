@@ -3,6 +3,7 @@ import type * as React from 'react'
 import {
   anyScopeRegex,
   blockRegex,
+  indexAhead,
   inlineRegex,
   parseInline,
   parserFor,
@@ -100,7 +101,23 @@ const serviceDecorationRegex = new RegExp(
   `^${serviceBeginDecorationTag.source}(((?!${serviceEndDecorationTag.source}).)*)${serviceEndDecorationTag.source}`
 )
 
-const serviceDecorationMatcher = inlineRegex(serviceDecorationRegex)
+const serviceEndDecorationTagAhead = new RegExp(serviceEndDecorationTag.source, 'g')
+const spoilerRegex = /^!>(.*?)<!/
+const spoilerEndAhead = /<!/g
+// the line ends a regex `.` won't cross
+const lineEndAhead = /[\n\r\u2028\u2029]/g
+
+// For a rule shaped `opener (.*) closer`: the regex can only match if the first closer after the
+// opener comes before the line ends, and then it always does. Checking that first means a line full
+// of openers doesn't rescan the rest of the line at every one of them.
+const closesOnLine = (state: State, closerAhead: RegExp, openerLength: number) => {
+  const close = indexAhead(state, closerAhead, openerLength)
+  if (close === -1) {
+    return false
+  }
+  const lineEnd = indexAhead(state, lineEndAhead, openerLength)
+  return lineEnd === -1 || lineEnd > close
+}
 
 const makeTextRegexp = () => {
   const anyCharOne = /^[\s\S]+?/ // [\s\S]+? any char, at least 1 - lazy
@@ -409,9 +426,12 @@ const rules: {[type: string]: ParserRule} = {
     },
   },
   serviceDecoration: {
-    match: (source: string, state: State, prevCapture: string) => {
-      return serviceDecorationMatcher(source, state, prevCapture)
-    },
+    match: (source: string, state: State) =>
+      state.inline &&
+      source.startsWith('$>kb$') &&
+      closesOnLine(state, serviceEndDecorationTagAhead, '$>kb$'.length)
+        ? serviceDecorationRegex.exec(source)
+        : null,
     order: 1,
     parse: (capture: Capture, _nestedParse: Parser, _state: State) => ({
       content: capture[1],
@@ -419,7 +439,10 @@ const rules: {[type: string]: ParserRule} = {
     }),
   },
   spoiler: {
-    match: inlineRegex(/^!>(.*?)<!/),
+    match: (source: string, state: State) =>
+      state.inline && source.startsWith('!>') && closesOnLine(state, spoilerEndAhead, '!>'.length)
+        ? spoilerRegex.exec(source)
+        : null,
     order: 2,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: nestedParse(capture[1] || '', state),
