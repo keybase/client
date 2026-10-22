@@ -59,6 +59,11 @@ export async function tapSettingsRow(text: string): Promise<void> {
   await byText(text).click()
 }
 
+// A visible modal header button. Exact labels on buttons only: a tab root shows none of these,
+// while message snippets and feed text can contain the words.
+const MODAL_BUTTON_PRED =
+  '-ios predicate string:type == "XCUIElementTypeButton" AND label IN {"Cancel", "Done", "Close", "Back"} AND visible == 1'
+
 // True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
 // it stays visible inside pushed stack screens, so also require that no back
 // button (app-custom or native) is present.
@@ -76,7 +81,10 @@ export async function atTabs(): Promise<boolean> {
   }
   if ((await els('People').length) === 0) return false
   if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
-  return (await els('BackButton').length) === 0
+  if ((await els('BackButton').length) > 0) return false
+  // The tab bar stays in the tree under a modal sheet, so a presented modal (New chat, the
+  // account sheet) would otherwise read as a tab root and strand every later test behind it.
+  return (await browser.$$(MODAL_BUTTON_PRED).length) === 0
 }
 
 // Dismiss the keyboard ONLY when one is present — calling mobile: hideKeyboard

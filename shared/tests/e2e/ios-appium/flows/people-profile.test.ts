@@ -13,7 +13,9 @@ describe('people profile', () => {
 
     // Your own username appearing in your own feed is genuinely conditional
     // (the feed surfaces others' activity), so guard rather than hard-wait.
-    const userEl = byText(smokeUser)
+    // Scoped to the feed: the header's own avatar also carries the username, and
+    // tapping it opens the account sheet instead of the profile.
+    const userEl = byText(smokeUser, el(T.PEOPLE_FEED))
     if (!(await userEl.isExisting())) return
     await userEl.click()
     await waitForTestID(T.PROFILE_PAGE, 10000)
