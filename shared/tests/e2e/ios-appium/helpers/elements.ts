@@ -152,14 +152,17 @@ const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\
 // Android: a row's text can surface either as the TextView's text OR (when the
 // touchable is accessible) as the parent's content-desc, so match both; the
 // visible-text path uses textContains, the merged-label path content-desc.
-export const byText = (text: string): ChainablePromiseElement => {
+// `within` limits the match to that element's subtree.
+export const byText = (text: string, within?: ChainablePromiseElement): ChainablePromiseElement => {
   const t = escapePredicate(text)
+  const root = within ?? browser
   if (browser.isAndroid) {
     // xpath (not UiSelector) so we can OR the visible-text and merged-label
-    // (content-desc) paths in one selector.
-    return browser.$(`//*[contains(@text, "${t}") or contains(@content-desc, "${t}")]`)
+    // (content-desc) paths in one selector. A scoped xpath needs the leading
+    // "." or "//" searches the whole document.
+    return root.$(`${within ? '.' : ''}//*[contains(@text, "${t}") or contains(@content-desc, "${t}")]`)
   }
-  return browser.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
+  return root.$(`-ios predicate string:label CONTAINS "${t}" OR name CONTAINS "${t}"`)
 }
 
 // Tab-bar buttons. iOS exposes the native UITabBarItem by its title as the
