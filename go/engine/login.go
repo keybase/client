@@ -244,6 +244,18 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 
 	username := libkb.NewNormalizedUsername(e.username)
 
+	// Switching away from another account logs it out whatever its device's state on the server, so
+	// skip the server check of that account; the config already says it is someone else.
+	if e.doUserSwitch && !username.IsNil() && m.ActiveDevice().Valid() {
+		if current := m.ActiveDevice().Username(m); !current.IsNil() && !current.Eq(username) {
+			m.Debug("Login: switching from %s to %s", current, username)
+			if err := m.LogoutKeepSecrets(); err != nil {
+				return false, err
+			}
+			return false, nil
+		}
+	}
+
 	// CheckForUsername() gets a consistent picture of the current active device,
 	// and sees if it matches the given username, and isn't revoked. If all goes
 	// well, we return `true,nil`. It could be we're already logged in but for
@@ -282,6 +294,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 
 func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {
 	eng := NewLoginProvisionedDevice(m.G(), username)
+	eng.userSwitch = e.doUserSwitch
 	err := RunEngine2(m, eng)
 	// Whatever happened in the engine, overwrite our username with the one potentially
 	// chosen by the user. This gets rid of some confusing flows.

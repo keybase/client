@@ -1045,6 +1045,17 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 		d.startChatModules()
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
+		if libkb.DeviceCheckedCachedOnly(mctx.Ctx()) {
+			// An account switch checked the device against the cached user only, which can predate a
+			// reset of the account or a revoke of this device. Ask the server off the login's path;
+			// this also refreshes the cached user for the next login.
+			go func() {
+				m := libkb.NewMetaContextBackground(d.G()).WithLogTag("LOGINCHK")
+				if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
+					m.Debug("LogoutAndDeprovisionIfRevoked error: %s", err)
+				}
+			}()
+		}
 	}
 	return nil
 }
