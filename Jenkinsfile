@@ -116,7 +116,7 @@ helpers.rootLinuxNode(env, {
 
       # Set up Node
       source  ~/.nvm/nvm.sh
-      nvm install 24 && nvm use 24 && nvm alias default 24
+      nvm install 26 && nvm use 26 && nvm alias default 26
 
       # Capture both Go and Node environment variables
       # Put ~/go/bin first so our symlinked 'go' is used

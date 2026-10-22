@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM node:24-bookworm-slim
+FROM node:26-bookworm-slim
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
