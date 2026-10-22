@@ -47,6 +47,8 @@ const AccountSwitchHeaderAvatar = () => {
   // Effectively no time limit: a press the long press doesn't take, however long, still opens the switcher
   const tap = useTapGesture({
     maxDuration: 3_600_000,
+    // Like Pressable: a finger that wanders off the avatar cancels the tap
+    maxDistance: 20,
     onActivate: openAccountSwitcher,
     runOnJS: true,
   })

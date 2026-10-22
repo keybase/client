@@ -330,28 +330,25 @@ const usePeoplePageState = () => {
     async (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
       const seq = ++loadSeqRef.current
       const superseded = () => !mountedRef.current || seq !== loadSeqRef.current
-      const f = async () => {
-        try {
-          const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
-            {markViewed, numFollowSuggestionsWanted},
-            C.waitingKeyPeopleGetData
-          )
-          if (superseded()) {
-            return
-          }
-
-          const {followers, following} = useFollowerState.getState()
-          const nextState = reducePeopleScreenData(data, followers, following)
-          setFollowSuggestions(s =>
-            isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions
-          )
-          setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
-          setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
-        } catch {
-          // Keep People resilient to transient RPC failures.
+      try {
+        const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
+          {markViewed, numFollowSuggestionsWanted},
+          C.waitingKeyPeopleGetData
+        )
+        if (superseded()) {
+          return
         }
+
+        const {followers, following} = useFollowerState.getState()
+        const nextState = reducePeopleScreenData(data, followers, following)
+        setFollowSuggestions(s =>
+          isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions
+        )
+        setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
+        setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
+      } catch {
+        // Keep People resilient to transient RPC failures.
       }
-      return f()
     }
   )
 
