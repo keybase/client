@@ -33,6 +33,7 @@ type State = EngineState & {
   blockQuoteRecursionLevel?: number
   quotedFenceDeclined?: {at: number; base: string}
   urlStarts?: Map<string, Array<number>>
+  unclosedFenceAt?: Map<string, number>
   isMobile?: boolean
 }
 
@@ -262,6 +263,7 @@ const countFences = (line: string) => (line.match(/```/g) ?? []).length
 const emojiMatcher = inlineRegex(emojiRegex)
 const quotedFenceRegex = /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
 const quotedFenceStart = /^ *>/
+const fenceRegex = /^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/
 const fenceAhead = /```/g
 const newlineAhead = /\n/g
 
@@ -384,7 +386,26 @@ const rules: {[type: string]: ParserRule} = {
   },
   fence: {
     // aka the ``` code blocks
-    match: anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
+    // An unclosed fence fails only after scanning to the end, and then every later ``` in the same
+    // string fails too: its body starts right after a backtick, where the escape pairs (\x) line up
+    // with this one's, so it can only see the same closers or fewer. Remember the first failure so a
+    // run of unclosable fences doesn't rescan the rest of the string at each one.
+    match: (source: string, state: State): Capture | null => {
+      if (!source.startsWith('```')) {
+        return null
+      }
+      const {base, pos} = state.cursor!
+      state.unclosedFenceAt ??= new Map()
+      const unclosedAt = state.unclosedFenceAt.get(base)
+      if (unclosedAt !== undefined && pos > unclosedAt) {
+        return null
+      }
+      const capture = fenceRegex.exec(source)
+      if (!capture) {
+        state.unclosedFenceAt.set(base, pos)
+      }
+      return capture
+    },
     // original:
     // match: blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
