@@ -315,3 +315,25 @@ test('Markdown spoilers reveal content when clicked', () => {
   fireEvent.click(screen.getByTitle('Click to reveal'))
   expect(screen.getByText('secret')).toBeTruthy()
 })
+
+// Parsing has to stay linear in the length of the input: a rule that rescans the rest of the line,
+// or a whole dotted run, at every position it is tried at is quadratic.
+test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com'])(
+  'Markdown parses a long run of %j in linear time',
+  unit => {
+    const parseTime = (length: number) => {
+      const s = unit.repeat(Math.ceil(length / unit.length))
+      let best = Infinity
+      for (let i = 0; i < 5; ++i) {
+        const start = performance.now()
+        parseMarkdown(s, {shouldUseMarkdownParser: true})
+        best = Math.min(best, performance.now() - start)
+      }
+      return best
+    }
+    parseTime(8000)
+    // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
+    // CI worker is small next to the parse time.
+    expect(parseTime(32000) / parseTime(8000)).toBeLessThan(8)
+  }
+)
