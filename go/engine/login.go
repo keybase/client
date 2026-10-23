@@ -258,7 +258,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 			if !errors.Is(err, libkb.ErrLogoutUserChanged) {
 				return false, err
 			}
-			m.Debug("Login: the active user changed while switching; checking again")
+			m.Debug("Login: the active user changed while switching (%v); checking again", err)
 		}
 	}
 
