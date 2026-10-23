@@ -32,7 +32,7 @@
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
     "typescript": "file:../../shared/node_modules/typescript",
-    "react-native-builder-bob": "0.43.2"
+    "react-native-builder-bob": "0.44.1"
   },
   "peerDependencies": {
     "react": "*",

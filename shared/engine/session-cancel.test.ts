@@ -228,8 +228,9 @@ describe('a service cancel of one prompt', () => {
   // The GUI owes the service only once the handler has run and left the prompt unanswered
   test("still on the listener's timer, keeps its waiting on and never reaches the handler", async () => {
     const {ended, fake, held, onPrompt, sessionID} = await start()
+    // The push arms the listener's timer before it returns, so cancel with no await in between:
+    // any event-loop turn here lets a 0ms timer come due on a slow machine and run the handler
     void fake.push(prompt, {kind: 0}, {sessionID})
-    await tick()
     expect(waitingCount(fake)).toBe(1)
     fake.cancelPush(prompt)
     expect(waitingCount(fake)).toBe(1)
