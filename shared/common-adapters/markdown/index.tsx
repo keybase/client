@@ -32,7 +32,6 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
-  urlStarts?: Map<string, Array<number>>
   isMobile?: boolean
 }
 
@@ -179,6 +178,10 @@ const underscoreChar = 95
 // is quadratic, so instead this finds every such position in one pass from the end. Tlds are all
 // letters, so "tld\b" at i means the word starting at i is exactly a tld.
 const findUrlStarts = (s: string): Array<number> => {
+  // every url has a dot
+  if (!s.includes('.')) {
+    return []
+  }
   const n = s.length
   // wordEnd[i]: where the run of \w chars starting at i ends (i itself if s[i] isn't one)
   const wordEnd = new Int32Array(n + 1)
@@ -203,13 +206,8 @@ const findUrlStarts = (s: string): Array<number> => {
 
 // Index in the current source of the first url start after its first char, or -1.
 const urlAhead = (state: State) => {
-  const {base, pos} = state.cursor!
-  state.urlStarts ??= new Map()
-  let starts = state.urlStarts.get(base)
-  if (!starts) {
-    starts = findUrlStarts(base)
-    state.urlStarts.set(base, starts)
-  }
+  const {pos} = state.cursor!
+  const starts = memoFor(state, findUrlStarts, findUrlStarts)
   let lo = 0
   let hi = starts.length
   while (lo < hi) {

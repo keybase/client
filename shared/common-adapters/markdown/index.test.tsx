@@ -331,8 +331,9 @@ test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com'])(
       }
       return best
     }
-    parseTime(4000)
-    // linear is ~4x for 4x the input, quadratic ~16x
-    expect(parseTime(16000) / parseTime(4000)).toBeLessThan(8)
+    parseTime(8000)
+    // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
+    // CI worker is small next to the parse time.
+    expect(parseTime(32000) / parseTime(8000)).toBeLessThan(8)
   }
 )
