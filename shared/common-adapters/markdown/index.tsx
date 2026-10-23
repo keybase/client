@@ -4,6 +4,7 @@ import {
   anyScopeRegex,
   blockRegex,
   indexAhead,
+  memoFor,
   inlineRegex,
   parseInline,
   parserFor,
@@ -198,9 +199,10 @@ const isFullyQuoted = (block: string) =>
   block.split('\n').every(line => line.trim() === '' || /^ *>/.test(line))
 const countFences = (line: string) => (line.match(/```/g) ?? []).length
 const emojiMatcher = inlineRegex(emojiRegex)
-const quotedFenceRegex = anyScopeRegex(
-  /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
-)
+const quotedFenceRegex = /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
+const quotedFenceStart = /^ *>/
+const fenceAhead = /```/g
+const newlineAhead = /\n/g
 
 // Lower order is tried first. These are the orders simple-markdown gave its rules, kept so the
 // precedence between ours stays the same.
@@ -403,11 +405,32 @@ const rules: {[type: string]: ParserRule} = {
     //  foo = true
     // ```
     // It's much easier and cleaner to make this a separate rule
-    match: (source: string, state: State, prevCapture: string): Capture | null => {
-      const capture = quotedFenceRegex(source, state, prevCapture)
+    match: (source: string, state: State): Capture | null => {
+      if (!quotedFenceStart.test(source)) {
+        return null
+      }
+      // The opening ``` has to be the first one on the quote's line. Everything the regex looks at
+      // from that fence on is the same for every > before it on the line, so once it fails for a
+      // fence it fails for all of them: remember that, so a line of >'s doesn't rescan the rest of
+      // the line (and the fence body) at each one.
+      const fence = indexAhead(state, fenceAhead, 0)
+      if (fence === -1) {
+        return null
+      }
+      const newline = indexAhead(state, newlineAhead, 0)
+      if (newline !== -1 && newline < fence) {
+        return null
+      }
+      const declined = memoFor(state, quotedFenceRegex, () => new Set<number>())
+      const at = state.cursor!.pos + fence
+      if (declined.has(at)) {
+        return null
+      }
+      const capture = quotedFenceRegex.exec(source)
       // When every line of the fence body is quoted too, this is a normal block quote that happens
       // to contain a fence. blockQuote handles that (and strips the markers), so decline here.
       if (!capture || isFullyQuoted(capture[2] ?? '')) {
+        declined.add(at)
         return null
       }
       return capture
