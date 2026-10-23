@@ -16,6 +16,12 @@ type LoginProvisionedDevice struct {
 	uid             keybase1.UID
 	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
+	// A switch to an account already provisioned here checks the device against the cached user
+	// rather than the server, so it needs no network unless the user isn't cached. Service#OnLogin
+	// then checks with the server in the background.
+	userSwitch bool
+	// The device was checked against the cached user only
+	checkedCachedOnly bool
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
@@ -61,6 +67,9 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	m.Debug("LoginProvisionedDevice success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), e.username.String())
 	m.Debug("LoginProvisionedDevice success, calling login hooks")
+	if e.checkedCachedOnly {
+		m = m.WithCtx(libkb.WithDeviceCheckedCachedOnly(m.Ctx()))
+	}
 	m.G().CallLoginHooks(m)
 
 	return nil
@@ -89,6 +98,10 @@ func (e *LoginProvisionedDevice) loadMe(m libkb.MetaContext) (err error) {
 		if config == nil {
 			m.Debug("user config is nil for %s", e.username)
 			return errNoConfig
+		}
+		if e.userSwitch && err == nil {
+			loadUserArg = loadUserArg.WithUID(config.GetUID()).WithForcePoll(false)
+			e.checkedCachedOnly = true
 		}
 	}
 	if err != nil {

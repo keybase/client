@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"time"
@@ -567,8 +568,27 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 		return nil
 	}
 
+	// Pin the user and device this checks: the server check takes a round trip, and an account
+	// switch or a new login of this user in the meantime must not get the logout and the
+	// deprovision meant for this device
+	uid := m.G().Env.GetUID()
+	if uid.IsNil() {
+		m.Debug("LogoutAndDeprovisionIfRevoked: skipping check (no uid)")
+		return nil
+	}
+	did := m.G().Env.GetDeviceIDForUID(uid)
+	if did.IsNil() {
+		m.Debug("LogoutAndDeprovisionIfRevoked: skipping check (no device for %s)", uid)
+		return nil
+	}
+	username := m.G().Env.GetUsernameForUID(uid)
+	if username.IsNil() {
+		m.Debug("LogoutAndDeprovisionIfRevoked: skipping check (no username for %s)", uid)
+		return nil
+	}
+
 	doLogout := false
-	err = CheckCurrentUIDDeviceID(m)
+	err = checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uid, did)
 	switch err.(type) {
 	case nil:
 		m.Debug("LogoutAndDeprovisionIfRevoked: current device ok")
@@ -583,8 +603,12 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 	}
 
 	if doLogout {
-		username := m.G().Env.GetUsername()
-		if err := m.LogoutWithOptions(LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
+		err := m.LogoutUsernameWithOptions(username, LogoutOptions{KeepSecrets: false, Force: true, OnlyIfUID: uid, OnlyIfDeviceID: did})
+		if errors.Is(err, ErrLogoutUserChanged) {
+			m.Debug("LogoutAndDeprovisionIfRevoked: %s is no longer active; leaving it for its next check", username)
+			return nil
+		}
+		if err != nil {
 			return err
 		}
 		return ClearSecretsOnDeprovision(m, username)
