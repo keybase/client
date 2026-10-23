@@ -134,7 +134,7 @@
     "expo-task-manager": "58.0.12",
     "expo-video": "58.0.12",
     "google-libphonenumber": "3.2.47",
-    "immer": "11.2.7",
+    "immer": "11.2.9",
     "lodash": "4.18.1",
     "lottie-react-native": "7.5.0",
     "lottie-web": "5.13.0",
@@ -151,7 +151,7 @@
     "react-native-web": "0.21.4",
     "react-native-webview": "16.0.0",
     "react-native-worklets": "0.13.0",
-    "zustand": "5.0.15"
+    "zustand": "5.0.16"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
@@ -211,7 +211,7 @@
   "resolutions": {
     "**/@types/react": "19.3.0",
     "**/basic-ftp": "6.2.3",
-    "**/serialize-javascript": "7.1.2",
+    "**/serialize-javascript": "7.1.4",
     "**/shell-quote": "1.12.0"
   },
   "typecoverage": {
