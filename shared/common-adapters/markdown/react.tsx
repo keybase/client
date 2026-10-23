@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as SM from '@khanacademy/simple-markdown'
+import {arrayReact, outputFor, textReact, type OutputRules, type ReactOutput, type SingleASTNode} from './engine'
 import {StyleSheet} from 'react-native'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
@@ -10,7 +10,6 @@ import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
 import type {default as ServiceDecorationType} from './service-decoration'
-const SimpleMarkdown = SM.default
 
 let ServiceDecoration: typeof ServiceDecorationType = () => {
   throw new Error('Failed to init markdown')
@@ -19,7 +18,7 @@ export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
   ServiceDecoration = SDT
 }
 
-interface State {
+type State = {
   context?: string
   allowFontScaling?: boolean
   disallowAnimation?: boolean
@@ -37,7 +36,7 @@ interface State {
 }
 
 interface Node {
-  content: SM.SingleASTNode
+  content: SingleASTNode
   raw?: string
 }
 
@@ -249,7 +248,7 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
 const reactComponentsForMarkdownType = {
   Array: {
     // basically a port of the old reactFor which we used before
-    react: (arr: Array<SM.SingleASTNode>, output: SM.ReactOutput, state: State) => {
+    react: (arr: Array<SingleASTNode>, output: ReactOutput, state: State) => {
       const oldKey = state.key
       const result: Array<React.ReactNode | string> = []
 
@@ -274,7 +273,7 @@ const reactComponentsForMarkdownType = {
   },
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   blockQuote: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: ReactOutput, state: State) => {
       const oldInBlockQuote = state.inBlockQuote
       state.inBlockQuote = true
 
@@ -288,7 +287,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   del: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => (
+    react: (node: Node, output: ReactOutput, state: State) => (
       <Text
         type="Body"
         key={state.key}
@@ -300,7 +299,7 @@ const reactComponentsForMarkdownType = {
     ),
   },
   em: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: ReactOutput, state: State) => {
       const oldInsideEM = state.insideEM
       state.insideEM = true
       const ret = (
@@ -322,7 +321,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   emoji: {
-    react: (node: Node, _output: SM.ReactOutput, state: State) => (
+    react: (node: Node, _output: ReactOutput, state: State) => (
       <NativeEmoji
         emojiName={
           //eslint-disable-next-line
@@ -337,25 +336,25 @@ const reactComponentsForMarkdownType = {
     ),
   },
   fence: {
-    react: (node: Node, _output: SM.ReactOutput, state: State) => {
+    react: (node: Node, _output: ReactOutput, state: State) => {
       return (
         <Fence key={state.key} state={state}>
-          {node['content'] as React.ReactElement}
+          {node['content'] as unknown as string}
         </Fence>
       )
     },
   },
   inlineCode: {
-    react: (node: Node, _output: SM.ReactOutput, state: State) => {
+    react: (node: Node, _output: ReactOutput, state: State) => {
       return (
         <InlineCode key={state.key} state={state}>
-          {node['content'] as React.ReactElement}
+          {node['content'] as unknown as string}
         </InlineCode>
       )
     },
   },
   newline: {
-    react: (_node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
+    react: (_node: Node, output: ReactOutput, state: State): React.ReactNode =>
       !isMobile || state.inParagraph ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
@@ -370,7 +369,7 @@ const reactComponentsForMarkdownType = {
       ),
   },
   paragraph: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: ReactOutput, state: State) => {
       const oldInParagraph = state.inParagraph
       state.inParagraph = true
       const ret = (
@@ -394,7 +393,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   serviceDecoration: {
-    react: (node: Node, _output: SM.ReactOutput, state: State) => (
+    react: (node: Node, _output: ReactOutput, state: State) => (
       <ServiceDecoration
         json={node['content'] as unknown as string}
         key={state.key}
@@ -408,7 +407,7 @@ const reactComponentsForMarkdownType = {
     ),
   },
   spoiler: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: ReactOutput, state: State) => {
       return (
         <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
           {output(node['content'], state)}
@@ -417,7 +416,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   strong: {
-    react: (node: Node, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: ReactOutput, state: State) => {
       const oldInsideStrong = state.insideStrong
       state.insideStrong = true
       const ret = (
@@ -438,35 +437,29 @@ const reactComponentsForMarkdownType = {
       return ret
     },
   },
-  text: SimpleMarkdown.defaultRules.text,
+  text: {react: textReact},
 }
 
 const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
-  [key: string]: SM.OutputRules<any>
+  [key: string]: OutputRules[string]
 }>((obj, k) => {
   // keep special Array type
   if (k === 'Array') {
     obj[k] = reactComponentsForMarkdownType[k]
   } else {
     obj[k] = {
-      react: (node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
-        typeof node['content'] !== 'object'
-          ? SimpleMarkdown.defaultRules.text.react(
-              {content: node['content'] as Array<Node>, type: 'text'},
-              output as SM.Output<string>,
-              state
-            )
-          : output(node['content'], state),
+      react: (node: Node, output: ReactOutput, state: State): React.ReactNode =>
+        typeof node['content'] !== 'object' ? textReact(node) : output(node['content'], state),
     }
   }
   return obj
 }, {})
 
-export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
+export const bigEmojiOutput: ReactOutput = outputFor(
   {
     ...reactComponentsForMarkdownType,
     emoji: {
-      react: (node: Node, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: ReactOutput, state: State) => (
         <NativeEmoji
           style={state.styleOverride?.paragraph}
           emojiName={
@@ -480,7 +473,7 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
       ),
     },
     paragraph: {
-      react: (node: Node, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: ReactOutput, state: State) => {
         const oldInParagraph = state.inParagraph
         state.inParagraph = true
         const ret = (
@@ -497,37 +490,36 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
         return ret
       },
     },
-  },
-  'react'
+  }
 )
 
-export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
+export const previewOutput: ReactOutput = outputFor(
   {
-    Array: SimpleMarkdown.defaultRules.Array,
+    Array: {react: arrayReact},
     ...passthroughForMarkdownType,
     blockQuote: {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: ReactOutput, state: State) =>
         React.Children.toArray([
           output([{content: '> ', type: 'text'}], state),
           output(node['content'], state),
         ]),
     },
     codeBlock: {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: ReactOutput, state: State) =>
         React.Children.toArray([
           output([{content: ' ', type: 'text'}], state),
           output(node['content'], state),
         ]),
     },
     emoji: {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     newline: {
-      react: (_node: Node, _output: SM.ReactOutput, _state: State) => ' ',
+      react: () => ' ',
     },
     serviceDecoration: {
-      react: (node: Node, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: ReactOutput, state: State) => (
         <ServiceDecoration
           json={node['content'] as unknown as string}
           key={state.key}
@@ -540,7 +532,7 @@ export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFo
       ),
     },
     spoiler: {
-      react: (node: Node, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: ReactOutput, state: State) => {
         return (
           <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
             {output(node['content'], state)}
@@ -548,21 +540,20 @@ export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFo
         )
       },
     },
-    text: SimpleMarkdown.defaultRules.text,
-  },
-  'react'
+    text: {react: textReact},
+  }
 )
 
-export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
+export const serviceOnlyOutput: ReactOutput = outputFor(
   {
-    Array: SimpleMarkdown.defaultRules.Array,
+    Array: {react: arrayReact},
     ...passthroughForMarkdownType,
     emoji: {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     serviceDecoration: {
-      react: (node: Node, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: ReactOutput, state: State) => (
         <ServiceDecoration
           json={node['content'] as unknown as string}
           key={state.key}
@@ -575,7 +566,7 @@ export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outp
       ),
     },
     spoiler: {
-      react: (node: Node, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: ReactOutput, state: State) => {
         return (
           <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
             {output(node['content'], state)}
@@ -583,16 +574,15 @@ export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outp
         )
       },
     },
-    text: SimpleMarkdown.defaultRules.text,
-  },
-  'react'
+    text: {react: textReact},
+  }
 )
 
-export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
+export const serviceOnlyNoWrapOutput: ReactOutput = outputFor(
   {
-    Array: SimpleMarkdown.defaultRules.Array,
+    Array: {react: arrayReact},
     ...Object.keys(reactComponentsForMarkdownType).reduce<{
-      [key: string]: SM.OutputRules<unknown>
+      [key: string]: OutputRules[string]
     }>((obj, k) => {
       // keep special Array type
       if (k === 'Array') {
@@ -605,14 +595,14 @@ export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdow
       return obj
     }, {}),
     emoji: {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     paragraph: {
-      react: (node: Node, output: SM.ReactOutput): React.ReactNode => output(node['content']),
+      react: (node: Node, output: ReactOutput): React.ReactNode => output(node['content']),
     },
     serviceDecoration: {
-      react: (node: Node, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: ReactOutput, state: State) => (
         <ServiceDecoration
           json={node['content'] as unknown as string}
           key={state.key}
@@ -624,11 +614,7 @@ export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdow
         />
       ),
     },
-  },
-  'react'
+  }
 )
 
-export const reactOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
-  reactComponentsForMarkdownType,
-  'react'
-)
+export const reactOutput: ReactOutput = outputFor(reactComponentsForMarkdownType)
