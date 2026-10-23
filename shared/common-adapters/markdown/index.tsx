@@ -277,7 +277,7 @@ const rules: {[type: string]: ParserRule} = {
       return emojiIndexByName[base] ? [base, base] : null
     },
     order: textOrder - 0.5,
-    parse: (capture: Capture, _nestedParse: Parser, _state: State) => {
+    parse: (capture: Capture) => {
       // If it's a unicode emoji, let's get it's shortname
       const shortName = emojiIndexByChar[capture[0] ?? '']
       return {content: shortName || capture[0]}
@@ -296,7 +296,7 @@ const rules: {[type: string]: ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (capture: Capture, nestedParse: Parser, state: State) =>
@@ -309,7 +309,7 @@ const rules: {[type: string]: ParserRule} = {
     // match: blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function (capture: Capture, _nestedParse: Parser, _state: State) {
+    parse: function (capture: Capture) {
       return {
         content: capture[1],
         lang: undefined,
@@ -324,7 +324,7 @@ const rules: {[type: string]: ParserRule} = {
     // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
     // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
     // The scan below is the same grammar in one linear pass.
-    match: (source: string, _state: State, _prevCapture: string): Capture | null => {
+    match: (source: string): Capture | null => {
       if (!source.startsWith('`') || source[1] === '`') {
         return null
       }
@@ -401,7 +401,7 @@ const rules: {[type: string]: ParserRule} = {
       const preContent: Array<SingleASTNode> =
         isMarkdownMobile(state) && !!capture[1]
           ? wrapInParagraph(nestedParse, capture[1], state)
-          : (parseInline(nestedParse, capture[1] ?? '', state) as Array<SingleASTNode>)
+          : parseInline(nestedParse, capture[1] ?? '', state)
       return {
         content: [...preContent, {content: capture[2], type: 'fence'}],
         type: 'blockQuote',
@@ -413,7 +413,7 @@ const rules: {[type: string]: ParserRule} = {
       return serviceDecorationMatcher(source, state, prevCapture)
     },
     order: 1,
-    parse: (capture: Capture, _nestedParse: Parser, _state: State) => ({
+    parse: (capture: Capture) => ({
       content: capture[1],
       type: 'serviceDecoration',
     }),
@@ -459,7 +459,7 @@ const noRules: {[type: string]: ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (capture: Capture, nestedParse: Parser, state: State) =>
@@ -488,7 +488,7 @@ const noRules: {[type: string]: ParserRule} = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? null : [source],
   },
 }
