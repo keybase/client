@@ -568,8 +568,9 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 		return nil
 	}
 
-	// Pin the user this checks: the server check takes a round trip, and an account switch in the
-	// meantime must not get the logout and the deprovision meant for this one
+	// Pin the user and device this checks: the server check takes a round trip, and an account
+	// switch or a new login of this user in the meantime must not get the logout and the
+	// deprovision meant for this device
 	uid := m.G().Env.GetUID()
 	if uid.IsNil() {
 		m.Debug("LogoutAndDeprovisionIfRevoked: skipping check (no uid)")
@@ -602,7 +603,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 	}
 
 	if doLogout {
-		err := m.LogoutUsernameWithOptions(username, LogoutOptions{KeepSecrets: false, Force: true, OnlyIfUID: uid})
+		err := m.LogoutUsernameWithOptions(username, LogoutOptions{KeepSecrets: false, Force: true, OnlyIfUID: uid, OnlyIfDeviceID: did})
 		if errors.Is(err, ErrLogoutUserChanged) {
 			m.Debug("LogoutAndDeprovisionIfRevoked: %s is no longer active; leaving it for its next check", username)
 			return nil

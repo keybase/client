@@ -19,13 +19,15 @@ func (mctx MetaContext) LogoutKeepSecrets() (err error) {
 type LogoutOptions struct {
 	KeepSecrets bool
 	Force       bool
-	// When set, log out only while this user is still the active one. A caller that decided to
-	// log a user out before taking the switch lock may otherwise log out whoever is active by then.
-	OnlyIfUID keybase1.UID
+	// When set, log out only while this user, and this device of theirs if OnlyIfDeviceID is set,
+	// is still the active one. A caller that decided to log a user out before taking the switch
+	// lock may otherwise log out whoever is active by then, including a fresh login of the same user.
+	OnlyIfUID      keybase1.UID
+	OnlyIfDeviceID keybase1.DeviceID
 }
 
-// ErrLogoutUserChanged is returned by a logout with OnlyIfUID set when another user (or none) is
-// active by the time it holds the switch lock; nothing was logged out.
+// ErrLogoutUserChanged is returned by a pinned logout (OnlyIfUID) when another user or device (or
+// none) is active by the time it holds the switch lock; nothing was logged out.
 var ErrLogoutUserChanged = errors.New("logout skipped: the active user changed")
 
 func (mctx MetaContext) LogoutWithOptions(options LogoutOptions) (err error) {
@@ -43,9 +45,12 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 	mctx.Debug("MetaContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, options: %#v)",
 		username, options)
 
-	if !options.OnlyIfUID.IsNil() && !g.ActiveDevice.UID().Equal(options.OnlyIfUID) {
-		mctx.Debug("MetaContext#logoutWithSecretKill: active user is no longer %s", options.OnlyIfUID)
-		return ErrLogoutUserChanged
+	if !options.OnlyIfUID.IsNil() {
+		uid, deviceID := g.ActiveDevice.UIDAndDeviceID()
+		if !uid.Equal(options.OnlyIfUID) || (!options.OnlyIfDeviceID.IsNil() && !deviceID.Eq(options.OnlyIfDeviceID)) {
+			mctx.Debug("MetaContext#logoutWithSecretKill: active device is no longer %s/%s", options.OnlyIfUID, options.OnlyIfDeviceID)
+			return ErrLogoutUserChanged
+		}
 	}
 
 	if !options.Force && !options.KeepSecrets {

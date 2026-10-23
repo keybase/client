@@ -247,11 +247,11 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	// Switching away from another account logs it out whatever its device's state on the server, so
 	// skip the server check of that account; the config already says it is someone else.
 	if e.doUserSwitch && !username.IsNil() && m.ActiveDevice().Valid() {
-		uid := m.ActiveDevice().UID()
+		uid, deviceID := m.ActiveDevice().UIDAndDeviceID()
 		if current := m.G().Env.GetUsernameForUID(uid); !current.IsNil() && !current.Eq(username) {
 			m.Debug("Login: switching from %s to %s", current, username)
 			// Pinned: a login that lands first (maybe of the target itself) must not be logged out
-			err := m.LogoutUsernameWithOptions(current, libkb.LogoutOptions{KeepSecrets: true, OnlyIfUID: uid})
+			err := m.LogoutUsernameWithOptions(current, libkb.LogoutOptions{KeepSecrets: true, OnlyIfUID: uid, OnlyIfDeviceID: deviceID})
 			if err == nil {
 				return false, nil
 			}
