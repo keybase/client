@@ -8,10 +8,9 @@ export type SingleASTNode = {
   [key: string]: unknown
 }
 export type Capture = Array<string> & {index?: number}
-type Search = {from: number; found: number}
 // A rule's source is always base.substring(pos), base being the string the current (possibly
 // nested) parse is walking through.
-type Cursor = {base: string; pos: number; searches: Map<RegExp, Map<string, Search>>}
+type Cursor = {base: string; pos: number; memos: Map<unknown, Map<string, unknown>>}
 export type State = {
   key?: string | number | undefined
   inline?: boolean | null | undefined
@@ -32,8 +31,10 @@ export type ParserRules = {readonly [type: string]: ParserRule}
 
 export type Output<Result> = (node: SingleASTNode | Array<SingleASTNode>, state?: State) => Result
 export type ReactOutput = Output<React.ReactNode>
-export type NodeOutput<Result> = (node: never, nestedOutput: never, state: never) => Result
-export type OutputRules = {readonly [type: string]: {readonly react: NodeOutput<unknown>}}
+// node and state are never: each rule declares its own node and state shapes
+export type OutputRules = {
+  readonly [type: string]: {readonly react: (node: never, output: ReactOutput, state: never) => React.ReactNode}
+}
 
 const crNewlineRegex = /\r\n?/g
 const tabRegex = /\t/g
@@ -67,11 +68,11 @@ export const parserFor = (rules: ParserRules): Parser => {
       let quality = NaN
       cursor.base = base
       cursor.pos = pos
+      const prevCapture = state.prevCapture?.[0] ?? ''
       for (const {rule, type} of ruleList) {
         if (best && !(rule.order === best.rule.order && rule.quality)) {
           break
         }
-        const prevCapture = state.prevCapture?.[0] ?? ''
         const capture = rule.match(source, state, prevCapture)
         if (!capture) {
           continue
@@ -84,7 +85,7 @@ export const parserFor = (rules: ParserRules): Parser => {
         }
       }
       if (!best) {
-        throw new Error('markdown: no rule matched ' + source)
+        throw new Error('markdown: no rule matched')
       }
       const parsed = best.rule.parse(best.capture, nestedParse, state)
       if (Array.isArray(parsed)) {
@@ -104,29 +105,40 @@ export const parserFor = (rules: ParserRules): Parser => {
 
   return (source, state) => {
     state.prevCapture = null
-    state.cursor = {base: '', pos: 0, searches: new Map()}
+    state.cursor = {base: '', memos: new Map(), pos: 0}
     return nestedParse(preprocess(source), state)
   }
+}
+
+// Something a rule worked out about the string being parsed that still holds at later positions in
+// it, kept for the rest of the parse. One value per `key` per string, made by `init` on first use.
+export const memoFor = <T,>(state: State, key: unknown, init: (base: string) => T): T => {
+  const {base, memos} = state.cursor!
+  let byBase = memos.get(key)
+  if (!byBase) {
+    byBase = new Map()
+    memos.set(key, byBase)
+  }
+  let memo = byBase.get(base) as T | undefined
+  if (memo === undefined) {
+    memo = init(base)
+    byBase.set(base, memo)
+  }
+  return memo
 }
 
 // Index in the current source of the next match of `regex` (which must be global) at or after
 // `offset`, or -1. The answer is kept per string, so a rule asking at every position it's tried at
 // scans the string once, not the rest of it each time.
 export const indexAhead = (state: State, regex: RegExp, offset: number): number => {
-  const cursor = state.cursor!
-  const {base, pos} = cursor
+  const {base, pos} = state.cursor!
   const from = pos + offset
-  let byBase = cursor.searches.get(regex)
-  if (!byBase) {
-    byBase = new Map()
-    cursor.searches.set(regex, byBase)
-  }
-  let search = byBase.get(base)
+  const search = memoFor(state, regex, () => ({found: -1, from: Infinity}))
   // still good if nothing was found from search.from on, or what was found is still ahead
-  if (!search || from < search.from || (search.found !== -1 && search.found < from)) {
+  if (from < search.from || (search.found !== -1 && search.found < from)) {
     regex.lastIndex = from
-    search = {found: regex.exec(base)?.index ?? -1, from}
-    byBase.set(base, search)
+    search.found = regex.exec(base)?.index ?? -1
+    search.from = from
   }
   return search.found === -1 ? -1 : search.found - pos
 }
