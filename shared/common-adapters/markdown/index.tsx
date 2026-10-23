@@ -4,6 +4,7 @@ import {
   anyScopeRegex,
   blockRegex,
   indexAhead,
+  memoFor,
   inlineRegex,
   parseInline,
   parserFor,
@@ -31,9 +32,6 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
-  quotedFenceDeclined?: {at: number; base: string}
-  urlStarts?: Map<string, Array<number>>
-  unclosedFenceAt?: Map<string, number>
   inlineNesting?: number
   isMobile?: boolean
 }
@@ -181,6 +179,10 @@ const underscoreChar = 95
 // is quadratic, so instead this finds every such position in one pass from the end. Tlds are all
 // letters, so "tld\b" at i means the word starting at i is exactly a tld.
 const findUrlStarts = (s: string): Array<number> => {
+  // every url has a dot
+  if (!s.includes('.')) {
+    return []
+  }
   const n = s.length
   // wordEnd[i]: where the run of \w chars starting at i ends (i itself if s[i] isn't one)
   const wordEnd = new Int32Array(n + 1)
@@ -205,13 +207,8 @@ const findUrlStarts = (s: string): Array<number> => {
 
 // Index in the current source of the first url start after its first char, or -1.
 const urlAhead = (state: State) => {
-  const {base, pos} = state.cursor!
-  state.urlStarts ??= new Map()
-  let starts = state.urlStarts.get(base)
-  if (!starts) {
-    starts = findUrlStarts(base)
-    state.urlStarts.set(base, starts)
-  }
+  const {pos} = state.cursor!
+  const starts = memoFor(state, findUrlStarts, findUrlStarts)
   let lo = 0
   let hi = starts.length
   while (lo < hi) {
@@ -376,7 +373,7 @@ const rules: {[type: string]: ParserRule} = {
       return emojiIndexByName[base] ? [base, base] : null
     },
     order: textOrder - 0.5,
-    parse: (capture: Capture, _nestedParse: Parser, _state: State) => {
+    parse: (capture: Capture) => {
       // If it's a unicode emoji, let's get it's shortname
       const shortName = emojiIndexByChar[capture[0] ?? '']
       return {content: shortName || capture[0]}
@@ -395,7 +392,7 @@ const rules: {[type: string]: ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (capture: Capture, nestedParse: Parser, state: State) =>
@@ -411,15 +408,14 @@ const rules: {[type: string]: ParserRule} = {
       if (!source.startsWith('```')) {
         return null
       }
-      const {base, pos} = state.cursor!
-      state.unclosedFenceAt ??= new Map()
-      const unclosedAt = state.unclosedFenceAt.get(base)
-      if (unclosedAt !== undefined && pos > unclosedAt) {
+      const {pos} = state.cursor!
+      const unclosed = memoFor(state, fenceRegex, () => ({at: Infinity}))
+      if (pos > unclosed.at) {
         return null
       }
       const capture = fenceRegex.exec(source)
       if (!capture) {
-        state.unclosedFenceAt.set(base, pos)
+        unclosed.at = Math.min(unclosed.at, pos)
       }
       return capture
     },
@@ -427,7 +423,7 @@ const rules: {[type: string]: ParserRule} = {
     // match: blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function (capture: Capture, _nestedParse: Parser, _state: State) {
+    parse: function (capture: Capture) {
       return {
         content: capture[1],
         lang: undefined,
@@ -442,7 +438,7 @@ const rules: {[type: string]: ParserRule} = {
     // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
     // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
     // The scan below is the same grammar in one linear pass.
-    match: (source: string, _state: State, _prevCapture: string): Capture | null => {
+    match: (source: string): Capture | null => {
       if (!source.startsWith('`') || source[1] === '`') {
         return null
       }
@@ -520,16 +516,16 @@ const rules: {[type: string]: ParserRule} = {
       if (newline !== -1 && newline < fence) {
         return null
       }
-      const {base, pos} = state.cursor!
-      const at = pos + fence
-      if (state.quotedFenceDeclined?.at === at && state.quotedFenceDeclined.base === base) {
+      const declined = memoFor(state, quotedFenceRegex, () => new Set<number>())
+      const at = state.cursor!.pos + fence
+      if (declined.has(at)) {
         return null
       }
       const capture = quotedFenceRegex.exec(source)
       // When every line of the fence body is quoted too, this is a normal block quote that happens
       // to contain a fence. blockQuote handles that (and strips the markers), so decline here.
       if (!capture || isFullyQuoted(capture[2] ?? '')) {
-        state.quotedFenceDeclined = {at, base}
+        declined.add(at)
         return null
       }
       return capture
@@ -540,7 +536,7 @@ const rules: {[type: string]: ParserRule} = {
       const preContent: Array<SingleASTNode> =
         isMarkdownMobile(state) && !!capture[1]
           ? wrapInParagraph(nestedParse, capture[1], state)
-          : (parseInline(nestedParse, capture[1] ?? '', state) as Array<SingleASTNode>)
+          : parseInline(nestedParse, capture[1] ?? '', state)
       return {
         content: [...preContent, {content: capture[2], type: 'fence'}],
         type: 'blockQuote',
@@ -555,7 +551,7 @@ const rules: {[type: string]: ParserRule} = {
         ? serviceDecorationRegex.exec(source)
         : null,
     order: 1,
-    parse: (capture: Capture, _nestedParse: Parser, _state: State) => ({
+    parse: (capture: Capture) => ({
       content: capture[1],
       type: 'serviceDecoration',
     }),
@@ -604,7 +600,7 @@ const noRules: {[type: string]: ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (capture: Capture, nestedParse: Parser, state: State) =>
@@ -633,7 +629,7 @@ const noRules: {[type: string]: ParserRule} = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: (source: string, state: State, _prevCapture: string) =>
+    match: (source: string, state: State) =>
       isMarkdownMobile(state) && !state['inParagraph'] ? null : [source],
   },
 }
