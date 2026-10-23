@@ -316,8 +316,8 @@ test('Markdown spoilers reveal content when clicked', () => {
   expect(screen.getByText('secret')).toBeTruthy()
 })
 
-// Any member of a conversation can send these, so parsing them has to stay linear in their length:
-// a rule that rescans the rest of the line or a dotted run at every position is quadratic.
+// Parsing has to stay linear in the length of the input: a rule that rescans the rest of the line,
+// or a whole dotted run, at every position it is tried at is quadratic.
 test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com'])(
   'Markdown parses a long run of %j in linear time',
   unit => {
