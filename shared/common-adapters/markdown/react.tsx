@@ -516,7 +516,7 @@ export const previewOutput: ReactOutput = outputFor(
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     newline: {
-      react: (_node: Node, _output: ReactOutput, _state: State) => ' ',
+      react: () => ' ',
     },
     serviceDecoration: {
       react: (node: Node, _output: ReactOutput, state: State) => (
