@@ -32,7 +32,6 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
-  unclosedFenceAt?: Map<string, number>
   isMobile?: boolean
 }
 
@@ -392,15 +391,14 @@ const rules: {[type: string]: ParserRule} = {
       if (!source.startsWith('```')) {
         return null
       }
-      const {base, pos} = state.cursor!
-      state.unclosedFenceAt ??= new Map()
-      const unclosedAt = state.unclosedFenceAt.get(base)
-      if (unclosedAt !== undefined && pos > unclosedAt) {
+      const {pos} = state.cursor!
+      const unclosed = memoFor(state, fenceRegex, () => ({at: Infinity}))
+      if (pos > unclosed.at) {
         return null
       }
       const capture = fenceRegex.exec(source)
       if (!capture) {
-        state.unclosedFenceAt.set(base, pos)
+        unclosed.at = Math.min(unclosed.at, pos)
       }
       return capture
     },
