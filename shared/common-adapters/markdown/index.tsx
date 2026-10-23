@@ -260,6 +260,7 @@ const countFences = (line: string) => (line.match(/```/g) ?? []).length
 const emojiMatcher = inlineRegex(emojiRegex)
 const quotedFenceRegex = /^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/
 const quotedFenceStart = /^ *>/
+const fenceRegex = /^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/
 const fenceAhead = /```/g
 const newlineAhead = /\n/g
 
@@ -382,7 +383,25 @@ const rules: {[type: string]: ParserRule} = {
   },
   fence: {
     // aka the ``` code blocks
-    match: anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
+    // An unclosed fence fails only after scanning to the end, and then every later ``` in the same
+    // string fails too: its body starts right after a backtick, where the escape pairs (\x) line up
+    // with this one's, so it can only see the same closers or fewer. Remember the first failure so a
+    // run of unclosable fences doesn't rescan the rest of the string at each one.
+    match: (source: string, state: State): Capture | null => {
+      if (!source.startsWith('```')) {
+        return null
+      }
+      const {pos} = state.cursor!
+      const unclosed = memoFor(state, fenceRegex, () => ({at: Infinity}))
+      if (pos > unclosed.at) {
+        return null
+      }
+      const capture = fenceRegex.exec(source)
+      if (!capture) {
+        unclosed.at = Math.min(unclosed.at, pos)
+      }
+      return capture
+    },
     // original:
     // match: blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back

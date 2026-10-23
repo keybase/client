@@ -318,7 +318,7 @@ test('Markdown spoilers reveal content when clicked', () => {
 
 // Parsing has to stay linear in the length of the input: a rule that rescans the rest of the line,
 // or a whole dotted run, at every position it is tried at is quadratic.
-test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com'])(
+test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\'])(
   'Markdown parses a long run of %j in linear time',
   unit => {
     const parseTime = (length: number) => {
