@@ -18,7 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/kyokomi/emoji"
+	"github.com/kyokomi/emoji/v2"
 )
 
 const publicConvNamePrefix = "(public) "
