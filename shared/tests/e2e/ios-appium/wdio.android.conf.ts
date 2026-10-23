@@ -30,6 +30,8 @@ export const config: WebdriverIO.Config = {
   },
   capabilities: [androidCapabilities(serial)],
   logLevel: 'warn',
+  // Shares the iOS helpers, which rely on $() taking the first match.
+  strictSelectors: false,
   framework: 'mocha',
   // Mirrors the iOS config: the one-session suite accumulates load over many
   // flows; retries: 2 (each with a fresh escapeToTabs reset) absorbs transient

@@ -12,4 +12,5 @@ export const config: Options.Testrunner & Capabilities.WithRequestedTestrunnerCa
   port: appiumPort(),
   runner: 'local',
   specs: [],
+  strictSelectors: false,
 }

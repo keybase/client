@@ -48,6 +48,9 @@ export const config: WebdriverIO.Config = {
   },
   capabilities: [iosCapabilities(udid, {wdaLocalPort, prebuilt: !isOld, derivedDataPath})],
   logLevel: 'warn',
+  // Selectors and helpers rely on $() taking the first match (e.g. `~More` matches several
+  // elements), so don't throw on multiple matches.
+  strictSelectors: false,
   framework: 'mocha',
   // 120s: the tablet settings-subpages flow can run long; phone tests finish well
   // under this. retries: 2 — the one-session suite accumulates load over 16 flows

@@ -363,6 +363,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         logLevel: 'error',
         path: '/',
         port,
+        // Helpers rely on $() taking the first match.
+        strictSelectors: false,
       }),
       SESSION_MS,
       'starting the Appium session'
