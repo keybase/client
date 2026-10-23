@@ -32,6 +32,7 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
+  inlineNesting?: number
   isMobile?: boolean
 }
 
@@ -249,6 +250,22 @@ const wordBoundryLookBehindMatch =
     return null
   }
 
+// em, strong and del nest inside each other, one level per pair of markers in a run like ______, and
+// each level rescans the rest of the run: quadratic, and deep enough it overflows the stack. Past
+// this depth their markers are left as text.
+const maxInlineNesting = 16
+const belowNestingLimit =
+  (matchFn: MatchFunction) =>
+  (source: string, state: State, prevCapture: string): Capture | null | undefined =>
+    (state.inlineNesting ?? 0) < maxInlineNesting ? matchFn(source, state, prevCapture) : null
+const parseNested = (state: State, parse: () => Array<SingleASTNode>) => {
+  const nesting = state.inlineNesting ?? 0
+  state.inlineNesting = nesting + 1
+  const ret = parse()
+  state.inlineNesting = nesting
+  return ret
+}
+
 // A single line of a block quote, e.g. '> foo\n'
 // sticky so the scan below never has to slice the source
 const quotedLineRegex = / *>[^\n]*(?:\n|$)/y
@@ -322,19 +339,19 @@ const rules: {[type: string]: ParserRule} = {
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
     // ours: single tilde doesn't cross a newline
-    match: wordBoundryLookBehindMatch(inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
+    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/))),
     order: 22,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
-      content: parseInline(nestedParse, capture[1] ?? '', state),
+      content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
   },
   em: {
     // original is pretty long so not inlining it here
     // ours: wrapped in _'s
-    match: wordBoundryLookBehindMatch(inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
+    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/))),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
-      content: nestedParse(capture[1] ?? '', state),
+      content: parseNested(state, () => nestedParse(capture[1] ?? '', state)),
     }),
     // em and strong share an order: the longer match wins, em on a tie
     quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.2,
@@ -555,10 +572,10 @@ const rules: {[type: string]: ParserRule} = {
     // original
     // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
     // ours: single stars
-    match: wordBoundryLookBehindMatch(inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/)),
+    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/))),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
-      content: parseInline(nestedParse, capture[1] ?? '', state),
+      content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
     quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.1,
   },

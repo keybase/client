@@ -318,7 +318,7 @@ test('Markdown spoilers reveal content when clicked', () => {
 
 // Parsing has to stay linear in the length of the input: a rule that rescans the rest of the line,
 // or a whole dotted run, at every position it is tried at is quadratic.
-test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\'])(
+test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~'])(
   'Markdown parses a long run of %j in linear time',
   unit => {
     const parseTime = (length: number) => {
@@ -337,3 +337,22 @@ test.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\'])(
     expect(parseTime(32000) / parseTime(8000)).toBeLessThan(8)
   }
 )
+
+test('Markdown stops nesting em, strong and del past 16 levels', () => {
+  type N = {type: string; content?: unknown}
+  const nesting = (nodes: ReadonlyArray<N>): number =>
+    Math.max(
+      0,
+      ...nodes.map(
+        n =>
+          (['em', 'strong', 'del'].includes(n.type) ? 1 : 0) +
+          (Array.isArray(n.content) ? nesting(n.content as ReadonlyArray<N>) : 0)
+      )
+    )
+  // a run of n underscores nests (n - 2) / 2 levels
+  expect(nesting(parseMarkdown('_'.repeat(32)) as Array<N>)).toBe(15)
+  expect(nesting(parseMarkdown('_'.repeat(34)) as Array<N>)).toBe(16)
+  const deep = parseMarkdown('_'.repeat(100)) as Array<N>
+  expect(nesting(deep)).toBe(16)
+  expect(flattenAstText(deep)).toBe('_'.repeat(68) + '\n')
+})
