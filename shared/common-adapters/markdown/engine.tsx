@@ -27,8 +27,10 @@ export type ParserRules = {readonly [type: string]: ParserRule}
 
 export type Output<Result> = (node: SingleASTNode | Array<SingleASTNode>, state?: State) => Result
 export type ReactOutput = Output<React.ReactNode>
-export type NodeOutput<Result> = (node: never, nestedOutput: never, state: never) => Result
-export type OutputRules = {readonly [type: string]: {readonly react: NodeOutput<unknown>}}
+// node and state are never: each rule declares its own node and state shapes
+export type OutputRules = {
+  readonly [type: string]: {readonly react: (node: never, output: ReactOutput, state: never) => React.ReactNode}
+}
 
 const crNewlineRegex = /\r\n?/g
 const tabRegex = /\t/g
@@ -57,11 +59,11 @@ export const parserFor = (rules: ParserRules): Parser => {
     while (source) {
       let best: {capture: Capture; rule: ParserRule; type: string} | undefined
       let quality = NaN
+      const prevCapture = state.prevCapture?.[0] ?? ''
       for (const {rule, type} of ruleList) {
         if (best && !(rule.order === best.rule.order && rule.quality)) {
           break
         }
-        const prevCapture = state.prevCapture?.[0] ?? ''
         const capture = rule.match(source, state, prevCapture)
         if (!capture) {
           continue
@@ -74,7 +76,7 @@ export const parserFor = (rules: ParserRules): Parser => {
         }
       }
       if (!best) {
-        throw new Error('markdown: no rule matched ' + source)
+        throw new Error('markdown: no rule matched')
       }
       const parsed = best.rule.parse(best.capture, nestedParse, state)
       if (Array.isArray(parsed)) {
