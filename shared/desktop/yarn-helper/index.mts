@@ -54,17 +54,6 @@ const commands: {[key: string]: Command} = {
     },
     help: 'Sync local file:../rnmodules dependencies into node_modules',
   },
-  test: {
-    code: () => {
-      const update = process.argv[3] === '-u'
-      const updateLabel = update ? ' (updating storyshots)' : ''
-      const updateStr = update ? ' -u Storyshots' : ''
-
-      console.log(`Electron test${updateLabel}`)
-      exec(`cross-env-shell BABEL_ENV=test jest${updateStr}`)
-    },
-    help: 'Run various tests. pass -u to update storyshots',
-  },
 }
 
 const patch = () => {
