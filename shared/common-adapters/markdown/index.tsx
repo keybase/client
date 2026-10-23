@@ -4,6 +4,7 @@ import {
   anyScopeRegex,
   blockRegex,
   indexAhead,
+  memoFor,
   inlineRegex,
   parseInline,
   parserFor,
@@ -31,7 +32,6 @@ import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/tex
 
 type State = EngineState & {
   blockQuoteRecursionLevel?: number
-  quotedFenceDeclined?: {at: number; base: string}
   isMobile?: boolean
 }
 
@@ -421,16 +421,16 @@ const rules: {[type: string]: ParserRule} = {
       if (newline !== -1 && newline < fence) {
         return null
       }
-      const {base, pos} = state.cursor!
-      const at = pos + fence
-      if (state.quotedFenceDeclined?.at === at && state.quotedFenceDeclined.base === base) {
+      const declined = memoFor(state, quotedFenceRegex, () => new Set<number>())
+      const at = state.cursor!.pos + fence
+      if (declined.has(at)) {
         return null
       }
       const capture = quotedFenceRegex.exec(source)
       // When every line of the fence body is quoted too, this is a normal block quote that happens
       // to contain a fence. blockQuote handles that (and strips the markers), so decline here.
       if (!capture || isFullyQuoted(capture[2] ?? '')) {
-        state.quotedFenceDeclined = {at, base}
+        declined.add(at)
         return null
       }
       return capture
