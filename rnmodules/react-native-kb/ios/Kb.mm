@@ -9,6 +9,7 @@
 #import <React/RCTUtils.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
 #import <jsi/jsi.h>
@@ -193,6 +194,36 @@ static NSDictionary *kbConstants(void) {
   return constants;
 }
 
+// Pasted images, one per item: {data, ext} holding the bytes of the item's first image format
+// (items list their formats best first, so that is the original), else, when no item has one,
+// {image} for each of pb.images to be encoded. Passing the bytes through keeps EXIF orientation
+// and the size they were; decoding a camera photo to a UIImage costs a full-size bitmap, which
+// iOS kills the app for on large photos. Formats chat can't show or send as an image are
+// converted on the JS side (media-process).
+static NSArray<NSDictionary *> *KbPastedImages(UIPasteboard *pb) {
+  NSMutableArray<NSDictionary *> *out = [NSMutableArray array];
+  for (NSInteger i = 0; i < pb.numberOfItems; i++) {
+    NSIndexSet *item = [NSIndexSet indexSetWithIndex:i];
+    NSArray<NSString *> *types = [pb pasteboardTypesForItemSet:item].firstObject ?: @[];
+    for (NSString *t in types) {
+      UTType *type = [UTType typeWithIdentifier:t];
+      NSString *ext = [type conformsToType:UTTypeJPEG] ? @"jpg" : type.preferredFilenameExtension;
+      if (![type conformsToType:UTTypeImage] || ext.length == 0) continue;
+      id data = [pb dataForPasteboardType:t inItemSet:item].firstObject;
+      if ([data isKindOfClass:[NSData class]] && [data length] > 0) {
+        [out addObject:@{@"data" : data, @"ext" : ext}];
+        break;
+      }
+    }
+  }
+  if (out.count == 0) {
+    for (UIImage *image in pb.images) {
+      [out addObject:@{@"image" : image}];
+    }
+  }
+  return out;
+}
+
 // Targets that only take text (Reminders, Notes) activate on the share item's
 // attributedContentText, which nothing but a plain string item fills in, so the
 // contents have to go over as their own item next to the file. The two then
@@ -305,29 +336,38 @@ static NSDictionary *kbConstants(void) {
   });
 }
 
-+ (void)handlePastedImages:(NSArray<UIImage *> *)images {
-  if (!kbSharedInstance || images.count == 0) return;
++ (void)handlePastedImages:(NSArray<NSDictionary *> *)pasted {
+  if (!kbSharedInstance || pasted.count == 0) return;
 
   // Encoding and writing pasted images can be slow for large images; keep it
   // off the main thread. The emit helpers are safe to call from any thread.
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
     NSMutableArray *uris = [NSMutableArray array];
-    for (UIImage *rawImage in images) {
-      UIImage *image = rawImage;
-      // UIImagePNGRepresentation encodes the raw pixels and PNG has no
-      // orientation tag, so bake imageOrientation in by redrawing.
-      if (image.imageOrientation != UIImageOrientationUp) {
-        UIGraphicsImageRenderer *renderer =
-            [[UIGraphicsImageRenderer alloc] initWithSize:image.size];
-        UIImage *src = image;
-        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
-          [src drawInRect:CGRectMake(0, 0, src.size.width, src.size.height)];
-        }];
+    for (NSDictionary *p in pasted) {
+      NSData *data = p[@"data"];
+      NSString *ext = p[@"ext"];
+      if (!data) {
+        UIImage *image = p[@"image"];
+        // UIImagePNGRepresentation encodes the raw pixels and PNG has no
+        // orientation tag, so bake imageOrientation in by redrawing. The
+        // renderer must draw at the image's own scale: its default is the
+        // screen's, which triples each side of the bitmap.
+        if (image.imageOrientation != UIImageOrientationUp) {
+          UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
+          format.scale = image.scale;
+          UIGraphicsImageRenderer *renderer =
+              [[UIGraphicsImageRenderer alloc] initWithSize:image.size format:format];
+          UIImage *src = image;
+          image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+            [src drawInRect:CGRectMake(0, 0, src.size.width, src.size.height)];
+          }];
+        }
+        data = UIImagePNGRepresentation(image);
+        ext = @"png";
       }
-      NSData *data = UIImagePNGRepresentation(image);
       if (!data) continue;
 
-      NSString *filename = [NSString stringWithFormat:@"paste_%@.png", [[NSUUID UUID] UUIDString]];
+      NSString *filename = [NSString stringWithFormat:@"paste_%@.%@", [[NSUUID UUID] UUIDString], ext];
       NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
 
       if ([data writeToFile:tempPath atomically:YES]) {
@@ -1021,9 +1061,9 @@ RCT_EXPORT_METHOD(stopLocationWatch) {
   if (kbPasteImageEnabled) {
     UIPasteboard *pb = [UIPasteboard generalPasteboard];
     if (pb.hasImages) {
-      NSArray<UIImage *> *images = pb.images;
-      if (images.count > 0) {
-        [Kb handlePastedImages:images];
+      NSArray *pasted = KbPastedImages(pb);
+      if (pasted.count > 0) {
+        [Kb handlePastedImages:pasted];
         return;
       }
     }
