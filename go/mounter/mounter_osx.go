@@ -6,24 +6,32 @@
 package mounter
 
 import (
+	"os"
 	"regexp"
-	"strings"
+	"slices"
 	"syscall"
 )
 
-// IsMounted returns true if directory is mounted (by kbfuse)
+// KBFSFstypes are the filesystem types a KBFS mount can have. kbfuse is the
+// legacy Keybase-bundled FUSE, so leftover mounts can still be found and
+// unmounted. Remove it once the legacy helper retirement has removed kbfuse
+// from upgraders' machines.
+var KBFSFstypes = []string{"macfuse", "kbfuse"}
+
+// IsMounted returns true if directory is a KBFS FUSE mount the current user
+// owns.
 func IsMounted(dir string, log Log) (bool, error) {
-	mountInfo, err := getMountInfo(dir)
-	if err != nil {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(dir, &st); err != nil {
 		return false, err
 	}
+	log.Debug("Mount info: fstype=%s from=%s owner=%d", cstr(st.Fstypename[:]),
+		unescapeBackslash(cstr(st.Mntfromname[:])), st.Owner)
+	return isOwnKBFSMount(st, uint32(os.Getuid())), nil
+}
 
-	log.Debug("Mount info: %s", mountInfo)
-	if strings.Contains(mountInfo, "@kbfuse") {
-		return true, nil
-	}
-
-	return false, nil
+func isOwnKBFSMount(st syscall.Statfs_t, uid uint32) bool {
+	return st.Owner == uid && slices.Contains(KBFSFstypes, cstr(st.Fstypename[:]))
 }
 
 //
@@ -48,13 +56,4 @@ func cstr(ca []int8) string {
 		s = append(s, byte(c))
 	}
 	return string(s)
-}
-
-func getMountInfo(mnt string) (string, error) {
-	var st syscall.Statfs_t
-	err := syscall.Statfs(mnt, &st)
-	if err != nil {
-		return "", err
-	}
-	return unescapeBackslash(cstr(st.Mntfromname[:])), nil
 }
