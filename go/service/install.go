@@ -42,7 +42,7 @@ func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusAr
 func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, error) {
 	components := []string{"fuse"}
 	result := install.Install(
-		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
+		h.G(), "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
 
@@ -61,7 +61,7 @@ func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, e
 	h.setMountOptIn(true)
 	components := []string{"kbfs"}
 	result := install.Install(
-		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
+		h.G(), "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
 
@@ -72,17 +72,10 @@ func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResul
 	components := []string{"kbfs"}
 	result := install.Uninstall(h.G(), components, h.G().Log)
 	restart := install.Install(
-		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
+		h.G(), "", components, false, 120*time.Second, h.G().Log)
 	result.ComponentResults = append(result.ComponentResults, restart.ComponentResults...)
 	if result.Status.Code == 0 {
 		result.Status = restart.Status
 	}
-	return result, nil
-}
-
-func (h *InstallHandler) InstallCommandLinePrivileged(context.Context) (keybase1.InstallResult, error) {
-	components := []string{"clipaths"}
-	result := install.Install(
-		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
