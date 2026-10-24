@@ -204,12 +204,6 @@ func (c context) stop() error {
 		c.log.Warningf("Error requesting app exit: %s", appExitErr)
 	}
 
-	// Stop the redirector so it can be upgraded for all users.
-	_, redirectorErr := command.Exec(c.config.keybasePath(), []string{"uninstall", "--components=redirector"}, time.Minute, c.log)
-	if redirectorErr != nil {
-		c.log.Warningf("Error stopping the redirector: %s", redirectorErr)
-	}
-
 	// Stop services
 	servicesExitResult, servicesExitErr := command.Exec(c.config.keybasePath(), []string{"ctl", "stop", "--include=service,kbfs"}, 30*time.Second, c.log)
 	c.log.Infof("Stop output: %s", servicesExitResult.CombinedOutput())
