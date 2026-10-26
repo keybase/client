@@ -484,14 +484,16 @@ const scrollThroughPages = async (
   let pageLoads = 0
   for (let i = 0; i < 60 && !done(g); i++) {
     const before = g
-    // a row wholly in view before the step that stays wholly in view after it
-    const anchor = before.rows.find(r =>
-      step > 0 ? r.top >= step + 20 && r.bottom <= before.viewHeight : r.top >= 0 && r.bottom <= before.viewHeight + step - 20
-    )
-    if (!anchor) throw new Error(`step ${i}: no row in view to anchor on`)
     // the scroller clamps at either end of what has loaded so far
     const room = step > 0 ? before.distanceFromEnd : before.scrollTop
     const expected = Math.min(Math.abs(step), room) * Math.sign(step)
+    // a row wholly in view before the step that stays wholly in view after it
+    const anchor = before.rows.find(r =>
+      step > 0
+        ? r.top >= expected + 20 && r.bottom <= before.viewHeight
+        : r.top >= 0 && r.bottom <= before.viewHeight + expected - 20
+    )
+    if (!anchor) throw new Error(`step ${i}: no row in view to anchor on`)
     await wheelThread(page, step)
     g = await waitForScrollStable(page)
     const pageLoaded = Math.abs(g.scrollHeight - before.scrollHeight) > 1000

@@ -202,6 +202,51 @@ test.describe('reactions', () => {
     await removeReaction(page, text)
   })
 
+  // The bar hangs below its row, which on the newest one would pass the list's bottom: it sits above
+  // that row instead, covering none of it, so the row's own controls stay reachable.
+  test('the hover bar on the newest message sits above it, inside the list', async ({page}) => {
+    const text = await sendFresh(page)
+    await waitForScrollStable(page)
+    const row = rowWithText(page, text)
+    const bar = row.locator('.WrapperMessage-emojiButton')
+    await expect(async () => {
+      await row.hover({timeout: 1_000})
+      await expect(bar).toBeVisible({timeout: 500})
+    }).toPass({timeout: 10_000})
+    // the bar measures its place on the row's mouseenter and takes it a render later
+    const measure = async () =>
+      page.evaluate(
+      ([testID, marker]) => {
+        type R = {bottom: number; top: number}
+        type El = {getBoundingClientRect: () => R; querySelector: (s: string) => El | null; textContent: string | null}
+        const g = globalThis as unknown as {
+          document: {querySelector: (s: string) => El | null; querySelectorAll: (s: string) => ArrayLike<El>}
+          getComputedStyle: (e: El) => {overflowY: string}
+        }
+        const list = g.document.querySelector(`[data-testid="${testID}"]`)
+        const rowEl = Array.from(g.document.querySelectorAll(`[data-testid="${testID}"] [data-ordinal]`)).find(r =>
+          r.textContent?.includes(marker)
+        )
+        const barEl = rowEl?.querySelector('.WrapperMessage-emojiButton')
+        const scroller = list && Array.from((list as unknown as {children: ArrayLike<El>}).children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
+        if (!rowEl || !barEl || !scroller) return undefined
+        return {bar: barEl.getBoundingClientRect(), list: scroller.getBoundingClientRect(), row: rowEl.getBoundingClientRect()}
+      },
+      [T.CHAT_MESSAGE_LIST, text] as const
+    )
+    await expect
+      .poll(async () => {
+        const m = await measure()
+        return !!m && m.bar.bottom <= m.row.top + 1
+      }, {timeout: 5_000})
+      .toBe(true)
+    const rects = await measure()
+    expect(rects, 'the row, its hover bar and the list').toBeDefined()
+    const {bar: b, list: l, row: r} = rects!
+    expect(b.bottom, `the bar (${b.top}-${b.bottom}) covers none of its row (${r.top}-${r.bottom})`).toBeLessThanOrEqual(r.top + 1)
+    expect(b.top, `the bar (${b.top}-${b.bottom}) is inside the list (${l.top}-${l.bottom})`).toBeGreaterThanOrEqual(l.top)
+  })
+
   test('a reaction on the newest message keeps the thread at its end', async ({page}) => {
     const text = await sendFresh(page)
     const before = await waitForScrollStable(page)
