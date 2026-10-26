@@ -24,6 +24,11 @@ const savedSettingsPath = '/tmp/kb-e2e-chat-unfurl-settings.json'
 const runID = Date.now().toString(36)
 // How long a link must stay bare to count as not unfurled, and the longest an unfurl may take.
 const bareWindowMs = 10_000
+
+// The service fetches a link only when it unfurls it, so every link a case expects to unfurl, or
+// could unfurl if the case failed, is on keybase.io. The other domains are only list entries and
+// links that must stay bare.
+const fetchedDomain = 'keybase.io'
 const unfurlTimeoutMs = 30_000
 
 const getSettings = async (): Promise<UnfurlSettings> => {
@@ -203,24 +208,22 @@ test('Allow all saves as always and stays selected', async ({page}) => {
 test('Ask per domain: No with remember blocks an unknown domain', async ({page}) => {
   await setSettings({blocklist: ['example.org'], mode: 'whitelisted', whitelist: ['example.net']})
   await openSelf(page)
-  const posted = await postLink(page, 'ask-no', 'example.com')
-  await expectPromptFor(posted, 'example.com')
+  const posted = await postLink(page, 'ask-no', fetchedDomain)
+  await expectPromptFor(posted, fetchedDomain)
   await answerPrompt(posted, 'no', true)
 
-  await expect.poll(async () => (await getSettings()).blocklist, {timeout: 10_000}).toContain('example.com')
-  expect((await getSettings()).whitelist).not.toContain('example.com')
+  await expect.poll(async () => (await getSettings()).blocklist, {timeout: 10_000}).toContain(fetchedDomain)
+  expect((await getSettings()).whitelist).not.toContain(fetchedDomain)
   await expectBare(page, posted)
 })
 
 test('Ask per domain: a blocked domain neither prompts nor unfurls', async ({page}) => {
+  await setSettings({blocklist: ['example.com', 'example.org'], mode: 'whitelisted', whitelist: [fetchedDomain]})
   const before = await getSettings()
-  expect(before.mode).toBe('whitelisted')
-  expect(before.blocklist).toContain('example.com')
-  expect(before.whitelist).toContain('example.net')
   await openSelf(page)
   const blocked = await postLink(page, 'blocked', 'example.com')
   // posted after it, so its preview shows the blocked link had its turn
-  const control = await postLink(page, 'allowed-control', 'example.net')
+  const control = await postLink(page, 'allowed-control', fetchedDomain)
   const ms = await expectUnfurled(control)
   test.info().annotations.push({description: `allowed control unfurled in ${ms}ms`, type: 'timing'})
   await expectBare(page, blocked)
@@ -232,32 +235,32 @@ test('Ask per domain: Yes unfurls once, Yes with remember allows the domain', as
   const before = await getSettings()
   await openSelf(page)
 
-  const once = await postLink(page, 'ask-yes-once', 'example.com')
-  await expectPromptFor(once, 'example.com')
+  const once = await postLink(page, 'ask-yes-once', fetchedDomain)
+  await expectPromptFor(once, fetchedDomain)
   await answerPrompt(once, 'yes', false)
   await expectUnfurled(once)
   expect(await getSettings()).toEqual(before)
 
-  const remembered = await postLink(page, 'ask-yes-remember', 'example.com')
-  await expectPromptFor(remembered, 'example.com')
+  const remembered = await postLink(page, 'ask-yes-remember', fetchedDomain)
+  await expectPromptFor(remembered, fetchedDomain)
   await answerPrompt(remembered, 'yes', true)
   await expectUnfurled(remembered)
-  await expect.poll(async () => (await getSettings()).whitelist, {timeout: 10_000}).toContain('example.com')
+  await expect.poll(async () => (await getSettings()).whitelist, {timeout: 10_000}).toContain(fetchedDomain)
   expect((await getSettings()).blocklist).toEqual(['example.org'])
 })
 
 test('Allow all unfurls a blocked domain without asking', async ({page}) => {
-  await setSettings({blocklist: ['example.com', 'example.org'], mode: 'always', whitelist: ['example.net']})
+  await setSettings({blocklist: [fetchedDomain, 'example.org'], mode: 'always', whitelist: ['example.net']})
   await openSelf(page)
-  const posted = await postLink(page, 'always-blocked', 'example.com')
+  const posted = await postLink(page, 'always-blocked', fetchedDomain)
   await expectUnfurled(posted)
-  expect((await getSettings()).blocklist).toContain('example.com')
+  expect((await getSettings()).blocklist).toContain(fetchedDomain)
 })
 
 test('Disallow all neither prompts nor unfurls an allowed domain', async ({page}) => {
-  await setSettings({blocklist: ['example.org'], mode: 'never', whitelist: ['example.net']})
+  await setSettings({blocklist: ['example.org'], mode: 'never', whitelist: [fetchedDomain]})
   await openSelf(page)
-  const posted = await postLink(page, 'never-allowed', 'example.net')
+  const posted = await postLink(page, 'never-allowed', fetchedDomain)
   await expectBare(page, posted)
   expect((await getSettings()).mode).toBe('never')
 })
