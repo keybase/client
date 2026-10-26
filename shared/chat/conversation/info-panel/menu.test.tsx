@@ -27,7 +27,8 @@ jest.mock('../team-hooks', () => ({
 }))
 type MockMenuItem = {title: string; onClick?: () => void; view?: unknown}
 // the real menu positions itself against a measured anchor and renders nothing in jsdom;
-// a flat list of its titled items is enough to click one
+// a flat list of its titled items is enough to click one, plus the channel header (the team
+// header's avatar does not render in jsdom)
 jest.mock('@/common-adapters', () => {
   const actual = jest.requireActual<object>('@/common-adapters')
   const R = jest.requireActual<typeof React>('react')
@@ -37,10 +38,14 @@ jest.mock('@/common-adapters', () => {
       R.createElement(
         'div',
         {'data-testid': 'menu'},
-        p.items.flatMap(i =>
-          i && i !== 'Divider' && !i.view
-            ? [R.createElement('button', {key: i.title, onClick: i.onClick}, i.title)]
-            : []
+        p.items.flatMap((i): Array<React.ReactElement> =>
+          !i || i === 'Divider'
+            ? []
+            : i.view
+              ? i.title === 'channelHeader'
+                ? [R.createElement(R.Fragment, {key: i.title}, i.view as React.ReactNode)]
+                : []
+              : [R.createElement('button', {key: i.title, onClick: i.onClick}, i.title)]
         )
       ),
   }
@@ -76,8 +81,17 @@ const renderChannelMenu = (teamID: T.Teams.TeamID) => {
 }
 
 // the team-level menu (no conversation), as opened from the inbox's big team row
-const renderTeamMenu = (teamID: T.Teams.TeamID) =>
-  render(<InfoPanelMenu hasHeader={false} isSmallTeam={false} onHidden={() => {}} teamID={teamID} visible={true} />)
+const renderTeamMenu = (teamID: T.Teams.TeamID, p?: {hasHeader?: boolean; showPinItems?: boolean}) =>
+  render(
+    <InfoPanelMenu
+      hasHeader={p?.hasHeader ?? true}
+      isSmallTeam={false}
+      onHidden={() => {}}
+      showPinItems={p?.showPinItems}
+      teamID={teamID}
+      visible={true}
+    />
+  )
 
 beforeEach(() => {
   rpc = installFakeChatRpc()
@@ -95,6 +109,81 @@ afterEach(() => {
   restoreChatRpc()
   resetAllStores()
   mockMeta = makeConversationMeta()
+})
+
+describe('team-level menu', () => {
+  test('has no mark-unread item', () => {
+    renderTeamMenu(hexTeamID)
+
+    expect(screen.getByText('Mark all as read')).toBeTruthy()
+    expect(screen.queryByText('Mark as unread')).toBeNull()
+  })
+
+  test('has no pin items even when asked for them', () => {
+    renderTeamMenu(hexTeamID, {showPinItems: true})
+
+    expect(screen.queryByText('Pin to top')).toBeNull()
+  })
+
+  test('without a header, has no join-channel item', () => {
+    renderTeamMenu(hexTeamID, {hasHeader: false})
+
+    expect(screen.queryByText('Join channel')).toBeNull()
+  })
+})
+
+// the menu for one big team channel, as opened from its inbox row
+const renderChannelRowMenu = (meta: Partial<T.Chat.ConversationMeta> = {}) => {
+  mockMeta = {...bigTeamChannelMeta(hexTeamID), ...meta}
+  return render(
+    <InfoPanelMenu
+      channelOnly={true}
+      conversationIDKey={conversationIDKey}
+      hasHeader={false}
+      isSmallTeam={false}
+      onHidden={() => {}}
+      visible={true}
+    />
+  )
+}
+
+const itemTitles = () => screen.getAllByRole('button').map(b => b.textContent)
+
+describe('channel row menu', () => {
+  test('has only the channel items', () => {
+    renderChannelRowMenu()
+
+    expect(screen.getByText('random')).toBeTruthy()
+    expect(itemTitles()).toEqual(['Mark as unread', 'Mute', 'Backup conversation'])
+  })
+
+  test('a muted channel offers unmute', () => {
+    renderChannelRowMenu({isMuted: true})
+
+    expect(itemTitles()).toEqual(['Mark as unread', 'Unmute', 'Backup conversation'])
+  })
+
+  test('mute mutes the channel', async () => {
+    renderChannelRowMenu()
+
+    fireEvent.click(screen.getByText('Mute'))
+    await flush()
+
+    expect(rpc.calls('setConversationStatus')).toEqual([
+      [conversationIDKey, T.RPCChat.ConversationStatus.muted],
+    ])
+  })
+
+  test('backup backs up the channel, not the team', () => {
+    renderChannelRowMenu()
+
+    fireEvent.click(screen.getByText('Backup conversation'))
+
+    expect(nav.pushes().at(-1)).toEqual({
+      name: 'archiveModal',
+      params: {conversationIDKey, type: 'chatID'},
+    })
+  })
 })
 
 describe('onMarkAsRead', () => {

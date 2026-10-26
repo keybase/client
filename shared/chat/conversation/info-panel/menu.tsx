@@ -21,6 +21,8 @@ const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  // only the items for the conversation itself, for a big team channel's inbox row
+  channelOnly?: boolean
   conversationIDKey?: T.Chat.ConversationIDKey
   onHidden: () => void
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
@@ -96,8 +98,9 @@ const useData = (p: {
 const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const styles = useStyles()
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
-  const {isSmallTeam, teamID: pteamID, showPinItems} = p
+  const {channelOnly, isSmallTeam, teamID: pteamID, showPinItems} = p
   const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
+  const hasConversation = conversationIDKey !== Chat.noConversationIDKey
 
   const data = useData({conversationIDKey, isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
@@ -233,7 +236,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   } as const
 
   const hideItem = (() => {
-    if (!conversationIDKey) {
+    if (!hasConversation) {
       return null
     }
     if (teamType === 'adhoc' || teamType === 'small') {
@@ -260,7 +263,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   })()
 
   const muteItem = (() => {
-    if (!conversationIDKey || !isInChannel) {
+    if (!hasConversation || !isInChannel) {
       return null
     }
     const title = isMuted ? 'Unmute' : 'Mute'
@@ -272,7 +275,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     } as const
   })()
   const markAsUnread = (() => {
-    if (!conversationIDKey) {
+    if (!hasConversation) {
       return null
     }
     return {
@@ -283,9 +286,9 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     } as const
   })()
 
-  const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
+  const isAdhoc = teamType === 'adhoc'
   const onArchive = () => {
-    if (isAdhoc && conversationIDKey) {
+    if (isAdhoc || channelOnly) {
       routerNavigateAppend({
         name: 'archiveModal',
         params: {conversationIDKey, type: 'chatID' as const},
@@ -299,7 +302,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
 
   const pinItems: Kb.MenuItems = []
-  if (showPinItems && conversationIDKey !== Chat.noConversationIDKey) {
+  if (showPinItems && hasConversation) {
     if (isPinned) {
       if (!isTopPinned) {
         pinItems.push({
@@ -327,17 +330,21 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     }
   }
 
+  const backupItem = {
+    icon: 'iconfont-folder-downloads',
+    iconIsVisible: false,
+    onClick: onArchive,
+    title: 'Backup conversation',
+  } as const
+
+  const conversationItems = [markAsUnread, muteItem, hideItem].filter(i => !!i)
+
   const items: Kb.MenuItems = [...pinItems]
-  if (isAdhoc) {
-    if (markAsUnread) {
-      items.push(markAsUnread)
-    }
-    if (muteItem) {
-      items.push(muteItem)
-    }
-    if (hideItem) {
-      items.push(hideItem)
-    }
+  if (channelOnly) {
+    items.push(channelHeader)
+    items.push(...conversationItems, backupItem)
+  } else if (isAdhoc) {
+    items.push(...conversationItems)
     items.push({
       danger: true,
       icon: 'iconfont-user-block',
@@ -345,28 +352,13 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       onClick: onBlockConv,
       title: 'Block',
     } as const)
-    if (conversationIDKey) {
-      items.push({
-        icon: 'iconfont-folder-downloads',
-        iconIsVisible: false,
-        onClick: onArchive,
-        title: 'Backup conversation',
-      } as const)
-    }
+    items.push(backupItem)
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)
     }
-    if (markAsUnread) {
-      items.push(markAsUnread)
-    }
-    if (muteItem) {
-      items.push(muteItem)
-    }
-    if (hideItem) {
-      items.push(hideItem)
-    }
-    if (!isSmallTeam && !isInChannel && !isGeneralChannel && !hasHeader) {
+    items.push(...conversationItems)
+    if (hasConversation && !isSmallTeam && !isInChannel && !isGeneralChannel && !hasHeader) {
       items.push({
         icon: 'iconfont-hash',
         iconIsVisible: false,
@@ -409,16 +401,11 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       onClick: onLeaveTeam,
       title: 'Leave team',
     } as const)
-    items.push({
-      icon: 'iconfont-folder-downloads',
-      iconIsVisible: false,
-      onClick: onArchive,
-      title: 'Backup conversation',
-    } as const)
+    items.push(backupItem)
   }
 
   const header = hasHeader ? (
-    isAdhoc && conversationIDKey ? (
+    isAdhoc ? (
       <AdhocHeader conversationIDKey={conversationIDKey} isMuted={!!isMuted} fullname={fullname ?? ''} />
     ) : teamname && teamID ? (
       <TeamHeader isMuted={!!isMuted} teamname={teamname} teamID={teamID} onViewTeam={onViewTeam} />
