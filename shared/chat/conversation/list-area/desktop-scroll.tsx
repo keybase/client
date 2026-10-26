@@ -78,8 +78,8 @@ export const useDesktopThreadScroll = (p: {
     [listRef]
   )
 
-  // Read by the loops below as they run, so they see the thread as it is now rather than when they
-  // started.
+  // Read as the list reports and the reveal runs, so they see the thread as it is now rather than as it
+  // was rendered.
   const messageOrdinalsRef = React.useRef(messageOrdinals)
   React.useEffect(() => {
     messageOrdinalsRef.current = messageOrdinals
@@ -110,33 +110,46 @@ export const useDesktopThreadScroll = (p: {
   // Outlives re-renders: the rows that make centring accurate arrive after it starts, so no effect
   // cleanup on messageOrdinals may tear it down.
   const centering = useSchedule()
+  // Whether the list's own scroll to the centred target is under way. Stopping the schedule only
+  // drops what follows it, so a stop cancels the list's scroll too: it would otherwise go on aiming
+  // at a target the reader has left.
+  const centeringScrollRef = React.useRef(false)
+  const stopCentering = React.useCallback(() => {
+    centering.stop()
+    if (centeringScrollRef.current) {
+      centeringScrollRef.current = false
+      listRef.current?.cancelScroll()
+    }
+  }, [centering, listRef])
 
-  // The list's scrollToIndex keeps aiming at the target as the rows above it measure, and resolves
-  // once it has landed; centring ends there, and maintainVisibleContentPosition holds it after.
+  // The list keeps aiming at the target's row (by key, so rows prepended meanwhile do not move the
+  // aim) as the rows above it measure, and resolves once it has landed; centring ends there, and
+  // maintainVisibleContentPosition holds it after.
   //
   // Through LegendList's own scroll, never scrollIntoView: touching scrollTop directly desyncs
   // LegendList's internal scroll state, and the next time it recomputes item positions it snaps
   // somewhere unrelated.
   const scrollToCentered = React.useCallback(
     (target: T.Chat.Ordinal) => {
-      centering.stop()
+      stopCentering()
       centering.start(async sleep => {
-        const index = indexOfOrdinal(messageOrdinalsRef.current, target)
-        if (index >= 0) await listRef.current?.scrollToIndex({animated: false, index, viewPosition: 0.5})
-        // stopped while it scrolled: the reader or a new target took over
+        centeringScrollRef.current = true
+        await listRef.current?.scrollToKey({animated: false, key: String(target), viewPosition: 0.5})
+        // stopped while it scrolled: the reader or a new target took over, and owns the flag now
         if (!(await sleep(0))) return
+        centeringScrollRef.current = false
         // centerSettled only ever leaves the list alone.
         scrollTarget.decide({type: 'centerSettled'})
       })
     },
-    [centering, listRef, scrollTarget]
+    [centering, listRef, scrollTarget, stopCentering]
   )
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
-          if (directive.stopCentering) centering.stop()
+          if (directive.stopCentering) stopCentering()
           void listRef.current?.scrollToEnd({animated: false})
           return
         case 'center': {
@@ -168,7 +181,7 @@ export const useDesktopThreadScroll = (p: {
           return
         }
         case 'leaveAlone':
-          if (directive.stopCentering) centering.stop()
+          if (directive.stopCentering) stopCentering()
           return
         default: {
           const unexpected: never = directive
@@ -176,7 +189,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     },
-    [centering, listRef, own, scrollToCentered, scrollerOf]
+    [listRef, own, scrollToCentered, scrollerOf, stopCentering]
   )
 
   const dispatch = React.useCallback(
@@ -193,7 +206,7 @@ export const useDesktopThreadScroll = (p: {
   }, [dispatch])
 
   // Compared by value, not by the effect re-running: selecting the chat tab again re-mounts effects
-  // hidden under Activity with nothing changed. The end being verified belongs to the old rows.
+  // hidden under Activity with nothing changed.
   const datasetRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
     if (datasetRef.current === datasetKey) return
@@ -215,7 +228,14 @@ export const useDesktopThreadScroll = (p: {
 
   // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
   // schedules, and a target still settling is centred afresh if the list comes back.
-  React.useEffect(() => () => dispatchRef.current({type: 'detached'}), [])
+  React.useEffect(
+    () => () => {
+      // the list ends its own scrolls as it is hidden, so one under way is no longer the centring's
+      centeringScrollRef.current = false
+      dispatchRef.current({type: 'detached'})
+    },
+    []
+  )
 
   React.useEffect(() => {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
@@ -227,6 +247,20 @@ export const useDesktopThreadScroll = (p: {
       type: 'editingChanged',
     })
   }, [dispatch, editingOrdinal, messageOrdinals, scrollerOf])
+
+  // The header's intro content (retention notice, new-chat card, the "digging" spinner) can land
+  // after the thread has settled at its end, and the list's own end anchor has no header trigger: a
+  // header in view growing would leave the end short by exactly that growth.
+  const onMetricsChange = React.useCallback(
+    (metrics: {headerSize: number}) => {
+      dispatch({
+        hasMessages: messageOrdinalsRef.current.length > 0,
+        size: metrics.headerSize,
+        type: 'headerMeasured',
+      })
+    },
+    [dispatch]
+  )
 
   // The list's viewport as it last reported it; its first report is where it starts, not a change.
   const viewportRef = React.useRef<number | undefined>(undefined)
@@ -326,6 +360,7 @@ export const useDesktopThreadScroll = (p: {
     initialScrollIndex,
     maintainScrollAtEnd: anchorsEnd,
     onLayout,
+    onMetricsChange,
     scrollToBottom,
   }
 }

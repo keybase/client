@@ -229,7 +229,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  const {initialScrollIndex, maintainScrollAtEnd, onLayout, scrollToBottom} = useDesktopThreadScroll({
+  const {initialScrollIndex, maintainScrollAtEnd, onLayout, onMetricsChange, scrollToBottom} = useDesktopThreadScroll({
     centeredOrdinal,
     containsLatestMessage,
     datasetKey,
@@ -402,6 +402,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}
           onLayout={onLayout}
+          onMetricsChange={onMetricsChange}
           onLoad={onLoad}
           onScroll={onScroll}
           onStartReached={loadOlder}

@@ -19,8 +19,9 @@ const ord = T.Chat.numberToOrdinal
 
 const fresh = initialScrollTargetState
 const state = (p: Partial<ScrollTargetState> = {}): ScrollTargetState => ({...fresh, ...p})
-// Everything a busy session accumulates: reader holds the end, a target centred, an edit revealed.
-const busy = state({endOwner: 'reader', lastCentered: ord(30), lastEditing: ord(15)})
+// Everything a busy session accumulates: reader holds the end, a target centred, a header measured,
+// an edit revealed.
+const busy = state({endOwner: 'reader', headerSize: 100, lastCentered: ord(30), lastEditing: ord(15)})
 const centred = (n: number) => state({endOwner: 'reader', lastCentered: ord(n), settlingCenter: true})
 // Centred, and then settled or left by the reader.
 const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)})
@@ -51,9 +52,10 @@ const runTable = (rows: Array<Row>) =>
   })
 
 describe('initial state', () => {
-  test('the list owns the end and nothing is centred or revealed', () => {
+  test('the list owns the end and nothing is centred, measured or revealed', () => {
     expect(fresh).toEqual({
       endOwner: 'list',
+      headerSize: undefined,
       holdingEdit: false,
       lastCentered: undefined,
       lastEditing: undefined,
@@ -69,11 +71,11 @@ describe('datasetChanged', () => {
   runTable([
     ['from a fresh state, only stops any centring', fresh, next, stopCentering, fresh],
     [
-      'hands the end back and forgets the centred target, keeping the revealed edit',
+      'hands the end back and forgets the centred target, keeping the header size and the revealed edit',
       busy,
       next,
       stopCentering,
-      state({lastEditing: ord(15)}),
+      state({headerSize: 100, lastEditing: ord(15)}),
     ],
     [
       'stops centring already under way',
@@ -130,10 +132,10 @@ describe('threadObserved', () => {
     ],
     [
       'centring takes the end even from a list that owned it, keeping the rest',
-      state({lastEditing: ord(15)}),
+      state({headerSize: 100, lastEditing: ord(15)}),
       observed(30),
       center(30),
-      {...centred(30), lastEditing: ord(15)},
+      {...centred(30), headerSize: 100, lastEditing: ord(15)},
     ],
     [
       'rows changing under a target still settling need no directive: its centring measures them as it goes',
@@ -189,7 +191,7 @@ describe('threadObserved', () => {
       busy,
       observed(undefined),
       stopCentering,
-      state({endOwner: 'reader', lastEditing: ord(15)}),
+      state({endOwner: 'reader', headerSize: 100, lastEditing: ord(15)}),
     ],
   ])
 })
@@ -266,6 +268,37 @@ describe('userScrolled', () => {
     const holding = Object.freeze(state({endOwner: 'reader', lastCentered: ord(30)}))
     expect(decideScroll(holding, scrolled).state).toBe(holding)
   })
+})
+
+describe('headerMeasured', () => {
+  const measured = (size: number, hasMessages = true): ScrollEvent => ({hasMessages, size, type: 'headerMeasured'})
+  runTable([
+    ['the first size is a baseline', fresh, measured(100), leaveAlone, state({headerSize: 100})],
+    [
+      'the first size is a baseline even for a reader',
+      state({endOwner: 'reader'}),
+      measured(100),
+      leaveAlone,
+      state({endOwner: 'reader', headerSize: 100}),
+    ],
+    ['an unchanged size is not a change', state({headerSize: 100}), measured(100), leaveAlone, state({headerSize: 100})],
+    ['growth re-pins the end', state({headerSize: 100}), measured(152), pinEnd, state({headerSize: 152})],
+    ['so does shrinking', state({headerSize: 152}), measured(100), pinEnd, state({headerSize: 100})],
+    [
+      'growth is recorded but ignored once the reader owns the end',
+      state({endOwner: 'reader', headerSize: 100}),
+      measured(152),
+      leaveAlone,
+      state({endOwner: 'reader', headerSize: 152}),
+    ],
+    [
+      'growth is recorded but ignored while the thread is empty',
+      state({headerSize: 100}),
+      measured(152, false),
+      leaveAlone,
+      state({headerSize: 152}),
+    ],
+  ])
 })
 
 describe('appended', () => {
