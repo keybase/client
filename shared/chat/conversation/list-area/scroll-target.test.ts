@@ -28,10 +28,8 @@ const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)}
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
-const pinEnd: ScrollDirective = {retry: false, stopCentering: false, type: 'pinEnd', verify: false}
+const pinEnd: ScrollDirective = {retry: false, stopCentering: false, type: 'pinEnd'}
 const pinEndStopCentering: ScrollDirective = {...pinEnd, stopCentering: true}
-// The end moved with a size change: confirm it held once the list settles.
-const verifyEnd: ScrollDirective = {...pinEnd, verify: true}
 // The first load's pin, which asks for the first load to be reported again.
 const pinEndRetry: ScrollDirective = {...pinEnd, retry: true}
 const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
@@ -283,9 +281,9 @@ describe('headerMeasured', () => {
       leaveAlone,
       state({endOwner: 'reader', headerSize: 100}),
     ],
-    ['an unchanged size is not growth', state({headerSize: 100}), measured(100), leaveAlone, state({headerSize: 100})],
-    ['growth re-pins the end once the list settles', state({headerSize: 100}), measured(152), verifyEnd, state({headerSize: 152})],
-    ['so does shrinking', state({headerSize: 152}), measured(100), verifyEnd, state({headerSize: 100})],
+    ['an unchanged size is not a change', state({headerSize: 100}), measured(100), leaveAlone, state({headerSize: 100})],
+    ['growth re-pins the end', state({headerSize: 100}), measured(152), pinEnd, state({headerSize: 152})],
+    ['so does shrinking', state({headerSize: 152}), measured(100), pinEnd, state({headerSize: 100})],
     [
       'growth is recorded but ignored once the reader owns the end',
       state({endOwner: 'reader', headerSize: 100}),
@@ -299,13 +297,6 @@ describe('headerMeasured', () => {
       measured(152, false),
       leaveAlone,
       state({headerSize: 152}),
-    ],
-    [
-      'growth does not depend on a centred target, only on who owns the end',
-      state({headerSize: 100, lastCentered: ord(30)}),
-      measured(152),
-      verifyEnd,
-      state({headerSize: 152, lastCentered: ord(30)}),
     ],
   ])
 })
@@ -346,50 +337,31 @@ describe('appended', () => {
 })
 
 describe('viewportResized', () => {
-  const resized = (anchorsEnd = true, rowFullyVisible = false): ScrollEvent => ({
-    anchorsEnd,
+  const resized = (rowFullyVisible = false): ScrollEvent => ({
     rowFullyVisible: () => rowFullyVisible,
     type: 'viewportResized',
   })
   const holding = state({endOwner: 'reader', holdingEdit: true, lastEditing: ord(15)})
   const holdingInView = state({holdingEdit: true, lastEditing: ord(15)})
   runTable([
-    ['an end the list holds is re-pinned once the list settles', fresh, resized(), verifyEnd, fresh],
-    ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
+    ["an end the list holds is left to the list's own end anchor", fresh, resized(), leaveAlone, fresh],
     ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
     ['a held reveal the change cut off is aimed again', holding, resized(), reveal(15), holding],
-    ['a held reveal still wholly in view is left where it is', holding, resized(true, true), leaveAlone, holding],
+    ['a held reveal still wholly in view is left where it is', holding, resized(true), leaveAlone, holding],
     [
       'a held edit that was in view and the change cut off is revealed, which takes the end from the list',
       holdingInView,
-      resized(false),
+      resized(),
       reveal(15),
       {...holdingInView, endOwner: 'reader'},
     ],
-    ['a held edit still wholly in view leaves the end the list holds to be re-pinned', holdingInView, resized(true, true), verifyEnd, holdingInView],
+    ["a held edit still wholly in view leaves the end to the list's own end anchor", holdingInView, resized(true), leaveAlone, holdingInView],
     [
       'a reveal no longer held is left alone',
       state({endOwner: 'reader', lastEditing: ord(15)}),
       resized(),
       leaveAlone,
       state({endOwner: 'reader', lastEditing: ord(15)}),
-    ],
-  ])
-})
-
-describe('rowResized', () => {
-  const resized = (anchorsEnd = true): ScrollEvent => ({anchorsEnd, type: 'rowResized'})
-  runTable([
-    ['an end the list holds is re-pinned once the list settles', fresh, resized(), verifyEnd, fresh],
-    ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
-    ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
-    ['a centred target is left to its centring', centred(30), resized(false), leaveAlone, centred(30)],
-    [
-      'a held reveal is left where it is',
-      state({endOwner: 'reader', holdingEdit: true, lastEditing: ord(15)}),
-      resized(),
-      leaveAlone,
-      state({endOwner: 'reader', holdingEdit: true, lastEditing: ord(15)}),
     ],
   ])
 })
@@ -512,7 +484,6 @@ describe('sequences', () => {
     d.take()
     return d
   }
-  const header = (size: number): ScrollEvent => ({hasMessages: true, size, type: 'headerMeasured'})
   const wheel: ScrollEvent = {type: 'userScrolled'}
 
   test('a search hit: clear, reload, centre, settle as rows arrive, then leave it in place', () => {
@@ -522,10 +493,7 @@ describe('sequences', () => {
     d.load(window(400, 449))
     d.send({type: 'centerSettled'})
     d.load(window(350, 399))
-    d.send(header(100))
-    d.send(header(152))
     d.clearCentre()
-    d.send(header(200))
     expect(d.take()).toEqual([
       stopCentering,
       leaveAlone,
@@ -534,12 +502,9 @@ describe('sequences', () => {
       leaveAlone,
       // Rows arriving under a settled target leave the reader where they are.
       leaveAlone,
-      leaveAlone,
-      leaveAlone,
       stopCentering,
-      leaveAlone,
     ])
-    expect(d.state).toEqual(state({endOwner: 'reader', headerSize: 200}))
+    expect(d.state).toEqual(state({endOwner: 'reader'}))
   })
 
   test('opening a conversation on a hit leaves the first load to the centre reconcile', () => {
@@ -568,16 +533,6 @@ describe('sequences', () => {
     d.centreOn(ord(30))
     d.load(window(1, 60))
     expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), stopCentering, stopCentering, leaveAlone, center(30)])
-  })
-
-  test('a wheel stops the header re-pin until the reader asks for the bottom', () => {
-    const d = openList()
-    d.send(header(100))
-    d.send(wheel)
-    d.send(header(152))
-    d.requestBottom()
-    d.send(header(200))
-    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinEndStopCentering, verifyEnd])
   })
 
   test('jump to recent from a hit: pin first, then the clear hands the end back to the list', () => {

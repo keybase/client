@@ -13,7 +13,7 @@ export type ScrollTargetState = {
   endOwner: 'list' | 'reader'
   // The last header size the list reported, whatever the dataset. The list reports the header only
   // when its size changes, never for a new dataset, so the size from before a clear is still the one
-  // the new dataset builds its position on: only a later, different size counts as growth.
+  // the new dataset builds its position on: only a later, different size counts as a change.
   headerSize: number | undefined
   // The target already centred in this dataset. Centring happens once per target: scrolling up
   // prepends older messages, which moves the target's index, and re-centring on that would pull
@@ -69,19 +69,13 @@ export type ScrollEvent =
   | {type: 'readerAtEnd'}
   // The header's size as the list measured it. Only a list whose header comes before its end in
   // scroll order reports it: the native list is inverted, so its header sits at the far, oldest end
-  // and growing it never moves the newest.
+  // and growing it never moves the newest. The desktop list's own end anchor has no header trigger.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
   // The part of the list in view changed height: the composer growing or shrinking (typed lines, the
   // edit or reply banner), a window resize, the keyboard rising or falling over the list's bottom.
-  // anchorsEnd is whether the list's own end anchor is on (listAnchorsEnd) and the end moves with the
-  // viewport: the native list's end stays over the keyboard through its keyboard scroll view, so it
-  // reports false. rowFullyVisible says whether the ordinal's row is wholly in view as the list now
-  // measures it, asked only when the decision turns on it.
-  | {type: 'viewportResized'; anchorsEnd: boolean; rowFullyVisible: (ordinal: T.Chat.Ordinal) => boolean}
-  // A row changed size after the list laid it out (a late measure, a re-measure: an image or a font
-  // landing). anchorsEnd as for viewportResized. Only a list whose end moves with its rows reports it:
-  // the native list is inverted, so its newest row sits on its bottom edge and grows away from it.
-  | {type: 'rowResized'; anchorsEnd: boolean}
+  // rowFullyVisible says whether the ordinal's row is wholly in view as the list now measures it,
+  // asked only when the decision turns on it.
+  | {type: 'viewportResized'; rowFullyVisible: (ordinal: T.Chat.Ordinal) => boolean}
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
   // reports it; anchorHidesNewest says whether it would this time. That is the native list with the
   // keyboard up, whose content-position anchor holds the old rows in place and so leaves a new one
@@ -107,14 +101,12 @@ export type ScrollEvent =
 // Every list carries out every directive; how is its own.
 export type ScrollDirective =
   // Bring the newest message into view and hold it there. How, and when, is the list's own: it knows
-  // what it can scroll now and what it must wait out. verify: a size change moved the end, and the
-  // list's own end anchor may already be re-pinning it, so confirm the end held once the list has
-  // settled rather than scroll now. retry: report initialLoad again (retry: true) a moment later,
-  // with the rows as they are then, so a centre requested in between is not undone by this pin.
-  | {type: 'pinEnd'; retry: boolean; stopCentering: boolean; verify: boolean}
-  // Bring the ordinal to the middle of the viewport and settle it there, measuring the rows as they
-  // are at each step, so rows changing under it need no directive of their own. Its budget (steps,
-  // time) is the target's, however often the rows change.
+  // what it can scroll now and what it must wait out. retry: report initialLoad again (retry: true) a
+  // moment later, with the rows as they are then, so a centre requested in between is not undone by
+  // this pin.
+  | {type: 'pinEnd'; retry: boolean; stopCentering: boolean}
+  // Bring the ordinal to the middle of the viewport and settle it there, following it as the rows
+  // around it measure, so rows changing under it need no directive of their own.
   | {type: 'center'; ordinal: T.Chat.Ordinal}
   // Bring the ordinal, not wholly in view, to the middle of the viewport.
   | {type: 'reveal'; ordinal: T.Chat.Ordinal}
@@ -133,16 +125,15 @@ export const initialScrollTargetState: ScrollTargetState = {
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 type PinEnd = Extract<ScrollDirective, {type: 'pinEnd'}>
-const pinEnd: PinEnd = {retry: false, stopCentering: false, type: 'pinEnd', verify: false}
-const verifyEnd: PinEnd = {...pinEnd, verify: true}
+const pinEnd: PinEnd = {retry: false, stopCentering: false, type: 'pinEnd'}
 
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
     case 'datasetChanged':
-      // The end and the centred target start over with a new dataset; the header does not. A
-      // centring under way belongs to the old rows, so it stops: a target still wanted is centred
-      // again once it is in the new ones, and one cleared in the same commit (jump to recent) would
-      // otherwise go on pulling the reader toward it.
+      // The end and the centred target start over with a new dataset; the header does not. A centring
+      // under way belongs to the old rows, so it stops: a target still wanted is centred again once
+      // it is in the new ones, and one cleared in the same commit (jump to recent) would otherwise go
+      // on pulling the reader toward it.
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
         state: {
@@ -222,20 +213,15 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (previous === undefined || previous === event.size) return {directive: leaveAlone, state: next}
       // The header frequently settles while the thread is still empty, and there is no end to hold yet.
       if (state.endOwner !== 'list' || !event.hasMessages) return {directive: leaveAlone, state: next}
-      return {directive: verifyEnd, state: next}
+      return {directive: pinEnd, state: next}
     }
     case 'viewportResized':
-      // Whatever the list holds, it holds through the change: an edit in view, revealed again if the
-      // change covered it, which moves the list off its end as any reveal does; otherwise its end,
-      // while it owns the end.
+      // A held edit is held through the change, revealed again if the change covered it, which moves
+      // the list off its end as any reveal does. An end is held by the list's own end anchor.
       if (state.holdingEdit && state.lastEditing !== undefined && !event.rowFullyVisible(state.lastEditing)) {
         return {directive: {ordinal: state.lastEditing, type: 'reveal'}, state: {...state, endOwner: 'reader'}}
       }
-      return {directive: state.endOwner === 'list' && event.anchorsEnd ? verifyEnd : leaveAlone, state}
-    case 'rowResized':
-      // Rows growing around a reader, or around a centred target, are left to the list's
-      // content-position anchor, which holds what is in view where it is.
-      return {directive: state.endOwner === 'list' && event.anchorsEnd ? verifyEnd : leaveAlone, state}
+      return {directive: leaveAlone, state}
     case 'appended':
       // Only an end the list holds is re-pinned: a reader in history, or on a centred target, stays.
       return {

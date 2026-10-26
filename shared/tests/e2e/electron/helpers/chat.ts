@@ -287,6 +287,11 @@ export const focusThreadScroller = async (page: Page) => {
 
 // Clicks the locator's centre only once that point hits the element itself (or a child): isVisible
 // does not check occlusion, and a click on a covered element lands on whatever covers it.
+//
+// The pointer moves there and a frame passes before the check, as a reader's pointer arrives before
+// they press. Moving can itself change what is there: leaving a message row hides its hover toolbar,
+// and a menu anchored to that toolbar is only re-placed once the frame's layout has run, so a press
+// sent with the move lands on whatever was under the menu.
 export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
   const page = locator.page()
   const deadline = Date.now() + timeoutMs
@@ -296,10 +301,13 @@ export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
     if (box) {
       const x = box.x + box.width / 2
       const y = box.y + box.height / 2
+      await page.mouse.move(x, y)
       const hit = await locator.evaluate(
-        (el, [px, py]) => {
+        async (el, [px, py]) => {
+          const g = globalThis as unknown as PageGlobals & {requestAnimationFrame: (cb: () => void) => void}
+          await new Promise<void>(resolve => g.requestAnimationFrame(() => g.requestAnimationFrame(resolve)))
           const target = el as unknown as ElLike
-          const top = (globalThis as unknown as PageGlobals).document.elementFromPoint(px, py)
+          const top = g.document.elementFromPoint(px, py)
           const owns = !!top && (top === target || target.contains(top))
           return {coveredBy: owns ? '' : ((top as unknown as {outerHTML?: string} | null)?.outerHTML ?? 'nothing').slice(0, 200), owns}
         },
@@ -307,7 +315,8 @@ export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
         {timeout: timeoutMs}
       )
       if (hit.owns) {
-        await page.mouse.click(x, y)
+        await page.mouse.down()
+        await page.mouse.up()
         return
       }
       coveredBy = hit.coveredBy

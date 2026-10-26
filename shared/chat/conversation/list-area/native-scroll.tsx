@@ -441,7 +441,7 @@ export const useNativeThreadScroll = (p: {
   // end of the rise, and whether the keyboard counts as visible flips as it starts. The safe area's is
   // compared by value, so a freeze/thaw re-mount changes nothing.
   React.useEffect(() => {
-    const coverChanged = () => dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
+    const coverChanged = () => dispatch({rowFullyVisible, type: 'viewportResized'})
     const subscriptions = [
       KeyboardEvents.addListener('keyboardDidShow', coverChanged),
       KeyboardEvents.addListener('keyboardDidHide', coverChanged),
@@ -452,7 +452,7 @@ export const useNativeThreadScroll = (p: {
   React.useEffect(() => {
     if (coveredInsetRef.current === bottomInset) return
     coveredInsetRef.current = bottomInset
-    dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
+    dispatch({rowFullyVisible, type: 'viewportResized'})
   }, [bottomInset, dispatch, rowFullyVisible])
 
   // With the keyboard open, maintainVisibleContentPosition adjusts contentOffset by a new message's

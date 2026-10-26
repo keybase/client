@@ -10,25 +10,17 @@ import {
   indexOfOrdinal,
   initialScrollTarget,
   listAnchorsEnd,
-  ownsEnd,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
 import {useHeldLatest, useScrollTarget} from './use-scroll-target'
 import {
-  distanceToEnd,
   listMovedItself,
   offsetFromMiddle as rowOffsetFromMiddle,
   pageOffset,
   revealDestination,
   rowWithinView,
-  scrollerAtEnd,
-  startCenterCheck,
-  startEndCheck,
-  stepCentering,
-  stepEndCheck,
-  stepLayoutCheck,
-  type LayoutCheck,
+  atEnd,
   type RectLike,
   type ScrollerLike,
 } from './desktop-rules'
@@ -59,11 +51,12 @@ const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   return m && rowOffsetFromMiddle(m.row, m.view)
 }
 
-// With the scroller at its end when atEnd; a row not rendered is not in view.
-const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, atEnd: boolean) => {
+// With the list moved down by endShift first (to its end, for a list held there); a row not rendered
+// is not in view.
+const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, endShift: number) => {
   const m = measureRow(scroller, ordinal)
   if (!m) return false
-  return rowWithinView(m.row, m.view, atEnd ? distanceToEnd(scroller as ScrollerLike) : 0)
+  return rowWithinView(m.row, m.view, endShift)
 }
 
 export const useDesktopThreadScroll = (p: {
@@ -85,8 +78,8 @@ export const useDesktopThreadScroll = (p: {
     [listRef]
   )
 
-  // Read by the loops below as they run, so they see the thread as it is now rather than when they
-  // started.
+  // Read as the list reports and the reveal runs, so they see the thread as it is now rather than as it
+  // was rendered.
   const messageOrdinalsRef = React.useRef(messageOrdinals)
   React.useEffect(() => {
     messageOrdinalsRef.current = messageOrdinals
@@ -102,51 +95,20 @@ export const useDesktopThreadScroll = (p: {
     anchorsEndRef.current = anchorsEnd
   }, [anchorsEnd])
 
-  // Every "is the list at its end?" asks the scroller, never the list's own isAtEnd. The list re-reads
-  // that flag only when it scrolls or lays out, so it lags both ways: a row or the header growing at
-  // the end with nothing scrolling leaves it reading at-end while the scroller is short, and a
-  // composer collapse leaves it reading not-at-end while the scroller is at its end.
+  // Every "is the list at its end?" asks for the list's distanceFromEnd, never its isAtEnd flag. The
+  // distance is worked out when asked; the flag is re-read only when the list scrolls or lays out, so
+  // it lags both ways: a row or the header growing at the end with nothing scrolling, and a composer
+  // collapse.
+  const distanceFromEnd = React.useCallback(() => listRef.current?.getState().distanceFromEnd, [listRef])
   const isScrolledToEnd = React.useCallback(() => {
-    const scroller = scrollerOf()
-    return !!scroller && scrollerAtEnd(scroller)
-  }, [scrollerOf])
-
-  // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
-  // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
-  // notice, new-chat card, the "digging" spinner) lands. maintainScrollAtEnd re-pins on a data, item,
-  // footer or viewport layout change but has no header trigger, so a header that grows after the
-  // target resolved leaves the list short by exactly that growth and nothing corrects it.
-  //
-  // The same holds for the other size changes that anchor misses: the viewport changing height while
-  // a scroll it declines to interrupt is in flight, and a row changing by a few pixels, which it
-  // leaves alone.
-  //
-  // Closed loop rather than a correction fired straight from the size change, for the same reason a
-  // pin leaves a list already at its end alone: the header often settles while the thread is still
-  // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
-  // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
-  // the list has finished its own initial scroll, and only then correct what it left on the table
-  // (stepEndCheck).
-  const endAnchor = useSchedule()
-  const verifyEndAnchor = React.useCallback(() => {
-    endAnchor.stop()
-    endAnchor.start(async sleep => {
-      let check = startEndCheck
-      for (let elapsed = 0; elapsed < 2000; ) {
-        if (!(await sleep(50))) return
-        elapsed += 50
-        // Checked after the sleep, not before: the reader may have taken the end during it.
-        if (!ownsEnd(scrollTarget.state)) return
-        const scroll = listRef.current?.getState().scroll
-        const scroller = scrollerOf()
-        if (scroll === undefined || !scroller) continue
-        const next = stepEndCheck(check, {atEnd: isScrolledToEnd(), scroll, scrollHeight: scroller.scrollHeight})
-        check = next.check
-        if (next.action === 'held' || next.action === 'giveUp') return
-        if (next.action === 'correct') void listRef.current?.scrollToEnd({animated: false})
-      }
-    })
-  }, [endAnchor, isScrolledToEnd, listRef, scrollTarget, scrollerOf])
+    const distance = distanceFromEnd()
+    return distance !== undefined && atEnd(distance)
+  }, [distanceFromEnd])
+  // How far the list would move to reach its end, for a list its end anchor holds there.
+  const endShift = React.useCallback(
+    () => (anchorsEndRef.current ? (distanceFromEnd() ?? 0) : 0),
+    [distanceFromEnd]
+  )
 
   // Where the scroller last was, to tell the reader's movements from the list's (onScrollerScroll).
   const lastOffsetRef = React.useRef(0)
@@ -154,60 +116,46 @@ export const useDesktopThreadScroll = (p: {
   // Outlives re-renders: the rows that make centring accurate arrive after it starts, so no effect
   // cleanup on messageOrdinals may tear it down.
   const centering = useSchedule()
+  // Whether the list's own scroll to the centred target is under way. Stopping the schedule only
+  // drops what follows it, so a stop cancels the list's scroll too: it would otherwise go on aiming
+  // at a target the reader has left.
+  const centeringScrollRef = React.useRef(false)
+  const stopCentering = React.useCallback(() => {
+    centering.stop()
+    if (centeringScrollRef.current) {
+      centeringScrollRef.current = false
+      listRef.current?.cancelScroll()
+    }
+  }, [centering, listRef])
 
-  // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
-  // the first scroll lands off by however wrong the estimates above the target were. Once it settles
-  // maintainVisibleContentPosition owns the offset: two controllers on one offset would oscillate.
+  // The list keeps aiming at the target's row (by key, so rows prepended meanwhile do not move the
+  // aim) as the rows above it measure, and resolves once it has landed; centring ends there, and
+  // maintainVisibleContentPosition holds it after.
   //
-  // Correct via LegendList's own scrollToOffset, never scrollIntoView: touching scrollTop directly
-  // desyncs LegendList's internal scroll state, and the next time it recomputes item positions it
-  // snaps somewhere unrelated.
+  // Through LegendList's own scroll, never scrollIntoView: touching scrollTop directly desyncs
+  // LegendList's internal scroll state, and the next time it recomputes item positions it snaps
+  // somewhere unrelated.
   const scrollToCentered = React.useCallback(
     (target: T.Chat.Ordinal) => {
-      centering.stop()
+      stopCentering()
       centering.start(async sleep => {
-        let check = startCenterCheck
-        for (let elapsed = 0; elapsed < 3000; ) {
-          const offBy = offsetFromMiddle(scrollerOf(), target)
-          const next = stepCentering(check, offBy, offBy === undefined ? undefined : listRef.current?.getState().scroll)
-          check = next.check
-          const {step} = next
-          if (step.type === 'done') break
-          if (step.type === 'mount') {
-            const idx = indexOfOrdinal(messageOrdinalsRef.current, target)
-            if (idx >= 0) {
-              void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
-            }
-            if (!(await sleep(100))) return
-            elapsed += 100
-            continue
-          }
-          if (step.type === 'scrollTo') void listRef.current?.scrollToOffset({animated: false, offset: step.offset})
-          if (!(await sleep(50))) return
-          elapsed += 50
-        }
+        centeringScrollRef.current = true
+        await listRef.current?.scrollToKey({animated: false, key: String(target), viewPosition: 0.5})
+        // stopped while it scrolled: the reader or a new target took over, and owns the flag now
+        if (!(await sleep(0))) return
+        centeringScrollRef.current = false
         // centerSettled only ever leaves the list alone.
         scrollTarget.decide({type: 'centerSettled'})
       })
     },
-    [centering, listRef, scrollTarget, scrollerOf]
+    [centering, listRef, scrollTarget, stopCentering]
   )
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
-          if (directive.stopCentering) centering.stop()
-          // The list's own end anchor re-pins for no header change at all, for no row changing by five
-          // pixels or less, and not reliably for larger ones.
-          if (directive.verify) {
-            verifyEndAnchor()
-            return
-          }
-          // While the list is at the end maintainScrollAtEnd owns the position, and scrolling there
-          // only displaces it: the target resolves before a new row has measured, so it lands short,
-          // and while it counts as in flight the list declines its own end anchor and abandons it.
-          if (isScrolledToEnd()) return
+          if (directive.stopCentering) stopCentering()
           void listRef.current?.scrollToEnd({animated: false})
           return
         case 'center': {
@@ -239,7 +187,7 @@ export const useDesktopThreadScroll = (p: {
           return
         }
         case 'leaveAlone':
-          if (directive.stopCentering) centering.stop()
+          if (directive.stopCentering) stopCentering()
           return
         default: {
           const unexpected: never = directive
@@ -247,7 +195,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     },
-    [centering, isScrolledToEnd, listRef, own, scrollToCentered, scrollerOf, verifyEndAnchor]
+    [listRef, own, scrollToCentered, scrollerOf, stopCentering]
   )
 
   const dispatch = React.useCallback(
@@ -264,20 +212,13 @@ export const useDesktopThreadScroll = (p: {
   }, [dispatch])
 
   // Compared by value, not by the effect re-running: selecting the chat tab again re-mounts effects
-  // hidden under Activity with nothing changed. The end being verified belongs to the old rows.
+  // hidden under Activity with nothing changed.
   const datasetRef = React.useRef<string | undefined>(undefined)
-  // Whether the current dataset is still in its initial layout (see onItemSizeChanged).
-  const initialLayoutRef = React.useRef(true)
-  // How many row size changes the initial layout has held back for its end to verify.
-  const heldRowChangesRef = React.useRef(0)
   React.useLayoutEffect(() => {
     if (datasetRef.current === datasetKey) return
     datasetRef.current = datasetKey
-    endAnchor.stop()
-    initialLayoutRef.current = true
-    heldRowChangesRef.current = 0
     dispatch({type: 'datasetChanged'})
-  }, [datasetKey, dispatch, endAnchor])
+  }, [datasetKey, dispatch])
 
   // Level-triggered on purpose: centring has to start when loaded flips true after the target was
   // already set, and when the target arrives in the thread after the request.
@@ -293,19 +234,29 @@ export const useDesktopThreadScroll = (p: {
 
   // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
   // schedules, and a target still settling is centred afresh if the list comes back.
-  React.useEffect(() => () => dispatchRef.current({type: 'detached'}), [])
+  React.useEffect(
+    () => () => {
+      // the list ends its own scrolls as it is hidden, so one under way is no longer the centring's
+      centeringScrollRef.current = false
+      dispatchRef.current({type: 'detached'})
+    },
+    []
+  )
 
   React.useEffect(() => {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
       rowFullyVisible: () =>
-        editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal, anchorsEndRef.current),
+        editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal, endShift()),
       targetInData,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals, scrollerOf])
+  }, [dispatch, editingOrdinal, endShift, messageOrdinals, scrollerOf])
 
+  // The header's intro content (retention notice, new-chat card, the "digging" spinner) can land
+  // after the thread has settled at its end, and the list's own end anchor has no header trigger: a
+  // header in view growing would leave the end short by exactly that growth.
   const onMetricsChange = React.useCallback(
     (metrics: {headerSize: number}) => {
       dispatch({
@@ -327,58 +278,12 @@ export const useDesktopThreadScroll = (p: {
       viewportRef.current = height
       if (previous === undefined || previous === height) return
       dispatch({
-        anchorsEnd: anchorsEndRef.current,
-        rowFullyVisible: ordinal => rowFullyVisible(scrollerOf(), ordinal, anchorsEndRef.current),
+        rowFullyVisible: ordinal => rowFullyVisible(scrollerOf(), ordinal, endShift()),
         type: 'viewportResized',
       })
     },
-    [dispatch, scrollerOf]
+    [dispatch, endShift, scrollerOf]
   )
-
-  // Every change to a row's size is reported, however large, and a row's first measurement off the
-  // size the list laid it out at among them. The list's own end anchor re-pins for some of them, but
-  // not reliably: a reaction growing the newest row by 40px was left short, and a new message at the
-  // bottom landing a few pixels off its estimate is left short too. The end loop does nothing when
-  // the list is already at its end.
-  //
-  // Which report is a row's first cannot be told: the list reports a size only when it differs from
-  // the size it laid the row out at, so a row that measures at its estimate first reports on its
-  // second measurement. So during a dataset's initial layout, when every row measures and restarting
-  // the loop for each would keep it from ever correcting, none restarts it: the layout ending does,
-  // once, for all of them.
-  const onItemSizeChanged = React.useCallback(() => {
-    if (initialLayoutRef.current) {
-      heldRowChangesRef.current++
-      return
-    }
-    dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
-  }, [dispatch])
-
-  // Timed only while there are rows, so a slow reload after a clear still has its whole page laid out
-  // before the initial layout ends.
-  const initialLayout = useSchedule()
-  React.useEffect(() => {
-    if (!initialLayoutRef.current) return
-    initialLayout.start(async sleep => {
-      let check: LayoutCheck = {previousChanges: heldRowChangesRef.current, previousScroll: undefined, quiet: 0}
-      for (let elapsed = 0; elapsed < 5000; ) {
-        if (!(await sleep(50))) return
-        if (messageOrdinalsRef.current.length === 0) continue
-        elapsed += 50
-        const next = stepLayoutCheck(check, {
-          changes: heldRowChangesRef.current,
-          scroll: listRef.current?.getState().scroll,
-        })
-        check = next.check
-        if (next.settled) break
-      }
-      initialLayoutRef.current = false
-      if (heldRowChangesRef.current === 0) return
-      heldRowChangesRef.current = 0
-      dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
-    })
-    return () => initialLayout.stop()
-  }, [datasetKey, dispatch, initialLayout, listRef])
 
   // Who moved the scroller is read from where it moved to (listMovedItself), never from the input that
   // moved it: the list writes down where it is putting the scroller before it moves it (its initial
@@ -460,7 +365,6 @@ export const useDesktopThreadScroll = (p: {
   return {
     initialScrollIndex,
     maintainScrollAtEnd: anchorsEnd,
-    onItemSizeChanged,
     onLayout,
     onMetricsChange,
     scrollToBottom,

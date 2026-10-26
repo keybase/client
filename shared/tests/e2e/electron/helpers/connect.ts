@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import {chromium, type Browser, type ConsoleMessage, type Page} from '@playwright/test'
+import {chromium, type Browser, type CDPSession, type ConsoleMessage, type Page} from '@playwright/test'
 import {NAV_TAB_CHAT} from '../../shared/test-ids.ts'
 
 const CDP_ENDPOINT = 'http://localhost:9222'
@@ -37,21 +37,51 @@ const loadFailure = /load failed|Failed to fetch dynamically imported module|err
 // deadline on a page that will never show anything.
 export async function checkRendererAfterReload(page: Page, deadlineMs = 20_000) {
   let failure: string | undefined
+  // Everything the reload said that could explain a failure, reported only if it fails: a module
+  // the browser refuses before any request (a policy or MIME check) leaves no failed request behind,
+  // only its own log entry.
+  const said: Array<string> = []
   const onConsole = (m: ConsoleMessage) => {
-    if (m.type() === 'error' && loadFailure.test(m.text())) failure ??= `console: ${m.text()}`
+    if (m.type() !== 'error') return
+    said.push(`console: ${m.text()}`)
+    if (loadFailure.test(m.text())) failure ??= `console: ${m.text()}`
   }
   const onPageError = (e: Error) => {
     failure ??= `uncaught: ${e.message}`
   }
+  // A module failing to load names only the module that imported it (the entry, for a dynamic
+  // import), so the failed module requests themselves are kept to say which one it was and why.
+  const moduleFailures: Array<string> = []
+  const isModule = (url: string) => /\.(tsx?|mjs|js)(\?|$)/.test(url) || url.includes('/node_modules/.vite/')
   const onRequestFailed = (r: {failure: () => {errorText: string} | null; url: () => string}) => {
     // the old document's requests the reload cancels fail as aborted; those say nothing
     const why = r.failure()?.errorText ?? ''
-    if (/\.(tsx?|mjs|js)(\?|$)/.test(r.url()) && !why.includes('ERR_ABORTED')) failure ??= `module request failed: ${r.url()} (${why})`
+    if (isModule(r.url()) && !why.includes('ERR_ABORTED')) {
+      moduleFailures.push(`${r.url()} (${why})`)
+      failure ??= `module request failed: ${r.url()} (${why})`
+    }
+  }
+  // The dev server answers some module requests with an error status rather than failing them, as
+  // Vite does with a 504 for a prebundled dependency it has re-optimized since the page asked. Only
+  // kept to explain a failure: a module the app imports optionally may answer one harmlessly.
+  const onResponse = (r: {status: () => number; statusText: () => string; url: () => string}) => {
+    if (r.status() >= 400 && isModule(r.url())) moduleFailures.push(`${r.url()} (${r.status()} ${r.statusText()})`)
   }
   page.on('console', onConsole)
   page.on('pageerror', onPageError)
   page.on('requestfailed', onRequestFailed)
+  page.on('response', onResponse)
+  let cdp: CDPSession | undefined
   try {
+    cdp = await page.context().newCDPSession(page)
+    cdp.on('Log.entryAdded', ({entry}) => {
+      if (entry.level === 'error' || entry.level === 'warning') said.push(`chromium ${entry.source} ${entry.level}: ${entry.text} ${entry.url ?? ''}`)
+    })
+    cdp.on('Network.loadingFailed', e => {
+      if (e.errorText !== 'net::ERR_ABORTED' || e.blockedReason) said.push(`network: ${e.errorText} ${e.blockedReason ?? ''} (${e.requestId})`)
+    })
+    await cdp.send('Log.enable')
+    await cdp.send('Network.enable')
     await page.reload({timeout: deadlineMs, waitUntil: 'commit'})
     const start = Date.now()
     for (;;) {
@@ -67,9 +97,13 @@ export async function checkRendererAfterReload(page: Page, deadlineMs = 20_000) 
     page.off('console', onConsole)
     page.off('pageerror', onPageError)
     page.off('requestfailed', onRequestFailed)
+    page.off('response', onResponse)
+    await cdp?.detach().catch(() => {})
   }
+  const failedModules = moduleFailures.length ? `\n--- failed module requests ---\n${moduleFailures.join('\n')}` : ''
+  const reloadSaid = said.length ? `\n--- what the reload logged ---\n${said.join('\n')}` : ''
   throw new Error(
-    `the renderer is not healthy after a reload: ${failure}\n--- last 40 lines of ${appLog} ---\n${appLogTail(40)}\n` +
+    `the renderer is not healthy after a reload: ${failure}${failedModules}${reloadSaid}\n--- last 40 lines of ${appLog} ---\n${appLogTail(40)}\n` +
       'relaunch with node tests/e2e/electron/launch-app.mts'
   )
 }

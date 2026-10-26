@@ -151,6 +151,29 @@ const expectCentred = async (page: Page, ordinal: number) => {
   expect(centred, `row ${ordinal} centred (offset ${offset})`).toBe(true)
 }
 
+// The list's header: the top of its own content, the first child of the list's header wrapper, which
+// is the first child of this. A flow pads it to grow the header the way late intro content does.
+const headerWrapperParent = `[data-testid="${T.CHAT_MESSAGE_LIST}"] .legend-list-content-container`
+type HeaderEl = {firstElementChild: HeaderEl | null; style: {paddingBottom: string}; textContent: string | null}
+type HeaderGlobals = {
+  __e2eHeaderObserver?: {disconnect: () => void}
+  document: {querySelector: (s: string) => HeaderEl | null}
+}
+// The padding on the header, and whether it is the header: it holds the thread's intro.
+const headerPadding = async (page: Page) =>
+  page.evaluate(sel => {
+    const header = (globalThis as unknown as HeaderGlobals).document.querySelector(sel)?.firstElementChild?.firstElementChild
+    return {intro: !!header?.textContent?.includes('end-to-end encrypted'), padding: header?.style.paddingBottom ?? ''}
+  }, headerWrapperParent)
+const setHeaderPadding = async (page: Page, padding: string) =>
+  page.evaluate(
+    ([sel, pad]) => {
+      const header = (globalThis as unknown as HeaderGlobals).document.querySelector(sel)?.firstElementChild?.firstElementChild
+      if (header) header.style.paddingBottom = pad
+    },
+    [headerWrapperParent, padding] as const
+  )
+
 test.describe('opening', () => {
   test('a short thread lands at the bottom once its intro card has grown the header', async ({page}) => {
     // Every message of e2e-short arrives in the first page, so the header's intro card (the
@@ -162,6 +185,75 @@ test.describe('opening', () => {
     expect(g.scrollHeight).toBeGreaterThan(g.clientHeight)
     const rect = await ordinalRect(page, newest)
     expect(Math.abs((rect?.bottom ?? 0) - g.viewHeight)).toBeLessThanOrEqual(40)
+  })
+
+  // The header's intro content can land after the list has aimed its initial scroll at the end, which
+  // it aims by the header it has measured so far. The growth is made here by padding the header the
+  // moment the thread's first rows mount, so it lands mid-open every time rather than only when the
+  // intro content happens to be slow.
+  test('a header that grows while the thread opens still lands at the bottom', async ({page}) => {
+    await openConversationByName(page, data.team, E2E_CHANNELS.scratch)
+    const marker = shortMarker(SHORT_COUNT)
+    try {
+      await page.evaluate(
+        ([testID, sel, text]) => {
+          type El = {textContent: string | null}
+          const g = globalThis as unknown as HeaderGlobals & {
+            MutationObserver: new (cb: () => void) => {disconnect: () => void; observe: (n: unknown, o: object) => void}
+            document: {body: unknown; querySelectorAll: (s: string) => ArrayLike<El>}
+          }
+          const observer = new g.MutationObserver(() => {
+            const rows = Array.from(g.document.querySelectorAll(`[data-testid="${testID}"] [data-ordinal]`))
+            if (!rows.some(r => r.textContent?.includes(text))) return
+            observer.disconnect()
+            const header = g.document.querySelector(sel)?.firstElementChild?.firstElementChild
+            if (header) header.style.paddingBottom = '160px'
+          })
+          observer.observe(g.document.body, {childList: true, subtree: true})
+          g.__e2eHeaderObserver = observer
+        },
+        [T.CHAT_MESSAGE_LIST, headerWrapperParent, marker] as const
+      )
+      await openConversationByName(page, data.team, E2E_CHANNELS.short)
+      const newest = await waitForRow(page, marker)
+      await expect.poll(async () => headerPadding(page)).toEqual({intro: true, padding: '160px'})
+      const g = await expectAtEnd(page)
+      expect(newestRendered(g)).toBe(newest)
+    } finally {
+      await page.evaluate(() => (globalThis as unknown as HeaderGlobals).__e2eHeaderObserver?.disconnect())
+      await setHeaderPadding(page, '')
+    }
+  })
+
+  // The same growth once the thread has settled at its end, with the header in view: a window just
+  // short of the thread's height leaves the intro on screen at the end.
+  test('at the bottom with the header in view, the header growing keeps the thread at the bottom', async ({page}) => {
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await openFresh(page, E2E_CHANNELS.short)
+      const newest = await waitForRow(page, shortMarker(SHORT_COUNT))
+      const before = await expectAtEnd(page)
+      const windowHeight = await page.evaluate(() => (globalThis as unknown as {innerHeight: number}).innerHeight)
+      const chrome = windowHeight - before.viewHeight
+      await cdp.send('Emulation.setDeviceMetricsOverride', {
+        deviceScaleFactor: 0,
+        height: before.scrollHeight - 100 + chrome,
+        mobile: false,
+        width: 1000,
+      })
+      const fitted = await waitForScrollStable(page)
+      expect(fitted.scrollHeight - fitted.viewHeight, 'the thread is just taller than the view').toBeLessThan(200)
+      await expectAtEnd(page)
+      expect((await headerPadding(page)).intro, 'the header holds the intro').toBe(true)
+
+      await setHeaderPadding(page, '160px')
+      await expect.poll(async () => (await waitForScrollStable(page)).scrollHeight).toBeGreaterThan(fitted.scrollHeight + 100)
+      expect(newestRendered(await expectAtEnd(page))).toBe(newest)
+    } finally {
+      await setHeaderPadding(page, '')
+      await cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
+      await cdp.detach().catch(() => {})
+    }
   })
 
   test('a long thread with more history to load lands at the bottom', async ({page}) => {
@@ -514,6 +606,49 @@ test.describe('back to the bottom', () => {
   }
 })
 
+// The list's viewport changes height under a thread at its end: the composer grows and shrinks with
+// what is typed, and the window is resized. The newest message stays at the bottom through both.
+test.describe('the view changing at the bottom', () => {
+  test('the composer growing and shrinking keeps the thread at the bottom', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    const newest = await waitForRow(page, longMarker(LONG_COUNT))
+    const before = await expectAtEnd(page)
+    try {
+      await composer.focus(page)
+      for (let i = 0; i < 8; i++) await composer.press(page, 'Shift+Enter')
+      const grown = await waitForScrollStable(page)
+      expect(grown.viewHeight, 'the composer grew into the view').toBeLessThan(before.viewHeight - 50)
+      expect(newestRendered(await expectAtEnd(page))).toBe(newest)
+    } finally {
+      await composer.press(page, 'ControlOrMeta+a')
+      await composer.press(page, 'Backspace')
+    }
+    const shrunk = await waitForScrollStable(page)
+    expect(shrunk.viewHeight).toBe(before.viewHeight)
+    expect(newestRendered(await expectAtEnd(page))).toBe(newest)
+  })
+
+  test('the window getting shorter and taller keeps the thread at the bottom', async ({page}) => {
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await openFresh(page, E2E_CHANNELS.long)
+      const newest = await waitForRow(page, longMarker(LONG_COUNT))
+      const before = await expectAtEnd(page)
+      let previous = before.viewHeight
+      for (const height of [500, 900]) {
+        await cdp.send('Emulation.setDeviceMetricsOverride', {deviceScaleFactor: 0, height, mobile: false, width: 1000})
+        const g = await waitForScrollStable(page)
+        expect(g.viewHeight, `the view followed the window to ${height}`).not.toBe(previous)
+        previous = g.viewHeight
+        expect(newestRendered(await expectAtEnd(page))).toBe(newest)
+      }
+    } finally {
+      await cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
+      await cdp.detach().catch(() => {})
+    }
+  })
+})
+
 test.describe('editing', () => {
   const editBar = (page: Page) => page.getByTestId(T.CHAT_EDIT_CANCEL)
 
@@ -624,7 +759,9 @@ test.describe('editing', () => {
   })
 })
 
-test('mark unread shows the catch-up pill, which centres the unread line', async ({page}) => {
+// Seeing the unread line is catching up: the pill shows only for a line the reader has not had on
+// screen, so it is checked from a fresh open, which lands at the end with the line above the view.
+test('an unread line above the view shows the catch-up pill, which centres the unread line', async ({page}) => {
   await openFresh(page, E2E_CHANNELS.long)
   await expectAtEnd(page)
   await wheelThread(page, -1_500)
@@ -634,11 +771,11 @@ test('mark unread shows the catch-up pill, which centres the unread line', async
     const menu = await messageMenu(page, target.ordinal)
     await clickUnoccluded(menu.getByText('Mark as unread', {exact: true}))
     await expect(page.getByTestId(T.FLOATING_MENU)).toHaveCount(0, {timeout: 5_000})
-    // the unread line is in view: no pill yet
+    // the unread line is in view: no pill
     await waitForScrollStable(page)
     await expect(catchUp(page)).toHaveCount(0)
 
-    await wheelThread(page, 5_000)
+    await openFresh(page, E2E_CHANNELS.long)
     await expectAtEnd(page)
     await expect(catchUp(page)).toBeVisible({timeout: 5_000})
 
