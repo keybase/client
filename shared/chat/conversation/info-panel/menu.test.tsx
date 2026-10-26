@@ -76,8 +76,17 @@ const renderChannelMenu = (teamID: T.Teams.TeamID) => {
 }
 
 // the team-level menu (no conversation), as opened from the inbox's big team row
-const renderTeamMenu = (teamID: T.Teams.TeamID) =>
-  render(<InfoPanelMenu hasHeader={false} isSmallTeam={false} onHidden={() => {}} teamID={teamID} visible={true} />)
+const renderTeamMenu = (teamID: T.Teams.TeamID, p?: {hasHeader?: boolean; showPinItems?: boolean}) =>
+  render(
+    <InfoPanelMenu
+      hasHeader={p?.hasHeader ?? true}
+      isSmallTeam={false}
+      onHidden={() => {}}
+      showPinItems={p?.showPinItems}
+      teamID={teamID}
+      visible={true}
+    />
+  )
 
 beforeEach(() => {
   rpc = installFakeChatRpc()
@@ -95,6 +104,27 @@ afterEach(() => {
   restoreChatRpc()
   resetAllStores()
   mockMeta = makeConversationMeta()
+})
+
+describe('team-level menu', () => {
+  test('has no mark-unread item', () => {
+    renderTeamMenu(hexTeamID)
+
+    expect(screen.getByText('Mark all as read')).toBeTruthy()
+    expect(screen.queryByText('Mark as unread')).toBeNull()
+  })
+
+  test('has no pin items even when asked for them', () => {
+    renderTeamMenu(hexTeamID, {showPinItems: true})
+
+    expect(screen.queryByText('Pin to top')).toBeNull()
+  })
+
+  test('without a header, has no join-channel item', () => {
+    renderTeamMenu(hexTeamID, {hasHeader: false})
+
+    expect(screen.queryByText('Join channel')).toBeNull()
+  })
 })
 
 describe('onMarkAsRead', () => {
