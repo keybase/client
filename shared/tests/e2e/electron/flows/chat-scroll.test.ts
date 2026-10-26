@@ -489,7 +489,7 @@ const scrollThroughPages = async (
     const expected = Math.min(Math.abs(step), room) * Math.sign(step)
     // a row wholly in view before the step that stays wholly in view after it
     const anchor = before.rows.find(r =>
-      expected > 0
+      step > 0
         ? r.top >= expected + 20 && r.bottom <= before.viewHeight
         : r.top >= 0 && r.bottom <= before.viewHeight + expected - 20
     )

@@ -213,9 +213,9 @@ test.describe('reactions', () => {
       await row.hover({timeout: 1_000})
       await expect(bar).toBeVisible({timeout: 500})
     }).toPass({timeout: 10_000})
-    // the bar measures its place on the row's mouseenter: wait for that to settle
-    await page.waitForTimeout(200)
-    const rects = await page.evaluate(
+    // the bar measures its place on the row's mouseenter and takes it a render later
+    const measure = async () =>
+      page.evaluate(
       ([testID, marker]) => {
         type R = {bottom: number; top: number}
         type El = {getBoundingClientRect: () => R; querySelector: (s: string) => El | null; textContent: string | null}
@@ -234,6 +234,13 @@ test.describe('reactions', () => {
       },
       [T.CHAT_MESSAGE_LIST, text] as const
     )
+    await expect
+      .poll(async () => {
+        const m = await measure()
+        return !!m && m.bar.bottom <= m.row.top + 1
+      }, {timeout: 5_000})
+      .toBe(true)
+    const rects = await measure()
     expect(rects, 'the row, its hover bar and the list').toBeDefined()
     const {bar: b, list: l, row: r} = rects!
     expect(b.bottom, `the bar (${b.top}-${b.bottom}) covers none of its row (${r.top}-${r.bottom})`).toBeLessThanOrEqual(r.top + 1)
