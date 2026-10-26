@@ -371,6 +371,55 @@ func TestNonblockChannel(t *testing.T) {
 	require.Equal(t, obid, listener.obidsRemote[0], "wrong obid")
 }
 
+type outboxActivityListener struct {
+	libkb.NoopNotifyListener
+	uids chan keybase1.UID
+}
+
+func (n *outboxActivityListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	_ chat1.ChatActivitySource,
+) {
+	if typ, err := activity.ActivityType(); err != nil || typ != chat1.ChatActivityType_INCOMING_MESSAGE {
+		return
+	}
+	msg := activity.IncomingMessage().Message
+	if state, err := msg.State(); err == nil && state == chat1.MessageUnboxedState_OUTBOX {
+		n.uids <- uid
+	}
+}
+
+// The GUI posts with no Sender in the header, and the client drops a chat notification that does
+// not name the signed-in account, so the pending message must carry the outbox's uid.
+func TestOutboxNotifyNamesSenderUID(t *testing.T) {
+	ctx, world, ri, sender, blockingSender, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := userTc(t, world, u)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+
+	listener := &outboxActivityListener{uids: make(chan keybase1.UID, 10)}
+	tc.Context().NotifyRouter.AddListener(listener)
+
+	_, _, err := sender.Send(context.TODO(), conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"}),
+	}, 0, nil, nil, nil)
+	require.NoError(t, err)
+
+	select {
+	case got := <-listener.uids:
+		require.Equal(t, u.User.GetUID(), got)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no outbox notification")
+	}
+}
+
 type sentRecord struct {
 	msgID    *chat1.MessageID
 	outboxID *chat1.OutboxID
