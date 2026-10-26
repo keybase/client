@@ -151,13 +151,28 @@ const expectCentred = async (page: Page, ordinal: number) => {
   expect(centred, `row ${ordinal} centred (offset ${offset})`).toBe(true)
 }
 
-// The padding a flow put on the list's header (see the header growth flow).
-const padHeader = async (page: Page) =>
-  page.evaluate(testID => {
-    type El = {firstElementChild: El | null; style: {paddingBottom: string}}
-    const g = globalThis as unknown as {document: {querySelector: (s: string) => El | null}}
-    return g.document.querySelector(`[data-testid="${testID}"] .legend-list-content-container`)?.firstElementChild?.firstElementChild?.style.paddingBottom ?? ''
-  }, T.CHAT_MESSAGE_LIST)
+// The list's header: the top of its own content, the first child of the list's header wrapper, which
+// is the first child of this. A flow pads it to grow the header the way late intro content does.
+const headerWrapperParent = `[data-testid="${T.CHAT_MESSAGE_LIST}"] .legend-list-content-container`
+type HeaderEl = {firstElementChild: HeaderEl | null; style: {paddingBottom: string}; textContent: string | null}
+type HeaderGlobals = {
+  __e2eHeaderObserver?: {disconnect: () => void}
+  document: {querySelector: (s: string) => HeaderEl | null}
+}
+// The padding on the header, and whether it is the header: it holds the thread's intro.
+const headerPadding = async (page: Page) =>
+  page.evaluate(sel => {
+    const header = (globalThis as unknown as HeaderGlobals).document.querySelector(sel)?.firstElementChild?.firstElementChild
+    return {intro: !!header?.textContent?.includes('end-to-end encrypted'), padding: header?.style.paddingBottom ?? ''}
+  }, headerWrapperParent)
+const setHeaderPadding = async (page: Page, padding: string) =>
+  page.evaluate(
+    ([sel, pad]) => {
+      const header = (globalThis as unknown as HeaderGlobals).document.querySelector(sel)?.firstElementChild?.firstElementChild
+      if (header) header.style.paddingBottom = pad
+    },
+    [headerWrapperParent, padding] as const
+  )
 
 test.describe('opening', () => {
   test('a short thread lands at the bottom once its intro card has grown the header', async ({page}) => {
@@ -174,35 +189,71 @@ test.describe('opening', () => {
 
   // The header's intro content can land after the list has aimed its initial scroll at the end, which
   // it aims by the header it has measured so far. The growth is made here by padding the header the
-  // frame after the thread's first rows mount, so it lands mid-open every time rather than only when
-  // the intro content happens to be slow.
+  // moment the thread's first rows mount, so it lands mid-open every time rather than only when the
+  // intro content happens to be slow.
   test('a header that grows while the thread opens still lands at the bottom', async ({page}) => {
     await openConversationByName(page, data.team, E2E_CHANNELS.scratch)
     const marker = shortMarker(SHORT_COUNT)
-    await page.evaluate(
-      ([testID, text]) => {
-        type El = {firstElementChild: El | null; querySelector: (s: string) => El | null; style: {paddingBottom: string}; textContent: string | null}
-        const g = globalThis as unknown as {
-          MutationObserver: new (cb: () => void) => {disconnect: () => void; observe: (n: unknown, o: object) => void}
-          document: {body: unknown; querySelector: (s: string) => El | null; querySelectorAll: (s: string) => ArrayLike<El>}
-          requestAnimationFrame: (cb: () => void) => void
-        }
-        const observer = new g.MutationObserver(() => {
-          const rows = Array.from(g.document.querySelectorAll(`[data-testid="${testID}"] [data-ordinal]`))
-          if (!rows.some(r => r.textContent?.includes(text))) return
-          observer.disconnect()
-          const header = g.document.querySelector(`[data-testid="${testID}"] .legend-list-content-container`)?.firstElementChild?.firstElementChild
-          if (header) header.style.paddingBottom = '160px'
-        })
-        observer.observe(g.document.body, {childList: true, subtree: true})
-      },
-      [T.CHAT_MESSAGE_LIST, marker] as const
-    )
-    await openConversationByName(page, data.team, E2E_CHANNELS.short)
-    const newest = await waitForRow(page, marker)
-    await expect.poll(async () => padHeader(page)).toBe('160px')
-    const g = await expectAtEnd(page)
-    expect(newestRendered(g)).toBe(newest)
+    try {
+      await page.evaluate(
+        ([testID, sel, text]) => {
+          type El = {textContent: string | null}
+          const g = globalThis as unknown as HeaderGlobals & {
+            MutationObserver: new (cb: () => void) => {disconnect: () => void; observe: (n: unknown, o: object) => void}
+            document: {body: unknown; querySelectorAll: (s: string) => ArrayLike<El>}
+          }
+          const observer = new g.MutationObserver(() => {
+            const rows = Array.from(g.document.querySelectorAll(`[data-testid="${testID}"] [data-ordinal]`))
+            if (!rows.some(r => r.textContent?.includes(text))) return
+            observer.disconnect()
+            const header = g.document.querySelector(sel)?.firstElementChild?.firstElementChild
+            if (header) header.style.paddingBottom = '160px'
+          })
+          observer.observe(g.document.body, {childList: true, subtree: true})
+          g.__e2eHeaderObserver = observer
+        },
+        [T.CHAT_MESSAGE_LIST, headerWrapperParent, marker] as const
+      )
+      await openConversationByName(page, data.team, E2E_CHANNELS.short)
+      const newest = await waitForRow(page, marker)
+      await expect.poll(async () => headerPadding(page)).toEqual({intro: true, padding: '160px'})
+      const g = await expectAtEnd(page)
+      expect(newestRendered(g)).toBe(newest)
+    } finally {
+      await page.evaluate(() => (globalThis as unknown as HeaderGlobals).__e2eHeaderObserver?.disconnect())
+      await setHeaderPadding(page, '')
+    }
+  })
+
+  // The same growth once the thread has settled at its end, with the header in view: a window just
+  // short of the thread's height leaves the intro on screen at the end.
+  test('at the bottom with the header in view, the header growing keeps the thread at the bottom', async ({page}) => {
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await openFresh(page, E2E_CHANNELS.short)
+      const newest = await waitForRow(page, shortMarker(SHORT_COUNT))
+      const before = await expectAtEnd(page)
+      const windowHeight = await page.evaluate(() => (globalThis as unknown as {innerHeight: number}).innerHeight)
+      const chrome = windowHeight - before.viewHeight
+      await cdp.send('Emulation.setDeviceMetricsOverride', {
+        deviceScaleFactor: 0,
+        height: before.scrollHeight - 100 + chrome,
+        mobile: false,
+        width: 1000,
+      })
+      const fitted = await waitForScrollStable(page)
+      expect(fitted.scrollHeight - fitted.viewHeight, 'the thread is just taller than the view').toBeLessThan(200)
+      await expectAtEnd(page)
+      expect((await headerPadding(page)).intro, 'the header holds the intro').toBe(true)
+
+      await setHeaderPadding(page, '160px')
+      await expect.poll(async () => (await waitForScrollStable(page)).scrollHeight).toBeGreaterThan(fitted.scrollHeight + 100)
+      expect(newestRendered(await expectAtEnd(page))).toBe(newest)
+    } finally {
+      await setHeaderPadding(page, '')
+      await cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
+      await cdp.detach().catch(() => {})
+    }
   })
 
   test('a long thread with more history to load lands at the bottom', async ({page}) => {
@@ -583,10 +634,12 @@ test.describe('the view changing at the bottom', () => {
       await openFresh(page, E2E_CHANNELS.long)
       const newest = await waitForRow(page, longMarker(LONG_COUNT))
       const before = await expectAtEnd(page)
+      let previous = before.viewHeight
       for (const height of [500, 900]) {
         await cdp.send('Emulation.setDeviceMetricsOverride', {deviceScaleFactor: 0, height, mobile: false, width: 1000})
         const g = await waitForScrollStable(page)
-        expect(g.viewHeight, `the view followed the window to ${height}`).not.toBe(before.viewHeight)
+        expect(g.viewHeight, `the view followed the window to ${height}`).not.toBe(previous)
+        previous = g.viewHeight
         expect(newestRendered(await expectAtEnd(page))).toBe(newest)
       }
     } finally {
