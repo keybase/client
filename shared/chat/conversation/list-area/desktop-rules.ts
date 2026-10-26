@@ -1,7 +1,5 @@
 // The desktop thread list's measuring and stepping rules, apart from the list they measure.
 
-// A row this close to the middle of the viewport is centred.
-const centerTolerancePx = 8
 // A scroller within this many pixels of its end counts as at the end.
 const endTolerancePx = 2
 // A scroller within this many pixels of where the list put it is where the list put it.
@@ -49,74 +47,3 @@ export const revealDestination = (p: {
 // Where the composer's page keys move the list: a viewport up or down.
 export const pageOffset = (direction: 'up' | 'down', p: {scroll: number; scrollLength: number}) =>
   direction === 'up' ? Math.max(0, p.scroll - p.scrollLength) : p.scroll + p.scrollLength
-
-// One look at the list while confirming its end held. The end held once it was at the end on two looks
-// in a row with the content no taller on the second: the list reports a size change before the
-// scroller's extent catches up with it, and a row can measure again a frame after its first
-// measurement. Away from the end, the list is corrected only once its offset held still across two
-// looks, so it has finished its own scroll, and at most twice: one for the header, one for whatever
-// re-measured alongside it. Past that something else owns the offset.
-export type EndCheck = {corrections: number; heldAtHeight: number | undefined; previousScroll: number | undefined}
-export const startEndCheck: EndCheck = {corrections: 0, heldAtHeight: undefined, previousScroll: undefined}
-export const stepEndCheck = (
-  check: EndCheck,
-  look: {atEnd: boolean; scroll: number; scrollHeight: number}
-): {action: 'held' | 'correct' | 'wait' | 'giveUp'; check: EndCheck} => {
-  if (look.atEnd) {
-    if (check.heldAtHeight === look.scrollHeight) return {action: 'held', check}
-    return {action: 'wait', check: {...check, heldAtHeight: look.scrollHeight, previousScroll: undefined}}
-  }
-  if (look.scroll !== check.previousScroll) {
-    return {action: 'wait', check: {...check, heldAtHeight: undefined, previousScroll: look.scroll}}
-  }
-  const corrections = check.corrections + 1
-  const next = {corrections, heldAtHeight: undefined, previousScroll: undefined}
-  return {action: corrections > 2 ? 'giveUp' : 'correct', check: next}
-}
-
-// One step of centring a row. Until the row is rendered there is nothing to measure, so the list is
-// asked to mount it. A row within the deadband three times is centred: chasing the remainder only
-// fights the list's own sub-pixel adjustments. A correction that moved the scroller not at all three
-// times running is pinned against an edge of the thread, where the row cannot reach the middle.
-export type CenterCheck = {pinnedChecks: number; scrollAtLastRequest: number | undefined; settled: number}
-export const startCenterCheck: CenterCheck = {pinnedChecks: 0, scrollAtLastRequest: undefined, settled: 0}
-export type CenterStep = {type: 'mount'} | {type: 'done'} | {type: 'wait'} | {offset: number; type: 'scrollTo'}
-export const stepCentering = (
-  check: CenterCheck,
-  offBy: number | undefined,
-  scroll: number | undefined
-): {check: CenterCheck; step: CenterStep} => {
-  if (offBy === undefined) {
-    return {check: {...check, pinnedChecks: 0, settled: 0}, step: {type: 'mount'}}
-  }
-  if (Math.abs(offBy) <= centerTolerancePx || scroll === undefined) {
-    const settled = check.settled + 1
-    return {
-      check: {pinnedChecks: 0, scrollAtLastRequest: undefined, settled},
-      step: {type: settled >= 3 ? 'done' : 'wait'},
-    }
-  }
-  if (scroll === check.scrollAtLastRequest) {
-    const pinnedChecks = check.pinnedChecks + 1
-    return {check: {...check, pinnedChecks}, step: {type: pinnedChecks >= 3 ? 'done' : 'wait'}}
-  }
-  return {
-    check: {...check, pinnedChecks: 0, scrollAtLastRequest: scroll},
-    step: {offset: scroll + offBy, type: 'scrollTo'},
-  }
-}
-
-// One look at a dataset's initial layout, which ends once the list's offset held still and no row
-// changed size across two looks running.
-export type LayoutCheck = {previousChanges: number; previousScroll: number | undefined; quiet: number}
-export const stepLayoutCheck = (
-  check: LayoutCheck,
-  look: {changes: number; scroll: number | undefined}
-): {check: LayoutCheck; settled: boolean} => {
-  const {changes, scroll} = look
-  if (scroll === undefined || changes !== check.previousChanges || scroll !== check.previousScroll) {
-    return {check: {previousChanges: changes, previousScroll: scroll, quiet: 0}, settled: false}
-  }
-  const quiet = check.quiet + 1
-  return {check: {...check, quiet}, settled: quiet >= 2}
-}
