@@ -15,13 +15,12 @@ import {
 } from './scroll-target'
 import {useHeldLatest, useScrollTarget} from './use-scroll-target'
 import {
-  distanceToEnd,
   listMovedItself,
   offsetFromMiddle as rowOffsetFromMiddle,
   pageOffset,
   revealDestination,
   rowWithinView,
-  scrollerAtEnd,
+  atEnd,
   type RectLike,
   type ScrollerLike,
 } from './desktop-rules'
@@ -52,11 +51,12 @@ const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   return m && rowOffsetFromMiddle(m.row, m.view)
 }
 
-// With the scroller at its end when atEnd; a row not rendered is not in view.
-const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, atEnd: boolean) => {
+// With the list moved down by endShift first (to its end, for a list held there); a row not rendered
+// is not in view.
+const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, endShift: number) => {
   const m = measureRow(scroller, ordinal)
   if (!m) return false
-  return rowWithinView(m.row, m.view, atEnd ? distanceToEnd(scroller as ScrollerLike) : 0)
+  return rowWithinView(m.row, m.view, endShift)
 }
 
 export const useDesktopThreadScroll = (p: {
@@ -95,14 +95,20 @@ export const useDesktopThreadScroll = (p: {
     anchorsEndRef.current = anchorsEnd
   }, [anchorsEnd])
 
-  // Every "is the list at its end?" asks the scroller, never the list's own isAtEnd. The list re-reads
-  // that flag only when it scrolls or lays out, so it lags both ways: a row or the header growing at
-  // the end with nothing scrolling leaves it reading at-end while the scroller is short, and a
-  // composer collapse leaves it reading not-at-end while the scroller is at its end.
+  // Every "is the list at its end?" asks for the list's distanceFromEnd, never its isAtEnd flag. The
+  // distance is worked out when asked; the flag is re-read only when the list scrolls or lays out, so
+  // it lags both ways: a row or the header growing at the end with nothing scrolling, and a composer
+  // collapse.
+  const distanceFromEnd = React.useCallback(() => listRef.current?.getState().distanceFromEnd, [listRef])
   const isScrolledToEnd = React.useCallback(() => {
-    const scroller = scrollerOf()
-    return !!scroller && scrollerAtEnd(scroller)
-  }, [scrollerOf])
+    const distance = distanceFromEnd()
+    return distance !== undefined && atEnd(distance)
+  }, [distanceFromEnd])
+  // How far the list would move to reach its end, for a list its end anchor holds there.
+  const endShift = React.useCallback(
+    () => (anchorsEndRef.current ? (distanceFromEnd() ?? 0) : 0),
+    [distanceFromEnd]
+  )
 
   // Where the scroller last was, to tell the reader's movements from the list's (onScrollerScroll).
   const lastOffsetRef = React.useRef(0)
@@ -242,11 +248,11 @@ export const useDesktopThreadScroll = (p: {
     dispatch({
       ordinal: editingOrdinal,
       rowFullyVisible: () =>
-        editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal, anchorsEndRef.current),
+        editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal, endShift()),
       targetInData,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals, scrollerOf])
+  }, [dispatch, editingOrdinal, endShift, messageOrdinals, scrollerOf])
 
   // The header's intro content (retention notice, new-chat card, the "digging" spinner) can land
   // after the thread has settled at its end, and the list's own end anchor has no header trigger: a
@@ -272,11 +278,11 @@ export const useDesktopThreadScroll = (p: {
       viewportRef.current = height
       if (previous === undefined || previous === height) return
       dispatch({
-        rowFullyVisible: ordinal => rowFullyVisible(scrollerOf(), ordinal, anchorsEndRef.current),
+        rowFullyVisible: ordinal => rowFullyVisible(scrollerOf(), ordinal, endShift()),
         type: 'viewportResized',
       })
     },
-    [dispatch, scrollerOf]
+    [dispatch, endShift, scrollerOf]
   )
 
   // Who moved the scroller is read from where it moved to (listMovedItself), never from the input that

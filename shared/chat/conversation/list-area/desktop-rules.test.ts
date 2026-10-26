@@ -5,15 +5,14 @@ import {
   pageOffset,
   revealDestination,
   rowWithinView,
-  scrollerAtEnd,
+  atEnd,
 } from './desktop-rules'
 
-describe('scrollerAtEnd', () => {
-  const scroller = (scrollTop: number) => ({clientHeight: 500, scrollHeight: 2000, scrollTop})
+describe('atEnd', () => {
   test('within two pixels of the end is at the end', () => {
-    expect(scrollerAtEnd(scroller(1500))).toBe(true)
-    expect(scrollerAtEnd(scroller(1498))).toBe(true)
-    expect(scrollerAtEnd(scroller(1497))).toBe(false)
+    expect(atEnd(0)).toBe(true)
+    expect(atEnd(2)).toBe(true)
+    expect(atEnd(3)).toBe(false)
   })
 })
 

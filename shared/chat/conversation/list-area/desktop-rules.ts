@@ -1,6 +1,6 @@
 // The desktop thread list's measuring and stepping rules, apart from the list they measure.
 
-// A scroller within this many pixels of its end counts as at the end.
+// A list within this many pixels of its end counts as at the end.
 const endTolerancePx = 2
 // A scroller within this many pixels of where the list put it is where the list put it.
 const ownTolerancePx = 1
@@ -10,8 +10,8 @@ const rowEdgeTolerancePx = 1
 export type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
 export type RectLike = {height: number; top: number}
 
-export const distanceToEnd = (s: ScrollerLike) => s.scrollHeight - s.clientHeight - s.scrollTop
-export const scrollerAtEnd = (s: ScrollerLike) => distanceToEnd(s) <= endTolerancePx
+// distanceFromEnd as the list reports it (getState), which it works out when asked.
+export const atEnd = (distanceFromEnd: number) => distanceFromEnd <= endTolerancePx
 
 // How far the row sits below the middle of the view.
 export const offsetFromMiddle = (row: RectLike, view: RectLike) => row.top + row.height / 2 - (view.top + view.height / 2)
