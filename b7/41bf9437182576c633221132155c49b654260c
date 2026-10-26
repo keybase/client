@@ -1,0 +1,29 @@
+go/libkb/sig.go
+  h_f21e4bfbe3ac62 17,123-125
+  s_ee75cafd50767f::t_e4c3e47d191f10 122,126-131,134
+  s_ee75cafd50767f::t_786f608fb53cf0 159
+go/libkb/pgp_key_test.go
+  s_ee75cafd50767f::t_cefbd21f70f5a9 312-346
+  s_ee75cafd50767f::t_c8c773b456da88 7,12-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b741bf9437182576c633221132155c49b654260c",
+  "prompts": {},
+  "humans": {
+    "h_f21e4bfbe3ac62": {
+      "author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  },
+  "sessions": {
+    "s_ee75cafd50767f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "55ca951d-96dd-46fe-92f8-3c8747af9329",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Michał Zochniak <michal.zochniak@zoom.us>"
+    }
+  }
+}
