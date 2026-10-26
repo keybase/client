@@ -83,7 +83,7 @@ function EmojiRowContainer(p: OwnProps) {
     type ElLike = {
       addEventListener: (t: string, cb: () => void) => void
       removeEventListener: (t: string, cb: () => void) => void
-      getBoundingClientRect: () => {bottom: number; height: number}
+      getBoundingClientRect: () => {bottom: number; height: number; top: number}
       parentElement: ElLike | null
     }
     const el = popupAnchor.current as null | (ElLike & {closest?: (sel: string) => ElLike | null})
@@ -112,17 +112,30 @@ function EmojiRowContainer(p: OwnProps) {
       const matrix = /matrix\([^)]*,\s*(-?[\d.]+)\)\s*$/.exec(getStyle?.(el).transform ?? '')
       return matrix ? -Number(matrix[1]) : 0
     }
+    // The bar hangs below its row. Where that would pass the list's bottom, it sits wholly above the
+    // row instead: raised into its own row it would cover the row's bottom, where its controls are
+    // (an unfurl prompt's buttons, an attachment's). Only a row too near the top for that too is
+    // raised just clear of the bottom.
     const measure = () => {
       const rect = el.getBoundingClientRect()
       // zero height means we're display:none and the rect is meaningless
       if (rect.height === 0) {
         return
       }
-      // add back the raise in effect so overflow is computed from our natural spot
-      const overflow = rect.bottom + appliedRaise() - list.getBoundingClientRect().bottom
-      // clear the edge rather than sitting flush on it, so a raised bar doesn't read as tight
-      // against the input area
-      setRaiseBy(overflow > 0 ? overflow + edgeClearance : 0)
+      // add back the raise in effect so everything is computed from our natural spot
+      const applied = appliedRaise()
+      const naturalTop = rect.top + applied
+      const naturalBottom = rect.bottom + applied
+      const listRect = list.getBoundingClientRect()
+      const overflow = naturalBottom - listRect.bottom
+      if (overflow <= 0) {
+        setRaiseBy(0)
+        return
+      }
+      const rowRect = row.getBoundingClientRect()
+      const flippedTop = rowRect.top - rect.height
+      // clear the edge rather than sitting flush on it, so the bar doesn't read as tight against it
+      setRaiseBy(flippedTop >= listRect.top + edgeClearance ? naturalTop - flippedTop : overflow + edgeClearance)
     }
     // the enter event that mounted us already fired, so measure directly too
     measure()
