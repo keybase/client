@@ -1,9 +1,12 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import {useInboxRowBig} from '@/chat/inbox/rows-state'
+import {useOpenedRowState} from './opened-row-state'
+import ChannelMenu from '@/chat/conversation/info-panel/menu'
 type Props = {
   conversationIDKey: string
   selected: boolean
@@ -18,6 +21,29 @@ const BigTeamChannel = (props: Props) => {
   const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
 
   const onSelectConversation = () => C.Router2.navigateToThread(conversationIDKey, 'inboxBig')
+
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <ChannelMenu
+        attachTo={attachTo}
+        channelOnly={true}
+        conversationIDKey={conversationIDKey}
+        hasHeader={false}
+        isSmallTeam={false}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
+  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+  const onLongPress = isMobile
+    ? () => {
+        setOpenedRow(Chat.noConversationIDKey)
+        showPopup()
+      }
+    : undefined
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null
@@ -92,10 +118,17 @@ const BigTeamChannel = (props: Props) => {
   ) : null
 
   return (
-    <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
+    <Kb.ClickableBox
+      direction="vertical"
+      fullWidth={true}
+      onClick={onSelectConversation}
+      onLongPress={onLongPress}
+      style={styles.container}
+    >
+      {popup}
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
-          className="hover_background_color_blueGreyDark"
+          className="hover_background_color_blueGreyDark hover-container"
           direction="horizontal"
           alignSelf={isMobile ? 'center' : undefined}
           fullWidth={!isMobile}
@@ -113,12 +146,28 @@ const BigTeamChannel = (props: Props) => {
             alignItems="center"
             justifyContent="flex-end"
             flex={1}
-            tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
+            tooltip={outboxTooltip || (hasDraft ? 'Draft message' : undefined)}
           >
             {draftIcon}
             {outboxIcon}
             {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
           </Kb.Box2>
+          {!isMobile && (
+            <Kb.Box2
+              // stays up while its menu is open, so the menu keeps its anchor
+              className={showingPopup ? undefined : 'hover-visible'}
+              direction="vertical"
+              ref={popupAnchor}
+              style={styles.gear}
+            >
+              <Kb.Icon
+                type="iconfont-gear"
+                onClick={showPopup}
+                color={selected ? theme.white : theme.black_35}
+                hoverColor={selected ? theme.white_75 : theme.black}
+              />
+            </Kb.Box2>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -158,6 +207,7 @@ const useStyles = Kb.Styles.createStyleHook(
         isElectron: {wordBreak: 'break-all'},
       }),
       container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+      gear: {marginLeft: Kb.Styles.globalMargins.xtiny},
       icon: {
         display: 'flex',
         margin: 3,
