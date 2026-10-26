@@ -187,6 +187,9 @@ test.describe('inline video', () => {
     await clickUnoccluded(poster(row))
     const video = row.locator('video')
     await expect(video).toHaveCount(1, {timeout: 5_000})
+    // the element mounts before its source loads, and a double-click on a video with nothing loaded
+    // yet does nothing
+    await expect.poll(async () => (await videoState(row)).currentTime, {timeout: 10_000}).toBeGreaterThan(0)
     const box = await video.boundingBox({timeout: 5_000})
     if (!box) throw new Error('the video has no box')
     await page.mouse.dblclick(box.x + box.width * 0.6, box.y + box.height * 0.3)
