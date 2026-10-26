@@ -105,7 +105,7 @@ const isNotifyChat = (action: EngineGen.Actions): action is NotifyChatAction =>
 // The service tags each chat notification with the uid of the account it was made for. Login and
 // logout are not serialized against them, so through an account switch the previous account's can
 // still arrive; while no account is signed in (uid '') none are ours. One with an empty uid names no
-// account, so it is not another account's: some service paths send them before the sender is known.
+// account, so it is not taken as another account's.
 export const isChatNotificationNotForSignedInAccount = (action: EngineGen.Actions, currentUID: string) => {
   if (!isNotifyChat(action)) return false
   const {uid} = action.payload.params

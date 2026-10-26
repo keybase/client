@@ -384,7 +384,11 @@ func (n *outboxActivityListener) NewChatActivity(uid keybase1.UID, activity chat
 	}
 	msg := activity.IncomingMessage().Message
 	if state, err := msg.State(); err == nil && state == chat1.MessageUnboxedState_OUTBOX {
-		n.uids <- uid
+		// never block the notify router
+		select {
+		case n.uids <- uid:
+		default:
+		}
 	}
 }
 
