@@ -133,7 +133,7 @@
     "expo-status-bar": "58.0.4",
     "expo-task-manager": "58.0.12",
     "expo-video": "58.0.12",
-    "google-libphonenumber": "3.2.47",
+    "google-libphonenumber": "3.2.48",
     "immer": "11.2.9",
     "lodash": "4.18.1",
     "lottie-react-native": "7.5.0",
@@ -150,7 +150,7 @@
     "react-native-screens": "4.30.0",
     "react-native-web": "0.21.4",
     "react-native-webview": "16.0.0",
-    "react-native-worklets": "0.13.0",
+    "react-native-worklets": "0.13.1",
     "zustand": "5.0.16"
   },
   "devDependencies": {
@@ -185,7 +185,7 @@
     "@wdio/local-runner": "10.1.0",
     "@wdio/mocha-framework": "10.1.0",
     "@wdio/spec-reporter": "10.1.0",
-    "appium": "3.8.0",
+    "appium": "3.9.0",
     "babel-jest": "30.5.2",
     "babel-plugin-module-resolver": "5.0.3",
     "babel-plugin-react-compiler": "1.0.0",
@@ -203,15 +203,13 @@
     "react-refresh": "0.19.0",
     "storybook": "10.6.4",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.72.0",
+    "typescript-eslint": "8.72.1",
     "typescript-native": "npm:typescript@7.0.2",
     "vite": "8.3.5",
     "webdriverio": "10.1.0"
   },
   "resolutions": {
     "**/@types/react": "19.3.0",
-    "**/body-parser": "2.4.0",
-    "**/shell-quote": "1.12.0",
     "**/zod": "4.6.7"
   },
   "typecoverage": {
