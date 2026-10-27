@@ -264,20 +264,31 @@ func (e ServerErrorMaxRefExceeded) Error() string {
 }
 
 // ServerErrorThrottle is returned when the server wants the client to backoff.
+// Err is preserved for errors.Is / errors.As (same pattern as kbfsmd).
 type ServerErrorThrottle struct {
-	Msg string
+	Err error
 }
 
 // Error implements the Error interface for ServerErrorThrottle.
 func (e ServerErrorThrottle) Error() string {
-	return "ServerErrorThrottle{" + e.Msg + "}"
+	if e.Err == nil {
+		return "ServerErrorThrottle{}"
+	}
+	return fmt.Sprintf("ServerErrorThrottle{%s}", e.Err.Error())
+}
+
+// Unwrap returns the underlying error so errors.Is/As can traverse it.
+func (e ServerErrorThrottle) Unwrap() error {
+	return e.Err
 }
 
 // ToStatus implements the ExportableError interface for ServerErrorThrottle.
 func (e ServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorThrottle
 	s.Name = "ERROR_THROTTLE"
-	s.Desc = e.Msg
+	if e.Err != nil {
+		s.Desc = e.Err.Error()
+	}
 	return
 }
 
@@ -329,7 +340,7 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg any) (appError error, dispatchErr
 	case StatusCodeServerErrorNoPermission:
 		appError = ServerErrorNoPermission{Msg: s.Desc}
 	case StatusCodeServerErrorThrottle:
-		appError = ServerErrorThrottle{Msg: s.Desc}
+		appError = ServerErrorThrottle{Err: errors.New(s.Desc)}
 	case StatusCodeServerErrorBlockDeleted:
 		appError = ServerErrorBlockDeleted{Msg: s.Desc}
 	case StatusCodeServerErrorNonceNonExistent:
