@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
+	"github.com/keybase/go-crypto/openpgp/packet"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -118,9 +119,19 @@ func SigExtractPGPPayload(armored string) (payload []byte, sigID keybase1.SigIDB
 	return payload, ps.ID(), nil
 }
 
+// maxSigMessageSize caps the bytes read from a PGP sig, with compressed
+// packets counted at their decompressed size. The server already has a limit
+// for signatures, and this limit is way higher, just to be safe.
+const maxSigMessageSize int64 = 256 * 1024
+
+func sigReadConfig() *packet.Config {
+	maxSize := maxSigMessageSize
+	return &packet.Config{MaxMessageSize: &maxSize}
+}
+
 func (ps *ParsedSig) ExtractPayload() (payload []byte, err error) {
 	ring := EmptyKeyRing{}
-	md, err := openpgp.ReadMessage(bytes.NewReader(ps.SigBody), ring, nil, nil)
+	md, err := openpgp.ReadMessage(bytes.NewReader(ps.SigBody), ring, nil, sigReadConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +156,7 @@ func (ps *ParsedSig) AssertPayload(expected []byte) error {
 }
 
 func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
-	ps.MD, err = openpgp.ReadMessage(bytes.NewReader(ps.SigBody), k, nil, nil)
+	ps.MD, err = openpgp.ReadMessage(bytes.NewReader(ps.SigBody), k, nil, sigReadConfig())
 	if err != nil {
 		return
 	}

@@ -4,10 +4,13 @@
 package libkb
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/keybase/go-crypto/openpgp"
+	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/stretchr/testify/require"
 )
 
@@ -305,4 +308,39 @@ CXQxLBizEEmSNVNxsp7KPGTLnqO3bPtqFirxS9PJLIMPTPLNBY7ZYuPNTMqVIUWF
 	require.NoError(t, err)
 
 	require.False(t, w.IsEmpty(), "Expected a bad subkey warning")
+}
+
+func TestPGPSigMessageSizeLimit(t *testing.T) {
+	tc := SetupTest(t, "pgp_sig_limit", 1)
+	defer tc.Cleanup()
+	key, err := tc.MakePGPKey("src@keybase.io")
+	require.NoError(t, err)
+
+	sign := func(payload []byte, algo packet.CompressionAlgo) string {
+		var out bytes.Buffer
+		config := &packet.Config{DefaultCompressionAlgo: algo}
+		in, _, err := ArmoredAttachedSign(NopWriteCloser{&out}, *key.Entity, nil, config)
+		require.NoError(t, err)
+		_, err = in.Write(payload)
+		require.NoError(t, err)
+		require.NoError(t, in.Close())
+		return out.String()
+	}
+
+	for _, algo := range []packet.CompressionAlgo{packet.CompressionNone, packet.CompressionZLIB} {
+		small := []byte("hello")
+		sig := sign(small, algo)
+		msg, _, err := key.VerifyStringAndExtract(tc.G.Log, sig)
+		require.NoError(t, err)
+		require.Equal(t, small, msg)
+		payload, _, err := SigExtractPGPPayload(sig)
+		require.NoError(t, err)
+		require.Equal(t, small, payload)
+
+		big := sign(bytes.Repeat([]byte{'a'}, int(maxSigMessageSize)+1024), algo)
+		_, _, err = key.VerifyStringAndExtract(tc.G.Log, big)
+		require.ErrorIs(t, err, pgpErrors.ErrMessageTooLarge, "algo %d", algo)
+		_, _, err = SigExtractPGPPayload(big)
+		require.ErrorIs(t, err, pgpErrors.ErrMessageTooLarge, "algo %d", algo)
+	}
 }
