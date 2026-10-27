@@ -1,0 +1,20 @@
+go/kbfs/kbfsblock/server_errors.go
+  s_97ae3f86d8e298::t_825b7423f88c8d 343
+  s_97ae3f86d8e298::t_5970f9a1587750 267,269,274-282,289-291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2c476aa2fb55fe905387cc90214300d104b15ab9",
+  "prompts": {},
+  "sessions": {
+    "s_97ae3f86d8e298": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0e285c77-54cf-4da6-86c9-71de0c9a0ed9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
