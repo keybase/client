@@ -1532,6 +1532,18 @@ describe("another account's chat notifications", () => {
     expect(archive).toEqual([{jobID: 'job', messagesComplete: 1, messagesTotal: 2, uid: 'uid'}])
   })
 
+  test('one with an empty uid names no account, so it reaches the router and engine action listeners', async () => {
+    await mountScreens([convA])
+    loadThread('A', false)
+    const archive = heard('chat.1.NotifyChat.ChatArchiveProgress')
+
+    await notify(typingFor(''))
+    await notify(archiveProgressFor(''))
+
+    expect(typersIn('A')).toEqual(['testuser-2'])
+    expect(archive).toEqual([{jobID: 'job', messagesComplete: 1, messagesTotal: 2, uid: ''}])
+  })
+
   test('while no account is signed in every one is dropped, an empty uid included', async () => {
     const archive = heard('chat.1.NotifyChat.ChatArchiveProgress')
     await startSwitch('testuser-mac')

@@ -132,8 +132,9 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 		storage.PendingPreviewer(func(ctx context.Context, obr *chat1.OutboxRecord) error {
 			return attachments.AddPendingPreview(ctx, s.G(), obr)
 		}),
+		// The record's ClientHeader.Sender is not stamped until Prepare, after this runs, so the
+		// outbox's own uid is the only one to use here.
 		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
-			uid := obr.Msg.ClientHeader.Sender
 			convID := obr.ConvID
 
 			// fill in reply
