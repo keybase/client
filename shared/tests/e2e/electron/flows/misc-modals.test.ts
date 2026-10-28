@@ -1,6 +1,6 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings, navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -8,9 +8,10 @@ test('password modal opens', async ({page}, testInfo) => {
   await navigateToSettings(page)
   await page.getByText(/^(Change password|Set a password)$/).click()
   await expect(page.getByPlaceholder('New password')).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'password modal')
   await closeModal(page)
   await expect(page.getByPlaceholder('New password')).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('account switcher menu opens', async ({page}, testInfo) => {
@@ -18,9 +19,10 @@ test('account switcher menu opens', async ({page}, testInfo) => {
   await page.locator('.username').first().click()
   const editProfile = page.getByText('View/Edit profile', {exact: true})
   await expect(editProfile).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'account switcher menu')
   await page.mouse.click(600, 400)
   await expect(editProfile).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'menu closed')
 })
 
 test('archive modal opens', async ({page}, testInfo) => {
@@ -30,9 +32,10 @@ test('archive modal opens', async ({page}, testInfo) => {
   await page.getByText('Backup all chat', {exact: true}).click()
   const blurb = page.getByText('Save a copy of your content to your local drive')
   await expect(blurb).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'archive modal')
   await closeModal(page)
   await expect(blurb).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('wallet section renders', async ({page}, testInfo) => {
@@ -44,5 +47,5 @@ test('wallet section renders', async ({page}, testInfo) => {
   }
   await walletRow.click()
   await expect(page.getByText('Secret key').first()).toBeVisible({timeout: 10_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'wallet section')
 })

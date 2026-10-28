@@ -1,7 +1,7 @@
 import type {Locator} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openFirstTeam} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeLeftoverModals, closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -44,9 +44,10 @@ test('add members wizard opens', async ({page}, testInfo) => {
   await addButton.first().click()
   const emailOption = page.getByText('A list of email addresses', {exact: true})
   await expect(emailOption).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'add members wizard')
   await closeModal(page)
   await expect(emailOption).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'wizard closed')
 })
 
 test('add by email screen opens', async ({page}, testInfo) => {
@@ -63,9 +64,11 @@ test('add by email screen opens', async ({page}, testInfo) => {
   await page.getByText('A list of email addresses', {exact: true}).click()
   const emailInput = page.getByPlaceholder('Email addresses')
   await expect(emailInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'add by email screen')
+  await manualEdge(page, testInfo, 'email-link')
   await closeModal(page)
   await expect(emailInput).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'screen closed')
 })
 
 test('edit team info modal opens', async ({page}, testInfo) => {
@@ -81,9 +84,10 @@ test('edit team info modal opens', async ({page}, testInfo) => {
   await editButton.first().click()
   const description = page.getByPlaceholder('Description')
   await expect(description).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'edit team info modal')
   await closeModal(page)
   await expect(description).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('edit channel modal opens', async ({page}, testInfo) => {
@@ -97,6 +101,7 @@ test('edit channel modal opens', async ({page}, testInfo) => {
     return
   }
   await channelsTab.click()
+  await step(page, testInfo, 'channels tab')
   const channelList = page.getByTestId(T.TEAMS_CHANNEL_LIST)
   if (!(await becomesVisible(channelList.first()))) {
     test.skip()
@@ -116,9 +121,10 @@ test('edit channel modal opens', async ({page}, testInfo) => {
   await editIcons.last().click()
   const channelName = page.getByPlaceholder('channelname')
   await expect(channelName).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'edit channel modal', {card: true})
   await closeModal(page)
   await expect(channelName).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('retention warning opens', async ({page}, testInfo) => {
@@ -162,9 +168,10 @@ test('retention warning opens', async ({page}, testInfo) => {
     test.skip()
     return
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'retention warning')
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(confirm).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'warning dismissed')
 })
 
 test('add emoji modal opens', async ({page}, testInfo) => {
@@ -178,6 +185,7 @@ test('add emoji modal opens', async ({page}, testInfo) => {
     return
   }
   await emojiTab.first().click()
+  await step(page, testInfo, 'emoji tab')
   const addEmoji = page.getByText('Add emoji', {exact: true}).locator('visible=true')
   if (!(await becomesVisible(addEmoji.first()))) {
     test.skip()
@@ -186,7 +194,8 @@ test('add emoji modal opens', async ({page}, testInfo) => {
   await addEmoji.first().click()
   const dragDrop = page.getByText('Drag and drop images or')
   await expect(dragDrop).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'add emoji modal', {card: true})
   await closeModal(page)
   await expect(dragDrop).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
