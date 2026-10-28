@@ -6,7 +6,9 @@ import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 test('password modal opens', async ({page}, testInfo) => {
   await navigateToSettings(page)
-  await page.getByText(/^(Change password|Set a password)$/).click()
+  // the settings tab reopens on the subpage an earlier test left it on: the password is on Account
+  await page.getByTestId(T.SETTINGS_ACCOUNT).locator('text=Account').first().click()
+  await page.getByText(/^(Change password|Set a password)$/).click({timeout: 5_000})
   await expect(page.getByPlaceholder('New password')).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'password modal')
   await closeModal(page)
@@ -20,7 +22,9 @@ test('account switcher menu opens', async ({page}, testInfo) => {
   const editProfile = page.getByText('View/Edit profile', {exact: true})
   await expect(editProfile).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'account switcher menu')
-  await page.mouse.click(600, 400)
+  // Escape, not an outside click: a click on the People feed behind the menu opens whoever is
+  // under it, which leaves their profile on the People stack for later tests
+  await page.keyboard.press('Escape')
   await expect(editProfile).not.toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'menu closed')
 })
@@ -40,11 +44,8 @@ test('archive modal opens', async ({page}, testInfo) => {
 
 test('wallet section renders', async ({page}, testInfo) => {
   await navigateToSettings(page)
-  const walletRow = page.getByTestId(T.SETTINGS_ACCOUNT).locator('text=Wallet')
-  if ((await walletRow.count()) === 0) {
-    test.skip()
-    return
-  }
+  const walletRow = page.getByTestId(T.SETTINGS_ROW_WALLET).locator('visible=true')
+  await expect(walletRow, 'the Wallet row in the settings nav').toBeVisible({timeout: 5_000})
   await walletRow.click()
   await expect(page.getByText('Secret key').first()).toBeVisible({timeout: 10_000})
   await step(page, testInfo, 'wallet section')

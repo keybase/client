@@ -2,7 +2,7 @@
 // closes search and hands the composer focus, and an inline video plays once. Desktop's fullscreen is
 // the player's own control, so its double-click goes to Chromium, not to the attachment view.
 import type {Locator, Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {checkRendererAfterReload} from '@/tests/e2e/electron/helpers/connect'
 import {
   clickUnoccluded,
@@ -16,7 +16,7 @@ import {
   threadSearch,
   waitForScrollStable,
 } from '@/tests/e2e/electron/helpers/chat'
-import {E2E_CHANNELS, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {E2E_CHANNELS, type ChatData} from '@/tests/e2e/shared/chat-data'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // no retries: a retry would let an intermittent race pass
@@ -26,7 +26,7 @@ let data: ChatData
 
 test.beforeAll(async () => {
   test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
-  data = await ensureChatData()
+  data = await seedChatData()
 })
 
 const pinnedBanner = (page: Page) => page.getByTestId(T.CHAT_PINNED_BANNER)
