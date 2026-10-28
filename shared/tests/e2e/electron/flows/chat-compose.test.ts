@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // Visual states of the chat input area. Nothing is ever sent; every test
@@ -26,7 +26,7 @@ test('mention suggestion popup', async ({page}, testInfo) => {
   }
   await typeInInput(page, '@cn')
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST).first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'mention suggestion popup')
   await clearInput(page)
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST)).toHaveCount(0, {timeout: 5_000})
 })
@@ -38,7 +38,7 @@ test('command suggestion popup', async ({page}, testInfo) => {
   }
   await typeInInput(page, '/')
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST).first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'command suggestion popup')
   await clearInput(page)
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST)).toHaveCount(0, {timeout: 5_000})
 })
@@ -54,6 +54,6 @@ test('multiline input grows', async ({page}, testInfo) => {
     await page.keyboard.type(`line ${i + 1}`)
     await page.keyboard.press('Shift+Enter')
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'multiline input grown')
   await clearInput(page)
 })

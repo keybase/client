@@ -20,6 +20,10 @@ export type CardData = {
   // When the screenshot was taken — overlaid on the image so stale results
   // (e.g. an old per-device run mixed into a multi-device report) are obvious.
   timestamp?: string | null
+  // The test's step screenshots, in step order
+  steps?: Array<{name: string; path: string}>
+  // Text shown under a failed card: renderer errors and the app/service log tails
+  details?: Array<{name: string; text: string}>
 }
 
 export type Section = {
@@ -30,6 +34,39 @@ export type Section = {
 
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+// step-NN-<slug> attachment names (see electron/helpers/step.ts)
+export function parseStepName(name: string): {n: number; slug: string} | null {
+  const m = /^step-(\d+)-(.+)$/.exec(name)
+  return m ? {n: Number(m[1]), slug: m[2]!} : null
+}
+
+export function sortSteps<T extends {name: string}>(items: ReadonlyArray<T>): T[] {
+  return items
+    .map(item => ({item, parsed: parseStepName(item.name)}))
+    .filter((x): x is {item: T; parsed: {n: number; slug: string}} => x.parsed !== null)
+    .sort((a, b) => a.parsed.n - b.parsed.n)
+    .map(x => x.item)
+}
+
+// The step whose image is the test's card: the one named by a card-step annotation, else the first
+export function chooseCardStep<T extends {name: string}>(sorted: ReadonlyArray<T>, marked: ReadonlyArray<string>): T | undefined {
+  return sorted.find(s => marked.includes(s.name)) ?? sorted[0]
+}
+
+export type ChecklistEntry = {id: string; title: string; doByHand: string}
+
+// reached: manual-only id -> path of that run's manual-<id> screenshot, relative to the checklist file
+export function buildChecklist(entries: ReadonlyArray<ChecklistEntry>, reached: ReadonlyMap<string, string>): string {
+  return (
+    entries
+      .map(e => {
+        const shot = reached.get(e.id)
+        return `- [ ] ${e.title}: ${e.doByHand} (${shot ? `[screenshot](${shot})` : 'not reached this run'})`
+      })
+      .join('\n') + '\n'
+  )
 }
 
 export function formatDuration(ms: number): string {
@@ -83,10 +120,30 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     visual = `<div class="empty">No screenshot</div>`
   }
 
+  const stepStrip = card.steps?.length
+    ? `<div class="steps">${card.steps
+        .map(
+          (st, i) =>
+            `<figure><img src="${relFn(st.path)}" alt="${escapeHtml(st.name)}" loading="lazy"><figcaption>${i + 1}. ${escapeHtml(st.name)}</figcaption></figure>`
+        )
+        .join('')}</div>`
+    : ''
+  // a test with no steps has the failure shot as its card image already
+  const failShot =
+    !card.passed && card.failureScreenshotPath && card.screenshotPath && card.failureScreenshotPath !== card.screenshotPath
+      ? `<div class="solo-wrap"><img class="solo" src="${relFn(card.failureScreenshotPath)}" alt="failure" loading="lazy"><div class="lbl lbl-ts">AT FAILURE</div></div>`
+      : ''
+  const details = card.details?.length
+    ? card.details
+        .map(d => `<details class="detail"><summary>${escapeHtml(d.name)}</summary><pre>${escapeHtml(d.text)}</pre></details>`)
+        .join('')
+    : ''
+
   const hasDiff = card.diff !== null && card.diff.pct >= 0.05
   return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}>
   <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
+  ${failShot}${stepStrip}${details}
 </div>`
 }
 
@@ -106,7 +163,7 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
     const sectionHeader = section.header
       ? `<div class="section-hdr" id="sec-${slugify(section.header)}">${escapeHtml(section.header)}</div>`
       : ''
-    const cards = section.cards.map(card => buildCard(card, idx++, relFn)).join('\n')
+    const cards = [...section.cards.filter(c => !c.passed), ...section.cards.filter(c => c.passed)].map(card => buildCard(card, idx++, relFn)).join('\n')
     return [sectionHeader, cards].filter(Boolean).join('\n')
   }).join('\n')
 
@@ -142,7 +199,14 @@ ${sliderScript()}
 }
 
 export function sharedCss(allPassed: boolean): string {
-  return `*{box-sizing:border-box;margin:0;padding:0}
+  return `
+.steps { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; }
+.steps figure { margin: 0; flex: 0 0 160px; }
+.steps img { width: 160px; height: auto; border: 1px solid #8884; border-radius: 4px; display: block; }
+.steps figcaption { font-size: 11px; opacity: .7; margin-top: 2px; word-break: break-word; }
+.detail { padding: 4px 12px; font-size: 12px; }
+.detail pre { max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;color:#222}
 header{background:${allPassed ? '#1a7a3a' : '#c0392b'};color:#fff;padding:20px 28px}
 .hdr-top{display:flex;align-items:center;gap:12px}

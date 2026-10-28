@@ -4,6 +4,7 @@
 //   base/<sha>/<platform>/<theme>/<id>.masks.json         mask rects the base capture had
 //   base/<sha>/<platform>/<theme>/coverage/<id>.json      call sites the capture drew (--coverage)
 //   runs/<stamp>/...                                      one check, gate or aa run and its report
+//   render/<stamp>/<id>.png, <id>.routes.json, render.json  one render run: captures, what each recorded
 // Ids map to file names with '/' replaced by '__'.
 import * as fs from 'fs'
 import * as path from 'path'
@@ -121,3 +122,4 @@ export const readBaseCoverage = (sha: string): {drawn: Array<string>; masked: Ar
 
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')
 export const runDir = (stamp: string) => path.join(resultsDir(), 'runs', stamp)
+export const renderDir = (stamp: string) => path.join(resultsDir(), 'render', stamp)

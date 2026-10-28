@@ -458,6 +458,8 @@ test('a beforeNav that throws leaves the hook installed with its fixture, for en
 })
 
 const threadCtx = {args: {bot: 'b', conversationIDKey: 'ab', secondUser: 'testuser-mac', teamname: 't', username: 'testuser'}, now: 1_000_000}
+// the app's load of the entry's thread (conversation id bytes 0xab), which opened the session
+const entryLoad = {method: 'chat.1.local.getThreadNonblock', param: {conversationID: new Uint8Array([0xab]), sessionID: 1}}
 
 test("the chat thread fixture adds its messages after the thread's newest, in the synthetic ID range", async () => {
   const {chatThreadContent} = await import('./chat-thread.ts')
@@ -473,7 +475,7 @@ test("the chat thread fixture adds its messages after the thread's newest, in th
   }
   const ctx = threadCtx
   const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadFull')!.transform
-  const out = rewrite({sessionID: 1, thread: JSON.stringify({messages: [image], pagination: null})}, ctx) as {sessionID: number; thread: string}
+  const out = rewrite({sessionID: 1, thread: JSON.stringify({messages: [image], pagination: null})}, ctx, entryLoad) as {sessionID: number; thread: string}
   const messages = (JSON.parse(out.thread) as {messages: Array<{state: number; valid?: {messageID: number}; journeycard?: {ordinal: number}}>}).messages
   assert.equal(out.sessionID, 1)
   const ids = messages.map(m => m.valid?.messageID ?? m.journeycard?.ordinal ?? 0)
@@ -482,7 +484,7 @@ test("the chat thread fixture adds its messages after the thread's newest, in th
   // newest first, as the service sends a thread
   assert.deepEqual([...ids].sort((a, b) => b - a), ids)
   const noImage = JSON.stringify({messages: [{...image, valid: {...image.valid, assetUrlInfo: undefined, messageBody: {messageType: 1}}}], pagination: null})
-  assert.throws(() => rewrite({thread: noImage}, ctx), /no image in the thread page/)
+  assert.throws(() => rewrite({thread: noImage}, ctx, entryLoad), /no image in the thread page/)
 })
 
 test("the chat thread fixture's messages are the account's, sent like its oldest message, with the oldest image's media", async () => {
@@ -506,7 +508,7 @@ test("the chat thread fixture's messages are the account's, sent like its oldest
   const real = [msg(9, 'testuser-mac', 'new.png'), msg(8, 'testuser'), msg(5, 'testuser-mac', 'old.png'), msg(3, 'testuser'), msg(2, 'testuser-mac')]
   const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadFull')!.transform
   const thread = (messages: Array<Msg>) =>
-    (JSON.parse((rewrite({thread: JSON.stringify({messages, pagination: null})}, threadCtx) as {thread: string}).thread) as {messages: Array<Msg>}).messages
+    (JSON.parse((rewrite({thread: JSON.stringify({messages, pagination: null})}, threadCtx, entryLoad) as {thread: string}).thread) as {messages: Array<Msg>}).messages
   const added = thread(real).filter(m => (m.valid?.messageID ?? 0) >= SYNTHETIC_FIRST)
   // all but the bot's (bot 'b')
   const sent = added.filter(m => m.valid && m.valid.senderUsername !== 'b')
@@ -519,4 +521,43 @@ test("the chat thread fixture's messages are the account's, sent like its oldest
   assert.deepEqual(thread([...real].reverse()).filter(m => (m.valid?.messageID ?? 0) >= SYNTHETIC_FIRST), added)
   // nothing of the account's to send as: the fixture cannot draw what it describes
   assert.throws(() => thread([msg(9, 'testuser-mac', 'new.png')]), /no message of testuser in the thread page/)
+})
+
+test("the chat thread fixture passes other threads through, and still fails on the entry's thread without an image", async () => {
+  const {chatThreadContent} = await import('./chat-thread.ts')
+  const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadCached')!.transform
+  const textOnly = {sessionID: 2, thread: JSON.stringify({messages: [{state: 1, valid: {messageBody: {messageType: 1}, messageID: 3, senderUsername: 'testuser'}}], pagination: null})}
+  const otherLoad = {method: 'chat.1.local.getThreadNonblock', param: {conversationID: new Uint8Array([0xcd]), sessionID: 2}}
+  assert.equal(rewrite(textOnly, threadCtx, otherLoad), textOnly)
+  // a session the app opened before the fixture began, or by another call
+  assert.equal(rewrite(textOnly, threadCtx, undefined), textOnly)
+  assert.equal(rewrite(textOnly, threadCtx, {method: 'chat.1.local.getInboxNonblockLocal', param: {sessionID: 2}}), textOnly)
+  assert.throws(() => rewrite(textOnly, threadCtx, entryLoad), /no image in the thread page/)
+})
+
+test("an incoming rewrite is told which of the app's calls opened its session", () => {
+  const seen: Array<unknown> = []
+  const h = harness({
+    incoming: [
+      {
+        method: 'a.1.x.thread',
+        transform: (p, _ctx, startedBy) => {
+          seen.push(startedBy)
+          return p
+        },
+      },
+    ],
+    rpc: [],
+    teardown: 'remount',
+  })
+  try {
+    h.begin()
+    call(h.rt, 'a.1.x.load', {id: 'one', sessionID: 7})
+    h.rt.rpc.incoming({method: 'a.1.x.thread', param: [{sessionID: 7}]}, {customResponse: false, inSession: true})
+    h.rt.rpc.incoming({method: 'a.1.x.thread', param: [{sessionID: 8}]}, {customResponse: false, inSession: true})
+    h.rt.fixtures.end()
+    assert.deepEqual(seen, [{method: 'a.1.x.load', param: {id: 'one', sessionID: 7}}, undefined])
+  } finally {
+    h.restore()
+  }
 })

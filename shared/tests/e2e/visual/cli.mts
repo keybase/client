@@ -5,6 +5,8 @@
 //   gate [--ios]                           check over every entry, bracketed by a full seal
 //   aa [--ios]                             captures every entry twice from the current tree, twice
 //   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run drew
+//   render [ids…] [--theme t]              captures desktop entries from the current tree with no
+//                                          base, recording each entry's routes and RPCs
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -30,7 +32,8 @@ import {
   type Hunk,
   type Range,
 } from './coverage/changed-sites.mts'
-import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
+import {withDeadline} from '../shared/deadline.ts'
+import {openDesktop, sleep, waitFor, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
 import {fixtureHash} from './fixtures/drive.mts'
 import {FIXTURE_RUNTIME_VERSION, isFixtureName, type FixtureName} from './fixtures/names.ts'
@@ -59,7 +62,7 @@ const METRO_STOP_MS = 15_000
 const METRO_START_MS = 3 * 60_000
 const IOS_BOOT_MS = 5 * 60_000
 const MIN = 60_000
-const DEADLINES: Record<string, number> = {aa: 90 * MIN, base: 90 * MIN, check: 45 * MIN, coverage: 5 * MIN, gate: 90 * MIN}
+const DEADLINES: Record<string, number> = {aa: 90 * MIN, base: 90 * MIN, check: 45 * MIN, coverage: 5 * MIN, gate: 90 * MIN, render: 90 * MIN}
 const THEMES: ReadonlyArray<Theme> = ['light', 'dark']
 const METRO_LOG = '/tmp/kb-visual-metro.log'
 
@@ -160,7 +163,8 @@ const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
 
 // ---------------------------------------------------------------- check / gate / aa
 
-export type CaptureOpts = {platform: RunPlatform; theme: Theme; frozenAt: number}
+// `record`: the capture carries what the app's recorder saw for the entry (desktop only)
+export type CaptureOpts = {platform: RunPlatform; theme: Theme; frozenAt: number; record?: boolean}
 export type CheckDeps = {
   baseSha: () => Promise<string>
   readBaseMeta: (sha: string, platform: RunPlatform) => Store.BaseMeta | undefined
@@ -392,6 +396,96 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   deps.log(bad.length ? `✗ ${bad.length} of ${rows.length} pairs differ` : `✓ all ${rows.length} pairs equal`)
   if (bad.length) deps.openReport(reportPath)
   return bad.length ? 1 : 0
+}
+
+// ---------------------------------------------------------------- render
+
+export type RenderDeps = Pick<CheckDeps, 'capture' | 'closeCapture' | 'currentShared' | 'entries' | 'log' | 'servedFrom'> & {
+  now: () => number
+}
+
+// The RPC the app sends when it moves a conversation's read position, which it does only when the
+// thread it shows has messages past it: the entry opened an unread conversation. Under a fixture it
+// never reaches the service (chat-thread-content answers it; any other fixture refuses it as a
+// write), so only live entries count.
+const MARK_READ = 'chat.1.local.markAsReadLocal'
+
+type RenderRow = {
+  id: string
+  status: Capture['status']
+  error?: string
+  png: string | null
+  routes: Array<string>
+  startRoutes: Array<string>
+  rpcs: Array<string>
+  openedUnread: boolean
+}
+
+// Every selected desktop entry captured from this tree, for a person or the release gate to look
+// at: no base, no seal and no compare. The clock is frozen a minute past the run's start, so
+// relative times read the same across the run. Opening an unread conversation marks it read; render
+// goes ahead and names the entries that did. Exits 1 when an entry failed (never reached its ready
+// testID, its fixture reported a leak, or the driver threw).
+export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): Promise<number> {
+  const cmd = parseCommand(argv)
+  if (cmd.ios) throw new Error('render is desktop only')
+  if (cmd.base !== undefined) throw new Error('render takes no --base: it compares nothing')
+  if (cmd.coverage) throw new Error('render takes no --coverage')
+  const platform: RunPlatform = 'desktop'
+  const entries = selectEntries(deps.entries, cmd.patterns, platform)
+  assertServed(deps, platform)
+  const startedAt = deps.now()
+  const frozenAt = startedAt + FROZEN_AFTER_NEWEST_MS
+  const dir = Store.renderDir(Store.runStamp(new Date(startedAt)))
+  const rows: Array<RenderRow & {theme: Theme}> = []
+  try {
+    for (const theme of cmd.themes) {
+      const sub = cmd.themes.length > 1 ? path.join(dir, theme) : dir
+      fs.mkdirSync(sub, {recursive: true})
+      for (const e of entries) {
+        const cap = await deps.capture(e, {frozenAt, platform, record: true, theme})
+        const name = Store.idFile(e.id)
+        const png = cap.png.length ? path.join(sub, `${name}.png`) : null
+        if (png) fs.writeFileSync(png, cap.png)
+        const routes = cap.recorded?.routes ?? []
+        const startRoutes = cap.recorded?.startRoutes ?? []
+        const rpcs = cap.recorded?.rpcs ?? []
+        fs.writeFileSync(path.join(sub, `${name}.routes.json`), JSON.stringify({id: e.id, routes, rpcs, startRoutes}, null, 2))
+        const row = {
+          error: cap.error,
+          id: e.id,
+          openedUnread: !e.fixture && rpcs.includes(MARK_READ),
+          png,
+          routes,
+          rpcs,
+          startRoutes,
+          status: cap.status,
+          theme,
+        }
+        rows.push(row)
+        const note = cap.status === 'unstable' ? ' (unstable: frames still changing at capture)' : ''
+        deps.log(cap.status === 'failed' ? `✗ ${e.id} ${platform} ${theme} failed: ${cap.error ?? 'no error given'}` : `✓ ${e.id} ${platform} ${theme}${note}`)
+      }
+    }
+  } finally {
+    await deps.closeCapture()
+  }
+  fs.mkdirSync(dir, {recursive: true})
+  fs.writeFileSync(
+    path.join(dir, 'render.json'),
+    JSON.stringify({entries: rows, finishedAt: deps.now(), frozenAt, platform, startedAt}, null, 2)
+  )
+  deps.log(`render: ${dir}`)
+  const unread = rows.filter(r => r.openedUnread)
+  if (unread.length) deps.log(`opened an unread conversation (and marked it read): ${unread.map(r => r.id).join(', ')}`)
+  const failed = rows.filter(r => r.status === 'failed')
+  const label = (r: (typeof rows)[number]) => (cmd.themes.length > 1 ? `${r.id} ${r.theme}` : r.id)
+  if (failed.length) {
+    deps.log(`✗ ${failed.length} of ${rows.length} entries failed:\n  ${failed.map(r => `${label(r)}: ${r.error ?? 'no error given'}`).join('\n  ')}`)
+    return 1
+  }
+  deps.log(`✓ rendered ${rows.length} of ${rows.length}`)
+  return 0
 }
 
 // ---------------------------------------------------------------- trees, servers and the app
@@ -855,7 +949,8 @@ const sessionCapturer = () => {
       await session.prepare({frozenAt: o.frozenAt, reload: true, theme: o.theme})
       preparedFor = key
     }
-    return session.capture(entry)
+    if (o.record && o.platform === 'ios') throw new Error('recording a capture is desktop only')
+    return o.platform === 'ios' ? (session as IosSession).capture(entry) : (session as DesktopSession).capture(entry, {record: o.record})
   }
   const close = async () => {
     const s = session
@@ -896,7 +991,7 @@ const main = async () => {
   const [name = '', ...argv] = process.argv.slice(2)
   const deadline = DEADLINES[name]
   if (!deadline) {
-    console.error('usage: cli.mts base|check|gate|aa|coverage …')
+    console.error('usage: cli.mts base|check|gate|aa|coverage|render …')
     process.exit(2)
   }
   setTimeout(() => {
@@ -954,6 +1049,9 @@ const main = async () => {
         break
       case 'coverage':
         code = await runCoverage(argv, log)
+        break
+      case 'render':
+        code = await runRender({...realDeps(parseCommand(argv)), now: () => Date.now()}, argv)
         break
     }
   } catch (e) {

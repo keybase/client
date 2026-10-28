@@ -1,11 +1,12 @@
 import * as fs from 'fs'
 import {chromium, type Browser, type CDPSession, type ConsoleMessage, type Page} from '@playwright/test'
 import {NAV_TAB_CHAT} from '../../shared/test-ids.ts'
+import {appLogPath} from '../app-log.ts'
 
 const CDP_ENDPOINT = 'http://localhost:9222'
 const connectTimeoutMs = 5_000
 const readyTimeoutMs = 15_000
-const appLog = process.env['KB_E2E_APP_LOG'] ?? '/tmp/chat-e2e-electron.log'
+const appLog = appLogPath()
 
 // What to say when the app is not there or not ready, so a stuck app fails fast and says where to look.
 export const appNotReady = (what: string, afterMs: number) =>
