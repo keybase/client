@@ -1,7 +1,7 @@
 import type {Locator, Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToTeams, openFirstTeam} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeLeftoverModals, closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -21,9 +21,10 @@ test('team wizard purpose screen opens', async ({page}, testInfo) => {
   await page.getByText('Create a team', {exact: true}).locator('visible=true').first().click()
   const prompt = page.getByText('What do you need a team for?')
   await expect(prompt).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'team wizard purpose screen')
   await closeModal(page)
   await expect(prompt).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'wizard closed')
 })
 
 test('team wizard name screen opens', async ({page}, testInfo) => {
@@ -32,10 +33,11 @@ test('team wizard name screen opens', async ({page}, testInfo) => {
   await page.getByText('Friends, family, or squad', {exact: true}).click()
   const nameInput = page.getByPlaceholder('Team name')
   await expect(nameInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'team wizard name screen')
   // cancel the wizard — never actually create a team
   await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'wizard closed')
 })
 
 async function openChannelsTab(page: Page): Promise<boolean> {
@@ -77,9 +79,10 @@ test('create channel modal opens', async ({page}, testInfo) => {
   await page.getByText('Create channel', {exact: true}).locator('visible=true').first().click()
   const nameInput = page.getByPlaceholder('Channel name')
   await expect(nameInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'create channel modal')
   await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('created channel row renders', async ({page}, testInfo) => {
@@ -93,13 +96,14 @@ test('created channel row renders', async ({page}, testInfo) => {
     const nameInput = page.getByPlaceholder('Channel name')
     await expect(nameInput).toBeVisible({timeout: 5_000})
     await nameInput.fill(CHANNEL)
+    await step(page, testInfo, 'channel name typed')
     await page.getByText('Save', {exact: true}).locator('visible=true').first().click()
     await expect(nameInput).not.toBeVisible({timeout: 15_000})
     // the channels list doesn't always live-refresh — re-enter the tab
     await openChannelsTab(page)
   }
   await expect(channelRow(page).first()).toBeVisible({timeout: 30_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'channel row in list')
 })
 
 test('delete channel confirm renders, then channel is deleted', async ({page}, testInfo) => {
@@ -116,9 +120,10 @@ test('delete channel confirm renders, then channel is deleted', async ({page}, t
   await page.locator(`.icon-gen-iconfont-ellipsis:right-of(:text("#${CHANNEL}")):visible`).first().click()
   await page.getByText('Delete channel', {exact: true}).locator('visible=true').first().click()
   await expect(page.getByText(`Delete #${CHANNEL}?`)).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'delete channel confirm')
   await page.getByText('Delete channel', {exact: true}).locator('visible=true').first().click()
   await expect(page.getByText(`Delete #${CHANNEL}?`)).not.toBeVisible({timeout: 15_000})
   await openChannelsTab(page)
   await expect(channelRow(page)).toHaveCount(0, {timeout: 30_000})
+  await step(page, testInfo, 'channel gone')
 })

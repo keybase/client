@@ -7,6 +7,8 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {chromium, type Browser, type BrowserContext, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
+import {withDeadline} from '../shared/deadline.ts'
+import {startRecorder, takeRecorder, type Recording} from '../shared/recorder.ts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams, resolveValue} from './resolve.mts'
@@ -22,10 +24,13 @@ export type Capture = {
   coverage: Array<string> | null
   status: 'ok' | 'unstable' | 'failed'
   error?: string
+  // with `record`: what the app's __kbE2ERecorder saw from just before the entry navigated until
+  // its capture (the RPC methods sent and the routes focused)
+  recorded?: Recording
 }
 export type DesktopSession = {
   prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
-  capture: (entry: TourEntry) => Promise<Capture>
+  capture: (entry: TourEntry, opts?: {record?: boolean}) => Promise<Capture>
   // Restores the app and detaches this driver's CDP session. It does not close the browser (that
   // quits Electron), so the Playwright connection stays open: the caller must exit its process,
   // under its own deadline, to drop it.
@@ -84,18 +89,6 @@ const hasClassicScrollbars = () => {
 }
 
 export const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-export const withDeadline = async <T,>(p: Promise<T>, ms: number, what: string): Promise<T> => {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(new Error(`${what}: no answer in ${ms / 1000}s`)), ms)
-  })
-  try {
-    return await Promise.race([p, timeout])
-  } finally {
-    clearTimeout(timer)
-  }
-}
 
 export const waitFor = async (what: string, ms: number, check: () => Promise<boolean>) => {
   const start = Date.now()
@@ -539,6 +532,27 @@ const remoteWindowsOf = (ctx: BrowserContext, component: string, param: string) 
 
 type OpenWindow = {page: Page; close: () => Promise<void>}
 
+// The props the main window cached for a remote window, read the way the window's own component
+// reads them: a window may only read the props cached for itself (getRemoteProps in
+// desktop/app/ipc-handlers.desktop.tsx), so the main window cannot. '' when none of its pages has any.
+const cachedWindowProps = async (ctx: BrowserContext, component: string, param: string) => {
+  for (const p of remoteWindowsOf(ctx, component, param)) {
+    const props = await withDeadline(
+      p.evaluate(
+        async ([c, pa]) => {
+          const f = (globalThis as unknown as DevGlobals)._fromPreload?.functions
+          return f ? f.getRemoteProps(c, pa) : ''
+        },
+        [component, param] as const
+      ),
+      EVAL_MS,
+      `reading the ${component} window's props`
+    ).catch(() => '')
+    if (props) return props
+  }
+  return ''
+}
+
 // Opens an entry's window and returns its page once its props have rendered. In a dev build a
 // proxy that makes its window from an effect makes it twice (strict mode closes the first at
 // once), so the page is the one that renders.
@@ -568,14 +582,11 @@ const openWindow = async (ctx: BrowserContext, main: Page, w: RemoteWindow, them
         'reading the menu window count'
       )
       if (!shown) await dispatchRemote(main, 'remote:updateWindowShown', {component: 'menu'})
-      if (!(await preloadCall(main, 'getRemoteProps', [windowComponent, windowParam]))) {
-        throw new Error('the main window has sent the menubar no props')
-      }
       await preloadCall(main, 'makeRenderer', [{windowComponent, windowOpts, windowParam}])
       // Closing a window drops its cached props, and the proxy sends only on a change, so the
       // latest props go back in the cache for the next window.
       closeIt = async () => {
-        const props = await preloadCall(main, 'getRemoteProps', [windowComponent, windowParam])
+        const props = await cachedWindowProps(ctx, windowComponent, windowParam)
         await preloadCall(main, 'closeRenderer', [{windowComponent, windowParam}])
         await waitClosed()
         if (props) await preloadCall(main, 'rendererNewProps', [{propsStr: props, windowComponent, windowParam}])
@@ -620,8 +631,9 @@ const openWindow = async (ctx: BrowserContext, main: Page, w: RemoteWindow, them
       return false
     })
   } catch (e) {
+    const noProps = w.component === 'menubar' && !(await cachedWindowProps(ctx, windowComponent, windowParam))
     await closeIt().catch(() => {})
-    throw e
+    throw noProps ? new Error('the main window has sent the menubar no props', {cause: e}) : e
   }
   return {close: closeIt, page: page!}
 }
@@ -713,9 +725,10 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     frozenAt = opts.frozenAt
   }
 
-  const capture: DesktopSession['capture'] = async entry => {
+  const capture: DesktopSession['capture'] = async (entry, opts) => {
     let png: Buffer | undefined
     let win: OpenWindow | undefined
+    let recording = false
     const fixture = fixtureCapture(fixtureHooks(page), entry.fixture)
     let result: Capture
     try {
@@ -733,6 +746,10 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // over a tab visited for the first time drew that tab still empty under it. A fixture is
       // installed on this idle app.
       if (waitsAtTabRoot(entry)) await waitForNoLoading(page)
+      if (opts?.record) {
+        recording = true
+        await startRecorder(page)
+      }
       if (entry.fixture) {
         // every screen remounts so none keeps live data
         await fixture.begin()
@@ -796,6 +813,14 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     }
     const fail = (why: string) => {
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
+    }
+    // taken before the fixture ends: a fixture that reloads the app would drop the recording
+    if (recording) {
+      try {
+        result = {...result, recorded: await takeRecorder(page)}
+      } catch (e) {
+        fail(`taking the recording: ${(e as Error).message}`)
+      }
     }
     if (win) {
       try {

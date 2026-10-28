@@ -13,7 +13,7 @@ import {makeNodeConfig} from '../../../../desktop/vite.node.mts'
 
 const shared = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..')
 // the runtime's globals, and a string only its code holds
-export const MARKERS = ['__kbVisualFixtures', '__kbVisualRpc', 'it writes, and no rule answers it']
+export const MARKERS = ['__kbE2ERecorder', '__kbVisualFixtures', '__kbVisualRpc', 'it writes, and no rule answers it']
 
 const filesUnder = (dir: string): Array<string> =>
   fs.readdirSync(dir, {withFileTypes: true}).flatMap(d => {

@@ -12,8 +12,13 @@
 // remove, mark) and that no rule answers is refused rather than sent, apart from the few local UI
 // writes navigation makes (localWrites), and the writes leaving a screen makes (focusWrites), which
 // are answered here.
+// The electron e2e flows record what each test exercised through __kbE2ERecorder: start() before a
+// test, take() after it, for the RPC methods the app sent and the routes it focused. While it
+// records and no fixture is active, __kbVisualRpc is a hook that only notes each outgoing method and
+// changes nothing: invoke returns false, so the engine sends the call itself, and incoming hands back
+// the payload it was given.
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
-import type {FixtureContext, FixtureDef, RpcRule, StoreApi, StoreKey, Stores} from './def.ts'
+import type {FixtureContext, FixtureDef, RpcRule, StartedBy, StoreApi, StoreKey, Stores} from './def.ts'
 import {chatThreadContent} from './chat-thread.ts'
 import {globalError, runtimeStats} from './debug.ts'
 import {deviceLastUsed} from './devices.ts'
@@ -72,6 +77,115 @@ export type VisualFixtures = {
 declare global {
   var __kbVisualRpc: VisualRpc | undefined
   var __kbVisualFixtures: VisualFixtures | undefined
+  var __kbE2ERecorder: E2ERecorder | undefined
+}
+
+export type E2ERecorder = {
+  // starts a recording, dropping any earlier one
+  start: () => void
+  // what was recorded since start(), each name once in the order first seen; ends the recording.
+  // startRoutes is the focused chain shown at start; routes holds the chains of the states after it
+  // that differed from the one before, so a screen left on from before start() is in routes only
+  // when the app showed it again in a later state.
+  take: () => {rpcs: Array<string>; routes: Array<string>; startRoutes: Array<string>}
+}
+
+// What the route recorder needs of the app's navigation container (router-v2/router.tsx sets it on
+// window.DEBUGNavigator in a dev app).
+export type NavLike = {
+  addListener: (event: 'state', cb: (e: {data?: {state?: unknown}}) => void) => () => void
+  getRootState: () => unknown
+}
+
+// The focused route of each navigator down the tree. A tab navigator's state lists every tab, shown
+// or not, and a stack keeps the screens under its top one, so only the focused chain is what the
+// state shows; a screen under the top was the focused one in an earlier state.
+const collectRouteNames = (state: unknown, into: Set<string>) => {
+  const s = state as {index?: unknown; routes?: unknown} | null | undefined
+  if (!Array.isArray(s?.routes)) return
+  const routes = s.routes as Array<{name?: unknown; state?: unknown} | null | undefined>
+  const r = routes[typeof s.index === 'number' ? s.index : routes.length - 1]
+  if (typeof r?.name === 'string') into.add(r.name)
+  collectRouteNames(r?.state, into)
+}
+
+// The names along a navigation state's focused route chain, outermost first, each once.
+export const routeNames = (state: unknown) => {
+  const names = new Set<string>()
+  collectRouteNames(state, names)
+  return [...names]
+}
+
+// Records the focused route names of every navigation state between start() and take(): each
+// 'state' event, and the state shown at start, at take and on every poll in between (a nested
+// navigator setting up its first state is not always told as an event). The state shown at start
+// goes in startRoutes; a later state goes in routes only when its focused chain differs from the
+// last one read, so polls of an unchanged screen add nothing. The navigator can be missing for a
+// moment at startup and is replaced when the router remounts, so each poll also re-reads it and
+// moves the listener.
+export const createRouteRecorder = (deps: {
+  navigator: () => NavLike | undefined
+  every: (ms: number, f: () => void) => () => void
+}) => {
+  let names: Set<string> | undefined
+  let startRoutes: Array<string> = []
+  let starting = false
+  let lastChain: string | undefined
+  let nav: NavLike | undefined
+  let unsubscribe: (() => void) | undefined
+  let stopPolling: (() => void) | undefined
+
+  // a container that is not ready yet can throw: its routes come with a later look
+  const record = (state: () => unknown) => {
+    if (!names) return
+    const chain = new Set<string>()
+    try {
+      collectRouteNames(state(), chain)
+    } catch {
+      return
+    }
+    const key = [...chain].join('\n')
+    if (key === lastChain) return
+    lastChain = key
+    if (starting) startRoutes = [...chain]
+    else for (const n of chain) names.add(n)
+  }
+  const look = () => {
+    const next = deps.navigator()
+    if (next !== nav) {
+      unsubscribe?.()
+      unsubscribe = next?.addListener('state', e => record(() => e.data?.state ?? next.getRootState()))
+      nav = next
+    }
+    if (next) record(() => next.getRootState())
+  }
+  const stop = () => {
+    stopPolling?.()
+    stopPolling = undefined
+    unsubscribe?.()
+    unsubscribe = undefined
+    nav = undefined
+  }
+  return {
+    start: () => {
+      stop()
+      names = new Set()
+      startRoutes = []
+      lastChain = undefined
+      starting = true
+      look()
+      starting = false
+      stopPolling = deps.every(250, look)
+    },
+    take: () => {
+      if (names) look()
+      const out = {routes: [...(names ?? [])], startRoutes}
+      stop()
+      names = undefined
+      startRoutes = []
+      return out
+    },
+  }
 }
 
 const writeWords = new Set(['post', 'set', 'send', 'delete', 'create', 'add', 'remove', 'mark'])
@@ -123,6 +237,8 @@ type Active = {
   followTimers: Set<ReturnType<typeof setTimeout>>
   failedFollowUps: Array<string>
   failedTransforms: Array<string>
+  // the app's calls by the session they opened, so an incoming rewrite knows what it answers
+  sessions: Map<number, StartedBy>
 }
 
 export const createRuntime = (deps: {
@@ -134,6 +250,9 @@ export const createRuntime = (deps: {
   now: () => number
 }) => {
   let cur: Active | undefined
+  // the methods sent while recording
+  let recorded: Set<string> | undefined
+  const sync = () => deps.install(cur || recorded ? rpc : undefined)
 
   type Payload = {method: string; param: object}
   const build = (a: Active, defs: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>): Array<Payload> => {
@@ -194,7 +313,9 @@ export const createRuntime = (deps: {
       const t = a.def.incoming?.find(r => r.method === payload.method)
       if (t) {
         const [first, ...rest] = payload.param
-        const r = rewrite(a, payload.method, () => t.transform(first ?? {}, a.ctx()))
+        const sessionID = first?.sessionID
+        const startedBy = typeof sessionID === 'number' ? a.sessions.get(sessionID) : undefined
+        const r = rewrite(a, payload.method, () => t.transform(first ?? {}, a.ctx(), startedBy))
         if (!r) return payload
         return {...payload, param: [{...r.value, sessionID: first?.sessionID}, ...rest]}
       }
@@ -206,8 +327,11 @@ export const createRuntime = (deps: {
       return payload
     },
     invoke: call => {
+      recorded?.add(call.method)
       const a = cur
       if (!a) return false
+      const sessionID = (call.param as {sessionID?: unknown} | undefined)?.sessionID
+      if (typeof sessionID === 'number') a.sessions.set(sessionID, {method: call.method, param: call.param})
       const rule = a.def.rpc.find(r => r.method === call.method)
       if (!rule && focusWrites.has(call.method)) {
         const timer = setTimeout(() => {
@@ -276,16 +400,17 @@ export const createRuntime = (deps: {
         name,
         pending: new Map(),
         refused: [],
+        sessions: new Map(),
         snapshots,
       }
-      deps.install(rpc)
+      sync()
       def.beforeNav?.(deps.stores, cur.ctx())
     },
     end: () => {
       const a = cur
       if (!a) throw new Error('end with no fixture active')
       cur = undefined
-      deps.install(undefined)
+      sync()
       for (const timer of a.followTimers) clearTimeout(timer)
       const cancelledReplies: Array<string> = []
       for (const [timer, p] of a.pending) {
@@ -312,11 +437,23 @@ export const createRuntime = (deps: {
     served: () => !!cur && cur.def.rpc.every(r => !r.required || cur?.answered.has(r)),
     version: FIXTURE_RUNTIME_VERSION,
   }
-  return {fixtures, rpc}
+  const recording = {
+    start: () => {
+      recorded = new Set()
+      sync()
+    },
+    take: () => {
+      const out = [...(recorded ?? [])]
+      recorded = undefined
+      sync()
+      return out
+    },
+  }
+  return {fixtures, recording, rpc}
 }
 
 if (__DEV__) {
-  const {fixtures} = createRuntime({
+  const {fixtures, recording} = createRuntime({
     forget,
     inject: payload => (globalThis.DEBUGEngine as {_rpcIncoming: (p: IncomingPayload) => void})._rpcIncoming(payload),
     install: rpc => {
@@ -326,4 +463,18 @@ if (__DEV__) {
     stores: devStores(),
   })
   globalThis.__kbVisualFixtures = fixtures
+  const routes = createRouteRecorder({
+    every: (ms, f) => {
+      const id = setInterval(f, ms)
+      return () => clearInterval(id)
+    },
+    navigator: () => (globalThis as {DEBUGNavigator?: NavLike}).DEBUGNavigator,
+  })
+  globalThis.__kbE2ERecorder = {
+    start: () => {
+      recording.start()
+      routes.start()
+    },
+    take: () => ({...routes.take(), rpcs: recording.take()}),
+  }
 }
