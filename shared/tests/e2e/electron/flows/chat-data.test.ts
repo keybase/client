@@ -5,7 +5,7 @@
 // reach the thread and the inbox, all of it keeps working across an account switch, and the thread
 // left behind by one sends nothing for the next account.
 import type {ConsoleMessage, Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
   collectConsoleErrors,
@@ -18,7 +18,6 @@ import {
   openConversationByName,
   openDirectConversation,
   openSelfConversation,
-  requireAttachedApp,
   rowByOrdinal,
   heldWaitingKeys,
   sendMessage,
@@ -32,8 +31,9 @@ import {
   watchOutgoingRpcs,
   watchSelection,
 } from '@/tests/e2e/electron/helpers/chat'
-import {E2E_CHANNELS, attachFromCli, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
-import {findIncomingSender, type IncomingSender} from '@/tests/e2e/shared/incoming-sender'
+import {E2E_CHANNELS, attachFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {loadE2EEnv} from '@/tests/e2e/accounts/env'
+import {peerSender, type IncomingSender} from '@/tests/e2e/shared/peer-actors'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -41,15 +41,16 @@ import * as T from '@/tests/e2e/shared/test-ids'
 test.describe.configure({retries: 0})
 
 let data: ChatData
-let sender: IncomingSender
 
 test.beforeAll(async () => {
   test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
-  data = await ensureChatData()
-  sender = await findIncomingSender(data.secondUser)
+  data = await seedChatData()
 })
 
-const requireSender = () => requireAttachedApp(sender, "the second account's sender")
+// The second account's peer service, found by the first flow that needs it: one that is missing
+// fails only those flows, with the reason.
+let sender: Promise<IncomingSender> | undefined
+const requireSender = async () => (sender ??= peerSender(loadE2EEnv()))
 
 const openScratch = async (page: Page) => openConversationByName(page, data.team, E2E_CHANNELS.scratch)
 const openSelf = async (page: Page) => openSelfConversation(page, data.smokeUser)
@@ -396,10 +397,10 @@ test.describe('reply privately', () => {
   })
 
   test("reply privately opens the direct conversation with the message quoted in the composer", async ({page}) => {
-    const s = requireSender()
+    const s = await requireSender()
     await openScratch(page)
     const text = `e2e-data-private-${Date.now()}`
-    await s.send(data.convIDs[E2E_CHANNELS.scratch], data.team, text)
+    await s.send(data.convIDs[E2E_CHANNELS.scratch], text)
     const ordinal = await waitForRow(page, text, 20_000)
 
     const menu = await messageMenu(page, ordinal)
@@ -411,10 +412,10 @@ test.describe('reply privately', () => {
 
 test.describe('incoming', () => {
   test('an incoming message reaches the open thread and the inbox snippet', async ({page}) => {
-    const s = requireSender()
+    const s = await requireSender()
     await openDirectConversation(page, data.secondUser)
     const text = `e2e-data-incoming-${Date.now()}`
-    await s.send(data.direct.convID, data.direct.tlfName, text)
+    await s.send(data.direct.convID, text)
     await waitForRow(page, text, 20_000)
     await expect(rowWithText(page, text)).toHaveCount(1)
     await expect(inboxRow(page, data.secondUser)).toContainText(text, {timeout: 10_000})
@@ -438,7 +439,7 @@ test.describe('account switch', () => {
 
   test('a thread opened after switching accounts and back gets new messages and typing for the account signed in', async ({page}) => {
     test.setTimeout(120_000)
-    const s = requireSender()
+    const s = await requireSender()
     const errors = collectConsoleErrors(page, notFromTheSwitch)
     await openScratch(page)
 
@@ -446,7 +447,7 @@ test.describe('account switch', () => {
     await switchAccount(page, data.secondUser)
     await openScratch(page)
     const whileSecond = `e2e-data-switch-second-${Date.now()}`
-    await s.send(data.convIDs[E2E_CHANNELS.scratch], data.team, whileSecond)
+    await s.send(data.convIDs[E2E_CHANNELS.scratch], whileSecond)
     await waitForRow(page, whileSecond, 20_000)
 
     // back as the smoke user: the thread builds again, with that message in it once
@@ -455,7 +456,7 @@ test.describe('account switch', () => {
     await waitForRow(page, whileSecond, 20_000)
 
     const incoming = `e2e-data-switch-back-${Date.now()}`
-    await s.send(data.convIDs[E2E_CHANNELS.scratch], data.team, incoming)
+    await s.send(data.convIDs[E2E_CHANNELS.scratch], incoming)
     await waitForRow(page, incoming, 20_000)
     await expect(rowWithText(page, incoming)).toHaveCount(1)
 

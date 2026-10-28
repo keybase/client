@@ -3,7 +3,7 @@
 // the reader take over, pages load in both directions without moving the reader, and the list
 // keeps its place across an edit, a mark unread and a tab switch.
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
   closeSearch,
@@ -19,7 +19,6 @@ import {
   openThreadSearch,
   ordinalRect,
   readThreadGeometry,
-  requireAttachedApp,
   rowByOrdinal,
   searchFor,
   selectHit,
@@ -39,25 +38,23 @@ import {
   LONG_COUNT,
   LONG_SEARCH_TOKENS,
   SHORT_COUNT,
-  ensureChatData,
   longMarker,
   shortMarker,
   type ChatData,
   type E2EChannel,
 } from '@/tests/e2e/shared/chat-data'
-import {findIncomingSender, type IncomingSender} from '@/tests/e2e/shared/incoming-sender'
+import {loadE2EEnv} from '@/tests/e2e/accounts/env'
+import {peerSender, type IncomingSender} from '@/tests/e2e/shared/peer-actors'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // no retries: a retry would let an intermittent race pass
 test.describe.configure({retries: 0})
 
 let data: ChatData
-let sender: IncomingSender
 
 test.beforeAll(async () => {
   test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
-  data = await ensureChatData()
-  sender = await findIncomingSender(data.secondUser)
+  data = await seedChatData()
 })
 
 // How far a row the reader was looking at may drift across a page load: rows measure to fractional
@@ -73,10 +70,13 @@ const centreTolerancePx = 16
 const jumpToRecent = (page: Page) => page.getByTestId(T.CHAT_JUMP_TO_RECENT)
 const catchUp = (page: Page) => page.getByTestId(T.CHAT_CATCH_UP)
 
-const requireSender = () => requireAttachedApp(sender, "the second account's sender")
+// The second account's peer service, found by the first flow that needs it: one that is missing
+// fails only those flows, with the reason.
+let sender: Promise<IncomingSender> | undefined
+const requireSender = async () => (sender ??= peerSender(loadE2EEnv()))
 
 const sendIncoming = async (channel: E2EChannel, text: string) => {
-  await requireSender().send(data.convIDs[channel], data.team, text)
+  await (await requireSender()).send(data.convIDs[channel], text)
 }
 
 // A row wholly in view, at least `margin` px inside both edges, for the reader to be looking at.
@@ -266,7 +266,7 @@ test.describe('opening', () => {
 
 test.describe('new messages', () => {
   test('at the bottom, an incoming message keeps the thread at the bottom', async ({page}) => {
-    requireSender()
+    await requireSender()
     await openScratchAtEnd(page)
     const text = `e2e-scroll-incoming-bottom-${Date.now()}`
     await sendIncoming(E2E_CHANNELS.scratch, text)
@@ -281,7 +281,7 @@ test.describe('new messages', () => {
     {name: 'well', up: 500},
   ]) {
     test(`scrolled ${name} up, an incoming message leaves the reader where they are`, async ({page}) => {
-      requireSender()
+      await requireSender()
       await openScratchAtEnd(page)
       await wheelThread(page, -up)
       const before = await waitForScrollStable(page)
@@ -385,7 +385,7 @@ test.describe('search', () => {
   // Closing search with the list resting at its end, the newest message loaded, gives the end back
   // to the list: the next message is followed as on any thread at its end.
   test('closing search at the newest message, then an incoming message is followed', async ({page}) => {
-    requireSender()
+    await requireSender()
     await openScratchAtEnd(page)
     const token = `e2esearchend${Date.now()}`
     await sendMessage(page, `e2e-scroll-search-end ${token}`)
@@ -575,7 +575,7 @@ test.describe('back to the bottom', () => {
   ]
   for (const {how, toBottom} of ways) {
     test(`${how} re-pins it, and a later incoming message keeps the bottom`, async ({page}) => {
-      requireSender()
+      await requireSender()
       const atEnd = await openScratchAtEnd(page)
       await wheelThread(page, -800)
       const up = await waitForScrollStable(page)
@@ -690,7 +690,7 @@ test.describe('editing', () => {
   // short (an emulated 470px) so the composer's growth reaches a row centred by the reveal.
   test('a long animated edit reveal keeps holding the row: the composer growing after brings it back into view', async ({page}) => {
     test.setTimeout(120_000)
-    requireSender()
+    await requireSender()
     const cdp = await page.context().newCDPSession(page)
     try {
       await cdp.send('Emulation.setDeviceMetricsOverride', {deviceScaleFactor: 0, height: 470, mobile: false, width: 1000})

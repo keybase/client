@@ -4,9 +4,12 @@
 import {chromium} from '@playwright/test'
 import {checkRendererAfterReload, findMainPage} from './helpers/connect'
 import {assertNotLocked} from '../visual/lock.mts'
+import {ensureRunId} from '../accounts/run-id'
 
 export default async function globalSetup() {
   assertNotLocked('desktop e2e')
+  // workers inherit it: the names the flows create carry it (accounts/run-id.ts)
+  ensureRunId(process.env)
   const browser = await chromium.connectOverCDP('http://localhost:9222', {timeout: 5_000}).catch(() => {
     throw new Error('the dev app is not answering on CDP (relaunch with node tests/e2e/electron/launch-app.mts)')
   })
