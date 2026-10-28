@@ -1,25 +1,20 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
-import {CHAT_INBOX_ROW, CHAT_MESSAGE_LIST, CHAT_INPUT} from '@/tests/e2e/shared/test-ids'
+import {openSelfConversation} from '@/tests/e2e/electron/helpers/chat'
+import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
+import {CHAT_MESSAGE_LIST, CHAT_INPUT} from '@/tests/e2e/shared/test-ids'
 
 // The same tolerance the thread itself treats as at-end (list-area's endTolerancePx), so a pass here
 // means what the app means by it.
 const endTolerancePx = 2
 
 test('send a message to KB_SMOKE_USER', async ({page}, testInfo) => {
-  testInfo.annotations.push({type: 'account', description: process.env['KB_SMOKE_USER']!})
+  const {smokeUser} = loadE2EAccounts()
+  testInfo.annotations.push({type: 'account', description: smokeUser})
 
-  const smokeUser = process.env['KB_SMOKE_USER']!
-
-  await test.step('navigate to chat', async () => {
-    await navigateToChat(page)
-  })
-
-  await test.step('open conversation with KB_SMOKE_USER', async () => {
-    const row = page.getByTestId(CHAT_INBOX_ROW).filter({hasText: smokeUser}).first()
-    await expect(row).toBeVisible({timeout: 3_000})
-    await row.click()
-    await page.waitForSelector(`[data-testid="${CHAT_MESSAGE_LIST}"]`, {timeout: 3_000})
+  // the smoke account's conversation with itself, by name: an inbox row that merely mentions the
+  // name can be a conversation that is not the tests' to post in
+  await test.step('open the conversation with KB_SMOKE_USER', async () => {
+    await openSelfConversation(page, smokeUser)
   })
 
   const testMessage = `e2e-test-${Date.now()}`

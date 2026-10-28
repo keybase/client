@@ -1,14 +1,14 @@
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   navigateToSettings,
   navigateToPeople,
   navigateToFiles,
-  navigateToTeams,
   navigateToChat,
-  openFirstConversation,
+  openE2ETeam,
   openOwnProfile,
 } from '@/tests/e2e/electron/helpers/navigate'
+import {openE2EChannel} from '@/tests/e2e/electron/helpers/chat'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -20,6 +20,11 @@ async function wheel(page: Page, selector: string, deltaY: number) {
   // let the virtualized list settle
   await page.waitForTimeout(500)
 }
+
+test.beforeAll(async () => {
+  test.setTimeout(20 * 60_000) // a first run seeds the e2e channels; later runs only check
+  await seedChatData()
+})
 
 test('settings advanced scrolled to bottom', async ({page}, testInfo) => {
   await navigateToSettings(page)
@@ -44,10 +49,7 @@ test('chat inbox scrolled to bottom', async ({page}, testInfo) => {
 })
 
 test('chat conversation scrolled up', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await wheel(page, `[data-testid="${T.CHAT_MESSAGE_LIST}"]`, -5_000)
   await step(page, testInfo, 'conversation scrolled up')
 })
@@ -65,13 +67,8 @@ test('people feed scrolled down', async ({page}, testInfo) => {
 })
 
 test('team members scrolled to bottom', async ({page}, testInfo) => {
-  await navigateToTeams(page)
-  const rows = page.getByTestId(T.TEAMS_ROW)
-  if ((await rows.count()) === 0) {
-    test.skip()
-    return
-  }
-  await rows.first().click()
+  await openE2ETeam(page)
+  await page.getByTestId(T.TEAMS_TAB_MEMBERS_BUTTON).locator('visible=true').first().click()
   await expect(page.getByTestId(T.TEAMS_MEMBER_LIST).first()).toBeVisible({timeout: 5_000})
   await wheel(page, `[data-testid="${T.TEAMS_MEMBER_LIST}"]`, 10_000)
   await step(page, testInfo, 'team members scrolled to bottom')

@@ -11,7 +11,7 @@ export default defineConfig({
   globalSetup: './global-setup.ts',
   // several flows chain 3-4 five-second waits against a live service, so the
   // per-test budget has to clear the sum of their step timeouts. Worst case is
-  // flows/teams-modals 'retention warning opens': openFirstTeam (~8s) + two 5s
+  // flows/teams-modals 'retention warning opens': openE2ETeam (~8s) + two 5s
   // visibility waits + 3 reopen attempts of 5s settle + 2s menu wait each + a 3s
   // confirm wait, which is over 30s of step budget on its own.
   timeout: 30_000,

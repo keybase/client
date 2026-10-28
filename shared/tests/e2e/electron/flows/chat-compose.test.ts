@@ -1,11 +1,19 @@
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {openE2EChannel} from '@/tests/e2e/electron/helpers/chat'
+import {type ChatData} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
-// Visual states of the chat input area. Nothing is ever sent; every test
+// Visual states of the chat input area, in e2e-scratch. Nothing is ever sent; every test
 // clears the input before ending.
+
+let data: ChatData
+
+test.beforeAll(async () => {
+  test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
+  data = await seedChatData()
+})
 
 async function typeInInput(page: Page, text: string): Promise<void> {
   const input = page.getByTestId(T.CHAT_INPUT).first()
@@ -20,11 +28,9 @@ async function clearInput(page: Page): Promise<void> {
 }
 
 test('mention suggestion popup', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
-  await typeInInput(page, '@cn')
+  await openE2EChannel(page)
+  // the second account is a member of e2e-scratch, so its name's start lists it
+  await typeInInput(page, `@${data.secondUser.slice(0, 2)}`)
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST).first()).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'mention suggestion popup')
   await clearInput(page)
@@ -32,10 +38,7 @@ test('mention suggestion popup', async ({page}, testInfo) => {
 })
 
 test('command suggestion popup', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await typeInInput(page, '/')
   await expect(page.getByTestId(T.CHAT_SUGGESTION_LIST).first()).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'command suggestion popup')
@@ -44,10 +47,7 @@ test('command suggestion popup', async ({page}, testInfo) => {
 })
 
 test('multiline input grows', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   const input = page.getByTestId(T.CHAT_INPUT).first()
   await input.click()
   for (let i = 0; i < 4; i++) {

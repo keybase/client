@@ -35,6 +35,17 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 **Common pitfall — hidden nav stack elements:** React Navigation keeps prior screens mounted but hidden. `getByTestId(X)` may match 2+ elements (one hidden, one visible), causing Playwright strict-mode failures. Fix: use a selector unique to the destination screen rather than one shared with the source screen. Example: after navigating into a Files subfolder, the root screen's `files-browser` is still in the DOM but hidden — check for the Filter textbox instead, which only exists in subfolder views.
 
+## Desktop release gate
+
+`yarn test:e2e:desktop:release` (from `shared/`, ~30-40 min) runs everything and exits 1 on any failure, a flaky or skipped flow test included (retries stay at 1, so a flake shows as `flaky: <test>`).
+
+- **Env:** accounts come from `~/.config/keybase-e2e/env` (mode 600, its dir 700; `yarn test:e2e:accounts:setup` fills in the peers); the environment wins over the file, and the run hands its children the account names (never paper keys). The main service must already be signed in as `KB_SMOKE_USER` (every flow test checks it again before it runs), and KBFS must answer `keybase fs ls /keybase/private/$KB_SMOKE_USER`; the FUSE mount itself is manual-only. The command never switches, stops or starts the main service or its components, and refuses with the command to run instead.
+- **Peers:** the other accounts run in their own `keybase --home` services; the command starts them if they are down and leaves them running.
+- **Phases:** preflight (release lock `/tmp/kb-e2e-release.lock`, one run at a time; account, ports 4000/9222, visual gate lock, KBFS, peers, `accounts:setup --check`) → launch the app → sweep leftovers once → `electron-flows` (light only) → relaunch with `--visual` and `visual:render` → census → report. It stops the app it launched at the end or on Ctrl-C.
+- **Outputs** (`shared/tests/results/`): `electron-report.html` (flows, then tour entries, failures first), `census.md` (routes, windows and write RPCs no run reached; the windows besides the main one are listed by hand in `tests/e2e/electron/census-windows.ts` and credited by their `window/*` tour entries), `manual-checklist.md` (what to do by hand), `watchdog.log` (written only when the renderer went blank, which fails the run), plus one summary line per phase and a macOS notification.
+- **Known failures:** `tests/e2e/electron/known-failures.ts` lists failures seen on master with their cause. They still fail the run; the report labels them "known on master", and says "now passes — remove it" when one passes.
+- **Knobs:** `KB_E2E_RELEASE_ONLY=<grep>` runs only matching flows and the `settings/*` tour entries (to try the command; the census then reports gaps), `KB_E2E_RELEASE_TIMEOUT_MIN` (default 150), `KB_E2E_NO_OPEN=1`.
+
 ## iOS — Appium + WebdriverIO (TypeScript)
 
 | What | Where |
