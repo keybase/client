@@ -5,8 +5,7 @@
 // selected conversation, waiting keys, inbox layout and metadata stores and the signed-in user, and
 // drives a few things a test cannot arrange on demand (a ChatThreadsStale notification, an inbox
 // refresh, an account switch).
-import {expect, test, type ConsoleMessage, type ElementHandle, type JSHandle, type Locator, type Page} from '@playwright/test'
-import {findChannelOwner, findIncomingSender} from '@/tests/e2e/shared/incoming-sender'
+import {expect, type ConsoleMessage, type ElementHandle, type JSHandle, type Locator, type Page} from '@playwright/test'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToChat} from './navigate'
 
@@ -443,32 +442,6 @@ export const switchAccount = async (page: Page, username: string) => {
   await clickUnoccluded(row)
   await expect(signedInName(page)).toHaveText(new RegExp(`^(Hi )?${escapeRegExp(username)}!?$`), {timeout: 30_000})
   await navigateToChat(page)
-}
-
-// -- the second account's app ---------------------------------------------------------------------
-// Some flows need the app attached to Metro (shared/incoming-sender.ts) to send as the second
-// account or to act as the team owner. Without it they fail, saying why. KB_E2E_ALLOW_NO_SENDER=1
-// skips them instead and prints each one it skips, for a run on a machine without that app.
-const allowNoSender = process.env['KB_E2E_ALLOW_NO_SENDER'] === '1'
-
-// The attached app as found, or a failure (a skip with KB_E2E_ALLOW_NO_SENDER=1) naming what is
-// missing. In a beforeAll it fails or skips every case of the group.
-export const requireAttachedApp = <A extends {ok: true}>(found: A | {ok: false; reason: string}, what: string): A => {
-  if (found.ok) return found
-  const reason = `${what} is unavailable: ${found.reason}`
-  if (!allowNoSender) throw new Error(`${reason} (KB_E2E_ALLOW_NO_SENDER=1 skips the flows that need it)`)
-  console.warn(`SKIPPED (KB_E2E_ALLOW_NO_SENDER=1): ${test.info().titlePath.join(' › ')}: ${reason}`)
-  test.skip(true, reason)
-  throw new Error('unreachable: test.skip throws')
-}
-
-// For a group whose hooks switch the attached app between the two accounts: requires it signed in as
-// either one.
-export const requireAttachedAppAsEither = async (secondUser: string, smokeUser: string) => {
-  const asSecond = await findIncomingSender(secondUser)
-  if (asSecond.ok) return
-  const asOwner = await findChannelOwner(smokeUser)
-  requireAttachedApp(asOwner.ok ? asOwner : asSecond, 'the app attached to Metro')
 }
 
 // -- rows ----------------------------------------------------------------------------------------

@@ -6,8 +6,7 @@
 // a prompt. One that would prompt (an account never signed in here) is never answered: stdin is
 // closed and the call has a deadline, so it fails instead of hanging.
 import {execFile} from 'child_process'
-
-const keybaseBin = () => process.env['KB_CLI'] ?? 'keybase'
+import {keybaseBin} from './keybase-bin.ts'
 
 const run = async (args: Array<string>, timeoutMs: number) =>
   new Promise<string>((resolve, reject) => {

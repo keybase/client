@@ -12,6 +12,7 @@
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
 import {execFile} from 'child_process'
+import {keybaseBin} from '../shared/keybase-bin.ts'
 import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
@@ -22,7 +23,7 @@ const CLI_TIMEOUT_MS = 30_000
 export const runCli: CliRunner = async args =>
   new Promise<string>((resolve, reject) => {
     const proc = execFile(
-      process.env['KB_CLI'] ?? 'keybase',
+      keybaseBin(),
       args,
       {encoding: 'utf8', killSignal: 'SIGKILL', timeout: CLI_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024},
       (err, stdout, stderr) => {

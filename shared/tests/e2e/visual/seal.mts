@@ -22,6 +22,7 @@
 import {createHash} from 'crypto'
 import {execFile} from 'child_process'
 import {e2eAccounts} from '../shared/chat-data.ts'
+import {keybaseBin} from '../shared/keybase-bin.ts'
 
 export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate' | 'fsHistory'
 export type Seal = {
@@ -185,7 +186,7 @@ export const diffSeals = (a: Seal, b: Seal): Array<string> => {
 const run = async (args: Array<string>, timeoutMs = 30_000) =>
   new Promise<string>((resolve, reject) => {
     const proc = execFile(
-      process.env['KB_CLI'] ?? 'keybase',
+      keybaseBin(),
       args,
       {encoding: 'utf8', killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024, timeout: timeoutMs},
       (err, stdout, stderr) => {
