@@ -1,8 +1,12 @@
 import {test as base, type ConsoleMessage, type Page, type WorkerInfo} from '@playwright/test'
 import {checkRendererAfterReload, connectToElectron} from './connect'
+import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
+import {ensureChatData} from '@/tests/e2e/shared/chat-data'
+import {requireMainIsSmoke} from '@/tests/e2e/shared/peer-service'
+import {runIdFromEnv} from '@/tests/e2e/accounts/run-id'
 
 type WorkerFixtures = {_electronPage: Page}
-type TestFixtures = {_rendererErrors: undefined; page: Page}
+type TestFixtures = {_mainIsSmoke: undefined; _rendererErrors: undefined; page: Page}
 
 // Uncaught renderer errors that are known noise, not app failures. Each entry says why; keep the
 // list short and the patterns narrow. A match is still attached to the results, just not failed.
@@ -14,11 +18,25 @@ const isBenign = (message: string) => benignPageErrors.some(b => b.pattern.test(
 const cspViolation = /violates the following Content Security Policy directive|requires 'Trusted(?:HTML|Script|ScriptURL)' assignment/
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
+  // Before every test body, not just once per worker: a flow that switched the main service and
+  // failed to switch it back fails the next test, naming the account, instead of driving the app
+  // as that account.
+  _mainIsSmoke: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, setup) => {
+      await requireMainIsSmoke(loadE2EAccounts())
+      await setup(undefined)
+    },
+    {auto: true},
+  ],
+
   _electronPage: [
     // Playwright requires object destructuring syntax here — it uses static analysis to
     // detect fixture dependencies, so a plain identifier like `_fixtures` breaks injection.
     // eslint-disable-next-line no-empty-pattern
     async ({}, setup, workerInfo: WorkerInfo) => {
+      // every worker, before it touches the app: the app acts as whoever the main service is signed in as
+      await requireMainIsSmoke(loadE2EAccounts())
       const isDark = workerInfo.project.name.endsWith('-dark')
       const {page} = await connectToElectron()
       // emulateMedia sets prefers-color-scheme via CDP and persists across reloads
@@ -82,3 +100,17 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 })
 
 export {expect} from '@playwright/test'
+
+// ensureChatData for a beforeAll: hooks run before any test's account check, so this checks first.
+export const seedChatData = async () => {
+  await requireMainIsSmoke(loadE2EAccounts())
+  return ensureChatData()
+}
+
+// This run's id (global-setup.ts sets it), which the names a flow creates carry so the sweeper can
+// clear what a crashed run leaves.
+export const e2eRunId = () => {
+  const id = runIdFromEnv(process.env)
+  if (!id) throw new Error('KB_E2E_RUN_ID is not set: global-setup.ts sets it before any test')
+  return id
+}

@@ -3,7 +3,7 @@
 // lists take their keys, newlines go in at the caret and undo, an emoji lands at the caret, and a
 // read-only channel takes nothing.
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
   closeMenu,
@@ -15,8 +15,6 @@ import {
   messageMenu,
   openConversationByName,
   openSelfConversation,
-  requireAttachedApp,
-  requireAttachedAppAsEither,
   sendMessage,
   suggestionRows,
   switchAccount,
@@ -29,11 +27,11 @@ import {
   botCommands,
   createThrowawayChannel,
   deleteThrowawayChannels,
-  ensureChatData,
   type ChatData,
 } from '@/tests/e2e/shared/chat-data'
 import {cliWhoami} from '@/tests/e2e/shared/cli-account'
-import {findChannelOwner, switchAttachedApp} from '@/tests/e2e/shared/incoming-sender'
+import {loadE2EEnv} from '@/tests/e2e/accounts/env'
+import {peerChannelOwner, type ChannelOwner} from '@/tests/e2e/shared/peer-actors'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // no retries: a retry would let an intermittent race pass
@@ -43,7 +41,7 @@ let data: ChatData
 
 test.beforeAll(async () => {
   test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
-  data = await ensureChatData()
+  data = await seedChatData()
 })
 
 const editBar = (page: Page) => page.getByTestId(T.CHAT_EDIT_CANCEL)
@@ -656,31 +654,29 @@ test.describe('leaving with a suggestion preview', () => {
   })
 })
 
-// The channel turns read-only for the second account (a writer) while it edits: the owner, the app
-// attached to Metro, raises the channel's minimum writer role. Ending the edit then empties the
+// The channel turns read-only for the second account (a writer) while it edits: the owner, from its
+// peer service, raises the channel's minimum writer role. Ending the edit then empties the
 // composer and leaves the draft set aside for the edit as it was; it loads again once the account
 // can post. The owner clearing the role altogether makes the channel writable again as it shows.
 test.describe('read-only mid-edit', () => {
   const prefix = 'e2e-roedit'
+  let owner: ChannelOwner
 
   test.beforeAll(async () => {
     test.setTimeout(120_000)
     if ((await cliWhoami()) !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user')
-    await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
+    owner = await peerChannelOwner(loadE2EEnv())
     await deleteThrowawayChannels(prefix)
   })
 
   test.afterEach(async ({page}) => {
     test.setTimeout(120_000)
     await switchAccount(page, data.smokeUser)
-    await switchAttachedApp(data.secondUser)
     await deleteThrowawayChannels(prefix)
   })
 
   test('Escape ends the edit, empties the composer and leaves the draft, which comes back once it can post', async ({page}) => {
     test.setTimeout(180_000)
-    await switchAttachedApp(data.smokeUser)
-    const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
     const {convID, topicName} = await createThrowawayChannel(prefix)
 
     await switchAccount(page, data.secondUser)
@@ -724,8 +720,6 @@ test.describe('read-only mid-edit', () => {
 
   test('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async ({page}) => {
     test.setTimeout(180_000)
-    await switchAttachedApp(data.smokeUser)
-    const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
     const {convID, topicName} = await createThrowawayChannel(prefix)
 
     await switchAccount(page, data.secondUser)
