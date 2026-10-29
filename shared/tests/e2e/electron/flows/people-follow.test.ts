@@ -138,7 +138,12 @@ test.describe('profile card', () => {
       await pressFollowChange(page, true, "the card's Follow", async () => clickUnoccluded(followLabel(card)))
       await expect(icons).toBeVisible({timeout: 30_000})
       await expectFollowsSecond(true, 'the second account in list-following after the card Follow')
-      await expect(button(card, 'Following')).toBeVisible({timeout: 15_000})
+      // the pointer is still where the Follow press left it: over the followed button, which reads
+      // Unfollow under it and Following once the pointer moves off (to the card's service icons)
+      await button(card, /^(Following|Unfollow)$/).hover()
+      await expect(button(card, 'Unfollow')).toBeVisible({timeout: 15_000})
+      await icons.hover()
+      await expect(button(card, 'Following')).toBeVisible({timeout: 5_000})
       await step(page, testInfo, 'followed from the card')
       await unfollowFrom(page, card, "the card's Unfollow")
       await expectFollowsSecond(false, 'the second account gone from list-following after the card Unfollow')

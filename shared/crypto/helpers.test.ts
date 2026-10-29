@@ -168,18 +168,19 @@ test('getStatusCodeMessage suggests the sibling operation on a wrong saltpack ty
   )
 })
 
-test('getStatusCodeMessage reads the cause code out of the second error field', () => {
+// the service sends the cause code as a decimal string (go/libkb/rpc_exim.go DecryptionError.ToStatus)
+test('getStatusCodeMessage reads the cause code out of the Code error field', () => {
   const fields = [
-    {key: 'Something', value: RPCGen.StatusCode.scgeneric},
-    {key: 'Code', value: RPCGen.StatusCode.scdecryptionkeynotfound},
+    {key: 'Cause', value: 'no decryption key found for message'},
+    {key: 'Code', value: String(RPCGen.StatusCode.scdecryptionkeynotfound)},
   ]
   expect(getStatusCodeMessage(makeError(RPCGen.StatusCode.scdecryptionerror, 'x', fields), 'decrypt', 'text')).toBe(
     "This message was encrypted for someone else or for a key you don't have."
   )
 
   const verifyFields = [
-    {key: 'Something', value: RPCGen.StatusCode.scgeneric},
-    {key: 'Code', value: RPCGen.StatusCode.scverificationkeynotfound},
+    {key: 'Cause', value: 'unknown signing key'},
+    {key: 'Code', value: String(RPCGen.StatusCode.scverificationkeynotfound)},
   ]
   expect(
     getStatusCodeMessage(makeError(RPCGen.StatusCode.scsigcannotverify, 'x', verifyFields), 'verify', 'text')
@@ -191,8 +192,8 @@ test('getStatusCodeMessage falls back to generic when the cause fields are missi
     'Failed to decrypt text.'
   )
   const unnamed = [
-    {key: 'a', value: RPCGen.StatusCode.scgeneric},
-    {key: 'NotCode', value: RPCGen.StatusCode.scdecryptionkeynotfound},
+    {key: 'a', value: String(RPCGen.StatusCode.scgeneric)},
+    {key: 'NotCode', value: String(RPCGen.StatusCode.scdecryptionkeynotfound)},
   ]
   expect(
     getStatusCodeMessage(makeError(RPCGen.StatusCode.scdecryptionerror, 'x', unnamed), 'decrypt', 'text')

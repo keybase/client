@@ -1,7 +1,6 @@
-// The profile's "Following" button is meant to read "Unfollow" under the pointer. Its own file (not
-// part of people-follow's serial group) because it fails on master: see known-failures.ts. The
-// smoke account's follow of the second account is read first and put back exactly after, read back
-// from `keybase list-following`.
+// The profile's "Following" button reads "Unfollow" under the pointer. The smoke account's follow of
+// the second account is read first and put back exactly after, read back from
+// `keybase list-following`.
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {openUserProfile} from '@/tests/e2e/electron/helpers/chat'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
