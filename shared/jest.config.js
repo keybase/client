@@ -55,8 +55,8 @@ module.exports = {
     '<rootDir>/images/',
     '<rootDir>/perf/',
     '<rootDir>/.tsOuts/',
-    // tests/e2e/shared, tests/e2e/accounts and the census and release libs hold helper unit tests; the rest are playwright/appium/node:test suites
-    '<rootDir>/tests/e2e/(?!shared/|accounts/|electron/(?:census|release)-lib\\.test\\.ts$)',
+    // tests/e2e/shared, tests/e2e/accounts, the corpus and the census, release and main-process libs and the secret scan hold helper unit tests; the rest are playwright/appium/node:test suites
+    '<rootDir>/tests/e2e/(?!shared/|accounts/|fixtures/corpus/|electron/(?:census-lib|release-lib|secret-scan(?:-lib)?|helpers/main-process-lib)\\.test\\.ts$)',
   ],
   transform: {
     '^.+\\.(js|jsx|mjs|ts|tsx)$': 'babel-jest',

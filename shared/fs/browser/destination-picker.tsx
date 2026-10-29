@@ -177,7 +177,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   )
 
   return (
-    <Kb.ModalScreen scroll={false} padding="none" footer={footer}>
+    <Kb.ModalScreen scroll={false} padding="none" footer={footer} testID={TestIDs.FILES_DESTINATION_PICKER}>
       {!isMobile && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
           <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />

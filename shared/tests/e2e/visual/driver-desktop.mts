@@ -1,12 +1,13 @@
 // Captures tour entries from the running dev Electron app over CDP. Navigation goes through the dev
 // global DEBUGRouter2 only, and the app's other windows open through the main window's preload
-// functions and remote actions (openWindow); the driver never clicks anything that changes account
-// state, and never closes the browser (that quits Electron).
+// functions and remote actions (electron/helpers/windows.ts); the driver never clicks anything that
+// changes account state, and never closes the browser (that quits Electron).
 import {execFileSync} from 'child_process'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {chromium, type Browser, type BrowserContext, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
+import {closeRemoteWindow, openRemoteWindow, REMOTE_HTML} from '../electron/helpers/windows.ts'
 import {withDeadline} from '../shared/deadline.ts'
 import {startRecorder, takeRecorder, type Recording} from '../shared/recorder.ts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
@@ -185,21 +186,11 @@ type PageWindow = {
 }
 type DateGlobals = {Date: DateConstructor; __kbVisualRealDate?: DateConstructor; __kbVisualNow?: number}
 type WaitingStore = {getState: () => {counts: Map<string, number>}}
-type ConfigStore = {getState: () => {windowShownCount: Map<string, number>}}
-// The preload's functions (desktop/renderer/preload.desktop.tsx) the driver calls in the main window.
-type PreloadFunctions = {
-  closeRenderer: (o: {windowComponent: string; windowParam: string}) => void
-  getRemoteProps: (windowComponent: string, windowParam: string) => Promise<string>
-  mainWindowDispatch: (action: {type: string; payload: object}) => void
-  makeRenderer: (o: {windowComponent: string; windowOpts: object; windowParam: string}) => void
-  rendererNewProps: (o: {propsStr: string; windowComponent: string; windowParam: string}) => void
-}
 type DevGlobals = {
   DEBUGRouter2?: Router
   DEBUGNavigator?: {getRootState: () => NavState | undefined; resetRoot: (s: unknown) => void}
   __kbVisualFixtures?: VisualFixtures
   __ZUSTAND_HMR__?: Map<string, unknown>
-  _fromPreload?: {functions: PreloadFunctions}
 }
 
 // Where the router is: the current tab, and whether that tab is at its root (its stack holds one
@@ -498,144 +489,31 @@ const fixViewport = async (cdp: CDPSession, page: Page, viewport: typeof VIEWPOR
 
 // ---------------------------------------------------------------- other windows
 
-const REMOTE_HTML = '/desktop/remote/remote.html'
-// The tray widget's window options that change what it draws (desktop/app/menu-bar.desktop.tsx):
-// it is transparent around the arrow at its top.
-const MENUBAR_WINDOW_OPTS = {hasShadow: true, transparent: true}
-
 // Date fixed in every remote window from its first script; the main window keeps its own script.
 const remoteDateScript = (now: number) =>
   `if (location.pathname.endsWith(${JSON.stringify(REMOTE_HTML)})) (${fixDate.toString()})(${now})`
 
-const preloadCall = async <K extends keyof PreloadFunctions>(page: Page, name: K, args: Parameters<PreloadFunctions[K]>) =>
-  withDeadline(
-    page.evaluate(
-      ([n, a]) => {
-        const f = (globalThis as unknown as DevGlobals)._fromPreload?.functions
-        if (!f) throw new Error('the preload functions (_fromPreload) are not in the main window')
-        return (f[n] as (...x: Array<unknown>) => unknown)(...a)
-      },
-      [name, args as Array<unknown>] as const
-    ),
-    EVAL_MS,
-    `preload ${name}`
-  ) as Promise<Awaited<ReturnType<PreloadFunctions[K]>>>
-
-const dispatchRemote = async (page: Page, type: string, payload: object) => preloadCall(page, 'mainWindowDispatch', [{payload, type}])
-
-const remoteWindowsOf = (ctx: BrowserContext, component: string, param: string) =>
-  ctx.pages().filter(p => {
-    if (p.isClosed()) return false
-    const u = new URL(p.url(), 'http://x')
-    return u.pathname.endsWith(REMOTE_HTML) && u.searchParams.get('component') === component && u.searchParams.get('param') === param
-  })
-
 type OpenWindow = {page: Page; close: () => Promise<void>}
 
-// The props the main window cached for a remote window, read the way the window's own component
-// reads them: a window may only read the props cached for itself (getRemoteProps in
-// desktop/app/ipc-handlers.desktop.tsx), so the main window cannot. '' when none of its pages has any.
-const cachedWindowProps = async (ctx: BrowserContext, component: string, param: string) => {
-  for (const p of remoteWindowsOf(ctx, component, param)) {
-    const props = await withDeadline(
-      p.evaluate(
-        async ([c, pa]) => {
-          const f = (globalThis as unknown as DevGlobals)._fromPreload?.functions
-          return f ? f.getRemoteProps(c, pa) : ''
-        },
-        [component, param] as const
-      ),
-      EVAL_MS,
-      `reading the ${component} window's props`
-    ).catch(() => '')
-    if (props) return props
-  }
-  return ''
-}
-
-// Opens an entry's window and returns its page once its props have rendered. In a dev build a
-// proxy that makes its window from an effect makes it twice (strict mode closes the first at
-// once), so the page is the one that renders.
+// Opens an entry's window with its resolved props and returns its page once they have rendered.
 const openWindow = async (ctx: BrowserContext, main: Page, w: RemoteWindow, theme: Theme): Promise<OpenWindow> => {
-  const windowComponent = w.component
-  const username = w.component === 'tracker' ? await resolveValue(w.username) : undefined
-  if (username !== undefined && typeof username !== 'string') throw new Error('the tracker username is not a string')
-  const windowParam = username ?? w.component
-  const what = `the ${windowComponent} window${w.component === 'tracker' ? ` for ${windowParam}` : ''}`
-  if (remoteWindowsOf(ctx, windowComponent, windowParam).length) {
-    throw new Error(`${what} is already open; close it (or relaunch the app) and rerun`)
-  }
-  const windowOpts = {...w.size, ...(w.component === 'menubar' ? MENUBAR_WINDOW_OPTS : {})}
-  const waitClosed = async () =>
-    waitFor(`${what} to close`, RESET_MS, async () => Promise.resolve(remoteWindowsOf(ctx, windowComponent, windowParam).length === 0))
-  let closeIt: () => Promise<void>
+  let props: object | undefined
   switch (w.component) {
-    case 'menubar': {
-      // The tray's first show is what starts the widget loading its recent files.
-      const shown = await withDeadline(
-        main.evaluate(() => {
-          const store = (globalThis as unknown as DevGlobals).__ZUSTAND_HMR__?.get('config') as ConfigStore | undefined
-          if (!store) throw new Error('the config store is not in __ZUSTAND_HMR__; is this a dev build?')
-          return store.getState().windowShownCount.get('menu') ?? 0
-        }),
-        EVAL_MS,
-        'reading the menu window count'
-      )
-      if (!shown) await dispatchRemote(main, 'remote:updateWindowShown', {component: 'menu'})
-      await preloadCall(main, 'makeRenderer', [{windowComponent, windowOpts, windowParam}])
-      // Closing a window drops its cached props, and the proxy sends only on a change, so the
-      // latest props go back in the cache for the next window.
-      closeIt = async () => {
-        const props = await cachedWindowProps(ctx, windowComponent, windowParam)
-        await preloadCall(main, 'closeRenderer', [{windowComponent, windowParam}])
-        await waitClosed()
-        if (props) await preloadCall(main, 'rendererNewProps', [{propsStr: props, windowComponent, windowParam}])
-      }
+    case 'menubar':
       break
-    }
     case 'pinentry':
-    case 'unlock-folders': {
-      const props = await resolveValue(w.props)
-      const propsStr = JSON.stringify({...(props as object), darkMode: theme === 'dark'})
-      await preloadCall(main, 'rendererNewProps', [{propsStr, windowComponent, windowParam}])
-      await preloadCall(main, 'makeRenderer', [{windowComponent, windowOpts, windowParam}])
-      closeIt = async () => {
-        await preloadCall(main, 'closeRenderer', [{windowComponent, windowParam}])
-        await waitClosed()
-      }
+    case 'unlock-folders':
+      props = {...((await resolveValue(w.props)) as object), darkMode: theme === 'dark'}
       break
-    }
     case 'tracker': {
-      const guiID = `visual-gate-${Date.now()}`
-      const load = {assertion: windowParam, forceDisplay: true, fromDaemon: false, guiID, ignoreCache: false, inTracker: true, reason: w.reason}
-      await dispatchRemote(main, 'remote:trackerLoad', load)
-      closeIt = async () => {
-        await dispatchRemote(main, 'remote:trackerCloseTracker', {guiID})
-        await waitClosed()
-      }
+      const username = await resolveValue(w.username)
+      if (typeof username !== 'string') throw new Error('the tracker username is not a string')
+      props = {reason: w.reason, username}
       break
     }
   }
-  let page: Page | undefined
-  try {
-    await waitFor(`${what} to render`, READY_MS, async () => {
-      for (const p of remoteWindowsOf(ctx, windowComponent, windowParam)) {
-        const rendered = await p
-          .evaluate(() => ((globalThis as unknown as {document: {getElementById: (id: string) => {childElementCount: number} | null}}).document.getElementById('root')?.childElementCount ?? 0) > 0)
-          .catch(() => false)
-        if (rendered) {
-          page = p
-          return true
-        }
-      }
-      return false
-    })
-  } catch (e) {
-    const noProps = w.component === 'menubar' && !(await cachedWindowProps(ctx, windowComponent, windowParam))
-    await closeIt().catch(() => {})
-    throw noProps ? new Error('the main window has sent the menubar no props', {cause: e}) : e
-  }
-  return {close: closeIt, page: page!}
+  const page = await openRemoteWindow(ctx, main, w.component, props, {size: w.size})
+  return {close: async () => closeRemoteWindow(page), page}
 }
 
 // The window's viewport, color scheme and Date, as the main window's.

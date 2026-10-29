@@ -1,8 +1,13 @@
 // The release command's decisions, kept free of I/O so they can be tested: whether a run may
 // start (preflightProblems), and what the flow and render results add up to.
 import {flowTestKey, knownFlowCause, knownRenderCause, knownVerdict, type KnownVerdict} from './known-failures.ts'
+import {INSPECTOR_PORT} from './helpers/main-process-lib.ts'
 
 export const KBFS_START_COMMAND = '~/go/bin/kbfsfuse -debug -log-file /tmp/kb-e2e/kbfs.log /Volumes/Keybase &'
+
+// The ports the run's app listens on, which must be free or held by the app launch-app.mts started:
+// the dev server, the renderer's CDP and the main process's inspector (helpers/main-process.ts).
+export const RELEASE_PORTS: ReadonlyArray<number> = [4000, 9222, INSPECTOR_PORT]
 
 export type PortHolder = {pid: number; pgid: number; command: string}
 export type Outcome = {ok: true} | {ok: false; error: string}
@@ -22,6 +27,8 @@ export type PreflightState = {
   // these are left out when not checked: KBFS while the main service is not on the smoke account,
   // peers and setup until every check above them passes
   kbfs?: Outcome & {path: string}
+  // whether the macOS session is locked; `error` when ioreg could not say
+  screen?: {locked: boolean} | {error: string}
   peers?: ReadonlyArray<{role: string} & Outcome>
   setupCheck?: Outcome
 }
@@ -46,6 +53,8 @@ export const preflightProblems = (s: PreflightState): Array<string> => {
     }
   }
   if (s.lockHeld) out.push(`${s.lockHeld}; wait for that run to finish`)
+  if (s.screen && 'error' in s.screen) out.push(`could not tell whether the macOS session is locked (${s.screen.error}); fix ioreg and rerun`)
+  else if (s.screen?.locked) out.push('the macOS session is locked, and a locked session refuses the window its fullscreen (the video flows need it); unlock it and rerun')
   if (s.kbfs && !s.kbfs.ok) out.push(`KBFS does not answer for ${s.kbfs.path} (${s.kbfs.error}); start it: ${KBFS_START_COMMAND}`)
   for (const p of s.peers ?? []) {
     if (!p.ok) out.push(`peer ${p.role}: ${p.error}`)

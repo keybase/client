@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   users: Array<T.Config.ConfiguredAccount>
@@ -64,7 +65,7 @@ const UserList = (p: Props) => {
   const {users, selectedUser, onSelectUser, onSomeoneElse} = p
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   return (
-    <Kb.ScrollView style={styles.scroll} alwaysBounceVertical={false}>
+    <Kb.ScrollView style={styles.scroll} alwaysBounceVertical={false} testID={TestIDs.LOGIN_USER_LIST}>
       {users.map((u, idx) => (
         <UserRow
           key={u.username}
