@@ -5,7 +5,7 @@ import type * as Runtime from './runtime.ts'
 
 // the module installs itself only in a dev app
 ;(globalThis as {__DEV__?: boolean}).__DEV__ = false
-const {createRouteRecorder, createRuntime, liveNavigator, routeNames} = await import('./runtime.ts')
+const {createRouteRecorder, createRuntime, liveNavigator, recordsBoot, routeNames} = await import('./runtime.ts')
 
 // A runtime whose installed engine hook the test can read.
 const runtime = (recordBoot = false) => {
@@ -291,4 +291,22 @@ test('liveNavigator falls back to DEBUGNavigator without a router ref', () => {
   const only = container(stack('loggedIn'))
   assert.equal(liveNavigator({DEBUGNavigator: only}), only)
   assert.equal(liveNavigator({}), undefined)
+})
+
+test('liveNavigator reads the router ref when both debug globals are absent', () => {
+  const mounted = container(stack('loggedIn'))
+  assert.equal(liveNavigator({}, () => mounted), mounted)
+  assert.equal(liveNavigator({}, () => null), undefined)
+})
+
+test('liveNavigator still prefers DEBUGRouter2 over the router ref', () => {
+  const debug = container(stack('loggedIn'))
+  const other = container(stack('loggedOut'))
+  assert.equal(liveNavigator({DEBUGRouter2: {navigationRef: {current: debug}}}, () => other), debug)
+})
+
+test('a native dev app records boot RPCs; a desktop one only when the harness launched it', () => {
+  assert.equal(recordsBoot({navigator: {product: 'ReactNative'}}), true)
+  assert.equal(recordsBoot({}), false)
+  assert.equal(recordsBoot({_fromPreload: {constants: {env: {KB_E2E_TEST: '1'}}}}), true)
 })
