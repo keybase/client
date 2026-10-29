@@ -32,7 +32,7 @@ type Attachment = {name: string; contentType: string; body?: string; path?: stri
 type PlaywrightResult = {status: string; duration: number; attachments: Attachment[]; errors?: Array<{message?: string}>}
 type PlaywrightTest = {status: string; projectName: string; results: PlaywrightResult[]; annotations?: Array<{type: string; description?: string}>}
 type PlaywrightSpec = {file: string; title: string; ok: boolean; tests: PlaywrightTest[]}
-type PlaywrightSuite = {title: string; specs: PlaywrightSpec[]; suites?: PlaywrightSuite[]}
+type PlaywrightSuite = {title: string; specs?: PlaywrightSpec[]; suites?: PlaywrightSuite[]}
 // Playwright's json reporter also emits top-level `errors` for global failures
 // (global-setup throw, worker crash) that never attach to a spec.
 type Report = {suites: PlaywrightSuite[]; errors?: Array<{message?: string} | string>}
@@ -60,7 +60,7 @@ function writeReport(p: FlowReportPlatform, sections: Section[]) {
 function flattenSpecs(suite: PlaywrightSuite, describes: Array<string> = []): Array<{suiteName: string; spec: PlaywrightSpec; describes: Array<string>}> {
   const out: Array<{suiteName: string; spec: PlaywrightSpec; describes: Array<string>}> = []
   const name = suite.title.replace(/^.*\//, '').replace(/\.test\.ts$/, '')
-  for (const spec of suite.specs) out.push({describes, spec, suiteName: name})
+  for (const spec of suite.specs ?? []) out.push({describes, spec, suiteName: name})
   for (const child of suite.suites ?? []) out.push(...flattenSpecs(child, child.title.endsWith('.ts') ? describes : [...describes, child.title]))
   return out
 }

@@ -14,7 +14,7 @@ export const parseLsof = (r: {status: number | null; stdout: string; stderr: str
   return {error: `lsof exited ${r.status}: ${(r.stderr || r.stdout).trim() || '(no output)'}`}
 }
 
-
+// ---------------------------------------------------------------- flow results
 
 type PwTest = {projectName: string; status: string; results: Array<{status: string; errors?: Array<{message?: string}>}>}
 type SpecOf<T> = {file: string; title: string; tests: Array<T>}

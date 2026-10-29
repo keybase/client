@@ -1,5 +1,5 @@
-// Which routes and write RPCs the desktop flows and the visual render reach, against what the app
-// has. Pure: census.mts reads the run's files and writes the report; everything that decides is here.
+// Which routes and write RPCs a platform's flows and the visual render reach, against what the app
+// has. Pure: census-cli.mts reads the run's files and writes the report; everything that decides is here.
 //
 // A route is covered when a passing flow test or a tour entry that rendered recorded it. A write
 // RPC is covered only by a passing flow test that sent it: tour entries run under fixtures that
