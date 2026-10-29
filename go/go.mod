@@ -42,7 +42,7 @@ require (
 	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20261026170941-0bdff31fd453
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260909184308-742055b1a3f3
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20261029165458-28d582529aa7
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20260909165642-34d5d1a72128
 	github.com/keybase/go-keychain v0.0.2-0.20260909174218-60d38a4413e3
