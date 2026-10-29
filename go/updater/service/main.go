@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/keybase"
 	"github.com/keybase/client/go/updater/util"
@@ -69,7 +68,7 @@ func run(f flags) error {
 
 	// Set default path to keybase if not set
 	if f.pathToKeybase == "" {
-		path, err := osext.Executable()
+		path, err := os.Executable()
 		if err != nil {
 			ulog.Warning("Error determining our executable path: %s", err)
 		} else {

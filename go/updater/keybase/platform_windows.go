@@ -15,7 +15,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/command"
 	"github.com/keybase/client/go/updater/process"
@@ -84,7 +83,7 @@ func roamingDataDir() (string, error) {
 }
 
 func (c config) destinationPath() string {
-	pathName, err := osext.Executable()
+	pathName, err := os.Executable()
 	if err != nil {
 		c.log.Warningf("Error trying to determine our executable path: %s", err)
 		return ""
