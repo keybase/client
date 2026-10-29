@@ -8,7 +8,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/btcsuite/btcutil/bech32"
+	"github.com/btcsuite/btcd/btcutil/bech32"
 )
 
 type CryptocurrencyType int
