@@ -37,6 +37,8 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 ## Desktop release gate
 
+The gate's code lives in `tests/e2e/shared/gate/` (shared with the iOS gate); its lists stay in `tests/e2e/electron/`.
+
 `yarn test:e2e:desktop:release` (from `shared/`, about 45 min) runs everything and exits 1 on any failure, a flaky or skipped flow test included (retries stay at 1, so a flake shows as `flaky: <test>`).
 
 - **Env:** accounts come from `~/.config/keybase-e2e/env` (mode 600, its dir 700; `yarn test:e2e:accounts:setup` fills in the peers); the environment wins over the file, and the run hands its children the account names (never paper keys). The main service must already be signed in as `KB_SMOKE_USER` (every flow test checks it again before it runs), and KBFS must answer `keybase fs ls /keybase/private/$KB_SMOKE_USER`; the FUSE mount itself is manual-only. The command never switches, stops or starts the main service or its components, and refuses with the command to run instead.

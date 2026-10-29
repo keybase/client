@@ -166,6 +166,10 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
       console.error(`${o.tag} finishing the run failed: ${errText(e)}`)
     } finally {
       clearTimeout(deadline)
+      // after `finishing` is set, so a signal arriving during finish is still a no-op
+      process.off('SIGINT', onSigint)
+      process.off('SIGTERM', onSigterm)
+      process.off('SIGHUP', onSighup)
       exit(code)
     }
   }
@@ -182,10 +186,13 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
 
   const endRun = async (code: number, why?: string) => (isAborted() ? undefined : finish(code, why))
 
-  process.on('SIGINT', () => void abort('interrupted', 130))
-  process.on('SIGTERM', () => void abort('terminated', 143))
+  const onSigint = () => void abort('interrupted', 130)
+  const onSigterm = () => void abort('terminated', 143)
   // the terminal or the shell that started the run went away
-  process.on('SIGHUP', () => void abort('hung up', 129))
+  const onSighup = () => void abort('hung up', 129)
+  process.on('SIGINT', onSigint)
+  process.on('SIGTERM', onSigterm)
+  process.on('SIGHUP', onSighup)
   const deadline = setTimeout(() => void abort(`overall deadline of ${deadlineMs / MIN} minutes (KB_E2E_RELEASE_TIMEOUT_MIN) reached`, 1), deadlineMs)
 
   return {
