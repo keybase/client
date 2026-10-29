@@ -1,5 +1,10 @@
-// The test attempt running in this worker: what the harness attaches to it and, once it ends, its
-// record on disk. Attachments are written as they arrive, so a run never holds them in memory.
+// The test attempts of this worker: what the harness attaches to each and, once it ends, its record on
+// disk. Attachments are written as they arrive, so a run never holds them in memory.
+//
+// An attempt is bound to the test body that runs it (runAttempt), not to whichever attempt began
+// last: a body mocha timed out keeps running after its retry has begun, and must never touch the
+// retry's attempt.
+import {AsyncLocalStorage} from 'async_hooks'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -24,8 +29,9 @@ export type CurrentAttempt = {
   nextStepIndex: () => number
 }
 
-type Running = {
-  id: string
+export type AttemptToken = {readonly id: string}
+
+type Running = AttemptToken & {
   file: string
   titlePath: Array<string>
   attempt: number
@@ -35,7 +41,9 @@ type Running = {
   ended?: AttemptRecord
 }
 
-let running: Running | undefined
+type End = Pick<AttemptRecord, 'status' | 'durationMs' | 'error'>
+
+const bodies = new AsyncLocalStorage<Running>()
 let started = 0
 
 const slug = (s: string) =>
@@ -47,10 +55,10 @@ const slug = (s: string) =>
 
 const EXTENSIONS: Record<string, string> = {'application/json': '.json', 'image/png': '.png', 'text/plain': '.txt'}
 
-export const beginAttempt = (file: string, titlePath: Array<string>, attempt: number) => {
+export const beginAttempt = (file: string, titlePath: Array<string>, attempt: number): AttemptToken => {
   started++
   const name = slug([file.replace(/^.*\//, '').replace(/\.test\.ts$/, ''), ...titlePath].join(' '))
-  running = {
+  const r: Running = {
     annotations: [],
     attachments: [],
     attempt,
@@ -59,17 +67,26 @@ export const beginAttempt = (file: string, titlePath: Array<string>, attempt: nu
     steps: 0,
     titlePath,
   }
+  return r
 }
 
-const runningAttempt = (): Running => {
-  if (!running) throw new Error('no test attempt is running')
-  return running
+// Runs a test body as the attempt: currentAttempt and endAttempt inside it reach that attempt only.
+export const runAttempt = <T>(token: AttemptToken, body: () => T): T => bodies.run(token as Running, body)
+
+const open = (r: Running | undefined): Running => {
+  if (!r) throw new Error('no test attempt is running')
+  if (r.ended) throw new Error(`attempt ${r.id} has already ended`)
+  return r
 }
+
+// The attempt of the running test body; throws outside one or once it has ended.
+export const attemptToken = (): AttemptToken => open(bodies.getStore())
 
 export const currentAttempt = (): CurrentAttempt => {
-  const r = runningAttempt()
+  const r = open(bodies.getStore())
   return {
     addAttachment: (name, contentType, data) => {
+      open(r)
       const dir = path.resolve(ATTEMPTS_DIR, r.id)
       fs.mkdirSync(dir, {recursive: true})
       const ext = EXTENSIONS[contentType] ?? ''
@@ -82,17 +99,16 @@ export const currentAttempt = (): CurrentAttempt => {
       r.attachments.push({contentType, name, path: p})
     },
     annotate: (type, description) => {
-      r.annotations.push({description, type})
+      open(r).annotations.push({description, type})
     },
-    nextStepIndex: () => ++r.steps,
+    nextStepIndex: () => ++open(r).steps,
   }
 }
 
-// Ends the running attempt and writes its record. An attempt is ended once; the record ending it is
-// the truth that hooks.ts makes mocha agree with.
-export const endAttempt = (end: Pick<AttemptRecord, 'status' | 'durationMs' | 'error'>): AttemptRecord => {
-  const r = runningAttempt()
-  if (r.ended) throw new Error(`attempt ${r.id} has already ended`)
+// Ends an attempt and writes its record. An attempt is ended once; the record ending it is the truth
+// that hooks.ts makes mocha agree with.
+export const endAttemptOf = (token: AttemptToken, end: End): AttemptRecord => {
+  const r = open(token as Running)
   const record: AttemptRecord = {
     annotations: r.annotations,
     attachments: r.attachments,
@@ -109,7 +125,14 @@ export const endAttempt = (end: Pick<AttemptRecord, 'status' | 'durationMs' | 'e
   return record
 }
 
-export const endedAttempt = (): AttemptRecord | undefined => running?.ended
+// Ends the attempt of the running test body.
+export const endAttempt = (end: End): AttemptRecord => endAttemptOf(attemptToken(), end)
+
+export const endedRecord = (token: AttemptToken): AttemptRecord | undefined => (token as Running).ended
+
+// A test mocha never ran because it is pending (it.skip, describe.skip, xit): one skipped attempt.
+export const recordSkipped = (file: string, titlePath: Array<string>): AttemptRecord =>
+  endAttemptOf(beginAttempt(file, titlePath, 0), {durationMs: 0, status: 'skipped'})
 
 // Every attempt record of the run, in the order the attempts began.
 export const readAttempts = (): Array<AttemptRecord> => {

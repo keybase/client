@@ -101,3 +101,17 @@ export const testFileFromStack = (stack: string): string | undefined => {
   }
   return undefined
 }
+
+type TreeSuite<T> = {tests: ReadonlyArray<T>; suites: ReadonlyArray<TreeSuite<T>>}
+
+// mocha runs no hooks for a pending test (it.skip, describe.skip, xit), so it begins no attempt; a
+// test skipped from its own body did begin one, and `ran` says so.
+export const unranPendingTests = <T extends {isPending: () => boolean}>(root: TreeSuite<T>, ran: (t: T) => boolean): Array<T> => {
+  const out: Array<T> = []
+  const walk = (s: TreeSuite<T>) => {
+    for (const t of s.tests) if (t.isPending() && !ran(t)) out.push(t)
+    for (const c of s.suites) walk(c)
+  }
+  walk(root)
+  return out
+}

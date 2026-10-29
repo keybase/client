@@ -5,14 +5,15 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {escapeToTabs} from './helpers/navigate'
-import {currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts} from './gate/attempt'
+import {attemptToken, currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts, type AttemptToken} from './gate/attempt'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
 
 const PROJECT = 'ios-flows'
 
-let recording: PhoneRecording | undefined
-let recorderError: string | undefined
+// each attempt's recorder, so a timed-out body that finishes late reaches only its own
+type Recorder = {recording?: PhoneRecording; error?: string}
+const recorders = new WeakMap<AttemptToken, Recorder>()
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -30,36 +31,37 @@ export const config: WebdriverIO.Config = {
   // wdio only logs a beforeTest error and runs the test anyway, so afterTest reports a recorder that
   // did not start
   beforeTest: async () => {
-    recording = undefined
-    recorderError = undefined
+    const rec: Recorder = {}
+    recorders.set(attemptToken(), rec)
     await escapeToTabs()
     const r = new PhoneRecording()
     await r.begin().then(
       () => {
-        recording = r
+        rec.recording = r
       },
       (e: unknown) => {
-        recorderError = `starting the recorder: ${message(e)}`
+        rec.error = `starting the recorder: ${message(e)}`
       }
     )
   },
   afterTest: async (_test, _context, result: {passed: boolean; skipped?: boolean; duration: number; error?: Error}) => {
     const attempt = currentAttempt()
+    const rec = recorders.get(attemptToken())
+    // an attempt failed only by its coverage record gets none: the screen was fine, the recorder was not
     if (!result.passed && !result.skipped) {
       const png = await browser.takeScreenshot().catch(() => undefined)
       if (png) attempt.addAttachment('screenshot', 'image/png', Buffer.from(png, 'base64'))
     }
     let got = {reloads: 0, routes: [] as Array<string>, rpcs: [] as Array<string>, startRoutes: [] as Array<string>}
-    let error = recorderError ?? (recording ? '' : 'the recorder was not started')
-    if (recording) {
+    let error = rec?.error ?? (rec?.recording ? '' : 'the recorder was not started')
+    if (rec?.recording) {
       try {
-        const r = await recording.finish()
+        const r = await rec.recording.finish()
         got = {reloads: r.reloads, routes: r.routes, rpcs: r.rpcs, startRoutes: r.startRoutes}
       } catch (e) {
         error = message(e)
       }
     }
-    recording = undefined
     const coverage = {...(error ? {error} : {}), ...got}
     attempt.addAttachment('coverage.json', 'application/json', JSON.stringify(coverage, null, 2))
     // a failed attempt already has its reason; a passing one fails for the missing record

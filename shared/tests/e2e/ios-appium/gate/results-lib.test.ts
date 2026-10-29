@@ -1,6 +1,6 @@
-import {eachFlowTest, flowTestName} from '../../shared/gate/release-lib'
+import {eachFlowTest, flowTestName, summarizeFlows} from '../../shared/gate/release-lib'
 import type {AttemptRecord} from './attempt'
-import {buildPwReport, testFileFromStack, type GateTest} from './results-lib'
+import {buildPwReport, testFileFromStack, unranPendingTests, type GateTest} from './results-lib'
 
 const attempt = (over: Partial<AttemptRecord>): AttemptRecord => ({
   annotations: [],
@@ -99,4 +99,19 @@ test('a describe is credited to the first test file on its call stack', () => {
   expect(testFileFromStack(stack)).toBe('/r/tests/e2e/ios-appium/flows/my flow.test.ts')
   expect(testFileFromStack('Error\n    at /r/flows/x.test.ts:1:1')).toBe('/r/flows/x.test.ts')
   expect(testFileFromStack('Error\n    at /r/gate/hooks.ts:1:1')).toBeUndefined()
+})
+
+test('pending tests that never began an attempt are the ones still to record', () => {
+  const t = (name: string, pending: boolean) => ({isPending: () => pending, name})
+  const skippedInBody = t('skipped in its body', true)
+  const root = {
+    suites: [{suites: [], tests: [t('nested pending', true), t('ran', false)]}],
+    tests: [t('pending', true), skippedInBody],
+  }
+  expect(unranPendingTests(root, x => x === skippedInBody).map(x => x.name)).toEqual(['pending', 'nested pending'])
+})
+
+test('a skipped test is reported skipped, and the release summary lists it', () => {
+  const report = buildPwReport([attempt({}), attempt({durationMs: 0, status: 'skipped', titlePath: ['d', 'later']})], 'ios-flows')
+  expect(summarizeFlows(report, 'ios-flows', {})).toMatchObject({passed: 1, skipped: ['x › d › later']})
 })
