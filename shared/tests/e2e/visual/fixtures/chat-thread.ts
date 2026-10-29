@@ -2,16 +2,16 @@
 // through the CLI (exploding, audio, payments, a map unfurl, coin flips in each phase, a system
 // add, a journey card, custom emoji and mention decorations, a bot's and a revoked device's
 // messages), plus what the service only pushes (an unfurl prompt, coin flip statuses, the unread
-// line; not typing, whose indicator animates without end). The open conversation's thread replies
-// get these messages added after its real ones, sent by the account (they copy the sender fields of
-// its oldest message in the thread). Media in them is the thread's oldest image, so the entry opens
-// e2e-media.
+// line; not typing, whose indicator animates without end). The thread replies of the entry's
+// conversation (its conversationIDKey arg) get these messages added after its real ones, sent by the
+// account (they copy the sender fields of its oldest message in the thread). Media in them is the
+// thread's oldest image, so the entry opens e2e-media.
 //
 // Message IDs are a reserved synthetic range (SYNTHETIC_FIRST and up, far past any real message of
 // the sealed threads); times are offsets from the frozen clock. Marking the conversation read would
 // send a synthetic ID to the service, so it is answered here.
 import type * as T from '@/constants/types'
-import {stub, type FixtureContext, type FixtureDef} from './def.ts'
+import {stub, type FixtureContext, type FixtureDef, type StartedBy} from './def.ts'
 
 export const SYNTHETIC_FIRST = 900_001
 const id = (i: number) => SYNTHETIC_FIRST + i
@@ -250,7 +250,8 @@ const imageOf = (valid: Valid): Media | undefined =>
     ? {asset: valid.messageBody.attachment.object, valid}
     : undefined
 
-// Throws without a message of the account's or an image in the page: the runtime reports it at end().
+// Throws without a message of the account's or an image in the entry's thread page: the runtime
+// reports it at end().
 const addMessages = (thread: string, ctx: FixtureContext) => {
   const t = JSON.parse(thread) as ThreadJSON
   const messages = t.messages ?? []
@@ -265,9 +266,20 @@ const addMessages = (thread: string, ctx: FixtureContext) => {
   return JSON.stringify({...t, messages: [...synthetic(ctx, base, media).reverse(), ...messages]})
 }
 
-const rewriteThread = (param: object, ctx: FixtureContext) => {
+const hexOf = (id: unknown) =>
+  typeof id === 'string' ? id : Array.from(id as ArrayLike<number>, b => b.toString(16).padStart(2, '0')).join('')
+
+// The app loads other threads while the entry runs (opening the chat tab loads the conversation
+// selected before): only the thread of the entry's conversation gets the messages.
+const isEntryThread = (ctx: FixtureContext, startedBy: StartedBy | undefined) => {
+  if (startedBy?.method !== 'chat.1.local.getThreadNonblock') return false
+  const id = (startedBy.param as {conversationID?: unknown} | undefined)?.conversationID
+  return id !== undefined && id !== null && hexOf(id) === str(ctx, 'conversationIDKey')
+}
+
+const rewriteThread = (param: object, ctx: FixtureContext, startedBy: StartedBy | undefined) => {
   const p = param as {thread?: string}
-  return p.thread ? {...p, thread: addMessages(p.thread, ctx)} : param
+  return p.thread && isEntryThread(ctx, startedBy) ? {...p, thread: addMessages(p.thread, ctx)} : param
 }
 
 const participant = (username: string, reveal: boolean): T.RPCChat.UICoinFlipParticipant => ({
