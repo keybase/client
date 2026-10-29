@@ -45,6 +45,7 @@ const DesktopZoomableImage = (p: Props) => {
   const containerRef = React.useRef<DivRef>(null)
   const imgRef = React.useRef<ImgRef>(null)
   const scaleRef = React.useRef(1)
+  const translateRef = React.useRef({x: 0, y: 0})
   const isZoomedRef = React.useRef(isZoomed)
 
   const toggleZoom = () => {
@@ -100,7 +101,26 @@ const DesktopZoomableImage = (p: Props) => {
     )
 
     imgRef.current.style.transform = `translate(${x}px, ${y}px) scale(${scaleRef.current})`
+    translateRef.current = {x, y}
     onChanged?.({height: imgRect.height, scale: scaleRef.current, width: imgRect.width, x: -x, y: -y})
+  }
+
+  // a drag-pan view is a crop, so a loaded image reports the view it opens on before any move. A
+  // new image opens on the default view, not the pan and zoom left from the one before.
+  const loadedSrcRef = React.useRef<string | undefined>(undefined)
+  const handleLoad = () => {
+    if (loadedSrcRef.current !== src) {
+      loadedSrcRef.current = src
+      scaleRef.current = 1
+      translateRef.current = {x: 0, y: 0}
+      if (imgRef.current) imgRef.current.style.transform = ''
+    }
+    if (dragPan && imgRef.current) {
+      const imgRect = imgRef.current.getBoundingClientRect()
+      const {x, y} = translateRef.current
+      onChanged?.({height: imgRect.height, scale: scaleRef.current, width: imgRect.width, x: -x, y: -y})
+    }
+    onLoaded?.()
   }
 
   const handleWheel = (e: WheelEvt) => {
@@ -167,7 +187,7 @@ const DesktopZoomableImage = (p: Props) => {
     >
       <img
         draggable={false}
-        onLoad={onLoaded}
+        onLoad={handleLoad}
         onError={onError}
         className="fade-anim-enter fade-anim-enter-active"
         ref={imgRef as React.RefObject<HTMLImageElement>}

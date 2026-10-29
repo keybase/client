@@ -9,6 +9,7 @@ import './edit-avatar.css'
 import KB2 from '@/util/electron'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {CropZoom, type CropZoomRefType} from '@/util/zoom-toolkit'
+import {cropViewToRect, type CropView} from '@/util/crop'
 
 const desktopFns = isMobile ? ({} as typeof KB2.functions) : KB2.functions
 
@@ -42,27 +43,6 @@ const getFile = async (fileList: FileListLike | undefined): Promise<string> => {
   return path
 }
 
-type Crop = {
-  height: number
-  width: number
-  x: number
-  y: number
-  scale: number
-}
-const getCropCoordinates = (c: Crop) => {
-  const {x, y, scale, width, height} = c
-  const maxX = width / scale
-  const maxY = height / scale
-  const windowScaled = Math.round(AVATAR_CONTAINER_SIZE / scale)
-  let x0 = x / scale
-  x0 = Math.min(Math.max(Math.round(x0), 0), maxX)
-  const x1 = Math.min(x0 + windowScaled, maxX)
-  let y0 = y / scale
-  y0 = Math.min(Math.max(Math.round(y0), 0), maxY)
-  const y1 = Math.min(y0 + windowScaled, maxY)
-  return {x0, x1, y0, y1}
-}
-
 // Desktop implementation
 type Loading = undefined | 'loading' | 'loaded'
 const DesktopEditAvatar = (_p: Props) => {
@@ -79,11 +59,11 @@ const DesktopEditAvatar = (_p: Props) => {
   const fileRef = React.useRef<FileInputRef>(null)
 
   const onSave = () => {
-    const crop = getCropCoordinates(cropRef.current)
+    const crop = cropViewToRect(cropRef.current, AVATAR_CONTAINER_SIZE)
     p.onSave(imageSource, crop)
   }
   const cropRef = React.useRef({height: 0, scale: 0, width: 0, x: 0, y: 0})
-  const onChanged = (e: Crop) => {
+  const onChanged = (e: CropView) => {
     cropRef.current = e
   }
 

@@ -13,6 +13,9 @@ type LoadedTeam = {
   loaded: boolean
   loading: boolean
   reload: () => Promise<void>
+  // whether teamMeta.showcasing is known: only the teams list carries it, and it can be missing
+  // that team (still loading, a deep link, a failed load)
+  showcasingKnown: boolean
   teamDetails: T.Teams.TeamDetails
   teamMeta: T.Teams.TeamMeta
   yourOperations: T.Teams.TeamOperations
@@ -22,7 +25,8 @@ type LoadedTeamContextValue = LoadedTeam & {
   teamID: T.Teams.TeamID
 }
 
-type LoadedTeamData = Pick<LoadedTeam, 'teamDetails' | 'teamMeta'>
+// showcasing is added from the teams list (useLoadedTeamRaw), never loaded with the team
+type LoadedTeamData = {teamDetails: T.Teams.TeamDetails; teamMeta: Omit<T.Teams.TeamMeta, 'showcasing'>}
 type LoadedTeamCacheMap = Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
@@ -72,14 +76,13 @@ const annotatedTeamToMeta = (
   teamID: T.Teams.TeamID,
   annotatedTeam: T.RPCGen.AnnotatedTeam,
   roleAndDetails: T.Teams.TeamRoleAndDetails | undefined
-): T.Teams.TeamMeta => ({
+): LoadedTeamData['teamMeta'] => ({
   allowPromote: annotatedTeam.showcase.anyMemberShowcase,
   id: teamID,
   isMember: (roleAndDetails?.role ?? 'none') !== 'none',
   isOpen: !!annotatedTeam.settings.open,
   memberCount: annotatedTeam.members?.length ?? 0,
   role: roleAndDetails?.role ?? 'none',
-  showcasing: annotatedTeam.showcase.isShowcased,
   teamname: annotatedTeam.name,
 })
 
@@ -146,13 +149,18 @@ const useLoadedTeamRaw = (
     () => roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID),
     [roleMap, validTeamID]
   )
+  // the annotated team carries the team's own publicity, not your showcase of it, so showcasing
+  // comes from the teams list alone; false (and showcasingKnown false) while the list lacks the team
+  const showcasingKnown = !!listMeta
+  const listShowcasing = listMeta?.showcasing ?? false
   const teamMeta = React.useMemo(
-    () => ({
+    (): T.Teams.TeamMeta => ({
       ...data.teamMeta,
       isMember: (roleAndDetails?.role ?? 'none') !== 'none',
       role: roleAndDetails?.role ?? 'none',
+      showcasing: listShowcasing,
     }),
-    [data.teamMeta, roleAndDetails]
+    [data.teamMeta, roleAndDetails, listShowcasing]
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
@@ -197,8 +205,8 @@ const useLoadedTeamRaw = (
 
   const teamDetails = data.teamDetails
   return React.useMemo(
-    () => ({loaded, loading, reload, teamDetails, teamMeta, yourOperations}),
-    [loaded, loading, reload, teamDetails, teamMeta, yourOperations]
+    () => ({loaded, loading, reload, showcasingKnown, teamDetails, teamMeta, yourOperations}),
+    [loaded, loading, reload, showcasingKnown, teamDetails, teamMeta, yourOperations]
   )
 }
 

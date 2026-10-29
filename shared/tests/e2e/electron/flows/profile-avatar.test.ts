@@ -1,6 +1,6 @@
-// The smoke account's avatar: saved straight after picking (the default path, which fails on master,
-// see known-failures.ts), and saved after zooming the crop. Its own file because the first fails on
-// master. An avatar cannot be put back as it was, so each test always uploads the same corpus image.
+// The smoke account's avatar: saved straight after picking (the default path), and saved after
+// zooming the crop. An avatar cannot be put back as it was, so each test always uploads the same
+// corpus image.
 import type {Page, TestInfo} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {clickUnoccluded} from '@/tests/e2e/electron/helpers/chat'

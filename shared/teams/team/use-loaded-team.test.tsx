@@ -25,30 +25,34 @@ const annotated = {
 } as unknown as T.RPCGen.AnnotatedTeam
 
 let annotatedCalls = 0
+let teamIsShowcased = false
 jest.spyOn(T.RPCGen, 'teamsGetAnnotatedTeamRpcPromise').mockImplementation(async () => {
   annotatedCalls++
   await Promise.resolve()
-  return annotated
+  return {...annotated, showcase: {...annotated.showcase, isShowcased: teamIsShowcased}}
 })
 jest.spyOn(T.RPCChat, 'localGetTLFConversationsLocalRpcPromise').mockImplementation(async () => {
   await Promise.resolve()
   return {convs: [], offline: false} as never
 })
 let listCalls = 0
+let memberShowcased = false
+let listHasTeam = true
 jest.spyOn(T.RPCGen, 'teamsTeamListUnverifiedRpcPromise').mockImplementation(async () => {
   listCalls++
   await Promise.resolve()
   return {
-    teams: [
+    teams: listHasTeam ? [
       {
         fqName: 'testteam',
+        isMemberShowcased: memberShowcased,
         isOpenTeam: false,
         memberCount: 1,
         role: T.RPCGen.TeamRole.owner,
         teamID,
         username: 'testuser',
       },
-    ],
+    ] : [],
   } as never
 })
 jest.spyOn(T.RPCGen, 'teamsGetTeamRoleMapRpcPromise').mockImplementation(async () => {
@@ -63,6 +67,9 @@ let bodyRenders = 0
 beforeEach(() => {
   annotatedCalls = 0
   listCalls = 0
+  teamIsShowcased = false
+  memberShowcased = false
+  listHasTeam = true
   bodyRenders = 0
   resetAllStores()
 })
@@ -148,4 +155,45 @@ test('signing out drops the shared team caches', async () => {
   )
   await flush()
   expect(annotatedCalls).toBe(callsWhileSignedIn + 1)
+})
+
+const Showcasing = () => {
+  const {loaded, showcasingKnown, teamMeta} = useLoadedTeam(teamID)
+  return <div>{loaded ? (showcasingKnown ? `showcasing:${String(teamMeta.showcasing)}` : 'showcasing:unknown') : 'loading'}</div>
+}
+
+const renderShowcasing = async () => {
+  useCurrentUserState.setState({username: 'testuser'})
+  useConfigState.setState({loggedIn: true})
+  const r = render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamID}>
+        <Showcasing />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  await flush()
+  return r
+}
+
+// The settings box and the feature-team card read showcasing as "featured on your own profile",
+// which only the teams list carries; the annotated team's showcase is the team's own publicity.
+test('showcasing is your showcase of the team, not the team being public', async () => {
+  teamIsShowcased = true
+  memberShowcased = false
+  expect((await renderShowcasing()).queryByText('showcasing:false')).not.toBeNull()
+})
+
+test('showcasing follows your showcase of a team that is not public', async () => {
+  teamIsShowcased = false
+  memberShowcased = true
+  expect((await renderShowcasing()).queryByText('showcasing:true')).not.toBeNull()
+})
+
+// a teams list without the team (still loading, a deep link, a failed load) says nothing about
+// your showcase of it: the settings box must not read that as "not featured"
+test('showcasing is unknown while the teams list lacks the team', async () => {
+  listHasTeam = false
+  teamIsShowcased = true
+  expect((await renderShowcasing()).queryByText('showcasing:unknown')).not.toBeNull()
 })

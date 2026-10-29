@@ -3766,6 +3766,10 @@ func parseKbfsPathForGitRepo(kbfsPath keybase1.KBFSPath) (gitRepo string, repoNa
 	return fmt.Sprintf("keybase://%s/%s/%s.git", match[1], match[2], match[3]), match[3] + ".git", true
 }
 
+// errArchiveNeverWritten is SimpleFSArchiveStart's error for a folder that was never written: it
+// has no folder branch yet, so there is nothing to back up and no job starts.
+var errArchiveNeverWritten = errors.New("the folder was never written, so there is nothing to back up")
+
 // SimpleFSArchiveStart implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	arg keybase1.SimpleFSArchiveStartArg,
@@ -3844,7 +3848,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 			return keybase1.SimpleFSArchiveJobDesc{}, err
 		}
 		if fb == (data.FolderBranch{}) {
-			return keybase1.SimpleFSArchiveJobDesc{}, nil
+			return keybase1.SimpleFSArchiveJobDesc{}, errArchiveNeverWritten
 		}
 		status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
 		if err != nil {
@@ -4045,11 +4049,15 @@ func (k *SimpleFS) SimpleFSArchiveAllFiles(
 	res.TlfPathToError = make(map[string]string)
 	res.TlfPathToJobDesc = make(map[string]keybase1.SimpleFSArchiveJobDesc)
 	for _, a := range startArgs {
+		p := a.ArchiveJobStartPath.Kbfs().Path
 		jobDesc, err := k.SimpleFSArchiveStart(ctx, a)
-		if err != nil {
-			res.TlfPathToError[a.ArchiveJobStartPath.Kbfs().Path] = err.Error()
-		} else {
-			res.TlfPathToJobDesc[a.ArchiveJobStartPath.Kbfs().Path] = jobDesc
+		switch {
+		case errors.Is(err, errArchiveNeverWritten):
+			res.SkippedTLFPaths = append(res.SkippedTLFPaths, p)
+		case err != nil:
+			res.TlfPathToError[p] = err.Error()
+		default:
+			res.TlfPathToJobDesc[p] = jobDesc
 		}
 	}
 

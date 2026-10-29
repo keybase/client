@@ -342,8 +342,7 @@ const tamper = (armored: string) => {
 }
 
 // Text second encrypted for itself alone: the service says no key of this account can open it
-// (cause code 924, decryption key not found), which the app words for the reader. Known to fail on
-// master (see known-failures.ts).
+// (cause code 924, decryption key not found), which the app words for the reader.
 test('text encrypted for someone else says so', async ({page}, testInfo) => {
   const {secondUser} = loadE2EAccounts()
   const text = e2eMarker('crypto-other')
