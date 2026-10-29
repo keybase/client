@@ -7,6 +7,7 @@ import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {useSavedDownload} from '@/util/fs-platform'
 import {openSavedFile} from '@/util/platform-specific'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   downloadID: string
@@ -14,7 +15,7 @@ export type Props = {
 }
 
 const getProgress = (dlState: T.FS.DownloadState, styles: ReturnType<typeof useStyles>) => (
-  <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
+  <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" testID={TestIDs.FILES_DOWNLOAD_PROGRESS}>
     <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true}>
       <Kb.Box2 alignSelf="center" direction="vertical" style={styles.tube} />
       <Kb.Box2 alignSelf="center"
@@ -62,6 +63,7 @@ const Download = (props: Props) => {
         direction="horizontal"
         centerChildren={true}
         style={Kb.Styles.collapseStyles([styles.download, !!dlState.error && styles.red])}
+        testID={TestIDs.FILES_DOWNLOAD}
         gap="tiny"
         gapStart={true}
         gapEnd={true}

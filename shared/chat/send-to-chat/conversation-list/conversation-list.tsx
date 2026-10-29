@@ -5,6 +5,7 @@ import * as C from '@/constants'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */
@@ -32,6 +33,7 @@ const Row = React.memo(function Row(p: RowProps) {
       direction="horizontal"
       fullWidth={true}
       gap="tiny"
+      testID={TestIDs.CHAT_SEND_TO_CHAT_ROW}
       style={Kb.Styles.collapseStyles([
         styles.results,
         {

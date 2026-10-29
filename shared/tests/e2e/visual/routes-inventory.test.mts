@@ -18,3 +18,9 @@ test('spreads of a local map and of an inline conditional are listed', () => {
   assert.ok(routes.some(r => r.name === 'settingsTabs.logOutTab' && r.modal))
   assert.ok(routes.some(r => r.name === 'settingsTabs.typographyTab' && !r.modal))
 })
+test('listRoutes() includes the provision screens spread into devices/routes', () => {
+  const routes = listRoutes()
+  for (const name of ['codePage', 'error', 'forgotUsername', 'paperkey', 'password', 'selectOtherDevice', 'setPublicName', 'username']) {
+    assert.ok(routes.some(r => r.name === name && r.file === 'provision/routes-sub.tsx'), `${name} missing`)
+  }
+})

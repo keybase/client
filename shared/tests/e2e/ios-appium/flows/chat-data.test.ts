@@ -429,7 +429,7 @@ describe('chat data: selection', () => {
   })
 
   it("a phone's open thread stays open when the account leaves the channel on another device", async () => {
-    channel = await createThrowawayChannel('e2e-phone')
+    channel = await createThrowawayChannel('phone')
     await switchAppAccount(data.secondUser)
     const {convID, topicName} = channel
     await openConversation(convID)
