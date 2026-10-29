@@ -9,13 +9,33 @@ const kebab = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 
-// Attaches a screenshot of the current state as step-NN-<name>.png, NN counting from 01 within the
-// test. {card: true} marks the step whose screenshot is the test's card image in the report; with
-// no marked step the first step is the card image.
-export async function step(page: Page, testInfo: TestInfo, name: string, opts?: {card?: boolean}): Promise<void> {
+// A screenshot once the window stops changing (a modal fading in or out, a backdrop dimming), or
+// the last one taken when it doesn't within settleMs (a spinner, a progress bar).
+const settleMs = 1_000
+const settledScreenshot = async (page: Page) => {
+  let last = await page.screenshot()
+  for (const until = Date.now() + settleMs; Date.now() < until; ) {
+    await page.waitForTimeout(100)
+    const next = await page.screenshot()
+    if (next.equals(last)) return next
+    last = next
+  }
+  return last
+}
+
+// Attaches a screenshot of the current state, once it has settled, as step-NN-<name>.png, NN
+// counting from 01 within the test. {card: true} marks the step whose screenshot is the test's card
+// image in the report; with no marked step the first step is the card image. {settle: false} takes
+// it at once, for a state the test must act on before it passes (an upload still in flight).
+export async function step(
+  page: Page,
+  testInfo: TestInfo,
+  name: string,
+  opts?: {card?: boolean; settle?: boolean}
+): Promise<void> {
   const n = (counters.get(testInfo) ?? 0) + 1
   counters.set(testInfo, n)
-  const body = await page.screenshot()
+  const body = opts?.settle === false ? await page.screenshot() : await settledScreenshot(page)
   const attName = `step-${String(n).padStart(2, '0')}-${kebab(name)}`
   await testInfo.attach(attName, {body, contentType: 'image/png'})
   if (opts?.card) testInfo.annotations.push({description: attName, type: 'card-step'})

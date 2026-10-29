@@ -1,6 +1,6 @@
-import type {Page} from '@playwright/test'
+import type {ConsoleMessage, Page} from '@playwright/test'
 import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
-import {composerInput, messageMenu, openE2EChannel, rowByOrdinal, waitForRow, waitForScrollStable} from '@/tests/e2e/electron/helpers/chat'
+import {composerInput, mediaInViewLoaded, messageMenu, openE2EChannel, rowByOrdinal, waitForRow, waitForScrollStable} from '@/tests/e2e/electron/helpers/chat'
 import {E2E_CHANNELS, sendFromCli} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
@@ -110,11 +110,25 @@ test('info panel attachments tab', async ({page}, testInfo) => {
   await openE2EChannel(page)
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).toBeVisible({timeout: 5_000})
-  await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Attachments', {exact: true}).click()
-  // the attachments tab shows media type sub-tabs
-  await expect(page.getByTestId(T.CHAT_INFO_PANEL).getByText('Docs', {exact: true})).toBeVisible({
-    timeout: 5_000,
-  })
+  // the app logs each gallery page it loads; the media view loads one when the tab opens
+  let loaded = false
+  const onConsole = (m: ConsoleMessage) => {
+    if (m.text().includes('attachment gallery load success')) loaded = true
+  }
+  page.on('console', onConsole)
+  try {
+    await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Attachments', {exact: true}).click()
+    // the attachments tab shows media type sub-tabs
+    await expect(page.getByTestId(T.CHAT_INFO_PANEL).getByText('Docs', {exact: true})).toBeVisible({
+      timeout: 5_000,
+    })
+    await expect.poll(() => loaded, {message: 'the media gallery loaded', timeout: 20_000}).toBe(true)
+  } finally {
+    page.off('console', onConsole)
+  }
+  await expect
+    .poll(async () => mediaInViewLoaded(page.getByTestId(T.CHAT_INFO_PANEL)), {message: 'the media thumbnails in view drawn', timeout: 20_000})
+    .toBe(true)
   await step(page, testInfo, 'info panel attachments tab')
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})

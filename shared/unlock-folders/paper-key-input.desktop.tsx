@@ -28,6 +28,7 @@ const PaperKeyInput = (props: Props) => {
         textType="BodySemibold"
         multiline={true}
         rowsMax={3}
+        containerStyle={styles.input}
         onChangeText={setPaperkey}
         error={!!props.paperkeyError}
         placeholder="Enter your paper key"
@@ -51,6 +52,7 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
   },
   button: {marginTop: Kb.Styles.globalMargins.small},
   icon: {marginBottom: Kb.Styles.globalMargins.tiny},
+  input: {width: 400},
 }))
 
 export default PaperKeyInput

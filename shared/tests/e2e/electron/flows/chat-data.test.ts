@@ -35,6 +35,7 @@ import {E2E_CHANNELS, attachFromCli, type ChatData} from '@/tests/e2e/shared/cha
 import {loadE2EEnv} from '@/tests/e2e/accounts/env'
 import {peerSender, type IncomingSender} from '@/tests/e2e/shared/peer-actors'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // no retries: a retry would let an intermittent race pass
@@ -317,7 +318,7 @@ test.describe('mark unread', () => {
   // The self conversation's name in its inbox row: bold while it has unread messages.
   const selfRowName = (page: Page) => inboxRow(page, data.smokeUser).locator(`[title="${data.smokeUser}"]`)
 
-  test('mark unread draws the orange line above the message and marks the inbox row unread', async ({page}) => {
+  test('mark unread draws the orange line above the message and marks the inbox row unread', async ({page}, testInfo) => {
     await openSelf(page)
     const first = `e2e-data-unread-a-${Date.now()}`
     const firstOrdinal = await sendMessage(page, first)
@@ -330,20 +331,25 @@ test.describe('mark unread', () => {
     await clickUnoccluded(menu.getByText('Mark as unread', {exact: true}))
     await expect(page.getByTestId(T.FLOATING_MENU)).toHaveCount(0, {timeout: 5_000})
     await expect.poll(async () => orangeLineRows(page), {timeout: 5_000}).toEqual([first])
+    await step(page, testInfo, 'orange line above the first message', {card: true})
 
     await openScratch(page)
     await expect(selfRowName(page)).toHaveClass(/text_BodyBold/, {timeout: 10_000})
+    await waitForScrollStable(page)
+    await step(page, testInfo, 'self conversation unread in the inbox')
 
     // opening it again reads it: the line stays where it was for this visit, and the row is read
     await openSelf(page)
     await expect.poll(async () => orangeLineRows(page), {timeout: 10_000}).toEqual([first])
     await openScratch(page)
     await expect(selfRowName(page)).toHaveClass(/text_BodySemibold/, {timeout: 10_000})
+    await waitForScrollStable(page)
+    await step(page, testInfo, 'self conversation read again')
   })
 
   // Nothing is older than a conversation's first message, so marking it unread has no read position
   // to move to: nothing is marked, and no line is drawn for a mark that never happened.
-  test('mark unread on the first message of a conversation draws no orange line', async ({page}) => {
+  test('mark unread on the first message of a conversation draws no orange line', async ({page}, testInfo) => {
     test.setTimeout(90_000)
     await openDirectConversation(page, data.secondUser)
     // Home until the list rests at its top with nothing more coming in above; the composer takes the
@@ -380,6 +386,7 @@ test.describe('mark unread', () => {
     for (const until = Date.now() + 2_000; Date.now() < until; await page.waitForTimeout(100)) {
       expect(await orangeLineRows(page), 'the orange line after marking the first message unread').toEqual([])
     }
+    await step(page, testInfo, 'first message marked, no orange line', {card: true})
     await openScratch(page)
     await expect(inboxRow(page, data.secondUser).locator(`[title="${data.secondUser}"]`)).toHaveClass(/text_BodySemibold/, {
       timeout: 10_000,

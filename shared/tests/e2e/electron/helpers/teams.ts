@@ -166,15 +166,15 @@ export const pickFromTeamMenu = async (page: Page, title: string) => {
 
 export const modalRoot = (page: Page) => page.locator('#modal-root')
 
-// Zooms the avatar crop of the corpus image e2e-c in the open avatar modal: a click in its frame
-// (the image runs past the frame until zoomed), then a wheel turn.
+// Zooms the avatar crop of the corpus image e2e-c in the open avatar modal in: wheel turns over
+// its frame. No click first: a click in the frame stops the pan and the zoom with it.
 export const zoomAvatarCrop = async (page: Page) => {
   const frame = modalRoot(page).locator('img[src*="e2e-c"]').first().locator('xpath=..')
   const box = await frame.boundingBox()
   if (!box) throw new Error('the avatar image is not on screen')
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
   await page.mouse.move(box.x + box.width / 2 + 10, box.y + box.height / 2 + 10)
-  await page.mouse.wheel(0, -100)
+  // each turn zooms in 2%
+  for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 100)
 }
 
 // The open modal's button labelled `label`, the last one drawn (stacked modals draw in order).
