@@ -3,6 +3,7 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {parseArgs} from 'util'
 import {
+  capitalized,
   census,
   censusFailed,
   censusTotals,
@@ -102,9 +103,6 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
   const renderDir = args['no-render'] ? undefined : (args.render ?? newestRenderDir(resultsDir))
   const rows = renderDir ? renderRows(renderDir) : []
   const {entries, problems: renderProblems} = renderCoverageFromRows(rows)
-  const surfaces = p.surfaces()
-  const noun = surfaces.noun
-  const cap = `${noun.charAt(0).toUpperCase()}${noun.slice(1)}`
   const result = census({
     coverageProblems: [...flowProblems, ...renderProblems],
     enabledRpcs: (p.enabledRpcs ?? enabledOutgoing)(),
@@ -113,7 +111,7 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
     platform: p.platform,
     renderCoverage: entries,
     routes: p.routes(),
-    surfaces,
+    surfaces: p.surfaces(),
   })
   const show = (f: string) => (path.resolve(f).startsWith(sharedDir + path.sep) ? path.relative(sharedDir, f) : f)
   const sources = [
@@ -124,12 +122,12 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
     flowTests: flows.length,
     renderEntries: entries.length,
     sources,
-    surfaceNoun: noun,
   })
   const mdFile = path.join(resultsDir, `${p.outPrefix}census.md`)
   fs.mkdirSync(resultsDir, {recursive: true})
   fs.writeFileSync(mdFile, md)
-  const {staleSurfaces, surfaces: covered, unclaimedSurfaces, ...rest} = result
+  const {noun, staleSurfaces, surfaces: covered, unclaimedSurfaces, ...rest} = result
+  const cap = capitalized(noun)
   const json = {[`stale${cap}s`]: staleSurfaces, [`unclaimed${cap}s`]: unclaimedSurfaces, [`${noun}s`]: covered, ...rest}
   fs.writeFileSync(
     path.join(resultsDir, `${p.outPrefix}census.json`),

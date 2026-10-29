@@ -93,7 +93,6 @@ const run = createReleaseRun({
     } else if (watchdog.polls()) {
       phases.push({line: `renderer never went blank (${watchdog.polls()} polls)`, name: 'watchdog', ok: true})
     }
-    process.exitCode = code
     await stopApp()
     return code
   },

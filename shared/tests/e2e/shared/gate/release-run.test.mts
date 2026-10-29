@@ -136,7 +136,6 @@ test('the overall deadline kills the running child, records the phase, and ends 
   assert.ok(lines.some(l => l.includes('during slow')))
   assert.deepEqual(cleanups, [1])
   assert.deepEqual(exits, [1])
-  assert.equal(run.isAborted(), true)
   await run.endRun(0)
   assert.deepEqual(exits, [1])
   assert.deepEqual(cleanups, [1])
@@ -186,4 +185,37 @@ test('finish removes the signal listeners it registered', async () => {
   assert.equal(process.listenerCount('SIGINT'), before[0]! + 1)
   await end(run)
   assert.deepEqual(['SIGINT', 'SIGTERM', 'SIGHUP'].map(s => process.listenerCount(s)), before)
+})
+
+test('runChild after an abort spawns nothing and resolves at once as timed out', async () => {
+  const exits: Array<number> = []
+  const run = createReleaseRun({
+    cwd: os.tmpdir(),
+    deadlineMs: 50,
+    exit: code => void exits.push(code),
+    lockPath: tmpLock(),
+    notify: () => {},
+    notifyTitle: 'test release',
+    printResults: () => {},
+    tag: '[release]',
+  })
+  await capture(async () => until(() => exits.length > 0))
+  process.exitCode = undefined
+  const marker = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')), 'spawned')
+  const r = await run.runChild('late', process.execPath, ['-e', `require('fs').writeFileSync(${JSON.stringify(marker)}, '')`], 10_000)
+  assert.deepEqual(r, {code: null, stdout: '', timedOut: true})
+  await new Promise(resolve => setTimeout(resolve, 300))
+  assert.equal(fs.existsSync(marker), false)
+})
+
+test('finish releases the lock, so a later run on the same path takes it', async () => {
+  const lockPath = tmpLock()
+  const a = newRun({exits: [], lockPath, notes: []})
+  a.acquireLock('first holder')
+  await end(a)
+  assert.equal(a.holdsLock(), false)
+  const b = newRun({exits: [], lockPath, notes: []})
+  b.acquireLock('second holder')
+  assert.equal(b.holdsLock(), true)
+  await end(b)
 })

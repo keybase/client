@@ -50,16 +50,16 @@ export const flowRows = (report: PwReport, project: string): Array<FlowRow> => {
   return out
 }
 
-// Calls `f` for each test of `project` with its spec's file and its describe titles and title (a
-// suite titled by a file is not a describe).
+// Calls `f` for each test of `project` (of every project when undefined) with its spec's file and its
+// describe titles and title (a suite titled by a file is not a describe).
 export const eachFlowTest = <T extends {projectName: string}>(
   suites: ReadonlyArray<SuiteOf<T>>,
-  project: string,
+  project: string | undefined,
   f: (test: T, specFile: string, titles: Array<string>) => void
 ) => {
   const walk = (s: SuiteOf<T>, titles: Array<string>) => {
     for (const spec of s.specs ?? []) {
-      for (const t of spec.tests) if (t.projectName === project) f(t, spec.file, [...titles, spec.title])
+      for (const t of spec.tests) if (project === undefined || t.projectName === project) f(t, spec.file, [...titles, spec.title])
     }
     for (const c of s.suites ?? []) walk(c, c.title && !c.title.endsWith('.ts') ? [...titles, c.title] : titles)
   }

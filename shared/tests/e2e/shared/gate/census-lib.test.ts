@@ -142,7 +142,7 @@ test('the markdown has a section per table with the totals', () => {
       routes: [{name: 'chatRoot'}, {name: 'login'}],
     })
   )
-  const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: ['results.json (project electron-flows)'], surfaceNoun: 'window'})
+  const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: ['results.json (project electron-flows)']})
   expect(md).toContain('- results.json (project electron-flows)')
   expect(md).toContain('Routes: 1 covered, 1 unclaimed, 0 excluded')
   expect(md).toContain('| login |')
@@ -345,7 +345,7 @@ describe('windows', () => {
 
   test('the markdown lists unclaimed windows and every window', () => {
     const r = census(input({renderCoverage: [{entry: 'window/menubar', routes: []}], surfaces: surfaces(windows)}))
-    const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: [], surfaceNoun: 'window'})
+    const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: []})
     expect(md).toContain('- Windows: 1 covered, 2 unclaimed')
     expect(md).toContain('## Unclaimed windows')
     expect(md).toContain('| menubar | tour window/menubar |')
@@ -373,7 +373,6 @@ describe('windows', () => {
       flowTests: 1,
       renderEntries: 2,
       sources: ['a.json: x', 'b: y'],
-      surfaceNoun: 'window',
     })
     expect(md).toBe(OLD_DESKTOP_MARKDOWN)
   })
@@ -391,6 +390,7 @@ describe('windows', () => {
         noun: 'surface',
       },
     })
+    expect(r.noun).toBe('surface')
     expect(r.surfaces).toEqual([
       {coveredBy: ['tour surface/share-extension-sent'], name: 'share-extension'},
       {coveredBy: [], name: 'widget'},
@@ -399,7 +399,7 @@ describe('windows', () => {
       'surface gone is listed in census-surfaces.ts but the app has no such surface',
       'surface widget is in the app but not listed in census-surfaces.ts',
     ])
-    const md = renderCensusMarkdown(r, {flowTests: 1, renderEntries: 1, sources: [], surfaceNoun: 'surface'})
+    const md = renderCensusMarkdown(r, {flowTests: 1, renderEntries: 1, sources: []})
     expect(md).toContain('- Surfaces: 1 covered, 1 unclaimed')
     expect(md).toContain('- Stale surface list entries: 2')
     expect(md).toContain('## Stale surface list')
