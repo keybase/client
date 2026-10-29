@@ -69,11 +69,6 @@ export const appShouldDieOnStartup = () => {
   return false
 }
 
-export const changeCommandLineSwitches = () => {
-  // MUST do this else we get limited by simultaneous hot reload event streams
-  Electron.app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')
-}
-
 export const fixWindowsNotifications = () => {
   // Windows needs this for notifications to show on certain versions
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
