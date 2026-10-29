@@ -65,6 +65,8 @@ test('a team page link opens the team', async ({page}, testInfo) => {
   await openLink(`keybase://team-page/${team}`)
   await expectScreen(page, 'team', {teamID: await teamID(team)}, 'the main window after the team page link')
   await expect(page.locator('.text_Header').filter({hasText: new RegExp(`^${escapeRegExp(team)}$`)}).locator('visible=true').first()).toBeVisible({timeout: 10_000})
+  // the tab the team was last left on, loaded
+  await expect(page.getByText('Loading...', {exact: true}).locator('visible=true'), "the team page's tab").toHaveCount(0, {timeout: 20_000})
   await step(page, testInfo, 'team page link opened the team', {card: true})
   await peopleAtRoot(page)
 })

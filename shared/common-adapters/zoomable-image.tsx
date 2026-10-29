@@ -27,10 +27,14 @@ import ImageNative from './image'
 
 // Stub types to avoid DOM lib dependency in native tsconfig
 type DivRef = {
+  clientHeight: number
+  clientWidth: number
   getBoundingClientRect: () => {left: number; top: number; width: number; height: number}
 }
 type ImgRef = {
   getBoundingClientRect: () => {width: number; height: number}
+  naturalHeight: number
+  naturalWidth: number
   style: {transform: string}
   classList: {add: (cls: string) => void; remove: (cls: string) => void}
 }
@@ -45,6 +49,9 @@ const DesktopZoomableImage = (p: Props) => {
   const containerRef = React.useRef<DivRef>(null)
   const imgRef = React.useRef<ImgRef>(null)
   const scaleRef = React.useRef(1)
+  // the scale a drag-pan image opens on, the smallest that fills the container: it can't be zoomed
+  // out past it, so every crop is a full square of the image
+  const coverScaleRef = React.useRef(1)
   const translateRef = React.useRef({x: 0, y: 0})
   const isZoomedRef = React.useRef(isZoomed)
 
@@ -80,10 +87,16 @@ const DesktopZoomableImage = (p: Props) => {
       return
     }
 
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const imgRect = imgRef.current.getBoundingClientRect()
-    const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
-    const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
+    // the pointer's place in the container is on screen; the sizes are layout sizes, which an
+    // ancestor's transform (a modal scaling in) doesn't skew, at the scale just set
+    const bounds = containerRef.current.getBoundingClientRect()
+    const xPercent = Math.min(1, Math.max(0, (e.clientX - bounds.left) / bounds.width))
+    const yPercent = Math.min(1, Math.max(0, (e.clientY - bounds.top) / bounds.height))
+    const containerRect = {height: containerRef.current.clientHeight, width: containerRef.current.clientWidth}
+    const imgRect = {
+      height: imgRef.current.naturalHeight * scaleRef.current,
+      width: imgRef.current.naturalWidth * scaleRef.current,
+    }
 
     const x = Math.min(
       imgRect.width < containerRect.width ? (containerRect.width - imgRect.width) / 2 : 0,
@@ -106,19 +119,35 @@ const DesktopZoomableImage = (p: Props) => {
   }
 
   // a drag-pan view is a crop, so a loaded image reports the view it opens on before any move. A
-  // new image opens on the default view, not the pan and zoom left from the one before.
+  // new image opens filling the container and centered in it, not on the pan and zoom left from the
+  // one before. Sizes are read untransformed, so a modal still animating in doesn't skew them.
   const loadedSrcRef = React.useRef<string | undefined>(undefined)
   const handleLoad = () => {
-    if (loadedSrcRef.current !== src) {
+    const img = imgRef.current
+    if (img && loadedSrcRef.current !== src) {
       loadedSrcRef.current = src
-      scaleRef.current = 1
-      translateRef.current = {x: 0, y: 0}
-      if (imgRef.current) imgRef.current.style.transform = ''
+      const {naturalHeight, naturalWidth} = img
+      const cw = containerRef.current?.clientWidth ?? 0
+      const ch = containerRef.current?.clientHeight ?? 0
+      if (dragPan && naturalWidth && naturalHeight && cw && ch) {
+        const cover = Math.max(cw / naturalWidth, ch / naturalHeight)
+        const x = (cw - naturalWidth * cover) / 2
+        const y = (ch - naturalHeight * cover) / 2
+        coverScaleRef.current = cover
+        scaleRef.current = cover
+        translateRef.current = {x, y}
+        img.style.transform = `translate(${x}px, ${y}px) scale(${cover})`
+      } else {
+        coverScaleRef.current = 1
+        scaleRef.current = 1
+        translateRef.current = {x: 0, y: 0}
+        img.style.transform = ''
+      }
     }
-    if (dragPan && imgRef.current) {
-      const imgRect = imgRef.current.getBoundingClientRect()
+    if (dragPan && img) {
+      const scale = scaleRef.current
       const {x, y} = translateRef.current
-      onChanged?.({height: imgRect.height, scale: scaleRef.current, width: imgRect.width, x: -x, y: -y})
+      onChanged?.({height: img.naturalHeight * scale, scale, width: img.naturalWidth * scale, x: -x, y: -y})
     }
     onLoaded?.()
   }
@@ -131,7 +160,9 @@ const DesktopZoomableImage = (p: Props) => {
     if (!dragPan && !isZoomedRef.current) return
 
     const delta = e.deltaY > 0 ? 1.02 : 0.98
-    scaleRef.current = Math.min(2.5, Math.max(0.3, scaleRef.current * delta))
+    const cover = coverScaleRef.current
+    const [min, max] = dragPan ? [cover, Math.max(2.5, cover * 2.5)] : [0.3, 2.5]
+    scaleRef.current = Math.min(max, Math.max(min, scaleRef.current * delta))
     handleMouseMove(e)
   }
 

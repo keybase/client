@@ -19,6 +19,29 @@ test.use({actionTimeout: 10_000})
 
 type Avatars = {picmap?: Record<string, Record<string, string>> | null}
 
+// The picked image in the avatar modal and its crop frame, on screen.
+const cropBoxes = async (page: Page) => {
+  const img = modalRoot(page).locator('img[src*="e2e-c"]').first()
+  return Promise.all([img.boundingBox(), img.locator('xpath=..').boundingBox()])
+}
+
+// Whether the picked image covers its crop frame and sits centered in it.
+const cropFillsFrame = async (page: Page) => {
+  const [i, f] = await cropBoxes(page)
+  if (!i || !f) return false
+  const left = f.x - i.x
+  const right = i.x + i.width - (f.x + f.width)
+  const top = f.y - i.y
+  const bottom = i.y + i.height - (f.y + f.height)
+  return left >= -1 && right >= -1 && top >= -1 && bottom >= -1 && Math.abs(left - right) <= 1 && Math.abs(top - bottom) <= 1
+}
+
+// Whether the picked image runs past its crop frame on both axes: zoomed in from filling it.
+const cropZoomedIn = async (page: Page) => {
+  const [i, f] = await cropBoxes(page)
+  return !!i && !!f && i.width > f.width * 1.1 && i.height > f.height * 1.1
+}
+
 const setAvatar = async (page: Page, testInfo: TestInfo, file: string, zoom: boolean) => {
   const {smokeUser} = loadE2EAccounts()
   const avatarUrl = async () => {
@@ -37,6 +60,9 @@ const setAvatar = async (page: Page, testInfo: TestInfo, file: string, zoom: boo
       await expect(modalRoot(page).getByText('Click to select. Scroll to zoom.', {exact: true})).toBeVisible({timeout: 15_000})
       if (zoom) {
         await zoomAvatarCrop(page)
+        await expect.poll(async () => cropZoomedIn(page), {message: 'the crop zoomed in past filling the frame', timeout: 10_000}).toBe(true)
+      } else {
+        await expect.poll(async () => cropFillsFrame(page), {message: 'the picked image fills the crop, centered', timeout: 10_000}).toBe(true)
       }
       await step(page, testInfo, zoom ? 'avatar zoomed' : 'avatar picked')
       await modalButton(page, 'Save').click()

@@ -955,3 +955,26 @@ export const navigationWithoutSearch = async (page: Page) =>
     })
     return {hadSearch, json}
   })
+
+// Whether every image and video inside `box` that is in view has drawn its content: an image
+// decoded, a video with a frame to show. False while `box` shows none.
+export const mediaInViewLoaded = async (box: Locator) =>
+  box.evaluate(node => {
+    type Media = {
+      complete?: boolean
+      getBoundingClientRect: () => {bottom: number; top: number}
+      naturalWidth?: number
+      readyState?: number
+      tagName: string
+    }
+    const el = node as unknown as {getBoundingClientRect: () => {bottom: number; top: number}; querySelectorAll: (s: string) => ArrayLike<Media>}
+    const view = el.getBoundingClientRect()
+    const inView = Array.from(el.querySelectorAll('img, video')).filter(m => {
+      const r = m.getBoundingClientRect()
+      return r.bottom > view.top && r.top < view.bottom
+    })
+    return (
+      inView.length > 0 &&
+      inView.every(m => (m.tagName === 'VIDEO' ? (m.readyState ?? 0) >= 2 : !!m.complete && (m.naturalWidth ?? 0) > 0))
+    )
+  })
