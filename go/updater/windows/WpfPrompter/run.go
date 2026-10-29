@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/updater/command"
 	"github.com/keybase/go-logging"
 )
@@ -29,7 +28,7 @@ type updaterPromptInput struct {
 func main() {
 	testLog := &logging.Logger{Module: "test"}
 
-	exePathName, _ := osext.Executable()
+	exePathName, _ := os.Executable()
 	pathName, _ := filepath.Split(exePathName)
 	outPathName := filepath.Join(pathName, "out.txt")
 
