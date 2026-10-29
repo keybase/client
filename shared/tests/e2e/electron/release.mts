@@ -39,6 +39,7 @@ import {acquireFileLock, assertNotLocked} from '../visual/lock.mts'
 import {appLogPath} from './app-log.ts'
 import {groupAlive, readAppPidfile, stopAppGroup} from './app-pidfile.ts'
 import {closeMainInspector, sessionLocked} from './helpers/main-process.ts'
+import {KNOWN_FAILURES} from './known-failures.ts'
 import {scanAndPurge, watchEnvSecrets} from './secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
 import {
@@ -48,8 +49,6 @@ import {
   fmtMs,
   parseLsof,
   parseTimeoutMin,
-  preflightProblems,
-  RELEASE_PORTS,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -57,11 +56,10 @@ import {
   summaryLines,
   type Outcome,
   type Phase,
-  type PortHolder,
-  type PreflightState,
   type PwReport,
   type RenderResultRow,
-} from './release-lib.ts'
+} from '../shared/gate/release-lib.ts'
+import {preflightProblems, RELEASE_PORTS, type PortHolder, type PreflightState} from './release-lib.ts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -413,7 +411,7 @@ const main = async () => {
     if (!fs.existsSync(out.results) || fs.statSync(out.results).mtimeMs < start) {
       return {line: `playwright exited ${r.code} and wrote no ${out.results}`, ok: false}
     }
-    const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project)
+    const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, KNOWN_FAILURES.flows)
     for (const n of s.fresh) log(`new failure: ${n}`)
     for (const n of s.known) log(`known on master: ${n}`)
     for (const n of s.nowPasses) log(`known failure now passes, remove it from known-failures.ts: ${n}`)
@@ -432,7 +430,7 @@ const main = async () => {
     renderDir = /^render: (.+)$/m.exec(r.stdout)?.[1]?.trim()
     const file = renderDir && path.join(renderDir, 'render.json')
     if (!file || !fs.existsSync(file)) return {line: `visual render exited ${r.code} and wrote no render.json`, ok: false}
-    const t = summarizeRender((JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: Array<RenderResultRow>}).entries)
+    const t = summarizeRender((JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: Array<RenderResultRow>}).entries, KNOWN_FAILURES.render)
     for (const n of t.fresh) log(`new render failure: ${n}`)
     for (const n of t.known) log(`known on master: ${n}`)
     for (const n of t.nowPasses) log(`known render failure now passes, remove it from known-failures.ts: ${n}`)

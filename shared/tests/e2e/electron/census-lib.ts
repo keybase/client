@@ -11,7 +11,7 @@
 // A write the app sends on its own, whatever the test does (e.g. updateLastLoggedInAndServerConfig),
 // would otherwise count as covered by every test. One sent in at least this share of the flow tests,
 // and in at least BACKGROUND_MIN_TESTS of them, is reported as background instead.
-import {eachFlowTest, flowTestName, type SuiteOf} from './release-lib.ts'
+import {eachFlowTest, flowTestName, type SuiteOf} from '../shared/gate/release-lib.ts'
 
 export const BACKGROUND_SHARE = 0.8
 export const BACKGROUND_MIN_TESTS = 10

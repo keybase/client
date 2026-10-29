@@ -11,7 +11,7 @@ import {
   type CensusInput,
   type Recording,
 } from './census-lib'
-import {summarizeFlows} from './release-lib'
+import {summarizeFlows} from '../shared/gate/release-lib'
 
 const input = (over: Partial<CensusInput> = {}): CensusInput => ({
   enabledRpcs: [],
@@ -296,7 +296,7 @@ describe('flowRunsFromReport', () => {
     const runs = flowRunsFromReport(suites, 'electron-flows', () => rec)
     const names = runs.map(r => r.test)
     expect(names).toEqual(['deep › opens', 'deep › paging › pages', 'top › shows'])
-    expect(summarizeFlows({suites: suites.map(s => ({...s}))}, 'electron-flows').fresh).toEqual(names)
+    expect(summarizeFlows({suites: suites.map(s => ({...s}))}, 'electron-flows', {}).fresh).toEqual(names)
     expect(runs[0]?.attempts).toEqual([{coverage: rec, status: 'failed'}])
   })
 })
