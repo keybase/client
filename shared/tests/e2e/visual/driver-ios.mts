@@ -18,9 +18,9 @@ import {
   waitFor,
   waitForQuiet,
   waitsAtTabRoot,
-  withDeadline,
   type Capture,
 } from './driver-desktop.mts'
+import {withDeadline} from '../shared/deadline.ts'
 import type {Rect} from './compare.mts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'

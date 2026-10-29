@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToGit} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -29,6 +29,7 @@ async function deleteRepo(page: Page): Promise<void> {
 
 test('new repo modal opens', async ({page}, testInfo) => {
   await navigateToGit(page)
+  await step(page, testInfo, 'git page')
   // self-heal: remove a leftover repo from a crashed previous run
   if ((await repoRow(page).count()) > 0) {
     await deleteRepo(page)
@@ -37,9 +38,10 @@ test('new repo modal opens', async ({page}, testInfo) => {
   await page.getByText('New personal repository', {exact: true}).click()
   const nameInput = page.getByPlaceholder('Name your repository')
   await expect(nameInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'new repo modal', {card: true})
   await closeModal(page)
   await expect(nameInput).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('created repo row renders', async ({page}, testInfo) => {
@@ -50,10 +52,11 @@ test('created repo row renders', async ({page}, testInfo) => {
     const nameInput = page.getByPlaceholder('Name your repository')
     await expect(nameInput).toBeVisible({timeout: 5_000})
     await nameInput.fill(REPO_NAME)
+    await step(page, testInfo, 'repo name typed')
     await page.getByText('Create', {exact: true}).click()
   }
   await expect(repoRow(page).first()).toBeVisible({timeout: 30_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'repo row in list', {card: true})
 })
 
 test('delete repo confirm renders, then repo is deleted', async ({page}, testInfo) => {
@@ -63,11 +66,14 @@ test('delete repo confirm renders, then repo is deleted', async ({page}, testInf
     return
   }
   await repoRow(page).first().click()
+  await step(page, testInfo, 'repo opened')
   await page.getByText('Delete repo', {exact: true}).click()
   const confirmInput = page.getByPlaceholder('Name of the repository')
   await expect(confirmInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'delete repo confirm', {card: true})
   await confirmInput.fill(REPO_NAME)
+  await step(page, testInfo, 'repo name typed')
   await page.getByText('Delete this repository', {exact: true}).click()
   await expect(repoRow(page)).toHaveCount(0, {timeout: 30_000})
+  await step(page, testInfo, 'repo gone')
 })

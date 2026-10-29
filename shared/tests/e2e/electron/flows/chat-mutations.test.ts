@@ -5,7 +5,7 @@ import {
   openConversationMatching,
   openFirstConversation,
 } from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -28,7 +28,7 @@ test('new chat team builder opens', async ({page}, testInfo) => {
   await page.getByText('New chat', {exact: true}).click()
   const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
   await expect(search.first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'new chat team builder')
   await closeModal(page)
   await expect(search).toHaveCount(0, {timeout: 5_000})
 })
@@ -42,7 +42,7 @@ test('delete history warning opens', async ({page}, testInfo) => {
   await page.getByText('Clear entire conversation', {exact: true}).click()
   const confirmButton = page.getByText('Yes, clear for everyone', {exact: true})
   await expect(confirmButton).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'delete history warning')
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(confirmButton).not.toBeVisible({timeout: 5_000})
   await closeInfoPanel(page)
@@ -65,7 +65,8 @@ test('block modal opens', async ({page}, testInfo) => {
   await blockButton.first().click()
   const finishButton = page.getByText('Finish', {exact: true})
   await expect(finishButton).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'block modal')
+  await manualEdge(page, testInfo, 'block-report-submit')
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(finishButton).not.toBeVisible({timeout: 5_000})
   await closeInfoPanel(page)

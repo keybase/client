@@ -1,6 +1,6 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openFirstConversation, openConversationMatching} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -14,7 +14,7 @@ test('info panel opens', async ({page}, testInfo) => {
   }
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'info panel')
   // toggle it back off so later tests see a clean conversation
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})
@@ -27,7 +27,7 @@ test('emoji picker opens', async ({page}, testInfo) => {
   }
   await page.locator('.icon-gen-iconfont-emoji:visible').last().click()
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'emoji picker')
   // the popup dismisses on outside click, not Escape
   await page.getByTestId(T.CHAT_MESSAGE_LIST).first().click({force: true, position: {x: 10, y: 10}})
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).not.toBeVisible({timeout: 5_000})
@@ -51,7 +51,7 @@ test('message context menu opens', async ({page}, testInfo) => {
     test.skip()
     return
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'message context menu')
   await page.keyboard.press('Escape')
   await expect(menuItem).not.toBeVisible({timeout: 5_000})
 })
@@ -65,7 +65,7 @@ test('attachment fullscreen opens', async ({page}, testInfo) => {
   }
   await images.last().click()
   await expect(page.getByTestId(T.CHAT_ATTACHMENT_FULLSCREEN)).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'attachment fullscreen')
   await closeModal(page)
   await expect(page.getByTestId(T.CHAT_ATTACHMENT_FULLSCREEN)).not.toBeVisible({timeout: 5_000})
 })
@@ -87,7 +87,7 @@ test('bot install preview opens', async ({page}, testInfo) => {
   // settings / Uninstall), so assert on the modal instead of a label
   const installModal = page.getByTestId(T.CHAT_BOT_INSTALL).first()
   await expect(installModal).toBeVisible({timeout: 10_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'bot install preview')
   await closeModal(page)
   await expect(installModal).not.toBeVisible({timeout: 5_000})
   // close the info panel again
@@ -106,7 +106,7 @@ test('bot search modal opens', async ({page}, testInfo) => {
   await page.getByText('Add a bot', {exact: true}).click()
   const search = page.getByPlaceholder('Search featured bots or users...')
   await expect(search).toBeVisible({timeout: 10_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'bot search modal')
   await closeModal(page)
   await expect(search).not.toBeVisible({timeout: 5_000})
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
@@ -142,7 +142,7 @@ test('forward message picker opens', async ({page}, testInfo) => {
   await forwardItem.click()
   const search = page.getByPlaceholder('Search chats and teams...')
   await expect(search).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'forward message picker')
   await page.keyboard.press('Escape')
   await expect(search).not.toBeVisible({timeout: 5_000})
 })

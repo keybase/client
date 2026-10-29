@@ -11,6 +11,9 @@ export type OutParam<M extends Method> = Messages[M]['outParam']
 // app's frozen clock at the moment of the call.
 export type FixtureContext = {args: Readonly<Record<string, unknown>>; now: number}
 
+// An outgoing RPC as the app made it: its param carries the session's sessionID.
+export type StartedBy = {method: string; param: unknown}
+
 // A call into the session that started the RPC, as the service would send one before replying.
 export type Deliver = (method: string, param: object) => void
 
@@ -47,8 +50,9 @@ export type Stores = {get: (key: StoreKey) => StoreApi | undefined}
 
 export type FixtureDef = {
   rpc: ReadonlyArray<RpcRule>
-  // rewrites of incoming calls and notifications from the service
-  incoming?: ReadonlyArray<{method: string; transform: (param: object, ctx: FixtureContext) => object}>
+  // rewrites of incoming calls and notifications from the service; `startedBy` is the app's call
+  // that opened the incoming call's session, when the app made it while the fixture was active
+  incoming?: ReadonlyArray<{method: string; transform: (param: object, ctx: FixtureContext, startedBy: StartedBy | undefined) => object}>
   // notifications delivered after the entry's ready state shows
   inject?: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>
   // notifications delivered on the tick after each incoming call named `after` (what the service
