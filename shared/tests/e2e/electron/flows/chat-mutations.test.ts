@@ -1,16 +1,22 @@
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {
-  navigateToChat,
-  openConversationMatching,
-  openFirstConversation,
-} from '@/tests/e2e/electron/helpers/navigate'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
+import {openDirectConversation, openE2EChannel} from '@/tests/e2e/electron/helpers/chat'
+import {type ChatData} from '@/tests/e2e/shared/chat-data'
 import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 // View-only trips into mutation flows: open the modal, screenshot, cancel.
-// Nothing here ever submits.
+// Nothing here ever submits. They open e2e-scratch and the smoke account's conversation with the
+// second account, never another conversation.
+
+let data: ChatData
+
+test.beforeAll(async () => {
+  test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
+  data = await seedChatData()
+})
 
 async function openInfoPanelSettings(page: Page): Promise<void> {
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
@@ -34,10 +40,7 @@ test('new chat team builder opens', async ({page}, testInfo) => {
 })
 
 test('delete history warning opens', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await openInfoPanelSettings(page)
   await page.getByText('Clear entire conversation', {exact: true}).click()
   const confirmButton = page.getByText('Yes, clear for everyone', {exact: true})
@@ -49,19 +52,11 @@ test('delete history warning opens', async ({page}, testInfo) => {
 })
 
 test('block modal opens', async ({page}, testInfo) => {
+  // team conversations have no Block button: the one-on-one with the second account has
+  await openDirectConversation(page, data.secondUser)
+  await openInfoPanelSettings(page)
   const blockButton = page.getByTestId(T.CHAT_INFO_PANEL).getByText('Block', {exact: true})
-  // team conversations have no Block button — hunt for a 1:1 conversation
-  const hasBlock = async (p: typeof page) => {
-    await openInfoPanelSettings(p)
-    if ((await blockButton.count()) > 0) return true
-    await closeInfoPanel(p)
-    return false
-  }
-  const found = await openConversationMatching(page, hasBlock, 4)
-  if (!found) {
-    test.skip()
-    return
-  }
+  await expect(blockButton.first(), 'Block in the one-on-one conversation settings').toBeVisible({timeout: 5_000})
   await blockButton.first().click()
   const finishButton = page.getByText('Finish', {exact: true})
   await expect(finishButton).toBeVisible({timeout: 5_000})

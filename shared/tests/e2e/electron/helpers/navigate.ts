@@ -1,4 +1,5 @@
-import type {Page} from '@playwright/test'
+import {expect, type Page} from '@playwright/test'
+import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 async function clickNavTab(page: Page, tabTestID: string): Promise<void> {
@@ -23,50 +24,29 @@ export async function navigateToTeams(page: Page): Promise<void> {
   }
 }
 
-// Opens the first inbox conversation and waits for the message list.
-// Returns false when the inbox is empty (caller should test.skip()).
-export async function openFirstConversation(page: Page): Promise<boolean> {
-  await navigateToChat(page)
-  const rows = page.getByTestId(T.CHAT_INBOX_ROW)
-  if ((await rows.count()) === 0) return false
-  await rows.first().click()
-  await page.waitForSelector(`[data-testid="${T.CHAT_MESSAGE_LIST}"]`, {timeout: 5_000})
-  return true
-}
-
-// Opens inbox conversations top-down until `check` passes for one of them.
-// Returns false when no conversation matches (caller should test.skip()).
-export async function openConversationMatching(
-  page: Page,
-  check: (page: Page) => Promise<boolean>,
-  maxRows = 5
-): Promise<boolean> {
-  await navigateToChat(page)
-  const rows = page.getByTestId(T.CHAT_INBOX_ROW)
-  const n = Math.min(await rows.count(), maxRows)
-  for (let i = 0; i < n; i++) {
-    await rows.nth(i).click()
-    await page.waitForSelector(`[data-testid="${T.CHAT_MESSAGE_LIST}"]`, {timeout: 5_000})
-    // let messages land before probing
-    await page.waitForTimeout(500)
-    if (await check(page)) return true
-  }
-  return false
-}
-
-// Opens the first team in the teams list; false when there are no teams.
-export async function openFirstTeam(page: Page): Promise<boolean> {
+// Opens KB_E2E_TEAM's page, found by name: the smoke account is in other teams that are not the
+// tests' to act on, so no flow opens a team by its place in the list.
+export async function openE2ETeam(page: Page): Promise<void> {
+  const {team} = loadE2EAccounts()
   await navigateToTeams(page)
   const rows = page.getByTestId(T.TEAMS_ROW)
-  if ((await rows.count()) === 0) return false
-  await rows.first().click()
-  await rows.first().waitFor({state: 'hidden', timeout: 5_000})
-  return true
+  await expect(rows.first(), 'the teams list to load').toBeVisible({timeout: 10_000})
+  const row = rows.filter({has: page.getByText(team, {exact: true})}).first()
+  // the list renders only the rows near what it shows: scroll down until the team's row is in
+  await page.getByTestId(T.TEAMS_LIST).hover()
+  const deadline = Date.now() + 20_000
+  while (!(await row.isVisible())) {
+    if (Date.now() > deadline) throw new Error('the e2e team (KB_E2E_TEAM) is not in the teams list (scrolled for 20s)')
+    await page.mouse.wheel(0, 400)
+    await page.waitForTimeout(100)
+  }
+  await row.click()
+  await expect(rows.first(), 'the e2e team page to open').toBeHidden({timeout: 5_000})
 }
 
 // Opens own profile via the "Hi user!" menu and dismisses the menu popup.
 export async function openOwnProfile(page: Page): Promise<void> {
-  const smokeUser = process.env['KB_SMOKE_USER']
+  const {smokeUser} = loadE2EAccounts()
   await page.click(`[data-testid="${T.NAV_TAB_PEOPLE}"]`)
   await page.click(`text=Hi ${smokeUser}!`)
   await page.click('text=View/Edit profile')

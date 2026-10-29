@@ -1,33 +1,38 @@
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {openConversationMatching, openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
+import {test, expect, e2eRunId, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {composerInput, messageMenu, openE2EChannel, rowByOrdinal, waitForRow} from '@/tests/e2e/electron/helpers/chat'
+import {E2E_CHANNELS, sendFromCli} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
-// More chat visual states: reply/edit input modes, reaction picker, channel
-// mentions, giphy, info panel sub-tabs. Nothing is ever sent or saved.
+// More chat visual states, in e2e-scratch: reply/edit input modes, reaction picker, channel
+// mentions, giphy, info panel sub-tabs. Nothing is ever sent from the app or saved; the tests that
+// need a message of the smoke account's own send one through the CLI first.
+
+test.beforeAll(async () => {
+  test.setTimeout(20 * 60_000) // a first run seeds; later runs only check
+  await seedChatData()
+})
+
+// Opens e2e-scratch, sends a text message from the CLI (the smoke account) and returns its ordinal.
+const openWithOwnMessage = async (page: Page, label: string) => {
+  await openE2EChannel(page)
+  const marker = `e2e-${e2eRunId()}-${label}-${Date.now().toString(36)}`
+  await sendFromCli(E2E_CHANNELS.scratch, marker)
+  return waitForRow(page, marker, 30_000)
+}
+
+// Empties the composer: ArrowUp edits the last message only from an empty input.
+const clearComposer = async (page: Page) => {
+  await composerInput(page).click({timeout: 5_000})
+  await page.keyboard.press('Meta+a')
+  await page.keyboard.press('Backspace')
+}
 
 test('reply-quote state in input', async ({page}, testInfo) => {
-  const replyItem = page.getByText('Reply', {exact: true}).first()
-  const findReplyableMessage = async (p: Page) => {
-    const messages = p.locator('.TextAndSiblings')
-    const count = await messages.count()
-    for (let i = count - 1; i >= 0 && i >= count - 5; i--) {
-      await messages.nth(i).click({button: 'right'})
-      try {
-        await expect(replyItem).toBeVisible({timeout: 2_000})
-        return true
-      } catch {
-        await p.keyboard.press('Escape')
-      }
-    }
-    return false
-  }
-  if (!(await openConversationMatching(page, findReplyableMessage, 3))) {
-    test.skip()
-    return
-  }
-  await replyItem.click()
+  const ordinal = await openWithOwnMessage(page, 'reply')
+  const menu = await messageMenu(page, ordinal)
+  await menu.getByText('Reply', {exact: true}).click()
   const replyingTo = page.getByText('Replying to:')
   await expect(replyingTo).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'reply quote in input')
@@ -36,54 +41,29 @@ test('reply-quote state in input', async ({page}, testInfo) => {
 })
 
 test('edit-message mode in input', async ({page}, testInfo) => {
-  test.setTimeout(60_000) // probes several conversations at ~4s each
-  // ArrowUp in an empty input edits your own last message — only works in a
-  // conversation where you have sent something. Desktop edit mode shows a
-  // "Cancel" button next to the input (Save/Send is mobile-only).
-  const saveButton = page.getByText('Cancel', {exact: true}).locator('visible=true').first()
-  const entersEditMode = async (p: Page) => {
-    await p.getByTestId(T.CHAT_INPUT).first().click()
-    // ArrowUp only triggers edit mode when the input is empty — clear drafts first
-    await p.keyboard.press('Meta+a')
-    await p.keyboard.press('Backspace')
-    await p.keyboard.press('ArrowUp')
-    try {
-      await expect(saveButton).toBeVisible({timeout: 4_000})
-      return true
-    } catch {
-      // leave no draft behind: exit edit mode and clear whatever got filled in
-      await p.keyboard.press('Escape')
-      await p.keyboard.press('Meta+a')
-      await p.keyboard.press('Backspace')
-      return false
-    }
-  }
-  if (!(await openConversationMatching(page, entersEditMode, 5))) {
-    test.skip()
-    return
-  }
+  // ArrowUp in an empty input edits your own last message. Desktop edit mode shows a "Cancel"
+  // button next to the input (Save/Send is mobile-only).
+  await openWithOwnMessage(page, 'edit')
+  const cancelButton = page.getByText('Cancel', {exact: true}).locator('visible=true').first()
+  await clearComposer(page)
+  await page.keyboard.press('ArrowUp')
+  await expect(cancelButton, 'ArrowUp in an empty composer to edit the message just sent').toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'edit mode in input')
   await page.keyboard.press('Escape')
-  await expect(saveButton).not.toBeVisible({timeout: 5_000})
+  await expect(cancelButton).not.toBeVisible({timeout: 5_000})
+  await clearComposer(page)
 })
 
 test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
-  const reacji = page.locator('.icon-gen-iconfont-reacji:visible')
-  // system messages have no hover toolbar — hunt for one that does
-  const hasReacjiOnHover = async (p: Page) => {
-    const messages = p.locator('.TextAndSiblings')
-    const count = await messages.count()
-    for (let i = count - 1; i >= 0 && i >= count - 5; i--) {
-      await messages.nth(i).hover()
-      await p.waitForTimeout(300)
-      if ((await reacji.count()) > 0) return true
-    }
-    return false
-  }
-  if (!(await openConversationMatching(page, hasReacjiOnHover, 3))) {
-    test.skip()
-    return
-  }
+  const ordinal = await openWithOwnMessage(page, 'react')
+  const row = rowByOrdinal(page, ordinal)
+  const reacji = row.locator('.icon-gen-iconfont-reacji')
+  // the row shows its toolbar only while hovered, and the list ignores the pointer until 200ms after
+  // its last scroll: hover again until the row takes it
+  await expect(async () => {
+    await row.hover({timeout: 1_000})
+    await expect(reacji.first()).toBeVisible({timeout: 500})
+  }, 'the hover toolbar reaction button on the message just sent').toPass({timeout: 10_000})
   await reacji.first().click()
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'reaction picker')
@@ -93,23 +73,10 @@ test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
 
 test('channel mention popup in team conversation', async ({page}, testInfo) => {
   const suggestions = page.getByTestId(T.CHAT_SUGGESTION_LIST)
-  const showsChannelSuggestions = async (p: Page) => {
-    await p.getByTestId(T.CHAT_INPUT).first().click()
-    await p.keyboard.press('Meta+a')
-    await p.keyboard.press('Backspace')
-    await p.keyboard.type('#')
-    try {
-      await expect(suggestions.first()).toBeVisible({timeout: 2_000})
-      return true
-    } catch {
-      await p.keyboard.press('Backspace')
-      return false
-    }
-  }
-  if (!(await openConversationMatching(page, showsChannelSuggestions, 5))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
+  await clearComposer(page)
+  await page.keyboard.type('#')
+  await expect(suggestions.first(), 'the channel suggestions for "#" in a team channel').toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'channel mention popup')
   await page.keyboard.press('Meta+a')
   await page.keyboard.press('Backspace')
@@ -118,10 +85,7 @@ test('channel mention popup in team conversation', async ({page}, testInfo) => {
 })
 
 test('giphy preview renders', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await page.getByTestId(T.CHAT_INPUT).first().click()
   // clear any draft left by another test before typing the command
   await page.keyboard.press('Meta+a')
@@ -138,10 +102,7 @@ test('giphy preview renders', async ({page}, testInfo) => {
 })
 
 test('info panel attachments tab', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).toBeVisible({timeout: 5_000})
   await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Attachments', {exact: true}).click()
@@ -155,10 +116,7 @@ test('info panel attachments tab', async ({page}, testInfo) => {
 })
 
 test('info panel settings tab', async ({page}, testInfo) => {
-  if (!(await openFirstConversation(page))) {
-    test.skip()
-    return
-  }
+  await openE2EChannel(page)
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).toBeVisible({timeout: 5_000})
   await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Settings', {exact: true}).click()

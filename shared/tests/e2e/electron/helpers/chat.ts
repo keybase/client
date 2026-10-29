@@ -8,6 +8,7 @@
 import {expect, type ConsoleMessage, type ElementHandle, type JSHandle, type Locator, type Page} from '@playwright/test'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToChat} from './navigate'
+import {E2E_CHANNELS, e2eAccounts, type E2EChannel} from '@/tests/e2e/shared/chat-data'
 
 // The same tolerance the thread itself treats as at the end (list-area's endTolerancePx).
 export const endTolerancePx = 2
@@ -354,6 +355,13 @@ const conversationResult = (name: string) => (page: Page) =>
 export const openConversationByName = async (page: Page, team: string, channel: string) => {
   await openFromInboxSearch(page, channel, p => p.getByText(`#${channel}`, {exact: true}))
   await expect(threadHeaderTitle(page)).toHaveText(`${team}#${channel}`, {timeout: 10_000})
+}
+
+// Opens one of the seeded e2e team channels (e2e-scratch unless named). Flows that just need "a
+// conversation" open this one, never the inbox's top row: the smoke account is in conversations
+// that are not the tests' to act on.
+export const openE2EChannel = async (page: Page, channel: E2EChannel = E2E_CHANNELS.scratch) => {
+  await openConversationByName(page, e2eAccounts().team, channel)
 }
 
 // Opens the user's conversation with themselves. Its header shows the user's full name when they
