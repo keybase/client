@@ -24,15 +24,23 @@ import {
   watchSelectedConversation,
   watchSelection,
 } from '@/tests/e2e/electron/helpers/chat'
-import {createThrowawayChannel, deleteThrowawayChannels, sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {createThrowawayChannel, deleteThrowawayChannel, sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
 import {cliWhoami} from '@/tests/e2e/shared/cli-account'
 import {loadE2EEnv} from '@/tests/e2e/accounts/env'
 import {peerChannelOwner} from '@/tests/e2e/shared/peer-actors'
 import * as T from '@/tests/e2e/shared/test-ids'
 
-const leavePrefix = 'e2e-leave'
-const removedPrefix = 'e2e-kick'
-const unjoinedPrefix = 'e2e-nojoin'
+// channel labels (see createThrowawayChannel)
+const leaveLabel = 'leave'
+const removedLabel = 'kick'
+const unjoinedLabel = 'nojoin'
+// the channels a test made, deleted after it
+const created: Array<string> = []
+const createChannel = async (label: string, opts?: {withSecond?: boolean}) => {
+  const channel = await createThrowawayChannel(label, opts)
+  created.push(channel.topicName)
+  return channel
+}
 
 // Known console noise across an account switch (see chat-data.test.ts's account switch flows).
 const notFromTheMove = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
@@ -51,17 +59,12 @@ test.beforeAll(async () => {
   test.setTimeout(10 * 60_000)
   data = await seedChatData()
   await requireOwnerCli()
-  await deleteThrowawayChannels(leavePrefix)
-  await deleteThrowawayChannels(removedPrefix)
-  await deleteThrowawayChannels(unjoinedPrefix)
 })
 
 test.afterEach(async ({page}) => {
   await switchAccount(page, data.smokeUser)
   await requireOwnerCli()
-  await deleteThrowawayChannels(leavePrefix)
-  await deleteThrowawayChannels(removedPrefix)
-  await deleteThrowawayChannels(unjoinedPrefix)
+  for (const topicName of created.splice(0)) await deleteThrowawayChannel(topicName)
 })
 
 // As the second account, with the throwaway channel open: sends a message to the owner so that
@@ -103,7 +106,7 @@ const expectMovedToNewest = async (page: Page, {marker, newestHeader}: {marker: 
 
 test('leaving the open channel moves the selection to the newest conversation', async ({page}) => {
   test.setTimeout(150_000)
-  const {topicName} = await createThrowawayChannel(leavePrefix)
+  const {topicName} = await createChannel(leaveLabel)
   const newest = await openChannelAsSecond(page, topicName)
 
   const errors = collectConsoleErrors(page, notFromTheMove)
@@ -120,7 +123,7 @@ test('leaving the open channel moves the selection to the newest conversation', 
 test('removed from the open channel moves the selection to the newest conversation', async ({page}) => {
   test.setTimeout(150_000)
   const owner = await peerChannelOwner(loadE2EEnv())
-  const {convID, topicName} = await createThrowawayChannel(removedPrefix)
+  const {convID, topicName} = await createChannel(removedLabel)
   const newest = await openChannelAsSecond(page, topicName)
 
   const errors = collectConsoleErrors(page, notFromTheMove)
@@ -174,7 +177,7 @@ const openFromLinkThroughLayouts = async (page: Page, convID: string, link: stri
 // Its preview arrives with the link's lookup, so the app knows it from the start.
 test('a channel the account has not joined, opened from a link, stays open through inbox layouts with reselect info', async ({page}) => {
   test.setTimeout(150_000)
-  const {convID, topicName} = await createThrowawayChannel(unjoinedPrefix, {withSecond: false})
+  const {convID, topicName} = await createChannel(unjoinedLabel, {withSecond: false})
   await openFromLinkThroughLayouts(page, convID, `keybase://chat/${data.team}#${topicName}`)
   await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${topicName}`)
 })
