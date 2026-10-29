@@ -93,8 +93,7 @@ const profileTeams = (p: Page) => p.getByTestId(T.PROFILE_PAGE).locator('visible
 const withShowcaseSubteam = async (page: Page, prefix: string, body: (name: string, featured: () => Promise<boolean>) => Promise<void>) => {
   const {name} = await makeSubteam(prefix)
   const featured = async () => (await showcase(name)).isMemberShowcased
-  // Off again from the profile's featured teams, which reads the setting from the teams list (the
-  // settings tab's box cannot turn it off: see the 'showcase box' test).
+  // Off again from the profile's featured teams, which reads the setting from the teams list.
   const unfeature = async () => {
     // the teams in the modal come from the teams list, which can still show the subteam as not
     // featured right after it was: the modal is opened again until it shows it featured
@@ -155,6 +154,8 @@ test('showcase on my profile', async ({page}, testInfo) => {
   test.setTimeout(300_000)
   await withShowcaseSubteam(page, 'shw', async (name, featured) => {
     await openSettings(page, name)
+    // disabled until the app's teams list has the subteam, which the tab asks for
+    await expect(checkbox(page, showcaseLabel), 'the box enabled').toHaveCSS('cursor', 'pointer', {timeout: 15_000})
     await clickUnoccluded(settingsTab(page).getByText(showcaseLabel, {exact: true}))
     await expect.poll(featured, {message: 'featured on the profile after the check', timeout: 30_000}).toBe(true)
     await step(page, testInfo, 'featured')
@@ -164,12 +165,13 @@ test('showcase on my profile', async ({page}, testInfo) => {
   })
 })
 
-// The settings box shows the setting and turns it off again. Known to fail on master (see
-// known-failures.ts): the box reads the team's own publicity, not the member's.
+// The settings box shows the setting and turns it off again.
 test('showcase box shows the setting and turns it off', async ({page}, testInfo) => {
   test.setTimeout(300_000)
   await withShowcaseSubteam(page, 'shb', async (name, featured) => {
     await openSettings(page, name)
+    // disabled until the app's teams list has the subteam, which the tab asks for
+    await expect(checkbox(page, showcaseLabel), 'the box enabled').toHaveCSS('cursor', 'pointer', {timeout: 15_000})
     expect(await shownChecked(page, showcaseLabel), 'the box before').toBe(false)
     await clickUnoccluded(settingsTab(page).getByText(showcaseLabel, {exact: true}))
     await expect.poll(featured, {message: 'featured on the profile after the check', timeout: 30_000}).toBe(true)
@@ -253,8 +255,7 @@ const changeAvatar = async (page: Page, testInfo: TestInfo, prefix: string, file
   }, [async () => deleteSubteamIfPresent(name)])
 }
 
-// The default path: pick an image and save it as it is shown. Known to fail on master (see
-// known-failures.ts): an untouched crop is sent as NaN.
+// The default path: pick an image and save it as it is shown.
 test('avatar', async ({page}, testInfo) => {
   test.setTimeout(240_000)
   await changeAvatar(page, testInfo, 'avt', `${CORPUS_DIR}/e2e-c.png`, false)

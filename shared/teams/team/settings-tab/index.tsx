@@ -9,6 +9,7 @@ import type {RPCError} from '@/util/errors'
 import RetentionPicker from './retention'
 import DefaultChannels from './default-channels'
 import {useLoadedTeam} from '../use-loaded-team'
+import {invalidateLoadedTeams} from '../../use-teams-list'
 import {useIsBigTeam} from '../../common/use-loaded-team-channels'
 import {useSettingsTabState} from './use-settings'
 
@@ -20,10 +21,13 @@ type Props = {
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
   publicityMember: boolean
+  // publicityMember is read from the teams list, which can lack the team for a while
+  publicityMemberKnown: boolean
   publicityTeam: boolean
   openTeam: boolean
   openTeamRole: T.Teams.TeamRoleType
-  savePublicity: (settings: T.Teams.PublicitySettings) => void
+  // `changes` are the settings the user just set; `settings` is every setting after them
+  savePublicity: (settings: T.Teams.PublicitySettings, changes: Partial<T.Teams.PublicitySettings>) => void
   showOpenTeamWarning: (isOpenTeam: boolean, teamname: string) => void
   teamID: T.Teams.TeamID
   teamname: string
@@ -33,6 +37,7 @@ type Props = {
 const SetMemberShowcase = (props: {
   yourOperationsJoinTeam: boolean
   canShowcase: boolean
+  known: boolean
   newPublicityMember: boolean
   setNewPublicityMember: (s: boolean) => void
 }) => {
@@ -41,7 +46,7 @@ const SetMemberShowcase = (props: {
     <Kb.Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start" style={styles.memberShowcase}>
       <Kb.Checkbox
         checked={props.newPublicityMember}
-        disabled={!props.canShowcase}
+        disabled={!props.canShowcase || !props.known}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
@@ -193,7 +198,7 @@ const IgnoreAccessRequests = (props: {
 const Settings = (p: Props) => {
   const styles = useStyles()
   const {error, savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
-  const {canShowcase, allowOpenTrigger} = p
+  const {canShowcase, allowOpenTrigger, publicityMemberKnown} = p
 
   const serverSettings = {
     ignoreAccessRequests: p.ignoreAccessRequests,
@@ -241,7 +246,7 @@ const Settings = (p: Props) => {
         ...changes,
       }
       setLocal({...next, serverKey: localServerKey})
-      savePublicity(next)
+      savePublicity(next, changes)
     },
     [
       localServerKey,
@@ -269,6 +274,7 @@ const Settings = (p: Props) => {
         <SetMemberShowcase
           yourOperationsJoinTeam={yourOperations.joinTeam}
           canShowcase={canShowcase}
+          known={publicityMemberKnown}
           newPublicityMember={newPublicityMember}
           setNewPublicityMember={publicityMember => applySettings({publicityMember})}
         />
@@ -368,7 +374,7 @@ export type OwnProps = {
 
 const SettingsTabContainer = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {reload, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {reload, showcasingKnown, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const setTeamSettingsRPC = C.useRPC(T.RPCGen.teamsTeamSetSettingsRpcPromise)
   const setTarsDisabledRPC = C.useRPC(T.RPCGen.teamsSetTarsDisabledRpcPromise)
@@ -396,9 +402,16 @@ const SettingsTabContainer = (ownProps: OwnProps) => {
     navigateAppend({name: 'openTeamWarning', params: {isOpenTeam, teamname}})
   }
   const allowOpenTrigger = useSettingsTabState(s => s.allowOpenTrigger)
+  // the showcase box stays disabled until the teams list has this team; a team made elsewhere
+  // moments ago is not in it until the list loads again
+  React.useEffect(() => {
+    if (!showcasingKnown) {
+      invalidateLoadedTeams()
+    }
+  }, [showcasingKnown])
 
   const savePublicity = React.useCallback(
-    (settings: T.Teams.PublicitySettings) => {
+    (settings: T.Teams.PublicitySettings, changes: Partial<T.Teams.PublicitySettings>) => {
       void (async () => {
         const openChanged =
           openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)
@@ -428,12 +441,17 @@ const SettingsTabContainer = (ownProps: OwnProps) => {
               [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetTeamShowcase(teamID)],
             ])
           }
-          if (publicityMember !== settings.publicityMember) {
+          // sent whenever the user sets it: publicityMember comes from the teams list, which can
+          // lag a save just made, so comparing against it could drop an uncheck
+          if (changes.publicityMember !== undefined) {
             changed = true
             await callRPC(setTeamMemberShowcaseRPC, [
               {isShowcased: settings.publicityMember, teamID},
               [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetMemberPublicity(teamID)],
             ])
+            // the box resyncs from the teams list, which otherwise reloads only on a later team
+            // notification
+            invalidateLoadedTeams()
           }
           if (publicityTeam !== settings.publicityTeam) {
             changed = true
@@ -455,7 +473,6 @@ const SettingsTabContainer = (ownProps: OwnProps) => {
       openTeam,
       openTeamRole,
       publicityAnyMember,
-      publicityMember,
       publicityTeam,
       reload,
       setGlobalError,
@@ -478,6 +495,7 @@ const SettingsTabContainer = (ownProps: OwnProps) => {
       openTeamRole={openTeamRole}
       publicityAnyMember={publicityAnyMember}
       publicityMember={publicityMember}
+      publicityMemberKnown={showcasingKnown}
       publicityTeam={publicityTeam}
       savePublicity={savePublicity}
       showOpenTeamWarning={showOpenTeamWarning}

@@ -9,7 +9,6 @@ import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {expect, test} from '@/tests/e2e/electron/helpers/fixtures'
 import {closeSecondTrackerPopups, kbfsCopyIn, kbfsEntry, leaf, removeOwnKbfs, smokeFolder, stampedEntry} from '@/tests/e2e/electron/helpers/files'
 import {openMenu} from '@/tests/e2e/electron/helpers/menu'
-import {reloadKeepingCoverage} from '@/tests/e2e/electron/helpers/persisted'
 import {focusedRoute, navigateToChat, navigateToFiles, navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
 import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import {closeRemoteWindow, openRemoteWindow} from '@/tests/e2e/electron/helpers/windows'
@@ -119,14 +118,11 @@ test('menubar recent files list a file written since the last show', async ({pag
   )
 })
 
-// The widget loads its recent files only once per main-window session (the known failure
-// above), so the main window is reloaded first, which makes it load them afresh.
 test('menubar recent file opens it in the main window', async ({page}, testInfo) => {
   test.setTimeout(150_000)
   let menubar: Page | undefined
   await withUploadedFile(
     async (path, name) => {
-      await reloadKeepingCoverage(page)
       await mainOnPeople(page)
       menubar = await openRemoteWindow(page.context(), page, 'menubar')
       const row = recentFileRow(menubar, name)

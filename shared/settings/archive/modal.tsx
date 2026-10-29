@@ -91,6 +91,8 @@ const ArchiveModal = (p: Props) => {
 
   const [outpath, setOutpath] = React.useState(defaultPath)
   const [started, setStarted] = React.useState(false)
+  // a single folder or repo whose backup did not start (one never written has nothing to back up)
+  const [singleError, setSingleError] = React.useState('')
   const [archiveAllFilesResponseWaiter, setArchiveAllFilesResponseWaiter] =
     React.useState<ArchiveAllFilesResponseWaiter>({state: 'idle'})
   const [archiveAllGitResponseWaiter, setArchiveAllGitResponseWaiter] =
@@ -146,7 +148,7 @@ const ArchiveModal = (p: Props) => {
           },
         ],
         () => {},
-        () => {}
+        error => setSingleError(error.desc)
       )
     }
 
@@ -260,8 +262,9 @@ const ArchiveModal = (p: Props) => {
               <Kb.Text type="BodyBig">All Files</Kb.Text>
             </Kb.Box2>
             <Kb.Text type="Body">
-              Note: public folders that you are not a writer of will be skipped. Use{' '}
-              <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to backup them.
+              Note: folders that were never written to, and public folders that you are not a writer
+              of, will be skipped. Use <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if
+              you want to backup the public ones.
             </Kb.Text>
           </Kb.Box2>
         ) : archiveAllFilesResponseWaiter.state === 'waiting' ? (
@@ -365,6 +368,7 @@ const ArchiveModal = (p: Props) => {
           <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
         )}
         {content}
+        {singleError ? <Kb.Text type="BodySmallError">Nothing was backed up: {singleError}</Kb.Text> : null}
         {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
           ? null
           : output}

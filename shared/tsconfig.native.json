@@ -54,6 +54,7 @@
     "./common-adapters/save-indicator.test.tsx",
     "./common-adapters/text.test.tsx",
     "./common-adapters/toast.test.tsx",
+    "./common-adapters/zoomable-image.test.tsx",
     "./devices/index.test.tsx",
     "./devices/row.test.tsx",
     "./git/delete-repo.test.tsx",

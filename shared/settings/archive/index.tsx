@@ -352,9 +352,10 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
               </Kb.Box2>
             ) : (
               <Kb.Box2 direction="vertical" alignItems="center" justifyContent="flex-end" alignSelf="center" noShrink={true} style={styles.kbfsActions}>
+                {/* Cancel and Dismiss share the top spot, so a press as the job finishes still removes it */}
                 {job.phase === 'Done' ? (
-                  <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
-                    Show in {C.fileUIName}
+                  <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
+                    Dismiss
                   </Kb.Text>
                 ) : (
                   <Kb.Text style={styles.kbfsCancel} type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
@@ -362,8 +363,8 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
                   </Kb.Text>
                 )}
                 {job.phase === 'Done' ? (
-                  <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
-                    Dismiss
+                  <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
+                    Show in {C.fileUIName}
                   </Kb.Text>
                 ) : null}
               </Kb.Box2>

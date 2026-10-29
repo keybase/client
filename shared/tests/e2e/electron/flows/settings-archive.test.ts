@@ -275,8 +275,7 @@ test('backup all files', async ({page}, testInfo) => {
   await backupAll(page, testInfo, 'Backup all files', 'all-files', true)
 })
 
-// The same backup with the modal's count left unchecked (it fails on master, see the test above):
-// the jobs the service made are listed and cancelled from the app.
+// The same backup, for the jobs the service made: they are listed and cancelled from the app.
 test('backup all files makes jobs the page lists', async ({page}, testInfo) => {
   await backupAll(page, testInfo, 'Backup all files', 'all-files-jobs', false)
 })
