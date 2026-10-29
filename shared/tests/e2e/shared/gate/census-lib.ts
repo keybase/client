@@ -11,7 +11,7 @@
 // A write the app sends on its own, whatever the test does (e.g. updateLastLoggedInAndServerConfig),
 // would otherwise count as covered by every test. One sent in at least this share of the flow tests,
 // and in at least BACKGROUND_MIN_TESTS of them, is reported as background instead.
-import {eachFlowTest, flowTestName, type SuiteOf} from '../shared/gate/release-lib.ts'
+import {eachFlowTest, flowTestName, type SuiteOf} from './release-lib.ts'
 
 export const BACKGROUND_SHARE = 0.8
 export const BACKGROUND_MIN_TESTS = 10
@@ -175,17 +175,26 @@ export type CensusInput = {
   flowCoverage: ReadonlyArray<{test: string; rpcs: ReadonlyArray<string>; routes: ReadonlyArray<string>}>
   renderCoverage: ReadonlyArray<{entry: string; routes: ReadonlyArray<string>}>
   exclusions: Exclusions
+  // whose app sends the write RPCs (desktop)
+  platform: string
   // recordings that should have counted and could not (flowCoverageFromRuns, renderCoverageFromRows)
   coverageProblems?: ReadonlyArray<string>
-  // the app's other windows, which have no route: `listed` in census-windows.ts, `existing` the
-  // ones the app has (desktop/remote's remoteComponentNames)
-  windows?: {listed: ReadonlyArray<string>; existing: ReadonlyArray<string>}
+  // the app's other surfaces, which have no route: `listed` in `listFile`, `existing` the ones the
+  // app has. `noun` names them in every line (window on desktop); a tour entry `<entryPrefix><name>`
+  // or `<entryPrefix><name>-<state>` covers one.
+  surfaces?: {
+    listed: ReadonlyArray<string>
+    existing: ReadonlyArray<string>
+    noun: string
+    listFile: string
+    entryPrefix: string
+  }
 }
 
 export type CensusRoute = {name: string; coveredBy: Array<string>; excluded?: string}
 export type CensusWrite = {rpc: string; sentBy: Array<string>; excluded?: string; background?: true}
 export type CensusBackground = {rpc: string; sentIn: number; of: number}
-export type CensusWindow = {name: string; coveredBy: Array<string>}
+export type CensusSurface = {name: string; coveredBy: Array<string>}
 
 export type CensusResult = {
   routes: Array<CensusRoute>
@@ -195,10 +204,10 @@ export type CensusResult = {
   unsentWrites: Array<string>
   staleExclusions: Array<string>
   coverageProblems: Array<string>
-  windows: Array<CensusWindow>
-  unclaimedWindows: Array<string>
-  // the window list out of step with the app
-  staleWindows: Array<string>
+  surfaces: Array<CensusSurface>
+  unclaimedSurfaces: Array<string>
+  // the surface list out of step with the app
+  staleSurfaces: Array<string>
 }
 
 export const censusFailed = (r: CensusResult) =>
@@ -206,33 +215,34 @@ export const censusFailed = (r: CensusResult) =>
   r.unsentWrites.length > 0 ||
   r.staleExclusions.length > 0 ||
   r.coverageProblems.length > 0 ||
-  r.unclaimedWindows.length > 0 ||
-  r.staleWindows.length > 0
+  r.unclaimedSurfaces.length > 0 ||
+  r.staleSurfaces.length > 0
 
-// A window is covered by a tour entry that rendered it: `window/<name>` or a variant
-// `window/<name>-<state>`. An entry credits the longest name it matches, so `window/a-b-x` is a
+// A surface is covered by a tour entry that rendered it: `<prefix><name>` or a variant
+// `<prefix><name>-<state>`. An entry credits the longest name it matches, so `<prefix>a-b-x` is a
 // state of `a-b` and never of `a`.
-const windowCensus = (
-  w: NonNullable<CensusInput['windows']>,
+const surfaceCensus = (
+  w: NonNullable<CensusInput['surfaces']>,
   renderCoverage: CensusInput['renderCoverage']
-): Pick<CensusResult, 'windows' | 'unclaimedWindows' | 'staleWindows'> => {
+): Pick<CensusResult, 'surfaces' | 'unclaimedSurfaces' | 'staleSurfaces'> => {
+  const {noun, listFile, entryPrefix} = w
   const existing = new Set(w.existing)
   const listed = new Set(w.listed)
   const names = [...new Set([...w.listed, ...w.existing])].filter(n => existing.has(n)).sort()
   const byLength = [...names].sort((a, b) => b.length - a.length)
   const cover = new Map<string, Array<string>>()
   for (const {entry} of renderCoverage) {
-    const name = byLength.find(n => entry === `window/${n}` || entry.startsWith(`window/${n}-`))
+    const name = byLength.find(n => entry === `${entryPrefix}${n}` || entry.startsWith(`${entryPrefix}${n}-`))
     if (name) cover.set(name, [...(cover.get(name) ?? []), `tour ${entry}`])
   }
-  const windows = names.map(name => ({coveredBy: cover.get(name) ?? [], name}))
+  const surfaces = names.map(name => ({coveredBy: cover.get(name) ?? [], name}))
   return {
-    staleWindows: [
-      ...[...listed].filter(n => !existing.has(n)).map(n => `window ${n} is listed in census-windows.ts but the app has no such window`),
-      ...[...existing].filter(n => !listed.has(n)).map(n => `window ${n} is in the app but not listed in census-windows.ts`),
+    staleSurfaces: [
+      ...[...listed].filter(n => !existing.has(n)).map(n => `${noun} ${n} is listed in ${listFile} but the app has no such ${noun}`),
+      ...[...existing].filter(n => !listed.has(n)).map(n => `${noun} ${n} is in the app but not listed in ${listFile}`),
     ],
-    unclaimedWindows: windows.filter(x => !x.coveredBy.length).map(x => x.name),
-    windows,
+    surfaces,
+    unclaimedSurfaces: surfaces.filter(x => !x.coveredBy.length).map(x => x.name),
   }
 }
 
@@ -295,13 +305,13 @@ export const census = (input: CensusInput): CensusResult => {
   const covered = (w: CensusWrite) => w.sentBy.length > 0 && !w.background
   for (const [rpc, reason] of Object.entries(exclusions.rpcs)) {
     const w = writes.find(x => x.rpc === rpc)
-    if (!w) staleExclusions.push(`rpc ${rpc} is excluded (${reason}) but is not a write RPC the desktop app can send`)
+    if (!w) staleExclusions.push(`rpc ${rpc} is excluded (${reason}) but is not a write RPC the ${input.platform} app can send`)
     else if (covered(w)) staleExclusions.push(`rpc ${rpc} is excluded (${reason}) but sent by: ${w.sentBy.join(', ')}`)
   }
   const unsentWrites = writes.filter(w => !covered(w) && !w.background && w.excluded === undefined).map(w => w.rpc)
 
   return {
-    ...windowCensus(input.windows ?? {existing: [], listed: []}, renderCoverage),
+    ...surfaceCensus(input.surfaces ?? {entryPrefix: '', existing: [], listFile: '', listed: [], noun: ''}, renderCoverage),
     background,
     coverageProblems: [...(input.coverageProblems ?? [])],
     routes,
@@ -331,16 +341,24 @@ export const censusTotals = (r: CensusResult) => {
     writesBackground: r.background.length,
     writesCovered,
     writesExcluded,
+    surfacesCovered: r.surfaces.filter(x => x.coveredBy.length).length,
+    surfacesUnclaimed: r.unclaimedSurfaces.length,
     writesUnsent: r.unsentWrites.length,
-    windowsCovered: r.windows.filter(x => x.coveredBy.length).length,
-    windowsUnclaimed: r.unclaimedWindows.length,
   }
 }
 
-export type CensusMeta = {flowTests: number; renderEntries: number; sources: ReadonlyArray<string>}
+export type CensusMeta = {
+  flowTests: number
+  renderEntries: number
+  sources: ReadonlyArray<string>
+  // the noun of the extra surfaces (window)
+  surfaceNoun: string
+}
 
 export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string => {
   const t = censusTotals(r)
+  const noun = meta.surfaceNoun
+  const cap = `${noun.charAt(0).toUpperCase()}${noun.slice(1)}`
   const shortList = (xs: Array<string>) => (xs.length > 3 ? `${xs.slice(0, 3).join(', ')} (+${xs.length - 3})` : xs.join(', '))
   return [
     '# Coverage census',
@@ -350,9 +368,9 @@ export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string 
     ...(meta.sources.length ? ['Sources:', '', ...meta.sources.map(s => `- ${s}`), ''] : []),
     `- Routes: ${t.routesCovered} covered, ${t.routesUnclaimed} unclaimed, ${t.routesExcluded} excluded`,
     `- Write RPCs: ${t.writesCovered} covered, ${t.writesUnsent} unsent, ${t.writesBackground} background, ${t.writesExcluded} excluded`,
-    `- Windows: ${t.windowsCovered} covered, ${t.windowsUnclaimed} unclaimed`,
+    `- ${cap}s: ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed`,
     `- Stale exclusions: ${t.stale}`,
-    `- Stale window list entries: ${r.staleWindows.length}`,
+    `- Stale ${noun} list entries: ${r.staleSurfaces.length}`,
     `- Coverage problems: ${r.coverageProblems.length}`,
     '',
     '## Coverage problems (recordings that should have counted)',
@@ -363,13 +381,13 @@ export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string 
     '',
     r.staleExclusions.length ? r.staleExclusions.map(s => `- ${s}`).join('\n') : '(none)',
     '',
-    '## Stale window list',
+    `## Stale ${noun} list`,
     '',
-    r.staleWindows.length ? r.staleWindows.map(s => `- ${s}`).join('\n') : '(none)',
+    r.staleSurfaces.length ? r.staleSurfaces.map(s => `- ${s}`).join('\n') : '(none)',
     '',
-    '## Unclaimed windows',
+    `## Unclaimed ${noun}s`,
     '',
-    table(['window'], r.unclaimedWindows.map(n => [n])),
+    table([noun], r.unclaimedSurfaces.map(n => [n])),
     '',
     '## Unclaimed routes',
     '',
@@ -383,9 +401,9 @@ export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string 
     '',
     table(['rpc', 'sent in'], r.background.map(b => [b.rpc, `${b.sentIn} of ${b.of}`])),
     '',
-    '## Windows',
+    `## ${cap}s`,
     '',
-    table(['window', 'covered by'], r.windows.map(x => [x.name, shortList(x.coveredBy)])),
+    table([noun, 'covered by'], r.surfaces.map(x => [x.name, shortList(x.coveredBy)])),
     '',
     '## Routes',
     '',

@@ -2,7 +2,7 @@
 // starting `manual-only: <id>` names an entry of MANUAL_ONLY (manual-only.ts): the run stops at
 // that edge and a person does the rest. Signed-out, provisioning and reset screens are covered by
 // flows, except those only first-device provisioning or a started account reset reach.
-import type {Exclusions} from './census-lib'
+import type {Exclusions} from '../shared/gate/census-lib'
 
 const phoneOnly = 'phone only: desktop has no such screen'
 const firstDevice = 'owner: excluded (first-device provisioning screens; no test account without a device on this machine)'

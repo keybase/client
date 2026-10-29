@@ -11,12 +11,13 @@ import {
   type CensusInput,
   type Recording,
 } from './census-lib'
-import {summarizeFlows} from '../shared/gate/release-lib'
+import {summarizeFlows} from './release-lib'
 
 const input = (over: Partial<CensusInput> = {}): CensusInput => ({
   enabledRpcs: [],
   exclusions: {routes: {}, rpcs: {}},
   flowCoverage: [],
+  platform: 'desktop',
   renderCoverage: [],
   routes: [],
   ...over,
@@ -141,7 +142,7 @@ test('the markdown has a section per table with the totals', () => {
       routes: [{name: 'chatRoot'}, {name: 'login'}],
     })
   )
-  const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: ['results.json (project electron-flows)']})
+  const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: ['results.json (project electron-flows)'], surfaceNoun: 'window'})
   expect(md).toContain('- results.json (project electron-flows)')
   expect(md).toContain('Routes: 1 covered, 1 unclaimed, 0 excluded')
   expect(md).toContain('| login |')
@@ -208,8 +209,82 @@ test('coverage problems fail the census on their own', () => {
   expect(censusFailed(census(input()))).toBe(false)
 })
 
+const OLD_DESKTOP_MARKDOWN = `# Coverage census
+
+From 1 passing flow tests and 2 rendered tour entries.
+
+Sources:
+
+- a.json: x
+- b: y
+
+- Routes: 2 covered, 1 unclaimed, 1 excluded
+- Write RPCs: 1 covered, 0 unsent, 0 background, 1 excluded
+- Windows: 1 covered, 1 unclaimed
+- Stale exclusions: 1
+- Stale window list entries: 2
+- Coverage problems: 1
+
+## Coverage problems (recordings that should have counted)
+
+- none: passed without a coverage.json
+
+## Stale exclusions
+
+- rpc keybase.1.fake.fakeSend is excluded (gone) but is not a write RPC the desktop app can send
+
+## Stale window list
+
+- window gone is listed in census-windows.ts but the app has no such window
+- window pinentry is in the app but not listed in census-windows.ts
+
+## Unclaimed windows
+
+| window |
+| --- |
+| pinentry |
+
+## Unclaimed routes
+
+| route |
+| --- |
+| fsRoot |
+
+## Unsent write RPCs
+
+(none)
+
+## Background writes (sent in at least 80% of flow tests; not counted as covered)
+
+(none)
+
+## Windows
+
+| window | covered by |
+| --- | --- |
+| menubar | tour window/menubar-menu |
+| pinentry |  |
+
+## Routes
+
+| route | covered by | excluded |
+| --- | --- | --- |
+| chatRoot | flow a |  |
+| gitRoot |  | phone only |
+| teamsRoot | tour window/menubar-menu |  |
+| fsRoot |  |  |
+
+## Write RPCs
+
+| rpc | sent by | excluded |
+| --- | --- | --- |
+| keybase.1.teams.teamCreate | a |  |
+| keybase.1.teams.teamDelete |  | owner: no |
+`
+
 describe('windows', () => {
   const windows = {existing: ['menubar', 'tracker', 'unlock-folders'], listed: ['menubar', 'tracker', 'unlock-folders']}
+  const surfaces = (w: {existing: Array<string>; listed: Array<string>}) => ({...w, entryPrefix: 'window/', listFile: 'census-windows.ts', noun: 'window'})
 
   test('a window is covered by a rendered window/<name> tour entry or its variants', () => {
     const r = census(
@@ -219,15 +294,15 @@ describe('windows', () => {
           {entry: 'window/unlock-folders', routes: []},
           {entry: 'settings/display', routes: []},
         ],
-        windows,
+        surfaces: surfaces(windows),
       })
     )
-    expect(r.windows).toEqual([
+    expect(r.surfaces).toEqual([
       {coveredBy: ['tour window/menubar-menu'], name: 'menubar'},
       {coveredBy: [], name: 'tracker'},
       {coveredBy: ['tour window/unlock-folders'], name: 'unlock-folders'},
     ])
-    expect(r.unclaimedWindows).toEqual(['tracker'])
+    expect(r.unclaimedSurfaces).toEqual(['tracker'])
     expect(censusFailed(r)).toBe(true)
   })
 
@@ -235,21 +310,21 @@ describe('windows', () => {
     const r = census(
       input({
         renderCoverage: [{entry: 'window/unlock-folders-paper-key', routes: []}],
-        windows: {existing: ['unlock', 'unlock-folders'], listed: ['unlock', 'unlock-folders']},
+        surfaces: surfaces({existing: ['unlock', 'unlock-folders'], listed: ['unlock', 'unlock-folders']}),
       })
     )
-    expect(r.unclaimedWindows).toEqual(['unlock'])
+    expect(r.unclaimedSurfaces).toEqual(['unlock'])
   })
 
   test('every window covered fails nothing', () => {
     const r = census(
       input({
         renderCoverage: windows.listed.map(w => ({entry: `window/${w}`, routes: []})),
-        windows,
+        surfaces: surfaces(windows),
       })
     )
-    expect(r.unclaimedWindows).toEqual([])
-    expect(r.staleWindows).toEqual([])
+    expect(r.unclaimedSurfaces).toEqual([])
+    expect(r.staleSurfaces).toEqual([])
     expect(censusFailed(r)).toBe(false)
   })
 
@@ -257,23 +332,82 @@ describe('windows', () => {
     const r = census(
       input({
         renderCoverage: [{entry: 'window/menubar', routes: []}, {entry: 'window/gone', routes: []}],
-        windows: {existing: ['menubar', 'pinentry'], listed: ['menubar', 'gone']},
+        surfaces: surfaces({existing: ['menubar', 'pinentry'], listed: ['menubar', 'gone']}),
       })
     )
-    expect(r.staleWindows).toEqual([
+    expect(r.staleSurfaces).toEqual([
       'window gone is listed in census-windows.ts but the app has no such window',
       'window pinentry is in the app but not listed in census-windows.ts',
     ])
-    expect(r.unclaimedWindows).toEqual(['pinentry'])
+    expect(r.unclaimedSurfaces).toEqual(['pinentry'])
     expect(censusFailed(r)).toBe(true)
   })
 
   test('the markdown lists unclaimed windows and every window', () => {
-    const r = census(input({renderCoverage: [{entry: 'window/menubar', routes: []}], windows}))
-    const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: []})
+    const r = census(input({renderCoverage: [{entry: 'window/menubar', routes: []}], surfaces: surfaces(windows)}))
+    const md = renderCensusMarkdown(r, {flowTests: 0, renderEntries: 1, sources: [], surfaceNoun: 'window'})
     expect(md).toContain('- Windows: 1 covered, 2 unclaimed')
     expect(md).toContain('## Unclaimed windows')
     expect(md).toContain('| menubar | tour window/menubar |')
+  })
+
+  const fixture = (over: Partial<CensusInput> = {}) =>
+    census(
+      input({
+        coverageProblems: ['none: passed without a coverage.json'],
+        enabledRpcs: ['keybase.1.teams.teamCreate', 'keybase.1.teams.teamDelete', 'keybase.1.config.getConfig'],
+        exclusions: {routes: {gitRoot: 'phone only'}, rpcs: {'keybase.1.teams.teamDelete': 'owner: no', 'keybase.1.fake.fakeSend': 'gone'}},
+        flowCoverage: [flow('a', ['keybase.1.teams.teamCreate'], ['chatRoot'])],
+        renderCoverage: [
+          {entry: 'window/menubar-menu', routes: ['teamsRoot']},
+          {entry: 'window/gone', routes: []},
+        ],
+        routes: [{name: 'chatRoot'}, {name: 'gitRoot'}, {name: 'teamsRoot'}, {name: 'fsRoot'}],
+        surfaces: surfaces({existing: ['menubar', 'pinentry'], listed: ['menubar', 'gone']}),
+        ...over,
+      })
+    )
+
+  test('the desktop markdown keeps its window wording', () => {
+    const md = renderCensusMarkdown(fixture(), {
+      flowTests: 1,
+      renderEntries: 2,
+      sources: ['a.json: x', 'b: y'],
+      surfaceNoun: 'window',
+    })
+    expect(md).toBe(OLD_DESKTOP_MARKDOWN)
+  })
+
+  test('another platform names its own surfaces, prefix and platform', () => {
+    const r = fixture({
+      exclusions: {routes: {}, rpcs: {'keybase.1.fake.fakeSend': 'gone'}},
+      platform: 'iOS',
+      renderCoverage: [{entry: 'surface/share-extension-sent', routes: []}],
+      surfaces: {
+        entryPrefix: 'surface/',
+        existing: ['share-extension', 'widget'],
+        listFile: 'census-surfaces.ts',
+        listed: ['share-extension', 'gone'],
+        noun: 'surface',
+      },
+    })
+    expect(r.surfaces).toEqual([
+      {coveredBy: ['tour surface/share-extension-sent'], name: 'share-extension'},
+      {coveredBy: [], name: 'widget'},
+    ])
+    expect(r.staleSurfaces).toEqual([
+      'surface gone is listed in census-surfaces.ts but the app has no such surface',
+      'surface widget is in the app but not listed in census-surfaces.ts',
+    ])
+    const md = renderCensusMarkdown(r, {flowTests: 1, renderEntries: 1, sources: [], surfaceNoun: 'surface'})
+    expect(md).toContain('- Surfaces: 1 covered, 1 unclaimed')
+    expect(md).toContain('- Stale surface list entries: 2')
+    expect(md).toContain('## Stale surface list')
+    expect(md).toContain('## Unclaimed surfaces')
+    expect(md).toContain('## Surfaces\n')
+    expect(md).toContain('| surface | covered by |')
+    expect(md).toContain('not a write RPC the iOS app can send')
+    expect(md).not.toContain('window')
   })
 })
 
