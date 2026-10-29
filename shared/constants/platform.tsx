@@ -141,7 +141,7 @@ const _getWindowsPaths = () => {
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: _join(dir, socketName),
+    socketPath: `${dir}\\${socketName}`,
   }
 }
 
