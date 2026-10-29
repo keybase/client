@@ -6,6 +6,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
 import {
@@ -131,6 +132,7 @@ const BlockButtons = () => {
       relative={true}
       style={styles.dismissContainer}
       fullWidth={true}
+      testID={TestIDs.CHAT_BLOCK_BUTTONS}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall">
@@ -141,6 +143,7 @@ const BlockButtons = () => {
           type="iconfont-close"
           color={theme.black_20}
           onClick={onDismiss}
+          testID={TestIDs.CHAT_BLOCK_BUTTONS_DISMISS}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
@@ -148,12 +151,18 @@ const BlockButtons = () => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.container}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xsmall"
+      alignItems="center"
+      style={styles.container}
+      testID={TestIDs.CHAT_BLOCK_BUTTONS}
+    >
       <Kb.Text type="BodySmall">
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
       {buttonRow}
-      <Kb.Icon type="iconfont-remove" onClick={onDismiss} />
+      <Kb.Icon type="iconfont-remove" onClick={onDismiss} testID={TestIDs.CHAT_BLOCK_BUTTONS_DISMISS} />
     </Kb.Box2>
   )
 }

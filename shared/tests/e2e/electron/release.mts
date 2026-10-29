@@ -2,12 +2,13 @@
 //
 // The desktop release gate, in one command. Exits 1 on any failure: a flow test failed (known
 // failures from known-failures.ts included), was flaky or was skipped, a tour entry failed to
-// render, the census found an unclaimed route or window or an unsent write, or a phase could not run.
+// render, the census found an unclaimed route or window or an unsent write, an artifact held a secret
+// from the env file, or a phase could not run.
 //   1. preflight, refusing with what to do: the env file loads, this run takes the release lock
 //      (/tmp/kb-e2e-release.lock, KB_E2E_RELEASE_LOCK; no other release run holds it), the main
-//      service is on KB_SMOKE_USER, ports 4000/9222 are free or held by an app launch-app.mts
-//      started, no visual gate run holds its lock, KBFS answers, both peers answer (started if
-//      not, via ensurePeer) and `accounts/setup --check` passes. Nothing is launched before it
+//      service is on KB_SMOKE_USER, ports 4000/9222/9229 are free or held by an app launch-app.mts
+//      started, no visual gate run holds its lock, the macOS session is unlocked, KBFS answers,
+//      both peers answer (started if not, via ensurePeer) and `accounts/setup --check` passes. Nothing is launched before it
 //      passes, and the main service is never switched, stopped or restarted, nor its components
 //      started
 //   2. launch the dev app (launch-app.mts)
@@ -15,6 +16,8 @@
 //   4. every flow, light mode only (project electron-flows)
 //   5. the visual tour in render mode, on the app relaunched with the visual gate switches
 //   6. census, then the report, opened unless KB_E2E_NO_OPEN=1
+//   7. a scan of everything under tests/results for the env file's secrets (secret-scan.ts): a file
+//      that holds one is deleted and named, and the run fails
 // While flows and render drive the app, a watchdog (watchdog.ts) fails the run if its renderer goes
 // blank, writing why to tests/results/watchdog.log. Then it stops the app it launched (peers stay
 // up), prints one line per phase and posts a macOS notification. Each child gets this run's
@@ -35,6 +38,8 @@ import {ensurePeer, mainWhoami, redactSecrets, runKeybase} from '../shared/peer-
 import {acquireFileLock, assertNotLocked} from '../visual/lock.mts'
 import {appLogPath} from './app-log.ts'
 import {groupAlive, readAppPidfile, stopAppGroup} from './app-pidfile.ts'
+import {closeMainInspector, sessionLocked} from './helpers/main-process.ts'
+import {scanAndPurge, watchEnvSecrets} from './secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
 import {
   flowProblems,
@@ -44,6 +49,7 @@ import {
   parseLsof,
   parseTimeoutMin,
   preflightProblems,
+  RELEASE_PORTS,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -173,6 +179,14 @@ const portState = (port: number): PreflightState['ports'][number] => {
   return 'error' in parsed ? {error: parsed.error, holders: [], port} : {holders: parsed.pids.map(holder), port}
 }
 
+const screenState = (): PreflightState['screen'] => {
+  try {
+    return {locked: sessionLocked()}
+  } catch (e) {
+    return {error: errText(e)}
+  }
+}
+
 const holder = (pid: number): PortHolder => {
   try {
     const line = execFileSync('ps', ['-o', 'pgid=,command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000}).trim()
@@ -214,7 +228,8 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     appPgid: recorded && groupAlive(recorded.pgid) ? recorded.pgid : undefined,
     ...(onSmoke ? {kbfs: {path: kbfsPath, ...(await outcome(runKeybase(['fs', 'ls', kbfsPath], {timeoutMs: 15_000})))}} : {}),
     lockHeld,
-    ports: [4000, 9222].map(portState),
+    ports: RELEASE_PORTS.map(portState),
+    screen: screenState(),
     smokeUser: env.smokeUser,
     whoami,
   }
@@ -236,6 +251,12 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
 const stopApp = async () => {
   // a run refused for the lock never launched anything, and the pidfile is the other run's
   if (!holdsReleaseLock) return
+  // the main process's inspector runs any code sent to it: closed even if the app stays up
+  try {
+    await closeMainInspector()
+  } catch (e) {
+    log(`could not close the app's main process inspector: ${errText(e)}`)
+  }
   const pgids = new Set<number>()
   if (launchedPgid !== undefined) pgids.add(launchedPgid)
   const recorded = readAppPidfile()
@@ -354,6 +375,8 @@ const main = async () => {
   })
   if (!ready || !env) return endRun(1)
   const e2eEnv = env
+  // the scan at the end looks for every second-account password the env file held during the run
+  const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv))
 
@@ -427,6 +450,14 @@ const main = async () => {
     if (r.code !== 0 || !fs.existsSync(out.report)) return {line: `report generator exited ${r.code}`, ok: false}
     if (!process.env['KB_E2E_NO_OPEN']) spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
     return {line: out.report, ok: true}
+  })
+
+  // last, over everything the run wrote: no artifact may hold a secret from the env file
+  await phase('secrets', async () => {
+    const scan = scanAndPurge([resultsDir], secrets.secrets())
+    secrets.stop()
+    for (const f of scan.hits) log(`secret found, deleted: ${f}`)
+    return Promise.resolve({line: scan.line, ok: !scan.hits.length})
   })
 
   return endRun(releaseFailed(phases) ? 1 : 0)

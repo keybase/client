@@ -22,6 +22,7 @@ import type {MeasureRef} from './measure-ref'
 import {navToProfile} from '@/constants/router'
 import {useTrackerProfile} from '@/tracker/use-profile'
 import {noAssertion} from '@/tracker/model'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
@@ -94,6 +95,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       style={styles.serviceIcons}
       fullWidth={true}
       centerChildren={true}
+      testID={TestIDs.PROFILE_CARD_SERVICE_ICONS}
     >
       {serviceIdsShowing.map(serviceId => {
         const assertion = services.get(serviceId) || noAssertion
