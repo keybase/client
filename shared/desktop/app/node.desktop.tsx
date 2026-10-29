@@ -16,7 +16,6 @@ import KB2 from '@/util/electron'
 import {
   installCrashReporter,
   appShouldDieOnStartup,
-  changeCommandLineSwitches,
   fixWindowsNotifications,
   getStartupProcessArgs,
   registerCrashHandling,
@@ -93,7 +92,6 @@ const startApp = () => {
 
   registerSecondInstanceHandler({getMainWindow})
   fixWindowsNotifications()
-  changeCommandLineSwitches()
   devTools()
 
   const engineRelay = new EngineRelay(data => KB2.functions.mainWindowDispatchEngineIncoming?.(data))
