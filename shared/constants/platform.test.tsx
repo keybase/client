@@ -3,7 +3,7 @@ jest.mock('@/util/electron', () => ({
   default: {
     constants: {
       env: {
-        APPDATA: 'C:\\Users\\test\\AppData\\Roaming',
+        APPDATA: '\\\\server\\profiles\\\\test\\Roaming\\',
         KEYBASE_RUN_MODE: 'prod',
         LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local',
       },
@@ -13,7 +13,7 @@ jest.mock('@/util/electron', () => ({
   },
 }))
 
-import {dataRoot, socketPath} from './platform'
+import {cacheRoot, dataRoot, socketPath} from './platform'
 
 it('preserves the Windows named-pipe namespace when locating the service', () => {
   expect(socketPath).toBe('\\\\.\\pipe\\kbservice\\Users\\test\\AppData\\Local\\Keybase\\keybased.sock')
@@ -21,4 +21,8 @@ it('preserves the Windows named-pipe namespace when locating the service', () =>
 
 it('keeps ordinary Windows data paths normalized', () => {
   expect(dataRoot).toBe('C:\\Users\\test\\AppData\\Local\\Keybase\\')
+})
+
+it('preserves the UNC prefix while collapsing repeated separators within a network path', () => {
+  expect(cacheRoot).toBe('\\\\server\\profiles\\test\\Roaming\\Keybase\\')
 })
