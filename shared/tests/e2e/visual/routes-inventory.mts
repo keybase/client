@@ -99,38 +99,77 @@ const spreadObjects = (n: Node, locals: Map<string, ObjectExpression>): Array<Ob
   return []
 }
 
+type Parsed = {ast: ReturnType<typeof parseSrc>; locals: Map<string, ObjectExpression>; imports: Map<string, {from: string; name: string}>}
+
+const parsed = new Map<string, Parsed>()
+const parseFile = (file: string): Parsed => {
+  const hit = parsed.get(file)
+  if (hit) return hit
+  const ast = parseSrc(readFileSync(path.join(sharedDir, file), 'utf8'))
+  const locals = new Map<string, ObjectExpression>()
+  const imports = new Map<string, {from: string; name: string}>()
+  for (const stmt of ast.program.body) {
+    if (stmt.type === 'ImportDeclaration') {
+      for (const sp of stmt.specifiers) {
+        if (sp.type !== 'ImportSpecifier') continue
+        const name = sp.imported.type === 'Identifier' ? sp.imported.name : sp.imported.value
+        imports.set(sp.local.name, {from: stmt.source.value, name})
+      }
+      continue
+    }
+    // an exported const is a map too: `export const newRoutes = {...}` is spread into other files
+    const decl0 = stmt.type === 'ExportNamedDeclaration' ? stmt.declaration : stmt
+    if (decl0?.type !== 'VariableDeclaration') continue
+    for (const decl of decl0.declarations) {
+      if (decl.id.type !== 'Identifier') continue
+      const obj = decl.init?.type === 'ObjectExpression' ? decl.init : mapArg(decl.init)
+      if (obj) locals.set(decl.id.name, obj)
+    }
+  }
+  const out = {ast, imports, locals}
+  parsed.set(file, out)
+  return out
+}
+
+// The file (relative to shared/) an import specifier names; relative or the `@/` alias.
+const resolveImport = (from: string, spec: string): string | undefined => {
+  const base = spec.startsWith('@/') ? spec.slice(2) : spec.startsWith('.') ? path.join(path.dirname(from), spec) : undefined
+  if (!base) return undefined
+  for (const c of [`${base}.tsx`, `${base}.ts`, `${base}/index.tsx`, `${base}/index.ts`]) {
+    if (existsSync(path.join(sharedDir, c))) return c
+  }
+  return undefined
+}
+
 export function listRoutes(): Array<RouteInfo> {
   const out: Array<RouteInfo> = []
   const seen = new Set<string>()
+  const addMap = (file: string, obj: ObjectExpression, modal: boolean) => {
+    const {locals, imports} = parseFile(file)
+    for (const p of obj.properties) {
+      if (p.type === 'SpreadElement') {
+        const arg = p.argument
+        for (const o of spreadObjects(arg, locals)) addMap(file, o, modal)
+        // a map imported from another module is listed with that module
+        const imp = arg.type === 'Identifier' && !locals.has(arg.name) ? imports.get(arg.name) : undefined
+        const target = imp ? resolveImport(file, imp.from) : undefined
+        const exported = target ? parseFile(target).locals.get(imp?.name ?? '') : undefined
+        if (target && exported) addMap(target, exported, modal)
+        continue
+      }
+      const name = keyName(p)
+      if (!name || seen.has(`${file}:${name}`)) continue
+      seen.add(`${file}:${name}`)
+      out.push({name, file, modal, hasParams: p.type === 'ObjectProperty' && valueHasParams(p.value)})
+    }
+  }
   for (const file of [...routeFiles(), 'router-v2/routes.tsx'].filter((f, i, a) => a.indexOf(f) === i)) {
-    const ast = parseSrc(readFileSync(path.join(sharedDir, file), 'utf8'))
-    const locals = new Map<string, ObjectExpression>()
-    for (const stmt of ast.program.body) {
-      if (stmt.type !== 'VariableDeclaration') continue
-      for (const decl of stmt.declarations) {
-        if (decl.id.type !== 'Identifier') continue
-        const obj = decl.init?.type === 'ObjectExpression' ? decl.init : mapArg(decl.init)
-        if (obj) locals.set(decl.id.name, obj)
-      }
-    }
-    const addMap = (obj: ObjectExpression, modal: boolean) => {
-      for (const p of obj.properties) {
-        if (p.type === 'SpreadElement') {
-          for (const o of spreadObjects(p.argument, locals)) addMap(o, modal)
-          continue
-        }
-        const name = keyName(p)
-        if (!name || seen.has(`${file}:${name}`)) continue
-        seen.add(`${file}:${name}`)
-        out.push({name, file, modal, hasParams: p.type === 'ObjectProperty' && valueHasParams(p.value)})
-      }
-    }
-    for (const stmt of ast.program.body) {
+    for (const stmt of parseFile(file).ast.program.body) {
       if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration') continue
       for (const decl of stmt.declaration.declarations) {
         if (decl.id.type !== 'Identifier') continue
         const obj = mapArg(decl.init)
-        if (obj) addMap(obj, /modal/i.test(decl.id.name))
+        if (obj) addMap(file, obj, /modal/i.test(decl.id.name))
       }
     }
   }

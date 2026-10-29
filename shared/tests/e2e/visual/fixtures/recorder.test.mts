@@ -5,10 +5,10 @@ import type * as Runtime from './runtime.ts'
 
 // the module installs itself only in a dev app
 ;(globalThis as {__DEV__?: boolean}).__DEV__ = false
-const {createRouteRecorder, createRuntime, routeNames} = await import('./runtime.ts')
+const {createRouteRecorder, createRuntime, liveNavigator, routeNames} = await import('./runtime.ts')
 
 // A runtime whose installed engine hook the test can read.
-const runtime = () => {
+const runtime = (recordBoot = false) => {
   let installed: Runtime.VisualRpc | undefined
   // a function, so an assertion about one read does not narrow the next
   const hook = () => installed
@@ -19,6 +19,7 @@ const runtime = () => {
       installed = r
     },
     now: () => 0,
+    recordBoot,
     stores: {get: () => undefined},
   })
   return {hook, rt}
@@ -128,6 +129,25 @@ test('a fixture without the recorder records nothing, and start resets an earlie
   assert.equal(hook(), undefined)
 })
 
+test('start({includeBoot: true}) includes RPCs sent before start', () => {
+  const {hook, rt} = runtime(true)
+  hook()?.invoke(passing('a.b.c'))
+  rt.recording.start({includeBoot: true})
+  hook()?.invoke(passing('x.y.z'))
+  assert.deepEqual(rt.recording.take(), ['a.b.c', 'x.y.z'])
+  assert.equal(hook(), undefined)
+  rt.recording.start({includeBoot: true})
+  assert.deepEqual(rt.recording.take(), [], 'the boot list is credited once')
+})
+
+test('start() alone leaves out RPCs sent before it', () => {
+  const {hook, rt} = runtime(true)
+  hook()?.invoke(passing('a.b.c'))
+  rt.recording.start()
+  hook()?.invoke(passing('x.y.z'))
+  assert.deepEqual(rt.recording.take(), ['x.y.z'])
+})
+
 type Listener = (e: {data?: {state?: unknown}}) => void
 const fakeNav = (state: unknown) => {
   const listeners = new Set<Listener>()
@@ -224,4 +244,51 @@ test('routes: a screen shown at start is in routes only once a later, different 
   nav.emit(settings)
   nav.emit(display)
   assert.deepEqual(rec.take(), {routes: ['settingsRoot', 'settingsTabs.accountTab', 'settingsTabs.displayTab'], startRoutes: ['settingsRoot', 'settingsTabs.displayTab']})
+})
+
+// A navigation container whose state the test sets, and which tells its listeners.
+const container = (state: unknown) => {
+  const listeners = new Set<(e: {data?: {state?: unknown}}) => void>()
+  let current = state
+  return {
+    addListener: (_: 'state', cb: (e: {data?: {state?: unknown}}) => void) => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
+    getRootState: () => current,
+    set: (next: unknown) => {
+      current = next
+      for (const cb of listeners) cb({data: {state: next}})
+    },
+  }
+}
+const stack = (...names: Array<string>) => ({index: names.length - 1, routes: names.map((name, i) => ({key: `${i}`, name}))})
+
+test('routes from a remounted navigation container are recorded', () => {
+  const first = container(stack('loggedIn'))
+  const router = {navigationRef: {current: first as Runtime.NavLike | null}}
+  // DEBUGNavigator keeps the container of the first mount
+  const g = {DEBUGNavigator: first, DEBUGRouter2: router}
+  let poll = () => {}
+  const rec = createRouteRecorder({
+    every: (_ms, f) => {
+      poll = f
+      return () => {}
+    },
+    navigator: () => liveNavigator(g),
+  })
+  rec.start()
+  // a sign-out remounts the container; the old one never changes again
+  const second = container(stack('loggedOut'))
+  router.navigationRef.current = second
+  poll()
+  second.set(stack('loggedOut', 'login'))
+  second.set(stack('loggedOut', 'login', 'forgotUsername'))
+  assert.deepEqual(rec.take().routes, ['loggedOut', 'login', 'forgotUsername'])
+})
+
+test('liveNavigator falls back to DEBUGNavigator without a router ref', () => {
+  const only = container(stack('loggedIn'))
+  assert.equal(liveNavigator({DEBUGNavigator: only}), only)
+  assert.equal(liveNavigator({}), undefined)
 })

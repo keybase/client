@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {alwaysShow?: boolean}
 
@@ -127,6 +128,7 @@ const Banner = (props: BannerProps) => {
       fullWidth={true}
       centerChildren={true}
       style={{backgroundColor: backgroundToBackgroundColor(props.background, theme)}}
+      testID={TestIDs.FILES_SFMI_BANNER}
     >
       <Kb.IconAuto
         type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}

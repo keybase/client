@@ -206,6 +206,7 @@ const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void
       fullWidth={true}
       alignItems="flex-start"
       style={styles.fileUpdateRow}
+      testID={TestIDs.MENUBAR_FILE_ROW}
     >
       <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
       {p.uploading && (
@@ -604,6 +605,11 @@ const iconMap = {
   [C.Tabs.settingsTab]: undefined,
 } as const
 
+const tabTestIDs: {[tab: string]: string | undefined} = {
+  [C.Tabs.chatTab]: TestIDs.MENUBAR_TAB_CHAT,
+  [C.Tabs.fsTab]: TestIDs.MENUBAR_TAB_FILES,
+}
+
 type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
 
 const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t: Tabs) => void}) => {
@@ -627,6 +633,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
         sizeType="Big"
         style={styles.navIcons}
         type={iconType}
+        testID={tabTestIDs[tab]}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
     </Kb.Box2>

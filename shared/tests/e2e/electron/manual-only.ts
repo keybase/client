@@ -61,6 +61,10 @@ export const MANUAL_ONLY = {
     doByHand: 'Install the release build from the installer and check the auto-update prompt and relaunch.',
     title: 'Auto-update and installer',
   },
+  'quit-app': {
+    doByHand: "Tab bar menu > Quit, and the menubar's Quit: the app and service stop; relaunch.",
+    title: 'Quit Keybase',
+  },
 } satisfies Record<string, {title: string; doByHand: string}>
 
 export type ManualOnlyId = keyof typeof MANUAL_ONLY

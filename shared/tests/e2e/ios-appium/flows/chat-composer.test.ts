@@ -5,7 +5,7 @@
 import {
   E2E_CHANNELS,
   createThrowawayChannel,
-  deleteThrowawayChannels,
+  deleteThrowawayChannel,
   ensureChatData,
   readonlyMarker,
   setMinWriterRoleFromCli,
@@ -509,20 +509,23 @@ describe('chat composer: read-only channel', () => {
 // leaves the draft set aside for the edit as it was; it loads again once the account can post. The
 // owner clearing the role altogether makes the channel writable again as it shows.
 describe('chat composer: read-only mid-edit', () => {
-  const prefix = 'e2e-iroedit'
+  // channel labels (see createThrowawayChannel), one per test
+  const editLabel = 'iroedit'
+  const clearLabel = 'iroclr'
+  const created: Array<string> = []
 
   after(async () => {
     await closeMessageMenu().catch(() => {})
     await switchAppAccount(data.smokeUser)
     await switchCliAccount(data.smokeUser)
-    await deleteThrowawayChannels(prefix)
+    for (const topicName of created) await deleteThrowawayChannel(topicName)
     await switchCliAccount(data.secondUser)
   })
 
   it('cancelling the edit empties the composer and leaves the draft, which comes back once it can post', async () => {
     await switchCliAccount(data.smokeUser)
-    await deleteThrowawayChannels(prefix)
-    const {convID, topicName} = await createThrowawayChannel(prefix)
+    const {convID, topicName} = await createThrowawayChannel(editLabel)
+    created.push(topicName)
     await switchAppAccount(data.secondUser)
     await openConversation(convID)
     await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 10_000})
@@ -554,7 +557,8 @@ describe('chat composer: read-only mid-edit', () => {
 
   it('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async () => {
     await switchCliAccount(data.smokeUser)
-    const {convID, topicName} = await createThrowawayChannel(prefix)
+    const {convID, topicName} = await createThrowawayChannel(clearLabel)
+    created.push(topicName)
     await switchAppAccount(data.secondUser)
     await openConversation(convID)
     await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 10_000})

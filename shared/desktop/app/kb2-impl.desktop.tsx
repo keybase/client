@@ -31,6 +31,7 @@ const kb2: KB2['constants'] = {
   env: {
     APPDATA: (env['APPDATA'] as string | undefined) ?? '',
     HOME: (env['HOME'] as string | undefined) ?? '',
+    KB_E2E_TEST: (env['KB_E2E_TEST'] as string | undefined) ?? '',
     KEYBASE_AUTOSTART: (env['KEYBASE_AUTOSTART'] as string | undefined) ?? '',
     KEYBASE_CRASH_REPORT: (env['KEYBASE_CRASH_REPORT'] as string | undefined) ?? '',
     KEYBASE_DEVEL_USE_XDG: (env['KEYBASE_DEVEL_USE_XDG'] as string | undefined) ?? '',

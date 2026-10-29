@@ -5,9 +5,13 @@ import * as path from 'path'
 import {
   checkRetirablePeerHome,
   checkRevocable,
+  checkStoppablePeerHome,
+  homeServicePids,
   peerHomeRoots,
+  revokeWithHomeStopped,
   restoreMainAccount,
   retirePeerHome,
+  stopPeerHomeService,
   withSignalsDeferred,
 } from './peer-homes'
 import {peerConfigPath} from '../shared/peer-service'
@@ -118,6 +122,62 @@ describe('checkRetirablePeerHome', () => {
     expect(() =>
       checkRetirablePeerHome(`${linkRoot}/second`, `${root}x`, {homeDir: path.join(dir, 'user'), roots: [linkRoot + path.sep]})
     ).toThrow(/symlink/)
+  })
+})
+
+describe('homeServicePids', () => {
+  const home = '/x/homes/prov-0abcd1'
+  test('finds the processes started with --home <home>, in either form', () => {
+    const ps = [
+      '  101 /bin/keybase --home /x/homes/prov-0abcd1 -d --log-file=/x/homes/prov-0abcd1/service.log service',
+      '  102 /bin/keybase --home=/x/homes/prov-0abcd1 service',
+      '  103 /bin/keybase --home /x/homes/prov-0abcd1x service',
+      '  104 /bin/keybase --home /x/homes/second service',
+      '  105 /bin/keybase service',
+      '',
+    ].join('\n')
+    expect(homeServicePids(ps, home)).toEqual([101, 102])
+  })
+  test('finds nothing in an empty listing', () => {
+    expect(homeServicePids('', home)).toEqual([])
+  })
+})
+
+describe('revokeWithHomeStopped', () => {
+  const home = '/x/homes/prov-0abcd1'
+  const deps = (s: {answers: Array<boolean>; pids: Array<Array<number>>}) => {
+    const order: Array<string> = []
+    return {
+      d: {
+        answers: jest.fn(async () => Promise.resolve(s.answers.shift() ?? false)),
+        pids: jest.fn(() => s.pids.shift() ?? []),
+        revoke: jest.fn(async () => Promise.resolve(void order.push('revoke'))),
+        stop: jest.fn(async () => Promise.resolve(void order.push('stop'))),
+      },
+      order,
+    }
+  }
+  test('revokes at once when no process runs for the home', async () => {
+    const {d, order} = deps({answers: [false, false], pids: [[]]})
+    await revokeWithHomeStopped(home, d)
+    expect(order).toEqual(['revoke'])
+  })
+  test('stops a service that still answers (a home that still exists), then revokes', async () => {
+    const {d, order} = deps({answers: [true, false], pids: [[]]})
+    await revokeWithHomeStopped(home, d)
+    expect(d.stop).toHaveBeenCalledWith(home)
+    expect(order).toEqual(['stop', 'revoke'])
+  })
+  test('refuses when a service still answers after the stop (a home that still exists)', async () => {
+    const {d} = deps({answers: [true, true], pids: [[]]})
+    await expect(revokeWithHomeStopped(home, d)).rejects.toThrow(/refusing to revoke.*still answers/)
+    expect(d.revoke).not.toHaveBeenCalled()
+  })
+  test('refuses while a process for a gone home still runs: no socket answers, so only the pid check guards', async () => {
+    const {d} = deps({answers: [false, false], pids: [[4242]]})
+    await expect(revokeWithHomeStopped(home, d)).rejects.toThrow(/refusing to revoke.*pid 4242/)
+    expect(d.stop).not.toHaveBeenCalled()
+    expect(d.revoke).not.toHaveBeenCalled()
   })
 })
 
@@ -259,5 +319,23 @@ describe('restoreMainAccount', () => {
       restoreMainAccount('testuser', 'fix-cmd', {...f.deps, now, sleep: async () => Promise.resolve(void (t += 60_000))}, {deadlineMs: 90_000})
     ).rejects.toThrow('fix-cmd')
     expect(f.calls).toHaveLength(2)
+  })
+})
+
+describe('checkStoppablePeerHome', () => {
+  const opts = () => ({homeDir: path.join(dir, 'user'), roots: [root]})
+  test('refuses the main home, a parent of it, anything outside the roots, and unnormalised paths', () => {
+    expect(() => checkStoppablePeerHome(path.join(dir, 'user'), opts())).toThrow(/home directory/)
+    expect(() => checkStoppablePeerHome(dir, {homeDir: path.join(dir, 'user'), roots: [dir + path.sep]})).toThrow()
+    expect(() => checkStoppablePeerHome(path.join(dir, 'elsewhere'), opts())).toThrow(/not inside an e2e peer home root/)
+    expect(() => checkStoppablePeerHome(root, opts())).toThrow(/not inside/)
+    expect(() => checkStoppablePeerHome(`${root}x/../second`, opts())).toThrow(/normalised/)
+    expect(() => checkStoppablePeerHome('', opts())).toThrow(/absolute/)
+  })
+  test('passes a home inside a root', () => {
+    expect(checkStoppablePeerHome(`${root}second`, opts())).toBe(`${root}second`)
+  })
+  test("stopPeerHomeService refuses the user's home before touching any service", async () => {
+    await expect(stopPeerHomeService(os.homedir())).rejects.toThrow(/home directory/)
   })
 })

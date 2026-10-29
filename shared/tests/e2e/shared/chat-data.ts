@@ -8,9 +8,11 @@
 //   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages)
 //   KB_E2E_TEAM    the team the e2e channels live in
 import {spawn, execFile, type ChildProcessWithoutNullStreams} from 'child_process'
+import {randomBytes} from 'crypto'
 import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
+import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
 import {keybaseBin} from './keybase-bin.ts'
 
 // The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
@@ -104,11 +106,12 @@ type ApiMessage = {
     content: {
       type: string
       text?: {body: string}
-      attachment?: {object?: {title?: string}}
+      attachment?: {object?: {filename?: string; title?: string}}
     }
     sender: {username: string}
   }
 }
+export type CliMessage = ApiMessage['msg']
 
 type ReadResult = {
   messages?: Array<ApiMessage>
@@ -482,6 +485,13 @@ export const sendFromCli = async (topicName: E2EChannel, body: string) => {
   await withApi(async api => sendText(api, channelRef(team, topicName), body))
 }
 
+// The same into a channel createThrowawayChannel made in this run, named exactly.
+export const sendToThrowawayFromCli = async (topicName: string, body: string) => {
+  if (parseStampedName(topicName, 'dashed')?.runId !== currentRunId()) throw new Error(`#${topicName} is not a channel of this run`)
+  const {team} = e2eAccounts()
+  await withApi(async api => sendText(api, channelRef(team, topicName), body))
+}
+
 // A text message sent through the host's CLI to a one-on-one conversation, named by its tlf name.
 export const sendDirectFromCli = async (tlfName: string, body: string) => {
   await withApi(async api => api.call('send', {channel: {name: tlfName}, message: {body}}))
@@ -494,6 +504,15 @@ export const attachFromCli = async (topicName: E2EChannel, title: string) => {
   await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: image.file, title}))
 }
 
+// The newest `num` messages of an e2e team channel, or of a one-on-one conversation named by its
+// tlf name, newest first, read through the host's CLI. Peeks, so reading does not mark it read.
+export const readFromCli = async (where: {topicName: string} | {tlfName: string}, num = 50): Promise<Array<CliMessage>> => {
+  const {team} = e2eAccounts()
+  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
+  const res = await withApi(async api => api.call<ReadResult>('read', {channel, pagination: {num}, peek: true}))
+  return (res.messages ?? []).map(m => m.msg)
+}
+
 // The bot commands offered in a channel (none unless the team has a bot installed).
 export const botCommands = async (topicName: E2EChannel) => {
   const {team} = e2eAccounts()
@@ -504,19 +523,41 @@ export const botCommands = async (topicName: E2EChannel) => {
   return (res.commands ?? []).filter(c => !!c.username)
 }
 
-// A channel for one run's membership flows, named `<prefix>-<time in base 36>` (a channel name is
-// 20 characters at most), created by the CLI's account (the team owner for the desktop flows, the
-// second account, a writer, for the iOS ones) with the second account in it, unless `withSecond`
-// is false.
-export const createThrowawayChannel = async (prefix: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
+const currentRunId = () => {
+  const id = runIdFromEnv(process.env)
+  if (!id) throw new Error('KB_E2E_RUN_ID is not set: the run entry point sets it before any test')
+  return id
+}
+
+// A channel for one run's membership flows, named stampedChannelName(label + 2 random hex
+// characters) (so the label is at most 7 characters; the random part keeps a retry from meeting a
+// channel an earlier try failed to delete), created by the CLI's account (the team owner for the
+// desktop flows, the second account, a writer, for the iOS ones) with the second account in it,
+// unless `withSecond` is false. Throws when the channel already exists. Callers delete it by the
+// returned topicName.
+export const createThrowawayChannel = async (label: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
   const {secondUser, team} = e2eAccounts()
-  const topicName = `${prefix}-${Date.now().toString(36)}`
+  const topicName = stampedChannelName(`${label}${randomBytes(1).toString('hex')}`, currentRunId())
   const convID = await withApi(async api => {
+    if ((await listChannels(api, team)).has(topicName)) throw new Error(`#${topicName} already exists`)
     const id = await ensureChannel(api, team, topicName)
     if (withSecond) await ensureMember(api, team, topicName, secondUser)
     return id
   })
   return {convID, topicName}
+}
+
+// Every member of a team channel, by username, read through the host's CLI.
+export const channelMembersFromCli = async (topicName: string) => {
+  const {team} = e2eAccounts()
+  const members = await withApi(async api => api.call<Members>('listmembers', {channel: channelRef(team, topicName)}))
+  return [...(members.owners ?? []), ...(members.admins ?? []), ...(members.writers ?? []), ...(members.readers ?? [])].map(m => m.username)
+}
+
+// The lowest team role that can post in a team channel, as the CLI prints it.
+export const minWriterRoleFromCli = async (topicName: string) => {
+  const {team} = e2eAccounts()
+  return cli(['chat', 'min-writer-role', team, '--channel', topicName])
 }
 
 // The CLI's account leaves a team channel.
@@ -531,18 +572,105 @@ export const setMinWriterRoleFromCli = async (topicName: string, role: 'admin' |
   const {team} = e2eAccounts()
   // the prompt wraps at the terminal's width, which splits 'confirm' for some role names
   await cliConfirmed(['chat', 'min-writer-role', team, '--channel', topicName, '--role', role], 'Hit Enter')
-  const now = await cli(['chat', 'min-writer-role', team, '--channel', topicName])
   const shows = role === 'none' ? /\bnot set\b/i : new RegExp(`\\b${role}\\b`, 'i')
-  if (!shows.test(now)) throw new Error(`#${topicName} min writer role not ${role}: ${now}`)
+  // the read can lag the set by a moment
+  const deadline = Date.now() + 15_000
+  for (;;) {
+    const now = await minWriterRoleFromCli(topicName)
+    if (shows.test(now)) return
+    if (Date.now() > deadline) throw new Error(`#${topicName} min writer role not ${role}: ${now}`)
+    await sleep(1_000)
+  }
 }
 
-// Deletes every channel createThrowawayChannel made with `prefix`, this run's or a failed run's,
-// through the CLI, which must be signed in as the team owner.
-export const deleteThrowawayChannels = async (prefix: string) => {
+// Deletes one channel createThrowawayChannel made in this run, by its exact name, through the CLI,
+// which must be signed in as the team owner. Earlier runs' channels are the sweeper's. Does nothing
+// when the channel is not there (its create failed, or it was already deleted).
+export const deleteThrowawayChannel = async (topicName: string) => {
   const {team} = e2eAccounts()
-  const names = [...(await withApi(async api => listChannels(api, team))).keys()]
-  for (const topicName of names.filter(n => new RegExp(`^${prefix}-[0-9a-z]+$`).test(n))) {
-    log(`deleting #${topicName}`)
-    await cliConfirmed(['chat', 'delete-channel', team, topicName], 'please type:', `nuke ${topicName}`)
+  const stamp = parseStampedName(topicName, 'dashed')
+  if (stamp?.runId !== currentRunId()) throw new Error(`refusing to delete #${topicName}: not a channel of this run`)
+  if (!(await withApi(async api => listChannels(api, team))).has(topicName)) return
+  log(`deleting #${topicName}`)
+  await cliConfirmed(['chat', 'delete-channel', team, topicName], 'please type:', `nuke ${topicName}`)
+}
+
+// The id of a one-on-one conversation (or the self conversation, named by the user alone), read
+// from its newest message through the host's CLI. Peeks.
+export const directConvIDFromCli = async (tlfName: string) => {
+  const res = await withApi(async api =>
+    api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
+  )
+  const id = res.messages?.[0]?.msg.conversation_id
+  if (!id) throw new Error('the conversation has no messages to read its id from')
+  return id
+}
+
+const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+// The server's passing refusals: a gateway's HTTP status line, or a team changed by another call a
+// moment ago.
+const transientRe = /\b50[234] (?:Bad Gateway|Service Unavailable|Gateway Time-?out)\b|team sigchain is being rapidly updated/i
+
+// Runs a CLI call `f`, again (up to 4 times, 5s apart) when the server refused it in passing. An
+// error matching `doneRe` on a later attempt means an earlier one took effect after all.
+export const retryTransient = async <R,>(f: () => Promise<R>, doneRe?: RegExp): Promise<R | undefined> => {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await f()
+    } catch (e) {
+      const msg = message(e)
+      if (attempt > 1 && doneRe?.test(msg)) return undefined
+      if (attempt >= 4 || !transientRe.test(msg)) throw e
+      log(`retrying after a passing server refusal: ${msg.split('\n')[0]?.slice(-120) ?? ''}`)
+      await sleep(5_000)
+    }
   }
+}
+
+// A subteam of the e2e team for one run's flows, `<KB_E2E_TEAM>.<stampedTeamName(label)>` (so the
+// label is at most 7 characters), created by the CLI's account, which must be the smoke account (a team
+// admin), and joined by it as an admin: its creator is otherwise only an implicit admin, outside
+// its channels.
+// Returns its name and its general channel's id. Throws when it already exists; a subteam it made
+// but could not finish setting up is deleted again before it throws.
+export const createThrowawaySubteam = async (label: string) => {
+  const {smokeUser, team} = e2eAccounts()
+  const part = stampedTeamName(label, currentRunId())
+  const name = `${team}.${part}`
+  // a create the server answered with a gateway error can still have happened
+  await retryTransient(async () => cli(['team', 'create', name]), /already exists|name is taken/i)
+  try {
+    await retryTransient(async () => cli(['team', 'add-member', name, `--user=${smokeUser}`, '--role=admin']), /already a member/i)
+    // a small team's only channel has no topic name; a new team's channel can take a few seconds
+    // to be listed
+    const generalConvID = await withApi(async api => {
+      const deadline = Date.now() + 30_000
+      for (;;) {
+        const channels = await listChannels(api, name)
+        const id = channels.get('general') ?? channels.get('')
+        if (id || Date.now() > deadline) return id
+        await sleep(1_000)
+      }
+    })
+    if (!generalConvID) throw new Error(`the subteam ${part} has no general channel`)
+    return {generalConvID, name}
+  } catch (e) {
+    try {
+      await deleteThrowawaySubteam(name)
+    } catch (cleanup) {
+      throw new AggregateError([e, cleanup], `${message(e)}; and then deleting the subteam ${part} failed: ${message(cleanup)}`, {cause: cleanup})
+    }
+    throw e
+  }
+}
+
+// Deletes one subteam createThrowawaySubteam made in this run, by its exact name, through the CLI,
+// which must be signed in as a team admin. Earlier runs' subteams are the sweeper's.
+export const deleteThrowawaySubteam = async (name: string) => {
+  const {team} = e2eAccounts()
+  const part = name.startsWith(`${team}.`) ? name.slice(team.length + 1) : ''
+  if (parseStampedName(part, 'team')?.runId !== currentRunId()) throw new Error(`refusing to delete ${part || 'a team'}: not a subteam of this run`)
+  log(`deleting the subteam ${part}`)
+  await cliConfirmed(['team', 'delete', name], 'please type:', `nuke ${name}`)
 }
