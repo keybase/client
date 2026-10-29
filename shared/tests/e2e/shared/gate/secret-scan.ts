@@ -2,7 +2,7 @@
 // holds one, and says which: a leak fails the run loudly instead of sitting in a report.
 import * as fs from 'fs'
 import * as path from 'path'
-import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../accounts/env.ts'
+import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
 import {holdsSecret, secretLedger, secretScanLine} from './secret-scan-lib.ts'
 
 const passwordVars = ['KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
