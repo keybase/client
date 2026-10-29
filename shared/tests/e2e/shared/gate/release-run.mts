@@ -18,13 +18,11 @@ export type ReleaseRun = {
   phase: (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => Promise<boolean>
   runChild: (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) => Promise<ChildResult>
   remainingMs: () => number
-  isAborted: () => boolean
   // cleanup may add to it
   phases: Array<Phase>
   // throws naming the holder when another live run has it
   acquireLock: (holder: string) => void
   holdsLock: () => boolean
-  notify: (text: string) => void
   finish: (code: number, why?: string) => Promise<void>
   // The run's own ending; an abort in progress ends it instead, with its reason and exit code.
   endRun: (code: number, why?: string) => Promise<void>
@@ -59,17 +57,24 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   // set once an interrupt or the overall deadline stops the run: no further phase starts
   let aborted = false
   const isAborted = () => aborted
-  // set once this run holds the release lock (released on exit); until then the run touches nothing
+  // set once this run holds the release lock (released when the run finishes); until then the run touches nothing
   let holdsLock = false
+  let releaseLock: (() => void) | undefined
 
   // Runs a child in `cwd` with its output passed through, under a deadline (SIGTERM, then SIGKILL
-  // 10s later). Resolves with its exit code (null when killed) and its stdout.
+  // 10s later). Resolves with its exit code (null when killed) and its stdout. Once the run is aborted
+  // it starts nothing and resolves at once as a child that timed out.
   const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) =>
     new Promise<ChildResult>(resolve => {
+      if (isAborted()) {
+        resolve({code: null, stdout: '', timedOut: true})
+        return
+      }
       const child = spawn(cmd, [...args], {cwd: o.cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe']})
       currentChild = child
       let stdout = ''
       let timedOut = false
+      let killTimer: ReturnType<typeof setTimeout> | undefined
       child.stdout.on('data', (d: Buffer) => {
         stdout += d.toString()
         process.stdout.write(d)
@@ -79,15 +84,17 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
         timedOut = true
         log(`${name}: not done in ${Math.round(timeoutMs / 1000)}s; stopping it`)
         child.kill('SIGTERM')
-        setTimeout(() => child.kill('SIGKILL'), 10_000)
+        killTimer = setTimeout(() => child.kill('SIGKILL'), 10_000)
       }, timeoutMs)
       child.on('close', code => {
         clearTimeout(timer)
+        clearTimeout(killTimer)
         if (currentChild === child) currentChild = undefined
         resolve({code, stdout, timedOut})
       })
       child.on('error', e => {
         clearTimeout(timer)
+        clearTimeout(killTimer)
         resolve({code: null, stdout: `${stdout}\n${e.message}`, timedOut})
       })
     })
@@ -112,7 +119,7 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   }
 
   const acquireLock = (holder: string) => {
-    acquireFileLock(o.lockPath, holder, 'release lock')
+    releaseLock = acquireFileLock(o.lockPath, holder, 'release lock')
     holdsLock = true
   }
 
@@ -120,11 +127,22 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   const stopChild = async (child: ChildProcess) => {
     if (child.exitCode !== null || child.signalCode !== null) return
     const closed = new Promise<void>(resolve => child.once('close', () => resolve()))
+    // true once the child has closed, false after `ms`; the timer goes once either happens
+    const closedWithin = async (ms: number) => {
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const late = new Promise<boolean>(resolve => {
+        timer = setTimeout(() => resolve(false), ms)
+      })
+      try {
+        return await Promise.race([closed.then(() => true), late])
+      } finally {
+        clearTimeout(timer)
+      }
+    }
     child.kill('SIGTERM')
-    const settled = await Promise.race([closed.then(() => true), new Promise<boolean>(resolve => setTimeout(() => resolve(false), 10_000))])
-    if (settled) return
+    if (await closedWithin(10_000)) return
     child.kill('SIGKILL')
-    await Promise.race([closed, new Promise(resolve => setTimeout(resolve, 2_000))])
+    await closedWithin(2_000)
   }
 
   const notify =
@@ -170,6 +188,8 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
       process.off('SIGINT', onSigint)
       process.off('SIGTERM', onSigterm)
       process.off('SIGHUP', onSighup)
+      releaseLock?.()
+      holdsLock = false
       exit(code)
     }
   }
@@ -200,9 +220,7 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
     endRun,
     finish,
     holdsLock: () => holdsLock,
-    isAborted,
     log,
-    notify,
     phase,
     phases,
     remainingMs,

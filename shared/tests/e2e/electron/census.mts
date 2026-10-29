@@ -1,7 +1,7 @@
 // yarn test:e2e:desktop:census [--results <results.json>] [--render <render dir> | --no-render] [--project <name>]
 //
 // Which routes, windows and write RPCs the last desktop flow run and visual render reached (see
-// census-lib.ts), against the route inventory, the window list in census-windows.ts and the
+// ../shared/gate/census-lib.ts), against the route inventory, the window list in census-windows.ts and the
 // outgoing calls in protocol/bin/enabled-calls.json, less the reasoned exclusions in
 // census-exclusions.ts. Reads:
 //   the `coverage.json` attachment of each attempt in the Playwright json report (default

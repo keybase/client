@@ -45,24 +45,22 @@ function saveStorybookBaseline(cards: CardData[]) {
   console.log(`Storybook baseline saved: ${saved} screenshots to ${storybookPrevDir}/`)
 }
 
-process.exit(
-  runFlowReport({
-    checklistPath: 'tests/results/manual-checklist.md',
-    debugDir: 'tests/results/electron-debug',
-    extraLabel: 'storybook stories',
-    extraSections: () => {
-      const cards = parseStorybookScreenshots()
-      return cards.length > 0 ? [{header: `Storybook · ${cards.length} stories`, cards, excludeFromStats: true}] : []
-    },
-    known: KNOWN_FAILURES,
-    knownListFile: KNOWN_FAILURES_FILE,
-    manualOnly: MANUAL_ONLY,
-    outputPath: 'tests/results/electron-report.html',
-    prevDir: 'tests/results/electron-prev',
-    resultsPath: 'tests/results/report/results.json',
-    runHint: 'yarn test:e2e:desktop',
-    saveExtraBaseline: saveStorybookBaseline,
-    skipKnownFor: projectName => projectName.endsWith('-dark'),
-    title: 'Keybase Electron E2E Tests',
-  })
-)
+process.exitCode = runFlowReport({
+  checklistPath: 'tests/results/manual-checklist.md',
+  debugDir: 'tests/results/electron-debug',
+  extraLabel: 'storybook stories',
+  extraSections: () => {
+    const cards = parseStorybookScreenshots()
+    return cards.length > 0 ? [{header: `Storybook · ${cards.length} stories`, cards, excludeFromStats: true}] : []
+  },
+  known: KNOWN_FAILURES,
+  knownListFile: KNOWN_FAILURES_FILE,
+  manualOnly: MANUAL_ONLY,
+  outputPath: 'tests/results/electron-report.html',
+  prevDir: 'tests/results/electron-prev',
+  resultsPath: 'tests/results/report/results.json',
+  runHint: 'yarn test:e2e:desktop',
+  saveExtraBaseline: saveStorybookBaseline,
+  title: 'Keybase Electron E2E Tests',
+  variantOf: projectName => (projectName.endsWith('-dark') ? 'dark' : undefined),
+})

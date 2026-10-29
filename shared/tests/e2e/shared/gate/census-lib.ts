@@ -208,6 +208,8 @@ export type CensusResult = {
   unclaimedSurfaces: Array<string>
   // the surface list out of step with the app
   staleSurfaces: Array<string>
+  // names the surfaces (window on desktop)
+  noun: string
 }
 
 export const censusFailed = (r: CensusResult) =>
@@ -224,7 +226,7 @@ export const censusFailed = (r: CensusResult) =>
 const surfaceCensus = (
   w: NonNullable<CensusInput['surfaces']>,
   renderCoverage: CensusInput['renderCoverage']
-): Pick<CensusResult, 'surfaces' | 'unclaimedSurfaces' | 'staleSurfaces'> => {
+): Pick<CensusResult, 'surfaces' | 'unclaimedSurfaces' | 'staleSurfaces' | 'noun'> => {
   const {noun, listFile, entryPrefix} = w
   const existing = new Set(w.existing)
   const listed = new Set(w.listed)
@@ -237,6 +239,7 @@ const surfaceCensus = (
   }
   const surfaces = names.map(name => ({coveredBy: cover.get(name) ?? [], name}))
   return {
+    noun,
     staleSurfaces: [
       ...[...listed].filter(n => !existing.has(n)).map(n => `${noun} ${n} is listed in ${listFile} but the app has no such ${noun}`),
       ...[...existing].filter(n => !listed.has(n)).map(n => `${noun} ${n} is in the app but not listed in ${listFile}`),
@@ -351,14 +354,15 @@ export type CensusMeta = {
   flowTests: number
   renderEntries: number
   sources: ReadonlyArray<string>
-  // the noun of the extra surfaces (window)
-  surfaceNoun: string
 }
+
+// `window` -> `Window`
+export const capitalized = (s: string) => `${s.charAt(0).toUpperCase()}${s.slice(1)}`
 
 export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string => {
   const t = censusTotals(r)
-  const noun = meta.surfaceNoun
-  const cap = `${noun.charAt(0).toUpperCase()}${noun.slice(1)}`
+  const {noun} = r
+  const cap = capitalized(noun)
   const shortList = (xs: Array<string>) => (xs.length > 3 ? `${xs.slice(0, 3).join(', ')} (+${xs.length - 3})` : xs.join(', '))
   return [
     '# Coverage census',
