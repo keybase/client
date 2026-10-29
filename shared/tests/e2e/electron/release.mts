@@ -26,7 +26,7 @@
 // KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 150)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
 //                             the settings/* tour entries (the census then reports gaps)
-import {spawn, spawnSync, execFileSync, type ChildProcess} from 'child_process'
+import {spawn, spawnSync, execFileSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
@@ -34,28 +34,26 @@ import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.
 import {newRunId} from '../accounts/run-id.ts'
 import {formatSweep, sweep} from '../accounts/sweep.mts'
 import {runAbortable} from '../shared/deadline.ts'
-import {ensurePeer, mainWhoami, redactSecrets, runKeybase} from '../shared/peer-service.ts'
-import {acquireFileLock, assertNotLocked} from '../visual/lock.mts'
+import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
+import {assertNotLocked} from '../visual/lock.mts'
 import {appLogPath} from './app-log.ts'
 import {groupAlive, readAppPidfile, stopAppGroup} from './app-pidfile.ts'
 import {closeMainInspector, sessionLocked} from './helpers/main-process.ts'
 import {KNOWN_FAILURES} from './known-failures.ts'
 import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
+import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {
   flowProblems,
   flowsLine,
   flowsOk,
-  fmtMs,
   parseLsof,
   parseTimeoutMin,
   releaseFailed,
   renderLine,
   summarizeFlows,
   summarizeRender,
-  summaryLines,
   type Outcome,
-  type Phase,
   type PwReport,
   type RenderResultRow,
 } from '../shared/gate/release-lib.ts'
@@ -73,7 +71,6 @@ const out = {
 const project = 'electron-flows'
 const MIN = 60_000
 
-const runStart = Date.now()
 const timeout = parseTimeoutMin(process.env['KB_E2E_RELEASE_TIMEOUT_MIN'])
 if ('error' in timeout) {
   console.error(`[release] refusing to run: ${timeout.error}`)
@@ -84,21 +81,35 @@ const only = process.env['KB_E2E_RELEASE_ONLY'] || undefined
 // The gate's own runs set this to skip the lock check; this command is not one of them.
 delete process.env['KB_VISUAL_RUN']
 
-const log = (s: string) => console.log(`[release] ${s}`)
-const errText = (e: unknown) => redactSecrets(e instanceof Error ? e.message : String(e))
-const remainingMs = () => Math.max(0, runStart + deadlineMs - Date.now())
+// One release run at a time: a second one would sweep, relaunch and stop the app under the first.
+const releaseLockPath = () => process.env['KB_E2E_RELEASE_LOCK'] ?? '/tmp/kb-e2e-release.lock'
+const run = createReleaseRun({
+  cleanup: async code => {
+    await watchdog.stop()
+    const incidents = watchdog.incidents()
+    if (incidents.length) {
+      phases.push({line: `${incidents.join('; ')} (see ${out.watchdog})`, name: 'watchdog', ok: false})
+      if (code === 0) code = 1
+    } else if (watchdog.polls()) {
+      phases.push({line: `renderer never went blank (${watchdog.polls()} polls)`, name: 'watchdog', ok: true})
+    }
+    process.exitCode = code
+    await stopApp()
+    return code
+  },
+  cwd: sharedDir,
+  deadlineMs,
+  lockPath: releaseLockPath(),
+  notifyTitle: 'Keybase desktop release',
+  printResults: () => printResults(),
+  tag: '[release]',
+})
+const {endRun, log, phase, phases, remainingMs, runChild, runStart} = run
 
-const phases: Array<Phase> = []
-let currentPhase: string | undefined
-let currentChild: ChildProcess | undefined
 let launchedPgid: number | undefined
 let renderDir: string | undefined
 // renderDir, when this run's render wrote its render.json there
 const renderedDir = () => (renderDir && fs.existsSync(path.join(renderDir, 'render.json')) ? renderDir : undefined)
-let finishing = false
-// set once an interrupt or the overall deadline stops the run: no further phase starts
-let aborted = false
-const isAborted = () => aborted
 
 const watchdog = createWatchdog({appLog: appLogPath(), log, logFile: out.watchdog})
 // Runs `f` with the watchdog on, for the phases that drive the app.
@@ -111,57 +122,8 @@ const watched = async <T,>(name: string, f: () => Promise<T>) => {
   }
 }
 
-// Runs a child in shared/ with its output passed through, under a deadline (SIGTERM, then SIGKILL
-// 10s later). Resolves with its exit code (null when killed) and its stdout.
-const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) =>
-  new Promise<{code: number | null; stdout: string; timedOut: boolean}>(resolve => {
-    const child = spawn(cmd, [...args], {cwd: sharedDir, env: process.env, stdio: ['ignore', 'pipe', 'pipe']})
-    currentChild = child
-    let stdout = ''
-    let timedOut = false
-    child.stdout.on('data', (d: Buffer) => {
-      stdout += d.toString()
-      process.stdout.write(d)
-    })
-    child.stderr.on('data', (d: Buffer) => process.stderr.write(d))
-    const timer = setTimeout(() => {
-      timedOut = true
-      log(`${name}: not done in ${Math.round(timeoutMs / 1000)}s; stopping it`)
-      child.kill('SIGTERM')
-      setTimeout(() => child.kill('SIGKILL'), 10_000)
-    }, timeoutMs)
-    child.on('close', code => {
-      clearTimeout(timer)
-      if (currentChild === child) currentChild = undefined
-      resolve({code, stdout, timedOut})
-    })
-    child.on('error', e => {
-      clearTimeout(timer)
-      resolve({code: null, stdout: `${stdout}\n${e.message}`, timedOut})
-    })
-  })
-
 const node = (script: string, ...args: Array<string>) =>
   ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(sharedDir, script), ...args]
-
-const phase = async (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => {
-  if (isAborted()) return false
-  log(`--- ${name} ---`)
-  const start = Date.now()
-  currentPhase = name
-  let p: Omit<Phase, 'name' | 'ms'>
-  try {
-    p = await f()
-  } catch (e) {
-    p = {line: errText(e), ok: false}
-  }
-  currentPhase = undefined
-  // the abort already recorded this phase as stopped
-  if (isAborted()) return false
-  phases.push({...p, ms: Date.now() - start, name})
-  log(`${name}: ${p.ok ? 'ok' : 'FAILED'}: ${p.line}`)
-  return p.ok
-}
 
 // ---------------------------------------------------------------- preflight
 
@@ -195,16 +157,10 @@ const holder = (pid: number): PortHolder => {
   }
 }
 
-// One release run at a time: a second one would sweep, relaunch and stop the app under the first.
-const releaseLockPath = () => process.env['KB_E2E_RELEASE_LOCK'] ?? '/tmp/kb-e2e-release.lock'
-// set once this run holds the release lock (released on exit); until then the run touches nothing
-let holdsReleaseLock = false
-
 const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
   const env = loadE2EEnv()
   try {
-    acquireFileLock(releaseLockPath(), `yarn test:e2e:desktop:release (run ${process.env['KB_E2E_RUN_ID'] ?? '?'})`, 'release lock')
-    holdsReleaseLock = true
+    run.acquireLock(`yarn test:e2e:desktop:release (run ${process.env['KB_E2E_RUN_ID'] ?? '?'})`)
   } catch (e) {
     const releaseLockHeld = errText(e)
     return {env, problems: preflightProblems({appPgid: undefined, lockHeld: undefined, ports: [], releaseLockHeld, smokeUser: env.smokeUser, whoami: {ok: false, error: 'not checked'}})}
@@ -248,7 +204,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
 // it during this run (a launch interrupted before launch-app.mts exited has spawned the app already).
 const stopApp = async () => {
   // a run refused for the lock never launched anything, and the pidfile is the other run's
-  if (!holdsReleaseLock) return
+  if (!run.holdsLock()) return
   // the main process's inspector runs any code sent to it: closed even if the app stays up
   try {
     await closeMainInspector()
@@ -270,32 +226,8 @@ const stopApp = async () => {
   }
 }
 
-// SIGTERM, then SIGKILL after 10s; resolves once the child has closed (or 2s after the SIGKILL).
-const stopChild = async (child: ChildProcess) => {
-  if (child.exitCode !== null || child.signalCode !== null) return
-  const closed = new Promise<void>(resolve => child.once('close', () => resolve()))
-  child.kill('SIGTERM')
-  const settled = await Promise.race([closed.then(() => true), new Promise<boolean>(resolve => setTimeout(() => resolve(false), 10_000))])
-  if (settled) return
-  child.kill('SIGKILL')
-  await Promise.race([closed, new Promise(resolve => setTimeout(resolve, 2_000))])
-}
-
-const notify = (text: string) => {
-  try {
-    execFileSync(
-      'osascript',
-      ['-e', 'on run argv', '-e', 'display notification (item 1 of argv) with title (item 2 of argv)', '-e', 'end run', text, 'Keybase desktop release'],
-      {stdio: 'ignore', timeout: 10_000}
-    )
-  } catch (e) {
-    log(`notification failed: ${errText(e)}`)
-  }
-}
-
+// the summary's lines after the phases
 const printResults = () => {
-  for (const line of summaryLines(phases)) console.log(line)
-  console.log(`total ${fmtMs(Date.now() - runStart)}, run id ${process.env['KB_E2E_RUN_ID'] ?? '(none)'}`)
   const fresh = (p: string) => fs.existsSync(p) && fs.statSync(p).mtimeMs >= runStart
   const show = (what: string, p: string) => console.log(`${what.padEnd(17)}${p}${fresh(p) ? '' : ' (not written by this run)'}`)
   show('report', out.report)
@@ -304,55 +236,6 @@ const printResults = () => {
   show('flow results', out.results)
   if (renderDir) show('render', renderDir)
 }
-
-const finish = async (code: number, why?: string) => {
-  if (finishing) return
-  finishing = true
-  // set before anything below can throw, and an error while finishing fails the run: no path out
-  // of here exits 0 by accident
-  process.exitCode = code
-  try {
-    await watchdog.stop()
-    const incidents = watchdog.incidents()
-    if (incidents.length) {
-      phases.push({line: `${incidents.join('; ')} (see ${out.watchdog})`, name: 'watchdog', ok: false})
-      if (code === 0) code = 1
-    } else if (watchdog.polls()) {
-      phases.push({line: `renderer never went blank (${watchdog.polls()} polls)`, name: 'watchdog', ok: true})
-    }
-    process.exitCode = code
-    await stopApp()
-    console.log('\n=== release summary ===')
-    if (why) console.log(why)
-    printResults()
-    const failed = code !== 0
-    notify(why ?? `${failed ? 'FAILED' : 'passed'} in ${fmtMs(Date.now() - runStart)}: ${phases.filter(p => !p.ok).map(p => p.name).join(', ') || 'all phases ok'}`)
-  } catch (e) {
-    if (code === 0) code = 1
-    console.error(`[release] finishing the run failed: ${errText(e)}`)
-  } finally {
-    process.exit(code)
-  }
-}
-
-const abort = async (why: string, code: number) => {
-  if (aborted) return
-  aborted = true
-  const name = currentPhase
-  const child = currentChild
-  if (name) phases.push({line: `stopped: ${why}`, name, ok: false})
-  if (child) await stopChild(child)
-  await finish(code, `${why}${name ? ` during ${name}` : ''}; partial results below`)
-}
-
-// The run's own ending; an abort in progress ends it instead, with its reason and exit code.
-const endRun = async (code: number, why?: string) => (isAborted() ? undefined : finish(code, why))
-
-process.on('SIGINT', () => void abort('interrupted', 130))
-process.on('SIGTERM', () => void abort('terminated', 143))
-// the terminal or the shell that started the run went away
-process.on('SIGHUP', () => void abort('hung up', 129))
-setTimeout(() => void abort(`overall deadline of ${deadlineMs / MIN} minutes (KB_E2E_RELEASE_TIMEOUT_MIN) reached`, 1), deadlineMs)
 
 // ---------------------------------------------------------------- the run
 
