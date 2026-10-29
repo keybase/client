@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {setEnvVars} from '../accounts/env'
+import {setEnvVars} from '../../accounts/env'
 import {envSecrets, scanAndPurge, watchEnvSecrets} from './secret-scan'
 
 let dir = ''

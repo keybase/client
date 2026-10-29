@@ -16,7 +16,7 @@
 //   4. every flow, light mode only (project electron-flows)
 //   5. the visual tour in render mode, on the app relaunched with the visual gate switches
 //   6. census, then the report, opened unless KB_E2E_NO_OPEN=1
-//   7. a scan of everything under tests/results for the env file's secrets (secret-scan.ts): a file
+//   7. a scan of everything under tests/results for the env file's secrets (shared/gate/secret-scan.ts): a file
 //      that holds one is deleted and named, and the run fails
 // While flows and render drive the app, a watchdog (watchdog.ts) fails the run if its renderer goes
 // blank, writing why to tests/results/watchdog.log. Then it stops the app it launched (peers stay
@@ -40,7 +40,7 @@ import {appLogPath} from './app-log.ts'
 import {groupAlive, readAppPidfile, stopAppGroup} from './app-pidfile.ts'
 import {closeMainInspector, sessionLocked} from './helpers/main-process.ts'
 import {KNOWN_FAILURES} from './known-failures.ts'
-import {scanAndPurge, watchEnvSecrets} from './secret-scan.ts'
+import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
 import {
   flowProblems,

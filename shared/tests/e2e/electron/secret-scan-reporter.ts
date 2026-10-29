@@ -3,7 +3,7 @@
 // the files (never the secret).
 import * as path from 'path'
 import type {FullConfig, FullResult, Reporter} from '@playwright/test/reporter'
-import {scanAndPurge, watchEnvSecrets, type SecretWatch} from './secret-scan.ts'
+import {scanAndPurge, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
 
 export default class SecretScanReporter implements Reporter {
   private resultsDir = ''
