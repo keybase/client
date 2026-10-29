@@ -1,6 +1,5 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
-import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
+import {navigateToPeople, openOwnProfile} from '@/tests/e2e/electron/helpers/navigate'
 import {PEOPLE_FEED, PROFILE_PAGE} from '@/tests/e2e/shared/test-ids'
 
 test('people feed renders', async ({page}) => {
@@ -9,12 +8,7 @@ test('people feed renders', async ({page}) => {
 })
 
 test('own profile page renders', async ({page}) => {
-  const {smokeUser} = loadE2EAccounts()
-  await navigateToPeople(page)
-  await page.click(`text=Hi ${smokeUser}!`)
-  await page.click('text=View/Edit profile')
+  await openOwnProfile(page)
   await expect(page.getByTestId(PROFILE_PAGE).first()).toBeVisible({timeout: 10_000})
-  // Close the account-switcher popup and return to a clean tab state
-  await page.keyboard.press('Escape')
   await navigateToPeople(page)
 })
