@@ -1,5 +1,6 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
+import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {PEOPLE_FEED, PROFILE_PAGE} from '@/tests/e2e/shared/test-ids'
 
 test('people feed renders', async ({page}) => {
@@ -8,11 +9,7 @@ test('people feed renders', async ({page}) => {
 })
 
 test('own profile page renders', async ({page}) => {
-  const smokeUser = process.env['KB_SMOKE_USER']
-  if (!smokeUser) {
-    test.skip()
-    return
-  }
+  const {smokeUser} = loadE2EAccounts()
   await navigateToPeople(page)
   await page.click(`text=Hi ${smokeUser}!`)
   await page.click('text=View/Edit profile')
