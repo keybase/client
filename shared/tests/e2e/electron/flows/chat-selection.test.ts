@@ -6,16 +6,14 @@
 // The app runs as the second account for these, in a channel made for the run. The desktop CLI
 // talks to the app's own service, so while the app is the second account the CLI is too: it sends
 // the second account's message that makes its conversation with the owner the newest one. The owner
-// acts from the simulator attached to Metro, signed in as the smoke user (see incoming-sender.ts).
+// acts from its peer service, the smoke user on another device (see peer-actors.ts).
 import type {Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
   collectConsoleErrors,
   inboxRow,
   requestLayoutAndReadReselect,
-  requireAttachedApp,
-  requireAttachedAppAsEither,
   rowByOrdinal,
   selectedInboxRows,
   stopWatchingReselects,
@@ -26,9 +24,10 @@ import {
   watchSelectedConversation,
   watchSelection,
 } from '@/tests/e2e/electron/helpers/chat'
-import {createThrowawayChannel, deleteThrowawayChannels, ensureChatData, sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {createThrowawayChannel, deleteThrowawayChannels, sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
 import {cliWhoami} from '@/tests/e2e/shared/cli-account'
-import {findChannelOwner, switchAttachedApp} from '@/tests/e2e/shared/incoming-sender'
+import {loadE2EEnv} from '@/tests/e2e/accounts/env'
+import {peerChannelOwner} from '@/tests/e2e/shared/peer-actors'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 const leavePrefix = 'e2e-leave'
@@ -42,8 +41,6 @@ const notFromTheMove = [/refreshAccounts|ignorePromise error/, /getUsernameToSho
 test.describe.configure({retries: 0})
 
 let data: ChatData
-// set once the attached app is the owner, for afterAll to hand it back
-let ownerAttached = false
 
 const requireOwnerCli = async () => {
   const who = await cliWhoami()
@@ -52,22 +49,11 @@ const requireOwnerCli = async () => {
 
 test.beforeAll(async () => {
   test.setTimeout(10 * 60_000)
-  data = await ensureChatData()
+  data = await seedChatData()
   await requireOwnerCli()
   await deleteThrowawayChannels(leavePrefix)
   await deleteThrowawayChannels(removedPrefix)
   await deleteThrowawayChannels(unjoinedPrefix)
-  // the owner's side of the removal flow
-  await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
-  await switchAttachedApp(data.smokeUser)
-  ownerAttached = true
-})
-
-// The attached app goes back to sending as the second account, the part the other chat flows give it.
-test.afterAll(async () => {
-  test.setTimeout(90_000)
-  if (!ownerAttached) return
-  await switchAttachedApp(data.secondUser)
 })
 
 test.afterEach(async ({page}) => {
@@ -133,7 +119,7 @@ test('leaving the open channel moves the selection to the newest conversation', 
 
 test('removed from the open channel moves the selection to the newest conversation', async ({page}) => {
   test.setTimeout(150_000)
-  const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
+  const owner = await peerChannelOwner(loadE2EEnv())
   const {convID, topicName} = await createThrowawayChannel(removedPrefix)
   const newest = await openChannelAsSecond(page, topicName)
 
