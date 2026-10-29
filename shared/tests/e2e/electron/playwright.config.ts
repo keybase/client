@@ -4,6 +4,9 @@ import {defineConfig} from '@playwright/test'
 // light project only; each also turns retries off for itself (a retry would let an intermittent
 // scroll race pass).
 const chatFlows = ['composer', 'data', 'parity', 'scroll', 'selection', 'unfurl'].map(n => `flows/chat-${n}.test.ts`)
+// It names the device it provisions e2e-<runid>-prov, and Keybase never takes a device name twice,
+// so it runs once per run: in the light project only.
+const oncePerRun = ['flows/device-provision.test.ts']
 
 export default defineConfig({
   testDir: './',
@@ -28,6 +31,8 @@ export default defineConfig({
     ['list'],
     ['html', {outputFolder: '../../results/report', open: 'never'}],
     ['json', {outputFile: '../../results/report/results.json'}],
+    // last: it scans what the reporters above wrote
+    ['./secret-scan-reporter.ts'],
   ],
   use: {
     trace: 'on-first-retry',
@@ -36,6 +41,6 @@ export default defineConfig({
   },
   projects: [
     {name: 'electron-flows', testMatch: 'flows/**/*.test.ts'},
-    {name: 'electron-flows-dark', testIgnore: chatFlows, testMatch: 'flows/**/*.test.ts'},
+    {name: 'electron-flows-dark', testIgnore: [...chatFlows, ...oncePerRun], testMatch: 'flows/**/*.test.ts'},
   ],
 })

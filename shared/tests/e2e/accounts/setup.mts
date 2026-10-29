@@ -14,7 +14,9 @@
 //      every Keybase app on the machine, including a simulator's
 // Paper keys only ever travel through stdin and the env file; anything echoed is redacted.
 //
-// --check changes nothing: it exits 1 listing what setup would have to do.
+// --check changes nothing: it exits 1 listing what setup would have to do, or what it cannot fix:
+// the smoke account blocking the second one, or the second one not a writer in KB_E2E_TEAM and a
+// member of every e2e channel.
 import * as fs from 'fs'
 import * as path from 'path'
 import {parseArgs} from 'util'
@@ -30,7 +32,14 @@ import {
   type E2EEnv,
   type PeerRole,
 } from './env.ts'
-import {checkRetirablePeerHome, checkRevocable, restoreMainAccount, retirePeerHome, withSignalsDeferred} from './peer-homes.ts'
+import {
+  checkRevocable,
+  removeRetiredPeerHome,
+  restoreMainAccount,
+  retirePeerHome,
+  stopPeerHomeService,
+  withSignalsDeferred,
+} from './peer-homes.ts'
 import {ensureRunId} from './run-id.ts'
 import {E2E_CHANNELS} from '../shared/chat-data.ts'
 import {keybaseBin} from '../shared/keybase-bin.ts'
@@ -110,6 +119,38 @@ const problemsFor = async (role: PeerRole, vars: Vars): Promise<string[]> => {
   } else {
     const who = await peerWhoami(target)
     if (who !== user) problems.push(`peer ${role} at ${target} is signed in as ${who || 'nobody'}`)
+  }
+  return problems
+}
+
+type ChatMembers = Partial<Record<'owners' | 'admins' | 'writers' | 'readers' | 'bots' | 'restrictedBots', Array<{username: string}> | null>>
+
+// What the flows need between the two accounts, read on the main service.
+const accountProblems = async (vars: Vars): Promise<string[]> => {
+  const second = vars['KB_SECOND_USER'] ?? ''
+  const team = vars['KB_E2E_TEAM'] ?? ''
+  const problems: string[] = []
+  const rpc = await connectPeerRpc(mainSocketPath(), 10_000)
+  let blocks: Array<{username: string; chatBlocked: boolean; followBlocked: boolean}>
+  try {
+    blocks = (await rpc.call<typeof blocks | null>('keybase.1.user.getUserBlocks', {sessionID: 0, usernames: [second]}, 30_000)) ?? []
+  } finally {
+    rpc.close()
+  }
+  if (blocks.some(b => b.username === second && (b.chatBlocked || b.followBlocked))) {
+    problems.push('the smoke account blocks the second account; unblock it (Settings > Blocked in the app)')
+  }
+  const members = async (topicName: string) =>
+    (await mainChatApi({
+      method: 'listmembers',
+      params: {options: {channel: {members_type: 'team', name: team, topic_name: topicName}}},
+    })) as ChatMembers
+  // the general channel lists the whole team, by team role
+  const teamMembers = await members('general')
+  if (!(teamMembers.writers ?? []).some(m => m.username === second)) problems.push('the second account is not a writer in KB_E2E_TEAM')
+  for (const topicName of Object.values(E2E_CHANNELS)) {
+    const all = Object.values(await members(topicName)).flatMap(list => list ?? [])
+    if (!all.some(m => m.username === second)) problems.push(`the second account is not a member of #${topicName}`)
   }
   return problems
 }
@@ -270,33 +311,6 @@ const proveRoundTrip = async (peer: Peer, vars: Vars, runId: string) => {
   )
 }
 
-// Removes a retired peer home, re-checking everything right before the delete.
-const guardedRemoveHome = async (dir: string, keep: string, vars: Vars) => {
-  await requireMainIsSmoke({smokeUser: vars['KB_SMOKE_USER'] ?? ''})
-  const abs = checkRetirablePeerHome(dir, keep)
-  if (await socketAnswers(socketPathFor(abs))) throw new Error(`refusing to remove ${dir}: its service still answers`)
-  fs.rmSync(abs, {recursive: true})
-  say(`removed ${abs}`)
-}
-
-const waitUntil = async (what: string, ms: number, check: () => Promise<boolean> | boolean) => {
-  const deadline = Date.now() + ms
-  while (Date.now() < deadline) {
-    if (await check()) return
-    await sleep(500)
-  }
-  throw new Error(`timed out after ${ms / 1000}s waiting for ${what}`)
-}
-
-const pidAlive = (pid: number) => {
-  try {
-    process.kill(pid, 0)
-    return true
-  } catch {
-    return false
-  }
-}
-
 const revokeDevice = async (peer: Peer, oldHome: string, oldDevice: string) => {
   const current = await deviceOf(async args => peer.cli(args))
   const main = await deviceOf(async args => runKeybase(args, {timeoutMs: 15_000}))
@@ -322,27 +336,14 @@ const revokeDevice = async (peer: Peer, oldHome: string, oldDevice: string) => {
   say(`${peer.role}: revoked device ${device.name} (${oldDevice}) of ${oldHome}`)
 }
 
-// Shuts an older home's service down and waits for it to exit (pid read first: a clean shutdown
-// removes the pid file). Only ever called on a path checkRetirablePeerHome accepted.
-const stopRetiredService = async (home: string) => {
-  const socket = socketPathFor(home)
-  const pidFile = path.join(home, 'Library', 'Caches', 'Keybase', 'keybased.pid')
-  const pid = fs.existsSync(pidFile) ? Number(fs.readFileSync(pidFile, 'utf8').trim()) : NaN
-  if (await socketAnswers(socket)) await runKeybase(['--home', home, 'ctl', 'stop', '--shutdown'], {timeoutMs: 30_000})
-  await waitUntil(`the service in ${home} to exit`, 20_000, async () => {
-    if (await socketAnswers(socket)) return false
-    return !Number.isInteger(pid) || pid <= 0 || !pidAlive(pid)
-  })
-}
-
 const retireOldHome = async (peer: Peer, oldHome: string, vars: Vars) =>
   retirePeerHome(
     {newHome: peer.home, oldHome, role: peer.role, user: peer.user},
     {
-      remove: async home => guardedRemoveHome(home, peer.home, vars),
+      remove: async home => removeRetiredPeerHome(home, peer.home, vars['KB_SMOKE_USER'] ?? '', say),
       revoke: async oldDevice => revokeDevice(peer, oldHome, oldDevice),
       say,
-      stop: stopRetiredService,
+      stop: stopPeerHomeService,
     }
   )
 
@@ -371,9 +372,9 @@ const run = async () => {
   await requireMainIsSmoke({smokeUser: smoke})
 
   if (values.check) {
-    const problems = (await Promise.all(peerRoles.map(async r => problemsFor(r, vars)))).flat()
+    const problems = [...(await Promise.all(peerRoles.map(async r => problemsFor(r, vars)))).flat(), ...(await accountProblems(vars))]
     if (problems.length) {
-      say(`e2e peers are not ready:\n  ${problems.join('\n  ')}\nrun: yarn test:e2e:accounts:setup`)
+      say(`e2e accounts are not ready:\n  ${problems.join('\n  ')}\nrun: yarn test:e2e:accounts:setup (it cannot fix blocks, team roles or channel membership)`)
       return 1
     }
     say('e2e peers are ready')

@@ -29,6 +29,7 @@ global._fromPreload = {
     env: {
       APPDATA: '',
       HOME: '/tmp',
+      KB_E2E_TEST: '',
       KEYBASE_AUTOSTART: '',
       KEYBASE_CRASH_REPORT: '',
       KEYBASE_DEVEL_USE_XDG: '',

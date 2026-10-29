@@ -79,6 +79,12 @@ export const CHAT_UNPIN_PROMPT        = 'chat-unpin-prompt'
 export const CHAT_ADDED_TO_TEAM       = 'chat-added-to-team'
 export const CHAT_AUDIO_PLAYER        = 'chat-audio-player'
 export const CHAT_MAP_UNFURL          = 'chat-map-unfurl'
+// the block modal's report option, by its state: one of the two is drawn
+export const CHAT_BLOCK_REPORT_ON      = 'chat-block-report-on'
+export const CHAT_BLOCK_REPORT_OFF     = 'chat-block-report-off'
+// the invitation-to-block row shown to someone added to a team, and its dismiss control
+export const CHAT_BLOCK_BUTTONS        = 'chat-block-buttons'
+export const CHAT_BLOCK_BUTTONS_DISMISS = 'chat-block-buttons-dismiss'
 export const CHAT_UNFURL_PROMPT       = 'chat-unfurl-prompt'
 // the link preview prompt's answers, and a posted generic (website) preview
 export const CHAT_UNFURL_PROMPT_YES   = 'chat-unfurl-prompt-yes'
@@ -111,17 +117,28 @@ export const CHAT_SUGGESTION_ROW          = 'chat-suggestion-row'
 export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
 // the video attachment's corner fullscreen button; its unit tests match the literal value
 export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
+// a conversation result in the send-to-chat picker (Files > Share to Chat)
+export const CHAT_SEND_TO_CHAT_ROW    = 'chat-send-to-chat-row'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
 // a path the account can't read, or that doesn't exist
 export const FILES_OOPS = 'files-oops'
 export const FILES_TLF_ROW = 'files-tlf-row'
+// a file, folder or TLF row in a folder listing
+export const FILES_ROW = 'files-row'
+// a download's card in the Files footer
+export const FILES_DOWNLOAD = 'files-download'
+// a running download's progress bar and time left, inside its card
+export const FILES_DOWNLOAD_PROGRESS = 'files-download-progress'
 // a text file's preview; on desktop only once its content has loaded
 export const FILES_TEXT_PREVIEW = 'files-text-preview'
 // the destination picker's new folder button, and the unsaved name row it adds
 export const FILES_NEW_FOLDER = 'files-new-folder'
 export const FILES_EDITING_ROW = 'files-editing-row'
+export const FILES_DESTINATION_PICKER = 'files-destination-picker'
+// the Finder (system file manager) integration banner at the top of Files
+export const FILES_SFMI_BANNER = 'files-sfmi-banner'
 
 // Teams
 export const TEAMS_LIST         = 'teams-list'
@@ -164,6 +181,8 @@ export const DEVICE_PAGE  = 'device-page'
 // last-used times: the service updates them while a device is in use
 export const DEVICES_ROW_LAST_USED = 'devices-row-last-used'
 export const DEVICE_PAGE_LAST_USED = 'device-page-last-used'
+// the new paper key's words box on the devicePaperKey screen (flows hide it before any screenshot)
+export const DEVICES_PAPER_KEY_WORDS = 'devices-paper-key-words'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
@@ -215,6 +234,8 @@ export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
+// the hover profile card's proof icons, drawn only once its identify is not checking
+export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
 
 // Git
 export const GIT_REPO_LIST = 'git-repo-list'
@@ -243,6 +264,11 @@ export const FLOATING_MENU = 'floating-menu'
 export const MENUBAR_MENU_BUTTON = 'menubar-menu-button'
 // a folder's row in the widget's recent files, there once its edit history has loaded
 export const MENUBAR_TLF_ROW = 'menubar-tlf-row'
+// a file's row under its folder in the widget's recent files
+export const MENUBAR_FILE_ROW = 'menubar-file-row'
+// the widget header's tab icons
+export const MENUBAR_TAB_CHAT = 'menubar-tab-chat'
+export const MENUBAR_TAB_FILES = 'menubar-tab-files'
 export const PINENTRY = 'pinentry'
 // the tracker popup's buttons, there once the identify has a result (for yourself, at once)
 export const TRACKER_BUTTONS = 'tracker-buttons'
@@ -272,7 +298,11 @@ export const SETTINGS_DB_NUKE_CONFIRM = 'settings-db-nuke-confirm'
 export const KEYBASE_LINK_ERROR = 'keybase-link-error'
 // the paper key form (chat's rekey prompt and provisioning)
 export const PAPER_KEY_FORM = 'paper-key-form'
+// the login screen's list of the accounts on this device
+export const LOGIN_USER_LIST = 'login-user-list'
 
 // Debug overlays: the global error bar and the runtime stats the service sends when turned on
 export const GLOBAL_ERROR = 'global-error'
+// the overlay the main window shows while it has no connection to the service
+export const DISCONNECT_OVERLAY = 'disconnect-overlay'
 export const RUNTIME_STATS = 'runtime-stats'

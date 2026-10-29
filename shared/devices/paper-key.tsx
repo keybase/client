@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const PaperKey = () => {
   const styles = useStyles()
@@ -37,7 +38,14 @@ const PaperKey = () => {
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
           This is the only time you&apos;ll see this so be sure to write it down.
         </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true} padding="medium">
+        <Kb.Box2
+          direction="vertical"
+          style={styles.keyBox}
+          centerChildren={true}
+          fullWidth={true}
+          padding="medium"
+          testID={TestIDs.DEVICES_PAPER_KEY_WORDS}
+        >
           {paperkey ? (
             <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
               {paperkey}

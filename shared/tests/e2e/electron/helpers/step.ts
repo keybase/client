@@ -1,4 +1,4 @@
-import type {Page, TestInfo} from '@playwright/test'
+import {expect, test, type Page, type TestInfo} from '@playwright/test'
 import type {ManualOnlyId} from '../manual-only'
 
 const counters = new WeakMap<TestInfo, number>()
@@ -26,4 +26,20 @@ export async function step(page: Page, testInfo: TestInfo, name: string, opts?: 
 export async function manualEdge(page: Page, testInfo: TestInfo, id: ManualOnlyId): Promise<void> {
   testInfo.annotations.push({description: id, type: 'manual-only'})
   await step(page, testInfo, `manual-${id}`)
+}
+
+// Runs `attempt` until it passes, as expect(...).toPass does, for a navigation that may need more
+// than one try (a list that redraws under the click, a search slow to find something new). When it
+// took more than one, the count goes on the test as a `retried` annotation, so a helper that starts
+// needing many tries shows in the report.
+export async function retriedNavigation(what: string, attempt: () => Promise<void>, opts: {intervals: Array<number>; timeout: number}): Promise<void> {
+  let tries = 0
+  try {
+    await expect(async () => {
+      tries++
+      await attempt()
+    }, what).toPass(opts)
+  } finally {
+    if (tries > 1) test.info().annotations.push({description: `${what}: ${tries} tries`, type: 'retried'})
+  }
 }

@@ -130,7 +130,13 @@ const GlobalError = () => {
     const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <GlobalOverlay tier="disconnect">
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.containerOverlay}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.containerOverlay}
+          testID={TestIDs.DISCONNECT_OVERLAY}
+        >
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.overlayRow}>
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
               {message}

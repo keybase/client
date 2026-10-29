@@ -3,8 +3,10 @@ import {
   newRunId,
   parseRunId,
   parseStampedName,
+  parseStampedText,
   runIdFromEnv,
   stampedChannelName,
+  stampedEmojiName,
   stampedTeamName,
 } from './run-id'
 
@@ -79,4 +81,25 @@ test('the env holds one run id, set once by the entry point', () => {
   expect(env['KB_E2E_RUN_ID']).toBe(id)
   expect(ensureRunId(env, at11 + 3_600_000)).toBe(id)
   expect(() => runIdFromEnv({KB_E2E_RUN_ID: '2610271200beef'}, at11)).toThrow(/not a run id/)
+})
+
+test('stampedEmojiName rejects labels with separators and names over 32', () => {
+  const id = '98qc00'
+  expect(stampedEmojiName('abcdefghijklmnopqrstu', id, at11)).toBe('e2e_98qc00_abcdefghijklmnopqrstu')
+  expect(() => stampedEmojiName('abcdefghijklmnopqrstuv', id, at11)).toThrow(/over 32/)
+  for (const label of ['a_b', 'a-b', 'a.b', 'A', '']) expect(() => stampedEmojiName(label, id, at11)).toThrow(/label/)
+  expect(() => stampedEmojiName('a', 'nope00', at11)).toThrow(/not a run id/)
+  expect(parseStampedName(stampedEmojiName('smile', id, at11), 'emoji', at11)).toEqual({runId: id, startMs: at11})
+  expect(parseStampedName('e2e_98qc00_a_b', 'emoji', at11)).toBeUndefined()
+  expect(parseStampedName('e2e-98qc00-a', 'emoji', at11)).toBeUndefined()
+})
+
+test('parseStampedText reads the first token only', () => {
+  const id = '98qc00'
+  expect(parseStampedText(`e2e-${id}-x hello`, at11)).toEqual({runId: id, startMs: at11})
+  expect(parseStampedText(`e2e-${id}-x\nsecond line`, at11)).toEqual({runId: id, startMs: at11})
+  expect(parseStampedText(`hello e2e-${id}-x`, at11)).toBeUndefined()
+  expect(parseStampedText(` e2e-${id}-x`, at11)).toBeUndefined()
+  expect(parseStampedText('e2e-scratch-pad-0001', at11)).toBeUndefined()
+  expect(parseStampedText('', at11)).toBeUndefined()
 })
