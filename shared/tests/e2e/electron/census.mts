@@ -28,7 +28,7 @@ import {
   type FlowTestRun,
   type Recording,
   type RenderRow,
-} from './census-lib.ts'
+} from '../shared/gate/census-lib.ts'
 import {EXCLUSIONS} from './census-exclusions.ts'
 import {CENSUS_WINDOWS} from './census-windows.ts'
 import {MANUAL_ONLY} from './manual-only.ts'
@@ -111,33 +111,47 @@ const main = () => {
     enabledRpcs: enabledOutgoing(),
     exclusions: EXCLUSIONS,
     flowCoverage: flows,
+    platform: 'desktop',
     renderCoverage: entries,
     routes: listRoutes(),
-    windows: {existing: appWindows(), listed: CENSUS_WINDOWS},
+    surfaces: {
+      entryPrefix: 'window/',
+      existing: appWindows(),
+      listFile: 'census-windows.ts',
+      listed: CENSUS_WINDOWS,
+      noun: 'window',
+    },
   })
   const show = (p: string) => (path.resolve(p).startsWith(sharedDir + path.sep) ? path.relative(sharedDir, p) : p)
   const sources = [
     `${show(args.results)}: project ${args.project}, ${runs.length} tests, ${flows.length} passing with a recording`,
     renderDir ? `${show(renderDir)}: ${rows.length} entries, ${entries.length} rendered ok` : 'no render this run: no tour entry counts',
   ]
-  const md = renderCensusMarkdown(result, {flowTests: flows.length, renderEntries: entries.length, sources})
+  const md = renderCensusMarkdown(result, {
+    flowTests: flows.length,
+    renderEntries: entries.length,
+    sources,
+    surfaceNoun: 'window',
+  })
   fs.mkdirSync(resultsDir, {recursive: true})
   fs.writeFileSync(path.join(resultsDir, 'census.md'), md)
+  const {staleSurfaces, surfaces, unclaimedSurfaces, ...rest} = result
+  const desktopJson = {staleWindows: staleSurfaces, unclaimedWindows: unclaimedSurfaces, windows: surfaces, ...rest}
   fs.writeFileSync(
     path.join(resultsDir, 'census.json'),
-    JSON.stringify({...result, sources: {project: args.project, render: renderDir ?? null, results: args.results}}, null, 2)
+    JSON.stringify({...desktopJson, sources: {project: args.project, render: renderDir ?? null, results: args.results}}, null, 2)
   )
   const t = censusTotals(result)
   console.log(
     `census: routes ${t.routesCovered} covered, ${t.routesUnclaimed} unclaimed, ${t.routesExcluded} excluded; ` +
       `writes ${t.writesCovered} covered, ${t.writesUnsent} unsent, ${t.writesBackground} background, ${t.writesExcluded} excluded; ` +
-      `windows ${t.windowsCovered} covered, ${t.windowsUnclaimed} unclaimed; ` +
+      `windows ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed; ` +
       `${t.stale} stale exclusions, ${result.coverageProblems.length} coverage problems (${flows.length} passing flow tests, ${entries.length} rendered tour entries)`
   )
   console.log(`census: ${path.join(resultsDir, 'census.md')}`)
   for (const s of result.staleExclusions) console.log(`  stale: ${s}`)
-  for (const s of result.staleWindows) console.log(`  stale window list: ${s}`)
-  for (const s of result.unclaimedWindows) console.log(`  unclaimed window: ${s}`)
+  for (const s of result.staleSurfaces) console.log(`  stale window list: ${s}`)
+  for (const s of result.unclaimedSurfaces) console.log(`  unclaimed window: ${s}`)
   for (const s of result.coverageProblems) console.log(`  coverage problem: ${s}`)
   return censusFailed(result) ? 1 : 0
 }
