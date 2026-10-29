@@ -4,7 +4,7 @@ import {computeDiff, buildReport, buildChecklist, chooseCardStep, parseStepName,
 import {MANUAL_ONLY} from './electron/manual-only.ts'
 import {KNOWN_FAILURES, KNOWN_FAILURES_FILE} from './electron/known-failures.ts'
 import {knownFlowCause, knownNote, knownRenderCause, knownVerdict} from './shared/gate/known.ts'
-import {specFileStem, stripAnsi} from './electron/release-lib.ts'
+import {specFileStem, stripAnsi} from './shared/gate/release-lib.ts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
 const resultsPath = 'tests/results/report/results.json'
