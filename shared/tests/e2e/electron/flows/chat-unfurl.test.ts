@@ -5,7 +5,7 @@
 // next run when this one died before it could.
 import * as fs from 'fs'
 import type {Locator, Page} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, e2eMarker} from '@/tests/e2e/electron/helpers/fixtures'
 import {openSelfConversation, sendMessage, signedInAs} from '@/tests/e2e/electron/helpers/chat'
 import {navigateToSettings} from '@/tests/e2e/electron/helpers/navigate'
 import {cliChatApi, cliWhoami} from '@/tests/e2e/shared/cli-account'
@@ -21,7 +21,6 @@ type UnfurlSettings = {blocklist: Array<string>; mode: Mode; whitelist: Array<st
 const smokeUser = process.env['KB_SMOKE_USER'] ?? ''
 // The account's settings from before the run, kept on disk until they are put back.
 const savedSettingsPath = '/tmp/kb-e2e-chat-unfurl-settings.json'
-const runID = Date.now().toString(36)
 // How long a link must stay bare to count as not unfurled, and the longest an unfurl may take.
 const bareWindowMs = 10_000
 
@@ -125,8 +124,8 @@ type Posted = {at: number; marker: string; row: Locator}
 
 // Posts a message carrying a link to `domain`, both unique to this post.
 const postLink = async (page: Page, tag: string, domain: string): Promise<Posted> => {
-  const marker = `e2e-unfurl-${tag}-${runID}`
-  await sendMessage(page, `${marker} https://${domain}/?e2e=${tag}-${runID}`)
+  const marker = e2eMarker(`unfurl-${tag}`)
+  await sendMessage(page, `${marker} https://${domain}/?e2e=${marker}`)
   return {at: Date.now(), marker, row: messageRow(page, marker)}
 }
 

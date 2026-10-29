@@ -4,6 +4,7 @@
 import type {Locator, Page} from '@playwright/test'
 import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {checkRendererAfterReload} from '@/tests/e2e/electron/helpers/connect'
+import {recordMainWindowFullscreen} from '@/tests/e2e/electron/helpers/main-process'
 import {
   clickUnoccluded,
   closeSearch,
@@ -149,9 +150,29 @@ test.describe('inline video', () => {
 
   // Driven input puts the video fullscreen within the window, not the window itself, and no exit
   // (exitFullscreen(), Escape, the controls) leaves that state; a real Escape or double-click does.
-  // A reload is the one way back.
+  // A reload is the one way back. The window's own fullscreen follows the video's (see
+  // recordMainWindowFullscreen): the reload waits for the window to finish entering, and the next
+  // test starts once it has left.
+  let windowFullscreen: Awaited<ReturnType<typeof recordMainWindowFullscreen>> | undefined
   test.afterEach(async ({page}) => {
-    if (await fullscreenTag(page)) await checkRendererAfterReload(page)
+    const win = windowFullscreen
+    windowFullscreen = undefined
+    try {
+      if (!(await fullscreenTag(page))) return
+      if (win) {
+        await expect
+          .poll(async () => win.transitions(), {message: 'the window entering fullscreen', timeout: 5_000})
+          .toEqual(['enter-full-screen'])
+      }
+      await checkRendererAfterReload(page)
+      if (win) {
+        await expect
+          .poll(async () => win.transitions(), {message: 'the window leaving fullscreen', timeout: 5_000})
+          .toEqual(['enter-full-screen', 'leave-full-screen'])
+      }
+    } finally {
+      await win?.stop()
+    }
   })
 
   test('an inline video plays once to its end and stops there', async ({page}) => {
@@ -192,6 +213,7 @@ test.describe('inline video', () => {
     await expect.poll(async () => (await videoState(row)).currentTime, {timeout: 10_000}).toBeGreaterThan(0)
     const box = await video.boundingBox({timeout: 5_000})
     if (!box) throw new Error('the video has no box')
+    windowFullscreen = await recordMainWindowFullscreen()
     await page.mouse.dblclick(box.x + box.width * 0.6, box.y + box.height * 0.3)
     await expect.poll(async () => fullscreenTag(page), {timeout: 5_000}).toBe('VIDEO')
     await expect(fullscreen(page)).toHaveCount(0)
