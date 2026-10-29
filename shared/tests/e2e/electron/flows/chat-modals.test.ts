@@ -1,4 +1,4 @@
-import {test, expect, e2eRunId, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {closeMenu, messageMenu, openE2EChannel, waitForRow} from '@/tests/e2e/electron/helpers/chat'
 import {E2E_CHANNELS, attachFromCli, sendFromCli} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
@@ -36,7 +36,7 @@ test('emoji picker opens', async ({page}, testInfo) => {
 
 test('message context menu opens', async ({page}, testInfo) => {
   await openE2EChannel(page)
-  const marker = `e2e-${e2eRunId()}-menu-${Date.now().toString(36)}`
+  const marker = e2eMarker('menu')
   await sendFromCli(E2E_CHANNELS.scratch, marker)
   const ordinal = await waitForRow(page, marker, 30_000)
   const menu = await messageMenu(page, ordinal)
@@ -99,7 +99,7 @@ test('bot search modal opens', async ({page}, testInfo) => {
 test('forward message picker opens', async ({page}, testInfo) => {
   test.setTimeout(60_000)
   await openE2EChannel(page)
-  const title = `e2e-${e2eRunId()}-fwd-${Date.now().toString(36)}`
+  const title = e2eMarker('fwd')
   await attachFromCli(E2E_CHANNELS.scratch, title)
   const ordinal = await waitForRow(page, title, 30_000)
   // the row's own "..." (hovered until it shows, clicked where nothing covers it), not a

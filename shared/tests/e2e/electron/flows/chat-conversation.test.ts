@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test'
-import {test, expect, e2eRunId, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
 import {clickUnoccluded, inboxRow} from '@/tests/e2e/electron/helpers/chat'
 import {sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
@@ -17,7 +17,7 @@ test.beforeAll(async () => {
 })
 
 const openDirectFromInbox = async (page: Page) => {
-  await sendDirectFromCli(data.direct.tlfName, `e2e-${e2eRunId()}-inbox-${Date.now().toString(36)}`)
+  await sendDirectFromCli(data.direct.tlfName, e2eMarker('inbox'))
   await navigateToChat(page)
   const row = inboxRow(page, data.secondUser)
   await expect(row, 'the conversation with the second account in the inbox').toBeVisible({timeout: 10_000})
