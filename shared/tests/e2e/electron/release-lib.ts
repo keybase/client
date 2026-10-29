@@ -1,6 +1,7 @@
 // The release command's decisions, kept free of I/O so they can be tested: whether a run may
 // start (preflightProblems), and what the flow and render results add up to.
-import {flowTestKey, knownFlowCause, knownRenderCause, knownVerdict, type KnownVerdict} from './known-failures.ts'
+import {KNOWN_FAILURES} from './known-failures.ts'
+import {flowTestKey, knownFlowCause, knownRenderCause, knownVerdict, type KnownVerdict} from '../shared/gate/known.ts'
 import {INSPECTOR_PORT} from './helpers/main-process-lib.ts'
 
 export const KBFS_START_COMMAND = '~/go/bin/kbfsfuse -debug -log-file /tmp/kb-e2e/kbfs.log /Volumes/Keybase &'
@@ -151,7 +152,7 @@ const tally = (rows: ReadonlyArray<{name: string; passed: boolean; cause: string
 // by name. Neither counts as passed or failed.
 export type FlowSummary = Tally & {flaky: Array<string>; skipped: Array<string>; runErrors: Array<string>}
 
-export const summarizeFlows = (report: PwReport, project: string, known?: Record<string, string>): FlowSummary => {
+export const summarizeFlows = (report: PwReport, project: string, known: Record<string, string> = KNOWN_FAILURES.flows): FlowSummary => {
   const rows = flowRows(report, project).map(r => ({...r, name: flowTestKey(r.file, r.titles)}))
   const t = tally(
     rows
@@ -169,7 +170,7 @@ export const flowProblems = (s: FlowSummary) => [...s.flaky.map(n => `flaky: ${n
 
 export type RenderResultRow = {id: string; status: string; error?: string}
 
-export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known?: Record<string, string>): Tally =>
+export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known: Record<string, string> = KNOWN_FAILURES.render): Tally =>
   tally(rows.map(r => ({cause: knownRenderCause(r.id, known), name: r.id, passed: r.status !== 'failed'})))
 
 // ---------------------------------------------------------------- summary

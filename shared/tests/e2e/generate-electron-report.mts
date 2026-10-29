@@ -2,7 +2,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {computeDiff, buildReport, buildChecklist, chooseCardStep, parseStepName, sortSteps} from './generate-report-shared.mts'
 import {MANUAL_ONLY} from './electron/manual-only.ts'
-import {knownFlowCause, knownNote, knownRenderCause, knownVerdict} from './electron/known-failures.ts'
+import {KNOWN_FAILURES, KNOWN_FAILURES_FILE} from './electron/known-failures.ts'
+import {knownFlowCause, knownNote, knownRenderCause, knownVerdict} from './shared/gate/known.ts'
 import {specFileStem, stripAnsi} from './electron/release-lib.ts'
 import type {CardData, Section} from './generate-report-shared.mts'
 
@@ -89,8 +90,8 @@ function parseReport(report: Report): CardData[] {
         const durationMs = result.duration
         // a skipped test never counts against or for a known failure
         const ran = tests.some(t => t.status !== 'skipped')
-        const cause = isDark || !ran ? undefined : knownFlowCause(specFileStem(spec.file), [...describes, spec.title])
-        const note = knownNote(knownVerdict(passed, cause), cause)
+        const cause = isDark || !ran ? undefined : knownFlowCause(specFileStem(spec.file), [...describes, spec.title], KNOWN_FAILURES.flows)
+        const note = knownNote(knownVerdict(passed, cause), cause, KNOWN_FAILURES_FILE)
         const failure = !passed ? stripAnsi(result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed') : null
         const errorMessage = [note, failure].filter(Boolean).join(' — ') || null
 
@@ -191,8 +192,8 @@ function parseRender(dir: string): CardData[] {
   const {entries} = JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: RenderRow[]}
   return entries.map(e => {
     const passed = e.status !== 'failed'
-    const cause = knownRenderCause(e.id)
-    const note = knownNote(knownVerdict(passed, cause), cause)
+    const cause = knownRenderCause(e.id, KNOWN_FAILURES.render)
+    const note = knownNote(knownVerdict(passed, cause), cause, KNOWN_FAILURES_FILE)
     const failure = passed ? null : (e.error ?? 'failed')
     return {
       diff: null,
