@@ -10,7 +10,7 @@ import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
 import {runSync} from './helpers/app.ts'
-import {APP_ACCOUNT_BODY, type AppAccount} from './gate/app-account-lib.ts'
+import {APP_ACCOUNT_BODY, settledAccount, type AppAccount} from './gate/app-account-lib.ts'
 import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
@@ -104,7 +104,8 @@ export const startMetro = async (o: {sharedDir: string; logFile: string; log: (s
 }
 
 // Terminates and relaunches the app so it loads the bundle this run's Metro serves, then waits for
-// its JS runtime to say who it is signed in as.
+// its JS runtime to say who it is signed in as (app-account-lib.ts settledAccount: a signed-out answer
+// only once it has held, as a new runtime reports one until its service answers).
 export const relaunchApp = async (o: {device: string; udid: string; log: (s: string) => void}): Promise<AppAccount> => {
   try {
     runSync('xcrun', ['simctl', 'terminate', o.udid, BUNDLE_ID], 30_000)
@@ -112,14 +113,16 @@ export const relaunchApp = async (o: {device: string; udid: string; log: (s: str
   runSync('xcrun', ['simctl', 'launch', o.udid, BUNDLE_ID], 60_000)
   o.log(`relaunched ${BUNDLE_ID} on ${o.device}; waiting for its bundle`)
   let last = ''
+  let firstAnswerAt: number | undefined
   return until(
     'the app to load its bundle and report its account',
     APP_UP_MS,
     async () => {
       try {
         const a = await evalInPage<AppAccount>(await inspectorPageFor(o.device, BUNDLE_ID), APP_ACCOUNT_BODY)
-        last = a.switching ? 'switching accounts' : ''
-        return a.switching ? undefined : a
+        firstAnswerAt ??= Date.now()
+        last = a.switching ? 'switching accounts' : a.loggedIn && a.username ? '' : 'not signed in yet'
+        return settledAccount(a, firstAnswerAt, Date.now())
       } catch (e) {
         last = e instanceof Error ? e.message : String(e)
         return undefined
