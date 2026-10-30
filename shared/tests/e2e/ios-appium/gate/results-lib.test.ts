@@ -1,6 +1,6 @@
 import {eachFlowTest, flowTestName, summarizeFlows} from '../../shared/gate/release-lib'
 import type {AttemptRecord} from './attempt'
-import {buildPwReport, testFileFromStack, unranPendingTests, type GateTest} from './results-lib'
+import {buildPwReport, hookFailure, mochaGrep, testFileFromStack, unranTests, type GateTest} from './results-lib'
 
 const attempt = (over: Partial<AttemptRecord>): AttemptRecord => ({
   annotations: [],
@@ -101,14 +101,44 @@ test('a describe is credited to the first test file on its call stack', () => {
   expect(testFileFromStack('Error\n    at /r/gate/hooks.ts:1:1')).toBeUndefined()
 })
 
-test('pending tests that never began an attempt are the ones still to record', () => {
-  const t = (name: string, pending: boolean) => ({isPending: () => pending, name})
+const t = (name: string, pending: boolean) => ({fullTitle: () => `d ${name}`, isPending: () => pending, name})
+
+test('tests that began no attempt are pending (to skip) or never ran (to fail), with their suites', () => {
   const skippedInBody = t('skipped in its body', true)
-  const root = {
-    suites: [{suites: [], tests: [t('nested pending', true), t('ran', false)]}],
-    tests: [t('pending', true), skippedInBody],
-  }
-  expect(unranPendingTests(root, x => x === skippedInBody).map(x => x.name)).toEqual(['pending', 'nested pending'])
+  const ran = t('ran', false)
+  const inner = {suites: [], tests: [t('nested pending', true), ran, t('nested never ran', false)]}
+  const root = {suites: [inner], tests: [t('pending', true), skippedInBody, t('never ran', false)]}
+  const got = unranTests(root, x => x === skippedInBody || x === ran, undefined)
+  expect(got.pending.map(x => x.name)).toEqual(['pending', 'nested pending'])
+  expect(got.neverRan.map(x => [x.test.name, x.suites.length])).toEqual([
+    ['never ran', 1],
+    ['nested never ran', 2],
+  ])
+  expect(got.neverRan[1]?.suites).toEqual([inner, root])
+})
+
+test('tests the grep left out are neither skipped nor failed', () => {
+  const root = {suites: [], tests: [t('kept pending', true), t('kept', false), t('other pending', true), t('other', false)]}
+  const got = unranTests(root, () => false, mochaGrep('kept'))
+  expect(got.pending.map(x => x.name)).toEqual(['kept pending'])
+  expect(got.neverRan.map(x => x.test.name)).toEqual(['kept'])
+})
+
+test('the grep compiles as mocha compiles a string', () => {
+  expect(mochaGrep(undefined)).toBeUndefined()
+  expect(mochaGrep('')).toBeUndefined()
+  expect(mochaGrep('a.b')?.test('axb')).toBe(true)
+  expect(mochaGrep('/^harness/i')?.test('Harness helpers')).toBe(true)
+  expect(mochaGrep('/^harness/i')?.test('the harness')).toBe(false)
+})
+
+test('a failed hook is cited by its kept error, or its timeout', () => {
+  const hook = (over: object) => ({state: 'failed', timedOut: false, timeout: () => 5000, title: '"before each" hook for "x"', ...over})
+  expect(hookFailure(hook({state: 'passed'}), 'boom')).toBeUndefined()
+  expect(hookFailure(hook({state: undefined}), undefined)).toBeUndefined()
+  expect(hookFailure(hook({}), 'seed failed')).toBe('"before each" hook for "x" failed: seed failed')
+  expect(hookFailure(hook({timedOut: true}), undefined)).toBe('"before each" hook for "x" failed: Timeout of 5000ms exceeded')
+  expect(hookFailure(hook({}), undefined)).toBe('"before each" hook for "x" failed: no error was recorded')
 })
 
 test('a skipped test is reported skipped, and the release summary lists it', () => {

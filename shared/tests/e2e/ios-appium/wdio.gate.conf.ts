@@ -5,13 +5,12 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {escapeToTabs} from './helpers/navigate'
-import {attemptToken, currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts} from './gate/attempt'
+import {attemptToken, iosReportDir, readAttempts, readRunErrors} from './gate/attempt'
 import {type Recorder, recorders} from './gate/recording'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
-import {appLogTail, beginErrorCapture, takeErrors} from './gate/errors'
-import {uncaughtErrors} from './gate/step-lib'
-import {requireAppIsSmoke} from './gate/accounts'
+import {beginErrorCapture} from './gate/errors'
+import {finishAttempt, type TestResult} from './gate/finish'
 
 const PROJECT = 'ios-flows'
 
@@ -25,24 +24,14 @@ export const config: WebdriverIO.Config = {
   onPrepare: [
     ...[base.onPrepare ?? []].flat(),
     () => {
-      fs.rmSync(IOS_REPORT_DIR, {force: true, recursive: true})
+      fs.rmSync(iosReportDir(), {force: true, recursive: true})
     },
   ],
   // wdio only logs a beforeTest error and runs the test anyway, so afterTest reports a recorder that
-  // did not start
+  // did not start. The account was checked before this (gate/hooks.ts).
   beforeTest: async () => {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
-    // wdio runs the test whatever this hook throws, so the root beforeEach in gate/hooks.ts fails a
-    // test on the wrong account; here it keeps the recorder from starting on it
-    const accountError = await requireAppIsSmoke().then(
-      () => '',
-      (e: unknown) => message(e)
-    )
-    if (accountError) {
-      rec.error = accountError
-      return
-    }
     await escapeToTabs()
     await beginErrorCapture().catch((e: unknown) => {
       rec.captureError = `starting the error capture: ${message(e)}`
@@ -57,69 +46,16 @@ export const config: WebdriverIO.Config = {
       }
     )
   },
-  afterTest: async (_test, _context, result: {passed: boolean; skipped?: boolean; duration: number; error?: Error}) => {
-    const attempt = currentAttempt()
-    const rec = recorders.get(attemptToken())
-    // an attempt failed only by its coverage record gets none: the screen was fine, the recorder was not
-    if (!result.passed && !result.skipped) {
-      const png = await browser.takeScreenshot().catch(() => undefined)
-      if (png) attempt.addAttachment('screenshot', 'image/png', Buffer.from(png, 'base64'))
-    }
-    // console errors are attached, as the desktop's are; an uncaught JS error fails a passing attempt
-    let errors: Array<string> = []
-    let captureError = rec?.captureError
-    try {
-      errors = await takeErrors()
-    } catch (e) {
-      captureError ??= `reading the app's errors: ${message(e)}`
-    }
-    const uncaught = uncaughtErrors(errors)
-    const consoleErrors = errors.filter(e => !uncaught.includes(e))
-    if (consoleErrors.length) attempt.addAttachment('renderer-console-errors', 'text/plain', consoleErrors.join('\n\n'))
-    if (uncaught.length) attempt.addAttachment('renderer-page-errors', 'text/plain', uncaught.join('\n\n'))
-    if (!result.passed && !result.skipped) {
-      let tail: string
-      try {
-        tail = appLogTail(80)
-      } catch (e) {
-        tail = `unavailable: ${message(e)}`
-      }
-      attempt.addAttachment('app-log-tail', 'text/plain', tail)
-    }
-    let got = {reloads: 0, routes: [] as Array<string>, rpcs: [] as Array<string>, startRoutes: [] as Array<string>}
-    let error = rec?.error ?? (rec?.recording ? '' : 'the recorder was not started')
-    if (rec?.recording) {
-      try {
-        const r = await rec.recording.finish()
-        got = {reloads: r.reloads, routes: r.routes, rpcs: r.rpcs, startRoutes: r.startRoutes}
-      } catch (e) {
-        error = message(e)
-      }
-    }
-    error ||= captureError ?? ''
-    const coverage = {...(error ? {error} : {}), ...got}
-    attempt.addAttachment('coverage.json', 'application/json', JSON.stringify(coverage, null, 2))
-    // a failed attempt already has its reason; a passing one fails for the missing record
-    const coverageFails = !!error && result.passed
-    const uncaughtFails = uncaught.length > 0 && result.passed && !coverageFails
-    endAttempt({
-      durationMs: result.duration,
-      status: coverageFails || uncaughtFails || (!result.passed && !result.skipped) ? 'failed' : result.skipped ? 'skipped' : 'passed',
-      ...(coverageFails
-        ? {error: `coverage not recorded: ${error}`}
-        : uncaughtFails
-          ? {error: `uncaught app error(s) during the test:\n${uncaught.join('\n\n')}`}
-          : result.error ? {error: result.error.message} : {}),
-    })
-  },
+  afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
   onComplete: (exitCode: number) => {
     const attempts = readAttempts()
     const report = buildPwReport(attempts, PROJECT)
+    report.errors.push(...readRunErrors())
     // a hook or worker failure leaves no failed attempt behind it
     if (exitCode !== 0 && !attempts.some(a => a.status === 'failed')) {
       report.errors.push(`wdio exited ${exitCode} with no failed test attempt`)
     }
-    fs.mkdirSync(IOS_REPORT_DIR, {recursive: true})
-    fs.writeFileSync(path.join(IOS_REPORT_DIR, 'results.json'), JSON.stringify(report, null, 2))
+    fs.mkdirSync(iosReportDir(), {recursive: true})
+    fs.writeFileSync(path.join(iosReportDir(), 'results.json'), JSON.stringify(report, null, 2))
   },
 }

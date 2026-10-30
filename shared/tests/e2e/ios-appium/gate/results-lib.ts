@@ -103,15 +103,44 @@ export const testFileFromStack = (stack: string): string | undefined => {
 }
 
 type TreeSuite<T> = {tests: ReadonlyArray<T>; suites: ReadonlyArray<TreeSuite<T>>}
+type TreeTest = {isPending: () => boolean; fullTitle: () => string}
 
-// mocha runs no hooks for a pending test (it.skip, describe.skip, xit), so it begins no attempt; a
-// test skipped from its own body did begin one, and `ran` says so.
-export const unranPendingTests = <T extends {isPending: () => boolean}>(root: TreeSuite<T>, ran: (t: T) => boolean): Array<T> => {
-  const out: Array<T> = []
-  const walk = (s: TreeSuite<T>) => {
-    for (const t of s.tests) if (t.isPending() && !ran(t)) out.push(t)
-    for (const c of s.suites) walk(c)
+// mocha's grep option as mocha compiles a string: "/re/flags" or a plain pattern.
+export const mochaGrep = (grep: string | undefined): RegExp | undefined => {
+  if (!grep) return undefined
+  const m = /^\/(.*)\/([a-z]*)$|.*/.exec(grep)
+  return new RegExp(m?.[1] || m?.[0] || grep, m?.[2])
+}
+
+// The tests of a run that began no attempt, among those its grep selected: pending ones (mocha runs
+// no hooks for it.skip, describe.skip, xit; a test skipped from its own body did begin one) and
+// ones that never ran (a hook failed first, or the run stopped), each with its suites innermost first.
+export const unranTests = <T extends TreeTest>(
+  root: TreeSuite<T>,
+  ran: (t: T) => boolean,
+  grep: RegExp | undefined
+): {pending: Array<T>; neverRan: Array<{test: T; suites: Array<TreeSuite<T>>}>} => {
+  const pending: Array<T> = []
+  const neverRan: Array<{test: T; suites: Array<TreeSuite<T>>}> = []
+  const walk = (s: TreeSuite<T>, outer: Array<TreeSuite<T>>) => {
+    const suites = [s, ...outer]
+    for (const t of s.tests) {
+      if (ran(t) || (grep && !grep.test(t.fullTitle()))) continue
+      if (t.isPending()) pending.push(t)
+      else neverRan.push({suites, test: t})
+    }
+    for (const c of s.suites) walk(c, suites)
   }
-  walk(root)
-  return out
+  walk(root, [])
+  return {neverRan, pending}
+}
+
+export const timeoutMessage = (ms: number) => `Timeout of ${ms}ms exceeded`
+
+export type HookState = {title: string; state?: string; timedOut?: boolean; timeout: () => number}
+
+// What a failed mocha hook says: the error the gate's hook wrapper kept, or mocha's timeout.
+export const hookFailure = (hook: HookState, error: string | undefined): string | undefined => {
+  if (hook.state !== 'failed') return undefined
+  return `${hook.title} failed: ${error ?? (hook.timedOut ? timeoutMessage(hook.timeout()) : 'no error was recorded')}`
 }

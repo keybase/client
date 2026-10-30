@@ -8,9 +8,10 @@ import {AsyncLocalStorage} from 'async_hooks'
 import * as fs from 'fs'
 import * as path from 'path'
 
-// Relative to shared/, the yarn cwd.
-export const IOS_REPORT_DIR = 'tests/results/ios-report'
-const ATTEMPTS_DIR = path.join(IOS_REPORT_DIR, 'attempts')
+// shared/tests/results/ios-report whatever the cwd; KB_IOS_REPORT_DIR moves it (the unit tests do).
+export const iosReportDir = () => process.env['KB_IOS_REPORT_DIR'] ?? path.resolve(__dirname, '../../../results/ios-report')
+const attemptsDir = () => path.join(iosReportDir(), 'attempts')
+const runErrorsDir = () => path.join(iosReportDir(), 'run-errors')
 
 export type AttemptRecord = {
   file: string
@@ -55,6 +56,26 @@ const slug = (s: string) =>
 
 const EXTENSIONS: Record<string, string> = {'application/json': '.json', 'image/png': '.png', 'text/plain': '.txt'}
 
+const recordOf = (r: Running, end: End): AttemptRecord => ({
+  annotations: r.annotations,
+  attachments: r.attachments,
+  attempt: r.attempt,
+  durationMs: end.durationMs,
+  file: r.file,
+  status: end.status,
+  titlePath: r.titlePath,
+  ...(end.error !== undefined ? {error: end.error} : {}),
+})
+
+const write = (r: Running, record: AttemptRecord) => {
+  fs.mkdirSync(attemptsDir(), {recursive: true})
+  fs.writeFileSync(path.join(attemptsDir(), `${r.id}.json`), JSON.stringify(record, null, 2))
+}
+
+export const NEVER_ENDED = 'the attempt never ended (the test worker stopped during it)'
+
+// Writes a failed record at once, which ending the attempt replaces, so a worker that dies during a
+// test still leaves its failure.
 export const beginAttempt = (file: string, titlePath: Array<string>, attempt: number): AttemptToken => {
   started++
   const name = slug([file.replace(/^.*\//, '').replace(/\.test\.ts$/, ''), ...titlePath].join(' '))
@@ -67,6 +88,7 @@ export const beginAttempt = (file: string, titlePath: Array<string>, attempt: nu
     steps: 0,
     titlePath,
   }
+  write(r, recordOf(r, {durationMs: 0, error: NEVER_ENDED, status: 'failed'}))
   return r
 }
 
@@ -87,7 +109,7 @@ export const currentAttempt = (): CurrentAttempt => {
   return {
     addAttachment: (name, contentType, data) => {
       open(r)
-      const dir = path.resolve(ATTEMPTS_DIR, r.id)
+      const dir = path.join(attemptsDir(), r.id)
       fs.mkdirSync(dir, {recursive: true})
       const ext = EXTENSIONS[contentType] ?? ''
       const base = slug(ext && name.endsWith(ext) ? name.slice(0, -ext.length) : name) || 'attachment'
@@ -109,18 +131,19 @@ export const currentAttempt = (): CurrentAttempt => {
 // that hooks.ts makes mocha agree with.
 export const endAttemptOf = (token: AttemptToken, end: End): AttemptRecord => {
   const r = open(token as Running)
-  const record: AttemptRecord = {
-    annotations: r.annotations,
-    attachments: r.attachments,
-    attempt: r.attempt,
-    durationMs: end.durationMs,
-    file: r.file,
-    status: end.status,
-    titlePath: r.titlePath,
-    ...(end.error !== undefined ? {error: end.error} : {}),
-  }
-  fs.mkdirSync(ATTEMPTS_DIR, {recursive: true})
-  fs.writeFileSync(path.join(ATTEMPTS_DIR, `${r.id}.json`), JSON.stringify(record, null, 2))
+  const record = recordOf(r, end)
+  write(r, record)
+  r.ended = record
+  return record
+}
+
+// Fails an attempt that ended passed, for what failed after its body (its suite's afterEach hook).
+export const failEndedAttempt = (token: AttemptToken, error: string): AttemptRecord => {
+  const r = token as Running
+  if (!r.ended) throw new Error(`attempt ${r.id} has not ended`)
+  if (r.ended.status !== 'passed') return r.ended
+  const record: AttemptRecord = {...r.ended, error, status: 'failed'}
+  write(r, record)
   r.ended = record
   return record
 }
@@ -136,10 +159,32 @@ export const recordSkipped = (file: string, titlePath: Array<string>): AttemptRe
 
 // Every attempt record of the run, in the order the attempts began.
 export const readAttempts = (): Array<AttemptRecord> => {
-  if (!fs.existsSync(ATTEMPTS_DIR)) return []
+  const dir = attemptsDir()
+  if (!fs.existsSync(dir)) return []
   return fs
-    .readdirSync(ATTEMPTS_DIR)
+    .readdirSync(dir)
     .filter(f => f.endsWith('.json'))
     .sort()
-    .map(f => JSON.parse(fs.readFileSync(path.join(ATTEMPTS_DIR, f), 'utf8')) as AttemptRecord)
+    .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as AttemptRecord)
+}
+
+let runErrors = 0
+
+// A failure of the run that belongs to no test (a suite's after hook, a test declared outside a
+// describe); the report lists it.
+export const recordRunError = (message: string) => {
+  runErrors++
+  fs.mkdirSync(runErrorsDir(), {recursive: true})
+  fs.writeFileSync(path.join(runErrorsDir(), `${process.pid}-${String(runErrors).padStart(4, '0')}.txt`), message)
+}
+
+// Each once: wdio loads the spec files twice, so a refusal at load is recorded twice.
+export const readRunErrors = (): Array<string> => {
+  const dir = runErrorsDir()
+  if (!fs.existsSync(dir)) return []
+  const all = fs
+    .readdirSync(dir)
+    .sort()
+    .map(f => fs.readFileSync(path.join(dir, f), 'utf8'))
+  return [...new Set(all)]
 }
