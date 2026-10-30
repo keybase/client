@@ -1,0 +1,94 @@
+// Simulator-side actions a flow takes at the app's boundary, each with a deadline. A relaunch starts
+// a new JS runtime: the caller follows it with attemptRecording().checkpoint().
+import {execFileSync} from 'child_process'
+import {
+  activateApp,
+  appPid,
+  backgroundApp,
+  BUNDLE_ID,
+  deviceUdid,
+  jsEval,
+  openUrl,
+  sendPush,
+  setLocation as simctlSetLocation,
+  simctl,
+  terminateApp,
+  waitFor,
+} from '../helpers/lifecycle'
+import {beginErrorCapture} from './errors.ts'
+
+const PASTEBOARD_MS = 30_000
+const RUNTIME_WAIT_MS = 120_000
+
+export const openLink = (url: string) => openUrl(url)
+
+export const pushNotification = (payload: object) => sendPush(payload)
+
+export const addPhotos = (paths: Array<string>) => {
+  if (!paths.length) return
+  simctl('addmedia', deviceUdid(), ...paths)
+}
+
+export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, lon)
+
+// The text goes over stdin, never the command line; never use these for a secret.
+export const setPasteboard = (text: string) => {
+  execFileSync('xcrun', ['simctl', 'pbcopy', deviceUdid()], {
+    input: text,
+    killSignal: 'SIGKILL',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: PASTEBOARD_MS,
+  })
+}
+
+export const readPasteboard = (): string =>
+  execFileSync('xcrun', ['simctl', 'pbpaste', deviceUdid()], {
+    encoding: 'utf8',
+    killSignal: 'SIGKILL',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: PASTEBOARD_MS,
+  })
+
+const runtimeId = async (): Promise<string | undefined> =>
+  (await jsEval<string | null>('return globalThis.__kbE2ERuntime ?? null')) ?? undefined
+
+const waitForRuntime = async (before: string | undefined) =>
+  waitFor('the relaunched app to start a new JS runtime', async () => {
+    const now = await runtimeId()
+    return now && now !== before ? now : undefined
+  }, {interval: 500, timeout: RUNTIME_WAIT_MS})
+
+const launch = async () => {
+  const before = await runtimeId().catch(() => undefined)
+  if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
+  await waitForRuntime(before)
+  await beginErrorCapture()
+}
+
+// Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
+export const relaunchApp = async () => {
+  const before = await runtimeId().catch(() => undefined)
+  await terminateApp()
+  simctl('launch', deviceUdid(), BUNDLE_ID)
+  await waitForRuntime(before)
+  await beginErrorCapture()
+}
+
+// simctl privacy can terminate the app (iOS restarts a process whose permission changes); when it
+// does, the app is launched again and this waits for its new JS runtime, so callers checkpoint
+// after it as after a relaunch.
+export const grantPrivacy = async (service: string) => {
+  const before = await runtimeId().catch(() => undefined)
+  simctl('privacy', deviceUdid(), 'grant', service, BUNDLE_ID)
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  if (appPid() === undefined) {
+    await launch()
+    return
+  }
+  const after = await runtimeId().catch(() => undefined)
+  if (after !== before) await beginErrorCapture()
+}
+
+export const toBackground = async () => backgroundApp()
+
+export const toForeground = async () => activateApp()

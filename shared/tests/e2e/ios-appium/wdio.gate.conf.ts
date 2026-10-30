@@ -5,7 +5,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {escapeToTabs} from './helpers/navigate'
-import {attemptToken, currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts, type AttemptToken} from './gate/attempt'
+import {attemptToken, currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts} from './gate/attempt'
+import {type Recorder, recorders} from './gate/recording'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
 import {appLogTail, beginErrorCapture, takeErrors} from './gate/errors'
@@ -14,9 +15,6 @@ import {requireAppIsSmoke} from './gate/accounts'
 
 const PROJECT = 'ios-flows'
 
-// each attempt's recorder, so a timed-out body that finishes late reaches only its own
-type Recorder = {recording?: PhoneRecording; error?: string; captureError?: string}
-const recorders = new WeakMap<AttemptToken, Recorder>()
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 

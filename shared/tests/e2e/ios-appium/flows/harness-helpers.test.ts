@@ -6,6 +6,9 @@ import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 import {beginErrorCapture, takeErrors} from '../gate/errors'
 import {step} from '../gate/step'
+import {openLink, readPasteboard, relaunchApp, setPasteboard} from '../gate/device'
+import {attemptRecording} from '../gate/recording'
+import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {emptySecretField, fieldLength, focusSecretField, submitSecret} from '../gate/secret-input'
 
 describe('harness helpers', () => {
@@ -40,6 +43,40 @@ describe('harness helpers', () => {
       await step('The login screen lists the accounts')
     })
     expect(await appAccount()).toMatchObject({loggedIn: true, username: smokeUser})
+  })
+})
+
+describe('harness simulator helpers', () => {
+  it('opens a deep link to the screen the app routes it to', async () => {
+    openLink('keybase://devices')
+    const screen = await waitFor(
+      'the devices screen',
+      async () => {
+        const {screen} = await appSnapshot()
+        return screen?.name === 'settingsTabs.devicesTab' ? screen : undefined
+      },
+      {interval: 500, timeout: 20_000}
+    )
+    expect(screen.name).toBe('settingsTabs.devicesTab')
+    await step('The devices link opened the Devices screen')
+    await escapeToTabs()
+  })
+
+  // On this host's Xcode 27 simulators `simctl pbpaste` reports an empty pasteboard after a successful
+  // pbcopy, so only the stdin write is checked here, with text a command line would mangle.
+  it('writes the pasteboard text over stdin', () => {
+    setPasteboard(`harness pasteboard "quoted" $HOME ${Date.now()}`)
+    expect(typeof readPasteboard()).toBe('string')
+  })
+
+  it('relaunches the app and keeps recording across the new runtime', async () => {
+    await navigateToMore()
+    // a terminate drops the runtime's recording, so it is taken first
+    await attemptRecording().checkpoint()
+    await relaunchApp()
+    await attemptRecording().checkpoint()
+    await navigateToPeople()
+    await step('Back on a tab after the relaunch')
   })
 })
 
