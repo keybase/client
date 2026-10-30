@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {runSync, udidForName} from './app'
+import {pidFromLaunchctl, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {waitForTestID} from './elements'
@@ -60,16 +60,7 @@ const statOrUndefined = (file: string) => {
 // -- app process ------------------------------------------------------------
 
 // The pid of the running app on the simulator, or undefined when it isn't running.
-export const appPid = (udid = deviceUdid()): number | undefined => {
-  const out = simctl('spawn', udid, 'launchctl', 'list')
-  for (const line of out.split('\n')) {
-    if (line.includes(`UIKitApplication:${BUNDLE_ID}[`)) {
-      const pid = Number(line.trim().split(/\s+/)[0])
-      return Number.isFinite(pid) && pid > 0 ? pid : undefined
-    }
-  }
-  return undefined
-}
+export const appPid = (udid = deviceUdid()): number | undefined => pidFromLaunchctl(simctl('spawn', udid, 'launchctl', 'list'), BUNDLE_ID)
 
 export const terminateApp = async (udid = deviceUdid()) => {
   try {

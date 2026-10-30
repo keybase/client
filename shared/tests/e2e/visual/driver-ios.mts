@@ -9,7 +9,7 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
-import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
+import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
 import {evalInPage, inspectorPageFor, lostInspectorPage, retryReadWhileLost, waitForInspectorPage} from '../shared/metro-eval.ts'
 import {
   fixDate,
@@ -112,17 +112,6 @@ const LONG_PRESS_S = 1
 // How a capture that left the app broken (`why`) is first tried: a reload runs through the
 // app's inspector page, so without one only a relaunch can help.
 export const recoveryFor = (why: string): 'reload' | 'relaunch' => (lostInspectorPage(why) ? 'relaunch' : 'reload')
-
-// The app's pid in the simulator's `launchctl list`, or undefined when it isn't running.
-export const pidFromLaunchctl = (out: string, bundleId: string): number | undefined => {
-  for (const line of out.split('\n')) {
-    const [pid, , label] = line.trim().split(/\s+/)
-    if (!label?.startsWith(`UIKitApplication:${bundleId}[`)) continue
-    const n = Number(pid)
-    return Number.isInteger(n) && n > 0 ? n : undefined
-  }
-  return undefined
-}
 
 // A capture whose first error was a lost inspector page is taken once more only when the app lived
 // through it (a socket drop): the same process, and in it the same JS runtime (the token the run last

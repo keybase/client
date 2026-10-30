@@ -23,6 +23,17 @@ export function runSync(file: string, args: ReadonlyArray<string>, timeoutMs: nu
   }
 }
 
+// The app's pid in the simulator's `launchctl list`, or undefined when it isn't running.
+export const pidFromLaunchctl = (out: string, bundleId: string): number | undefined => {
+  for (const line of out.split('\n')) {
+    const [pid, , label] = line.trim().split(/\s+/)
+    if (!label?.startsWith(`UIKitApplication:${bundleId}[`)) continue
+    const n = Number(pid)
+    return Number.isInteger(n) && n > 0 ? n : undefined
+  }
+  return undefined
+}
+
 export function udidForName(name: string): string {
   const json = runSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], 60_000)
   const devices = (JSON.parse(json) as {devices: Record<string, Array<{name: string; udid: string}>>}).devices
