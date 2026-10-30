@@ -4,7 +4,7 @@
 // Every test the run selects ends with a record: its attempts, or one failed record saying why it
 // never ran (a hook failed first). A hook's error is kept so that record can cite it.
 import * as path from 'path'
-import {watchAppHang} from './hang.ts'
+import {startHangWatch, stopHangWatch} from './hang.ts'
 import {
   beginAttempt,
   endAttemptOf,
@@ -146,16 +146,16 @@ plain.beforeEach(
     const body = ((test.fn as Body).gateBody ?? test.fn) as Mocha.AsyncFunc
     const wrapped: Body = async function (this: Mocha.Context) {
       // an app stuck for good is killed and relaunched (hang.ts), and its hang is what the test failed of
-      const stopWatch = watchAppHang()
+      startHangWatch()
       let hang: string | undefined
       try {
         await runAttempt(token, async () => {
           await requireAppIsSmoke()
           await body.call(this)
         })
-        hang = stopWatch()
+        hang = stopHangWatch()
       } catch (e) {
-        hang = stopWatch()
+        hang = stopHangWatch()
         const failure = hang ? new Error(`${hang}; then: ${message(e)}`, {cause: e}) : e
         if (!bodyErrors.has(token)) bodyErrors.set(token, message(failure))
         throw failure
@@ -183,6 +183,8 @@ plain.beforeEach(
 // flow afterEach failed after it.
 plain.afterEach(
   kept(async function (this: Mocha.Context) {
+    // a body mocha timed out is still running and never stopped its watch
+    stopHangWatch()
     const test = this.currentTest
     const token = test && attempts.get(test)
     if (!test || !token) return

@@ -8,7 +8,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {appPid, BUNDLE_ID, deviceUdid, simctl, terminateApp} from '../helpers/lifecycle'
 import {iosReportDir} from './attempt.ts'
-import {mainThreadInSnapshot, nextStuckReads} from './hang-lib.ts'
+import {makeWatchSlot, mainThreadInSnapshot, nextStuckReads} from './hang-lib.ts'
 
 const READ_EVERY_MS = 15_000
 // four reads in a row, 45s or more apart from the first: a snapshot of even the largest screen takes
@@ -43,8 +43,11 @@ const sampleApp = async (pid: number) => {
   }
 }
 
-// Starts the watch; returns its stop, which says why the app was relaunched, if it was.
-export const watchAppHang = () => {
+const slot = makeWatchSlot()
+
+// Starts the watch for one test body, stopping any earlier one (a body mocha timed out never stopped
+// its own).
+export const startHangWatch = () => {
   let stuck = 0
   let busy = false
   let hang: string | undefined
@@ -79,8 +82,11 @@ export const watchAppHang = () => {
         busy = false
       })
   }, READ_EVERY_MS)
-  return () => {
+  slot.start(() => {
     clearInterval(timer)
     return hang
-  }
+  })
 }
+
+// Stops the running watch, if any, and returns why it relaunched the app, if it did.
+export const stopHangWatch = () => slot.stop()

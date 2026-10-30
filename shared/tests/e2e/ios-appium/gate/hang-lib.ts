@@ -22,3 +22,20 @@ export const mainThreadInSnapshot = (report: string) => {
 
 // Counts reads in a row that found the main thread in the snapshot; a read that did not resets it.
 export const nextStuckReads = (stuck: number, inSnapshot: boolean) => (inSnapshot ? stuck + 1 : 0)
+
+// The one watch running: starting one stops the one before it (a test mocha timed out never stopped
+// its own), and stop() stops whichever runs. A stop returns what the watch found, if anything.
+export const makeWatchSlot = () => {
+  let current: (() => string | undefined) | undefined
+  return {
+    start: (stop: () => string | undefined) => {
+      current?.()
+      current = stop
+    },
+    stop: () => {
+      const s = current
+      current = undefined
+      return s?.()
+    },
+  }
+}
