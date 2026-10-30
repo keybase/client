@@ -108,10 +108,14 @@ export const flowProblems = (s: FlowSummary) => [...s.flaky.map(n => `flaky: ${n
 
 // ---------------------------------------------------------------- render results
 
-export type RenderResultRow = {id: string; status: string; error?: string}
+// `note`: why an entry that passed was captured twice (only the iOS driver sets one)
+export type RenderResultRow = {id: string; status: string; error?: string; note?: string}
+export type RenderTally = Tally & {recaptured: Array<string>}
 
-export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known: Record<string, string>): Tally =>
-  tally(rows.map(r => ({cause: knownRenderCause(r.id, known), name: r.id, passed: r.status !== 'failed'})))
+export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known: Record<string, string>): RenderTally => ({
+  ...tally(rows.map(r => ({cause: knownRenderCause(r.id, known), name: r.id, passed: r.status !== 'failed'}))),
+  recaptured: rows.filter(r => r.status !== 'failed' && r.note).map(r => r.id),
+})
 
 // ---------------------------------------------------------------- summary
 
@@ -125,8 +129,10 @@ export const flowsLine = (s: FlowSummary) =>
   (s.runErrors.length ? `, ${s.runErrors.length} run errors` : '') +
   (s.nowPasses.length ? `; ${s.nowPasses.length} known failures now pass` : '')
 
-export const renderLine = (t: Tally) =>
-  `${t.passed} rendered, ${t.failed} failed${knownPart(t)}` + (t.nowPasses.length ? `; ${t.nowPasses.length} known failures now pass` : '')
+export const renderLine = (t: RenderTally) =>
+  `${t.passed} rendered, ${t.failed} failed${knownPart(t)}` +
+  (t.recaptured.length ? `, ${t.recaptured.length} recaptured after the inspector page dropped` : '') +
+  (t.nowPasses.length ? `; ${t.nowPasses.length} known failures now pass` : '')
 
 export const flowsOk = (s: FlowSummary, exitCode: number | null) =>
   exitCode === 0 && s.failed === 0 && !s.runErrors.length && !flowProblems(s).length

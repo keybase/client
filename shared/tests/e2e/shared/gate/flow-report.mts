@@ -163,7 +163,7 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
   return cards
 }
 
-type RenderRow = {id: string; status: string; error?: string; png: string | null}
+type RenderRow = {id: string; status: string; error?: string; note?: string; png: string | null}
 
 // One card per tour entry of a `yarn visual:render` run (`--render <dir>`), labelled like the flows
 // when listed in the platform's known-failures list.
@@ -179,8 +179,8 @@ function parseRender(p: FlowReportPlatform, dir: string): CardData[] {
     return {
       diff: null,
       durationMs: 0,
-      errorMessage: [note, failure].filter(Boolean).join(' — ') || null,
-      label: `tour · ${e.id}${e.status === 'unstable' ? ' (unstable)' : ''}`,
+      errorMessage: [note, failure, e.note].filter(Boolean).join(' — ') || null,
+      label: `tour · ${e.id}${e.status === 'unstable' ? ' (unstable)' : ''}${e.note ? ' (recaptured)' : ''}`,
       passed,
       prevScreenshotPath: null,
       screenshotPath: e.png && fs.existsSync(e.png) ? e.png : null,

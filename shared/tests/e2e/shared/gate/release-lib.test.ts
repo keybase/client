@@ -103,8 +103,23 @@ describe('known failures', () => {
       ],
       {'chat/content-top': 'c', 'window/menubar': 'm'}
     )
-    expect(t).toEqual({failed: 2, fresh: ['settings/x'], known: ['window/menubar'], nowPasses: ['chat/content-top'], passed: 2})
+    expect(t).toEqual({failed: 2, fresh: ['settings/x'], known: ['window/menubar'], nowPasses: ['chat/content-top'], passed: 2, recaptured: []})
     expect(renderLine(t)).toBe('2 rendered, 2 failed (1 known on master, 1 new); 1 known failures now pass')
+  })
+
+  test('renderLine counts the entries that passed on a second capture after the inspector page dropped', () => {
+    const t = summarizeRender(
+      [
+        {id: 'settings/display', note: 'recaptured after the inspector page dropped: x', status: 'ok'},
+        {id: 'settings/about', note: 'recaptured after the inspector page dropped: y', status: 'unstable'},
+        {id: 'settings/chat', status: 'ok'},
+      ],
+      {}
+    )
+    expect(t.recaptured).toEqual(['settings/display', 'settings/about'])
+    expect(renderLine(t)).toBe('3 rendered, 0 failed, 2 recaptured after the inspector page dropped')
+    // a row without a note, as every desktop row is, adds nothing to the line
+    expect(renderLine(summarizeRender([{id: 'settings/chat', status: 'ok'}], {}))).toBe('1 rendered, 0 failed')
   })
 })
 

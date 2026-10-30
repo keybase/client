@@ -473,6 +473,7 @@ const main = async () => {
     for (const n of t.fresh) log(`new render failure: ${n}`)
     for (const n of t.known) log(`known on master: ${n}`)
     for (const n of t.nowPasses) log(`known render failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
+    for (const n of t.recaptured) log(`recaptured after the inspector page dropped: ${n}`)
     return {
       line: `${renderLine(t)}${r.code === 0 ? '' : ` (exited ${r.code})`}${platformOk ? '' : ' (render.json is not an iOS render)'}${logFailed(r)}`,
       ok: r.code === 0 && t.failed === 0 && platformOk && !r.logError,
