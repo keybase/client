@@ -59,9 +59,6 @@ export const inspectorPageFor = async (device: string, appId: string) =>
 export type WaitClock = {now: () => number; sleep: (ms: number) => Promise<void>}
 const realClock: WaitClock = {now: () => Date.now(), sleep: async ms => new Promise(resolve => setTimeout(resolve, ms))}
 
-// Runs `lookup` until it returns a page, every `intervalMs` for up to `ms`; the last failure is
-// thrown, prefixed with `what`. Only a lookup belongs here, never an eval: a body may not be safe to
-// run twice.
 // Runs a side-effect-free `read` until it answers, trying it again for up to `ms` while it fails on a
 // lost page (while the app's inspector socket flaps, a lookup can find the page and the eval's socket
 // still be closed under it). Any other failure, or the last one at the bound, is thrown. Never for a
@@ -79,6 +76,9 @@ export const retryReadWhileLost = async <R,>(read: () => Promise<R>, opts: {ms: 
   }
 }
 
+// Runs `lookup` until it returns a page, every `intervalMs` for up to `ms`; the last failure is
+// thrown, prefixed with `what`. Only a lookup belongs here, never an eval: a body may not be safe to
+// run twice.
 export const waitForInspectorPage = async (
   lookup: () => Promise<InspectorPage>,
   what: string,
