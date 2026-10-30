@@ -143,6 +143,77 @@ export const recaptureAfterDrop = (o: {
   o.tokenExpected !== undefined &&
   o.tokenSeen === o.tokenExpected
 
+export type RecoverDeps = {
+  routerAt: () => Promise<unknown>
+  // whether the current capture lost the inspector page
+  dropPending: () => boolean
+  noteDrop: () => void
+  // reads the app's runtime token once its page answers (once per drop); false when it doesn't
+  readToken: () => Promise<boolean>
+  runtimeRestarted: () => boolean
+  reload: () => Promise<void>
+  relaunch: () => Promise<void>
+}
+
+// Brings back an app a capture left broken, and says how, or undefined when nothing was. A screen
+// that throws takes the navigator down with it (no navigation state) and every later capture would
+// fail on that, so such an app is reloaded. A reload goes through the inspector page, so an app whose
+// page is gone is relaunched instead; one a relaunch can't bring back stops the run, since every later
+// capture would fail the same way. After a lost page the runtime is checked before the router: one
+// that restarted has a router too, but none of what prepare set, so it is reloaded. The router and
+// token reads are side-effect free, so they may run again; nothing else does.
+export const recoverApp = async (d: RecoverDeps): Promise<string | undefined> => {
+  let why: string
+  let step: 'reload' | 'relaunch'
+  const pageBack = d.dropPending() ? await d.readToken() : undefined
+  if (pageBack === false) {
+    why = 'the inspector page did not come back'
+    step = 'relaunch'
+  } else if (pageBack && d.runtimeRestarted()) {
+    why = 'the JS runtime restarted while the inspector page was gone'
+    step = 'reload'
+  } else {
+    try {
+      await d.routerAt()
+      return undefined
+    } catch (e) {
+      why = (e as Error).message
+    }
+    step = recoveryFor(why)
+    if (lostInspectorPage(why)) {
+      d.noteDrop()
+      const back = await d.readToken()
+      if (back && d.runtimeRestarted()) {
+        why = `${why}; the JS runtime restarted`
+        step = 'reload'
+      } else if (back) {
+        try {
+          await d.routerAt()
+          return undefined
+        } catch (e) {
+          const again = (e as Error).message
+          why = `${why}; once the page was back: ${again}`
+          step = recoveryFor(again)
+        }
+      }
+    }
+  }
+  if (step === 'reload') {
+    try {
+      await d.reload()
+      return `the app was left broken (${why}) and was reloaded`
+    } catch (e) {
+      why = `${why}; the reload failed: ${(e as Error).message}`
+    }
+  }
+  try {
+    await d.relaunch()
+  } catch (e) {
+    throw new Error(`the app was left broken (${why}) and a relaunch did not bring it back: ${(e as Error).message}`, {cause: e})
+  }
+  return `the app was left broken (${why}) and was relaunched`
+}
+
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
 // As in ios-appium/wdio.conf.ts: a non-default Appium port gets its own WDA port, so parallel
@@ -504,6 +575,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
   const runtimeRestarted = () => drop !== undefined && drop.tokenSeen !== drop.tokenExpected
+  const readDropTokenOnce = async () => (drop?.tokenSeen !== undefined ? true : readDropToken())
   const readDropTokenIfUnread = async () => {
     if (drop && drop.tokenSeen === undefined) await readDropToken()
   }
@@ -846,53 +918,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
     await restorePrepared(at)
   }
-  // A screen that throws takes the navigator down with it (no navigation state), and every later
-  // capture would fail on that; so a capture that left the app without one reloads it. A reload goes
-  // through the inspector page, so an app whose page is gone is relaunched instead; one that a
-  // relaunch can't bring back stops the run, since every later capture would fail the same way.
   const recoverIfBroken = async (): Promise<string | undefined> => {
     if (frozenAt === undefined) return undefined
-    let why: string
-    try {
-      await routerAt()
-      return undefined
-    } catch (e) {
-      why = (e as Error).message
-    }
-    let last = why
-    if (lostInspectorPage(why)) {
-      noteDrop()
-      // A page that came back on the same runtime may have left nothing broken; both reads are side
-      // effect free. A runtime that restarted lost what prepare set, so it is reloaded; a page that
-      // is still gone leaves `last` as it is, which relaunches.
-      const back = await readDropToken()
-      if (back && runtimeRestarted()) {
-        last = 'the JS runtime restarted'
-        why = `${why}; ${last}`
-      } else if (back) {
-        try {
-          await routerAt()
-          return undefined
-        } catch (e) {
-          last = (e as Error).message
-          why = `${why}; once the page was back: ${last}`
-        }
-      }
-    }
-    if (recoveryFor(last) === 'reload') {
-      try {
-        await reloadPrepared(frozenAt)
-        return `the app was left broken (${why}) and was reloaded`
-      } catch (e) {
-        why = `${why}; the reload failed: ${(e as Error).message}`
-      }
-    }
-    try {
-      await relaunchPrepared(frozenAt)
-    } catch (e) {
-      throw new Error(`the app was left broken (${why}) and a relaunch did not bring it back: ${(e as Error).message}`, {cause: e})
-    }
-    return `the app was left broken (${why}) and was relaunched`
+    const at = frozenAt
+    return recoverApp({
+      dropPending: () => drop !== undefined,
+      noteDrop,
+      readToken: readDropTokenOnce,
+      relaunch: async () => relaunchPrepared(at),
+      reload: async () => reloadPrepared(at),
+      routerAt,
+      runtimeRestarted,
+    })
   }
 
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)

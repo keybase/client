@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, pidFromLaunchctl, recaptureAfterDrop, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, pidFromLaunchctl, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -365,4 +365,85 @@ test('a capture is taken again only when the JS runtime at the drop is the one t
   // never read back
   assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: undefined}), false)
   assert.equal(recaptureAfterDrop({...same, tokenExpected: undefined, tokenSeen: undefined}), false)
+})
+
+// Recovery deps that log each call; `routerAt` and `readToken` answer from the given lists in turn.
+const recoverWith = (o: {drop?: boolean; restarted?: boolean; router?: Array<string | undefined>; token?: Array<boolean>}) => {
+  const calls: Array<string> = []
+  let restarted = false
+  let dropped = !!o.drop
+  const deps: RecoverDeps = {
+    dropPending: () => dropped,
+    noteDrop: () => {
+      calls.push('noteDrop')
+      dropped = true
+    },
+    readToken: async () => {
+      calls.push('readToken')
+      const back = o.token?.shift() ?? true
+      if (back) restarted = !!o.restarted
+      return Promise.resolve(back)
+    },
+    relaunch: async () => {
+      calls.push('relaunch')
+      return Promise.resolve()
+    },
+    reload: async () => {
+      calls.push('reload')
+      return Promise.resolve()
+    },
+    routerAt: async () => {
+      calls.push('routerAt')
+      const err = o.router?.shift()
+      return err === undefined ? Promise.resolve() : Promise.reject(new Error(err))
+    },
+    runtimeRestarted: () => restarted,
+  }
+  return {calls, deps}
+}
+const LOST = 'reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'
+
+test('a page back on a restarted runtime is reloaded into the prepared state, though its router is fine', async () => {
+  const {calls, deps} = recoverWith({drop: true, restarted: true})
+  const why = await recoverApp(deps)
+  assert.deepEqual(calls, ['readToken', 'reload'])
+  assert.match(why ?? '', /the JS runtime restarted while the inspector page was gone\) and was reloaded/)
+  // and the entry stays failed: the runtime it reads back is not the one the run marked
+  assert.equal(
+    recaptureAfterDrop({firstError: LOST, pidAtDrop: 100, pidBefore: 100, tokenExpected: 'tok-1', tokenSeen: null}),
+    false
+  )
+})
+
+test('a page back on the same runtime with a working router needs nothing', async () => {
+  const {calls, deps} = recoverWith({drop: true})
+  assert.equal(await recoverApp(deps), undefined)
+  assert.deepEqual(calls, ['readToken', 'routerAt'])
+})
+
+test('a page that does not come back after a drop is relaunched, without waiting on the router', async () => {
+  const {calls, deps} = recoverWith({drop: true, token: [false]})
+  assert.match((await recoverApp(deps)) ?? '', /the inspector page did not come back\) and was relaunched/)
+  assert.deepEqual(calls, ['readToken', 'relaunch'])
+})
+
+test('a router check that loses the page notes the drop, and a restarted runtime behind it is reloaded', async () => {
+  const {calls, deps} = recoverWith({restarted: true, router: [LOST]})
+  assert.match((await recoverApp(deps)) ?? '', /and was reloaded/)
+  assert.deepEqual(calls, ['routerAt', 'noteDrop', 'readToken', 'reload'])
+})
+
+test('without a drop a working router needs nothing, and a broken one is reloaded', async () => {
+  const ok = recoverWith({})
+  assert.equal(await recoverApp(ok.deps), undefined)
+  assert.deepEqual(ok.calls, ['routerAt'])
+  const broken = recoverWith({router: ['reading the router state: app evaluate threw: Error: no navigation state']})
+  assert.match((await recoverApp(broken.deps)) ?? '', /no navigation state\) and was reloaded/)
+  assert.deepEqual(broken.calls, ['routerAt', 'reload'])
+})
+
+test('a relaunch that fails stops the run with one error', async () => {
+  const {deps} = recoverWith({drop: true, token: [false]})
+  deps.relaunch = async () => Promise.reject(new Error('activating the app: no answer in 30s'))
+  await assert.rejects(recoverApp(deps), /a relaunch did not bring it back: activating the app: no answer in 30s/)
 })
