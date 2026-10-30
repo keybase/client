@@ -44,7 +44,8 @@ import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {sessionLocked} from '../electron/helpers/main-process.ts'
 import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
-import {createReleaseRun, errText, type ChildResult} from '../shared/gate/release-run.mts'
+import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
+import {pidAlive, stopPids} from '../electron/app-pidfile.ts'
 import {
   flowProblems,
   flowsLine,
@@ -69,6 +70,7 @@ import {
   iosPreflightProblems,
   isWdaResidue,
   IOS_RELEASE_PORTS,
+  logFailed,
   reportPhaseResult,
   simulatorFromList,
   strayChildren,
@@ -160,42 +162,7 @@ const node = (script: string, ...args: Array<string>) =>
 
 const mtime = (p: string) => (fs.existsSync(p) ? {mtimeMs: fs.statSync(p).mtimeMs} : {})
 
-const logFailed = (r: ChildResult) => (r.logError ? ` (its log could not be written: ${r.logError})` : '')
-
 // ---------------------------------------------------------------- processes
-
-const alive = (pid: number) => {
-  try {
-    process.kill(pid, 0)
-    return true
-  } catch (e) {
-    return (e as NodeJS.ErrnoException).code === 'EPERM'
-  }
-}
-
-const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// SIGTERM, then SIGKILL after 10s; true once every pid is gone.
-const stopPids = async (pids: ReadonlyArray<number>) => {
-  const signal = (sig: NodeJS.Signals) => {
-    for (const pid of pids) {
-      try {
-        process.kill(pid, sig)
-      } catch {}
-    }
-  }
-  const gone = async (ms: number) => {
-    for (let waited = 0; waited < ms; waited += 250) {
-      if (!pids.some(alive)) return true
-      await sleep(250)
-    }
-    return !pids.some(alive)
-  }
-  signal('SIGTERM')
-  if (await gone(10_000)) return true
-  signal('SIGKILL')
-  return gone(5_000)
-}
 
 // Every process of the WebDriverAgent an Appium session left on this simulator (release-lib.ts isWdaResidue).
 const wdaResiduePids = (id: string) =>
@@ -203,15 +170,15 @@ const wdaResiduePids = (id: string) =>
     .filter(p => isWdaResidue(p.command, id))
     .map(p => p.pid)
 
-const fullCommand = (pid: number) =>
-  spawnSync('ps', ['-ww', '-o', 'command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000}).stdout.trim()
+// '' when ps fails or the process is gone
+const fullCommand = (pid: number) => (spawnSync('ps', ['-ww', '-o', 'command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000}).stdout ?? '').trim()
 
 const stopWda = async (id: string, why: string) => {
   const pids = wdaResiduePids(id)
   if (!pids.length) return true
   log(`stopping the WebDriverAgent ${why} on ${device} (pids ${pids.join(', ')})`)
   const ok = await stopPids(pids)
-  if (!ok) log(`the WebDriverAgent did not stop (pids ${pids.filter(alive).join(', ')})`)
+  if (!ok) log(`the WebDriverAgent did not stop (pids ${pids.filter(pidAlive).join(', ')})`)
   return ok
 }
 

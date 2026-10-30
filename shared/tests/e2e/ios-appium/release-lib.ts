@@ -157,7 +157,7 @@ type PhaseChild = {code: number | null; stdout: string; logError?: string}
 // An output the phase must have written: `mtimeMs` left out when the file does not exist.
 type PhaseOutput = {path: string; mtimeMs?: number}
 
-const logFailed = (c: PhaseChild) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
+export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
 const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= start
 
 // The census phase passes only on what its own child did: its `census: routes …` line, and a census

@@ -5,7 +5,7 @@
 import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
-import {groupAlive, stopAppGroup} from '../electron/app-pidfile.ts'
+import {groupAlive, sleep, stopAppGroup} from '../electron/app-pidfile.ts'
 import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
@@ -31,7 +31,8 @@ export const readMetroPidfile = (): MetroPidfile | undefined => {
   }
 }
 
-export const processes = () => parsePs(spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,command='], {encoding: 'utf8', timeout: 10_000}).stdout)
+// a ps that failed reads as no processes
+export const processes = () => parsePs(spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,command='], {encoding: 'utf8', timeout: 10_000}).stdout ?? '')
 
 // Whether `pgid` is still running a Metro (release-lib.ts isMetroGroup): a recorded group id is only
 // ever signalled while it is.
@@ -56,8 +57,6 @@ export const stopMetro = async (pgid: number) => {
   await stopAppGroup(pgid)
   forgetMetroPidfile(pgid)
 }
-
-const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 const until = async <T,>(what: string, ms: number, f: () => Promise<T | undefined>, last: () => string = () => '') => {
   const end = Date.now() + ms
