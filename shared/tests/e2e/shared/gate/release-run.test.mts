@@ -83,6 +83,27 @@ test('runChild passes stdout back with the exit code', async () => {
   await end(run)
 })
 
+test('runChild with a logFile appends stdout and stderr to it and still returns stdout', async () => {
+  const run = newRun({exits: [], notes: []})
+  const logFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')), 'child.log')
+  fs.writeFileSync(logFile, 'earlier\n')
+  const r = await run.runChild('both', process.execPath, ['-e', 'console.log("out"); console.error("err")'], 10_000, {logFile})
+  assert.deepEqual(r, {code: 0, stdout: 'out\n', timedOut: false})
+  const text = fs.readFileSync(logFile, 'utf8')
+  assert.match(text, /^earlier\n/)
+  assert.match(text, /out\n/)
+  assert.match(text, /err\n/)
+  await end(run)
+})
+
+test('runChild takes its env and cwd from opts', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')))
+  const r = await run.runChild('opts', process.execPath, ['-e', 'console.log(process.env.KB_X + process.cwd())'], 10_000, {cwd: dir, env: {...process.env, KB_X: 'v'}})
+  assert.equal(r.stdout, `v${dir}\n`)
+  await end(run)
+})
+
 const alive = (pid: number) => {
   try {
     process.kill(pid, 0)

@@ -1,6 +1,7 @@
 // The plumbing of a release gate run: timed phases, children under a deadline, the release lock,
 // the overall deadline and interrupts, and the summary and notification at the end. The platform's
 // release command supplies what it launches and stops.
+import {appendFileSync} from 'fs'
 import {spawn, execFileSync, type ChildProcess} from 'child_process'
 import {redactSecrets} from '../peer-service.ts'
 import {acquireFileLock} from '../../visual/lock.mts'
@@ -12,11 +13,18 @@ export const errText = (e: unknown) => redactSecrets(e instanceof Error ? e.mess
 
 export type ChildResult = {code: number | null; stdout: string; timedOut: boolean}
 
+export type ChildOptions = {
+  // stdout and stderr are also appended here as they arrive
+  logFile?: string
+  env?: NodeJS.ProcessEnv
+  cwd?: string
+}
+
 export type ReleaseRun = {
   runStart: number
   log: (s: string) => void
   phase: (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => Promise<boolean>
-  runChild: (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) => Promise<ChildResult>
+  runChild: (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number, opts?: ChildOptions) => Promise<ChildResult>
   remainingMs: () => number
   // cleanup may add to it
   phases: Array<Phase>
@@ -64,22 +72,29 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   // Runs a child in `cwd` with its output passed through, under a deadline (SIGTERM, then SIGKILL
   // 10s later). Resolves with its exit code (null when killed) and its stdout. Once the run is aborted
   // it starts nothing and resolves at once as a child that timed out.
-  const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) =>
+  const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number, opts: ChildOptions = {}) =>
     new Promise<ChildResult>(resolve => {
       if (isAborted()) {
         resolve({code: null, stdout: '', timedOut: true})
         return
       }
-      const child = spawn(cmd, [...args], {cwd: o.cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe']})
+      const child = spawn(cmd, [...args], {cwd: opts.cwd ?? o.cwd, env: opts.env ?? process.env, stdio: ['ignore', 'pipe', 'pipe']})
       currentChild = child
+      const toFile = (d: Buffer) => {
+        if (opts.logFile) appendFileSync(opts.logFile, d)
+      }
       let stdout = ''
       let timedOut = false
       let killTimer: ReturnType<typeof setTimeout> | undefined
       child.stdout.on('data', (d: Buffer) => {
         stdout += d.toString()
         process.stdout.write(d)
+        toFile(d)
       })
-      child.stderr.on('data', (d: Buffer) => process.stderr.write(d))
+      child.stderr.on('data', (d: Buffer) => {
+        process.stderr.write(d)
+        toFile(d)
+      })
       const timer = setTimeout(() => {
         timedOut = true
         log(`${name}: not done in ${Math.round(timeoutMs / 1000)}s; stopping it`)

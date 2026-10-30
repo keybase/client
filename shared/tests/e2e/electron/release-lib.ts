@@ -1,5 +1,6 @@
 // The release command's decisions, kept free of I/O so they can be tested: whether a run may
 // start (preflightProblems), and the renderer watchdog's verdicts.
+import type {PortHolder} from '../shared/gate/ports.ts'
 import type {Outcome} from '../shared/gate/release-lib.ts'
 import {INSPECTOR_PORT} from './helpers/main-process-lib.ts'
 
@@ -8,8 +9,6 @@ export const KBFS_START_COMMAND = '~/go/bin/kbfsfuse -debug -log-file /tmp/kb-e2
 // The ports the run's app listens on, which must be free or held by the app launch-app.mts started:
 // the dev server, the renderer's CDP and the main process's inspector (helpers/main-process.ts).
 export const RELEASE_PORTS: ReadonlyArray<number> = [4000, 9222, INSPECTOR_PORT]
-
-export type PortHolder = {pid: number; pgid: number; command: string}
 
 export type PreflightState = {
   // the release lock's live holder, when another release run holds it: nothing else is checked

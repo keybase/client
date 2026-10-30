@@ -26,7 +26,7 @@
 // KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 150)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
 //                             the settings/* tour entries (the census then reports gaps)
-import {spawn, spawnSync, execFileSync} from 'child_process'
+import {spawn} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
@@ -47,7 +47,6 @@ import {
   flowProblems,
   flowsLine,
   flowsOk,
-  parseLsof,
   parseTimeoutMin,
   releaseFailed,
   renderLine,
@@ -57,7 +56,8 @@ import {
   type PwReport,
   type RenderResultRow,
 } from '../shared/gate/release-lib.ts'
-import {preflightProblems, RELEASE_PORTS, type PortHolder, type PreflightState} from './release-lib.ts'
+import {portHolders} from '../shared/gate/ports.ts'
+import {preflightProblems, RELEASE_PORTS, type PreflightState} from './release-lib.ts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -133,9 +133,8 @@ const outcome = async (p: Promise<unknown>): Promise<Outcome> =>
   )
 
 const portState = (port: number): PreflightState['ports'][number] => {
-  const r = spawnSync('lsof', ['-t', `-iTCP:${port}`, '-sTCP:LISTEN'], {encoding: 'utf8', timeout: 10_000})
-  const parsed = parseLsof({status: r.status, stderr: r.stderr, stdout: r.stdout, ...(r.error ? {error: r.error.message} : {})})
-  return 'error' in parsed ? {error: parsed.error, holders: [], port} : {holders: parsed.pids.map(holder), port}
+  const r = portHolders(port)
+  return 'error' in r ? {error: r.error, holders: [], port} : {holders: r.holders, port}
 }
 
 const screenState = (): PreflightState['screen'] => {
@@ -143,16 +142,6 @@ const screenState = (): PreflightState['screen'] => {
     return {locked: sessionLocked()}
   } catch (e) {
     return {error: errText(e)}
-  }
-}
-
-const holder = (pid: number): PortHolder => {
-  try {
-    const line = execFileSync('ps', ['-o', 'pgid=,command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000}).trim()
-    const m = /^(\d+)\s+(.*)$/.exec(line)
-    return {command: (m?.[2] ?? '').slice(0, 120), pgid: Number(m?.[1] ?? -1), pid}
-  } catch {
-    return {command: '(exited)', pgid: -1, pid}
   }
 }
 
