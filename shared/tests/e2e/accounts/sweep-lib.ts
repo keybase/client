@@ -8,7 +8,7 @@
 //   messages                      the account's own, in the scratch channel, the smoke<->second
 //                                 conversation or (smoke only) the self conversation
 //   KBFS entries                  directly in a folder kbfsRoots names
-//   devices                       e2e-<runid>-prov only; peer devices are kept
+//   devices                       e2e-<runid>-prov and e2e-<runid>-cli only; peer devices are kept
 //   paper keys                    only those the ledger (paper-key-ledger.ts) recorded, by device id
 //                                 and unchanged name
 // Anything outside its scope is dropped, never judged. Other `e2e` names (seeded data, flows still
@@ -71,6 +71,13 @@ export type SweepSelection = {delete: Array<SweepCandidate>; listOnly: Array<Swe
 const peerDeviceRe = /^e2e-(?:second|owner)-svc(?:-\d+)?$/
 // the label a provisioning flow gives the device it makes (e2e-<runid>-prov)
 export const provDeviceLabel = 'prov'
+// the label of a computer the CLI provisions for a flow that revokes it in an app (e2e-<runid>-cli)
+export const cliProvDeviceLabel = 'cli'
+// each one's home is homes/<label>-<runid> (env.ts provisionHomeFor)
+export const provDeviceLabels: ReadonlyArray<string> = [provDeviceLabel, cliProvDeviceLabel]
+
+// The label of a provisioned device's name made by run `runId`, or undefined when it is none.
+export const provDeviceLabelOf = (name: string, runId: string) => provDeviceLabels.find(l => name === `e2e-${runId}-${l}`)
 const emailRe = /^([^@\s]+)@[A-Za-z0-9.-]+$/
 const safeEntryRe = /^[A-Za-z0-9_.-]+$/
 
@@ -169,8 +176,8 @@ const judge = (c: SweepCandidate, ctx: SweepContext): Verdict => {
   if (c.kind === 'device') {
     if (peerDeviceRe.test(c.name)) return {reason: 'peer device', to: 'kept'}
     const run = parseStampedName(c.name, 'dashed', ctx.before)
-    if (!run || c.name !== `e2e-${run.runId}-${provDeviceLabel}`) {
-      return {reason: `not revoked: only e2e-<runid>-${provDeviceLabel} devices are`, to: 'listOnly'}
+    if (!run || !provDeviceLabelOf(c.name, run.runId)) {
+      return {reason: `not revoked: only e2e-<runid>-{${provDeviceLabels.join(',')}} devices are`, to: 'listOnly'}
     }
     if (!c.deviceID) return {reason: 'no device id listed for it', to: 'kept'}
   }

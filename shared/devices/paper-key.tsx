@@ -59,6 +59,7 @@ const PaperKey = () => {
           checked={wroteItDown}
           disabled={!paperkey}
           onCheck={setWroteItDown}
+          testID={TestIDs.DEVICES_PAPER_KEY_WROTE_IT_DOWN}
         />
         <Kb.WaitingButton
           label="Done"

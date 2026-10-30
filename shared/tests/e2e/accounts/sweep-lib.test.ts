@@ -53,6 +53,12 @@ describe('selectSweepTargets', () => {
     expect(decide(smoke({deviceID: 'de01', kind: 'device', name: `e2e-${old}-x-prov`}))).toMatch(/^list: /)
   })
 
+  test('a stamped CLI-provisioned device of an older run is deleted, one of this run kept', () => {
+    expect(decide(smoke({deviceID: 'de04', kind: 'device', name: `e2e-${old}-cli`}))).toBe('delete')
+    expect(decide(smoke({deviceID: 'de05', kind: 'device', name: `e2e-${ctx.currentRunId}-cli`}))).toMatch(/^kept: made by this run/)
+    expect(decide(smoke({deviceID: 'de06', kind: 'device', name: `e2e-${old}-clix`}))).toMatch(/^list: /)
+  })
+
   test('keeps objects of the current run and of runs that started after `before`', () => {
     expect(decide(smoke({kind: 'channel', name: `e2e-${ctx.currentRunId}-x`}))).toMatch(/^kept: made by this run/)
     expect(decide(smoke({kind: 'channel', name: 'e2e-98s0a1-x'}))).toMatch(/^kept: .*not before/)

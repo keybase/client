@@ -2,3 +2,7 @@
 // every flow's tests.
 import './gate/hooks'
 import './flows/harness-helpers.test'
+import './flows/devices-view.test'
+import './flows/device-detail.test'
+import './flows/device-paper-key.test'
+import './flows/device-revoke.test'

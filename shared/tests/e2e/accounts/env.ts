@@ -31,9 +31,9 @@ export type E2EEnv = {
 export const e2eConfigDir = () => path.join(os.homedir(), '.config', 'keybase-e2e')
 export const defaultEnvPath = () => path.join(e2eConfigDir(), 'env')
 export const defaultPeerHome = (role: PeerRole) => path.join(e2eConfigDir(), 'homes', role)
-// Where a run's provisioning flow keeps the device it makes (e2e-<runid>-prov); the sweeper
-// retires a leftover one from here.
-export const provisionHomeFor = (runId: string) => path.join(e2eConfigDir(), 'homes', `prov-${runId}`)
+// Where a run keeps a device it provisions (e2e-<runid>-<label>, sweep-lib provDeviceLabels): the app's
+// provisioning flow's ('prov') by default. The sweeper retires a leftover one from here.
+export const provisionHomeFor = (runId: string, label = 'prov') => path.join(e2eConfigDir(), 'homes', `${label}-${runId}`)
 
 export const homeVar = (role: PeerRole) => `KB_${role.toUpperCase()}_HOME`
 export const paperKeyVar = (role: PeerRole) => `KB_${role.toUpperCase()}_PAPERKEY`

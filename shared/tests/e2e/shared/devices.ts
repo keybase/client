@@ -9,8 +9,16 @@ import {runKeybase} from './peer-service.ts'
 
 type DeviceDetail = {device: ListedDevice; revokedAt?: number | null}
 
-// The device a run's provisioning flow makes: the one name the sweeper revokes.
-export const provDeviceName = (runId: string) => `e2e-${runId}-${provDeviceLabel}`
+// The device a run provisions, by its label (sweep-lib provDeviceLabels): the names the sweeper revokes.
+export const provDeviceName = (runId: string, label = provDeviceLabel) => `e2e-${runId}-${label}`
+
+// Revokes `device` through the main service, once requireRevocableFromPhone allows it: the cleanup
+// of a flow that failed before the app revoked what it made. A device already revoked is left.
+export const revokeLeftoverFromPhoneFlow = async (env: E2EEnv, device: {deviceID: string; name: string}, phoneDeviceID: string) => {
+  if ((await deviceHistory()).find(d => d.deviceID === device.deviceID)?.revoked) return
+  await requireRevocableFromPhone(env, device, phoneDeviceID)
+  await mainRpc('keybase.1.revoke.revokeDevice', {deviceID: device.deviceID, forceLast: false, forceSelf: false, sessionID: 0})
+}
 
 // Every device the account ever had, by its own name (deviceList names a paper key
 // "Paper Key (<two words>...)"; this has the two words), with whether it is revoked.

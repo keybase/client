@@ -183,6 +183,8 @@ export const DEVICES_ROW_LAST_USED = 'devices-row-last-used'
 export const DEVICE_PAGE_LAST_USED = 'device-page-last-used'
 // the new paper key's words box on the devicePaperKey screen (flows hide it before any screenshot)
 export const DEVICES_PAPER_KEY_WORDS = 'devices-paper-key-words'
+// its "Yes, I wrote this down." switch (on the phone its label takes no tap)
+export const DEVICES_PAPER_KEY_WROTE_IT_DOWN = 'devices-paper-key-wrote-it-down'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
