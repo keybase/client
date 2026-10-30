@@ -6,7 +6,7 @@
 import * as T from '../../shared/test-ids'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled} from './elements'
-import {goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
+import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -30,8 +30,10 @@ const rowsNow = async () => {
   return {divider: showsRevokedDivider(source), rows: deviceRowsIn(source)}
 }
 
-// Settings > Devices, once the list has loaded rows; the list starts at its top.
+// Settings > Devices, once the list has loaded rows; the list starts at its top. From wherever the
+// app is: Devices is pushed above the tab bar, which hides the More tab, so it starts at the tabs.
 export const openDevices = async () => {
+  await escapeToTabs()
   await navigateToMore()
   await tapSettingsRow('Devices')
   await el(T.DEVICES_LIST).waitForExist({timeout: 15_000})
