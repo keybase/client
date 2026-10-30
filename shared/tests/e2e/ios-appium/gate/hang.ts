@@ -7,12 +7,16 @@ import {execFile, execFileSync} from 'child_process'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {appPid, BUNDLE_ID, deviceUdid, simctl, terminateApp} from '../helpers/lifecycle'
+import {withDeadline} from '../../shared/deadline.ts'
+import {appPid} from '../helpers/lifecycle'
 import {iosReportDir} from './attempt.ts'
+import {relaunchHungApp} from './device.ts'
 import {makeHangWatch, makeWatchSlot, protocolSucceeded, STUCK_READS} from './hang-lib.ts'
 
 const READ_EVERY_MS = 15_000
 const SAMPLE_MS = 20_000
+// reading the hung app's errors (which fails), its kill, its launch and its new runtime
+const RELAUNCH_MS = 180_000
 
 // WebDriver requests that succeeded this run (wdio.gate.conf.ts listens to webdriver's 'result'
 // event): a hung app answers none.
@@ -55,17 +59,15 @@ const keepSample = (report: string) => {
 const slot = makeWatchSlot()
 
 // Starts the watch for one test body, stopping any earlier one (a body mocha timed out never stopped
-// its own). The promise resolves with the reason once the watch has relaunched a hung app; it never
+// its own). Started inside the attempt, as the relaunch moves the attempt's recording to the new
+// runtime. The promise resolves with the reason once the watch has relaunched a hung app; it never
 // resolves otherwise.
 export const startHangWatch = async (): Promise<string> => {
   const watch = makeHangWatch({
     appPid: () => appPid(),
     cpuPercent: appCpuPercent,
     keep: keepSample,
-    relaunch: async () => {
-      await terminateApp()
-      simctl('launch', deviceUdid(), BUNDLE_ID)
-    },
+    relaunch: async () => withDeadline(relaunchHungApp(), RELAUNCH_MS, 'relaunching the hung app'),
     sample: sampleApp,
     succeeded: () => succeeded,
   })

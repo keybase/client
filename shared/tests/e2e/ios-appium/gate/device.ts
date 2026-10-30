@@ -81,6 +81,15 @@ export const relaunchApp = async () => {
   await launch(before)
 }
 
+// The app hung for good (hang.ts): its runtime answers no eval, so what it recorded since the last
+// checkpoint is lost and reading its errors fails (keepErrors notes that on the attempt). It is
+// killed and launched; the attempt's recording and error capture move to the new runtime.
+export const relaunchHungApp = async () => {
+  await keepErrors()
+  await terminateApp()
+  await launch(undefined)
+}
+
 // simctl privacy can terminate the app (iOS restarts a process whose permission changes), and the
 // kill can land seconds after the grant returns. When the app exited or came back with a new JS
 // runtime within PRIVACY_KILL_MS, it is launched if gone and this waits for its new runtime.
