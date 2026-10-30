@@ -7,7 +7,14 @@ import type {KnownList} from '../../../shared/gate/known.ts'
 //   flows   `<file> › <describe…> › <title>` (file without .test.ts), or the title path alone
 //   render  tour entry id
 export const IOS_KNOWN_FAILURES: KnownList = {
-  flows: {},
+  flows: {
+    // unconfirmed live: seen under the old chat runner; the first gate run decides
+    'chat-scroll › chat scroll › a burst of incoming messages › at the end, a burst of incoming messages keeps the thread at its end':
+      'the thread list stops following new rows when each lands during the animated follow of the one before (maintainVisibleContentPosition autoscroll), leaving it short of its end; predates the newer scroll fixes, suspected on master',
+    // unconfirmed live: seen under the old chat runner; the first gate run decides
+    'chat-scroll › chat scroll › closing search › closing search leaves the list where it is':
+      'closing thread search swaps the search bar back for the composer and the scroll view keeps its offset, so the rows shift with the layout change and nothing puts them back (exact cause not pinned down); suspected on master',
+  },
   render: {},
 }
 

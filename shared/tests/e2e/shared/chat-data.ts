@@ -551,6 +551,23 @@ export const channelMembersFromCli = async (topicName: string) => {
   return [...(members.owners ?? []), ...(members.admins ?? []), ...(members.writers ?? []), ...(members.readers ?? [])].map(m => m.username)
 }
 
+// Whether the host's account has an e2e team channel unread, as its inbox holds it: its read pointer
+// is behind the newest visible message, its own messages included (a mark unread from another device
+// moves the pointer back; opening the thread there moves it forward).
+export const channelUnreadFromCli = async (topicName: E2EChannel) => {
+  const {team} = e2eAccounts()
+  const res = await withApi(async api =>
+    api.call<{conversations?: Array<ConvSummary & {unread?: boolean}>}>('listconvsonname', {
+      members_type: 'team',
+      name: team,
+      topic_type: 'CHAT',
+    })
+  )
+  const conv = (res.conversations ?? []).find(c => c.channel.topic_name === topicName)
+  if (!conv) throw new Error(`#${topicName} is not among the team's channels`)
+  return conv.unread === true
+}
+
 // The lowest team role that can post in a team channel, as the CLI prints it.
 export const minWriterRoleFromCli = async (topicName: string) => {
   const {team} = e2eAccounts()
