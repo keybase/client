@@ -21,7 +21,7 @@ import {
   type Capture,
 } from './driver-desktop.mts'
 import {withDeadline} from '../shared/deadline.ts'
-import type {Recording} from '../shared/recorder.ts'
+import {NO_PHONE_RECORDER, type PhoneTake, recordingFrom, startRecorderBody, takeRecorderBody} from '../shared/phone-recorder.ts'
 import type {Rect} from './compare.mts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'
@@ -44,17 +44,6 @@ export type IosSession = {
   close: () => Promise<void>
   // What close would undo, as commands for a person to run when the process dies before close.
   cleanupCommands: () => Array<string>
-}
-
-// What a capture recorded, read from the runtime it started the recorder in: a reload in between
-// started a new runtime whose recorder holds only what came after it.
-export const capturedRecording = (
-  startedIn: string,
-  taken: Recording & {runtime: string}
-): {recorded: Recording} | {error: string} => {
-  if (taken.runtime !== startedIn) return {error: 'the app reloaded during the capture, which dropped its route and RPC recording'}
-  const {routes, rpcs, startRoutes} = taken
-  return {recorded: {routes, rpcs, startRoutes}}
 }
 
 // Each rect clipped to the window, dropping those wholly outside it. Window points, origin 0,0.
@@ -808,21 +797,16 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
 
   // the app's __kbE2ERuntime names its JS runtime (set at module load), so a reload changes it
-  const RECORDER = `const rec = globalThis.__kbE2ERecorder
-    if (!rec) throw new Error('the app has no __kbE2ERecorder: reload or relaunch the dev app on the current bundle')`
   const startRecorder = async () => {
-    const runtime = await appEval<string | null>(
-      `${RECORDER}; rec.start(); return globalThis.__kbE2ERuntime ?? null`,
-      'starting the route and RPC recorder'
-    )
-    if (!runtime) throw new Error('the app has no __kbE2ERuntime: reload or relaunch the dev app on the current bundle')
+    const runtime = await appEval<string | null>(startRecorderBody(), 'starting the route and RPC recorder')
+    if (!runtime) throw new Error(NO_PHONE_RECORDER)
     return runtime
   }
-  const takeRecorder = async () =>
-    appEval<Recording & {runtime: string}>(
-      `${RECORDER}; return {...rec.take(), runtime: globalThis.__kbE2ERuntime}`,
-      'taking the route and RPC recording'
-    )
+  const takeRecorder = async (startedIn: string) => {
+    const taken = await appEval<PhoneTake | null>(takeRecorderBody(startedIn), 'taking the route and RPC recording')
+    if (!taken) throw new Error(NO_PHONE_RECORDER)
+    return taken
+  }
 
   const capture: IosSession['capture'] = async (entry, opts) => {
     let png: Buffer | undefined
@@ -897,9 +881,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     // taken before the fixture ends: a fixture's end may reload the app
     if (recordingIn !== undefined) {
       try {
-        const got = capturedRecording(recordingIn, await takeRecorder())
-        if ('recorded' in got) result = {...result, recorded: got.recorded}
-        else problems.push(got.error)
+        const recorded = recordingFrom(recordingIn, await takeRecorder(recordingIn))
+        if (recorded) result = {...result, recorded}
+        else problems.push('the app reloaded during the capture, which dropped its route and RPC recording')
       } catch (e) {
         problems.push(`taking the recording: ${(e as Error).message}`)
       }

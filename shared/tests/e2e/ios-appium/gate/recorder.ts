@@ -1,44 +1,37 @@
 // The dev app's route and RPC recorder (visual/fixtures/runtime.ts), driven over Metro's inspector
 // on the phone. A JS reload or relaunch starts a new runtime and drops the recording, so a run
 // checkpoints after any step that may do that.
-import {evalInPage, inspectorPageFor, listInspectorPages} from '../../shared/metro-eval.ts'
+import {listInspectorPages} from '../../shared/metro-eval.ts'
+import {
+  NO_PHONE_RECORDER,
+  type PhoneTake,
+  recordingFrom,
+  startRecorderBody,
+  takeRecorderBody,
+} from '../../shared/phone-recorder.ts'
 import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
+import {BUNDLE_ID, deviceName, jsEval} from '../helpers/lifecycle'
 import {nextRecordingAction} from './recorder-lib.ts'
 import {ensureErrorCapture} from './errors.ts'
 
-const DEVICE = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
-const APP_ID = 'keybase.ios'
 const RELOAD_WAIT_MS = 60_000
 
-const page = async () => inspectorPageFor(DEVICE, APP_ID)
-
-export const startPhoneRecorder = async (opts?: {includeBoot?: boolean}): Promise<{runtime: string}> => {
-  const out = await evalInPage<{runtime?: string} | null>(
-    await page(),
-    `const r = globalThis.__kbE2ERecorder;
-     if (!r) return null;
-     r.start(${JSON.stringify(opts ?? {})});
-     return {runtime: globalThis.__kbE2ERuntime};`
-  )
-  if (!out?.runtime) throw new Error('the app has no __kbE2ERecorder: reload or relaunch the dev app on the current bundle')
-  return {runtime: out.runtime}
+const startPhoneRecorder = async (opts?: {includeBoot?: boolean}): Promise<string> => {
+  const runtime = await jsEval<string | null>(startRecorderBody(opts))
+  if (!runtime) throw new Error(NO_PHONE_RECORDER)
+  return runtime
 }
 
-export const takePhoneRecorder = async (): Promise<Recording & {runtime: string}> => {
-  const out = await evalInPage<(Recording & {runtime?: string}) | null>(
-    await page(),
-    `const r = globalThis.__kbE2ERecorder;
-     if (!r) return null;
-     return {...r.take(), runtime: globalThis.__kbE2ERuntime};`
-  )
-  if (!out?.runtime) throw new Error('the app has no __kbE2ERecorder: reload or relaunch the dev app on the current bundle')
-  return {...out, runtime: out.runtime}
+const takePhoneRecorder = async (startedIn: string): Promise<PhoneTake> => {
+  const out = await jsEval<PhoneTake | null>(takeRecorderBody(startedIn))
+  if (!out) throw new Error(NO_PHONE_RECORDER)
+  return out
 }
 
 const currentRuntime = async (): Promise<string | undefined> => {
   try {
-    if (!(await listInspectorPages()).some(p => p.deviceName === DEVICE && p.appId === APP_ID)) return undefined
-    return (await evalInPage<string | undefined>(await page(), 'return globalThis.__kbE2ERuntime')) ?? undefined
+    if (!(await listInspectorPages()).some(p => p.deviceName === deviceName() && p.appId === BUNDLE_ID)) return undefined
+    return (await jsEval<string | undefined>('return globalThis.__kbE2ERuntime')) ?? undefined
   } catch {
     return undefined
   }
@@ -47,7 +40,7 @@ const currentRuntime = async (): Promise<string | undefined> => {
 const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 export class PhoneRecording {
-  private runtime: string | undefined
+  private runtime = ''
   private kept: Array<Recording> = []
   private reloads = 0
 
@@ -60,7 +53,14 @@ export class PhoneRecording {
   }
 
   async begin() {
-    this.runtime = (await startPhoneRecorder()).runtime
+    this.runtime = await startPhoneRecorder()
+  }
+
+  // A new runtime's recorder was never started, so it starts with what the runtime sent since boot.
+  private async restart() {
+    this.reloads++
+    this.runtime = await startPhoneRecorder({includeBoot: true})
+    await ensureErrorCapture()
   }
 
   async checkpoint() {
@@ -69,25 +69,24 @@ export class PhoneRecording {
       const action = nextRecordingAction(this.runtime, await currentRuntime())
       if (action === 'take') {
         // keeps what the app has recorded so far, which a reload during the next step would drop
-        this.kept.push(await takePhoneRecorder())
-        this.runtime = (await startPhoneRecorder()).runtime
+        const got = recordingFrom(this.runtime, await takePhoneRecorder(this.runtime))
+        // none: the app reloaded between reading its runtime and the take
+        if (!got) return this.restart()
+        this.kept.push(got)
+        this.runtime = await startPhoneRecorder()
         return
       }
-      if (action === 'restart') {
-        this.reloads++
-        this.runtime = (await startPhoneRecorder({includeBoot: true})).runtime
-        await ensureErrorCapture()
-        return
-      }
+      if (action === 'restart') return this.restart()
       if (Date.now() > deadline) throw new Error(`the app did not come back within ${RELOAD_WAIT_MS}ms`)
       await sleep(500)
     }
   }
 
   async finish(): Promise<Recording & {reloads: number}> {
-    const got = await takePhoneRecorder()
-    if (got.runtime !== this.runtime) {
-      throw new Error(`the app reloaded without a checkpoint: its recording before the reload is lost (runtime ${this.runtime ?? 'none'} became ${got.runtime})`)
+    const taken = await takePhoneRecorder(this.runtime)
+    const got = recordingFrom(this.runtime, taken)
+    if (!got) {
+      throw new Error(`the app reloaded without a checkpoint: its recording before the reload is lost (runtime ${this.runtime} became ${taken.runtime ?? 'none'})`)
     }
     this.kept.push(got)
     return {...mergeRecordings(this.kept), reloads: this.reloads}

@@ -1,7 +1,6 @@
 import {nextRecordingAction} from './recorder-lib'
 
 test('a recording is taken from the runtime it started in', () => {
-  expect(nextRecordingAction(undefined, 'a')).toBe('take')
   expect(nextRecordingAction('a', 'a')).toBe('take')
 })
 
