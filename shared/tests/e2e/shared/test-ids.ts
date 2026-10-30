@@ -31,6 +31,8 @@ export const CHAT_BOT_PERMS             = 'chat-bot-perms'
 export const CHAT_BOT_EDIT_BUTTON       = 'chat-bot-edit-button'
 export const CHAT_BOT_CHANNELS_DROPDOWN = 'chat-bot-channels-dropdown'
 export const CHAT_BOT_CHANNEL_PICKER    = 'chat-bot-channel-picker'
+// the install screen's In these channels dropdown itself, the box a tap opens the picker from
+export const CHAT_BOT_CHANNELS_BUTTON   = 'chat-bot-channels-button'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 // a bot command's help, shown over the composer once its text names the command
 export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
@@ -89,6 +91,8 @@ export const CHAT_UNFURL_PROMPT       = 'chat-unfurl-prompt'
 // the link preview prompt's answers, and a posted generic (website) preview
 export const CHAT_UNFURL_PROMPT_YES   = 'chat-unfurl-prompt-yes'
 export const CHAT_UNFURL_PROMPT_NO    = 'chat-unfurl-prompt-no'
+// the prompt's Remember for <domain> switch (on the phone only its switch takes a tap)
+export const CHAT_UNFURL_PROMPT_REMEMBER = 'chat-unfurl-prompt-remember'
 export const CHAT_UNFURL_GENERIC      = 'chat-unfurl-generic'
 export const CHAT_PAYMENT             = 'chat-payment'
 export const CHAT_JOURNEY_CARD        = 'chat-journey-card'
@@ -189,6 +193,8 @@ export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
+// a bot's row menu (the ellipsis) in a team's Bots tab
+export const TEAMS_BOT_ROW_MENU = 'teams-bot-row-menu'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,

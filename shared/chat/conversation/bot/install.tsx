@@ -436,6 +436,7 @@ const InstallBotPopup = (props: Props) => {
                   </Kb.Box2>
                 }
                 toggleOpen={() => setChannelPickerScreen(true)}
+                testID={TestIDs.CHAT_BOT_CHANNELS_BUTTON}
               />
               {installInAllConvs && (
                 <Kb.Text type="BodySmall">{`Every channel in ${teamname}.`}</Kb.Text>

@@ -7,6 +7,7 @@ import BotMenu from './bot-menu'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../../use-loaded-team'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   botAlias: string
@@ -100,6 +101,7 @@ const TeamBotRow = (props: Props) => {
               style={isMobile ? styles.menuButtonMobile : styles.menuButtonDesktop}
               fontSize={isMobile ? 20 : 16}
               type="iconfont-ellipsis"
+              testID={TestIDs.TEAMS_BOT_ROW_MENU}
             />
           )}
           <BotMenu

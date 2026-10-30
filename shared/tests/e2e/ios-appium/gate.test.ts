@@ -17,5 +17,8 @@ import './flows/chat-attachments.test'
 import './flows/chat-messages.test'
 import './flows/chat-conversations.test'
 import './flows/chat-channel-settings.test'
+import './flows/chat-bots.test'
+import './flows/chat-unfurl.test'
+import './flows/chat-views.test'
 // last of the chat flows: a block it fails to put back stops no other chat flow of the run
 import './flows/chat-blocks.test'

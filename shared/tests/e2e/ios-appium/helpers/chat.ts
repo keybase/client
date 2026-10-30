@@ -1742,3 +1742,39 @@ export const appConversationPinned = async (convID: string) =>
     const row = l.getSmallLayoutRow(l.useInboxLayoutState.getState(), ${JSON.stringify(convID)})
     return row ? !!row.isPinned : null
   `).then(v => v ?? undefined)
+
+// The inbox dragged from its top to its end (until a drag up changes nothing). Returns how many items
+// (rows and team headers) the inbox draws there. Same bound as scrollInboxTo.
+export const scrollInboxToEnd = async () => {
+  if ((await seekInbox(() => undefined)) !== undefined) throw new Error('the inbox picked an item while scrolling to its end')
+  return (await drawnInbox()).items.length
+}
+
+// The one element on screen of those `selector` finds whose label, split at its ", " joins, holds
+// `name` as a part (a tappable row merges its texts into one label): compared in memory, so a name
+// never goes into a selector or an error. The innermost of nested matches; none or more than one
+// throws. `what` names it.
+export const elementWithLabelPart = async (selector: string, name: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
+    if (!label.split(', ').some(part => part.trim() === name)) continue
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
+  return found[inner[0]!]!.e
+}
+
+// A loaded message's link previews as the visible thread's store holds them: its id, the domains
+// the service asks the sender about (the unfurl prompt), and how many previews it carries.
+export type StoredUnfurls = {id: number; prompts: Array<string>; unfurls: number}
+export const storedUnfurls = async (ordinal: number) =>
+  jsEval<StoredUnfurls | null>(`${threadStoreBody}
+    const m = st && st.messageMap.get(${ordinal})
+    if (!m) return null
+    const prompts = st.unfurlPrompt.get(m.id)
+    return {id: Number(m.id) || 0, prompts: prompts ? [...prompts] : [], unfurls: m.unfurls ? m.unfurls.size : 0}
+  `)
