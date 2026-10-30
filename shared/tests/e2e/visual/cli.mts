@@ -419,6 +419,7 @@ type RenderRow = {
   startRoutes: Array<string>
   rpcs: Array<string>
   openedUnread: boolean
+  note?: string
 }
 
 // Every selected entry captured from this tree, for a person or the release gate to look
@@ -460,9 +461,11 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
           startRoutes,
           status: cap.status,
           theme,
+          ...(cap.note ? {note: cap.note} : {}),
         }
         rows.push(row)
-        const note = cap.status === 'unstable' ? ' (unstable: frames still changing at capture)' : ''
+        const note =
+          cap.status === 'unstable' ? ' (unstable: frames still changing at capture)' : cap.note ? ` (${cap.note})` : ''
         deps.log(cap.status === 'failed' ? `✗ ${e.id} ${platform} ${theme} failed: ${cap.error ?? 'no error given'}` : `✓ ${e.id} ${platform} ${theme}${note}`)
       }
     }
@@ -479,6 +482,8 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   if (unread.length) deps.log(`opened an unread conversation (and marked it read): ${unread.map(r => r.id).join(', ')}`)
   const failed = rows.filter(r => r.status === 'failed')
   const label = (r: (typeof rows)[number]) => (cmd.themes.length > 1 ? `${r.id} ${r.theme}` : r.id)
+  const noted = rows.filter(r => r.note)
+  if (noted.length) deps.log(`captured twice:\n  ${noted.map(r => `${label(r)}: ${r.note}`).join('\n  ')}`)
   if (failed.length) {
     deps.log(`✗ ${failed.length} of ${rows.length} entries failed:\n  ${failed.map(r => `${label(r)}: ${r.error ?? 'no error given'}`).join('\n  ')}`)
     return 1

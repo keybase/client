@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, pidFromLaunchctl, recaptureAfterDrop, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -303,4 +303,30 @@ test('a broken app is reloaded, unless its inspector page is gone, which only a 
     recoveryFor('reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'),
     'relaunch'
   )
+})
+
+test('the app pid is read from launchctl list, and a listed app with no pid is not running', () => {
+  const out = [
+    'PID\tStatus\tLabel',
+    '412\t0\tcom.apple.springboard',
+    '99507\t0\tUIKitApplication:keybase.ios[b613][rb-legacy]',
+    '-\t0\tUIKitApplication:keybase.ios.share[aa][rb-legacy]',
+  ].join('\n')
+  assert.equal(pidFromLaunchctl(out, 'keybase.ios'), 99507)
+  assert.equal(pidFromLaunchctl('-\t-9\tUIKitApplication:keybase.ios[b613][rb-legacy]', 'keybase.ios'), undefined)
+  assert.equal(pidFromLaunchctl('412\t0\tcom.apple.springboard', 'keybase.ios'), undefined)
+})
+
+test('a capture is taken again only when it lost the inspector page and the app process lived through it', () => {
+  const dropped = 'switching to tabs.peopleTab: no Metro inspector page for iPhoneTest (Metro lists nothing)'
+  // a socket drop: same process
+  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 100, pidBefore: 100}), true)
+  // the app died: killed or crashed, then nothing running, or something else started it again
+  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 200, pidBefore: 100}), false)
+  // no pid to compare with
+  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: undefined}), false)
+  // a failure that is not a lost page
+  assert.equal(recaptureAfterDrop({error: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({error: undefined, pidAtDrop: 100, pidBefore: 100}), false)
 })

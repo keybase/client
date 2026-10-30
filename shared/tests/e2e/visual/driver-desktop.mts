@@ -25,6 +25,8 @@ export type Capture = {
   coverage: Array<string> | null
   status: 'ok' | 'unstable' | 'failed'
   error?: string
+  // why a capture that passed needed a second try
+  note?: string
   // with `record`: what the app's __kbE2ERecorder saw from just before the entry navigated until
   // its capture (the RPC methods sent and the routes focused)
   recorded?: Recording

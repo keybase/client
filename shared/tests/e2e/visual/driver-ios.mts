@@ -113,6 +113,23 @@ const LONG_PRESS_S = 1
 // app's inspector page, so without one only a relaunch can help.
 export const recoveryFor = (why: string): 'reload' | 'relaunch' => (why.includes(NO_INSPECTOR_PAGE) ? 'relaunch' : 'reload')
 
+// The app's pid in the simulator's `launchctl list`, or undefined when it isn't running.
+export const pidFromLaunchctl = (out: string, bundleId: string): number | undefined => {
+  for (const line of out.split('\n')) {
+    const [pid, , label] = line.trim().split(/\s+/)
+    if (!label?.startsWith(`UIKitApplication:${bundleId}[`)) continue
+    const n = Number(pid)
+    return Number.isInteger(n) && n > 0 ? n : undefined
+  }
+  return undefined
+}
+
+// A capture that lost the app's inspector page is taken once more only when the app process lived
+// through it (a socket drop). One that died (crashed, or was killed) keeps the entry failed, so a
+// route that takes the app down is never hidden.
+export const recaptureAfterDrop = (o: {error: string | undefined; pidBefore: number | undefined; pidAtDrop: number | undefined}) =>
+  !!o.error?.includes(NO_INSPECTOR_PAGE) && o.pidBefore !== undefined && o.pidAtDrop === o.pidBefore
+
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
 // As in ios-appium/wdio.conf.ts: a non-default Appium port gets its own WDA port, so parallel
@@ -449,11 +466,26 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     )
     await waitForRuntime(true)
   }
+  const appPid = () => {
+    try {
+      return pidFromLaunchctl(simctl('spawn', udid, 'launchctl', 'list'), BUNDLE_ID)
+    } catch {
+      return undefined
+    }
+  }
+  // The app process the run last started or found, and the one seen when the current capture lost
+  // the inspector page (read before any relaunch replaces it).
+  let knownPid: number | undefined
+  let drop: {pid: number | undefined} | undefined
+  const noteDrop = () => {
+    drop ??= {pid: appPid()}
+  }
   const relaunchApp = async () => {
     await markRuntime().catch(() => {})
     await appCmd(browser.terminateApp(BUNDLE_ID), 'terminating the app')
     await appCmd(browser.activateApp(BUNDLE_ID), 'activating the app')
     await waitForRuntime(true)
+    knownPid = appPid()
   }
 
   // Reanimated reads Reduce Motion once, when its native module starts; RN's AccessibilityInfo
@@ -764,6 +796,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
+    knownPid = appPid()
     prepared = true
   }
 
@@ -796,6 +829,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     } catch (e) {
       why = (e as Error).message
     }
+    if (why.includes(NO_INSPECTOR_PAGE)) noteDrop()
     if (recoveryFor(why) === 'reload') {
       try {
         await reloadPrepared(frozenAt)
@@ -838,7 +872,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const takeRecorder = async (startedIn: string) =>
     takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
-  const capture: IosSession['capture'] = async (entry, opts) => {
+  const captureOnce: IosSession['capture'] = async (entry, opts) => {
+    drop = undefined
     let png: Buffer | undefined
     let recordingIn: string | undefined
     const fixture = fixtureCapture(fixtureHooks, entry.fixture)
@@ -919,6 +954,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     problems.push(...(await fixture.end()))
+    if ([result.error, ...problems].some(m => m?.includes(NO_INSPECTOR_PAGE))) noteDrop()
     // a fixture's end can leave the navigator without state too, so this runs after every capture
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)
@@ -927,6 +963,15 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
     }
     return result
+  }
+  const capture: IosSession['capture'] = async (entry, opts) => {
+    const pidBefore = knownPid
+    const first = await captureOnce(entry, opts)
+    if (first.status !== 'failed' || !recaptureAfterDrop({error: first.error, pidAtDrop: drop?.pid, pidBefore})) return first
+    const second = await captureOnce(entry, opts)
+    return second.status === 'failed'
+      ? {...second, error: `${second.error ?? 'no error given'}; captured again after the inspector page dropped, which failed first with: ${first.error}`}
+      : {...second, note: `recaptured after the inspector page dropped: ${first.error}`}
   }
 
   const close: IosSession['close'] = async () => {
