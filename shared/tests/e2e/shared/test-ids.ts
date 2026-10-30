@@ -317,3 +317,5 @@ export const RUNTIME_STATS = 'runtime-stats'
 // account's username
 export const ACCOUNT_SWITCHER_ROW_PREFIX = 'account-switcher-row-'
 export const LOGIN_USER_ROW_PREFIX = 'login-user-row-'
+// the provisioning code page's container, whichever tab (QR, view or enter the phrase) it shows
+export const PROVISION_CODE_PAGE = 'provision-code-page'

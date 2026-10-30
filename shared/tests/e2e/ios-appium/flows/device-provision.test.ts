@@ -32,8 +32,9 @@ import {escapeToTabs} from '../helpers/navigate'
 describe('device provision', function () {
   this.retries(0)
 
-  // the QR tab's link to the phone's own phrase: on screen exactly while the code page is
-  const codePage = () => browser.$('-ios predicate string:label == "Type secret instead"')
+  // whichever tab it shows; on the phone the default is the QR tab, its link to the phrase "Type secret instead"
+  const codePage = () => el(T.PROVISION_CODE_PAGE)
+  const qrTab = () => browser.$('-ios predicate string:label == "Type secret instead"')
 
   // The code page is gone, whatever happened on it: the add-device run cancelled and its screens
   // closed, or the app relaunched. Runs before any error leaves the test.
@@ -81,6 +82,7 @@ describe('device provision', function () {
             // sends device.deviceAdd; its secret exchange opens the code page
             await labeled('Other', 'Add a computer').click()
             await codePage().waitForExist({timeout: 30_000, timeoutMsg: 'the code page did not open within 30s of Add a computer'})
+            await qrTab().waitForExist({timeout: 10_000, timeoutMsg: 'the code page did not open on its QR tab'})
             const phrase = await withDeadline(cli.phrase, 60_000, 'the new home printing its verification phrase')
             await submitProvisionPhrase(phrase)
             await withDeadline(cli.done, 120_000, 'keybase login in the new home finishing')

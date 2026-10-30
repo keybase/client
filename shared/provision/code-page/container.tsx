@@ -123,6 +123,7 @@ const CodePageContainer = (op: OwnProps) => {
         relative={true}
         flex={1}
         style={{backgroundColor: tabBackground}}
+        testID="provision-code-page"
       >
         <Kb.Box2
           direction="vertical"
