@@ -1,6 +1,6 @@
 import {newDeviceOf} from '../../accounts/device-targets'
 import {loadE2EEnv} from '../../accounts/env'
-import {withCleanup} from '../../electron/helpers/cleanup'
+import {withCleanup} from '../../shared/cleanup.ts'
 import {forgetPaperKey, readPaperKeys, recordPaperKey} from '../../accounts/paper-key-ledger'
 import {deviceHistory, listedDevices, requireRevocableFromPhone, revokeLeftoverFromPhoneFlow} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'

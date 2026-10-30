@@ -9,7 +9,7 @@ import * as fs from 'fs'
 import {provisionHomeFor, type E2EEnv} from '../accounts/env.ts'
 import {checkRetirablePeerHome, readPeerConfig, removeRetiredPeerHome, retirePeerHome, stopPeerHomeService} from '../accounts/peer-homes.ts'
 import {cliProvDeviceLabel} from '../accounts/sweep-lib.ts'
-import {withCleanup} from '../electron/helpers/cleanup.ts'
+import {withCleanup} from './cleanup.ts'
 import {activeDevices, deviceHistory, provDeviceName, revokeLeftoverFromPhoneFlow} from './devices.ts'
 import {peerCli, peerUsesFileSecretStore, runKeybase, setPeerFileSecretStore, waitForPeerService} from './peer-service.ts'
 

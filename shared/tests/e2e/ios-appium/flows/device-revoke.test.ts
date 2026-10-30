@@ -1,5 +1,5 @@
 import {loadE2EEnv} from '../../accounts/env'
-import {withCleanup} from '../../electron/helpers/cleanup'
+import {withCleanup} from '../../shared/cleanup.ts'
 import {provisionCliDevice, retireCliDevice} from '../../shared/cli-device.ts'
 import {deviceHistory, requireRevocableFromPhone} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
