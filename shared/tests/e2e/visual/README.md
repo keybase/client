@@ -26,7 +26,7 @@ All from `shared/`. Add `--ios` for the phone; iOS is light only.
 | `yarn visual:check <id\|glob>…` | Captures the named entries from this tree and compares them with the base. `--theme t` |
 | `yarn visual:gate` | `check` over every entry, between two full seals |
 | `yarn visual:aa` | Captures every entry twice, twice over (fresh prepare per round), and compares each pair. Run it after changing the tour or drivers |
-| `yarn visual:render [ids…]` | Desktop only, no base: captures the named entries (all by default) from this tree with the same prepare, ready, setup, fixtures and settle, the clock frozen a minute past the run's start, and records each entry's routes and RPCs. Writes `render/<stamp>/<id>.png`, `<id>.routes.json` and `render.json`; exit 1 lists each entry that failed. For the release gate |
+| `yarn visual:render [ids…] [--ios]` | No base: captures the named entries (all by default) from this tree with the same prepare, ready, setup, fixtures and settle, the clock frozen a minute past the run's start, and records each entry's routes and RPCs. Writes `render/<stamp>/<id>.png`, `<id>.routes.json` and `render.json` (its `platform` is `desktop` or `ios`: both share `render/`, and the census reads its own platform's newest); exit 1 lists each entry that failed. For the release gate |
 | `yarn visual:coverage <range>` | Lists changed Box2 / ClickableBox call sites in `<range>` that no base capture drew |
 | `yarn visual:routes` | Lists every route, for checking what the tour leaves out |
 | `yarn visual:gallery` | Writes and opens a review page of the last base (or `--base`, `--desktop`, `--ios` shas): desktop and iOS shots side by side, a notes box per id, and "Copy notes" to paste the noted ids as a list |

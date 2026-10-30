@@ -21,6 +21,7 @@ import {
   type Capture,
 } from './driver-desktop.mts'
 import {withDeadline} from '../shared/deadline.ts'
+import type {Recording} from '../shared/recorder.ts'
 import type {Rect} from './compare.mts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'
@@ -33,8 +34,9 @@ export type IosSession = {
   prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
   // Resets to the entry's tab root (modals cleared, stack popped). It does not reset scroll
   // position or a selected sub-tab: a setup step that scrolls or switches leaves that screen so
-  // until the next reload.
-  capture: (entry: TourEntry) => Promise<Capture>
+  // until the next reload. With `record`, the capture carries what the app's __kbE2ERecorder saw
+  // from just before the entry navigated until it was captured.
+  capture: (entry: TourEntry, opts?: {record?: boolean}) => Promise<Capture>
   // Restores the app (real Date, which takes a JS reload) and the simulator settings prepare
   // changed, ends the Appium session and stops the Appium server this session started. The
   // running app keeps Reduce Motion and Reduce Transparency on until its next launch: both are
@@ -42,6 +44,17 @@ export type IosSession = {
   close: () => Promise<void>
   // What close would undo, as commands for a person to run when the process dies before close.
   cleanupCommands: () => Array<string>
+}
+
+// What a capture recorded, read from the runtime it started the recorder in: a reload in between
+// started a new runtime whose recorder holds only what came after it.
+export const capturedRecording = (
+  startedIn: string,
+  taken: Recording & {runtime: string}
+): {recorded: Recording} | {error: string} => {
+  if (taken.runtime !== startedIn) return {error: 'the app reloaded during the capture, which dropped its route and RPC recording'}
+  const {routes, rpcs, startRoutes} = taken
+  return {recorded: {routes, rpcs, startRoutes}}
 }
 
 // Each rect clipped to the window, dropping those wholly outside it. Window points, origin 0,0.
@@ -794,8 +807,26 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     waitFor: async (what, check) => waitFor(what, READY_MS, check),
   }
 
-  const capture: IosSession['capture'] = async entry => {
+  // the app's __kbE2ERuntime names its JS runtime (set at module load), so a reload changes it
+  const RECORDER = `const rec = globalThis.__kbE2ERecorder
+    if (!rec) throw new Error('the app has no __kbE2ERecorder: reload or relaunch the dev app on the current bundle')`
+  const startRecorder = async () => {
+    const runtime = await appEval<string | null>(
+      `${RECORDER}; rec.start(); return globalThis.__kbE2ERuntime ?? null`,
+      'starting the route and RPC recorder'
+    )
+    if (!runtime) throw new Error('the app has no __kbE2ERuntime: reload or relaunch the dev app on the current bundle')
+    return runtime
+  }
+  const takeRecorder = async () =>
+    appEval<Recording & {runtime: string}>(
+      `${RECORDER}; return {...rec.take(), runtime: globalThis.__kbE2ERuntime}`,
+      'taking the route and RPC recording'
+    )
+
+  const capture: IosSession['capture'] = async (entry, opts) => {
     let png: Buffer | undefined
+    let recordingIn: string | undefined
     const fixture = fixtureCapture(fixtureHooks, entry.fixture)
     let result: Capture
     try {
@@ -814,6 +845,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       await hopBack(tab)
       // the tab root's own loads finish before the entry navigates from it
       if (waitsAtTabRoot(entry)) await waitForNoLoading()
+      // started after the hop, which would otherwise record the hop's tabs as the entry's routes
+      if (opts?.record) recordingIn = await startRecorder()
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {
@@ -860,7 +893,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
-    const problems = [...(await fixture.end())]
+    const problems: Array<string> = []
+    // taken before the fixture ends: a fixture's end may reload the app
+    if (recordingIn !== undefined) {
+      try {
+        const got = capturedRecording(recordingIn, await takeRecorder())
+        if ('recorded' in got) result = {...result, recorded: got.recorded}
+        else problems.push(got.error)
+      } catch (e) {
+        problems.push(`taking the recording: ${(e as Error).message}`)
+      }
+    }
+    problems.push(...(await fixture.end()))
     // a fixture's end can leave the navigator without state too, so this runs after every capture
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)

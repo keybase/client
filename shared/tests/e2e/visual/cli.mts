@@ -5,8 +5,8 @@
 //   gate [--ios]                           check over every entry, bracketed by a full seal
 //   aa [--ios]                             captures every entry twice from the current tree, twice
 //   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run drew
-//   render [ids…] [--theme t]              captures desktop entries from the current tree with no
-//                                          base, recording each entry's routes and RPCs
+//   render [ids…] [--ios] [--theme t]      captures entries from the current tree with no base,
+//                                          recording each entry's routes and RPCs
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -163,7 +163,7 @@ const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
 
 // ---------------------------------------------------------------- check / gate / aa
 
-// `record`: the capture carries what the app's recorder saw for the entry (desktop only)
+// `record`: the capture carries what the app's recorder saw for the entry
 export type CaptureOpts = {platform: RunPlatform; theme: Theme; frozenAt: number; record?: boolean}
 export type CheckDeps = {
   baseSha: () => Promise<string>
@@ -421,17 +421,16 @@ type RenderRow = {
   openedUnread: boolean
 }
 
-// Every selected desktop entry captured from this tree, for a person or the release gate to look
+// Every selected entry captured from this tree, for a person or the release gate to look
 // at: no base, no seal and no compare. The clock is frozen a minute past the run's start, so
 // relative times read the same across the run. Opening an unread conversation marks it read; render
 // goes ahead and names the entries that did. Exits 1 when an entry failed (never reached its ready
 // testID, its fixture reported a leak, or the driver threw).
 export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
-  if (cmd.ios) throw new Error('render is desktop only')
   if (cmd.base !== undefined) throw new Error('render takes no --base: it compares nothing')
   if (cmd.coverage) throw new Error('render takes no --coverage')
-  const platform: RunPlatform = 'desktop'
+  const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
   const startedAt = deps.now()
@@ -949,8 +948,7 @@ const sessionCapturer = () => {
       await session.prepare({frozenAt: o.frozenAt, reload: true, theme: o.theme})
       preparedFor = key
     }
-    if (o.record && o.platform === 'ios') throw new Error('recording a capture is desktop only')
-    return o.platform === 'ios' ? (session as IosSession).capture(entry) : (session as DesktopSession).capture(entry, {record: o.record})
+    return session.capture(entry, {record: o.record})
   }
   const close = async () => {
     const s = session

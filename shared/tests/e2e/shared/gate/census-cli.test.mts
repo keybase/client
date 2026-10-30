@@ -38,6 +38,7 @@ const fixture = (routeCovered: boolean) => {
     outPrefix: 'x-',
     platform: 'test',
     project: 'proj',
+    renderPlatform: 'desktop',
     resultsDir: dir,
     routes: () => [{file: 'f', hasParams: false, modal: false, name: 'routeA'}],
     surfaces: () => ({entryPrefix: 'panel/', existing: [], listFile: 'panels.ts', listed: [], noun: 'panel'}),
@@ -66,4 +67,34 @@ test('a covered route exits 0 and writes the prefixed census files', () => {
 test('an unclaimed route exits 1', () => {
   const {platform} = fixture(false)
   assert.equal(quiet(() => runCensusCli(platform, ['--no-render'])), 1)
+})
+
+const writeRender = (dir: string, stamp: string, platform: string | undefined, routes: Array<string>) => {
+  const run = path.join(dir, 'visual/render', stamp)
+  fs.mkdirSync(run, {recursive: true})
+  const entries = [{id: 'tab/x', routes, startRoutes: [], status: 'ok'}]
+  fs.writeFileSync(path.join(run, 'render.json'), JSON.stringify({entries, ...(platform ? {platform} : {})}))
+}
+
+test("the census reads its own platform's newest render, past a newer one from the other platform", () => {
+  const {dir, platform} = fixture(false)
+  writeRender(dir, '2026-01-01T00-00-00', 'ios', ['routeA'])
+  writeRender(dir, '2026-01-02T00-00-00', 'desktop', [])
+  assert.equal(quiet(() => runCensusCli({...platform, renderPlatform: 'ios'}, [])), 0)
+  assert.equal(quiet(() => runCensusCli(platform, [])), 1)
+})
+
+test('a render.json without a platform is a desktop render', () => {
+  const {dir, platform} = fixture(false)
+  writeRender(dir, '2026-01-01T00-00-00', undefined, ['routeA'])
+  assert.equal(quiet(() => runCensusCli(platform, [])), 0)
+  const err = console.error
+  const errors: Array<string> = []
+  console.error = (l: string) => errors.push(l)
+  try {
+    assert.equal(quiet(() => runCensusCli({...platform, renderPlatform: 'ios'}, [])), 1)
+  } finally {
+    console.error = err
+  }
+  assert.match(errors.join('\n'), /no ios render\.json under .*: run yarn visual:render --ios first/)
 })

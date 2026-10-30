@@ -40,6 +40,7 @@ process.exitCode = runCensusCli({
   outPrefix: '',
   platform: 'desktop',
   project: 'electron-flows',
+  renderPlatform: 'desktop',
   routes: listRoutes,
   surfaces: () => ({
     entryPrefix: 'window/',
