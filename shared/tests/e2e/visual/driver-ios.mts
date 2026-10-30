@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
+import {evalInPage, inspectorPageFor, waitForInspectorPage} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -90,6 +90,10 @@ const APPIUM_STOP_MS = 5_000
 const SESSION_MS = 180_000
 const SIMCTL_MS = 10_000
 const EVAL_MS = 5_000
+// The app's inspector socket to Metro drops now and then while the app runs on; RN reconnects
+// after 2s, then 4s and 8s, so this covers three tries.
+const PAGE_MS = 15_000
+const PAGE_POLL_MS = 500
 const APP_CMD_MS = 30_000
 const BOOT_MS = 90_000
 const RESET_MS = 5_000
@@ -386,12 +390,13 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     throw e
   }
 
-  const appEval = async <R,>(body: string, what: string) =>
-    withDeadline(
-      (async () => evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body))(),
-      EVAL_MS,
-      what
-    )
+  const appEval = async <R,>(body: string, what: string) => {
+    const page = await waitForInspectorPage(async () => inspectorPageFor(device, BUNDLE_ID), what, {
+      intervalMs: PAGE_POLL_MS,
+      ms: PAGE_MS,
+    })
+    return withDeadline(evalInPage<R>(page, body), EVAL_MS, what)
+  }
   const appCmd = async <R,>(p: Promise<R>, what: string) => withDeadline(p, APP_CMD_MS, what)
 
   // A token set on the JS runtime; a runtime without it is a fresh one (after a reload or relaunch).

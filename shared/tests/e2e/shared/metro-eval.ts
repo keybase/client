@@ -50,6 +50,29 @@ export const pickInspectorPage = (pages: ReadonlyArray<InspectorPage>, device: s
 export const inspectorPageFor = async (device: string, appId: string) =>
   pickInspectorPage(await listInspectorPages(), device, appId)
 
+export type WaitClock = {now: () => number; sleep: (ms: number) => Promise<void>}
+const realClock: WaitClock = {now: () => Date.now(), sleep: async ms => new Promise(resolve => setTimeout(resolve, ms))}
+
+// Runs `lookup` until it returns a page, every `intervalMs` for up to `ms`; the last failure is
+// thrown, prefixed with `what`. Only a lookup belongs here, never an eval: a body may not be safe to
+// run twice.
+export const waitForInspectorPage = async (
+  lookup: () => Promise<InspectorPage>,
+  what: string,
+  opts: {ms: number; intervalMs: number; clock?: WaitClock}
+): Promise<InspectorPage> => {
+  const clock = opts.clock ?? realClock
+  const end = clock.now() + opts.ms
+  for (;;) {
+    try {
+      return await lookup()
+    } catch (e) {
+      if (clock.now() >= end) throw new Error(`${what}: ${(e as Error).message}`, {cause: e})
+      await clock.sleep(opts.intervalMs)
+    }
+  }
+}
+
 // The id of the module Metro registered as `name`: an exact verboseName first, then, for a
 // node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro
 // name them relative to the other checkout, `../../client/shared/node_modules/...`). Runs in the page
