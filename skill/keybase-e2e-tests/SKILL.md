@@ -106,6 +106,20 @@ The iOS release gate's flows run through `shared/tests/e2e/ios-appium/gate.test.
 - A JS reload that no checkpoint saw (anything but `relaunchApp`/`grantPrivacy`/`attemptRecording().checkpoint()` after it) fails the test: the recording and errors from before it are lost.
 - `yarn visual:render --ios <patterns>` renders the entries on the simulator and records the phone tour.
 
+## iOS release gate
+
+Same core as the desktop gate (`tests/e2e/shared/gate/`); the iOS code is `tests/e2e/ios-appium/release.mts` (with `release-lib.ts`, `launch.mts`, `census.mts`, `report.mts`).
+
+`yarn test:e2e:ios:release` (from `shared/`) runs everything and exits 1 on any failure, a flaky or skipped flow test included.
+
+- **Env:** same env file as desktop. The host service must be signed in as `KB_SMOKE_USER` (the sweep and setup run through it), and the app on the simulator must already be on the smoke account: the command refuses and says to switch with the app's account switcher. The `iPhoneTest` simulator (`KB_IOS_DEVICE`) must be booted and visible, with a signed dev build installed (detected through the `group.keybase` container in `simctl appinfo`). It never installs or uninstalls the app and never switches the host service.
+- **Peers:** as on desktop; started if down and left running.
+- **Phases:** preflight (release lock, same one as the desktop command; account; ports 8081/4723/8100; visual gate lock; unlocked macOS session; KBFS; peers; `accounts:setup --check`) → launch (its own Metro in watch mode, app relaunch onto that bundle, app-on-smoke check) → sweep leftovers once → flows (wdio gate, `ios-flows`) → render (`visual render --ios`) → census → report → secrets scan. It stops only what it started (its Metro, the Appium its children left); the simulator and app stay up. A WebDriverAgent left on 8100 for this simulator by an earlier run is stopped once preflight otherwise passes.
+- **Outputs** (`shared/tests/results/`): `ios-report.html`, `ios-census.md` / `ios-census.json`, `ios-manual-checklist.md`, and the logs in `ios-logs/` (emptied when the run takes the lock).
+- **Known failures:** `tests/e2e/ios-appium/gate/lists/known-failures.ts`, same contract as desktop (still fail the run; the report labels them).
+- **Lists** (`tests/e2e/ios-appium/gate/lists/`): `manual-only.ts` (what a person must do by hand; feeds the checklist), `census-exclusions.ts` (routes, write RPCs and surfaces the run need not reach, each with why; `manual-only: <id>` reasons name a manual-only entry), `surfaces.ts` (the native surfaces with no route). A surface is credited by the harness helpers (`gate/device.ts`) or by a flow calling `creditSurface`.
+- **Knobs:** `KB_E2E_RELEASE_ONLY=<grep>` (only matching flows and the `settings/*` tour entries; the census then reports gaps), `KB_E2E_RELEASE_TIMEOUT_MIN` (default 240), `KB_E2E_NO_OPEN=1`.
+
 ## iOS — Appium + WebdriverIO (TypeScript)
 
 | What | Where |
