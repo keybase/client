@@ -49,3 +49,69 @@ export const phoneDeviceProblem = (d: PhoneDevice, smokeUser: string): string | 
   }
   return d.deviceID && d.deviceName ? undefined : 'the app names no device for the smoke account'
 }
+
+export type ConfiguredAccount = {hasStoredSecret: boolean; username: string}
+export type ConfiguredAccounts = {state: 'pending'} | {state: 'failed'; error: string} | {state: 'listed'; accounts: Array<ConfiguredAccount>}
+
+// Where the eval that asks the phone's service for its configured accounts leaves the answer, for the
+// evals that poll it (an eval returns before an RPC answers).
+const CONFIGURED_KEY = 'globalThis.__kbE2EConfiguredAccounts'
+
+// function bodies for jsEval: the first asks the phone's own service (login.getConfiguredAccounts,
+// the list the login screen and the switcher show), the second returns what it has answered so far
+export const CONFIGURED_ACCOUNTS_ASK_BODY = `
+    ${CONFIGURED_KEY} = {state: 'pending'}
+    kbModule('constants/rpc/rpc-gen.tsx')
+      .loginGetConfiguredAccountsRpcPromise()
+      .then(
+        list => { ${CONFIGURED_KEY} = {state: 'listed', accounts: (list ?? []).map(a => ({hasStoredSecret: a.hasStoredSecret, username: a.username}))} },
+        e => { ${CONFIGURED_KEY} = {state: 'failed', error: String(e && e.message)} }
+      )
+    return true
+  `
+export const CONFIGURED_ACCOUNTS_READ_BODY = `return ${CONFIGURED_KEY} ?? {state: 'pending'}`
+
+// Whether the phone keeps a stored secret for `username`, or why the answer names none.
+export const storedSecretIn = (r: ConfiguredAccounts, username: string): boolean | string => {
+  if (r.state === 'pending') return "the phone's service has not listed its configured accounts"
+  if (r.state === 'failed') return `listing the phone's configured accounts failed: ${r.error}`
+  const [a, ...more] = r.accounts.filter(x => x.username === username)
+  if (!a || more.length) return `the phone lists ${username} among its configured accounts ${a ? more.length + 1 : 0} times, not once`
+  return a.hasStoredSecret
+}
+
+// What the phone's login screen shows: the account it would sign in, whether it asks for that
+// account's password and the error it shows. Never the password: the eval returns only these.
+export type LoginScreen = {state: 'none' | 'many'} | {state: 'shown'; error: string; needPassword: boolean; selectedUser: string}
+
+// a function body for jsEval, returning a LoginScreen: the props of the login screen's one mounted
+// render component (login/relogin/index.tsx), found by walking each root's current tree
+export const LOGIN_SCREEN_BODY = `
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    const found = []
+    for (const rid of hook.renderers.keys()) {
+      for (const root of hook.getFiberRoots(rid)) {
+        const stack = [root.current]
+        while (stack.length) {
+          const f = stack.pop()
+          const p = f.memoizedProps
+          if (f.tag === 0 && p && typeof p.selectedUser === 'string' && typeof p.needPassword === 'boolean' && typeof p.selectedUserChange === 'function') {
+            found.push({error: String(p.error ?? ''), needPassword: p.needPassword, selectedUser: p.selectedUser})
+          }
+          if (f.sibling) stack.push(f.sibling)
+          if (f.child) stack.push(f.child)
+        }
+      }
+    }
+    if (found.length === 0) return {state: 'none'}
+    if (found.length > 1) return {state: 'many'}
+    return {state: 'shown', ...found[0]}
+  `
+
+// Why the login screen is not asking for `username`'s password, or undefined when it is: a password
+// is typed only into a screen that signs that account in.
+export const passwordScreenProblem = (s: LoginScreen, username: string): string | undefined => {
+  if (s.state !== 'shown') return s.state === 'none' ? 'the login screen is not shown' : 'more than one login screen is mounted'
+  if (s.selectedUser !== username) return `the login screen would sign in ${s.selectedUser || '(nobody)'}, not ${username}`
+  return s.needPassword ? undefined : `the login screen asks no password for ${username}`
+}

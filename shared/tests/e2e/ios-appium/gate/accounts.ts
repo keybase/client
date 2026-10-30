@@ -86,40 +86,53 @@ const tapBack = async () => {
 const MAX_BACKS = 8
 const ROW_TAPS = 5
 
-// Back to the smoke account: signed in as another account, through the account switcher; signed
-// out, from the login screen (backing out of any screen pushed over it) by picking the smoke
-// account in its list, which signs in with the stored secret (no password). Does nothing when the
-// app is already on the smoke account.
-export const restoreToSmoke = async () => {
-  const {smokeUser} = loadE2EAccounts()
-  // a switch or sign-in already under way lands first
-  const a = await waitFor('the app to finish switching', async () => {
+// From signed out, the login screen with its account list, backing out of any screen pushed over it.
+export const backToLoginList = async () => {
+  const list = el(T.LOGIN_USER_LIST)
+  await backOutUntil(
+    {atTarget: async () => list.isExisting(), tapBack, what: 'the login screen with its account list'},
+    {maxTaps: MAX_BACKS, pause: async () => new Promise(resolve => setTimeout(resolve, 500)), timeoutMs: SIGN_IN_MS}
+  )
+}
+
+// On the login screen, signs `username` in by its row, which signs an account with a stored secret
+// in at once (no password), and waits until the app is signed in as it.
+export const signInFromStoredSecret = async (username: string) => {
+  // the login screen ignores a tap for a moment after a sign-out: tap again until the sign-in starts
+  const row = el(T.LOGIN_USER_ROW_PREFIX + username)
+  for (let i = 0; ; i++) {
+    await row.click().catch(() => {})
+    const started = await waitFor(`${username} to start signing in`, async () => {
+      const now = await signedInAs().catch(() => undefined)
+      return now?.loggedIn || now?.switching ? true : undefined
+    }, {interval: 500, timeout: 5_000}).then(() => true, () => false)
+    if (started) break
+    if (i >= ROW_TAPS - 1) throw new Error(`the row of ${username} in the login list started no sign-in after ${ROW_TAPS} taps`)
+  }
+  await waitFor(`${username} to sign in`, async () => {
+    const now = await signedInAs().catch(() => undefined)
+    return now?.loggedIn && !now.switching && now.username === username ? true : undefined
+  }, {interval: 1_000, timeout: SIGN_IN_MS})
+}
+
+// Waits out a switch or sign-in already under way, and returns where it landed.
+export const settledAppAccount = async () =>
+  waitFor('the app to finish switching', async () => {
     const now = await signedInAs()
     return now.switching ? undefined : now
   }, {interval: 500, timeout: SIGN_IN_MS})
+
+// Back to the smoke account: signed in as another account, through the account switcher; signed
+// out, from the login screen by picking the smoke account in its list, which signs in with the
+// stored secret (no password). Does nothing when the app is already on the smoke account.
+export const restoreToSmoke = async () => {
+  const {smokeUser} = loadE2EAccounts()
+  const a = await settledAppAccount()
   if (a.loggedIn) {
     if (a.username !== smokeUser) await switchAppAccount(smokeUser)
   } else {
-    const list = el(T.LOGIN_USER_LIST)
-    await backOutUntil(
-      {atTarget: async () => list.isExisting(), tapBack, what: 'the login screen with its account list (restoreToSmoke starts from it)'},
-      {maxTaps: MAX_BACKS, pause: async () => new Promise(resolve => setTimeout(resolve, 500)), timeoutMs: SIGN_IN_MS}
-    )
-    // the login screen ignores a tap for a moment after a sign-out: tap again until the sign-in starts
-    const row = el(T.LOGIN_USER_ROW_PREFIX + smokeUser)
-    for (let i = 0; ; i++) {
-      await row.click().catch(() => {})
-      const started = await waitFor('the smoke account to start signing in', async () => {
-        const now = await signedInAs().catch(() => undefined)
-        return now?.loggedIn || now?.switching ? true : undefined
-      }, {interval: 500, timeout: 5_000}).then(() => true, () => false)
-      if (started) break
-      if (i >= ROW_TAPS - 1) throw new Error(`the smoke account's row in the login list started no sign-in after ${ROW_TAPS} taps`)
-    }
-    await waitFor('the smoke account to sign in', async () => {
-      const now = await signedInAs().catch(() => undefined)
-      return now?.loggedIn && !now.switching && now.username === smokeUser ? true : undefined
-    }, {interval: 1_000, timeout: SIGN_IN_MS})
+    await backToLoginList()
+    await signInFromStoredSecret(smokeUser)
     await escapeToTabs()
   }
   await requireAppIsSmoke()

@@ -1,4 +1,13 @@
-import {notSmokeProblem, phoneDeviceProblem, settledAccount} from './app-account-lib'
+import {
+  CONFIGURED_ACCOUNTS_ASK_BODY,
+  CONFIGURED_ACCOUNTS_READ_BODY,
+  LOGIN_SCREEN_BODY,
+  notSmokeProblem,
+  passwordScreenProblem,
+  phoneDeviceProblem,
+  settledAccount,
+  storedSecretIn,
+} from './app-account-lib'
 
 describe('notSmokeProblem', () => {
   const accounts = {secondUser: 'testuser-mac', smokeUser: 'testuser'}
@@ -64,5 +73,91 @@ describe('phoneDeviceProblem', () => {
     expect(phoneDeviceProblem({...on, switching: true}, 'testuser')).toContain('switching')
     expect(phoneDeviceProblem({...on, deviceID: ''}, 'testuser')).toBe('the app names no device for the smoke account')
     expect(phoneDeviceProblem({...on, deviceName: ''}, 'testuser')).toBe('the app names no device for the smoke account')
+  })
+})
+
+describe('storedSecretIn', () => {
+  const listed = (accounts: Array<{hasStoredSecret: boolean; username: string}>) => ({accounts, state: 'listed' as const})
+
+  test("an account's stored secret, either way", () => {
+    const r = listed([
+      {hasStoredSecret: true, username: 'testuser'},
+      {hasStoredSecret: false, username: 'testuser-mac'},
+    ])
+    expect(storedSecretIn(r, 'testuser')).toBe(true)
+    expect(storedSecretIn(r, 'testuser-mac')).toBe(false)
+  })
+
+  test('an account listed never or twice answers why', () => {
+    expect(storedSecretIn(listed([]), 'testuser')).toBe('the phone lists testuser among its configured accounts 0 times, not once')
+    const twice = listed([
+      {hasStoredSecret: true, username: 'testuser'},
+      {hasStoredSecret: true, username: 'testuser'},
+    ])
+    expect(storedSecretIn(twice, 'testuser')).toBe('the phone lists testuser among its configured accounts 2 times, not once')
+  })
+
+  test('no answer yet, or a failed one, is no stored secret either way', () => {
+    expect(typeof storedSecretIn({state: 'pending'}, 'testuser')).toBe('string')
+    expect(storedSecretIn({error: 'boom', state: 'failed'}, 'testuser')).toBe("listing the phone's configured accounts failed: boom")
+  })
+})
+
+describe('passwordScreenProblem', () => {
+  const shown = {error: '', needPassword: true, selectedUser: 'testuser-mac', state: 'shown' as const}
+
+  test('the screen asking for the account password is fine', () => {
+    expect(passwordScreenProblem(shown, 'testuser-mac')).toBeUndefined()
+  })
+
+  test('a screen that would sign in another account refuses', () => {
+    expect(passwordScreenProblem({...shown, selectedUser: 'testuser'}, 'testuser-mac')).toBe('the login screen would sign in testuser, not testuser-mac')
+    expect(passwordScreenProblem({...shown, selectedUser: ''}, 'testuser-mac')).toBe('the login screen would sign in (nobody), not testuser-mac')
+  })
+
+  test('a screen asking no password, or none or two screens, refuses', () => {
+    expect(passwordScreenProblem({...shown, needPassword: false}, 'testuser-mac')).toBe('the login screen asks no password for testuser-mac')
+    expect(passwordScreenProblem({state: 'none'}, 'testuser-mac')).toBe('the login screen is not shown')
+    expect(passwordScreenProblem({state: 'many'}, 'testuser-mac')).toBe('more than one login screen is mounted')
+  })
+})
+
+describe('the account eval bodies', () => {
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  const run = (body: string, kbModule?: unknown) => (new Function('kbModule', body) as (k: unknown) => unknown)(kbModule)
+
+  test("the configured accounts ask leaves the service's answer, each account's name and stored secret only, for the read", async () => {
+    const g = globalThis as unknown as {__kbE2EConfiguredAccounts?: unknown}
+    let answer: (list: unknown) => void = () => {}
+    const kbModule = () => ({loginGetConfiguredAccountsRpcPromise: async () => new Promise(resolve => (answer = resolve))})
+    try {
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({state: 'pending'})
+      expect(run(CONFIGURED_ACCOUNTS_ASK_BODY, kbModule)).toBe(true)
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({state: 'pending'})
+      answer([{fullname: 'Test User', hasStoredSecret: true, isCurrent: true, uid: 'u1', username: 'testuser'}])
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({accounts: [{hasStoredSecret: true, username: 'testuser'}], state: 'listed'})
+    } finally {
+      delete g.__kbE2EConfiguredAccounts
+    }
+  })
+
+  test('the login screen read returns the selected account, its error and whether it needs a password, never the password', () => {
+    const fiber = (props: Record<string, unknown>, child?: object) => ({child, memoizedProps: props, tag: 0})
+    const screen = fiber({
+      error: 'Incorrect password.',
+      needPassword: true,
+      password: 'not-a-password',
+      selectedUser: 'testuser-mac',
+      selectedUserChange: () => {},
+    })
+    const hook = {getFiberRoots: () => [{current: fiber({}, screen)}], renderers: new Map([[1, {}]])}
+    const g = globalThis as unknown as {__REACT_DEVTOOLS_GLOBAL_HOOK__?: unknown}
+    g.__REACT_DEVTOOLS_GLOBAL_HOOK__ = hook
+    try {
+      expect(run(LOGIN_SCREEN_BODY)).toEqual({error: 'Incorrect password.', needPassword: true, selectedUser: 'testuser-mac', state: 'shown'})
+    } finally {
+      delete g.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    }
   })
 })
