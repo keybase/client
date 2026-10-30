@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"sort"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )

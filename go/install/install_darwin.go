@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"

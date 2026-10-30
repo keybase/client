@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/template"
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/keybase/client/go/release/version"
 
 	"github.com/aws/aws-sdk-go-v2/aws"

@@ -1,6 +1,6 @@
 package util
 
-import "github.com/blang/semver"
+import "github.com/blang/semver/v4"
 
 // Semver outputs the semver in Major.Minor.Patch form for readability.
 func Semver(version string) string {
