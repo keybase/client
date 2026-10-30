@@ -5,8 +5,6 @@
 import './flows/android-activity-restart.test'
 import './flows/crypto-outputs.test'
 import './flows/crypto-subtabs.test'
-import './flows/files-browse.test'
-import './flows/files-folders.test'
 import './flows/git.test'
 import './flows/people-profile.test'
 import './flows/settings-debug-pages.test'

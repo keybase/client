@@ -22,3 +22,5 @@ import './flows/chat-unfurl.test'
 import './flows/chat-views.test'
 // last of the chat flows: a block it fails to put back stops no other chat flow of the run
 import './flows/chat-blocks.test'
+import './flows/files-browse.test'
+import './flows/files-actions.test'

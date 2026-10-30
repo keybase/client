@@ -3,13 +3,12 @@ import {
   escapeToTabs,
   navigateToMore,
   navigateToTeams,
-  navigateToFiles,
   navigateToChat,
   goBack,
   scrollDownToText,
   tapSettingsRow,
 } from '../helpers/navigate'
-import {byText, el, els, anyExist, waitForTestID, tapForTestID} from '../helpers/elements'
+import {byText, el, els, waitForTestID, tapForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Visual-coverage states. The harness screenshots AFTER each test and
@@ -102,20 +101,6 @@ describe('visual states', () => {
     await waitForTestID(T.SETTINGS_ADVANCED, 5000)
     await swipeContentUp(4)
     await expect(el(T.SETTINGS_ADVANCED)).toExist()
-  })
-
-  it('files folder overflow menu', async () => {
-    await escapeToTabs()
-    await navigateToFiles()
-    // the native More menu only exists inside a TLF (hidden at the files root)
-    if (!(await anyExist(T.FILES_TLF_ROW, 5000))) return
-    await els(T.FILES_TLF_ROW)[0]!.click()
-    await browser.pause(1000)
-    const more = el('More')
-    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
-    await more.click()
-    await browser.pause(800)
-    await expect(el(T.FILES_BROWSER)).toExist()
   })
 
   it('account switcher', async () => {
