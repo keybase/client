@@ -1,4 +1,3 @@
-import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {escapeToTabs, navigateToMore, navigateToPeople, tapSettingsRow} from '../helpers/navigate'
 import {loadE2EAccounts} from '../../accounts/env'
 import {appAccount, asSecond, signedOutThenBack} from '../gate/accounts'
@@ -8,7 +7,7 @@ import {beginErrorCapture, takeErrors} from '../gate/errors'
 import {step} from '../gate/step'
 import {openLink, relaunchApp, setPasteboard} from '../gate/device'
 import {attemptRecording} from '../gate/recording'
-import {appSnapshot, waitFor} from '../helpers/lifecycle'
+import {appSnapshot, jsEval, waitFor} from '../helpers/lifecycle'
 import {emptySecretField, fieldLength, focusSecretField, submitSecret} from '../gate/secret-input'
 
 describe('harness helpers', () => {
@@ -22,7 +21,7 @@ describe('harness helpers', () => {
   it('collects the app console errors and clears them', async () => {
     const marker = `harness-helpers console.error ${Date.now()}`
     await beginErrorCapture()
-    await evalInPage(await inspectorPageFor(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest', 'keybase.ios'), `console.error(${JSON.stringify(marker)}); return null`)
+    await jsEval(`console.error(${JSON.stringify(marker)}); return null`)
     expect(await takeErrors()).toContain(marker)
     expect(await takeErrors()).not.toContain(marker)
   })
@@ -71,10 +70,12 @@ describe('harness simulator helpers', () => {
   it('relaunches the app and keeps recording across the new runtime', async () => {
     const rec = attemptRecording()
     await navigateToMore()
+    // the recording restarts on the Settings tab, so what relaunchApp keeps from the first runtime
+    // starts there whichever tab the attempt began on
+    await rec.checkpoint()
     await relaunchApp()
     expect(rec.reloadCount).toBe(1)
-    // the first runtime started on the Settings tab, so its recording holds that as a start route
-    expect(rec.recordings.flatMap(r => r.startRoutes)).toContain('settingsRoot')
+    expect(rec.recordings.at(-1)?.startRoutes).toContain('settingsRoot')
     await navigateToPeople()
     await rec.checkpoint()
     expect(rec.recordings.flatMap(r => r.routes)).toContain('peopleRoot')
