@@ -6,7 +6,7 @@ import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 import {beginErrorCapture, takeErrors} from '../gate/errors'
 import {step} from '../gate/step'
-import {openLink, readPasteboard, relaunchApp, setPasteboard} from '../gate/device'
+import {openLink, relaunchApp, setPasteboard} from '../gate/device'
 import {attemptRecording} from '../gate/recording'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {emptySecretField, fieldLength, focusSecretField, submitSecret} from '../gate/secret-input'
@@ -62,21 +62,23 @@ describe('harness simulator helpers', () => {
     await escapeToTabs()
   })
 
-  // On this host's Xcode 27 simulators `simctl pbpaste` reports an empty pasteboard after a successful
-  // pbcopy, so only the stdin write is checked here, with text a command line would mangle.
+  // Appium's own setPasteboard backs pasteText, and `simctl pbpaste` reads back empty on this host's
+  // simulators, so reading the text back is not possible; this checks the stdin write is accepted.
   it('writes the pasteboard text over stdin', () => {
-    setPasteboard(`harness pasteboard "quoted" $HOME ${Date.now()}`)
-    expect(typeof readPasteboard()).toBe('string')
+    expect(() => setPasteboard(`harness pasteboard "quoted" $HOME ${Date.now()}`)).not.toThrow()
   })
 
   it('relaunches the app and keeps recording across the new runtime', async () => {
+    const rec = attemptRecording()
     await navigateToMore()
-    // a terminate drops the runtime's recording, so it is taken first
-    await attemptRecording().checkpoint()
     await relaunchApp()
-    await attemptRecording().checkpoint()
+    expect(rec.reloadCount).toBe(1)
+    // the first runtime started on the Settings tab, so its recording holds that as a start route
+    expect(rec.recordings.flatMap(r => r.startRoutes)).toContain('settingsRoot')
     await navigateToPeople()
-    await step('Back on a tab after the relaunch')
+    await rec.checkpoint()
+    expect(rec.recordings.flatMap(r => r.routes)).toContain('peopleRoot')
+    await step('On the People tab after the relaunch')
   })
 })
 

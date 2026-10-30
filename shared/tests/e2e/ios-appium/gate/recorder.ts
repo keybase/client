@@ -50,6 +50,14 @@ export class PhoneRecording {
   private kept: Array<Recording> = []
   private reloads = 0
 
+  get reloadCount() {
+    return this.reloads
+  }
+
+  get recordings(): ReadonlyArray<Recording> {
+    return this.kept
+  }
+
   async begin() {
     this.runtime = (await startPhoneRecorder()).runtime
   }

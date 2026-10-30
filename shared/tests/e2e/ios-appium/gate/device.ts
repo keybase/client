@@ -1,5 +1,5 @@
 // Simulator-side actions a flow takes at the app's boundary, each with a deadline. A relaunch starts
-// a new JS runtime: the caller follows it with attemptRecording().checkpoint().
+// a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
 import {execFileSync} from 'child_process'
 import {
   activateApp,
@@ -16,6 +16,7 @@ import {
   waitFor,
 } from '../helpers/lifecycle'
 import {beginErrorCapture} from './errors.ts'
+import {attemptRecording} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
@@ -41,13 +42,6 @@ export const setPasteboard = (text: string) => {
   })
 }
 
-export const readPasteboard = (): string =>
-  execFileSync('xcrun', ['simctl', 'pbpaste', deviceUdid()], {
-    encoding: 'utf8',
-    killSignal: 'SIGKILL',
-    stdio: ['pipe', 'pipe', 'pipe'],
-    timeout: PASTEBOARD_MS,
-  })
 
 const runtimeId = async (): Promise<string | undefined> =>
   (await jsEval<string | null>('return globalThis.__kbE2ERuntime ?? null')) ?? undefined
@@ -58,35 +52,37 @@ const waitForRuntime = async (before: string | undefined) =>
     return now && now !== before ? now : undefined
   }, {interval: 500, timeout: RUNTIME_WAIT_MS})
 
-const launch = async () => {
-  const before = await runtimeId().catch(() => undefined)
+const launch = async (before: string | undefined) => {
   if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
   await waitForRuntime(before)
   await beginErrorCapture()
+  await attemptRecording().checkpoint()
 }
 
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
 export const relaunchApp = async () => {
   const before = await runtimeId().catch(() => undefined)
+  await attemptRecording().checkpoint()
   await terminateApp()
-  simctl('launch', deviceUdid(), BUNDLE_ID)
-  await waitForRuntime(before)
-  await beginErrorCapture()
+  await launch(before)
 }
 
 // simctl privacy can terminate the app (iOS restarts a process whose permission changes); when it
-// does, the app is launched again and this waits for its new JS runtime, so callers checkpoint
-// after it as after a relaunch.
+// does, the app is launched again and this waits for its new JS runtime.
 export const grantPrivacy = async (service: string) => {
   const before = await runtimeId().catch(() => undefined)
+  await attemptRecording().checkpoint()
   simctl('privacy', deviceUdid(), 'grant', service, BUNDLE_ID)
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  if (appPid() === undefined) {
-    await launch()
-    return
-  }
-  const after = await runtimeId().catch(() => undefined)
-  if (after !== before) await beginErrorCapture()
+  const changed = await waitFor(
+    'the app to restart or stay up',
+    async () => {
+      if (appPid() === undefined) return true
+      const now = await runtimeId().catch(() => undefined)
+      return now !== undefined && now !== before ? true : undefined
+    },
+    {interval: 500, timeout: 3000}
+  ).catch(() => false)
+  if (changed) await launch(before)
 }
 
 export const toBackground = async () => backgroundApp()

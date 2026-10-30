@@ -15,7 +15,6 @@ import {requireAppIsSmoke} from './gate/accounts'
 
 const PROJECT = 'ios-flows'
 
-
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 export const config: WebdriverIO.Config = {
