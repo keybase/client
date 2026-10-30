@@ -39,6 +39,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.ts'
+import {forgetRunPaperKeyNames, runPaperKeyNames} from '../accounts/paper-key-ledger.ts'
 import {newRunId} from '../accounts/run-id.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
@@ -106,11 +107,17 @@ const cleanup = async (code: number) => {
     stopWhatItStarted,
     () =>
       run.holdsLock()
-        ? scanResults(secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}), watch ? () => watch.secrets() : envSecrets, log)
+        ? scanResults(
+            secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}),
+            // the names of the paper keys this run made too: each is the first two words of its phrase
+            () => [...(watch ? watch.secrets() : envSecrets()), ...runPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')],
+            log
+          )
         : undefined,
     log
   )
   watch?.stop()
+  forgetRunPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')
   if (!stopped) {
     phases.push({line: 'something it started would not stop (see above)', name: 'cleanup', ok: false})
     if (code === 0) code = 1

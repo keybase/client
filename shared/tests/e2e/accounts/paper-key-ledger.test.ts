@@ -1,7 +1,8 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {forgetPaperKey, readPaperKeys, recordPaperKey} from './paper-key-ledger'
+import {newRunId} from './run-id'
+import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyWords, readPaperKeys, recordPaperKey, runPaperKeyNames} from './paper-key-ledger'
 
 let dir = ''
 let file = ''
@@ -52,4 +53,23 @@ test('refuses a ledger that others can read', () => {
   recordPaperKey(entry, file)
   fs.chmodSync(file, 0o644)
   expect(() => readPaperKeys(file)).toThrow(/mode 644/)
+})
+
+test("a recorded key's words stay in its run's names after the ledger forgets it, until the run's names are forgotten", () => {
+  const names = path.join(path.dirname(file), 'paper-key-names.json')
+  // a run id of now: older than a week, the names file drops it
+  const run = {...entry, deviceName: 'Paper Key (apple banana...)', runId: newRunId()}
+  recordPaperKey(run, file)
+  forgetPaperKey(deviceID, file)
+  expect(readPaperKeys(file)).toEqual([])
+  expect(runPaperKeyNames(run.runId, names)).toEqual(['apple banana'])
+  expect(fs.statSync(names).mode & 0o777).toBe(0o600)
+  expect(runPaperKeyNames('other1', names)).toEqual([])
+  forgetRunPaperKeyNames(run.runId, names)
+  expect(runPaperKeyNames(run.runId, names)).toEqual([])
+})
+
+test('paperKeyWords reads both forms of the name', () => {
+  expect(paperKeyWords('Paper Key (apple banana...)')).toBe('apple banana')
+  expect(paperKeyWords('apple banana')).toBe('apple banana')
 })
