@@ -97,6 +97,11 @@ export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
   masking(device, async (name, label) => {
     const until = Date.now() + timeoutMs
     const {height} = await browser.getWindowRect()
+    // the list's own header, the Add button, sits above its rows and does not scroll
+    const add = labeled('Other', 'Add a device or paper key')
+    const listTop = (await add.getLocation('y')) + (await add.getSize('height'))
+    // clear of the home indicator's safe area at the bottom
+    const listBottom = height * 0.9
     let lastSeen: string | undefined
     let draggedFromY: number | undefined
     let unmovedDrags = 0
@@ -109,9 +114,10 @@ export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
       if (hit?.visible && hit.y > height * 0.25 && hit.y < height * 0.65) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
       // A row near either end of the list can never reach that band: the first rows sit above it when
       // the list is at its top, the last rows below it when the list is at its end. Two drags in a row
-      // that left the row where it was mean the list is at that end and the row is on screen (one
-      // unmoved read could be a swallowed drag over a row hidden under the header).
-      unmovedDrags = hit?.visible && hit.y === draggedFromY ? unmovedDrags + 1 : 0
+      // that left the row where it was, below the list's header and above the bottom safe area, mean
+      // the list is at that end and the row is on screen (one unmoved read could be a swallowed drag
+      // over a row hidden under the header).
+      unmovedDrags = hit?.visible && hit.y === draggedFromY && hit.y >= listTop && hit.y <= listBottom ? unmovedDrags + 1 : 0
       if (hit && unmovedDrags >= 2) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
       if (Date.now() > until) throw new Error(`finding ${label} in the devices list took over ${timeoutMs / 1000}s`)
       if (hit) {
