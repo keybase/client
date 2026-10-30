@@ -1,13 +1,12 @@
 import {loadE2EEnv} from '../../accounts/env'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {provisionCliDevice, retireCliDevice} from '../../shared/cli-device.ts'
-import {deviceHistory, requireRevocableFromPhone} from '../../shared/devices.ts'
+import {requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import {phoneDeviceId} from '../gate/accounts'
 import {step} from '../gate/step'
 import {openDevicePage, openDevices, revokeOnPhone, waitNotListedActive} from '../helpers/devices'
 import {labeled} from '../helpers/elements'
-import {waitFor} from '../helpers/lifecycle'
 
 // Revokes, from the phone, a computer the CLI provisioned for it (shared/cli-device.ts: a fresh home
 // signed in as e2e-<runid>-cli, its service shut down). No retry: a device name is never used twice.
@@ -33,11 +32,7 @@ describe('device revoke', function () {
         // sends revoke.revokeDevice
         await revokeOnPhone(name, 'computer', async () => step('The revoke confirm names the computer'))
         await waitNotListedActive(name)
-        await waitFor(
-          'the service to list the computer as revoked',
-          async () => ((await deviceHistory()).filter(d => d.deviceID === deviceID).map(d => d.revoked).join() === 'true' ? true : undefined),
-          {interval: 1_000, timeout: 30_000}
-        )
+        await waitServiceRevoked(deviceID, 'the computer')
         await step('Back on the devices list, the computer no longer active')
       },
       // from the home, so a provisioning that failed after its login still has its device revoked

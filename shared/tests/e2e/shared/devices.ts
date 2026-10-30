@@ -32,6 +32,18 @@ export const deviceHistory = async () =>
 
 export const activeDevices = async () => (await deviceHistory()).filter(d => !d.revoked)
 
+// Waits until the service lists the one device with `deviceID` as revoked: a flow's read-back of a
+// revoke the app sent. `what` names the device in the error.
+export const waitServiceRevoked = async (deviceID: string, what: string, timeoutMs = 30_000) => {
+  const until = Date.now() + timeoutMs
+  for (;;) {
+    const states = (await deviceHistory()).filter(d => d.deviceID === deviceID).map(d => d.revoked)
+    if (states.length === 1 && states[0]) return
+    if (Date.now() > until) throw new Error(`the service did not list ${what} as revoked within ${timeoutMs / 1000}s`)
+    await new Promise(resolve => setTimeout(resolve, 1_000))
+  }
+}
+
 // The account's active devices as `keybase.1.device.deviceList` names them: the names the sweeper
 // (and the paper key ledger it reads) compares.
 export const listedDevices = async () => (await mainRpc<Array<ListedDevice> | null>('keybase.1.device.deviceList', {sessionID: 0})) ?? []

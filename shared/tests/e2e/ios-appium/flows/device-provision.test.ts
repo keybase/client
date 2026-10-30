@@ -6,7 +6,7 @@ import {provDeviceLabel} from '../../accounts/sweep-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {retirePhoneFlowDevice} from '../../shared/cli-device.ts'
 import {withDeadline} from '../../shared/deadline'
-import {activeDevices, deviceHistory, provDeviceName, requireRevocableFromPhone} from '../../shared/devices.ts'
+import {activeDevices, provDeviceName, requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
 import {peerCli, peerUsesFileSecretStore, setPeerFileSecretStore, socketAnswers, socketPathFor, waitForPeerService} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -16,7 +16,7 @@ import {submitProvisionPhrase} from '../gate/secret-input'
 import {manualEdge, step} from '../gate/step'
 import {openDevicePage, openDevices, revokeOnPhone, waitNotListedActive} from '../helpers/devices'
 import {el, labeled} from '../helpers/elements'
-import {jsEval, waitFor} from '../helpers/lifecycle'
+import {jsEval} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 
 // The phone approves a new computer: a fresh peer home (homes/prov-<runid>, the file secret store)
@@ -112,11 +112,7 @@ describe('device provision', function () {
         // sends revoke.revokeDevice
         await revokeOnPhone(name, 'computer', async () => step('The revoke confirm names the computer'))
         await waitNotListedActive(name)
-        await waitFor(
-          'the service to list the computer as revoked',
-          async () => ((await deviceHistory()).filter(d => d.deviceID === deviceID).map(d => d.revoked).join() === 'true' ? true : undefined),
-          {interval: 1_000, timeout: 30_000}
-        )
+        await waitServiceRevoked(deviceID, 'the computer')
         await step('Back on the devices list, the computer no longer active')
       },
       [

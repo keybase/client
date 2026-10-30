@@ -2,7 +2,7 @@ import {newDeviceOf} from '../../accounts/device-targets'
 import {loadE2EEnv} from '../../accounts/env'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {forgetPaperKey, readPaperKeys, recordPaperKey} from '../../accounts/paper-key-ledger'
-import {deviceHistory, listedDevices, requireRevocableFromPhone, revokeLeftoverFromPhoneFlow} from '../../shared/devices.ts'
+import {deviceHistory, listedDevices, requireRevocableFromPhone, revokeLeftoverFromPhoneFlow, waitServiceRevoked} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {phoneDeviceId} from '../gate/accounts'
@@ -116,11 +116,7 @@ describe('device paper key', function () {
         // sends revoke.revokeDevice
         await revokeOnPhone(key.name, 'paper key', async () => step('The revoke confirm names the paper key'))
         await waitNotListedActive(key.name)
-        await waitFor(
-          'the service to list the paper key as revoked',
-          async () => ((await deviceHistory()).filter(d => d.deviceID === key.deviceID).map(d => d.revoked).join() === 'true' ? true : undefined),
-          {interval: 1_000, timeout: 30_000}
-        )
+        await waitServiceRevoked(key.deviceID, 'the paper key')
         revokedByApp = true
         await step('Back on the devices list, the paper key no longer active')
       },
