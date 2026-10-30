@@ -1,5 +1,5 @@
-import {newDeviceOf} from '../../accounts/device-targets'
-import {loadE2EEnv} from '../../accounts/env'
+import {newDeviceOf, type ListedDevice} from '../../accounts/device-targets'
+import {loadE2EEnv, type E2EEnv} from '../../accounts/env'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {forgetPaperKey, readPaperKeys, recordPaperKey} from '../../accounts/paper-key-ledger'
 import {deviceHistory, listedDevices, requireRevocableFromPhone, revokeLeftoverFromPhoneFlow, waitServiceRevoked} from '../../shared/devices.ts'
@@ -47,38 +47,78 @@ describe('device paper key', function () {
     if (await words().isExisting()) throw new Error('the paper key screen is still up after relaunching the app')
   }
 
+  // What the test made, for its cleanup and the afterEach: set once `before` is read, before the key
+  // can exist.
+  type Made = {deviceID: string; name: string}
+  type Run = {before: Array<ListedDevice>; env: E2EEnv; made?: Made; phoneID: string; retired: boolean; revokedByApp: boolean; runId: string}
+  let run: Run | undefined
+
+  // The run's new paper key, ledgered the moment the service lists it (whether or not its name can
+  // be read yet), then named as deviceHistoryList names it (the list's row shows that name).
+  const findMade = async (r: Run) => {
+    const listed = newDeviceOf(r.before, await listedDevices(), 'backup')
+    if (!listed) return undefined
+    if (!readPaperKeys().some(e => e.deviceID === listed.deviceID)) {
+      // the ledger takes the name as deviceList gives it, which is what the sweeper compares
+      recordPaperKey({deviceID: listed.deviceID, deviceName: listed.name, runId: r.runId})
+    }
+    const name = (await deviceHistory()).find(d => d.deviceID === listed.deviceID)?.name
+    if (!name) return undefined
+    r.made = {deviceID: listed.deviceID, name}
+    return r.made
+  }
+
+  // A key the app did not revoke (the test failed first) is found again by diffing the service's
+  // list against `before`, ledgered, and revoked through the main service under the phone's guard.
+  // Idempotent: the test's own cleanup and the afterEach both run it. Worst case (s): naming 15,
+  // the revoke and its check 30 = 45.
+  const retire = async (r: Run) => {
+    if (r.retired) return
+    if (!r.made) await waitFor('the run\'s paper key to be listed and named', async () => findMade(r), {interval: 1_000, timeout: 15_000}).catch(() => undefined)
+    const key = r.made
+    if (!key) {
+      const had = new Set(r.before.map(d => d.deviceID))
+      const left = (await listedDevices()).filter(d => d.type === 'backup' && !had.has(d.deviceID))
+      if (left.length) throw new Error(`${left.length} new paper key(s) are listed that this test could not name, so it did not revoke them`)
+      r.retired = true
+      return
+    }
+    if (!r.revokedByApp) await revokeLeftoverFromPhoneFlow(r.env, key, r.phoneID)
+    if (!(await deviceHistory()).find(d => d.deviceID === key.deviceID)?.revoked) throw new Error('the paper key is still active after its cleanup')
+    forgetPaperKey(key.deviceID)
+    r.retired = true
+  }
+
+  // Mocha runs this before the gate's own afterEach (and its failure screenshot), also after a
+  // timeout that abandoned the test before its cleanup: the words go first, then the key.
+  afterEach(async function () {
+    // closing the screen 130 (acknowledging 50, its close 10, a relaunch 70), retire 45 = 175
+    this.timeout(240_000)
+    await closePaperKeyScreen()
+    const r = run
+    run = undefined
+    if (r) await retire(r)
+  })
+
   it('makes a paper key from the phone, then revokes it from its device page', async function () {
-    this.timeout(420_000)
+    // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
+    // 15, the device list before 15, openDevices 45, the chooser 20, the key listed and named 30, the
+    // words 30, acknowledging 50, the screen closing 10, findDeviceRow 240, openDevicePage 265 (its
+    // own findDeviceRow 240, the page 25), its label 10, the revoke guard 20, revokeOnPhone 95 (the
+    // confirm 25, its close 30, the page's own leave 2, the back 15, the page gone 5, the list 15,
+    // a step 3), not listed active 30, revoked 30, five steps 25 = 930. Cleanups: closing the
+    // screen 130, retire 45 = 175. Total 1105.
+    this.timeout(1_200_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const phoneID = await phoneDeviceId()
-    const before = await listedDevices()
+    const r: Run = {before: await listedDevices(), env, phoneID, retired: false, revokedByApp: false, runId}
+    run = r
 
     await openDevices()
     await labeled('Other', 'Add a device or paper key').click()
     await el(T.DEVICES_ADD_DEVICE).waitForExist({timeout: 15_000})
     await step('The add-a-device chooser')
-
-    let made: {deviceID: string; name: string} | undefined
-    let revokedByApp = false
-    const newBackups = async () => {
-      const had = new Set(before.map(d => d.deviceID))
-      return (await listedDevices()).filter(d => d.type === 'backup' && !had.has(d.deviceID))
-    }
-    // The run's new paper key, ledgered the moment the service lists it (whether or not its name can
-    // be read yet), then named as deviceHistoryList names it (the list's row shows that name).
-    const findMade = async () => {
-      const listed = newDeviceOf(before, await listedDevices(), 'backup')
-      if (!listed) return undefined
-      if (!readPaperKeys().some(e => e.deviceID === listed.deviceID)) {
-        // the ledger takes the name as deviceList gives it, which is what the sweeper compares
-        recordPaperKey({deviceID: listed.deviceID, deviceName: listed.name, runId})
-      }
-      const name = (await deviceHistory()).find(d => d.deviceID === listed.deviceID)?.name
-      if (!name) return undefined
-      made = {deviceID: listed.deviceID, name}
-      return made
-    }
 
     await withCleanup(
       async () => {
@@ -86,7 +126,7 @@ describe('device paper key', function () {
           async () => {
             // sends login.paperKey, which makes the key, then shows its words
             await labeled('Other', 'Create a paper key').click()
-            await waitFor('the service to list a new, named paper key', findMade, {interval: 1_000, timeout: 30_000})
+            await waitFor('the service to list a new, named paper key', async () => findMade(r), {interval: 1_000, timeout: 30_000})
             // The words' text is not a descendant of the words box in the accessibility tree (the box is
             // a leaf), so the screen is matched by a text shaped like the words: lowercase words, one
             // space apart. The query returns element ids only; nothing reads the text.
@@ -100,7 +140,7 @@ describe('device paper key', function () {
           },
           [closePaperKeyScreen]
         )
-        const key = made
+        const key = r.made
         if (!key) throw new Error('the paper key was never named')
         await step('The paper key screen closed after "Yes, I wrote this down." and Done')
 
@@ -117,26 +157,11 @@ describe('device paper key', function () {
         await revokeOnPhone(key.name, 'paper key', async () => step('The revoke confirm names the paper key'))
         await waitNotListedActive(key.name)
         await waitServiceRevoked(key.deviceID, 'the paper key')
-        revokedByApp = true
+        r.revokedByApp = true
         await step('Back on the devices list, the paper key no longer active')
       },
-      [
-        // A key the app did not revoke (the test failed first) is found again by diffing the service's
-        // list against `before`, ledgered, and revoked through the main service under the phone's guard.
-        async () => {
-          if (!made) await waitFor('the run\'s paper key to be listed and named', findMade, {interval: 1_000, timeout: 15_000}).catch(() => undefined)
-          const key = made
-          if (!key) {
-            const left = await newBackups()
-            if (left.length) throw new Error(`${left.length} new paper key(s) are listed that this test could not name, so it did not revoke them`)
-            return
-          }
-          if (!revokedByApp) await revokeLeftoverFromPhoneFlow(env, key, phoneID)
-          if (!(await deviceHistory()).find(d => d.deviceID === key.deviceID)?.revoked) throw new Error('the paper key is still active after its cleanup')
-          forgetPaperKey(key.deviceID)
-        },
-      ]
+      [async () => retire(r)]
     )
-    expect(readPaperKeys().some(e => e.deviceID === made?.deviceID)).toBe(false)
+    expect(readPaperKeys().some(e => e.deviceID === r.made?.deviceID)).toBe(false)
   })
 })

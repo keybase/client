@@ -13,12 +13,33 @@ import {labeled} from '../helpers/elements'
 describe('device revoke', function () {
   this.retries(0)
 
+  // The device's retirement, once the test knows what to retire. Idempotent: the test's own cleanup
+  // and the afterEach both run it, and a device already revoked and its home gone leave it nothing.
+  let retire: (() => Promise<void>) | undefined
+
+  // Mocha runs this before the gate's own afterEach, also after a timeout that abandoned the test
+  // before its cleanup.
+  afterEach(async function () {
+    // the home's shutdown 30, the revoke and its check 30, the home's removal 10 = 70
+    this.timeout(120_000)
+    const r = retire
+    retire = undefined
+    await r?.()
+  })
+
   it('revokes a computer the CLI provisioned, from its device page', async function () {
-    // the CLI's provisioning, a shutdown, a list read and a revoke, each with its own deadline
-    this.timeout(420_000)
+    // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
+    // 15, provisionCliDevice 265 (the home's service 30, the login 180, whoami 15, the list 10, its
+    // shutdown 30), openDevices 45, openDevicePage 265 (findDeviceRow 240, the page 25), its label
+    // 10, the revoke guard 20, revokeOnPhone 95, not listed active 30, revoked 30, three steps 15 =
+    // 790. Cleanup: retireCliDevice 70. Total 860.
+    this.timeout(960_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const phoneID = await phoneDeviceId()
+    // from the home, so a provisioning that failed after its login still has its device revoked
+    const retireThis = async () => retireCliDevice(env, runId, phoneID)
+    retire = retireThis
     await withCleanup(
       async () => {
         const made = await provisionCliDevice(env, runId)
@@ -35,8 +56,7 @@ describe('device revoke', function () {
         await waitServiceRevoked(deviceID, 'the computer')
         await step('Back on the devices list, the computer no longer active')
       },
-      // from the home, so a provisioning that failed after its login still has its device revoked
-      [async () => retireCliDevice(env, runId, phoneID)]
+      [retireThis]
     )
   })
 })

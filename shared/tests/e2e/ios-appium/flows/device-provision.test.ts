@@ -47,9 +47,32 @@ describe('device provision', function () {
     if (await codePage().isExisting()) throw new Error('the code page is still up after relaunching the app')
   }
 
+  // The new home's retirement, once the test knows what to retire. Idempotent: the test's own
+  // cleanup and the afterEach both run it, and a device already revoked and its home gone leave it
+  // nothing.
+  let retire: (() => Promise<void>) | undefined
+
+  // Mocha runs this before the gate's own afterEach (and its failure screenshot), also after a
+  // timeout that abandoned the test before its cleanup: the code page and its QR go first, then
+  // the new device and its home.
+  afterEach(async function () {
+    // closing the code page 125 (the cancel 15, escapeToTabs 30, its close 10, a relaunch 70), the
+    // home's shutdown 30, the revoke and its check 30, the home's removal 10 = 195
+    this.timeout(300_000)
+    await closeCodePage()
+    const r = retire
+    retire = undefined
+    await r?.()
+  })
+
   it('approves a computer that `keybase login` is provisioning, then revokes it', async function () {
-    // the CLI's provisioning, the phone's, a shutdown, a list read and a revoke, each with its own deadline
-    this.timeout(480_000)
+    // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
+    // 15, the home's service 30, openDevices 45, the chooser 20, the manual edge 5, the code page 40,
+    // the phrase 60, its submit 30, the CLI's login 120, the code page closing 30, whoami 15, the
+    // list 10, the devices list 15, openDevicePage 265 (findDeviceRow 240, the page 25), its label
+    // 10, the shutdown 30, the revoke guard 20, revokeOnPhone 95, not listed active 30, revoked 30,
+    // three steps 15 = 930. Cleanups: closing the code page 125, the retirement 70 = 195. Total 1125.
+    this.timeout(1_200_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const home = provisionHomeFor(runId, provDeviceLabel)
@@ -59,6 +82,12 @@ describe('device provision', function () {
     if (fs.existsSync(home)) throw new Error(`${home} already exists: this run id already provisioned its device (one per run id)`)
 
     let provisionee: Provisionee | undefined
+    // a device the app did not revoke (the test failed first) is revoked under the phone's guard; the home goes
+    const retireThis = async () => {
+      provisionee?.kill()
+      await retirePhoneFlowDevice(env, runId, provDeviceLabel, phone.deviceID)
+    }
+    retire = retireThis
     await withCleanup(
       async () => {
         await startFileStoreHome('owner', home)
@@ -109,13 +138,7 @@ describe('device provision', function () {
         await waitServiceRevoked(deviceID, 'the computer')
         await step('Back on the devices list, the computer no longer active')
       },
-      [
-        // a device the app did not revoke (the test failed first) is revoked under the phone's guard; the home goes
-        async () => {
-          provisionee?.kill()
-          await retirePhoneFlowDevice(env, runId, provDeviceLabel, phone.deviceID)
-        },
-      ]
+      [retireThis]
     )
     if (fs.existsSync(home)) throw new Error(`${home} is still there after its retirement`)
   })
