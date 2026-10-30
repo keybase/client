@@ -7,6 +7,7 @@ import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {thenRestoring} from '../../shared/restore.ts'
+import {notSmokeProblem} from './app-account-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
 const SIGN_IN_MS = 60_000
@@ -15,10 +16,8 @@ export const appAccount = signedInAs
 
 export const requireAppIsSmoke = async () => {
   const {smokeUser} = loadE2EAccounts()
-  const a = await signedInAs()
-  if (!a.loggedIn || a.username !== smokeUser) {
-    throw new Error(`the simulator app is signed in as ${a.loggedIn ? a.username : '(nobody; signed out)'}, not the e2e smoke account; refusing to run`)
-  }
+  const problem = notSmokeProblem(await signedInAs(), smokeUser)
+  if (problem) throw new Error(problem)
 }
 
 // Runs `f` with the app switched to the second account, through the app's own account switcher,

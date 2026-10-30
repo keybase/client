@@ -86,6 +86,7 @@
     "test:e2e:ios:share": "bash tests/e2e/run-ios-share.sh iPhoneTest",
     "test:e2e:ios:flows": "wdio run tests/e2e/ios-appium/wdio.gate.conf.ts",
     "test:e2e:ios:census": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/census.mts",
+    "test:e2e:ios:release": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/release.mts",
     "test:e2e:ios:gate-report": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/report.mts && open tests/results/ios-report.html",
     "test:e2e:ios:report": "node tests/e2e/generate-appium-report.mts && open tests/results/ios-appium-report.html",
     "test:e2e:android": "bash tests/e2e/run-android-appium.sh",
