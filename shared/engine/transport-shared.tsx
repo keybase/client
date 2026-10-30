@@ -44,31 +44,38 @@ const secretResultMethods = new Set([
 const redactMaxDepth = 12
 
 // Copy of `value` for logging, with secret-keyed values replaced. Only plain objects and arrays are
-// walked; anything else (functions, Session, typed arrays) is passed through unchanged.
-export function redactRpcParams(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
-  if (typeof value !== 'object' || value === null || seen.has(value)) {
+// walked; anything else (functions, Session, typed arrays) is passed through unchanged. An object
+// reached twice is copied (redacted) each time; only one that contains itself becomes '<cycle>'.
+export function redactRpcParams(value: unknown, depth = 0, ancestors = new Set<object>()): unknown {
+  if (typeof value !== 'object' || value === null) {
     return value
+  }
+  if (ancestors.has(value)) {
+    return '<cycle>'
   }
   if (depth > redactMaxDepth) {
     return '<depth>'
   }
   if (Array.isArray(value)) {
-    seen.add(value)
-    return value.map(v => redactRpcParams(v, depth + 1, seen))
+    ancestors.add(value)
+    const out = value.map(v => redactRpcParams(v, depth + 1, ancestors))
+    ancestors.delete(value)
+    return out
   }
   const proto = Object.getPrototypeOf(value) as unknown
   if (proto !== Object.prototype && proto !== null) {
     return value
   }
-  seen.add(value)
+  ancestors.add(value)
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
     out[k] =
       (secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null) ||
       (stringSecretKeys.has(k.toLowerCase()) && typeof v === 'string')
         ? '<redacted>'
-        : redactRpcParams(v, depth + 1, seen)
+        : redactRpcParams(v, depth + 1, ancestors)
   }
+  ancestors.delete(value)
   return out
 }
 

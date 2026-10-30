@@ -45,6 +45,23 @@ test('cyclic and non-plain values do not throw', () => {
   expect(JSON.stringify(redactRpcParams({a: {passphrase: fixture}}))).not.toContain(fixture)
 })
 
+test('an object reached twice is redacted both times, and a cycle is marked', () => {
+  const shared = {passphrase: fixture, user: 'testuser'}
+  const looped: Record<string, unknown> = {phrase: fixture}
+  looped['self'] = looped
+  const out = redactRpcParams({first: shared, list: [shared, shared], looped, second: shared})
+  expect(JSON.stringify(out)).not.toContain(fixture)
+  expect(out).toEqual({
+    first: {passphrase: '<redacted>', user: 'testuser'},
+    list: [
+      {passphrase: '<redacted>', user: 'testuser'},
+      {passphrase: '<redacted>', user: 'testuser'},
+    ],
+    looped: {phrase: '<redacted>', self: '<cycle>'},
+    second: {passphrase: '<redacted>', user: 'testuser'},
+  })
+})
+
 test('depth cutoff fails closed', () => {
   let deep: Record<string, unknown> = {passphrase: fixture}
   for (let i = 0; i < 20; i++) deep = {n: deep}
