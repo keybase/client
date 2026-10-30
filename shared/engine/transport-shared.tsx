@@ -27,6 +27,7 @@ const secretKeys = new Set([
   'secretkey',
   'token',
   'tokenorname',
+  'invitecode',
 ])
 // `code` is also a numeric status code, so only a string value is a secret (the one-time code of
 // verifyPhoneNumber).
@@ -37,6 +38,8 @@ const secretResultMethods = new Set([
   'getWalletAccountSecretKeyLocal',
   'exportSecretKeyLocal',
   'botTokenCreate',
+  'teamCreateSeitanTokenV2',
+  'getInvitationCode',
 ])
 const redactMaxDepth = 12
 

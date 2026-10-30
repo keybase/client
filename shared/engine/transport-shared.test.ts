@@ -54,7 +54,7 @@ test('depth cutoff fails closed', () => {
 })
 
 test('token keys and string codes are redacted, numeric codes stay', () => {
-  const logged = redactRpcParams({code: '123456', status: {code: 7}, token: fixture, tokenOrName: fixture}) as {
+  const logged = redactRpcParams({code: '123456', status: {code: 7}, token: fixture, tokenOrName: fixture, inviteCode: fixture}) as {
     code: string
     status: {code: number}
   }
@@ -91,6 +91,8 @@ describe('rpcLog and invoke end to end', () => {
 
   test.each([
     ['keybase.1.config.generateWebAuthToken', fixture],
+    ['keybase.1.teams.teamCreateSeitanTokenV2', fixture],
+    ['keybase.1.signup.getInvitationCode', fixture],
     ['keybase.1.account.passphrasePrompt', {passphrase: fixture}],
   ])('invoke [-calling] result of %s', (method, result) => {
     class T extends TransportShared {
