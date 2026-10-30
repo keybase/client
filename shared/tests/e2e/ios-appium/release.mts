@@ -48,8 +48,6 @@ import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {pidAlive, stopPids} from '../electron/app-pidfile.ts'
 import {
   flowProblems,
-  flowsLine,
-  flowsOk,
   parseTimeoutMin,
   releaseFailed,
   renderLine,
@@ -67,6 +65,7 @@ import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, processes, readMetroPidfile, 
 import {
   appSignedFromAppinfo,
   censusPhaseResult,
+  flowsPhaseResult,
   iosPreflightProblems,
   isWdaResidue,
   IOS_RELEASE_PORTS,
@@ -74,6 +73,7 @@ import {
   reportPhaseResult,
   simulatorFromList,
   strayChildren,
+  writtenSince,
   type IosPreflightState,
 } from './release-lib.ts'
 import {scanResults} from './release-secrets.mts'
@@ -171,7 +171,10 @@ const wdaResiduePids = (id: string) =>
     .map(p => p.pid)
 
 // '' when ps fails or the process is gone
-const fullCommand = (pid: number) => (spawnSync('ps', ['-ww', '-o', 'command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000}).stdout ?? '').trim()
+const fullCommand = (pid: number) => {
+  const r = spawnSync('ps', ['-ww', '-o', 'command=', '-p', String(pid)], {encoding: 'utf8', timeout: 5_000})
+  return r.error ? '' : r.stdout.trim()
+}
 
 const stopWda = async (id: string, why: string) => {
   const pids = wdaResiduePids(id)
@@ -350,7 +353,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
 
 // the summary's lines after the phases
 const printResults = () => {
-  const fresh = (p: string) => fs.existsSync(p) && fs.statSync(p).mtimeMs >= runStart
+  const fresh = (p: string) => writtenSince({path: p, ...mtime(p)}, runStart)
   const show = (what: string, p: string) => console.log(`${what.padEnd(17)}${p}${fresh(p) ? '' : ' (not written by this run)'}`)
   show('report', out.report)
   show('census', out.census)
@@ -435,15 +438,16 @@ const main = async () => {
       env: {...process.env, KB_IOS_DEVICE: device, ...(only ? {KB_E2E_RELEASE_ONLY: only} : {})},
       logFile: logFile('flows'),
     })
-    if (!fs.existsSync(out.results) || fs.statSync(out.results).mtimeMs < start) {
-      return {line: `wdio exited ${r.code} and wrote no ${out.results}${logFailed(r)}`, ok: false}
+    const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, () =>
+      summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
+    )
+    if (s) {
+      for (const n of s.fresh) log(`new failure: ${n}`)
+      for (const n of s.known) log(`known on master: ${n}`)
+      for (const n of s.nowPasses) log(`known failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
+      for (const n of flowProblems(s)) log(n)
     }
-    const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
-    for (const n of s.fresh) log(`new failure: ${n}`)
-    for (const n of s.known) log(`known on master: ${n}`)
-    for (const n of s.nowPasses) log(`known failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
-    for (const n of flowProblems(s)) log(n)
-    return {line: `${flowsLine(s)}${r.code === 0 ? '' : ` (wdio exited ${r.code})`}${logFailed(r)}`, ok: flowsOk(s, r.code) && !r.logError}
+    return {line, ok}
   })
 
   await phase('render', async () => {

@@ -2,7 +2,7 @@
 // start (iosPreflightProblems), what simctl and ps say about the simulator, and whether the census and
 // report phases wrote this run's outputs.
 import type {PortHolder} from '../shared/gate/ports.ts'
-import type {Outcome} from '../shared/gate/release-lib.ts'
+import {flowsLine, flowsOk, type FlowSummary, type Outcome} from '../shared/gate/release-lib.ts'
 import {KBFS_START_COMMAND} from '../electron/release-lib.ts'
 
 // What the run's children listen on, which must be free when it starts.
@@ -181,7 +181,16 @@ type PhaseChild = {code: number | null; stdout: string; logError?: string}
 type PhaseOutput = {path: string; mtimeMs?: number}
 
 export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
-const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= start
+// since `start`, to the second
+export const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= toSecond(start)
+
+// The flows phase reads only a results json written since the phase started (one from an earlier run
+// is not this run's flows); `summarize` reads it. `summary` is left out when there was none to read.
+export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary) => {
+  if (!writtenSince(results, start)) return {line: `wdio exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
+  const summary = summarize()
+  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (wdio exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
+}
 
 // The census phase passes only on what its own child did: its `census: routes …` line, and a census
 // json written since the phase started (a file from an earlier run is not this run's census).

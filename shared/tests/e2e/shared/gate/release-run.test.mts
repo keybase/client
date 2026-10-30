@@ -302,10 +302,10 @@ test('runChild settles on the exit of a child whose grandchild keeps writing, an
   const script = `require('child_process').spawn(process.execPath, ['-e', ${JSON.stringify(grandchild)}], {stdio: ['ignore', 'inherit', 'inherit']}).unref(); console.log('child out')`
   const written: Array<string> = []
   const origWrite = process.stdout.write.bind(process.stdout)
-  process.stdout.write = ((d: string | Uint8Array) => {
+  process.stdout.write = (d: string | Uint8Array) => {
     written.push(String(d))
     return true
-  }) as typeof process.stdout.write
+  }
   try {
     const started = Date.now()
     const r = await run.runChild('writer', process.execPath, ['-e', script], 30_000, {logFile})

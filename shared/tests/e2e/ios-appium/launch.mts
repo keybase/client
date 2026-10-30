@@ -32,7 +32,10 @@ export const readMetroPidfile = (): MetroPidfile | undefined => {
 }
 
 // a ps that failed reads as no processes
-export const processes = () => parsePs(spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,etime=,command='], {encoding: 'utf8', timeout: 10_000}).stdout ?? '', Date.now())
+export const processes = () => {
+  const r = spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,etime=,command='], {encoding: 'utf8', timeout: 10_000})
+  return r.error ? [] : parsePs(r.stdout, Date.now())
+}
 
 // Whether `pgid` is still running a Metro (release-lib.ts isMetroGroup): a recorded group id is only
 // ever signalled while it is.

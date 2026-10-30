@@ -1,6 +1,7 @@
 import {
   appSignedFromAppinfo,
   censusPhaseResult,
+  flowsPhaseResult,
   iosPreflightProblems,
   isMetroGroup,
   isWdaResidue,
@@ -8,6 +9,7 @@ import {
   reportPhaseResult,
   strayChildren,
   simulatorFromList,
+  writtenSince,
   type IosPreflightState,
 } from './release-lib'
 
@@ -277,6 +279,10 @@ describe('reportPhaseResult', () => {
     expect(reportPhaseResult({code: 0, stdout: ''}, report(1_000), start)).toEqual({line: '/r/ios-report.html', ok: true})
   })
 
+  it('passes on a report written in the second the phase started', () => {
+    expect(reportPhaseResult({code: 0, stdout: ''}, report(1_000), 1_700)).toEqual({line: '/r/ios-report.html', ok: true})
+  })
+
   it('fails on a report left from before the phase, or none', () => {
     expect(reportPhaseResult({code: 0, stdout: ''}, report(999), start)).toEqual({
       line: 'report generator exited 0 and /r/ios-report.html was not written by this run',
@@ -289,6 +295,49 @@ describe('reportPhaseResult', () => {
     expect(reportPhaseResult({code: 2, stdout: ''}, report(1_500), start)).toEqual({line: 'report generator exited 2', ok: false})
     expect(reportPhaseResult({code: 0, logError: 'EIO', stdout: ''}, report(1_500), start)).toEqual({
       line: '/r/ios-report.html (its log could not be written: EIO)',
+      ok: false,
+    })
+  })
+})
+
+describe('writtenSince', () => {
+  test('a file written in the same second the phase started counts, as file times may be kept to the second', () => {
+    expect(writtenSince({mtimeMs: 5_000, path: '/r/x'}, 5_900)).toBe(true)
+  })
+
+  test('a file from an earlier second, or none, does not', () => {
+    expect(writtenSince({mtimeMs: 4_999, path: '/r/x'}, 5_000)).toBe(false)
+    expect(writtenSince({path: '/r/x'}, 5_000)).toBe(false)
+  })
+})
+
+describe('flowsPhaseResult', () => {
+  const start = 1_000
+  const results = (mtimeMs?: number) => ({path: '/r/results.json', ...(mtimeMs === undefined ? {} : {mtimeMs})})
+  const summary = {failed: 0, flaky: [], fresh: [], known: [], nowPasses: [], passed: 3, runErrors: [], skipped: []}
+
+  it('summarizes a results json written since the phase started', () => {
+    expect(flowsPhaseResult({code: 0, stdout: ''}, results(1_500), start, () => summary)).toEqual({line: '3 passed, 0 failed, 0 flaky, 0 skipped', ok: true, summary})
+  })
+
+  it('never reads a results json left from before the phase, or none', () => {
+    let reads = 0
+    const read = () => {
+      reads++
+      return summary
+    }
+    expect(flowsPhaseResult({code: 1, stdout: ''}, results(999), start, read)).toEqual({line: 'wdio exited 1 and wrote no /r/results.json', ok: false})
+    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(), start, read)).toEqual({
+      line: 'wdio exited 0 and wrote no /r/results.json (its log could not be written: EIO)',
+      ok: false,
+    })
+    expect(reads).toBe(0)
+  })
+
+  it('fails on a nonzero wdio exit and on a log write failure, keeping the summary line', () => {
+    expect(flowsPhaseResult({code: 1, stdout: ''}, results(1_500), start, () => summary)).toMatchObject({line: '3 passed, 0 failed, 0 flaky, 0 skipped (wdio exited 1)', ok: false})
+    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(1_500), start, () => summary)).toMatchObject({
+      line: '3 passed, 0 failed, 0 flaky, 0 skipped (its log could not be written: EIO)',
       ok: false,
     })
   })
