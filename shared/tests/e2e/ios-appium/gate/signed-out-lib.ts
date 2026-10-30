@@ -31,7 +31,9 @@ export const recoveryPicks = (
 const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
 // The device selector's row for the device named exactly `name`: its name text, or the row itself
-// when the row merges its texts into one label ("<name>, <kind>"), so "a b" never matches "a bc".
+// when the row merges its texts into one label, so "a b" never matches "a bc". A merged label joins
+// the texts with ", " (the accessibility default) or, for a Kb.ListItem row, " , " (as the Devices
+// screen's rows read, devices-lib.ts); which one this row uses is unproven, so both are matched.
 export const recoveryRowPredicate = (name: string) => {
   const n = escapePredicate(name)
   return `-ios predicate string:label == "${n}" OR label BEGINSWITH "${n}, " OR label BEGINSWITH "${n} , "`

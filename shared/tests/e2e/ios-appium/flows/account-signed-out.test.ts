@@ -1,10 +1,10 @@
-import {loadE2EAccounts} from '../../accounts/env'
+import {loadE2EAccounts, loadE2EEnv, requireSecondPassword} from '../../accounts/env'
 import {deviceNameCandidates} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {appAccount, asSecond, signedOutThenBack} from '../gate/accounts'
+import {appAccount, asSecond, restoreToSmoke, signedOutThenBack} from '../gate/accounts'
 import {backToScreen, pressBackToLoginList, tapToScreen, waitForScreen} from '../gate/screens'
-import {loginScreen, storedSecretOf} from '../gate/sign-in'
+import {emptyLoginField, loginScreen, restoreSecondSecret, storedSecretOf} from '../gate/sign-in'
 import {recoveryPicks, recoveryRowPredicate} from '../gate/signed-out-lib.ts'
 import {manualEdge, step} from '../gate/step'
 import {labeled} from '../helpers/devices'
@@ -57,7 +57,7 @@ const scrollTo = async (target: () => ReturnType<typeof byText>, what: string) =
 
 // The username screen "Someone else..." opens: a login for an account the list does not have.
 const openUsernameScreen = async () => {
-  await screenTap('Someone else...', 'username')
+  await tapToScreen(() => labeled('StaticText', 'Someone else...'), 'username')
   await el(T.PROVISION_USERNAME_INPUT).waitForExist({timeout: 10_000, timeoutMsg: 'the username screen has no username field'})
 }
 
@@ -97,6 +97,7 @@ describe('account signed out', () => {
     await signedOutThenBack(async () => {
       await openUsernameScreen()
       await typed(T.PROVISION_USERNAME_INPUT, unknown)
+      await step('An unknown username typed')
       await press('Log in')
       // the login fails as not found and the username screen comes back with its banner
       await byText("This username doesn't exist. Did you mean to").waitForExist({timeout: 20_000, timeoutMsg: 'the not-found banner never showed'})
@@ -156,7 +157,23 @@ describe('account signed out', () => {
 
   // Forgot password for the second account, signed out from it so the login screen has it selected
   // (a tap on its row would sign it in from its stored secret). No real paper key is ever submitted.
-  describe('forgot password', () => {
+  // Nothing here should drop the second account's stored secret, but if it is gone after a test the
+  // afterEach signs it back in with KB_SECOND_PASSWORD, so this part types a secret: no retry (it
+  // would type it again), and no step while the password is in the field.
+  describe('forgot password', function () {
+    this.retries(0)
+
+    afterEach(async function () {
+      // emptying the field 60, restoreSecondSecret 400 (secret read 20, settling 60, to the login
+      // list 90, selecting the row 30, sign-in 150, secret stored 50), restoreToSmoke 235 = 695
+      this.timeout(720_000)
+      // a test mocha timed out never emptied it; secret-free, and nothing when it is not mounted
+      await emptyLoginField()
+      if (await storedSecretOf(loadE2EAccounts().secondUser)) return
+      await restoreSecondSecret(requireSecondPassword(loadE2EEnv()))
+      await restoreToSmoke()
+    })
+
     const fromSecondsLoginScreen = async (f: () => Promise<void>) => {
       const {secondUser} = loadE2EAccounts()
       await asSecond(async () =>
@@ -200,6 +217,7 @@ describe('account signed out', () => {
         await step('Paper key screen')
 
         await typed(T.RECOVER_PASSWORD_PAPER_KEY_INPUT, wrongPaperKey)
+        await step('A paper key that is no one\'s typed')
         await press('Continue')
         const failed = await waitForScreen('recoverPasswordError', 30_000)
         expect(String(failed['error'])).toMatch(/no matching paper backup keys found/)
@@ -214,7 +232,7 @@ describe('account signed out', () => {
       this.timeout(AS_SECOND_MS + 350_000)
       const {secondUser} = loadE2EAccounts()
       await fromSecondsLoginScreen(async () => {
-        const lostAll = () => byText('I lost all my devices/paper keys')
+        const lostAll = () => labeled('StaticText', 'I lost all my devices/paper keys')
         await scrollTo(lostAll, 'the row for losing every device')
         await tapToScreen(lostAll, 'recoverPasswordPromptResetAccount')
         expect(await waitForScreen('recoverPasswordPromptResetAccount')).toMatchObject({skipPassword: true, username: secondUser})
