@@ -874,7 +874,60 @@ export const rowCentre = async (text: string) => {
 const menuItemPredicate = (label: string) =>
   `-ios predicate string:type == "XCUIElementTypeOther" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
 export const menuItem = (label: string) => browser.$(`${menuItemPredicate(label)} AND visible == 1`)
-export const menuHas = async (label: string) => browser.$(menuItemPredicate(label)).isExisting()
+const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l => l === label || l.endsWith(`, ${label}`))
+
+// Every item label of the open menu sheet: the items drawn on screen inside the sheet, read as the
+// sheet is dragged up until a drag shows nothing new (its end), so an item below the fold counts.
+// Bound: 15s.
+export const menuLabels = async (): Promise<Array<string>> => {
+  if (!(await menuSheet().isExisting())) throw new Error('no menu sheet is open')
+  const seen = new Set<string>()
+  const shown = async () => {
+    const sheet = await menuSheet().getElement()
+    const {y: top} = await sheet.getLocation()
+    const {height} = await sheet.getSize()
+    const {height: window} = await browser.getWindowRect()
+    const bottom = Math.min(top + height, window)
+    const out: Array<string> = []
+    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND label != "" AND visible == 1').getElements()) {
+      const label = await e.getAttribute('label').catch(() => null)
+      const at = await e.getLocation().catch(() => undefined)
+      const size = await e.getSize().catch(() => undefined)
+      if (!label || !at || !size || label === 'Bottom Sheet') continue
+      const mid = at.y + size.height / 2
+      if (mid >= top && mid <= bottom) out.push(label)
+    }
+    return out
+  }
+  let before = ''
+  await waitFor(
+    'the menu sheet read to its end',
+    async () => {
+      const now = await shown()
+      for (const l of now) seen.add(l)
+      const signature = now.join('\n')
+      if (signature === before) return true
+      before = signature
+      const {height, width} = await browser.getWindowRect()
+      const x = Math.round(width / 2)
+      await browser
+        .action('pointer', {parameters: {pointerType: 'touch'}})
+        .move({x, y: height - 80})
+        .down()
+        .move({duration: 400, x, y: height - 380})
+        .pause(200)
+        .up()
+        .perform()
+      return undefined
+    },
+    {interval: 300, timeout: 15_000}
+  )
+  return [...seen]
+}
+
+// Whether the open menu sheet holds the item `label` anywhere in it (menuLabels). Bound: 15s.
+export const menuHas = async (label: string) => offers(await menuLabels(), label)
+export const menuOffers = offers
 
 // Scrolls the menu until `label` shows, and taps it. The sheet opens partway, so later items start
 // below the screen.

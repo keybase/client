@@ -41,9 +41,9 @@ const savedSettingsPath = '/tmp/kb-e2e-chat-unfurl-settings.json'
 // The service fetches a link only when it unfurls it, so every link is on keybase.io. The other
 // domains are list entries only, never posted.
 const fetchedDomain = 'keybase.io'
-// how long a link must stay bare to count as not unfurled, and the longest an unfurl may take
-const bareWindowMs = 10_000
+// the longest an unfurl or a prompt may take; a link must stay bare that long to count as bare
 const unfurlTimeoutMs = 30_000
+const bareWindowMs = unfurlTimeoutMs
 
 const sorted = (s: UnfurlSettings): UnfurlSettings => ({
   blocklist: [...s.blocklist].sort(),
@@ -90,7 +90,7 @@ describe('chat unfurl', function () {
   //   prompt    the prompt in the store and on the row 30;  answer  the switch or a button found 5,
   //             its tap 1 = 6;  answered  the prompt gone 10
   //   calls     the recorder's call log, waited for 10;  seq  2
-  //   unfurled  the preview in the store and on the row 30;  bare  10 from the post and one read 5 = 15
+  //   unfurled  the preview in the store and on the row 30;  bare  30 from the post and one read 5 = 35
   //   step      2 (its 1s settle and the attach)
   this.retries(0)
 
@@ -226,7 +226,8 @@ describe('chat unfurl', function () {
       {interval: 500, timeout: unfurlTimeoutMs}
     )
 
-  // Holds the row to no prompt and no preview until it has been up for bareWindowMs. Bound: bare 15.
+  // Holds the row to no prompt and no preview until it has been up for as long as either may take to
+  // come. Bound: bare 35.
   const expectBare = async (p: Posted) => {
     for (;;) {
       const u = await unfurlsOf(p)
@@ -243,8 +244,8 @@ describe('chat unfurl', function () {
 
   it('Ask per domain: No with Remember blocks keybase.io, and its next link neither prompts nor unfurls', async function () {
     // worst case (s): set 60, open 100, postLink 40, prompt 30, step 2, answer 34, polled 50, step 2,
-    // postLink 40, bare 15, read 30, step 2 = 405
-    this.timeout(440_000)
+    // postLink 40, bare 35, read 30, step 2 = 425
+    this.timeout(460_000)
     await startWith({blocklist: ['example.org'], mode: 'whitelisted', whitelist: ['example.net']})
     await openConversation(selfConvID)
     const asked = await postLink('ask-no')
@@ -263,7 +264,7 @@ describe('chat unfurl', function () {
 
   it('Ask per domain: Yes unfurls once and leaves the lists, and Yes with Remember allows keybase.io', async function () {
     // worst case (s): set 60, open 100, read 30; postLink 40, prompt 30, answer 34, unfurled 30, read
-    // 30, step 2; postLink 40, prompt 30, answer 34, unfurled 30, polled 50, step 2 = 562
+    // 30, step 2; postLink 40, prompt 30, answer 34, unfurled 30, polled 50, step 2 = 542
     this.timeout(600_000)
     await startWith({blocklist: ['example.org'], mode: 'whitelisted', whitelist: ['example.net']})
     await openConversation(selfConvID)
@@ -299,8 +300,8 @@ describe('chat unfurl', function () {
   })
 
   it('Disallow all neither prompts nor unfurls an allowed domain', async function () {
-    // worst case (s): set 60, open 100, postLink 40, bare 15, read 30, step 2 = 247
-    this.timeout(280_000)
+    // worst case (s): set 60, open 100, postLink 40, bare 35, read 30, step 2 = 267
+    this.timeout(300_000)
     await startWith({blocklist: ['example.org'], mode: 'never', whitelist: [fetchedDomain]})
     await openConversation(selfConvID)
     const posted = await postLink('never-allowed')

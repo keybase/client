@@ -39,7 +39,8 @@ import {
   editCancel,
   hideKeyboard,
   isKeyboardUp,
-  menuHas,
+  menuLabels,
+  menuOffers,
   openConversation,
   openMessageMenu,
   openThreadSearch,
@@ -655,7 +656,7 @@ describe('chat composer', function () {
     it('as a writer: every way to post is hidden, typing takes nothing, and the menu offers no reply', async function () {
       // worst case (s): role read 60, second 250, open 100, reset 30, the buttons 5, type 15, the
       // send button 5, clear 5, step 2, open 100, row 15, the buttons 5, the typing 15, the pause 1,
-      // the reads 2, keyboard 5, step 2, menu 15, the items 2, step 2, close 5 = 641
+      // the reads 2, keyboard 5, step 2, menu 15, the items 15, step 2, close 5 = 654
       this.timeout(660_000)
       const role = await minWriterRoleFromCli(E2E_CHANNELS.readonly)
       check(/\badmin\b/i.test(role), `e2e-readonly's minimum writer role is not admin: ${role}`)
@@ -688,8 +689,9 @@ describe('chat composer', function () {
         // another's message, which a writer could reply to (Edit is never offered on it, so it is
         // checked on the account's own message mid-edit, below)
         await openMessageMenu(readonlyMarker(1))
-        check(await menuHas('Copy text'), 'the message menu did not open fully')
-        check(!(await menuHas('Reply')), 'the message menu offers Reply')
+        const items = await menuLabels()
+        check(menuOffers(items, 'Copy text'), 'the message menu did not open fully')
+        check(!menuOffers(items, 'Reply'), 'the message menu offers Reply')
         await step('The message menu offers no Reply', {card: true})
         await closeMessageMenu()
       })
@@ -732,8 +734,8 @@ describe('chat composer', function () {
     it('cancelling the edit empties the composer and leaves the draft, which comes back once it can post', async function () {
       // worst case (s): channel 240, second 250, open 100, the emoji button 10, sent 25, type 15, the
       // pause 1, edit 50, the typing 5, composer 5, step 2, role 135, the button gone 20, step 2,
-      // keyboard 5, the edit bar 5, cancel 11, composer 5, cli 80, menu 15, the items 2, close 5,
-      // step 2, role 135, the button 20, composer 10, step 2 = 1162
+      // keyboard 5, the edit bar 5, cancel 11, composer 5, cli 80, menu 15, the items 15, close 5,
+      // step 2, role 135, the button 20, composer 10, step 2 = 1175
       this.timeout(1200_000)
       const {convID, topicName} = await createThrowawayChannel(editLabel)
       created.push(topicName)
@@ -763,9 +765,10 @@ describe('chat composer', function () {
         await expectCliBodies({topicName}, 'the message unchanged', unchanged(text, ' changed'))
         // the account's own message, which a writer could edit: read-only offers neither Edit nor Reply
         await openMessageMenu(text)
-        check(await menuHas('Copy text'), 'the message menu did not open fully')
-        check(!(await menuHas('Edit')), 'the message menu offers Edit in a channel the account cannot post to')
-        check(!(await menuHas('Reply')), 'the message menu offers Reply in a channel the account cannot post to')
+        const items = await menuLabels()
+        check(menuOffers(items, 'Copy text'), 'the message menu did not open fully')
+        check(!menuOffers(items, 'Edit'), 'the message menu offers Edit in a channel the account cannot post to')
+        check(!menuOffers(items, 'Reply'), 'the message menu offers Reply in a channel the account cannot post to')
         await closeMessageMenu()
         await step('Cancelled: the composer is empty, the message unchanged, its menu offers no Edit')
 

@@ -47,10 +47,12 @@ import {
   hideKeyboard,
   isAtEnd,
   labelledElement,
-  menuHas,
+  menuLabels,
+  menuOffers,
   openConversation,
   openInfoPanel,
   openMessageMenu,
+  ordinalsWithText,
   readThread,
   replyPreview,
   scrollInboxTo,
@@ -78,6 +80,9 @@ const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visib
 // merging its texts
 const NAMED =
   '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink" OR type == "XCUIElementTypeOther") AND label != "" AND visible == 1'
+
+// how long a clear history that went out takes to empty the thread (chat-messages waits as long)
+const CLEAR_BOUND_MS = 20_000
 
 const MEDIA_IMAGE = MEDIA_FIXTURES.find(f => f.file.endsWith('.png'))!.title
 
@@ -188,10 +193,12 @@ describe('chat views', function () {
     return {id, ordinal}
   }
 
-  // The open message menu offers each of `want` and none of `not`. Bound: items 5.
+  // The open message menu offers each of `want` and none of `not`, read to the sheet's end. Bound:
+  // items 15.
   const expectMenu = async (what: string, want: ReadonlyArray<string>, not: ReadonlyArray<string>) => {
-    for (const item of want) check(await menuHas(item), `${what}'s menu does not offer ${item}`)
-    for (const item of not) check(!(await menuHas(item)), `${what}'s menu offers ${item}`)
+    const items = await menuLabels()
+    for (const item of want) check(menuOffers(items, item), `${what}'s menu does not offer ${item}`)
+    for (const item of not) check(!menuOffers(items, item), `${what}'s menu offers ${item}`)
   }
 
   // -- the info panel -----------------------------------------------------------------------------
@@ -230,7 +237,7 @@ describe('chat views', function () {
       .$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add a bot" AND visible == 1')
       .waitForExist({timeout: 10_000, timeoutMsg: 'the Bots tab does not offer Add a bot'})
     await browser
-      .$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Featured"')
+      .$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Featured" AND visible == 1')
       .waitForExist({timeout: 10_000, timeoutMsg: 'the Bots tab lists no featured bots'})
     await step('Info panel: Bots offers Add a bot and the featured bots')
 
@@ -357,10 +364,10 @@ describe('chat views', function () {
   // -- a message's menu and its pickers -----------------------------------------------------------
 
   it("a message's menu offers what its kind allows: the account's own text, another's, an image", async function () {
-    // worst case (s): open 100, sent 25, keyboard 5, menu 15, items 5, step 2, close 5; peer 70, peer
-    // send 90, row 30, menu 15, items 5, step 2, close 5; open 100, image 80, menu 15, items 5, step
-    // 2, close 5 = 581
-    this.timeout(600_000)
+    // worst case (s): open 100, sent 25, keyboard 5, menu 15, items 15, step 2, close 5; peer 70,
+    // peer send 90, row 30, menu 15, items 15, step 2, close 5; open 100, image 80, menu 15, items 15,
+    // step 2, close 5 = 611
+    this.timeout(640_000)
     await openConversation(scratch())
     scratchComposerUsed = true
     const own = e2eMarker('views-own')
@@ -481,7 +488,8 @@ describe('chat views', function () {
   it("Clear entire conversation's warning cancels, and the channel keeps its messages", async function () {
     // worst case (s): channel 240, host send 60, cli 80, open 100, row 30, panel 25, the button on
     // screen 20 and its tap 1, the warning 10, the conversation 1, screen 10, step 2, button 6, the
-    // warning gone 10, the conversation 1, cli 80, step 2 = 678
+    // warning gone 10, the conversation 1, back 15, the conversation 1, held 81 (the clear's 20,
+    // overrun by one host read 60 and the thread's 1), step 2 = 695
     this.timeout(720_000)
     const made = await createThrowawayChannel('views', {withSecond: false})
     channels.add(made.topicName)
@@ -503,9 +511,21 @@ describe('chat views', function () {
     await step('The clear history warning')
 
     await tapButton('Cancel', "the warning's Cancel")
+    const cancelledAt = Date.now()
     await confirm().waitForExist({reverse: true, timeout: 10_000})
     check((await route())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
-    await expectCli(topicName, 'the message still there', ms => textBodies(ms).includes(text))
+    // the Cancel goes back to the info panel: the thread is the one to read
+    await goBackUntilGone(T.CHAT_INFO_PANEL)
+    await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
+    // a clear that went out lands within its bound (the rows gone 20s), so the stamped message must
+    // still be there, on the host and in the thread, through all of it
+    for (;;) {
+      check(textBodies(await readFromCli({topicName})).includes(text), 'the host no longer reads the message: the history was cleared')
+      check((await ordinalsWithText(text)).length === 1, 'the thread no longer shows the message: the history was cleared')
+      if (Date.now() >= cancelledAt + CLEAR_BOUND_MS) break
+      await new Promise(resolve => setTimeout(resolve, 1_000))
+    }
     await step('Cancelled: the host still reads the message', {card: true})
   })
 

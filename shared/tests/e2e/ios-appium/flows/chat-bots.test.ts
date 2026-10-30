@@ -54,7 +54,7 @@ describe('chat bots', function () {
   //   host      one host read 75 (whoami 15, the call 60);  polled  20, overrun by one read = 95
   //   page      the team page: the link 1, its screen 20;  bots tab  tapForTestID 16 (three taps of 5)
   //   button    one exact-label button found 5 and tapped 1 = 6;  named  a row by name, polled 15
-  //   menu      openMenuFrom 15 + chooseMenuItem 20 = 35;  message menu  its item offered, 30
+  //   menu      openMenuFrom 15 + chooseMenuItem 20 = 35;  message menu  its item offered, 30 a try
   //   screen    a screen's route or marker 10;  gone  a modal gone 20;  label  the dropdown's 1
   //   picker    the dropdown tapped 1, the picker 10, All channels 6, a channel 6, Done 6, gone 5 = 34
   //   calls     the recorder's call log, waited for 10;  seq  2;  type  15
@@ -101,7 +101,7 @@ describe('chat bots', function () {
   // the subteam a test made; the bot goes with it
   let subteam: string | undefined
 
-  // Bound: host 75, the delete 60, its read polled 95 (30, overrun by one read) = 230.
+  // Bound: host 75, the delete 105, its read polled 95 (30, overrun by one read) = 275.
   const deleteSubteam = async () => {
     if (subteam === undefined) return
     const name = subteam
@@ -114,9 +114,9 @@ describe('chat bots', function () {
     subteam = undefined
   }
 
-  // Worst case (s): close 5, keyboard 5, the subteam 230, escape 30 = 270.
+  // Worst case (s): close 5, keyboard 5, the subteam 275, escape 30 = 315.
   afterEach(async function () {
-    this.timeout(300_000)
+    this.timeout(330_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteSubteam, escapeToTabs])
   })
 
@@ -140,6 +140,17 @@ describe('chat bots', function () {
       },
       {interval: 250, timeout: 10_000}
     )
+
+  // Refuses, before any tap that writes, unless the screen up is `name` for the second account and
+  // aims at the throwaway subteam: its team id, or its general channel. Bound: one route read 1.
+  const requireOnSubteam = async (what: string, name: string, teamID: string, generalConvID: string) => {
+    const s = await route()
+    const p = s?.params ?? {}
+    check(
+      s?.name === name && p['botUsername'] === data.secondUser && (p['teamID'] === teamID || p['conversationIDKey'] === generalConvID),
+      `${what} is not aimed at the throwaway subteam: not tapping`
+    )
+  }
 
   // The team page of the subteam `teamID` names, on its Bots tab. Bound: page 21, bots tab 16.
   const openBotsTab = async (name: string, teamID: string) => {
@@ -204,16 +215,17 @@ describe('chat bots', function () {
     // worst case (s): subteam 600, host 75 (its id), host 75 (no role) = 750;
     // install: page 21, bots tab 16, button 6, the search 10, type 15, named 15, the tap 1, screen 10,
     //   the restricted label 10, button 6, the dropdown 15 (its marker 10, label 5), picker 34, the
-    //   dropdown 15, step 2, seq 2, button 6, gone 20, calls 10, the row 25 (20, its name 5), polled
-    //   95, host 75, step 2 = 411;
-    // edit: the row 25, menu 35, screen 10, the edit button steady 20, the tap 1, the dropdown 15,
-    //   picker 34, the dropdown 15, seq 2, button 6, gone 20, calls 10, polled 95, step 2 = 290;
-    // offer: peer 70, peer send 90, open 100, row 30, message menu 50 (30, overrun by one try: its
-    //   open 15 and close 5), seq 2, the item 20, screen 10, the search 5, type 15, named 15, calls 10,
-    //   step 2, escape 30 = 449;
-    // uninstall: page 21, bots tab 16, the row 25, menu 35, screen 10, seq 2, button 6, calls 10,
-    //   polled 95, the row gone 20, step 2 = 242
-    // = 750 + 411 + 290 + 449 + 242 = 2142
+    //   dropdown 15, step 2, the pin 1, seq 2, button 6, gone 20, calls 10, the row 25 (20, its name
+    //   5), polled 95, host 75, step 2 = 412;
+    // edit: the row 25, menu 35, screen 10, the pin 1, the edit button steady 20, the tap 1, the
+    //   dropdown 15, picker 34, the dropdown 15, the pin 1, seq 2, button 6, gone 20, calls 10, polled
+    //   95, step 2 = 292;
+    // offer: peer 70, peer send 90, open 100, row 30, message menu 65 (30, overrun by one try: its
+    //   open 15, its items read 15 and close 5), menu 15, seq 2, the item 20, screen 10, the search 5,
+    //   type 15, named 15, calls 10, step 2, escape 30 = 479;
+    // uninstall: page 21, bots tab 16, the row 25, menu 35, screen 10, the pin 1, seq 2, button 6,
+    //   calls 10, polled 95, the row gone 20, step 2 = 243
+    // = 750 + 412 + 292 + 479 + 243 = 2176
     this.timeout(2_250_000)
     // a deleted team's name is not free again, so each attempt in a run takes its own
     const made = await createThrowawaySubteam(`bot${randomBytes(2).toString('hex')}`)
@@ -249,6 +261,7 @@ describe('chat bots', function () {
     await expectChannels('(#general)')
     await step('The install screen: a restricted bot in #general')
 
+    await requireOnSubteam('the install screen', 'chatInstallBot', teamID, generalConvID)
     let seq = await currentCallSeq()
     await tapButton('Install', "the install screen's Install")
     await el(T.CHAT_BOT_INSTALL).waitForExist({reverse: true, timeout: 20_000})
@@ -264,6 +277,7 @@ describe('chat bots', function () {
     await openMenuFrom('the bot row menu', async () => menu.click())
     await chooseMenuItem('Edit settings')
     await el(T.CHAT_BOT_INSTALL).waitForExist({timeout: 10_000})
+    await requireOnSubteam('the edit screen', 'chatInstallBot', teamID, generalConvID)
     // enabled once the bot's settings and the channels are in; a reload of either disables it again
     // for a moment, so the one tap waits until it has stayed enabled for a second
     const edit = el(T.CHAT_BOT_EDIT_BUTTON)
@@ -282,6 +296,7 @@ describe('chat bots', function () {
     await expectChannels('(#general)')
     await pickChannels()
     await expectChannels('(all channels)')
+    await requireOnSubteam('the edit screen', 'chatInstallBot', teamID, generalConvID)
     seq = await currentCallSeq()
     await tapButton('Save', "the edit screen's Save")
     await el(T.CHAT_BOT_INSTALL).waitForExist({reverse: true, timeout: 20_000})
@@ -299,12 +314,14 @@ describe('chat bots', function () {
       'the message menu to offer installing the bot',
       async () => {
         await openMessageMenu(text)
-        if (await menuHas('Install bot in another team or chat')) return true
+        const offered = await menuHas('Install bot in another team or chat')
         await closeMessageMenu()
-        return undefined
+        return offered ? true : undefined
       },
       {interval: 2_000, timeout: 30_000}
     )
+    // menuHas read the sheet to its end; the pick starts from a sheet opened afresh
+    await openMessageMenu(text)
     seq = await currentCallSeq()
     await chooseMenuItem('Install bot in another team or chat')
     await expectRoute('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
@@ -328,6 +345,7 @@ describe('chat bots', function () {
     await openMenuFrom('the bot row menu', async () => row.click())
     await chooseMenuItem('Uninstall')
     await expectRoute('the uninstall confirm', 'chatConfirmRemoveBot', p => p['botUsername'] === data.secondUser)
+    await requireOnSubteam('the uninstall confirm', 'chatConfirmRemoveBot', teamID, generalConvID)
     seq = await currentCallSeq()
     await tapButton('Uninstall', "the confirm's Uninstall")
     await callOut('the uninstall to go out', seq, 'chat.1.local.removeBotMember')
