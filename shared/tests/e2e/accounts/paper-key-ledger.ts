@@ -93,7 +93,6 @@ export const paperKeyWords = (deviceName: string) => /^Paper Key \((.+?)(?:\.\.\
 
 const recent = (e: RunNames, nowMs: number) => (parseRunId(e.runId, nowMs)?.startMs ?? 0) > nowMs - NAMES_KEPT_MS
 
-// The entries of runs from the last week; older ones are left out on every read and write.
 // The device names of the paper keys among `secrets` (the env file's): each key's first two words,
 // which is what Keybase names its device.
 export const paperKeyNamesIn = (secrets: ReadonlyArray<string>) =>
@@ -102,6 +101,7 @@ export const paperKeyNamesIn = (secrets: ReadonlyArray<string>) =>
     return keyWordsRe.test(v) && words.length >= 10 ? [words.slice(0, 2).join(' ')] : []
   })
 
+// The entries of runs from the last week; older ones are left out on every read and write.
 const readRunNames = (file: string, nowMs: number): Array<RunNames> => {
   if (!fs.existsSync(file)) return []
   checkMode(file, 0o600)
