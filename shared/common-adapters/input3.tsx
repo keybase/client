@@ -5,7 +5,7 @@ import IconAuto from './icon-auto'
 import Text from './text'
 import {getTextStyle} from './text.styles'
 import {TextInput as _TextInputReal} from 'react-native'
-const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline'; textContentType?: string; underlineColorAndroid?: string; value?: string}>
+const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline'; testID?: string; textContentType?: string; underlineColorAndroid?: string; value?: string}>
 import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
 
@@ -73,7 +73,7 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     growAndScroll, inputStyle, maxLength, multiline, selectTextOnFocus,
     onBlur: onBlurProp, onChangeText, onClick, onEnterKeyDown, onFocus: onFocusProp,
     onKeyDown: onKeyDownProp, placeholder, ref, rowsMax, rowsMin,
-    secureTextEntry, spellCheck, textType = 'Body', value,
+    secureTextEntry, spellCheck, testID, textType = 'Body', value,
   } = props
 
   const [focused, setFocused] = React.useState(false)
@@ -153,6 +153,7 @@ const DesktopInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     value,
     ...(disabled ? {readOnly: true as const} : {}),
     'data-allow-keyboard-shortcuts': 'true',
+    'data-testid': testID,
   }
 
   const inputElement = multiline ? (
@@ -198,7 +199,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     inputStyle, keyboardType, maxLength, multiline, onEnterKeyDown,
     onBlur: onBlurProp, onChangeText, onFocus: onFocusProp, placeholder, ref,
     returnKeyType, rowsMax, rowsMin, secureTextEntry, selectTextOnFocus,
-    textContentType, textType = 'Body', value,
+    testID, textContentType, textType = 'Body', value,
   } = props
 
   const [focused, setFocused] = React.useState(false)
@@ -268,6 +269,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
           inputStyle,
         ])}
         submitBehavior={multiline ? 'newline' : 'blurAndSubmit'}
+        testID={testID}
         textContentType={textContentType}
         underlineColorAndroid="transparent"
         value={value}

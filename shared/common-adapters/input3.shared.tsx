@@ -78,6 +78,7 @@ export type Input3Props = {
   rowsMax?: number
   growAndScroll?: boolean
   secureTextEntry?: boolean
+  testID?: string
   onEnterKeyDown?: (event?: React.KeyboardEvent) => void
   onKeyDown?: (event: React.KeyboardEvent) => void
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'

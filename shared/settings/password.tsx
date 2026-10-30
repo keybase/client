@@ -6,6 +6,7 @@ import {useNavigation} from '@react-navigation/native'
 import {useRequestLogout} from './use-request-logout'
 import {useRandomPWState} from './use-random-pw'
 import {useRPCLoad} from '@/util/use-rpc-load'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   error: string
@@ -106,6 +107,7 @@ export const UpdatePassword = (props: Props) => {
             value={password}
             onChangeText={handlePasswordChange}
             hideBorder={true}
+            testID={TestIDs.SETTINGS_NEW_PASSWORD_INPUT}
           />
         </Kb.RoundedBox>
         <Kb.RoundedBox side="bottom">
