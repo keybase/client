@@ -28,10 +28,11 @@ const SETTLE_MS = 5_000
 const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed', INSPECTOR_CLOSED])
 
 const evalWithheld = async <R,>(body: string, what: string): Promise<R | undefined> => {
-  // outside the try, before anything is sent: a timed-out body is refused with its title alone
-  requireCurrentAttempt()
   // looked up outside the try: its errors name no part of the body
   const page = await inspectorPageFor(deviceName(), BUNDLE_ID)
+  // after the lookup's wait, just before the send, and outside the try: a body that is over is refused
+  // with its title alone
+  requireCurrentAttempt()
   try {
     return await evalInPage<R>(page, body)
   } catch (e) {

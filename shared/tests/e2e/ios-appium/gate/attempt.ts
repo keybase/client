@@ -103,6 +103,15 @@ export const runAttempt = <T>(token: AttemptToken | undefined, fn: () => T): T =
 // For a hook beginning: every body still running is one mocha timed out, and is over from here.
 export const endRunningBodies = () => binding.endRunningBodies()
 
+// For wdio's afterTest, which runs in the body's frame: wdio races the body against its own timer, set
+// just before mocha's, and runs afterTest when that fires while the body keeps going. The body is over
+// from here; the attempt's token is returned for the capture to run as a hook (runAttempt).
+export const leaveBody = (): AttemptToken => {
+  const token = attemptToken()
+  binding.endCurrentBody()
+  return token
+}
+
 // Throws `attempt over: <test title>` in a test body that is over; nothing in a hook or outside an
 // attempt. Every command that reaches the app calls this first.
 export const requireCurrentAttempt = () => binding.requireCurrent()

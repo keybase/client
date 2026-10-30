@@ -14,6 +14,7 @@ import {
   endRunningBodies,
   failEndedAttempt,
   iosReportDir,
+  leaveBody,
   NEVER_ENDED,
   openAttemptToken,
   readAttempts,
@@ -102,6 +103,42 @@ test('a body mocha moved on from stops at its next call, while the hook ends its
     endAttempt({durationMs: 9, error: 'Timeout', status: 'failed'})
   })
   expect(readAttempts().map(r => [r.status, r.error, r.attachments.map(x => x.name)])).toEqual([['failed', 'Timeout', ['screenshot']]])
+})
+
+test("wdio's afterTest stops a body its timer gave up on, and its own capture is never refused", async () => {
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const a = beginAttempt(file, ['d', 'slow'], 0)
+  const seen: Array<string> = []
+  const check = (what: string) => {
+    try {
+      requireCurrentAttempt()
+      seen.push(`${what}: ran`)
+    } catch (e) {
+      seen.push(`${what}: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+  // wdio's test wrapper, inside the body's frame: it races the spec fn against its own timer, and runs
+  // afterTest when the timer wins while the fn keeps going
+  await runAttemptBody(a, 'd slow', async () => {
+    const spec = (async () => {
+      check('spec before')
+      await gate
+      check('spec after')
+    })()
+    await Promise.race([spec, new Promise<void>(resolve => setTimeout(resolve, 5))])
+    const token = leaveBody()
+    await runAttempt(token, async () => {
+      check('capture')
+      release()
+      await spec
+      check('capture after the spec')
+      currentAttempt().addAttachment('screenshot', 'image/png', Buffer.from('x'))
+      endAttempt({durationMs: 5, error: 'Timeout', status: 'failed'})
+    })
+  })
+  expect(seen).toEqual(['spec before: ran', 'capture: ran', 'spec after: attempt over: d slow', 'capture after the spec: ran'])
+  expect(readAttempts().map(r => [r.status, r.attachments.map(x => x.name)])).toEqual([['failed', ['screenshot']]])
 })
 
 test('a pending test is recorded as one skipped attempt', () => {

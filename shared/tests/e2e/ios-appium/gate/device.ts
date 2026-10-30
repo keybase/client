@@ -19,7 +19,7 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {openAttemptToken} from './attempt.ts'
+import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
@@ -43,6 +43,7 @@ export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, 
 // The text goes over stdin, never the command line; never use these for a secret. The flow credits
 // 'pasteboard' once it has asserted the pasted text landed in the app.
 export const setPasteboard = (text: string) => {
+  requireCurrentAttempt()
   execFileSync('xcrun', ['simctl', 'pbcopy', deviceUdid()], {
     input: text,
     killSignal: 'SIGKILL',

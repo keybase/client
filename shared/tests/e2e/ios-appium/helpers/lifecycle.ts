@@ -107,8 +107,10 @@ export const crashReportsSince = (since: number): Array<string> => {
 // Evaluates a synchronous function body in the app's JS runtime and returns its value.
 // Only works against a debug build served by Metro.
 export const jsEval = async <R>(body: string, device = deviceName()): Promise<R> => {
+  const page = await inspectorPageFor(device, BUNDLE_ID)
+  // after the page lookup's wait, just before the send
   requireCurrentAttempt()
-  return evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body)
+  return evalInPage<R>(page, body)
 }
 
 export type AppSnapshot = {

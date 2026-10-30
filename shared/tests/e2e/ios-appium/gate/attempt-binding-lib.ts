@@ -49,6 +49,14 @@ export const createBinding = <T>() => {
       running.clear()
       return titles
     },
+    // Marks the body the caller is bound to over, for work that ends it from inside its own frame (wdio's
+    // afterTest, which runs once wdio's own timer gave up on the body that is still running).
+    endCurrentBody: () => {
+      const body = store.getStore()?.body
+      if (!body) return
+      body.over = true
+      running.delete(body)
+    },
     frame: (): Frame<T> | undefined => store.getStore(),
     // Throws `attempt over: <title>` in a body that is over; nothing anywhere else.
     requireCurrent: () => {

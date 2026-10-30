@@ -24,6 +24,7 @@ import {
   waitFor,
 } from './lifecycle'
 import {escapeToTabs, navigateToChat} from './navigate'
+import {requireCurrentAttempt} from '../gate/attempt'
 
 export const PHOTOS = 'com.apple.mobileslideshow'
 export const FILES = 'com.apple.DocumentsApp'
@@ -584,6 +585,7 @@ export const shareToKeybase = async (
       // only this share's extension: an older one may belong to a share still on screen. pgrep is
       // host-wide, so with two simulators booted this could also pick up the other one's extension.
       await browser.saveScreenshot(path.join(shareDebugDir(), `stuck-${Date.now()}.png`)).catch(() => {})
+      requireCurrentAttempt()
       for (const pid of extensionPids().filter(p => !before.has(p))) {
         try {
           execFileSync('kill', ['-9', pid])
