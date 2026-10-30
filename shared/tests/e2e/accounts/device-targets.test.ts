@@ -39,6 +39,14 @@ describe('checkFlowRevokeTarget', () => {
     const target = {deviceID: id('m'), name: 'e2e-0abcd1-prov'}
     expect(() => checkFlowRevokeTarget({...base, expected: target, target})).toThrow(/main service's own device/)
   })
+  test("refuses the phone's own device when a flow runs on the phone, and an unknown phone id", () => {
+    const phone = {deviceID: id('f'), name: 'iOS Device1234'}
+    expect(() => checkFlowRevokeTarget({...base, expected: phone, phoneDeviceID: id('f'), target: phone})).toThrow(/phone's own device/)
+    expect(() => checkFlowRevokeTarget({...base, phoneDeviceID: id('f')})).not.toThrow()
+    expect(() => checkFlowRevokeTarget({...base, phoneDeviceID: ''})).toThrow(/unknown/)
+    const main = {deviceID: id('m'), name: 'host'}
+    expect(() => checkFlowRevokeTarget({...base, expected: main, phoneDeviceID: id('f'), target: main})).toThrow(/main service's own device/)
+  })
   test("refuses the smoke account's paper key, by id or by name", () => {
     const byId = {deviceID: id('p'), name: 'e2e-0abcd1-prov'}
     expect(() => checkFlowRevokeTarget({...base, expected: byId, target: byId})).toThrow(/protected paper key/)

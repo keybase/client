@@ -20,6 +20,7 @@ import {startProvisionee, type Provisionee} from '@/tests/e2e/accounts/provision
 import {emptyFocusedField, insertSecret, pressReturn, withoutSecret} from '@/tests/e2e/electron/helpers/secret-input'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import {withDeadline} from '@/tests/e2e/shared/deadline'
+import {provDeviceName} from '@/tests/e2e/shared/devices'
 import {
   peerCli,
   peerUsesFileSecretStore,
@@ -86,7 +87,7 @@ test('add a computer from the app, then revoke it', async ({page}, testInfo) => 
   const env = loadE2EEnv()
   const runId = e2eRunId()
   const home = provisionHomeFor(runId)
-  const name = `e2e-${runId}-prov`
+  const name = provDeviceName(runId)
   const keep = env.peers.owner.home
   if (fs.existsSync(home)) throw new Error(`${home} already exists: this run id already provisioned its device (one per run id)`)
 

@@ -7,68 +7,146 @@ export type FieldRead =
       state:
         | 'ambiguous TextInputState'
         | 'no TextInputState'
+        | 'ambiguous text commands'
+        | 'no text commands'
+        | 'no fiber roots'
         | 'nothing focused'
+        | 'focused field not in the tree'
+        | 'focused field twice in the tree'
         | 'no onChangeText'
-        | 'uncontrolled'
+        | 'focus moved'
+        | 'no sink'
         | 'no text state'
         | 'threw'
         | 'no field'
         | 'many fields'
         | 'focused'
+        | 'ready'
     }
   | {state: 'other field'; focusedID: string}
-  | {state: 'set'}
+  | {state: 'set'; secure: boolean}
   | {state: 'read'; length: number}
 
-const focusedField = (fieldTestID: string) => `
-  let tis
-  try {
-    tis = kbModule('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js')
-  } catch (e) {
-    const message = String(e && e.message)
-    if (message.startsWith('ambiguous module')) return {state: 'ambiguous TextInputState'}
-    if (message.startsWith('no module')) return {state: 'no TextInputState'}
-    throw e
+// Where the eval that resolves the field leaves the one function that writes it, for the eval that
+// carries the secret. It holds no secret, so one left behind (a transport failure before the
+// secret's eval ran) is harmless, and the next check replaces it.
+const SINK = 'globalThis.__kbE2ESecretSink'
+
+// kbModule(name) as {m}, or as {read} the FieldRead a missing or ambiguous module gives (`what`
+// names it).
+const moduleOr = (name: string, what: string) => `(() => {
+    try {
+      return {m: kbModule(${JSON.stringify(name)})}
+    } catch (e) {
+      const message = String(e && e.message)
+      if (message.startsWith('ambiguous module')) return {read: {state: 'ambiguous ${what}'}}
+      if (message.startsWith('no module')) return {read: {state: 'no ${what}'}}
+      throw e
+    }
+  })()`
+
+// hostFibers(match): the mounted host fibers matching `match`, each with its ancestors nearest
+// first, found by walking every root's current tree down from the top as React DevTools does;
+// undefined when there is no DevTools hook. A fiber's .return can reach the stale fiber of its
+// parent's pair, whose props and hooks are a render behind; the path the walk came down holds only
+// current ones.
+const hostFibers = `
+  const hostFibers = match => {
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    if (!hook || !hook.getFiberRoots) return undefined
+    const found = []
+    for (const rid of hook.renderers.keys()) {
+      for (const root of hook.getFiberRoots(rid)) {
+        const path = []
+        const stack = [[root.current, 0]]
+        while (stack.length) {
+          const [f, depth] = stack.pop()
+          path.length = depth
+          path.push(f)
+          if (f.tag === 5 && f.memoizedProps && match(f)) found.push({above: path.slice(0, depth).reverse(), field: f})
+          if (f.sibling) stack.push([f.sibling, depth])
+          if (f.child) stack.push([f.child, depth + 1])
+        }
+      }
+    }
+    return found
   }
-  const focused = (tis.default ?? tis).currentlyFocusedInput()
-  const field = focused && focused.__internalInstanceHandle
-  if (!field || !field.memoizedProps) return {state: 'nothing focused'}
-  const props = field.memoizedProps
-  if (props.testID !== ${JSON.stringify(fieldTestID)}) return {state: 'other field', focusedID: String(props.testID ?? '(no testID)')}
-  if (typeof props.onChangeText !== 'function') return {state: 'no onChangeText'}
 `
 
-// Sets the focused field's text through its own onChangeText (the React state that controls it, so
-// the native field shows it too), only when the focused field is the one with fieldTestID. A field
-// with no value prop is refused: its onChangeText would change the screen's state, never the native
-// field. The secret is the last thing in the body: whatever names a part of the body names its start.
-export const secretEvalBody = (fieldTestID: string, secret: string) => `${focusedField(fieldTestID)}
-  if (typeof props.value !== 'string') return {state: 'uncontrolled'}
-  return (text => {
+// resolveFocused(): the focused input's current host fiber as {above, field, inst, props} when it
+// is the one with fieldTestID and hands its text to its screen, else {read} saying why not.
+const resolveFocused = (fieldTestID: string) => `${hostFibers}
+  const resolveFocused = () => {
+    const tis = ${moduleOr('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js', 'TextInputState')}
+    if (tis.read) return tis
+    const inst = (tis.m.default ?? tis.m).currentlyFocusedInput()
+    if (!inst) return {read: {state: 'nothing focused'}}
+    const found = hostFibers(f => f.stateNode === inst || !!(f.stateNode && f.stateNode.canonical && f.stateNode.canonical.publicInstance === inst))
+    if (!found) return {read: {state: 'no fiber roots'}}
+    if (found.length === 0) return {read: {state: 'focused field not in the tree'}}
+    if (found.length > 1) return {read: {state: 'focused field twice in the tree'}}
+    const {above, field} = found[0]
+    const props = field.memoizedProps
+    if (props.testID !== ${JSON.stringify(fieldTestID)}) return {read: {state: 'other field', focusedID: String(props.testID ?? '(no testID)')}}
+    if (typeof props.onChangeText !== 'function' || typeof props.onChange !== 'function') return {read: {state: 'no onChangeText'}}
+    return {above, field, inst, props}
+  }
+`
+
+// The first of the two evals that put text into the focused field; it holds no secret. When the
+// focused field is the one with fieldTestID it leaves a sink that, called with the text, checks the
+// same input is still focused (focus can move between evals) and writes it the way a keystroke
+// does, so a field with no value prop takes it too: the native field's text first (RN's own
+// setTextAndSelection command at the event count the field is on, so the field shows it, as dots
+// when secure), then TextInput's own onChange, which hands it to the screen's onChangeText and to
+// TextInput's record of the native text. A controlled field's value then matches what the native
+// field holds, so React sends the field nothing more.
+export const prepareEvalBody = (fieldTestID: string) => `${resolveFocused(fieldTestID)}
+  delete ${SINK}
+  const first = resolveFocused()
+  if (first.read) return first.read
+  const commands = first.props.multiline
+    ? ${moduleOr('node_modules/react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent.js', 'text commands')}
+    : ${moduleOr('node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js', 'text commands')}
+  if (commands.read) return commands.read
+  ${SINK} = text => {
+    const now = resolveFocused()
+    if (now.read) return now.read
+    if (now.inst !== first.inst) return {state: 'focus moved'}
+    const eventCount = now.props.mostRecentEventCount
     try {
-      props.onChangeText(text)
+      commands.m.Commands.setTextAndSelection(now.inst, eventCount, text, text.length, text.length)
+      now.props.onChange({nativeEvent: {eventCount, text}})
     } catch {
       return {state: 'threw'}
     }
-    return {state: 'set'}
-  })(${JSON.stringify(secret)})`
+    return {state: 'set', secure: now.props.secureTextEntry === true}
+  }
+  return {state: 'ready'}`
+
+// The eval that carries the secret: it takes the sink and calls it, and nothing else, so an error
+// that quotes it quotes only this. The secret is the last thing in the body.
+export const secretEvalBody = (secret: string) => `
+  const sink = ${SINK}
+  delete ${SINK}
+  if (typeof sink !== 'function') return {state: 'no sink'}
+  return sink(${JSON.stringify(secret)})`
 
 // How long the focused field's text is, when it is the field with fieldTestID: its value, or for a
 // field with none, the text RN's TextInput last had from the native field (its lastNativeText state,
 // the hook just before its {mostRecentEventCount, selection} one, in the nearest function component
-// above the host field); before any edit that is its defaultValue. The state is read from the hook's
-// update queue, which both fibers of a component share: the fiber the host field's .return reaches
-// can be the stale one of the pair, whose memoizedState is a render behind.
-export const lengthEvalBody = (fieldTestID: string) => `${focusedField(fieldTestID)}
+// above the host field); before any edit that is its defaultValue.
+export const lengthEvalBody = (fieldTestID: string) => `${resolveFocused(fieldTestID)}
+  const r = resolveFocused()
+  if (r.read) return r.read
+  const {above, props} = r
   const nativeLength = () => {
-    let f = field.return
-    for (let i = 0; f && f.tag !== 0 && i < 8; i++) f = f.return
+    const f = above.slice(0, 8).find(a => a.tag === 0)
     for (let h = f && f.memoizedState; h && h.next; h = h.next) {
       const next = h.next.memoizedState
       if (next && typeof next === 'object' && 'mostRecentEventCount' in next && 'selection' in next) {
-        const text = h.queue && 'lastRenderedState' in h.queue ? h.queue.lastRenderedState : h.memoizedState
-        if (text == null) return typeof props.defaultValue === 'string' ? props.defaultValue.length : 0
-        return String(text).length
+        if (h.memoizedState == null) return typeof props.defaultValue === 'string' ? props.defaultValue.length : 0
+        return String(h.memoizedState).length
       }
     }
     return undefined
@@ -78,29 +156,18 @@ export const lengthEvalBody = (fieldTestID: string) => `${focusedField(fieldTest
 
 // Focuses the one mounted text input with fieldTestID through its own focus(), as a tap would (an
 // XCUITest tap on a secure field does not always take).
-export const focusEvalBody = (fieldTestID: string) => `
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  if (!hook || !hook.getFiberRoots) return {state: 'no field'}
-  const found = []
-  for (const rid of hook.renderers.keys()) {
-    for (const root of hook.getFiberRoots(rid)) {
-      const stack = [root.current]
-      while (stack.length) {
-        const f = stack.pop()
-        if (f.tag === 5 && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(fieldTestID)}) found.push(f)
-        if (f.child) stack.push(f.child)
-        if (f.sibling) stack.push(f.sibling)
-      }
-    }
-  }
+export const focusEvalBody = (fieldTestID: string) => `${hostFibers}
+  const found = hostFibers(f => f.memoizedProps.testID === ${JSON.stringify(fieldTestID)})
+  if (!found) return {state: 'no fiber roots'}
   if (found.length > 1) return {state: 'many fields'}
-  const inst = found[0] && ((found[0].stateNode && found[0].stateNode.canonical && found[0].stateNode.canonical.publicInstance) || found[0].stateNode)
+  const node = found[0] && found[0].field.stateNode
+  const inst = node && ((node.canonical && node.canonical.publicInstance) || node)
   if (!inst || typeof inst.focus !== 'function') return {state: 'no field'}
   inst.focus()
   return {state: 'focused'}`
 
-// Empties the focused field, when it is the one with fieldTestID.
-export const emptyEvalBody = (fieldTestID: string) => secretEvalBody(fieldTestID, '')
+// What XCUITest reads a secure field's text as: one dot per character.
+export const secureDots = (length: number) => '•'.repeat(length)
 
 export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): string => {
   switch (r?.state) {
@@ -108,14 +175,26 @@ export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): str
       return `the app's TextInputState module was not found, so the focused field ${fieldTestID} could not be checked`
     case 'ambiguous TextInputState':
       return `the app has more than one TextInputState module, so the focused field ${fieldTestID} could not be checked`
+    case 'no text commands':
+      return `the app's TextInput native commands module was not found, so ${fieldTestID} could not be set`
+    case 'ambiguous text commands':
+      return `the app has more than one TextInput native commands module, so ${fieldTestID} could not be set`
+    case 'no fiber roots':
+      return `the app has no React DevTools hook to list its fiber roots, so ${fieldTestID} could not be found`
     case 'nothing focused':
       return `no text field is focused; expected ${fieldTestID}`
+    case 'focused field not in the tree':
+      return `the focused text field is in no mounted React tree; expected ${fieldTestID}`
+    case 'focused field twice in the tree':
+      return `the focused text field is in the React tree twice; expected ${fieldTestID} once`
     case 'other field':
       return `the focused text field is ${r.focusedID}, not ${fieldTestID}`
     case 'no onChangeText':
-      return `the focused field ${fieldTestID} takes no onChangeText`
-    case 'uncontrolled':
-      return `the focused field ${fieldTestID} takes no value prop, so its onChangeText would not reach the native field`
+      return `the focused field ${fieldTestID} takes no onChangeText or no onChange`
+    case 'focus moved':
+      return `the focus moved off ${fieldTestID} between checking it and setting it`
+    case 'no sink':
+      return `the check of ${fieldTestID} left nothing to set it with`
     case 'no text state':
       return `the focused field ${fieldTestID} has no value prop and no TextInput text state to read`
     case 'no field':
@@ -123,13 +202,13 @@ export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): str
     case 'many fields':
       return `more than one text input with testID ${fieldTestID} is mounted`
     case 'threw':
-      return `the focused field ${fieldTestID}'s onChangeText threw`
+      return `setting the focused field ${fieldTestID} threw`
     case 'set':
     case 'read':
     case 'focused':
+    case 'ready':
       return `the field ${fieldTestID} answered ${r.state}`
     case undefined:
       return `the field ${fieldTestID} could not be read`
   }
 }
-

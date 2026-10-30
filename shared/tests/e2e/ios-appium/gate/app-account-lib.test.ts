@@ -1,4 +1,4 @@
-import {notSmokeProblem, settledAccount} from './app-account-lib'
+import {notSmokeProblem, phoneDeviceProblem, settledAccount} from './app-account-lib'
 
 describe('notSmokeProblem', () => {
   const accounts = {secondUser: 'testuser-mac', smokeUser: 'testuser'}
@@ -50,5 +50,19 @@ describe('settledAccount', () => {
 
   test('an account switch is waited on, however long', () => {
     expect(settledAccount({...smoke, switching: true}, 1_000, 1_000_000, 60_000)).toBeUndefined()
+  })
+})
+
+describe('phoneDeviceProblem', () => {
+  const on = {deviceID: 'd'.repeat(32), deviceName: 'iOS Device1234', loggedIn: true, switching: false, username: 'testuser'}
+  test("the smoke account's device is fine", () => {
+    expect(phoneDeviceProblem(on, 'testuser')).toBeUndefined()
+  })
+  test('another account, a signed-out or switching app, or no device id is refused', () => {
+    expect(phoneDeviceProblem({...on, username: 'testuser-mac'}, 'testuser')).toContain('testuser-mac')
+    expect(phoneDeviceProblem({...on, loggedIn: false}, 'testuser')).toContain('signed out')
+    expect(phoneDeviceProblem({...on, switching: true}, 'testuser')).toContain('switching')
+    expect(phoneDeviceProblem({...on, deviceID: ''}, 'testuser')).toBe('the app names no device for the smoke account')
+    expect(phoneDeviceProblem({...on, deviceName: ''}, 'testuser')).toBe('the app names no device for the smoke account')
   })
 })

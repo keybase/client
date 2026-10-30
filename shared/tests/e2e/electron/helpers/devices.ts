@@ -1,56 +1,11 @@
-// The smoke account's devices as the main service reports them, the checks before a flow revokes
-// one, and the app's own revoke (Devices > the device > Revoke > confirm).
+// The devices list as the app shows it and the app's own revoke (Devices > the device > Revoke >
+// confirm). The service-side reads and the revoke checks are the shared ones.
 import {expect, type Page} from '@playwright/test'
 import escapeRegExp from 'lodash/escapeRegExp'
-import {checkFlowRevokeTarget, protectedPaperKeyIn, type ListedDevice} from '@/tests/e2e/accounts/device-targets'
-import type {E2EEnv} from '@/tests/e2e/accounts/env'
-import {mainRpc} from '@/tests/e2e/shared/main-rpc'
-import {runKeybase} from '@/tests/e2e/shared/peer-service'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToDevices} from './navigate'
 
-type DeviceDetail = {device: ListedDevice; revokedAt?: number | null}
-
-// Every device the account ever had, by its own name (deviceList names a paper key
-// "Paper Key (<two words>...)"; this has the two words), with whether it is revoked.
-export const deviceHistory = async () =>
-  ((await mainRpc<Array<DeviceDetail> | null>('keybase.1.device.deviceHistoryList', {sessionID: 0})) ?? []).map(d => ({
-    deviceID: d.device.deviceID,
-    name: d.device.name,
-    revoked: !!d.revokedAt,
-    type: d.device.type,
-  }))
-
-export const activeDevices = async () => (await deviceHistory()).filter(d => !d.revoked)
-
-// The account's active devices as `keybase.1.device.deviceList` names them: the names the sweeper
-// (and the paper key ledger it reads) compares.
-export const listedDevices = async () => (await mainRpc<Array<ListedDevice> | null>('keybase.1.device.deviceList', {sessionID: 0})) ?? []
-
-export const mainDevice = async () => {
-  const status = JSON.parse(await runKeybase(['status', '-j'], {timeoutMs: 15_000})) as {Device?: {deviceID?: string; name?: string}}
-  const deviceID = status.Device?.deviceID ?? ''
-  const name = status.Device?.name ?? ''
-  if (!deviceID || !name) throw new Error('keybase status names no device for the main service')
-  return {deviceID, name}
-}
-
-// The paper key the env file holds for the smoke account (KB_OWNER_PAPERKEY): never a revoke target.
-const protectedPaperKey = async (env: E2EEnv) => protectedPaperKeyIn(await activeDevices(), env.peers.owner.paperKey)
-
-// Throws unless the one active device named `expected.name` is `expected` and none of the devices
-// nothing may revoke (checkFlowRevokeTarget).
-export const requireRevocable = async (env: E2EEnv, expected: {deviceID: string; name: string}) => {
-  const named = (await activeDevices()).filter(d => d.name === expected.name)
-  if (named.length !== 1) throw new Error(`refusing to revoke: ${named.length} active devices carry the expected name`)
-  const [target] = named
-  checkFlowRevokeTarget({
-    expected,
-    mainDeviceID: (await mainDevice()).deviceID,
-    protectedPaperKey: await protectedPaperKey(env),
-    target: {deviceID: target?.deviceID ?? '', name: target?.name ?? ''},
-  })
-}
+export {deviceHistory, listedDevices, mainDevice, requireRevocable} from '@/tests/e2e/shared/devices'
 
 // The devices list's row for `name`, exactly (a revoked one says "Revoked ..." in it).
 const deviceRow = (page: Page, name: string) =>

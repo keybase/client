@@ -70,7 +70,7 @@ export type SweepSelection = {delete: Array<SweepCandidate>; listOnly: Array<Swe
 
 const peerDeviceRe = /^e2e-(?:second|owner)-svc(?:-\d+)?$/
 // the label a provisioning flow gives the device it makes (e2e-<runid>-prov)
-const provDeviceLabel = 'prov'
+export const provDeviceLabel = 'prov'
 const emailRe = /^([^@\s]+)@[A-Za-z0-9.-]+$/
 const safeEntryRe = /^[A-Za-z0-9_.-]+$/
 

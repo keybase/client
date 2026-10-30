@@ -32,3 +32,20 @@ export const settledAccount = (a: AppAccount, firstAnswerAt: number, now: number
   if (a.loggedIn && a.username) return a
   return now - firstAnswerAt >= settleMs ? a : undefined
 }
+
+export type PhoneDevice = AppAccount & {deviceID: string; deviceName: string}
+
+// a function body for jsEval, returning a PhoneDevice: the account and device the app is signed in on
+export const PHONE_DEVICE_BODY = `
+    const c = kbModule('stores/config.tsx').useConfigState.getState()
+    const u = kbModule('stores/current-user.tsx').useCurrentUserState.getState()
+    return {deviceID: u.deviceID, deviceName: u.deviceName, loggedIn: c.loggedIn, switching: c.userSwitching, username: u.username}
+  `
+
+// Why `d` is not the smoke account's device on the phone, or undefined when it is.
+export const phoneDeviceProblem = (d: PhoneDevice, smokeUser: string): string | undefined => {
+  if (!d.loggedIn || d.switching || d.username !== smokeUser) {
+    return `the app is not settled on the smoke account (${d.loggedIn ? d.username : 'signed out'}${d.switching ? ', switching' : ''}), so its device is not the smoke account's`
+  }
+  return d.deviceID && d.deviceName ? undefined : 'the app names no device for the smoke account'
+}
