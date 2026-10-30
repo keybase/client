@@ -8,6 +8,7 @@ import {AsyncLocalStorage} from 'async_hooks'
 import * as fs from 'fs'
 import * as path from 'path'
 import {slug as fullSlug} from '../../shared/step-name.ts'
+import type {IosSurface} from './lists/surfaces.ts'
 
 // shared/tests/results/ios-report whatever the cwd; KB_IOS_REPORT_DIR moves it (the unit tests do).
 export const iosReportDir = () => process.env['KB_IOS_REPORT_DIR'] ?? path.resolve(__dirname, '../../../results/ios-report')
@@ -40,6 +41,7 @@ type Running = AttemptToken & {
   annotations: AttemptRecord['annotations']
   attachments: AttemptRecord['attachments']
   steps: number
+  surfaces: Set<IosSurface>
   ended?: AttemptRecord
 }
 
@@ -82,6 +84,7 @@ export const beginAttempt = (file: string, titlePath: Array<string>, attempt: nu
     file,
     id: `${String(started).padStart(4, '0')}-${name}-r${attempt}`,
     steps: 0,
+    surfaces: new Set(),
     titlePath,
   }
   write(r, recordOf(r, {durationMs: 0, error: NEVER_ENDED, status: 'failed'}))
@@ -99,6 +102,14 @@ const open = (r: Running | undefined): Running => {
 
 // The attempt of the running test body; throws outside one or once it has ended.
 export const attemptToken = (): AttemptToken => open(bodies.getStore())
+
+// Credits the attempt with a native surface it drove and checked; the census counts it for the flow once the attempt passes.
+export const creditSurface = (name: IosSurface) => {
+  open(bodies.getStore()).surfaces.add(name)
+}
+
+// The surfaces credited so far, in the order first credited.
+export const creditedSurfaces = (): Array<IosSurface> => [...open(bodies.getStore()).surfaces]
 
 export const currentAttempt = (): CurrentAttempt => {
   const r = open(bodies.getStore())

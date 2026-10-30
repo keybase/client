@@ -4,6 +4,8 @@ import * as path from 'path'
 import {
   attemptToken,
   beginAttempt,
+  creditedSurfaces,
+  creditSurface,
   currentAttempt,
   endAttempt,
   endAttemptOf,
@@ -112,4 +114,17 @@ test('the report dir defaults to shared/tests/results/ios-report', () => {
   delete process.env['KB_IOS_REPORT_DIR']
   expect(iosReportDir()).toBe(path.resolve(__dirname, '../../../results/ios-report'))
   expect(iosReportDir().endsWith(path.join('shared', 'tests', 'results', 'ios-report'))).toBe(true)
+})
+
+test('surfaces are credited to the running attempt once each, and only inside one', () => {
+  expect(() => creditSurface('relaunch')).toThrow('no test attempt is running')
+  const a = beginAttempt(file, ['d', 't'], 0)
+  runAttempt(a, () => {
+    creditSurface('deep-link')
+    creditSurface('relaunch')
+    creditSurface('deep-link')
+    expect(creditedSurfaces()).toEqual(['deep-link', 'relaunch'])
+  })
+  const b = beginAttempt(file, ['d', 't'], 1)
+  runAttempt(b, () => expect(creditedSurfaces()).toEqual([]))
 })

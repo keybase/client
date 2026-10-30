@@ -17,23 +17,33 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {attemptToken} from './attempt.ts'
+import {attemptToken, creditSurface, type AttemptToken} from './attempt.ts'
 import {attemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
-export const openLink = (url: string) => openUrl(url)
+export const openLink = (url: string) => {
+  openUrl(url)
+  creditSurface('deep-link')
+}
 
-export const pushNotification = (payload: object) => sendPush(payload)
+// Delivering the payload is not the credit's proof: the caller asserts the app showed or handled it.
+export const pushNotification = (payload: object) => {
+  sendPush(payload)
+  creditSurface('push-notification')
+}
 
 export const addPhotos = (paths: Array<string>) => {
   if (!paths.length) return
   simctl('addmedia', deviceUdid(), ...paths)
 }
 
-export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, lon)
+export const setLocation = (lat: number, lon: number) => {
+  simctlSetLocation(lat, lon)
+  creditSurface('location')
+}
 
 // The text goes over stdin, never the command line; never use these for a secret.
 export const setPasteboard = (text: string) => {
@@ -43,6 +53,7 @@ export const setPasteboard = (text: string) => {
     stdio: ['pipe', 'pipe', 'pipe'],
     timeout: PASTEBOARD_MS,
   })
+  creditSurface('pasteboard')
 }
 
 const runtimeId = async (): Promise<string | undefined> =>
@@ -79,6 +90,7 @@ export const relaunchApp = async () => {
   await keepErrors()
   await terminateApp()
   await launch(before)
+  creditSurface('relaunch')
 }
 
 // The app hung for good (hang.ts): its runtime answers no eval, so what it recorded since the last
@@ -110,6 +122,16 @@ export const grantPrivacy = async (service: string) => {
   if (changed || appPid() === undefined) await launch(before)
 }
 
-export const toBackground = async () => backgroundApp()
+const backgrounded = new WeakSet<AttemptToken>()
 
-export const toForeground = async () => activateApp()
+export const toBackground = async () => {
+  await backgroundApp()
+  backgrounded.add(attemptToken())
+}
+
+// The credit is for a background that this attempt followed with a foreground.
+export const toForeground = async () => {
+  await activateApp()
+  const token = attemptToken()
+  if (backgrounded.delete(token)) creditSurface('background-foreground')
+}
