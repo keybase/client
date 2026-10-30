@@ -15,7 +15,7 @@ describe('files browse', function () {
   //   root      openFilesRoot 56 (escapeToTabs 30, the tab 15, the screen 11);  rows  the three
   //             folder type rows, polled 10
   //   row       filesRowNamed 31 (30, one drag 1);  tap  1;  screen  10, plus one read 1 = 11
-  //   browser   the folder's browser 10;  back  backToFilesRoot 38
+  //   browser   the folder's browser 10;  back  backToFilesRoot 39
   //   step      2 (its 1s settle and the attach)
 
   const threeRows = async () =>
@@ -26,8 +26,8 @@ describe('files browse', function () {
 
   it('the Files tab lists private, public and team, and each opens its folder and backs out to the root', async function () {
     // worst case (s): root 56, rows 10, step 2 = 68; per folder type: row 31, tap 1, screen 11,
-    // browser 10, step 2, back 38 = 93, three of them 279; the tab again: tap 1, screen 11, rows 10,
-    // step 2 = 24; = 68 + 279 + 24 = 371
+    // browser 10, step 2, back 39 = 94, three of them 282; the tab again: tap 1, screen 11, rows 10,
+    // step 2 = 24; = 68 + 282 + 24 = 374
     this.timeout(400_000)
     await openFilesRoot()
     await threeRows()

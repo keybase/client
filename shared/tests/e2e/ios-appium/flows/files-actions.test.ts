@@ -55,7 +55,7 @@ const txt = (() => {
 describe('files actions', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   work      the host's mkdir of the work folder 60, and 60 for each entry it puts in it
-  //   open      openFolder of a work folder 364 (the root 56, the type row 31, its tap 1 and screen
+  //   open      openFolder of a work folder 365 (the root 56, the type row 31, its tap 1 and screen
   //             11, then two levels of the row 121, its tap 1 and screen 11);  of the smoke+second
   //             folder 142 (one level of 31, 1, 11);  of /keybase/private 99
   //   entry     an entry's row, which may arrive late, 121 (120, one drag 1);  row  one drawn 31
@@ -136,7 +136,7 @@ describe('files actions', function () {
     return folder
   }
 
-  // The work folder open on the phone with each of `names` drawn in it. Bound: open 364, then entry
+  // The work folder open on the phone with each of `names` drawn in it. Bound: open 365, then entry
   // 121 for each name.
   const openWorkFolder = async (folder: string, names: ReadonlyArray<string>) => {
     await openFolder(folder, 120_000)
@@ -182,8 +182,8 @@ describe('files actions', function () {
   // -- the work folder ----------------------------------------------------------------------------
 
   it("a folder made from the folder's More sheet", async function () {
-    // worst case (s): work 60, open 364, screen 1, more 28, item 22, field 26, screen 1, button 1,
-    // kbfs 180, row 31, step 2 = 716
+    // worst case (s): work 60, open 365, screen 1, more 28, item 22, field 26, screen 1, button 1,
+    // kbfs 180, row 31, step 2 = 717
     this.timeout(760_000)
     const folder = await workFolder({})
     const made = stampedEntry('made')
@@ -200,8 +200,9 @@ describe('files actions', function () {
   })
 
   it("a file renamed from its row's menu", async function () {
-    // worst case (s): work 120, open 364, entry 121, step 2, menu 52, item 22, field 26, screen 1,
-    // calls 2, button 1, calls 10, kbfs 180, listing 60, row 31, step 2 = 994
+    // worst case (s): work 120, open 365, entry 121, step 2, menu 52, item 22, the field 10 and its
+    // read 1, field 26, screen 1, calls 2, button 1, calls 10, kbfs 180, listing 60, row 31, step 2
+    // = 1006
     this.timeout(1_040_000)
     const from = stampedEntry('from')
     const to = stampedEntry('to')
@@ -211,8 +212,11 @@ describe('files actions', function () {
 
     await openRowMenu(from, 'the file row')
     await chooseMenuItem('Rename')
+    // the editing row starts on the name it renames: the row being edited is the file's
+    await el(T.FILES_EDITING_INPUT).waitForExist({timeout: 10_000})
+    check((await el(T.FILES_EDITING_INPUT).getAttribute('value')) === from, 'the row being renamed is not the file')
     await fillField(() => el(T.FILES_EDITING_INPUT), to, "the file's name field")
-    await requireScreen('the rename', 'fsBrowse', p => p['path'] === folder && inWorkFolder(folder, `${folder}/${to}`))
+    await requireScreen('the rename', 'fsBrowse', p => p['path'] === folder)
     const seq = await currentCallSeq()
     await el(T.FILES_EDITING_SAVE).click()
     await waitForUiCall('the rename to go out', seq, 'keybase.1.SimpleFS.simpleFSMove')
@@ -226,8 +230,8 @@ describe('files actions', function () {
 
   // Moves or copies a file into a folder beside it with the destination picker, which opens on the
   // work folder: the folder beside the file is opened in it, and `action` tapped there. Bound: work
-  // 180, open 364, entry 242, step 2, menu 52, item 22, picker 10, screen 11, the picker's row 31, the
-  // tap 1, screen 11, its read 1, calls 2, the action 6, gone 10 = 945.
+  // 180, open 365, entry 242, step 2, menu 52, item 22, picker 10, screen 11, the picker's row 31, the
+  // tap 1, screen 11, its read 1, calls 2, the action 6, gone 10 = 946.
   const moveOrCopy = async (action: 'Copy here' | 'Move here') => {
     const file = stampedEntry('mc')
     const dest = stampedEntry('dest')
@@ -258,7 +262,7 @@ describe('files actions', function () {
   }
 
   it('a file moved into a folder beside it with the destination picker', async function () {
-    // worst case (s): moveOrCopy 945, calls 10, kbfs 180, listing 60, step 2 = 1197
+    // worst case (s): moveOrCopy 946, calls 10, kbfs 180, listing 60, step 2 = 1198
     this.timeout(1_250_000)
     const {dest, file, folder, seq, target} = await moveOrCopy('Move here')
     await waitForUiCall('the move to go out', seq, 'keybase.1.SimpleFS.simpleFSMove')
@@ -269,7 +273,7 @@ describe('files actions', function () {
   })
 
   it('a file copied into a folder beside it with the destination picker', async function () {
-    // worst case (s): moveOrCopy 945, calls 10, kbfs 180, listing 60, step 2 = 1197
+    // worst case (s): moveOrCopy 946, calls 10, kbfs 180, listing 60, step 2 = 1198
     this.timeout(1_250_000)
     const {dest, file, folder, seq, target} = await moveOrCopy('Copy here')
     await waitForUiCall('the copy to go out', seq, 'keybase.1.SimpleFS.simpleFSCopyRecursive')
@@ -280,8 +284,8 @@ describe('files actions', function () {
   })
 
   it("a file deleted from its row's menu, the file beside it kept", async function () {
-    // worst case (s): work 180, open 364, entry 242, step 2, menu 52, item 22, screen 11, its read 1,
-    // calls 2, button 6, calls 10, kbfs 180, listing 60, step 2 = 1134
+    // worst case (s): work 180, open 365, entry 242, step 2, menu 52, item 22, screen 11, its read 1,
+    // calls 2, button 6, calls 10, kbfs 180, listing 60, step 2 = 1135
     this.timeout(1_180_000)
     const gone = stampedEntry('gone')
     const kept = stampedEntry('kept')
@@ -305,9 +309,9 @@ describe('files actions', function () {
   })
 
   it("a file shared to the self conversation from its row's menu, with a caption", async function () {
-    // worst case (s): self 60, work 120, open 364, entry 121, step 2, menu 52, item 22, screen 11, the
+    // worst case (s): self 60, work 120, open 365, entry 121, step 2, menu 52, item 22, screen 11, the
     // search 10, its tap 1, the typing 15, the result polled 20, its tap 1, screen 21 (20, its read),
-    // field 26, calls 2, button 6, calls 10, cli 120, step 2 = 986
+    // field 26, calls 2, button 6, calls 10, cli 120, step 2 = 987
     this.timeout(1_040_000)
     const {smokeUser} = loadE2EAccounts()
     const selfConvID = await directConvIDFromCli(smokeUser)
@@ -390,8 +394,8 @@ describe('files actions', function () {
   it('Sync on this device turned on for the smoke+second folder stays on through a relaunch, and turns off', async function () {
     // worst case (s): smoke 10, app 25, work 60 (the entry), open 142, the toggle 120, its read 1,
     // calls 2, the tap 1, calls 10, app 45, step 2 = 418; relaunch 200, signed in 90, open 142, the
-    // toggle 30, app 25, step 2 = 489; its read 1, calls 2, the sheet 19, item 22, calls 10, app 45,
-    // step 2 = 101; = 1008
+    // toggle 30, app 25, step 2 = 489; smoke 10, its read 1, calls 2, the sheet 19, item 22, calls
+    // 10, app 45, step 2 = 111; = 1018
     this.timeout(1_060_000)
     const pair = pairFolder()
     await requireAppIsSmoke()
@@ -430,6 +434,8 @@ describe('files actions', function () {
     creditSurface('relaunch')
     await step('After a relaunch the folder is still synced')
 
+    // the relaunched app is the one whose sync config this test changed
+    await requireAppIsSmoke()
     await requireScreen('the sync switch', 'fsBrowse', p => p['path'] === pair)
     seq = await currentCallSeq()
     await openMenuFrom('the unsync confirmation', async () => el(T.FILES_SYNC_TOGGLE).click())

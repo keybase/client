@@ -120,7 +120,7 @@ export const openFilesRoot = async () => {
 }
 
 // Back from a folder to the Files tab's root (on a phone a folder is pushed above the tab bar, so
-// back is the way out). Bound: 30s of tries, overrun by one (the back 3, the screen 5) = 38.
+// back is the way out). Bound: 30s of tries, overrun by one (the back 3, the screen 5 and its read 1) = 39.
 export const backToFilesRoot = async () =>
   retriedNavigation(
     "back to the Files tab's root",
