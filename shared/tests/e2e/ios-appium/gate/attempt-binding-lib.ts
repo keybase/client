@@ -1,7 +1,8 @@
 // What async code is bound to: the attempt it works for and, inside a test body, that body. A body
-// is over once mocha has moved on from it (a hook began while the body was still running: mocha
-// timed it out). Code bound to an over body is the timed-out body's own chain, which mocha
-// abandoned but which keeps running; every app command checks its binding and refuses to run there.
+// is over once it settles, passed or thrown, or once mocha has moved on from it (a hook began while
+// the body was still running: mocha timed it out). Code bound to an over body is work it left
+// running (a timed-out body's own chain, or a promise a finished body never awaited); every app
+// command checks its binding and refuses to run there.
 // A hook binds to no body, so it is never refused.
 import {AsyncLocalStorage} from 'async_hooks'
 
@@ -29,13 +30,14 @@ export const createBinding = <T>() => {
     // hook may have inherited (a this.timeout() in a body starts mocha's timer, and so its timeout
     // callback and the hooks after it, in the body's context).
     run: <R>(value: T | undefined, fn: () => R): R => (value === undefined ? store.exit(fn) : store.run({value}, fn)),
-    // Runs a test body as `value`; the body is running until fn settles.
+    // Runs a test body as `value`; the body is running until fn settles, and over from then.
     runBody: async <R>(value: T, title: string, fn: () => Promise<R>): Promise<R> => {
       const body: Body = {over: false, title}
       running.add(body)
       try {
         return await store.run({body, value}, fn)
       } finally {
+        body.over = true
         running.delete(body)
       }
     },

@@ -28,15 +28,41 @@ test('a running body is current until mocha moves on from it, then every check i
   expect(b.endRunningBodies()).toEqual([])
 })
 
-test('a body that settled is not running, and is never marked over', async () => {
+test('work a finished body left running is refused, whether the body passed or threw', async () => {
   const b = createBinding<string>()
-  let later: () => void = () => {}
-  await b.runBody('a1', 'done', async () => {
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const leftovers: Array<Promise<void>> = []
+  const leave = (n: number) => {
+    leftovers.push(
+      (async () => {
+        b.requireCurrent()
+        await gate
+        b.requireCurrent()
+      })().then(() => {
+        throw new Error(`leftover ${n} ran`)
+      })
+    )
+  }
+  await b.runBody('a1', 'passed', async () => {
     await tick()
-    later = () => b.requireCurrent()
+    leave(1)
   })
+  await expect(
+    b.runBody('a2', 'threw', async () => {
+      await tick()
+      leave(2)
+      throw new Error('boom')
+    })
+  ).rejects.toThrow('boom')
+  // settled bodies are not running: a hook marks nothing
   expect(b.endRunningBodies()).toEqual([])
-  expect(later).not.toThrow()
+  release()
+  const settled = await Promise.allSettled(leftovers)
+  expect(settled.map(r => (r.status === 'rejected' && r.reason instanceof Error ? r.reason.message : r.status))).toEqual([
+    'attempt over: passed',
+    'attempt over: threw',
+  ])
 })
 
 test('a hook is never refused, even in the context of a body that is over', async () => {
