@@ -58,27 +58,36 @@ export const provisionCliDevice = async (env: E2EEnv, runId: string): Promise<Cl
   return {deviceID, name}
 }
 
-// Retires run `runId`'s CLI device from its home, whatever provisionCliDevice got to: the device id
-// comes from the home's own config (retirePeerHome reads it after shutting the service down), so a
-// login that succeeded before a later check threw is still found. A device the app did not revoke is
-// revoked here through the main service, guarded as a phone flow's revoke is; then the home goes.
-export const retireCliDevice = async (env: E2EEnv, runId: string, phoneDeviceID: string) => {
-  const home = provisionHomeFor(runId, cliProvDeviceLabel)
-  const name = provDeviceName(runId, cliProvDeviceLabel)
+// Retires run `runId`'s device and home with `label` (homes/<label>-<runid>, e2e-<runid>-<label>), made
+// for a phone flow, whatever the flow got to: the device id comes from the home's own config
+// (retirePeerHome reads it after shutting the service down), so a login that succeeded before a
+// later check threw is still found, and a device the server made before its home recorded it (a
+// login stopped part way) is found by its stamped name. A device the app did not revoke is revoked
+// here through the main service, guarded as a phone flow's revoke is; then the home goes.
+export const retirePhoneFlowDevice = async (env: E2EEnv, runId: string, label: string, phoneDeviceID: string) => {
+  const home = provisionHomeFor(runId, label)
+  const name = provDeviceName(runId, label)
   const keep = env.peers.owner.home
-  if (!fs.existsSync(home)) return
-  await retirePeerHome(
-    {newHome: keep, oldHome: home, role: 'owner', user: env.smokeUser},
-    {
-      remove: async h => removeRetiredPeerHome(h, keep, env.smokeUser, () => {}),
-      revoke: async deviceID => {
-        await revokeLeftoverFromPhoneFlow(env, {deviceID, name}, phoneDeviceID)
-        if (!(await deviceHistory()).find(d => d.deviceID === deviceID)?.revoked) {
-          throw new Error(`refusing to retire ${home}: the service does not list ${name} as revoked`)
-        }
-      },
-      say: () => {},
-      stop: stopPeerHomeService,
+  const revoke = async (deviceID: string) => {
+    await revokeLeftoverFromPhoneFlow(env, {deviceID, name}, phoneDeviceID)
+    if (!(await deviceHistory()).find(d => d.deviceID === deviceID)?.revoked) {
+      throw new Error(`the service does not list ${name} as revoked after its cleanup`)
     }
-  )
+  }
+  if (fs.existsSync(home)) {
+    await retirePeerHome(
+      {newHome: keep, oldHome: home, role: 'owner', user: env.smokeUser},
+      {
+        remove: async h => removeRetiredPeerHome(h, keep, env.smokeUser, () => {}),
+        revoke,
+        say: () => {},
+        stop: stopPeerHomeService,
+      }
+    )
+  }
+  for (const d of (await activeDevices()).filter(d => d.name === name)) await revoke(d.deviceID)
 }
+
+// The CLI device provisionCliDevice made.
+export const retireCliDevice = async (env: E2EEnv, runId: string, phoneDeviceID: string) =>
+  retirePhoneFlowDevice(env, runId, cliProvDeviceLabel, phoneDeviceID)

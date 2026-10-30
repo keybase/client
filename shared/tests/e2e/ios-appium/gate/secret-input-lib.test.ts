@@ -1,4 +1,13 @@
-import {fieldProblem, focusEvalBody, lengthEvalBody, prepareEvalBody, secretEvalBody, secureDots} from './secret-input-lib'
+import {
+  fieldProblem,
+  focusEvalBody,
+  lengthEvalBody,
+  prepareEvalBody,
+  provisionPrepareEvalBody,
+  provisionProblem,
+  secretEvalBody,
+  secureDots,
+} from './secret-input-lib'
 
 test('the secret is the last thing in its eval body, JSON-encoded once, and the check before it holds none', () => {
   const body = secretEvalBody('p"w')
@@ -148,4 +157,44 @@ test('the focus eval focuses the one field with the id', () => {
   expect(app.run(focusEvalBody('f'))).toEqual({state: 'focused'})
   expect(app.focused.current).toBe(app.inst)
   expect(app.run(focusEvalBody('nope'))).toEqual({state: 'no field'})
+})
+
+// The app's provision flow as kbModule('provision/flow.tsx') gives it: a submitProvisionTextCode
+// that records what it was called with (or throws).
+const runWithFlow = (flow: Record<string, unknown> | undefined) => {
+  const kbModule = (name: string) => {
+    if (name !== 'provision/flow.tsx' || !flow) throw new Error('no module ' + name)
+    return flow
+  }
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  return (body: string) => (new Function('kbModule', body) as (k: unknown) => unknown)(kbModule)
+}
+
+test("the phrase goes to the app's own submitProvisionTextCode, from the second eval only", () => {
+  const got: Array<string> = []
+  const run = runWithFlow({submitProvisionTextCode: (c: string) => got.push(c)})
+  expect(provisionPrepareEvalBody()).not.toContain('alpha')
+  expect(run(provisionPrepareEvalBody())).toEqual({state: 'ready'})
+  expect(got).toEqual([])
+  expect(run(secretEvalBody('alpha bravo'))).toEqual({state: 'submitted'})
+  expect(got).toEqual(['alpha bravo'])
+  // the sink is used up
+  expect(run(secretEvalBody('alpha bravo'))).toEqual({state: 'no sink'})
+  expect(got).toEqual(['alpha bravo'])
+})
+
+test('a missing flow or handler, or one that throws, is refused with a message naming no phrase', () => {
+  expect(runWithFlow(undefined)(provisionPrepareEvalBody())).toEqual({state: 'no provision flow'})
+  expect(runWithFlow({})(provisionPrepareEvalBody())).toEqual({state: 'no submit'})
+  const run = runWithFlow({
+    submitProvisionTextCode: () => {
+      throw new Error('bad code alpha bravo')
+    },
+  })
+  expect(run(provisionPrepareEvalBody())).toEqual({state: 'ready'})
+  expect(run(secretEvalBody('alpha bravo'))).toEqual({state: 'threw'})
+  for (const state of ['no provision flow', 'no submit', 'no sink', 'threw', 'submitted'] as const) {
+    expect(provisionProblem({state})).not.toContain('alpha')
+  }
+  expect(provisionProblem(undefined)).toBe('submitting the phrase got no answer')
 })

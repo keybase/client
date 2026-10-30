@@ -1,31 +1,44 @@
-// Putting a secret (a password, a paper key) into a field of the app from inside its JS runtime, over
-// Metro's inspector: no Appium command carries the value, so it is in no WebDriver request, Appium
-// log or wdio report. The field is checked first in an eval that holds no secret; the secret then
-// travels only in one short Runtime.evaluate frame that calls what the check left. No eval's error
-// is passed on (one could echo the body), and every message here is built from field ids and
-// lengths. A flow that types a secret runs with retries 0 and takes no step screenshot while the
-// field holds it.
+// Putting a secret (a password, a paper key) into a field of the app, or a provisioning phrase into
+// its code page, from inside its JS runtime, over Metro's inspector: no Appium command carries the
+// value, so it is in no WebDriver request, Appium log or wdio report. The target is checked first in
+// an eval that holds no secret; the secret then travels only in one short Runtime.evaluate frame
+// that calls what the check left. No eval's error is passed on (one could echo the body), and every
+// message here is built from field ids and lengths. A flow that types a secret runs with retries 0
+// and takes no step screenshot while the field holds it.
 import {evalInPage, INSPECTOR_CLOSED, inspectorPageFor} from '../../shared/metro-eval.ts'
 import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
-import {type FieldRead, fieldProblem, focusEvalBody, lengthEvalBody, prepareEvalBody, secretEvalBody, secureDots} from './secret-input-lib.ts'
+import {
+  type FieldRead,
+  fieldProblem,
+  focusEvalBody,
+  lengthEvalBody,
+  prepareEvalBody,
+  provisionPrepareEvalBody,
+  provisionProblem,
+  type ProvisionSubmit,
+  secretEvalBody,
+  secureDots,
+} from './secret-input-lib.ts'
 
 const SETTLE_MS = 5_000
 
 // metro-eval's own transport failures name no part of the body
 const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed', INSPECTOR_CLOSED])
 
-const evalField = async (fieldTestID: string, body: string, what: string): Promise<FieldRead | undefined> => {
+const evalWithheld = async <R,>(body: string, what: string): Promise<R | undefined> => {
   // looked up outside the try: its errors name no part of the body
   const page = await inspectorPageFor(deviceName(), BUNDLE_ID)
   try {
-    return await evalInPage<FieldRead>(page, body)
+    return await evalInPage<R>(page, body)
   } catch (e) {
     const m = e instanceof Error ? e.message : ''
     // no cause: the app's error description can quote the body, secret included
     // eslint-disable-next-line preserve-caught-error
-    throw new Error(`${what} ${fieldTestID} failed: ${TRANSPORT_ERRORS.has(m) ? m : "the app's error is withheld"}`)
+    throw new Error(`${what} failed: ${TRANSPORT_ERRORS.has(m) ? m : "the app's error is withheld"}`)
   }
 }
+
+const evalField = async (fieldTestID: string, body: string, what: string) => evalWithheld<FieldRead>(body, `${what} ${fieldTestID}`)
 
 // Waits until the focused field fieldTestID holds `length` characters.
 const waitForLength = async (fieldTestID: string, length: number) => {
@@ -91,4 +104,15 @@ export const fieldLength = async (fieldTestID: string): Promise<number> => {
   const r = await evalField(fieldTestID, lengthEvalBody(fieldTestID), 'reading the field')
   if (r?.state !== 'read') throw new Error(fieldProblem(fieldTestID, r))
   return r.length
+}
+
+// Hands a provisioning phrase to the code page the app has open, through submitProvisionTextCode
+// (what its QR scanner calls with the code it read: the simulator has no camera). The phrase travels
+// only in the second eval, as a secret does above. The app's answer comes later: its code page
+// closes once the provisioning ends.
+export const submitProvisionPhrase = async (phrase: string): Promise<void> => {
+  const ready = await evalWithheld<ProvisionSubmit>(provisionPrepareEvalBody(), 'checking the code page before submitting the phrase')
+  if (ready?.state !== 'ready') throw new Error(provisionProblem(ready))
+  const r = await evalWithheld<ProvisionSubmit>(secretEvalBody(phrase), 'submitting the phrase')
+  if (r?.state !== 'submitted') throw new Error(provisionProblem(r))
 }

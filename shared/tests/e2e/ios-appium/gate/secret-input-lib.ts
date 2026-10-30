@@ -212,3 +212,46 @@ export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): str
       return `the field ${fieldTestID} could not be read`
   }
 }
+
+export type ProvisionSubmit = {
+  state: 'no provision flow' | 'ambiguous provision flow' | 'no submit' | 'ready' | 'no sink' | 'threw' | 'submitted'
+}
+
+// The first of the two evals that hand a provisioning phrase to the app's code page; it holds no
+// secret. It leaves a sink that calls the app's own submitProvisionTextCode, the handler its QR
+// scanner calls with what it read (provision/code-page/qr-scan/hooks.tsx), for secretEvalBody.
+export const provisionPrepareEvalBody = () => `
+  delete ${SINK}
+  const flow = ${moduleOr('provision/flow.tsx', 'provision flow')}
+  if (flow.read) return flow.read
+  const submit = flow.m.submitProvisionTextCode
+  if (typeof submit !== 'function') return {state: 'no submit'}
+  ${SINK} = code => {
+    try {
+      submit(code)
+    } catch {
+      return {state: 'threw'}
+    }
+    return {state: 'submitted'}
+  }
+  return {state: 'ready'}`
+
+export const provisionProblem = (r: ProvisionSubmit | undefined): string => {
+  switch (r?.state) {
+    case 'no provision flow':
+      return "the app's provision/flow.tsx module was not found, so the phrase could not be submitted"
+    case 'ambiguous provision flow':
+      return 'the app has more than one provision/flow.tsx module, so the phrase could not be submitted'
+    case 'no submit':
+      return 'provision/flow.tsx has no submitProvisionTextCode'
+    case 'no sink':
+      return 'the check of the code page left nothing to submit the phrase with'
+    case 'threw':
+      return 'submitting the phrase threw'
+    case 'ready':
+    case 'submitted':
+      return `submitting the phrase answered ${r.state}`
+    case undefined:
+      return 'submitting the phrase got no answer'
+  }
+}

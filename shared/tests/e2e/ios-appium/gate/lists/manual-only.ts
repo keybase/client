@@ -53,6 +53,11 @@ export const IOS_MANUAL_ONLY = {
     doByHand: 'Install the release build from TestFlight or the App Store and update over the previous version; the app launches signed in.',
     title: 'App Store and TestFlight install and update',
   },
+  'provision-qr-camera': {
+    doByHand:
+      'On a device: run `keybase login` on a new computer and pick the phone, then on the phone Settings > Devices > Add a device or paper key > Add a computer and scan the QR code the computer shows; the computer lands signed in.',
+    title: 'Camera: approving a new computer by scanning its QR code',
+  },
   'phone-new-device': {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',
