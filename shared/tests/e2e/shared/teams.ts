@@ -61,7 +61,8 @@ export const subteamExists = async (name: string) => {
 }
 
 // Deletes one of this run's subteams through the CLI when it is still there, then waits until the
-// service no longer lists it. Bound: the delete (90s) and 30s.
+// service no longer lists it. Bound: the first existence check (one getTeamID), the delete (90s), then
+// 30s of checks plus the one under way at its end.
 export const deleteSubteamIfPresent = async (name: string) => {
   requireThisRunSubteam(name)
   if (await subteamExists(name)) await deleteThrowawaySubteam(name)

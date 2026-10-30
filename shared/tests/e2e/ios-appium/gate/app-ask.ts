@@ -33,15 +33,23 @@ type AppAnswer<R> = {ask: string} & ({state: 'pending'} | {state: 'answered'; va
 
 // A function body for jsEval that runs `body` (an expression for a promise, evaluated in the app) and
 // keeps what it answers under `ask`, so an earlier ask answering late cannot replace a newer one's.
+// `mine()` says whether `ask` is still the one the host waits on (askApp gives up a timed-out ask).
 const appAskBody = (ask: string, body: string) => `
     const ask = ${JSON.stringify(ask)}
     ${APP_ASK_KEY} = {ask, state: 'pending'}
+    const mine = () => !!${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ask
     const keep = r => { if (${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ask) ${APP_ASK_KEY} = {ask, ...r} }
     Promise.resolve()
       .then(() => ${body})
       .then(value => keep({state: 'answered', value}), e => keep({state: 'failed', error: String(e && e.message)}))
     return true
   `
+
+// In a body of more than one RPC, each call after the first goes through this: once the host has
+// given the ask up (it timed out, and the recorder runs again) or a newer ask has replaced it, the
+// chain stops rather than send `call` unpaused.
+const thenIfStillAsked = (call: string) =>
+  `(mine() ? ${call} : Promise.reject(new Error('the ask was given up before its next call')))`
 
 // Asks the phone's own service through `body` (an expression for a promise, evaluated in the app,
 // that projects the answer to plain data), with the recorder paused for the eval and its wait, so
@@ -52,14 +60,24 @@ export const askApp = async <T,>(what: string, body: string, timeout = 20_000): 
   const ask = `${Date.now()}-${++appAsks}`
   const r = await withHarnessRpcs(what, async () => {
     await jsEval(appAskBody(ask, body), {once: true})
-    return waitFor(
-      `the phone's service to answer ${what}`,
-      async () => {
-        const got = await jsEval<AppAnswer<T>>(`return ${APP_ASK_KEY} ?? {ask: '', state: 'pending'}`)
-        return got.ask === ask && got.state !== 'pending' ? got : undefined
-      },
-      {interval: 250, timeout}
-    )
+    try {
+      return await waitFor(
+        `the phone's service to answer ${what}`,
+        async () => {
+          const got = await jsEval<AppAnswer<T>>(`return ${APP_ASK_KEY} ?? {ask: '', state: 'pending'}`)
+          return got.ask === ask && got.state !== 'pending' ? got : undefined
+        },
+        {interval: 250, timeout}
+      )
+    } catch (e) {
+      // given up while the recorder is still paused, so a chain still running sends nothing more
+      await jsEval(
+        `if (${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ${JSON.stringify(ask)}) ${APP_ASK_KEY} = {ask: '', state: 'given up'}
+         return true`,
+        {once: true}
+      ).catch(() => {})
+      throw e
+    }
   })
   if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${r.error}`)
   return r.value
@@ -89,7 +107,7 @@ export const setFilesSettings = async (s: FilesSettings) => {
   await askApp<boolean>(
     'restoring the files settings',
     `${RPC_GEN}.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold: ${threshold}})
-       .then(() => ${RPC_GEN}.SimpleFSSimpleFSSetSyncOnCellularRpcPromise({syncOnCellular: ${s.syncOnCellular ? 'true' : 'false'}}))
+       .then(() => ${thenIfStillAsked(`${RPC_GEN}.SimpleFSSimpleFSSetSyncOnCellularRpcPromise({syncOnCellular: ${s.syncOnCellular ? 'true' : 'false'}})`)})
        .then(() => true)`
   )
 }

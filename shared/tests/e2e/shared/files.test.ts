@@ -52,6 +52,12 @@ describe('requireOwnPath', () => {
       `/keybase/private/testuser/e2e-${run}-x/../secret`,
       `/keybase/private/testuser/e2e-${run}-x/*`,
       `/keybase/private/testuser/e2e-${run}-x/a b`,
+      // a trailing slash after the entry: an empty name part
+      `/keybase/private/testuser/e2e-${run}-x/`,
+      `/keybase/private/testuser/e2e-${run}-x//a`,
+      // the account name in another case is not the account's folder
+      `/keybase/private/TestUser/e2e-${run}-x`,
+      `/keybase/private/TESTUSER,testuser-mac/e2e-${run}-x`,
     ]) {
       expect(refusal(p)).toMatch(/^refusing /)
     }

@@ -233,6 +233,7 @@ export const heldByTeamRepos = (
   repos: {failedRepoTeams: ReadonlySet<string>; reposListed: boolean}
 ): string | undefined => {
   if (c.kind !== 'team' && c.kind !== 'subteam') return undefined
+  // root teams too, on purpose: the team repos listing is the only check that none is left in them
   if (!repos.reposListed) return 'held: the team git repos could not be listed'
   return repos.failedRepoTeams.has(c.name) ? 'held: a team git repo of it could not be deleted' : undefined
 }

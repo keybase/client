@@ -479,6 +479,8 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
       // chat notifications off first, so the delete is announced nowhere
       await actor.cli(['git', 'settings', '--disable-chat', c.name, c.team ?? ''], 60_000)
       await call(actor, 'keybase.1.git.deleteTeamRepo', {notifyTeam: false, repoName: c.name, teamName: {parts: (c.team ?? '').split('.')}})
+      // read back: a repo still listed holds its team back as a failed delete does
+      if ((await teamRepos(actor)).some(r => r.name === c.name && r.team === c.team)) throw new Error('still listed after its delete')
       return
     case 'device':
       await retireProvisioned(actor, c, env)
