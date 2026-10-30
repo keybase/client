@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/eapache/channels"
-	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -23,6 +22,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 type testBlockRetrievalConfig struct {

@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -23,6 +22,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
