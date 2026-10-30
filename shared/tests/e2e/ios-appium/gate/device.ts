@@ -1,5 +1,8 @@
 // Simulator-side actions a flow takes at the app's boundary, each with a deadline. A relaunch starts
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
+// Delivering something to the app proves nothing about it, so these credit no surface (only
+// toForeground, for a background this attempt followed with a foreground): a flow calls
+// creditSurface(<surface>) once it has asserted the app used what was delivered.
 import {execFileSync} from 'child_process'
 import {
   activateApp,
@@ -24,31 +27,22 @@ const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
-// Delivering the link is not the credit's proof: the caller asserts the screen the app routed it to.
-export const openLink = (url: string) => {
-  openUrl(url)
-  creditSurface('deep-link')
-}
+// The flow credits 'deep-link' once it has asserted the screen the app routed the link to.
+export const openLink = (url: string) => openUrl(url)
 
-// Delivering the payload is not the credit's proof: the caller asserts the app showed or handled it.
-export const pushNotification = (payload: object) => {
-  sendPush(payload)
-  creditSurface('push-notification')
-}
+// The flow credits 'push-notification' once it has asserted the app showed or handled it.
+export const pushNotification = (payload: object) => sendPush(payload)
 
 export const addPhotos = (paths: Array<string>) => {
   if (!paths.length) return
   simctl('addmedia', deviceUdid(), ...paths)
 }
 
-// Setting the location is not the credit's proof: the caller asserts the app used it.
-export const setLocation = (lat: number, lon: number) => {
-  simctlSetLocation(lat, lon)
-  creditSurface('location')
-}
+// The flow credits 'location' once it has asserted the app used the location.
+export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, lon)
 
-// The text goes over stdin, never the command line; never use these for a secret. No credit: a flow
-// that asserts the pasted text landed in the app credits 'pasteboard' itself.
+// The text goes over stdin, never the command line; never use these for a secret. The flow credits
+// 'pasteboard' once it has asserted the pasted text landed in the app.
 export const setPasteboard = (text: string) => {
   execFileSync('xcrun', ['simctl', 'pbcopy', deviceUdid()], {
     input: text,
@@ -86,14 +80,13 @@ const keepErrors = async () => {
 }
 
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
-// The new runtime is not the credit's proof: the caller asserts what the app shows after it.
+// The flow credits 'relaunch' once it has asserted what the app shows after it.
 export const relaunchApp = async () => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
   await keepErrors()
   await terminateApp()
   await launch(before)
-  creditSurface('relaunch')
 }
 
 // The app hung for good (hang.ts): its runtime answers no eval, so what it recorded since the last

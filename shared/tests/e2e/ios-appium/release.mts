@@ -26,8 +26,8 @@
 // stopping failed, scans everything under tests/results (and the visual render root when
 // KB_VISUAL_RESULTS puts it elsewhere; only ios-logs/ when preflight refused the run) for the env
 // file's secrets (secrets phase; a file that holds one is deleted and named, and the run fails); then
-// opens the report, when this run wrote it and the scan
-// left it, unless KB_E2E_NO_OPEN=1; then prints one line per phase and posts a macOS notification.
+// opens the report, when this run wrote it and the scan left it, unless KB_E2E_NO_OPEN=1; then prints
+// one line per phase and posts a macOS notification.
 // Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
 // emptied when the run takes the lock) and get this run's KB_E2E_RUN_ID.
 //

@@ -2,8 +2,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 // The app's native surfaces, which have no route. A flow credits one with creditSurface once it has
-// driven and checked it (gate/device.ts does for the simulator actions; a flow that opens the picker
-// UI credits photo-picker or file-picker itself).
+// driven it and asserted the app used it: gate/device.ts's helpers deliver (a link, a push, a
+// location, pasteboard text, a relaunch) and credit nothing, except toForeground for
+// background-foreground.
 export const IOS_SURFACES = [
   'share-extension',
   'push-notification',
