@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -294,4 +294,13 @@ test('typeIntoTarget types into the focused screen\'s input, never a hidden scre
   const root = parent({tag: 3}, parent({tag: 0}, chain(screen(true), field(shown)), chain(screen(false), field(hidden))))
   typeIn(root, false)
   assert.deepEqual([shown, hidden], [['visual gate'], []])
+})
+
+test('a broken app is reloaded, unless its inspector page is gone, which only a relaunch can fix', () => {
+  assert.equal(recoveryFor('reading the router state: app evaluate threw: Error: no navigation state'), 'reload')
+  assert.equal(recoveryFor('reading the router state: no answer in 5s'), 'reload')
+  assert.equal(
+    recoveryFor('reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'),
+    'relaunch'
+  )
 })

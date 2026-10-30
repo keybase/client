@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor, waitForInspectorPage} from '../shared/metro-eval.ts'
+import {evalInPage, inspectorPageFor, NO_INSPECTOR_PAGE, waitForInspectorPage} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -108,6 +108,10 @@ const SCROLL_ATTEMPTS = 4
 const TARGET_QUIET_MS = 300
 // Longer than a Pressable's 500ms long press delay.
 const LONG_PRESS_S = 1
+
+// How a capture that left the app broken (`why`) is first tried: a reload runs through the
+// app's inspector page, so without one only a relaunch can help.
+export const recoveryFor = (why: string): 'reload' | 'relaunch' => (why.includes(NO_INSPECTOR_PAGE) ? 'relaunch' : 'reload')
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -763,30 +767,49 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     prepared = true
   }
 
-  // A fresh JS runtime set up as prepare left it.
-  const reloadPrepared = async (at: number) => {
-    await reloadJs()
+  // The state prepare leaves on a fresh JS runtime.
+  const restorePrepared = async (at: number) => {
     await appEval(fixClocks(at), 'fixing Date')
     await applyLight()
     await remountScreens()
     await warmTabs()
   }
+  const reloadPrepared = async (at: number) => {
+    await reloadJs()
+    await restorePrepared(at)
+  }
+  const relaunchPrepared = async (at: number) => {
+    await relaunchApp()
+    if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
+    await restorePrepared(at)
+  }
   // A screen that throws takes the navigator down with it (no navigation state), and every later
-  // capture would fail on that; so a capture that left the app without one reloads it.
+  // capture would fail on that; so a capture that left the app without one reloads it. A reload goes
+  // through the inspector page, so an app whose page is gone is relaunched instead; one that a
+  // relaunch can't bring back stops the run, since every later capture would fail the same way.
   const recoverIfBroken = async (): Promise<string | undefined> => {
     if (frozenAt === undefined) return undefined
+    let why: string
     try {
       await routerAt()
       return undefined
     } catch (e) {
-      const why = (e as Error).message
+      why = (e as Error).message
+    }
+    if (recoveryFor(why) === 'reload') {
       try {
         await reloadPrepared(frozenAt)
         return `the app was left broken (${why}) and was reloaded`
-      } catch (e2) {
-        return `the app was left broken (${why}) and the reload failed: ${(e2 as Error).message}`
+      } catch (e) {
+        why = `${why}; the reload failed: ${(e as Error).message}`
       }
     }
+    try {
+      await relaunchPrepared(frozenAt)
+    } catch (e) {
+      throw new Error(`the app was left broken (${why}) and a relaunch did not bring it back: ${(e as Error).message}`, {cause: e})
+    }
+    return `the app was left broken (${why}) and was relaunched`
   }
 
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
