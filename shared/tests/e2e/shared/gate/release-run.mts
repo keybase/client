@@ -1,7 +1,8 @@
 // The plumbing of a release gate run: timed phases, children under a deadline, the release lock,
 // the overall deadline and interrupts, and the summary and notification at the end. The platform's
 // release command supplies what it launches and stops.
-import {appendFileSync} from 'fs'
+import {appendFileSync, mkdirSync} from 'fs'
+import {dirname} from 'path'
 import {spawn, execFileSync, type ChildProcess} from 'child_process'
 import {redactSecrets} from '../peer-service.ts'
 import {acquireFileLock} from '../../visual/lock.mts'
@@ -11,7 +12,8 @@ const MIN = 60_000
 
 export const errText = (e: unknown) => redactSecrets(e instanceof Error ? e.message : String(e))
 
-export type ChildResult = {code: number | null; stdout: string; timedOut: boolean}
+// logError: the first failure writing opts.logFile; the child's own result is unaffected
+export type ChildResult = {code: number | null; stdout: string; timedOut: boolean; logError?: string}
 
 export type ChildOptions = {
   // stdout and stderr are also appended here as they arrive
@@ -80,8 +82,23 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
       }
       const child = spawn(cmd, [...args], {cwd: opts.cwd ?? o.cwd, env: opts.env ?? process.env, stdio: ['ignore', 'pipe', 'pipe']})
       currentChild = child
+      let logError: string | undefined
       const toFile = (d: Buffer) => {
-        if (opts.logFile) appendFileSync(opts.logFile, d)
+        if (!opts.logFile || logError) return
+        try {
+          appendFileSync(opts.logFile, d)
+        } catch (e) {
+          logError = errText(e)
+          log(`${name}: log write failed: ${logError}`)
+        }
+      }
+      if (opts.logFile) {
+        try {
+          mkdirSync(dirname(opts.logFile), {recursive: true})
+        } catch (e) {
+          logError = errText(e)
+          log(`${name}: log write failed: ${logError}`)
+        }
       }
       let stdout = ''
       let timedOut = false
@@ -105,7 +122,7 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
         clearTimeout(timer)
         clearTimeout(killTimer)
         if (currentChild === child) currentChild = undefined
-        resolve({code, stdout, timedOut})
+        resolve({code, stdout, timedOut, ...(logError ? {logError} : {})})
       })
       child.on('error', e => {
         clearTimeout(timer)

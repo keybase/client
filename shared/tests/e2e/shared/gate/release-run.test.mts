@@ -96,6 +96,31 @@ test('runChild with a logFile appends stdout and stderr to it and still returns 
   await end(run)
 })
 
+test('runChild with an unwritable logFile reports logError and still returns the child result', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const blocker = path.join(dir, 'file')
+  fs.writeFileSync(blocker, '')
+  const lines = await capture(async () => {
+    const r = await run.runChild('bad', process.execPath, ['-e', 'console.log("out"); process.exit(4)'], 10_000, {logFile: path.join(blocker, 'x', 'child.log')})
+    assert.equal(r.code, 4)
+    assert.equal(r.stdout, 'out\n')
+    assert.equal(r.timedOut, false)
+    assert.match(r.logError ?? '', /ENOTDIR|EEXIST/)
+  })
+  assert.equal(lines.filter(l => l.includes('bad: log write failed')).length, 1)
+  await end(run)
+})
+
+test('runChild creates the logFile directory', async () => {
+  const run = newRun({exits: [], notes: []})
+  const logFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')), 'a', 'b', 'child.log')
+  const r = await run.runChild('mk', process.execPath, ['-e', 'console.log("hi")'], 10_000, {logFile})
+  assert.equal(r.logError, undefined)
+  assert.equal(fs.readFileSync(logFile, 'utf8'), 'hi\n')
+  await end(run)
+})
+
 test('runChild takes its env and cwd from opts', async () => {
   const run = newRun({exits: [], notes: []})
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')))
