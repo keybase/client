@@ -11,6 +11,48 @@ import {
   type PayloadType,
 } from './rpc-transport'
 
+// Keys (lowercased) whose values are secrets in protocol/avdl params and results: passphrases
+// (account/login/signup/secretUi), paper keys and phrases (login, paperprovision, loginUi), the kex2
+// secret (provisionUi), and stellar secret keys. Booleans such as storeSecret stay visible.
+const secretKeys = new Set([
+  'passphrase',
+  'oldpassphrase',
+  'newpassphrase',
+  'pgppassphrase',
+  'password',
+  'paperkey',
+  'paperphrase',
+  'phrase',
+  'secret',
+  'secretkey',
+])
+const redactMaxDepth = 12
+
+// Copy of `value` for logging, with secret-keyed values replaced. Only plain objects and arrays are
+// walked; anything else (functions, Session, typed arrays) is passed through unchanged.
+export function redactRpcParams(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+  if (typeof value !== 'object' || value === null || depth > redactMaxDepth || seen.has(value)) {
+    return value
+  }
+  if (Array.isArray(value)) {
+    seen.add(value)
+    return value.map(v => redactRpcParams(v, depth + 1, seen))
+  }
+  const proto = Object.getPrototypeOf(value) as unknown
+  if (proto !== Object.prototype && proto !== null) {
+    return value
+  }
+  seen.add(value)
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(value)) {
+    out[k] =
+      secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null
+        ? '<redacted>'
+        : redactRpcParams(v, depth + 1, seen)
+  }
+  return out
+}
+
 // Logging for rpcs
 function rpcLog(info: {method: string; reason: string; extra?: object; type: string}): void {
   if (!printRPC) {
@@ -29,7 +71,7 @@ function rpcLog(info: {method: string; reason: string; extra?: object; type: str
 
   requestIdleCallback(
     () => {
-      const params = [info.reason, info.method, info.extra].filter(Boolean)
+      const params = [info.reason, info.method, redactRpcParams(info.extra)].filter(Boolean)
       LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
