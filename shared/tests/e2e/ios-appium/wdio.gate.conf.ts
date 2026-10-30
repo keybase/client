@@ -27,12 +27,15 @@ export const config: WebdriverIO.Config = {
       fs.rmSync(iosReportDir(), {force: true, recursive: true})
     },
   ],
-  // wdio only logs a beforeTest error and runs the test anyway, so afterTest reports a recorder that
-  // did not start. The account was checked before this (gate/hooks.ts).
+  // wdio only logs a beforeTest error and runs the test anyway, so nothing here throws: what failed
+  // is kept on the attempt's recorder for afterTest to report. The account was checked before this
+  // (gate/hooks.ts).
   beforeTest: async () => {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
-    await escapeToTabs()
+    await escapeToTabs().catch((e: unknown) => {
+      rec.error = `resetting to the tab root: ${message(e)}`
+    })
     await beginErrorCapture().catch((e: unknown) => {
       rec.captureError = `starting the error capture: ${message(e)}`
     })
@@ -42,7 +45,7 @@ export const config: WebdriverIO.Config = {
         rec.recording = r
       },
       (e: unknown) => {
-        rec.error = `starting the recorder: ${message(e)}`
+        rec.error ??= `starting the recorder: ${message(e)}`
       }
     )
   },

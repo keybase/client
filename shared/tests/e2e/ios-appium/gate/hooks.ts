@@ -34,10 +34,12 @@ const plain = {
 const hookErrors = new WeakMap<Mocha.Runnable, string>()
 const kept = (fn: (this: Mocha.Context) => unknown) =>
   async function (this: Mocha.Context) {
+    // read before the await: a timed-out hook rejects late, when this.test names a later runnable
+    const runnable = this.test
     try {
       await fn.call(this)
     } catch (e) {
-      if (this.test) hookErrors.set(this.test, message(e))
+      if (runnable) hookErrors.set(runnable, message(e))
       throw e
     }
   }
@@ -128,6 +130,7 @@ type Body = Mocha.AsyncFunc & {gateBody?: Mocha.AsyncFunc}
 const attempts = new WeakMap<Mocha.Test, AttemptToken>()
 // why an attempt's body threw, for one wdio's afterTest never reached (the account check refused it)
 const bodyErrors = new WeakMap<AttemptToken, string>()
+const NOT_RECORDED = 'the test passed, but wdio afterTest did not record its attempt'
 
 plain.beforeEach(
   kept(function (this: Mocha.Context) {
@@ -152,6 +155,12 @@ plain.beforeEach(
       }
       const ended = endedRecord(token)
       if (ended?.status === 'failed') throw new Error(ended.error ?? 'the attempt failed')
+      // failed here, not in the root afterEach: mocha retries a failed test, but a root afterEach that
+      // throws ends the whole run
+      if (!ended) {
+        bodyErrors.set(token, NOT_RECORDED)
+        throw new Error(NOT_RECORDED)
+      }
     }
     wrapped.gateBody = body
     test.fn = wrapped
@@ -178,12 +187,13 @@ plain.afterEach(
     const error =
       hookError ??
       bodyErrors.get(token) ??
-      (test.timedOut
-        ? timeoutMessage(test.timeout())
-        : test.state === 'passed'
-          ? 'the test passed, but wdio afterTest did not record its attempt'
-          : 'the attempt ended without wdio afterTest recording it')
-    await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
+      (test.timedOut ? timeoutMessage(test.timeout()) : 'the attempt ended without wdio afterTest recording it')
+    try {
+      await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
+    } catch (e) {
+      // what kept afterTest from ending it can stop finishAttempt too; a throw here would end the run
+      if (!endedRecord(token)) endAttemptOf(token, {durationMs: test.duration ?? 0, error: `${error}; ending it: ${message(e)}`, status: 'failed'})
+    }
   })
 )
 
