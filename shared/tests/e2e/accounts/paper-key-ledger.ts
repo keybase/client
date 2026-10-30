@@ -51,7 +51,6 @@ const writePaperKeys = (entries: ReadonlyArray<PaperKeyEntry>, file: string) => 
   fs.renameSync(tmp, file)
 }
 
-// The key's name goes to the run's names file next to the ledger (paperKeyNamesPath) too.
 // Within a run that scans for its paper key names (scansPaperKeyNames), the key's name goes to the
 // run's names file next to the ledger too; any other run writes no name.
 export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath(), recordName = scansPaperKeyNames()) => {
