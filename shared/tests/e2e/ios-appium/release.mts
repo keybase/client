@@ -61,7 +61,7 @@ import {portHolders, type PortHolder} from '../shared/gate/ports.ts'
 import {runSync, udidForName} from './helpers/app.ts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
-import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stillMetro, stopMetro} from './launch.mts'
+import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, metroGroups, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stopMetro} from './launch.mts'
 import {
   appSignedFromAppinfo,
   censusPhaseResult,
@@ -146,16 +146,8 @@ let metroPgid: number | undefined
 // stop anything, and anything on those ports after that is this run's
 let preflightPassed = false
 let renderDir: string | undefined
-// renderDir, when this run's render wrote an iOS render.json there
-const renderedDir = () => {
-  const file = renderDir && path.join(renderDir, 'render.json')
-  if (!file || !fs.existsSync(file)) return undefined
-  try {
-    return (JSON.parse(fs.readFileSync(file, 'utf8')) as {platform?: string}).platform === 'ios' ? renderDir : undefined
-  } catch {
-    return undefined
-  }
-}
+// renderDir, once this run's render wrote an iOS render.json there
+let iosRenderDir: string | undefined
 
 const node = (script: string, ...args: Array<string>) =>
   ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(sharedDir, script), ...args]
@@ -205,8 +197,9 @@ const stopWhatItStarted = async () => {
   if (metroPgid !== undefined) pgids.add(metroPgid)
   if (recorded && recorded.start >= runStart) pgids.add(recorded.pgid)
   metroPgid = undefined
+  const isMetro = pgids.size ? metroGroups() : () => false
   for (const pgid of pgids) {
-    if (!stillMetro(pgid)) {
+    if (!isMetro(pgid)) {
       log(`process group ${pgid} it recorded for Metro is no longer a Metro; left alone`)
       forgetMetroPidfile(pgid)
       continue
@@ -457,11 +450,13 @@ const main = async () => {
     renderDir = /^render: (.+)$/m.exec(r.stdout)?.[1]?.trim()
     const file = renderDir && path.join(renderDir, 'render.json')
     if (!file || !fs.existsSync(file)) return {line: `visual render exited ${r.code} and wrote no render.json${logFailed(r)}`, ok: false}
-    const t = summarizeRender((JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: Array<RenderResultRow>}).entries, IOS_KNOWN_FAILURES.render)
+    const rendered = JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: Array<RenderResultRow>; platform?: string}
+    const platformOk = rendered.platform === 'ios'
+    if (platformOk) iosRenderDir = renderDir
+    const t = summarizeRender(rendered.entries, IOS_KNOWN_FAILURES.render)
     for (const n of t.fresh) log(`new render failure: ${n}`)
     for (const n of t.known) log(`known on master: ${n}`)
     for (const n of t.nowPasses) log(`known render failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
-    const platformOk = renderedDir() !== undefined
     return {
       line: `${renderLine(t)}${r.code === 0 ? '' : ` (exited ${r.code})`}${platformOk ? '' : ' (render.json is not an iOS render)'}${logFailed(r)}`,
       ok: r.code === 0 && t.failed === 0 && platformOk && !r.logError,
@@ -470,7 +465,7 @@ const main = async () => {
 
   await phase('census', async () => {
     const start = Date.now()
-    const dir = renderedDir()
+    const dir = iosRenderDir
     const r = await runChild('census', 'node', node('tests/e2e/ios-appium/census.mts', ...(dir ? ['--render', dir] : ['--no-render'])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('census'),
     })
@@ -479,7 +474,7 @@ const main = async () => {
 
   await phase('report', async () => {
     const start = Date.now()
-    const dir = renderedDir()
+    const dir = iosRenderDir
     const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : [])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('report'),
     })

@@ -37,18 +37,19 @@ export const processes = () => {
   return r.error ? [] : parsePs(r.stdout, Date.now())
 }
 
-// Whether `pgid` is still running a Metro (release-lib.ts isMetroGroup): a recorded group id is only
-// ever signalled while it is.
-export const stillMetro = (pgid: number) => {
-  if (!groupAlive(pgid)) return false
+// Whether a process group is still running a Metro (release-lib.ts isMetroGroup), as one ps and one
+// lsof read now say: a recorded group id is only ever signalled while it is.
+export const metroGroups = () => {
+  const rows = processes()
   const holders = portHolders(METRO_PORT)
-  return isMetroGroup(processes(), pgid, 'error' in holders ? [] : holders.holders.map(h => h.pgid))
+  const portPgids = 'error' in holders ? [] : holders.holders.map(h => h.pgid)
+  return (pgid: number) => groupAlive(pgid) && isMetroGroup(rows, pgid, portPgids)
 }
 
 // The Metro group an earlier release run recorded and that is still running, if any.
 export const recordedMetroPgid = () => {
   const r = readMetroPidfile()
-  return r && stillMetro(r.pgid) ? r.pgid : undefined
+  return r && metroGroups()(r.pgid) ? r.pgid : undefined
 }
 
 // Drops the pidfile when it still records `pgid`.
