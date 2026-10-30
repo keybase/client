@@ -51,6 +51,7 @@ import {
   signedInAs,
   storedMessage,
   typeInComposer,
+  unreadCount,
   visibleConversation,
   waitForComposerText,
   waitForRow,
@@ -65,7 +66,9 @@ describe('chat composer', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   open      openConversation 100;  reset  resetComposer 30 (edit bar 5, reply bar 5, clear 5,
   //             the taps and reads)
-  //   draft     the DM's inbox row read 110 (scrollInboxTo 90, its label polled 10, overrun 10)
+  //   read      openDirectRead 110 (open 100, the DM read as read 10)
+  //   draft     the DM's inbox row read 112 (the DM read 1, scrollInboxTo 90, its label polled 10,
+  //             overrun 10, the DM read 1)
   //   type      typeInComposer 15;  composer  waitForComposerText 5 (10 where given);  sent  sendMessage 25
   //   edit      startEdit 50 (keyboard 5, menu 35, edit bar 5, composer 5);  cancel  11
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  close  closeMessageMenu 5
@@ -106,10 +109,32 @@ describe('chat composer', function () {
       timeout,
     })
 
+  // A body or draft that the DM's inbox row is read for: a label of at most 6 characters keeps it
+  // to 23 characters (30 with " edited"), so the row's one-line snippet shows it whole.
+  const rowBody = (label: string) => {
+    if (label.length > 6) throw new Error(`the row body label "${label}" is over 6 characters`)
+    return e2eMarker(label)
+  }
+
+  // The row hides a draft while the DM is unread (small-team/index.tsx), so every draft read starts
+  // from a read DM: the phone's unread count for it, the one its row reads, is 0.
+  const directIsRead = async () => (await unreadCount(data.direct.convID)) === 0
+  const requireDirectRead = async () => check(await directIsRead(), 'the DM is unread, so its inbox row hides any draft')
+  // Opens the DM and waits for the phone to read it as read: each draft test starts here.
+  const openDirectRead = async () => {
+    await openDirect()
+    await waitFor('the DM to read as read', async () => ((await directIsRead()) ? true : undefined), {
+      interval: 500,
+      timeout: 10_000,
+    })
+  }
+
   // The DM's inbox row, which shows a saved draft as "Draft: <text>" while the conversation is not
   // open. Its label reads "<name>, <time>, <snippet>"; the inbox is scrolled to it, then its label is
-  // read afresh until `ok` takes it. Neither the name nor the label goes in an error.
+  // read afresh until `ok` takes it, the DM reading as read before and after. Neither the name nor
+  // the label goes in an error.
   const expectDirectRow = async (what: string, ok: (label: string) => boolean) => {
+    await requireDirectRead()
     await scrollInboxTo(data.secondUser)
     await waitFor(
       `the DM's inbox row to show ${what}`,
@@ -124,6 +149,7 @@ describe('chat composer', function () {
       },
       {interval: 500, timeout: 10_000}
     )
+    await requireDirectRead()
   }
   const expectDirectDraft = async (draft: string) =>
     expectDirectRow(`the draft "${draft}"`, label => label.includes('Draft') && label.includes(draft))
@@ -194,13 +220,13 @@ describe('chat composer', function () {
 
   describe('drafts', () => {
     it('a draft survives a conversation switch and an app relaunch', async function () {
-      // worst case (s): open 100, reset 30, type 15, step 2, open 100, draft 110, step 2, open 100,
-      // composer 5, open 100, draft 110, relaunch 200, signed in 90, draft 110, step 2, open 100,
-      // composer 5, step 2 = 1183; the margin covers a slow relaunch
+      // worst case (s): read 110, reset 30, type 15, step 2, open 100, draft 112, step 2, open 100,
+      // composer 5, open 100, draft 112, relaunch 200, signed in 90, draft 112, step 2, open 100,
+      // composer 5, step 2 = 1199; the margin covers a slow relaunch
       this.timeout(1500_000)
-      await openDirect()
+      await openDirectRead()
       await resetComposer()
-      const draft = e2eMarker('composer-draft')
+      const draft = rowBody('cdraft')
       await typeInComposer(draft)
       await step('A draft typed in the DM')
 
@@ -231,13 +257,13 @@ describe('chat composer', function () {
     })
 
     it('a send clears the composer and the saved draft', async function () {
-      // worst case (s): open 100, reset 30, type 15, open 100, draft 110, step 2, open 100, composer 5,
-      // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 110, open 100, composer 5,
-      // step 2 = 882
+      // worst case (s): read 110, reset 30, type 15, open 100, draft 112, step 2, open 100, composer 5,
+      // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 112, open 100, composer 5,
+      // step 2 = 896
       this.timeout(920_000)
-      await openDirect()
+      await openDirectRead()
       await resetComposer()
-      const text = e2eMarker('composer-send')
+      const text = rowBody('csend')
       await typeInComposer(text)
       await openScratch()
       await expectDirectDraft(text)
@@ -259,10 +285,10 @@ describe('chat composer', function () {
     })
 
     it('typing straight after a send is not erased', async function () {
-      // worst case (s): open 100, reset 30, type 15, the tap 1, the typing 5, row 15, the pause 1,
-      // composer 5, cli 80, step 2 = 254
-      this.timeout(270_000)
-      await openDirect()
+      // worst case (s): read 110, reset 30, type 15, the tap 1, the typing 5, row 15, the pause 1,
+      // composer 5, cli 80, step 2 = 264
+      this.timeout(280_000)
+      await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-quick')
       await typeInComposer(text)
@@ -279,10 +305,10 @@ describe('chat composer', function () {
 
   describe('editing', () => {
     it('Edit from the menu puts the message in the composer, and Cancel ends it', async function () {
-      // worst case (s): open 100, reset 30, sent 25, edit 50, step 2, cancel 11, composer 5, cli 80,
-      // step 2 = 305
-      this.timeout(320_000)
-      await openDirect()
+      // worst case (s): read 110, reset 30, sent 25, edit 50, step 2, cancel 11, composer 5, cli 80,
+      // step 2 = 315
+      this.timeout(340_000)
+      await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-edit')
       await sendMessage(text)
@@ -297,12 +323,12 @@ describe('chat composer', function () {
     })
 
     it('leaving mid-edit discards the edit and saves no draft', async function () {
-      // worst case (s): open 100, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
-      // step 2, open 100, draft 110, open 100, composer 5, cli 80, step 2 = 615
-      this.timeout(640_000)
-      await openDirect()
+      // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
+      // step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 627
+      this.timeout(660_000)
+      await openDirectRead()
       await resetComposer()
-      const text = e2eMarker('composer-leave')
+      const text = rowBody('cleave')
       await sendMessage(text)
       await startEdit(text)
       await el(T.CHAT_INPUT).addValue(' changed')
@@ -322,14 +348,14 @@ describe('chat composer', function () {
     })
 
     it('leaving mid-edit keeps the draft from before the edit', async function () {
-      // worst case (s): open 100, reset 30, sent 25, type 15, edit 50, the typing 5, composer 5, the
-      // pause 1, step 2, open 100, draft 110, open 100, composer 5, cli 80, step 2 = 630
-      this.timeout(650_000)
-      await openDirect()
+      // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, composer 5, the
+      // pause 1, step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 642
+      this.timeout(670_000)
+      await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-leave-draft')
       await sendMessage(text)
-      const draft = e2eMarker('composer-pre-edit')
+      const draft = rowBody('cpre')
       await typeInComposer(draft)
       await startEdit(text)
       await el(T.CHAT_INPUT).addValue(' changed')
@@ -348,14 +374,14 @@ describe('chat composer', function () {
     })
 
     it('cancelling an edit puts the draft from before it back', async function () {
-      // worst case (s): open 100, reset 30, sent 25, type 15, edit 50, the typing 5, the pause 1,
-      // cancel 11, composer 5, step 2, open 100, draft 110, open 100, composer 5, cli 80, step 2 = 641
-      this.timeout(660_000)
-      await openDirect()
+      // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, the pause 1,
+      // cancel 11, composer 5, step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 653
+      this.timeout(680_000)
+      await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-cancel')
       await sendMessage(text)
-      const draft = e2eMarker('composer-pre-cancel')
+      const draft = rowBody('cprec')
       await typeInComposer(draft)
       await startEdit(text)
       await el(T.CHAT_INPUT).addValue(' changed')
@@ -375,10 +401,10 @@ describe('chat composer', function () {
     })
 
     it('Edit from the menu raises the keyboard once the menu is gone', async function () {
-      // worst case (s): open 100, reset 30, sent 25, edit 50, keyboard 5, the keys 2, composer 5,
-      // step 2 = 219
+      // worst case (s): read 110, reset 30, sent 25, edit 50, keyboard 5, the keys 2, composer 5,
+      // step 2 = 229
       this.timeout(240_000)
-      await openDirect()
+      await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-edit-focus')
       await sendMessage(text)
@@ -394,13 +420,13 @@ describe('chat composer', function () {
 
     // On a phone thread search takes the composer's place, and closing it attaches a new input.
     it("an edit's text comes back after thread search, sending posts the edit, and no draft is saved", async function () {
-      // worst case (s): open 100, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
+      // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
       // search 20, the composer gone 5, close 5, composer 5, step 2, the tap 1, the edit bar 5,
-      // composer 5, the row 15, cli 80, step 2, open 100, draft 110, step 2 = 578
-      this.timeout(600_000)
-      await openDirect()
+      // composer 5, the row 15, cli 80, step 2, open 100, draft 112, step 2 = 590
+      this.timeout(620_000)
+      await openDirectRead()
       await resetComposer()
-      const text = e2eMarker('composer-edit-search')
+      const text = rowBody('cedsr')
       const edited = `${text} edited`
       await sendMessage(text)
       await startEdit(text)
@@ -516,14 +542,14 @@ describe('chat composer', function () {
     // read off the recorder's call log, the positive control first. In the DM, whose inbox row shows
     // the saved draft's text (a channel row shows only a draft icon).
     it('leaving with the @mention list open sends no typing after the leave and keeps the text as the draft', async function () {
-      // worst case (s): calls 2, open 100, reset 30, type 15, the list 10, the typing sent 12, the
-      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 110, step 2 = 391
+      // worst case (s): calls 2, read 110, reset 30, type 15, the list 10, the typing sent 12, the
+      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 112, step 2 = 403
       this.timeout(420_000)
       const typed = `@${data.secondUser.slice(0, 3)}`
       const typingOn = (calls: ReadonlyArray<LoggedCall>) =>
         calls.filter(c => c.method === 'chat.1.local.updateTyping' && c.typing === true)
       const before = await currentCallSeq()
-      await openDirect()
+      await openDirectRead()
       await resetComposer()
       await typeInComposer(typed)
       await el(T.CHAT_SUGGESTION_LIST).waitForExist({timeout: 10_000})
