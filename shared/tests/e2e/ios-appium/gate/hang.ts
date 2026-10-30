@@ -98,4 +98,5 @@ export const stopHangWatch = () => slot.stop()
 
 // Waits for a relaunch a watch started (a body mocha timed out stopped its watch mid-relaunch), so
 // the next test never finds the app restarting; throws when it runs past its own bound and a margin.
-export const settleHangRelaunch = async () => settleRelaunch(slot.relaunching(), RELAUNCH_MS + 30_000)
+export const HANG_SETTLE_MS = RELAUNCH_MS + 30_000
+export const settleHangRelaunch = async () => settleRelaunch(slot.relaunching(), HANG_SETTLE_MS)

@@ -4,7 +4,8 @@
 // Every test the run selects ends with a record: its attempts, or one failed record saying why it
 // never ran (a hook failed first). A hook's error is kept so that record can cite it.
 import * as path from 'path'
-import {settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
+import {HANG_SETTLE_MS, settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
+import {setBeforeCleanupSteps} from '../../shared/cleanup.ts'
 import {
   beginAttempt,
   endAttemptOf,
@@ -99,16 +100,30 @@ globalThis.specify = globalThis.it
 globalThis.xit = globalThis.it.skip
 globalThis.xspecify = globalThis.it.skip
 
-const declareHook = (h: Mocha.HookFunction<Mocha.Hook>) =>
+// A flow afterEach first waits for a hung app's relaunch still running (hang.ts), so it never
+// drives an app that is restarting.
+const settledFirst = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
+  async function (this: Mocha.Context) {
+    // the wait's own bound; a hook that sets its timeout restarts it from there
+    this.timeout(HANG_SETTLE_MS + 30_000)
+    await settleHangRelaunch()
+    return fn.call(this)
+  }
+
+const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, settle = false) =>
   function (a: string | Mocha.AsyncFunc, b?: Mocha.AsyncFunc) {
     insideDescribe('a hook')
-    if (typeof a === 'function') return h(kept(a))
+    const wrap = (fn: Mocha.AsyncFunc) => kept(settle ? settledFirst(fn) : fn)
+    if (typeof a === 'function') return h(wrap(a))
     if (!b) throw new Error(`the hook "${a}" has no function`)
-    return h(a, kept(b))
+    return h(a, wrap(b))
   } as Mocha.HookFunction<Mocha.Hook>
+// a test body's own cleanup steps wait the same way
+setBeforeCleanupSteps(settleHangRelaunch)
+
 globalThis.before = declareHook(plain.before)
 globalThis.beforeEach = declareHook(plain.beforeEach)
-globalThis.afterEach = declareHook(plain.afterEach)
+globalThis.afterEach = declareHook(plain.afterEach, true)
 globalThis.after = declareHook(plain.after)
 
 const flowFileOf = (test: Mocha.Test) => {
@@ -194,6 +209,8 @@ plain.beforeEach(
 // flow afterEach failed after it.
 plain.afterEach(
   kept(async function (this: Mocha.Context) {
+    // waiting out a relaunch (HANG_SETTLE_MS) and then ending the attempt (its screenshot and logs)
+    this.timeout(HANG_SETTLE_MS + 90_000)
     // a body mocha timed out is still running and never stopped its watch, and a relaunch the watch
     // started may still be running
     stopHangWatch()
