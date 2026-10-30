@@ -131,6 +131,9 @@ type Body = Mocha.AsyncFunc & {gateBody?: Mocha.AsyncFunc}
 const attempts = new WeakMap<Mocha.Test, AttemptToken>()
 // why an attempt's body threw, for one wdio's afterTest never reached (the account check refused it)
 const bodyErrors = new WeakMap<AttemptToken, string>()
+// how long a body whose app hung gets to fail its stuck command and run its cleanup
+const HUNG_BODY_SETTLE_MS = 120_000
+const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const NOT_RECORDED = 'the test passed, but wdio afterTest did not record its attempt'
 
 plain.beforeEach(
@@ -145,24 +148,28 @@ plain.beforeEach(
     // A retry clones the test with this wrapper as its body, so the original body is kept on it.
     const body = ((test.fn as Body).gateBody ?? test.fn) as Mocha.AsyncFunc
     const wrapped: Body = async function (this: Mocha.Context) {
-      // an app stuck for good is killed and relaunched (hang.ts), and its hang is what the test failed of
-      startHangWatch()
+      // An app stuck for good is killed and relaunched (hang.ts), and the test fails of its hang at
+      // once: the body gets a bounded time for its stuck command to fail and its cleanup to run, then
+      // the attempt ends, so anything of the body's still going finds it over.
+      const hung = startHangWatch()
+      const run = runAttempt(token, async () => {
+        await requireAppIsSmoke()
+        await body.call(this)
+      })
       let hang: string | undefined
       try {
-        await runAttempt(token, async () => {
-          await requireAppIsSmoke()
-          await body.call(this)
-        })
-        hang = stopHangWatch()
+        hang = await Promise.race([run.then(() => undefined), hung])
+        if (hang) {
+          await Promise.race([run.catch(() => {}), sleep(HUNG_BODY_SETTLE_MS)])
+          throw new Error(hang)
+        }
       } catch (e) {
-        hang = stopHangWatch()
-        const failure = hang ? new Error(`${hang}; then: ${message(e)}`, {cause: e}) : e
+        hang ??= stopHangWatch()
+        const failure = hang && message(e) !== hang ? new Error(`${hang}; then: ${message(e)}`, {cause: e}) : e
         if (!bodyErrors.has(token)) bodyErrors.set(token, message(failure))
         throw failure
-      }
-      if (hang) {
-        bodyErrors.set(token, hang)
-        throw new Error(hang)
+      } finally {
+        stopHangWatch()
       }
       const ended = endedRecord(token)
       if (ended?.status === 'failed') throw new Error(ended.error ?? 'the attempt failed')

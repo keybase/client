@@ -1,4 +1,4 @@
-import {mainThreadInSnapshot, makeWatchSlot, nextStuckReads} from './hang-lib'
+import {mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG} from './hang-lib'
 
 const report = (mainFrames: Array<string>) =>
   [
@@ -22,9 +22,14 @@ test('the snapshot on another thread, or no main thread, is not the main thread 
   expect(mainThreadInSnapshot('Call graph:\n    10 Thread_9\n    + 10 _accessibilityUserTestingSnapshotWithOptions:')).toBe(false)
 })
 
-test('stuck reads count up in a row and reset on a read that was not', () => {
-  expect(nextStuckReads(nextStuckReads(0, true), true)).toBe(2)
-  expect(nextStuckReads(2, false)).toBe(0)
+test('stuck reads count only while no command completes', () => {
+  let s = nextHangState(NO_HANG, {commandsDone: 7, inSnapshot: true})
+  s = nextHangState(s, {commandsDone: 7, inSnapshot: true})
+  s = nextHangState(s, {commandsDone: 7, inSnapshot: true})
+  expect(s).toEqual({commandsAtFirst: 7, stuck: 3})
+  // a healthy app reading a long list: in the snapshot at every read, but its commands complete
+  expect(nextHangState(s, {commandsDone: 9, inSnapshot: true})).toEqual({commandsAtFirst: 9, stuck: 1})
+  expect(nextHangState(s, {commandsDone: 7, inSnapshot: false})).toEqual(NO_HANG)
 })
 
 test("starting a watch stops the one before it, and stop() stops whichever runs, once", () => {

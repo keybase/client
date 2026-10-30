@@ -11,6 +11,7 @@ import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
 import {beginErrorCapture} from './gate/errors'
 import {finishAttempt, type TestResult} from './gate/finish'
+import {noteCommandDone} from './gate/hang'
 
 const PROJECT = 'ios-flows'
 
@@ -48,6 +49,10 @@ export const config: WebdriverIO.Config = {
         rec.error ??= `starting the recorder: ${message(e)}`
       }
     )
+  },
+  // what the app-hang watch counts: a hung app completes no command
+  afterCommand: () => {
+    noteCommandDone()
   },
   afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
   onComplete: (exitCode: number) => {

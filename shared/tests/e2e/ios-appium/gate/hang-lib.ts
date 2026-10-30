@@ -20,8 +20,18 @@ export const mainThreadInSnapshot = (report: string) => {
   return false
 }
 
-// Counts reads in a row that found the main thread in the snapshot; a read that did not resets it.
-export const nextStuckReads = (stuck: number, inSnapshot: boolean) => (inSnapshot ? stuck + 1 : 0)
+// Stuck reads in a row, and how many Appium commands had completed at the first of them.
+export type HangState = {stuck: number; commandsAtFirst: number}
+export const NO_HANG: HangState = {commandsAtFirst: 0, stuck: 0}
+
+// The state after one read. A read counts as stuck only when the main thread is in the snapshot and
+// no Appium command has completed since the first stuck read: a healthy app answering one query
+// after another (a long list read page by page) is often in the snapshot, but its commands complete.
+export const nextHangState = (s: HangState, read: {inSnapshot: boolean; commandsDone: number}): HangState => {
+  if (!read.inSnapshot) return NO_HANG
+  if (s.stuck > 0 && read.commandsDone === s.commandsAtFirst) return {...s, stuck: s.stuck + 1}
+  return {commandsAtFirst: read.commandsDone, stuck: 1}
+}
 
 // The one watch running: starting one stops the one before it (a test mocha timed out never stopped
 // its own), and stop() stops whichever runs. A stop returns what the watch found, if anything.
