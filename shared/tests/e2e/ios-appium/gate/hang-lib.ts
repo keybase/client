@@ -41,19 +41,41 @@ export const nextHangState = (s: HangState, read: {inSnapshot: boolean; commands
 
 // The one watch running: starting one stops the one before it (a test mocha timed out never stopped
 // its own), and stop() stops whichever runs. A stop returns what the watch found, if anything.
+// relaunching() is the relaunch a watch started, stopped or not, until it settles: a mocha timeout
+// can stop the watch while its relaunch runs on.
+export type SlotWatch = {stop: () => string | undefined; relaunching: () => Promise<void> | undefined}
 export const makeWatchSlot = () => {
-  let current: (() => string | undefined) | undefined
+  let current: SlotWatch | undefined
+  const earlier = new Set<SlotWatch>()
   return {
-    start: (stop: () => string | undefined) => {
-      current?.()
-      current = stop
+    relaunching: (): Promise<void> | undefined => [current, ...earlier].map((w): Promise<void> | undefined => w?.relaunching()).find(p => p !== undefined),
+    start: (w: SlotWatch) => {
+      if (current) {
+        current.stop()
+        earlier.add(current)
+      }
+      for (const e of earlier) if (!e.relaunching()) earlier.delete(e)
+      current = w
     },
     stop: () => {
-      const s = current
+      const w = current
       current = undefined
-      return s?.()
+      if (w) earlier.add(w)
+      return w?.stop()
     },
   }
+}
+
+// Waits for a relaunch in flight to settle, up to `ms`; throws when it does not.
+export const settleRelaunch = async (pending: Promise<void> | undefined, ms: number) => {
+  if (!pending) return
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timedOut = new Promise<boolean>(resolve => {
+    timer = setTimeout(() => resolve(true), ms)
+  })
+  const late = await Promise.race([pending.then(() => false, () => false), timedOut])
+  clearTimeout(timer)
+  if (late) throw new Error(`the hung app's relaunch had not settled after ${ms / 1000}s`)
 }
 
 // four reads in a row, 45s or more apart from the first, with no request succeeding between them
@@ -87,6 +109,7 @@ export const makeHangWatch = (deps: HangDeps) => {
   const hung = new Promise<string>(resolve => {
     found = resolve
   })
+  let relaunching: Promise<void> | undefined
   const read = async () => {
     if (isStopped() || hang) return
     const pid = deps.appPid()
@@ -101,15 +124,18 @@ export const makeHangWatch = (deps: HangDeps) => {
     if (state.stuck < STUCK_READS) return
     const why = deps.keep(report)
     hang = why
+    relaunching = deps.relaunch()
     try {
-      await deps.relaunch()
+      await relaunching
     } finally {
+      relaunching = undefined
       found(why)
     }
   }
   return {
     hung,
     read,
+    relaunching: (): Promise<void> | undefined => relaunching,
     stop: () => {
       stopped = true
       return hang

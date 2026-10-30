@@ -11,7 +11,7 @@ import {withDeadline} from '../../shared/deadline.ts'
 import {appPid} from '../helpers/lifecycle'
 import {iosReportDir} from './attempt.ts'
 import {relaunchHungApp} from './device.ts'
-import {makeHangWatch, makeWatchSlot, protocolSucceeded, STUCK_READS} from './hang-lib.ts'
+import {makeHangWatch, makeWatchSlot, protocolSucceeded, settleRelaunch, STUCK_READS} from './hang-lib.ts'
 
 const READ_EVERY_MS = 15_000
 const SAMPLE_MS = 20_000
@@ -83,12 +83,19 @@ export const startHangWatch = async (): Promise<string> => {
         busy = false
       })
   }, READ_EVERY_MS)
-  slot.start(() => {
-    clearInterval(timer)
-    return watch.stop()
+  slot.start({
+    relaunching: watch.relaunching,
+    stop: () => {
+      clearInterval(timer)
+      return watch.stop()
+    },
   })
   return watch.hung
 }
 
 // Stops the running watch, if any, and returns what it found.
 export const stopHangWatch = () => slot.stop()
+
+// Waits for a relaunch a watch started (a body mocha timed out stopped its watch mid-relaunch), so
+// the next test never finds the app restarting; throws when it runs past its own bound and a margin.
+export const settleHangRelaunch = async () => settleRelaunch(slot.relaunching(), RELAUNCH_MS + 30_000)

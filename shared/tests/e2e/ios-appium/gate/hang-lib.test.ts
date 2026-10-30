@@ -1,4 +1,4 @@
-import {makeHangWatch, mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG, protocolSucceeded, STUCK_READS} from './hang-lib'
+import {makeHangWatch, mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG, protocolSucceeded, settleRelaunch, STUCK_READS} from './hang-lib'
 
 const report = (mainFrames: Array<string>) =>
   [
@@ -35,14 +35,20 @@ test('stuck reads count only while no command completes', () => {
 test("starting a watch stops the one before it, and stop() stops whichever runs, once", () => {
   const slot = makeWatchSlot()
   const stopped: Array<string> = []
-  slot.start(() => {
-    stopped.push('a')
-    return undefined
+  slot.start({
+    relaunching: () => undefined,
+    stop: () => {
+      stopped.push('a')
+      return undefined
+    },
   })
   // the next test's watch, after a test mocha timed out without stopping its own
-  slot.start(() => {
-    stopped.push('b')
-    return 'hung'
+  slot.start({
+    relaunching: () => undefined,
+    stop: () => {
+      stopped.push('b')
+      return 'hung'
+    },
   })
   expect(stopped).toEqual(['a'])
   expect(slot.stop()).toBe('hung')
@@ -116,4 +122,51 @@ test('a read still sampling when the watch stops does nothing after its await', 
   release(stuckSample)
   await last
   expect(seen.relaunched).toBe(0)
+})
+
+test('a watch stopped mid-relaunch leaves the relaunch for the afterEach to wait for', async () => {
+  let finish: () => void = () => {}
+  let relaunched = false
+  const watch = makeHangWatch({
+    appPid: () => 42,
+    cpuPercent: () => 100,
+    keep: () => 'hung',
+    relaunch: async () =>
+      new Promise<void>(resolve => {
+        finish = () => {
+          relaunched = true
+          resolve()
+        }
+      }),
+    sample: async () => {
+      await Promise.resolve()
+      return stuckSample
+    },
+    succeeded: () => 0,
+  })
+  const slot = makeWatchSlot()
+  slot.start({relaunching: watch.relaunching, stop: watch.stop})
+  for (let i = 0; i < STUCK_READS - 1; i++) await watch.read()
+  const reading = watch.read()
+  // wait for the read to reach the relaunch
+  while (!watch.relaunching()) await Promise.resolve()
+  // mocha timed the body out: the root afterEach stops the watch, then waits for the relaunch
+  expect(slot.stop()).toBe('hung')
+  let settled = false
+  const waiting = (async () => {
+    await settleRelaunch(slot.relaunching(), 5_000)
+    settled = true
+  })()
+  await Promise.resolve()
+  expect(settled).toBe(false)
+  finish()
+  await waiting
+  await reading
+  expect(relaunched).toBe(true)
+  expect(slot.relaunching()).toBeUndefined()
+})
+
+test('a relaunch that never settles fails the wait', async () => {
+  await expect(settleRelaunch(new Promise<void>(() => {}), 20)).rejects.toThrow("the hung app's relaunch had not settled after 0.02s")
+  await expect(settleRelaunch(undefined, 20)).resolves.toBeUndefined()
 })

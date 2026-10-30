@@ -4,7 +4,7 @@
 // Every test the run selects ends with a record: its attempts, or one failed record saying why it
 // never ran (a hook failed first). A hook's error is kept so that record can cite it.
 import * as path from 'path'
-import {startHangWatch, stopHangWatch} from './hang.ts'
+import {settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
 import {
   beginAttempt,
   endAttemptOf,
@@ -194,8 +194,10 @@ plain.beforeEach(
 // flow afterEach failed after it.
 plain.afterEach(
   kept(async function (this: Mocha.Context) {
-    // a body mocha timed out is still running and never stopped its watch
+    // a body mocha timed out is still running and never stopped its watch, and a relaunch the watch
+    // started may still be running
     stopHangWatch()
+    await settleHangRelaunch()
     const test = this.currentTest
     const token = test && attempts.get(test)
     if (!test || !token) return
