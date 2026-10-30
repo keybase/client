@@ -2,6 +2,7 @@
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
 // Delivering something to the app proves nothing about it, so these credit nothing: a flow calls
 // creditSurface(<surface>) once it has asserted the app used what was delivered.
+import {execFileSync} from 'child_process'
 import {
   activateApp,
   appPid,
@@ -18,10 +19,11 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {openAttemptToken} from './attempt.ts'
+import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {withHarnessRpcs} from './recorder.ts'
 
+const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
@@ -74,6 +76,30 @@ export const setPasteboard = async (text: string) => {
     },
     {interval: 500, timeout: 10_000}
   )
+}
+
+// The simulator's pasteboard text (what the app copied), read over stdout. The value is the caller's to
+// compare and is never logged: a failed read reports only how it failed. The flow credits
+// 'pasteboard' once it has asserted the text is what the app copied.
+export const pasteboardText = async (): Promise<string> => {
+  requireCurrentAttempt()
+  let out: string
+  try {
+    out = execFileSync('xcrun', ['simctl', 'pbpaste', deviceUdid()], {
+      encoding: 'utf8',
+      killSignal: 'SIGKILL',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: PASTEBOARD_MS,
+    })
+  } catch (e) {
+    const {signal, status} = e as {signal?: string | null; status?: number | null}
+    // no cause: the error holds the command's output
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`reading the simulator pasteboard failed (${signal ? `signal ${signal}` : `exit ${status ?? '?'}`})`)
+  }
+  // a body mocha abandoned while the read ran does not go on with what it read
+  requireCurrentAttempt()
+  return Promise.resolve(out)
 }
 
 const runtimeId = async (): Promise<string | undefined> =>

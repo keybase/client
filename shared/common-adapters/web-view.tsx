@@ -24,6 +24,8 @@ export type WebViewProps = {
   style?: object
   showLoadingStateUntilLoaded?: boolean
   onError?: (err: string) => void
+  // mobile: on the view once its page has loaded
+  testID?: string
 }
 
 type ElectronWebviewTag = {
@@ -82,7 +84,7 @@ const WebView = (props: WebViewProps) => {
 
   const {allowFileAccessFromFileURLs, allowFileAccess, originWhitelist} = props
   const {allowUniversalAccessFromFileURLs, url, renderLoading} = props
-  const {showLoadingStateUntilLoaded} = props
+  const {showLoadingStateUntilLoaded, testID} = props
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
@@ -115,7 +117,7 @@ const WebView = (props: WebViewProps) => {
 
   return (
     <>
-      <NativeView style={{...Styles.size('100%'), opacity}}>
+      <NativeView style={{...Styles.size('100%'), opacity}} testID={loading ? undefined : testID}>
         <NativeWebView
           key={String(forceReload)}
           allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}

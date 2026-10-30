@@ -35,8 +35,6 @@ import {manualEdge, step} from '../gate/step'
 import {
   accountChangedSeq,
   appInboxLists,
-  check,
-  chooseMenuItem,
   clearComposer,
   closeMessageMenu,
   closeSearch,
@@ -72,6 +70,7 @@ import {
   waitForThreadStable,
   watchAccountChange,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender, textBodies} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {openUrl, waitFor} from '../helpers/lifecycle'

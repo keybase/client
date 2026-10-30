@@ -50,3 +50,28 @@ export const runAbortable = async <T,>(
     ? {message: `${what}: not done in ${ms / 1000}s; stopped it`, ok: false, settled}
     : {message: `${what}: not done in ${ms / 1000}s, and still running ${settleMs / 1000}s after it was told to stop`, ok: false, settled}
 }
+
+// Asks `check` every `interval` ms until it answers something other than undefined, and returns that.
+// Past `timeout` it throws naming `what`, with the last error `check` threw. Framework-free: the host
+// read-backs the desktop and iOS flows share poll through it.
+export const waitFor = async <R,>(
+  what: string,
+  check: () => Promise<R | undefined>,
+  {interval = 1_000, timeout}: {interval?: number; timeout: number}
+): Promise<R> => {
+  const end = Date.now() + timeout
+  let lastErr: unknown
+  for (;;) {
+    try {
+      const r = await check()
+      if (r !== undefined) return r
+    } catch (e) {
+      lastErr = e
+    }
+    if (Date.now() > end) {
+      const detail = lastErr instanceof Error ? `: ${lastErr.message}` : ''
+      throw new Error(`timed out after ${timeout / 1000}s waiting for ${what}${detail}`)
+    }
+    await new Promise(resolve => setTimeout(resolve, interval))
+  }
+}

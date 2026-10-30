@@ -4,7 +4,8 @@
 // Only a name that parses as run-stamped (see run-id.ts), from a run whose start minute ended
 // before `before`, is ever deleted, and only inside its kind's scope:
 //   channels, subteams, emoji     KB_E2E_TEAM (emoji: and its subteams)
-//   team repos                    KB_E2E_TEAM itself
+//   team repos                    KB_E2E_TEAM itself, and its run-stamped subteams (each deleted
+//                                 before its subteam, which holds back while one is left)
 //   messages                      the account's own, in the scratch channel, the smoke<->second
 //                                 conversation or (smoke only) the self conversation
 //   KBFS entries                  directly in a folder kbfsRoots names
@@ -96,6 +97,15 @@ const messageConvsFor = (account: SweepAccount, ctx: SweepContext) =>
 const inTeamOrSubteam = (team: string | undefined, ctx: SweepContext) =>
   !!team && !!ctx.team && (team === ctx.team || team.startsWith(`${ctx.team}.`))
 
+// KB_E2E_TEAM itself, or a run-stamped subteam directly under it (a seeded subteam's name holds no
+// run id).
+const teamRepoScope = (team: string | undefined, ctx: SweepContext) => {
+  if (!team || !ctx.team) return false
+  if (team === ctx.team) return true
+  const part = team.startsWith(`${ctx.team}.`) ? team.slice(ctx.team.length + 1) : ''
+  return !!part && !part.includes('.') && !!parseStampedName(part, 'team', ctx.before)
+}
+
 type Verdict = {to: 'drop'} | {to: 'delete'} | {to: 'listOnly' | 'kept'; reason: string}
 type Stamp = {runId: string; startMs: number}
 
@@ -117,7 +127,7 @@ const stampedPart = (c: SweepCandidate, ctx: SweepContext): string | undefined =
     case 'emoji':
       return inTeamOrSubteam(c.team, ctx) ? c.name : undefined
     case 'teamRepo':
-      return c.team && c.team === ctx.team ? c.name : undefined
+      return teamRepoScope(c.team, ctx) ? c.name : undefined
     case 'message':
       return c.sender === ctx.users[c.account] &&
         Number.isInteger(c.messageID) &&
@@ -206,11 +216,25 @@ export const selectSweepTargets = (candidates: ReadonlyArray<SweepCandidate>, ct
     if (v.to === 'delete') out.delete.push(candidate)
     else if (v.to !== 'drop') out[v.to].push({candidate, reason: v.reason})
   }
-  // a team with live subteams cannot be deleted: deepest teams go first. An emoji goes before every
-  // team: its delete goes through its team, which a team delete before it would have removed.
-  const order = (c: SweepCandidate) => (c.kind === 'emoji' ? emojiOrder : c.kind === 'team' || c.kind === 'subteam' ? depth(c) : 0)
+  // a team with live subteams cannot be deleted: deepest teams go first. An emoji or a team repo goes
+  // before every team: its delete goes through its team, which a team delete before it would have
+  // removed (and a deleted subteam's repo is out of reach for good).
+  const order = (c: SweepCandidate) =>
+    c.kind === 'emoji' || c.kind === 'teamRepo' ? emojiOrder : c.kind === 'team' || c.kind === 'subteam' ? depth(c) : 0
   out.delete.sort((a, b) => order(b) - order(a))
   return out
+}
+
+// Why a team or subteam delete waits for a later sweep, or undefined when it may go: a team repo of
+// it this sweep failed to delete, or a listing of the team repos that failed (a repo it did not see
+// would be out of reach once its subteam is gone).
+export const heldByTeamRepos = (
+  c: SweepCandidate,
+  repos: {failedRepoTeams: ReadonlySet<string>; reposListed: boolean}
+): string | undefined => {
+  if (c.kind !== 'team' && c.kind !== 'subteam') return undefined
+  if (!repos.reposListed) return 'held: the team git repos could not be listed'
+  return repos.failedRepoTeams.has(c.name) ? 'held: a team git repo of it could not be deleted' : undefined
 }
 
 // A message shows its first word and id; a paper key only its device id (its name is two of its

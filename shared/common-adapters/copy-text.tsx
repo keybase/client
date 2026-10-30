@@ -33,6 +33,8 @@ type Props = {
   sensitive?: boolean // secret text: kept out of Android clipboard previews and history
   shareSheet?: boolean // (mobile only) show share sheet instead of copying
   loadText?: (onLoaded?: (text: string) => void) => void
+  // on the copy button
+  testID?: string
 }
 
 const CopyText = (props: Props) => {
@@ -52,6 +54,7 @@ const CopyText = (props: Props) => {
     placeholderText,
     sensitive,
     shareSheet: _shareSheet,
+    testID,
     textType,
   } = props
   const [revealed, setRevealed] = React.useState(!withReveal)
@@ -190,7 +193,7 @@ const CopyText = (props: Props) => {
         </Kb.Text>
       )}
       {!disabled && (
-        <Kb.Button type={buttonType || 'Default'} style={styles.button} onClick={copy}>
+        <Kb.Button type={buttonType || 'Default'} style={styles.button} onClick={copy} testID={testID}>
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={theme.whiteOrWhite}

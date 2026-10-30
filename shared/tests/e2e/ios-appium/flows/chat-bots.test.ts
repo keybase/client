@@ -22,22 +22,24 @@ import {sourceElements} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   currentRoute,
-  elementWithLabelPartIn,
   expectRoute,
   hideKeyboard,
-  menuHas,
-  NAMED_ELEMENT_TYPES,
   openConversation,
-  openMenuFrom,
   openMessageMenu,
-  tapButton,
   typeInSearchFilter,
   waitForRow,
 } from '../helpers/chat'
+import {
+  check,
+  chooseMenuItem,
+  elementWithLabelPartIn,
+  menuHas,
+  NAMED_ELEMENT_TYPES,
+  openMenuFrom,
+  tapButton,
+} from '../helpers/menus'
 import {expectHost, secondSender} from '../helpers/chat-host'
 import {el, els, tapForTestID} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

@@ -26,8 +26,6 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   closeInfoPanel,
   closeMessageMenu,
   deletePhase,
@@ -49,6 +47,7 @@ import {
   waitForRow,
   waitForThreadStable,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'

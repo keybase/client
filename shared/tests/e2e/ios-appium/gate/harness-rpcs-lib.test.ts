@@ -148,15 +148,18 @@ const unpausedHarnessEvals = (files: ReadonlyArray<{file: string; text: string}>
   return {builders, found}
 }
 
+// The file holding the retrying eval wrapper and askApp.
+const APP_ASK = path.join('gate', 'app-ask.ts')
+
 // Every call of the raw eval (lifecycle's jsEval, imported as jsEvalOnce) outside the retrying
-// wrapper in helpers/chat.ts, which the scan above sees as jsEval.
+// wrapper in gate/app-ask.ts, which the scan above sees as jsEval.
 const rawEvalCalls = (files: ReadonlyArray<{file: string; text: string}>) => {
   const found: Array<string> = []
   for (const f of files) {
     const sf = ts.createSourceFile(f.file, f.text, ts.ScriptTarget.Latest, true)
     walk(sf, n => {
       if (callee(n) !== 'jsEvalOnce') return
-      if (f.file !== path.join('helpers', 'chat.ts') || declaredName(n) !== 'jsEval') found.push(lineOf(f.file, sf, n))
+      if (f.file !== APP_ASK || declaredName(n) !== 'jsEval') found.push(lineOf(f.file, sf, n))
     })
   }
   return found
@@ -173,9 +176,22 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
   const {builders, found} = unpausedHarnessEvals(files)
   // the scan sees the known harness bodies, so an empty answer is not a scan that matched nothing
   expect(builders.has('configuredAccountsAskBody')).toBe(true)
+  // askApp's typed bodies in gate/app-ask.ts, and the chat helpers' asks through it
+  for (const b of ['filesSettings', 'setFilesSettings', 'folderSyncConfig', 'setFolderSyncConfig', 'appSkinTone']) expect(builders.has(b)).toBe(true)
   expect(files.some(f => f.text.includes('withHarnessRpcs(') && f.text.includes('switchToAccount'))).toBe(true)
   expect(found).toEqual([])
   expect(rawEvalCalls(files)).toEqual([])
+})
+
+test("the scan flags askApp's eval once it is outside withHarnessRpcs", () => {
+  const files = [...sources(__dirname), ...sources(path.join(__dirname, '..', 'helpers'))]
+  const appAsk = files.find(f => f.file === APP_ASK)
+  expect(appAsk?.text).toContain('jsEval(appAskBody(')
+  const unpaused = files.map(f => (f === appAsk ? {...f, text: f.text.replace('withHarnessRpcs(what,', 'unpaused(what,')} : f))
+  expect(unpaused.find(f => f.file === APP_ASK)?.text).not.toContain('withHarnessRpcs(')
+  const {found} = unpausedHarnessEvals(unpaused)
+  expect(found).toHaveLength(1)
+  expect(found[0]).toMatch(new RegExp(`^${APP_ASK}:\\d+$`))
 })
 
 test('the scan finds an inline sending body and a body builder outside withHarnessRpcs, and passes them inside it', () => {
@@ -205,7 +221,7 @@ test('the scan finds an inline sending body and a body builder outside withHarne
 test('the raw eval is called only by the retrying wrapper', () => {
   const wrapper = 'export const jsEval = async (body: string) => jsEvalOnce(body)'
   const other = 'export const read = async () => jsEvalOnce(`return 1`)'
-  expect(rawEvalCalls([{file: path.join('helpers', 'chat.ts'), text: wrapper}])).toEqual([])
-  expect(rawEvalCalls([{file: path.join('helpers', 'chat.ts'), text: wrapper + '\n' + other}])).toEqual(['helpers/chat.ts:2'])
-  expect(rawEvalCalls([{file: path.join('gate', 'x.ts'), text: wrapper + '\n' + other}])).toEqual(['gate/x.ts:1', 'gate/x.ts:2'])
+  expect(rawEvalCalls([{file: APP_ASK, text: wrapper}])).toEqual([])
+  expect(rawEvalCalls([{file: APP_ASK, text: wrapper + '\n' + other}])).toEqual(['gate/app-ask.ts:2'])
+  expect(rawEvalCalls([{file: path.join('helpers', 'chat.ts'), text: wrapper + '\n' + other}])).toEqual(['helpers/chat.ts:1', 'helpers/chat.ts:2'])
 })

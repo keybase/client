@@ -8,6 +8,7 @@ import {useSelectionStyles} from '../common'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type ChannelRowProps = {
   channel: T.Teams.TeamChannelInfo
@@ -135,6 +136,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         onClick={onEditChannel}
         small={true}
         tooltip="Edit channel"
+        testID={TestIDs.TEAMS_CHANNEL_ROW_EDIT}
       />
       <Kb.IconButton
         icon="iconfont-ellipsis"
@@ -144,6 +146,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         ref={popupAnchor}
         small={true}
         tooltip="More actions"
+        testID={TestIDs.TEAMS_CHANNEL_ROW_MENU}
       />
     </Kb.Box2>
   ) : undefined

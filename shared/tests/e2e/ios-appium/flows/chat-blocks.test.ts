@@ -21,18 +21,18 @@ import {openLink} from '../gate/device'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {
-  check,
+  appInboxLists,
   closeMessageMenu,
   dragUntilOnScreen,
   hideKeyboard,
   iconButton,
-  appInboxLists,
   inboxHasRow,
   openConversation,
   openInfoPanel,
   scrollInboxTo,
   tapSwitchLabelled,
 } from '../helpers/chat'
+import {check} from '../helpers/menus'
 import {convStatus, expectConvStatus, expectHost} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'

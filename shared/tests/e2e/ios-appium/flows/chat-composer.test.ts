@@ -30,8 +30,6 @@ import {callsSince, currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {manualEdge, step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   clearComposer,
   closeMessageMenu,
   closeSearch,
@@ -39,8 +37,6 @@ import {
   editCancel,
   hideKeyboard,
   isKeyboardUp,
-  menuLabels,
-  menuOffers,
   openConversation,
   openMessageMenu,
   openThreadSearch,
@@ -61,6 +57,7 @@ import {
   waitForRow,
   waitSignedIn,
 } from '../helpers/chat'
+import {check, chooseMenuItem, menuLabels, menuOffers} from '../helpers/menus'
 import {expectCli, textBodies} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

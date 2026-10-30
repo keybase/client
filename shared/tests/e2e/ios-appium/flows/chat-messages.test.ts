@@ -36,8 +36,6 @@ import {
   appPinnedMessageID,
   appSkinTone,
   cancelAppOutbox,
-  check,
-  chooseMenuItem,
   clearComposer,
   closeInfoPanel,
   closeMessageMenu,
@@ -72,6 +70,7 @@ import {
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, expectHost, pinnedOnHost, secondSender, textBodies, throwawayChannels} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'

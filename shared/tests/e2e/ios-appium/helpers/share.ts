@@ -11,7 +11,8 @@ import * as http from 'http'
 import * as os from 'os'
 import * as path from 'path'
 import * as T from '../../shared/test-ids'
-import {jsEval, signedInAs, threadStoreBody} from './chat'
+import {signedInAs, threadStoreBody} from './chat'
+import {jsEval} from '../gate/app-ask.ts'
 import {el} from './elements'
 import {
   BUNDLE_ID,

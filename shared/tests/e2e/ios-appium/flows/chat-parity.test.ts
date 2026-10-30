@@ -12,8 +12,6 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   closeSearch,
   hideKeyboard,
@@ -31,6 +29,7 @@ import {
   showsText,
   waitForThreadStable,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectHost, pinnedOnHost} from '../helpers/chat-host'
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

@@ -19,7 +19,6 @@ import * as T from '../../shared/test-ids'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
-  check,
   closeMessageMenu,
   elementInRow,
   hideKeyboard,
@@ -29,6 +28,7 @@ import {
   sendMessage,
   storedUnfurls,
 } from '../helpers/chat'
+import {check} from '../helpers/menus'
 import {expectHost} from '../helpers/chat-host'
 import {waitFor} from '../helpers/lifecycle'
 

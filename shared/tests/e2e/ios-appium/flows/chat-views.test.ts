@@ -27,23 +27,16 @@ import * as T from '../../shared/test-ids'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
-  BUTTON_ELEMENTS,
-  check,
-  chooseMenuItem,
   clearComposer,
   closeInfoPanel,
   closeMessageMenu,
   composerText,
   currentRoute,
   dragUntilOnScreen,
-  elementWithLabelPartIn,
   expectRoute,
   galleryListing,
   giphyGalleryShown,
   hideKeyboard,
-  menuLabels,
-  menuOffers,
-  NAMED_ELEMENT_TYPES,
   openConversation,
   openInfoPanel,
   openMessageMenu,
@@ -55,13 +48,22 @@ import {
   sendMessage,
   storedAttachment,
   suggestionRows,
-  tapButton,
   typeInComposer,
   typeInSearchFilter,
   visibleConversation,
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
+import {
+  BUTTON_ELEMENTS,
+  check,
+  chooseMenuItem,
+  elementWithLabelPartIn,
+  menuLabels,
+  menuOffers,
+  NAMED_ELEMENT_TYPES,
+  tapButton,
+} from '../helpers/menus'
 import {expectCli, secondSender, textBodies, throwawayChannels} from '../helpers/chat-host'
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

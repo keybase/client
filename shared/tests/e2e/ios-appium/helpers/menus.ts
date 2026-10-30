@@ -1,0 +1,203 @@
+// Generic helpers for the iOS flows' bottom-sheet menus (FloatingMenu) and labelled elements: open a
+// sheet, read and pick its items, and find the one element whose label is a name, compared in memory
+// so the name never goes into a selector or an error.
+import {waitFor} from './lifecycle'
+import {innermost, sheetItemLabels} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
+
+// The open menu sheet.
+export const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND visible == 1')
+
+// An item in the open menu sheet; its rows read ", <item>" (an icon, then the text).
+const menuItemPredicate = (label: string) =>
+  `-ios predicate string:type == "XCUIElementTypeOther" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
+export const menuItem = (label: string) => browser.$(`${menuItemPredicate(label)} AND visible == 1`)
+const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l => l === label || l.endsWith(`, ${label}`))
+
+// Drags the open sheet up by 300 points, from near the screen's bottom, to bring later items on screen.
+const dragSheetUp = async () => {
+  const {height, width} = await browser.getWindowRect()
+  const x = Math.round(width / 2)
+  await browser
+    .action('pointer', {parameters: {pointerType: 'touch'}})
+    .move({x, y: height - 80})
+    .down()
+    .move({duration: 400, x, y: height - 380})
+    .pause(200)
+    .up()
+    .perform()
+}
+
+// Every item label of the open menu sheet: the items drawn on screen inside the sheet, read as the
+// sheet is dragged up until a drag shows nothing new (its end), so an item below the fold counts.
+// Bound: 15s.
+export const menuLabels = async (): Promise<Array<string>> => {
+  if (!(await menuSheet().isExisting())) throw new Error('no menu sheet is open')
+  const seen = new Set<string>()
+  // one page source a reading (a call per element made a reading take seconds); `visible` is kept,
+  // so rows the sheet covers do not count
+  const shown = async () => sheetItemLabels(sourceElements(await browser.getPageSource())) ?? []
+  let before = ''
+  await waitFor(
+    'the menu sheet read to its end',
+    async () => {
+      const now = await shown()
+      // a sheet still sliding in reads no items: never the end, and nothing to drag yet
+      if (!now.length) return undefined
+      for (const l of now) seen.add(l)
+      const signature = now.join('\n')
+      if (signature === before) return true
+      before = signature
+      await dragSheetUp()
+      return undefined
+    },
+    {interval: 300, timeout: 15_000}
+  )
+  return [...seen]
+}
+
+// Whether the open menu sheet holds the item `label` anywhere in it (menuLabels). Bound: 15s.
+export const menuHas = async (label: string) => offers(await menuLabels(), label)
+export const menuOffers = offers
+
+// Scrolls the menu until `label` shows, and taps it. The sheet opens partway, so later items start
+// below the screen.
+export const chooseMenuItem = async (label: string) => {
+  await waitFor(
+    `"${label}" in the menu`,
+    async () => {
+      const item = menuItem(label)
+      if (await item.isExisting()) {
+        // A tap lands at the item's middle; once that is on screen the item can be tapped. The sheet
+        // tops out with its last items low on the screen, where no drag moves them further up.
+        const {y} = await item.getLocation()
+        const {height: itemHeight} = await item.getSize()
+        const {height} = await browser.getWindowRect()
+        if (y + itemHeight / 2 < height) return true
+      }
+      await dragSheetUp()
+      return undefined
+    },
+    {interval: 300, timeout: 15_000}
+  )
+  // A tap while the sheet still settles after a drag can do nothing (seen live): the item is tapped
+  // again only while the sheet and the item are both still up, so a tap that took is never repeated.
+  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
+  // 5s wait was.
+  for (let tap = 1; ; tap++) {
+    await menuItem(label).click()
+    const closed = await menuSheet()
+      .waitForExist({reverse: true, timeout: 2_500})
+      .then(() => true)
+      .catch(() => false)
+    if (closed) return
+    // the tap took and the sheet is on its way down
+    if (!(await menuItem(label).isExisting())) {
+      await menuSheet().waitForExist({reverse: true, timeout: 2_500})
+      return
+    }
+    if (tap >= 2) throw new Error(`the menu sheet is still up after "${label}" was tapped twice`)
+  }
+}
+
+// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
+// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
+export const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
+  waitFor(
+    what,
+    async () => {
+      if (await menuSheet().isExisting()) return true
+      await open()
+      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
+    },
+    {interval: 300, timeout}
+  )
+
+// Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.
+export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
+  openSheetWith(what, async () => tap().catch(() => {}))
+
+// Throws `message` unless `ok`.
+export const check = (ok: boolean, message: string) => {
+  if (!ok) throw new Error(message)
+}
+
+// The one element on screen whose label is exactly `label`, of those `selector` finds: compared in
+// memory, so a label holding an account name never goes into a selector or an error. Where nested
+// elements expose the same label (a pressable box and its text) the innermost is it. Throws when
+// none or more than one is drawn; `what` names it.
+export const labelledElement = async (selector: string, label: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    if ((await e.getAttribute('label').catch(() => null)) !== label) continue
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
+  return found[inner[0]!]!.e
+}
+
+// Every visible button, for labelledElement.
+export const BUTTON_ELEMENTS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
+
+// The visible button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap
+// 1 = 6.
+export const tapButton = async (label: string, what: string) =>
+  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS, label, what), {interval: 300, timeout: 5_000})).click()
+
+// The one element on screen of those `selector` finds whose label, split at its ", " joins, holds
+// `name` as a part (a tappable row merges its texts into one label): compared in memory, so a name
+// never goes into a selector or an error. The innermost of nested matches; none or more than one
+// throws. `what` names it.
+export const elementWithLabelPart = async (selector: string, name: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
+    if (!label.split(', ').some(part => part.trim() === name)) continue
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
+  return found[inner[0]!]!.e
+}
+
+// What a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
+// merging its texts.
+export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
+
+// The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
+// tappable row merges its texts into one label), read off one page source (a call per element on a
+// screen of rows is too slow) and compared in memory; then that element fetched by its type and
+// frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
+// than one throws. `what` names it.
+export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) => {
+  const found = sourceElements(await browser.getPageSource()).filter(
+    e =>
+      types.includes(e.type) &&
+      e.attrs['visible'] === 'true' &&
+      (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(part => part.trim() === name)
+  )
+  const rects = found.map(e => ({
+    height: Number(e.attrs['height']),
+    width: Number(e.attrs['width']),
+    x: Number(e.attrs['x']),
+    y: Number(e.attrs['y']),
+  }))
+  const inner = innermost(rects)
+  if (inner.length !== 1) {
+    const at = inner.map(k => `${found[k]!.type.replace('XCUIElementType', '')} ${rects[k]!.x},${rects[k]!.y} ${rects[k]!.width}x${rects[k]!.height}`)
+    throw new Error(`${inner.length} of ${what} on screen, not one${at.length ? `: ${at.join('; ')}` : ''}`)
+  }
+  const i = inner[0]!
+  const r = rects[i]!
+  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+  // nested boxes can share the row's frame exactly: any of them is the same tap, the deepest is taken
+  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.type}" AND ${at}`).getElements()
+  const deepest = els.at(-1)
+  if (!deepest) throw new Error(`no element at the frame of ${what}`)
+  return deepest
+}

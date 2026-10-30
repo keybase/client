@@ -6,7 +6,8 @@
 //   its own messages in the scratch channel, the smoke<->second conversation and (smoke) the self
 //   conversation; personal git repos, emails, root teams it owns, devices and paper keys; and,
 //   smoke only (deleting needs a team admin; peer services run no KBFS): team channels, subteams,
-//   emoji and team repos of KB_E2E_TEAM, and KBFS entries directly in the folders kbfsRoots names.
+//   emoji and team repos of KB_E2E_TEAM (team repos of its stamped subteams too, deleted before the
+//   subteam), and KBFS entries directly in the folders kbfsRoots names.
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
@@ -36,6 +37,7 @@ import {
   candidateKey,
   checkDelete,
   describeCandidate,
+  heldByTeamRepos,
   kbfsRoots,
   listedEmojiAlias,
   maskAccounts,
@@ -285,12 +287,14 @@ const kbfsEntries = async (actor: Actor, root: string, signal?: AbortSignal): Pr
   return out
 }
 
-type Gathered = {candidates: Array<SweepCandidate>; convIDs: Map<string, string>; errors: Array<string>}
+// failed: the kinds whose listing failed
+type Gathered = {candidates: Array<SweepCandidate>; convIDs: Map<string, string>; errors: Array<string>; failed: Set<SweepKind>}
 
 // Lists every kind, or only `kinds`.
 const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | undefined, kinds?: ReadonlySet<SweepKind>): Promise<Gathered> => {
   const candidates: Array<SweepCandidate> = []
   const errors: Array<string> = []
+  const failed = new Set<SweepKind>()
   let convIDs = new Map<string, string>()
   const section = async (kind: SweepKind, what: string, f: () => Promise<Array<SweepCandidate>>) => {
     if (kinds && !kinds.has(kind)) return
@@ -299,6 +303,7 @@ const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | und
     try {
       candidates.push(...(await f()))
     } catch (e) {
+      failed.add(kind)
       errors.push(`${actor.account}: listing ${what} failed: ${e instanceof Error ? e.message : String(e)}`)
     }
   }
@@ -341,7 +346,7 @@ const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | und
       }
     })
   }
-  return {candidates, convIDs, errors}
+  return {candidates, convIDs, errors, failed}
 }
 
 // The conversations whose messages an account sweeps, by what they are.
@@ -613,7 +618,7 @@ export const sweep = async (
   for (const actor of actors) {
     if (!kbfsRoots(actor.account, ctx).length) result.notes.push(`${actor.account}: KBFS not swept (peer services run no KBFS)`)
     signal?.throwIfAborted()
-    const {candidates, convIDs, errors} = await gather(actor, ctx, signal)
+    const {candidates, convIDs, errors, failed} = await gather(actor, ctx, signal)
     result.errors.push(...errors)
     const sel = selectSweepTargets(candidates, ctx)
     result.kept.push(...sel.kept)
@@ -623,13 +628,21 @@ export const sweep = async (
     // asked once for the batch's messages (many, each a small delete in a conversation of this
     // account's), and again right before every other delete
     const batchUser = sel.delete.some(c => c.kind === 'message') ? await actor.whoami() : ''
+    // team repos sort before every team (selectSweepTargets), so these are known before any team goes
+    const repos = {failedRepoTeams: new Set<string>(), reposListed: !failed.has('teamRepo')}
     for (const c of sel.delete) {
       signal?.throwIfAborted()
+      const held = heldByTeamRepos(c, repos)
+      if (held) {
+        result.errors.push(`${describeCandidate(c)}: ${held}`)
+        continue
+      }
       try {
         checkDelete(c, ctx, c.kind === 'message' ? batchUser : await actor.whoami())
         await deleteOne(actor, c, convIDs, env)
         result.deleted.push(c)
       } catch (e) {
+        if (c.kind === 'teamRepo' && c.team) repos.failedRepoTeams.add(c.team)
         result.errors.push(`${describeCandidate(c)}: delete failed: ${e instanceof Error ? e.message : String(e)}`)
       }
     }

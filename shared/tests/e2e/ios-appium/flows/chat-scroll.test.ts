@@ -34,8 +34,6 @@ import {
   catchUpPill,
   centreOffset,
   centreTolerance,
-  check,
-  chooseMenuItem,
   clearComposer,
   closeInfoPanel,
   closeSearch,
@@ -78,6 +76,7 @@ import {
   waitForThreadStable,
   wholly,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'

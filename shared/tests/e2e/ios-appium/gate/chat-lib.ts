@@ -1,4 +1,5 @@
-// Pure pieces of the iOS chat helpers (helpers/chat.ts), kept apart so they can be unit-tested.
+// Pieces of the iOS chat and row helpers (helpers/chat.ts, helpers/menus.ts), kept apart so they can be
+// unit-tested: pure, but for elementInRow, which reads the screen through `browser`.
 import {isDeepStrictEqual} from 'util'
 import {
   CHAT_INBOX_BIG_TEAM_HEADER,
@@ -258,3 +259,27 @@ export const inNameSection = (matches: ReadonlyArray<Rect>, chatsHeader: Rect, l
 type NotifyKinds = Record<string, boolean> | null | undefined
 export const notifyChoiceOf = (kinds: NotifyKinds): 'never' | 'onAnyActivity' | 'onWhenAtMentioned' =>
   kinds?.['0'] ? 'onAnyActivity' : kinds?.['1'] ? 'onWhenAtMentioned' : 'never'
+
+// The index of the one rect of `rects` whose middle lies inside `row`: a testID repeated once per row
+// (a row's menu button), as drawn in that row. Throws when none or more than one does; `what` names it.
+export const inRow = (row: Rect, rects: ReadonlyArray<Rect>, what: string) => {
+  const inside = rects.flatMap((r, i) => {
+    const x = r.x + r.width / 2
+    const y = r.y + r.height / 2
+    return x >= row.x && x <= row.x + row.width && y >= row.y && y <= row.y + row.height ? [i] : []
+  })
+  if (inside.length !== 1) throw new Error(`${inside.length} of ${what} in the row, not one`)
+  return inside[0]!
+}
+
+// The element with `testID` drawn inside the row at `rowRect` (window points), of those the testID
+// repeats on, one per row. Throws when none or more than one lies in it.
+export const elementInRow = async (rowRect: Rect, testID: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
+  for (const e of await browser.$$(`~${testID}`).getElements()) {
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  return found[inRow(rowRect, found.map(f => f.rect), testID)]!.e
+}

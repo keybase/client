@@ -8,6 +8,7 @@ import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {useFsFileContext} from '../common'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   path: T.FS.Path
@@ -99,7 +100,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsimg" />
+          <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsimg" testID={TestIDs.FILES_IMAGE_PREVIEW} />
         </>
       )
     }

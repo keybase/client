@@ -10,6 +10,7 @@ import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ensureError} from '@/util/errors'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -114,6 +115,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               onClick={showPopup}
               ref={popupAnchor}
               small={true}
+              testID={TestIDs.TEAMS_EMOJI_ROW_MENU}
             />
           </Kb.Box2>
         </Kb.Box2>

@@ -29,8 +29,6 @@ import {
   appConversationMuted,
   appConversationPinned,
   appInboxLists,
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   closeSearch,
   expectPersists,
@@ -39,7 +37,6 @@ import {
   openConversation,
   openInboxRowMenu,
   openInfoPanel,
-  openMenuFrom,
   openThreadSearch,
   rowElement,
   scrollInboxTo,
@@ -55,6 +52,7 @@ import {
   visibleConversation,
   waitForRow,
 } from '../helpers/chat'
+import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {convStatus, expectConvStatus, expectHost, secondSender, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

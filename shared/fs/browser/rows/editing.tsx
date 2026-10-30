@@ -46,6 +46,7 @@ function Editing({editSession}: Props) {
             autoFocus={true}
             onKeyDown={onKeyDown}
             hideBorder={true}
+            testID={TestIDs.FILES_EDITING_INPUT}
           />
         </Kb.Box2>
       }
@@ -63,6 +64,7 @@ function Editing({editSession}: Props) {
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
             waiting={editSession.isSubmitting}
             onClick={commitEdit}
+            testID={TestIDs.FILES_EDITING_SAVE}
           />
           <Kb.Icon
             onClick={discardEdit}

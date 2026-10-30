@@ -26,11 +26,8 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {
   appInboxLists,
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   dragUntilOnScreen,
-  elementWithLabelPartIn,
   expectPersists,
   hideKeyboard,
   iconButton,
@@ -40,7 +37,6 @@ import {
   notifyRadioChosen,
   openConversation,
   openInfoPanel,
-  openMenuFrom,
   scrollInboxTo,
   searchFilter,
   tapControlIn,
@@ -48,6 +44,7 @@ import {
   typeInSearchFilter,
   visibleConversation,
 } from '../helpers/chat'
+import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
 import {expectHost, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'

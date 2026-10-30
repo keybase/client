@@ -198,6 +198,7 @@ export const MemberActions = (props: MemberMenuProps) => {
         ref={popupAnchor}
         small={true}
         tooltip="More actions"
+        testID={TestIDs.TEAMS_MEMBER_ROW_MENU}
       />
     </Kb.Box2>
   )
