@@ -6,6 +6,7 @@ import QRScan from './qr-scan'
 import {produce} from 'immer'
 import Troubleshooting from '../troubleshooting'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {Device} from '@/constants/provision'
 import {submitProvisionTextCode} from '../flow'
@@ -123,7 +124,7 @@ const CodePageContainer = (op: OwnProps) => {
         relative={true}
         flex={1}
         style={{backgroundColor: tabBackground}}
-        testID="provision-code-page"
+        testID={TestIDs.PROVISION_CODE_PAGE}
       >
         <Kb.Box2
           direction="vertical"
