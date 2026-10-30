@@ -22,7 +22,7 @@ const checkEntry = (e: PaperKeyEntry) => {
   if (keyWordsRe.test(e.deviceName)) throw new Error('paper key ledger: the device name holds what looks like a paper key')
 }
 
-const checkMode = (p: string, want: number) => {
+export const checkMode = (p: string, want: number) => {
   const mode = fs.statSync(p).mode & 0o777
   if (mode !== want) throw new Error(`${p} is mode ${mode.toString(8)}, not ${want.toString(8)} (chmod ${want.toString(8)} ${p})`)
 }

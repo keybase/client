@@ -20,7 +20,7 @@
 // Without --check, setup also repairs what a block flow (chat-blocks) that failed its restore
 // leaves: the smoke account blocking the second one, their DM's status blocked, and the
 // smoke+second folder ignored. It unblocks and puts the DM back to unfiled, and makes the folder a
-// favorite again if the env file records it was one; each read back. It writes only when both
+// favorite again if setup recorded it as one (~/.config/keybase-e2e/pair-folder.json); each read back. It writes only when both
 // accounts are e2e test accounts.
 import * as fs from 'fs'
 import * as path from 'path'
@@ -45,7 +45,7 @@ import {
   stopPeerHomeService,
   withSignalsDeferred,
 } from './peer-homes.ts'
-import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR} from './repair-lib.ts'
+import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite} from './repair-lib.ts'
 import {ensureRunId} from './run-id.ts'
 import {maskAccounts, signedInName} from './sweep-lib.ts'
 import {E2E_CHANNELS, directConvIDFromCli, directTlfName} from '../shared/chat-data.ts'
@@ -158,7 +158,7 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   const leftover = await blockLeftovers(vars)
   if (leftover.dmBlocked) problems.push("the smoke account's DM with the second account is blocked (setup repairs it)")
   if (leftover.folderIgnored) {
-    problems.push(`the smoke+second folder is ignored (setup repairs it only if ${PAIR_FAVORITE_VAR} records it was a favorite)`)
+    problems.push(`the smoke+second folder is ignored (setup repairs it only if it is recorded as a favorite)`)
   }
   const members = async (topicName: string) =>
     (await mainChatApi({
@@ -194,8 +194,9 @@ const pollUntil = async (what: string, ok: () => Promise<boolean>) => {
 
 // Repairs a block flow's leftovers (see the top): each only when it is there, each read back. Reads
 // first; before the first write it refuses unless both accounts are test accounts. The folder is made
-// a favorite again only when the env file records it was one (PAIR_FAVORITE_VAR); otherwise it is
-// left as it is. A folder seen as a favorite is recorded, for a later repair.
+// a favorite again only when the gate's state dir records it was one (repair-lib.ts; PAIR_FAVORITE_VAR
+// in the env is a manual override); otherwise it is left as it is. A folder seen as a favorite is
+// recorded there, for a later repair.
 const repairBlockLeftovers = async (vars: Vars) => {
   const smoke = vars['KB_SMOKE_USER'] ?? ''
   const second = vars['KB_SECOND_USER'] ?? ''
@@ -207,7 +208,7 @@ const repairBlockLeftovers = async (vars: Vars) => {
   const isBlocked = await blocked()
   const {convID, dmBlocked, folderIgnored} = await blockLeftovers(vars)
   const refavorite = folderIgnored && pairWasFavorite(vars)
-  if (folderIgnored && !refavorite) say(`the smoke+second folder is ignored, and ${PAIR_FAVORITE_VAR} does not record it a favorite: left as it is`)
+  if (folderIgnored && !refavorite) say(`the smoke+second folder is ignored, and neither the gate's record nor ${PAIR_FAVORITE_VAR} says it was a favorite: left as it is`)
   if (isBlocked || dmBlocked || refavorite) {
     const problem = notTestAccountsProblem(smoke, second)
     if (problem) throw new Error(problem)
@@ -227,10 +228,7 @@ const repairBlockLeftovers = async (vars: Vars) => {
     await refavoritePair()
   }
   const folder = await pairFavoriteState()
-  if (folder.favorite && !folder.ignored && !pairWasFavorite(vars)) {
-    setEnvVars(envFile, {[PAIR_FAVORITE_VAR]: '1'})
-    vars[PAIR_FAVORITE_VAR] = '1'
-  }
+  if (folder.favorite && !folder.ignored) recordPairFavorite()
 }
 
 // Detached: the terminal's Ctrl-C must not kill a switch half done (withSignalsDeferred holds it
