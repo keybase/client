@@ -105,6 +105,8 @@ export const CHAT_ORANGE_LINE         = 'chat-orange-line'
 // the emoji picker's skin tone button, and the tones it expands to
 export const CHAT_SKIN_TONE_BUTTON    = 'chat-skin-tone-button'
 export const CHAT_SKIN_TONE_OPTIONS   = 'chat-skin-tone-options'
+// one skin tone in the expanded options: the prefix, then the tone's code ('1F3FA' is the default yellow)
+export const CHAT_SKIN_TONE_OPTION_PREFIX = 'chat-skin-tone-option-'
 // a git push system message's body
 export const CHAT_GIT_PUSH            = 'chat-git-push'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
@@ -135,8 +137,11 @@ export const CHAT_INBOX_UNREAD_SHORTCUT = 'chat-inbox-unread-shortcut'
 export const CHAT_INBOX_BIG_TEAMS_DIVIDER = 'chat-inbox-big-teams-divider'
 // the inbox header's New chat button
 export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
-// the forward picker's search box
+// the forward picker's search box, a conversation in its results, and the caption box an attachment's
+// forward asks for
 export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
+export const CHAT_FORWARD_RESULT      = 'chat-forward-result'
+export const CHAT_FORWARD_CAPTION     = 'chat-forward-caption'
 // a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
 // 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
 // of each group ends in the _SELECTED suffix

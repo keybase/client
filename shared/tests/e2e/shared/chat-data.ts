@@ -115,6 +115,8 @@ type ApiMessage = {
     // each emoji's reactions, by the usernames that reacted
     reactions?: {reactions?: Record<string, {users?: Record<string, unknown> | null}> | null} | null
     sender: {username: string}
+    // when the server took it, in its own clock
+    sent_at_ms?: number
   }
 }
 export type CliMessage = ApiMessage['msg']

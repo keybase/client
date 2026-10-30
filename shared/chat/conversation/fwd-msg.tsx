@@ -155,7 +155,7 @@ const TeamPickerInner = (props: Props) => {
 
   const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
-      <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
+      <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results} testID={TestIDs.CHAT_FORWARD_RESULT}>
         {item.isTeam ? (
           <TeamAvatar
             isMuted={false}
@@ -220,6 +220,7 @@ const TeamPickerInner = (props: Props) => {
           onChangeText={setTitle}
           value={title}
           selectTextOnFocus={true}
+          testID={TestIDs.CHAT_FORWARD_CAPTION}
         />
       </Kb.ModalScreen>
     )

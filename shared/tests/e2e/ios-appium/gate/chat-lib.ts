@@ -11,6 +11,11 @@ export const inboxRowMatches = (label: string, name: string) => {
   return l === name || l.startsWith(`${name}, `)
 }
 
+// Whether a forward picker result's accessibility label is the conversation named `name`: the row
+// reads its avatars' labels, if any, then the name, each a field of its own, so a longer name that
+// holds `name` is not it.
+export const forwardResultMatches = (label: string, name: string) => !!name && label.split(', ').includes(name)
+
 // Why a value read back after a relaunch is not the one wanted, or undefined when it is.
 export const persistedMismatch = (what: string, got: unknown, want: unknown) =>
   isDeepStrictEqual(got, want) ? undefined : `${what} after a relaunch: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`

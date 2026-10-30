@@ -1,4 +1,4 @@
-import {carriedTeam, findInboxRow, inboxRowMatches, persistedMismatch, shiftIntoBand, visibleBand, wholly} from './chat-lib'
+import {carriedTeam, findInboxRow, forwardResultMatches, inboxRowMatches, persistedMismatch, shiftIntoBand, visibleBand, wholly} from './chat-lib'
 
 describe('inboxRowMatches', () => {
   test('a small conversation row matches by the exact name its label starts with', () => {
@@ -28,6 +28,23 @@ describe('inboxRowMatches', () => {
   test('an empty name matches nothing', () => {
     expect(inboxRowMatches('', '')).toBe(false)
     expect(inboxRowMatches(', 3:04 PM', '')).toBe(false)
+  })
+})
+
+describe('forwardResultMatches', () => {
+  test('a result matches by a whole field of its label', () => {
+    expect(forwardResultMatches('testuser', 'testuser')).toBe(true)
+    expect(forwardResultMatches('testuser, testuser', 'testuser')).toBe(true)
+  })
+
+  test('a result of a longer name, or of a group holding the name, does not match', () => {
+    expect(forwardResultMatches('testuser-mac', 'testuser')).toBe(false)
+    expect(forwardResultMatches('testuser,testuser-mac', 'testuser')).toBe(false)
+    expect(forwardResultMatches('team#testuser', 'testuser')).toBe(false)
+  })
+
+  test('an empty name matches nothing', () => {
+    expect(forwardResultMatches('', '')).toBe(false)
   })
 })
 

@@ -1364,3 +1364,210 @@ export const startAppAccountSwitch = async (username: string) => {
   )
   if (!started) throw new Error('the app would not start the account switch')
 }
+
+// -- asking the phone's own service --------------------------------------------------------------
+
+// Where an ask's answer waits for the evals that poll it (an eval returns before an RPC answers).
+const APP_ASK_KEY = 'globalThis.__kbE2EAppAsk'
+let appAsks = 0
+type AppAnswer<R> = {ask: string} & ({state: 'pending'} | {state: 'answered'; value: R} | {state: 'failed'; error: string})
+
+// A function body for jsEval that runs `call` (an expression for a promise, evaluated in the app) and
+// keeps what it answers under `ask`, so an earlier ask answering late cannot replace a newer one's.
+const appAskBody = (ask: string, call: string) => `
+    const ask = ${JSON.stringify(ask)}
+    ${APP_ASK_KEY} = {ask, state: 'pending'}
+    const keep = r => { if (${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ask) ${APP_ASK_KEY} = {ask, ...r} }
+    Promise.resolve()
+      .then(() => ${call})
+      .then(value => keep({state: 'answered', value}), e => keep({state: 'failed', error: String(e && e.message)}))
+    return true
+  `
+
+// Asks the phone's own service through `call`, with the recorder paused (the census never credits
+// it), and returns the answer, which `call` projects to plain data. For read-backs of what lives
+// only on the phone, and for restores. Bound: `timeout`, plus the pause and resume.
+const askApp = async <R,>(what: string, call: string, timeout = 20_000): Promise<R> => {
+  // unique across runs too: the app's global outlives this process
+  const ask = `${Date.now()}-${++appAsks}`
+  const r = await withHarnessRpcs(what, async () => {
+    await jsEval(appAskBody(ask, call))
+    return waitFor(
+      `the phone's service to answer ${what}`,
+      async () => {
+        const got = await jsEval<AppAnswer<R>>(`return ${APP_ASK_KEY} ?? {ask: '', state: 'pending'}`)
+        return got.ask === ask && got.state !== 'pending' ? got : undefined
+      },
+      {interval: 250, timeout}
+    )
+  })
+  if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${r.error}`)
+  return r.value
+}
+
+const RPC_CHAT = `kbModule('constants/rpc/rpc-chat-gen.tsx')`
+const RPC_GEN = `kbModule('constants/rpc/rpc-gen.tsx')`
+const CHAT_TYPES = `kbModule('constants/types/chat/index.tsx')`
+
+// The emoji skin tone the phone's service keeps for the signed-in account (ReacjiSkinTone: 0 the
+// default, 1 to 5). The service keeps it on the device, so the host cannot read the phone's.
+export const appSkinTone = async () =>
+  askApp<number>(
+    "the phone's skin tone",
+    `${RPC_GEN}.configGetBootstrapStatusRpcPromise().then(s => (s && s.userReacjis && s.userReacjis.skinTone) || 0)`
+  )
+
+// Restores the phone's skin tone through its service (a restore only: the UI's pick is what counts).
+export const restoreAppSkinTone = async (tone: number) => {
+  await askApp<boolean>(
+    'restoring the skin tone',
+    `${RPC_CHAT}.localPutReacjiSkinToneRpcPromise({skinTone: ${Number(tone)}}).then(() => true)`
+  )
+}
+
+// The skin tone the app holds now (what its pickers show), read off its daemon store, or undefined
+// before its bootstrap status has loaded.
+export const shownSkinTone = async () =>
+  jsEval<number | null>(`
+    const s = kbModule('stores/daemon.tsx').useDaemonState.getState().bootstrapStatus
+    return s ? (s.userReacjis && s.userReacjis.skinTone) || 0 : null
+  `).then(t => t ?? undefined)
+
+// The id of the message pinned in a conversation as the phone's own service shows it to the
+// signed-in account, or null when it shows none (none pinned, or this device dismissed the pin: the
+// service keeps a dismissal on the device that made it).
+export const appPinnedMessageID = async (convID: string) =>
+  askApp<number | null>(
+    'the pin as the phone reads it',
+    `${RPC_CHAT}.localGetInboxAndUnboxUILocalRpcPromise({
+       identifyBehavior: 6,
+       query: {computeActiveList: false, convIDs: [${CHAT_TYPES}.keyToConversationID(${JSON.stringify(convID)})], readOnly: false, unreadOnly: false},
+     }).then(res => {
+       const conv = (res.conversations || [])[0]
+       if (!conv) throw new Error('the phone reads no such conversation')
+       const pinned = conv.pinnedMsg
+       return pinned ? (pinned.message && pinned.message.valid ? pinned.message.valid.messageID : -1) : null
+     })`
+  )
+
+// Cancels outbox records on the phone's own service, by their outbox ids: a cleanup, never the
+// UI's Cancel. CancelPost of a record already gone answers too.
+export const cancelAppOutbox = async (outboxIDs: ReadonlyArray<string>) => {
+  for (const id of outboxIDs) {
+    await askApp<boolean>(
+      'cancelling a stuck outbox record',
+      `${RPC_CHAT}.localCancelPostRpcPromise({outboxID: ${CHAT_TYPES}.outboxIDToRpcOutboxID(${JSON.stringify(id)})}).then(() => true)`
+    )
+  }
+}
+
+// -- a message's send state ----------------------------------------------------------------------
+
+// A loaded message's state as the store holds it: whether it was edited, whether it explodes (and
+// has, and who exploded it early), and, while it is not yet sent, its outbox record: its submit state
+// and the error the service gave (errorTyp, OutboxErrorType: 3 is too long).
+export type StoredMessageState = {
+  edited: boolean
+  errorTyp: number | null
+  exploded: boolean
+  explodedBy: string
+  exploding: boolean
+  id: number
+  outboxID: string | null
+  submitState: string | null
+  text: string
+}
+export const storedMessageState = async (ordinal: number) =>
+  jsEval<StoredMessageState | null>(`${threadStoreBody}
+    const m = st && st.messageMap.get(${ordinal})
+    if (!m) return null
+    return {
+      edited: !!m.hasBeenEdited,
+      errorTyp: typeof m.errorTyp === 'number' ? m.errorTyp : null,
+      exploded: !!m.exploded,
+      explodedBy: m.explodedBy || '',
+      exploding: !!m.exploding,
+      id: Number(m.id) || 0,
+      outboxID: m.outboxID ? String(m.outboxID) : null,
+      submitState: m.submitState || null,
+      text: bodyOf(m).trim(),
+    }
+  `)
+
+// The outbox ids of the visible thread's loaded messages, not yet sent, whose text contains `text`.
+export const outboxIDsWithText = async (text: string) =>
+  jsEval<Array<string>>(`${threadStoreBody}
+    if (!st) return []
+    const out = []
+    for (const o of st.messageOrdinals || []) {
+      const m = st.messageMap.get(o)
+      if (m && !Number(m.id) && m.outboxID && bodyOf(m).includes(${JSON.stringify(text)})) out.push(String(m.outboxID))
+    }
+    return out
+  `)
+
+// The exploding mode the visible thread's composer sends with, in seconds (0: off).
+export const explodingModeSeconds = async () =>
+  jsEval<number | null>(`${threadStoreBody}
+    return st ? st.explodingMode || 0 : null
+  `)
+
+// -- the composer's pasteboard -------------------------------------------------------------------
+
+// The edit menu's Paste: only its tappable MenuItem or Button, not the StaticText it also exposes.
+const PASTE_ITEM =
+  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
+
+// Long-presses the composer until its edit menu shows Paste, and taps it: what a person does to paste.
+// The pasteboard is set before (gate/device.ts setPasteboard). Bound: six tries of about 3s.
+export const pasteIntoComposer = async () => {
+  const input = await el(T.CHAT_INPUT).getElement()
+  await input.click()
+  for (let i = 0; i < 6; i++) {
+    await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: input.elementId})
+    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).catch(() => false)) {
+      await browser.$(PASTE_ITEM).click()
+      return
+    }
+    await sleep(300)
+  }
+  throw new Error("the composer's edit menu never offered Paste")
+}
+
+// -- the GIF picker ------------------------------------------------------------------------------
+
+// Whether the visible screen draws the GIF picker: the phone's is a web view of the service's
+// gallery page (its url's key starts "gg"), read off the React tree.
+export const giphyGalleryShown = async () =>
+  jsEval<boolean>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && p.source && typeof p.source.uri === 'string' && /[?&]key=gg/.test(p.source.uri)) return true
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return false
+  `)
+
+// The GIFs the picker's web view exposes, as image elements wholly on screen inside it: a WKWebView
+// hands its page's images to XCUITest. Empty while it shows none.
+export const giphyImages = async () => {
+  const views = await browser.$$('-ios class chain:**/XCUIElementTypeWebView').getElements()
+  if (views.length !== 1) return []
+  const view = views[0]!
+  const {x: vx, y: vy} = await view.getLocation()
+  const {height: vh, width: vw} = await view.getSize()
+  const out: Array<WebdriverIO.Element> = []
+  for (const img of await view.$$('-ios class chain:**/XCUIElementTypeImage').getElements()) {
+    const at = await img.getLocation().catch(() => undefined)
+    const size = await img.getSize().catch(() => undefined)
+    if (!at || !size || size.width < 10 || size.height < 10) continue
+    if (at.x >= vx && at.y >= vy && at.x + size.width <= vx + vw && at.y + size.height <= vy + vh) out.push(img)
+  }
+  return out
+}
