@@ -12,13 +12,13 @@ import {findDeviceRow, labeled, openDevicePage, openDevices, revokeOnPhone, wait
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 
+const PAPER_KEY_TEXT = '-ios predicate string:type == "XCUIElementTypeStaticText" AND label MATCHES "^[a-z]+( [a-z]+){5,}$"'
+
 // Makes a paper key from the phone (Devices > Add > Create a paper key), records it in the paper key
 // ledger at once (so a run that dies after this leaves it to the sweeper), then revokes it from the
 // phone. Its words are on screen while the paper key screen is up, and nothing hides them there: no
 // step, page source or label read runs until the screen has closed, and a screen that will not close
 // is ended by relaunching the app before any failure screenshot. Nothing reads the words.
-const PAPER_KEY_TEXT = '-ios predicate string:type == "XCUIElementTypeStaticText" AND label MATCHES "^[a-z]+( [a-z]+){5,}$"'
-
 describe('device paper key', function () {
   this.retries(0)
 
