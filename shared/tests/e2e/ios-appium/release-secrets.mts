@@ -21,3 +21,18 @@ export const scanResults = (dirs: ReadonlyArray<string>, secrets: () => Readonly
   log(`secrets: ${p.ok ? 'ok' : 'FAILED'}: ${p.line}`)
   return {...p, ms: Date.now() - start, name: 'secrets'}
 }
+
+// Stops what the run started, then scans: the scan runs however the stop went, and a stop that threw
+// counts as one that left something running. `scan` returns undefined when there is nothing to scan.
+export const stopThenScan = async (stop: () => Promise<boolean>, scan: () => Phase | undefined, log: (s: string) => void) => {
+  let stopped = false
+  let secrets: Phase | undefined
+  try {
+    stopped = await stop()
+  } catch (e) {
+    log(`stopping what it started failed: ${errText(e)}`)
+  } finally {
+    secrets = scan()
+  }
+  return {secrets, stopped}
+}

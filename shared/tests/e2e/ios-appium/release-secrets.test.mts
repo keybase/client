@@ -6,7 +6,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {createReleaseRun} from '../shared/gate/release-run.mts'
 import {watchEnvSecrets} from '../shared/gate/secret-scan.ts'
-import {scanResults} from './release-secrets.mts'
+import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const quiet = async (f: () => Promise<void>) => {
   const lines: Array<string> = []
@@ -96,4 +96,43 @@ test('a scan whose secrets cannot be read fails', () => {
   }, () => {})
   assert.equal(phase.ok, false)
   assert.match(phase.line, /could not scan .*: no env file/)
+})
+
+test('a stop that throws still scans, after it, and counts as not stopped', async () => {
+  const order: Array<string> = []
+  const logs: Array<string> = []
+  const dir = resultsWith({'ios-logs/flows.log': 'leaked-secret-value-1'})
+  const r = await stopThenScan(
+    async () => {
+      order.push('stop')
+      return Promise.reject(new Error('lsof hung'))
+    },
+    () => {
+      order.push('scan')
+      return scanResults([dir], () => ['leaked-secret-value-1'], () => {})
+    },
+    s => void logs.push(s)
+  )
+  assert.deepEqual(order, ['stop', 'scan'])
+  assert.equal(r.stopped, false)
+  assert.equal(r.secrets?.ok, false)
+  assert.equal(fs.existsSync(path.join(dir, 'ios-logs/flows.log')), false)
+  assert.deepEqual(logs, ['stopping what it started failed: lsof hung'])
+})
+
+test('a stop that went fine scans after it and says so', async () => {
+  const order: Array<string> = []
+  const r = await stopThenScan(
+    async () => {
+      order.push('stop')
+      return Promise.resolve(true)
+    },
+    () => {
+      order.push('scan')
+      return undefined
+    },
+    () => {}
+  )
+  assert.deepEqual(order, ['stop', 'scan'])
+  assert.deepEqual(r, {secrets: undefined, stopped: true})
 })

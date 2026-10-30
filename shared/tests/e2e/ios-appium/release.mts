@@ -22,9 +22,11 @@
 //      simulator's Reduce Motion on until the app's next launch
 //   6. census, then the report; each passes only on what its child wrote during the phase
 // However it ends, once it holds the release lock: it stops the Metro and Appium it started (and the
-// WebDriverAgent Appium left), leaving the simulator booted and the app running; then scans
-// everything under tests/results for the env file's secrets (secrets phase; a file that holds one is
-// deleted and named, and the run fails); then opens the report, when this run wrote it and the scan
+// WebDriverAgent Appium left), leaving the simulator booted and the app running; then, even when
+// stopping failed, scans everything under tests/results (and the visual render root when
+// KB_VISUAL_RESULTS puts it elsewhere; only ios-logs/ when preflight refused the run) for the env
+// file's secrets (secrets phase; a file that holds one is deleted and named, and the run fails); then
+// opens the report, when this run wrote it and the scan
 // left it, unless KB_E2E_NO_OPEN=1; then prints one line per phase and posts a macOS notification.
 // Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
 // emptied when the run takes the lock) and get this run's KB_E2E_RUN_ID.
@@ -42,6 +44,7 @@ import {formatSweep, sweep} from '../accounts/sweep.mts'
 import {runAbortable} from '../shared/deadline.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
+import {resultsDir as visualResultsDir} from '../visual/store.mts'
 import {sessionLocked} from '../electron/helpers/main-process.ts'
 import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
@@ -71,12 +74,13 @@ import {
   IOS_RELEASE_PORTS,
   logFailed,
   reportPhaseResult,
+  secretScanDirs,
   simulatorFromList,
   strayChildren,
   writtenSince,
   type IosPreflightState,
 } from './release-lib.ts'
-import {scanResults} from './release-secrets.mts'
+import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -88,6 +92,8 @@ const out = {
   report: path.join(resultsDir, 'ios-report.html'),
   results: path.join(resultsDir, 'ios-report/results.json'),
 }
+// where the render writes its runs (KB_VISUAL_RESULTS may put it outside tests/results)
+const renderRoot = path.join(visualResultsDir(), 'render')
 const logFile = (name: string) => path.join(logsDir, `${name}.log`)
 const project = 'ios-flows'
 const APPIUM_PORT = 4723
@@ -110,18 +116,29 @@ let secretWatch: SecretWatch | undefined
 // set when the report phase passed
 let reportWritten = false
 
-// Stops what the run started, then (so the files are final) scans what it wrote, then opens the report
-// if it survived the scan. A run that never took the release lock wrote nothing, so it scans nothing.
+// Stops what the run started, then (so the files are final, and even when stopping threw) scans what
+// it wrote, then opens the report if it survived the scan. A run that never took the release lock wrote
+// nothing, so it scans nothing; one refused at preflight scans only its logs (release-lib.ts
+// secretScanDirs).
 const cleanup = async (code: number) => {
-  if (!(await stopWhatItStarted()) && code === 0) code = 1
-  if (!run.holdsLock()) return code
   const watch = secretWatch
-  // a render dir KB_VISUAL_RESULTS put outside tests/results is scanned too
-  const outside = renderDir !== undefined && path.relative(resultsDir, renderDir).startsWith('..')
-  const secrets = scanResults([resultsDir, ...(outside && renderDir ? [renderDir] : [])], watch ? () => watch.secrets() : envSecrets, log)
+  const {secrets, stopped} = await stopThenScan(
+    stopWhatItStarted,
+    () =>
+      run.holdsLock()
+        ? scanResults(secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}), watch ? () => watch.secrets() : envSecrets, log)
+        : undefined,
+    log
+  )
   watch?.stop()
-  phases.push(secrets)
-  if (!secrets.ok && code === 0) code = 1
+  if (!stopped) {
+    phases.push({line: 'something it started would not stop (see above)', name: 'cleanup', ok: false})
+    if (code === 0) code = 1
+  }
+  if (secrets) {
+    phases.push(secrets)
+    if (!secrets.ok && code === 0) code = 1
+  }
   // a report that held a secret is gone by now
   if (reportWritten && fs.existsSync(out.report) && !process.env['KB_E2E_NO_OPEN']) {
     spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
@@ -230,7 +247,6 @@ const stopWhatItStarted = async () => {
     }
   }
   if (udid && !(await stopWda(udid, 'Appium left'))) ok = false
-  if (!ok) phases.push({line: 'something it started would not stop (see above)', name: 'cleanup', ok: false})
   return ok
 }
 

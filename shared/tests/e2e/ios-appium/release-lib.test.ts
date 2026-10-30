@@ -7,6 +7,7 @@ import {
   isWdaResidue,
   parsePs,
   reportPhaseResult,
+  secretScanDirs,
   strayChildren,
   simulatorFromList,
   writtenSince,
@@ -340,5 +341,23 @@ describe('flowsPhaseResult', () => {
       line: '3 passed, 0 failed, 0 flaky, 0 skipped (its log could not be written: EIO)',
       ok: false,
     })
+  })
+})
+
+describe('secretScanDirs', () => {
+  const dirs = {logsDir: '/s/tests/results/ios-logs', resultsDir: '/s/tests/results', renderRoot: '/s/tests/results/visual/render'}
+
+  test('a run refused at preflight scans only its logs, never the rest of tests/results', () => {
+    expect(secretScanDirs({...dirs, preflightPassed: false})).toEqual(['/s/tests/results/ios-logs'])
+    expect(secretScanDirs({...dirs, preflightPassed: false, renderRoot: '/elsewhere/render'})).toEqual(['/s/tests/results/ios-logs'])
+  })
+
+  test('a run past preflight scans tests/results, which holds the render root', () => {
+    expect(secretScanDirs({...dirs, preflightPassed: true})).toEqual(['/s/tests/results'])
+  })
+
+  test('a render root outside tests/results is scanned too', () => {
+    expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/elsewhere/render'})).toEqual(['/s/tests/results', '/elsewhere/render'])
+    expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/s/tests/results-other/render'})).toEqual(['/s/tests/results', '/s/tests/results-other/render'])
   })
 })

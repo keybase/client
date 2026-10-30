@@ -1,6 +1,7 @@
 // The iOS release command's decisions, kept free of I/O so they can be tested: whether a run may
-// start (iosPreflightProblems), what simctl and ps say about the simulator, and whether the census and
-// report phases wrote this run's outputs.
+// start (iosPreflightProblems), what simctl and ps say about the simulator, whether the flows, census
+// and report phases wrote this run's outputs, and what the secret scan reads.
+import * as path from 'path'
 import type {PortHolder} from '../shared/gate/ports.ts'
 import {flowsLine, flowsOk, type FlowSummary, type Outcome} from '../shared/gate/release-lib.ts'
 import {KBFS_START_COMMAND} from '../electron/release-lib.ts'
@@ -206,4 +207,14 @@ export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: num
   if (c.code !== 0) return {line: `report generator exited ${c.code}${logFailed(c)}`, ok: false}
   if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
   return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
+}
+
+// What the secret scan reads once a run that took the release lock ends. A run refused at preflight
+// wrote only its logs, and the rest of tests/results may be another live run's files (the visual gate
+// run whose lock refused it): only the logs. Otherwise everything under tests/results, and the visual
+// gate's render root too when KB_VISUAL_RESULTS puts it outside (scanned however the render ended).
+export const secretScanDirs = (o: {preflightPassed: boolean; resultsDir: string; logsDir: string; renderRoot: string}) => {
+  if (!o.preflightPassed) return [o.logsDir]
+  const outside = path.relative(o.resultsDir, o.renderRoot).startsWith('..')
+  return [o.resultsDir, ...(outside ? [o.renderRoot] : [])]
 }
