@@ -46,6 +46,7 @@ const UserRow = (p: RowProps) => {
     <Kb.ListItem
       type={rowType}
       firstItem={firstItem}
+      testID={TestIDs.LOGIN_USER_ROW_PREFIX + username}
       icon={<Kb.Avatar size={avatarSize} username={username} />}
       action={clicked ? <Kb.ProgressIndicator type="Large" /> : undefined}
       style={selected ? styles.selectedRow : undefined}

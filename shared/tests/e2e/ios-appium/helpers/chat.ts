@@ -462,17 +462,10 @@ export const signedInAs = async () =>
     return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
   `)
 
-// Switches the app to another account signed in on this device, through the account switcher the
-// chat tab's avatar opens, and waits for the switch to finish.
-export const switchAppAccount = async (username: string) => {
-  const now = await signedInAs()
-  if (now.loggedIn && !now.switching && now.username === username) return
+// Opens the account switcher sheet from the chat tab's avatar.
+export const openAccountSwitcher = async () => {
   await escapeToTabs()
   await navigateToChat()
-  // a row reads "<name>" or "<name>, <full name>"; the inbox's rows read "<name>, <time>, ..." too
-  const row = browser.$(
-    `-ios predicate string:type == "XCUIElementTypeOther" AND (label == "${username}" OR label BEGINSWITH "${username}, ") AND name != ${JSON.stringify(T.CHAT_INBOX_ROW)} AND visible == 1`
-  )
   const switcherOpen = async () => byText('Log in as another user').isExisting()
   await waitFor(
     'the account switcher',
@@ -485,13 +478,22 @@ export const switchAppAccount = async (username: string) => {
     },
     {interval: 500, timeout: 20_000}
   )
+}
+
+// Switches the app to another account signed in on this device, through the account switcher the
+// chat tab's avatar opens, and waits for the switch to finish.
+export const switchAppAccount = async (username: string) => {
+  const now = await signedInAs()
+  if (now.loggedIn && !now.switching && now.username === username) return
+  await openAccountSwitcher()
+  const row = el(T.ACCOUNT_SWITCHER_ROW_PREFIX + username)
   await waitFor(
     'the account switch',
     async () => {
       const a = await signedInAs().catch(() => undefined)
       if (a && a.loggedIn && !a.switching && a.username === username) return true
       // the sheet ignores a tap while it is still sliding in; tap again until the switch starts
-      if (a && !a.switching && (await switcherOpen()) && (await row.isExisting().catch(() => false))) {
+      if (a && !a.switching && (await byText('Log in as another user').isExisting()) && (await row.isExisting().catch(() => false))) {
         await row.click().catch(() => {})
       }
       return undefined

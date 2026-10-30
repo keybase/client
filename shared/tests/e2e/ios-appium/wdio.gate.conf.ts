@@ -10,6 +10,7 @@ import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
 import {appLogTail, beginErrorCapture, takeErrors} from './gate/errors'
 import {uncaughtErrors} from './gate/step-lib'
+import {requireAppIsSmoke} from './gate/accounts'
 
 const PROJECT = 'ios-flows'
 
@@ -35,6 +36,16 @@ export const config: WebdriverIO.Config = {
   beforeTest: async () => {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
+    // wdio runs the test whatever this hook throws, so the root beforeEach in gate/hooks.ts fails a
+    // test on the wrong account; here it keeps the recorder from starting on it
+    const accountError = await requireAppIsSmoke().then(
+      () => '',
+      (e: unknown) => message(e)
+    )
+    if (accountError) {
+      rec.error = accountError
+      return
+    }
     await escapeToTabs()
     await beginErrorCapture().catch((e: unknown) => {
       rec.captureError = `starting the error capture: ${message(e)}`

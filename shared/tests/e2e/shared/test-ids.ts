@@ -306,3 +306,8 @@ export const GLOBAL_ERROR = 'global-error'
 // the overlay the main window shows while it has no connection to the service
 export const DISCONNECT_OVERLAY = 'disconnect-overlay'
 export const RUNTIME_STATS = 'runtime-stats'
+
+// A row of the account switcher sheet and of the login screen's account list, each followed by the
+// account's username
+export const ACCOUNT_SWITCHER_ROW_PREFIX = 'account-switcher-row-'
+export const LOGIN_USER_ROW_PREFIX = 'login-user-row-'

@@ -2,6 +2,7 @@
 // describes go through the wrapper below and every test through the root hooks.
 import * as path from 'path'
 import {beginAttempt, endAttemptOf, endedRecord, recordSkipped, runAttempt, type AttemptToken} from './attempt.ts'
+import {requireAppIsSmoke} from './accounts.ts'
 import {testFileFromStack, unranPendingTests} from './results-lib.ts'
 
 // mocha names the aggregator as the file of every test it imports, so each suite is credited to the
@@ -46,6 +47,7 @@ beforeEach(function () {
   const body = ((test.fn as Body).gateBody ?? test.fn) as Mocha.AsyncFunc
   const wrapped: Body = async function (this: Mocha.Context) {
     await runAttempt(token, async () => {
+      await requireAppIsSmoke()
       await body.call(this)
     })
     const ended = endedRecord(token)

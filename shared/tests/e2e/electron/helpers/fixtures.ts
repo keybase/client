@@ -1,5 +1,4 @@
 import {test as base, type ConsoleMessage, type Page, type WorkerInfo} from '@playwright/test'
-import {randomBytes} from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
 import {appLogPath} from '../app-log'
@@ -9,7 +8,6 @@ import {closeOrphanTrackerWindows} from './windows'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {ensureChatData} from '@/tests/e2e/shared/chat-data'
 import {requireMainIsSmoke} from '@/tests/e2e/shared/peer-service'
-import {runIdFromEnv} from '@/tests/e2e/accounts/run-id'
 import {mergeRecordings, startRecorder, takeKept, takeRecorder, type Recording} from '@/tests/e2e/shared/recorder'
 
 type WorkerFixtures = {_electronPage: Page; _mainInspector: undefined}
@@ -217,14 +215,4 @@ export const seedChatData = async () => {
   return ensureChatData()
 }
 
-// This run's id (global-setup.ts sets it), which the names a flow creates carry so the sweeper can
-// clear what a crashed run leaves.
-export const e2eRunId = () => {
-  const id = runIdFromEnv(process.env)
-  if (!id) throw new Error('KB_E2E_RUN_ID is not set: global-setup.ts sets it before any test')
-  return id
-}
-
-// A message body or title unique to one post: `e2e-<runid>-<label>-<random>`, so its first word
-// carries the run (see parseStampedText) and a repeat in the same run does not find an older post.
-export const e2eMarker = (label: string) => `e2e-${e2eRunId()}-${label}-${randomBytes(4).toString('hex')}`
+export {e2eMarker, e2eRunId} from '@/tests/e2e/shared/run-marker'
