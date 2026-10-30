@@ -87,8 +87,28 @@ const walk = (n: ts.Node, f: (n: ts.Node) => void) => {
 }
 const some = (n: ts.Node, f: (n: ts.Node) => boolean): boolean => f(n) || !!n.forEachChild(c => some(c, f) || undefined)
 
-// Every jsEval whose body sends an RPC (an eval body naming one, or a body builder declared from one)
-// and is not inside withHarnessRpcs, as file:line.
+// the names declared or imported at the top of a file: a jsEval body held in any other name (a local
+// variable) is one the scan cannot read
+const topLevelNames = (sf: ts.SourceFile) => {
+  const names = new Set<string>()
+  for (const st of sf.statements) {
+    if (ts.isFunctionDeclaration(st) && st.name) names.add(st.name.text)
+    if (ts.isVariableStatement(st)) {
+      for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) names.add(d.name.text)
+    }
+    if (ts.isImportDeclaration(st)) {
+      const b = st.importClause
+      if (b?.name) names.add(b.name.text)
+      if (b?.namedBindings && ts.isNamedImports(b.namedBindings)) for (const e of b.namedBindings.elements) names.add(e.name.text)
+    }
+  }
+  return names
+}
+
+const lineOf = (file: string, sf: ts.SourceFile, n: ts.Node) => `${file}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1}`
+
+// Every jsEval outside withHarnessRpcs whose body sends an RPC (an eval body naming one, or a body
+// builder declared from one) or is held in a name that is not top-level, as file:line.
 const unpausedHarnessEvals = (files: ReadonlyArray<{file: string; text: string}>) => {
   const sfs = files.map(f => ({file: f.file, sf: ts.createSourceFile(f.file, f.text, ts.ScriptTarget.Latest, true)}))
   // body builders: top-level declarations holding a sending literal outside any jsEval, found to a fixed point
@@ -107,14 +127,30 @@ const unpausedHarnessEvals = (files: ReadonlyArray<{file: string; text: string}>
   for (let more = newBuilders(); more.size; more = newBuilders()) for (const name of more) builders.add(name)
   const found: Array<string> = []
   for (const {file, sf} of sfs) {
+    const topLevel = topLevelNames(sf)
     walk(sf, n => {
-      if (!ts.isCallExpression(n) || callee(n) !== 'jsEval') return
-      if (n.arguments.some(a => some(a, x => sends(x, sf, builders))) && !within(n, 'withHarnessRpcs')) {
-        found.push(`${file}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1}`)
-      }
+      if (!ts.isCallExpression(n) || callee(n) !== 'jsEval' || within(n, 'withHarnessRpcs')) return
+      // the body is the first argument (a second names the device)
+      const [body] = n.arguments
+      const unread = !!body && ts.isIdentifier(body) && !topLevel.has(body.text)
+      if (unread || n.arguments.some(a => some(a, x => sends(x, sf, builders)))) found.push(lineOf(file, sf, n))
     })
   }
   return {builders, found}
+}
+
+// Every call of the raw eval (lifecycle's jsEval, imported as jsEvalOnce) outside the retrying
+// wrapper in helpers/chat.ts, which the scan above sees as jsEval.
+const rawEvalCalls = (files: ReadonlyArray<{file: string; text: string}>) => {
+  const found: Array<string> = []
+  for (const f of files) {
+    const sf = ts.createSourceFile(f.file, f.text, ts.ScriptTarget.Latest, true)
+    walk(sf, n => {
+      if (callee(n) !== 'jsEvalOnce') return
+      if (f.file !== path.join('helpers', 'chat.ts') || declaredName(n) !== 'jsEval') found.push(lineOf(f.file, sf, n))
+    })
+  }
+  return found
 }
 
 const sources = (dir: string) =>
@@ -130,6 +166,7 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
   expect(builders.has('configuredAccountsAskBody')).toBe(true)
   expect(files.some(f => f.text.includes('withHarnessRpcs(') && f.text.includes('switchToAccount'))).toBe(true)
   expect(found).toEqual([])
+  expect(rawEvalCalls(files)).toEqual([])
 })
 
 test('the scan finds an inline sending body and a body builder outside withHarnessRpcs, and passes them inside it', () => {
@@ -140,10 +177,22 @@ test('the scan finds an inline sending body and a body builder outside withHarne
     "const c = async () => withHarnessRpcs('ask', async () => jsEval(askBody('2')))",
     "const d = async () => withHarnessRpcs('switch', async () => jsEval(`switchToAccount('u')`))",
     'const e = async () => jsEval(`return globalThis.__kbE2ERuntime`)',
+    'const f = async () => { const body = askBody("3"); return jsEval(body) }',
+    "const g = async () => { const body = askBody('4'); return withHarnessRpcs('ask', async () => jsEval(body)) }",
+    'const h = async () => jsEval(readBody)',
+    'const readBody = `return 1`',
   ].join('\n')
   const {found} = unpausedHarnessEvals([
     {file: 'lib.ts', text: builder},
     {file: 'use.ts', text: uses},
   ])
-  expect(found).toEqual(['use.ts:1', 'use.ts:2'])
+  expect(found).toEqual(['use.ts:1', 'use.ts:2', 'use.ts:6'])
+})
+
+test('the raw eval is called only by the retrying wrapper', () => {
+  const wrapper = 'export const jsEval = async (body: string) => jsEvalOnce(body)'
+  const other = 'export const read = async () => jsEvalOnce(`return 1`)'
+  expect(rawEvalCalls([{file: path.join('helpers', 'chat.ts'), text: wrapper}])).toEqual([])
+  expect(rawEvalCalls([{file: path.join('helpers', 'chat.ts'), text: wrapper + '\n' + other}])).toEqual(['helpers/chat.ts:2'])
+  expect(rawEvalCalls([{file: path.join('gate', 'x.ts'), text: wrapper + '\n' + other}])).toEqual(['gate/x.ts:1', 'gate/x.ts:2'])
 })
