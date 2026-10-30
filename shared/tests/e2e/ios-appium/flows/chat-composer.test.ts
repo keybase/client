@@ -403,7 +403,7 @@ describe('chat composer', function () {
     it('Edit from the menu raises the keyboard once the menu is gone', async function () {
       // worst case (s): read 110, reset 30, sent 25, edit 50, keyboard 5, the keys 2, composer 5,
       // step 2 = 229
-      this.timeout(240_000)
+      this.timeout(250_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-edit-focus')

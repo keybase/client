@@ -1052,7 +1052,8 @@ export const deletePhase = async (ordinal: number) =>
     return [...st.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
   `)
 
-// The chat badge's unread count for a conversation.
+// The chat badge's unread count for a conversation. A 0 does not prove the badge store has loaded
+// (right after a relaunch it reads 0 before it has), so after a relaunch only presence checks rely on it.
 export const unreadCount = async (convID: string) =>
   jsEval<number>(`return (kbModule('chat/inbox/badge-state.tsx').useInboxBadgeState.getState().counts.get(${JSON.stringify(convID)}) || {}).unreadCount || 0`)
 
