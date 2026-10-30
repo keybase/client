@@ -16,8 +16,8 @@ describe('account switch', function () {
   it('switches to the second account and back through the account switcher', async function () {
     // worst case, from the helpers' bounds (s): switcher 60 (escapeToTabs 30 + its own 20 + a tab
     // 10), two row reads 20, escapeToTabs 30; in asSecond a switch 150 (switcher 60, the switch 60,
-    // escapeToTabs 30), switcher 60, three row reads 30, escapeToTabs 30, and its restore 235
-    // (settling 60 + a sign-in from the login list 175) = 615
+    // escapeToTabs 30), switcher 60, three row reads 30, escapeToTabs 30, and its restore 275
+    // (settling 60 + a sign-in from the login list 215) = 655
     this.timeout(700_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     await openAccountSwitcher()
@@ -44,7 +44,7 @@ describe('account switch', function () {
 
   it('signs out to the login list and signs the smoke account in from its stored secret, with no password', async function () {
     // worst case (s): switcher 60, login list 60, four row reads 40, two configured-account reads 40,
-    // a sign-in from the row 85, escapeToTabs 30, and a restore 235 = 550
+    // a sign-in from the row 85, escapeToTabs 30, and a restore 275 = 590
     this.timeout(600_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     await signedOutThenBack(async () => {

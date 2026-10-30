@@ -21,10 +21,10 @@ import {dismissKeyboard} from '../helpers/navigate'
 // which keeps every stored secret, and signs the smoke account back in from its row.
 //
 // Every timeout is the sum of the helpers' bounds (s): signing out (switcher 60, its tap and the login
-// list 65) 125 and the restore 235 around every test; a tap to a screen 25 (5 tries of 5s), a back 100
+// list 65) 125 and the restore 275 around every test; a tap to a screen 25 (5 tries of 5s), a back 100
 // (5 of 20s), a typed field 20, a swipe 3.
 
-const SIGN_OUT_AND_BACK_MS = 360_000
+const SIGN_OUT_AND_BACK_MS = 400_000
 
 const screenTap = async (text: string, screen: string) => tapToScreen(() => byText(text), screen)
 
@@ -205,9 +205,9 @@ describe('account signed out', () => {
     this.retries(0)
 
     afterEach(async function () {
-      // emptying the field 60, restoreSecondSecret 400 (secret read 20, settling 60, to the login
-      // list 90, selecting the row 30, sign-in 150, secret stored 50), restoreToSmoke 235 = 695
-      this.timeout(720_000)
+      // emptying the field 60, restoreSecondSecret 410 (secret read 20, settling 60, to the login
+      // list 100, selecting the row 30, sign-in 150, secret stored 50), restoreToSmoke 275 = 745
+      this.timeout(780_000)
       // a test mocha timed out never emptied it; secret-free, and nothing when it is not mounted
       await emptyLoginField()
       if (!(await storedSecretOf(loadE2EAccounts().secondUser))) await restoreSecondSecret(requireSecondPassword(loadE2EEnv()))

@@ -4,9 +4,23 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
-import {tapBack} from './accounts'
 
 const TAPS = 5
+
+// The back affordance of the screen on top: the custom BackButton (testID backButton), or a native
+// bar's Back item, which takes no testID: a screen's default back, and the flow-aware back iOS
+// recover-password screens put in their bar.
+const NATIVE_BACK = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Back" OR name == "BackButton"`]'
+
+export const tapBack = async () => {
+  for (const back of [el('backButton'), browser.$(NATIVE_BACK)]) {
+    if (await back.isExisting()) {
+      await back.click().catch(() => {})
+      return true
+    }
+  }
+  return false
+}
 
 export const visibleScreen = async () => (await appSnapshot()).screen
 
@@ -54,6 +68,7 @@ const backUntil = async (shown: () => Promise<boolean>, what: string) =>
 
 export const backToScreen = async (name: string) => backUntil(isScreen(name), `the ${name} screen`)
 
-// Back, until the login screen's account list shows.
+// Back, until the login screen's account list shows: from signed out, out of any screen pushed over
+// it. Each back waits long enough for a recover-password back's service round trip.
 export const pressBackToLoginList = async () =>
   backUntil(async () => el(T.LOGIN_USER_LIST).isExisting(), 'the login screen with its account list')

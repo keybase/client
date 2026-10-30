@@ -7,7 +7,7 @@ import * as T from '../../shared/test-ids'
 import {openAccountSwitcher} from '../helpers/chat'
 import {byText, el, labeled} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {appAccount, backToLoginList, settledAppAccount} from './accounts'
+import {appAccount, settledAppAccount} from './accounts'
 import {
   answerTo,
   CONFIGURED_ACCOUNTS_READ_BODY,
@@ -18,7 +18,7 @@ import {
   passwordScreenProblem,
   storedSecretIn,
 } from './app-account-lib.ts'
-import {tapUntil} from './screens'
+import {pressBackToLoginList, tapUntil} from './screens'
 import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
 
 const SIGN_IN_MS = 60_000
@@ -150,7 +150,7 @@ export const restoreSecondSecret = async (password: string) => {
     const target = a.username === secondUser ? () => byText('Log in as another user') : () => el(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser)
     await tapUntil(async () => target().click().catch(() => {}), loginList, 'the switcher never signed out to the login list')
   } else {
-    await backToLoginList()
+    await pressBackToLoginList()
   }
   // the row of an account with no stored secret only selects it
   await tapUntil(

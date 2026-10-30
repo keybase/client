@@ -6,7 +6,8 @@ import {el} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
-import {backOutUntil, thenRestoring} from '../../shared/restore.ts'
+import {thenRestoring} from '../../shared/restore.ts'
+import {pressBackToLoginList} from './screens'
 import {notSmokeProblem, settledAccount, PHONE_DEVICE_BODY, type PhoneDevice, phoneDeviceProblem} from './app-account-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
@@ -72,33 +73,7 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
     'signing the smoke account back in'
   )
 
-// The back affordance of the screen on top: the custom BackButton (testID backButton), or a native
-// bar's Back item, which takes no testID: a screen's default back, and the flow-aware back iOS
-// recover-password screens put in their bar.
-const NATIVE_BACK = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Back" OR name == "BackButton"`]'
-
-export const tapBack = async () => {
-  for (const back of [el('backButton'), browser.$(NATIVE_BACK)]) {
-    if (await back.isExisting()) {
-      await back.click().catch(() => {})
-      return true
-    }
-  }
-  return false
-}
-
-// a signed-out flow that failed part way leaves at most a few screens over the login screen
-const MAX_BACKS = 8
 const ROW_TAPS = 5
-
-// From signed out, the login screen with its account list, backing out of any screen pushed over it.
-export const backToLoginList = async () => {
-  const list = el(T.LOGIN_USER_LIST)
-  await backOutUntil(
-    {atTarget: async () => list.isExisting(), tapBack, what: 'the login screen with its account list'},
-    {maxTaps: MAX_BACKS, pause: async () => new Promise(resolve => setTimeout(resolve, 500)), timeoutMs: SIGN_IN_MS}
-  )
-}
 
 // On the login screen, signs `username` in by its row, which signs an account with a stored secret
 // in at once (no password), and waits until the app is signed in as it.
@@ -136,7 +111,7 @@ export const restoreToSmoke = async () => {
   if (a.loggedIn) {
     if (a.username !== smokeUser) await switchAppAccount(smokeUser)
   } else {
-    await backToLoginList()
+    await pressBackToLoginList()
     await signInFromStoredSecret(smokeUser)
     await escapeToTabs()
   }
