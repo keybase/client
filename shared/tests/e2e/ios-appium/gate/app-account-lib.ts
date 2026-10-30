@@ -2,6 +2,8 @@
 // the smoke account. Free of wdio, so the release command (run by node) uses it too.
 import {signedInName} from '../../accounts/sweep-lib.ts'
 
+import {FIBER_WALK} from './secret-input-lib.ts'
+
 export type AppAccount = {loggedIn: boolean; switching: boolean; username: string}
 
 // a function body for jsEval / evalInPage, returning an AppAccount
@@ -95,35 +97,26 @@ export const storedSecretIn = (r: ConfiguredAnswer, username: string): boolean |
 
 // What the phone's login screen shows: the account it would sign in, whether it asks for that
 // account's password and the error it shows. Never the password: the eval returns only these.
-export type LoginScreen = {state: 'none' | 'many'} | {state: 'shown'; error: string; needPassword: boolean; selectedUser: string}
+export type LoginScreen = {state: 'none' | 'many' | 'no fiber roots'} | {state: 'shown'; error: string; needPassword: boolean; selectedUser: string}
 
 // a function body for jsEval, returning a LoginScreen: the props of the login screen's one mounted
 // render component (login/relogin/index.tsx), found by walking each root's current tree
-export const LOGIN_SCREEN_BODY = `
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    const found = []
-    for (const rid of hook.renderers.keys()) {
-      for (const root of hook.getFiberRoots(rid)) {
-        const stack = [root.current]
-        while (stack.length) {
-          const f = stack.pop()
-          const p = f.memoizedProps
-          if (f.tag === 0 && p && typeof p.selectedUser === 'string' && typeof p.needPassword === 'boolean' && typeof p.selectedUserChange === 'function') {
-            found.push({error: String(p.error ?? ''), needPassword: p.needPassword, selectedUser: p.selectedUser})
-          }
-          if (f.sibling) stack.push(f.sibling)
-          if (f.child) stack.push(f.child)
-        }
-      }
-    }
+export const LOGIN_SCREEN_BODY = `${FIBER_WALK}
+    const found = fibersMatching(f => {
+      const p = f.memoizedProps
+      return f.tag === 0 && !!p && typeof p.selectedUser === 'string' && typeof p.needPassword === 'boolean' && typeof p.selectedUserChange === 'function'
+    })
+    if (!found) return {state: 'no fiber roots'}
     if (found.length === 0) return {state: 'none'}
     if (found.length > 1) return {state: 'many'}
-    return {state: 'shown', ...found[0]}
+    const p = found[0].field.memoizedProps
+    return {state: 'shown', error: String(p.error ?? ''), needPassword: p.needPassword, selectedUser: p.selectedUser}
   `
 
 // Why the login screen is not asking for `username`'s password, or undefined when it is: a password
 // is typed only into a screen that signs that account in.
 export const passwordScreenProblem = (s: LoginScreen, username: string): string | undefined => {
+  if (s.state === 'no fiber roots') return 'the app has no React DevTools hook to read the login screen with'
   if (s.state !== 'shown') return s.state === 'none' ? 'the login screen is not shown' : 'more than one login screen is mounted'
   if (s.selectedUser !== username) return `the login screen would sign in ${s.selectedUser || '(nobody)'}, not ${username}`
   return s.needPassword ? undefined : `the login screen asks no password for ${username}`

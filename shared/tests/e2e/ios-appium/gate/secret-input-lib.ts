@@ -45,13 +45,12 @@ const moduleOr = (name: string, what: string) => `(() => {
     }
   })()`
 
-// hostFibers(match): the mounted host fibers matching `match`, each with its ancestors nearest
-// first, found by walking every root's current tree down from the top as React DevTools does;
-// undefined when there is no DevTools hook. A fiber's .return can reach the stale fiber of its
-// parent's pair, whose props and hooks are a render behind; the path the walk came down holds only
-// current ones.
-const hostFibers = `
-  const hostFibers = match => {
+// fibersMatching(match): the mounted fibers matching `match`, each with its ancestors nearest first,
+// found by walking every root's current tree down from the top as React DevTools does; undefined
+// when there is no DevTools hook. A fiber's .return can reach the stale fiber of its parent's pair,
+// whose props and hooks are a render behind; the path the walk came down holds only current ones.
+export const FIBER_WALK = `
+  const fibersMatching = match => {
     const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
     if (!hook || !hook.getFiberRoots) return undefined
     const found = []
@@ -63,7 +62,7 @@ const hostFibers = `
           const [f, depth] = stack.pop()
           path.length = depth
           path.push(f)
-          if (f.tag === 5 && f.memoizedProps && match(f)) found.push({above: path.slice(0, depth).reverse(), field: f})
+          if (match(f)) found.push({above: path.slice(0, depth).reverse(), field: f})
           if (f.sibling) stack.push([f.sibling, depth])
           if (f.child) stack.push([f.child, depth + 1])
         }
@@ -71,6 +70,11 @@ const hostFibers = `
     }
     return found
   }
+`
+
+// hostFibers(match): the mounted host fibers (tag 5) with props that match `match`, as fibersMatching.
+const hostFibers = `${FIBER_WALK}
+  const hostFibers = match => fibersMatching(f => f.tag === 5 && !!f.memoizedProps && match(f))
 `
 
 // handleFiber(inst): the host fiber RN's instance handle names, with its ancestors nearest first,
