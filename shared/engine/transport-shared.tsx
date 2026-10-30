@@ -25,14 +25,29 @@ const secretKeys = new Set([
   'phrase',
   'secret',
   'secretkey',
+  'token',
+  'tokenorname',
+])
+// `code` is also a numeric status code, so only a string value is a secret (the one-time code of
+// verifyPhoneNumber).
+const stringSecretKeys = new Set(['code'])
+// Methods whose result is itself a secret, returned as a bare string (so there is no key to match).
+const secretResultMethods = new Set([
+  'generateWebAuthToken',
+  'getWalletAccountSecretKeyLocal',
+  'exportSecretKeyLocal',
+  'botTokenCreate',
 ])
 const redactMaxDepth = 12
 
 // Copy of `value` for logging, with secret-keyed values replaced. Only plain objects and arrays are
 // walked; anything else (functions, Session, typed arrays) is passed through unchanged.
 export function redactRpcParams(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
-  if (typeof value !== 'object' || value === null || depth > redactMaxDepth || seen.has(value)) {
+  if (typeof value !== 'object' || value === null || seen.has(value)) {
     return value
+  }
+  if (depth > redactMaxDepth) {
+    return '<depth>'
   }
   if (Array.isArray(value)) {
     seen.add(value)
@@ -46,15 +61,24 @@ export function redactRpcParams(value: unknown, depth = 0, seen = new WeakSet<ob
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
     out[k] =
-      secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null
+      (secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null) ||
+      (stringSecretKeys.has(k.toLowerCase()) && typeof v === 'string')
         ? '<redacted>'
         : redactRpcParams(v, depth + 1, seen)
   }
   return out
 }
 
+// The result of `method` for logging: a secret-returning method's result is replaced whole.
+export function redactRpcResult(method: string, data: unknown): unknown {
+  if (secretResultMethods.has(method.slice(method.lastIndexOf('.') + 1))) {
+    return data === undefined || data === null ? data : '<redacted>'
+  }
+  return redactRpcParams(data)
+}
+
 // Logging for rpcs
-function rpcLog(info: {method: string; reason: string; extra?: object; type: string}): void {
+function rpcLog(info: {method: string; reason: string; extra?: unknown; type: string}): void {
   if (!printRPC) {
     return
   }
@@ -176,7 +200,7 @@ abstract class TransportShared extends RPCTransport {
       }
       once = true
       if (printRPC) {
-        rpcLog({extra: data as object | undefined, method, reason: '[-calling]', type: 'serverToEngine'})
+        rpcLog({extra: redactRpcResult(method, data), method, reason: '[-calling]', type: 'serverToEngine'})
       }
       cb(err, data)
     })
