@@ -6,6 +6,7 @@ import {byText, el} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
+import {thenRestoring} from './restore-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
 const SIGN_IN_MS = 60_000
@@ -24,38 +25,33 @@ export const requireAppIsSmoke = async () => {
 // then switches back to the smoke account whether `f` passed or threw.
 export const asSecond = async <R,>(f: () => Promise<R>): Promise<R> => {
   const {secondUser, smokeUser} = loadE2EAccounts()
-  let result: R
-  try {
-    await switchAppAccount(secondUser)
-    result = await f()
-  } catch (e) {
-    // a failed switch back keeps the first error too
-    try {
+  return thenRestoring(
+    async () => {
+      await switchAppAccount(secondUser)
+      return f()
+    },
+    async () => {
       await switchAppAccount(smokeUser)
-    } catch (r) {
-      throw new AggregateError([e, r], `${String(e)}; and then switching back to the smoke account failed: ${String(r)}`, {cause: r})
-    }
-    await requireAppIsSmoke()
-    throw e
-  }
-  await switchAppAccount(smokeUser)
-  await requireAppIsSmoke()
-  return result
+      await requireAppIsSmoke()
+    },
+    'switching back to the smoke account'
+  )
 }
 
 // Signs the app out from the account switcher's "Log in as another user" (the smoke account keeps
 // its stored secret, so it stays in the login screen's list), runs `f` on the login screen, then
 // signs the smoke account back in whether `f` passed or threw.
-export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> => {
-  try {
-    await openAccountSwitcher()
-    await byText('Log in as another user').click()
-    await el(T.LOGIN_USER_LIST).waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen never showed its account list'})
-    return await f()
-  } finally {
-    await restoreToSmoke()
-  }
-}
+export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
+  thenRestoring(
+    async () => {
+      await openAccountSwitcher()
+      await byText('Log in as another user').click()
+      await el(T.LOGIN_USER_LIST).waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen never showed its account list'})
+      return f()
+    },
+    restoreToSmoke,
+    'signing the smoke account back in'
+  )
 
 // Back to the smoke account: signed in as another account, through the account switcher; signed
 // out, from the login screen (backing out of any screen pushed over it) by picking the smoke
