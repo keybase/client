@@ -5,8 +5,8 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {runCensusCli} from '../shared/gate/census-cli.mts'
-import {iosCensusPlatform} from './census.mts'
-import {iosReportPlatform} from './report.mts'
+import {iosCensusPlatform} from './census-platform.mts'
+import {iosReportPlatform} from './report-platform.mts'
 import {runFlowReport} from '../shared/gate/flow-report.mts'
 
 const quiet = <T,>(f: () => T): T => {

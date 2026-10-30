@@ -1,19 +1,8 @@
-import {fileURLToPath} from 'url'
-import {runFlowReport, type FlowReportPlatform} from '../shared/gate/flow-report.mts'
-import {IOS_KNOWN_FAILURES, IOS_KNOWN_FAILURES_FILE} from './gate/lists/known-failures.ts'
-import {IOS_MANUAL_ONLY} from './gate/lists/manual-only.ts'
+// yarn test:e2e:ios:gate-report [--render <render dir>]
+//
+// The iOS release gate's HTML report (tests/results/ios-report.html) and manual checklist, from the
+// last gate flow run and visual render (see ../shared/gate/flow-report.mts).
+import {runFlowReport} from '../shared/gate/flow-report.mts'
+import {iosReportPlatform} from './report-platform.mts'
 
-export const iosReportPlatform: FlowReportPlatform = {
-  checklistPath: 'tests/results/ios-manual-checklist.md',
-  debugDir: 'tests/results/ios-debug',
-  known: IOS_KNOWN_FAILURES,
-  knownListFile: IOS_KNOWN_FAILURES_FILE,
-  manualOnly: IOS_MANUAL_ONLY,
-  outputPath: 'tests/results/ios-report.html',
-  prevDir: 'tests/results/ios-prev',
-  resultsPath: 'tests/results/ios-report/results.json',
-  runHint: 'yarn test:e2e:ios:release',
-  title: 'Keybase iOS release gate',
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) process.exitCode = runFlowReport(iosReportPlatform)
+process.exitCode = runFlowReport(iosReportPlatform)
