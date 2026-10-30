@@ -11,7 +11,7 @@ import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
 import {beginErrorCapture} from './gate/errors'
 import {finishAttempt, type TestResult} from './gate/finish'
-import {noteCommandDone} from './gate/hang'
+import {noteProtocolResult} from './gate/hang'
 
 const PROJECT = 'ios-flows'
 
@@ -31,6 +31,15 @@ export const config: WebdriverIO.Config = {
   // wdio only logs a beforeTest error and runs the test anyway, so nothing here throws: what failed
   // is kept on the attempt's recorder for afterTest to report. The account was checked before this
   // (gate/hooks.ts).
+  before: [
+    ...[base.before ?? []].flat(),
+    // what the app-hang watch counts: WebDriver requests that got a successful answer
+    () => {
+      browser.on('result', (event: {result?: unknown}) => {
+        noteProtocolResult(event.result)
+      })
+    },
+  ],
   beforeTest: async () => {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
@@ -49,10 +58,6 @@ export const config: WebdriverIO.Config = {
         rec.error ??= `starting the recorder: ${message(e)}`
       }
     )
-  },
-  // what the app-hang watch counts: a hung app answers no command, though its commands still fail
-  afterCommand: (_command: string, _args: Array<unknown>, _result: unknown, error?: Error) => {
-    noteCommandDone(error)
   },
   afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
   onComplete: (exitCode: number) => {

@@ -151,8 +151,10 @@ plain.beforeEach(
       // An app stuck for good is killed and relaunched (hang.ts), and the test fails of its hang at
       // once: the body gets a bounded time for its stuck command to fail and its cleanup to run, then
       // the attempt ends, so anything of the body's still going finds it over.
-      const hung = startHangWatch()
+      let hung: Promise<string> = new Promise(() => {})
       const run = runAttempt(token, async () => {
+        // inside the attempt: a relaunch moves the attempt's recording to the app's new runtime
+        hung = startHangWatch()
         await requireAppIsSmoke()
         await body.call(this)
       })
