@@ -8,6 +8,7 @@
 import {evalInPage, INSPECTOR_CLOSED, inspectorPageFor} from '../../shared/metro-eval.ts'
 import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
 import {holdRunSecret} from './run-secrets'
+import {requireCurrentAttempt} from './attempt.ts'
 import {
   type FieldRead,
   fieldProblem,
@@ -27,6 +28,8 @@ const SETTLE_MS = 5_000
 const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed', INSPECTOR_CLOSED])
 
 const evalWithheld = async <R,>(body: string, what: string): Promise<R | undefined> => {
+  // outside the try, before anything is sent: a timed-out body is refused with its title alone
+  requireCurrentAttempt()
   // looked up outside the try: its errors name no part of the body
   const page = await inspectorPageFor(deviceName(), BUNDLE_ID)
   try {
@@ -64,6 +67,7 @@ const waitForDots = async (fieldTestID: string, length: number) => {
   )
   const deadline = Date.now() + SETTLE_MS
   while (!(await secure.isExisting())) {
+    requireCurrentAttempt()
     if (Date.now() > deadline) throw new Error(`the field ${fieldTestID} is not a secure field showing ${length} dots`)
     await new Promise(resolve => setTimeout(resolve, 100))
   }

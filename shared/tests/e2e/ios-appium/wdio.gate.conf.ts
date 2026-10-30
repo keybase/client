@@ -7,7 +7,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {escapeToTabs} from './helpers/navigate'
-import {attemptToken, iosReportDir, readAttempts, readRunErrors} from './gate/attempt'
+import {attemptToken, iosReportDir, readAttempts, readRunErrors, requireCurrentAttempt} from './gate/attempt'
 import {type Recorder, recorders} from './gate/recording'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
@@ -104,6 +104,13 @@ export const config: WebdriverIO.Config = {
     )
   },
   afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
+  // Every WebDriver request, whichever wdio command (browser or element) sends it, is built here in its
+  // caller's async context, before it is sent and outside the request's own retries: a test body mocha
+  // timed out is refused here, so it never reaches the app again.
+  transformRequest: requestOptions => {
+    requireCurrentAttempt()
+    return requestOptions
+  },
   onComplete: (exitCode: number) => {
     try {
       writeResults(exitCode)

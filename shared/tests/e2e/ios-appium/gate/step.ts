@@ -1,5 +1,6 @@
 // Steps of a flow: screenshots attached to the running attempt, as the desktop flows' step.ts does.
-import {currentAttempt} from './attempt'
+import {currentAttempt, requireCurrentAttempt} from './attempt'
+import {isAttemptOver} from './attempt-binding-lib'
 import {stepAttachmentName} from '../../shared/step-name.ts'
 
 const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
@@ -21,6 +22,7 @@ const settledScreenshot = async (): Promise<string> => {
 // Attaches a screenshot of the current state, once it has settled, as step-NN-<name>, NN counting from
 // 01 within the attempt. {card: true} marks the step whose screenshot is the test's card image in the
 // report; with no marked step the first step is. {settle: false} takes it at once.
+// Like every app command, refuses to run in a test body mocha timed out.
 export async function step(name: string, opts?: {card?: boolean; settle?: boolean}): Promise<void> {
   const attempt = currentAttempt()
   const png = opts?.settle === false ? await browser.takeScreenshot() : await settledScreenshot()
@@ -37,7 +39,8 @@ export async function manualEdge(id: string): Promise<void> {
 
 // Runs `attempt` until it passes, for a navigation that may need more than one try. `intervals` are the
 // waits between tries (the last repeats) and `timeout` bounds all of them. A pass that took more than
-// one try is annotated `retried`, so a helper that starts needing many tries shows in the report.
+// one try is annotated `retried`, so a helper that starts needing many tries shows in the report. A
+// test body mocha timed out is never tried again.
 export async function retriedNavigation(
   what: string,
   attempt: () => Promise<void>,
@@ -46,11 +49,13 @@ export async function retriedNavigation(
   const until = Date.now() + opts.timeout
   let tries = 0
   for (;;) {
+    requireCurrentAttempt()
     tries++
     try {
       await attempt()
       break
     } catch (e) {
+      if (isAttemptOver(e)) throw e
       const wait = opts.intervals[Math.min(tries - 1, opts.intervals.length - 1)] ?? 100
       if (Date.now() + wait > until) throw new Error(`${what}: still failing after ${tries} tries: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
       await sleep(wait)

@@ -4,6 +4,8 @@ import * as path from 'path'
 import {pidFromLaunchctl, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {requireCurrentAttempt} from '../gate/attempt'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
@@ -24,7 +26,11 @@ const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, m
 // Covers a log show over a long run and an addmedia of several videos; a cold boot gets longer.
 const simctlMs = (args: ReadonlyArray<string>) => (args[0] === 'bootstatus' ? 300_000 : 120_000)
 
-export const simctl = (...args: Array<string>): string => runSync('xcrun', ['simctl', ...args], simctlMs(args))
+// Each of these refuses to run in a gate test body mocha timed out (gate/attempt.ts).
+export const simctl = (...args: Array<string>): string => {
+  requireCurrentAttempt()
+  return runSync('xcrun', ['simctl', ...args], simctlMs(args))
+}
 
 // Retries until check returns a value, or throws with the last error once the timeout passes.
 export const waitFor = async <R>(
@@ -35,10 +41,12 @@ export const waitFor = async <R>(
   const end = Date.now() + timeout
   let lastErr: unknown
   for (;;) {
+    requireCurrentAttempt()
     try {
       const r = await check()
       if (r !== undefined) return r
     } catch (e) {
+      if (isAttemptOver(e)) throw e
       lastErr = e
     }
     if (Date.now() > end) {
@@ -98,8 +106,10 @@ export const crashReportsSince = (since: number): Array<string> => {
 
 // Evaluates a synchronous function body in the app's JS runtime and returns its value.
 // Only works against a debug build served by Metro.
-export const jsEval = async <R>(body: string, device = deviceName()): Promise<R> =>
-  evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body)
+export const jsEval = async <R>(body: string, device = deviceName()): Promise<R> => {
+  requireCurrentAttempt()
+  return evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body)
+}
 
 export type AppSnapshot = {
   loggedIn: boolean

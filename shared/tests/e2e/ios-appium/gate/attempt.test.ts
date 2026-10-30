@@ -11,6 +11,7 @@ import {
   endAttempt,
   endAttemptOf,
   endedRecord,
+  endRunningBodies,
   failEndedAttempt,
   iosReportDir,
   NEVER_ENDED,
@@ -19,7 +20,9 @@ import {
   readRunErrors,
   recordRunError,
   recordSkipped,
+  requireCurrentAttempt,
   runAttempt,
+  runAttemptBody,
 } from './attempt'
 
 beforeEach(() => {
@@ -74,6 +77,31 @@ test('a timed-out body that finishes during its retry never touches the retry', 
     [0, 'failed', []],
     [1, 'passed', ['coverage.json']],
   ])
+})
+
+test('a body mocha moved on from stops at its next call, while the hook ends its attempt', async () => {
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const a = beginAttempt(file, ['d', 't'], 0)
+  let handle: ReturnType<typeof currentAttempt> | undefined
+  const body = runAttemptBody(a, 'd t', async () => {
+    handle = currentAttempt()
+    expect(() => requireCurrentAttempt()).not.toThrow()
+    await gate
+    requireCurrentAttempt()
+  })
+  await new Promise<void>(resolve => setImmediate(resolve))
+  // mocha timed the body out: the root afterEach begins, bound to the attempt but to no body
+  expect(endRunningBodies()).toEqual(['d t'])
+  release()
+  await expect(body).rejects.toThrow('attempt over: d t')
+  expect(() => handle?.nextStepIndex()).toThrow('attempt over: d t')
+  expect(() => handle?.addAttachment('screenshot', 'image/png', Buffer.from('late'))).toThrow('attempt over: d t')
+  runAttempt(a, () => {
+    currentAttempt().addAttachment('screenshot', 'image/png', Buffer.from('x'))
+    endAttempt({durationMs: 9, error: 'Timeout', status: 'failed'})
+  })
+  expect(readAttempts().map(r => [r.status, r.error, r.attachments.map(x => x.name)])).toEqual([['failed', 'Timeout', ['screenshot']]])
 })
 
 test('a pending test is recorded as one skipped attempt', () => {

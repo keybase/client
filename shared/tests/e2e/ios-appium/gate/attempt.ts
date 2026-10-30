@@ -1,13 +1,14 @@
 // The test attempts of this worker: what the harness attaches to each and, once it ends, its record on
 // disk. Attachments are written as they arrive, so a run never holds them in memory.
 //
-// An attempt is bound to the test body that runs it (runAttempt), not to whichever attempt began
+// An attempt is bound to the test body that runs it (runAttemptBody), not to whichever attempt began
 // last: a body mocha timed out keeps running after its retry has begun, and must never touch the
-// retry's attempt.
-import {AsyncLocalStorage} from 'async_hooks'
+// retry's attempt. Once mocha has moved on from a body, the body is over: everything here, and every
+// app command (requireCurrentAttempt), refuses to run in it.
 import * as fs from 'fs'
 import * as path from 'path'
 import {slug as fullSlug} from '../../shared/step-name.ts'
+import {createBinding, refusal, type Frame} from './attempt-binding-lib.ts'
 import type {IosSurface} from './lists/surfaces.ts'
 
 // shared/tests/results/ios-report whatever the cwd; KB_IOS_REPORT_DIR moves it (the unit tests do).
@@ -47,7 +48,7 @@ type Running = AttemptToken & {
 
 type End = Pick<AttemptRecord, 'status' | 'durationMs' | 'error'>
 
-const bodies = new AsyncLocalStorage<Running>()
+const binding = createBinding<Running>()
 let started = 0
 
 const slug = (s: string) => fullSlug(s).slice(0, 80)
@@ -91,8 +92,26 @@ export const beginAttempt = (file: string, titlePath: Array<string>, attempt: nu
   return r
 }
 
-// Runs a test body as the attempt: currentAttempt and endAttempt inside it reach that attempt only.
-export const runAttempt = <T>(token: AttemptToken, body: () => T): T => bodies.run(token as Running, body)
+// Runs a test body as the attempt: currentAttempt and endAttempt inside it reach that attempt only,
+// until the body settles or mocha moves on from it.
+export const runAttemptBody = async <T>(token: AttemptToken, title: string, body: () => Promise<T>): Promise<T> =>
+  binding.runBody(token as Running, title, body)
+
+// Runs a hook's work as the attempt (the root afterEach ending one), or as no attempt.
+export const runAttempt = <T>(token: AttemptToken | undefined, fn: () => T): T => binding.run(token as Running | undefined, fn)
+
+// For a hook beginning: every body still running is one mocha timed out, and is over from here.
+export const endRunningBodies = () => binding.endRunningBodies()
+
+// Throws `attempt over: <test title>` in a test body that is over; nothing in a hook or outside an
+// attempt. Every command that reaches the app calls this first.
+export const requireCurrentAttempt = () => binding.requireCurrent()
+
+const openIn = (f: Frame<Running> | undefined): Running => {
+  const why = refusal(f)
+  if (why) throw new Error(why)
+  return open(f?.value)
+}
 
 const open = (r: Running | undefined): Running => {
   if (!r) throw new Error('no test attempt is running')
@@ -101,27 +120,30 @@ const open = (r: Running | undefined): Running => {
 }
 
 // The attempt of the running test body; throws outside one or once it has ended.
-export const attemptToken = (): AttemptToken => open(bodies.getStore())
+export const attemptToken = (): AttemptToken => openIn(binding.frame())
 
-// The attempt of the running test body, or undefined outside one or once it has ended.
+// The attempt the running work is bound to (a test body, or a root hook running as it), or undefined
+// outside one or once it has ended. Unlike attemptToken it is returned in a body that is over.
 export const openAttemptToken = (): AttemptToken | undefined => {
-  const r = bodies.getStore()
+  const r = binding.frame()?.value
   return r && !r.ended ? r : undefined
 }
 
 // Credits the attempt with a native surface it drove and checked; the census counts it for the flow once the attempt passes.
 export const creditSurface = (name: IosSurface) => {
-  open(bodies.getStore()).surfaces.add(name)
+  openIn(binding.frame()).surfaces.add(name)
 }
 
 // The surfaces credited so far, in the order first credited.
-export const creditedSurfaces = (): Array<IosSurface> => [...open(bodies.getStore()).surfaces]
+export const creditedSurfaces = (): Array<IosSurface> => [...openIn(binding.frame()).surfaces]
 
+// The handle checks its binding on every call: one a timed-out body kept refuses once it is over.
 export const currentAttempt = (): CurrentAttempt => {
-  const r = open(bodies.getStore())
+  const f = binding.frame()
+  const r = openIn(f)
   return {
     addAttachment: (name, contentType, data) => {
-      open(r)
+      openIn(f)
       const dir = path.join(attemptsDir(), r.id)
       fs.mkdirSync(dir, {recursive: true})
       const ext = EXTENSIONS[contentType] ?? ''
@@ -134,15 +156,16 @@ export const currentAttempt = (): CurrentAttempt => {
       r.attachments.push({contentType, name, path: p})
     },
     annotate: (type, description) => {
-      open(r).annotations.push({description, type})
+      openIn(f).annotations.push({description, type})
     },
-    nextStepIndex: () => ++open(r).steps,
+    nextStepIndex: () => ++openIn(f).steps,
   }
 }
 
 // Ends an attempt and writes its record. An attempt is ended once; the record ending it is the truth
 // that hooks.ts makes mocha agree with.
 export const endAttemptOf = (token: AttemptToken, end: End): AttemptRecord => {
+  requireCurrentAttempt()
   const r = open(token as Running)
   const record = recordOf(r, end)
   write(r, record)

@@ -18,6 +18,7 @@ import {BUNDLE_ID, deviceName, jsEval} from '../helpers/lifecycle'
 import {pausedAround} from './harness-rpcs-lib.ts'
 import {nextRecordingAction} from './recorder-lib.ts'
 import {ensureErrorCapture} from './errors.ts'
+import {requireCurrentAttempt} from './attempt.ts'
 
 const RELOAD_WAIT_MS = 60_000
 
@@ -88,6 +89,7 @@ export class PhoneRecording {
   async checkpoint() {
     const deadline = Date.now() + RELOAD_WAIT_MS
     for (;;) {
+      requireCurrentAttempt()
       const action = nextRecordingAction(this.runtime, await currentRuntime())
       if (action === 'take') {
         // keeps what the app has recorded so far, which a reload during the next step would drop

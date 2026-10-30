@@ -12,10 +12,12 @@ import {
   beginAttempt,
   endAttemptOf,
   endedRecord,
+  endRunningBodies,
   failEndedAttempt,
   recordRunError,
   recordSkipped,
   runAttempt,
+  runAttemptBody,
   type AttemptToken,
 } from './attempt.ts'
 import {requireAppIsSmoke} from './accounts.ts'
@@ -36,12 +38,19 @@ const plain = {
 
 // each hook's error, which mocha keeps nowhere the root hooks can read
 const hookErrors = new WeakMap<Mocha.Runnable, string>()
+// Every hook, the root ones included, runs through this. Mocha runs a hook only once it is done with
+// the test body before it, so a body still running is one it timed out: it is over from here, and its
+// next app command throws. The hook runs bound to no body, whatever context it inherited.
 const kept = (fn: (this: Mocha.Context) => unknown) =>
   async function (this: Mocha.Context) {
+    for (const title of endRunningBodies()) {
+      // eslint-disable-next-line no-console
+      console.log(`mocha moved on from "${title}" while its body still ran: the body's next app command throws`)
+    }
     // read before the await: a timed-out hook rejects late, when this.test names a later runnable
     const runnable = this.test
     try {
-      await fn.call(this)
+      await runAttempt(undefined, () => fn.call(this))
     } catch (e) {
       if (runnable) hookErrors.set(runnable, message(e))
       throw e
@@ -170,9 +179,6 @@ type Body = Mocha.AsyncFunc & {gateBody?: Mocha.AsyncFunc}
 const attempts = new WeakMap<Mocha.Test, AttemptToken>()
 // why an attempt's body threw, for one wdio's afterTest never reached (the account check refused it)
 const bodyErrors = new WeakMap<AttemptToken, string>()
-// how long a body whose app hung gets to fail its stuck command and run its cleanup
-const HUNG_BODY_SETTLE_MS = 120_000
-const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const NOT_RECORDED = 'the test passed, but wdio afterTest did not record its attempt'
 
 plain.beforeEach(
@@ -194,13 +200,14 @@ plain.beforeEach(
     const body = ((test.fn as Body).gateBody ?? test.fn) as Mocha.AsyncFunc
     const wrapped: Body = async function (this: Mocha.Context) {
       // An app stuck for good is killed and relaunched (hang.ts), and the test fails of its hang at
-      // once: the body gets a bounded time for its stuck command to fail and its cleanup to run, then
-      // the attempt ends, so anything of the body's still going finds it over.
+      // once. The body is over from then, so its stuck command's next one throws attempt over and the
+      // hooks after it drive the relaunched app.
       let hung: Promise<string> = new Promise(() => {})
-      const run = runAttempt(token, async () => {
-        // inside the attempt: a relaunch moves the attempt's recording to the app's new runtime. This
-        // line runs before runAttempt returns (AsyncLocalStorage.run calls the callback at once, and
-        // nothing awaits before it), so the race below already has the watch's promise.
+      const run = runAttemptBody(token, test.fullTitle(), async () => {
+        // inside the body: the watch reads the app as the body, and its relaunch moves the attempt's
+        // recording to the app's new runtime. This line runs before runAttemptBody returns (it calls
+        // AsyncLocalStorage.run, which calls the callback at once, and nothing awaits before either),
+        // so the race below already has the watch's promise.
         hung = startHangWatch()
         await requireAppIsSmoke()
         await body.call(this)
@@ -209,7 +216,8 @@ plain.beforeEach(
       try {
         hang = await Promise.race([run.then(() => undefined), hung])
         if (hang) {
-          await Promise.race([run.catch(() => {}), sleep(HUNG_BODY_SETTLE_MS)])
+          // the body is the only one running: mocha ended any earlier one as a hook began
+          endRunningBodies()
           throw new Error(hang)
         }
       } catch (e) {
@@ -249,10 +257,10 @@ const endTheAttempt = async (test: Mocha.Test, token: AttemptToken, gone: string
     endAttemptOf(token, {durationMs: test.duration ?? 0, status: 'skipped'})
     return
   }
+  // a timed-out body's own error came after the timeout (its next app command threw attempt over)
   const cause =
     hookError ??
-    bodyErrors.get(token) ??
-    (test.timedOut ? timeoutMessage(test.timeout()) : 'the attempt ended without wdio afterTest recording it')
+    (test.timedOut ? timeoutMessage(test.timeout()) : (bodyErrors.get(token) ?? 'the attempt ended without wdio afterTest recording it'))
   const error = gone && !cause.includes(gone) ? `${gone}; then: ${cause}` : cause
   try {
     await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
