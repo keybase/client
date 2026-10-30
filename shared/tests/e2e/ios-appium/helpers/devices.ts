@@ -81,6 +81,7 @@ export const findDeviceRow = async (name: string, timeoutMs = 240_000) => {
   const {height} = await browser.getWindowRect()
   let lastSeen: string | undefined
   let pulledFromY: number | undefined
+  let unmovedPulls = 0
   let stalled = 0
   for (let screens = 1; ; screens++) {
     const {rows} = await rowsNow()
@@ -88,9 +89,11 @@ export const findDeviceRow = async (name: string, timeoutMs = 240_000) => {
     if (hits.length > 1) throw new Error(`${hits.length} rows of the devices list carry the name ${name}`)
     const hit = hits[0]
     if (hit?.visible && hit.y > height * 0.25 && hit.y < height * 0.65) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
-    // the list's first rows sit above that band when it is at its top: a pull down that left the
-    // row where it was means the list is at its top, the row just under its own header
-    if (hit?.visible && hit.y === pulledFromY) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
+    // the list's first rows sit above that band when it is at its top: two pulls down in a row that
+    // left the row where it was mean the list is at its top, the row just under its own header (one
+    // unmoved read could be a swallowed drag over a row hidden under the header)
+    unmovedPulls = hit?.visible && hit.y < height * 0.25 && hit.y === pulledFromY ? unmovedPulls + 1 : 0
+    if (hit && unmovedPulls >= 2) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
     if (Date.now() > until) throw new Error(`finding ${name} in the devices list took over ${timeoutMs / 1000}s`)
     if (hit) {
       // on the page but under the header or near the tab bar: bring it to the middle
