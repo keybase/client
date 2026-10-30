@@ -59,7 +59,7 @@ test("a recorded key's words stay in its run's names after the ledger forgets it
   const names = path.join(path.dirname(file), 'paper-key-names.json')
   // a run id of now: older than a week, the names file drops it
   const run = {...entry, deviceName: 'Paper Key (apple banana...)', runId: newRunId()}
-  recordPaperKey(run, file)
+  recordPaperKey(run, file, true)
   forgetPaperKey(deviceID, file)
   expect(readPaperKeys(file)).toEqual([])
   expect(runPaperKeyNames(run.runId, names)).toEqual(['apple banana'])
@@ -72,4 +72,18 @@ test("a recorded key's words stay in its run's names after the ledger forgets it
 test('paperKeyWords reads both forms of the name', () => {
   expect(paperKeyWords('Paper Key (apple banana...)')).toBe('apple banana')
   expect(paperKeyWords('apple banana')).toBe('apple banana')
+})
+
+test('a run that does not scan for paper key names writes none', () => {
+  recordPaperKey({...entry, runId: newRunId()}, file, false)
+  expect(fs.existsSync(path.join(path.dirname(file), 'paper-key-names.json'))).toBe(false)
+})
+
+test("a run's names are left out on read once they are a week old", () => {
+  const names = path.join(path.dirname(file), 'paper-key-names.json')
+  const run = newRunId()
+  fs.mkdirSync(path.dirname(names), {mode: 0o700, recursive: true})
+  fs.writeFileSync(names, JSON.stringify([{names: ['apple banana'], runId: run}]), {mode: 0o600})
+  expect(runPaperKeyNames(run, names)).toEqual(['apple banana'])
+  expect(runPaperKeyNames(run, names, Date.now() + 8 * 24 * 60 * 60_000)).toEqual([])
 })

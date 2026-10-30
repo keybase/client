@@ -52,12 +52,14 @@ const writePaperKeys = (entries: ReadonlyArray<PaperKeyEntry>, file: string) => 
 }
 
 // The key's name goes to the run's names file next to the ledger (paperKeyNamesPath) too.
-export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath()) => {
+// Within a run that scans for its paper key names (scansPaperKeyNames), the key's name goes to the
+// run's names file next to the ledger too; any other run writes no name.
+export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath(), recordName = scansPaperKeyNames()) => {
   const e = {deviceID: entry.deviceID, deviceName: entry.deviceName, runId: entry.runId}
   checkEntry(e)
   const entries = readPaperKeys(file)
   if (entries.some(x => x.deviceID === e.deviceID)) throw new Error(`paper key ledger: ${e.deviceID} is already recorded`)
-  recordRunPaperKeyName(e.runId, e.deviceName, path.join(path.dirname(file), NAMES_FILE))
+  if (recordName) recordRunPaperKeyName(e.runId, e.deviceName, path.join(path.dirname(file), NAMES_FILE))
   writePaperKeys([...entries, e], file)
 }
 
@@ -65,6 +67,10 @@ export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath()
 // the first two words of its phrase, and the ledger drops a key once it is revoked.
 // ~/.config/keybase-e2e/paper-key-names.json, mode 600; a run's entry outlives it by a week at most.
 const NAMES_FILE = 'paper-key-names.json'
+
+// Set by the iOS release for the processes it starts: its secret scan reads the names and forgets them.
+export const SCAN_PAPER_KEY_NAMES_VAR = 'KB_E2E_SCAN_PAPER_KEY_NAMES'
+const scansPaperKeyNames = () => process.env[SCAN_PAPER_KEY_NAMES_VAR] === '1'
 export const paperKeyNamesPath = () => path.join(e2eConfigDir(), NAMES_FILE)
 
 type RunNames = {runId: string; names: Array<string>}
@@ -74,19 +80,24 @@ const NAMES_KEPT_MS = 7 * 24 * 60 * 60_000
 // deviceHistoryList ("two words") gives it.
 export const paperKeyWords = (deviceName: string) => /^Paper Key \((.+?)(?:\.\.\.)?\)$/.exec(deviceName)?.[1] ?? deviceName
 
-const readRunNames = (file: string): Array<RunNames> => {
+const recent = (e: RunNames, nowMs: number) => (parseRunId(e.runId, nowMs)?.startMs ?? 0) > nowMs - NAMES_KEPT_MS
+
+// The entries of runs from the last week; older ones are left out on every read and write.
+const readRunNames = (file: string, nowMs: number): Array<RunNames> => {
   if (!fs.existsSync(file)) return []
   checkMode(file, 0o600)
   const parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown
   if (!Array.isArray(parsed)) throw new Error(`${file} is not a list of paper key names`)
-  return parsed.map((raw: unknown) => {
-    const r = (raw ?? {}) as Partial<RunNames>
-    return {names: Array.isArray(r.names) ? r.names.filter(n => typeof n === 'string') : [], runId: typeof r.runId === 'string' ? r.runId : ''}
-  })
+  return parsed
+    .map((raw: unknown) => {
+      const r = (raw ?? {}) as Partial<RunNames>
+      return {names: Array.isArray(r.names) ? r.names.filter(n => typeof n === 'string') : [], runId: typeof r.runId === 'string' ? r.runId : ''}
+    })
+    .filter(e => recent(e, nowMs))
 }
 
 const writeRunNames = (entries: ReadonlyArray<RunNames>, file: string, nowMs: number) => {
-  const kept = entries.filter(e => (parseRunId(e.runId, nowMs)?.startMs ?? 0) > nowMs - NAMES_KEPT_MS)
+  const kept = entries.filter(e => recent(e, nowMs))
   const dir = path.dirname(file)
   fs.mkdirSync(dir, {mode: 0o700, recursive: true})
   checkMode(dir, 0o700)
@@ -98,7 +109,7 @@ const writeRunNames = (entries: ReadonlyArray<RunNames>, file: string, nowMs: nu
 
 export const recordRunPaperKeyName = (runId: string, deviceName: string, file = paperKeyNamesPath(), nowMs = Date.now()) => {
   const words = paperKeyWords(deviceName)
-  const entries = readRunNames(file)
+  const entries = readRunNames(file, nowMs)
   const mine = entries.find(e => e.runId === runId)
   if (mine?.names.includes(words)) return
   const others = entries.filter(e => e.runId !== runId)
@@ -106,11 +117,17 @@ export const recordRunPaperKeyName = (runId: string, deviceName: string, file = 
 }
 
 // The names of the paper keys run `runId` made: what its secret scan looks for besides the env file's.
-export const runPaperKeyNames = (runId: string, file = paperKeyNamesPath()) => readRunNames(file).find(e => e.runId === runId)?.names ?? []
+export const runPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowMs = Date.now()) =>
+  readRunNames(file, nowMs).find(e => e.runId === runId)?.names ?? []
 
+// Drops run `runId`'s names, and any older than a week, from the file.
 export const forgetRunPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowMs = Date.now()) => {
-  const entries = readRunNames(file)
-  if (entries.some(e => e.runId === runId)) writeRunNames(entries.filter(e => e.runId !== runId), file, nowMs)
+  if (!fs.existsSync(file)) return
+  writeRunNames(
+    readRunNames(file, nowMs).filter(e => e.runId !== runId),
+    file,
+    nowMs
+  )
 }
 
 export const forgetPaperKey = (deviceID: string, file = paperKeyLedgerPath()) => {
