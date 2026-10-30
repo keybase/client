@@ -8,6 +8,25 @@ import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivi
 import {el, labeled} from './elements'
 import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
 
+// A device the helpers find by its exact name. A paper key's name is the first two words of its
+// phrase, so it never goes into an error: it is passed with the label errors use instead, and any
+// error from under the helper (a selector naming it) has it replaced by that label.
+export type NamedDevice = string | {name: string; label: string}
+
+const named = (d: NamedDevice) => (typeof d === 'string' ? {label: d, name: d} : d)
+
+const masking = async <T,>(d: NamedDevice, f: (name: string, label: string) => Promise<T>): Promise<T> => {
+  const {label, name} = named(d)
+  if (label === name) return f(name, label)
+  try {
+    return await f(name, label)
+  } catch (e) {
+    // a masked copy: the raw error, as a cause too, may carry the name
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error((e instanceof Error ? e.message : String(e)).split(name).join(label))
+  }
+}
+
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // Moves the list's content up by (from - to) of the window's height (down when negative).
@@ -74,64 +93,67 @@ export const listedActiveDevices = async (timeoutMs = 240_000) => {
 
 // Scrolls down from where the list is until the row of the device named exactly `name` sits on
 // screen clear of the header, and returns it with its label.
-export const findDeviceRow = async (name: string, timeoutMs = 240_000) => {
-  const until = Date.now() + timeoutMs
-  const {height} = await browser.getWindowRect()
-  let lastSeen: string | undefined
-  let draggedFromY: number | undefined
-  let unmovedDrags = 0
-  let stalled = 0
-  for (let screens = 1; ; screens++) {
-    const {rows} = await rowsNow()
-    const hits = rows.filter(r => rowDevice(r.label)?.name === name)
-    if (hits.length > 1) throw new Error(`${hits.length} rows of the devices list carry the name ${name}`)
-    const hit = hits[0]
-    if (hit?.visible && hit.y > height * 0.25 && hit.y < height * 0.65) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
-    // A row near either end of the list can never reach that band: the first rows sit above it when
-    // the list is at its top, the last rows below it when the list is at its end. Two drags in a row
-    // that left the row where it was mean the list is at that end and the row is on screen (one
-    // unmoved read could be a swallowed drag over a row hidden under the header).
-    unmovedDrags = hit?.visible && hit.y === draggedFromY ? unmovedDrags + 1 : 0
-    if (hit && unmovedDrags >= 2) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
-    if (Date.now() > until) throw new Error(`finding ${name} in the devices list took over ${timeoutMs / 1000}s`)
-    if (hit) {
-      // on the page but under the header or low on the screen: bring it to the middle
-      draggedFromY = hit.y
-      await (hit.y >= height * 0.65 ? dragList(0.7, 0.45) : dragList(0.35, 0.6))
-      continue
+export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
+  masking(device, async (name, label) => {
+    const until = Date.now() + timeoutMs
+    const {height} = await browser.getWindowRect()
+    let lastSeen: string | undefined
+    let draggedFromY: number | undefined
+    let unmovedDrags = 0
+    let stalled = 0
+    for (let screens = 1; ; screens++) {
+      const {rows} = await rowsNow()
+      const hits = rows.filter(r => rowDevice(r.label)?.name === name)
+      if (hits.length > 1) throw new Error(`${hits.length} rows of the devices list carry the name of ${label}`)
+      const hit = hits[0]
+      if (hit?.visible && hit.y > height * 0.25 && hit.y < height * 0.65) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
+      // A row near either end of the list can never reach that band: the first rows sit above it when
+      // the list is at its top, the last rows below it when the list is at its end. Two drags in a row
+      // that left the row where it was mean the list is at that end and the row is on screen (one
+      // unmoved read could be a swallowed drag over a row hidden under the header).
+      unmovedDrags = hit?.visible && hit.y === draggedFromY ? unmovedDrags + 1 : 0
+      if (hit && unmovedDrags >= 2) return {label: hit.label, row: browser.$(deviceRowPredicate(name))}
+      if (Date.now() > until) throw new Error(`finding ${label} in the devices list took over ${timeoutMs / 1000}s`)
+      if (hit) {
+        // on the page but under the header or low on the screen: bring it to the middle
+        draggedFromY = hit.y
+        await (hit.y >= height * 0.65 ? dragList(0.7, 0.45) : dragList(0.35, 0.6))
+        continue
+      }
+      draggedFromY = undefined
+      const last = rows.at(-1)?.label
+      stalled = screens > 1 && last === lastSeen ? stalled + 1 : 0
+      if (stalled >= STALL_READS) throw new Error(`no row for ${label} anywhere below in the devices list`)
+      lastSeen = last
+      await dragList(0.85, 0.25)
     }
-    draggedFromY = undefined
-    const last = rows.at(-1)?.label
-    stalled = screens > 1 && last === lastSeen ? stalled + 1 : 0
-    if (stalled >= STALL_READS) throw new Error(`no row for ${name} anywhere below in the devices list`)
-    lastSeen = last
-    await dragList(0.85, 0.25)
-  }
-}
+  })
 
 // Taps `name`'s row and waits for its device page, which must name it.
-export const openDevicePage = async (name: string) => {
-  const {row} = await findDeviceRow(name)
-  await row.click()
-  await el(T.DEVICE_PAGE).waitForExist({timeout: 15_000})
-  await labeled('StaticText', name).waitForExist({
-    timeout: 10_000,
-    timeoutMsg: `the device page does not name ${name}`,
+export const openDevicePage = async (device: NamedDevice) =>
+  masking(device, async (name, label) => {
+    const {row} = await findDeviceRow(device)
+    await row.click()
+    await el(T.DEVICE_PAGE).waitForExist({timeout: 15_000})
+    await labeled('StaticText', name).waitForExist({
+      timeout: 10_000,
+      timeoutMsg: `the device page does not name ${label}`,
+    })
   })
-}
 
 // From `name`'s open device page: Revoke this <kind>, the confirm screen naming it, `beforeConfirm`
 // (a step), Yes, delete it. Sends revoke.revokeDevice; ends once the app is back on the list.
 // The app closes the confirm but leaves its device page up: after clearModals it pops to the
 // devices list in the stack the confirm was in (the dismissal has not committed yet), which React
 // Navigation reports as an unhandled POP_TO. So the flow goes back from the device page itself.
-export const revokeOnPhone = async (name: string, kind: 'computer' | 'paper key', beforeConfirm: () => Promise<void>) => {
-  await labeled('Button', `Revoke this ${kind}`).click()
-  const confirm = labeled('Button', 'Yes, delete it')
-  await confirm.waitForExist({timeout: 15_000})
-  await labeled('StaticText', `Are you sure you want to revoke ${name}?`).waitForExist({
-    timeout: 10_000,
-    timeoutMsg: `the revoke confirm does not name ${name}`,
+export const revokeOnPhone = async (device: NamedDevice, kind: 'computer' | 'paper key', beforeConfirm: () => Promise<void>) =>
+  masking(device, async (name, label) => {
+    await labeled('Button', `Revoke this ${kind}`).click()
+    const confirm = labeled('Button', 'Yes, delete it')
+    await confirm.waitForExist({timeout: 15_000})
+    await labeled('StaticText', `Are you sure you want to revoke ${name}?`).waitForExist({
+      timeout: 10_000,
+      timeoutMsg: `the revoke confirm does not name ${label}`,
   })
   await beforeConfirm()
   await confirm.click()
@@ -144,15 +166,16 @@ export const revokeOnPhone = async (name: string, kind: 'computer' | 'paper key'
   await goBackUntilGone(T.DEVICE_PAGE)
   await el(T.DEVICE_PAGE).waitForExist({reverse: true, timeout: 5_000, timeoutMsg: 'the device page stayed up after going back from it'})
   await el(T.DEVICES_LIST).waitForExist({timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
-}
+  })
 
 // Waits until the list, where it is, no longer shows `name` as an active device.
-export const waitNotListedActive = async (name: string, timeoutMs = 30_000) => {
-  const until = Date.now() + timeoutMs
-  for (;;) {
-    const {rows} = await rowsNow()
-    if (!rows.some(r => rowDevice(r.label)?.name === name && rowDevice(r.label)?.active)) return
-    if (Date.now() > until) throw new Error(`the devices list still shows ${name} as active after ${timeoutMs / 1000}s`)
-    await sleep(1_000)
-  }
-}
+export const waitNotListedActive = async (device: NamedDevice, timeoutMs = 30_000) =>
+  masking(device, async (name, label) => {
+    const until = Date.now() + timeoutMs
+    for (;;) {
+      const {rows} = await rowsNow()
+      if (!rows.some(r => rowDevice(r.label)?.name === name && rowDevice(r.label)?.active)) return
+      if (Date.now() > until) throw new Error(`the devices list still shows ${label} as active after ${timeoutMs / 1000}s`)
+      await sleep(1_000)
+    }
+  })

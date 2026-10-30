@@ -143,10 +143,12 @@ describe('device paper key', function () {
         const key = r.made
         if (!key) throw new Error('the paper key was never named')
         await step('The paper key screen closed after "Yes, I wrote this down." and Done')
+        // its name is the first two words of its phrase: nothing names it in an error
+        const listed = {label: 'the new paper key', name: key.name}
 
-        await findDeviceRow(key.name)
+        await findDeviceRow(listed)
         await step('The paper key is listed')
-        await openDevicePage(key.name)
+        await openDevicePage(listed)
         await labeled('StaticText', 'Paper key').waitForExist({timeout: 10_000})
         await step("The paper key's device page")
         if (!readPaperKeys().some(e => e.deviceID === key.deviceID && e.runId === runId)) {
@@ -154,8 +156,8 @@ describe('device paper key', function () {
         }
         await requireRevocableFromPhone(env, key, phoneID)
         // sends revoke.revokeDevice
-        await revokeOnPhone(key.name, 'paper key', async () => step('The revoke confirm names the paper key'))
-        await waitNotListedActive(key.name)
+        await revokeOnPhone(listed, 'paper key', async () => step('The revoke confirm names the paper key'))
+        await waitNotListedActive(listed)
         await waitServiceRevoked(key.deviceID, 'the paper key')
         r.revokedByApp = true
         await step('Back on the devices list, the paper key no longer active')
