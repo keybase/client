@@ -251,7 +251,7 @@ export const secondPasswordIsCurrent = async (
   if (!password) throw new Error('no second account password to check')
   const rpc = await deps.peerRpc(env)
   try {
-    return (await rpc.call<boolean>('keybase.1.account.passphraseCheck', {passphrase: password, sessionID: 0}, 60_000)) === true
+    return (await rpc.call('keybase.1.account.passphraseCheck', {passphrase: password, sessionID: 0}, 60_000)) === true
   } catch (e) {
     throw scrubbed('checking the second account password on its peer', e, password)
   } finally {
