@@ -8,11 +8,13 @@ import {escapeToTabs} from './helpers/navigate'
 import {attemptToken, currentAttempt, endAttempt, IOS_REPORT_DIR, readAttempts, type AttemptToken} from './gate/attempt'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
+import {appLogTail, beginErrorCapture, takeErrors} from './gate/errors'
+import {uncaughtErrors} from './gate/step-lib'
 
 const PROJECT = 'ios-flows'
 
 // each attempt's recorder, so a timed-out body that finishes late reaches only its own
-type Recorder = {recording?: PhoneRecording; error?: string}
+type Recorder = {recording?: PhoneRecording; error?: string; captureError?: string}
 const recorders = new WeakMap<AttemptToken, Recorder>()
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -34,6 +36,9 @@ export const config: WebdriverIO.Config = {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
     await escapeToTabs()
+    await beginErrorCapture().catch((e: unknown) => {
+      rec.captureError = `starting the error capture: ${message(e)}`
+    })
     const r = new PhoneRecording()
     await r.begin().then(
       () => {
@@ -52,6 +57,27 @@ export const config: WebdriverIO.Config = {
       const png = await browser.takeScreenshot().catch(() => undefined)
       if (png) attempt.addAttachment('screenshot', 'image/png', Buffer.from(png, 'base64'))
     }
+    // console errors are attached, as the desktop's are; an uncaught JS error fails a passing attempt
+    let errors: Array<string> = []
+    let captureError = rec?.captureError
+    try {
+      errors = await takeErrors()
+    } catch (e) {
+      captureError ??= `reading the app's errors: ${message(e)}`
+    }
+    const uncaught = uncaughtErrors(errors)
+    const consoleErrors = errors.filter(e => !uncaught.includes(e))
+    if (consoleErrors.length) attempt.addAttachment('renderer-console-errors', 'text/plain', consoleErrors.join('\n\n'))
+    if (uncaught.length) attempt.addAttachment('renderer-page-errors', 'text/plain', uncaught.join('\n\n'))
+    if (!result.passed && !result.skipped) {
+      let tail: string
+      try {
+        tail = appLogTail(80)
+      } catch (e) {
+        tail = `unavailable: ${message(e)}`
+      }
+      attempt.addAttachment('app-log-tail', 'text/plain', tail)
+    }
     let got = {reloads: 0, routes: [] as Array<string>, rpcs: [] as Array<string>, startRoutes: [] as Array<string>}
     let error = rec?.error ?? (rec?.recording ? '' : 'the recorder was not started')
     if (rec?.recording) {
@@ -62,14 +88,20 @@ export const config: WebdriverIO.Config = {
         error = message(e)
       }
     }
+    error ||= captureError ?? ''
     const coverage = {...(error ? {error} : {}), ...got}
     attempt.addAttachment('coverage.json', 'application/json', JSON.stringify(coverage, null, 2))
     // a failed attempt already has its reason; a passing one fails for the missing record
     const coverageFails = !!error && result.passed
+    const uncaughtFails = uncaught.length > 0 && result.passed && !coverageFails
     endAttempt({
       durationMs: result.duration,
-      status: coverageFails || (!result.passed && !result.skipped) ? 'failed' : result.skipped ? 'skipped' : 'passed',
-      ...(coverageFails ? {error: `coverage not recorded: ${error}`} : result.error ? {error: result.error.message} : {}),
+      status: coverageFails || uncaughtFails || (!result.passed && !result.skipped) ? 'failed' : result.skipped ? 'skipped' : 'passed',
+      ...(coverageFails
+        ? {error: `coverage not recorded: ${error}`}
+        : uncaughtFails
+          ? {error: `uncaught app error(s) during the test:\n${uncaught.join('\n\n')}`}
+          : result.error ? {error: result.error.message} : {}),
     })
   },
   onComplete: (exitCode: number) => {
