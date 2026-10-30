@@ -17,6 +17,8 @@ import {waitFor} from '../helpers/lifecycle'
 // phone. Its words are on screen while the paper key screen is up, and nothing hides them there: no
 // step, page source or label read runs until the screen has closed, and a screen that will not close
 // is ended by relaunching the app before any failure screenshot. Nothing reads the words.
+const PAPER_KEY_TEXT = '-ios predicate string:type == "XCUIElementTypeStaticText" AND label MATCHES "^[a-z]+( [a-z]+){5,}$"'
+
 describe('device paper key', function () {
   this.retries(0)
 
@@ -85,10 +87,12 @@ describe('device paper key', function () {
             // sends login.paperKey, which makes the key, then shows its words
             await labeled('Other', 'Create a paper key').click()
             await waitFor('the service to list a new, named paper key', findMade, {interval: 1_000, timeout: 30_000})
-            // the words box holds text once the key's words are shown (only the count of its texts is read)
+            // The words' text is not a descendant of the words box in the accessibility tree (the box is
+            // a leaf), so the screen is matched by a text shaped like the words: lowercase words, one
+            // space apart. The query returns element ids only; nothing reads the text.
             await waitFor(
               'the paper key screen to show the words',
-              async () => ((await words().$$('-ios class chain:**/XCUIElementTypeStaticText').length) > 0 ? true : undefined),
+              async () => ((await words().isExisting()) && (await browser.$$(PAPER_KEY_TEXT).length) > 0 ? true : undefined),
               {interval: 500, timeout: 30_000}
             )
             await acknowledgeAndClose()
