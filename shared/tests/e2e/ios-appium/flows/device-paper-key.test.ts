@@ -1,7 +1,7 @@
 import {newDeviceOf, type ListedDevice} from '../../accounts/device-targets'
 import {loadE2EEnv, type E2EEnv} from '../../accounts/env'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {forgetPaperKey, readPaperKeys, recordPaperKey} from '../../accounts/paper-key-ledger'
+import {forgetPaperKey, readPaperKeys, recordPaperKey, rememberRunPaperKeyName} from '../../accounts/paper-key-ledger'
 import {deviceHistory, listedDevices, requireRevocableFromPhone, revokeLeftoverFromPhoneFlow, waitServiceRevoked} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -58,10 +58,11 @@ describe('device paper key', function () {
   const findMade = async (r: Run) => {
     const listed = newDeviceOf(r.before, await listedDevices(), 'backup')
     if (!listed) return undefined
-    if (!readPaperKeys().some(e => e.deviceID === listed.deviceID)) {
-      // the ledger takes the name as deviceList gives it, which is what the sweeper compares
-      recordPaperKey({deviceID: listed.deviceID, deviceName: listed.name, runId: r.runId})
-    }
+    // the ledger takes the name as deviceList gives it, which is what the sweeper compares
+    const entry = {deviceID: listed.deviceID, deviceName: listed.name, runId: r.runId}
+    if (!readPaperKeys().some(e => e.deviceID === listed.deviceID)) recordPaperKey(entry)
+    // a name that could not go to the names file the first time is tried again
+    else rememberRunPaperKeyName(entry)
     const name = (await deviceHistory()).find(d => d.deviceID === listed.deviceID)?.name
     if (!name) return undefined
     r.made = {deviceID: listed.deviceID, name}

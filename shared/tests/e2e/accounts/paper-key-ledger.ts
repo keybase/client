@@ -53,13 +53,25 @@ const writePaperKeys = (entries: ReadonlyArray<PaperKeyEntry>, file: string) => 
 
 // Within a run that scans for its paper key names (scansPaperKeyNames), the key's name goes to the
 // run's names file next to the ledger too; any other run writes no name.
+// The ledger is written first: a names file that cannot be written never keeps the key out of it.
 export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath(), recordName = scansPaperKeyNames()) => {
   const e = {deviceID: entry.deviceID, deviceName: entry.deviceName, runId: entry.runId}
   checkEntry(e)
   const entries = readPaperKeys(file)
   if (entries.some(x => x.deviceID === e.deviceID)) throw new Error(`paper key ledger: ${e.deviceID} is already recorded`)
-  if (recordName) recordRunPaperKeyName(e.runId, e.deviceName, path.join(path.dirname(file), NAMES_FILE))
   writePaperKeys([...entries, e], file)
+  rememberRunPaperKeyName(e, file, recordName)
+}
+
+// Puts a ledgered key's name in its run's names file, within a run that scans for them; it does
+// nothing when the name is there already, so a caller that saw the key again can try once more.
+export const rememberRunPaperKeyName = (entry: PaperKeyEntry, file = paperKeyLedgerPath(), recordName = scansPaperKeyNames()) => {
+  if (!recordName) return
+  try {
+    recordRunPaperKeyName(entry.runId, entry.deviceName, path.join(path.dirname(file), NAMES_FILE))
+  } catch (e) {
+    throw new Error(`the paper key is ledgered, but its name is not in the run's names file for the secret scan: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
+  }
 }
 
 // The names of the paper keys each run made, for that run's secret scan: a paper key's device name is
@@ -106,14 +118,44 @@ const writeRunNames = (entries: ReadonlyArray<RunNames>, file: string, nowMs: nu
   fs.renameSync(tmp, file)
 }
 
-export const recordRunPaperKeyName = (runId: string, deviceName: string, file = paperKeyNamesPath(), nowMs = Date.now()) => {
-  const words = paperKeyWords(deviceName)
-  const entries = readRunNames(file, nowMs)
-  const mine = entries.find(e => e.runId === runId)
-  if (mine?.names.includes(words)) return
-  const others = entries.filter(e => e.runId !== runId)
-  writeRunNames([...others, {names: [...(mine?.names ?? []), words], runId}], file, nowMs)
+const LOCK_WAIT_MS = 5_000
+// a lock this old was left by a process that died holding it
+const LOCK_STALE_MS = 30_000
+
+// Runs `f` holding the names file's lock (`<file>.lock`, made exclusively), so two processes that
+// read, change and write the file never lose each other's change.
+const withNamesLock = <T,>(file: string, f: () => T): T => {
+  const lock = `${file}.lock`
+  fs.mkdirSync(path.dirname(file), {mode: 0o700, recursive: true})
+  const until = Date.now() + LOCK_WAIT_MS
+  for (;;) {
+    try {
+      fs.closeSync(fs.openSync(lock, 'wx', 0o600))
+      break
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e
+      const age = Date.now() - (fs.statSync(lock, {throwIfNoEntry: false})?.mtimeMs ?? Date.now())
+      if (age > LOCK_STALE_MS) fs.rmSync(lock, {force: true})
+      else if (Date.now() > until) throw new Error(`${lock} is held by another process`, {cause: e})
+      else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+    }
+  }
+  try {
+    return f()
+  } finally {
+    fs.rmSync(lock, {force: true})
+  }
 }
+
+export const recordRunPaperKeyName = (runId: string, deviceName: string, file = paperKeyNamesPath(), nowMs = Date.now()) =>
+  withNamesLock(file, () => {
+    const words = paperKeyWords(deviceName)
+    const entries = readRunNames(file, nowMs)
+    const mine = entries.find(e => e.runId === runId)
+    if (mine?.names.includes(words)) return
+    const others = entries.filter(e => e.runId !== runId)
+    writeRunNames([...others, {names: [...(mine?.names ?? []), words], runId}], file, nowMs)
+  })
 
 // The names of the paper keys run `runId` made: what its secret scan looks for besides the env file's.
 export const runPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowMs = Date.now()) =>
@@ -122,11 +164,13 @@ export const runPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowM
 // Drops run `runId`'s names, and any older than a week, from the file.
 export const forgetRunPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowMs = Date.now()) => {
   if (!fs.existsSync(file)) return
-  writeRunNames(
-    readRunNames(file, nowMs).filter(e => e.runId !== runId),
-    file,
-    nowMs
-  )
+  withNamesLock(file, () => {
+    writeRunNames(
+      readRunNames(file, nowMs).filter(e => e.runId !== runId),
+      file,
+      nowMs
+    )
+  })
 }
 
 export const forgetPaperKey = (deviceID: string, file = paperKeyLedgerPath()) => {

@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from './run-id'
-import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyWords, readPaperKeys, recordPaperKey, runPaperKeyNames} from './paper-key-ledger'
+import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyWords, readPaperKeys, recordPaperKey, rememberRunPaperKeyName, runPaperKeyNames} from './paper-key-ledger'
 
 let dir = ''
 let file = ''
@@ -86,4 +86,18 @@ test("a run's names are left out on read once they are a week old", () => {
   fs.writeFileSync(names, JSON.stringify([{names: ['apple banana'], runId: run}]), {mode: 0o600})
   expect(runPaperKeyNames(run, names)).toEqual(['apple banana'])
   expect(runPaperKeyNames(run, names, Date.now() + 8 * 24 * 60 * 60_000)).toEqual([])
+})
+
+test('a names file that cannot be written leaves the key ledgered, and the name can be put there later', () => {
+  const names = path.join(path.dirname(file), 'paper-key-names.json')
+  const run = {...entry, runId: newRunId()}
+  fs.mkdirSync(path.dirname(names), {mode: 0o700, recursive: true})
+  // a lock another process holds
+  fs.writeFileSync(`${names}.lock`, '')
+  expect(() => recordPaperKey(run, file, true)).toThrow(/ledgered, but its name is not in the run's names file/)
+  expect(readPaperKeys(file)).toEqual([run])
+  fs.rmSync(`${names}.lock`)
+  rememberRunPaperKeyName(run, file, true)
+  expect(runPaperKeyNames(run.runId, names)).toEqual(['apple banana'])
+  expect(fs.existsSync(`${names}.lock`)).toBe(false)
 })
