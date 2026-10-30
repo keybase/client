@@ -324,8 +324,9 @@ describe('secondPasswordIsCurrent', () => {
     const failing = peerAnswering(() => {
       throw new Error('peer said e2e-pw is odd')
     })
-    const err = await secondPasswordIsCurrent(env, 'e2e-pw', failing).catch((e: unknown) => e as Error)
-    expect(err.message).toBe('checking the second account password on its peer: peer said <password> is odd')
+    await expect(secondPasswordIsCurrent(env, 'e2e-pw', failing)).rejects.toThrow(
+      new Error('checking the second account password on its peer: peer said <password> is odd')
+    )
     expect(failing.closed()).toBe(true)
     const empty = peerAnswering(() => true)
     await expect(secondPasswordIsCurrent(env, '', empty)).rejects.toThrow('no second account password to check')
