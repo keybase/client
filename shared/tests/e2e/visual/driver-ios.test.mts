@@ -303,6 +303,10 @@ test('a broken app is reloaded, unless its inspector page is gone, which only a 
     recoveryFor('reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'),
     'relaunch'
   )
+  assert.equal(
+    recoveryFor('reading the router state: inspector connection closed before answering'),
+    'relaunch'
+  )
 })
 
 test('the app pid is read from launchctl list, and a listed app with no pid is not running', () => {
@@ -317,32 +321,48 @@ test('the app pid is read from launchctl list, and a listed app with no pid is n
   assert.equal(pidFromLaunchctl('412\t0\tcom.apple.springboard', 'keybase.ios'), undefined)
 })
 
+const sameRuntime = {tokenExpected: 'tok-1', tokenSeen: 'tok-1'}
+
 test('a capture is taken again only when it lost the inspector page and the app process lived through it', () => {
   const dropped = 'switching to tabs.peopleTab: no Metro inspector page for iPhoneTest (Metro lists nothing)'
   // a socket drop: same process
-  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 100, pidBefore: 100}), true)
-  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100}), true)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), true)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), true)
   // the app died: killed or crashed, then nothing running, or something else started it again
-  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 200, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 200, pidBefore: 100, ...sameRuntime}), false)
   // no pid to compare with
-  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: undefined}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: undefined, ...sameRuntime}), false)
   // a failure that is not a lost page
-  assert.equal(recaptureAfterDrop({firstError: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({firstError: undefined, pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: undefined, pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
 })
 
 test('a capture that failed for a reason of its own before the page went is not taken again', () => {
   // the first error is the capture's own; the lost page only shows in what followed
-  assert.equal(recaptureAfterDrop({firstError: 'testID settingsDisplay did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'testID settingsDisplay did not appear after 10s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
   // a capture that passed, then lost the page in the router check after it
   assert.equal(
     recaptureAfterDrop({
       firstError: 'the app was left broken (reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)) and was relaunched',
       pidAtDrop: 100,
       pidBefore: 100,
+      ...sameRuntime,
     }),
     true
   )
+})
+
+test('a capture is taken again only when the JS runtime at the drop is the one the run last marked', () => {
+  const dropped = 'switching to tabs.peopleTab: inspector connection closed before answering'
+  const same = {firstError: dropped, pidAtDrop: 100, pidBefore: 100}
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: 'tok-1'}), true)
+  // the JS reloaded or crashed and restarted under the same pid: an unmarked runtime, or one marked
+  // by a reload or relaunch the recovery did
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: null}), false)
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: 'tok-2'}), false)
+  // never read back
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: undefined}), false)
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: undefined, tokenSeen: undefined}), false)
 })
