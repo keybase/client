@@ -15,6 +15,8 @@ export type NamedDevice = string | {name: string; label: string}
 
 const named = (d: NamedDevice) => (typeof d === 'string' ? {label: d, name: d} : d)
 
+// Replacing the name as it is works because a paper key's words are plain lowercase letters: no
+// selector or message escapes them into another form.
 const masking = async <T,>(d: NamedDevice, f: (name: string, label: string) => Promise<T>): Promise<T> => {
   const {label, name} = named(d)
   if (label === name) return f(name, label)
