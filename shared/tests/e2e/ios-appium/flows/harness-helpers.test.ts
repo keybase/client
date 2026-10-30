@@ -1,7 +1,7 @@
 import {escapeToTabs, navigateToMore, navigateToPeople, tapSettingsRow} from '../helpers/navigate'
 import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
-import {activeDevices, mainDevice, serviceDeviceCounts} from '../../shared/devices.ts'
-import {appAccount, asSecond, phoneDevice, requireRevocableFromPhone, signedOutThenBack} from '../gate/accounts'
+import {activeDevices, mainDevice, requireRevocableFromPhone, serviceDeviceCounts} from '../../shared/devices.ts'
+import {appAccount, asSecond, phoneDevice, signedOutThenBack} from '../gate/accounts'
 import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 import {beginErrorCapture, takeErrors} from '../gate/errors'
@@ -86,7 +86,7 @@ describe('harness device helpers', () => {
     const listed = (await activeDevices()).filter(d => d.deviceID === phone.deviceID)
     expect(listed.map(d => d.name)).toEqual([phone.deviceName])
     const refusal = async (expected: {deviceID: string; name: string}) =>
-      requireRevocableFromPhone(env, expected).then(
+      requireRevocableFromPhone(env, expected, phone.deviceID).then(
         () => 'allowed',
         (e: unknown) => (e instanceof Error ? e.message : String(e))
       )

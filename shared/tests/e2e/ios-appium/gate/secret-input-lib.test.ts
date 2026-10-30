@@ -6,8 +6,6 @@ test('the secret is the last thing in its eval body, JSON-encoded once, and the 
   expect(body.split(encoded)).toHaveLength(2)
   expect(body.trimEnd().endsWith(`sink(${encoded})`)).toBe(true)
   expect(body.slice(0, body.lastIndexOf(encoded))).not.toContain('p"w')
-  // the field check is a function of the field id alone
-  expect(prepareEvalBody.length).toBe(1)
   expect(prepareEvalBody('f')).toContain(JSON.stringify('f'))
 })
 

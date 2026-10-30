@@ -6,7 +6,6 @@
 // lengths. A flow that types a secret runs with retries 0 and takes no step screenshot while the
 // field holds it.
 import {evalInPage, INSPECTOR_CLOSED, inspectorPageFor} from '../../shared/metro-eval.ts'
-import {el} from '../helpers/elements'
 import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
 import {type FieldRead, fieldProblem, focusEvalBody, lengthEvalBody, prepareEvalBody, secretEvalBody, secureDots} from './secret-input-lib.ts'
 
@@ -42,22 +41,18 @@ const waitForLength = async (fieldTestID: string, length: number) => {
   throw new Error(`the field ${fieldTestID} holds ${r.length} characters, not ${length}`)
 }
 
-// Waits until the native secure field shows `length` dots, as XCUITest reads it. Only a field that
-// is still a secure one is read: any other would answer with its text.
+// Waits until the native field is a secure one showing `length` dots, as XCUITest reads it. One
+// element query carries the type, id and dots, and its answer is an element id or nothing: no
+// Appium response ever holds the field's value, even if it stopped being secure.
 const waitForDots = async (fieldTestID: string, length: number) => {
-  const field = el(fieldTestID)
+  const secure = browser.$(
+    `-ios predicate string:type == "XCUIElementTypeSecureTextField" AND name == ${JSON.stringify(fieldTestID)} AND value == "${secureDots(length)}"`
+  )
   const deadline = Date.now() + SETTLE_MS
-  let shown: number
-  for (;;) {
-    const type = await field.getAttribute('type')
-    if (type !== 'XCUIElementTypeSecureTextField') throw new Error(`the field ${fieldTestID} is a ${type}, not a secure text field; not reading it`)
-    const value = (await field.getAttribute('value')) ?? ''
-    if (value === secureDots(length)) return
-    shown = /^•+$/.test(value) ? value.length : 0
-    if (Date.now() > deadline) break
+  while (!(await secure.isExisting())) {
+    if (Date.now() > deadline) throw new Error(`the field ${fieldTestID} is not a secure field showing ${length} dots`)
     await new Promise(resolve => setTimeout(resolve, 100))
   }
-  throw new Error(`the field ${fieldTestID} shows ${shown} dots, not ${length}`)
 }
 
 // Focuses the field with fieldTestID and waits until it is the focused input.

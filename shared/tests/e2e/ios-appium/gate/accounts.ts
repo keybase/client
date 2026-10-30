@@ -1,11 +1,10 @@
 // Runs part of a flow as another account, or signed out, and always puts the app back on the smoke
 // account. Each wrapper checks the app is back on the smoke account before it returns.
-import {type E2EEnv, loadE2EAccounts} from '../../accounts/env'
-import {requireRevocable} from '../../shared/devices.ts'
+import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
 import {byText, el} from '../helpers/elements'
-import {jsEval, openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
-import {waitFor} from '../helpers/lifecycle'
+import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {backOutUntil, thenRestoring} from '../../shared/restore.ts'
 import {notSmokeProblem, settledAccount, PHONE_DEVICE_BODY, type PhoneDevice, phoneDeviceProblem} from './app-account-lib.ts'
@@ -85,6 +84,7 @@ const tapBack = async () => {
 
 // a signed-out flow that failed part way leaves at most a few screens over the login screen
 const MAX_BACKS = 8
+const ROW_TAPS = 5
 
 // Back to the smoke account: signed in as another account, through the account switcher; signed
 // out, from the login screen (backing out of any screen pushed over it) by picking the smoke
@@ -105,7 +105,17 @@ export const restoreToSmoke = async () => {
       {atTarget: async () => list.isExisting(), tapBack, what: 'the login screen with its account list (restoreToSmoke starts from it)'},
       {maxTaps: MAX_BACKS, pause: async () => new Promise(resolve => setTimeout(resolve, 500)), timeoutMs: SIGN_IN_MS}
     )
-    await el(T.LOGIN_USER_ROW_PREFIX + smokeUser).click()
+    // the login screen ignores a tap for a moment after a sign-out: tap again until the sign-in starts
+    const row = el(T.LOGIN_USER_ROW_PREFIX + smokeUser)
+    for (let i = 0; ; i++) {
+      await row.click().catch(() => {})
+      const started = await waitFor('the smoke account to start signing in', async () => {
+        const now = await signedInAs().catch(() => undefined)
+        return now?.loggedIn || now?.switching ? true : undefined
+      }, {interval: 500, timeout: 5_000}).then(() => true, () => false)
+      if (started) break
+      if (i >= ROW_TAPS - 1) throw new Error(`the smoke account's row in the login list started no sign-in after ${ROW_TAPS} taps`)
+    }
     await waitFor('the smoke account to sign in', async () => {
       const now = await signedInAs().catch(() => undefined)
       return now?.loggedIn && !now.switching && now.username === smokeUser ? true : undefined
@@ -116,8 +126,8 @@ export const restoreToSmoke = async () => {
 }
 
 // The phone's own device on the smoke account, read from the app (the host's CLI knows only the
-// host's device): what a flow on the phone must never revoke, and what a peer picks as the device
-// it provisions from.
+// host's device): what a flow on the phone must never revoke (shared/devices.ts
+// requireRevocableFromPhone), and what a peer picks as the device it provisions from.
 export const phoneDevice = async (): Promise<{deviceID: string; deviceName: string}> => {
   const {smokeUser} = loadE2EAccounts()
   const d = await jsEval<PhoneDevice>(PHONE_DEVICE_BODY)
@@ -127,7 +137,3 @@ export const phoneDevice = async (): Promise<{deviceID: string; deviceName: stri
 }
 
 export const phoneDeviceId = async (): Promise<string> => (await phoneDevice()).deviceID
-
-// requireRevocable for a flow on the phone: the phone's own device is refused too.
-export const requireRevocableFromPhone = async (env: E2EEnv, expected: {deviceID: string; name: string}) =>
-  requireRevocable(env, expected, {phoneDeviceID: await phoneDeviceId()})

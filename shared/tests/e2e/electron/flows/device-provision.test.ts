@@ -8,7 +8,7 @@ import {
   expectRevokedInList,
   findDeviceRow,
   mainDevice,
-  requireRevocable,
+  requireRevocableFromHost,
   revokeInApp,
   scrollToDeviceRow,
 } from '@/tests/e2e/electron/helpers/devices'
@@ -129,7 +129,7 @@ test('add a computer from the app, then revoke it', async ({page}, testInfo) => 
       expect(await socketAnswers(socketPathFor(home))).toBe(false)
 
       const deviceID = readPeerConfig(home).users?.[env.smokeUser]?.device ?? ''
-      await requireRevocable(env, {deviceID, name})
+      await requireRevocableFromHost(env, {deviceID, name})
       const before = await deviceCounts(page)
       // sends revoke.revokeDevice
       await revokeInApp(page, name, 'computer', async () => step(page, testInfo, 'revoke confirm names the device'))

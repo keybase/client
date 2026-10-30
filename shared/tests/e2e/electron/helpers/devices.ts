@@ -5,7 +5,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToDevices} from './navigate'
 
-export {deviceHistory, listedDevices, mainDevice, requireRevocable} from '@/tests/e2e/shared/devices'
+export {deviceHistory, listedDevices, mainDevice, requireRevocableFromHost} from '@/tests/e2e/shared/devices'
 
 // The devices list's row for `name`, exactly (a revoked one says "Revoked ..." in it).
 const deviceRow = (page: Page, name: string) =>

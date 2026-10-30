@@ -49,16 +49,25 @@ const protectedPaperKey = async (env: E2EEnv) => protectedPaperKeyIn(await activ
 
 // Throws unless the one active device named `expected.name` is `expected` and none of the devices
 // nothing may revoke (checkFlowRevokeTarget): the host's, the protected paper key and, for a flow on
-// the phone, the phone's own (`phoneDeviceID`).
-export const requireRevocable = async (env: E2EEnv, expected: {deviceID: string; name: string}, opts: {phoneDeviceID?: string} = {}) => {
+// the phone, the phone's own (`phoneDeviceID`). Not exported: each platform's entry below says
+// which devices are its own, so a phone flow cannot leave the phone out.
+const requireRevocable = async (env: E2EEnv, expected: {deviceID: string; name: string}, phoneDeviceID: string | undefined) => {
   const named = (await activeDevices()).filter(d => d.name === expected.name)
   if (named.length !== 1) throw new Error(`refusing to revoke: ${named.length} active devices carry the expected name`)
   const [target] = named
   checkFlowRevokeTarget({
     expected,
     mainDeviceID: (await mainDevice()).deviceID,
-    phoneDeviceID: opts.phoneDeviceID,
+    phoneDeviceID,
     protectedPaperKey: await protectedPaperKey(env),
     target: {deviceID: target?.deviceID ?? '', name: target?.name ?? ''},
   })
 }
+
+// For a flow on the desktop app, which runs on the host's service: the host's device is the app's.
+export const requireRevocableFromHost = async (env: E2EEnv, expected: {deviceID: string; name: string}) =>
+  requireRevocable(env, expected, undefined)
+
+// For a flow on the phone: its own device (read from the app) is refused too; an empty id is refused.
+export const requireRevocableFromPhone = async (env: E2EEnv, expected: {deviceID: string; name: string}, phoneDeviceID: string) =>
+  requireRevocable(env, expected, phoneDeviceID)
