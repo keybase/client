@@ -22,21 +22,17 @@ export const requireAppIsSmoke = async () => {
 }
 
 // Runs `f` with the app switched to the second account, through the app's own account switcher,
-// then switches back to the smoke account whether `f` passed or threw.
-export const asSecond = async <R,>(f: () => Promise<R>): Promise<R> => {
-  const {secondUser, smokeUser} = loadE2EAccounts()
-  return thenRestoring(
+// then puts the app back on the smoke account whether `f` passed or threw (restoreToSmoke, as `f`
+// can leave a switch under way or the app signed out).
+export const asSecond = async <R,>(f: () => Promise<R>): Promise<R> =>
+  thenRestoring(
     async () => {
-      await switchAppAccount(secondUser)
+      await switchAppAccount(loadE2EAccounts().secondUser)
       return f()
     },
-    async () => {
-      await switchAppAccount(smokeUser)
-      await requireAppIsSmoke()
-    },
+    restoreToSmoke,
     'switching back to the smoke account'
   )
-}
 
 // Signs the app out from the account switcher's "Log in as another user" (the smoke account keeps
 // its stored secret, so it stays in the login screen's list), runs `f` on the login screen, then

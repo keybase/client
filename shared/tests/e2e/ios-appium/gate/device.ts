@@ -21,6 +21,7 @@ import {attemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
+const PRIVACY_KILL_MS = 15_000
 
 export const openLink = (url: string) => openUrl(url)
 
@@ -79,23 +80,24 @@ export const relaunchApp = async () => {
   await launch(before)
 }
 
-// simctl privacy can terminate the app (iOS restarts a process whose permission changes); when it
-// does, the app is launched again and this waits for its new JS runtime.
+// simctl privacy can terminate the app (iOS restarts a process whose permission changes), and the
+// kill can land seconds after the grant returns. When the app exited or came back with a new JS
+// runtime within PRIVACY_KILL_MS, it is launched if gone and this waits for its new runtime.
 export const grantPrivacy = async (service: string) => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
   await keepErrors()
   simctl('privacy', deviceUdid(), 'grant', service, BUNDLE_ID)
   const changed = await waitFor(
-    'the app to restart or stay up',
+    'the app to exit or start a new JS runtime',
     async () => {
       if (appPid() === undefined) return true
       const now = await runtimeId().catch(() => undefined)
       return now !== undefined && now !== before ? true : undefined
     },
-    {interval: 500, timeout: 3000}
+    {interval: 500, timeout: PRIVACY_KILL_MS}
   ).catch(() => false)
-  if (changed) await launch(before)
+  if (changed || appPid() === undefined) await launch(before)
 }
 
 export const toBackground = async () => backgroundApp()
