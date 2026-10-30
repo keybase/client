@@ -32,10 +32,12 @@ GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $
 echo "Building $build_dir/kbfs/kbfsgit ($kbfs_build) with $(go version) on arch: $arch"
 GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
 
-echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version) on arch: $arch"
-GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
+if [ "$PLATFORM" = "linux" ]; then
+  echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version) on arch: $arch"
+  GOARCH="$arch" go build -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
+fi
 
-kb_sign_binary "$build_dir/kbfs" "$build_dir/git-remote-keybase" "$build_dir/keybase-redirector"
+kb_sign_binary "$build_dir/kbfs" "$build_dir/git-remote-keybase"
 
 if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
   kbfs_version=$("$build_dir"/kbfs -version)
