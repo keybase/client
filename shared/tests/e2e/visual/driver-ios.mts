@@ -124,11 +124,12 @@ export const pidFromLaunchctl = (out: string, bundleId: string): number | undefi
   return undefined
 }
 
-// A capture that lost the app's inspector page is taken once more only when the app process lived
-// through it (a socket drop). One that died (crashed, or was killed) keeps the entry failed, so a
-// route that takes the app down is never hidden.
-export const recaptureAfterDrop = (o: {error: string | undefined; pidBefore: number | undefined; pidAtDrop: number | undefined}) =>
-  lostInspectorPage(o.error) && o.pidBefore !== undefined && o.pidAtDrop === o.pidBefore
+// A capture whose first error was a lost inspector page is taken once more only when the app process
+// lived through it (a socket drop). One that died (crashed, or was killed) keeps the entry failed, so
+// a route that takes the app down is never hidden; so does one that failed for a reason of its own
+// before the page went.
+export const recaptureAfterDrop = (o: {firstError: string | undefined; pidBefore: number | undefined; pidAtDrop: number | undefined}) =>
+  lostInspectorPage(o.firstError) && o.pidBefore !== undefined && o.pidAtDrop === o.pidBefore
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -872,7 +873,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const takeRecorder = async (startedIn: string) =>
     takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
-  const captureOnce: IosSession['capture'] = async (entry, opts) => {
+  const captureOnce = async (
+    entry: TourEntry,
+    opts: {record?: boolean} | undefined
+  ): Promise<{result: Capture; firstError: string | undefined}> => {
     drop = undefined
     let png: Buffer | undefined
     let recordingIn: string | undefined
@@ -954,21 +958,22 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     problems.push(...(await fixture.end()))
-    if ([result.error, ...problems].some(lostInspectorPage)) noteDrop()
+    if (lostInspectorPage(result.error ?? problems[0])) noteDrop()
     // a fixture's end can leave the navigator without state too, so this runs after every capture
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)
+    const firstError = result.error ?? problems[0]
     if (problems.length) {
       const why = problems.join('; ')
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
     }
-    return result
+    return {firstError, result}
   }
   const capture: IosSession['capture'] = async (entry, opts) => {
     const pidBefore = knownPid
-    const first = await captureOnce(entry, opts)
-    if (first.status !== 'failed' || !recaptureAfterDrop({error: first.error, pidAtDrop: drop?.pid, pidBefore})) return first
-    const second = await captureOnce(entry, opts)
+    const {result: first, firstError} = await captureOnce(entry, opts)
+    if (first.status !== 'failed' || !recaptureAfterDrop({firstError, pidAtDrop: drop?.pid, pidBefore})) return first
+    const {result: second} = await captureOnce(entry, opts)
     return second.status === 'failed'
       ? {...second, error: `${second.error ?? 'no error given'}; captured again after the inspector page dropped, which failed first with: ${first.error}`}
       : {...second, note: `recaptured after the inspector page dropped: ${first.error}`}

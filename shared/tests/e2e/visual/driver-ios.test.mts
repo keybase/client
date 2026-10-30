@@ -320,15 +320,29 @@ test('the app pid is read from launchctl list, and a listed app with no pid is n
 test('a capture is taken again only when it lost the inspector page and the app process lived through it', () => {
   const dropped = 'switching to tabs.peopleTab: no Metro inspector page for iPhoneTest (Metro lists nothing)'
   // a socket drop: same process
-  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 100, pidBefore: 100}), true)
-  assert.equal(recaptureAfterDrop({error: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100}), true)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 100, pidBefore: 100}), true)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100}), true)
   // the app died: killed or crashed, then nothing running, or something else started it again
-  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 200, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 200, pidBefore: 100}), false)
   // no pid to compare with
-  assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: undefined}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: undefined}), false)
   // a failure that is not a lost page
-  assert.equal(recaptureAfterDrop({error: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({error: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100}), false)
-  assert.equal(recaptureAfterDrop({error: undefined, pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({firstError: undefined, pidAtDrop: 100, pidBefore: 100}), false)
+})
+
+test('a capture that failed for a reason of its own before the page went is not taken again', () => {
+  // the first error is the capture's own; the lost page only shows in what followed
+  assert.equal(recaptureAfterDrop({firstError: 'testID settingsDisplay did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
+  // a capture that passed, then lost the page in the router check after it
+  assert.equal(
+    recaptureAfterDrop({
+      firstError: 'the app was left broken (reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)) and was relaunched',
+      pidAtDrop: 100,
+      pidBefore: 100,
+    }),
+    true
+  )
 })
