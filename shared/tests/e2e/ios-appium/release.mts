@@ -62,7 +62,7 @@ import {portHolders, type PortHolder} from '../shared/gate/ports.ts'
 import {runSync, udidForName} from './helpers/app.ts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
-import {BUNDLE_ID, METRO_PORT, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stillMetro, stopMetro} from './launch.mts'
+import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stillMetro, stopMetro} from './launch.mts'
 import {
   appSignedFromAppinfo,
   iosPreflightProblems,
@@ -215,6 +215,7 @@ const stopWhatItStarted = async () => {
   for (const pgid of pgids) {
     if (!stillMetro(pgid)) {
       log(`process group ${pgid} it recorded for Metro is no longer a Metro; left alone`)
+      forgetMetroPidfile(pgid)
       continue
     }
     log(`stopping the Metro it started (process group ${pgid}); the simulator and the app stay up`)

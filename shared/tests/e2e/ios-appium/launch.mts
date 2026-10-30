@@ -47,9 +47,14 @@ export const recordedMetroPgid = () => {
   return r && stillMetro(r.pgid) ? r.pgid : undefined
 }
 
+// Drops the pidfile when it still records `pgid`.
+export const forgetMetroPidfile = (pgid: number) => {
+  if (readMetroPidfile()?.pgid === pgid) fs.rmSync(METRO_PIDFILE, {force: true})
+}
+
 export const stopMetro = async (pgid: number) => {
   await stopAppGroup(pgid)
-  if (readMetroPidfile()?.pgid === pgid) fs.rmSync(METRO_PIDFILE, {force: true})
+  forgetMetroPidfile(pgid)
 }
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
