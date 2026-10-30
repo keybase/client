@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/heroku/docker-registry-client/registry"
 )
 

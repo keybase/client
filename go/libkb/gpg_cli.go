@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 type GpgCLI struct {
