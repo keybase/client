@@ -196,7 +196,7 @@ go test ./...     # run tests
 ```
 
 If you change anything in interfaces.go, you will have to regenerate
-the mock interfaces used by the tests (make sure you have [mockgen](https://github.com/golang/mock)
+the mock interfaces used by the tests (make sure you have [mockgen](https://go.uber.org/mock)
 installed):
 
 ```bash

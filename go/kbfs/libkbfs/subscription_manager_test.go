@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	gomock "github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -21,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	gomock "go.uber.org/mock/gomock"
 )
 
 func waitForCall(t *testing.T, timeout time.Duration) (

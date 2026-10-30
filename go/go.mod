@@ -33,7 +33,6 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gocolly/colly/v2 v2.3.0
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
-	github.com/golang/mock v1.6.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/josephspurrier/goversioninfo v0.0.0-20160622020813-53f6213da3d7
 	github.com/keybase/backoff v1.0.1-0.20160517061000-726b63b835ec
@@ -77,6 +76,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
+	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/image v0.46.0
@@ -220,7 +220,7 @@ replace os/exec => golang.org/x/sys/execabs v0.0.0-20211117180635-dee7805ff2e1
 replace camlistore.org v0.0.0-20161205184337-c55c8602d3ce => perkeep.org v0.0.0-20161205184337-c55c8602d3ce
 
 tool (
-	github.com/golang/mock/mockgen
+	go.uber.org/mock/mockgen
 	golang.org/x/mobile/cmd/gobind
 	golang.org/x/mobile/cmd/gomobile
 	golang.org/x/tools/cmd/goimports
