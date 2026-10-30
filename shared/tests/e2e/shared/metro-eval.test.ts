@@ -20,3 +20,8 @@ test('a suffix match needs a path boundary and only applies to node_modules name
 test('modules without a verboseName never match', () => {
   expect(findModuleId([[0, {}]], TIS)).toBeUndefined()
 })
+
+test('more than one suffix match throws instead of picking one', () => {
+  expect(() => findModuleId(mods(`../a/${TIS}`, `../b/${TIS}`), TIS)).toThrow(`ambiguous module ${TIS}: 2 matches`)
+  expect(findModuleId(mods(`../a/${TIS}`, TIS, `../b/${TIS}`), TIS)).toBe(1)
+})

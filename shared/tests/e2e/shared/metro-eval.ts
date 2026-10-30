@@ -41,7 +41,7 @@ export const inspectorPageFor = async (device: string, appId: string) => {
 }
 
 // The id of the module Metro registered as `name`: an exact verboseName first, then, for a
-// node_modules/ name, one that ends with it (a worktree whose node_modules is a symlink makes Metro
+// node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro
 // name them relative to the other checkout, `../../client/shared/node_modules/...`). Runs in the page
 // too, so it closes over nothing.
 export const findModuleId = <Id,>(modules: Iterable<[Id, {verboseName?: string}]>, name: string): Id | undefined => {
@@ -49,7 +49,9 @@ export const findModuleId = <Id,>(modules: Iterable<[Id, {verboseName?: string}]
   const exact = all.find(([, m]) => m.verboseName === name)
   if (exact) return exact[0]
   if (!name.startsWith('node_modules/')) return undefined
-  return all.find(([, m]) => String(m.verboseName).endsWith('/' + name))?.[0]
+  const matches = all.filter(([, m]) => String(m.verboseName).endsWith('/' + name))
+  if (matches.length > 1) throw new Error('ambiguous module ' + name + ': ' + String(matches.length) + ' matches')
+  return matches[0]?.[0]
 }
 
 // Metro dev bundles register modules by path; this finds and requires one by that path.

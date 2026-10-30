@@ -3,7 +3,7 @@
 // lengths only.
 
 export type FieldRead =
-  | {state: 'no TextInputState' | 'nothing focused' | 'no onChangeText' | 'threw' | 'no field' | 'many fields' | 'focused'}
+  | {state: 'ambiguous TextInputState' | 'no TextInputState' | 'nothing focused' | 'no onChangeText' | 'threw' | 'no field' | 'many fields' | 'focused'}
   | {state: 'other field'; focusedID: string}
   | {state: 'set'}
   | {state: 'read'; length: number}
@@ -12,8 +12,11 @@ const focusedField = (fieldTestID: string) => `
   let tis
   try {
     tis = kbModule('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js')
-  } catch {
-    return {state: 'no TextInputState'}
+  } catch (e) {
+    const message = String(e && e.message)
+    if (message.startsWith('ambiguous module')) return {state: 'ambiguous TextInputState'}
+    if (message.startsWith('no module')) return {state: 'no TextInputState'}
+    throw e
   }
   const focused = (tis.default ?? tis).currentlyFocusedInput()
   const field = focused && focused.__internalInstanceHandle
@@ -70,6 +73,8 @@ export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): str
   switch (r?.state) {
     case 'no TextInputState':
       return `the app's TextInputState module was not found, so the focused field ${fieldTestID} could not be checked`
+    case 'ambiguous TextInputState':
+      return `the app has more than one TextInputState module, so the focused field ${fieldTestID} could not be checked`
     case 'nothing focused':
       return `no text field is focused; expected ${fieldTestID}`
     case 'other field':
