@@ -189,7 +189,7 @@ const stopWhatItStarted = async () => {
   // a refused run started nothing: what is on the ports, and in a pidfile, is someone else's
   if (!run.holdsLock() || !preflightPassed) return true
   let ok = true
-  const strays = strayChildren(processes(), process.pid)
+  const strays = strayChildren(processes(), process.pid, runStart)
   if (strays.length) {
     log(`stopping what its stopped children left running (pids ${strays.join(', ')})`)
     if (!(await stopPids(strays))) {

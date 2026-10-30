@@ -113,21 +113,37 @@ export const isWdaResidue = (command: string, udid: string) => {
   )
 }
 
-export type PsRow = {pid: number; ppid: number; pgid: number; command: string}
+// startMs: when it started, to the second (from its elapsed time, read at `now`)
+export type PsRow = {pid: number; ppid: number; pgid: number; startMs: number; command: string}
 
-// `ps -axww -o pid=,ppid=,pgid=,command=`
-export const parsePs = (text: string): Array<PsRow> =>
+// ps's etime, `[[dd-]hh:]mm:ss`, in seconds
+const etimeSeconds = (etime: string) => {
+  const m = /^(?:(\d+)-)?(?:(\d+):)?(\d+):(\d+)$/.exec(etime)
+  if (!m) return undefined
+  return ((Number(m[1] ?? 0) * 24 + Number(m[2] ?? 0)) * 60 + Number(m[3])) * 60 + Number(m[4])
+}
+
+// `ps -axww -o pid=,ppid=,pgid=,etime=,command=`, read at `now`
+export const parsePs = (text: string, now: number): Array<PsRow> =>
   text.split('\n').flatMap(l => {
-    const m = /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/.exec(l)
-    return m ? [{command: m[4] ?? '', pgid: Number(m[3]), pid: Number(m[1]), ppid: Number(m[2])}] : []
+    const m = /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.*)$/.exec(l)
+    const elapsed = m ? etimeSeconds(m[4] ?? '') : undefined
+    return m && elapsed !== undefined
+      ? [{command: m[5] ?? '', pgid: Number(m[3]), pid: Number(m[1]), ppid: Number(m[2]), startMs: now - elapsed * 1000}]
+      : []
   })
+
+// `ms` down to its second: file times and ps start times are kept to the second on some filesystems
+const toSecond = (ms: number) => Math.floor(ms / 1000) * 1000
 
 // What a stopped child left behind: a wdio launcher stopped by the run's deadline or an interrupt
 // does not stop its worker, which goes on driving the app. Such a process is one of the e2e scripts in
-// the run's process group (children are not detached) that is either still the run's descendant or
-// was orphaned (reparented to launchd). Pipeline siblings share the group, and a forked shell's
-// command line can name the e2e scripts too, but their parent is alive and not the run: left alone.
-export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number): Array<number> => {
+// the run's process group (children are not detached), started since the run did (`runStart`), that is
+// either still the run's descendant or was orphaned (reparented to launchd). Pipeline siblings share
+// the group, and a forked shell's command line can name the e2e scripts too, but their parent is alive
+// and not the run: left alone. An orphan from before the run (launchd and `bash -c` can hand one
+// group to unrelated runs) is someone else's.
+export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number, runStart: number): Array<number> => {
   const byPid = new Map(rows.map(r => [r.pid, r]))
   const me = byPid.get(self)
   if (!me) return []
@@ -142,7 +158,14 @@ export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number): Array<n
     return false
   }
   return rows
-    .filter(r => r.pgid === me.pgid && !ancestors.has(r.pid) && r.command.includes('tests/e2e/') && (r.ppid === 1 || descends(r)))
+    .filter(
+      r =>
+        r.pgid === me.pgid &&
+        !ancestors.has(r.pid) &&
+        r.startMs >= toSecond(runStart) &&
+        r.command.includes('tests/e2e/') &&
+        (r.ppid === 1 || descends(r))
+    )
     .map(r => r.pid)
 }
 

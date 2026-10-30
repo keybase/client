@@ -174,40 +174,57 @@ describe('isWdaResidue', () => {
 })
 
 describe('strayChildren', () => {
+  const runStart = 100_500
   // a shell (10) runs yarn (11), which runs the release (12) beside a tee (13) and a forked subshell
   // whose command line names the release (16); the release's wdio launcher is gone and its worker
   // (14) was reparented to launchd; a render (17) it started is still its child
   const rows = [
-    {command: 'zsh -c yarn test:e2e:ios:release | tee run.log', pgid: 10, pid: 10, ppid: 1},
-    {command: 'zsh -c node tests/e2e/ios-appium/release.mts | grep x', pgid: 10, pid: 16, ppid: 10},
-    {command: 'node yarn test:e2e:ios:release', pgid: 10, pid: 11, ppid: 10},
-    {command: 'node tests/e2e/ios-appium/release.mts', pgid: 10, pid: 12, ppid: 11},
-    {command: 'tee run.log', pgid: 10, pid: 13, ppid: 10},
-    {command: 'node node_modules/@wdio/local-runner/build/run.js run tests/e2e/ios-appium/wdio.gate.conf.ts', pgid: 10, pid: 14, ppid: 1},
-    {command: 'node tests/e2e/visual/cli.mts render --ios', pgid: 99, pid: 15, ppid: 1},
-    {command: 'node tests/e2e/visual/cli.mts render --ios', pgid: 10, pid: 17, ppid: 12},
+    {command: 'zsh -c yarn test:e2e:ios:release | tee run.log', pgid: 10, pid: 10, ppid: 1, startMs: 90_000},
+    {command: 'zsh -c node tests/e2e/ios-appium/release.mts | grep x', pgid: 10, pid: 16, ppid: 10, startMs: 90_000},
+    {command: 'node yarn test:e2e:ios:release', pgid: 10, pid: 11, ppid: 10, startMs: 90_000},
+    {command: 'node tests/e2e/ios-appium/release.mts', pgid: 10, pid: 12, ppid: 11, startMs: 100_000},
+    {command: 'tee run.log', pgid: 10, pid: 13, ppid: 10, startMs: 90_000},
+    {command: 'node node_modules/@wdio/local-runner/build/run.js run tests/e2e/ios-appium/wdio.gate.conf.ts', pgid: 10, pid: 14, ppid: 1, startMs: 200_000},
+    {command: 'node tests/e2e/visual/cli.mts render --ios', pgid: 99, pid: 15, ppid: 1, startMs: 200_000},
+    // a render started in the run's first second, which ps keeps to the second
+    {command: 'node tests/e2e/visual/cli.mts render --ios', pgid: 10, pid: 17, ppid: 12, startMs: 100_000},
   ]
 
   test("an orphaned test runner in the run's process group, or one still its child, is a stray", () => {
-    expect(strayChildren(rows, 12)).toEqual([14, 17])
+    expect(strayChildren(rows, 12, runStart)).toEqual([14, 17])
   })
 
   test('the run itself, its ancestors, its siblings and other groups are not', () => {
-    expect(strayChildren(rows.filter(r => r.pid !== 14 && r.pid !== 17), 12)).toEqual([])
+    expect(strayChildren(rows.filter(r => r.pid !== 14 && r.pid !== 17), 12, runStart)).toEqual([])
+  })
+
+  test("an orphan in the run's group that started before the run is someone else's", () => {
+    const earlier = {command: 'node tests/e2e/ios-appium/wdio.gate.conf.ts', pgid: 10, pid: 18, ppid: 1, startMs: 99_000}
+    expect(strayChildren([...rows, earlier], 12, runStart)).toEqual([14, 17])
   })
 })
 
 describe('parsePs', () => {
-  test('reads pid, ppid, pgid and the whole command', () => {
-    expect(parsePs('  12   1  10 node a b\n\n')).toEqual([{command: 'node a b', pgid: 10, pid: 12, ppid: 1}])
+  test('reads pid, ppid, pgid, the start time and the whole command', () => {
+    expect(parsePs('  12   1  10    01:05 node a b\n\n', 100_000)).toEqual([{command: 'node a b', pgid: 10, pid: 12, ppid: 1, startMs: 35_000}])
+  })
+
+  test('reads elapsed times in hours and days', () => {
+    const [h, d] = parsePs('1 1 1 02:00:00 a\n2 1 1 1-00:00:01 b', 1e9)
+    expect(h?.startMs).toBe(1e9 - 7_200_000)
+    expect(d?.startMs).toBe(1e9 - 86_401_000)
+  })
+
+  test('a line with no elapsed time is skipped', () => {
+    expect(parsePs('12 1 10 node a b', 100_000)).toEqual([])
   })
 })
 
 describe('isMetroGroup', () => {
   const rows = [
-    {command: 'node /x/yarn.js rn:start', pgid: 50, pid: 50, ppid: 1},
-    {command: 'node /x/node_modules/.bin/expo start --clear', pgid: 51, pid: 52, ppid: 51},
-    {command: '/usr/bin/some-daemon', pgid: 60, pid: 60, ppid: 1},
+    {command: 'node /x/yarn.js rn:start', pgid: 50, pid: 50, ppid: 1, startMs: 0},
+    {command: 'node /x/node_modules/.bin/expo start --clear', pgid: 51, pid: 52, ppid: 51, startMs: 0},
+    {command: '/usr/bin/some-daemon', pgid: 60, pid: 60, ppid: 1, startMs: 0},
   ]
 
   test('a group running yarn rn:start or expo start, or holding the port, is a Metro', () => {
