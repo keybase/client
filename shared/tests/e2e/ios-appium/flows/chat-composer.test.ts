@@ -127,7 +127,10 @@ describe('chat composer', function () {
   }
   const expectDirectDraft = async (draft: string) =>
     expectDirectRow(`the draft "${draft}"`, label => label.includes('Draft') && label.includes(draft))
-  const expectNoDirectDraft = async () => expectDirectRow('no draft', label => !label.includes('Draft'))
+  // No draft, and the snippet showing `lastBody`: the newest message's body, so a row read before a
+  // wrong draft save lands, or before the row caught up at all, cannot pass.
+  const expectNoDirectDraft = async (lastBody: string) =>
+    expectDirectRow(`no draft and the snippet "${lastBody}"`, label => !label.includes('Draft') && label.includes(lastBody))
 
   // Starts editing the message showing `text` from its menu.
   const startEdit = async (text: string) => {
@@ -193,8 +196,8 @@ describe('chat composer', function () {
     it('a draft survives a conversation switch and an app relaunch', async function () {
       // worst case (s): open 100, reset 30, type 15, step 2, open 100, draft 110, step 2, open 100,
       // composer 5, open 100, draft 110, relaunch 200, signed in 90, draft 110, step 2, open 100,
-      // composer 5, step 2 = 1183
-      this.timeout(1200_000)
+      // composer 5, step 2 = 1183; the margin covers a slow relaunch
+      this.timeout(1500_000)
       await openDirect()
       await resetComposer()
       const draft = e2eMarker('composer-draft')
@@ -228,22 +231,31 @@ describe('chat composer', function () {
     })
 
     it('a send clears the composer and the saved draft', async function () {
-      // worst case (s): open 100, reset 30, sent 25, composer 5, cli 80, step 2, open 100, draft 110,
-      // open 100, composer 5, step 2 = 559
-      this.timeout(580_000)
+      // worst case (s): open 100, reset 30, type 15, open 100, draft 110, step 2, open 100, composer 5,
+      // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 110, open 100, composer 5,
+      // step 2 = 882
+      this.timeout(920_000)
       await openDirect()
       await resetComposer()
       const text = e2eMarker('composer-send')
-      await sendMessage(text)
+      await typeInComposer(text)
+      await openScratch()
+      await expectDirectDraft(text)
+      await step("The DM's inbox row shows the saved draft")
+
+      await openDirect()
+      await waitForComposerText(text)
+      await el(T.CHAT_SEND_BUTTON).click()
+      await waitForRow(text)
       await waitForComposerText('')
       await expectCliBodies(directOnHost(), 'the sent message in the DM', bodies => bodies.includes(text))
-      await step('Sent: the row shows and the composer is empty')
+      await step('The draft sent: the row shows and the composer is empty')
 
       await openScratch()
-      await expectNoDirectDraft()
+      await expectNoDirectDraft(text)
       await openDirect()
       await waitForComposerText('')
-      await step('The DM has no draft, its composer empty', {card: true})
+      await step('The DM has no draft, its row showing the sent message, its composer empty', {card: true})
     })
 
     it('typing straight after a send is not erased', async function () {
@@ -300,7 +312,7 @@ describe('chat composer', function () {
       await step('Editing, the edit text changed')
 
       await openScratch()
-      await expectNoDirectDraft()
+      await expectNoDirectDraft(text)
       await openDirect()
       check(!(await editCancel().isExisting()), 'the edit is still open')
       await waitForComposerText('')
@@ -419,8 +431,8 @@ describe('chat composer', function () {
       await expectCliBodies(directOnHost(), 'the edited body', bodies => bodies.includes(edited) && !bodies.includes(text))
       await step('The edit posted: the row and the host read the edited text', {card: true})
       await openScratch()
-      await expectNoDirectDraft()
-      await step('No draft saved for the edit')
+      await expectNoDirectDraft(edited)
+      await step('No draft saved for the edit, the row showing the edited text')
     })
   })
 
@@ -501,16 +513,17 @@ describe('chat composer', function () {
     // The phone shows no pick in the composer before a tap (only a desktop arrow key previews one; the
     // phone's hardware keys reach the composer as Enter and Shift-Enter alone), so leaving with the
     // list open keeps what was typed. Typing there sends typing, and nothing after the leave does:
-    // read off the recorder's call log, the positive control first.
+    // read off the recorder's call log, the positive control first. In the DM, whose inbox row shows
+    // the saved draft's text (a channel row shows only a draft icon).
     it('leaving with the @mention list open sends no typing after the leave and keeps the text as the draft', async function () {
       // worst case (s): calls 2, open 100, reset 30, type 15, the list 10, the typing sent 12, the
-      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, open 100, composer 5, step 2 = 386
-      this.timeout(400_000)
+      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 110, step 2 = 391
+      this.timeout(420_000)
       const typed = `@${data.secondUser.slice(0, 3)}`
       const typingOn = (calls: ReadonlyArray<LoggedCall>) =>
         calls.filter(c => c.method === 'chat.1.local.updateTyping' && c.typing === true)
       const before = await currentCallSeq()
-      await openScratch()
+      await openDirect()
       await resetComposer()
       await typeInComposer(typed)
       await el(T.CHAT_SUGGESTION_LIST).waitForExist({timeout: 10_000})
@@ -524,13 +537,13 @@ describe('chat composer', function () {
       const atLeave = await currentCallSeq()
       await step('The @mention list open over the typed text')
 
-      await openDirect()
+      await openScratch()
       await browser.pause(1_500)
       const after = typingOn((await callsSince(atLeave)).calls)
       check(after.length === 0, `${after.length} typing updates said typing after the leave`)
-      await openScratch()
-      await composerReads('the typed @ text', typed)
-      await step('Back in e2e-scratch the typed text is the draft', {card: true})
+      // the typed text holds part of an account name, so the wait names only what it is
+      await expectDirectRow('the typed @ text as its draft', label => label.includes('Draft') && label.includes(typed))
+      await step("The DM's inbox row shows the typed text as its draft", {card: true})
     })
 
     it('an emoji from the picker goes in after the text with one space after it', async function () {
