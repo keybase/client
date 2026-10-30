@@ -62,6 +62,23 @@ const realClock: WaitClock = {now: () => Date.now(), sleep: async ms => new Prom
 // Runs `lookup` until it returns a page, every `intervalMs` for up to `ms`; the last failure is
 // thrown, prefixed with `what`. Only a lookup belongs here, never an eval: a body may not be safe to
 // run twice.
+// Runs a side-effect-free `read` until it answers, trying it again for up to `ms` while it fails on a
+// lost page (while the app's inspector socket flaps, a lookup can find the page and the eval's socket
+// still be closed under it). Any other failure, or the last one at the bound, is thrown. Never for a
+// body that changes anything: one that already ran may have done it.
+export const retryReadWhileLost = async <R,>(read: () => Promise<R>, opts: {ms: number; intervalMs: number; clock?: WaitClock}): Promise<R> => {
+  const clock = opts.clock ?? realClock
+  const end = clock.now() + opts.ms
+  for (;;) {
+    try {
+      return await read()
+    } catch (e) {
+      if (!lostInspectorPage((e as Error).message) || clock.now() >= end) throw e
+      await clock.sleep(opts.intervalMs)
+    }
+  }
+}
+
 export const waitForInspectorPage = async (
   lookup: () => Promise<InspectorPage>,
   what: string,

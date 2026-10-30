@@ -1,4 +1,4 @@
-import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, waitForInspectorPage, type WaitClock} from './metro-eval'
+import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, retryReadWhileLost, waitForInspectorPage, type WaitClock} from './metro-eval'
 
 const mods = (...names: Array<string>): Array<[number, {verboseName?: string}]> => names.map((verboseName, i) => [i, {verboseName}])
 const TIS = 'node_modules/react-native/Libraries/Components/TextInput/TextInputState.js'
@@ -149,4 +149,39 @@ test('a close after the answer leaves the answer', async () => {
       await expect(evalInPage(evalPage, 'return 7')).resolves.toBe(7)
     }
   )
+})
+
+test('a read is tried again while its socket keeps closing under it, and answers once the page holds', async () => {
+  const {clock, sleeps} = fakeClock()
+  let calls = 0
+  const read = async () => {
+    calls++
+    return clock.now() < 1000 + 1_500 ? Promise.reject(new Error(`reading the JS runtime token: ${INSPECTOR_CLOSED}`)) : Promise.resolve('tok-1')
+  }
+  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).resolves.toBe('tok-1')
+  expect(calls).toBe(4)
+  expect(sleeps).toEqual([500, 500, 500])
+})
+
+test('a read that fails for another reason is not tried again', async () => {
+  const {clock, sleeps} = fakeClock()
+  let calls = 0
+  const read = async () => {
+    calls++
+    return Promise.reject(new Error('app evaluate threw: Error: boom'))
+  }
+  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).rejects.toThrow('boom')
+  expect(calls).toBe(1)
+  expect(sleeps).toEqual([])
+})
+
+test('a read whose page stays lost fails at the bound with the last error', async () => {
+  const {clock, tick} = fakeClock(100)
+  const read = async () => {
+    tick()
+    return Promise.reject(new Error(`reading: ${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`))
+  }
+  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).rejects.toThrow(NO_INSPECTOR_PAGE)
+  expect(clock.now()).toBeGreaterThanOrEqual(1000 + 15_000)
+  expect(clock.now()).toBeLessThan(1000 + 15_000 + 600)
 })

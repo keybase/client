@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor, lostInspectorPage, waitForInspectorPage} from '../shared/metro-eval.ts'
+import {evalInPage, inspectorPageFor, lostInspectorPage, retryReadWhileLost, waitForInspectorPage} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -567,7 +567,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
   const readDropToken = async () => {
     try {
-      const t = await appEval<unknown>('return globalThis.__kbVisualRuntime', 'reading the JS runtime token')
+      const t = await retryReadWhileLost(async () => appEval<unknown>('return globalThis.__kbVisualRuntime', 'reading the JS runtime token'), {
+        intervalMs: PAGE_POLL_MS,
+        ms: PAGE_MS,
+      })
       if (drop && drop.tokenSeen === undefined) drop.tokenSeen = typeof t === 'string' ? t : null
       return true
     } catch {
