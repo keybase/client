@@ -1,5 +1,6 @@
 import {loadE2EEnv} from '../../accounts/env'
-import {provisionCliDevice, retireCliDevice, type CliDevice} from '../../shared/cli-device.ts'
+import {withCleanup} from '../../electron/helpers/cleanup'
+import {provisionCliDevice, retireCliDevice} from '../../shared/cli-device.ts'
 import {deviceHistory, requireRevocableFromPhone} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import {phoneDeviceId} from '../gate/accounts'
@@ -16,30 +17,30 @@ describe('device revoke', function () {
     // the CLI's provisioning, a shutdown, a list read and a revoke, each with its own deadline
     this.timeout(420_000)
     const env = loadE2EEnv()
+    const runId = e2eRunId()
     const phoneID = await phoneDeviceId()
-    let made: CliDevice | undefined
-    let revokedByApp = false
-    try {
-      made = await provisionCliDevice(env, e2eRunId())
-      const {deviceID, name} = made
-      await openDevices()
-      await openDevicePage(name)
-      await labeled('StaticText', 'Computer').waitForExist({timeout: 10_000})
-      await step('The CLI-provisioned computer has its device page', {card: true})
+    await withCleanup(
+      async () => {
+        const made = await provisionCliDevice(env, runId)
+        const {deviceID, name} = made
+        await openDevices()
+        await openDevicePage(name)
+        await labeled('StaticText', 'Computer').waitForExist({timeout: 10_000})
+        await step('The CLI-provisioned computer has its device page', {card: true})
 
-      await requireRevocableFromPhone(env, made, phoneID)
-      // sends revoke.revokeDevice
-      await revokeOnPhone(name, 'computer', async () => step('The revoke confirm names the computer'))
-      await waitNotListedActive(name)
-      await waitFor(
-        'the service to list the computer as revoked',
-        async () => ((await deviceHistory()).filter(d => d.deviceID === deviceID).map(d => d.revoked).join() === 'true' ? true : undefined),
-        {interval: 1_000, timeout: 30_000}
-      )
-      revokedByApp = true
-      await step('Back on the devices list, the computer no longer active')
-    } finally {
-      if (made) await retireCliDevice(env, made, phoneID, revokedByApp)
-    }
+        await requireRevocableFromPhone(env, made, phoneID)
+        // sends revoke.revokeDevice
+        await revokeOnPhone(name, 'computer', async () => step('The revoke confirm names the computer'))
+        await waitNotListedActive(name)
+        await waitFor(
+          'the service to list the computer as revoked',
+          async () => ((await deviceHistory()).filter(d => d.deviceID === deviceID).map(d => d.revoked).join() === 'true' ? true : undefined),
+          {interval: 1_000, timeout: 30_000}
+        )
+        await step('Back on the devices list, the computer no longer active')
+      },
+      // from the home, so a provisioning that failed after its login still has its device revoked
+      [async () => retireCliDevice(env, runId, phoneID)]
+    )
   })
 })

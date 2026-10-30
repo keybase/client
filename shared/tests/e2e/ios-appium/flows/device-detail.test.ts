@@ -15,8 +15,9 @@ describe('device detail', () => {
     await labeled('StaticText', 'Device').waitForExist({timeout: 10_000})
     await el(T.DEVICE_PAGE_LAST_USED).waitForExist({timeout: 10_000})
     expect(await browser.$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label BEGINSWITH "Added "').isExisting()).toBe(true)
-    // the account has other devices, so the button is there and enabled; this flow leaves it alone
-    expect(await labeled('Button', 'Revoke this device').isEnabled()).toBe(true)
+    // a disabled button renders no button element: the account has other devices, so it is there
+    // (and tappable); this flow leaves it alone
+    await labeled('Button', 'Revoke this device').waitForExist({timeout: 10_000})
     await step("The phone's device page: current device, last used and added", {card: true})
   })
 })

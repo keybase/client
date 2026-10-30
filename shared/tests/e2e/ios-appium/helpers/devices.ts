@@ -42,12 +42,17 @@ export const openDevices = async () => {
   await el(T.DEVICES_ROW).waitForExist({timeout: 30_000, timeoutMsg: 'the devices list loaded no rows within 30s'})
 }
 
+// A drag that showed no new row may have landed before the list rendered its next batch.
+const STALL_READS = 3
+
 // Every active device the list shows, top to bottom, read from its top (openDevices) down to the
-// "Revoked devices" divider that ends them.
+// "Revoked devices" divider that ends them. Relies on that divider: the list shows it after the
+// active devices whenever there are any, which there always are (the phone's).
 export const listedActiveDevices = async (timeoutMs = 240_000) => {
   const until = Date.now() + timeoutMs
   const current = new Set<string>()
   let names: Array<string> = []
+  let stalled = 0
   for (let screens = 1; ; screens++) {
     const {divider, rows} = await rowsNow()
     const page = rows.flatMap(r => {
@@ -60,7 +65,10 @@ export const listedActiveDevices = async (timeoutMs = 240_000) => {
     names = merged
     // the virtualized list renders a contiguous run of rows, so a screen that reaches the divider holds the rest
     if (divider) return {current: [...current], names, screens}
-    if (!grew && screens > 1) throw new Error(`the devices list stopped scrolling after ${names.length} active rows, before the revoked devices`)
+    stalled = grew || screens === 1 ? 0 : stalled + 1
+    if (stalled >= STALL_READS) {
+      throw new Error(`the devices list stopped scrolling after ${names.length} active rows, before the revoked devices`)
+    }
     if (Date.now() > until) throw new Error(`reading the devices list took over ${timeoutMs / 1000}s (${names.length} active rows so far)`)
     await dragList(0.85, 0.25)
   }
@@ -72,6 +80,7 @@ export const findDeviceRow = async (name: string, timeoutMs = 240_000) => {
   const until = Date.now() + timeoutMs
   const {height} = await browser.getWindowRect()
   let lastSeen: string | undefined
+  let stalled = 0
   for (let screens = 1; ; screens++) {
     const {rows} = await rowsNow()
     const hits = rows.filter(r => rowDevice(r.label)?.name === name)
@@ -85,7 +94,8 @@ export const findDeviceRow = async (name: string, timeoutMs = 240_000) => {
       continue
     }
     const last = rows.at(-1)?.label
-    if (screens > 1 && last === lastSeen) throw new Error(`no row for ${name} anywhere below in the devices list`)
+    stalled = screens > 1 && last === lastSeen ? stalled + 1 : 0
+    if (stalled >= STALL_READS) throw new Error(`no row for ${name} anywhere below in the devices list`)
     lastSeen = last
     await dragList(0.85, 0.25)
   }
