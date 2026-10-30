@@ -51,13 +51,14 @@ export const rowDevice = (label: string): {name: string; current: boolean; activ
 
 // Appends what `page` (one screen's rows, in order) adds after the rows already collected. The
 // pages must overlap: a page that shares no row with what came before means a scroll skipped rows.
-export const mergeRows = (collected: ReadonlyArray<string>, page: ReadonlyArray<string>): Array<string> => {
+// `shown` is how an error names a device (paperKeyMasked).
+export const mergeRows = (collected: ReadonlyArray<string>, page: ReadonlyArray<string>, shown: (name: string) => string = n => n): Array<string> => {
   if (!collected.length) return [...page]
   const last = collected[collected.length - 1] ?? ''
   const at = page.indexOf(last)
   if (at < 0) {
     if (page.every(n => collected.includes(n))) return [...collected]
-    throw new Error(`the list scrolled past rows: the next screen does not start at or before ${last}`)
+    throw new Error(`the list scrolled past rows: the next screen does not start at or before ${shown(last)}`)
   }
   return [...collected, ...page.slice(at + 1)]
 }
@@ -67,4 +68,37 @@ export const mergeRows = (collected: ReadonlyArray<string>, page: ReadonlyArray<
 export const deviceRowPredicate = (name: string) => {
   const n = escapePredicate(name)
   return `-ios predicate string:name == "${DEVICES_ROW}" AND (label BEGINSWITH "${n} , " OR label BEGINSWITH "${n}${currentSuffix}")`
+}
+
+export type TypedDevice = {name: string; type: string}
+
+// How an error names a device: a paper key's name is the first two words of its phrase, so any
+// device the account has (or had) as a paper key is only "a paper key".
+export const paperKeyMasked = (devices: ReadonlyArray<TypedDevice>) => {
+  const keys = new Set(devices.filter(d => d.type === 'backup').map(d => d.name))
+  return (name: string) => (keys.has(name) ? 'a paper key' : name)
+}
+
+// Undefined when the list shows exactly the service's active devices; otherwise what differs, with
+// paper keys counted, never named. `history` is every device the account had, to tell a paper key
+// the list shows but the service does not list as active.
+export const deviceListProblem = (shown: ReadonlyArray<string>, active: ReadonlyArray<TypedDevice>, history: ReadonlyArray<TypedDevice>) => {
+  const want = new Set(active.map(d => d.name))
+  const have = new Set(shown)
+  const isKey = new Set(history.filter(d => d.type === 'backup').map(d => d.name))
+  const describe = (names: Array<string>) => {
+    const keys = names.filter(n => isKey.has(n)).length
+    return [...names.filter(n => !isKey.has(n)), ...(keys ? [`${keys} paper key${keys > 1 ? 's' : ''}`] : [])].join(', ')
+  }
+  const missing = [...want].filter(n => !have.has(n)).sort()
+  const extra = [...have].filter(n => !want.has(n)).sort()
+  const dupes = shown.length - have.size
+  if (!missing.length && !extra.length && !dupes) return undefined
+  return [
+    missing.length ? `the list does not show ${describe(missing)}` : '',
+    extra.length ? `the list shows ${describe(extra)}, which the service does not list as active` : '',
+    dupes ? `the list shows ${dupes} name${dupes > 1 ? 's' : ''} twice` : '',
+  ]
+    .filter(Boolean)
+    .join('; ')
 }

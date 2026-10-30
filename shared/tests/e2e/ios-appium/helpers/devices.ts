@@ -58,7 +58,8 @@ const STALL_READS = 3
 // Every active device the list shows, top to bottom, read from its top (openDevices) down to the
 // "Revoked devices" divider that ends them. Relies on that divider: the list shows it after the
 // active devices whenever there are any, which there always are (the phone's).
-export const listedActiveDevices = async (timeoutMs = 240_000) => {
+// `shown` is how an error names a device (devices-lib paperKeyMasked).
+export const listedActiveDevices = async (shown: (name: string) => string = n => n, timeoutMs = 240_000) => {
   const until = Date.now() + timeoutMs
   const current = new Set<string>()
   let names: Array<string> = []
@@ -70,7 +71,7 @@ export const listedActiveDevices = async (timeoutMs = 240_000) => {
       if (d?.current) current.add(d.name)
       return d?.active ? [d.name] : []
     })
-    const merged = mergeRows(names, page)
+    const merged = mergeRows(names, page, shown)
     const grew = merged.length > names.length
     names = merged
     // the virtualized list renders a contiguous run of rows, so a screen that reaches the divider holds the rest

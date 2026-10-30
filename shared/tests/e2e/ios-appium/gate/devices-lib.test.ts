@@ -1,4 +1,4 @@
-import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from './devices-lib'
+import {deviceListProblem, deviceRowPredicate, deviceRowsIn, mergeRows, paperKeyMasked, rowDevice, showsRevokedDivider} from './devices-lib'
 
 const row = (label: string, y: number, visible = true) =>
   `<XCUIElementTypeOther type="XCUIElementTypeOther" name="devices-row" label="${label}" enabled="true" visible="${visible}" accessible="true" x="0" y="${y}" width="402" height="56" index="0" traits="">`
@@ -54,5 +54,29 @@ describe('deviceRowPredicate', () => {
     expect(deviceRowPredicate('a "b"')).toBe(
       '-ios predicate string:name == "devices-row" AND (label BEGINSWITH "a \\"b\\" , " OR label BEGINSWITH "a \\"b\\" (Current device), ")'
     )
+  })
+})
+
+describe('paper key names stay out of messages', () => {
+  const history = [
+    {name: 'phone', type: 'mobile'},
+    {name: 'laptop', type: 'desktop'},
+    {name: 'apple banana', type: 'backup'},
+    {name: 'cherry date', type: 'backup'},
+  ]
+
+  test('a skipped screen names a paper key only as one', () => {
+    expect(() => mergeRows(['phone', 'apple banana'], ['laptop'], paperKeyMasked(history))).toThrow(
+      'the list scrolled past rows: the next screen does not start at or before a paper key'
+    )
+  })
+
+  test('deviceListProblem lists other devices by name and paper keys by count', () => {
+    const active = history.slice(0, 3)
+    expect(deviceListProblem(['phone', 'laptop', 'apple banana'], active, history)).toBeUndefined()
+    const problem = deviceListProblem(['phone', 'cherry date'], active, history)
+    expect(problem).toBe('the list does not show laptop, 1 paper key; the list shows 1 paper key, which the service does not list as active')
+    expect(problem).not.toMatch(/apple|cherry/)
+    expect(deviceListProblem(['phone', 'phone', 'laptop', 'apple banana'], active, history)).toBe('the list shows 1 name twice')
   })
 })
