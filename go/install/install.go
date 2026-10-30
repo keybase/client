@@ -51,7 +51,8 @@ const (
 	ComponentNameKBFS ComponentName = "kbfs"
 	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
-	// ComponentNameApp is the UI app
+	// ComponentNameApp is the UI app. ctl starts and stops it; install and
+	// uninstall reject it on macOS.
 	ComponentNameApp ComponentName = "app"
 	// ComponentNameFuse is the Fuse component
 	ComponentNameFuse ComponentName = "fuse"
@@ -59,7 +60,7 @@ const (
 	ComponentNameHelper ComponentName = "helper"
 	// ComponentNameMountDir is the mount directory
 	ComponentNameMountDir ComponentName = "mountdir"
-	// ComponentNameCLIPaths is for /etc/paths.d/Keybase
+	// ComponentNameCLIPaths links the CLI into /usr/local/bin as an administrator
 	ComponentNameCLIPaths ComponentName = "clipaths"
 	// ComponentNameRedirector is the KBFS redirector
 	ComponentNameRedirector ComponentName = "redirector"
