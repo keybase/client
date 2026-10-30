@@ -20,13 +20,12 @@
 //   4. every gate flow (wdio.gate.conf.ts, project ios-flows)
 //   5. the visual tour in render mode (`visual render --ios`), after the flows: render leaves the
 //      simulator's Reduce Motion on until the app's next launch
-//   6. census, then the report, opened unless KB_E2E_NO_OPEN=1; each passes only on what its child
-//      wrote during the phase
-//   7. a scan of ios-report/, ios-debug/, ios-logs/, the render dir, ios-report.html, ios-census.md,
-//      ios-census.json and ios-manual-checklist.md for the env file's secrets: a file that holds one
-//      is deleted and named, and the run fails
-// Then it stops the Metro and Appium it started (and the WebDriverAgent Appium left), leaving the
-// simulator booted and the app running, prints one line per phase and posts a macOS notification.
+//   6. census, then the report; each passes only on what its child wrote during the phase
+// However it ends, once it holds the release lock: it stops the Metro and Appium it started (and the
+// WebDriverAgent Appium left), leaving the simulator booted and the app running; then scans
+// everything under tests/results for the env file's secrets (secrets phase; a file that holds one is
+// deleted and named, and the run fails); then opens the report, when this run wrote it and the scan
+// left it, unless KB_E2E_NO_OPEN=1; then prints one line per phase and posts a macOS notification.
 // Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
 // emptied when the run takes the lock) and get this run's KB_E2E_RUN_ID.
 //
@@ -44,7 +43,7 @@ import {runAbortable} from '../shared/deadline.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {sessionLocked} from '../electron/helpers/main-process.ts'
-import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
+import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
 import {createReleaseRun, errText, type ChildResult} from '../shared/gate/release-run.mts'
 import {
   flowProblems,
@@ -75,6 +74,7 @@ import {
   strayChildren,
   type IosPreflightState,
 } from './release-lib.ts'
+import {scanResults} from './release-secrets.mts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -83,10 +83,7 @@ const out = {
   census: path.join(resultsDir, 'ios-census.md'),
   censusJson: path.join(resultsDir, 'ios-census.json'),
   checklist: path.join(resultsDir, 'ios-manual-checklist.md'),
-  debug: path.join(resultsDir, 'ios-debug'),
   report: path.join(resultsDir, 'ios-report.html'),
-  // wdio.gate.conf.ts clears this dir when it starts
-  reportDir: path.join(resultsDir, 'ios-report'),
   results: path.join(resultsDir, 'ios-report/results.json'),
 }
 const logFile = (name: string) => path.join(logsDir, `${name}.log`)
@@ -106,11 +103,32 @@ const device = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 // The gate's own runs set this to skip the lock check; this command is not one of them.
 delete process.env['KB_VISUAL_RUN']
 
+// started once preflight passed: every value the env file's secrets held from then on
+let secretWatch: SecretWatch | undefined
+// set when the report phase passed
+let reportWritten = false
+
+// Stops what the run started, then (so the files are final) scans what it wrote, then opens the report
+// if it survived the scan. A run that never took the release lock wrote nothing, so it scans nothing.
+const cleanup = async (code: number) => {
+  if (!(await stopWhatItStarted()) && code === 0) code = 1
+  if (!run.holdsLock()) return code
+  const watch = secretWatch
+  // a render dir KB_VISUAL_RESULTS put outside tests/results is scanned too
+  const outside = renderDir !== undefined && path.relative(resultsDir, renderDir).startsWith('..')
+  const secrets = scanResults([resultsDir, ...(outside && renderDir ? [renderDir] : [])], watch ? () => watch.secrets() : envSecrets, log)
+  watch?.stop()
+  phases.push(secrets)
+  if (!secrets.ok && code === 0) code = 1
+  // a report that held a secret is gone by now
+  if (reportWritten && fs.existsSync(out.report) && !process.env['KB_E2E_NO_OPEN']) {
+    spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
+  }
+  return code
+}
+
 const run = createReleaseRun({
-  cleanup: async code => {
-    if (!(await stopWhatItStarted()) && code === 0) code = 1
-    return code
-  },
+  cleanup,
   cwd: sharedDir,
   deadlineMs,
   lockPath: process.env['KB_E2E_RELEASE_LOCK'] ?? '/tmp/kb-e2e-release.lock',
@@ -396,7 +414,7 @@ const main = async () => {
   const e2eEnv = env
   const id = udid
   // the scan at the end looks for every second-account password the env file held during the run
-  const secrets = watchEnvSecrets()
+  secretWatch = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv), {KB_IOS_DEVICE: device})
 
@@ -495,16 +513,8 @@ const main = async () => {
       logFile: logFile('report'),
     })
     const p = reportPhaseResult(r, {path: out.report, ...mtime(out.report)}, start)
-    if (p.ok && !process.env['KB_E2E_NO_OPEN']) spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
+    reportWritten = p.ok
     return p
-  })
-
-  // last, over everything the run wrote: no artifact may hold a secret from the env file
-  await phase('secrets', async () => {
-    const scan = scanAndPurge([out.reportDir, out.debug, logsDir, out.report, out.census, out.censusJson, out.checklist, ...(renderDir ? [renderDir] : [])], secrets.secrets())
-    secrets.stop()
-    for (const f of scan.hits) log(`secret found, deleted: ${f}`)
-    return Promise.resolve({line: scan.line, ok: !scan.hits.length})
   })
 
   return endRun(releaseFailed(phases) ? 1 : 0)

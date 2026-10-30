@@ -1,0 +1,23 @@
+// The iOS release run's secret scan, run from its cleanup once what it started has stopped, so every
+// way out of a run that took the release lock (a refused preflight, a failed phase, the overall
+// deadline, an interrupt, a crash) scans the files as they finally are.
+import type {Phase} from '../shared/gate/release-lib.ts'
+import {errText} from '../shared/gate/release-run.mts'
+import {scanAndPurge} from '../shared/gate/secret-scan.ts'
+
+// Scans everything under `dirs` for `secrets()` (the run's ledger, or the env file's values when
+// the run stopped before starting one), deletes each file that holds one and logs it. A hit, or a scan
+// that could not run, fails the run's secrets phase, which this returns.
+export const scanResults = (dirs: ReadonlyArray<string>, secrets: () => ReadonlyArray<string>, log: (s: string) => void): Phase => {
+  const start = Date.now()
+  let p: Omit<Phase, 'ms' | 'name'>
+  try {
+    const scan = scanAndPurge(dirs, secrets())
+    for (const f of scan.hits) log(`secret found, deleted: ${f}`)
+    p = {line: scan.line, ok: !scan.hits.length}
+  } catch (e) {
+    p = {line: `could not scan ${dirs.join(', ')}: ${errText(e)}`, ok: false}
+  }
+  log(`secrets: ${p.ok ? 'ok' : 'FAILED'}: ${p.line}`)
+  return {...p, ms: Date.now() - start, name: 'secrets'}
+}
