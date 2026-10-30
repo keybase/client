@@ -4,12 +4,15 @@
 import type {Exclusions} from '../../../shared/gate/census-lib.ts'
 
 const desktopOnly = 'desktop only: the phone has no such screen'
+// provisioning the signed-in phone as a new device needs a fresh install
+const phoneNew = 'manual-only: phone-new-device (the screens that provision this phone as a new device)'
 // the signed-out flows stop at "Start account reset" (flows/account-signed-out.test.ts)
 const resetStart = 'owner: excluded (account reset start and cancel)'
 
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     kextPermission: `${desktopOnly} (the macOS kernel extension permission popup; Settings > Files shows its entry only on macOS and Windows)`,
+    paperkey: phoneNew,
     recoverPasswordPgpWarning:
       'unreachable: it closes itself unless a password recovery started with a real paper key is waiting on it, and no real paper key is ever submitted',
     recoverPasswordPromptResetPassword: 'unreachable: the service asks it only of an account with no active key; every test account has devices',
@@ -17,6 +20,8 @@ export const IOS_EXCLUSIONS: Exclusions = {
     resetEnterPassword: resetStart,
     resetKnowPassword: resetStart,
     resetWaiting: resetStart,
+    selectOtherDevice: phoneNew,
+    setPublicName: phoneNew,
     signupError: 'manual-only: signup-submit (shown only when the final submit fails)',
   },
   rpcs: {
