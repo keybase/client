@@ -170,8 +170,8 @@ describe('account signed out', () => {
       this.timeout(720_000)
       // a test mocha timed out never emptied it; secret-free, and nothing when it is not mounted
       await emptyLoginField()
-      if (await storedSecretOf(loadE2EAccounts().secondUser)) return
-      await restoreSecondSecret(requireSecondPassword(loadE2EEnv()))
+      if (!(await storedSecretOf(loadE2EAccounts().secondUser))) await restoreSecondSecret(requireSecondPassword(loadE2EEnv()))
+      // also when the secret is there: the test's own restore may have failed (a no-op on smoke)
       await restoreToSmoke()
     })
 
