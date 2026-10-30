@@ -1,4 +1,4 @@
-import {mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG} from './hang-lib'
+import {countCommand, mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG} from './hang-lib'
 
 const report = (mainFrames: Array<string>) =>
   [
@@ -30,6 +30,17 @@ test('stuck reads count only while no command completes', () => {
   // a healthy app reading a long list: in the snapshot at every read, but its commands complete
   expect(nextHangState(s, {commandsDone: 9, inSnapshot: true})).toEqual({commandsAtFirst: 9, stuck: 1})
   expect(nextHangState(s, {commandsDone: 7, inSnapshot: false})).toEqual(NO_HANG)
+})
+
+test('failed commands do not reset the stuck reads, a command that succeeded does', () => {
+  let done = 7
+  let s = nextHangState(NO_HANG, {commandsDone: done, inSnapshot: true})
+  // a hung app: WDA requests time out, polls give up
+  done = countCommand(countCommand(done, new Error('Request timed out')), new Error('element not found'))
+  s = nextHangState(s, {commandsDone: done, inSnapshot: true})
+  expect(s).toEqual({commandsAtFirst: 7, stuck: 2})
+  done = countCommand(done, undefined)
+  expect(nextHangState(s, {commandsDone: done, inSnapshot: true})).toEqual({commandsAtFirst: 8, stuck: 1})
 })
 
 test("starting a watch stops the one before it, and stop() stops whichever runs, once", () => {

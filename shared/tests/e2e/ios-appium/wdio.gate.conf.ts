@@ -50,9 +50,9 @@ export const config: WebdriverIO.Config = {
       }
     )
   },
-  // what the app-hang watch counts: a hung app completes no command
-  afterCommand: () => {
-    noteCommandDone()
+  // what the app-hang watch counts: a hung app answers no command, though its commands still fail
+  afterCommand: (_command: string, _args: Array<unknown>, _result: unknown, error?: Error) => {
+    noteCommandDone(error)
   },
   afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
   onComplete: (exitCode: number) => {

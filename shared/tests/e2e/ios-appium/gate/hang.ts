@@ -1,5 +1,5 @@
 // Watches the app during a test body for the main thread stuck in UIKit's accessibility snapshot
-// (hang-lib.ts). Once it has been stuck, with no Appium command completing, long enough that no
+// (hang-lib.ts). Once it has been stuck, with no Appium command succeeding, long enough that no
 // query can be slow work, the app is killed and launched again and the watch's promise gives the
 // reason, so the body is failed at once (hooks.ts) and its cleanup has an app to drive, instead of
 // every query and eval waiting out its bound.
@@ -9,20 +9,20 @@ import * as os from 'os'
 import * as path from 'path'
 import {appPid, BUNDLE_ID, deviceUdid, simctl, terminateApp} from '../helpers/lifecycle'
 import {iosReportDir} from './attempt.ts'
-import {makeWatchSlot, mainThreadInSnapshot, nextHangState, NO_HANG} from './hang-lib.ts'
+import {countCommand, makeWatchSlot, mainThreadInSnapshot, nextHangState, NO_HANG} from './hang-lib.ts'
 
 const READ_EVERY_MS = 15_000
-// four reads in a row, 45s or more apart from the first, with no command completing between them
+// four reads in a row, 45s or more apart from the first, with no command succeeding between them
 const STUCK_READS = 4
 const SAMPLE_MS = 20_000
 
 // the hang spins the main thread, a whole core
 const BUSY_CPU_PERCENT = 90
 
-// Appium commands completed this run (wdio.gate.conf.ts afterCommand): a stuck app completes none.
+// Appium commands that succeeded this run (wdio.gate.conf.ts afterCommand): a stuck app answers none.
 let commandsDone = 0
-export const noteCommandDone = () => {
-  commandsDone++
+export const noteCommandDone = (error: unknown) => {
+  commandsDone = countCommand(commandsDone, error)
 }
 
 const appCpuPercent = (pid: number) => {
@@ -75,7 +75,7 @@ export const startHangWatch = async (): Promise<string> => {
     const file = path.join(iosReportDir(), `app-hang-${Date.now()}.txt`)
     fs.mkdirSync(iosReportDir(), {recursive: true})
     fs.writeFileSync(file, report)
-    hang = `the app hung: its main thread was stuck in UIKit's accessibility snapshot (the call that answers an XCUITest query), with no Appium command completing, for ${((STUCK_READS - 1) * READ_EVERY_MS) / 1000}s or more; the gate killed and relaunched it (its sample: ${file})`
+    hang = `the app hung: its main thread was stuck in UIKit's accessibility snapshot (the call that answers an XCUITest query), with no Appium command succeeding, for ${((STUCK_READS - 1) * READ_EVERY_MS) / 1000}s or more; the gate killed and relaunched it (its sample: ${file})`
     try {
       await terminateApp()
       simctl('launch', deviceUdid(), BUNDLE_ID)
