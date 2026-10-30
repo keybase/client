@@ -7,19 +7,20 @@
 import {
   E2E_CHANNELS,
   createThrowawayChannel,
+  deleteThrowawayChannel,
   ensureChatData,
   leaveChannelFromCli,
   sendDirectFromCli,
   sendFromCli,
   type ChatData,
 } from '../../shared/chat-data'
+import {switchCliAccount} from '../../shared/cli-account'
 import {
   check,
   chooseDeleteBehindAReload,
   chooseMenuItem,
   clearComposer,
   closeMessageMenu,
-  deleteChannelAsApp,
   deletePhase,
   dragThread,
   expectAtEnd,
@@ -30,7 +31,6 @@ import {
   openMessageMenu,
   ordinalsWithText,
   orangeLineOrdinals,
-  outgoingRpcs,
   readThread,
   rowElement,
   rowPhasesAndPasses,
@@ -49,11 +49,25 @@ import {
   waitForThreadStable,
   watchDeleteThroughReloads,
   type DeletePhase,
+  accountChangedMarker,
 } from '../helpers/chat'
 import {jsEval, metroClientLogSince, metroLogMark, openUrl, waitFor} from '../helpers/lifecycle'
 import {el} from '../helpers/elements'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
+
+// The RPCs the app sent, read off Metro's log lines in order, each marked with whether the marker of
+// markAccountChange came before it.
+const outgoingRpcs = (lines: ReadonlyArray<string>) => {
+  let changed = false
+  const calls: Array<{afterAccountChange: boolean; method: string; params: string}> = []
+  for (const l of lines) {
+    if (l.includes(accountChangedMarker)) changed = true
+    const call = /<< OUT\s*((?:chat|keybase)\.1\.[\w.]+)\[\+calling\].*?\[\+calling\] \S+ (\{.*)$/.exec(l)
+    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
+  }
+  return calls
+}
 
 let data: ChatData
 before(async () => {
@@ -413,7 +427,7 @@ describe('chat data: a conversation never joined', () => {
 // account leaves that channel on another device (the notification that moves a desktop's selection
 // to the newest conversation). The host CLI runs as the second account for these flows, so the app
 // signs in as it too; the channel is made for the run by the second account (a writer) and deleted
-// by the smoke user (the owner) from the app afterwards.
+// by the smoke user (the owner) from the host afterwards.
 describe('chat data: selection', () => {
   // Whether the inbox lists the channel. It drops the channel as the leave's notification arrives
   // (about 200ms after the CLI's leave); the channel's meta still says active well after.
@@ -425,7 +439,15 @@ describe('chat data: selection', () => {
 
   after(async () => {
     await switchAppAccount(data.smokeUser)
-    if (channel) await deleteChannelAsApp(channel.convID, channel.topicName)
+    if (channel) {
+      // the host runs as the second account here; only the owner can delete the channel
+      await switchCliAccount(data.smokeUser)
+      try {
+        await deleteThrowawayChannel(channel.topicName)
+      } finally {
+        await switchCliAccount(data.secondUser)
+      }
+    }
   })
 
   it("a phone's open thread stays open when the account leaves the channel on another device", async () => {

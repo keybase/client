@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import {useInboxRowBig} from '@/chat/inbox/rows-state'
@@ -124,6 +125,7 @@ const BigTeamChannel = (props: Props) => {
       onClick={onSelectConversation}
       onLongPress={onLongPress}
       style={styles.container}
+      testID={TestIDs.CHAT_INBOX_CHANNEL_ROW}
     >
       {popup}
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>

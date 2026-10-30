@@ -26,7 +26,6 @@ import {
   openConversation,
   openMessageMenu,
   openThreadSearch,
-  outgoingRpcs,
   replyPreview,
   sendMessage,
   ordinalsWithText,
@@ -36,6 +35,7 @@ import {
   visibleConversation,
   waitForComposerText,
   waitForRow,
+  accountChangedMarker,
 } from '../helpers/chat'
 import {el, els} from '../helpers/elements'
 import {
@@ -50,6 +50,19 @@ import {
 } from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
+
+// The RPCs the app sent, read off Metro's log lines in order, each marked with whether the marker of
+// markAccountChange came before it.
+const outgoingRpcs = (lines: ReadonlyArray<string>) => {
+  let changed = false
+  const calls: Array<{afterAccountChange: boolean; method: string; params: string}> = []
+  for (const l of lines) {
+    if (l.includes(accountChangedMarker)) changed = true
+    const call = /<< OUT\s*((?:chat|keybase)\.1\.[\w.]+)\[\+calling\].*?\[\+calling\] \S+ (\{.*)$/.exec(l)
+    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
+  }
+  return calls
+}
 
 let data: ChatData
 before(async () => {

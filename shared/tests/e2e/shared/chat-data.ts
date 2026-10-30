@@ -1,11 +1,12 @@
 // Seeded chat data for the chat e2e flows, created through the local `keybase` CLI against the
 // running service (signed in as KB_SMOKE_USER, who owns KB_E2E_TEAM). Every step checks what is
 // already there first, so running it again only fills in what is missing. Node-only: shared by
-// the Electron flows and, later, the iOS ones (both drive a host that has the CLI).
+// the Electron and iOS flows (both drive a host that has the CLI, signed in as KB_SMOKE_USER).
 //
 // Accounts and the team come from the environment or ~/.config/keybase-e2e/env, never from this file:
 //   KB_SMOKE_USER  the account the app under test is signed in as, and the team owner
-//   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages)
+//   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages from its peer
+//                  service, peer-actors.ts)
 //   KB_E2E_TEAM    the team the e2e channels live in
 import {spawn, type ChildProcessWithoutNullStreams} from 'child_process'
 import {randomBytes} from 'crypto'
@@ -472,9 +473,9 @@ const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   }
 }
 
-// A text message sent through the host's CLI (not the app under test), as whichever account the
-// CLI is signed in as: the smoke user for the desktop flows, the second account for the iOS ones
-// (see cli-account.ts).
+// A text message sent through the host's CLI (not the app under test), as the smoke user: on the
+// phone that is the account's own message from another device, not an incoming one (peer-actors.ts
+// sends those).
 export const sendFromCli = async (topicName: E2EChannel, body: string) => {
   const {team} = e2eAccounts()
   await withApi(async api => sendText(api, channelRef(team, topicName), body))
@@ -526,10 +527,9 @@ const currentRunId = () => {
 
 // A channel for one run's membership flows, named stampedChannelName(label + 2 random hex
 // characters) (so the label is at most 7 characters; the random part keeps a retry from meeting a
-// channel an earlier try failed to delete), created by the CLI's account (the team owner for the
-// desktop flows, the second account, a writer, for the iOS ones) with the second account in it,
-// unless `withSecond` is false. Throws when the channel already exists. Callers delete it by the
-// returned topicName.
+// channel an earlier try failed to delete), created by the CLI's account (the team owner, which the
+// host stays signed in as) with the second account in it, unless `withSecond` is false. Throws when
+// the channel already exists. Callers delete it by the returned topicName.
 export const createThrowawayChannel = async (label: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
   const {secondUser, team} = e2eAccounts()
   const topicName = stampedChannelName(`${label}${randomBytes(1).toString('hex')}`, currentRunId())

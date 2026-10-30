@@ -12,6 +12,8 @@ import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
+import {inboxRowMatches, persistedMismatch} from '../gate/chat-lib.ts'
+import {relaunchApp} from '../gate/device.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -431,21 +433,15 @@ export const tapStatusBar = async () => {
 
 // -- conversations ------------------------------------------------------------------------------
 
-// Opens a conversation by id through a keybase://convid link (the deep-link path the app itself
-// handles), from the chat tab's root, so the thread mounts afresh. Waits for its list to read.
-export const openConversation = async (convID: string) => {
-  await hideKeyboard()
-  await escapeToTabs()
-  await navigateToChat()
-  openUrl(`keybase://convid/${convID}`)
-  await waitFor(
-    'the conversation to open',
-    async () => {
-      const {screen} = await appSnapshot()
-      return screen?.name === 'chatConversation' && screen.params?.['conversationIDKey'] === convID ? true : undefined
-    },
-    {interval: 250, timeout: 20_000}
-  )
+// The conversation the visible screen shows once a chat thread is pushed, or undefined before then.
+const openedConversation = async () => {
+  const {screen} = await appSnapshot()
+  const id = screen?.name === 'chatConversation' ? screen.params?.['conversationIDKey'] : undefined
+  return typeof id === 'string' ? id : undefined
+}
+
+// Waits for an opened conversation's thread to mount: its composer, the native push, and its list.
+const waitForThread = async (convID: string) => {
   await waitForTestID(T.CHAT_INPUT, 15_000)
   // JS names the screen before the native push lands; until it does the tab root still looks current
   await browser.waitUntil(async () => !(await atTabs()), {interval: 150, timeout: 5_000}).catch(() => {})
@@ -453,6 +449,132 @@ export const openConversation = async (convID: string) => {
     interval: 250,
     timeout: 15_000,
   })
+}
+
+// Opens a conversation by id through a keybase://convid link (the deep-link path the app itself
+// handles), from the chat tab's root, so the thread mounts afresh. Waits for its list to read.
+export const openConversation = async (convID: string) => {
+  await hideKeyboard()
+  await escapeToTabs()
+  await navigateToChat()
+  openUrl(`keybase://convid/${convID}`)
+  await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
+    interval: 250,
+    timeout: 20_000,
+  })
+  await waitForThread(convID)
+}
+
+const INBOX_ROWS = `-ios predicate string:name == ${JSON.stringify(T.CHAT_INBOX_ROW)} OR name == ${JSON.stringify(T.CHAT_INBOX_CHANNEL_ROW)}`
+const INBOX_SCROLL_MS = 30_000
+// how far inside the list's edges a row must sit to count as in view
+const INBOX_MARGIN = 4
+
+// midX: the middle of the element across (the inbox is a column of its own on a tablet)
+type Rect = {bottom: number; midX: number; top: number}
+const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => {
+  const {x, y} = await e.getLocation()
+  const {height, width} = await e.getSize()
+  return {bottom: y + height, midX: Math.round(x + width / 2), top: y}
+}
+
+// A slow finger drag on the inbox list, held still before lifting so it does not fling on.
+// Positive dy drags the content down (toward the inbox's top).
+const dragInbox = async (list: Rect, dy: number) => {
+  const x = list.midX
+  const room = list.bottom - list.top - 40
+  const d = Math.sign(dy) * Math.min(Math.abs(dy), room)
+  const mid = (list.top + list.bottom) / 2
+  const from = Math.round(mid - d / 2)
+  await browser
+    .action('pointer', {parameters: {pointerType: 'touch'}})
+    .move({x, y: from})
+    .down()
+    .move({duration: 500, x, y: Math.round(from + d)})
+    .pause(300)
+    .up()
+    .perform()
+}
+
+// The inbox rows drawn now (small conversations and big team channels), with their labels.
+const inboxRows = async () => {
+  const found = await browser.$$(INBOX_ROWS).getElements()
+  const rows: Array<{e: WebdriverIO.Element; label: string}> = []
+  for (const e of found) {
+    const label = await e.getAttribute('label').catch(() => null)
+    if (label !== null) rows.push({e, label})
+  }
+  return rows
+}
+
+// The inbox row of the conversation named `name` (inboxRowMatches: a small conversation by its
+// name, a big team channel as "#channel"), wholly in the list's view. The native inbox draws only
+// the rows near what it shows, so this drags the inbox to its top, then down until the row is in
+// view, and fails at the inbox's end or after INBOX_SCROLL_MS. Its errors name neither `name` nor
+// any row: the inbox holds conversations other than the test ones.
+export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
+  await hideKeyboard()
+  await escapeToTabs()
+  await navigateToChat()
+  await waitForTestID(T.CHAT_INBOX_LIST, 15_000)
+  const list = await rectOf(await el(T.CHAT_INBOX_LIST).getElement())
+  const page = list.bottom - list.top
+  const deadline = Date.now() + INBOX_SCROLL_MS
+  const signature = async () => (await inboxRows()).map(r => r.label).join('\n')
+  // to the top: until a drag down changes nothing
+  for (let before = await signature(); ; ) {
+    if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
+    await dragInbox(list, page)
+    const now = await signature()
+    if (now === before) break
+    before = now
+  }
+  for (;;) {
+    if (Date.now() > deadline) throw new Error(`the inbox row asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
+    const rows = await inboxRows()
+    const match = rows.find(r => inboxRowMatches(r.label, name))
+    if (match) {
+      const r = await rectOf(match.e)
+      if (r.top >= list.top + INBOX_MARGIN && r.bottom <= list.bottom - INBOX_MARGIN) return match.e
+      // drawn but not wholly in view: bring it in by the part that sticks out
+      const dy = r.top < list.top + INBOX_MARGIN ? list.top + INBOX_MARGIN * 4 - r.top : list.bottom - INBOX_MARGIN * 4 - r.bottom
+      await dragInbox(list, dy)
+      continue
+    }
+    const before = rows.map(x => x.label).join('\n')
+    await dragInbox(list, -page)
+    if ((await signature()) === before) throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
+  }
+}
+
+// Opens the conversation named `name` by tapping its inbox row (scrollInboxTo), and waits for its
+// thread. Returns its conversation id.
+export const openFromInbox = async (name: string) => {
+  for (let tap = 1; ; tap++) {
+    const row = await scrollInboxTo(name)
+    await row.click()
+    // a tap the list takes as the end of a scroll opens nothing; tap again
+    const convID = await waitFor('the conversation of the tapped inbox row to open', openedConversation, {
+      interval: 250,
+      timeout: 5_000,
+    }).catch((e: unknown) => {
+      if (tap >= 3) throw e
+      return undefined
+    })
+    if (convID) {
+      await waitForThread(convID)
+      return convID
+    }
+  }
+}
+
+// Whether what a flow changed survives a relaunch of the app: relaunches it (a new JS runtime, the
+// recording checkpointed on both sides), then `read`, which goes back to where the value shows and
+// reads it, and checks it equals `want`.
+export const expectPersists = async <V,>(what: string, read: () => Promise<V>, want: V) => {
+  await relaunchApp()
+  const miss = persistedMismatch(what, await read(), want)
+  if (miss) throw new Error(miss)
 }
 
 // -- accounts -----------------------------------------------------------------------------------
@@ -498,34 +620,6 @@ export const switchAppAccount = async (username: string) => {
     {interval: 1_000, timeout: 60_000}
   )
   await escapeToTabs()
-}
-
-// Deletes a team channel as the app's account (an admin of the team): an evaluate returns
-// synchronously, so it starts the RPC and polls for its outcome.
-export const deleteChannelAsApp = async (convID: string, channelName: string) => {
-  const key = `__e2eDelete${Date.now()}`
-  await withHarnessRpcs(`deleting #${channelName}`, async () =>
-    jsEval(`
-      const g = globalThis; g.${key} = 'pending'
-      kbModule('constants/rpc/rpc-chat-gen.tsx')
-        .localDeleteConversationLocalRpcPromise({
-          channelName: ${JSON.stringify(channelName)},
-          confirmed: true,
-          convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(convID)}),
-        })
-        .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) })
-      return true
-    `)
-  )
-  const state = await waitFor(
-    `#${channelName} to be deleted`,
-    async () => {
-      const now = await jsEval<string>(`return globalThis.${key}`)
-      return now === 'pending' ? undefined : now
-    },
-    {interval: 250, timeout: 20_000}
-  )
-  if (state !== 'done') throw new Error(`deleting #${channelName} failed: ${state}`)
 }
 
 // -- composer ------------------------------------------------------------------------------------
@@ -834,19 +928,6 @@ export const pickAnchor = (t: ThreadReading, v: Viewport, margin = 20) => {
   return row
 }
 
-// Runs a check that fails today because of an app bug. The test passes while the check fails, and
-// fails once the check passes, so the mark is removed with the fix. `bug` names it; `origin` says
-// in one line whether it exists on master or came with this branch, and what that rests on.
-export const expectedFailure = async ({bug, origin}: {bug: string; origin: string}, body: () => unknown) => {
-  try {
-    await body()
-  } catch (e) {
-    console.log(`expected failure (${bug}; ${origin}): ${e instanceof Error ? e.message : String(e)}`)
-    return
-  }
-  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug}; ${origin})`)
-}
-
 // Whether an element whose label contains `text` sits inside the element with testID `id` (the tree
 // is flattened, so what a box shows are its siblings, placed inside its rect).
 export const showsText = async (id: string, text: string) => {
@@ -999,7 +1080,7 @@ export const heldWaitingKeys = async () =>
     `return [...kbModule('stores/waiting.tsx').useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)`
   )
 
-const accountChangedMarker = 'e2e-signed-in-account-changed'
+export const accountChangedMarker = 'e2e-signed-in-account-changed'
 
 // Logs a marker to the console the moment the signed-in account changes, so Metro's log shows which
 // of the app's calls came after it.
@@ -1012,19 +1093,6 @@ export const markAccountChange = async () =>
     })
     return true
   `)
-
-// The RPCs the app sent, read off Metro's log lines in order, each marked with whether the marker of
-// markAccountChange came before it.
-export const outgoingRpcs = (lines: ReadonlyArray<string>) => {
-  let changed = false
-  const calls: Array<{afterAccountChange: boolean; method: string; params: string}> = []
-  for (const l of lines) {
-    if (l.includes(accountChangedMarker)) changed = true
-    const call = /<< OUT\s*((?:chat|keybase)\.1\.[\w.]+)\[\+calling\].*?\[\+calling\] \S+ (\{.*)$/.exec(l)
-    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
-  }
-  return calls
-}
 
 // Starts a switch to another account signed in on this device through the app's own switch (what
 // the account switcher's row calls), for a flow that keeps typing while it runs.

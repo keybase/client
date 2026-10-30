@@ -1,6 +1,7 @@
-// Which account the host's `keybase` CLI (and the desktop service behind it) acts as. The iOS chat
-// flows run the app as KB_SMOKE_USER and send "incoming" messages from the host as KB_SECOND_USER,
-// so the host's service is switched to the second account for the run and back afterwards.
+// Which account the host's `keybase` CLI (and the desktop service behind it) acts as. The gate keeps
+// the host signed in as KB_SMOKE_USER and has the second account's peer service send its messages
+// (peer-actors.ts); only the old iOS chat runner (wdio.chat.conf.ts) switches the host to
+// KB_SECOND_USER for its run and back afterwards.
 //
 // `keybase login --switch <user>` swaps between accounts already signed in on this machine without
 // a prompt. One that would prompt (an account never signed in here) is never answered: stdin is

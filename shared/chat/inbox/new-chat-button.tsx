@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {GlassView} from 'expo-glass-effect'
 import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 
@@ -48,6 +49,7 @@ const HeaderNewChatButton = () => {
         onClick={onNewChat}
         small={true}
         style={styles.rainbowButton}
+        testID={TestIDs.CHAT_NEW_CHAT_BUTTON}
         type="Default"
       />
     </Kb.Box2>

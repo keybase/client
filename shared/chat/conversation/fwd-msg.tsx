@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
@@ -175,7 +176,7 @@ const TeamPickerInner = (props: Props) => {
   const content =
     pickerState === 'picker' ? (
       <Kb.ModalScreen scroll={false} padding="none">
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} testID={TestIDs.CHAT_FORWARD_SEARCH}>
           <Kb.SearchFilter
             size="full-width"
             icon="iconfont-search"

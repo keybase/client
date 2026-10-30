@@ -119,6 +119,26 @@ export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
 export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 // a conversation result in the send-to-chat picker (Files > Share to Chat)
 export const CHAT_SEND_TO_CHAT_ROW    = 'chat-send-to-chat-row'
+// the phone composer's exploding timer, left of the input (it opens the explode-after sheet)
+export const CHAT_EXPLODING_BUTTON    = 'chat-exploding-button'
+// the pinned banner's close icon while it hides the pin for you without asking (CHAT_PINNED_UNPIN otherwise)
+export const CHAT_PINNED_DISMISS      = 'chat-pinned-dismiss'
+// the inbox's search placeholder, which opens the inbox filter
+export const CHAT_INBOX_SEARCH        = 'chat-inbox-search'
+// a big team's inbox header gear, which opens its team menu; and a channel row under it
+export const CHAT_INBOX_BIG_TEAM_HEADER = 'chat-inbox-big-team-header'
+export const CHAT_INBOX_CHANNEL_ROW   = 'chat-inbox-channel-row'
+// the inbox header's New chat button
+export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
+// the forward picker's search box
+export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
+// one GIF in the giphy results over the composer
+export const CHAT_GIPHY_RESULT        = 'chat-giphy-result'
+// a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
+// 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
+// of each group ends in the _SELECTED suffix
+export const CHAT_NOTIFY_RADIO_PREFIX = 'chat-notify-radio-'
+export const CHAT_NOTIFY_RADIO_SELECTED_SUFFIX = '-selected'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

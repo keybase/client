@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import {useHooks} from './hooks'
 import {getMargins, scaledWidth} from './width'
@@ -67,7 +68,7 @@ const DesktopGiphySearch = () => {
               {props.previews.map((p, index) => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
-                  <Kb.Box2 key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer}>
+                  <Kb.Box2 key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer} testID={TestIDs.CHAT_GIPHY_RESULT}>
                     <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.marginH(margin)}>
                       <UnfurlImage
                         autoplayVideo={true}

@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   isSearching: boolean
@@ -83,7 +84,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     />
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
-      <Kb.ClickableBox direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder} testID={TestIDs.CHAT_INBOX_SEARCH}>
         <Kb.Icon
           type="iconfont-search"
           sizeType={isMobile ? 'Small' : 'Default'}
