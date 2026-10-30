@@ -199,6 +199,16 @@ const stopAppium = async (child: ChildProcess) => {
   }
 }
 
+// Fixes Date at `at`, keeping React Native's Animated clock real. JS-driven Animated (timing,
+// spring and decay without the native driver, e.g. SwitchToggle's on mount) reads its time from
+// Date.now(), so under a fixed Date it never reaches its end: it updates the view every frame
+// forever, and the busy main thread makes WDA's accessibility snapshots (the window rect, element
+// queries) take seconds.
+const fixClocks = (at: number) =>
+  `(${fixDate.toString()})(${at});
+   kbModule('node_modules/react-native/Libraries/Animated/AnimationTimingUtils.js')
+     .setAnimationTimeProvider(() => globalThis.__kbVisualRealDate.now())`
+
 const ROUTER = `const r = kbModule('constants/router.tsx');`
 // The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
 // and placements of coverage/visible.ts: screenPlacement says whether a view is in the focused
@@ -737,7 +747,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     if (changed || !(await accessibilityOn())) await relaunchApp()
     else if (p.reload) await reloadJs()
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
-    await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
+    await appEval(fixClocks(p.frozenAt), 'fixing Date')
     datePatched = true
     frozenAt = p.frozenAt
     await applyLight()
@@ -751,7 +761,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   // A fresh JS runtime set up as prepare left it.
   const reloadPrepared = async (at: number) => {
     await reloadJs()
-    await appEval(`(${fixDate.toString()})(${at})`, 'fixing Date')
+    await appEval(fixClocks(at), 'fixing Date')
     await applyLight()
     await remountScreens()
     await warmTabs()
