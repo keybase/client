@@ -34,11 +34,21 @@ type NodeWebSocket = {
 }
 type NodeWebSocketCtor = new (url: string, opts: {headers: Record<string, string>}) => NodeWebSocket
 
-export const inspectorPageFor = async (device: string, appId: string) => {
-  const page = (await listInspectorPages()).filter(p => p.deviceName === device && p.appId === appId).at(-1)
-  if (!page) throw new Error(`no Metro inspector page for ${device}`)
+export const NO_INSPECTOR_PAGE = 'no Metro inspector page'
+
+// The newest of `pages` for the device and app. When there is none, the error says what Metro did
+// list: nothing (the app's inspector socket is closed) or other targets (a different device or app).
+export const pickInspectorPage = (pages: ReadonlyArray<InspectorPage>, device: string, appId: string) => {
+  const page = pages.filter(p => p.deviceName === device && p.appId === appId).at(-1)
+  if (!page) {
+    const listed = pages.map(p => `${p.deviceName ?? '?'}/${p.appId ?? '?'}/${p.title ?? '?'}`).join(', ') || 'nothing'
+    throw new Error(`${NO_INSPECTOR_PAGE} for ${device} (Metro lists ${listed})`)
+  }
   return page
 }
+
+export const inspectorPageFor = async (device: string, appId: string) =>
+  pickInspectorPage(await listInspectorPages(), device, appId)
 
 // The id of the module Metro registered as `name`: an exact verboseName first, then, for a
 // node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro
