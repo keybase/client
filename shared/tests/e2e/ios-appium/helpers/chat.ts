@@ -6,16 +6,16 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
-import {byText, el, escapePredicate, waitForTestID} from './elements'
+import {byText, el, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
 import {
+  carriedTeam,
   findInboxRow,
   persistedMismatch,
-  sectionAfter,
   shiftIntoBand,
   type DrawnInboxItem,
   type Span,
@@ -525,21 +525,39 @@ const labeledSpans = async (id: string) => {
 
 const overlaps = (a: Span, b: Span) => a.top < b.bottom && b.top < a.bottom
 
-// What the inbox draws now (small rows, channel rows, big team headers marked by whether they are
-// KB_E2E_TEAM's), and the elements behind the rows.
-const drawnInbox = async (team: string) => {
+// the texts a big team header's name can be read from (RN draws a pressable Text as either)
+const HEADER_TEXTS = `-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeButton") AND name != ${JSON.stringify(T.CHAT_INBOX_BIG_TEAM_HEADER)}`
+
+// What the inbox draws now (small rows, channel rows, big team headers named by their team-name
+// text), and the elements behind the rows. Team names stay in memory: they are never printed.
+const drawnInbox = async () => {
   const small = await labeledSpans(T.CHAT_INBOX_ROW)
   const channels = await labeledSpans(T.CHAT_INBOX_CHANNEL_ROW)
   const gears = await spansOf(`~${T.CHAT_INBOX_BIG_TEAM_HEADER}`)
-  // the header's team name is a sibling of its gear, on the same row
-  const teamNames = await spansOf(`-ios predicate string:label == "${escapePredicate(team)}"`)
+  const texts: Array<{label: string; span: Span}> = []
+  if (gears.length) {
+    for (const {e, span} of await spansOf(HEADER_TEXTS)) {
+      if (!gears.some(g => overlaps(span, g.span))) continue
+      const label = await e.getAttribute('label').catch(() => null)
+      if (label) texts.push({label, span})
+    }
+  }
+  // the header's team name is a sibling of its gear, on the same row: the text nearest its middle
+  const teamOf = (g: Span) => {
+    const mid = (g.top + g.bottom) / 2
+    const near = texts
+      .filter(t => overlaps(t.span, g))
+      .sort((x, y) => Math.abs((x.span.top + x.span.bottom) / 2 - mid) - Math.abs((y.span.top + y.span.bottom) / 2 - mid))
+    return near[0]?.label
+  }
   const elements = [...small.map(r => r.e), ...channels.map(r => r.e), ...gears.map(g => g.e)]
   const items: Array<DrawnInboxItem> = [
     ...small.map(r => ({kind: 'small' as const, label: r.label, span: r.span})),
     ...channels.map(r => ({kind: 'channel' as const, label: r.label, span: r.span})),
-    ...gears.map(g => ({kind: 'header' as const, ours: teamNames.some(t => overlaps(t.span, g.span)), span: g.span})),
+    ...gears.map(g => ({kind: 'header' as const, span: g.span, team: teamOf(g.span)})),
   ]
-  return {elements, items, signature: items.map(i => `${i.kind}:${'label' in i ? i.label : i.ours}`).join('\n')}
+  const signature = items.map(i => `${i.kind}:${i.kind === 'header' ? (i.team ?? '') : i.label}`).join('\n')
+  return {elements, items, signature}
 }
 
 // What floats over the inbox list: the unread shortcut, the floating Big teams divider, the tab bar.
@@ -566,19 +584,22 @@ export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> 
   const page = list.bottom - list.top
   const deadline = Date.now() + INBOX_SCROLL_MS
   // to the top: until a drag down changes nothing
-  for (let before = (await drawnInbox(team)).signature; ; ) {
+  for (let before = (await drawnInbox()).signature; ; ) {
     if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
     await dragInbox(list, page)
-    const now = (await drawnInbox(team)).signature
+    const now = (await drawnInbox()).signature
     if (now === before) break
     before = now
   }
-  // whether the section running on above the first drawn header is KB_E2E_TEAM's
-  let carriedOurs = false
+  // the team whose section runs at the list's top, for the rows above the first header drawn after a
+  // drag: unknown (no team's) until a header has been seen there
+  let carried: string | undefined
   for (;;) {
     if (Date.now() > deadline) throw new Error(`the inbox row asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
-    const drawn = await drawnInbox(team)
-    const at = findInboxRow(drawn.items, name, carriedOurs)
+    const drawn = await drawnInbox()
+    const at = findInboxRow(drawn.items, name, team, carried)
+    // every drag below moves the content, so the section at the top is read off this drawing first
+    carried = carriedTeam(drawn.items, list.top, carried)
     if (at !== undefined) {
       const band = visibleBand(list, await inboxCovers())
       const row = drawn.items[at]!.span
@@ -587,9 +608,8 @@ export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> 
       await dragInbox(list, shiftIntoBand(row, band, INBOX_MARGIN))
       continue
     }
-    carriedOurs = sectionAfter(drawn.items, carriedOurs)
     await dragInbox(list, -page)
-    if ((await drawnInbox(team)).signature === drawn.signature) {
+    if ((await drawnInbox()).signature === drawn.signature) {
       throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
     }
   }

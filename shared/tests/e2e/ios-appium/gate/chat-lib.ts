@@ -18,43 +18,52 @@ export const persistedMismatch = (what: string, got: unknown, want: unknown) =>
 // A vertical stretch of the window, in window points.
 export type Span = {bottom: number; top: number}
 
-// What the inbox draws, top to bottom: small conversation rows, big team channel rows, and big team
-// headers (`ours`: the header of KB_E2E_TEAM). A channel row belongs to the nearest header above it.
+// What the inbox draws: small conversation rows, big team channel rows, and big team headers, each
+// named by its team-name text's label (undefined when it was not read). A channel row belongs to the
+// nearest header drawn above it.
 export type DrawnInboxItem =
   | {kind: 'small'; label: string; span: Span}
   | {kind: 'channel'; label: string; span: Span}
-  | {kind: 'header'; ours: boolean; span: Span}
+  | {kind: 'header'; span: Span; team: string | undefined}
+
+const byTop = (items: ReadonlyArray<DrawnInboxItem>) =>
+  items.map((item, i) => ({i, item})).sort((a, b) => a.item.span.top - b.item.span.top)
 
 // The index of the drawn row named `name` (inboxRowMatches), or undefined when none is drawn. A
-// "#channel" is looked for only among the channel rows of KB_E2E_TEAM's section, so a same-named
-// channel of another team is never it; any other name only among small conversation rows.
-// `carriedOurs`: whether the section that runs on above the first drawn header is KB_E2E_TEAM's
-// (sectionAfter of the drawing before the last scroll down). Throws when more than one row matches.
-export const findInboxRow = (items: ReadonlyArray<DrawnInboxItem>, name: string, carriedOurs: boolean) => {
+// "#channel" is looked for only among the channel rows of `team`'s section, so a same-named channel
+// of another team is never it; any other name only among small conversation rows. Rows above the
+// first drawn header are in the `carried` team's section (carriedTeam of the drawing before the
+// last drag); an unknown carried team is no team's. Throws when more than one row matches.
+export const findInboxRow = (
+  items: ReadonlyArray<DrawnInboxItem>,
+  name: string,
+  team: string,
+  carried: string | undefined
+) => {
   const wantChannel = name.startsWith('#')
-  const sorted = items.map((item, i) => ({i, item})).sort((a, b) => a.item.span.top - b.item.span.top)
-  let ours = carriedOurs
+  let section = carried
   const found: Array<number> = []
-  for (const {i, item} of sorted) {
+  for (const {i, item} of byTop(items)) {
     if (item.kind === 'header') {
-      ours = item.ours
+      section = item.team
       continue
     }
-    if (wantChannel !== (item.kind === 'channel') || (wantChannel && !ours)) continue
+    if (wantChannel !== (item.kind === 'channel') || (wantChannel && section !== team)) continue
     if (inboxRowMatches(item.label, name)) found.push(i)
   }
   if (found.length > 1) throw new Error(`more than one inbox row matches the name asked for (${found.length} drawn)`)
   return found[0]
 }
 
-// Whether the section that runs on below the drawn rows is KB_E2E_TEAM's: the lowest drawn header's,
-// or the carried one when no header is drawn.
-export const sectionAfter = (items: ReadonlyArray<DrawnInboxItem>, carriedOurs: boolean) => {
-  let lowest: {ours: boolean; top: number} | undefined
-  for (const item of items) {
-    if (item.kind === 'header' && (!lowest || item.span.top > lowest.top)) lowest = {ours: item.ours, top: item.span.top}
+// The team whose section runs at the list's top (`listTop`), for the drawing after the next drag:
+// the lowest drawn header at or above it, by name, or `carried` when none is drawn there.
+export const carriedTeam = (items: ReadonlyArray<DrawnInboxItem>, listTop: number, carried: string | undefined) => {
+  let team = carried
+  for (const {item} of byTop(items)) {
+    if (item.span.top > listTop) break
+    if (item.kind === 'header') team = item.team
   }
-  return lowest ? lowest.ours : carriedOurs
+  return team
 }
 
 // The part of the inbox list rows are seen through: the list less what floats over it (the floating
