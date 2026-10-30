@@ -32,13 +32,6 @@ export const deviceHistory = async () =>
 
 export const activeDevices = async () => (await deviceHistory()).filter(d => !d.revoked)
 
-// How many devices the account has active and revoked (the phone's devices screen shows no counts).
-export const serviceDeviceCounts = async () => {
-  const all = await deviceHistory()
-  const revoked = all.filter(d => d.revoked).length
-  return {active: all.length - revoked, revoked}
-}
-
 // The account's active devices as `keybase.1.device.deviceList` names them: the names the sweeper
 // (and the paper key ledger it reads) compares.
 export const listedDevices = async () => (await mainRpc<Array<ListedDevice> | null>('keybase.1.device.deviceList', {sessionID: 0})) ?? []

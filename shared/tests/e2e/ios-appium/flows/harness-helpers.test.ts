@@ -1,6 +1,6 @@
 import {escapeToTabs, navigateToMore, navigateToPeople, tapSettingsRow} from '../helpers/navigate'
 import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
-import {activeDevices, mainDevice, requireRevocableFromPhone, serviceDeviceCounts} from '../../shared/devices.ts'
+import {activeDevices, mainDevice, requireRevocableFromPhone} from '../../shared/devices.ts'
 import {appAccount, asSecond, phoneDevice, signedOutThenBack} from '../gate/accounts'
 import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
@@ -79,8 +79,6 @@ describe('harness device helpers', () => {
     expect(await refusal({deviceID: phone.deviceID, name: phone.deviceName})).toBe("refusing to revoke: it is the phone's own device")
     const host = await mainDevice()
     expect(await refusal(host)).toBe("refusing to revoke: it is the main service's own device")
-    const counts = await serviceDeviceCounts()
-    expect(counts.active).toBe((await activeDevices()).length)
   })
 })
 
