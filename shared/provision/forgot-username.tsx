@@ -5,6 +5,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
@@ -93,6 +94,7 @@ const ForgotUsername = () => {
             textType="BodySemibold"
             autoFocus={true}
             placeholder="Email address"
+            testID={TestIDs.FORGOT_USERNAME_EMAIL_INPUT}
             onEnterKeyDown={onSubmit}
             onChangeText={setEmail}
             value={email}

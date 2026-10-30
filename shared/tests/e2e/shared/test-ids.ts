@@ -306,6 +306,15 @@ export const LOGIN_USER_LIST = 'login-user-list'
 export const LOGIN_PASSWORD_INPUT = 'login-password-input'
 // the new-password field of Settings' change/set password screen
 export const SETTINGS_NEW_PASSWORD_INPUT = 'settings-new-password-input'
+// the signed-out screens' fields: signup's username, policy checkbox (its toggle on the phone) and
+// device name, the username screen "Someone else..." opens, Recover username's email, and the
+// paper key a password recovery asks for
+export const SIGNUP_USERNAME_INPUT = 'signup-username-input'
+export const SIGNUP_EULA_CHECKBOX = 'signup-eula-checkbox'
+export const SIGNUP_DEVICE_NAME_INPUT = 'signup-device-name-input'
+export const PROVISION_USERNAME_INPUT = 'provision-username-input'
+export const FORGOT_USERNAME_EMAIL_INPUT = 'forgot-username-email-input'
+export const RECOVER_PASSWORD_PAPER_KEY_INPUT = 'recover-password-paper-key-input'
 
 // Debug overlays: the global error bar and the runtime stats the service sends when turned on
 export const GLOBAL_ERROR = 'global-error'

@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
 import {submitProvisionUsername} from './flow'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   autoSubmit?: boolean
@@ -73,6 +74,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
         <Kb.Input3
           autoFocus={true}
           placeholder="Username"
+          testID={TestIDs.PROVISION_USERNAME_INPUT}
           maxLength={C.maxUsernameLength}
           onEnterKeyDown={onSubmit}
           onChangeText={setUsername}

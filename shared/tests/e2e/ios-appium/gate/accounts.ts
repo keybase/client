@@ -72,7 +72,7 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
 // recover-password screens put in their bar.
 const NATIVE_BACK = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Back" OR name == "BackButton"`]'
 
-const tapBack = async () => {
+export const tapBack = async () => {
   for (const back of [el('backButton'), browser.$(NATIVE_BACK)]) {
     if (await back.isExisting()) {
       await back.click().catch(() => {})

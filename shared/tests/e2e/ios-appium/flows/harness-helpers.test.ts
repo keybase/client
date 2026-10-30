@@ -5,6 +5,7 @@ import {appAccount, asSecond, phoneDevice, signedOutThenBack} from '../gate/acco
 import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 import {beginErrorCapture, takeErrors} from '../gate/errors'
+import {screenName, tapToScreen} from '../gate/screens'
 import {step} from '../gate/step'
 import {openLink, relaunchApp, setPasteboard} from '../gate/device'
 import {attemptRecording} from '../gate/recording'
@@ -26,21 +27,6 @@ describe('harness helpers', () => {
 // and signedOutThenBack's restore backs out of it (through native bar Back items, which take no
 // testID) and signs the smoke account back in.
 describe('harness restore from signed-out screens', () => {
-  const screenName = async () => (await appSnapshot()).screen?.name
-  // The login screen ignores a tap while it is still settling after the sign-out, so a tap that
-  // opened nothing is tried again.
-  const tapToScreen = async (target: () => ReturnType<typeof byText>, name: string) => {
-    let seen: string | undefined
-    for (let i = 0; i < 5; i++) {
-      await target().click()
-      const end = Date.now() + 5_000
-      while (Date.now() < end) {
-        if ((seen = await screenName()) === name) return
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-    }
-    throw new Error(`the ${name} screen never opened; the app shows ${seen ?? 'no screen'}`)
-  }
   const restoresFrom = async (open: () => Promise<void>, what: string) => {
     const {smokeUser} = loadE2EAccounts()
     await signedOutThenBack(async () => {

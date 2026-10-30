@@ -8,6 +8,7 @@ import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {isValidUsername} from '@/util/simple-validators'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {useNavigation} from '@react-navigation/native'
 import type {ParamListBase} from '@react-navigation/native'
@@ -127,7 +128,12 @@ const EnterUsername = (props: EnterUsernameProps) => {
     </Kb.Text>
   )
   const eulaBlock = (
-    <Kb.Checkbox label={eulaLabel} checked={acceptedEULA} onCheck={() => setAcceptedEULA(s => !s)} />
+    <Kb.Checkbox
+      label={eulaLabel}
+      checked={acceptedEULA}
+      onCheck={() => setAcceptedEULA(s => !s)}
+      testID={TestIDs.SIGNUP_EULA_CHECKBOX}
+    />
   )
   return (
     <SignupScreen
@@ -178,6 +184,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
               ref={inputRef}
               containerStyle={styles.input}
               placeholder="Pick a username"
+              testID={TestIDs.SIGNUP_USERNAME_INPUT}
               maxLength={C.maxUsernameLength}
               onChangeText={_onChangeUsername}
               onEnterKeyDown={onContinue}
