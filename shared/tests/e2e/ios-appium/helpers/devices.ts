@@ -139,6 +139,7 @@ export const revokeOnPhone = async (name: string, kind: 'computer' | 'paper key'
     throw new Error('the app now leaves the device page by itself after a revoke: drop the flow\'s own back')
   }
   await goBackUntilGone(T.DEVICE_PAGE)
+  await el(T.DEVICE_PAGE).waitForExist({reverse: true, timeout: 5_000, timeoutMsg: 'the device page stayed up after going back from it'})
   await el(T.DEVICES_LIST).waitForExist({timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
 }
 
