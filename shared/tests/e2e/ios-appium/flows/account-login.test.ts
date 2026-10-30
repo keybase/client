@@ -1,4 +1,5 @@
 import {loadE2EAccounts, loadE2EEnv, requireSecondPassword} from '../../accounts/env'
+import {secondPasswordIsCurrent} from '../../accounts/second-password-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {appAccount, restoreToSmoke} from '../gate/accounts'
@@ -37,7 +38,9 @@ describe('account login', function () {
   })
 
   it('the second account signs out, a wrong password is refused, and its password signs it back in', async function () {
-    // Worst case from the helpers' bounds (s), so the cleanup always gets to run. Body: stored-secret
+    // Worst case from the helpers' bounds (s), so the cleanup always gets to run. Before it: the
+    // password check on the second peer 150 (its service start 30, two whoamis 30, the check 60,
+    // connecting 30). Body: stored-secret
     // read 20, switch to second 150 (switcher 60, the switch 60, escapeToTabs 30), Settings and the
     // sign-out screen 35, signed out 190 (list 60, signed out 30, secret dropped 50, password screen
     // 30, two row reads 20), wrong password 120 (submit 70, banner 30, emptying 20), password sign-in
@@ -45,10 +48,18 @@ describe('account login', function () {
     // switcher 60, two row reads 20, escapeToTabs 30) = 975. Cleanup: restoreSecondSecret 400
     // (secret read 20, settling 60, to the login list 90, selecting the row 30, sign-in 150, secret
     // stored 50), restoreToSmoke 235 (settling 60, a sign-in from the login list 175) = 635.
-    // Total 1610.
+    // Total 1760.
     this.timeout(1_800_000)
-    const password = requireSecondPassword(loadE2EEnv())
+    const env = loadE2EEnv()
+    const password = requireSecondPassword(env)
     const {secondUser, smokeUser} = loadE2EAccounts()
+    // "Just sign out" drops the phone's stored secret, and only this password puts it back: prove
+    // it is current first, on the second peer, before anything changes
+    if (!(await secondPasswordIsCurrent(env, password))) {
+      throw new Error(
+        "refusing to sign the second account out: the second peer says KB_SECOND_PASSWORD in the env file is not its current password, so the phone's stored secret could not be put back"
+      )
+    }
     await withCleanup(
       async () => {
         if (!(await storedSecretOf(secondUser))) {

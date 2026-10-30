@@ -13,6 +13,7 @@ import {
   newPassword,
   repairSecondSecret,
   rotateSecondPassword,
+  secondPasswordIsCurrent,
   setSecondPasswordViaPeer,
   thenRestore,
   type MainSide,
@@ -292,6 +293,43 @@ describe('setSecondPasswordViaPeer', () => {
     const peer = peerWith(true)
     await expect(setSecondPasswordViaPeer(env, 'e2e-next', peer)).rejects.toThrow(/server-synced PGP key/)
     expect(peer.sent.map(s => s.method)).toEqual(['keybase.1.account.hasServerKeys'])
+  })
+})
+
+describe('secondPasswordIsCurrent', () => {
+  const peerAnswering = (answer: () => unknown) => {
+    const sent: Array<{method: string; arg: unknown}> = []
+    let closed = false
+    const rpc: RpcLike = {
+      call: async <T,>(method: string, arg: object) => {
+        sent.push({arg, method})
+        return answer() as T
+      },
+      close: () => {
+        closed = true
+      },
+    }
+    return {closed: () => closed, peerRpc: async () => rpc, sent}
+  }
+
+  test('sends passphraseCheck with the password and reads its answer', async () => {
+    const yes = peerAnswering(() => true)
+    expect(await secondPasswordIsCurrent(env, 'e2e-pw', yes)).toBe(true)
+    expect(yes.sent).toEqual([{arg: {passphrase: 'e2e-pw', sessionID: 0}, method: 'keybase.1.account.passphraseCheck'}])
+    expect(yes.closed()).toBe(true)
+    expect(await secondPasswordIsCurrent(env, 'e2e-pw', peerAnswering(() => false))).toBe(false)
+  })
+
+  test('an error leaves the password out of its message, and an empty password sends nothing', async () => {
+    const failing = peerAnswering(() => {
+      throw new Error('peer said e2e-pw is odd')
+    })
+    const err = await secondPasswordIsCurrent(env, 'e2e-pw', failing).catch((e: unknown) => e as Error)
+    expect(err.message).toBe('checking the second account password on its peer: peer said <password> is odd')
+    expect(failing.closed()).toBe(true)
+    const empty = peerAnswering(() => true)
+    await expect(secondPasswordIsCurrent(env, '', empty)).rejects.toThrow('no second account password to check')
+    expect(empty.sent).toEqual([])
   })
 })
 

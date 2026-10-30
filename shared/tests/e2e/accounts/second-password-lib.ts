@@ -240,6 +240,25 @@ export const setSecondPasswordViaPeer = async (
   }
 }
 
+// Whether `password` is the second account's current password, as its peer service checks it
+// (account.passphraseCheck, which only compares: no prompt, nothing changes). The password goes over
+// the peer's RPC socket, never into an argv or a log, and any error has it scrubbed.
+export const secondPasswordIsCurrent = async (
+  env: E2EEnv,
+  password: string,
+  deps: {peerRpc: (env: E2EEnv) => Promise<RpcLike>} = {peerRpc: async e => (await ensurePeer('second', e)).rpc()}
+) => {
+  if (!password) throw new Error('no second account password to check')
+  const rpc = await deps.peerRpc(env)
+  try {
+    return (await rpc.call<boolean>('keybase.1.account.passphraseCheck', {passphrase: password, sessionID: 0}, 60_000)) === true
+  } catch (e) {
+    throw scrubbed('checking the second account password on its peer', e, password)
+  } finally {
+    rpc.close()
+  }
+}
+
 export type RepairDeps = {
   check: (env: E2EEnv) => Promise<void>
   repair: (env: E2EEnv, password: string) => Promise<void>
