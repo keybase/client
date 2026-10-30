@@ -2,7 +2,7 @@
 // account. Each wrapper checks the app is back on the smoke account before it returns.
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
-import {byText, el} from '../helpers/elements'
+import {el} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
@@ -59,7 +59,12 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
   thenRestoring(
     async () => {
       await openAccountSwitcher()
-      await byText('Log in as another user').click()
+      // The button is disabled while a login or an account switch is still settling (just after
+      // asSecond's restore, say), and a disabled button renders a plain view with the same text: a
+      // tap on that text does nothing. Only the enabled button is a Button element.
+      const loginAsOther = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Log in as another user"')
+      await loginAsOther.waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the switcher\'s "Log in as another user" never became tappable'})
+      await loginAsOther.click()
       await el(T.LOGIN_USER_LIST).waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen never showed its account list'})
       return f()
     },
