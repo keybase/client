@@ -4,6 +4,7 @@
 import {evalInPage, inspectorPageFor, listInspectorPages} from '../../shared/metro-eval.ts'
 import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
 import {nextRecordingAction} from './recorder-lib.ts'
+import {ensureErrorCapture} from './errors.ts'
 
 const DEVICE = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 const APP_ID = 'keybase.ios'
@@ -75,6 +76,7 @@ export class PhoneRecording {
       if (action === 'restart') {
         this.reloads++
         this.runtime = (await startPhoneRecorder({includeBoot: true})).runtime
+        await ensureErrorCapture()
         return
       }
       if (Date.now() > deadline) throw new Error(`the app did not come back within ${RELOAD_WAIT_MS}ms`)
@@ -84,6 +86,9 @@ export class PhoneRecording {
 
   async finish(): Promise<Recording & {reloads: number}> {
     const got = await takePhoneRecorder()
+    if (got.runtime !== this.runtime) {
+      throw new Error(`the app reloaded without a checkpoint: its recording before the reload is lost (runtime ${this.runtime ?? 'none'} became ${got.runtime})`)
+    }
     this.kept.push(got)
     return {...mergeRecordings(this.kept), reloads: this.reloads}
   }

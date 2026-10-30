@@ -15,8 +15,9 @@ import {
   terminateApp,
   waitFor,
 } from '../helpers/lifecycle'
-import {beginErrorCapture} from './errors.ts'
-import {attemptRecording} from './recording.ts'
+import {ensureErrorCapture, takeErrors} from './errors.ts'
+import {attemptToken} from './attempt.ts'
+import {attemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
@@ -42,7 +43,6 @@ export const setPasteboard = (text: string) => {
   })
 }
 
-
 const runtimeId = async (): Promise<string | undefined> =>
   (await jsEval<string | null>('return globalThis.__kbE2ERuntime ?? null')) ?? undefined
 
@@ -55,14 +55,26 @@ const waitForRuntime = async (before: string | undefined) =>
 const launch = async (before: string | undefined) => {
   if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
   await waitForRuntime(before)
-  await beginErrorCapture()
+  await ensureErrorCapture()
   await attemptRecording().checkpoint()
+}
+
+// What the app logged so far goes with its runtime, so it is kept on the attempt for afterTest.
+const keepErrors = async () => {
+  const rec = recorders.get(attemptToken())
+  if (!rec || appPid() === undefined) return
+  try {
+    rec.errorsBefore = [...(rec.errorsBefore ?? []), ...(await takeErrors())]
+  } catch (e) {
+    rec.captureError ??= `reading the app's errors before it restarted: ${e instanceof Error ? e.message : String(e)}`
+  }
 }
 
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
 export const relaunchApp = async () => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
+  await keepErrors()
   await terminateApp()
   await launch(before)
 }
@@ -72,6 +84,7 @@ export const relaunchApp = async () => {
 export const grantPrivacy = async (service: string) => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
+  await keepErrors()
   simctl('privacy', deviceUdid(), 'grant', service, BUNDLE_ID)
   const changed = await waitFor(
     'the app to restart or stay up',

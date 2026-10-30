@@ -20,10 +20,10 @@ export const finishAttempt = async (result: TestResult) => {
     if (png) attempt.addAttachment('screenshot', 'image/png', Buffer.from(png, 'base64'))
   }
   // console errors are attached, as the desktop's are; an uncaught JS error fails a passing attempt
-  let errors: Array<string> = []
+  let errors: Array<string> = [...(rec?.errorsBefore ?? [])]
   let captureError = rec?.captureError
   try {
-    errors = await takeErrors()
+    errors = [...errors, ...(await takeErrors())]
   } catch (e) {
     captureError ??= `reading the app's errors: ${message(e)}`
   }
