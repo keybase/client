@@ -45,7 +45,7 @@ import {
   waitForRow,
   type StoredAttachment,
 } from '../helpers/chat'
-import {byText, el} from '../helpers/elements'
+import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {goBackUntilGone} from '../helpers/navigate'
 
@@ -217,10 +217,11 @@ describe('chat attachments', function () {
   // expands it. The phone's own service keeps both: a relaunch shows the one expanded from its row
   // still expanded and the other still collapsed.
   it('/collapse collapses the images, one expands from its row, and both stay so through a relaunch', async function () {
-    // worst case (s): peer 70, two attaches 120, open 100, two landed 240, sent 25, the collapse 20,
-    // step 2, calls 2, view 30, in row 2, the tap 1, the expand 10, calls 10, the image 2, step 2,
-    // relaunch 200, signed in 90, open 100, the reads 20, step 2 = 1050
-    this.timeout(1080_000)
+    // worst case (s): peer 70, two attaches 120, open 100, two landed 240, the command 35 (type 15,
+    // the button 5, the tap 1, composer 10, keyboard 5, overrun 1), the collapse 20, step 2, calls 2,
+    // view 30, in row 2, the tap 1, the expand 10, calls 10, the image 2, step 2, relaunch 200, signed
+    // in 90, open 100, the two reads 60 (each row 20 and its attachment 10), step 2 = 1098
+    this.timeout(1200_000)
     const expanded = e2eMarker('attach-expand')
     const kept = e2eMarker('attach-kept')
     await attachIncoming('e2e-c.png', expanded)
@@ -335,7 +336,9 @@ describe('chat attachments', function () {
       async () => ((await galleryListing()).docs.some(d => d.id === fileA.id && d.name === file) ? true : undefined),
       {interval: 500, timeout: 20_000}
     )
-    await byText(file).waitForExist({timeout: 5_000, timeoutMsg: "the file's row does not show its title"})
+    await browser
+      .$(`-ios predicate string:label == ${JSON.stringify(file)} AND visible == 1`)
+      .waitForExist({timeout: 5_000, timeoutMsg: "the file's row does not show its title"})
     await step('Docs lists the file by its title', {card: true})
     await goBackUntilGone(T.CHAT_INFO_PANEL)
     await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})

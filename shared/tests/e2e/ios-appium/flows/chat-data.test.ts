@@ -234,14 +234,15 @@ describe('chat data', function () {
         await browser.pause(600)
         const before = await currentCallSeq()
         await watchDeleteThroughReloads(ordinal)
-        // the delete is chosen from an eval, so the recorder leaves it out: the tap is the test above's
+        // the delete is chosen from an eval, and the reloads follow the stale notifications the watch
+        // hands the app, so the recorder leaves them out until the row is gone: the tap is the test above's
         await withHarnessRpcs('the delete behind a reload', async () => {
           await chooseDeleteBehindAReload()
           await waitForCall('the delete to go out', before, 'chat.1.local.postDeleteNonblock')
-        })
-        await waitFor('the row to go', async () => ((await deletePhase(ordinal)) === 'gone' ? true : undefined), {
-          interval: 100,
-          timeout: 15_000,
+          await waitFor('the row to go', async () => ((await deletePhase(ordinal)) === 'gone' ? true : undefined), {
+            interval: 100,
+            timeout: 15_000,
+          })
         })
         await closeMessageMenu()
         const watch = await waitFor(
@@ -303,6 +304,26 @@ describe('chat data', function () {
         {interval: 1_000, timeout: 20_000}
       )
 
+    // The messages a test reacted to, for the afterEach to take a thumbs-up a test left off.
+    let reacted: Array<string> = []
+
+    // Takes off any thumbs-up a test left (a timed-out body stops before its own removal), each
+    // message found afresh by its text; a message without one is left alone. Worst case (s): open
+    // 100, then per message (the find 1, the read 1, the toggle 30, the store 10) 42.
+    afterEach(async function () {
+      this.timeout(180_000)
+      const texts = reacted
+      reacted = []
+      if (!texts.length) return
+      await openScratch()
+      for (const text of texts) {
+        const found = await ordinalsWithText(text)
+        if (found.length !== 1 || !(await thumbsUpFromMe(found[0]!))) continue
+        await toggleThumbsUp(text)
+        await waitFor('the reaction to go', async () => ((await thumbsUpFromMe(found[0]!)) ? undefined : true), {timeout: 10_000})
+      }
+    })
+
     it('a reaction adds from the message menu and removes the same way', async function () {
       // worst case (s): open 100, sent 25, the toggle 30 (keyboard 5, menu 15, the reaction 5, the
       // menu gone 5), the store 10, cli 80, step 2, the toggle 30, the store 10, cli 80, step 2 = 369
@@ -310,6 +331,7 @@ describe('chat data', function () {
       await openScratch()
       const text = e2eMarker('data-reaction')
       const ordinal = await sendMessage(text)
+      reacted.push(text)
       await toggleThumbsUp(text)
       await waitFor('the reaction', async () => ((await thumbsUpFromMe(ordinal)) ? true : undefined), {timeout: 10_000})
       await expectHostThumbsUp(text, true)
@@ -322,26 +344,18 @@ describe('chat data', function () {
 
     it('a reaction on the newest message keeps the thread at its end', async function () {
       // worst case (s): open 100, sent 25, keyboard 5, end 21, the toggle 30, the store 10, end 21,
-      // step 2, the read 1, the toggle 30, the store 10 = 255
-      this.timeout(280_000)
+      // step 2 = 214
+      this.timeout(240_000)
       await openScratch()
       const text = e2eMarker('data-reaction-end')
       const ordinal = await sendMessage(text)
       await hideKeyboard()
       await expectAtEnd()
+      reacted.push(text)
       await toggleThumbsUp(text)
-      try {
-        await waitFor('the reaction', async () => ((await thumbsUpFromMe(ordinal)) ? true : undefined), {timeout: 10_000})
-        await expectAtEnd('after the reaction, the thread')
-        await step('The reaction drawn, the thread still at its end', {card: true})
-      } finally {
-        if (await thumbsUpFromMe(ordinal)) {
-          await toggleThumbsUp(text)
-          await waitFor('the reaction to go', async () => ((await thumbsUpFromMe(ordinal)) ? undefined : true), {
-            timeout: 10_000,
-          })
-        }
-      }
+      await waitFor('the reaction', async () => ((await thumbsUpFromMe(ordinal)) ? true : undefined), {timeout: 10_000})
+      await expectAtEnd('after the reaction, the thread')
+      await step('The reaction drawn, the thread still at its end; the afterEach takes it off', {card: true})
     })
   })
 
@@ -435,7 +449,7 @@ describe('chat data', function () {
     // to move to: the app looks around the message for one (a thread load), finds none, and marks
     // nothing, so no line is drawn for a mark that never happened.
     it('mark unread on the first message of a conversation marks nothing and draws no orange line', async function () {
-      // worst case (s): open 100, the oldest in view 180, step 2, calls 2, the row text 1, menu 35, the
+      // worst case (s): open 100, the oldest in view 180, step 2, the row text 1, calls 2, menu 35, the
       // load 10, the pause 3, calls 2, the lines 3, step 2 = 340
       this.timeout(360_000)
       await openDirect()
@@ -452,13 +466,14 @@ describe('chat data', function () {
       )
       await step('The first message of the DM in view')
       const oldest = top.ordinals[0]!
-      const before = await currentCallSeq()
       await openMessageMenu(await rowText(oldest))
+      // taken right before the tap, so the load below is the mark's own
+      const atTap = await currentCallSeq()
       await chooseMenuItem('Mark as unread')
-      await waitForCall('the load around the message', before, 'chat.1.local.getThreadNonblock')
+      await waitForCall('the load around the message', atTap, 'chat.1.local.getThreadNonblock')
       // well past the load's answer, so a mark would have gone out
       await browser.pause(3_000)
-      const marks = await callsOf(before, 'chat.1.local.markAsReadLocal')
+      const marks = await callsOf(atTap, 'chat.1.local.markAsReadLocal')
       check(!marks.length, `${marks.length} marks went out for the first message`)
       // a line would be drawn within a frame of the answer; give it well past that
       for (const until = Date.now() + 2_000; Date.now() < until; ) {
@@ -575,7 +590,7 @@ describe('chat data', function () {
     // seq at the moment the account changes.
     it('typing through an account switch sends nothing for the next account and leaves nothing waiting', async function () {
       // worst case (s): open 100, type 15, the pause 1, calls 2, the watch 1, the draft save 10, the
-      // switch 2, the typing 30, signed in 60, the pause 5, the reads 4, step 2, restore 160 = 392
+      // switch 2, the typing 30, calls 2, signed in 60, the pause 5, the reads 4, step 2, restore 160 = 394
       this.timeout(420_000)
       try {
         await openScratch()
@@ -596,6 +611,9 @@ describe('chat data', function () {
         )
         await startAppAccountSwitch(data.secondUser)
         await typing
+        // the account changed before the last key went in, so keys were typed through the change:
+        // without that, nothing after it could have come from the old composer anyway
+        check((await accountChangedSeq()) !== null, 'the typing ended before the account changed')
         await waitFor(
           'the switch to the second account',
           async () => {
@@ -714,8 +732,8 @@ describe('chat data', function () {
 
     it("a phone's open thread stays open when the account leaves the channel on another device", async function () {
       // worst case (s): channel 240, peer 70, the first send 90 (retried 30, then one send 60), second
-      // 250 (open 100, the inbox 15, step 2, leave 60, the 5s watch 6, step 2: 185) = 650
-      this.timeout(680_000)
+      // 250, its body (open 100, the inbox 15, step 2, leave 60, the 5s watch 6, step 2) 185 = 835
+      this.timeout(880_000)
       const {convID, topicName} = await createThrowawayChannel('dsel')
       created.push(topicName)
       // the peer's inbox may not list a channel this new yet: its first send waits until it does

@@ -1209,7 +1209,14 @@ export const watchDeleteThroughReloads = async (ordinal: number) => {
     if (!engine || typeof engine._rpcIncoming !== 'function') throw new Error('e2e delete watch: no DEBUGEngine._rpcIncoming')
     const recorder = g.__kbE2ERecorder
     if (!recorder) throw new Error('e2e delete watch: the app has no __kbE2ERecorder')
-    const seq = () => recorder.calls(Number.MAX_SAFE_INTEGER).seq
+    // never throws: it runs inside the app's incoming handler
+    const seq = () => {
+      try {
+        return recorder.calls(Number.MAX_SAFE_INTEGER).seq
+      } catch {
+        return -1
+      }
+    }
     const router = kbModule('chat/notification-router.tsx')
     const types = kbModule('constants/types/chat/index.tsx')
     const passes = new Set(['chat.1.chatUi.chatThreadCached', 'chat.1.chatUi.chatThreadFull'])
@@ -1355,5 +1362,5 @@ export const startAppAccountSwitch = async (username: string) => {
       `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
     )
   )
-  if (!started) throw new Error(`the app would not switch to ${username}`)
+  if (!started) throw new Error('the app would not start the account switch')
 }
