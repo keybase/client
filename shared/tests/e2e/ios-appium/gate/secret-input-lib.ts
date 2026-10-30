@@ -8,14 +8,13 @@ export type FieldRead =
   | {state: 'set'}
   | {state: 'read'; length: number}
 
-// RN's TextInputState by its path suffix: Metro names node_modules modules relative to its project
-// root, which a worktree whose node_modules is a symlink puts outside it.
 const focusedField = (fieldTestID: string) => `
   let tis
-  for (const [id, m] of __r.getModules()) {
-    if (String(m.verboseName).endsWith('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js')) tis = __r(id)
+  try {
+    tis = kbModule('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js')
+  } catch {
+    return {state: 'no TextInputState'}
   }
-  if (!tis) return {state: 'no TextInputState'}
   const focused = (tis.default ?? tis).currentlyFocusedInput()
   const field = focused && focused.__internalInstanceHandle
   if (!field || !field.memoizedProps) return {state: 'nothing focused'}
