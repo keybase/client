@@ -527,9 +527,11 @@ const currentRunId = () => {
 
 // A channel for one run's membership flows, named stampedChannelName(label + 2 random hex
 // characters) (so the label is at most 7 characters; the random part keeps a retry from meeting a
-// channel an earlier try failed to delete), created by the CLI's account (the team owner, which the
-// host stays signed in as) with the second account in it, unless `withSecond` is false. Throws when
-// the channel already exists. Callers delete it by the returned topicName.
+// channel an earlier try failed to delete), created by the host CLI's account with the second
+// account in it, unless `withSecond` is false: the smoke user (the team owner) under the gate, but the
+// second account (a writer) under the old iOS chat runner (wdio.chat.conf.ts), which holds the host
+// as the second account while its flows run. Throws when the channel already exists. Callers delete
+// it by the returned topicName.
 export const createThrowawayChannel = async (label: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
   const {secondUser, team} = e2eAccounts()
   const topicName = stampedChannelName(`${label}${randomBytes(1).toString('hex')}`, currentRunId())

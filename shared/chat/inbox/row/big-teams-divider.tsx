@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import {BigTeamsLabel} from './big-teams-label'
@@ -26,6 +27,7 @@ const BigTeamsDivider = (props: Props) => {
         toggle()
       }}
       style={containerStyle}
+      testID={TestIDs.CHAT_INBOX_BIG_TEAMS_DIVIDER}
     >
       {inlineLayout ? (
         <Kb.Box2

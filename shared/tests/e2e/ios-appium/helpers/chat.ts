@@ -6,13 +6,23 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
-import {byText, el, waitForTestID} from './elements'
+import {byText, el, escapePredicate, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
-import {inboxRowMatches, persistedMismatch} from '../gate/chat-lib.ts'
+import {
+  findInboxRow,
+  persistedMismatch,
+  sectionAfter,
+  shiftIntoBand,
+  type DrawnInboxItem,
+  type Span,
+  visibleBand,
+  wholly as whollyInBand,
+} from '../gate/chat-lib.ts'
+import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -465,13 +475,12 @@ export const openConversation = async (convID: string) => {
   await waitForThread(convID)
 }
 
-const INBOX_ROWS = `-ios predicate string:name == ${JSON.stringify(T.CHAT_INBOX_ROW)} OR name == ${JSON.stringify(T.CHAT_INBOX_CHANNEL_ROW)}`
 const INBOX_SCROLL_MS = 30_000
-// how far inside the list's edges a row must sit to count as in view
+// how far inside the band's edges a row must sit to count as in view
 const INBOX_MARGIN = 4
 
 // midX: the middle of the element across (the inbox is a column of its own on a tablet)
-type Rect = {bottom: number; midX: number; top: number}
+type Rect = Span & {midX: number}
 const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => {
   const {x, y} = await e.getLocation()
   const {height, width} = await e.getSize()
@@ -496,23 +505,59 @@ const dragInbox = async (list: Rect, dy: number) => {
     .perform()
 }
 
-// The inbox rows drawn now (small conversations and big team channels), with their labels.
-const inboxRows = async () => {
-  const found = await browser.$$(INBOX_ROWS).getElements()
-  const rows: Array<{e: WebdriverIO.Element; label: string}> = []
-  for (const e of found) {
-    const label = await e.getAttribute('label').catch(() => null)
-    if (label !== null) rows.push({e, label})
+const spansOf = async (selector: string) => {
+  const out: Array<{e: WebdriverIO.Element; span: Span}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const r = await rectOf(e).catch(() => undefined)
+    if (r) out.push({e, span: {bottom: r.bottom, top: r.top}})
   }
-  return rows
+  return out
 }
 
-// The inbox row of the conversation named `name` (inboxRowMatches: a small conversation by its
-// name, a big team channel as "#channel"), wholly in the list's view. The native inbox draws only
-// the rows near what it shows, so this drags the inbox to its top, then down until the row is in
-// view, and fails at the inbox's end or after INBOX_SCROLL_MS. Its errors name neither `name` nor
-// any row: the inbox holds conversations other than the test ones.
+const labeledSpans = async (id: string) => {
+  const out: Array<{e: WebdriverIO.Element; label: string; span: Span}> = []
+  for (const {e, span} of await spansOf(`~${id}`)) {
+    const label = await e.getAttribute('label').catch(() => null)
+    if (label !== null) out.push({e, label, span})
+  }
+  return out
+}
+
+const overlaps = (a: Span, b: Span) => a.top < b.bottom && b.top < a.bottom
+
+// What the inbox draws now (small rows, channel rows, big team headers marked by whether they are
+// KB_E2E_TEAM's), and the elements behind the rows.
+const drawnInbox = async (team: string) => {
+  const small = await labeledSpans(T.CHAT_INBOX_ROW)
+  const channels = await labeledSpans(T.CHAT_INBOX_CHANNEL_ROW)
+  const gears = await spansOf(`~${T.CHAT_INBOX_BIG_TEAM_HEADER}`)
+  // the header's team name is a sibling of its gear, on the same row
+  const teamNames = await spansOf(`-ios predicate string:label == "${escapePredicate(team)}"`)
+  const elements = [...small.map(r => r.e), ...channels.map(r => r.e), ...gears.map(g => g.e)]
+  const items: Array<DrawnInboxItem> = [
+    ...small.map(r => ({kind: 'small' as const, label: r.label, span: r.span})),
+    ...channels.map(r => ({kind: 'channel' as const, label: r.label, span: r.span})),
+    ...gears.map(g => ({kind: 'header' as const, ours: teamNames.some(t => overlaps(t.span, g.span)), span: g.span})),
+  ]
+  return {elements, items, signature: items.map(i => `${i.kind}:${'label' in i ? i.label : i.ours}`).join('\n')}
+}
+
+// What floats over the inbox list: the unread shortcut, the floating Big teams divider, the tab bar.
+const inboxCovers = async () => [
+  ...(await spansOf(`~${T.CHAT_INBOX_UNREAD_SHORTCUT}`)),
+  ...(await spansOf(`~${T.CHAT_INBOX_BIG_TEAMS_DIVIDER}`)),
+  ...(await spansOf('-ios class chain:**/XCUIElementTypeTabBar')),
+].map(c => c.span)
+
+// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name,
+// a channel as "#channel" and only among KB_E2E_TEAM's channels (findInboxRow; a name more than one
+// drawn row matches is refused). In view means inside the list less what floats over it (the unread
+// shortcut, the Big teams divider, the tab bar). The native inbox draws only the rows near what it
+// shows, so this drags the inbox to its top, then down until the row is in view, and fails at the
+// inbox's end or after INBOX_SCROLL_MS. Its errors name neither `name` nor any row: the inbox holds
+// conversations other than the test ones.
 export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
+  const {team} = loadE2EAccounts()
   await hideKeyboard()
   await escapeToTabs()
   await navigateToChat()
@@ -520,30 +565,33 @@ export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> 
   const list = await rectOf(await el(T.CHAT_INBOX_LIST).getElement())
   const page = list.bottom - list.top
   const deadline = Date.now() + INBOX_SCROLL_MS
-  const signature = async () => (await inboxRows()).map(r => r.label).join('\n')
   // to the top: until a drag down changes nothing
-  for (let before = await signature(); ; ) {
+  for (let before = (await drawnInbox(team)).signature; ; ) {
     if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
     await dragInbox(list, page)
-    const now = await signature()
+    const now = (await drawnInbox(team)).signature
     if (now === before) break
     before = now
   }
+  // whether the section running on above the first drawn header is KB_E2E_TEAM's
+  let carriedOurs = false
   for (;;) {
     if (Date.now() > deadline) throw new Error(`the inbox row asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
-    const rows = await inboxRows()
-    const match = rows.find(r => inboxRowMatches(r.label, name))
-    if (match) {
-      const r = await rectOf(match.e)
-      if (r.top >= list.top + INBOX_MARGIN && r.bottom <= list.bottom - INBOX_MARGIN) return match.e
-      // drawn but not wholly in view: bring it in by the part that sticks out
-      const dy = r.top < list.top + INBOX_MARGIN ? list.top + INBOX_MARGIN * 4 - r.top : list.bottom - INBOX_MARGIN * 4 - r.bottom
-      await dragInbox(list, dy)
+    const drawn = await drawnInbox(team)
+    const at = findInboxRow(drawn.items, name, carriedOurs)
+    if (at !== undefined) {
+      const band = visibleBand(list, await inboxCovers())
+      const row = drawn.items[at]!.span
+      if (whollyInBand(row, band, INBOX_MARGIN)) return drawn.elements[at]!
+      // drawn but not wholly in view: bring it into the band
+      await dragInbox(list, shiftIntoBand(row, band, INBOX_MARGIN))
       continue
     }
-    const before = rows.map(x => x.label).join('\n')
+    carriedOurs = sectionAfter(drawn.items, carriedOurs)
     await dragInbox(list, -page)
-    if ((await signature()) === before) throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
+    if ((await drawnInbox(team)).signature === drawn.signature) {
+      throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
+    }
   }
 }
 
@@ -570,11 +618,44 @@ export const openFromInbox = async (name: string) => {
 
 // Whether what a flow changed survives a relaunch of the app: relaunches it (a new JS runtime, the
 // recording checkpointed on both sides), then `read`, which goes back to where the value shows and
-// reads it, and checks it equals `want`.
+// reads it, and checks it equals `want`. It proves the change persisted only when `want` differs
+// from what the app shows by default: the caller picks a non-default value.
 export const expectPersists = async <V,>(what: string, read: () => Promise<V>, want: V) => {
   await relaunchApp()
   const miss = persistedMismatch(what, await read(), want)
   if (miss) throw new Error(miss)
+}
+
+// -- notification settings (the info panel's Settings tab) --------------------------------------
+
+const NOTIFY_LABELS = {never: 'Never', onAnyActivity: 'On any activity', onWhenAtMentioned: 'Only when @mentioned'} as const
+export type NotifyGroup = 'desktop' | 'mobile'
+export type NotifyChoice = keyof typeof NOTIFY_LABELS
+
+// the full-width box around one choice's radio, chosen or not
+const notifyRadioBox = (group: NotifyGroup, choice: NotifyChoice) =>
+  browser.$(`-ios predicate string:name BEGINSWITH "${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-${choice}"`)
+
+// Taps a notification choice's radio: its own clickable (the circle and its label) inside the box,
+// since the box runs the panel's width and its middle can fall past the label.
+export const tapNotifyRadio = async (group: NotifyGroup, choice: NotifyChoice) => {
+  const box = notifyRadioBox(group, choice)
+  await box.waitForExist({interval: 150, timeout: 10_000, timeoutMsg: `the ${group} "${NOTIFY_LABELS[choice]}" radio never appeared`})
+  const radio = box.$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}"`)
+  await radio.waitForExist({interval: 150, timeout: 5_000, timeoutMsg: `no clickable in the ${group} "${NOTIFY_LABELS[choice]}" radio's box`})
+  await radio.click()
+}
+
+// The chosen notification choice of a group, read off its radios' testIDs; undefined while none shows.
+export const notifyRadioChosen = async (group: NotifyGroup): Promise<NotifyChoice | undefined> => {
+  const prefix = `${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-`
+  const chosen = browser.$(
+    `-ios predicate string:name BEGINSWITH "${prefix}" AND name ENDSWITH "${T.CHAT_NOTIFY_RADIO_SELECTED_SUFFIX}"`
+  )
+  if (!(await chosen.isExisting())) return undefined
+  const id = (await chosen.getAttribute('name')) ?? ''
+  const choice = id.slice(prefix.length, id.length - T.CHAT_NOTIFY_RADIO_SELECTED_SUFFIX.length)
+  return choice in NOTIFY_LABELS ? (choice as NotifyChoice) : undefined
 }
 
 // -- accounts -----------------------------------------------------------------------------------

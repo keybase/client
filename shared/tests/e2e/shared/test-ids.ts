@@ -128,12 +128,13 @@ export const CHAT_INBOX_SEARCH        = 'chat-inbox-search'
 // a big team's inbox header gear, which opens its team menu; and a channel row under it
 export const CHAT_INBOX_BIG_TEAM_HEADER = 'chat-inbox-big-team-header'
 export const CHAT_INBOX_CHANNEL_ROW   = 'chat-inbox-channel-row'
+// what floats over the bottom of the phone inbox: the unread shortcut and the Big teams divider
+export const CHAT_INBOX_UNREAD_SHORTCUT = 'chat-inbox-unread-shortcut'
+export const CHAT_INBOX_BIG_TEAMS_DIVIDER = 'chat-inbox-big-teams-divider'
 // the inbox header's New chat button
 export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
 // the forward picker's search box
 export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
-// one GIF in the giphy results over the composer
-export const CHAT_GIPHY_RESULT        = 'chat-giphy-result'
 // a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
 // 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
 // of each group ends in the _SELECTED suffix

@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {pluralize} from '@/util/string'
 
 type Props = {
@@ -19,6 +20,7 @@ const UnreadShortcut = (props: Props) => {
       alignItems="center"
       fullWidth={true}
       onClick={props.onClick}
+      testID={TestIDs.CHAT_INBOX_UNREAD_SHORTCUT}
       style={Kb.Styles.collapseStyles([
         props.inlineLayout ? styles.containerInline : styles.container,
         props.inlineLayout ? styles.unreadShortcutInline : styles.unreadShortcut,
