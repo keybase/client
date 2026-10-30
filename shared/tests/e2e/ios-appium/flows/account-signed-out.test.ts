@@ -55,9 +55,10 @@ const scrollTo = async (target: () => ReturnType<typeof byText>, what: string) =
   if (!(await target().isExisting())) throw new Error(`${what} never scrolled into view`)
 }
 
-// The username screen "Someone else..." opens: a login for an account the list does not have.
+// The username screen "Someone else..." opens: a login for an account the list does not have. Its
+// row is one element whose label is its text, like the recovery rows.
 const openUsernameScreen = async () => {
-  await tapToScreen(() => labeled('StaticText', 'Someone else...'), 'username')
+  await tapToScreen(() => browser.$(recoveryRowPredicate('Someone else...')), 'username')
   await el(T.PROVISION_USERNAME_INPUT).waitForExist({timeout: 10_000, timeoutMsg: 'the username screen has no username field'})
 }
 
