@@ -1,5 +1,6 @@
 // The iOS release command's decisions, kept free of I/O so they can be tested: whether a run may
-// start (iosPreflightProblems), and what simctl and ps say about the simulator.
+// start (iosPreflightProblems), what simctl and ps say about the simulator, and whether the census and
+// report phases wrote this run's outputs.
 import type {PortHolder} from '../shared/gate/ports.ts'
 import type {Outcome} from '../shared/gate/release-lib.ts'
 import {KBFS_START_COMMAND} from '../electron/release-lib.ts'
@@ -150,3 +151,27 @@ export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number): Array<n
 // an unrelated group later.
 export const isMetroGroup = (rows: ReadonlyArray<PsRow>, pgid: number, metroPortPgids: ReadonlyArray<number>) =>
   metroPortPgids.includes(pgid) || rows.some(r => r.pgid === pgid && /\brn:start\b|\bexpo start\b/.test(r.command))
+
+// A finished child, as the release run's runChild reports it.
+type PhaseChild = {code: number | null; stdout: string; logError?: string}
+// An output the phase must have written: `mtimeMs` left out when the file does not exist.
+type PhaseOutput = {path: string; mtimeMs?: number}
+
+const logFailed = (c: PhaseChild) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
+const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= start
+
+// The census phase passes only on what its own child did: its `census: routes …` line, and a census
+// json written since the phase started (a file from an earlier run is not this run's census).
+export const censusPhaseResult = (c: PhaseChild, json: PhaseOutput, start: number) => {
+  const line = /^census: (routes .+)$/m.exec(c.stdout)?.[1]
+  if (line === undefined) return {line: `census exited ${c.code} and printed no census line${logFailed(c)}`, ok: false}
+  if (!writtenSince(json, start)) return {line: `${line}; ${json.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${line}${logFailed(c)}`, ok: c.code === 0 && !c.logError}
+}
+
+// The report phase passes only on a report written since the phase started.
+export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: number) => {
+  if (c.code !== 0) return {line: `report generator exited ${c.code}${logFailed(c)}`, ok: false}
+  if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
+}

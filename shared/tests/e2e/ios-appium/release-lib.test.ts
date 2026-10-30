@@ -1,9 +1,11 @@
 import {
   appSignedFromAppinfo,
+  censusPhaseResult,
   iosPreflightProblems,
   isMetroGroup,
   isWdaResidue,
   parsePs,
+  reportPhaseResult,
   strayChildren,
   simulatorFromList,
   type IosPreflightState,
@@ -217,5 +219,60 @@ describe('isMetroGroup', () => {
   test('a recycled group id running something else is not', () => {
     expect(isMetroGroup(rows, 60, [])).toBe(false)
     expect(isMetroGroup(rows, 70, [51])).toBe(false)
+  })
+})
+
+describe('censusPhaseResult', () => {
+  const start = 1_000
+  const line = 'census: routes 8 covered, 0 unclaimed'
+  const json = (mtimeMs?: number) => ({path: '/r/ios-census.json', ...(mtimeMs === undefined ? {} : {mtimeMs})})
+
+  it('passes on its census line and a census json written since the phase started', () => {
+    expect(censusPhaseResult({code: 0, stdout: `x\n${line}\n`}, json(1_500), start)).toEqual({line: 'routes 8 covered, 0 unclaimed', ok: true})
+  })
+
+  it('fails when the child printed no census line, whatever it exited', () => {
+    expect(censusPhaseResult({code: 0, stdout: 'nothing\n'}, json(1_500), start)).toEqual({line: 'census exited 0 and printed no census line', ok: false})
+  })
+
+  it('fails on a census json left from before the phase, or none', () => {
+    expect(censusPhaseResult({code: 0, stdout: line}, json(999), start)).toEqual({
+      line: 'routes 8 covered, 0 unclaimed; /r/ios-census.json was not written by this run',
+      ok: false,
+    })
+    expect(censusPhaseResult({code: 0, stdout: line}, json(), start).ok).toBe(false)
+  })
+
+  it('fails on a nonzero exit and on a log write failure, keeping the line', () => {
+    expect(censusPhaseResult({code: 1, stdout: line}, json(1_500), start)).toEqual({line: 'routes 8 covered, 0 unclaimed', ok: false})
+    expect(censusPhaseResult({code: 0, logError: 'EIO', stdout: line}, json(1_500), start)).toEqual({
+      line: 'routes 8 covered, 0 unclaimed (its log could not be written: EIO)',
+      ok: false,
+    })
+  })
+})
+
+describe('reportPhaseResult', () => {
+  const start = 1_000
+  const report = (mtimeMs?: number) => ({path: '/r/ios-report.html', ...(mtimeMs === undefined ? {} : {mtimeMs})})
+
+  it('passes on a report written since the phase started', () => {
+    expect(reportPhaseResult({code: 0, stdout: ''}, report(1_000), start)).toEqual({line: '/r/ios-report.html', ok: true})
+  })
+
+  it('fails on a report left from before the phase, or none', () => {
+    expect(reportPhaseResult({code: 0, stdout: ''}, report(999), start)).toEqual({
+      line: 'report generator exited 0 and /r/ios-report.html was not written by this run',
+      ok: false,
+    })
+    expect(reportPhaseResult({code: 0, stdout: ''}, report(), start).ok).toBe(false)
+  })
+
+  it('fails on a nonzero exit and on a log write failure', () => {
+    expect(reportPhaseResult({code: 2, stdout: ''}, report(1_500), start)).toEqual({line: 'report generator exited 2', ok: false})
+    expect(reportPhaseResult({code: 0, logError: 'EIO', stdout: ''}, report(1_500), start)).toEqual({
+      line: '/r/ios-report.html (its log could not be written: EIO)',
+      ok: false,
+    })
   })
 })

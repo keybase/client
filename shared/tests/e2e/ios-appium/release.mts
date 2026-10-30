@@ -20,7 +20,8 @@
 //   4. every gate flow (wdio.gate.conf.ts, project ios-flows)
 //   5. the visual tour in render mode (`visual render --ios`), after the flows: render leaves the
 //      simulator's Reduce Motion on until the app's next launch
-//   6. census, then the report, opened unless KB_E2E_NO_OPEN=1
+//   6. census, then the report, opened unless KB_E2E_NO_OPEN=1; each passes only on what its child
+//      wrote during the phase
 //   7. a scan of ios-report/, ios-debug/, ios-logs/, the render dir, ios-report.html, ios-census.md,
 //      ios-census.json and ios-manual-checklist.md for the env file's secrets: a file that holds one
 //      is deleted and named, and the run fails
@@ -65,9 +66,11 @@ import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stillMetro, stopMetro} from './launch.mts'
 import {
   appSignedFromAppinfo,
+  censusPhaseResult,
   iosPreflightProblems,
   isWdaResidue,
   IOS_RELEASE_PORTS,
+  reportPhaseResult,
   simulatorFromList,
   strayChildren,
   type IosPreflightState,
@@ -136,6 +139,8 @@ const renderedDir = () => {
 
 const node = (script: string, ...args: Array<string>) =>
   ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(sharedDir, script), ...args]
+
+const mtime = (p: string) => (fs.existsSync(p) ? {mtimeMs: fs.statSync(p).mtimeMs} : {})
 
 const logFailed = (r: ChildResult) => (r.logError ? ` (its log could not be written: ${r.logError})` : '')
 
@@ -475,23 +480,23 @@ const main = async () => {
   })
 
   await phase('census', async () => {
+    const start = Date.now()
     const dir = renderedDir()
     const r = await runChild('census', 'node', node('tests/e2e/ios-appium/census.mts', ...(dir ? ['--render', dir] : ['--no-render'])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('census'),
     })
-    const line = /^census: (routes .+)$/m.exec(r.stdout)?.[1] ?? `exited ${r.code}`
-    return {line: `${line}${logFailed(r)}`, ok: r.code === 0 && !r.logError}
+    return censusPhaseResult(r, {path: out.censusJson, ...mtime(out.censusJson)}, start)
   })
 
   await phase('report', async () => {
+    const start = Date.now()
     const dir = renderedDir()
     const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : [])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('report'),
     })
-    if (r.code !== 0 || !fs.existsSync(out.report)) return {line: `report generator exited ${r.code}${logFailed(r)}`, ok: false}
-    if (r.logError) return {line: `${out.report}${logFailed(r)}`, ok: false}
-    if (!process.env['KB_E2E_NO_OPEN']) spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
-    return {line: out.report, ok: true}
+    const p = reportPhaseResult(r, {path: out.report, ...mtime(out.report)}, start)
+    if (p.ok && !process.env['KB_E2E_NO_OPEN']) spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
+    return p
   })
 
   // last, over everything the run wrote: no artifact may hold a secret from the env file
