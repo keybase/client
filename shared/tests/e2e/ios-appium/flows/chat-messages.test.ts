@@ -216,9 +216,16 @@ describe('chat messages', function () {
     }
   }
 
-  // Needs the app on the smoke account: the skin tone is the signed-in account's.
+  // The phone's restores are the signed-in account's: they run only on the smoke account, and a state
+  // left set waits for the next afterEach.
+  const requireSmoke = async (what: string) => {
+    const a = await signedInAs()
+    check(a.loggedIn && !a.switching && a.username === data.smokeUser, `not ${what}: the app is not on the smoke account`)
+  }
+
   const restoreSkinTone = async () => {
     if (skinToneBefore === undefined) return
+    await requireSmoke('restoring the skin tone')
     const want = skinToneBefore
     if ((await appSkinTone()) !== want) await restoreAppSkinTone(want)
     check((await appSkinTone()) === want, `the skin tone did not go back to ${want}`)
@@ -229,6 +236,7 @@ describe('chat messages', function () {
   // message left: the service keeps a failed record through reloads, and only the phone's own
   // service has it, so it is cancelled there (recorder paused). Needs the app on the smoke account.
   const resetScratch = async () => {
+    await requireSmoke('resetting e2e-scratch')
     await openScratch()
     if (await editCancel().isExisting()) await editCancel().click()
     await editCancel().waitForExist({reverse: true, timeout: 5_000})
@@ -247,8 +255,8 @@ describe('chat messages', function () {
   // Back on smoke with nothing a test changed left behind, after a timeout too. The host's restores
   // go first; the phone's need the app back on smoke. Worst case (s): close 5, keyboard 5, the
   // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 160, the
-  // skin tone 75 (three asks), scratch 151 (open 100, the edit bar 5 and its wait 5, the load 15, the
-  // ids 1, one cancel 25) and its composer 5 = 766.
+  // skin tone 85 (the account 10, three asks), scratch 161 (the account 10, open 100, the edit bar 5 and
+  // its wait 5, the load 15, the ids 1, one cancel 25) and its composer 5 = 786.
   afterEach(async function () {
     this.timeout(800_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, deleteChannels, restoreToSmoke, restoreSkinTone, resetScratch])
@@ -368,9 +376,10 @@ describe('chat messages', function () {
       0
     )
     creditSurface('relaunch')
-    await expectCli({topicName: E2E_CHANNELS.scratch}, 'no message with the marker', ms =>
-      textBodies(ms).every(b => !b.startsWith(marker))
-    )
+    await expectCli({topicName: E2E_CHANNELS.scratch}, 'the anchor and no message with the marker', ms => {
+      const bodies = textBodies(ms)
+      return bodies.includes(anchor) && bodies.every(b => !b.startsWith(marker))
+    })
     await step('After a relaunch the cancelled message is still gone, and the server never had it')
   })
 
@@ -525,9 +534,9 @@ describe('chat messages', function () {
   it("delete history clears a throwaway channel's messages for everyone", async function () {
     // worst case (s): channel 240, three host sends 180, cli 80, open 100, three rows 90, panel 35, the
     // button 20, the tap 1, the warning 10, the conversation 1, step 2, past the newest send 10, the seq
-    // 2, the tap 1, the warning gone 10, calls 10, the back 10, gone 5, the rows gone 20, step 2, cli 80,
-    // step 2 = 911
-    this.timeout(960_000)
+    // 2, the tap 1, the warning gone 10, calls 10, the back 10, gone 5, the conversation 1, the rows gone
+    // 20, step 2, host 60, cli 80, row 30, step 2 = 1002
+    this.timeout(1_060_000)
     const {convID, topicName} = await newChannel('history', {withSecond: false})
     const texts = [e2eMarker('msg-hist'), e2eMarker('msg-hist'), e2eMarker('msg-hist')]
     for (const t of texts) await sendToThrowawayFromCli(topicName, t)
@@ -587,6 +596,7 @@ describe('chat messages', function () {
     await waitForCall('the clear to go out', seq, 'chat.1.local.postDeleteHistoryByAge')
     await goBackUntilGone(T.CHAT_INFO_PANEL)
     await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
     await waitFor(
       'the cleared rows to go',
       async () => {
@@ -596,8 +606,15 @@ describe('chat messages', function () {
       {interval: 500, timeout: 20_000}
     )
     await step('History cleared: the rows are gone')
-    await expectCli({topicName}, 'no text message left', ms => textBodies(ms).length === 0)
-    await step('The host reads no message left', {card: true})
+    // a message sent once the clear has landed: the channel reads, and holds only it
+    const after = e2eMarker('msg-hist-after')
+    await sendToThrowawayFromCli(topicName, after)
+    await expectCli({topicName}, 'the message sent after the clear, and none of the cleared ones', ms => {
+      const bodies = textBodies(ms)
+      return bodies.includes(after) && texts.every(t => !bodies.includes(t))
+    })
+    await waitForRow(after, 30_000)
+    await step('The host reads only the message sent after the clear', {card: true})
   })
 
   // The smoke account owns the team, so its close unpins for everyone; a writer's close hides the pin
