@@ -6,7 +6,7 @@
 import * as T from '../../shared/test-ids'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el} from './elements'
-import {navigateToMore, tapSettingsRow} from './navigate'
+import {goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
 
 // The element of `type` whose label is exactly `label`.
 export const labeled = (type: 'Button' | 'Other' | 'StaticText', label: string) =>
@@ -121,6 +121,9 @@ export const openDevicePage = async (name: string) => {
 
 // From `name`'s open device page: Revoke this <kind>, the confirm screen naming it, `beforeConfirm`
 // (a step), Yes, delete it. Sends revoke.revokeDevice; ends once the app is back on the list.
+// The app closes the confirm but leaves its device page up: after clearModals it pops to the
+// devices list in the stack the confirm was in (the dismissal has not committed yet), which React
+// Navigation reports as an unhandled POP_TO. So the flow goes back from the device page itself.
 export const revokeOnPhone = async (name: string, kind: 'computer' | 'paper key', beforeConfirm: () => Promise<void>) => {
   await labeled('Button', `Revoke this ${kind}`).click()
   const confirm = labeled('Button', 'Yes, delete it')
@@ -132,7 +135,11 @@ export const revokeOnPhone = async (name: string, kind: 'computer' | 'paper key'
   await beforeConfirm()
   await confirm.click()
   await confirm.waitForExist({reverse: true, timeout: 30_000, timeoutMsg: 'the revoke confirm stayed up for 30s'})
-  await el(T.DEVICE_PAGE).waitForExist({reverse: true, timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
+  if (!(await el(T.DEVICE_PAGE).isExisting())) {
+    throw new Error('the app now leaves the device page by itself after a revoke: drop the flow\'s own back')
+  }
+  await goBackUntilGone(T.DEVICE_PAGE)
+  await el(T.DEVICES_LIST).waitForExist({timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
 }
 
 // Waits until the list, where it is, no longer shows `name` as an active device.
