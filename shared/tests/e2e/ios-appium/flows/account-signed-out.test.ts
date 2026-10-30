@@ -1,4 +1,6 @@
 import {loadE2EAccounts, loadE2EEnv, requireSecondPassword} from '../../accounts/env'
+import {sayMasked} from '../../accounts/second-password-lib'
+import {maskAccounts} from '../../accounts/sweep-lib'
 import {deviceNameCandidates} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -26,20 +28,53 @@ const SIGN_OUT_AND_BACK_MS = 360_000
 
 const screenTap = async (text: string, screen: string) => tapToScreen(() => byText(text), screen)
 
+// The fields typed() may type into: none of them ever holds a secret.
+type PlainField =
+  | typeof T.FORGOT_USERNAME_EMAIL_INPUT
+  | typeof T.PROVISION_USERNAME_INPUT
+  | typeof T.SIGNUP_DEVICE_NAME_INPUT
+  | typeof T.SIGNUP_USERNAME_INPUT
+
+// Refuses a value that is one of the env file's secrets, before it reaches a field, a log or an error.
+const refuseSecret = (text: string) => {
+  const env = loadE2EEnv()
+  const secrets = [env.secondPassword, env.peers.owner.paperKey, env.peers.second.paperKey].filter((v): v is string => !!v)
+  if (secrets.includes(text)) throw new Error('refusing to type an env file secret into a signed-out field')
+}
+
+const masked = (s: string) => {
+  const {secondUser, smokeUser, team} = loadE2EAccounts()
+  return maskAccounts(s, {team, users: {second: secondUser, smoke: smokeUser}})
+}
+
 // Types `text` into the field `id` and waits until the field reads it back. A screen's first field
 // can drop what is typed while its screen is still sliding in, so it is typed once more; what the
-// field read the first time is logged (none of these values is a secret), and an error says what
-// it reads last.
-const typed = async (id: string, text: string) => {
+// field read the first time is logged, and an error says what it reads last, both with the account
+// names masked.
+const typed = async (id: PlainField, text: string) => {
+  refuseSecret(text)
   await el(id).waitForExist({timeout: 10_000, timeoutMsg: `the field ${id} never showed`})
   const reads = async () => (await el(id).getAttribute('value').catch(() => null)) === text
   for (let tries = 1; ; tries++) {
     await enterText(id, text)
-    if (await waitFor(`the field ${id} to read "${text}"`, async () => ((await reads()) ? true : undefined), {interval: 250, timeout: 5_000}).then(() => true, () => false)) return
-    const got = await el(id).getAttribute('value').catch(() => null)
-    if (tries >= 2) throw new Error(`the field ${id} reads ${JSON.stringify(got)} after typing ${JSON.stringify(text)} twice`)
-    console.log(`[account-signed-out] the field ${id} read ${JSON.stringify(got)} after typing ${JSON.stringify(text)}; typing it again`)
+    if (await waitFor(`the field ${id} to read what was typed`, async () => ((await reads()) ? true : undefined), {interval: 250, timeout: 5_000}).then(() => true, () => false)) return
+    const got = JSON.stringify(await el(id).getAttribute('value').catch(() => null))
+    if (tries >= 2) throw new Error(masked(`the field ${id} reads ${got} after typing ${JSON.stringify(text)} twice`))
+    sayMasked(`[account-signed-out] the field ${id} read ${got} after typing ${JSON.stringify(text)}; typing it again`)
   }
+}
+
+// The recovery's paper key field takes only the well-formed key no one has (wrongPaperKey): typed
+// once, never retyped, and never logged or named in an error.
+const typedPaperKey = async (text: string) => {
+  refuseSecret(text)
+  const id = T.RECOVER_PASSWORD_PAPER_KEY_INPUT
+  await el(id).waitForExist({timeout: 10_000, timeoutMsg: `the field ${id} never showed`})
+  await enterText(id, text)
+  await waitFor(`the field ${id} to read what was typed`, async () => ((await el(id).getAttribute('value').catch(() => null)) === text ? true : undefined), {
+    interval: 250,
+    timeout: 10_000,
+  })
 }
 
 const button = (label: string) => labeled('Button', label)
@@ -222,7 +257,7 @@ describe('account signed out', () => {
         await tapToScreen(row(paperKey.name), 'recoverPasswordPaperKey')
         await step('Paper key screen')
 
-        await typed(T.RECOVER_PASSWORD_PAPER_KEY_INPUT, wrongPaperKey)
+        await typedPaperKey(wrongPaperKey)
         await step('A paper key that is no one\'s typed')
         await press('Continue')
         const failed = await waitForScreen('recoverPasswordError', 30_000)
