@@ -14,6 +14,7 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
+import {CORPUS} from '../fixtures/corpus/corpus.ts'
 import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
 import {requireMainIsSmoke} from './peer-service.ts'
@@ -111,6 +112,8 @@ type ApiMessage = {
       text?: {body: string}
       attachment?: {object?: {filename?: string; title?: string}}
     }
+    // each emoji's reactions, by the usernames that reacted
+    reactions?: {reactions?: Record<string, {users?: Record<string, unknown> | null}> | null} | null
     sender: {username: string}
   }
 }
@@ -505,6 +508,16 @@ export const attachFromCli = async (topicName: E2EChannel, title: string) => {
   const {team} = e2eAccounts()
   const image = MEDIA_FIXTURES[1]
   await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: image.file, title}))
+}
+
+// A corpus file (fixtures/corpus) sent through the host's CLI into a channel
+// createThrowawayChannel made in this run, titled `title`: the smoke user's own attachment from
+// another device.
+export const attachToThrowawayFromCli = async (topicName: string, file: string, title: string) => {
+  if (parseStampedName(topicName, 'dashed')?.runId !== currentRunId()) throw new Error(`#${topicName} is not a channel of this run`)
+  if (!CORPUS.some(c => c.file === file)) throw new Error(`${file} is not a corpus file`)
+  const {team} = e2eAccounts()
+  await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: file, title}))
 }
 
 // The newest `num` messages of an e2e team channel, or of a one-on-one conversation named by its

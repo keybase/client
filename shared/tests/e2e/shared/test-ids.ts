@@ -121,6 +121,8 @@ export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 export const CHAT_SEND_TO_CHAT_ROW    = 'chat-send-to-chat-row'
 // the phone composer's exploding timer, left of the input (it opens the explode-after sheet)
 export const CHAT_EXPLODING_BUTTON    = 'chat-exploding-button'
+// one of the phone message menu's quick reactions: the prefix, then the emoji's name (':+1:')
+export const CHAT_QUICK_REACTION_PREFIX = 'chat-quick-reaction-'
 // the pinned banner's close icon while it hides the pin for you without asking (CHAT_PINNED_UNPIN otherwise)
 export const CHAT_PINNED_DISMISS      = 'chat-pinned-dismiss'
 // the inbox's search placeholder, which opens the inbox filter

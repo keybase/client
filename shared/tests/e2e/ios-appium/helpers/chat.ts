@@ -294,15 +294,49 @@ export const rowText = async (ordinal: number) => {
   return text
 }
 
-// A loaded message, as the store holds the parts the flows read.
-export type StoredMessage = {reactions: Array<{emoji: string; users: Array<string>}>; text: string; type: string}
+// A loaded message, as the store holds the parts the flows read: `id` is its message id (0 until the
+// service has one for it).
+export type StoredMessage = {
+  author: string
+  id: number
+  reactions: Array<{emoji: string; users: Array<string>}>
+  text: string
+  type: string
+}
 export const storedMessage = async (ordinal: number) =>
   jsEval<StoredMessage | null>(`${threadStoreBody}
     const m = st && st.messageMap.get(${ordinal})
     if (!m) return null
     const reactions = []
     if (m.reactions) for (const [emoji, r] of m.reactions) reactions.push({emoji, users: [...(r.users || [])].map(u => u.username)})
-    return {reactions, text: bodyOf(m).trim(), type: m.type}
+    return {author: m.author, id: Number(m.id) || 0, reactions, text: bodyOf(m).trim(), type: m.type}
+  `)
+
+// A loaded attachment as the store holds it: how the thread draws it ('attachment:image',
+// 'attachment:video', 'attachment:file', ...), whether its preview has a url, whether it is shown
+// collapsed, and the transfer under way, if any. Null for a message that is not an attachment.
+export type StoredAttachment = {
+  author: string
+  collapsed: boolean
+  hasPreview: boolean
+  id: number
+  renderType: string
+  title: string
+  transferState: string | null
+}
+export const storedAttachment = async (ordinal: number) =>
+  jsEval<StoredAttachment | null>(`${threadStoreBody}
+    const m = st && st.messageMap.get(${ordinal})
+    if (!m || m.type !== 'attachment') return null
+    return {
+      author: m.author,
+      collapsed: !!m.isCollapsed,
+      hasPreview: !!m.previewURL,
+      id: Number(m.id) || 0,
+      renderType: String(st.messageTypeMap.get(${ordinal}) || ''),
+      title: m.title || '',
+      transferState: m.transferState || null,
+    }
   `)
 
 // Waits for the one message containing `text` to be in the thread and returns its ordinal.
@@ -1044,6 +1078,71 @@ export const showsText = async (id: string, text: string) => {
   return false
 }
 
+// The one element `selector` matches whose middle lies inside the thread row at `ordinal` (the tree
+// is flattened, so what a row draws are elements placed inside the rect the list measured for it).
+// Throws when the row is not drawn, or when none or more than one match; `what` names the element.
+export const elementInRow = async (selector: string, ordinal: number, what: string) => {
+  const r = rowOf(await requireThread(), ordinal)
+  if (!r) throw new Error(`row ${ordinal} is not drawn, so ${what} in it cannot be found`)
+  const inside: Array<WebdriverIO.Element> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (!at || !size) continue
+    const mid = at.y + size.height / 2
+    if (mid >= r.top && mid <= r.bottom) inside.push(e)
+  }
+  if (inside.length !== 1) throw new Error(`${inside.length} of ${what} in row ${ordinal}, not one`)
+  return inside[0]!
+}
+
+// Drags the thread until the loaded row at `ordinal` sits wholly in the reader's view, and returns
+// that reading. Fails when the row is not loaded, or after `timeout`.
+export const scrollRowIntoView = async (ordinal: number, timeout = 30_000) =>
+  waitFor(
+    `row ${ordinal} wholly in view`,
+    async () => {
+      const t = await waitForThreadStable()
+      if (!t.ordinals.includes(ordinal)) throw new Error(`row ${ordinal} is not loaded`)
+      const v = await viewport(t)
+      const r = rowOf(t, ordinal)
+      if (wholly(r, v)) return t
+      // positive drags bring older rows (above) down into view
+      const dy = r ? (r.top < v.top ? v.top - r.top + 20 : v.bottom - r.bottom - 20) : ordinal < (t.rows[0]?.ordinal ?? 0) ? 300 : -300
+      await dragThread(dy)
+      return undefined
+    },
+    {interval: 0, timeout}
+  )
+
+// What the info panel's attachments tab lists now, read off its rows' props: the Media grid's
+// thumbnails (message id, and whether the thumb is a video's) and the Docs list's rows (message id
+// and the name it shows).
+export type GalleryListing = {docs: Array<{id: number; name: string}>; media: Array<{id: number; video: boolean}>}
+export const galleryListing = async () =>
+  jsEval<GalleryListing>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const media = []
+    const docs = []
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      // a media thumb's props hold its thumb and sizing; a doc row's its item of type doc
+      if (p && p.thumb && p.sizing && typeof p.thumb.id === 'number' && typeof p.thumb.typ === 'number') {
+        media.push({id: p.thumb.id, video: p.thumb.typ === 1})
+      } else if (p && p.item && p.item.type === 'doc' && p.item.message && typeof p.item.name === 'string') {
+        docs.push({id: Number(p.item.message.id) || 0, name: p.item.name})
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    const once = (xs, key) => xs.filter((x, i) => xs.findIndex(y => key(y) === key(x)) === i)
+    return {docs: once(docs, d => d.id), media: once(media, m => m.id)}
+  `)
+
 // Where a message is in its delete: shown, shown while its delete is in flight, or gone.
 export type DeletePhase = 'gone' | 'row' | 'row+deleting'
 export const deletePhase = async (ordinal: number) =>
@@ -1089,41 +1188,75 @@ export const visibleConversation = async () =>
 
 // -- standing in for the service, and reading what the app asked of it ---------------------------
 
-// Watches the visible thread's row at `ordinal` from inside the app, every 16ms: logs each change of
-// its delete phase to the console (so Metro's log holds it in order with the RPC log), and from the
-// moment its delete is in flight hands the app a ChatThreadsStale for the conversation every 100ms,
-// as the service sends one when a thread changed underneath it; each makes the thread reload. Stops
-// by itself once the row is gone or after 15s.
+// What a delete watch saw, in order: each change of the row's delete phase and each thread pass the
+// service sent the app (chatThreadCached / chatThreadFull), with the recorder's call seq at that
+// moment (calls up to that seq came before it); and how many ChatThreadsStale it handed the app.
+export type DeleteWatchEntry = {seq: number; what: DeletePhase | 'pass'}
+export type DeleteWatch = {done: boolean; log: Array<DeleteWatchEntry>; stale: number}
+
+// Watches the visible thread's row at `ordinal` from inside the app, every 16ms: notes each change of
+// its delete phase, and each thread pass the service sends while it watches (the engine's incoming
+// call handler is wrapped for that long, then put back); from the moment the row's delete is in
+// flight it hands the app a ChatThreadsStale for the conversation every 100ms, as the service sends
+// one when a thread changed underneath it, and each makes the thread reload. Stops by itself once
+// the row is gone or after 15s; stopDeleteWatch stops it sooner. Read it with deleteWatch.
 export const watchDeleteThroughReloads = async (ordinal: number) => {
   const ok = await jsEval<boolean>(`${threadStoreBody}
     if (!store) return false
     const g = globalThis
-    if (g.__e2eDeleteWatch) clearInterval(g.__e2eDeleteWatch)
+    if (g.__e2eDeleteWatch) g.__e2eDeleteWatch.stop()
+    const engine = g.DEBUGEngine
+    if (!engine || typeof engine._rpcIncoming !== 'function') throw new Error('e2e delete watch: no DEBUGEngine._rpcIncoming')
+    const recorder = g.__kbE2ERecorder
+    if (!recorder) throw new Error('e2e delete watch: the app has no __kbE2ERecorder')
+    const seq = () => recorder.calls(Number.MAX_SAFE_INTEGER).seq
     const router = kbModule('chat/notification-router.tsx')
     const types = kbModule('constants/types/chat/index.tsx')
+    const passes = new Set(['chat.1.chatUi.chatThreadCached', 'chat.1.chatUi.chatThreadFull'])
+    const ownIncoming = Object.prototype.hasOwnProperty.call(engine, '_rpcIncoming')
+    const incoming = engine._rpcIncoming
     const started = Date.now()
     let phase
     let lastStale = Date.now()
-    g.__e2eStaleCount = 0
-    g.__e2eDeleteWatch = setInterval(() => {
-      const s = store.getState()
-      const now = !(s.messageOrdinals || []).includes(${ordinal}) ? 'gone' : [...s.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
-      if (now !== phase) {
-        phase = now
-        console.log('e2e-row-phase ' + now)
-      }
-      if (now === 'gone' || Date.now() - started > 15000) {
-        clearInterval(g.__e2eDeleteWatch)
-        g.__e2eDeleteWatch = undefined
-        return
-      }
-      if (now === 'row+deleting' && Date.now() - lastStale >= 100) {
-        lastStale = Date.now()
-        g.__e2eStaleCount++
+    let timer
+    const watch = {
+      done: false,
+      log: [],
+      stale: 0,
+      sendStale: () => {
+        watch.stale++
         router.routeChatNotification({
           payload: {params: {updates: [{convID: types.keyToConversationID(convID), updateType: 1}]}},
           type: 'chat.1.NotifyChat.ChatThreadsStale',
         })
+      },
+      stop: () => {
+        if (watch.done) return
+        watch.done = true
+        clearInterval(timer)
+        if (ownIncoming) engine._rpcIncoming = incoming
+        else delete engine._rpcIncoming
+      },
+    }
+    engine._rpcIncoming = function (payload) {
+      if (!watch.done && payload && passes.has(payload.method)) watch.log.push({seq: seq(), what: 'pass'})
+      return incoming.call(this, payload)
+    }
+    g.__e2eDeleteWatch = watch
+    timer = setInterval(() => {
+      const s = store.getState()
+      const now = !(s.messageOrdinals || []).includes(${ordinal}) ? 'gone' : [...s.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
+      if (now !== phase) {
+        phase = now
+        watch.log.push({seq: seq(), what: now})
+      }
+      if (now === 'gone' || Date.now() - started > 15000) {
+        watch.stop()
+        return
+      }
+      if (now === 'row+deleting' && Date.now() - lastStale >= 100) {
+        lastStale = Date.now()
+        watch.sendStale()
       }
     }, 16)
     return true
@@ -1131,17 +1264,33 @@ export const watchDeleteThroughReloads = async (ordinal: number) => {
   if (!ok) throw new Error('no thread store on screen to watch')
 }
 
-export const staleNotificationsSent = async () => jsEval<number>(`return globalThis.__e2eStaleCount || 0`)
+// What the running or last delete watch saw; null when none ran in this runtime.
+export const deleteWatch = async () =>
+  jsEval<DeleteWatch | null>(`
+    const w = globalThis.__e2eDeleteWatch
+    return w ? {done: w.done, log: w.log.slice(), stale: w.stale} : null
+  `)
+
+// Stops a delete watch still running, which puts the engine's incoming handler back. Cleanup:
+// nothing when none runs.
+export const stopDeleteWatch = async () => {
+  await jsEval<boolean>(`
+    const w = globalThis.__e2eDeleteWatch
+    if (w) w.stop()
+    return true
+  `)
+}
 
 // Chooses Delete in the open message menu from inside the app, right behind a ChatThreadsStale for
 // the visible conversation in the same task: the thread's reload is asked for just ahead of the
 // delete, so its pass can come back while the delete is still on its way (a phone's delete lands
-// within a tick or two of the tap, before a reload the tap starts). The menu stays open; close it
-// after.
+// within a tick or two of the tap, before a reload the tap starts). Needs a running delete watch,
+// which counts the notification. The menu stays open; close it after. The delete goes out from the
+// eval, not a tap: run this inside withHarnessRpcs.
 export const chooseDeleteBehindAReload = async () => {
   const ok = await jsEval<boolean>(`
-    const screen = kbModule('constants/router.tsx').getVisibleScreen()
-    const convID = screen && screen.params && screen.params.conversationIDKey
+    const watch = globalThis.__e2eDeleteWatch
+    if (!watch || watch.done) throw new Error('e2e: no delete watch running')
     const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
     let root
     for (const r of hook.getFiberRoots(1)) root = r
@@ -1155,26 +1304,13 @@ export const chooseDeleteBehindAReload = async () => {
       if (f.sibling) stack.push(f.sibling)
       if (f.child) stack.push(f.child)
     }
-    if (!onClick || !convID) return false
-    globalThis.__e2eStaleCount = (globalThis.__e2eStaleCount || 0) + 1
-    kbModule('chat/notification-router.tsx').routeChatNotification({
-      payload: {params: {updates: [{convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(convID), updateType: 1}]}},
-      type: 'chat.1.NotifyChat.ChatThreadsStale',
-    })
+    if (!onClick) return false
+    watch.sendStale()
     onClick()
     return true
   `)
   if (!ok) throw new Error('no Delete for everyone in an open message menu')
 }
-
-// What the app logged, in order, from Metro's log lines: its e2e-row-phase markers, and 'pass' for
-// each thread pass the service sent it (chatThreadCached / chatThreadFull).
-export const rowPhasesAndPasses = (lines: ReadonlyArray<string>) =>
-  lines.flatMap(l => {
-    const phase = /e2e-row-phase (\S+)/.exec(l)?.[1]
-    if (phase) return [phase]
-    return /IN >>.*chat\.1\.chatUi\.chatThread(Cached|Full)/.test(l) ? ['pass'] : []
-  })
 
 // The waiting keys the app holds right now (a spinner or a disabled control waits on each).
 export const heldWaitingKeys = async () =>
@@ -1182,19 +1318,33 @@ export const heldWaitingKeys = async () =>
     `return [...kbModule('stores/waiting.tsx').useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)`
   )
 
-export const accountChangedMarker = 'e2e-signed-in-account-changed'
-
-// Logs a marker to the console the moment the signed-in account changes, so Metro's log shows which
-// of the app's calls came after it.
-export const markAccountChange = async () =>
-  jsEval(`
+// Notes the recorder's call seq the moment the signed-in account changes, so callsSince of it lists
+// only the calls made after the change. Read it with accountChangedSeq; stopAccountChangeWatch ends it.
+export const watchAccountChange = async () =>
+  jsEval<boolean>(`
     const g = globalThis
+    const recorder = g.__kbE2ERecorder
+    if (!recorder) throw new Error('e2e account watch: the app has no __kbE2ERecorder')
     if (g.__e2eUidWatch) g.__e2eUidWatch()
+    g.__e2eAccountChangedSeq = null
     g.__e2eUidWatch = kbModule('stores/current-user.tsx').useCurrentUserState.subscribe((s, prev) => {
-      if (s.uid !== prev.uid) console.log(${JSON.stringify(accountChangedMarker)})
+      if (s.uid !== prev.uid && g.__e2eAccountChangedSeq === null) g.__e2eAccountChangedSeq = recorder.calls(Number.MAX_SAFE_INTEGER).seq
     })
     return true
   `)
+
+// The call seq at the first account change since watchAccountChange, or null before one.
+export const accountChangedSeq = async () => jsEval<number | null>(`return globalThis.__e2eAccountChangedSeq ?? null`)
+
+// Cleanup: nothing when no watch runs.
+export const stopAccountChangeWatch = async () => {
+  await jsEval<boolean>(`
+    const g = globalThis
+    if (g.__e2eUidWatch) g.__e2eUidWatch()
+    g.__e2eUidWatch = undefined
+    return true
+  `)
+}
 
 // Starts a switch to another account signed in on this device through the app's own switch (what
 // the account switcher's row calls), for a flow that keeps typing while it runs.

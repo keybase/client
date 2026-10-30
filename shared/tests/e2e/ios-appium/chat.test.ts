@@ -1,4 +1,4 @@
-// Chat flows, run in one session by wdio.chat.conf.ts (tests/e2e/run-ios-chat.sh). The data flow's
-// account switch signs the app in as the second account and back.
-import './flows/chat-parity.test'
-import './flows/chat-data.test'
+// The old chat runner's spec (wdio.chat.conf.ts, tests/e2e/run-ios-chat.sh). Every chat flow runs
+// under the gate now (gate.test.ts), so it imports none; the runner itself goes with the chat lists'
+// wiring.
+export {}

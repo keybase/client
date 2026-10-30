@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 
 type Props = {
@@ -26,7 +27,14 @@ const ReactionItem = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} alignItems="center" style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (
-        <Kb.ClickableBox direction="vertical" centerChildren={true} key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
+        <Kb.ClickableBox
+          direction="vertical"
+          centerChildren={true}
+          key={r.name || idx}
+          onClick={() => onReact(r.name)}
+          style={styles.clickableBox}
+          testID={TestIDs.CHAT_QUICK_REACTION_PREFIX + r.name}
+        >
           <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
         </Kb.ClickableBox>
       ))}
