@@ -26,14 +26,20 @@ const SIGN_OUT_AND_BACK_MS = 360_000
 
 const screenTap = async (text: string, screen: string) => tapToScreen(() => byText(text), screen)
 
-// Types `text` into the field `id` and waits until the field reads it back.
+// Types `text` into the field `id` and waits until the field reads it back. A screen's first field
+// can drop what is typed while its screen is still sliding in, so it is typed once more; what the
+// field read the first time is logged (none of these values is a secret), and an error says what
+// it reads last.
 const typed = async (id: string, text: string) => {
   await el(id).waitForExist({timeout: 10_000, timeoutMsg: `the field ${id} never showed`})
-  await enterText(id, text)
-  await waitFor(`the field ${id} to read "${text}"`, async () => ((await el(id).getAttribute('value')) === text ? true : undefined), {
-    interval: 250,
-    timeout: 10_000,
-  })
+  const reads = async () => (await el(id).getAttribute('value').catch(() => null)) === text
+  for (let tries = 1; ; tries++) {
+    await enterText(id, text)
+    if (await waitFor(`the field ${id} to read "${text}"`, async () => ((await reads()) ? true : undefined), {interval: 250, timeout: 5_000}).then(() => true, () => false)) return
+    const got = await el(id).getAttribute('value').catch(() => null)
+    if (tries >= 2) throw new Error(`the field ${id} reads ${JSON.stringify(got)} after typing ${JSON.stringify(text)} twice`)
+    console.log(`[account-signed-out] the field ${id} read ${JSON.stringify(got)} after typing ${JSON.stringify(text)}; typing it again`)
+  }
 }
 
 const button = (label: string) => labeled('Button', label)
