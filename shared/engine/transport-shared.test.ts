@@ -62,6 +62,20 @@ test('an object reached twice is redacted both times, and a cycle is marked', ()
   })
 })
 
+test("a paper key device's name is redacted, other devices' names stay", () => {
+  const out = redactRpcParams([
+    {device: {deviceID: 'd1', name: 'wrong shaft', type: 'backup'}},
+    {device: {deviceID: 'd2', name: 'Paper Key (wrong shaft...)', type: 'backup'}},
+    {device: {deviceID: 'd3', name: 'iOS Device', type: 'mobile'}},
+  ])
+  expect(JSON.stringify(out)).not.toContain('wrong shaft')
+  expect(out).toEqual([
+    {device: {deviceID: 'd1', name: '<redacted>', type: 'backup'}},
+    {device: {deviceID: 'd2', name: '<redacted>', type: 'backup'}},
+    {device: {deviceID: 'd3', name: 'iOS Device', type: 'mobile'}},
+  ])
+})
+
 test('depth cutoff fails closed', () => {
   let deep: Record<string, unknown> = {passphrase: fixture}
   for (let i = 0; i < 20; i++) deep = {n: deep}

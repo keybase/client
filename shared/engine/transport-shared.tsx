@@ -67,11 +67,14 @@ export function redactRpcParams(value: unknown, depth = 0, ancestors = new Set<o
     return value
   }
   ancestors.add(value)
+  // a paper key device's name is the first two words of its phrase
+  const paperKeyDevice = (value as {type?: unknown}).type === 'backup'
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
     out[k] =
       (secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null) ||
-      (stringSecretKeys.has(k.toLowerCase()) && typeof v === 'string')
+      (stringSecretKeys.has(k.toLowerCase()) && typeof v === 'string') ||
+      (paperKeyDevice && k === 'name' && typeof v === 'string')
         ? '<redacted>'
         : redactRpcParams(v, depth + 1, ancestors)
   }
