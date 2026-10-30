@@ -73,15 +73,39 @@ const hostFibers = `
   }
 `
 
+// handleFiber(inst): the host fiber RN's instance handle names, with its ancestors nearest first,
+// in O(1) of the tree; undefined unless every link is current: each fiber among its parent's
+// children and the top the root's current HostRoot (a handle or a .return can be a stale fiber of
+// its pair, a render behind).
+const handleFiber = `
+  const handleFiber = inst => {
+    const field = inst && inst.__internalInstanceHandle
+    if (!field || field.tag !== 5 || !field.memoizedProps) return undefined
+    const above = []
+    for (let c = field, p = field.return; p; c = p, p = p.return) {
+      let k = p.child
+      while (k && k !== c) k = k.sibling
+      if (!k) return undefined
+      above.push(p)
+      if (p.tag === 3) return p.stateNode && p.stateNode.current === p ? {above, field} : undefined
+    }
+    return undefined
+  }
+`
+
 // resolveFocused(): the focused input's current host fiber as {above, field, inst, props} when it
-// is the one with fieldTestID and hands its text to its screen, else {read} saying why not.
-const resolveFocused = (fieldTestID: string) => `${hostFibers}
+// is the one with fieldTestID and hands its text to its screen, else {read} saying why not. The
+// instance handle first; the walk of every root (hostFibers) only when that is not current.
+const resolveFocused = (fieldTestID: string) => `${hostFibers}${handleFiber}
   const resolveFocused = () => {
     const tis = ${moduleOr('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js', 'TextInputState')}
     if (tis.read) return tis
     const inst = (tis.m.default ?? tis.m).currentlyFocusedInput()
     if (!inst) return {read: {state: 'nothing focused'}}
-    const found = hostFibers(f => f.stateNode === inst || !!(f.stateNode && f.stateNode.canonical && f.stateNode.canonical.publicInstance === inst))
+    const fast = handleFiber(inst)
+    const found = fast
+      ? [fast]
+      : hostFibers(f => f.stateNode === inst || !!(f.stateNode && f.stateNode.canonical && f.stateNode.canonical.publicInstance === inst))
     if (!found) return {read: {state: 'no fiber roots'}}
     if (found.length === 0) return {read: {state: 'focused field not in the tree'}}
     if (found.length > 1) return {read: {state: 'focused field twice in the tree'}}

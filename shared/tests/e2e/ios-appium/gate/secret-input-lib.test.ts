@@ -55,7 +55,9 @@ const hooks = (lastNativeText: unknown): Hook =>
     null
   ) as Hook
 
-const makeApp = (opts: {controlledValue?: string} = {}) => {
+// currentHandle: the focused instance's handle and every .return above it are current, as after a
+// render that bailed out nowhere; noDevTools: no DevTools hook, so only the handle can find it.
+const makeApp = (opts: {controlledValue?: string; currentHandle?: boolean; noDevTools?: boolean} = {}) => {
   const focused: {current: unknown} = {current: undefined}
   const inst = {focus: () => (focused.current = inst)}
   const other = {focus: () => {}}
@@ -87,8 +89,16 @@ const makeApp = (opts: {controlledValue?: string} = {}) => {
   provider.child = host
   host.sibling = otherHost
   const root = {current: {child: internal, tag: 3} as Fiber}
-  Object.assign(inst, {__internalInstanceHandle: staleHost})
-  ;(globalThis as Globals).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {getFiberRoots: () => [root], renderers: new Map([[1, {}]])}
+  root.current.stateNode = root
+  if (opts.currentHandle) {
+    host.return = provider
+    provider.return = internal
+    internal.return = root.current
+  }
+  Object.assign(inst, {__internalInstanceHandle: opts.currentHandle ? host : staleHost})
+  if (!opts.noDevTools) {
+    ;(globalThis as Globals).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {getFiberRoots: () => [root], renderers: new Map([[1, {}]])}
+  }
   const modules: Record<string, unknown> = {
     'node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js': {
       Commands: {setTextAndSelection: (...args: Array<unknown>) => commandCalls.push(args)},
@@ -197,4 +207,15 @@ test('a missing flow or handler, or one that throws, is refused with a message n
     expect(provisionProblem({state})).not.toContain('alpha')
   }
   expect(provisionProblem(undefined)).toBe('submitting the phrase got no answer')
+})
+
+test("a current instance handle finds the field without walking the tree; a stale one falls back to the walk", () => {
+  const fast = makeApp({currentHandle: true, noDevTools: true})
+  expect(fast.run(lengthEvalBody('f'))).toEqual({length: 0, state: 'read'})
+  // a stale handle and no DevTools hook: nothing can find it
+  const neither = makeApp({noDevTools: true})
+  expect(neither.run(lengthEvalBody('f'))).toEqual({state: 'no fiber roots'})
+  // the default app's handle is the stale fiber: the walk finds the current one
+  const walked = makeApp()
+  expect(walked.run(lengthEvalBody('f'))).toEqual({length: 0, state: 'read'})
 })
