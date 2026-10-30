@@ -1,6 +1,8 @@
 // Pure part of the signed-out flows (flows/account-signed-out.test.ts), kept apart so jest can test it
 // without wdio.
 
+import {escapePredicate} from '../helpers/elements.ts'
+
 export type RecoveryDevice = {id: string; name: string; type: string}
 
 const isDevice = (d: unknown): d is RecoveryDevice => {
@@ -27,8 +29,6 @@ export const recoveryPicks = (
   if (!paperKey) return 'the recovery lists no paper key, so no wrong paper key can be refused'
   return {paperKey, peer}
 }
-
-const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
 // The device selector's row for the device named exactly `name`: its name text, or the row itself
 // when the row merges its texts into one label, so "a b" never matches "a bc". A merged label joins

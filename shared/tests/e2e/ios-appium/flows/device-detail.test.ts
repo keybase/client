@@ -1,8 +1,8 @@
 import * as T from '../../shared/test-ids'
 import {phoneDevice} from '../gate/accounts'
 import {step} from '../gate/step'
-import {labeled, openDevicePage, openDevices} from '../helpers/devices'
-import {el} from '../helpers/elements'
+import {openDevicePage, openDevices} from '../helpers/devices'
+import {el, labeled} from '../helpers/elements'
 
 // The phone's own device's page, opened from its row by name. Its revoke button is never tapped:
 // revoking the current device deprovisions the phone.

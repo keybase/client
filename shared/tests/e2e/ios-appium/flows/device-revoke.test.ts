@@ -5,7 +5,8 @@ import {deviceHistory, requireRevocableFromPhone} from '../../shared/devices.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import {phoneDeviceId} from '../gate/accounts'
 import {step} from '../gate/step'
-import {labeled, openDevicePage, openDevices, revokeOnPhone, waitNotListedActive} from '../helpers/devices'
+import {openDevicePage, openDevices, revokeOnPhone, waitNotListedActive} from '../helpers/devices'
+import {labeled} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 
 // Revokes, from the phone, a computer the CLI provisioned for it (shared/cli-device.ts: a fresh home

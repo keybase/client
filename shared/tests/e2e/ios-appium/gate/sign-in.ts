@@ -5,8 +5,7 @@
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
 import {openAccountSwitcher} from '../helpers/chat'
-import {labeled} from '../helpers/devices'
-import {byText, el} from '../helpers/elements'
+import {byText, el, labeled} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {appAccount, backToLoginList, settledAppAccount} from './accounts'
 import {

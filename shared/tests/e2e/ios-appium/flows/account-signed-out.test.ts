@@ -7,8 +7,7 @@ import {backToScreen, pressBackToLoginList, tapToScreen, waitForScreen} from '..
 import {emptyLoginField, loginScreen, restoreSecondSecret, storedSecretOf} from '../gate/sign-in'
 import {recoveryPicks, recoveryRowPredicate} from '../gate/signed-out-lib.ts'
 import {manualEdge, step} from '../gate/step'
-import {labeled} from '../helpers/devices'
-import {byText, el, enterText} from '../helpers/elements'
+import {byText, el, enterText, labeled} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {dismissKeyboard} from '../helpers/navigate'
 

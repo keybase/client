@@ -5,12 +5,8 @@
 // source per screen.
 import * as T from '../../shared/test-ids'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
-import {el} from './elements'
+import {el, labeled} from './elements'
 import {goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
-
-// The element of `type` whose label is exactly `label`.
-export const labeled = (type: 'Button' | 'Other' | 'StaticText', label: string) =>
-  browser.$(`-ios predicate string:type == "XCUIElementType${type}" AND label == "${label.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 

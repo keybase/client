@@ -144,7 +144,11 @@ export const anyExist = async (id: string, timeout = 3000): Promise<boolean> => 
 
 // Backslashes and double quotes would otherwise terminate/alter the quoted
 // predicate literal and make the selector invalid.
-const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+export const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+
+// iOS: the element of `type` whose label is exactly `label`.
+export const labeled = (type: 'Button' | 'Other' | 'StaticText', label: string): ChainablePromiseElement =>
+  browser.$(`-ios predicate string:type == "XCUIElementType${type}" AND label == "${escapePredicate(label)}"`)
 
 // CONTAINS, not ==, on purpose: many tappable rows (More menu items, team tabs)
 // are ClickableBoxes whose accessibility label is a merge of child labels, e.g.

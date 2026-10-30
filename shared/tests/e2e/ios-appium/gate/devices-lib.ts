@@ -4,6 +4,7 @@
 // adds its badge between the name and the time. The list is virtualized, so a page source holds the
 // rows near the viewport only. Pure: helpers/devices.ts drives the phone.
 import {DEVICES_ROW} from '../../shared/test-ids.ts'
+import {escapePredicate} from '../helpers/elements.ts'
 
 export type ListRow = {label: string; visible: boolean; y: number}
 
@@ -60,8 +61,6 @@ export const mergeRows = (collected: ReadonlyArray<string>, page: ReadonlyArray<
   }
   return [...collected, ...page.slice(at + 1)]
 }
-
-const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
 // The row of the device named exactly `name` (its label starts with the name and the row's own
 // separator, so "a b" never matches "a bc"), active or revoked.
