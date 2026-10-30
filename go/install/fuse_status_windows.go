@@ -123,3 +123,6 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	}
 	return status
 }
+
+// FilterKBFSMountInfos is a no-op on Windows.
+func FilterKBFSMountInfos(*keybase1.FuseStatus, string) {}
