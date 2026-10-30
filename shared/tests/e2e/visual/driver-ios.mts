@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor, NO_INSPECTOR_PAGE, waitForInspectorPage} from '../shared/metro-eval.ts'
+import {evalInPage, inspectorPageFor, lostInspectorPage, NO_INSPECTOR_PAGE, waitForInspectorPage} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -128,7 +128,7 @@ export const pidFromLaunchctl = (out: string, bundleId: string): number | undefi
 // through it (a socket drop). One that died (crashed, or was killed) keeps the entry failed, so a
 // route that takes the app down is never hidden.
 export const recaptureAfterDrop = (o: {error: string | undefined; pidBefore: number | undefined; pidAtDrop: number | undefined}) =>
-  !!o.error?.includes(NO_INSPECTOR_PAGE) && o.pidBefore !== undefined && o.pidAtDrop === o.pidBefore
+  lostInspectorPage(o.error) && o.pidBefore !== undefined && o.pidAtDrop === o.pidBefore
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -829,7 +829,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     } catch (e) {
       why = (e as Error).message
     }
-    if (why.includes(NO_INSPECTOR_PAGE)) noteDrop()
+    if (lostInspectorPage(why)) noteDrop()
     if (recoveryFor(why) === 'reload') {
       try {
         await reloadPrepared(frozenAt)
@@ -954,7 +954,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     problems.push(...(await fixture.end()))
-    if ([result.error, ...problems].some(m => m?.includes(NO_INSPECTOR_PAGE))) noteDrop()
+    if ([result.error, ...problems].some(lostInspectorPage)) noteDrop()
     // a fixture's end can leave the navigator without state too, so this runs after every capture
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)

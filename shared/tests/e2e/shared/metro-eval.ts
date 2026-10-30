@@ -28,13 +28,19 @@ export const listInspectorPages = async (timeoutMs = 3000): Promise<Array<Inspec
 // Node's WebSocket, described here: this file is also type-checked against react-native's globals,
 // whose WebSocket differs.
 type NodeWebSocket = {
-  addEventListener: (type: 'error' | 'message' | 'open', listener: (e: {data?: unknown}) => void) => void
+  addEventListener: (type: 'close' | 'error' | 'message' | 'open', listener: (e: {data?: unknown}) => void) => void
   close: () => void
   send: (data: string) => void
 }
 type NodeWebSocketCtor = new (url: string, opts: {headers: Record<string, string>}) => NodeWebSocket
 
 export const NO_INSPECTOR_PAGE = 'no Metro inspector page'
+// Metro closes a debugger socket when the app's own inspector socket drops (or the page is gone), so
+// an eval it closes before answering may or may not have run.
+export const INSPECTOR_CLOSED = 'inspector connection closed before answering'
+// Whether `message` says the app's inspector page went away, as opposed to the app failing an eval.
+export const lostInspectorPage = (message: string | undefined) =>
+  !!message && (message.includes(NO_INSPECTOR_PAGE) || message.includes(INSPECTOR_CLOSED))
 
 // The newest of `pages` for the device and app. When there is none, the error says what Metro did
 // list: nothing (the app's inspector socket is closed) or other targets (a different device or app).
@@ -104,6 +110,11 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
       ws.addEventListener('error', () => {
         clearTimeout(timer)
         reject(new Error('inspector connection failed'))
+      })
+      // after an answer or an error this is a no-op: the promise has settled
+      ws.addEventListener('close', () => {
+        clearTimeout(timer)
+        reject(new Error(INSPECTOR_CLOSED))
       })
       ws.addEventListener('open', () => {
         const expression = `(() => { ${prelude} ${body} })()`

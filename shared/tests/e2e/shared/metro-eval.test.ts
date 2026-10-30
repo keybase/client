@@ -1,4 +1,4 @@
-import {findModuleId, NO_INSPECTOR_PAGE, pickInspectorPage, waitForInspectorPage, type WaitClock} from './metro-eval'
+import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, waitForInspectorPage, type WaitClock} from './metro-eval'
 
 const mods = (...names: Array<string>): Array<[number, {verboseName?: string}]> => names.map((verboseName, i) => [i, {verboseName}])
 const TIS = 'node_modules/react-native/Libraries/Components/TextInput/TextInputState.js'
@@ -96,4 +96,57 @@ test('a page that never comes back fails once, at the bound, naming the step', a
   expect(clock.now()).toBeGreaterThanOrEqual(1000 + 15_000)
   expect(clock.now()).toBeLessThan(1000 + 15_000 + 600)
   expect(sleeps.length).toBe(25)
+})
+
+test('a lost page is a missing page or a debugger socket Metro closed, not a failed or slow eval', () => {
+  expect(lostInspectorPage(`reading: ${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`)).toBe(true)
+  expect(lostInspectorPage(`switching to tabs.peopleTab: ${INSPECTOR_CLOSED}`)).toBe(true)
+  expect(lostInspectorPage('switching to tabs.peopleTab: no answer in 5s')).toBe(false)
+  expect(lostInspectorPage('app evaluate threw: Error: no navigation state')).toBe(false)
+  expect(lostInspectorPage(undefined)).toBe(false)
+})
+
+// A WebSocket the test drives: each new socket is handed to `onSocket`.
+const withFakeSocket = async (onSocket: (s: {emit: (type: string, e?: {data?: unknown}) => void}) => void, f: () => Promise<void>) => {
+  const g = globalThis as unknown as {WebSocket: unknown}
+  const saved = g.WebSocket
+  g.WebSocket = class {
+    listeners = new Map<string, Array<(e: {data?: unknown}) => void>>()
+    constructor() {
+      onSocket({emit: (type, e = {}) => this.listeners.get(type)?.forEach(l => l(e))})
+    }
+    addEventListener(type: string, l: (e: {data?: unknown}) => void) {
+      this.listeners.set(type, [...(this.listeners.get(type) ?? []), l])
+    }
+    close() {}
+    send() {}
+  }
+  try {
+    await f()
+  } finally {
+    g.WebSocket = saved
+  }
+}
+const evalPage = {webSocketDebuggerUrl: 'ws://localhost:8081/inspector/debug?device=d&page=1'}
+
+test('an eval whose debugger socket closes before answering fails at once, saying so', async () => {
+  await withFakeSocket(
+    s => setTimeout(() => s.emit('close'), 0),
+    async () => {
+      await expect(evalInPage(evalPage, 'return 1')).rejects.toThrow(INSPECTOR_CLOSED)
+    }
+  )
+})
+
+test('a close after the answer leaves the answer', async () => {
+  await withFakeSocket(
+    s =>
+      setTimeout(() => {
+        s.emit('message', {data: JSON.stringify({id: 1, result: {result: {value: 7}}})})
+        s.emit('close')
+      }, 0),
+    async () => {
+      await expect(evalInPage(evalPage, 'return 7')).resolves.toBe(7)
+    }
+  )
 })

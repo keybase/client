@@ -321,6 +321,7 @@ test('a capture is taken again only when it lost the inspector page and the app 
   const dropped = 'switching to tabs.peopleTab: no Metro inspector page for iPhoneTest (Metro lists nothing)'
   // a socket drop: same process
   assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 100, pidBefore: 100}), true)
+  assert.equal(recaptureAfterDrop({error: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100}), true)
   // the app died: killed or crashed, then nothing running, or something else started it again
   assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: 100}), false)
   assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: 200, pidBefore: 100}), false)
@@ -328,5 +329,6 @@ test('a capture is taken again only when it lost the inspector page and the app 
   assert.equal(recaptureAfterDrop({error: dropped, pidAtDrop: undefined, pidBefore: undefined}), false)
   // a failure that is not a lost page
   assert.equal(recaptureAfterDrop({error: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100}), false)
+  assert.equal(recaptureAfterDrop({error: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100}), false)
   assert.equal(recaptureAfterDrop({error: undefined, pidAtDrop: 100, pidBefore: 100}), false)
 })

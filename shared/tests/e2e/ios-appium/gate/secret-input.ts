@@ -4,14 +4,14 @@
 // eval's errors are never passed on (one could echo the body), and every message here is built from
 // field ids and lengths. A flow that types a secret runs with retries 0 and takes no step screenshot
 // while the field holds it.
-import {evalInPage, inspectorPageFor} from '../../shared/metro-eval.ts'
+import {evalInPage, INSPECTOR_CLOSED, inspectorPageFor} from '../../shared/metro-eval.ts'
 import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
 import {emptyEvalBody, type FieldRead, fieldProblem, focusEvalBody, lengthEvalBody, secretEvalBody} from './secret-input-lib.ts'
 
 const SETTLE_MS = 5_000
 
 // metro-eval's own transport failures name no part of the body
-const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed'])
+const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed', INSPECTOR_CLOSED])
 
 const evalField = async (fieldTestID: string, body: string, what: string): Promise<FieldRead | undefined> => {
   // looked up outside the try: its errors name no part of the body

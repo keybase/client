@@ -22,7 +22,7 @@ export const jsEval = async <R>(body: string): Promise<R> => {
     try {
       return await jsEvalOnce<R>(body)
     } catch (e) {
-      const transient = e instanceof Error && /no Metro inspector page|inspector connection failed|inspector evaluate timed out/.test(e.message)
+      const transient = e instanceof Error && /no Metro inspector page|inspector connection failed|inspector connection closed|inspector evaluate timed out/.test(e.message)
       if (!transient || Date.now() > end) throw e
       await sleep(500)
     }
