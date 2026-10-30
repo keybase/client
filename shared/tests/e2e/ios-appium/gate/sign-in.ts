@@ -19,10 +19,10 @@ import {
   passwordScreenProblem,
   storedSecretIn,
 } from './app-account-lib.ts'
+import {tapUntil} from './screens'
 import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
 
 const SIGN_IN_MS = 60_000
-const TAPS = 5
 let asks = 0
 
 // Whether the phone's service keeps a stored secret for `username`, as it answers now.
@@ -135,19 +135,6 @@ export const signInWithPassword = async (username: string, password: string) => 
   }
 }
 
-// Taps `target` until `done`, as the login screen and the switcher ignore a tap for a moment after a
-// sign-out or while sliding in.
-const tapUntil = async (target: () => ReturnType<typeof el>, done: () => Promise<boolean>, what: string) => {
-  for (let i = 0; i < TAPS; i++) {
-    await target().click().catch(() => {})
-    const end = Date.now() + 5_000
-    while (Date.now() < end) {
-      if (await done()) return
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-  }
-  throw new Error(`${what} after ${TAPS} taps`)
-}
 
 // Puts the second account's stored secret back on the phone when it is missing, by signing it in
 // with its password from the login screen, as a person would: from another account through its
@@ -162,13 +149,13 @@ export const restoreSecondSecret = async (password: string) => {
   if (a.loggedIn) {
     await openAccountSwitcher()
     const target = a.username === secondUser ? () => byText('Log in as another user') : () => el(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser)
-    await tapUntil(target, loginList, 'the switcher never signed out to the login list')
+    await tapUntil(async () => target().click().catch(() => {}), loginList, 'the switcher never signed out to the login list')
   } else {
     await backToLoginList()
   }
   // the row of an account with no stored secret only selects it
   await tapUntil(
-    () => el(T.LOGIN_USER_ROW_PREFIX + secondUser),
+    async () => el(T.LOGIN_USER_ROW_PREFIX + secondUser).click().catch(() => {}),
     async () => passwordScreenProblem(await loginScreen(), secondUser) === undefined,
     `the login screen never asked for the password of ${secondUser}`
   )
