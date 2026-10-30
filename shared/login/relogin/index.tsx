@@ -174,6 +174,7 @@ const NativeLoginRender = (props: Props) => {
     placeholder: 'Password',
     secureTextEntry: !showTyping,
     testID: TestIDs.LOGIN_PASSWORD_INPUT,
+    value: password,
   } as const
 
   return (

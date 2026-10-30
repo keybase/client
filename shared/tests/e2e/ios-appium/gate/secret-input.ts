@@ -5,17 +5,17 @@
 // field ids and lengths. A flow that types a secret runs with retries 0 and takes no step screenshot
 // while the field holds it.
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval.ts'
+import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
 import {emptyEvalBody, type FieldRead, fieldProblem, focusEvalBody, lengthEvalBody, secretEvalBody} from './secret-input-lib.ts'
 
-const DEVICE = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
-const APP_ID = 'keybase.ios'
 const SETTLE_MS = 5_000
 
 // metro-eval's own transport failures name no part of the body
 const TRANSPORT_ERRORS = new Set(['inspector evaluate timed out', 'inspector connection failed'])
 
 const evalField = async (fieldTestID: string, body: string, what: string): Promise<FieldRead | undefined> => {
-  const page = await inspectorPageFor(DEVICE, APP_ID)
+  // looked up outside the try: its errors name no part of the body
+  const page = await inspectorPageFor(deviceName(), BUNDLE_ID)
   try {
     return await evalInPage<FieldRead>(page, body)
   } catch (e) {
