@@ -104,8 +104,10 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
       let stdout = ''
       let timedOut = false
       let killTimer: ReturnType<typeof setTimeout> | undefined
+      let closeTimer: ReturnType<typeof setTimeout> | undefined
+      let done = false
       child.stdout.on('data', (d: Buffer) => {
-        stdout += d.toString()
+        if (!done) stdout += d.toString()
         process.stdout.write(d)
         toFile(d)
       })
@@ -119,8 +121,6 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
         child.kill('SIGTERM')
         killTimer = setTimeout(() => child.kill('SIGKILL'), 10_000)
       }, timeoutMs)
-      let closeTimer: ReturnType<typeof setTimeout> | undefined
-      let done = false
       const settle = (r: ChildResult) => {
         if (done) return
         done = true
@@ -130,18 +130,16 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
         if (currentChild === child) currentChild = undefined
         resolve(r)
       }
-      const result = (code: number | null) => ({code, stdout, timedOut, ...(logError ? {logError} : {})})
+      const result = (code: number | null, out = stdout) => ({code, stdout: out, timedOut, ...(logError ? {logError} : {})})
       child.on('close', code => settle(result(code)))
-      // A grandchild that inherited the pipes keeps them open after the child exits, and 'close' only
-      // comes once it lets go: the child's exit settles it once its output has had CLOSE_WAIT_MS to drain.
+      // A grandchild that inherited the pipes (Appium, WebDriverAgent's xcodebuild) keeps them open after
+      // the child exits, and 'close' only comes once it lets go: the child's exit settles it once its
+      // output has had CLOSE_WAIT_MS to drain. The pipes stay open and keep passing the grandchild's
+      // output through (closing them would kill it with SIGPIPE on its next write).
       child.on('exit', code => {
-        closeTimer = setTimeout(() => {
-          child.stdout.destroy()
-          child.stderr.destroy()
-          settle(result(code))
-        }, CLOSE_WAIT_MS)
+        closeTimer = setTimeout(() => settle(result(code)), CLOSE_WAIT_MS)
       })
-      child.on('error', e => settle({code: null, stdout: `${stdout}\n${e.message}`, timedOut}))
+      child.on('error', e => settle(result(null, `${stdout}\n${e.message}`)))
     })
 
   const phase = async (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => {

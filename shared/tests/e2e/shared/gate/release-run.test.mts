@@ -291,3 +291,47 @@ test('runChild resolves after a timeout even while a grandchild keeps its stdout
   }
   await end(run)
 })
+
+test('runChild settles on the exit of a child whose grandchild keeps writing, and keeps passing that output through', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const logFile = path.join(dir, 'child.log')
+  const finished = path.join(dir, 'grandchild-finished')
+  // the grandchild writes for 4s after its parent exits, then marks that every write went through
+  const grandchild = `let n = 0; const t = setInterval(() => { console.log('tick ' + n++); if (n === 40) { clearInterval(t); require('fs').writeFileSync(${JSON.stringify(finished)}, ''); console.log('grandchild done') } }, 100)`
+  const script = `require('child_process').spawn(process.execPath, ['-e', ${JSON.stringify(grandchild)}], {stdio: ['ignore', 'inherit', 'inherit']}).unref(); console.log('child out')`
+  const written: Array<string> = []
+  const origWrite = process.stdout.write.bind(process.stdout)
+  process.stdout.write = ((d: string | Uint8Array) => {
+    written.push(String(d))
+    return true
+  }) as typeof process.stdout.write
+  try {
+    const started = Date.now()
+    const r = await run.runChild('writer', process.execPath, ['-e', script], 30_000, {logFile})
+    assert.equal(r.code, 0)
+    assert.ok(Date.now() - started < 3_500, 'settled on the exit, not on the grandchild letting go')
+    assert.match(r.stdout, /^child out\n/)
+    await until(() => fs.existsSync(finished) && written.join('').includes('grandchild done'))
+  } finally {
+    process.stdout.write = origWrite
+  }
+  assert.equal(fs.existsSync(finished), true, 'the grandchild died before its last write')
+  assert.match(fs.readFileSync(logFile, 'utf8'), /tick 39\ngrandchild done\n/)
+  assert.match(written.join(''), /tick 39\ngrandchild done\n/)
+  await end(run)
+})
+
+test('runChild that cannot spawn reports the spawn error and its log failure', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const blocker = path.join(dir, 'file')
+  fs.writeFileSync(blocker, '')
+  await capture(async () => {
+    const r = await run.runChild('missing', path.join(dir, 'no-such-command'), [], 10_000, {logFile: path.join(blocker, 'x', 'child.log')})
+    assert.equal(r.code, null)
+    assert.match(r.stdout, /ENOENT/)
+    assert.match(r.logError ?? '', /ENOTDIR|EEXIST/)
+  })
+  await end(run)
+})
