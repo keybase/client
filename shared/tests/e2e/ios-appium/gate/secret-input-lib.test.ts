@@ -1,10 +1,4 @@
-import {fieldProblem, lengthEvalBody, secretEvalBody, withoutSecret} from './secret-input-lib'
-
-test('withoutSecret cuts the secret out of an error message', () => {
-  expect(withoutSecret(new Error('x hunter2 y hunter2'), 'hunter2')).toBe('x <secret> y <secret>')
-  expect(withoutSecret('plain hunter2', 'hunter2')).toBe('plain <secret>')
-  expect(withoutSecret(new Error('ab'), '')).toBe('ab')
-})
+import {fieldProblem, lengthEvalBody, secretEvalBody} from './secret-input-lib'
 
 test('the secret is the last thing in the eval body, JSON-encoded once', () => {
   const body = secretEvalBody('f', 'p"w')

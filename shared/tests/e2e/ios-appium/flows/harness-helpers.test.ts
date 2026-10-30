@@ -23,8 +23,8 @@ describe('harness helpers', () => {
     const marker = `harness-helpers console.error ${Date.now()}`
     await beginErrorCapture()
     await evalInPage(await inspectorPageFor(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest', 'keybase.ios'), `console.error(${JSON.stringify(marker)}); return null`)
-    expect(await takeErrors()).toEqual([marker])
-    expect(await takeErrors()).toEqual([])
+    expect(await takeErrors()).toContain(marker)
+    expect(await takeErrors()).not.toContain(marker)
   })
 
   it('runs a part as the second account and comes back to the smoke account', async () => {

@@ -98,3 +98,20 @@ test('a render.json without a platform is a desktop render', () => {
   }
   assert.match(errors.join('\n'), /no ios render\.json under .*: run yarn visual:render --ios first/)
 })
+
+test('a render.json that does not parse is skipped and named, and the census reads the next one', () => {
+  const {dir, platform} = fixture(false)
+  writeRender(dir, '2026-01-01T00-00-00', 'desktop', ['routeA'])
+  const broken = path.join(dir, 'visual/render/2026-01-02T00-00-00')
+  fs.mkdirSync(broken, {recursive: true})
+  fs.writeFileSync(path.join(broken, 'render.json'), '{"entries": [')
+  const warn = console.warn
+  const warnings: Array<string> = []
+  console.warn = (l: string) => warnings.push(l)
+  try {
+    assert.equal(quiet(() => runCensusCli(platform, [])), 0)
+  } finally {
+    console.warn = warn
+  }
+  assert.match(warnings.join('\n'), /census: skipping .*2026-01-02T00-00-00\/render\.json: /)
+})

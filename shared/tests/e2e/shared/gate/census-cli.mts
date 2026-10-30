@@ -54,8 +54,16 @@ const flowRuns = (file: string, project: string, flowsCommand: string): Array<Fl
   return flowRunsFromReport(report.suites, project, readCoverage)
 }
 
-const renderPlatformOf = (dir: string) =>
-  (JSON.parse(fs.readFileSync(path.join(dir, 'render.json'), 'utf8')) as {platform?: string}).platform ?? 'desktop'
+// A render.json that does not parse (a render cut off mid-write) is no platform's, and is named.
+const renderPlatformOf = (dir: string) => {
+  const file = path.join(dir, 'render.json')
+  try {
+    return (JSON.parse(fs.readFileSync(file, 'utf8')) as {platform?: string}).platform ?? 'desktop'
+  } catch (e) {
+    console.warn(`census: skipping ${file}: ${e instanceof Error ? e.message : String(e)}`)
+    return undefined
+  }
+}
 
 // iOS and desktop renders share visual/render/<stamp>, so the newest run may be the other platform's
 const newestRenderDir = (resultsDir: string, platform: CensusPlatform['renderPlatform']) => {

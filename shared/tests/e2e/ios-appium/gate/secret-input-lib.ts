@@ -96,8 +96,3 @@ export const fieldProblem = (fieldTestID: string, r: FieldRead | undefined): str
   }
 }
 
-// A failure message with `secret` cut out of it.
-export const withoutSecret = (e: unknown, secret: string) => {
-  const m = e instanceof Error ? e.message : String(e)
-  return secret ? m.split(secret).join('<secret>') : m
-}

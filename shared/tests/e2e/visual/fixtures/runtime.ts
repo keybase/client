@@ -481,7 +481,7 @@ const launchedByHarness = (g: PlatformGlobals) => g._fromPreload?.constants?.env
 
 type PlatformGlobals = {_fromPreload?: {constants?: {env?: {KB_E2E_TEST?: string}}}; navigator?: {product?: string}}
 
-export const isNativeApp = (g: PlatformGlobals) => g.navigator?.product === 'ReactNative'
+const isNativeApp = (g: PlatformGlobals) => g.navigator?.product === 'ReactNative'
 
 // The phone has no preload to say a harness launched it, and any dev app on it may be driven, so it
 // always notes the methods sent from startup.
