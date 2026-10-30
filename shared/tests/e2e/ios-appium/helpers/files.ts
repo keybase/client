@@ -9,6 +9,7 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
+import {signedInAs} from './chat'
 import {labelledElement, openMenuFrom} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
@@ -201,3 +202,14 @@ export const fillField = async (field: () => ChainablePromiseElement, text: stri
   const got = await field().getAttribute('value')
   if (got !== text) throw new Error(`${what} does not read what was typed`)
 }
+
+// Waits for the relaunched app to be signed in and not switching accounts. Bound: 90s.
+export const waitSignedIn = async () =>
+  waitFor(
+    'the relaunched app to sign in',
+    async () => {
+      const s = await signedInAs().catch(() => undefined)
+      return s?.loggedIn && !s.switching ? true : undefined
+    },
+    {interval: 1_000, timeout: 90_000}
+  )

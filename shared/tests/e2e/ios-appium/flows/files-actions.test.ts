@@ -30,7 +30,7 @@ import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
-import {closeMessageMenu, expectPersists, hideKeyboard, signedInAs} from '../helpers/chat'
+import {closeMessageMenu, expectPersists, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {
   expectScreen,
@@ -41,6 +41,7 @@ import {
   openRowMenu,
   tapButton,
   visibleScreen,
+  waitSignedIn,
 } from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
@@ -103,16 +104,6 @@ describe('files actions', function () {
 
   // `p` is an entry of the work folder `folder` (or one inside it) this run made.
   const inWorkFolder = (folder: string, p: unknown) => typeof p === 'string' && p.startsWith(`${folder}/`) && requireOwnPath(p) === p
-
-  const waitSignedIn = async () =>
-    waitFor(
-      'the relaunched app to sign in',
-      async () => {
-        const s = await signedInAs().catch(() => undefined)
-        return s?.loggedIn && !s.switching ? true : undefined
-      },
-      {interval: 1_000, timeout: 90_000}
-    )
 
   // -- what the afterEach puts back ---------------------------------------------------------------
   // Each is set before the change it undoes and cleared once its restore reads back, so the restore
