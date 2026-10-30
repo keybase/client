@@ -1,6 +1,7 @@
 import {
-  CONFIGURED_ACCOUNTS_ASK_BODY,
+  answerTo,
   CONFIGURED_ACCOUNTS_READ_BODY,
+  configuredAccountsAskBody,
   LOGIN_SCREEN_BODY,
   notSmokeProblem,
   passwordScreenProblem,
@@ -77,7 +78,7 @@ describe('phoneDeviceProblem', () => {
 })
 
 describe('storedSecretIn', () => {
-  const listed = (accounts: Array<{hasStoredSecret: boolean; username: string}>) => ({accounts, state: 'listed' as const})
+  const listed = (accounts: Array<{hasStoredSecret: boolean; username: string}>) => ({accounts, ask: 'a1', state: 'listed' as const})
 
   test("an account's stored secret, either way", () => {
     const r = listed([
@@ -97,9 +98,17 @@ describe('storedSecretIn', () => {
     expect(storedSecretIn(twice, 'testuser')).toBe('the phone lists testuser among its configured accounts 2 times, not once')
   })
 
-  test('no answer yet, or a failed one, is no stored secret either way', () => {
-    expect(typeof storedSecretIn({state: 'pending'}, 'testuser')).toBe('string')
-    expect(storedSecretIn({error: 'boom', state: 'failed'}, 'testuser')).toBe("listing the phone's configured accounts failed: boom")
+  test('a failed answer is no stored secret either way', () => {
+    expect(storedSecretIn({ask: 'a1', error: 'boom', state: 'failed'}, 'testuser')).toBe("listing the phone's configured accounts failed: boom")
+  })
+})
+
+describe('answerTo', () => {
+  test("only the ask's own answer counts", () => {
+    const done = {accounts: [], ask: 'a2', state: 'listed' as const}
+    expect(answerTo(done, 'a2')).toBe(done)
+    expect(answerTo(done, 'a3')).toBeUndefined()
+    expect(answerTo({ask: 'a2', state: 'pending'}, 'a2')).toBeUndefined()
   })
 })
 
@@ -126,17 +135,23 @@ describe('the account eval bodies', () => {
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   const run = (body: string, kbModule?: unknown) => (new Function('kbModule', body) as (k: unknown) => unknown)(kbModule)
 
-  test("the configured accounts ask leaves the service's answer, each account's name and stored secret only, for the read", async () => {
+  test("an ask leaves the service's answer, each account's name and stored secret only, and a late earlier answer never replaces a newer ask's", async () => {
     const g = globalThis as unknown as {__kbE2EConfiguredAccounts?: unknown}
-    let answer: (list: unknown) => void = () => {}
-    const kbModule = () => ({loginGetConfiguredAccountsRpcPromise: async () => new Promise(resolve => (answer = resolve))})
+    const answers: Array<(list: unknown) => void> = []
+    const kbModule = () => ({loginGetConfiguredAccountsRpcPromise: async () => new Promise(resolve => answers.push(resolve))})
+    const tick = async () => new Promise(resolve => setTimeout(resolve, 0))
     try {
-      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({state: 'pending'})
-      expect(run(CONFIGURED_ACCOUNTS_ASK_BODY, kbModule)).toBe(true)
-      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({state: 'pending'})
-      answer([{fullname: 'Test User', hasStoredSecret: true, isCurrent: true, uid: 'u1', username: 'testuser'}])
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({accounts: [{hasStoredSecret: true, username: 'testuser'}], state: 'listed'})
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({ask: '', state: 'pending'})
+      expect(run(configuredAccountsAskBody('a1'), kbModule)).toBe(true)
+      expect(run(configuredAccountsAskBody('a2'), kbModule)).toBe(true)
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual({ask: 'a2', state: 'pending'})
+      answers[1]?.([{fullname: 'Test User', hasStoredSecret: true, isCurrent: true, uid: 'u1', username: 'testuser'}])
+      await tick()
+      const newer = {accounts: [{hasStoredSecret: true, username: 'testuser'}], ask: 'a2', state: 'listed'}
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual(newer)
+      answers[0]?.([{fullname: 'Test User', hasStoredSecret: false, isCurrent: true, uid: 'u1', username: 'testuser'}])
+      await tick()
+      expect(run(CONFIGURED_ACCOUNTS_READ_BODY)).toEqual(newer)
     } finally {
       delete g.__kbE2EConfiguredAccounts
     }

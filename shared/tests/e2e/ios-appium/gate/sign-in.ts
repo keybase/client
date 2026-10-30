@@ -10,9 +10,10 @@ import {byText, el} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {appAccount, backToLoginList, settledAppAccount} from './accounts'
 import {
-  CONFIGURED_ACCOUNTS_ASK_BODY,
+  answerTo,
   CONFIGURED_ACCOUNTS_READ_BODY,
   type ConfiguredAccounts,
+  configuredAccountsAskBody,
   LOGIN_SCREEN_BODY,
   type LoginScreen,
   passwordScreenProblem,
@@ -22,16 +23,16 @@ import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
 
 const SIGN_IN_MS = 60_000
 const TAPS = 5
+let asks = 0
 
 // Whether the phone's service keeps a stored secret for `username`, as it answers now.
 export const storedSecretOf = async (username: string): Promise<boolean> => {
-  await jsEval(CONFIGURED_ACCOUNTS_ASK_BODY)
+  // unique across runs too: the app's global outlives this process
+  const ask = `${Date.now()}-${++asks}`
+  await jsEval(configuredAccountsAskBody(ask))
   const r = await waitFor(
     "the phone's service to list its configured accounts",
-    async () => {
-      const now = await jsEval<ConfiguredAccounts>(CONFIGURED_ACCOUNTS_READ_BODY)
-      return now.state === 'pending' ? undefined : now
-    },
+    async () => answerTo(await jsEval<ConfiguredAccounts>(CONFIGURED_ACCOUNTS_READ_BODY), ask),
     {interval: 250, timeout: 20_000}
   )
   const stored = storedSecretIn(r, username)

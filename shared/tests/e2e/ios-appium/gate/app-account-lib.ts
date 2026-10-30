@@ -51,29 +51,42 @@ export const phoneDeviceProblem = (d: PhoneDevice, smokeUser: string): string | 
 }
 
 export type ConfiguredAccount = {hasStoredSecret: boolean; username: string}
-export type ConfiguredAccounts = {state: 'pending'} | {state: 'failed'; error: string} | {state: 'listed'; accounts: Array<ConfiguredAccount>}
+// `ask` names the ask an answer is for
+export type ConfiguredAccounts = {ask: string} & (
+  | {state: 'pending'}
+  | {state: 'failed'; error: string}
+  | {state: 'listed'; accounts: Array<ConfiguredAccount>}
+)
+export type ConfiguredAnswer = Exclude<ConfiguredAccounts, {state: 'pending'}>
 
 // Where the eval that asks the phone's service for its configured accounts leaves the answer, for the
 // evals that poll it (an eval returns before an RPC answers).
 const CONFIGURED_KEY = 'globalThis.__kbE2EConfiguredAccounts'
 
-// function bodies for jsEval: the first asks the phone's own service (login.getConfiguredAccounts,
-// the list the login screen and the switcher show), the second returns what it has answered so far
-export const CONFIGURED_ACCOUNTS_ASK_BODY = `
-    ${CONFIGURED_KEY} = {state: 'pending'}
+// A function body for jsEval that asks the phone's own service (login.getConfiguredAccounts, the
+// list the login screen and the switcher show). The answer is kept only while `ask` is the latest
+// ask, so an earlier ask answering late cannot replace a newer one's answer.
+export const configuredAccountsAskBody = (ask: string) => `
+    const ask = ${JSON.stringify(ask)}
+    ${CONFIGURED_KEY} = {ask, state: 'pending'}
+    const keep = r => { if (${CONFIGURED_KEY} && ${CONFIGURED_KEY}.ask === ask) ${CONFIGURED_KEY} = {ask, ...r} }
     kbModule('constants/rpc/rpc-gen.tsx')
       .loginGetConfiguredAccountsRpcPromise()
       .then(
-        list => { ${CONFIGURED_KEY} = {state: 'listed', accounts: (list ?? []).map(a => ({hasStoredSecret: a.hasStoredSecret, username: a.username}))} },
-        e => { ${CONFIGURED_KEY} = {state: 'failed', error: String(e && e.message)} }
+        list => keep({state: 'listed', accounts: (list ?? []).map(a => ({hasStoredSecret: a.hasStoredSecret, username: a.username}))}),
+        e => keep({state: 'failed', error: String(e && e.message)})
       )
     return true
   `
-export const CONFIGURED_ACCOUNTS_READ_BODY = `return ${CONFIGURED_KEY} ?? {state: 'pending'}`
+// a function body for jsEval returning what the latest ask has been answered so far
+export const CONFIGURED_ACCOUNTS_READ_BODY = `return ${CONFIGURED_KEY} ?? {ask: '', state: 'pending'}`
+
+// The answer to `ask`, or undefined while it is unanswered or the read is of another ask.
+export const answerTo = (r: ConfiguredAccounts, ask: string): ConfiguredAnswer | undefined =>
+  r.ask === ask && r.state !== 'pending' ? r : undefined
 
 // Whether the phone keeps a stored secret for `username`, or why the answer names none.
-export const storedSecretIn = (r: ConfiguredAccounts, username: string): boolean | string => {
-  if (r.state === 'pending') return "the phone's service has not listed its configured accounts"
+export const storedSecretIn = (r: ConfiguredAnswer, username: string): boolean | string => {
   if (r.state === 'failed') return `listing the phone's configured accounts failed: ${r.error}`
   const [a, ...more] = r.accounts.filter(x => x.username === username)
   if (!a || more.length) return `the phone lists ${username} among its configured accounts ${a ? more.length + 1 : 0} times, not once`

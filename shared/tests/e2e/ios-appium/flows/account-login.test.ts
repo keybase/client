@@ -29,15 +29,32 @@ describe('account login', function () {
   // a retry would type the password again
   this.retries(0)
 
+  // A test mocha timed out never ran its cleanup, which empties the field: empty it before the
+  // gate's failure screenshot. Secret-free, and nothing when the field is not mounted.
+  afterEach(async function () {
+    this.timeout(60_000)
+    await emptyLoginField()
+  })
+
   it('the second account signs out, a wrong password is refused, and its password signs it back in', async function () {
-    // switches, a sign-out, two sign-ins, and the cleanup's own sign-in and switch
-    this.timeout(480_000)
+    // Worst case from the helpers' bounds (s), so the cleanup always gets to run. Body: stored-secret
+    // read 20, switch to second 150 (switcher 60, the switch 60, escapeToTabs 30), Settings and the
+    // sign-out screen 35, signed out 190 (list 60, signed out 30, secret dropped 50, password screen
+    // 30, two row reads 20), wrong password 120 (submit 70, banner 30, emptying 20), password sign-in
+    // 200 (submit 70, sign-in 60, emptying 20, secret stored 50), back to smoke 260 (switch 150,
+    // switcher 60, two row reads 20, escapeToTabs 30) = 975. Cleanup: restoreSecondSecret 400
+    // (secret read 20, settling 60, to the login list 90, selecting the row 30, sign-in 150, secret
+    // stored 50), restoreToSmoke 235 (settling 60, a sign-in from the login list 175) = 635.
+    // Total 1610.
+    this.timeout(1_800_000)
     const password = requireSecondPassword(loadE2EEnv())
     const {secondUser, smokeUser} = loadE2EAccounts()
     await withCleanup(
       async () => {
         if (!(await storedSecretOf(secondUser))) {
-          throw new Error('the phone keeps no stored secret for the second account at the start; the cleanup signs it in with its password')
+          throw new Error(
+            'precondition failed: the phone kept no stored secret for the second account when the test started, so the run fails here; the cleanup signs it in with its password to repair it'
+          )
         }
         await switchAppAccount(secondUser)
         expect(await appAccount()).toMatchObject({loggedIn: true, switching: false, username: secondUser})
@@ -74,6 +91,8 @@ describe('account login', function () {
 
         await switchAppAccount(smokeUser)
         await openAccountSwitcher()
+        // the row's text is read at all (its name), so not showing "Signed out" means something
+        expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser, secondUser)).toBe(true)
         expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser, 'Signed out')).toBe(false)
         await step('Back on the smoke account, the switcher lists the second account signed in')
         await escapeToTabs()

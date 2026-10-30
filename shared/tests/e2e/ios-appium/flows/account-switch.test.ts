@@ -14,10 +14,15 @@ describe('account switch', function () {
   this.retries(0)
 
   it('switches to the second account and back through the account switcher', async function () {
-    // two switches, each up to a minute
-    this.timeout(240_000)
+    // worst case, from the helpers' bounds (s): switcher 60 (escapeToTabs 30 + its own 20 + a tab
+    // 10), two row reads 20, escapeToTabs 30; in asSecond a switch 150 (switcher 60, the switch 60,
+    // escapeToTabs 30), switcher 60, three row reads 30, escapeToTabs 30, and its restore 235
+    // (settling 60 + a sign-in from the login list 175) = 615
+    this.timeout(700_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     await openAccountSwitcher()
+    // the row's text is read at all (its name), so not showing "Signed out" means something
+    expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser, secondUser)).toBe(true)
     expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser, 'Signed out')).toBe(false)
     await step('The account switcher lists the second account, signed in')
     await escapeToTabs()
@@ -28,6 +33,7 @@ describe('account switch', function () {
       // the account the app is on is the switcher's card, not one of its rows
       await el(T.ACCOUNT_SWITCHER_ROW_PREFIX + smokeUser).waitForExist({timeout: 10_000, timeoutMsg: 'the switcher has no row for the smoke account'})
       expect(await el(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser).isExisting()).toBe(false)
+      expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + smokeUser, smokeUser)).toBe(true)
       expect(await rowShows(T.ACCOUNT_SWITCHER_ROW_PREFIX + smokeUser, 'Signed out')).toBe(false)
       await step('On the second account, the switcher offers the smoke account', {card: true})
       await escapeToTabs()
@@ -37,7 +43,9 @@ describe('account switch', function () {
   })
 
   it('signs out to the login list and signs the smoke account in from its stored secret, with no password', async function () {
-    this.timeout(240_000)
+    // worst case (s): switcher 60, login list 60, four row reads 40, two configured-account reads 40,
+    // a sign-in from the row 85, escapeToTabs 30, and a restore 235 = 550
+    this.timeout(600_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     await signedOutThenBack(async () => {
       expect(await appAccount()).toMatchObject({loggedIn: false})
