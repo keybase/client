@@ -153,7 +153,9 @@ plain.beforeEach(
       // the attempt ends, so anything of the body's still going finds it over.
       let hung: Promise<string> = new Promise(() => {})
       const run = runAttempt(token, async () => {
-        // inside the attempt: a relaunch moves the attempt's recording to the app's new runtime
+        // inside the attempt: a relaunch moves the attempt's recording to the app's new runtime. This
+        // line runs before runAttempt returns (AsyncLocalStorage.run calls the callback at once, and
+        // nothing awaits before it), so the race below already has the watch's promise.
         hung = startHangWatch()
         await requireAppIsSmoke()
         await body.call(this)
