@@ -15,5 +15,5 @@ export const blocksOf = (res: ReadonlyArray<UserBlock> | null | undefined, usern
 // undefined when it does not. Never names an account.
 export const secondBlockedProblem = (b: Blocks) =>
   b.chatBlocked || b.followBlocked
-    ? `the smoke account has the second account blocked (${b.chatBlocked ? 'chat' : 'followers'}): a chat-blocks restore failed. Run yarn test:e2e:accounts:setup: it unblocks the second account, puts the DM's status back to unfiled and makes the smoke+second folder a favorite again`
+    ? `the smoke account has the second account blocked (${b.chatBlocked ? 'chat' : 'followers'}): a chat-blocks restore failed. Run yarn test:e2e:accounts:setup: it unblocks the second account, puts the DM's status back to unfiled and makes the smoke+second folder a favorite again when the env file records it was one`
     : undefined

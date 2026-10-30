@@ -19,8 +19,9 @@
 //
 // Without --check, setup also repairs what a block flow (chat-blocks) that failed its restore
 // leaves: the smoke account blocking the second one, their DM's status blocked, and the
-// smoke+second folder ignored. It unblocks, puts the DM back to unfiled and makes the folder a
-// favorite again, each read back.
+// smoke+second folder ignored. It unblocks and puts the DM back to unfiled, and makes the folder a
+// favorite again if the env file records it was one; each read back. It writes only when both
+// accounts are e2e test accounts.
 import * as fs from 'fs'
 import * as path from 'path'
 import {parseArgs} from 'util'
@@ -44,6 +45,7 @@ import {
   stopPeerHomeService,
   withSignalsDeferred,
 } from './peer-homes.ts'
+import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR} from './repair-lib.ts'
 import {ensureRunId} from './run-id.ts'
 import {maskAccounts, signedInName} from './sweep-lib.ts'
 import {E2E_CHANNELS, directConvIDFromCli, directTlfName} from '../shared/chat-data.ts'
@@ -155,7 +157,9 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   }
   const leftover = await blockLeftovers(vars)
   if (leftover.dmBlocked) problems.push("the smoke account's DM with the second account is blocked (setup repairs it)")
-  if (leftover.folderIgnored) problems.push('the smoke+second folder is ignored (setup repairs it)')
+  if (leftover.folderIgnored) {
+    problems.push(`the smoke+second folder is ignored (setup repairs it only if ${PAIR_FAVORITE_VAR} records it was a favorite)`)
+  }
   const members = async (topicName: string) =>
     (await mainChatApi({
       method: 'listmembers',
@@ -188,28 +192,44 @@ const pollUntil = async (what: string, ok: () => Promise<boolean>) => {
   }
 }
 
-// Repairs a block flow's leftovers (see the top): each only when it is there, each read back.
+// Repairs a block flow's leftovers (see the top): each only when it is there, each read back. Reads
+// first; before the first write it refuses unless both accounts are test accounts. The folder is made
+// a favorite again only when the env file records it was one (PAIR_FAVORITE_VAR); otherwise it is
+// left as it is. A folder seen as a favorite is recorded, for a later repair.
 const repairBlockLeftovers = async (vars: Vars) => {
+  const smoke = vars['KB_SMOKE_USER'] ?? ''
   const second = vars['KB_SECOND_USER'] ?? ''
   type Block = {username: string; chatBlocked: boolean; followBlocked: boolean}
   const blocked = async () =>
     ((await mainRpc<Array<Block> | null>('keybase.1.user.getUserBlocks', {sessionID: 0, usernames: [second]})) ?? []).some(
       b => b.username === second && (b.chatBlocked || b.followBlocked)
     )
-  if (await blocked()) {
+  const isBlocked = await blocked()
+  const {convID, dmBlocked, folderIgnored} = await blockLeftovers(vars)
+  const refavorite = folderIgnored && pairWasFavorite(vars)
+  if (folderIgnored && !refavorite) say(`the smoke+second folder is ignored, and ${PAIR_FAVORITE_VAR} does not record it a favorite: left as it is`)
+  if (isBlocked || dmBlocked || refavorite) {
+    const problem = notTestAccountsProblem(smoke, second)
+    if (problem) throw new Error(problem)
+  }
+  if (isBlocked) {
     say('unblocking the second account')
     await mainRpc('keybase.1.user.setUserBlocks', {blocks: [{setChatBlock: false, setFollowBlock: false, username: second}], sessionID: 0})
     await pollUntil('the unblock', async () => !(await blocked()))
   }
-  const {convID, dmBlocked, folderIgnored} = await blockLeftovers(vars)
   if (convID && dmBlocked) {
     say("putting the DM with the second account back to unfiled")
     await restoreConversationStatus(convID, conversationStatus.unfiled)
     await pollUntil("the DM's status", async () => (await mainConversation(convID)).info.status === conversationStatus.unfiled)
   }
-  if (folderIgnored) {
+  if (refavorite) {
     say('making the smoke+second folder a favorite again')
     await refavoritePair()
+  }
+  const folder = await pairFavoriteState()
+  if (folder.favorite && !folder.ignored && !pairWasFavorite(vars)) {
+    setEnvVars(envFile, {[PAIR_FAVORITE_VAR]: '1'})
+    vars[PAIR_FAVORITE_VAR] = '1'
   }
 }
 
