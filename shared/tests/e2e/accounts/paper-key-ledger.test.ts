@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from './run-id'
-import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyWords, readPaperKeys, recordPaperKey, rememberRunPaperKeyName, runPaperKeyNames} from './paper-key-ledger'
+import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyNamesIn, paperKeyWords, readPaperKeys, recordPaperKey, rememberRunPaperKeyName, runPaperKeyNames} from './paper-key-ledger'
 
 let dir = ''
 let file = ''
@@ -100,4 +100,9 @@ test('a names file that cannot be written leaves the key ledgered, and the name 
   rememberRunPaperKeyName(run, file, true)
   expect(runPaperKeyNames(run.runId, names)).toEqual(['apple banana'])
   expect(fs.existsSync(`${names}.lock`)).toBe(false)
+})
+
+test("paperKeyNamesIn names the env file's paper keys by their first two words, and nothing else", () => {
+  const key = 'one two three four five six seven eight nine ten eleven twelve thirteen'
+  expect(paperKeyNamesIn([key, 'e2e-not-a-key-1234', 'apple banana'])).toEqual(['one two'])
 })
