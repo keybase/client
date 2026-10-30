@@ -27,6 +27,7 @@ import {creditSurface} from '../gate/attempt'
 import {inboxRowMatches} from '../gate/chat-lib'
 import {relaunchApp} from '../gate/device'
 import {callsSince, currentCallSeq} from '../gate/recorder'
+import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
   check,
@@ -86,6 +87,8 @@ describe('chat composer', function () {
   before(async function () {
     this.timeout(20 * 60_000) // a first run seeds; later runs only check
     data = await ensureChatData()
+    // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
+    await requireSecondNotBlocked()
   })
 
   const openDirect = async () => openConversation(data.direct.convID)

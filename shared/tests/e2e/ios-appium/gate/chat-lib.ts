@@ -96,3 +96,43 @@ export const shiftIntoBand = (row: Span, band: Span, margin: number) => {
   if (row.bottom > band.bottom - margin) return band.bottom - margin * 4 - row.bottom
   return 0
 }
+
+// The index of the drawn big team header of `team`, by its exact name, or undefined when none is
+// drawn. A header whose name was not read is never it. Throws when more than one header matches.
+export const findInboxHeader = (items: ReadonlyArray<DrawnInboxItem>, team: string) => {
+  const found = items.flatMap((item, i) => (item.kind === 'header' && !!team && item.team === team ? [i] : []))
+  if (found.length > 1) throw new Error(`more than one inbox team header matches the team asked for (${found.length} drawn)`)
+  return found[0]
+}
+
+// A rectangle in window points.
+export type Rect = {height: number; width: number; x: number; y: number}
+
+const contains = (outer: Rect, inner: Rect) =>
+  outer.x <= inner.x &&
+  outer.y <= inner.y &&
+  outer.x + outer.width >= inner.x + inner.width &&
+  outer.y + outer.height >= inner.y + inner.height
+
+// The indexes of the rects that hold no other rect of the list: where several nested elements expose
+// the same label (a pressable box and its text), the innermost is the one drawn.
+export const innermost = (rects: ReadonlyArray<Rect>) =>
+  rects.flatMap((r, i) => (rects.some((o, j) => j !== i && contains(r, o) && !contains(o, r)) ? [] : [i]))
+
+// The inbox search's name hits among `matches` (rects of elements that read the asked-for text): those
+// below the "Chats" section's header and above the next section's header, if one is drawn below it.
+// The other sections (open teams, bots, messages) can show the same conversation again.
+export const inNameSection = (matches: ReadonlyArray<Rect>, chatsHeader: Rect, laterHeaders: ReadonlyArray<Rect>) => {
+  const top = chatsHeader.y + chatsHeader.height
+  const bottom = Math.min(Infinity, ...laterHeaders.filter(h => h.y >= top).map(h => h.y))
+  return matches.flatMap((m, i) => {
+    const mid = m.y + m.height / 2
+    return mid > top && mid < bottom ? [i] : []
+  })
+}
+
+// The info panel choice a group's notification settings stand for, as the service keys them
+// (NotificationKind generic '0', atmention '1'): on any activity, only when @mentioned, or never.
+export type NotifyKinds = Record<string, boolean> | null | undefined
+export const notifyChoiceOf = (kinds: NotifyKinds): 'never' | 'onAnyActivity' | 'onWhenAtMentioned' =>
+  kinds?.['0'] ? 'onAnyActivity' : kinds?.['1'] ? 'onWhenAtMentioned' : 'never'

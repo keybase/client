@@ -28,6 +28,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {peerSender, type IncomingSender} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
+import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
   catchUpPill,
@@ -100,6 +101,8 @@ describe('chat scroll', function () {
   before(async function () {
     this.timeout(20 * 60_000) // a first run seeds; later runs only check
     data = await ensureChatData()
+    // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
+    await requireSecondNotBlocked()
   })
 
   // The second account's peer service, found by the first test that needs it: one that is missing

@@ -1,4 +1,17 @@
-import {carriedTeam, findInboxRow, forwardResultMatches, inboxRowMatches, persistedMismatch, shiftIntoBand, visibleBand, wholly} from './chat-lib'
+import {
+  carriedTeam,
+  findInboxHeader,
+  findInboxRow,
+  forwardResultMatches,
+  inNameSection,
+  inboxRowMatches,
+  innermost,
+  notifyChoiceOf,
+  persistedMismatch,
+  shiftIntoBand,
+  visibleBand,
+  wholly,
+} from './chat-lib'
 
 describe('inboxRowMatches', () => {
   test('a small conversation row matches by the exact name its label starts with', () => {
@@ -184,5 +197,82 @@ describe('the inbox band rows are seen through', () => {
     const band = visibleBand(list, [])
     expect(wholly(span(300), band, 4)).toBe(true)
     expect(shiftIntoBand(span(300), band, 4)).toBe(0)
+  })
+})
+
+describe('findInboxHeader', () => {
+  const header = (team: string | undefined, top: number) => ({kind: 'header' as const, span: {bottom: top + 30, top}, team})
+  const small = (label: string, top: number) => ({kind: 'small' as const, label, span: {bottom: top + 60, top}})
+
+  test('finds the header of the team by its exact name', () => {
+    const items = [header('otherteam', 0), small('testuser', 40), header('e2eteam', 100)]
+    expect(findInboxHeader(items, 'e2eteam')).toBe(2)
+  })
+
+  test('a header of a longer team name, or one whose name was not read, is not it', () => {
+    expect(findInboxHeader([header('e2eteam.sub', 0), header(undefined, 40)], 'e2eteam')).toBeUndefined()
+  })
+
+  test('an empty team name matches nothing', () => {
+    expect(findInboxHeader([header('', 0)], '')).toBeUndefined()
+  })
+
+  test('two headers of the team are refused', () => {
+    expect(() => findInboxHeader([header('e2eteam', 0), header('e2eteam', 100)], 'e2eteam')).toThrow(/more than one/)
+  })
+})
+
+describe('innermost', () => {
+  test('of a box and the text inside it, only the text', () => {
+    const box = {height: 60, width: 300, x: 0, y: 100}
+    const text = {height: 20, width: 100, x: 10, y: 110}
+    expect(innermost([box, text])).toEqual([1])
+  })
+
+  test('two apart are both kept', () => {
+    expect(innermost([{height: 20, width: 100, x: 0, y: 0}, {height: 20, width: 100, x: 0, y: 50}])).toEqual([0, 1])
+  })
+
+  test('two of the same rect are both kept', () => {
+    const r = {height: 20, width: 100, x: 0, y: 0}
+    expect(innermost([r, {...r}])).toEqual([0, 1])
+  })
+})
+
+describe('inNameSection', () => {
+  const at = (y: number) => ({height: 20, width: 200, x: 0, y})
+  const chats = at(100)
+
+  test('a match between the Chats header and the next header is a name hit; one below is not', () => {
+    expect(inNameSection([at(150), at(400)], chats, [at(300)])).toEqual([0])
+  })
+
+  test('with no header below, every match under Chats is a name hit', () => {
+    expect(inNameSection([at(150), at(400)], chats, [])).toEqual([0, 1])
+  })
+
+  test('a header above Chats does not bound it', () => {
+    expect(inNameSection([at(150)], chats, [at(20)])).toEqual([0])
+  })
+
+  test('a match above the Chats header is not a name hit', () => {
+    expect(inNameSection([at(50)], chats, [])).toEqual([])
+  })
+})
+
+describe('notifyChoiceOf', () => {
+  test('generic on is any activity, whatever atmention is', () => {
+    expect(notifyChoiceOf({'0': true, '1': true})).toBe('onAnyActivity')
+    expect(notifyChoiceOf({'0': true, '1': false})).toBe('onAnyActivity')
+  })
+
+  test('only atmention on is when @mentioned', () => {
+    expect(notifyChoiceOf({'0': false, '1': true})).toBe('onWhenAtMentioned')
+  })
+
+  test('neither on, or no settings, is never', () => {
+    expect(notifyChoiceOf({'0': false, '1': false})).toBe('never')
+    expect(notifyChoiceOf(undefined)).toBe('never')
+    expect(notifyChoiceOf(null)).toBe('never')
   })
 })

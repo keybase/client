@@ -34,6 +34,7 @@ import {creditSurface} from '../gate/attempt'
 import {forwardResultMatches} from '../gate/chat-lib'
 import {setPasteboard} from '../gate/device'
 import {callsSince, currentCallSeq} from '../gate/recorder'
+import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
   appPinnedMessageID,
@@ -44,6 +45,7 @@ import {
   clearComposer,
   closeMessageMenu,
   composerText,
+  dragUntilOnScreen,
   editCancel,
   elementInRow,
   expectPersists,
@@ -96,6 +98,8 @@ describe('chat messages', function () {
   before(async function () {
     this.timeout(20 * 60_000) // a first run seeds; later runs only check
     data = await ensureChatData()
+    // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
+    await requireSecondNotBlocked()
   })
 
   // The second account's peer service, found by the first test that needs it.
@@ -553,31 +557,9 @@ describe('chat messages', function () {
     await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
     await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).waitForExist({timeout: 10_000})
     await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).click()
-    const clear = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear entire conversation"')
-    await waitFor(
-      '"Clear entire conversation" on screen',
-      async () => {
-        if (await clear.isExisting()) {
-          const {y} = await clear.getLocation()
-          const {height} = await clear.getSize()
-          const {height: window} = await browser.getWindowRect()
-          if (y + height / 2 < window - 80) return true
-        }
-        const {height, width} = await browser.getWindowRect()
-        const x = Math.round(width / 2)
-        await browser
-          .action('pointer', {parameters: {pointerType: 'touch'}})
-          .move({x, y: Math.round(height * 0.7)})
-          .down()
-          .move({duration: 400, x, y: Math.round(height * 0.3)})
-          .pause(200)
-          .up()
-          .perform()
-        return undefined
-      },
-      {interval: 300, timeout: 20_000}
-    )
-    await clear.click()
+    const clear = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear entire conversation"')
+    await dragUntilOnScreen('"Clear entire conversation"', clear)
+    await clear().click()
     const confirm = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Yes, clear for everyone" AND visible == 1')
     await confirm.waitForExist({timeout: 10_000})
     // the warning clears whatever conversation it was opened over: it must be the throwaway channel

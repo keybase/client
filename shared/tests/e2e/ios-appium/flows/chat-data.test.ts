@@ -29,6 +29,7 @@ import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {inboxRowMatches} from '../gate/chat-lib'
 import {callsSince, currentCallSeq, withHarnessRpcs} from '../gate/recorder'
+import {requireSecondNotBlocked} from '../gate/blocks'
 import {tapBack} from '../gate/screens'
 import {step} from '../gate/step'
 import {
@@ -95,6 +96,8 @@ describe('chat data', function () {
   before(async function () {
     this.timeout(20 * 60_000) // a first run seeds; later runs only check
     data = await ensureChatData()
+    // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
+    await requireSecondNotBlocked()
   })
 
   // The second account's peer service, found by the first test that needs it: one that is missing

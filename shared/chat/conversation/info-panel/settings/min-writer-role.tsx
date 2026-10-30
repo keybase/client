@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
@@ -141,6 +142,7 @@ const Dropdown = (p: DropdownProps) => {
         style={styles.dropdown}
         ref={popupAnchor}
         onClick={showPopup}
+        testID={TestIDs.CHAT_MIN_WRITER_ROLE_DROPDOWN}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.label}>
           <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>

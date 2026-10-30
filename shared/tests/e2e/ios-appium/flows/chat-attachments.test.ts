@@ -23,6 +23,7 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {callsSince, currentCallSeq} from '../gate/recorder'
+import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
   check,
@@ -91,6 +92,8 @@ describe('chat attachments', function () {
   before(async function () {
     this.timeout(20 * 60_000 + 400_000)
     await ensureChatData()
+    // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
+    await requireSecondNotBlocked()
     channel = await createThrowawayChannel('attach')
     await sendWithRetry(await sender(), channel.convID, e2eMarker('attach-hello'))
   })

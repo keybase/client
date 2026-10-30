@@ -6,6 +6,7 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
+import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, el, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -14,7 +15,9 @@ import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
 import {
   carriedTeam,
+  findInboxHeader,
   findInboxRow,
+  innermost,
   persistedMismatch,
   shiftIntoBand,
   type DrawnInboxItem,
@@ -601,52 +604,85 @@ const inboxCovers = async () => [
   ...(await spansOf('-ios class chain:**/XCUIElementTypeTabBar')),
 ].map(c => c.span)
 
-// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name,
-// a channel as "#channel" and only among KB_E2E_TEAM's channels (findInboxRow; a name more than one
-// drawn row matches is refused). In view means inside the list less what floats over it (the unread
-// shortcut, the Big teams divider, the tab bar). The native inbox draws only the rows near what it
-// shows, so this drags the inbox to its top, then down until the row is in view, and fails at the
-// inbox's end or after INBOX_SCROLL_MS. Its errors name neither `name` nor any row: the inbox holds
-// conversations other than the test ones.
-export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
-  const {team} = loadE2EAccounts()
+// The chat tab's inbox dragged to its top (until a drag down changes nothing), from the tab root.
+// Returns the list's rect and the deadline of the scroll it starts (INBOX_SCROLL_MS).
+const inboxAtTop = async () => {
   await hideKeyboard()
   await escapeToTabs()
   await navigateToChat()
   await waitForTestID(T.CHAT_INBOX_LIST, 15_000)
   const list = await rectOf(await el(T.CHAT_INBOX_LIST).getElement())
-  const page = list.bottom - list.top
   const deadline = Date.now() + INBOX_SCROLL_MS
-  // to the top: until a drag down changes nothing
   for (let before = (await drawnInbox()).signature; ; ) {
     if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
-    await dragInbox(list, page)
+    await dragInbox(list, list.bottom - list.top)
     const now = (await drawnInbox()).signature
     if (now === before) break
     before = now
   }
-  // the team whose section runs at the list's top, for the rows above the first header drawn after a
-  // drag: unknown (no team's) until a header has been seen there
+  return {deadline, list}
+}
+
+// The chat tab's inbox at its top, where its search placeholder is.
+export const scrollInboxToTop = async () => {
+  await inboxAtTop()
+}
+
+// Drags the inbox from its top down until `find` picks a drawn item (its index in the drawing), and
+// brings that item wholly into view: inside the list less what floats over it (the unread shortcut,
+// the Big teams divider, the tab bar). `find` is handed the team whose section runs above the
+// drawing's first header (unknown, no team's, until a header has been seen there). Returns the
+// item's element, or undefined once the inbox's end is drawn with nothing picked; fails after
+// INBOX_SCROLL_MS. The native inbox draws only the rows near what it shows, hence the drags.
+const seekInbox = async (
+  find: (items: ReadonlyArray<DrawnInboxItem>, carried: string | undefined) => number | undefined
+): Promise<WebdriverIO.Element | undefined> => {
+  const {deadline, list} = await inboxAtTop()
+  const page = list.bottom - list.top
   let carried: string | undefined
   for (;;) {
-    if (Date.now() > deadline) throw new Error(`the inbox row asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
+    if (Date.now() > deadline) throw new Error(`the inbox item asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
     const drawn = await drawnInbox()
-    const at = findInboxRow(drawn.items, name, team, carried)
+    const at = find(drawn.items, carried)
     // every drag below moves the content, so the section at the top is read off this drawing first
     carried = carriedTeam(drawn.items, list.top, carried)
     if (at !== undefined) {
       const band = visibleBand(list, await inboxCovers())
-      const row = drawn.items[at]!.span
-      if (whollyInBand(row, band, INBOX_MARGIN)) return drawn.elements[at]!
+      const span = drawn.items[at]!.span
+      if (whollyInBand(span, band, INBOX_MARGIN)) return drawn.elements[at]!
       // drawn but not wholly in view: bring it into the band
-      await dragInbox(list, shiftIntoBand(row, band, INBOX_MARGIN))
+      await dragInbox(list, shiftIntoBand(span, band, INBOX_MARGIN))
       continue
     }
     await dragInbox(list, -page)
-    if ((await drawnInbox()).signature === drawn.signature) {
-      throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
-    }
+    if ((await drawnInbox()).signature === drawn.signature) return undefined
   }
+}
+
+// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name,
+// a channel as "#channel" and only among KB_E2E_TEAM's channels (findInboxRow; a name more than one
+// drawn row matches is refused). Fails at the inbox's end or after INBOX_SCROLL_MS. Its errors name
+// neither `name` nor any row: the inbox holds conversations other than the test ones.
+export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
+  const {team} = loadE2EAccounts()
+  const row = await seekInbox((items, carried) => findInboxRow(items, name, team, carried))
+  if (!row) throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
+  return row
+}
+
+// Whether the inbox draws a row of the conversation named `name` (as scrollInboxTo finds it) anywhere
+// from its top to its end. false needs the whole inbox scrolled, so a caller checks a row it expects
+// is there first, which shows the inbox loaded.
+export const inboxHasRow = async (name: string) => {
+  const {team} = loadE2EAccounts()
+  return (await seekInbox((items, carried) => findInboxRow(items, name, team, carried))) !== undefined
+}
+
+// The gear of the big team header of `team`, by its exact name (findInboxHeader), wholly in view.
+export const scrollInboxToTeamHeader = async (team: string): Promise<WebdriverIO.Element> => {
+  const gear = await seekInbox(items => findInboxHeader(items, team))
+  if (!gear) throw new Error('the team header asked for is not in the inbox (scrolled to its end)')
+  return gear
 }
 
 // Opens the conversation named `name` by tapping its inbox row (scrollInboxTo), and waits for its
@@ -687,7 +723,7 @@ export type NotifyGroup = 'desktop' | 'mobile'
 export type NotifyChoice = keyof typeof NOTIFY_LABELS
 
 // the full-width box around one choice's radio, chosen or not
-const notifyRadioBox = (group: NotifyGroup, choice: NotifyChoice) =>
+export const notifyRadioBox = (group: NotifyGroup, choice: NotifyChoice) =>
   browser.$(`-ios predicate string:name BEGINSWITH "${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-${choice}"`)
 
 // Taps a notification choice's radio: its own clickable (the circle and its label) inside the box,
@@ -878,6 +914,32 @@ export const closeMessageMenu = async () => {
   await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').click()
   await menuSheet().waitForExist({reverse: true, timeout: 5_000})
 }
+
+// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
+// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
+const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
+  waitFor(
+    what,
+    async () => {
+      if (await menuSheet().isExisting()) return true
+      await open()
+      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
+    },
+    {interval: 300, timeout}
+  )
+
+// Long-presses the inbox row of the conversation named `name` (scrollInboxTo) to open its menu, a
+// bottom sheet of the conversation's actions. Bound: scrollInboxTo, then 15s.
+export const openInboxRowMenu = async (name: string) => {
+  const row = await scrollInboxTo(name)
+  await openSheetWith('the inbox row menu', async () =>
+    browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
+  )
+}
+
+// Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.
+export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
+  openSheetWith(what, async () => tap().catch(() => {}))
 
 // -- thread search -------------------------------------------------------------------------------
 
@@ -1571,3 +1633,78 @@ export const giphyImages = async () => {
   }
   return out
 }
+
+// -- the info panel, labels and the inbox's own state --------------------------------------------
+
+// Opens the visible conversation's info panel from the header's More menu and, given one, a tab of
+// it (its testID). Bound: the header menu 15, the tab 10.
+export const openInfoPanel = async (tab?: string) => {
+  await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+  if (tab === undefined) return
+  await el(tab).waitForExist({timeout: 10_000})
+  await el(tab).click()
+}
+
+// Drags the screen's scrolling content up until `target` sits on screen, with room above the bottom
+// edge for a tap, as a person scrolls a settings list to an item below the fold. Bound: `timeout`.
+export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) =>
+  waitFor(
+    `${what} on screen`,
+    async () => {
+      const e = target()
+      if (await e.isExisting()) {
+        const {y} = await e.getLocation()
+        const {height} = await e.getSize()
+        const {height: window} = await browser.getWindowRect()
+        if (y > 0 && y + height / 2 < window - 80) return true
+      }
+      const {height, width} = await browser.getWindowRect()
+      const x = Math.round(width / 2)
+      await browser
+        .action('pointer', {parameters: {pointerType: 'touch'}})
+        .move({x, y: Math.round(height * 0.7)})
+        .down()
+        .move({duration: 400, x, y: Math.round(height * 0.3)})
+        .pause(200)
+        .up()
+        .perform()
+      return undefined
+    },
+    {interval: 300, timeout}
+  )
+
+// The one element on screen whose label is exactly `label`, of those `selector` finds: compared in
+// memory, so a label holding an account name never goes into a selector or an error. Where nested
+// elements expose the same label (a pressable box and its text) the innermost is it. Throws when
+// none or more than one is drawn; `what` names it.
+export const labelledElement = async (selector: string, label: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    if ((await e.getAttribute('label').catch(() => null)) !== label) continue
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
+  return found[inner[0]!]!.e
+}
+
+const INBOX_METADATA = `kbModule('chat/inbox/metadata-store.tsx').useInboxMetadataState.getState()`
+const INBOX_LAYOUT = `kbModule('chat/inbox/layout-state.tsx')`
+
+// Whether the app holds a conversation muted (its inbox metadata), or undefined before it has loaded it.
+export const appConversationMuted = async (convID: string) =>
+  jsEval<boolean | null>(`
+    const m = ${INBOX_METADATA}.metas.get(${JSON.stringify(convID)})
+    return m ? !!m.isMuted : null
+  `).then(v => v ?? undefined)
+
+// Whether the app's inbox layout pins a small conversation, or undefined while the layout has no row
+// for it.
+export const appConversationPinned = async (convID: string) =>
+  jsEval<boolean | null>(`
+    const l = ${INBOX_LAYOUT}
+    const row = l.getSmallLayoutRow(l.useInboxLayoutState.getState(), ${JSON.stringify(convID)})
+    return row ? !!row.isPinned : null
+  `).then(v => v ?? undefined)

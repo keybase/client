@@ -186,6 +186,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
             saveMuted(!muted)
           }}
           label="Mute all notifications"
+          testID={TestIDs.CHAT_INFO_PANEL_MUTE}
         />
         <Kb.Icon type="iconfont-shh" style={styles.icon} color={theme.black_20} />
         <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />

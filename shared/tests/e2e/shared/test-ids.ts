@@ -147,6 +147,10 @@ export const CHAT_FORWARD_CAPTION     = 'chat-forward-caption'
 // of each group ends in the _SELECTED suffix
 export const CHAT_NOTIFY_RADIO_PREFIX = 'chat-notify-radio-'
 export const CHAT_NOTIFY_RADIO_SELECTED_SUFFIX = '-selected'
+// the info panel's Mute all notifications switch (on the phone only its switch takes a tap)
+export const CHAT_INFO_PANEL_MUTE     = 'chat-info-panel-mute'
+// the info panel's Minimum role to post dropdown, which opens the role menu
+export const CHAT_MIN_WRITER_ROLE_DROPDOWN = 'chat-min-writer-role-dropdown'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
