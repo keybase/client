@@ -7,7 +7,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {retirePhoneFlowDevice} from '../../shared/cli-device.ts'
 import {withDeadline} from '../../shared/deadline'
 import {activeDevices, provDeviceName, requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
-import {peerCli, peerUsesFileSecretStore, setPeerFileSecretStore, socketAnswers, socketPathFor, waitForPeerService} from '../../shared/peer-service'
+import {peerCli, socketAnswers, socketPathFor, startFileStoreHome} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {phoneDevice} from '../gate/accounts'
@@ -61,13 +61,7 @@ describe('device provision', function () {
     let provisionee: Provisionee | undefined
     await withCleanup(
       async () => {
-        // The file secret store before the home's service ever starts: peer homes share the Keychain
-        // by username, so a home on it would overwrite the main service's stored secret.
-        fs.mkdirSync(home, {mode: 0o700, recursive: true})
-        setPeerFileSecretStore(home)
-        if (!peerUsesFileSecretStore(home)) throw new Error(`${home} does not keep its secret in a file; refusing to start it`)
-        await waitForPeerService('owner', home)
-        if (!peerUsesFileSecretStore(home)) throw new Error(`${home}'s running service dropped the file secret store; refusing to log in`)
+        await startFileStoreHome('owner', home)
 
         await openDevices()
         await labeled('Other', 'Add a device or paper key').click()

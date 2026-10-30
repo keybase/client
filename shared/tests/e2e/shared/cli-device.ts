@@ -11,7 +11,7 @@ import {checkRetirablePeerHome, readPeerConfig, removeRetiredPeerHome, retirePee
 import {cliProvDeviceLabel} from '../accounts/sweep-lib.ts'
 import {withCleanup} from './cleanup.ts'
 import {activeDevices, deviceHistory, provDeviceName, revokeLeftoverFromPhoneFlow} from './devices.ts'
-import {peerCli, peerUsesFileSecretStore, runKeybase, setPeerFileSecretStore, waitForPeerService} from './peer-service.ts'
+import {peerCli, runKeybase, startFileStoreHome} from './peer-service.ts'
 
 export type CliDevice = {deviceID: string; name: string}
 
@@ -24,15 +24,9 @@ export const provisionCliDevice = async (env: E2EEnv, runId: string): Promise<Cl
   if (!env.peers.owner.paperKey) throw new Error('KB_OWNER_PAPERKEY is not set: the CLI device signs in with it')
   if (fs.existsSync(home)) throw new Error(`${home} already exists: this run id already provisioned its CLI device (one per run id)`)
 
-  // The file secret store before the home's service ever starts: peer homes share the Keychain by
-  // username, so a home on it would overwrite the main service's stored secret.
-  fs.mkdirSync(home, {mode: 0o700, recursive: true})
-  setPeerFileSecretStore(home)
-  if (!peerUsesFileSecretStore(home)) throw new Error(`${home} does not keep its secret in a file; refusing to start it`)
   await withCleanup(
     async () => {
-      await waitForPeerService('owner', home)
-      if (!peerUsesFileSecretStore(home)) throw new Error(`${home}'s running service dropped the file secret store; refusing to log in`)
+      await startFileStoreHome('owner', home)
       // runKeybase redacts a run of words like the paper key out of any error it throws
       await runKeybase(['--home', home, 'login', '--devicename', name, env.smokeUser], {
         input: `${env.peers.owner.paperKey}\n`,
