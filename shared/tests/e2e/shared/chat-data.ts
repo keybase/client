@@ -16,6 +16,7 @@ import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
 import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
+import {requireMainIsSmoke} from './peer-service.ts'
 
 // The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
 export const e2eAccounts = (): E2EAccounts => loadE2EAccounts()
@@ -140,15 +141,15 @@ class ChatApi {
     this.lines = readline.createInterface({input: this.proc.stdout})[Symbol.asyncIterator]()
   }
 
-  private async callOnce<R>(method: string, options: object): Promise<R> {
+  private async callOnce<R>(method: string, options: object, timeoutMs = cliTimeoutMs): Promise<R> {
     this.proc.stdin.write(`${JSON.stringify({method, params: {options}})}\n`)
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeout = new Promise<never>((_resolve, reject) => {
       timer = setTimeout(() => {
         // its answer can no longer be matched to its call, so the process goes with it
         this.proc.kill()
-        reject(new Error(`keybase chat api ${method}: no answer in ${cliTimeoutMs / 1000}s`))
-      }, cliTimeoutMs)
+        reject(new Error(`keybase chat api ${method}: no answer in ${timeoutMs / 1000}s`))
+      }, timeoutMs)
     })
     const next = await Promise.race([this.lines.next(), timeout]).finally(() => clearTimeout(timer))
     if (next.done) {
@@ -160,6 +161,12 @@ class ChatApi {
       throw new Error(`chat api ${method}: ${res.error.message}`)
     }
     return res.result as R
+  }
+
+  // One try with its own deadline, for a read polled by a caller that bounds its own wait: a rate
+  // limit is thrown like any other error.
+  async callWithin<R>(method: string, options: object, timeoutMs: number): Promise<R> {
+    return this.callOnce<R>(method, options, timeoutMs)
   }
 
   // Retries rate-limit errors (the service allows about 9000 chat calls per 15 minutes), waiting
@@ -553,15 +560,18 @@ export const channelMembersFromCli = async (topicName: string) => {
 
 // Whether the host's account has an e2e team channel unread, as its inbox holds it: its read pointer
 // is behind the newest visible message, its own messages included (a mark unread from another device
-// moves the pointer back; opening the thread there moves it forward).
-export const channelUnreadFromCli = async (topicName: E2EChannel) => {
-  const {team} = e2eAccounts()
+// moves the pointer back; opening the thread there moves it forward). One try, bounded: the host
+// check 15s, the read `timeoutMs`; callers poll it within their own deadline.
+export const channelUnreadFromCli = async (topicName: E2EChannel, timeoutMs = 10_000) => {
+  const accounts = e2eAccounts()
+  await requireMainIsSmoke(accounts)
+  const {team} = accounts
   const res = await withApi(async api =>
-    api.call<{conversations?: Array<ConvSummary & {unread?: boolean}>}>('listconvsonname', {
+    api.callWithin<{conversations?: Array<ConvSummary & {unread?: boolean}>}>('listconvsonname', {
       members_type: 'team',
       name: team,
       topic_type: 'CHAT',
-    })
+    }, timeoutMs)
   )
   const conv = (res.conversations ?? []).find(c => c.channel.topic_name === topicName)
   if (!conv) throw new Error(`#${topicName} is not among the team's channels`)

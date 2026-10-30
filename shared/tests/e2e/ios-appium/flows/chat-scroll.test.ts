@@ -24,6 +24,7 @@ import {
   type ChatData,
   type E2EChannel,
 } from '../../shared/chat-data'
+import {withCleanup} from '../../shared/cleanup.ts'
 import {peerSender, type IncomingSender} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -79,8 +80,21 @@ import {jsEval, waitFor} from '../helpers/lifecycle'
 describe('chat scroll', function () {
   // no retries: a retry would let an intermittent race pass
   this.retries(0)
-  // each test's bound, as the old chat runner gave it
-  this.timeout(420_000)
+
+  // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   open      openConversation 100 (keyboard 5, escapeToTabs 30, chat tab 10, the link 20, the
+  //             thread's composer, push and list 35)
+  //   stable    waitForThreadStable 10 (20 where given)
+  //   end       expectAtEnd 21 (a stable reading, retaken for up to 3s)
+  //   centred   expectCentred 20;  row  waitForRow 15 (20 where given)
+  //   search    openThreadSearch 20 + searchFor 50 (its 30 overall, overrun by one try's waits);
+  //             searchAndSelect 90;  close  closeSearch 5
+  //   peer      the peer found, on the first send of a test, 45, and a failing send's diagnosis 25;
+  //             send  one peer send 60
+  //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  sent  sendMessage 25
+  //   unread    one host read 25 (whoami 15, the read 10); a polled read 45 (20, overrun by one read)
+  //   drag      a drag or tap 2;  step  2 (its 1s settle and the attach);  keyboard  5
+  // A sum that holds a cap (paging steps) counts every step to it.
 
   let data: ChatData
   before(async function () {
@@ -142,29 +156,6 @@ describe('chat scroll', function () {
     }
   }
 
-  // Marks the row `ordinal` of e2e-long unread from its menu and checks the host sees the channel
-  // unread. `body` runs next; then (after `first`, when given) a fresh open marks the thread read
-  // again, read back the same way.
-  const withLongMarkedUnread = async (ordinal: number, body: () => Promise<void>, first?: () => Promise<void>) => {
-    const unread = async (want: boolean) =>
-      waitFor(
-        `the host to see e2e-long ${want ? 'unread' : 'read'}`,
-        async () => ((await channelUnreadFromCli(E2E_CHANNELS.long)) === want ? true : undefined),
-        {interval: 1_000, timeout: 20_000}
-      )
-    try {
-      await openMessageMenu(await rowText(ordinal))
-      await chooseMenuItem('Mark as unread')
-      await waitForThreadStable()
-      await unread(true)
-      await body()
-    } finally {
-      await first?.()
-      await openLong()
-      await unread(false)
-    }
-  }
-
   // How an incoming send moved the list, from samples taken from the send until it settled.
   const describeSamples = (samples: Array<ThreadSample>) => {
     const at = (s: ThreadSample) => `${Math.round(s.t - samples[0]!.t)}ms`
@@ -178,7 +169,9 @@ describe('chat scroll', function () {
   describe('opening', () => {
     // The phone loads a first page of 20 rows, so unlike on desktop the intro card at the top of this
     // thread is not in it; the thread still runs past the view.
-    it('a short thread lands at its end', async () => {
+    it('a short thread lands at its end', async function () {
+      // worst case (s): open 100, row 15, end 21, step 2 = 138
+      this.timeout(150_000)
       await openConversation(data.convIDs[E2E_CHANNELS.short])
       const newest = await waitForRow(shortMarker(SHORT_COUNT))
       const {t, v} = await expectAtEnd()
@@ -187,7 +180,9 @@ describe('chat scroll', function () {
       await step('The short thread opened at its newest message', {card: true})
     })
 
-    it('a long thread with more history to load lands at its end', async () => {
+    it('a long thread with more history to load lands at its end', async function () {
+      // worst case (s): open 100, row 15, end 21, step 2 = 138
+      this.timeout(150_000)
       await openLong()
       const newest = await waitForRow(longMarker(LONG_COUNT))
       const {t, v} = await expectAtEnd()
@@ -198,7 +193,9 @@ describe('chat scroll', function () {
   })
 
   describe('new messages', () => {
-    it('at the end, an incoming message keeps the thread at its end', async () => {
+    it('at the end, an incoming message keeps the thread at its end', async function () {
+      // worst case (s): open 100, end 21, peer 70, send 60, row 20, end 21, two steps 4 = 296
+      this.timeout(300_000)
       await openScratch()
       await expectAtEnd()
       await step('The scratch thread at its end')
@@ -212,7 +209,9 @@ describe('chat scroll', function () {
       await step('The incoming message is the newest row, the thread still at its end', {card: true})
     })
 
-    it('with the keyboard up, the first keystroke keeps the newest message above the composer', async () => {
+    it('with the keyboard up, the first keystroke keeps the newest message above the composer', async function () {
+      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 2, two steps 4 = 174
+      this.timeout(180_000)
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
@@ -229,7 +228,9 @@ describe('chat scroll', function () {
       }
     })
 
-    it('with the keyboard up, an incoming message and a send keep the newest message above the composer', async () => {
+    it('with the keyboard up, an incoming message and a send keep the newest message above the composer', async function () {
+      // worst case (s): open 100, end 21, keyboard 5, end 21, peer 70, send 60, row 20, end 21, sent 25, end 21, three steps 6 = 390
+      this.timeout(400_000)
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
@@ -256,7 +257,9 @@ describe('chat scroll', function () {
       {how: 'dragged up into history', move: async () => dragThread(400)},
       {how: 'flicked from the end into history', move: async () => flickThread(500)},
     ]) {
-      it(`${how}, an incoming message leaves the reader where they are`, async () => {
+      it(`${how}, an incoming message leaves the reader where they are`, async function () {
+        // worst case (s): open 100, end 21, drag 2, stable 10, peer 70, send 60, the load 20, stable 10, two steps 4 = 297
+        this.timeout(300_000)
         await openScratch()
         await expectAtEnd()
         await move()
@@ -291,7 +294,9 @@ describe('chat scroll', function () {
   // so it predates them: the content-position anchor's autoscroll does not follow an insert that lands
   // while its own animated scroll is running.
   describe('a burst of incoming messages', () => {
-    it('at the end, a burst of incoming messages keeps the thread at its end', async () => {
+    it('at the end, a burst of incoming messages keeps the thread at its end', async function () {
+      // worst case (s): open 100, end 21, rows holding 17, end 21, peer 70, six sends 360, row 20, two stables 20, two steps 4 = 653
+      this.timeout(660_000)
       await openScratch()
       await expectAtEnd()
       const settled = (await waitForRowsToHold()).ordinals.length
@@ -319,7 +324,9 @@ describe('chat scroll', function () {
   })
 
   describe('search', () => {
-    it('a deep hit loads its page and is centred', async () => {
+    it('a deep hit loads its page and is centred', async function () {
+      // worst case (s): open 100, end 21, search 90, centred 20, step 2, close 5 = 238
+      this.timeout(240_000)
       await openLong()
       await expectAtEnd()
       const {index, token} = LONG_SEARCH_TOKENS.deep
@@ -331,7 +338,9 @@ describe('chat scroll', function () {
       })
     })
 
-    it('searching again for the same hit after dragging away centres it again', async () => {
+    it('searching again for the same hit after dragging away centres it again', async function () {
+      // worst case (s): open 100, search 90, centred 20, drag 2, stable 10, centred 20, three steps 6, close 5 = 253
+      this.timeout(260_000)
       await openLong()
       await withSearchClosed(async () => {
         const {token} = LONG_SEARCH_TOKENS.middle
@@ -358,18 +367,33 @@ describe('chat scroll', function () {
     // move wins: the list stays where the drag left it and is not pulled back to the hit. (A
     // status-bar tap cannot be told apart here: every hit's page holds only about ten rows newer than
     // the hit, so its centred place and the list's top, where a tap goes, are both offset 0.)
-    it('a drag during centring stops it', async () => {
+    it('a drag during centring stops it', async function () {
+      // worst case (s): open 100, end 21, search open 20 and typed 50, the hit 20, drag 2, two stables 20, the pause 4, step 2, close 5 = 244
+      this.timeout(260_000)
       await openLong()
       await expectAtEnd()
       await withSearchClosed(async () => {
         const {token} = LONG_SEARCH_TOKENS.deep
         await openThreadSearch()
         await searchFor(token)
-        await waitFor('the hit to load', async () => ((await ordinalsWithText(token)).length ? true : undefined), {
-          interval: 50,
-          timeout: 20_000,
-        })
+        const ordinal = await waitFor(
+          'the hit to load',
+          async () => {
+            const found = await ordinalsWithText(token)
+            if (found.length > 1) throw new Error(`${found.length} rows hold the hit's token`)
+            return found[0]
+          },
+          {interval: 50, timeout: 20_000}
+        )
         const pre = await requireThread()
+        // the drag must land while the list is still centring: a hit already in the middle means
+        // the centring finished first, and the test would show nothing
+        const preRow = rowOf(pre, ordinal)
+        const preV = await viewport(pre)
+        check(
+          !preRow || Math.abs(centreOffset(preRow, preV)) > centreTolerance(preV),
+          `the hit was already centred before the drag, so the drag did not land during centring: ${JSON.stringify(preRow)} ${summary(pre, preV)}`
+        )
         await dragThread(250)
         const moved = await waitForThreadStable()
         check(Math.abs(moved.offset - pre.offset) > 20, `the drag did not move the list: ${summary(pre)} then ${summary(moved)}`)
@@ -380,7 +404,6 @@ describe('chat scroll', function () {
           Math.abs(later.offset - moved.offset) <= stillTolerance,
           `the list moved after the reader did: ${summary(moved)} then ${summary(later)}`
         )
-        const ordinal = await waitForRow(token)
         const v = await viewport(moved)
         const r = rowOf(moved, ordinal)
         check(
@@ -394,7 +417,9 @@ describe('chat scroll', function () {
     // Closing search with the list resting at its end, the newest message loaded, gives the end back
     // to the list where it was before search opened: the next message is followed as on any thread at
     // its end.
-    it('closing search at the newest message, then an incoming message keeps the end', async () => {
+    it('closing search at the newest message, then an incoming message keeps the end', async function () {
+      // worst case (s): open 100, end 21, sent 25, keyboard 5, end 21, search open 20, the finding wait 30 overrun by a try (searchFor 50, close 5, reopen 20) = 105, end 21, close 5, three stables 30, peer 70, send 60, row 20, three steps 6, close 5 = 524
+      this.timeout(540_000)
       await openScratch()
       await expectAtEnd()
       // one word the search finds whole
@@ -447,7 +472,9 @@ describe('chat scroll', function () {
       })
     })
 
-    it('jump to recent from a deep hit lands at the newest message and closes search', async () => {
+    it('jump to recent from a deep hit lands at the newest message and closes search', async function () {
+      // worst case (s): open 100, search 90, centred 20, keyboard 5, the tap 2, row 15, end 21, the button 5, two steps 4, close 5 = 267
+      this.timeout(280_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -473,7 +500,9 @@ describe('chat scroll', function () {
   // search open, 376.7 once the list settles, never corrected (448.3 while the list also padded its
   // end by the search bar's height).
   describe('closing search', () => {
-    it('closing search leaves the list where it is', async () => {
+    it('closing search leaves the list where it is', async function () {
+      // worst case (s): open 100, search 90, centred 20, close 5, two stables 20, two steps 4, close 5 = 244
+      this.timeout(250_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
@@ -616,7 +645,7 @@ describe('chat scroll', function () {
   // Taps the status bar until the list rests at its end, waiting for each newer page a tap that
   // rests on the newest row loaded asks for.
   const tapToThePresent = async () => {
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 12; i++) {
       const rest = await waitForThreadStable()
       if (isAtEnd(rest, await viewport(rest))) return
       if (rest.moreToLoadForward && Math.abs(rest.offset) <= 1) {
@@ -664,7 +693,9 @@ describe('chat scroll', function () {
       {name: 'e2e-scratch', open: openScratch},
       {name: 'e2e-long', open: openLong},
     ]) {
-      it(`left idle at its end, ${name} loads no more pages, and dragging up still loads them`, async () => {
+      it(`left idle at its end, ${name} loads no more pages, and dragging up still loads them`, async function () {
+        // worst case (s): open 100, end 21, rows holding 17, idle 13, stable 10, the drags 60 overrun by one (drag 2, stable 10), two steps 4 = 237
+        this.timeout(240_000)
         await open()
         const first = (await expectAtEnd()).t.ordinals.length
         const start = await waitForRowsToHold()
@@ -701,7 +732,9 @@ describe('chat scroll', function () {
     // A page of older rows lands during a drag up from the end of the thread; the drag moves the
     // reader's rows as far as the next drag, with that page loaded, does. The thread loads a page as
     // it opens, so the drags start once that has landed and go on until one brings in the next.
-    it('an older page landing during a drag up from the end leaves the reader where the drag put them', async () => {
+    it('an older page landing during a drag up from the end leaves the reader where the drag put them', async function () {
+      // worst case (s): open 100, end 21, rows holding 17, the drags 90 overrun by one (two stables 20, drag 2), one more 22, two steps 4 = 276
+      this.timeout(280_000)
       await openLong()
       await expectAtEnd()
       await waitForRowsToHold()
@@ -733,12 +766,15 @@ describe('chat scroll', function () {
     // pages (20 rows loaded became 320 in one drag, then 403 in the next). So pages are counted by the
     // rows each drag brought in, and every drag during which rows landed must travel as the drags
     // without a landing do.
-    it('dragging up loads older pages without moving the reader, back to the first message', async () => {
+    it('dragging up loads older pages without moving the reader, back to the first message', async function () {
+      // worst case (s): open 100, end 21, stable 10, 50 steps of drag 2 and stable 10 = 600, stable 10, row 15, two steps 4 = 760
+      this.timeout(780_000)
       await openLong()
       const start = (await expectAtEnd()).t.ordinals.length
       await step('The long thread at its end')
       const {explain, landed, moved} = await scrollThroughPages({
         done: t => !t.moreToLoadBack && t.rows[0]!.top >= t.listTop - 1,
+        maxSteps: 50,
         stride: 400,
         tolerance: olderPagingTolerance,
       })
@@ -761,7 +797,9 @@ describe('chat scroll', function () {
       {how: 'dragging down', move: undefined, stride: -200},
       {how: 'flicking down', move: async () => flickThread(-300), stride: -300},
     ]) {
-      it(`${how} from an old hit loads newer pages until the present`, async () => {
+      it(`${how} from an old hit loads newer pages until the present`, async function () {
+        // worst case (s): openOnOldHit 232 (open 100, search 90, centred 20, close 5, button 5, stable 10, step 2), stable 10, 40 steps of an edge wait 3, stable 10, drag 2 and stable 10 = 1000, expectAtThePresent 43 (row 15, end 21, button 5, step 2) = 1285
+        this.timeout(1300_000)
         await openOnOldHit()
         const {explain, landed, moved} = await scrollThroughPages({
           done: (t, v) => isAtEnd(t, v),
@@ -783,14 +821,16 @@ describe('chat scroll', function () {
     // loaded, and the test after this one holds what a page then does. Reaching the present by newer
     // pages leaves older paging working: scrolling back up past where the window started loads older
     // rows.
-    it('a status-bar tap from an old hit loads newer pages until the present', async () => {
+    it('a status-bar tap from an old hit loads newer pages until the present', async function () {
+      // worst case (s): openOnOldHit 232, 12 taps of stable 10, a page 15 and the tap 1 = 312, expectAtThePresent 43, stable 10, 20 flicks of 1 and stable 10 = 220, step 2 = 819
+      this.timeout(840_000)
       const start = await openOnOldHit()
       await tapToThePresent()
       await expectAtThePresent('a status-bar tap')
 
       const startOldest = start.ordinals[0]!
       let up = await waitForThreadStable()
-      for (let i = 0; i < 30 && up.ordinals[0]! >= startOldest; i++) {
+      for (let i = 0; i < 20 && up.ordinals[0]! >= startOldest; i++) {
         await flickThread(600)
         up = await waitForThreadStable()
       }
@@ -805,7 +845,9 @@ describe('chat scroll', function () {
     // lands next leaves them there: from a deep hit (rows up to the hit's page loaded), a status-bar
     // tap rests the list on the newest row loaded, and the row at the bottom of the view stays where
     // it is once the page lands.
-    it('resting on the newest row of a window of history, the next page leaves the reader where they are', async () => {
+    it('resting on the newest row of a window of history, the next page leaves the reader where they are', async function () {
+      // worst case (s): open 100, search 90, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 289
+      this.timeout(300_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -864,36 +906,6 @@ describe('chat scroll', function () {
       await step('The next page landed with the reader resting on the newest row, which stayed in place', {card: true})
     })
 
-    // Catch up lands on a row well up in history with the newest message not loaded; scrolling down
-    // from there loads newer pages until the present.
-    it('after Catch up, scrolling down reaches the present', async () => {
-      await openLong()
-      await expectAtEnd()
-      await dragThread(500)
-      await dragThread(500)
-      await dragThread(500)
-      const up = await waitForThreadStable()
-      const target = pickAnchor(up, await viewport(up), 60)
-      await withLongMarkedUnread(target.ordinal, async () => {
-        await step('A row well up in history marked unread')
-        await openLong()
-        await catchUpPill().waitForExist({timeout: 10_000})
-        await step('Reopened, the catch-up pill shows')
-        await catchUpPill().click()
-        await expectCentred(target.ordinal)
-        await step('Catch up centred the unread row')
-
-        let t = await waitForThreadStable()
-        for (let i = 0; i < 40 && !isAtEnd(t, await viewport(t)); i++) {
-          await dragThread(-500)
-          t = await waitForThreadStable()
-        }
-        const v = await viewport(t)
-        check(isAtEnd(t, v), `dragging down from the unread row did not reach the present: ${summary(t, v)}`)
-        check(!t.moreToLoadForward, `the thread still has newer rows to load: ${summary(t, v)}`)
-        await step('Dragging down from the unread row reached the present', {card: true})
-      })
-    })
   })
 
   describe('back to the end', () => {
@@ -906,7 +918,9 @@ describe('chat scroll', function () {
       },
       {how: 'a status-bar tap', toEnd: tapStatusBar},
     ]) {
-      it(`${how} re-pins it, and a later incoming message keeps the end`, async () => {
+      it(`${how} re-pins it, and a later incoming message keeps the end`, async function () {
+        // worst case (s): open 100, end 21, the drags 30 overrun by one 12, back to the end 72 (6 drags of stable 10 and drag 2), end 21, peer 70, send 60, row 20, two stables 20, three steps 6 = 432
+        this.timeout(440_000)
         await openScratch()
         await expectAtEnd()
         // the first drag from the end can stop short as the first older page lands (see paging)
@@ -1030,7 +1044,9 @@ describe('chat scroll', function () {
     // The edited row counts as in view only in the part of the list the keyboard leaves clear, judged
     // once the keyboard is up: a row wholly in view before it rose, but half under where it rises, is
     // revealed above it.
-    it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async () => {
+    it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async function () {
+      // worst case (s): open 100, the keyboard top 36 (keyboard 10, keyboard hidden 5, stable 20, the tap 1), sent 25, keyboard 5, peer 70, eight sends 480, row 20, bringRowTo 192 (8 of stable 20 and two drags 4), stable 10, the edit 55 (menu 35, edit bar 5, keyboard 5, stable 10), the cancel 6, two steps 4 = 1003
+      this.timeout(1020_000)
       await openScratch()
       const kbTop = await keyboardTopWhenUp()
       const {ordinal, text} = await sendWithRowsBelow(8)
@@ -1052,7 +1068,9 @@ describe('chat scroll', function () {
     // A row near the top of the view when the edit starts: the keyboard rising must not leave it off
     // the top. Sampled every frame from the edit until a second after the keyboard reports it has
     // finished showing: once the row is wholly in view it stays there.
-    it('editing a row near the top keeps it in view once the keyboard is up', async () => {
+    it('editing a row near the top keeps it in view once the keyboard is up', async function () {
+      // worst case (s): open 100, sent 25, keyboard 5, peer 70, 22 sends 1320, row 20, the tap 1, the row 60 overrun by one 22, bringRowTo 192, stable 10, the watch 2, the edit 55, didShow 5, the pause 1, stable 10, the cancel 6, two steps 4 = 1907
+      this.timeout(1920_000)
       await openScratch()
       const {ordinal, text} = await sendWithRowsBelow(22)
       // a burst of incoming messages can leave the list short of its end: go to the end, then up to
@@ -1110,7 +1128,9 @@ describe('chat scroll', function () {
       })
     })
 
-    it('editing a message in view does not scroll the thread', async () => {
+    it('editing a message in view does not scroll the thread', async function () {
+      // worst case (s): open 100, sent 25, keyboard 5, end 21, menu 35, the edit bar 5, end 21, the cancel 6, two steps 4 = 222
+      this.timeout(240_000)
       await openScratch()
       const text = e2eMarker('scroll-edit')
       const ordinal = await sendMessage(text)
@@ -1130,58 +1150,137 @@ describe('chat scroll', function () {
   })
 
   // Seeing the unread line is catching up: the pill shows only for a line the reader has not had on
-  // screen, and once the line has been in view nothing brings the pill back for it.
+  // screen, and once the line has been in view nothing brings the pill back for it. Catch up lands
+  // on a row well up in history with the newest message not loaded; scrolling down from there loads
+  // newer pages until the present.
   describe('catch-up pill', () => {
-    it('an unread line above the view shows the catch-up pill, which centres the unread message', async () => {
+    // The host's read of e2e-long, polled until it is `want`.
+    const longUnreadIs = async (want: boolean) =>
+      waitFor(
+        `the host to see e2e-long ${want ? 'unread' : 'read'}`,
+        async () => ((await channelUnreadFromCli(E2E_CHANNELS.long)) === want ? true : undefined),
+        {interval: 1_000, timeout: 20_000}
+      )
+
+    // Marks the row `ordinal` of e2e-long unread from its menu, the host reading the channel as read
+    // before and unread after, so the change is the app's. The afterEach reads it again.
+    const markLongUnread = async (ordinal: number) => {
+      await longUnreadIs(false)
+      await openMessageMenu(await rowText(ordinal))
+      await chooseMenuItem('Mark as unread')
+      await waitForThreadStable()
+      await longUnreadIs(true)
+    }
+
+    // A fresh open of e2e-long, from its end, with a row well up in history marked unread: the line
+    // above the view, never seen.
+    const markUnreadAboveTheView = async (drags: number) => {
       await openLong()
       await expectAtEnd()
-      await dragThread(500)
-      await dragThread(500)
+      for (let i = 0; i < drags; i++) await dragThread(500)
       const up = await waitForThreadStable()
       const target = pickAnchor(up, await viewport(up), 60)
-      await withLongMarkedUnread(target.ordinal, async () => {
-        check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
-        await step('A row marked unread, its line in view, no catch-up pill')
+      await markLongUnread(target.ordinal)
+      return target
+    }
 
-        // a fresh open lands at the end, with the unread line above the view, never seen there
-        await openLong()
-        await expectAtEnd()
-        await catchUpPill().waitForExist({timeout: 5_000})
-        await step('Reopened at the end, the catch-up pill shows for the line above the view')
-        await catchUpPill().click()
-        await expectCentred(target.ordinal)
-        await catchUpPill().waitForExist({reverse: true, timeout: 5_000})
-        await step('Catch up centred the unread row and the pill went away', {card: true})
-      })
+    // Mocha runs this before the gate's own afterEach, after a timeout too, so the thread is read
+    // again before the next test drives the app. It reads the host first, so it does nothing to a
+    // thread already read. Worst case (s): keyboard 5, one host read 25, open 100, unread 45 = 175.
+    afterEach(async function () {
+      this.timeout(180_000)
+      await withCleanup(hideKeyboard, [
+        async () => {
+          // a fresh open marks the thread read again
+          if (await channelUnreadFromCli(E2E_CHANNELS.long)) await openLong()
+          await longUnreadIs(false)
+        },
+      ])
     })
 
-    it('once the unread line has been in view, the keyboard carrying it away does not show the catch-up pill', async () => {
+    it('an unread line above the view shows the catch-up pill, which centres the unread message', async function () {
+      // worst case (s): open 100, end 21, two drags 4, stable 10, the mark 135 (two unreads 90, menu
+      // 35, stable 10), open 100, end 21, the pill 5, centred 20, the pill gone 5, three steps 6 = 427
+      this.timeout(440_000)
+      const target = await markUnreadAboveTheView(2)
+      check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
+      await step('A row marked unread, its line in view, no catch-up pill')
+
+      // a fresh open lands at the end, with the unread line above the view, never seen there
+      await openLong()
+      await expectAtEnd()
+      await catchUpPill().waitForExist({timeout: 5_000})
+      await step('Reopened at the end, the catch-up pill shows for the line above the view')
+      await catchUpPill().click()
+      await expectCentred(target.ordinal)
+      await catchUpPill().waitForExist({reverse: true, timeout: 5_000})
+      await step('Catch up centred the unread row and the pill went away', {card: true})
+    })
+
+    // The negative half needs a positive control in the same thread state, so a pill that never
+    // shows at all cannot pass it: a line above the view, never seen, shows the pill with the
+    // keyboard up.
+    it('once the unread line has been in view, the keyboard carrying it away does not show the catch-up pill', async function () {
+      // worst case (s): open 100, end 21, stable 10, the mark 135, open 100, end 21, keyboard 5,
+      // stable 10; the control: keyboard 5, the mark above the view 270 (open 100, end 21, two drags
+      // 4, stable 10, the mark 135), open 100, end 21, the pill 5, keyboard 5; four steps 8 = 816
+      this.timeout(840_000)
       await openLong()
       await expectAtEnd()
       const t = await waitForThreadStable()
       const v = await viewport(t)
       // near the top of the view, so the rising keyboard carries the line off it
       const target = pickAnchor(t, v, 40)
-      await withLongMarkedUnread(
-        target.ordinal,
-        async () => {
-          // a fresh open, as on a visit with unread messages: the line is in view at the end
-          await openLong()
-          await expectAtEnd()
-          check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
-          await step('Reopened with the unread line in view, no catch-up pill')
+      await markLongUnread(target.ordinal)
+      // a fresh open, as on a visit with unread messages: the line is in view at the end
+      await openLong()
+      await expectAtEnd()
+      check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
+      await step('Reopened with the unread line in view, no catch-up pill')
 
-          await el(T.CHAT_INPUT).click()
-          await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
-          const k = await waitForThreadStable()
-          const kv = await viewport(k)
-          const carried = rowOf(k, target.ordinal)
-          check(!carried || carried.bottom <= kv.top, `row ${target.ordinal} is still in view with the keyboard up: ${summary(k, kv)}`)
-          check(!(await catchUpPill().isExisting()), 'the catch-up pill shows for an unread line already seen')
-          await step('The keyboard carried the seen line off the view, and no catch-up pill shows', {card: true})
-        },
-        hideKeyboard
-      )
+      await el(T.CHAT_INPUT).click()
+      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      const k = await waitForThreadStable()
+      const kv = await viewport(k)
+      const carried = rowOf(k, target.ordinal)
+      check(!carried || carried.bottom <= kv.top, `row ${target.ordinal} is still in view with the keyboard up: ${summary(k, kv)}`)
+      check(!(await catchUpPill().isExisting()), 'the catch-up pill shows for an unread line already seen')
+      await step('The keyboard carried the seen line off the view, and no catch-up pill shows', {card: true})
+
+      await hideKeyboard()
+      await markUnreadAboveTheView(2)
+      await openLong()
+      await expectAtEnd()
+      await catchUpPill().waitForExist({timeout: 5_000})
+      await el(T.CHAT_INPUT).click()
+      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      check(await catchUpPill().isExisting(), 'with the keyboard up, the catch-up pill went away for a line never seen')
+      await step('Control: a line never seen shows the catch-up pill with the keyboard up')
+    })
+
+    it('after Catch up, scrolling down reaches the present', async function () {
+      // worst case (s): the mark above the view 274 (open 100, end 21, three drags 6, stable 10, the
+      // mark 135), open 100, the pill 10, centred 20, stable 10, 15 drags of 2 and stable 10 = 180,
+      // four steps 8 = 602
+      this.timeout(620_000)
+      const target = await markUnreadAboveTheView(3)
+      await step('A row well up in history marked unread')
+      await openLong()
+      await catchUpPill().waitForExist({timeout: 10_000})
+      await step('Reopened, the catch-up pill shows')
+      await catchUpPill().click()
+      await expectCentred(target.ordinal)
+      await step('Catch up centred the unread row')
+
+      let t = await waitForThreadStable()
+      for (let i = 0; i < 15 && !isAtEnd(t, await viewport(t)); i++) {
+        await dragThread(-500)
+        t = await waitForThreadStable()
+      }
+      const v = await viewport(t)
+      check(isAtEnd(t, v), `dragging down from the unread row did not reach the present: ${summary(t, v)}`)
+      check(!t.moreToLoadForward, `the thread still has newer rows to load: ${summary(t, v)}`)
+      await step('Dragging down from the unread row reached the present', {card: true})
     })
   })
 
@@ -1190,7 +1289,9 @@ describe('chat scroll', function () {
   // anyway, with nobody touching it, until the view is full or the history ends. Read every 50ms from
   // inside the app from the moment the thread's list appears.
   describe('a thread too short to scroll', () => {
-    it('a thread whose first page draws too little to scroll loads older pages by itself', async () => {
+    it('a thread whose first page draws too little to scroll loads older pages by itself', async function () {
+      // worst case (s): the watch 1, open 100, row 20, the pause 1, the read 1, stable 10, end 21, step 2 = 156
+      this.timeout(180_000)
       const convID = data.convIDs[E2E_CHANNELS.sparse]
       await jsEval(`${threadListPrelude}
         const g = globalThis
@@ -1259,7 +1360,9 @@ describe('chat scroll', function () {
   // The phone hides the tab bar inside a conversation, so the way away and back is a screen pushed
   // over the thread: its info panel.
   describe('leaving and coming back', () => {
-    it('coming back from the info panel keeps the reader in place', async () => {
+    it('coming back from the info panel keeps the reader in place', async function () {
+      // worst case (s): open 100, end 21, drag 2, stable 10, the info panel 20, back 12, the thread 5, stable 10, three steps 6 = 186
+      this.timeout(200_000)
       await openLong()
       await expectAtEnd()
       await dragThread(450)
