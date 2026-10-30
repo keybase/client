@@ -372,3 +372,63 @@ describe('flowRunsFromReport', () => {
     expect(runs[0]?.attempts).toEqual([{coverage: rec, status: 'failed'}])
   })
 })
+
+describe('surfaces credited by flows', () => {
+  const surfaces = {entryPrefix: undefined, existing: ['push', 'camera'], listFile: 'census-surfaces.ts', listed: ['push', 'camera'], noun: 'surface'}
+  const withSurfaces = (over: Partial<CensusInput> = {}) => census(input({surfaces, ...over}))
+
+  test('a passing flow whose recording lists a surface covers it', () => {
+    const {flows} = flowCoverageFromRuns([{attempts: [{coverage: rec({surfaces: ['push']}), status: 'passed'}], test: 'push-flow'}])
+    expect(flows).toEqual([{routes: [], rpcs: [], surfaces: ['push'], test: 'push-flow'}])
+    const r = withSurfaces({flowCoverage: flows})
+    expect(r.surfaces.find(x => x.name === 'push')?.coveredBy).toEqual(['flow push-flow'])
+    expect(r.unclaimedSurfaces).toEqual(['camera'])
+  })
+
+  test('a flow crediting a surface the app lacks is a coverage problem', () => {
+    const r = withSurfaces({flowCoverage: [{...flow('a'), surfaces: ['pushh']}]})
+    expect(r.coverageProblems).toEqual(['a credits unknown surface pushh'])
+  })
+
+  test('an excluded surface is not unclaimed; excluded and covered, or not a surface, is stale', () => {
+    const exclusions = {routes: {}, rpcs: {}, surfaces: {camera: 'manual-only: camera', gone: 'x'}}
+    const r = withSurfaces({exclusions, flowCoverage: [{...flow('a'), surfaces: ['push']}]})
+    expect(r.unclaimedSurfaces).toEqual([])
+    expect(r.staleExclusions).toEqual(['surface gone is excluded (x) but is not a surface'])
+    const covered = withSurfaces({
+      exclusions: {routes: {}, rpcs: {}, surfaces: {push: 'manual-only: push'}},
+      flowCoverage: [{...flow('a'), surfaces: ['push', 'camera']}],
+    })
+    expect(covered.staleExclusions).toEqual(['surface push is excluded (manual-only: push) but covered by: flow a'])
+  })
+
+  test('a route and an rpc exclusion with the same key are both checked', () => {
+    const r = census(
+      input({
+        enabledRpcs: ['keybase.1.teams.teamCreate'],
+        exclusions: {routes: {x: 'a'}, rpcs: {x: 'b'}},
+        routes: [{name: 'x'}],
+      })
+    )
+    expect(r.staleExclusions).toEqual(['rpc x is excluded (b) but is not a write RPC the desktop app can send'])
+    expect(r.routes[0]?.excluded).toBe('a')
+  })
+
+  test('no surfaces anywhere: no surfaces key on flow coverage and no excluded column', () => {
+    const {flows} = flowCoverageFromRuns([{attempts: [{coverage: rec({routes: ['a']}), status: 'passed'}], test: 't'}])
+    expect(Object.keys(flows[0] ?? {})).toEqual(['routes', 'rpcs', 'test'])
+    const md = renderCensusMarkdown(withSurfaces(), {flowTests: 0, renderEntries: 0, sources: []})
+    expect(md).toContain('| surface | covered by |')
+    expect(md).not.toContain('excluded |\n| --- | --- | --- |\n| camera')
+  })
+
+  test('excluded surfaces show a column and a count', () => {
+    const md = renderCensusMarkdown(withSurfaces({exclusions: {routes: {}, rpcs: {}, surfaces: {camera: 'manual-only: camera'}}}), {
+      flowTests: 0,
+      renderEntries: 0,
+      sources: [],
+    })
+    expect(md).toContain('- Surfaces: 0 covered, 1 unclaimed, 1 excluded')
+    expect(md).toContain('| camera |  | manual-only: camera |')
+  })
+})

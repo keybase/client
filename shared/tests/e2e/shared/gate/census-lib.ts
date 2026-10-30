@@ -91,15 +91,18 @@ export const isWriteRpc = (rpc: string): boolean => {
   return ALSO_WRITES.has(rpc) || methodNames(rpc).some(n => writeNameRe.test(n))
 }
 
-export type Exclusions = {routes: Record<string, string>; rpcs: Record<string, string>}
+export type Exclusions = {routes: Record<string, string>; rpcs: Record<string, string>; surfaces?: Record<string, string>}
 
 // What the recorder (visual/fixtures/runtime.ts) took. `routes` holds only states after the one shown
 // at start that differed from the state before them; `startRoutes` is that start state. A screen
 // left on by the previous test is therefore in startRoutes alone, and only `routes` is credited.
-export type Recording = {routes: ReadonlyArray<string>; rpcs: ReadonlyArray<string>; startRoutes?: ReadonlyArray<string>; error?: string}
+export type Recording = {routes: ReadonlyArray<string>; rpcs: ReadonlyArray<string>; startRoutes?: ReadonlyArray<string>
+  surfaces?: ReadonlyArray<string>
+  error?: string
+}
 
 export type FlowTestRun = {test: string; attempts: ReadonlyArray<{status: string; coverage?: Recording}>}
-export type FlowCoverage = {test: string; rpcs: Array<string>; routes: Array<string>}
+export type FlowCoverage = {test: string; rpcs: Array<string>; routes: Array<string>; surfaces?: Array<string>}
 
 export type CoverageAttachment = {name: string; body?: string; path?: string}
 type CensusTest = {projectName: string; results: Array<{status: string; attachments: Array<CoverageAttachment>}>}
@@ -143,9 +146,11 @@ export const flowCoverageFromRuns = (runs: ReadonlyArray<FlowTestRun>): {flows: 
       problems.push(...bad.map(p => `${run.test}: ${p}`))
       continue
     }
+    const surfaces = [...new Set(passed.flatMap(a => a.coverage?.surfaces ?? []))]
     flows.push({
       routes: [...new Set(passed.flatMap(a => a.coverage?.routes ?? []))],
       rpcs: [...new Set(passed.flatMap(a => a.coverage?.rpcs ?? []))],
+      ...(surfaces.length ? {surfaces} : {}),
       test: run.test,
     })
   }
@@ -172,7 +177,7 @@ export type CensusInput = {
   routes: ReadonlyArray<{name: string}>
   // outgoing calls in enabled-calls.json
   enabledRpcs: ReadonlyArray<string>
-  flowCoverage: ReadonlyArray<{test: string; rpcs: ReadonlyArray<string>; routes: ReadonlyArray<string>}>
+  flowCoverage: ReadonlyArray<{test: string; rpcs: ReadonlyArray<string>; routes: ReadonlyArray<string>; surfaces?: ReadonlyArray<string>}>
   renderCoverage: ReadonlyArray<{entry: string; routes: ReadonlyArray<string>}>
   exclusions: Exclusions
   // whose app sends the write RPCs (desktop)
@@ -181,20 +186,21 @@ export type CensusInput = {
   coverageProblems?: ReadonlyArray<string>
   // the app's other surfaces, which have no route: `listed` in `listFile`, `existing` the ones the
   // app has. `noun` names them in every line (window on desktop); a tour entry `<entryPrefix><name>`
-  // or `<entryPrefix><name>-<state>` covers one.
+  // or `<entryPrefix><name>-<state>` covers one, as does a passing flow whose recording lists it.
+  // Without an entryPrefix no tour entry covers a surface.
   surfaces?: {
     listed: ReadonlyArray<string>
     existing: ReadonlyArray<string>
     noun: string
     listFile: string
-    entryPrefix: string
+    entryPrefix?: string
   }
 }
 
 export type CensusRoute = {name: string; coveredBy: Array<string>; excluded?: string}
 export type CensusWrite = {rpc: string; sentBy: Array<string>; excluded?: string; background?: true}
 export type CensusBackground = {rpc: string; sentIn: number; of: number}
-export type CensusSurface = {name: string; coveredBy: Array<string>}
+export type CensusSurface = {name: string; coveredBy: Array<string>; excluded?: string}
 
 export type CensusResult = {
   routes: Array<CensusRoute>
@@ -220,32 +226,62 @@ export const censusFailed = (r: CensusResult) =>
   r.unclaimedSurfaces.length > 0 ||
   r.staleSurfaces.length > 0
 
-// A surface is covered by a tour entry that rendered it: `<prefix><name>` or a variant
-// `<prefix><name>-<state>`. An entry credits the longest name it matches, so `<prefix>a-b-x` is a
-// state of `a-b` and never of `a`.
+// A surface is covered by a tour entry that rendered it (`<prefix><name>` or a variant
+// `<prefix><name>-<state>`; an entry credits the longest name it matches, so `<prefix>a-b-x` is a
+// state of `a-b` and never of `a`), or by a passing flow whose recording lists it.
 const surfaceCensus = (
   w: NonNullable<CensusInput['surfaces']>,
-  renderCoverage: CensusInput['renderCoverage']
-): Pick<CensusResult, 'surfaces' | 'unclaimedSurfaces' | 'staleSurfaces' | 'noun'> => {
+  renderCoverage: CensusInput['renderCoverage'],
+  flowCoverage: CensusInput['flowCoverage'],
+  excludedBy: Record<string, string>
+): Pick<CensusResult, 'surfaces' | 'unclaimedSurfaces' | 'staleSurfaces' | 'noun'> & {problems: Array<string>; stale: Array<string>} => {
   const {noun, listFile, entryPrefix} = w
   const existing = new Set(w.existing)
   const listed = new Set(w.listed)
   const names = [...new Set([...w.listed, ...w.existing])].filter(n => existing.has(n)).sort()
+  const nameSet = new Set(names)
   const byLength = [...names].sort((a, b) => b.length - a.length)
   const cover = new Map<string, Array<string>>()
-  for (const {entry} of renderCoverage) {
-    const name = byLength.find(n => entry === `${entryPrefix}${n}` || entry.startsWith(`${entryPrefix}${n}-`))
-    if (name) cover.set(name, [...(cover.get(name) ?? []), `tour ${entry}`])
+  const add = (name: string, by: string) => {
+    const list = cover.get(name) ?? []
+    if (!list.includes(by)) cover.set(name, [...list, by])
   }
-  const surfaces = names.map(name => ({coveredBy: cover.get(name) ?? [], name}))
+  if (entryPrefix !== undefined) {
+    for (const {entry} of renderCoverage) {
+      const name = byLength.find(n => entry === `${entryPrefix}${n}` || entry.startsWith(`${entryPrefix}${n}-`))
+      if (name) add(name, `tour ${entry}`)
+    }
+  }
+  const problems: Array<string> = []
+  for (const f of flowCoverage) {
+    for (const s of new Set(f.surfaces ?? [])) {
+      if (nameSet.has(s)) add(s, `flow ${f.test}`)
+      else problems.push(`${f.test} credits unknown ${noun} ${s}`)
+    }
+  }
+  const surfaces = names.map((name): CensusSurface => {
+    const coveredBy = cover.get(name) ?? []
+    const excluded = excludedBy[name]
+    return excluded === undefined ? {coveredBy, name} : {coveredBy, excluded, name}
+  })
+  const stale: Array<string> = []
+  for (const [name, reason] of Object.entries(excludedBy)) {
+    if (!nameSet.has(name)) stale.push(`${noun} ${name} is excluded (${reason}) but is not a ${noun}`)
+    else {
+      const by = cover.get(name)
+      if (by?.length) stale.push(`${noun} ${name} is excluded (${reason}) but covered by: ${by.join(', ')}`)
+    }
+  }
   return {
     noun,
+    problems,
+    stale,
     staleSurfaces: [
       ...[...listed].filter(n => !existing.has(n)).map(n => `${noun} ${n} is listed in ${listFile} but the app has no such ${noun}`),
       ...[...existing].filter(n => !listed.has(n)).map(n => `${noun} ${n} is in the app but not listed in ${listFile}`),
     ],
     surfaces,
-    unclaimedSurfaces: surfaces.filter(x => !x.coveredBy.length).map(x => x.name),
+    unclaimedSurfaces: surfaces.filter(x => !x.coveredBy.length && x.excluded === undefined).map(x => x.name),
   }
 }
 
@@ -313,10 +349,18 @@ export const census = (input: CensusInput): CensusResult => {
   }
   const unsentWrites = writes.filter(w => !covered(w) && !w.background && w.excluded === undefined).map(w => w.rpc)
 
+  const {problems: surfaceProblems, stale: staleSurfaceExclusions, ...surfaceResult} = surfaceCensus(
+    input.surfaces ?? {existing: [], listFile: '', listed: [], noun: ''},
+    renderCoverage,
+    flowCoverage,
+    exclusions.surfaces ?? {}
+  )
+  staleExclusions.push(...staleSurfaceExclusions)
+
   return {
-    ...surfaceCensus(input.surfaces ?? {entryPrefix: '', existing: [], listFile: '', listed: [], noun: ''}, renderCoverage),
+    ...surfaceResult,
     background,
-    coverageProblems: [...(input.coverageProblems ?? [])],
+    coverageProblems: [...(input.coverageProblems ?? []), ...surfaceProblems],
     routes,
     staleExclusions,
     unclaimedRoutes,
@@ -344,7 +388,8 @@ export const censusTotals = (r: CensusResult) => {
     writesBackground: r.background.length,
     writesCovered,
     writesExcluded,
-    surfacesCovered: r.surfaces.filter(x => x.coveredBy.length).length,
+    surfacesCovered: r.surfaces.filter(x => x.coveredBy.length && x.excluded === undefined).length,
+    surfacesExcluded: r.surfaces.filter(x => x.excluded !== undefined).length,
     surfacesUnclaimed: r.unclaimedSurfaces.length,
     writesUnsent: r.unsentWrites.length,
   }
@@ -372,7 +417,7 @@ export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string 
     ...(meta.sources.length ? ['Sources:', '', ...meta.sources.map(s => `- ${s}`), ''] : []),
     `- Routes: ${t.routesCovered} covered, ${t.routesUnclaimed} unclaimed, ${t.routesExcluded} excluded`,
     `- Write RPCs: ${t.writesCovered} covered, ${t.writesUnsent} unsent, ${t.writesBackground} background, ${t.writesExcluded} excluded`,
-    `- ${cap}s: ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed`,
+    `- ${cap}s: ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed${t.surfacesExcluded ? `, ${t.surfacesExcluded} excluded` : ''}`,
     `- Stale exclusions: ${t.stale}`,
     `- Stale ${noun} list entries: ${r.staleSurfaces.length}`,
     `- Coverage problems: ${r.coverageProblems.length}`,
@@ -407,7 +452,9 @@ export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string 
     '',
     `## ${cap}s`,
     '',
-    table([noun, 'covered by'], r.surfaces.map(x => [x.name, shortList(x.coveredBy)])),
+    t.surfacesExcluded
+      ? table([noun, 'covered by', 'excluded'], r.surfaces.map(x => [x.name, shortList(x.coveredBy), x.excluded ?? '']))
+      : table([noun, 'covered by'], r.surfaces.map(x => [x.name, shortList(x.coveredBy)])),
     '',
     '## Routes',
     '',
