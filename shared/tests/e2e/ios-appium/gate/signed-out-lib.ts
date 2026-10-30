@@ -24,7 +24,12 @@ export const recoveryPicks = (
     .map(n => devices.find(d => d.name === n))
     .filter(d => d !== undefined)
     .at(-1)
-  if (!peer) return `the recovery lists none of the peer's device names (${peerNames[0]}...); it lists ${devices.map(d => d.name).join(', ') || 'no device'}`
+  if (!peer) {
+    // a paper key's name is the first two words of its phrase, so paper keys are only counted
+    const keys = devices.filter(d => d.type === 'backup').length
+    const listed = [...devices.filter(d => d.type !== 'backup').map(d => d.name), ...(keys ? [`${keys} paper key${keys > 1 ? 's' : ''}`] : [])]
+    return `the recovery lists none of the peer's device names (${peerNames[0]}...); it lists ${listed.join(', ') || 'no device'}`
+  }
   const paperKey = devices.filter(d => d.type === 'backup').sort((a, b) => a.name.localeCompare(b.name))[0]
   if (!paperKey) return 'the recovery lists no paper key, so no wrong paper key can be refused'
   return {paperKey, peer}

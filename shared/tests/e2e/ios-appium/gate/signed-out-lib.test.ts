@@ -24,6 +24,9 @@ describe('recoveryPicks', () => {
     expect(recoveryPicks([dev('phone', 'mobile')], peerNames)).toBe(
       "the recovery lists none of the peer's device names (e2e-second-svc...); it lists phone"
     )
+    expect(recoveryPicks([dev('phone', 'mobile'), dev('apple banana', 'backup'), dev('cherry date', 'backup')], peerNames)).toBe(
+      "the recovery lists none of the peer's device names (e2e-second-svc...); it lists phone, 2 paper keys"
+    )
     expect(recoveryPicks([], peerNames)).toBe("the recovery lists none of the peer's device names (e2e-second-svc...); it lists no device")
     expect(recoveryPicks([dev('e2e-second-svc', 'desktop')], peerNames)).toBe(
       'the recovery lists no paper key, so no wrong paper key can be refused'

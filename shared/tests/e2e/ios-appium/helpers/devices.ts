@@ -5,7 +5,7 @@
 // source per screen.
 import * as T from '../../shared/test-ids'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
-import {el, labeled} from './elements'
+import {el, labeled, maskingName} from './elements'
 import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
 
 // A device the helpers find by its exact name. A paper key's name is the first two words of its
@@ -15,18 +15,9 @@ export type NamedDevice = string | {name: string; label: string}
 
 const named = (d: NamedDevice) => (typeof d === 'string' ? {label: d, name: d} : d)
 
-// Replacing the name as it is works because a paper key's words are plain lowercase letters: no
-// selector or message escapes them into another form.
 const masking = async <T,>(d: NamedDevice, f: (name: string, label: string) => Promise<T>): Promise<T> => {
   const {label, name} = named(d)
-  if (label === name) return f(name, label)
-  try {
-    return await f(name, label)
-  } catch (e) {
-    // a masked copy: the raw error, as a cause too, may carry the name
-    // eslint-disable-next-line preserve-caught-error
-    throw new Error((e instanceof Error ? e.message : String(e)).split(name).join(label))
-  }
+  return maskingName(name, label, async () => f(name, label))
 }
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

@@ -9,7 +9,7 @@ import {backToScreen, pressBackToLoginList, tapToScreen, waitForScreen} from '..
 import {emptyLoginField, loginScreen, restoreSecondSecret, storedSecretOf} from '../gate/sign-in'
 import {recoveryPicks, recoveryRowPredicate} from '../gate/signed-out-lib.ts'
 import {manualEdge, step} from '../gate/step'
-import {byText, el, enterText, labeled} from '../helpers/elements'
+import {byText, el, enterText, labeled, maskingName} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {dismissKeyboard} from '../helpers/navigate'
 
@@ -253,8 +253,11 @@ describe('account signed out', () => {
 
         // back starts the recovery again, at the device list
         await backToScreen('recoverPasswordDeviceSelector')
-        await scrollTo(row(paperKey.name), 'the paper key row')
-        await tapToScreen(row(paperKey.name), 'recoverPasswordPaperKey')
+        // its name is the first two words of its phrase: no error names it
+        await maskingName(paperKey.name, 'the paper key', async () => {
+          await scrollTo(row(paperKey.name), 'the paper key row')
+          await tapToScreen(row(paperKey.name), 'recoverPasswordPaperKey')
+        })
         await step('Paper key screen')
 
         await typedPaperKey(wrongPaperKey)
