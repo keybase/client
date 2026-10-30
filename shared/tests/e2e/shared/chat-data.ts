@@ -391,7 +391,7 @@ const seedMedia = async (api: ChatApi, team: string) => {
 // tlf name (both names, sorted), which is what a send to it names.
 export type DirectConversation = {convID: string; tlfName: string}
 
-const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
+export const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
 
 // Reads the conversation's newest message to learn its id; a first send creates it.
 const ensureDirect = async (api: ChatApi, smokeUser: string, secondUser: string): Promise<DirectConversation> => {

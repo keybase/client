@@ -312,6 +312,8 @@ export const UNLOCK_FOLDERS_PAPER_KEY_INPUT = 'unlock-folders-paper-key-input'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
+// the phone search filter's X, which clears it or, where the filter has a cancel, ends its search
+export const SEARCH_FILTER_CLEAR = 'search-filter-clear'
 // The X on a desktop modal route. Needed because a page-wide search for the
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.

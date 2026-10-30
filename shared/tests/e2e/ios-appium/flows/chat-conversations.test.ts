@@ -25,7 +25,6 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {inNameSection, type Rect} from '../gate/chat-lib'
-import {relaunchApp} from '../gate/device'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
@@ -64,7 +63,9 @@ describe('chat conversations', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   open      openConversation 100;  row  scrollInboxTo 90;  absent  inboxHasRow 90 (the same
   //             scroll);  header  scrollInboxToTeamHeader 90;  top  the inbox at its top 90
-  //   row menu  openInboxRowMenu 105 (scrollInboxTo 90, the sheet 15);  item  chooseMenuItem 20;
+  //   row menu  openInboxRowMenu 295 (an open sheet closed 5, three long presses of scrollInboxTo 90,
+  //             the press 1 and the sheet 3, the menu's conversation read 1, closed 5);  item
+  //             chooseMenuItem 20;
   //             gear  openMenuFrom 15
   //   conv      the host's read of a conversation 75 (whoami 15, the call 60), polled 95 (20, overrun
   //             by one read);  gregor  the host's gregor read 75, polled 95
@@ -83,7 +84,8 @@ describe('chat conversations', function () {
 
   let data: ChatData
   before(async function () {
-    this.timeout(20 * 60_000) // a first run seeds; later runs only check
+    // a first run seeds (later runs only check) within 20 minutes, then the block check's host read 75s
+    this.timeout(20 * 60_000 + 75_000)
     data = await ensureChatData()
     // the second account's messages need it unblocked: a failed chat-blocks restore refuses here
     await requireSecondNotBlocked()
@@ -145,21 +147,28 @@ describe('chat conversations', function () {
   // Each is set before the change it undoes and cleared once its restore reads back, so the restore
   // runs only when needed and a second run of it does nothing.
 
-  // the DM's status before a test changed it
-  let statusBefore: number | undefined
+  // the status of each conversation whose row menu a test opened, before it did
+  const statusesBefore = new Map<string, number>()
   // the pinned conversations before a test changed them
   let pinnedBefore: Array<string> | undefined
   // throwaway channels a test made
   const channels = new Set<string>()
 
-  const restoreStatus = async () => {
-    if (statusBefore === undefined) return
-    const want = statusBefore
-    if ((await statusOf(data.direct.convID)) !== want) {
-      await restoreConversationStatus(data.direct.convID, want)
-      await expectStatus('the restored status of the DM', data.direct.convID, want)
+  const restoreStatuses = async () => {
+    for (const [convID, want] of [...statusesBefore]) {
+      if ((await statusOf(convID)) !== want) {
+        await restoreConversationStatus(convID, want)
+        await expectStatus('a restored conversation status', convID, want)
+      }
+      statusesBefore.delete(convID)
     }
-    statusBefore = undefined
+  }
+
+  // The row menu of the conversation `convID` named `name`, its status noted first for the
+  // afterEach (a menu item can hide or mute it). Bound: conv 75 the first time, then row menu.
+  const openRowMenu = async (name: string, convID: string) => {
+    if (!statusesBefore.has(convID)) statusesBefore.set(convID, await statusOf(convID))
+    await openInboxRowMenu(name, convID)
   }
 
   const restorePins = async () => {
@@ -183,44 +192,48 @@ describe('chat conversations', function () {
   const inboxSearchField = () =>
     browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search" AND visible == 1')
 
-  // No thread search or inbox filter left open: an inbox filter has no labelled close, and holds
-  // only in memory, so a relaunch ends one.
+  // No thread search or inbox filter left open. The filter ends with the X on its row (its search
+  // filter's clear, which cancels the inbox search): the one level with the field.
   const closeSearches = async () => {
     if (await searchOpen()) await closeSearch()
     await escapeToTabs()
     await navigateToChat()
-    if (await inboxSearchField().isExisting()) await relaunchApp()
+    const field = inboxSearchField()
+    if (!(await field.isExisting())) return
+    const {y} = await field.getLocation()
+    const {height} = await field.getSize()
+    const level: Array<WebdriverIO.Element> = []
+    for (const x of await browser.$$(`~${T.SEARCH_FILTER_CLEAR}`).getElements()) {
+      const at = await x.getLocation().catch(() => undefined)
+      const size = await x.getSize().catch(() => undefined)
+      if (at && size && at.y + size.height / 2 >= y && at.y + size.height / 2 <= y + height) level.push(x)
+    }
+    if (level.length !== 1) throw new Error(`${level.length} clear buttons on the inbox filter's row, not one`)
+    await level[0]!.click()
+    await field.waitForExist({reverse: true, timeout: 5_000})
   }
 
   // Nothing a test changed left behind, after a timeout too. The host's restores go first, then the
-  // phone's screens. Worst case (s): close 5, keyboard 5, the status 245 (a read 75, the set 75, its
-  // poll 95), the pins 245 (the same), a channel 120, the searches 241 (close 5, escapeToTabs 30, the
-  // tab 5, the field 1, relaunch 200), signed in 90 = 951.
+  // phone's screens. Worst case (s): close 5, keyboard 5, the statuses 490 (two conversations, each a
+  // read 75, the set 75 and its poll 95), the pins 245 (the same), a channel 120, the searches 52
+  // (close 5, escapeToTabs 30, the tab 5, the field 1, the clear found 5 and tapped 1, the field gone
+  // 5) = 917.
   afterEach(async function () {
-    this.timeout(980_000)
-    await withCleanup(closeMessageMenu, [
-      hideKeyboard,
-      restoreStatus,
-      restorePins,
-      deleteChannels,
-      async () => {
-        await closeSearches()
-        await waitSignedIn()
-      },
-    ])
+    this.timeout(960_000)
+    await withCleanup(closeMessageMenu, [hideKeyboard, restoreStatuses, restorePins, deleteChannels, closeSearches])
   })
 
   it('the DM hidden from its inbox row leaves the inbox, and a new message brings it back', async function () {
-    // worst case (s): conv 75, row menu 105, the seq 2, item 20, calls 10, conv 95, row 90 (the
+    // worst case (s): conv 75, row menu 295, the seq 2, item 20, calls 10, conv 95, row 90 (the
     // self conversation), absent 90, step 2, peer 70, peer send 90, conv 95, row 90, step 2, open
-    // 100, the row 30, step 2 = 968
-    this.timeout(1_000_000)
+    // 100, the row 30, step 2 = 1158
+    this.timeout(1_200_000)
     const {convID} = data.direct
     const original = await statusOf(convID)
     check(original === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden or muted)')
-    statusBefore = original
+    statusesBefore.set(convID, original)
 
-    await openInboxRowMenu(data.secondUser)
+    await openRowMenu(data.secondUser, convID)
     const seq = await currentCallSeq()
     await chooseMenuItem('Hide until next message')
     await waitForCall('the hide to go out', seq, 'chat.1.local.SetConversationStatusLocal')
@@ -249,7 +262,7 @@ describe('chat conversations', function () {
     const {convID} = data.direct
     const original = await statusOf(convID)
     check(original === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden or muted)')
-    statusBefore = original
+    statusesBefore.set(convID, original)
 
     await openConversation(convID)
     await openSettings()
@@ -324,16 +337,16 @@ describe('chat conversations', function () {
   })
 
   it('the self conversation pinned from its row stays pinned through a relaunch, and unpins', async function () {
-    // worst case (s): self 60, gregor 75, row menu 105, the seq 2, item 20, calls 10, gregor 95, app
-    // 20, step 2, relaunch 200, signed in 90, row 90, app 20, step 2, row menu 105, the seq 2, item
-    // 20, calls 10, gregor 95, app 20, step 2 = 1045
-    this.timeout(1_100_000)
+    // worst case (s): self 60, gregor 75, conv 75, row menu 295, the seq 2, item 20, calls 10, gregor
+    // 95, app 20, step 2, relaunch 200, signed in 90, row 90, app 20, step 2, row menu 295, the seq 2,
+    // item 20, calls 10, gregor 95, app 20, step 2 = 1500
+    this.timeout(1_560_000)
     const selfConvID = await directConvIDFromCli(data.smokeUser)
     const original = await pinnedConvs()
     check(!original.includes(selfConvID), 'the self conversation starts pinned (a failed restore left it pinned)')
     pinnedBefore = original
 
-    await openInboxRowMenu(data.smokeUser)
+    await openRowMenu(data.smokeUser, selfConvID)
     let seq = await currentCallSeq()
     await chooseMenuItem('Pin to top')
     await waitForCall('the pin to go out', seq, 'keybase.1.gregor.updateCategory')
@@ -354,7 +367,7 @@ describe('chat conversations', function () {
     creditSurface('relaunch')
     await step('After a relaunch the self conversation is still pinned')
 
-    await openInboxRowMenu(data.smokeUser)
+    await openRowMenu(data.smokeUser, selfConvID)
     seq = await currentCallSeq()
     await chooseMenuItem('Unpin')
     await waitForCall('the unpin to go out', seq, 'keybase.1.gregor.updateCategory')

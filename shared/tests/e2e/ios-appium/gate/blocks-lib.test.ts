@@ -24,4 +24,8 @@ describe('secondBlockedProblem', () => {
     expect(secondBlockedProblem({chatBlocked: true, followBlocked: true})).toMatch(/blocked \(chat\)/)
     expect(secondBlockedProblem({chatBlocked: false, followBlocked: true})).toMatch(/blocked \(followers\)/)
   })
+
+  test('names the one command that repairs all of it', () => {
+    expect(secondBlockedProblem({chatBlocked: true, followBlocked: false})).toMatch(/yarn test:e2e:accounts:setup: it unblocks .* DM's status .* favorite again/)
+  })
 })

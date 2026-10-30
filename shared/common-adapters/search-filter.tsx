@@ -11,6 +11,7 @@ import type {IconType} from './icon.constants-gen'
 import IconAuto from './icon-auto'
 import Icon from './icon'
 import * as Styles from '@/styles'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Platforms from '@/constants/platform'
 import type {MeasureRef} from './measure-ref'
 import './search-filter.css'
@@ -241,7 +242,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox alignSelf="center" onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
+        <Kb.ClickableBox alignSelf="center" onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical" testID={TestIDs.SEARCH_FILTER_CLEAR}>
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}

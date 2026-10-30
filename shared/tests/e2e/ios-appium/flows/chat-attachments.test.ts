@@ -88,9 +88,10 @@ describe('chat attachments', function () {
 
   // Host-side setup only: the channel with the second account in it, and a first message from the
   // peer, which waits until the peer's inbox lists a channel this new. Worst case (s): seeding 20
-  // minutes on a first run (the second account's membership), channel 240, peer 70, the send 90.
+  // minutes on a first run (the second account's membership), the block check 75, channel 240, peer
+  // 70, the send 90 = 20 minutes + 475.
   before(async function () {
-    this.timeout(20 * 60_000 + 400_000)
+    this.timeout(20 * 60_000 + 500_000)
     await ensureChatData()
     // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
     await requireSecondNotBlocked()

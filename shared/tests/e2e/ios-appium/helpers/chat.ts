@@ -928,13 +928,47 @@ const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout
     {interval: 300, timeout}
   )
 
-// Long-presses the inbox row of the conversation named `name` (scrollInboxTo) to open its menu, a
-// bottom sheet of the conversation's actions. Bound: scrollInboxTo, then 15s.
-export const openInboxRowMenu = async (name: string) => {
-  const row = await scrollInboxTo(name)
-  await openSheetWith('the inbox row menu', async () =>
-    browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
-  )
+// The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
+// items), read off the React tree.
+const inboxRowMenuConversations = async () =>
+  jsEval<Array<string>>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const out = new Set()
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && p.showPinItems === true && p.visible === true && typeof p.onHidden === 'function' && typeof p.conversationIDKey === 'string') {
+        out.add(p.conversationIDKey)
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return [...out]
+  `)
+
+const ROW_MENU_PRESSES = 3
+
+// Long-presses the inbox row of the conversation named `name` to open its menu, a bottom sheet of
+// the conversation's actions, finding the row afresh (scrollInboxTo) for each press. The sheet must
+// be the menu of `convID`, the conversation the caller means: any other is closed and refused, so
+// no item of it is ever tapped. Bound: an open sheet closed 5, three presses of scrollInboxTo 90,
+// the press 1 and the sheet 3, the menu's read 1 and its close 5 = 295.
+export const openInboxRowMenu = async (name: string, convID: string) => {
+  await closeMessageMenu()
+  for (let press = 1; ; press++) {
+    const row = await scrollInboxTo(name)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
+    if (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
+    if (press >= ROW_MENU_PRESSES) throw new Error(`the inbox row menu did not open after ${ROW_MENU_PRESSES} long presses`)
+  }
+  const shown = await inboxRowMenuConversations()
+  if (shown.length !== 1 || shown[0] !== convID) {
+    await closeMessageMenu()
+    throw new Error(`the inbox row menu open is not the asked-for conversation's (${shown.length} row menus drawn)`)
+  }
 }
 
 // Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.

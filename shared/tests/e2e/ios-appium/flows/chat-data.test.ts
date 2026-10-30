@@ -94,7 +94,8 @@ describe('chat data', function () {
 
   let data: ChatData
   before(async function () {
-    this.timeout(20 * 60_000) // a first run seeds; later runs only check
+    // a first run seeds (later runs only check) within 20 minutes, then the block check's host read 75s
+    this.timeout(20 * 60_000 + 75_000)
     data = await ensureChatData()
     // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
     await requireSecondNotBlocked()
