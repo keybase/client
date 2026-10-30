@@ -1,8 +1,9 @@
+import {execFile, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from './run-id'
-import {forgetPaperKey, forgetRunPaperKeyNames, paperKeyNamesIn, paperKeyWords, readPaperKeys, recordPaperKey, rememberRunPaperKeyName, runPaperKeyNames} from './paper-key-ledger'
+import {forgetPaperKey, forgetRunPaperKeyNames, withPaperKeyLock, paperKeyNamesIn, paperKeyWords, readPaperKeys, recordPaperKey, rememberRunPaperKeyName, runPaperKeyNames} from './paper-key-ledger'
 
 let dir = ''
 let file = ''
@@ -91,18 +92,58 @@ test("a run's names are left out on read once they are a week old", () => {
 test('a names file that cannot be written leaves the key ledgered, and the name can be put there later', () => {
   const names = path.join(path.dirname(file), 'paper-key-names.json')
   const run = {...entry, runId: newRunId()}
-  fs.mkdirSync(path.dirname(names), {mode: 0o700, recursive: true})
-  // a lock another process holds
-  fs.writeFileSync(`${names}.lock`, '')
+  // a names file that cannot be read: a directory where it should be
+  fs.mkdirSync(names, {mode: 0o700, recursive: true})
   expect(() => recordPaperKey(run, file, true)).toThrow(/ledgered, but its name is not in the run's names file/)
   expect(readPaperKeys(file)).toEqual([run])
-  fs.rmSync(`${names}.lock`)
+  fs.rmSync(names, {recursive: true})
   rememberRunPaperKeyName(run, file, true)
   expect(runPaperKeyNames(run.runId, names)).toEqual(['apple banana'])
-  expect(fs.existsSync(`${names}.lock`)).toBe(false)
+  expect(fs.existsSync(path.join(path.dirname(file), 'paper-keys.lock'))).toBe(false)
 })
 
 test("paperKeyNamesIn names the env file's paper keys by their first two words, and nothing else", () => {
   const key = 'one two three four five six seven eight nine ten eleven twelve thirteen'
   expect(paperKeyNamesIn([key, 'e2e-not-a-key-1234', 'apple banana'])).toEqual(['one two'])
+})
+
+describe('the paper key lock', () => {
+  const lockIn = (d: string) => path.join(d, 'paper-keys.lock')
+
+  test("a dead holder's lock is taken away", () => {
+    const d = path.dirname(file)
+    fs.mkdirSync(d, {mode: 0o700, recursive: true})
+    // a process that has exited
+    const dead = spawnSync(process.execPath, ['-e', '']).pid
+    fs.writeFileSync(lockIn(d), String(dead))
+    expect(withPaperKeyLock(d, () => fs.readFileSync(lockIn(d), 'utf8'))).toBe(String(process.pid))
+    expect(fs.existsSync(lockIn(d))).toBe(false)
+  })
+
+  test("a live holder's lock is waited for and never removed", () => {
+    const d = path.dirname(file)
+    fs.mkdirSync(d, {mode: 0o700, recursive: true})
+    // a process that runs: this test's parent
+    fs.writeFileSync(lockIn(d), String(process.ppid))
+    expect(() => withPaperKeyLock(d, () => 'ran', 200)).toThrow(`is held by pid ${process.ppid}`)
+    expect(fs.readFileSync(lockIn(d), 'utf8')).toBe(String(process.ppid))
+  })
+
+  test('two processes adding names at once lose none of them', async () => {
+    const names = path.join(path.dirname(file), 'paper-key-names.json')
+    const lib = path.join(__dirname, 'paper-key-ledger.ts')
+    const runIds = [newRunId(), newRunId()]
+    const adder = async (runId: string) =>
+      new Promise<void>((resolve, reject) => {
+        const script = `import {recordRunPaperKeyName} from ${JSON.stringify(lib)}
+for (let i = 0; i < 15; i++) recordRunPaperKeyName(${JSON.stringify(runId)}, 'word' + i + ' ' + ${JSON.stringify(runId)}, ${JSON.stringify(names)})`
+        execFile(process.execPath, ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', '--input-type=module', '-e', script], e => (e ? reject(new Error(e.message)) : resolve()))
+      })
+    // two different run ids could still collide (the same minute and random characters): the test
+    // needs two entries
+    if (runIds[0] === runIds[1]) runIds[1] = `${runIds[1]?.slice(0, 4)}zz9`
+    await Promise.all(runIds.map(adder))
+    for (const runId of runIds) expect(runPaperKeyNames(runId, names)).toHaveLength(15)
+    expect(fs.existsSync(lockIn(path.dirname(names)))).toBe(false)
+  }, 60_000)
 })

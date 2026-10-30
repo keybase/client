@@ -57,9 +57,11 @@ const writePaperKeys = (entries: ReadonlyArray<PaperKeyEntry>, file: string) => 
 export const recordPaperKey = (entry: PaperKeyEntry, file = paperKeyLedgerPath(), recordName = scansPaperKeyNames()) => {
   const e = {deviceID: entry.deviceID, deviceName: entry.deviceName, runId: entry.runId}
   checkEntry(e)
-  const entries = readPaperKeys(file)
-  if (entries.some(x => x.deviceID === e.deviceID)) throw new Error(`paper key ledger: ${e.deviceID} is already recorded`)
-  writePaperKeys([...entries, e], file)
+  withPaperKeyLock(path.dirname(file), () => {
+    const entries = readPaperKeys(file)
+    if (entries.some(x => x.deviceID === e.deviceID)) throw new Error(`paper key ledger: ${e.deviceID} is already recorded`)
+    writePaperKeys([...entries, e], file)
+  })
   rememberRunPaperKeyName(e, file, recordName)
 }
 
@@ -127,36 +129,86 @@ const writeRunNames = (entries: ReadonlyArray<RunNames>, file: string, nowMs: nu
 }
 
 const LOCK_WAIT_MS = 5_000
-// a lock this old was left by a process that died holding it
-const LOCK_STALE_MS = 30_000
+const LOCK_FILE = 'paper-keys.lock'
 
-// Runs `f` holding the names file's lock (`<file>.lock`, made exclusively), so two processes that
-// read, change and write the file never lose each other's change.
-const withNamesLock = <T,>(file: string, f: () => T): T => {
-  const lock = `${file}.lock`
-  fs.mkdirSync(path.dirname(file), {mode: 0o700, recursive: true})
-  const until = Date.now() + LOCK_WAIT_MS
-  for (;;) {
+const sleepSync = (ms: number) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+
+const lockHolder = (lock: string) => {
+  try {
+    const pid = Number(fs.readFileSync(lock, 'utf8').trim())
+    return Number.isInteger(pid) && pid > 0 ? pid : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// Whether `pid` runs (a process of another user's answers EPERM, and runs too).
+const alive = (pid: number) => {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code !== 'ESRCH'
+  }
+}
+
+// Takes away a lock whose holder `dead` died. Renamed first, as only one taker's rename succeeds; a
+// lock that a live process took between the read and the rename is put back (a link fails rather
+// than replace one taken since), and never removed.
+const breakStale = (lock: string, dead: number) => {
+  const moved = `${lock}.stale-${process.pid}`
+  try {
+    fs.renameSync(lock, moved)
+  } catch {
+    return
+  }
+  if (lockHolder(moved) !== dead) {
     try {
-      fs.closeSync(fs.openSync(lock, 'wx', 0o600))
-      break
-    } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e
-      const age = Date.now() - (fs.statSync(lock, {throwIfNoEntry: false})?.mtimeMs ?? Date.now())
-      if (age > LOCK_STALE_MS) fs.rmSync(lock, {force: true})
-      else if (Date.now() > until) throw new Error(`${lock} is held by another process`, {cause: e})
-      else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+      fs.linkSync(moved, lock)
+    } catch {}
+  }
+  fs.rmSync(moved, {force: true})
+}
+
+// Runs `f` holding the paper key lock of `dir` (paper-keys.lock, next to the ledger and the names
+// file), so processes that read, change and write either file never lose each other's change. The
+// lock holds its taker's pid and is made in one atomic exclusive step (a file with the pid, linked
+// to the lock's name, which fails when the lock exists); a lock whose holder no longer runs is
+// taken away, a live holder's never. Released only by its own holder.
+export const withPaperKeyLock = <T,>(dir: string, f: () => T, waitMs = LOCK_WAIT_MS): T => {
+  const lock = path.join(dir, LOCK_FILE)
+  fs.mkdirSync(dir, {mode: 0o700, recursive: true})
+  const mine = `${lock}.${process.pid}`
+  fs.writeFileSync(mine, String(process.pid), {mode: 0o600})
+  try {
+    const until = Date.now() + waitMs
+    for (;;) {
+      try {
+        fs.linkSync(mine, lock)
+        break
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e
+        const holder = lockHolder(lock)
+        if (holder !== undefined && holder !== process.pid && !alive(holder)) {
+          breakStale(lock, holder)
+          continue
+        }
+        if (Date.now() > until) throw new Error(`${lock} is held by ${holder === undefined ? 'another process' : `pid ${holder}`}`, {cause: e})
+        sleepSync(50)
+      }
     }
+  } finally {
+    fs.rmSync(mine, {force: true})
   }
   try {
     return f()
   } finally {
-    fs.rmSync(lock, {force: true})
+    if (lockHolder(lock) === process.pid) fs.rmSync(lock, {force: true})
   }
 }
 
 export const recordRunPaperKeyName = (runId: string, deviceName: string, file = paperKeyNamesPath(), nowMs = Date.now()) =>
-  withNamesLock(file, () => {
+  withPaperKeyLock(path.dirname(file), () => {
     const words = paperKeyWords(deviceName)
     const entries = readRunNames(file, nowMs)
     const mine = entries.find(e => e.runId === runId)
@@ -172,7 +224,7 @@ export const runPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowM
 // Drops run `runId`'s names, and any older than a week, from the file.
 export const forgetRunPaperKeyNames = (runId: string, file = paperKeyNamesPath(), nowMs = Date.now()) => {
   if (!fs.existsSync(file)) return
-  withNamesLock(file, () => {
+  withPaperKeyLock(path.dirname(file), () => {
     writeRunNames(
       readRunNames(file, nowMs).filter(e => e.runId !== runId),
       file,
@@ -181,8 +233,9 @@ export const forgetRunPaperKeyNames = (runId: string, file = paperKeyNamesPath()
   })
 }
 
-export const forgetPaperKey = (deviceID: string, file = paperKeyLedgerPath()) => {
-  const entries = readPaperKeys(file)
-  const left = entries.filter(e => e.deviceID !== deviceID)
-  if (left.length !== entries.length) writePaperKeys(left, file)
-}
+export const forgetPaperKey = (deviceID: string, file = paperKeyLedgerPath()) =>
+  withPaperKeyLock(path.dirname(file), () => {
+    const entries = readPaperKeys(file)
+    const left = entries.filter(e => e.deviceID !== deviceID)
+    if (left.length !== entries.length) writePaperKeys(left, file)
+  })
