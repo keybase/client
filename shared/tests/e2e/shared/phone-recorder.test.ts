@@ -1,4 +1,14 @@
-import {NO_PHONE_RECORDER, recordingFrom, startPhoneRecorder, startRecorderBody, takePhoneRecorder, takeRecorderBody} from './phone-recorder'
+import {
+  callsSinceBody,
+  NO_PHONE_RECORDER,
+  pauseRecorderBody,
+  recordingFrom,
+  resumeRecorderBody,
+  startPhoneRecorder,
+  startRecorderBody,
+  takePhoneRecorder,
+  takeRecorderBody,
+} from './phone-recorder'
 
 const recording = {routes: ['loggedIn', 'settingsRoot'], rpcs: ['a.b'], startRoutes: ['loggedIn']}
 
@@ -7,6 +17,15 @@ const runtime = (token: string) => {
   const calls: Array<string> = []
   const g = {
     __kbE2ERecorder: {
+      calls: (since: number) => {
+        calls.push(`calls ${since}`)
+        return {calls: [{method: 'a.b', paused: false, seq: since + 1}], seq: since + 1}
+      },
+      pause: () => {
+        calls.push('pause')
+        return 'tok'
+      },
+      resume: (t: string) => void calls.push(`resume ${t}`),
       start: (o: unknown) => void calls.push(`start ${JSON.stringify(o)}`),
       take: () => {
         calls.push('take')
@@ -55,4 +74,19 @@ test('start and take refuse an app with no recorder, through any eval channel', 
   await expect(startPhoneRecorder(none)).rejects.toThrow(NO_PHONE_RECORDER)
   await expect(takePhoneRecorder(none, 'r1')).rejects.toThrow(NO_PHONE_RECORDER)
   await expect(startPhoneRecorder(async <R,>(_b: string) => Promise.resolve('r2' as R))).resolves.toBe('r2')
+})
+
+test('pause answers its token, resume hands the token back, and calls reads the log after a seq', () => {
+  const rt = runtime('r1')
+  expect(rt.run(pauseRecorderBody)).toBe('tok')
+  expect(rt.run(resumeRecorderBody('tok'))).toBe(true)
+  expect(rt.run(callsSinceBody(4))).toEqual({calls: [{method: 'a.b', paused: false, seq: 5}], seq: 5})
+  expect(rt.calls).toEqual(['pause', 'resume tok', 'calls 4'])
+})
+
+test('pause, resume and calls answer null without a recorder', () => {
+  for (const body of [pauseRecorderBody, resumeRecorderBody('tok'), callsSinceBody(0)]) {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    expect((new Function('globalThis', body) as (g: unknown) => unknown)({})).toBeNull()
+  }
 })

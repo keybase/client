@@ -1,10 +1,21 @@
 // The dev app's route and RPC recorder (visual/fixtures/runtime.ts), driven over Metro's inspector
 // on the phone. A JS reload or relaunch starts a new runtime and drops the recording, so a run
 // checkpoints after any step that may do that.
+import type {CallLog} from '../../shared/call-log.ts'
 import {listInspectorPages} from '../../shared/metro-eval.ts'
-import {recordingFrom, RUNTIME_BODY, startPhoneRecorder as startOn, takePhoneRecorder as takeOn} from '../../shared/phone-recorder.ts'
+import {
+  callsSinceBody,
+  NO_PHONE_RECORDER,
+  pauseRecorderBody,
+  recordingFrom,
+  resumeRecorderBody,
+  RUNTIME_BODY,
+  startPhoneRecorder as startOn,
+  takePhoneRecorder as takeOn,
+} from '../../shared/phone-recorder.ts'
 import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
 import {BUNDLE_ID, deviceName, jsEval} from '../helpers/lifecycle'
+import {pausedAround} from './harness-rpcs-lib.ts'
 import {nextRecordingAction} from './recorder-lib.ts'
 import {ensureErrorCapture} from './errors.ts'
 
@@ -12,6 +23,32 @@ const RELOAD_WAIT_MS = 60_000
 
 const startPhoneRecorder = async (opts?: {includeBoot?: boolean}) => startOn(jsEval, opts)
 const takePhoneRecorder = async (startedIn: string) => takeOn(jsEval, startedIn)
+
+const pausePhoneRecorder = async (): Promise<string> => {
+  const token = await jsEval<string | null>(pauseRecorderBody)
+  if (!token) throw new Error(NO_PHONE_RECORDER)
+  return token
+}
+
+const resumePhoneRecorder = async (token: string) => {
+  if (!(await jsEval<boolean | null>(resumeRecorderBody(token)))) throw new Error(NO_PHONE_RECORDER)
+}
+
+// Runs f, which makes the app send RPCs itself (an eval calling an RPC or a store action that sends
+// one), with the recorder paused, so the recording never credits them. Wrap only the eval and its own
+// wait: a UI step inside the window would go uncredited.
+export const withHarnessRpcs = async <R>(what: string, f: () => Promise<R>): Promise<R> =>
+  pausedAround({pause: pausePhoneRecorder, resume: resumePhoneRecorder}, what, f)
+
+// The app's outgoing calls since `seq` while recording (paused ones flagged), read off its recorder.
+export const callsSince = async (seq: number): Promise<CallLog> => {
+  const log = await jsEval<CallLog | null>(callsSinceBody(seq))
+  if (!log) throw new Error(NO_PHONE_RECORDER)
+  return log
+}
+
+// The seq of the app's latest logged call, for a later callsSince.
+export const currentCallSeq = async () => (await callsSince(Number.MAX_SAFE_INTEGER)).seq
 
 const currentRuntime = async (): Promise<string | undefined> => {
   try {

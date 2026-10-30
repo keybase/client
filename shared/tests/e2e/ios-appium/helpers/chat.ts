@@ -11,6 +11,7 @@ import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
+import {withHarnessRpcs} from '../gate/recorder.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -503,17 +504,19 @@ export const switchAppAccount = async (username: string) => {
 // synchronously, so it starts the RPC and polls for its outcome.
 export const deleteChannelAsApp = async (convID: string, channelName: string) => {
   const key = `__e2eDelete${Date.now()}`
-  await jsEval(`
-    const g = globalThis; g.${key} = 'pending'
-    kbModule('constants/rpc/rpc-chat-gen.tsx')
-      .localDeleteConversationLocalRpcPromise({
-        channelName: ${JSON.stringify(channelName)},
-        confirmed: true,
-        convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(convID)}),
-      })
-      .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) })
-    return true
-  `)
+  await withHarnessRpcs(`deleting #${channelName}`, async () =>
+    jsEval(`
+      const g = globalThis; g.${key} = 'pending'
+      kbModule('constants/rpc/rpc-chat-gen.tsx')
+        .localDeleteConversationLocalRpcPromise({
+          channelName: ${JSON.stringify(channelName)},
+          confirmed: true,
+          convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(convID)}),
+        })
+        .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) })
+      return true
+    `)
+  )
   const state = await waitFor(
     `#${channelName} to be deleted`,
     async () => {
@@ -1026,8 +1029,11 @@ export const outgoingRpcs = (lines: ReadonlyArray<string>) => {
 // Starts a switch to another account signed in on this device through the app's own switch (what
 // the account switcher's row calls), for a flow that keeps typing while it runs.
 export const startAppAccountSwitch = async (username: string) => {
-  const started = await jsEval<boolean>(
-    `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+  // only the dispatch is paused: the flow's typing during the switch must still be credited
+  const started = await withHarnessRpcs('the account switch', async () =>
+    jsEval<boolean>(
+      `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+    )
   )
   if (!started) throw new Error(`the app would not switch to ${username}`)
 }
