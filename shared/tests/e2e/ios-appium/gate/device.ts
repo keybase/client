@@ -24,6 +24,7 @@ const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
+// Delivering the link is not the credit's proof: the caller asserts the screen the app routed it to.
 export const openLink = (url: string) => {
   openUrl(url)
   creditSurface('deep-link')
@@ -40,12 +41,14 @@ export const addPhotos = (paths: Array<string>) => {
   simctl('addmedia', deviceUdid(), ...paths)
 }
 
+// Setting the location is not the credit's proof: the caller asserts the app used it.
 export const setLocation = (lat: number, lon: number) => {
   simctlSetLocation(lat, lon)
   creditSurface('location')
 }
 
-// The text goes over stdin, never the command line; never use these for a secret.
+// The text goes over stdin, never the command line; never use these for a secret. No credit: a flow
+// that asserts the pasted text landed in the app credits 'pasteboard' itself.
 export const setPasteboard = (text: string) => {
   execFileSync('xcrun', ['simctl', 'pbcopy', deviceUdid()], {
     input: text,
@@ -53,7 +56,6 @@ export const setPasteboard = (text: string) => {
     stdio: ['pipe', 'pipe', 'pipe'],
     timeout: PASTEBOARD_MS,
   })
-  creditSurface('pasteboard')
 }
 
 const runtimeId = async (): Promise<string | undefined> =>
@@ -84,6 +86,7 @@ const keepErrors = async () => {
 }
 
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
+// The new runtime is not the credit's proof: the caller asserts what the app shows after it.
 export const relaunchApp = async () => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
