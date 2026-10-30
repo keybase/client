@@ -53,3 +53,7 @@ test('every manual-only reason in the exclusions names an IOS_MANUAL_ONLY id', (
 test('every excluded surface is a listed surface', () => {
   for (const s of Object.keys(IOS_EXCLUSIONS.surfaces ?? {})) expect(IOS_SURFACES as ReadonlyArray<string>).toContain(s)
 })
+
+test('the phone as a new device is a manual-only step', () => {
+  expect(IOS_MANUAL_ONLY['phone-new-device'].title).toBe('Phone as a new device')
+})

@@ -53,6 +53,10 @@ export const IOS_MANUAL_ONLY = {
     doByHand: 'Install the release build from TestFlight or the App Store and update over the previous version; the app launches signed in.',
     title: 'App Store and TestFlight install and update',
   },
+  'phone-new-device': {
+    doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
+    title: 'Phone as a new device',
+  },
 } satisfies Record<string, {title: string; doByHand: string}>
 
 export type IosManualOnlyId = keyof typeof IOS_MANUAL_ONLY

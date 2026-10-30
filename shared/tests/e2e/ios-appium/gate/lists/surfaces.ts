@@ -32,6 +32,8 @@ const hasKey = (plist: string, key: string) => plist.includes(`<key>${key}</key>
 
 // Each marker is the app's own declaration of the surface. file-picker, background-foreground,
 // relaunch and pasteboard have no native declaration to read, so they always count as existing.
+// A plist that still exists but renamed or moved a key (not the file) makes its surface silently
+// count as not existing: only a missing file throws.
 const markers: Record<IosSurface, ((sharedDir: string) => boolean) | undefined> = {
   'background-foreground': undefined,
   camera: d => hasKey(read(d, 'Keybase/Info.plist'), 'NSCameraUsageDescription'),
