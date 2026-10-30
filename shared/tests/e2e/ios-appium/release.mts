@@ -8,11 +8,12 @@
 //      (/tmp/kb-e2e-release.lock, KB_E2E_RELEASE_LOCK, shared with the desktop release command, as
 //      both sweep the same accounts), the host's service is on KB_SMOKE_USER (the sweep and setup run
 //      through it), the simulator (KB_IOS_DEVICE, default iPhoneTest) is booted with a window open,
-//      keybase.ios on it is a signed dev build, ports 8081/4723/8100 are free (a WebDriverAgent an
-//      earlier Appium session left on this simulator is stopped; a Metro an earlier release run left
-//      is stopped by launch), no visual gate run holds its lock, the macOS session is unlocked, KBFS
-//      answers, both peers answer (started if not) and `accounts/setup --check` passes. Nothing is
-//      launched before it passes; the host service is never switched, and the app is never installed
+//      keybase.ios on it is a signed dev build, ports 8081/4723/8100 are free or hold harness residue
+//      (a Metro an earlier release run left, stopped by launch; a WebDriverAgent an earlier Appium
+//      session left on this simulator, stopped once every other check passes), no visual gate run
+//      holds its lock, the macOS session is unlocked, KBFS answers, both peers answer (started if
+//      not) and `accounts/setup --check` passes. Nothing is launched or stopped before it passes; the
+//      host service is never switched, and the app is never installed
 //   2. launch: Metro from this checkout (watch mode), the app relaunched on its bundle, and the app
 //      checked to be on KB_SMOKE_USER
 //   3. sweep what earlier runs left in the test accounts (once)
@@ -20,12 +21,13 @@
 //   5. the visual tour in render mode (`visual render --ios`), after the flows: render leaves the
 //      simulator's Reduce Motion on until the app's next launch
 //   6. census, then the report, opened unless KB_E2E_NO_OPEN=1
-//   7. a scan of ios-report/, ios-debug/, ios-logs/ and the render dir for the env file's secrets: a
-//      file that holds one is deleted and named, and the run fails
+//   7. a scan of ios-report/, ios-debug/, ios-logs/, the render dir, ios-report.html, ios-census.md,
+//      ios-census.json and ios-manual-checklist.md for the env file's secrets: a file that holds one
+//      is deleted and named, and the run fails
 // Then it stops the Metro and Appium it started (and the WebDriverAgent Appium left), leaving the
 // simulator booted and the app running, prints one line per phase and posts a macOS notification.
-// Children log to tests/results/ios-logs/ (metro, flows, render, census, report, sweep) and get
-// this run's KB_E2E_RUN_ID.
+// Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
+// emptied when the run takes the lock) and get this run's KB_E2E_RUN_ID.
 //
 // KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 240)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
@@ -56,17 +58,16 @@ import {
   type PwReport,
   type RenderResultRow,
 } from '../shared/gate/release-lib.ts'
-import {portHolders} from '../shared/gate/ports.ts'
+import {portHolders, type PortHolder} from '../shared/gate/ports.ts'
 import {runSync, udidForName} from './helpers/app.ts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
-import {METRO_PORT, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stopMetro, BUNDLE_ID} from './launch.mts'
+import {BUNDLE_ID, METRO_PORT, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stillMetro, stopMetro} from './launch.mts'
 import {
   appSignedFromAppinfo,
   iosPreflightProblems,
   isWdaResidue,
   IOS_RELEASE_PORTS,
-  parsePs,
   simulatorFromList,
   strayChildren,
   type IosPreflightState,
@@ -77,6 +78,7 @@ const resultsDir = path.join(sharedDir, 'tests/results')
 const logsDir = path.join(resultsDir, 'ios-logs')
 const out = {
   census: path.join(resultsDir, 'ios-census.md'),
+  censusJson: path.join(resultsDir, 'ios-census.json'),
   checklist: path.join(resultsDir, 'ios-manual-checklist.md'),
   debug: path.join(resultsDir, 'ios-debug'),
   report: path.join(resultsDir, 'ios-report.html'),
@@ -117,8 +119,9 @@ const {endRun, log, phase, phases, remainingMs, runChild, runStart} = run
 
 let udid: string | undefined
 let metroPgid: number | undefined
-// set once preflight found 4723 and 8100 free: anything on them after that is this run's
-let portsWereFree = false
+// set once preflight passed (4723 free, 8100 free or its residue stopped): only then does cleanup
+// stop anything, and anything on those ports after that is this run's
+let preflightPassed = false
 let renderDir: string | undefined
 // renderDir, when this run's render wrote an iOS render.json there
 const renderedDir = () => {
@@ -171,8 +174,6 @@ const stopPids = async (pids: ReadonlyArray<number>) => {
   return gone(5_000)
 }
 
-const processes = () => parsePs(spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,command='], {encoding: 'utf8', timeout: 10_000}).stdout)
-
 // Every process of the WebDriverAgent an Appium session left on this simulator (release-lib.ts isWdaResidue).
 const wdaResiduePids = (id: string) =>
   processes()
@@ -195,8 +196,8 @@ const stopWda = async (id: string, why: string) => {
 // started (or recorded), the Appium its children left on 4723, and the WebDriverAgent Appium left on
 // this simulator. The simulator and the app stay up. False when something would not stop.
 const stopWhatItStarted = async () => {
-  // a run refused for the lock started nothing, and the pidfile is the other run's
-  if (!run.holdsLock()) return true
+  // a refused run started nothing: what is on the ports, and in a pidfile, is someone else's
+  if (!run.holdsLock() || !preflightPassed) return true
   let ok = true
   const strays = strayChildren(processes(), process.pid)
   if (strays.length) {
@@ -212,6 +213,10 @@ const stopWhatItStarted = async () => {
   if (recorded && recorded.start >= runStart) pgids.add(recorded.pgid)
   metroPgid = undefined
   for (const pgid of pgids) {
+    if (!stillMetro(pgid)) {
+      log(`process group ${pgid} it recorded for Metro is no longer a Metro; left alone`)
+      continue
+    }
     log(`stopping the Metro it started (process group ${pgid}); the simulator and the app stay up`)
     try {
       await stopMetro(pgid)
@@ -220,7 +225,8 @@ const stopWhatItStarted = async () => {
       log(`could not stop Metro: ${errText(e)}`)
     }
   }
-  if (!portsWereFree) return ok
+  // 4723 was free when preflight passed, so an Appium on it now was started by this run's children;
+  // the command check only keeps a server someone started since then out of it
   const appium = portHolders(APPIUM_PORT)
   if ('error' in appium) {
     ok = false
@@ -274,11 +280,15 @@ const appSignedState = (id: string): NonNullable<IosPreflightState['appSigned']>
   }
 }
 
-const portState = (port: number, recordedMetro: number | undefined): IosPreflightState['ports'][number] => {
+// A port's holders are ours when every one is harness residue: the Metro an earlier release run
+// recorded (8081), or the WebDriverAgent an earlier Appium session left on this simulator (8100).
+const portState = (port: number, recordedMetro: number | undefined, id: string | undefined): IosPreflightState['ports'][number] => {
   const r = portHolders(port)
   if ('error' in r) return {error: r.error, holders: [], ours: false, port}
-  const ours = port === METRO_PORT && recordedMetro !== undefined && r.holders.length > 0 && r.holders.every(h => h.pgid === recordedMetro)
-  return {holders: r.holders, ours, port}
+  const residue = (h: PortHolder) =>
+    (port === METRO_PORT && recordedMetro !== undefined && h.pgid === recordedMetro) ||
+    (port === WDA_PORT && id !== undefined && isWdaResidue(fullCommand(h.pid), id))
+  return {holders: r.holders, ours: r.holders.length > 0 && r.holders.every(residue), port}
 }
 
 const screenState = (): IosPreflightState['screen'] => {
@@ -298,19 +308,15 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     const releaseLockHeld = errText(e)
     return {env, problems: iosPreflightProblems({device, hostWhoami: {error: 'not checked', ok: false}, ports: [], releaseLockHeld, simulator: notChecked, smokeUser: env.smokeUser})}
   }
+  // the logs hold this run's alone, preflight's children included
+  fs.rmSync(logsDir, {force: true, recursive: true})
+  fs.mkdirSync(logsDir, {recursive: true})
   const hostWhoami = await mainWhoami().then(
     user => ({ok: true, user}) as const,
     (e: unknown) => ({error: errText(e), ok: false}) as const
   )
   const simulator = simulatorState()
   const booted = !('error' in simulator) && simulator.booted
-  // the WebDriverAgent an earlier Appium session left is the harness's own, not someone else's server
-  if (udid) {
-    const wda = portHolders(WDA_PORT)
-    if (!('error' in wda) && wda.holders.some(h => isWdaResidue(fullCommand(h.pid), udid ?? ''))) {
-      await stopWda(udid, 'an earlier Appium session left')
-    }
-  }
   let lockHeld: string | undefined
   try {
     assertNotLocked('the iOS release run')
@@ -326,7 +332,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     hostWhoami,
     ...(onSmoke ? {kbfs: {path: kbfsPath, ...(await outcome(runKeybase(['fs', 'ls', kbfsPath], {timeoutMs: 15_000})))}} : {}),
     ...(lockHeld ? {lockHeld} : {}),
-    ports: IOS_RELEASE_PORTS.map(p => portState(p, recordedMetro)),
+    ports: IOS_RELEASE_PORTS.map(p => portState(p, recordedMetro, udid)),
     screen: screenState(),
     simulator,
     smokeUser: env.smokeUser,
@@ -336,11 +342,18 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     const peers: Array<{role: string} & Outcome> = []
     for (const role of peerRoles) peers.push({role, ...(await outcome(ensurePeer(role, env)))})
     state.peers = peers
-    const check = await runChild('setup --check', 'node', node('tests/e2e/accounts/setup.mts', '--check'), 2 * MIN)
-    state.setupCheck = check.code === 0 ? {ok: true} : {error: check.stdout || `exit ${check.code}`, ok: false}
+    const check = await runChild('setup --check', 'node', node('tests/e2e/accounts/setup.mts', '--check'), 2 * MIN, {logFile: logFile('setup-check')})
+    state.setupCheck = check.code === 0 ? {ok: true} : {error: `${check.stdout || `exit ${check.code}`}${logFailed(check)}`, ok: false}
   }
   const problems = iosPreflightProblems(state)
-  portsWereFree = state.ports.every(p => p.port === METRO_PORT || (!p.error && !p.holders.length))
+  if (problems.length) return {env, problems}
+  // Only now, with nobody else's Appium on 4723 and no visual run holding its lock, is a
+  // WebDriverAgent on 8100 an earlier session's leftover rather than a live run's.
+  const wdaPort = state.ports.find(p => p.port === WDA_PORT)
+  if (udid && wdaPort?.ours && !(await stopWda(udid, 'an earlier Appium session left'))) {
+    return {env, problems: [`the WebDriverAgent an earlier Appium session left on ${device} would not stop; stop it to free port ${WDA_PORT}`]}
+  }
+  preflightPassed = true
   return {env, problems}
 }
 
@@ -380,8 +393,6 @@ const main = async () => {
   const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv), {KB_IOS_DEVICE: device})
-  fs.rmSync(logsDir, {force: true, recursive: true})
-  fs.mkdirSync(logsDir, {recursive: true})
 
   const launched = await phase('launch', async () => {
     const left = recordedMetroPgid()
@@ -484,7 +495,7 @@ const main = async () => {
 
   // last, over everything the run wrote: no artifact may hold a secret from the env file
   await phase('secrets', async () => {
-    const scan = scanAndPurge([out.reportDir, out.debug, logsDir, ...(renderDir ? [renderDir] : [])], secrets.secrets())
+    const scan = scanAndPurge([out.reportDir, out.debug, logsDir, out.report, out.census, out.censusJson, out.checklist, ...(renderDir ? [renderDir] : [])], secrets.secrets())
     secrets.stop()
     for (const f of scan.hits) log(`secret found, deleted: ${f}`)
     return Promise.resolve({line: scan.line, ok: !scan.hits.length})

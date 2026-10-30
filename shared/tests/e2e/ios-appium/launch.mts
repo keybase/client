@@ -2,14 +2,16 @@
 // rn:start, watch mode, in its own process group so a Ctrl-C in the terminal reaches only the release
 // command), its output to a log the run scans for secrets, and its group recorded in a pidfile so a
 // later run can tell it from anyone else's Metro. The app is relaunched so it loads that bundle.
-import {spawn} from 'child_process'
+import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import {groupAlive, stopAppGroup} from '../electron/app-pidfile.ts'
+import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
 import {runSync} from './helpers/app.ts'
 import {APP_ACCOUNT_BODY, type AppAccount} from './gate/app-account-lib.ts'
+import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
 export const METRO_PORT = 8081
@@ -29,10 +31,20 @@ export const readMetroPidfile = (): MetroPidfile | undefined => {
   }
 }
 
+export const processes = () => parsePs(spawnSync('ps', ['-axww', '-o', 'pid=,ppid=,pgid=,command='], {encoding: 'utf8', timeout: 10_000}).stdout)
+
+// Whether `pgid` is still running a Metro (release-lib.ts isMetroGroup): a recorded group id is only
+// ever signalled while it is.
+export const stillMetro = (pgid: number) => {
+  if (!groupAlive(pgid)) return false
+  const holders = portHolders(METRO_PORT)
+  return isMetroGroup(processes(), pgid, 'error' in holders ? [] : holders.holders.map(h => h.pgid))
+}
+
 // The Metro group an earlier release run recorded and that is still running, if any.
 export const recordedMetroPgid = () => {
   const r = readMetroPidfile()
-  return r && groupAlive(r.pgid) ? r.pgid : undefined
+  return r && stillMetro(r.pgid) ? r.pgid : undefined
 }
 
 export const stopMetro = async (pgid: number) => {

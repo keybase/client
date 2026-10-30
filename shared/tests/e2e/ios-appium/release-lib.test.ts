@@ -1,6 +1,7 @@
 import {
   appSignedFromAppinfo,
   iosPreflightProblems,
+  isMetroGroup,
   isWdaResidue,
   parsePs,
   strayChildren,
@@ -57,7 +58,9 @@ describe('iosPreflightProblems', () => {
 
   test('a signed out or silent host service refuses', () => {
     expect(only(ok({hostWhoami: {ok: true, user: ''}}))).toContain('signed in as nobody')
-    expect(only(ok({hostWhoami: {error: 'no answer in 15s', ok: false}}))).toContain('does not answer whoami (no answer in 15s)')
+    const silent = only(ok({hostWhoami: {error: 'no answer in 15s', ok: false}}))
+    expect(silent).toContain('does not answer whoami (no answer in 15s)')
+    expect(silent).toContain('keybase ctl start')
   })
 
   test('a simulator that is not booted names the boot command', () => {
@@ -88,7 +91,7 @@ describe('iosPreflightProblems', () => {
     expect(p).toContain('port 4723 (Appium) is held by pid 78 (node server.js)')
   })
 
-  test('a port held by a Metro an earlier release run left is not a problem', () => {
+  test('harness residue on a port (an earlier Metro or WebDriverAgent) is not a problem', () => {
     expect(iosPreflightProblems(ok({ports: [{holders: [{command: 'node expo start', pgid: 50, pid: 51}], ours: true, port: 8081}]}))).toEqual([])
   })
 
@@ -110,7 +113,7 @@ describe('iosPreflightProblems', () => {
   })
 
   test('a failing peer refuses, naming its role', () => {
-    expect(only(ok({peers: [{error: 'no socket', ok: false, role: 'owner'}]}))).toBe('peer owner: no socket')
+    expect(only(ok({peers: [{error: 'no socket', ok: false, role: 'owner'}]}))).toBe('peer owner: no socket; yarn test:e2e:accounts:setup provisions and signs in the peers')
   })
 
   test('a failing setup check refuses with its output', () => {
@@ -195,5 +198,24 @@ describe('strayChildren', () => {
 describe('parsePs', () => {
   test('reads pid, ppid, pgid and the whole command', () => {
     expect(parsePs('  12   1  10 node a b\n\n')).toEqual([{command: 'node a b', pgid: 10, pid: 12, ppid: 1}])
+  })
+})
+
+describe('isMetroGroup', () => {
+  const rows = [
+    {command: 'node /x/yarn.js rn:start', pgid: 50, pid: 50, ppid: 1},
+    {command: 'node /x/node_modules/.bin/expo start --clear', pgid: 51, pid: 52, ppid: 51},
+    {command: '/usr/bin/some-daemon', pgid: 60, pid: 60, ppid: 1},
+  ]
+
+  test('a group running yarn rn:start or expo start, or holding the port, is a Metro', () => {
+    expect(isMetroGroup(rows, 50, [])).toBe(true)
+    expect(isMetroGroup(rows, 51, [])).toBe(true)
+    expect(isMetroGroup(rows, 60, [60])).toBe(true)
+  })
+
+  test('a recycled group id running something else is not', () => {
+    expect(isMetroGroup(rows, 60, [])).toBe(false)
+    expect(isMetroGroup(rows, 70, [51])).toBe(false)
   })
 })

@@ -46,8 +46,10 @@ export const watchEnvSecrets = (read: () => ReadonlyArray<string> = envSecrets, 
   }
 }
 
+// `dir` may also name a single file
 const filesUnder = (dir: string): Array<string> => {
   if (!fs.existsSync(dir)) return []
+  if (fs.statSync(dir).isFile()) return [dir]
   return fs.readdirSync(dir, {withFileTypes: true}).flatMap(d => {
     const p = path.join(dir, d.name)
     if (d.isDirectory()) return filesUnder(p)

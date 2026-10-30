@@ -8,7 +8,6 @@ const desktopOnly = 'desktop only: the phone has no such screen'
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     kextPermission: `${desktopOnly} (the macOS kernel extension permission popup; Settings > Files shows its entry only on macOS and Windows)`,
-    'settingsTabs.screenprotector': 'android only: iOS Settings lists the Screen protector row only on Android',
   },
   rpcs: {
     'keybase.1.config.startUpdateIfNeeded': `${desktopOnly}: the desktop app updater (desktop/renderer/remote-event-handler.desktop.tsx)`,

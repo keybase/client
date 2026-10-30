@@ -22,8 +22,9 @@ export type IosPreflightState = {
   simulator: {booted: boolean; visible: boolean} | {error: string}
   // left out until the simulator is booted
   appSigned?: boolean | {error: string}
-  // `ours`: every holder is the Metro an earlier release run recorded, which launch stops; `error`
-  // when lsof could not say who listens
+  // `ours`: every holder is harness residue the run stops once preflight passes (the Metro an earlier
+  // release run recorded, on 8081, or the WebDriverAgent an earlier Appium session left on this
+  // simulator, on 8100); `error` when lsof could not say who listens
   ports: ReadonlyArray<{port: number; holders: ReadonlyArray<PortHolder>; ours: boolean; error?: string}>
   // the visual gate lock's holder, when a live process holds it
   lockHeld?: string
@@ -40,7 +41,9 @@ export const iosPreflightProblems = (s: IosPreflightState): Array<string> => {
   if (s.releaseLockHeld) return [`${s.releaseLockHeld}; another release run is going, wait for it to finish`]
   const out: Array<string> = []
   if (!s.hostWhoami.ok) {
-    out.push(`the host's keybase service does not answer whoami (${s.hostWhoami.error}); start it signed in as KB_SMOKE_USER`)
+    out.push(
+      `the host's keybase service does not answer whoami (${s.hostWhoami.error}); start it (keybase ctl start) and sign it in as KB_SMOKE_USER (keybase login --switch ${s.smokeUser})`
+    )
   } else if (s.hostWhoami.user !== s.smokeUser) {
     out.push(
       `the host's keybase service is signed in as ${s.hostWhoami.user || 'nobody'}, not KB_SMOKE_USER; ` +
@@ -74,7 +77,7 @@ export const iosPreflightProblems = (s: IosPreflightState): Array<string> => {
   else if (s.screen?.locked) out.push('the macOS session is locked, and a locked session throttles the simulator; unlock it and rerun')
   if (s.kbfs && !s.kbfs.ok) out.push(`KBFS does not answer for ${s.kbfs.path} (${s.kbfs.error}); start it: ${KBFS_START_COMMAND}`)
   for (const p of s.peers ?? []) {
-    if (!p.ok) out.push(`peer ${p.role}: ${p.error}`)
+    if (!p.ok) out.push(`peer ${p.role}: ${p.error}; yarn test:e2e:accounts:setup provisions and signs in the peers`)
   }
   if (s.setupCheck && !s.setupCheck.ok) out.push(`yarn test:e2e:accounts:setup --check failed:\n    ${s.setupCheck.error.trim().split('\n').join('\n    ')}`)
   return out
@@ -141,3 +144,9 @@ export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number): Array<n
     .filter(r => r.pgid === me.pgid && !ancestors.has(r.pid) && r.command.includes('tests/e2e/') && (r.ppid === 1 || descends(r)))
     .map(r => r.pid)
 }
+
+// Whether process group `pgid` is a Metro: it holds Metro's port, or one of its processes is `yarn
+// rn:start` or `expo start`. A pidfile's group id outlives the group, and the system may hand it to
+// an unrelated group later.
+export const isMetroGroup = (rows: ReadonlyArray<PsRow>, pgid: number, metroPortPgids: ReadonlyArray<number>) =>
+  metroPortPgids.includes(pgid) || rows.some(r => r.pgid === pgid && /\brn:start\b|\bexpo start\b/.test(r.command))

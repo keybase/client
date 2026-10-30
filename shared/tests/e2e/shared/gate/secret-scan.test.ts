@@ -84,3 +84,15 @@ test('the timer catches a value between samples, and a failed read later on is s
     jest.useRealTimers()
   }
 })
+
+test('a file named among the dirs is scanned, and a missing one is skipped', () => {
+  const hit = path.join(dir, 'report.html')
+  const clean = path.join(dir, 'census.md')
+  fs.writeFileSync(hit, `<p>${first}</p>`)
+  fs.writeFileSync(clean, 'nothing here')
+  const scan = scanAndPurge([hit, clean, path.join(dir, 'missing.json')], [first])
+  expect(scan.hits).toEqual([hit])
+  expect(scan.scanned).toBe(2)
+  expect(fs.existsSync(hit)).toBe(false)
+  expect(fs.existsSync(clean)).toBe(true)
+})
