@@ -232,7 +232,8 @@ describe('account signed out', () => {
       this.timeout(AS_SECOND_MS + 350_000)
       const {secondUser} = loadE2EAccounts()
       await fromSecondsLoginScreen(async () => {
-        const lostAll = () => labeled('StaticText', 'I lost all my devices/paper keys')
+        // one row whose label merges its two texts, like the device rows
+        const lostAll = row('I lost all my devices/paper keys')
         await scrollTo(lostAll, 'the row for losing every device')
         await tapToScreen(lostAll, 'recoverPasswordPromptResetAccount')
         expect(await waitForScreen('recoverPasswordPromptResetAccount')).toMatchObject({skipPassword: true, username: secondUser})
