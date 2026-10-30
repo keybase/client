@@ -265,3 +265,29 @@ test('finish releases the lock, so a later run on the same path takes it', async
   assert.equal(b.holdsLock(), true)
   await end(b)
 })
+
+test('runChild resolves after a timeout even while a grandchild keeps its stdout open', async () => {
+  const run = newRun({exits: [], notes: []})
+  // the grandchild inherits the child's stdout and outlives it
+  const script = `const c = require('child_process').spawn(process.execPath, ['-e', 'setTimeout(()=>{},30000)'], {stdio: ['ignore', 'inherit', 'inherit']}); console.log(c.pid); setTimeout(()=>{},60000)`
+  let grandchild = 0
+  try {
+    const lines = await capture(async () => {
+      const started = Date.now()
+      const r = await Promise.race([
+        run.runChild('holder', process.execPath, ['-e', script], 300),
+        new Promise<'pending'>(resolve => setTimeout(() => resolve('pending'), 8_000)),
+      ])
+      assert.notEqual(r, 'pending', 'runChild still pending 8s after its timeout')
+      if (r === 'pending') return
+      grandchild = Number(r.stdout.trim())
+      assert.equal(r.timedOut, true)
+      assert.equal(r.code, null)
+      assert.ok(Date.now() - started < 8_000)
+    })
+    assert.ok(lines.some(l => l.includes('holder: not done in')))
+  } finally {
+    if (grandchild > 0 && alive(grandchild)) process.kill(grandchild, 'SIGKILL')
+  }
+  await end(run)
+})
