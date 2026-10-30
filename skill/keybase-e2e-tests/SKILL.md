@@ -85,6 +85,25 @@ The gate's code lives in `tests/e2e/shared/gate/` (shared with the iOS gate); it
 
 **Paper keys and devices:** a paper key a flow makes is recorded in the paper-key ledger (`accounts/paper-key-ledger.ts`: run id, device id and name, never the words) with `recordPaperKey`, and removed with `forgetPaperKey` once revoked; the sweeper revokes only ledger entries. A provisioned device is a new peer home `homes/prov-<runid>` with the file secret store, stopped with `ctl stop --shutdown` before it is revoked. Nothing provisions the main service.
 
+## iOS gate harness
+
+The iOS release gate's flows run through `shared/tests/e2e/ios-appium/gate.test.ts` (specs wired in `wdio.gate.conf.ts`); its helpers are in `tests/e2e/ios-appium/gate/`, and the gate core it shares with desktop in `tests/e2e/shared/gate/`.
+
+- **Run:** `yarn test:e2e:ios:flows` (from `shared/`). Results go to `tests/results/ios-report/` (a Playwright-format json plus per-attempt records), project name `ios-flows`. `KB_E2E_RELEASE_ONLY=<grep>` runs only matching tests. Retries are 1; a flake is a failure, as on desktop.
+- **`gate/step.ts`:** `step(name, opts)`, `manualEdge(id)` (a `MANUAL_ONLY` entry) and `retriedNavigation(what, attempt, opts)`, same contracts as desktop.
+- **`gate/errors.ts`:** console errors and uncaught errors from the app, captured from a test's start (`beginErrorCapture` / `takeErrors`); `appLogTail` adds the app log to a failure.
+- **`gate/accounts.ts`:** `asSecond(f)`, `signedOutThenBack(f)`, `restoreToSmoke()`, `requireAppIsSmoke()`; every one ends on the smoke account.
+- **`gate/secret-input.ts`:** `submitSecret(fieldTestID, secret)`, plus `focusSecretField`, `emptySecretField`, `fieldLength`; failures never carry the value.
+- **`gate/device.ts`:** simulator helpers (`openLink`, `pushNotification`, `addPhotos`, `setLocation`, `setPasteboard`, `grantPrivacy`, `toBackground`/`toForeground`) and `relaunchApp()`, which terminates and launches the app and waits for its new JS runtime with error capture running again.
+- **`gate/recorder.ts`, `gate/recording.ts`:** `PhoneRecording` records the simulator per attempt; `attemptRecording()` returns the running attempt's recording.
+
+**iOS differs from desktop:**
+- The app's account is checked over Metro (`requireAppIsSmoke`): the app has its own service, so the host's `keybase` CLI says nothing about it.
+- Secrets go in through Metro eval into the focused field's own `onChangeText`, never Appium typing, so no wdio command, log or screenshot holds the value. A file that types one sets `this.retries(0)` in its describe.
+- `relaunchApp` keeps the recording going across the relaunch (a checkpoint before, one after), so a flow that relaunches still gets one recording.
+- Flows are attributed to their own file: `gate/hooks.ts` wraps `describe`, so the aggregator `gate.test.ts` does not become every test's file.
+- `yarn visual:render --ios <patterns>` renders the entries on the simulator and records the phone tour.
+
 ## iOS — Appium + WebdriverIO (TypeScript)
 
 | What | Where |
