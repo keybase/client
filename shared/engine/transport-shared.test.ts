@@ -125,6 +125,7 @@ describe('rpcLog and invoke end to end', () => {
     ['keybase.1.teams.teamCreateSeitanTokenV2', fixture],
     ['keybase.1.signup.getInvitationCode', fixture],
     ['keybase.1.account.passphrasePrompt', {passphrase: fixture}],
+    ['keybase.1.device.deviceHistoryList', [{device: {name: fixture, type: 'backup'}}]],
   ])('invoke [-calling] result of %s', (method, result) => {
     class T extends TransportShared {
       protected override writeMessage() {}

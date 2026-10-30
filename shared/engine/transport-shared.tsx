@@ -90,8 +90,8 @@ export function redactRpcResult(method: string, data: unknown): unknown {
   return redactRpcParams(data)
 }
 
-// Logging for rpcs
-function rpcLog(info: {method: string; reason: string; extra?: unknown; type: string}): void {
+// Logging for rpcs. `extra` is redacted here, once: as `method`'s result when `result` is set.
+function rpcLog(info: {method: string; reason: string; extra?: unknown; type: string; result?: boolean}): void {
   if (!printRPC) {
     return
   }
@@ -108,7 +108,8 @@ function rpcLog(info: {method: string; reason: string; extra?: unknown; type: st
 
   requestIdleCallback(
     () => {
-      const params = [info.reason, info.method, redactRpcParams(info.extra)].filter(Boolean)
+      const extra = info.result ? redactRpcResult(info.method, info.extra) : redactRpcParams(info.extra)
+      const params = [info.reason, info.method, extra].filter(Boolean)
       LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
@@ -213,7 +214,7 @@ abstract class TransportShared extends RPCTransport {
       }
       once = true
       if (printRPC) {
-        rpcLog({extra: redactRpcResult(method, data), method, reason: '[-calling]', type: 'serverToEngine'})
+        rpcLog({extra: data, method, reason: '[-calling]', result: true, type: 'serverToEngine'})
       }
       cb(err, data)
     })
