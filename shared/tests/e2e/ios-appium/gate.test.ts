@@ -33,3 +33,7 @@ import './flows/teams-settings.test'
 import './flows/git.test'
 // after the other second-account flows, as chat-blocks is
 import './flows/teams-second.test'
+// after the chat flows: a follow adds a link to the smoke account's sigchain, and a peer send right
+// after it can fail until the server's chain catches up
+import './flows/people-browse.test'
+import './flows/people-follow.test'
