@@ -49,7 +49,7 @@ import {
 import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite, TEST_ACCOUNT_PREFIX_VAR} from './repair-lib.ts'
 import {ensureRunId} from './run-id.ts'
 import {maskAccounts, signedInName} from './sweep-lib.ts'
-import {E2E_CHANNELS, directConvIDFromCli, directTlfName} from '../shared/chat-data.ts'
+import {E2E_CHANNELS, directConvIDFromCli, directTlfName, NoMessagesYet} from '../shared/chat-data.ts'
 import {pairFavoriteState, refavoritePair} from '../shared/favorites.ts'
 import {conversationStatus, mainConversation, mainRpc, restoreConversationStatus} from '../shared/main-rpc.ts'
 import {keybaseBin} from '../shared/keybase-bin.ts'
@@ -180,10 +180,14 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
 }
 
 // What a block of the second account leaves besides the block itself: the DM's status blocked, and
-// the smoke+second folder ignored. A DM with no messages yet has no status to read.
+// the smoke+second folder ignored. A DM with no messages yet has no status to read; any other
+// failure to read it is thrown, so --check never reports a DM it could not read as fine.
 const blockLeftovers = async (vars: Vars) => {
   const tlfName = directTlfName(vars['KB_SMOKE_USER'] ?? '', vars['KB_SECOND_USER'] ?? '')
-  const convID = await directConvIDFromCli(tlfName).catch(() => undefined)
+  const convID = await directConvIDFromCli(tlfName).catch((e: unknown) => {
+    if (e instanceof NoMessagesYet) return undefined
+    throw e
+  })
   const dmBlocked = !!convID && (await mainConversation(convID)).info.status === conversationStatus.blocked
   return {convID, dmBlocked, folderIgnored: (await pairFavoriteState()).ignored}
 }

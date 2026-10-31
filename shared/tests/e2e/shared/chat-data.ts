@@ -661,12 +661,19 @@ export const deleteThrowawayChannel = async (topicName: string) => {
 
 // The id of a one-on-one conversation (or the self conversation, named by the user alone), read
 // from its newest message through the host's CLI. Peeks.
+// Thrown by directConvIDFromCli for a conversation with no messages yet, which has no id to read.
+export class NoMessagesYet extends Error {
+  constructor() {
+    super('the conversation has no messages to read its id from')
+  }
+}
+
 export const directConvIDFromCli = async (tlfName: string) => {
   const res = await withApi(async api =>
     api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
   )
   const id = res.messages?.[0]?.msg.conversation_id
-  if (!id) throw new Error('the conversation has no messages to read its id from')
+  if (!id) throw new NoMessagesYet()
   return id
 }
 
