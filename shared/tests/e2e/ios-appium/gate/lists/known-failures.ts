@@ -15,6 +15,11 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // confirmed live (PR 5, two gate runs): the centred hit's row moves from 427.7 to 404.3 and stays
     'chat-scroll › chat scroll › closing search › closing search leaves the list where it is':
       'closing thread search swaps the search bar back for the composer and the scroll view keeps its offset, so the rows shift with the layout change and nothing puts them back (exact cause not pinned down); suspected on master',
+    // intermittent (PR 5, 1 of 6 gate runs, full run 9d3gl8): after the drag back to the end, one
+    // incoming message's row landed and the offset followed 31.7pt, leaving the newest row's bottom
+    // 20.7pt below the viewport (758.7 vs 738); it passes on the other runs
+    'chat-scroll › chat scroll › back to the end › dragging back down re-pins it, and a later incoming message keeps the end':
+      "the thread list's follow of a new row at the end can stop short of the row's full height (the burst entry's maintainVisibleContentPosition autoscroll, here with one row after a drag re-pinned the end); intermittent, suspected on master",
   },
   render: {},
 }

@@ -648,11 +648,11 @@ describe('chat scroll', function () {
     const v = await viewport(before)
     const anchor = rowToFollow(before, v, dy)
     if (!anchor) throw new Error(`no row in view to follow: ${summary(before, v)}`)
-    await dragThread(dy)
+    const samples = await sampleThreadWhile(async () => dragThread(dy))
     const after = await waitForThreadStable()
     const now = rowOf(after, anchor.ordinal)
     check(!!now, `row ${anchor.ordinal} is no longer measured: ${summary(after)}`)
-    return {after, before, travel: now!.top - anchor.top}
+    return {after, before, samples, travel: now!.top - anchor.top}
   }
 
   // Taps the status bar until the list rests at its end, waiting for each newer page a tap that
@@ -758,10 +758,21 @@ describe('chat scroll', function () {
         async () => {
           drags++
           const d = await dragTravel(400)
-          return d.after.ordinals.length > d.before.ordinals.length ? d : undefined
+          if (d.after.ordinals.length <= d.before.ordinals.length) return undefined
+          // A page that lands only once the list has stopped (the drag ran into the oldest row loaded,
+          // or ended) did not land during the drag; the travel then is the distance to that edge (seen
+          // live: 381pt where a drag moves 511pt). Such a drag is passed over and the drags go on.
+          const grew = d.samples.findIndex((x, i) => i > 0 && x.count > d.samples[i - 1]!.count)
+          const moving = grew > 0 && d.samples.slice(Math.max(0, grew - 4), grew).some((x, i, a) => i > 0 && Math.abs(x.offset - a[i - 1]!.offset) >= 0.5)
+          if (moving) return d
+          console.log(`a page landed after drag ${drags} had stopped (travel ${d.travel}); dragging on`)
+          return undefined
         },
         {interval: 0, timeout: 90_000}
-      )
+      ).catch((e: unknown) => {
+        if (isAttemptOver(e)) throw e
+        throw new Error(`no older page landed while a drag was moving (${drags} drags)`, {cause: e})
+      })
       const plain = await dragTravel(400)
       console.log(
         `an older page landed during drag ${drags} (${landing.before.ordinals.length} to ${landing.after.ordinals.length} rows), travel ${landing.travel}; the next drag ${plain.travel}`
