@@ -5,6 +5,7 @@ import {pidFromLaunchctl, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -26,10 +27,11 @@ const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, m
 // Covers a log show over a long run and an addmedia of several videos; a cold boot gets longer.
 const simctlMs = (args: ReadonlyArray<string>) => (args[0] === 'bootstatus' ? 300_000 : 120_000)
 
-// Each of these refuses to run in a gate test body mocha timed out (gate/attempt.ts).
+// Each of these refuses to run in a gate test body mocha timed out (gate/attempt.ts). A failure names
+// the subcommand, never a link, path or name it was given (hiddenSimctlArgs).
 export const simctl = (...args: Array<string>): string => {
   requireCurrentAttempt()
-  return runSync('xcrun', ['simctl', ...args], simctlMs(args))
+  return runSync('xcrun', ['simctl', ...args], simctlMs(args), {what: `simctl ${args[0] ?? ''}`, hidden: hiddenSimctlArgs(args)})
 }
 
 // Retries until check returns a value, or throws with the last error once the timeout passes.
