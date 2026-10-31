@@ -270,6 +270,17 @@ export const setDebugLevel = async (level: string) => {
 export const runtimeStats = async () =>
   askApp<boolean>('the runtime stats', `Promise.resolve(!!kbModule('stores/config.tsx').useConfigState.getState().runtimeStats)`)
 
+// The identify state the app holds for `username`'s profile ('valid', 'checking', ...), or undefined
+// when it holds none: a read of the tracker's session, no RPC. The name is plain and goes only into
+// the eval.
+export const trackerState = async (username: string) => {
+  if (!/^[A-Za-z0-9_]{1,16}$/.test(username)) throw new Error('refusing a username that is not plain')
+  return askApp<string | null>(
+    "the profile's identify state",
+    `Promise.resolve(kbModule('tracker/identify-session.tsx').getProfileDetails(${JSON.stringify(username)})?.state ?? null)`
+  )
+}
+
 // Toggles the phone's runtime stats (a restore: read runtimeStats first).
 export const toggleRuntimeStats = async () =>
   askApp<boolean>('toggling the runtime stats', `${RPC_GEN}.configToggleRuntimeStatsRpcPromise().then(() => true)`)

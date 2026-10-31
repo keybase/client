@@ -7,7 +7,7 @@
 // The follow button reads "Follow" or "Follow back" (the second account follows back) and "Following"
 // once followed; tapping "Following" unfollows on the phone. The "..." menu offers Unfollow only
 // when the profile's identify is not valid (profile/user/actions/index.tsx), so that test drives it
-// when the menu offers it and otherwise reads the menu's items and stops at that read.
+// when the menu offers it, and checks the menu against the identify state the app holds (a store read).
 //
 // Runs after the chat flows: a follow adds a link to the smoke account's sigchain, and a peer send
 // right after it can fail until the server's chain catches up with its merkle tree.
@@ -19,6 +19,7 @@ import {requireSecondNotBlocked} from '../gate/blocks'
 import {openLink} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
+import {trackerState} from '../gate/app-ask'
 import {step} from '../gate/step'
 import {closeMessageMenu} from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -135,9 +136,9 @@ describe('people follow', function () {
 
   it('unfollow from the “...” menu when the profile offers it', async function () {
     // worst case (s): the host follow 180, openSecondProfile 73, the label 11, step 2, screen 11, the
-    // menu button 31 and its open 19, the menu read 15, step 2, then the seq 2, the item 22, the
-    // call 12, its count 2, the host 75, the label 11, step 2 = 470
-    this.timeout(490_000)
+    // menu button 31 and its open 19, the menu read 15, step 2, the state read 22, then the seq 2, the item 22, the
+    // call 12, its count 2, the host 75, the label 11, step 2 = 492
+    this.timeout(510_000)
     await masked(async () => setFollowSecondFromCli(true))
     await openSecondProfile()
     await followReads('the follow button once followed', 'Following')
@@ -151,7 +152,19 @@ describe('people follow', function () {
     check(menuOffers(labels, 'Add to team...'), "the open menu is not the profile's")
     await step('The profile’s menu')
 
-    if (menuOffers(labels, 'Unfollow')) {
+    // the menu offers Unfollow only while the identify is not valid (profile/user/actions/index.tsx)
+    const {secondUser} = loadE2EAccounts()
+    const state = await masked(async () => trackerState(secondUser))
+    const offered = menuOffers(labels, 'Unfollow')
+    check(state !== null, 'the app holds no identify state for the second account')
+    check(
+      offered === (state !== 'valid'),
+      offered
+        ? 'the menu offers Unfollow while the identify state is valid'
+        : `the menu offers no Unfollow while the identify state is ${state}, not valid`
+    )
+
+    if (offered) {
       const seq = await currentCallSeq()
       await chooseMenuItem('Unfollow')
       await waitForUiCall('the follow call to go out', seq, FOLLOW)
@@ -160,9 +173,7 @@ describe('people follow', function () {
       await followReads('the follow button after the unfollow', 'Follow', 'Follow back')
       await step('Unfollowed from the menu')
     } else {
-      // The menu offers Unfollow only while the identify is not valid; a followed second account's
-      // is, so this run's menu holds no Unfollow and the unfollow stays unproven from the menu.
-      await step('The menu holds no Unfollow')
+      await step('The menu holds no Unfollow, as the valid identify state says')
     }
   })
 })
