@@ -34,13 +34,14 @@ import {
   check,
   chooseMenuItem,
   clearComposer,
+  closeInfoPanel,
   closeMessageMenu,
   composerText,
   dragThread,
   dragUntilOnScreen,
   editCancel,
   elementInRow,
-  elementWithLabelPart,
+  elementWithLabelPartIn,
   expectAtEnd,
   galleryListing,
   giphyGalleryShown,
@@ -62,6 +63,7 @@ import {
   showsText,
   storedAttachment,
   typeInComposer,
+  typeInSearchFilter,
   viewport,
   visibleConversation,
   waitForComposerText,
@@ -78,8 +80,7 @@ const BOT_ROLES: ReadonlyArray<number> = [5, 6]
 const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
 // what a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
 // merging its texts
-const NAMED =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink" OR type == "XCUIElementTypeOther") AND label != "" AND visible == 1'
+const NAMED = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 // how long a clear history that went out takes to empty the thread (chat-messages waits as long)
 const CLEAR_BOUND_MS = 20_000
@@ -100,7 +101,7 @@ describe('chat views', function () {
   //   peer      the peer found 45 and a failing call's diagnosis 25 = 70;  peer send  sendWithRetry
   //             90 (30, overrun by one send's 60)
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
-  //   type      15;  list  the suggestion list 10;  composer  5;  inbox  scrollInboxTo 90
+  //   type      15;  list  the suggestion list 10;  composer  5;  inbox  scrollInboxTo 120
   //   escape    escapeToTabs 30;  step  2 (its 1s settle and the attach)
 
   let data: ChatData
@@ -211,7 +212,7 @@ describe('chat views', function () {
     await openConversation(media())
     await openInfoPanel(T.CHAT_INFO_PANEL_MEMBERS_TAB)
     // the members tab lists the second account, by its name in memory
-    await waitFor('the second account among the members', async () => elementWithLabelPart(NAMED, data.secondUser, "the second account's member row"), {
+    await waitFor('the second account among the members', async () => elementWithLabelPartIn(NAMED, data.secondUser, "the second account's member row"), {
       interval: 500,
       timeout: 15_000,
     })
@@ -245,8 +246,7 @@ describe('chat views', function () {
     await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).click()
     await el(T.CHAT_INFO_PANEL_MUTE).waitForExist({timeout: 10_000})
     await step('Info panel: Settings shows the mute switch', {card: true})
-    await goBackUntilGone(T.CHAT_INFO_PANEL)
-    await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    await closeInfoPanel()
   })
 
   // -- the composer's pickers and modes -----------------------------------------------------------
@@ -431,9 +431,9 @@ describe('chat views', function () {
   // The second account is a member of the team, so its bot page offers no install: what the phone
   // shows a member, read back by its role on the host.
   it('the bot search finds the second account, and its bot page offers a member no install', async function () {
-    // worst case (s): open 100, panel 25, Add a bot 10 and button 6, screen 10, the search 10, type 15,
-    // named 15, step 2, the tap 1, screen 10, the install screen 10, the buttons read 1, host 75, step
-    // 2, escape 30 = 322
+    // worst case (s): open 100, panel 25, Add a bot 10 and button 6, screen 10, type 21
+    // (typeInSearchFilter), keyboard 5, named 15, step 2, the tap 1, screen 10, the install screen 10,
+    // the buttons read 1, host 75, step 2, escape 30 = 323
     this.timeout(350_000)
     await openConversation(scratch())
     await openInfoPanel(T.CHAT_INFO_PANEL_BOTS_TAB)
@@ -442,14 +442,12 @@ describe('chat views', function () {
       .waitForExist({timeout: 10_000, timeoutMsg: 'the Bots tab does not offer Add a bot'})
     await tapButton('Add a bot', "the Bots tab's Add a bot")
     await expectRoute('the bot search', 'chatSearchBots')
-    const search = browser.$(
-      '-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search featured bots or users..." AND visible == 1'
-    )
-    await search.waitForExist({timeout: 10_000})
-    await search.addValue(data.secondUser)
+    await typeInSearchFilter(data.secondUser)
+    // the first tap with the keyboard up only puts it away
+    await hideKeyboard()
     const result = await waitFor(
       'the second account among the users found',
-      async () => elementWithLabelPart(NAMED, data.secondUser, 'the second account among the results'),
+      async () => elementWithLabelPartIn(NAMED, data.secondUser, 'the second account among the results'),
       {interval: 500, timeout: 15_000}
     )
     await step('The bot search finds the second account')
@@ -515,8 +513,7 @@ describe('chat views', function () {
     await confirm().waitForExist({reverse: true, timeout: 10_000})
     check((await route())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
     // the Cancel goes back to the info panel: the thread is the one to read
-    await goBackUntilGone(T.CHAT_INFO_PANEL)
-    await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    await closeInfoPanel()
     check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
     // a clear that went out lands within its bound (the rows gone 20s), so the stamped message must
     // still be there, on the host and in the thread, through all of it
@@ -532,8 +529,8 @@ describe('chat views', function () {
   // -- scrolled states ----------------------------------------------------------------------------
 
   it('the inbox scrolled to its end', async function () {
-    // worst case (s): inbox 90 (the self row), inbox 90 (to the end), step 2 = 182
-    this.timeout(200_000)
+    // worst case (s): inbox 120 (the self row), inbox 120 (to the end), step 2 = 242
+    this.timeout(260_000)
     // the self conversation's row shows the inbox loaded
     await scrollInboxTo(data.smokeUser)
     const drawn = await scrollInboxToEnd()
