@@ -29,8 +29,8 @@ import {
   inboxHasRow,
   openConversation,
   openInfoPanel,
-  pressSwitchLabelled,
   scrollInboxTo,
+  tapSwitchLabelled,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
@@ -166,9 +166,9 @@ describe('chat blocks', function () {
     // worst case (s): blocks 75, conv 75, the folder 75, open 100, panel 25, on screen 20, the tap 1,
     // Finish 10, report 21, the manual edge 2, the seq 2, the tap 1, Finish gone 15, calls 10 twice
     // 20, blocks 95, conv 95, the inbox 10, row 120, absent 120, step 2 = 884; escapeToTabs 30, the link
-    // 1, the profile 20, Manage blocking 10 and its tap 1, Finish 10, blocks 75, two options found 10
-    // and tapped 2, report 21, the seq 2, the tap 1, Finish gone 15, calls 10, blocks 95, step 2 = 305;
-    // = 1189
+    // 1, the profile 20, Manage blocking 10 and its tap 1, Finish 10, blocks 75, two switches tapped
+    // and turned 18, report 21, the seq 2, the tap 1, Finish gone 15, calls 10, blocks 95, step 2 = 311;
+    // = 1195
     this.timeout(1_240_000)
     const unblockedProblem = secondBlockedProblem(await secondBlocks())
     check(!unblockedProblem, `the second account must start unblocked: ${unblockedProblem}`)
@@ -212,14 +212,12 @@ describe('chat blocks', function () {
     await manage.waitForExist({timeout: 10_000})
     await manage.click()
     await finish().waitForExist({timeout: 10_000})
-    // each block still on is turned off by its label, read in memory (it holds the name)
+    // each block still on is turned off by a tap on its switch, read in memory (it holds the name)
     const now = await secondBlocks()
-    // No synthesized tap reaches the modal's switches or their labels (seen live: the switch, its
-    // label and a pointer press all left it on), so each is turned through its own handler and a
-    // person checks the taps (ledger ruling, as the failed send's Cancel).
-    await manualEdge('block-modal-switches')
-    if (now.chatBlocked) check(await pressSwitchLabelled(`Block ${data.secondUser}`), "the modal's block option was not on")
-    if (now.followBlocked) check(await pressSwitchLabelled(`Hide ${data.secondUser} from your followers`), "the modal's followers option was not on")
+    if (now.chatBlocked) check(await tapSwitchLabelled(`Block ${data.secondUser}`, await finish().getElement(), 'Finish'), "the modal's block option was not on")
+    if (now.followBlocked) {
+      check(await tapSwitchLabelled(`Hide ${data.secondUser} from your followers`, await finish().getElement(), 'Finish'), "the modal's followers option was not on")
+    }
     await requireReportOff()
     seq = await currentCallSeq()
     await finish().click()

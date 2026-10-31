@@ -58,11 +58,6 @@ export const IOS_MANUAL_ONLY = {
       'On a device: run `keybase login` on a new computer and pick the phone, then on the phone Settings > Devices > Add a device or paper key > Add a computer and scan the QR code the computer shows; the computer lands signed in.',
     title: 'Camera: approving a new computer by scanning its QR code',
   },
-  'block-modal-switches': {
-    doByHand:
-      "Block a throwaway account from a chat, then open its profile's Manage blocking: tap the Block and Hide-from-followers switches (and their labels) off, then Finish; the account is unblocked.",
-    title: "Tapping the block modal's switches",
-  },
   'delete-through-reloads': {
     doByHand:
       'In a chat, turn the network off, delete one of your own messages for everyone, pull the thread to reload it: the row stays and shows deleting. Turn the network back on: the row goes.',

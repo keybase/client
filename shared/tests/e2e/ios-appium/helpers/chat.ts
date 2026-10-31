@@ -1669,36 +1669,107 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
   await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
 }
 
-// Turns the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") on screen by calling
-// the handler a tap fires: no synthesized tap reaches those switches or their labels on this host's
-// simulators (seen live; Finish beside them takes taps), so a flow calls it over Metro and adds a
-// manualEdge for the physical tap (ledger ruling, as pressInlineText). Exactly one switch with
-// exactly `label`; returns whether it was on before.
-export const pressSwitchLabelled = async (label: string) => {
-  const found = await jsEval<{n: number; on?: boolean}>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+// Taps the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") at its own frame, and
+// waits for it to turn. XCUITest's frames for a modal's switches and their labels are not where they
+// are drawn (taps there did nothing, seen live), and measureInWindow is in the modal's window, not the
+// screen: the switch's view is placed on screen by `anchor`, a button in the same modal whose element
+// is on screen (the modal's Finish). The app's tree finds exactly one switch with exactly `label` and
+// the buttons labelled `anchorLabel` whose measured size is the anchor element's (one frame); the tap
+// lands at the middle of the switch's frame only if it is on screen. The evals send nothing. Returns
+// whether it was on before. Bound: 3 measured, the tap 1, the turn 5 = 9s.
+export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Element, anchorLabel: string) => {
+  type Frame = {height: number; width: number; x: number; y: number}
+  const switchOn = async () =>
+    jsEval<Array<boolean>>(`
+      const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+      let root
+      for (const r of hook.getFiberRoots(1)) root = r
+      const out = []
+      const stack = [root.current]
+      while (stack.length) {
+        const f = stack.pop()
+        const p = f.memoizedProps
+        if (f.tag !== 5 && p && p.label === ${JSON.stringify(label)} && typeof p.on === 'boolean' && typeof p.onClick === 'function') out.push(p.on)
+        if (f.sibling) stack.push(f.sibling)
+        if (f.child) stack.push(f.child)
+      }
+      return out
+    `)
+  const started = await jsEval<number>(`
+    const g = globalThis
+    g.__e2eSwitchFrames = undefined
+    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
     let root
     for (const r of hook.getFiberRoots(1)) root = r
-    const want = ${JSON.stringify(label)}
-    const hits = []
+    const label = ${JSON.stringify(label)}
+    const anchorLabel = ${JSON.stringify(anchorLabel)}
+    const switches = []
+    const anchors = []
     const stack = [root.current]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
       // a component and its wrapper carry the same props: one switch is one handler
-      if (f.tag !== 5 && p && p.label === want && typeof p.on === 'boolean' && typeof p.onClick === 'function' && !hits.some(h => h.onClick === p.onClick)) {
-        hits.push(p)
-      }
+      if (f.tag !== 5 && p && p.label === label && typeof p.on === 'boolean' && typeof p.onClick === 'function' && !switches.some(s => s.memoizedProps.onClick === p.onClick)) switches.push(f)
+      if (f.tag !== 5 && p && p.label === anchorLabel && typeof p.onClick === 'function') anchors.push(f)
       if (f.sibling) stack.push(f.sibling)
       if (f.child) stack.push(f.child)
     }
-    if (hits.length !== 1) return {n: hits.length}
-    const on = hits[0].on
-    hits[0].onClick()
-    return {n: 1, on}
+    if (switches.length !== 1) return switches.length
+    const hostOf = c => {
+      const hosts = [c.child]
+      while (hosts.length) {
+        const f = hosts.shift()
+        if (!f) continue
+        if (f.tag === 5 && f.stateNode && f.stateNode.node) return f
+        if (f.child) hosts.push(f.child)
+      }
+    }
+    // the switch's own tappable box: the component under it carrying its handler
+    const sw = switches[0]
+    let box
+    const inner = [sw.child]
+    while (inner.length && !box) {
+      const f = inner.shift()
+      if (!f) continue
+      if (f.tag !== 5 && f.memoizedProps && f.memoizedProps.onClick === sw.memoizedProps.onClick) box = f
+      if (f.child) inner.push(f.child)
+      if (f.sibling) inner.push(f.sibling)
+    }
+    const host = box && hostOf(box)
+    const anchorHosts = anchors.map(hostOf).filter(Boolean)
+    if (!host || !anchorHosts.length) return -1
+    const frames = {anchors: []}
+    const ui = g.nativeFabricUIManager
+    const done = () => frames.switch && frames.anchors.length === anchorHosts.length && (g.__e2eSwitchFrames = frames)
+    ui.measureInWindow(host.stateNode.node, (x, y, width, height) => ((frames.switch = {height, width, x, y}), done()))
+    for (const a of anchorHosts) ui.measureInWindow(a.stateNode.node, (x, y, width, height) => (frames.anchors.push({height, width, x, y}), done()))
+    return 1
   `)
-  if (found.n !== 1) throw new Error(`${found.n} switches with the label asked for, not one`)
-  return found.on ?? false
+  if (started !== 1) {
+    throw new Error(started === -1 ? 'the switch asked for or its anchor has no view to measure' : `${started} switches with the label asked for, not one`)
+  }
+  const measured = await waitFor(
+    'the switch measured',
+    async () => (await jsEval<{anchors: Array<Frame>; switch: Frame} | null>('return globalThis.__e2eSwitchFrames || null')) ?? undefined,
+    {interval: 100, timeout: 3_000}
+  )
+  const at = await anchor.getLocation()
+  const size = await anchor.getSize()
+  const sized = measured.anchors.filter(a => Math.abs(a.width - size.width) <= 1 && Math.abs(a.height - size.height) <= 1)
+  const placed = new Set(sized.map(a => `${a.x},${a.y}`))
+  if (placed.size !== 1) throw new Error(`${placed.size} "${anchorLabel}" frames the size of its element, not one`)
+  const ref = sized[0]!
+  const frame = {...measured.switch, x: measured.switch.x + at.x - ref.x, y: measured.switch.y + at.y - ref.y}
+  const {height: window, width} = await browser.getWindowRect()
+  if (frame.width <= 0 || frame.height <= 0 || frame.x < 0 || frame.y < 0 || frame.x + frame.width > width || frame.y + frame.height > window) {
+    throw new Error(`the switch is not wholly on screen: ${JSON.stringify(frame)}`)
+  }
+  const before = await switchOn()
+  if (!before.length || before.some(o => o !== before[0])) throw new Error(`the switch reads ${JSON.stringify(before)}`)
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await waitFor('the switch to turn', async () => ((await switchOn()).every(o => o !== before[0]) ? true : undefined), {interval: 200, timeout: 5_000})
+  return before[0]!
 }
 
 // The waiting keys the app holds right now (a spinner or a disabled control waits on each).
