@@ -153,6 +153,32 @@ async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
     .catch(() => {})
 }
 
+// A modal opened over another modal (the chat block modal over the info panel) has its header's
+// Cancel/Close/Done reported visible="false" by XCUITest, though on screen: DISMISS_PRED misses it.
+// Its header buttons are found without visibility, by exact label and as buttons only, in the header
+// band (the top 200pt): Cancel, else Close, and Done only when the header has neither (a Done can
+// commit a modal's edits). Tapped once; it counts only when it took the modal away (else the
+// back/pop path runs). The label tapped is logged.
+const HEADER_DISMISS_LABELS = ['Cancel', 'Close', 'Done'] as const
+async function dismissStackedModal(): Promise<boolean> {
+  for (const label of HEADER_DISMISS_LABELS) {
+    const inHeader: Array<WebdriverIO.Element> = []
+    for (const ctrl of await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()) {
+      const at = await ctrl.getLocation().catch(() => undefined)
+      if (at && at.y >= 0 && at.y <= 200) inHeader.push(ctrl)
+    }
+    // the topmost modal's header is the last drawn
+    const ctrl = inHeader.at(-1)
+    if (!ctrl) continue
+    console.log(`  escapeToTabs: dismissing a stacked modal with its "${label}"`)
+    await ctrl.click().catch(() => {})
+    const gone = async () => (await atTabs()) || !(await ctrl.isExisting().catch(() => false))
+    await browser.waitUntil(gone, {interval: 80, timeout: 3000}).catch(() => {})
+    return gone()
+  }
+  return false
+}
+
 export async function escapeToTabs(): Promise<void> {
   // A flow may end with the keyboard up (chat input, crypto, feedback); it can
   // cover tappable UI on the next test, so dismiss it before resetting.
@@ -205,6 +231,8 @@ export async function escapeToTabs(): Promise<void> {
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
       // eslint-disable-next-line no-console
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
+    } else if (await dismissStackedModal()) {
+      continue
     } else if (debug) {
       // eslint-disable-next-line no-console
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
