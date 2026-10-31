@@ -8,8 +8,10 @@
 // (shared/gate/secret-scan.ts), and reaches the app only through the simulator's pasteboard and the
 // field's own Paste. Nothing types it, opens it as a link, puts it in a step, an error or a selector,
 // or reads the field's text back (only its length, inside the app). No step is taken while the field
-// holds it, the pasteboard is overwritten once the field has it, and the afterEach empties the field
-// and overwrites the pasteboard when a test stopped before. No retry: one would paste it again.
+// holds it (the gate's secret-on-screen mark, which also withholds a failure's screenshot, even one
+// taken after a timeout), the pasteboard is overwritten once the field has it, and the afterEach
+// empties the field and overwrites the pasteboard when a test stopped before. No retry: one would
+// paste it again.
 //
 // The host stays on the smoke account: it makes the subteams and the link, adds the second account
 // where a test starts from it being in, and reads back what the phone did; the phone is on the
@@ -33,6 +35,7 @@ import {requireSecondNotBlocked} from '../gate/blocks'
 import {relaunchApp, setPasteboard} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {emptySecretField, fieldLength, focusSecretField} from '../gate/secret-input'
+import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard, openConversation} from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -105,8 +108,10 @@ describe('teams second account', function () {
   const madeNames = new Set<string>()
   // set before the invite link goes on the pasteboard, cleared once filler replaced it
   let pasteboardHoldsLink = false
-  // set before the paste, cleared once the join dialog that holds it has gone
+  // set before the paste, cleared once the join dialog that holds it has gone, with the gate's
+  // secret-on-screen mark of this label
   let linkInField = false
+  const JOIN_FIELD = 'the invite link in the join field'
 
   const filler = () => `e2e-${e2eRunId()}-pasteboard`
 
@@ -118,8 +123,8 @@ describe('teams second account', function () {
   }
 
   // Empties the join dialog's field while it may hold the invite link, inside the app (no Appium
-  // command carries its text), before the gate's failure screenshot. Bound: exists 10, focus 6, the
-  // empty 11 = 27.
+  // command carries its text), then clears the secret-on-screen mark; a field that would not empty
+  // keeps the mark. Bound: exists 10, focus 6, the empty 11 = 27.
   const emptyJoinField = async () => {
     if (!linkInField) return
     if (await el(T.TEAMS_JOIN_TEAM_INPUT).waitForExist({timeout: 10_000}).then(() => true, () => false)) {
@@ -127,6 +132,7 @@ describe('teams second account', function () {
       await emptySecretField(T.TEAMS_JOIN_TEAM_INPUT)
     }
     linkInField = false
+    clearSecretOnScreen(JOIN_FIELD)
   }
 
   // Takes the second account out of a subteam of this run while it is in it, through the CLI.
@@ -288,6 +294,7 @@ describe('teams second account', function () {
       pasteboardHoldsLink = true
       await setPasteboard(link)
       linkInField = true
+      markSecretOnScreen(JOIN_FIELD)
       await pasteInto(T.TEAMS_JOIN_TEAM_INPUT)
       // the field's length, read inside the app: its text never leaves it
       await waitFor('the pasted link in the field', async () => ((await fieldLength(T.TEAMS_JOIN_TEAM_INPUT)) === link.length ? true : undefined), {
@@ -305,6 +312,7 @@ describe('teams second account', function () {
       })
       check(!(await el(T.TEAMS_JOIN_TEAM_INPUT).isExisting()), 'the join dialog that holds the link is still drawn')
       linkInField = false
+      clearSecretOnScreen(JOIN_FIELD)
       await textShown(name, "the invite's team")
       await step('The invite to the subteam')
 
