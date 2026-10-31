@@ -904,8 +904,11 @@ export const openMessageMenuAt = async (ordinal: number) => {
       if (await menuSheet().isExisting()) return true
       const r = rowOf(await requireThread(), ordinal)
       if (!r) throw new Error(`row ${ordinal} is not drawn`)
+      // on its last line, the message's body: a row that opens a run of messages draws its author line
+      // above, outside the long-pressable body
       const {width} = await browser.getWindowRect()
-      await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round((r.top + r.bottom) / 2)})
+      const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
+      await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
       return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
     },
     {interval: 300, timeout: 15_000}
