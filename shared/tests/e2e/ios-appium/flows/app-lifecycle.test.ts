@@ -19,7 +19,7 @@ import {e2eMarker} from '../../shared/run-marker.ts'
 import {appLogMark, appLogUntilMarker} from '../gate/app-log'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
+import {appRuntime, launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
 import {focusChanges, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
 import {leaveOnPeople, waitForScreen} from '../gate/screens'
@@ -51,8 +51,9 @@ describe('app lifecycle', function () {
   //             captures 4, a checkpoint 60);  signed in  90;  rec  a checkpoint 60
   //   mark      goLogMark 120 (the app's container through simctl);  go  waitForLinesInOrder 21 (20,
   //             one read 1);  app mark  appLogMark 2;  until  appLogUntilMarker 12
-  //   state     appSnapshot 1;  active  waitForAppState 31 (30, one read 1);  pid  appPid and the crash
-  //             reports 2;  avatar  waitForAvatar200 21
+  //   state     appSnapshot 1;  active  waitForAppState 31 (30, one read 1);  identity  appIdentity 121
+  //             (appPid's simctl 120, the runtime 1);  same  sameProcess 122 (the identity, the crash
+  //             reports 1);  avatar  waitForAvatar200 21
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120;  open  openConversation
   //             100
   //   peer      the peer found 45 and a failing call's diagnosis 25 = 70;  peer send  sendWithRetry 90
@@ -91,44 +92,62 @@ describe('app lifecycle', function () {
     await withCleanup(launchIfGone, [deleteChannels, escapeToTabs])
   })
 
-  // The same process as `pid`, with no crash report of the app's written since `since`. Bound: pid 2.
-  const sameProcess = (pid: number | undefined, since: number, what: string) => {
-    check(pid !== undefined && appPid() === pid, `the app is not the same process ${what}`)
+  // The app as it is now, to compare with later: its process and its JS runtime (a JS reload keeps the
+  // process). Bound: pid 120, runtime 1 = 121.
+  const appIdentity = async () => {
+    const pid = appPid()
+    const runtime = await appRuntime()
+    if (pid === undefined || runtime === undefined) throw new Error('the app has no process or no JS runtime to compare with later')
+    return {pid, runtime}
+  }
+
+  // The same process and JS runtime as `was`, with no crash report of the app's written since `since`.
+  // Bound: appIdentity 121, the crash reports 1 = 122.
+  const sameProcess = async (was: {pid: number; runtime: string}, since: number, what: string) => {
+    const now = {pid: appPid(), runtime: await appRuntime()}
+    check(now.pid === was.pid, `the app is not the same process ${what}`)
+    check(now.runtime === was.runtime, `the app's JS reloaded ${what}`)
     check(crashReportsSince(since).length === 0, `the app wrote a crash report ${what}`)
   }
 
   it('a cold launch comes up on the screen it saved, serves images and does not crash', async function () {
-    // worst case (s): leave 103, step 2, mark 120, relaunch 254, signed in 90, rec 60, go 21, state 1,
-    // avatar 21, pid 2, step 2 = 676
-    this.timeout(720_000)
+    // worst case (s): leave 103, step 2, relaunch 254 with the mark 120 inside it, signed in 90, the
+    // identity 121, rec 60, go 21, state 1, avatar 21, same 122, step 2 = 917
+    this.timeout(960_000)
     const {smokeUser} = loadE2EAccounts()
     await leaveOnPeople()
     await step('On People, saved as the screen the next launch opens')
 
     const since = Date.now()
-    const goMark = goLogMark()
-    await relaunchApp()
+    // marked once the old process is gone, so its last lines are not read as the launch's
+    let goMark: ReturnType<typeof goLogMark> | undefined
+    await relaunchApp({
+      whileDown: () => {
+        goMark = goLogMark()
+      },
+    })
+    const mark = goMark!
     await waitSignedIn()
-    const pid = appPid()
+    const launched = await appIdentity()
     // the new runtime's first recording comes up on the saved screen
     const rec = attemptRecording()
     await rec.checkpoint()
     check(!!rec.recordings.at(-1)?.startRoutes.includes('peopleRoot'), 'the relaunched app did not come up on People, the screen it saved')
     // Go's launch: not yet active (whichever launch callback lands first), then active
-    await waitForLinesInOrder('the phone service to record the launch', () => goLogSince(goMark), [GO_LAUNCHING, GO_FOREGROUND])
+    await waitForLinesInOrder('the phone service to record the launch', () => goLogSince(mark), [GO_LAUNCHING, GO_FOREGROUND])
     // the app holds the address of the image server Go started for it, not a stale one
-    const started = goLogSince(goMark).flatMap(l => GO_HTTP_SRV.exec(l)?.[1] ?? []).at(-1)
+    const started = goLogSince(mark).flatMap(l => GO_HTTP_SRV.exec(l)?.[1] ?? []).at(-1)
     check(started !== undefined && started === (await appSnapshot()).httpSrv.address, "the app does not hold the address of the image server Go started")
     await waitForAvatar200(smokeUser)
-    sameProcess(pid, since, 'after the launch')
+    await sameProcess(launched, since, 'after the launch')
     creditSurface('relaunch')
     await step('The relaunched app is up on People with images served', {card: true})
   })
 
   it('a trip to the background and back keeps the app, and shows a message that came in meanwhile', async function () {
-    // worst case (s): channel 240, open 100, step 2, pid 2, mark 120, go 21, peer 70, peer send 90,
-    // go 21, active 31, screen 11, message 61, drawn 10, pid 2, step 2 = 783
-    this.timeout(820_000)
+    // worst case (s): channel 240, open 100, step 2, the identity 121, mark 120, go 21, peer 70, peer
+    // send 90, go 21, active 31, screen 11, message 61, drawn 10, same 122, step 2 = 1022
+    this.timeout(1_060_000)
     const made = await masked(async () => createThrowawayChannel('lifecycle', {withSecond: true}))
     channels.add(made.topicName)
     const {convID} = made
@@ -136,7 +155,7 @@ describe('app lifecycle', function () {
     await step('In the channel')
 
     const since = Date.now()
-    const pid = appPid()
+    const before = await appIdentity()
     const goMark = goLogMark()
     await toBackground()
     await waitForLinesInOrder('the phone service to record the app in the background', () => goLogSince(goMark), [GO_BACKGROUND])
@@ -150,18 +169,18 @@ describe('app lifecycle', function () {
     // the message the second account sent while the app was away, loaded and drawn
     await waitForRow(text, 60_000)
     await rowElement(text).waitForExist({timeout: 10_000})
-    sameProcess(pid, since, 'after the trip to the background')
+    await sameProcess(before, since, 'after the trip to the background')
     creditSurface('background-foreground')
     await step('Back from the background with the new message', {card: true})
   })
 
   it('five round trips in a row are each seen in order, and leave the app active in the same process', async function () {
-    // worst case (s): active 31, pid 2, mark 120; each cycle: the background 1, go 21, the foreground 1,
-    // go 21 = 44, five 220; active 31, pid 2, step 2 = 408
-    this.timeout(440_000)
+    // worst case (s): active 31, the identity 121, mark 120; each cycle: the background 1, go 21, the
+    // foreground 1, go 21 = 44, five 220; active 31, same 122, step 2 = 647
+    this.timeout(680_000)
     await waitForAppState('active', undefined, 30_000)
     const since = Date.now()
-    const pid = appPid()
+    const before = await appIdentity()
     const goMark = goLogMark()
     for (let i = 1; i <= CYCLES; i++) {
       await toBackground()
@@ -170,7 +189,7 @@ describe('app lifecycle', function () {
       await waitForLinesInOrder(`the phone service to record trip ${i} back`, () => goLogSince(goMark), roundTrips(i))
     }
     await waitForAppState('active', undefined, 30_000)
-    sameProcess(pid, since, `after ${CYCLES} round trips`)
+    await sameProcess(before, since, `after ${CYCLES} round trips`)
     await step(`Active after ${CYCLES} round trips`, {card: true})
   })
 

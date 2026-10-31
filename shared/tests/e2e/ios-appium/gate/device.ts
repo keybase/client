@@ -270,14 +270,20 @@ const keepErrors = async () => {
 }
 
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
-// The flow credits 'relaunch' once it has asserted what the app shows after it.
-export const relaunchApp = async () => {
+// `whileDown` runs once the app has exited, before it is launched (a mark on a log the next process
+// writes). The flow credits 'relaunch' once it has asserted what the app shows after it.
+export const relaunchApp = async ({whileDown}: {whileDown?: () => void} = {}) => {
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
   await keepErrors()
   await terminateApp()
+  whileDown?.()
   await launch(before)
 }
+
+// The app's JS runtime id (a reload makes a new one under the same process), or undefined while it
+// answers none. A read: credits nothing.
+export const appRuntime = async () => runtimeId()
 
 // Terminates the app, then has `deliver` launch it the way a person would (a link it opens, a
 // notification tapped), and waits for its new JS runtime with error capture, the app-log capture and
