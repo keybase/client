@@ -51,6 +51,14 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.user.blockUser': 'dead: no call site in the app (blocking goes through setUserBlocks)',
     'keybase.1.user.reportUser': 'manual-only: block-report-submit',
     'keybase.1.user.unblockUser': 'dead: no call site in the app (unblocking goes through setUserBlocks)',
+    'keybase.1.teams.teamAddEmailsBulk':
+      'no screen that sends it opens: its senders are the teamInviteByEmail and teamInviteByContact screens (teams/invite-by-email.tsx, teams/invite-by-contact/team-invite-by-contacts.tsx), and nothing in the app navigates to either; the email invite goes through the add-members wizard (teamAddMembersMultiRole)',
+    'keybase.1.teams.teamCreate':
+      "root team only: its one sender (teams/team-page-actions.tsx createNewTeamAndNavigate) runs from chat's convert-to-team dialog, which makes a root team outside KB_E2E_TEAM, and from teamNewTeamDialog, which nothing navigates to (a subteam is made by the wizard, teamCreateFancy)",
+    'keybase.1.teams.teamCreateSeitanTokenV2':
+      'no screen that sends it opens: its one sender is the teamInviteByContact screen (teams/invite-by-contact/team-invite-by-contacts.tsx), and nothing in the app navigates to it',
+    'keybase.1.teams.teamReAddMemberAfterReset':
+      'needs a member who reset their account (the files reset banner, fs/banner/reset-banner.tsx); account resets are owner: excluded',
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {
