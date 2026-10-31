@@ -13,7 +13,7 @@ test('a runtime that has not loaded yet is waited for', () => {
   expect(nextRecordingAction('a', undefined)).toBe('wait')
 })
 
-const log = (o: Partial<CallLog> = {}): CallLog => ({calls: [], generation: 1, recording: true, runtime: 'r1', seq: 4, ...o})
+const log = (o: Partial<CallLog> = {}): CallLog => ({calls: [], droppedThrough: 0, generation: 1, recording: true, runtime: 'r1', seq: 4, ...o})
 const call = (method: string, paused = false, seq = 5): LoggedCall => ({method, paused, seq})
 
 test('a mark is opened only while the recorder is recording', () => {
@@ -38,4 +38,10 @@ test('a window the recording stopped inside throws, whether it is off now or sta
 
 test("the UI's calls leave out the harness's paused ones and other methods", () => {
   expect(uiCallsOf([call('a.b'), call('a.b', true, 6), call('c.d', false, 7)], 'a.b')).toEqual([call('a.b')])
+})
+
+test('a window the bounded log dropped calls from throws; one starting at the drop does not', () => {
+  const mark = callMarkOf(log())
+  expect(() => callsInWindow(mark, log({droppedThrough: 5, seq: 9000}))).toThrow(/lost the window's oldest calls/)
+  expect(callsInWindow(mark, log({droppedThrough: 4, seq: 9000}))).toEqual([])
 })

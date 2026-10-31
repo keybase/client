@@ -245,6 +245,16 @@ test('the call log keeps only the latest calls', () => {
   assert.ok(log.calls.length < 10_000)
   assert.equal(log.calls.at(-1)?.method, 'a.9999')
   assert.equal(log.seq, log.calls.at(-1)?.seq)
+  // everything before the oldest kept call is reported dropped
+  assert.equal(log.droppedThrough, log.calls[0]!.seq - 1)
+  assert.ok(log.droppedThrough > 0)
+})
+
+test('a log that dropped nothing reports nothing dropped', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  hook()?.invoke(passing('a.b'))
+  assert.equal(rt.recording.calls(0).droppedThrough, 0)
 })
 
 type Listener = (e: {data?: {state?: unknown}}) => void

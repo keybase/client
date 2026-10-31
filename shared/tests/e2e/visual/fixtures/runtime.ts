@@ -494,13 +494,18 @@ export const createRuntime = (deps: {
     version: FIXTURE_RUNTIME_VERSION,
   }
   const recording = {
-    calls: (sinceSeq: number): CallLog => ({
-      calls: callLog.slice(-CALL_LOG_SIZE).filter(c => c.seq > sinceSeq),
-      generation,
-      recording: !!recorded,
-      runtime: pauseBase,
-      seq: callSeq,
-    }),
+    calls: (sinceSeq: number): CallLog => {
+      const kept = callLog.slice(-CALL_LOG_SIZE)
+      return {
+        calls: kept.filter(c => c.seq > sinceSeq),
+        // seqs run without gaps, so everything before the oldest kept call was dropped
+        droppedThrough: kept.length ? kept[0]!.seq - 1 : callSeq,
+        generation,
+        recording: !!recorded,
+        runtime: pauseBase,
+        seq: callSeq,
+      }
+    },
     pause: () => {
       const token = `${pauseBase}-${++pauseCount}`
       pauses.add(token)

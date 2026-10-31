@@ -17,13 +17,15 @@ export const callMarkOf = (log: CallLog): CallMark => {
 }
 
 // The calls logged since `mark`, throwing when the log no longer covers the whole window: a new JS
-// runtime (its seqs start again and it logs nothing until a recording starts) or a recording that
-// stopped inside it (calls between a take and the next start are never logged).
+// runtime (its seqs start again and it logs nothing until a recording starts), a recording that
+// stopped inside it (calls between a take and the next start are never logged), or a bounded log that
+// dropped calls from after the mark.
 export const callsInWindow = (mark: CallMark, log: CallLog): Array<LoggedCall> => {
   if (log.runtime !== mark.runtime) throw new Error('the app started a new JS runtime inside the call-log window, so its calls from before are lost')
   if (!log.recording || log.generation !== mark.generation) {
     throw new Error("the app's recorder stopped inside the call-log window, so calls in it went unlogged")
   }
+  if (mark.seq < log.droppedThrough) throw new Error("the call log lost the window's oldest calls")
   return log.calls
 }
 

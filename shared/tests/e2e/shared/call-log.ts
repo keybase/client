@@ -4,4 +4,13 @@ export type LoggedCall = {seq: number; method: string; paused: boolean; typing?:
 // The calls after the seq asked for and the latest seq. `runtime` is random per JS runtime (seqs start
 // again in a new one), `recording` says whether calls are being logged now, and `generation` counts
 // the recordings started in this runtime: a window whose runtime or generation moved missed calls.
-export type CallLog = {seq: number; calls: Array<LoggedCall>; runtime: string; recording: boolean; generation: number}
+// `droppedThrough` is the newest seq the bounded log no longer holds: a window starting before it
+// lost its oldest calls.
+export type CallLog = {
+  seq: number
+  calls: Array<LoggedCall>
+  runtime: string
+  recording: boolean
+  generation: number
+  droppedThrough: number
+}
