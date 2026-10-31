@@ -233,9 +233,13 @@ describe('innermost', () => {
     expect(innermost([{height: 20, width: 100, x: 0, y: 0}, {height: 20, width: 100, x: 0, y: 50}])).toEqual([0, 1])
   })
 
-  test('two of the same rect are both kept', () => {
+  // XCUITest reports an RN text inside a text twice, at one frame: one thing on screen
+  test('two of the same rect count once, as the first', () => {
     const r = {height: 20, width: 100, x: 0, y: 0}
-    expect(innermost([r, {...r}])).toEqual([0, 1])
+    expect(innermost([r, {...r}])).toEqual([0])
+    const box = {height: 60, width: 300, x: 0, y: 100}
+    const text = {height: 20, width: 100, x: 10, y: 110}
+    expect(innermost([box, text, {...text}])).toEqual([1])
   })
 })
 

@@ -17,7 +17,6 @@ import {
   clearComposer,
   closeMessageMenu,
   closeSearch,
-  elementInRow,
   hideKeyboard,
   isKeyboardUp,
   openConversation,
@@ -31,6 +30,7 @@ import {
   sendMessage,
   showsText,
   storedMessage,
+  videoFullscreenButton,
   waitForRow,
   waitForThreadStable,
 } from '../helpers/chat'
@@ -207,9 +207,8 @@ describe('chat parity', function () {
 
   describe('inline video', () => {
     it('the corner button opens the video fullscreen', async function () {
-      // worst case (s): open 100, row 15, the read 1, view 30, the row 2, the play tap 1, the button
-      // 10 + 2, step 2, the tap 1, the fullscreen 10, the screen 1, step 2, the back 10, gone 5,
-      // step 2 = 194
+      // worst case (s): open 100, row 15, the read 1, view 30, the button 15 (videoFullscreenButton),
+      // step 2, the tap 1, the fullscreen 10, the screen 1, step 2, the back 10, gone 5, step 2 = 194
       this.timeout(210_000)
       await openConversation(data.convIDs[E2E_CHANNELS.media])
       // the seeded video (seedMedia), found by its title
@@ -218,20 +217,7 @@ describe('chat parity', function () {
       const id = (await storedMessage(ordinal))?.id
       if (!id) throw new Error('the seeded video has no message id')
       await scrollRowIntoView(ordinal)
-      // The poster is a Pressable, which iOS accessibility makes one element, so the corner button
-      // on the poster is not in the tree; once the video plays inline the button is its own element.
-      const row = await elementInRow(
-        `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ", ${title}, "`,
-        ordinal,
-        'the video row'
-      )
-      await row.click()
-      await waitFor(
-        "the video's fullscreen button",
-        async () => ((await browser.$$(`~${T.CHAT_VIDEO_FULLSCREEN}`).length) > 0 ? true : undefined),
-        {interval: 500, timeout: 10_000}
-      )
-      const button = await elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
+      const button = await videoFullscreenButton(title, ordinal)
       await step('The seeded video playing inline, with its corner button')
       await button.click()
       await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({timeout: 10_000})

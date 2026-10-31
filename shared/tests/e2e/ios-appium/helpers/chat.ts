@@ -1233,16 +1233,62 @@ export const showsText = async (id: string, text: string) => {
 export const elementInRow = async (selector: string, ordinal: number, what: string) => {
   const r = rowOf(await requireThread(), ordinal)
   if (!r) throw new Error(`row ${ordinal} is not drawn, so ${what} in it cannot be found`)
-  const inside: Array<WebdriverIO.Element> = []
+  // RN text is often reported as nested nodes (a StaticText in a StaticText, in a labelled box), so
+  // of the matches that nest or share a frame, only the innermost counts
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
   for (const e of await browser.$$(selector).getElements()) {
     const at = await e.getLocation().catch(() => undefined)
     const size = await e.getSize().catch(() => undefined)
-    if (!at || !size) continue
-    const mid = at.y + size.height / 2
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const mids: Array<number> = []
+  const inside: Array<WebdriverIO.Element> = []
+  for (const i of innermost(found.map(f => f.rect))) {
+    const {e, rect} = found[i]!
+    const mid = rect.y + rect.height / 2
+    mids.push(Math.round(mid))
     if (mid >= r.top && mid <= r.bottom) inside.push(e)
   }
-  if (inside.length !== 1) throw new Error(`${inside.length} of ${what} in row ${ordinal}, not one`)
+  if (inside.length !== 1) {
+    const span = `${Math.round(r.top)}..${Math.round(r.bottom)}`
+    throw new Error(`${inside.length} of ${what} in row ${ordinal} (${span}), not one; candidates' middles: ${mids.join(', ') || 'none'}`)
+  }
   return inside[0]!
+}
+
+// The corner fullscreen button of the video at `ordinal`, titled `title`, in a row wholly in view.
+// The poster is a Pressable, which iOS accessibility makes one element, so the button on the poster
+// is not in the tree; a tap on the row plays the video inline, where the button is its own element.
+// Bound: the row 2, the tap 1, the button 10 and its read 2 = 15s.
+export const videoFullscreenButton = async (title: string, ordinal: number) => {
+  const row = await elementInRow(
+    `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ", ${title}, "`,
+    ordinal,
+    'the video row'
+  )
+  await row.click()
+  await waitFor(
+    "the video's fullscreen button",
+    async () => ((await browser.$$(`~${T.CHAT_VIDEO_FULLSCREEN}`).length) > 0 ? true : undefined),
+    {interval: 500, timeout: 10_000}
+  )
+  return elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
+}
+
+// Closes the conversation's info panel, a modal sheet, with its header's Done (a back swipe from the
+// left edge does not close a sheet), and waits for it to go. Bound: 3 tries of the tap and 5s = 16s.
+export const closeInfoPanel = async () => {
+  const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
+  for (let i = 0; i < 3; i++) {
+    if (!(await el(T.CHAT_INFO_PANEL).isExisting())) return
+    await browser.$(done).click().catch(() => {})
+    const gone = await el(T.CHAT_INFO_PANEL)
+      .waitForExist({reverse: true, timeout: 5_000})
+      .then(() => true)
+      .catch(() => false)
+    if (gone) return
+  }
+  throw new Error('the info panel did not close from its Done button')
 }
 
 // Drags the thread until the loaded row at `ordinal` sits wholly in the reader's view, and returns

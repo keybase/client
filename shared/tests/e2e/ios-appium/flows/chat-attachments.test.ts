@@ -22,12 +22,14 @@ import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
   check,
   chooseMenuItem,
+  closeInfoPanel,
   closeMessageMenu,
   deletePhase,
   elementInRow,
@@ -42,8 +44,10 @@ import {
   signedInAs,
   storedAttachment,
   typeInComposer,
+  videoFullscreenButton,
   waitForComposerText,
   waitForRow,
+  waitForThreadStable,
   type StoredAttachment,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -201,8 +205,8 @@ describe('chat attachments', function () {
   })
 
   it('a video the second account attaches shows inline and its corner button opens it fullscreen', async function () {
-    // worst case (s): peer 70, attach 60, open 100, landed 120, the check 1, view 30, in row 2, step
-    // 2, full 26, step 2 = 413
+    // worst case (s): peer 70, attach 60, open 100, landed 120, the check 1, view 30, the button 15
+    // (videoFullscreenButton), step 2, full 26, step 2 = 426
     this.timeout(440_000)
     const title = e2eMarker('attach-video')
     await attachIncoming('e2e-c.mp4', title)
@@ -210,8 +214,8 @@ describe('chat attachments', function () {
     const {a, ordinal} = await waitForAttachment(title, 'attachment:video')
     expectFromSecond(a)
     await scrollRowIntoView(ordinal)
-    const corner = await elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
-    await step('The incoming video inline, with its corner button')
+    const corner = await videoFullscreenButton(title, ordinal)
+    await step('The incoming video playing inline, with its corner button')
     await openFullscreen(corner, a, 'video')
     await step('Back in the thread from the video', {card: true})
   })
@@ -223,8 +227,9 @@ describe('chat attachments', function () {
   it('/collapse collapses the images, one expands from its row, and both stay so through a relaunch', async function () {
     // worst case (s): peer 70, two attaches 120, open 100, two landed 240, the command 35 (type 15,
     // the button 5, the tap 1, composer 10, keyboard 5, overrun 1), the collapse 20, step 2, calls 2,
-    // view 30, in row 2, the tap 1, the expand 10, calls 10, the image 2, step 2, relaunch 200, signed
-    // in 90, open 100, the two reads 60 (each row 20 and its attachment 10), step 2 = 1098
+    // view 30, three tries of (stable 10, in row 2, the tap 1, the expand 5) = 54, calls 10, the image
+    // 2, step 2, relaunch 200, signed in 90, open 100, the two reads 60 (each row 20 and its attachment
+    // 10), step 2 = 1139
     this.timeout(1200_000)
     const expanded = e2eMarker('attach-expand')
     const kept = e2eMarker('attach-kept')
@@ -245,12 +250,24 @@ describe('chat attachments', function () {
 
     const before = await currentCallSeq()
     await scrollRowIntoView(expandOrdinal)
-    const label = await elementInRow(`-ios predicate string:label == "Collapsed" AND visible == 1`, expandOrdinal, 'the "Collapsed" label')
-    await label.click()
-    await waitFor('the image to expand', async () => ((await storedAttachment(expandOrdinal))?.collapsed === false ? true : undefined), {
-      interval: 250,
-      timeout: 10_000,
-    })
+    // A tap while the thread still redraws after /collapse can land on a row being replaced and do
+    // nothing; it is tapped again only while the image still reads collapsed, so a late first tap is
+    // never undone by a second.
+    const expandedNow = async () => (await storedAttachment(expandOrdinal))?.collapsed === false
+    for (let tap = 1; ; tap++) {
+      await waitForThreadStable()
+      const label = await elementInRow(`-ios predicate string:label == "Collapsed" AND visible == 1`, expandOrdinal, 'the "Collapsed" label')
+      await label.click()
+      const expanded = await waitFor('the image to expand', async () => ((await expandedNow()) ? true : undefined), {
+        interval: 250,
+        timeout: 5_000,
+      }).catch((e: unknown) => {
+        if (isAttemptOver(e)) throw e
+        return false
+      })
+      if (expanded) break
+      if (tap >= 3) throw new Error('the image did not expand after three taps on its "Collapsed" label')
+    }
     await waitFor(
       'the expand to go out',
       async () => ((await callsSince(before)).calls.some(c => c.method === 'chat.1.local.toggleMessageCollapse') ? true : undefined),
@@ -340,11 +357,11 @@ describe('chat attachments', function () {
       async () => ((await galleryListing()).docs.some(d => d.id === fileA.id && d.name === file) ? true : undefined),
       {interval: 500, timeout: 20_000}
     )
+    // the row is one element whose label starts with the title, then the file name and the sender
     await browser
-      .$(`-ios predicate string:label == ${JSON.stringify(file)} AND visible == 1`)
+      .$(`-ios predicate string:(label == ${JSON.stringify(file)} OR label BEGINSWITH ${JSON.stringify(`${file},`)}) AND visible == 1`)
       .waitForExist({timeout: 5_000, timeoutMsg: "the file's row does not show its title"})
     await step('Docs lists the file by its title', {card: true})
-    await goBackUntilGone(T.CHAT_INFO_PANEL)
-    await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    await closeInfoPanel()
   })
 })

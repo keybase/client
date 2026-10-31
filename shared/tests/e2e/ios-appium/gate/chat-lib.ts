@@ -115,9 +115,14 @@ const contains = (outer: Rect, inner: Rect) =>
   outer.y + outer.height >= inner.y + inner.height
 
 // The indexes of the rects that hold no other rect of the list: where several nested elements expose
-// the same label (a pressable box and its text), the innermost is the one drawn.
-export const innermost = (rects: ReadonlyArray<Rect>) =>
-  rects.flatMap((r, i) => (rects.some((o, j) => j !== i && contains(r, o) && !contains(o, r)) ? [] : [i]))
+// the same label (a pressable box and its text), the innermost is the one drawn. Rects with the same
+// frame (a text in a text) are one thing on screen: the first stands for them.
+export const innermost = (rects: ReadonlyArray<Rect>) => {
+  const same = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+  return rects.flatMap((r, i) =>
+    rects.some((o, j) => (j !== i && contains(r, o) && !contains(o, r)) || (j < i && same(o, r))) ? [] : [i]
+  )
+}
 
 // The inbox search's name hits among `matches` (rects of elements that read the asked-for text): those
 // below the "Chats" section's header and above the next section's header, if one is drawn below it.
