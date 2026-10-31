@@ -50,7 +50,7 @@ describe('git', function () {
   //   menu      openNewRepo 52 (openMenuFrom 19: 15, overrun by one try: the tap 1, the sheet 3;
   //             chooseMenuItem 22: 15, overrun by one drag 1, the tap 1, the sheet gone 5; screen 11)
   //   row       repoText 31 (30, one drag 1);  pick  the dropdown's team 31
-  //   pasteboard  setPasteboard 30;  pasteboardText 30, polled 10s overrun by one read 40
+  //   pasteboard  setPasteboard 50;  pasteboardText 30, polled 10s overrun by one read 40
   //   calls     one read 2;  waited for  12 (10, one read 2)
   //   step      2 (its 1s settle and the attach)
 
@@ -65,10 +65,10 @@ describe('git', function () {
 
   const filler = () => `e2e-${e2eRunId()}-pasteboard`
 
-  // Bound: 30.
-  const overwritePasteboard = () => {
+  // Bound: 50.
+  const overwritePasteboard = async () => {
     if (!urlOnPasteboard) return
-    setPasteboard(filler())
+    await setPasteboard(filler())
     urlOnPasteboard = false
   }
 
@@ -87,8 +87,8 @@ describe('git', function () {
     }
   }
 
-  // Worst case (s): the pasteboard 30, a team repo 1020, the one name of a test 750, close 5,
-  // keyboard 5, escape 30 = 1840.
+  // Worst case (s): the pasteboard 50, a team repo 1020, the one name of a test 750, close 5,
+  // keyboard 5, escape 30 = 1860.
   afterEach(async function () {
     this.timeout(1_900_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, overwritePasteboard, restoreMade, escapeToTabs])
@@ -168,9 +168,9 @@ describe('git', function () {
 
   it('a personal repo made, its clone URL copied, and deleted', async function () {
     // worst case (s): app 15, host 255, git 90, new repo 52, field 11, fill 26, step 2, calls 2,
-    // button 6, waited for 12, screen 11, polled 285, row 31, its tap 1, filler 30, the button 10 and
-    // its tap 1, pasteboard 40, filler 30, step 2, button 6, screen 11, field 11, fill 26, step 2,
-    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1287
+    // button 6, waited for 12, screen 11, polled 285, row 31, its tap 1, filler 50, the button 10 and
+    // its tap 1, pasteboard 40, filler 50, step 2, button 6, screen 11, field 11, fill 26, step 2,
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1327
     this.timeout(1_400_000)
     await requireAppIsSmoke()
     const repo = personalRepo()
@@ -190,7 +190,7 @@ describe('git', function () {
     await (await repoText(repo.name)).click()
     // the clone URL is copied over filler, so a stale pasteboard cannot pass; it is compared here
     // and never logged
-    setPasteboard(filler())
+    await setPasteboard(filler())
     urlOnPasteboard = true
     await el(T.GIT_REPO_COPY_URL).waitForExist({timeout: 10_000})
     await el(T.GIT_REPO_COPY_URL).click()
@@ -199,7 +199,7 @@ describe('git', function () {
       timeout: 10_000,
     })
     creditSurface('pasteboard')
-    overwritePasteboard()
+    await overwritePasteboard()
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The clone URL copied', {screenshot: false})
 
