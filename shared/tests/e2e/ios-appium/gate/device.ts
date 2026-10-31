@@ -2,7 +2,6 @@
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
 // Delivering something to the app proves nothing about it, so these credit nothing: a flow calls
 // creditSurface(<surface>) once it has asserted the app used what was delivered.
-import {execFileSync} from 'child_process'
 import {
   activateApp,
   appPid,
@@ -22,6 +21,7 @@ import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {withHarnessRpcs} from './recorder.ts'
+import {withDeadline} from '../../shared/deadline.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
@@ -79,28 +79,28 @@ export const setPasteboard = async (text: string) => {
   )
 }
 
-// The simulator's pasteboard text (what the app copied), read over stdout. The value is the caller's to
-// compare and is never logged: a failed read reports only how it failed. The flow credits
-// 'pasteboard' once it has asserted the text is what the app copied.
+// The simulator's pasteboard text (what the app copied), read through WDA's mobile: getPasteboard
+// (setPasteboard's reader: `simctl pbpaste` does not see the app's pasteboard on this host). The value
+// is the caller's to compare and is never logged: a failed read says only that it failed. The flow
+// credits 'pasteboard' once it has asserted the text is what the app copied. Bound: 30s.
 export const pasteboardText = async (): Promise<string> => {
   requireCurrentAttempt()
-  let out: string
+  let got: string
   try {
-    out = execFileSync('xcrun', ['simctl', 'pbpaste', deviceUdid()], {
-      encoding: 'utf8',
-      killSignal: 'SIGKILL',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: PASTEBOARD_MS,
-    })
+    got = await withDeadline(
+      browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}),
+      PASTEBOARD_MS,
+      'reading the simulator pasteboard'
+    )
   } catch (e) {
-    const {signal, status} = e as {signal?: string | null; status?: number | null}
-    // no cause: the error holds the command's output
+    // no cause, and only a deadline's own message: a WebDriver error may echo what it read
+    const late = e instanceof Error && e.message.startsWith('reading the simulator pasteboard: no answer')
     // eslint-disable-next-line preserve-caught-error
-    throw new Error(`reading the simulator pasteboard failed (${signal ? `signal ${signal}` : `exit ${status ?? '?'}`})`)
+    throw new Error(late ? e.message : 'reading the simulator pasteboard failed')
   }
   // a body mocha abandoned while the read ran does not go on with what it read
   requireCurrentAttempt()
-  return Promise.resolve(out)
+  return Buffer.from(got, 'base64').toString('utf8')
 }
 
 const runtimeId = async (): Promise<string | undefined> =>
