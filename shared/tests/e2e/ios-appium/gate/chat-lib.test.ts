@@ -2,6 +2,7 @@ import {
   carriedTeam,
   findInboxHeader,
   findInboxRow,
+  isOneOnOneRow,
   forwardResultMatches,
   inNameSection,
   inboxIn,
@@ -345,5 +346,35 @@ describe('sheetItemLabels', () => {
 
   test('undefined while no sheet is visible', () => {
     expect(sheetItemLabels(sourceElements(app))).toBeUndefined()
+  })
+})
+
+describe('a one-on-one lookup and a group row', () => {
+  const span = (top: number) => ({bottom: top + 64, top})
+  // a group row's label also starts with its first participant's name
+  const items = [
+    {kind: 'small' as const, label: 'testuser, testuser-mac, 3:04 PM, hello', span: span(100)},
+    {kind: 'small' as const, label: 'testuser, 2:00 PM, hi', span: span(164)},
+  ]
+  const rows = [
+    {...span(100), participants: ['testuser', 'testuser-mac'], team: false},
+    {...span(164), participants: ['testuser'], team: false},
+  ]
+
+  test('the label alone matches both rows', () => {
+    expect(() => findInboxRow(items, 'testuser', 'team', undefined)).toThrow(/more than one/)
+  })
+
+  test("the app's rows leave only the one-on-one row", () => {
+    expect(findInboxRow(items, 'testuser', 'team', undefined, isOneOnOneRow(rows, 'testuser'))).toBe(1)
+  })
+
+  test('a group row alone is not the one-on-one row', () => {
+    expect(findInboxRow(items.slice(0, 1), 'testuser', 'team', undefined, isOneOnOneRow(rows, 'testuser'))).toBeUndefined()
+  })
+
+  test('a team row or a row the app does not draw at that frame is not taken', () => {
+    expect(isOneOnOneRow([{...span(164), participants: ['testuser'], team: true}], 'testuser')(items[1]!)).toBe(false)
+    expect(isOneOnOneRow([{...span(300), participants: ['testuser'], team: false}], 'testuser')(items[1]!)).toBe(false)
   })
 })

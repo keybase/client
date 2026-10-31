@@ -19,6 +19,9 @@ import {
   carriedTeam,
   findInboxHeader,
   findInboxRow,
+  inboxRowCandidates,
+  isOneOnOneRow,
+  type AppSmallRow,
   inboxIn,
   innermost,
   persistedMismatch,
@@ -614,7 +617,7 @@ const INBOX_END_STILL_DRAGS = 2
 // item's element, or undefined once the inbox's end is drawn with nothing picked; fails after
 // INBOX_SCROLL_MS. The native inbox draws only the rows near what it shows, hence the drags.
 const seekInbox = async (
-  find: (items: ReadonlyArray<DrawnInboxItem>, carried: string | undefined) => number | undefined
+  find: (items: ReadonlyArray<DrawnInboxItem>, carried: string | undefined) => number | undefined | Promise<number | undefined>
 ): Promise<WebdriverIO.Element | undefined> => {
   const started = Date.now()
   const top = await inboxAtTop()
@@ -634,7 +637,7 @@ const seekInbox = async (
       throw new Error(`the inbox item asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling (${where})`)
     }
     passes++
-    const at = find(drawn.items, carried)
+    const at = await find(drawn.items, carried)
     // every drag below moves the content, so the section at the top is read off this drawing first
     carried = carriedTeam(drawn.items, list.top, carried)
     if (at !== undefined) {
@@ -658,13 +661,71 @@ const seekInbox = async (
   }
 }
 
-// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name,
-// a channel as "#channel" and only among KB_E2E_TEAM's channels (findInboxRow; a name more than one
-// drawn row matches is refused). Fails at the inbox's end or after INBOX_SCROLL_MS. Its errors name
-// neither `name` nor any row: the inbox holds conversations other than the test ones.
+// The app's drawn small conversation rows (AppSmallRow): each row's tappable box measured, and its
+// top line's participants and team. Bound: the read 1, the measures 3.
+const appSmallRows = async (): Promise<Array<AppSmallRow>> => {
+  const count = await jsEval<number>(
+    `${fiberPrelude}
+    const g = globalThis
+    g.__e2eSmallRows = undefined
+    const boxes = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.tag !== 5 && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_INBOX_ROW)}) boxes.push(f)
+      else if (f.child) stack.push(f.child)
+      if (f.sibling) stack.push(f.sibling)
+    }
+    const rows = []
+    for (const box of boxes) {
+      let line
+      const inner = box.child ? [box.child] : []
+      while (inner.length && !line) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        if (p && Array.isArray(p.participants) && 'teamDisplayName' in p) line = p
+        if (f.sibling) inner.push(f.sibling)
+        if (f.child) inner.push(f.child)
+      }
+      const host = e2eHostOf(box)
+      if (line && host) rows.push({host, participants: [...line.participants], team: !!line.teamDisplayName})
+    }
+    const out = []
+    const done = () => out.length === rows.length && (g.__e2eSmallRows = out)
+    if (!rows.length) g.__e2eSmallRows = out
+    for (const r of rows) {
+      g.nativeFabricUIManager.measureInWindow(r.host.stateNode.node, (x, y, width, height) => {
+        out.push({bottom: y + height, participants: r.participants, team: r.team, top: y})
+        done()
+      })
+    }
+    return rows.length
+  `,
+    {once: true}
+  )
+  return waitFor(
+    `the ${count} inbox rows measured`,
+    async () => (await jsEval<Array<AppSmallRow> | null>('return globalThis.__e2eSmallRows || null')) ?? undefined,
+    {interval: 100, timeout: 3_000}
+  )
+}
+
+// The drawn row named `name` in this drawing (findInboxRow). A small conversation's must also be the
+// app's one-on-one row with `name` (isOneOnOneRow), read only once a label matched: a group whose
+// first participant is `name` reads the same.
+const inboxRowNamed = async (items: ReadonlyArray<DrawnInboxItem>, name: string, team: string, carried: string | undefined) => {
+  if (name.startsWith('#') || !inboxRowCandidates(items, name, team, carried).length) return findInboxRow(items, name, team, carried)
+  return findInboxRow(items, name, team, carried, isOneOnOneRow(await appSmallRows(), name))
+}
+
+// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name
+// (a one-on-one row only, inboxRowNamed), a channel as "#channel" and only among KB_E2E_TEAM's
+// channels (findInboxRow; a name more than one drawn row matches is refused). Fails at the inbox's end
+// or after INBOX_SCROLL_MS. Its errors name neither `name` nor any row: the inbox holds conversations
+// other than the test ones.
 export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
   const {team} = loadE2EAccounts()
-  const row = await seekInbox((items, carried) => findInboxRow(items, name, team, carried))
+  const row = await seekInbox(async (items, carried) => inboxRowNamed(items, name, team, carried))
   if (!row) throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
   return row
 }
@@ -674,7 +735,7 @@ export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> 
 // is there first, which shows the inbox loaded, and pairs it with appInboxLists.
 export const inboxHasRow = async (name: string) => {
   const {team} = loadE2EAccounts()
-  return (await seekInbox((items, carried) => findInboxRow(items, name, team, carried))) !== undefined
+  return (await seekInbox(async (items, carried) => inboxRowNamed(items, name, team, carried))) !== undefined
 }
 
 // The gear of the big team header of `team`, by its exact name (findInboxHeader), wholly in view.

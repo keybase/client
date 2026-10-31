@@ -44,12 +44,12 @@ export type DrawnInboxItem =
 const byTop = (items: ReadonlyArray<DrawnInboxItem>) =>
   items.map((item, i) => ({i, item})).sort((a, b) => a.item.span.top - b.item.span.top)
 
-// The index of the drawn row named `name` (inboxRowMatches), or undefined when none is drawn. A
-// "#channel" is looked for only among the channel rows of `team`'s section, so a same-named channel
-// of another team is never it; any other name only among small conversation rows. Rows above the
-// first drawn header are in the `carried` team's section (carriedTeam of the drawing before the
-// last drag); an unknown carried team is no team's. Throws when more than one row matches.
-export const findInboxRow = (
+// The indexes of the drawn rows whose labels name `name` (inboxRowMatches). A "#channel" is looked for
+// only among the channel rows of `team`'s section, so a same-named channel of another team is never
+// it; any other name only among small conversation rows. Rows above the first drawn header are in the
+// `carried` team's section (carriedTeam of the drawing before the last drag); an unknown carried team
+// is no team's.
+export const inboxRowCandidates = (
   items: ReadonlyArray<DrawnInboxItem>,
   name: string,
   team: string,
@@ -66,8 +66,36 @@ export const findInboxRow = (
     if (wantChannel !== (item.kind === 'channel') || (wantChannel && section !== team)) continue
     if (inboxRowMatches(item.label, name)) found.push(i)
   }
+  return found
+}
+
+// The index of the drawn row named `name` (inboxRowCandidates) that `accept` also takes, or undefined
+// when none is drawn. A label can't tell a one-on-one row from a group row whose first participant is
+// `name`, so a small row's lookup passes an `accept` built from the app's own rows (isOneOnOneRow).
+// Throws when more than one row is left.
+export const findInboxRow = (
+  items: ReadonlyArray<DrawnInboxItem>,
+  name: string,
+  team: string,
+  carried: string | undefined,
+  accept: (item: DrawnInboxItem) => boolean = () => true
+) => {
+  const found = inboxRowCandidates(items, name, team, carried).filter(i => accept(items[i]!))
   if (found.length > 1) throw new Error(`more than one inbox row matches the name asked for (${found.length} drawn)`)
   return found[0]
+}
+
+// A small conversation row as the app draws it: its frame (the inbox is in the main window, so the
+// app's frame is the screen's), its participants other than the account (the account alone for its
+// own conversation), and whether it is a team's.
+export type AppSmallRow = {bottom: number; participants: ReadonlyArray<string>; team: boolean; top: number}
+
+// Whether a drawn small row is the app's one-on-one row with `name` (or the account's own, named by the
+// account): the app row at its frame has that one participant and is no team's. A row the app has no
+// row at is not taken.
+export const isOneOnOneRow = (rows: ReadonlyArray<AppSmallRow>, name: string) => (item: DrawnInboxItem) => {
+  const row = rows.find(r => Math.abs(r.top - item.span.top) < 1 && Math.abs(r.bottom - item.span.bottom) < 1)
+  return !!row && !row.team && row.participants.length === 1 && row.participants[0] === name
 }
 
 // The team whose section runs at the list's top (`listTop`), for the drawing after the next drag:
