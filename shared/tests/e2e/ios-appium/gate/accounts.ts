@@ -134,3 +134,12 @@ export const phoneDevice = async (): Promise<{deviceID: string; deviceName: stri
 }
 
 export const phoneDeviceId = async (): Promise<string> => (await phoneDevice()).deviceID
+
+// The smoke account's uid as the app holds it (what a push for this account carries). A store read,
+// no RPC.
+export const appUid = async (): Promise<string> => {
+  await requireAppIsSmoke()
+  const uid = await jsEval<string | null>(`return kbModule('stores/current-user.tsx').useCurrentUserState.getState().uid || null`)
+  if (!uid || !/^[0-9a-f]{32}$/.test(uid)) throw new Error('the app holds no uid for the smoke account')
+  return uid
+}

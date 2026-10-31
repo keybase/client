@@ -19,6 +19,7 @@ import {installAppLogCapture} from './app-log.ts'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
+import {isAttemptOver} from './attempt-binding-lib.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {
   corpusToAdd,
@@ -36,7 +37,7 @@ import {
 } from './device-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
 import {simulatorDataBirth} from './sim-data.ts'
-import {clearGatePoison, poisonGate} from './poison-lib.ts'
+import {APP_POISON, clearGatePoison, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
 import {pasteboardHolds} from './pasteboard-lib.ts'
@@ -46,6 +47,8 @@ const PUSH_MS = 30_000
 const TCC_MS = 15_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
+// a link or a tapped notification has iOS start the app within seconds
+const DELIVERED_LAUNCH_MS = 30_000
 const E2E_TMP = '/tmp/kb-e2e'
 
 // The simulator preflight proved booted.
@@ -56,8 +59,19 @@ const execFailure = (what: string, e: unknown) => {
   return `${what} failed (${signal ? `signal ${signal}` : `exit ${status ?? '?'}`})`
 }
 
-// The flow credits 'deep-link' once it has asserted the screen the app routed the link to.
-export const openLink = (url: string) => openUrl(url)
+// Hands the app `url` as the OS does. A link can name an account, a team or a folder, so a failure
+// names neither the link nor the command line. The flow credits 'deep-link' once it has asserted the
+// screen the app routed the link to.
+export const openLink = (url: string) => {
+  try {
+    openUrl(url)
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    // no cause: the error holds the command line
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(execFailure('simctl openurl', e))
+  }
+}
 
 let pushes = 0
 
@@ -250,6 +264,44 @@ export const relaunchApp = async () => {
   await keepErrors()
   await terminateApp()
   await launch(before)
+}
+
+// Terminates the app, then has `deliver` launch it the way a person would (a link it opens, a
+// notification tapped), and waits for its new JS runtime with error capture, the app-log capture and
+// the recording on it. It never launches the app itself: an app that `deliver` did not start within
+// DELIVERED_LAUNCH_MS fails, so what the app shows next is what `deliver` opened. The flow credits
+// 'relaunch' (and the surface `deliver` used) once it has asserted that screen.
+export const launchedBy = async (deliver: () => unknown) => {
+  const before = await runtimeId().catch(() => undefined)
+  await attemptRecording().checkpoint()
+  await keepErrors()
+  await terminateApp()
+  await deliver()
+  await waitFor('the app to launch from what was delivered', () => (appPid() === undefined ? undefined : true), {
+    interval: 500,
+    timeout: DELIVERED_LAUNCH_MS,
+  })
+  await launch(before)
+}
+
+// For a flow's afterEach (simctl and reads only, no recording): launches the app when a test left it
+// terminated, and waits for its JS runtime, so the next test's reset finds it. An app that does not
+// come back poisons the gate; one that does clears that poison.
+export const launchIfGone = async () => {
+  try {
+    if (appPid() === undefined) {
+      simctl('launch', deviceUdid(), BUNDLE_ID)
+      await waitFor('the launched app to start its JS runtime', async () => ((await runtimeId()) ? true : undefined), {
+        interval: 500,
+        timeout: RUNTIME_WAIT_MS,
+      })
+    }
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    poisonGate(APP_POISON, 'launch the Keybase app on the simulator and check it shows the smoke account')
+    throw new Error(`launching ${APP_POISON} again failed: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
+  }
+  clearGatePoison(APP_POISON)
 }
 
 // The app hung for good (hang.ts) or is gone (crash.ts): a hung runtime answers no eval, so what it

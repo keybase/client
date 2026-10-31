@@ -3,7 +3,7 @@ import * as mockFs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../../accounts/run-id'
-import {clearLocation, ensurePhotoCorpus, grantPrivacy, pushNotification, restorePrivacy, toBackground, toForeground} from './device'
+import {clearLocation, ensurePhotoCorpus, grantPrivacy, launchedBy, launchIfGone, openLink, pushNotification, restorePrivacy, toBackground, toForeground} from './device'
 import {chatNewMessagePayload} from './device-lib'
 import {clearGatePoison, gatePoisoned} from './poison-lib'
 
@@ -21,6 +21,11 @@ const mockDevice = {
   // the simulator data's identity
   data: 1,
   credits: [] as Array<string>,
+  // a link openurl fails on
+  openFails: false,
+  // the app's pid, undefined while it is not running, and its JS runtime
+  pid: 1 as number | undefined,
+  runtime: 'r1' as string | undefined,
   // a push file as simctl saw it
   pushed: [] as Array<{argv: string; file: string; mode: number; body: string}>,
   pushFails: false,
@@ -34,24 +39,37 @@ jest.mock('../helpers/lifecycle', () => ({
     mockDevice.calls.push('activate')
     return Promise.resolve()
   },
-  appPid: () => 1,
+  appPid: () => mockDevice.pid,
   backgroundApp: async () => {
     mockDevice.calls.push('background')
     return Promise.resolve()
   },
   // a name lookup's answer, which nothing outside the app may use
   deviceUdid: () => '00000000-1111-2222-3333-444444444444',
-  jsEval: async () => Promise.resolve('r1'),
+  jsEval: async () => Promise.resolve(mockDevice.runtime),
   lookFor: async () => Promise.resolve(undefined),
-  openUrl: () => {},
+  openUrl: (url: string) => {
+    mockDevice.calls.push('openurl')
+    if (mockDevice.openFails) throw Object.assign(new Error(`Command failed: xcrun simctl openurl ${UDID} ${url}`), {status: 3})
+  },
   setLocation: () => {},
   simctl: (...args: Array<string>) => {
     mockDevice.calls.push(`simctl ${args.join(' ')}`)
     if (mockDevice.simctlFails && args.join(' ').includes(mockDevice.simctlFails)) throw new Error('simctl exit 1')
     return ''
   },
-  terminateApp: async () => Promise.resolve(),
-  waitFor: async () => Promise.resolve(true),
+  terminateApp: async () => {
+    mockDevice.calls.push('terminate')
+    mockDevice.pid = undefined
+    mockDevice.runtime = undefined
+    return Promise.resolve()
+  },
+  // one look: what it checks either holds now or the wait times out
+  waitFor: async (what: string, check: () => unknown) => {
+    const r = await check()
+    if (r === undefined) throw new Error(`timed out waiting for ${what}`)
+    return r
+  },
 }))
 jest.mock('../../accounts/env.ts', () => ({e2eConfigDir: () => mockDevice.configDir}))
 jest.mock('./sim-data.ts', () => ({simulatorDataBirth: () => mockDevice.data}))
@@ -77,7 +95,15 @@ jest.mock('./attempt.ts', () => ({
 }))
 jest.mock('./errors.ts', () => ({ensureErrorCapture: async () => Promise.resolve(), takeErrors: async () => Promise.resolve([])}))
 jest.mock('./app-log.ts', () => ({installAppLogCapture: async () => Promise.resolve()}))
-jest.mock('./recording.ts', () => ({attemptRecording: () => ({checkpoint: async () => Promise.resolve()}), recorders: new Map()}))
+jest.mock('./recording.ts', () => ({
+  attemptRecording: () => ({
+    checkpoint: async () => {
+      mockDevice.calls.push('checkpoint')
+      return Promise.resolve()
+    },
+  }),
+  recorders: new Map(),
+}))
 
 let home = ''
 const savedEnv = {runId: process.env['KB_E2E_RUN_ID'], udid: process.env['KB_IOS_UDID']}
@@ -93,6 +119,9 @@ beforeEach(() => {
   mockDevice.simctlFails = ''
   mockDevice.tcc = ''
   mockDevice.data = 1
+  mockDevice.openFails = false
+  mockDevice.pid = 1
+  mockDevice.runtime = 'r1'
 })
 afterEach(() => {
   if (savedEnv.udid === undefined) delete process.env['KB_IOS_UDID']
@@ -102,6 +131,7 @@ afterEach(() => {
   fs.rmSync(home, {force: true, recursive: true})
   for (const s of ['photos', 'location-always']) clearGatePoison(`the ${s} permission for keybase.ios`)
   clearGatePoison('the simulated location')
+  clearGatePoison('the Keybase app')
 })
 
 test('device.ts never credits a surface: the flow credits once it has asserted the outcome', () => {
@@ -248,5 +278,64 @@ describe('the photo corpus', () => {
     await ensurePhotoCorpus()
     expect(added()[0]).toMatch(/e2e-c\.jpg$/)
     expect(added()).toHaveLength(6)
+  })
+})
+
+describe('a link', () => {
+  test('that fails to open names neither the link nor the command line', () => {
+    mockDevice.openFails = true
+    let message = ''
+    try {
+      openLink('keybase://profile/show/testuser')
+    } catch (e) {
+      message = e instanceof Error ? e.message : String(e)
+    }
+    expect(message).toBe('simctl openurl failed (exit 3)')
+    expect(mockDevice.credits).toEqual([])
+  })
+})
+
+describe('a launch by what was delivered', () => {
+  // what a link or a tapped banner does: iOS starts the app on a new runtime
+  const startsApp = () => {
+    mockDevice.calls.push('deliver')
+    mockDevice.pid = 2
+    mockDevice.runtime = 'r2'
+  }
+
+  test('terminates the app, delivers, and waits for the new runtime without launching the app itself', async () => {
+    await launchedBy(startsApp)
+    expect(mockDevice.calls).toEqual(['checkpoint', 'terminate', 'deliver', 'checkpoint'])
+    expect(mockDevice.credits).toEqual([])
+  })
+
+  test('fails when what was delivered did not start the app, and never starts it itself', async () => {
+    await expect(launchedBy(() => void mockDevice.calls.push('deliver'))).rejects.toThrow(/the app to launch from what was delivered/)
+    expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
+  })
+})
+
+describe('the app launched again by a hook', () => {
+  test('runs nothing while the app is up', async () => {
+    await launchIfGone()
+    expect(mockDevice.calls).toEqual([])
+  })
+
+  test('launches an app a test left terminated and waits for its runtime', async () => {
+    mockDevice.pid = undefined
+    mockDevice.runtime = 'r2'
+    await launchIfGone()
+    expect(mockDevice.calls).toEqual(['simctl launch 00000000-1111-2222-3333-444444444444 keybase.ios'])
+    expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('poisons the gate when the app does not come back, and a later launch that works clears it', async () => {
+    mockDevice.pid = undefined
+    mockDevice.runtime = undefined
+    await expect(launchIfGone()).rejects.toThrow(/launching the Keybase app again failed/)
+    expect(gatePoisoned()).toBeDefined()
+    mockDevice.runtime = 'r2'
+    await launchIfGone()
+    expect(gatePoisoned()).toBeUndefined()
   })
 })

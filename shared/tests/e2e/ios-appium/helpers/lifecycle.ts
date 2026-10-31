@@ -303,16 +303,6 @@ export const goAppStateUpdates = (mark: LogMark) =>
 
 export const openUrl = (url: string, udid = deviceUdid()) => simctl('openurl', udid, url)
 
-export const sendPush = (payload: object, udid = deviceUdid()) => {
-  const file = path.join(os.tmpdir(), `kb-e2e-push-${process.pid}-${Date.now()}.json`)
-  fs.writeFileSync(file, JSON.stringify(payload))
-  try {
-    simctl('push', udid, BUNDLE_ID, file)
-  } finally {
-    fs.rmSync(file, {force: true})
-  }
-}
-
 export const setLocation = (lat: number, lon: number, udid = deviceUdid()) =>
   simctl('location', udid, 'set', `${lat},${lon}`)
 
@@ -379,55 +369,6 @@ export const shownWithLabel = async (text: string, timeout: number) =>
     },
     {interval: 300, timeout}
   )
-
-// Waits for the system to show a notification whose text contains `body`, as a banner or,
-// once the banner is gone, a row in Notification Center, and taps it when asked. Returns where
-// it was found; a caller that doesn't tap must close Notification Center when it was opened.
-export const findNotification = async (body: string, {tap}: {tap: boolean}) =>
-  withSpringboard(async (): Promise<'banner' | 'center' | undefined> => {
-    const inBanner = await shownWithLabel(body, 8000)
-    if (inBanner) {
-      if (tap) await inBanner.click()
-      return 'banner'
-    }
-    await openNotificationCenter()
-    const inCenter = await shownWithLabel(body, 8000)
-    if (!inCenter) {
-      await closeNotificationCenter()
-      return undefined
-    }
-    if (tap) await inCenter.click()
-    return 'center'
-  })
-
-// Notification banners need the user's permission. Grants it through the app's own request
-// and the system prompt when the simulator hasn't been asked yet.
-export const ensureNotificationPermission = async () => {
-  const has = async () => jsEval<boolean>(`return kbModule('stores/push.tsx').usePushState.getState().hasPermissions`)
-  if (await has()) return
-  await jsEval(`kbModule('stores/push.tsx').usePushState.getState().dispatch.requestPermissions(); return true`)
-  await withSpringboard(async () => {
-    const allow = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Allow"')
-    await allow.waitForExist({interval: 250, timeout: 15000})
-    await waitFor(
-      'the notification prompt to close',
-      async () => {
-        if (!(await allow.isExisting())) return true
-        await allow.click().catch(() => {})
-        return undefined
-      },
-      {interval: 1000, timeout: 15000}
-    )
-  })
-  await waitFor(
-    'notification permission',
-    async () => {
-      await jsEval(`kbModule('stores/push.tsx').usePushState.getState().dispatch.checkPermissions(); return true`)
-      return (await has()) ? true : undefined
-    },
-    {interval: 1000, timeout: 15000}
-  )
-}
 
 // The id of the conversation whose only participant is `username`, read from the inbox layout.
 export const selfConversationID = async (username: string) => {

@@ -78,9 +78,8 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {frameInside, rectOf} from '../gate/chat-lib.ts'
-import {proxySaveWrites, rectsOverlap, settingSelector, settingShown, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
-import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
-import type {CallMark} from '../gate/recorder-lib'
+import {proxySaveWrites, rectsOverlap, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
+import {currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
 import {dragUntilOnScreen} from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -89,6 +88,18 @@ import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
 import {BUTTON_ELEMENTS, check, labelledElement, NAMED_ELEMENT_TYPES, screenRect} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openMore, openSettingsPage} from '../helpers/settings'
+import {
+  calledOnce,
+  expectShown,
+  openNotificationSettings,
+  radioOf,
+  saveAndCall,
+  settles,
+  switchOf,
+  tapAndCall,
+  tapControl,
+  type Shown,
+} from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
 
@@ -119,67 +130,9 @@ const DEVELOPER_LINE = "Please don't do anything below here unless instructed to
 // the developer controls show after this many taps on the line (settings/advanced.tsx)
 const DEVELOPER_TAPS = 7
 
-// -- the controls -------------------------------------------------------------------------------------
-
-type Shown = {base: string; want: 'on' | 'off'}
-
-// Scrolls the control on screen, once the page draws it. A page opened right after a relaunch draws
-// a group only once its settings load, and a drag before that scrolls past where it comes (seen live:
-// the chat page ended at its bottom with the notification group at its top). Bound: 10s for it to be
-// drawn, 10s of drags = 20.
-const dragToControl = async (base: string, what: string) => {
-  await browser.$(settingSelector(base)).waitForExist({timeout: 10_000})
-  await dragUntilOnScreen(what, () => browser.$(settingSelector(base)), 10_000)
-}
-
-// Scrolls the control on screen and waits for it to show `want` (not pending). Bound: the drag 20,
-// 20s of reads, overrun by one 1 = 41.
-const expectShown = async ({base, want}: Shown, what: string) => {
-  await dragToControl(base, what)
-  await waitFor(`${what} to show ${want}`, async () => ((await settingShown(base)) === want ? true : undefined), {
-    interval: 250,
-    timeout: 20_000,
-  })
-}
-
-// Taps the control. Bound: the drag 20, its tap 1 = 21.
-const tapControl = async (base: string, what: string) => {
-  await dragToControl(base, what)
-  await browser.$(settingSelector(base)).click()
-}
-
-// Waits for one call of `method` since `seq`, and no second. Bound: waitForUiCall 12, the count 2 = 14.
-const calledOnce = async (seq: CallMark, method: string, what: string) => {
-  await waitForUiCall(`${what} to go out`, seq, method)
-  const n = (await uiCallsSince(seq, method)).length
-  check(n === 1, `${what} went out ${n} times, not once`)
-}
-
-// Taps the control and waits for its one call. Bound: seq 2, tapControl 21, calledOnce 14 = 37.
-const tapAndCall = async (base: string, method: string, what: string) => {
-  const seq = await currentCallSeq()
-  await tapControl(base, what)
-  await calledOnce(seq, method, what)
-}
-
-// Taps the Save `saveID` and waits for its one call. Bound: seq 2, the drag 20, its tap 1, calledOnce
-// 14 = 37.
-const saveAndCall = async (saveID: string, method: string, what: string) => {
-  const seq = await currentCallSeq()
-  await dragUntilOnScreen(`${what}'s Save`, () => el(saveID))
-  await el(saveID).click()
-  await calledOnce(seq, method, what)
-}
-
-// Waits for `read` to answer `want`. Bound: 30s of reads, overrun by one: a host read 150 (180 in
-// all), a phone ask 22 (52).
-const settles = async <V,>(what: string, read: () => Promise<V>, want: V) =>
-  waitFor(what, async () => (same(await read(), want) ? true : undefined), {interval: 1_000, timeout: 30_000})
-
 // -- pages ---------------------------------------------------------------------------------------
 
 const openChat = async () => openSettingsPage('Chat', 'settingsTabs.chatTab', T.SETTINGS_CHAT, T.SETTINGS_ROW_CHAT)
-const openNotifications = async () => openSettingsPage('Notifications', 'settingsTabs.notificationsTab', T.SETTINGS_NOTIFICATIONS)
 const openDisplay = async () => openSettingsPage('Display', 'settingsTabs.displayTab', T.SETTINGS_DISPLAY)
 const openAdvanced = async () => openSettingsPage('Advanced', 'settingsTabs.advancedTab', T.SETTINGS_ADVANCED)
 
@@ -223,9 +176,6 @@ const roundTrip = async <V,>(c: Case<V>, was: V, other: V) => {
   await expectShown(c.shown(was), `${c.what} after the change back`)
   await step(`${c.what} changed back`)
 }
-
-const radioOf = (prefix: string, v: string): Shown => ({base: `${prefix}${v}`, want: 'on'})
-const switchOf = (base: string, on: boolean): Shown => ({base, want: on ? 'on' : 'off'})
 
 // -- the KBFS debug level, from the phone's service log ---------------------------------------------
 
@@ -593,7 +543,7 @@ describe('settings persisted', function () {
     await roundTrip<boolean>(
       {
         change: async () => tapAndCall(base, POST_JSON, 'the email notification settings save'),
-        open: openNotifications,
+        open: openNotificationSettings,
         read: subscribed,
         shown: on => switchOf(base, on),
         what: 'Email notification',
