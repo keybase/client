@@ -1,4 +1,4 @@
-import {CHAT_PAUSED, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, startedJobsOf, stillListed} from './archive-lib'
+import {CHAT_PAUSED, anchorsOf, chatArchivesOf, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, startedJobsOf, stillListed} from './archive-lib'
 
 const root = '/Users/testuser/Library/Developer/CoreSimulator/Devices/D1/data/'
 const container = `${root}Containers/Data/Application/A1`
@@ -49,4 +49,35 @@ test("a job's outputs are its paths inside the simulator, and a path outside it 
     expect(err?.message).toMatch(/^refusing a backup output path outside/)
     expect(err?.message).not.toContain('testuser')
   }
+})
+
+test("an output is anchored by itself or the folder it is made in, both inside the simulator", () => {
+  const out = `${container}/Library/Caches/kbchat-c1`
+  expect(anchorsOf(out, root)).toEqual([out, `${container}/Library/Caches`])
+  // a folder right under the storage root is the root's own child, still inside it
+  expect(anchorsOf(`${root}x/y`, root)).toEqual([`${root}x/y`, `${root}x`])
+  for (const bad of [`${root}x`, '/tmp/kbchat', `${root}../x/y`]) expect(() => anchorsOf(bad, root)).toThrow(/^refusing /)
+})
+
+test("a finished chat job's compressed file is found for the test's chat jobs only, inside the simulator", () => {
+  const states = {
+    chat: [
+      {id: 'c1', outputPath: `${container}/Library/Caches/kbchat-c1`, status: 4},
+      {id: 'c2', outputPath: `${container}/Library/Caches/kbchat-c2`, status: 4},
+    ],
+    kbfs: [],
+  }
+  expect(chatArchivesOf(states, {chat: ['c2'], kbfs: []}, root)).toEqual([`${container}/Library/Caches/kbchat-c2.tar.gzip`])
+  expect(chatArchivesOf(states, {chat: [], kbfs: ['k1']}, root)).toEqual([])
+  expect(() => chatArchivesOf(states, {chat: ['c9'], kbfs: []}, root)).toThrow(/not listed/)
+  const err = (() => {
+    try {
+      chatArchivesOf({chat: [{id: 'c1', outputPath: '/Users/testuser/Downloads/kbchat-c1', status: 4}], kbfs: []}, {chat: ['c1'], kbfs: []}, root)
+    } catch (e) {
+      return e as Error
+    }
+    return undefined
+  })()
+  expect(err?.message).toMatch(/^refusing /)
+  expect(err?.message).not.toContain('testuser')
 })

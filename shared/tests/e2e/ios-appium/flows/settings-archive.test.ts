@@ -26,6 +26,8 @@ import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, sta
 import * as T from '../../shared/test-ids'
 import {archiveJobStates, archiveJobs, removeArchiveJobs, type ArchiveJobStates, type ArchiveJobs} from '../gate/app-ask'
 import {
+  anchorsOf,
+  chatArchivesOf,
   CHAT_COMPLETE,
   CHAT_PAUSED,
   CHAT_RUNNING,
@@ -65,7 +67,8 @@ const ARCHIVE_TAB = 'settingsTabs.archiveTab'
 const SHARE_LINE = 'Share a copy of your content to another app'
 
 const POISON = 'the backup jobs a backup test started on the phone'
-const BY_HAND = 'on the phone open More > Backup and remove every job the run started (never Share), then relaunch the app'
+const BY_HAND =
+  "on the phone open More > Backup and remove every job the run started (never Share); in the simulator app's caches remove what a chat job left, its kbchat-<job id> folder and its kbchat-<job id>.tar.gzip file; then relaunch the app"
 
 const plainJobID = /^[A-Za-z0-9_.:-]+$/
 
@@ -129,13 +132,34 @@ describe('settings archive', function () {
     return [...outputs].filter(p => fs.existsSync(p)).length
   }
 
+  // Every remembered output there, or the folder it is made in, so a later "gone" read means it was
+  // removed. Bound: one read 1.
+  const outputsAnchored = (what: string) => {
+    requireCurrentAttempt()
+    const root = storageRoot()
+    check([...outputs].every(p => anchorsOf(p, root).some(a => fs.existsSync(a))), `${what}: a backup output and the folder it is made in are both missing on the phone`)
+  }
+
+  // Deletes the compressed file a finished chat job of `fresh` left (the service's delete removes only
+  // the job's folder), once it is checked to be a plain file inside the simulator. Bound: one read 1.
+  const removeChatArchives = (states: ArchiveJobStates, fresh: ArchiveJobs) => {
+    requireCurrentAttempt()
+    for (const file of chatArchivesOf(states, fresh, storageRoot())) {
+      const st = fs.lstatSync(file, {throwIfNoEntry: false})
+      if (!st) continue
+      check(st.isFile() && !st.isSymbolicLink(), "refusing to delete a finished chat backup's file: it is not a plain file")
+      fs.unlinkSync(file)
+    }
+  }
+
   // Waits for nothing the test's jobs wrote to be left (a chat job's output is deleted in the
   // background). Bound: gone 21.
   const outputsGone = async (what: string) =>
     waitFor(what, () => (outputsLeft() === 0 ? true : undefined), {interval: 500, timeout: 20_000})
 
-  // The jobs that are not in the snapshot removed, read back gone, and nothing they wrote left.
-  // Bound: ask 22, storage 120, the remove 22, ask 22, gone 21 = 207.
+  // The jobs that are not in the snapshot removed, read back gone, a finished chat job's compressed
+  // file deleted, and nothing they wrote left. Bound: ask 22, storage 120, the anchor 1, the remove 22,
+  // ask 22, the file 1, gone 21 = 209.
   const cleanUpJobs = async () => {
     const snapshot = before
     if (!snapshot) return
@@ -143,9 +167,11 @@ describe('settings archive', function () {
       const states = await archiveJobStates()
       const fresh = newJobIDs(jobIDsOf(states), snapshot)
       rememberOutputs(states, fresh)
+      outputsAnchored('before the cleanup')
       await removeArchiveJobs(fresh, snapshot)
       // the answer lists the phone's jobs, so a job missing from it is gone
       check(stillListed(await archiveJobs(), fresh) === 0, "a backup job the test started is still on the phone after the cleanup")
+      removeChatArchives(states, fresh)
       await outputsGone("the test's backup output removed from the phone")
       outputs.clear()
       before = undefined
@@ -170,7 +196,7 @@ describe('settings archive', function () {
     before ??= await archiveJobs()
   })
 
-  // Worst case (s): the menu 5, the keyboard 5, cleanUpJobs 207, a folder 195, escapeToTabs 30 = 442.
+  // Worst case (s): the menu 5, the keyboard 5, cleanUpJobs 209, a folder 195, escapeToTabs 30 = 444.
   afterEach(async function () {
     this.timeout(480_000)
     // the jobs first: one left running fills the phone
@@ -302,7 +328,7 @@ describe('settings archive', function () {
   it('the self conversation backed up from its info panel, paused, resumed, paused again and cancelled from the Backup page', async function () {
     // worst case (s): host 60, open 100, panel 25, drag 20, label 1 and its tap 1, screen 11, the
     // modal 12, step 2, start 20, newJob 152, button 6, page 26, row 16, step 2; pause 137, resume
-    // (tapInRow 33), pause 137; cancel: tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 886
+    // (tapInRow 33), pause 137; cancel: the anchor 1, tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 887
     this.timeout(920_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await masked(async () => directConvIDFromCli(smokeUser))
@@ -330,6 +356,7 @@ describe('settings archive', function () {
     // Cancel on the paused job: Cancel deletes the output in the background, unordered with the job's
     // goroutine, and a running job's goroutine can still write a file after its context is cancelled
     // (go/chat/archive.go Delete), so the job is cancelled while paused, as on the computer.
+    outputsAnchored('before the chat backup cancel')
     await tapInRow(id, T.SETTINGS_ARCHIVE_JOB_CANCEL, ARCHIVE_CHAT_DELETE, 'the chat backup cancel')
     await jobGone(id, 'the chat backup job gone from the phone after Cancel')
     await rowGone(id, 'the cancelled chat backup')
@@ -342,7 +369,7 @@ describe('settings archive', function () {
   it("a folder backed up from its files row menu, listed on the Backup page and removed there while it runs", async function () {
     // worst case (s): mkdir 60 x2, copy 60, folder 365, entry 121, the screen read 1, step 2, menu 52,
     // item 22, screen 11, the modal 12, step 2, start 20, newJob 152, button 6, page 26, row 16, ask
-    // 22, step 2; remove: tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 1137
+    // 22, step 2; remove: the anchor 1, tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 1138
     this.timeout(1_200_000)
     const work = newWorkFolder()
     madeFolders.add(work)
@@ -372,6 +399,7 @@ describe('settings archive', function () {
     check((await kbfsPhase(id)) !== KBFS_DONE, 'the folder backup finished before it could be removed: the folder backs up too fast for this flow')
     await step('The folder backup listed', {card: true})
 
+    outputsAnchored('before the folder backup remove')
     await tapInRow(id, T.SETTINGS_ARCHIVE_KBFS_REMOVE, ARCHIVE_CANCEL, 'the folder backup remove')
     await jobGone(id, 'the folder backup job gone from the phone after its remove')
     await rowGone(id, 'the removed folder backup')
@@ -382,8 +410,8 @@ describe('settings archive', function () {
   // "Backup all files" or "Backup all Git repos" from the Backup page, cancelled the moment the modal
   // says the jobs started: the service makes every job before it answers, so the jobs it lists then
   // are all of them. Bound: more 102, step 2, button 6, screen 11, the modal 12, step 2, start 20, the
-  // started line 60 and its read 1, ask 22, storage 120, the remove 22, polled 32, gone 21, step 2,
-  // button 6, page 26, the rows 1 each, step 2 = 470 + the rows.
+  // started line 60 and its read 1, ask 22, storage 120, the anchor 1, the remove 22, polled 32, gone 21, step 2,
+  // button 6, page 26, the rows 1 each, step 2 = 471 + the rows.
   const backupAll = async (button: string, type: 'fsAll' | 'gitAll', method: string, what: string) => {
     const snapshot = before
     if (!snapshot) throw new Error("the phone's backup jobs were never read before the test")
@@ -408,6 +436,7 @@ describe('settings archive', function () {
     const states = await archiveJobStates()
     const fresh = newJobIDs(jobIDsOf(states), snapshot)
     rememberOutputs(states, fresh)
+    outputsAnchored(`before the ${what} cancel`)
     await removeArchiveJobs(fresh, snapshot)
     await waitFor(
       `the ${what} jobs gone from the phone`,
@@ -432,13 +461,13 @@ describe('settings archive', function () {
   }
 
   it('"Backup all files" started from the Backup page and cancelled at once', async function () {
-    // worst case (s): backupAll 470 + a row read per job (well under 100 jobs) 100 = 570
+    // worst case (s): backupAll 471 + a row read per job (well under 100 jobs) 100 = 571
     this.timeout(620_000)
     await backupAll('Backup all files', 'fsAll', ARCHIVE_ALL_FILES, 'all files')
   })
 
   it('"Backup all Git repos" started from the Backup page and cancelled at once', async function () {
-    // worst case (s): backupAll 470 + a row read per job (well under 100 jobs) 100 = 570
+    // worst case (s): backupAll 471 + a row read per job (well under 100 jobs) 100 = 571
     this.timeout(620_000)
     await backupAll('Backup all Git repos', 'gitAll', ARCHIVE_ALL_GIT, 'all Git repos')
   })

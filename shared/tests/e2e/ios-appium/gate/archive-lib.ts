@@ -60,3 +60,24 @@ export const outputPathsOf = (states: ArchiveJobStates, ids: ArchiveJobs, root: 
   if (!paths.every(p => inside(p, root))) throw new Error("refusing a backup output path outside the simulator's own storage")
   return paths
 }
+
+// Where an output's existence is anchored: the output itself, or the folder it is made in. That
+// folder must lie inside `root` and not be `root` itself, so a "gone" read later means the output was
+// removed from a folder the job used, not that it was looked for somewhere it never could be.
+export const anchorsOf = (output: string, root: string) => {
+  const parent = path.dirname(output)
+  if (!inside(output, root) || !inside(parent, root)) throw new Error("refusing a backup output path outside the simulator's own storage")
+  return [output, parent]
+}
+
+// The compressed file a finished chat job of `ids` left beside its folder (the service adds
+// .tar.gzip once the job completes, go/chat/archive.go ArchiveChat, and its delete removes only the
+// folder): one per chat job of `ids`, each inside `root`. Refuses a job `states` does not list.
+export const chatArchivesOf = (states: ArchiveJobStates, ids: ArchiveJobs, root: string) =>
+  ids.chat.map(id => {
+    const j = states.chat.find(c => c.id === id)
+    if (!j) throw new Error('a chat backup job of the test is not listed')
+    const file = `${j.outputPath}.tar.gzip`
+    if (!inside(file, root) || !inside(j.outputPath, root)) throw new Error("refusing a backup output path outside the simulator's own storage")
+    return file
+  })
