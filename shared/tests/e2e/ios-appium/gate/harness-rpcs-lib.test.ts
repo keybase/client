@@ -48,9 +48,9 @@ test('a resume that fails after f answers names what was paused', async () => {
 })
 
 // What makes the app send an RPC from inside an eval: an `...RpcPromise` call, a call through the
-// engine's call port (for a method the app has no generated call for), or a store's account switch
-// (which signs in).
-const SENDS = /RpcPromise|getCallPort|switchToAccount/
+// engine's call port (for a method the app has no generated call for), a store's account switch
+// (which signs in), or a chat send through the app's own send action.
+const SENDS = /RpcPromise|getCallPort|switchToAccount|sendTextToConversation/
 
 const callee = (n: ts.Node) =>
   ts.isCallExpression(n) && ts.isIdentifier(n.expression) ? n.expression.text : undefined
@@ -213,6 +213,8 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
     expect(builders.has(b)).toBe(true)
   }
   expect(files.some(f => f.text.includes('withHarnessRpcs(') && f.text.includes('switchToAccount'))).toBe(true)
+  // the location flow's harness stop, a body builder the scan must see
+  expect(builders.has('stopLocationBody')).toBe(true)
   expect(found).toEqual([])
   expect(rawEvalCalls(files)).toEqual([])
 })

@@ -60,7 +60,6 @@ jest.mock('../helpers/lifecycle', () => ({
     mockDevice.calls.push('openurl')
     if (mockDevice.openFails) throw Object.assign(new Error(`Command failed: xcrun simctl openurl ${UDID} ${url}`), {status: 3})
   },
-  setLocation: () => {},
   simctl: (...args: Array<string>) => {
     mockDevice.calls.push(`simctl ${args.join(' ')}`)
     if (mockDevice.simctlFails && args.join(' ').includes(mockDevice.simctlFails)) throw new Error('simctl exit 1')

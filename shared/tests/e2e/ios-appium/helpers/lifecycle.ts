@@ -262,13 +262,6 @@ export const metroClientLogSince = (mark: LogMark, level?: string): Array<string
     })
     .filter(Boolean)
 
-// Metro's bundle requests since the mark. A JS runtime that starts against a dev server always
-// asks for a bundle, so this catches a JS start whose own logging never reached client_log.
-export const metroBundlingStartedSince = (mark: LogMark): Array<string> =>
-  linesSince(mark).filter(l => l.includes('"metro:bundling:started"'))
-
-export const findLines = (lines: Array<string>, re: RegExp) => lines.filter(l => re.test(l))
-
 // Waits until `read` yields a line matching every pattern, in order. Returns the matched lines.
 export const waitForLinesInOrder = async (
   what: string,
@@ -293,19 +286,9 @@ export const waitForLinesInOrder = async (
     {interval: 500, timeout}
   )
 
-// Go's MobileAppState transitions since the mark, e.g. ['FOREGROUND', 'BACKGROUND'].
-export const goAppStateUpdates = (mark: LogMark) =>
-  goLogSince(mark)
-    .map(l => /MobileAppState\.Update: useful update: (\w+)/.exec(l)?.[1])
-    .filter((s): s is string => !!s)
-
 // -- simulator actions -------------------------------------------------------
 
 export const openUrl = (url: string, udid = deviceUdid()) => simctl('openurl', udid, url)
-
-export const setLocation = (lat: number, lon: number, udid = deviceUdid()) =>
-  simctl('location', udid, 'set', `${lat},${lon}`)
-
 
 // -- app, springboard and chat actions -----------------------------------------
 

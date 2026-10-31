@@ -63,6 +63,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
         relative={true}
         className={hoverClassName}
         style={Styles.collapseStyles([desktopStyles.itemContainer, styleClickable])}
+        testID={item.testID}
         onClick={() => {
           item.onClick?.()
           if (closeOnClick) {
@@ -188,6 +189,7 @@ const MenuRow = (props: MenuRowProps) => {
     rightTitle,
     style,
     subTitle,
+    testID,
     textColor,
     title,
     unWrapped,
@@ -196,6 +198,7 @@ const MenuRow = (props: MenuRowProps) => {
   return (
     <TouchableOpacity
       disabled={disabled}
+      testID={testID}
       onPress={() => {
         if (!unWrapped) {
           onHidden?.()

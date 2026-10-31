@@ -42,6 +42,13 @@ export const CHAT_MENTION_BUTTON        = 'chat-mention-button'
 export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
+// the + menu's "Share your location" row
+export const CHAT_MORE_SHARE_LOCATION = 'chat-more-share-location'
+// the location screen's buttons: live for 15 minutes, 1 hour, 8 hours, and the current location
+export const CHAT_LOCATION_LIVE_15M = 'chat-location-live-15m'
+export const CHAT_LOCATION_LIVE_1H = 'chat-location-live-1h'
+export const CHAT_LOCATION_LIVE_8H = 'chat-location-live-8h'
+export const CHAT_LOCATION_SEND_CURRENT = 'chat-location-send-current'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 export const CHAT_INFO_PANEL_MEMBERS_TAB = 'chat-info-panel-members-tab'
 export const CHAT_INFO_PANEL_ATTACHMENTS_TAB = 'chat-info-panel-attachments-tab'

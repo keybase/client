@@ -58,3 +58,6 @@ import './flows/settings-remember-password.test'
 // last: it changes the second account's password, and a change that stops part way leaves it to the
 // owner (no later flow could sign the second account in)
 import './flows/settings-password.test'
+// last: a location post the maps server fails retries from the outbox for up to 15 minutes (until
+// its channel is deleted), and its restores put back the phone's location permission
+import './flows/chat-location.test'

@@ -1,4 +1,4 @@
-// App lifecycle flows, run in one session by wdio.lifecycle.conf.ts. Live location runs
-// last: the map posts it makes fail on the maps server and retry from the outbox for up to
-// fifteen minutes, which keeps background task windows open for the flows after it.
-import './flows/lifecycle-location.test'
+// The old lifecycle runner's aggregate (wdio.lifecycle.conf.ts). Its flows now run under the release
+// gate (gate.test.ts: app-deep-links, app-push, app-lifecycle, chat-location), so it imports none;
+// the runner and this file go with the other old runners.
+export {}

@@ -20,6 +20,7 @@ export type MenuItem = {
   style?: Styles.StylesCrossPlatform
   subTitle?: string
   rightTitle?: string
+  testID?: string
   title: string
   unWrapped?: boolean
   view?: React.ReactNode
