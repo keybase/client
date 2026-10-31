@@ -28,7 +28,8 @@
 // Each restore of what the account keeps on the server goes through the host's main service, which
 // checks it is signed in as the smoke account first; what lives on the phone goes through the phone's
 // own service (askApp). A restore that fails throws, and every later test of the file refuses with
-// what to put back by hand.
+// what to put back by hand; for the proxy, lockdown or the theme, which break the app for every later
+// file too, every later test of the whole gate refuses (gate/poison-lib.ts).
 //
 // Never pressed: Dark, "Allow TLS Interception" (and its "Yes, I am sure"), DB Nuke, Clear Logs,
 // Trace, CPU Profile, the perf row's PerfLog, "Unsubscribe from all", a lockdown "Read more" link.
@@ -74,8 +75,9 @@ import {
 } from '../gate/app-ask'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
+import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {relaunchApp} from '../gate/device'
-import {proxySaveWrites, settingIDs, settingShownOf, vdebugLevels} from '../gate/persisted-lib.ts'
+import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugLevels, type Rect} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
@@ -297,6 +299,9 @@ const drawnWithPart = async (part: string) => {
   return n
 }
 
+// Where `e` is drawn. Bound: two reads 1.
+const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => ({...(await e.getLocation()), ...(await e.getSize())})
+
 // How many PerfLog buttons are drawn: the perf row's, shown in the More list while runtime stats
 // are on. Bound: one read 1.
 const perfButtons = async () => {
@@ -336,12 +341,16 @@ describe('settings persisted', function () {
   // what a restore failed to put back, with where the owner puts it back by hand
   const unrestored = new Map<string, string>()
 
-  const guarded = (name: string, byHand: string, restore: () => Promise<void>) => async () => {
+  // `breaksPhone`: left changed, the setting breaks the app for every later file too, so a failed
+  // restore also stops the whole gate (poison-lib.ts).
+  const guarded = (name: string, byHand: string, restore: () => Promise<void>, breaksPhone = false) => async () => {
     try {
       await restore()
       unrestored.delete(name)
+      if (breaksPhone) clearGatePoison(name)
     } catch (e) {
       unrestored.set(name, byHand)
+      if (breaksPhone) poisonGate(name, byHand)
       throw e
     }
   }
@@ -359,18 +368,27 @@ describe('settings persisted', function () {
       }
       check(await phoneReachesServer(), "the phone's service does not reach the server after the proxy restore")
       touched.proxy = undefined
-    }
+    },
+    true
   )
 
   // Bound: restore 355.
-  const restoreLockdown = guarded('lockdown mode', 'turn it off in Settings > Advanced', async () => {
-    if (!touched.lockdown) return
-    await masked(async () => setLockdownMode(false))
-    touched.lockdown = undefined
-  })
+  const restoreLockdown = guarded(
+    'lockdown mode',
+    'turn it off in Settings > Advanced',
+    async () => {
+      if (!touched.lockdown) return
+      await masked(async () => setLockdownMode(false))
+      touched.lockdown = undefined
+    },
+    true
+  )
 
   // Bound: ask 22, the set or clear 22, the read 22 = 66.
-  const restoreTheme = guarded('the theme', 'choose it again in Settings > Display (never Dark)', async () => {
+  const restoreTheme = guarded(
+    'the theme',
+    'choose it again in Settings > Display (never Dark)',
+    async () => {
     const t = touched.theme
     if (!t) return
     if (!same(await guiValue('ui.darkMode'), t.original)) {
@@ -379,7 +397,9 @@ describe('settings persisted', function () {
       check(same(await guiValue('ui.darkMode'), t.original), 'the theme did not read back as put back')
     }
     touched.theme = undefined
-  })
+    },
+    true
+  )
 
   // Bound: two host restores 710.
   const restoreNotifications = guarded(
@@ -689,7 +709,7 @@ describe('settings persisted', function () {
   it('Advanced > proxy: the settings the form loaded saved from the phone, read back on the phone and after a relaunch, and put back', async function () {
     // worst case (s): smoke 1, ask 22, open 97, the Save drawn (the drag 20, loaded 10) 30, step 2,
     // the save (seq 2, its tap 1, calledOnce 14) 17, settles 52, reach 32, step 2; relaunched 291,
-    // settles 52, reach 32, open 97, the Save drawn 30, step 2; restoreProxy 98, step 2 = 861
+    // settles 52, reach 32, open 97, the Save drawn 30, step 2; restoreProxy 98, step 2 = 859
     this.timeout(950_000)
     await requireAppIsSmoke()
     const original = await proxyData()
@@ -731,8 +751,8 @@ describe('settings persisted', function () {
 
   it('Advanced > Enable Detailed Logging: the phone service log shows the level set, and the original put back', async function () {
     // worst case (s): smoke 1, relaunched 291, mark 120 and a read 1, open 97, the button on screen
-    // 20, step 2, mark 120, tapButton 7, calledOnce 14, level 21, step 2, mark 120, the set 22, level
-    // 21, step 2 = 861
+    // 20, step 2, mark 120, seq 2, tapButton 7, calledOnce 14, level 21, step 2, mark 120, the set 22,
+    // level 21, step 2 = 863
     this.timeout(950_000)
     await requireAppIsSmoke()
     // a new process starts at its own level, logged when KBFS starts if it is not the default
@@ -763,10 +783,10 @@ describe('settings persisted', function () {
 
   it('Advanced > Toggle Runtime Stats: the overlay and the perf row on, through a relaunch, and off again', async function () {
     // worst case (s): smoke 1, ask 22, more 50, the anchor 6, the reads 2, step 2; open 97, the
-    // developer controls 49, tapButton 7, calledOnce 14, the overlay 20, settles 52, step 2, more 50,
+    // developer controls 65, tapButton 7, calledOnce 14, the overlay 20, settles 52, step 2, more 50,
     // the perf row 6, step 2; relaunched 291, the overlay 20, settles 52, step 2; open 97, the
-    // developer controls 49, tapButton 7, calledOnce 14, the overlay gone 20, settles 52, more 50, the
-    // anchor 6, the reads 2, step 2 = 1046
+    // developer controls 65, tapButton 7, calledOnce 14, the overlay gone 20, settles 52, more 50, the
+    // anchor 6, the reads 2, step 2 = 1078
     this.timeout(1_150_000)
     await requireAppIsSmoke()
     check(!(await runtimeStatsEnabled()), 'refusing: runtime stats are already on for the phone (the flow starts from off and leaves them off)')
@@ -782,13 +802,24 @@ describe('settings persisted', function () {
     await step('No runtime stats')
     touched.runtimeStats = true
 
-    // the developer controls, from 7 taps on the warning line. Bound: the drag 20, 7 taps of a read 1
-    // and a tap 1 = 14, the button 15 = 49.
+    // The developer controls, from 7 taps on the warning line's own text (never a container around
+    // it), once its rect is seen clear of the DB Nuke and Clear Logs buttons below it. Bound: DB Nuke
+    // dragged on screen 20, the line 20 and its read 1, the buttons 2, 7 taps 7, the button 15 = 65.
     const developerControls = async () => {
-      await dragUntilOnScreen('the developer warning line', () =>
-        browser.$(`-ios predicate string:label == "${DEVELOPER_LINE.replace(/"/g, '\\"')}" AND visible == 1`)
+      const line = `-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "${DEVELOPER_LINE.replace(/"/g, '\\"')}" AND visible == 1`
+      // DB Nuke first: it sits under the line, so both are drawn for the overlap check
+      await dragUntilOnScreen('the DB Nuke button', () =>
+        browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "DB Nuke" AND visible == 1')
       )
-      for (let i = 0; i < DEVELOPER_TAPS; i++) await (await labelledElement(TEXTS, DEVELOPER_LINE, 'the developer warning line')).click()
+      await dragUntilOnScreen('the developer warning line', () => browser.$(line))
+      const text = await labelledElement(line, DEVELOPER_LINE, 'the developer warning line')
+      const lineRect = await rectOf(text)
+      for (const label of ['DB Nuke', 'Clear Logs']) {
+        const at = await labelledElement(BUTTONS, label, `the ${label} button`).then(rectOf, () => undefined)
+        check(label !== 'DB Nuke' || at !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
+        check(!at || !rectsOverlap(lineRect, at), `refusing to tap the developer line: it overlaps the ${label} button`)
+      }
+      for (let i = 0; i < DEVELOPER_TAPS; i++) await text.click()
       await dragUntilOnScreen('Toggle Runtime Stats', () =>
         browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Toggle Runtime Stats" AND visible == 1')
       )

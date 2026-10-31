@@ -55,3 +55,9 @@ export const vdebugLevels = (lines: ReadonlyArray<string>) =>
     const m = /Setting Vdebug to "([^"]*)"/.exec(l)
     return m ? [m[1] ?? ''] : []
   })
+
+export type Rect = {height: number; width: number; x: number; y: number}
+
+// Whether two drawn rects share any area (rects that only touch do not).
+export const rectsOverlap = (a: Rect, b: Rect) =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height

@@ -1,5 +1,5 @@
 import {SETTINGS_LOCKDOWN_SWITCH, settingTestID} from '../../shared/test-ids'
-import {proxySaveWrites, settingIDs, settingShownOf, vdebugLevels} from './persisted-lib'
+import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugLevels} from './persisted-lib'
 
 test("a control's testID reads back as what it shows, and another control's as nothing", () => {
   const base = SETTINGS_LOCKDOWN_SWITCH
@@ -33,4 +33,12 @@ test('the debug levels are read off the service log lines that set one, in order
   ]
   expect(vdebugLevels(lines)).toEqual(['vlog2', 'vlog0'])
   expect(vdebugLevels([])).toEqual([])
+})
+
+test('rects overlap only when they share area', () => {
+  const line = {height: 20, width: 300, x: 20, y: 100}
+  expect(rectsOverlap(line, {height: 44, width: 200, x: 60, y: 110})).toBe(true)
+  expect(rectsOverlap(line, {height: 44, width: 200, x: 60, y: 120})).toBe(false)
+  expect(rectsOverlap(line, {height: 44, width: 200, x: 60, y: 140})).toBe(false)
+  expect(rectsOverlap(line, {height: 10, width: 10, x: 320, y: 105})).toBe(false)
 })

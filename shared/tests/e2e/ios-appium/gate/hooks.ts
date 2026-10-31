@@ -26,6 +26,7 @@ import {
 } from './attempt.ts'
 import {requireAppIsSmoke, restoreToSmoke} from './accounts.ts'
 import {finishAttempt} from './finish.ts'
+import {requireGateNotPoisoned} from './poison-lib.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -249,6 +250,8 @@ plain.beforeEach(
         // AsyncLocalStorage.run, which calls the callback at once, and nothing awaits before either),
         // so the race below already has the watch's promise.
         hung = startHangWatch()
+        // a phone an earlier flow could not put back (poison-lib.ts) is never driven again
+        requireGateNotPoisoned()
         await requireAppIsSmoke()
         await body.call(this)
       })
