@@ -101,7 +101,6 @@ describe('chat conversations', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-
   const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
   const expectStatus = async (what: string, convID: string, want: number) =>
     waitFor(`the host to read ${what}`, async () => ((await statusOf(convID)) === want ? true : undefined), {

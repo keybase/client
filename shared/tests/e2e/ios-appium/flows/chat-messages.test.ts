@@ -133,7 +133,6 @@ describe('chat messages', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-
   const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await readFromCli(where)) ? true : undefined), {
       interval: 1_000,

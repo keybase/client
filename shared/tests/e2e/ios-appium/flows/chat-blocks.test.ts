@@ -56,7 +56,6 @@ describe('chat blocks', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-
   const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
   const expectStatus = async (what: string, want: number) =>
     waitFor(`the host to read ${what}`, async () => ((await statusOf(data.direct.convID)) === want ? true : undefined), {

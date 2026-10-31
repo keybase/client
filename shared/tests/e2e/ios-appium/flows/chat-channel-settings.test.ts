@@ -80,7 +80,6 @@ describe('chat channel settings', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-
   const expectMembers = async (what: string, topicName: string, ok: (members: Array<string>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await channelMembersFromCli(topicName)) ? true : undefined), {
       interval: 1_000,

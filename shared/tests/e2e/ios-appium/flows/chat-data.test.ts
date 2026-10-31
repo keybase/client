@@ -118,7 +118,6 @@ describe('chat data', function () {
   const openScratch = async () => openConversation(data.convIDs[E2E_CHANNELS.scratch])
   const openDirect = async () => openConversation(data.direct.convID)
 
-
   // The host's read of a conversation's messages, polled until `ok` takes them.
   const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await readFromCli(where)) ? true : undefined), {
@@ -700,9 +699,6 @@ describe('chat data', function () {
   // to the newest conversation). The app signs in as the second account, whose peer leaves; the
   // channel is made for the run and deleted by the host (the owner).
   describe('selection', () => {
-    // The app's inbox layout (appInboxLists) drops a channel as the leave's notification arrives
-    // (about 200ms after the leave); the channel's meta still says active well after.
-
     // the throwaway channels a test made, for the afterEach to delete
     let created: Array<string> = []
 
