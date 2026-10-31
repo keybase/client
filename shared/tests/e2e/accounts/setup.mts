@@ -21,7 +21,8 @@
 // leaves: the smoke account blocking the second one, their DM's status blocked, and the
 // smoke+second folder ignored. It unblocks and puts the DM back to unfiled, and makes the folder a
 // favorite again if setup recorded it as one (~/.config/keybase-e2e/pair-folder.json); each read back. It writes only when both
-// accounts are e2e test accounts.
+// accounts' names start with the env file's KB_E2E_TEST_ACCOUNT_PREFIX, and --check reports the
+// variable missing.
 import * as fs from 'fs'
 import * as path from 'path'
 import {parseArgs} from 'util'
@@ -45,7 +46,7 @@ import {
   stopPeerHomeService,
   withSignalsDeferred,
 } from './peer-homes.ts'
-import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite} from './repair-lib.ts'
+import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite, TEST_ACCOUNT_PREFIX_VAR} from './repair-lib.ts'
 import {ensureRunId} from './run-id.ts'
 import {maskAccounts, signedInName} from './sweep-lib.ts'
 import {E2E_CHANNELS, directConvIDFromCli, directTlfName} from '../shared/chat-data.ts'
@@ -80,7 +81,7 @@ const envFile = defaultEnvPath()
 type Vars = Record<string, string>
 const loadVars = (): Vars => {
   const vars: Vars = {...readEnvFile(envFile)}
-  for (const k of ['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM']) {
+  for (const k of ['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM', TEST_ACCOUNT_PREFIX_VAR]) {
     const v = process.env[k]
     if (v) vars[k] = v
   }
@@ -145,6 +146,9 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   const second = vars['KB_SECOND_USER'] ?? ''
   const team = vars['KB_E2E_TEAM'] ?? ''
   const problems: string[] = []
+  // the repair below needs it, and a missing one would only show once there is something to repair
+  const notTest = notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], vars['KB_SMOKE_USER'] ?? '', second)
+  if (notTest) problems.push(notTest)
   const rpc = await connectPeerRpc(mainSocketPath(), 10_000)
   let blocks: Array<{username: string; chatBlocked: boolean; followBlocked: boolean}>
   try {
@@ -210,7 +214,7 @@ const repairBlockLeftovers = async (vars: Vars) => {
   const refavorite = folderIgnored && pairWasFavorite(vars)
   if (folderIgnored && !refavorite) say(`the smoke+second folder is ignored, and neither the gate's record nor ${PAIR_FAVORITE_VAR} says it was a favorite: left as it is`)
   if (isBlocked || dmBlocked || refavorite) {
-    const problem = notTestAccountsProblem(smoke, second)
+    const problem = notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], smoke, second)
     if (problem) throw new Error(problem)
   }
   if (isBlocked) {

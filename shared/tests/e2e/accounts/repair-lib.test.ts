@@ -1,23 +1,34 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite, TEST_ACCOUNT_PREFIX} from './repair-lib'
+import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite, TEST_ACCOUNT_PREFIX_VAR} from './repair-lib'
 
 describe('notTestAccountsProblem', () => {
+  const prefix = 'testuser'
   test('two test accounts may be repaired', () => {
-    expect(notTestAccountsProblem(`${TEST_ACCOUNT_PREFIX}a`, `${TEST_ACCOUNT_PREFIX}b`)).toBeUndefined()
+    expect(notTestAccountsProblem(prefix, `${prefix}a`, `${prefix}b`)).toBeUndefined()
   })
 
-  test('either one not a test account refuses, naming neither', () => {
+  test('either one not a test account refuses, naming neither nor the prefix', () => {
     for (const [a, b] of [
-      ['testuser', `${TEST_ACCOUNT_PREFIX}b`],
-      [`${TEST_ACCOUNT_PREFIX}a`, 'testuser-mac'],
+      ['someone', `${prefix}b`],
+      [`${prefix}a`, 'other-mac'],
       ['', ''],
     ] as const) {
-      const p = notTestAccountsProblem(a, b)
+      const p = notTestAccountsProblem(prefix, a, b)
       expect(p).toMatch(/^refusing to repair/)
+      expect(p).not.toContain(prefix)
       if (a) expect(p).not.toContain(a)
       if (b) expect(p).not.toContain(b)
+    }
+  })
+
+  test('no prefix in the env refuses, naming the variable', () => {
+    for (const unset of [undefined, '']) {
+      const p = notTestAccountsProblem(unset, `${prefix}a`, `${prefix}b`)
+      expect(p).toMatch(/^refusing to repair/)
+      expect(p).toContain(TEST_ACCOUNT_PREFIX_VAR)
+      expect(p).not.toContain(prefix)
     }
   })
 })

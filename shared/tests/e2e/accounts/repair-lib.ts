@@ -4,16 +4,19 @@ import * as path from 'path'
 import {e2eConfigDir} from './env.ts'
 import {checkMode} from './paper-key-ledger.ts'
 
-// The prefix every e2e test account's username has. The repair writes to the accounts (blocks, a
-// conversation's status, favorites), so it acts only on accounts that have it.
-export const TEST_ACCOUNT_PREFIX = 'cnojima106'
+// The env file's prefix every e2e test account's username has. The repair writes to the accounts
+// (blocks, a conversation's status, favorites), so it acts only on accounts that have it. Kept in the
+// env file only: it names the owner's test accounts.
+export const TEST_ACCOUNT_PREFIX_VAR = 'KB_E2E_TEST_ACCOUNT_PREFIX'
 
 // Why the repair must not write, or undefined when both accounts are test accounts. Never names an
-// account.
-export const notTestAccountsProblem = (smokeUser: string, secondUser: string) =>
-  smokeUser.startsWith(TEST_ACCOUNT_PREFIX) && secondUser.startsWith(TEST_ACCOUNT_PREFIX)
+// account or the prefix.
+export const notTestAccountsProblem = (prefix: string | undefined, smokeUser: string, secondUser: string) => {
+  if (!prefix) return `refusing to repair: the e2e env has no ${TEST_ACCOUNT_PREFIX_VAR}, the prefix every e2e test account's name starts with`
+  return smokeUser.startsWith(prefix) && secondUser.startsWith(prefix)
     ? undefined
-    : `refusing to repair: KB_SMOKE_USER and KB_SECOND_USER must both be e2e test accounts (names starting ${TEST_ACCOUNT_PREFIX})`
+    : `refusing to repair: KB_SMOKE_USER and KB_SECOND_USER must both be e2e test accounts (names starting with ${TEST_ACCOUNT_PREFIX_VAR})`
+}
 
 // Whether the smoke+second folder was a favorite, recorded by setup once it has seen it so, in the
 // gate's own state dir: ~/.config/keybase-e2e/pair-folder.json, mode 600 in the mode 700 dir. The
