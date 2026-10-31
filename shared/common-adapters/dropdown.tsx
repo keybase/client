@@ -157,6 +157,7 @@ type InlineDropdownProps = {
   style?: Styles.StylesCrossPlatform
   loading?: boolean
   selectedStyle?: Styles.StylesCrossPlatform
+  testID?: string
 } & (
   | {
       textWrapperType: null
@@ -170,7 +171,7 @@ type InlineDropdownProps = {
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const styles = useStyles()
-  const {containerStyle, label, loading, onPress, selectedStyle, style, textWrapperType} = props
+  const {containerStyle, label, loading, onPress, selectedStyle, style, testID, textWrapperType} = props
 
   const selected = (
     <Kb.Box2
@@ -193,6 +194,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
       }}
       selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, style])}
       selected={selected}
+      testID={testID}
     />
   )
 }

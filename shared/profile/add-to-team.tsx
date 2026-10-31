@@ -8,6 +8,7 @@ import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
 import {useRPCLoad} from '@/util/use-rpc-load'
 import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -301,6 +302,7 @@ const TeamRow = (props: RowProps) => {
       direction="vertical"
       fullWidth={true}
       onClick={canAddThem ? () => onCheck(!checked) : undefined}
+      testID={checked ? TestIDs.PROFILE_ADD_TO_TEAM_ROW_CHECKED : TestIDs.PROFILE_ADD_TO_TEAM_ROW}
     >
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />

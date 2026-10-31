@@ -10,6 +10,7 @@ export type Props = {
   onClick: () => void
   style?: Kb.Styles.StylesCrossPlatform
   loading?: boolean
+  testID?: string
 }
 
 const RoleButton = (props: Props) => {
@@ -27,6 +28,7 @@ const RoleButton = (props: Props) => {
       onPress={props.onClick}
       style={Kb.Styles.collapseStyles([styles.button, props.style])}
       loading={props.loading}
+      testID={props.testID}
     />
   )
 }

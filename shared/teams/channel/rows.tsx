@@ -18,6 +18,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {getRolePickerDisabledReasons} from '../role-picker-utils'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -157,6 +158,7 @@ const ChannelMemberRow = (props: Props) => {
       firstItem={props.firstItem}
       style={memberSelected ? selectionStyles.selected : undefined}
       onClick={anySelected ? () => onSelect(!memberSelected) : onEditMember}
+      testID={TestIDs.TEAMS_CHANNEL_MEMBER_ROW}
     />
   )
 }

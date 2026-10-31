@@ -7,6 +7,7 @@ import ChatButton from '@/chat/chat-button'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFeaturedBot} from '@/util/featured-bots'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   blocked: boolean
@@ -201,7 +202,7 @@ const DropdownButton = (p: DropdownProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox direction="horizontal" gap="xsmall" onClick={showPopup} ref={popupAnchor}>
+    <Kb.ClickableBox direction="horizontal" gap="xsmall" onClick={showPopup} ref={popupAnchor} testID={TestIDs.PROFILE_ACTIONS_MENU}>
       <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
         <Kb.Icon color={theme.blue} type="iconfont-ellipsis" />
       </Kb.Button>

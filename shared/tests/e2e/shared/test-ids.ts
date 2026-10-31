@@ -198,11 +198,18 @@ export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
 // a member row in a team's Members tab, and a channel row in its Channels tab
 export const TEAMS_MEMBER_ROW = 'teams-member-row'
 export const TEAMS_CHANNEL_ROW = 'teams-channel-row'
+// a member row on a channel's page, a pending invite's row and a request to join's row in a team's
+// Members tab
+export const TEAMS_CHANNEL_MEMBER_ROW = 'teams-channel-member-row'
+export const TEAMS_INVITE_ROW = 'teams-invite-row'
+export const TEAMS_REQUEST_ROW = 'teams-request-row'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
 // a member row's selection circle, and the bar that shows while any member is selected
 export const TEAMS_MEMBER_CHECK = 'teams-member-check'
 export const TEAMS_SELECTION_POPUP = 'teams-selection-popup'
 export const TEAMS_ROLE_PICKER = 'teams-role-picker'
+// the add-members wizard's "Invite as:" role dropdown
+export const TEAMS_WIZARD_ROLE_BUTTON = 'teams-wizard-role-button'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 // the team page header's edit icon by the team's name (a subteam's rename)
 export const TEAMS_HEADER_RENAME = 'teams-header-rename'
@@ -240,6 +247,9 @@ export const TEAMS_SUBTEAMS_TAB = 'teams-subteams-tab'
 // a team row on a member's page: its expand caret, and the last-activity line it reveals
 export const TEAMS_MEMBER_TEAM_EXPAND = 'teams-member-team-expand'
 export const TEAMS_MEMBER_TEAM_ACTIVITY = 'teams-member-team-activity'
+// a team row on a member's page (it expands on a tap), and its role dropdown once expanded
+export const TEAMS_MEMBER_TEAM_ROW = 'teams-member-team-row'
+export const TEAMS_MEMBER_ROLE_BUTTON = 'teams-member-role-button'
 // an external team's page once its public info (or the error saying there is none) has loaded
 export const TEAMS_EXTERNAL_TEAM = 'teams-external-team'
 
@@ -312,6 +322,11 @@ export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 export const PROFILE_PAGE = 'profile-page'
 // the hover profile card's proof icons, drawn only once its identify is not checking
 export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
+// a profile's "..." actions menu button, and a team row of its "Add to team..." picker (the id says
+// whether the row is picked)
+export const PROFILE_ACTIONS_MENU = 'profile-actions-menu'
+export const PROFILE_ADD_TO_TEAM_ROW = 'profile-add-to-team-row'
+export const PROFILE_ADD_TO_TEAM_ROW_CHECKED = 'profile-add-to-team-row-checked'
 
 // Git
 export const GIT_REPO_LIST = 'git-repo-list'

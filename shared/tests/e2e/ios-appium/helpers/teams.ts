@@ -6,6 +6,7 @@ import {loadE2EAccounts} from '../../accounts/env'
 import {maskAccounts} from '../../accounts/sweep-lib.ts'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {innermost, type Rect} from '../gate/chat-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {BUTTONS, expectScreen, filesRowNamed, visibleScreen} from './files'
@@ -156,4 +157,47 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
   const n = await browser.$$(selector).length
   check(n === 1, `${n} of ${what} on screen, not one`)
   return () => browser.$(selector)
+}
+
+// The one element `selector` finds whose label, split at its ", " joins, holds `part`, drawn with
+// its middle inside `rect` (a row, a popup), the innermost of nested matches: a label repeated
+// elsewhere on screen (a role behind the role picker) is not it. Compared in memory; `what` names
+// it. Throws when none or more than one is. Bound: one read 1.
+export const labelPartInside = async (rect: Rect, selector: string, part: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
+    if (!label.split(', ').some(p => p.trim() === part)) continue
+    const r = await rectOf(e).catch(() => undefined)
+    if (!r) continue
+    const x = r.x + r.width / 2
+    const y = r.y + r.height / 2
+    if (x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height) found.push({e, rect: r})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  check(inner.length === 1, `${inner.length} of ${what} drawn, not one`)
+  return found[inner[0]!]!.e
+}
+
+// Waits for labelPartInside to find the element. Bound: `timeout`, plus one read 1.
+export const shownInside = async (rect: Rect, selector: string, part: string, what: string, timeout = 5_000) =>
+  waitFor(what, async () => labelPartInside(rect, selector, part, what), {interval: 250, timeout})
+
+// The open role picker's rect, once it is drawn. Bound: 10s, its read 1.
+const rolePicker = async () => {
+  await el(T.TEAMS_ROLE_PICKER).waitForDisplayed({timeout: 10_000})
+  return rectOf(await el(T.TEAMS_ROLE_PICKER).getElement())
+}
+
+// Picks `role` (as the picker titles it: "Reader", "Writer") in the open role picker, then runs
+// `beforeSave` (the check before a write), taps Save and waits for the picker to close. Bound: the
+// picker 11, the role 6 and its tap 1, Save 6, `beforeSave`, its tap 1, the picker gone 10 = 35 plus
+// `beforeSave`.
+export const pickRole = async (role: string, beforeSave: () => Promise<void>) => {
+  const picker = await rolePicker()
+  await (await shownInside(picker, TEXTS, role, `the role picker's ${role}`)).click()
+  const save = await shownInside(picker, BUTTONS, 'Save', "the role picker's Save")
+  await beforeSave()
+  await save.click()
+  await el(T.TEAMS_ROLE_PICKER).waitForExist({reverse: true, timeout: 10_000})
 }

@@ -153,6 +153,7 @@ const TeamRequestRow = (props: Props) => {
       onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
       style={props.waiting ? styles.disabled : styles.bg}
+      testID={TestIDs.TEAMS_REQUEST_ROW}
     />
   )
 }

@@ -34,6 +34,7 @@ const TeamInviteRow = (props: Props) => {
       action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
       onlyShowActionOnHover="fade"
       firstItem={firstItem}
+      testID={TestIDs.TEAMS_INVITE_ROW}
     />
   )
 }

@@ -348,6 +348,7 @@ const NodeInRow = (props: NodeInRowProps) => {
       loading={changingRole}
       onClick={() => setOpen(true)}
       selectedRole={role}
+      testID={TestIDs.TEAMS_MEMBER_ROLE_BUTTON}
     />
   ) : (
     <></>
@@ -367,7 +368,7 @@ const NodeInRow = (props: NodeInRowProps) => {
         open={open}
         disabledRoles={disabledRoles}
       />
-      <Kb.ClickableBox onClick={() => setExpanded(!expanded)} direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+      <Kb.ClickableBox onClick={() => setExpanded(!expanded)} direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight} testID={TestIDs.TEAMS_MEMBER_TEAM_ROW}>
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
