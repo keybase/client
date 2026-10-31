@@ -42,13 +42,17 @@ const git = async (args: ReadonlyArray<string>) => readBack(async () => runKeyba
 export const repoListed = async (r: RepoRef) =>
   (await git(['list'])).split('\n').some(l => l.trim().split(/\s+/).at(-1) === repoUrl(r))
 
-// The clone URLs a `keybase git list` answer holds. The answer must parse: every non-blank line ends
-// with a keybase:// URL, else this throws, so a list that failed or changed shape never reads as "gone".
+// The section headers `keybase git list` prints above its repos.
+const LIST_HEADERS = new Set(['personal repos:', 'team repos:'])
+
+// The clone URLs a `keybase git list` answer holds. The answer must parse: every non-blank line but a
+// section header ends with a keybase:// URL, else this throws, so a list that failed or changed shape
+// never reads as "gone".
 export const listedUrls = (out: string) =>
   out
     .split('\n')
     .map(l => l.trim())
-    .filter(l => l !== '')
+    .filter(l => l !== '' && !LIST_HEADERS.has(l))
     .map(l => {
       const url = l.split(/\s+/).at(-1)!
       if (!url.startsWith('keybase://')) throw new Error('keybase git list: a line does not end with a repo URL')

@@ -26,11 +26,11 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {drag, expectScreen, fillField, pressTestID, tapButton} from '../helpers/files'
+import {drag, expectScreen, fillField, onScreen, press, pressTestID, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
-import {masked, onlyField, openTeamFromList, requireOnSubteam, textShown, TEXTS} from '../helpers/teams'
+import {masked, onlyField, openTeamFromList, requireOnSubteam, textPartShown, TEXTS} from '../helpers/teams'
 
 type Params = Record<string, unknown>
 
@@ -120,7 +120,8 @@ describe('git', function () {
     await escapeToTabs()
     await navigateToMore()
     await tapSettingsRow('Git')
-    await expectScreen('the git list', 'gitRoot')
+    // on the phone the git list is the More tab's settingsTabs.gitTab (gitRoot is the desktop tab's)
+    await expectScreen('the git list', 'settingsTabs.gitTab')
     await waitForTestID(T.GIT_REPO_LIST, 5_000)
   }
 
@@ -132,15 +133,23 @@ describe('git', function () {
     return waitFor(
       'the repo row',
       async () => {
-        const found = await elementWithLabelPart(TEXTS, label, 'the repo row').catch(() => undefined)
-        if (found) return found
-        // a drag that changed nothing reached the list's end (or the list fits): turn around
+        // one page source a read: an attribute call per labelled element took most of the bound
+        const found = await textPartShown(label, 'the repo row', 0).catch(() => undefined)
+        if (found && (await onScreen(found))) return found
+        const {height} = await browser.getWindowRect()
+        // a row drawn off screen says which way; else a drag that changed nothing reached the list's
+        // end (or the list fits): turn around
+        if (found) {
+          const {y} = await found.getLocation()
+          await (y > height / 2 ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
+          return undefined
+        }
         const shown = (await browser.$$(TEXTS).getElements()).length
         const signature = String(shown)
         if (signature === before) towardEnd = !towardEnd
         before = signature
-        const {height} = await browser.getWindowRect()
-        await (towardEnd ? drag(height * 0.7, height * 0.35) : drag(height * 0.35, height * 0.7))
+        // long drags: the list holds every team's repos
+        await (towardEnd ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
         return undefined
       },
       {interval: 300, timeout: 30_000}
@@ -184,10 +193,10 @@ describe('git', function () {
     let seq = await currentCallSeq()
     await tapButton('Create', "the new repo's Create")
     await waitForUiCall('the repo create to go out', seq, 'keybase.1.git.createPersonalRepo')
-    await expectScreen('the git list after Create', 'gitRoot')
+    await expectScreen('the git list after Create', 'settingsTabs.gitTab')
     await expectHost('the personal repo listed', async () => repoListed(repo), listed => listed)
 
-    await (await repoText(repo.name)).click()
+    await press(await repoText(repo.name), 'the repo row')
     // the clone URL is copied over filler, so a stale pasteboard cannot pass; it is compared here
     // and never logged
     await setPasteboard(filler())
@@ -212,7 +221,7 @@ describe('git', function () {
     seq = await currentCallSeq()
     await tapButton('Delete', "the delete screen's Delete")
     await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deletePersonalRepo')
-    await expectScreen('the git list after Delete', 'gitRoot')
+    await expectScreen('the git list after Delete', 'settingsTabs.gitTab')
     await expectHost('the personal repo gone', async () => repoGone(repo), gone => gone)
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The personal repo deleted', {screenshot: false})
@@ -240,12 +249,13 @@ describe('git', function () {
 
     // -- made, with the dropdown showing the subteam alone ------------------------------------------
     await openNewRepo('New team repository', true)
-    await (await textShown('Pick a team', 'the team dropdown')).click()
+    // the dropdown is one box: its label merges its texts
+    await press(await textPartShown('Pick a team', 'the team dropdown'), 'the team dropdown')
     const item = await waitFor(
       'the subteam in the team dropdown',
       async () => {
-        const found = await elementWithLabelPart(TEXTS, name, 'the subteam in the team dropdown').catch(() => undefined)
-        if (found) return found
+        const found = await textPartShown(name, 'the subteam in the team dropdown', 0).catch(() => undefined)
+        if (found && (await onScreen(found))) return found
         const {height, width} = await browser.getWindowRect()
         const x = Math.round(width / 2)
         await browser
@@ -260,12 +270,16 @@ describe('git', function () {
       },
       {interval: 300, timeout: 30_000}
     )
-    await item.click()
-    // the dropdown shows the one team picked: the subteam, never the e2e team
-    await textShown(name, 'the team picked in the dropdown')
+    await press(item, 'the subteam in the team dropdown')
+    // the dropdown shows the one team picked: the subteam, never the e2e team; the same read that
+    // finds the subteam finds no pick prompt
     await waitFor(
-      'the dropdown to stop prompting for a team',
-      async () => ((await labelledElement(TEXTS, 'Pick a team', 'the pick prompt').then(() => false, () => true)) ? true : undefined),
+      'the dropdown to show the subteam alone',
+      async () => {
+        const picked = await textPartShown(name, 'the team picked in the dropdown', 0).then(() => true, () => false)
+        const prompt = await textPartShown('Pick a team', 'the pick prompt', 0).then(() => true, () => false)
+        return picked && !prompt ? true : undefined
+      },
       {interval: 250, timeout: 5_000}
     )
     await fillField(await onlyField('TextField', 'the repo name field'), repo.name, 'the repo name field')
@@ -276,27 +290,27 @@ describe('git', function () {
     let seq = await currentCallSeq()
     await tapButton('Create', "the new repo's Create")
     await waitForUiCall('the repo create to go out', seq, 'keybase.1.git.createTeamRepo')
-    await expectScreen('the git list after Create', 'gitRoot')
+    await expectScreen('the git list after Create', 'settingsTabs.gitTab')
     await expectHost('the team repo listed', async () => repoListed(repo), listed => listed)
     check(!(await masked(async () => teamRepoChat(repo))).chatDisabled, 'a new team repo has its chat notifications off')
 
     // -- announced in the subteam's channel ---------------------------------------------------------
-    await (await repoText(`${name}/${repo.name}`)).click()
+    await press(await repoText(`${name}/${repo.name}`), 'the repo row')
     // only this repo's row is open: the one announce checkbox drawn is its
     await el(T.GIT_REPO_ANNOUNCE).waitForExist({timeout: 10_000})
     check((await announceCount()) === 1, 'more than the one repo row is open: not tapping')
-    await (await textShown('#general', 'the announce channel link', 15_000)).click()
+    await press(await textPartShown('#general', 'the announce channel link', 15_000), 'the announce channel link')
     const onSubteam = (p: Params) => p['teamname'] === name
     await expectScreen("the repo's channel picker", 'gitSelectChannel', onSubteam)
-    await (await elementWithLabelPart(TEXTS, channel, 'the channel in the picker')).click()
+    await press(await textPartShown(channel, 'the channel in the picker'), 'the channel in the picker')
     await step('The channel picked')
     await requireOnSubteam("the repo's channel picker", 'gitSelectChannel', onSubteam)
     seq = await currentCallSeq()
     await tapButton('Submit', "the picker's Submit")
     await waitForUiCall('the channel to go out', seq, 'keybase.1.git.setTeamRepoSettings')
     await expectHost('the repo announced in the channel', async () => teamRepoChat(repo), c => c.channel === channel && !c.chatDisabled)
-    await expectScreen('the git list after Submit', 'gitRoot')
-    await textShown(`#${channel}`, "the repo's announce channel", 15_000)
+    await expectScreen('the git list after Submit', 'settingsTabs.gitTab')
+    await textPartShown(`#${channel}`, "the repo's announce channel", 15_000)
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The channel set', {screenshot: false})
 
@@ -321,7 +335,7 @@ describe('git', function () {
     seq = await currentCallSeq()
     await tapButton('Delete', "the delete screen's Delete")
     await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deleteTeamRepo')
-    await expectScreen('the git list after Delete', 'gitRoot')
+    await expectScreen('the git list after Delete', 'settingsTabs.gitTab')
     await expectHost('the team repo gone', async () => repoGone(repo), gone => gone)
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The team repo deleted', {screenshot: false})

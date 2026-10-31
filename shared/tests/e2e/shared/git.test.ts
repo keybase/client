@@ -67,5 +67,6 @@ test('repoWrites guards its writes with the guard it is given', async () => {
 test('a git list answer must parse before a repo can read as gone', () => {
   expect(listedUrls('repo  keybase://private/testuser/a\n\nteam/b keybase://team/t/b\n')).toEqual(['keybase://private/testuser/a', 'keybase://team/t/b'])
   expect(listedUrls('')).toEqual([])
+  expect(listedUrls('personal repos:\n  a   keybase://private/testuser/a\nteam repos:\n')).toEqual(['keybase://private/testuser/a'])
   expect(() => listedUrls('Error: not logged in')).toThrow(/does not end with a repo URL/)
 })
