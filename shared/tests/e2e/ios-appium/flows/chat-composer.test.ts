@@ -28,7 +28,7 @@ import {inboxRowMatches} from '../gate/chat-lib'
 import {relaunchApp} from '../gate/device'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {step} from '../gate/step'
+import {manualEdge, step} from '../gate/step'
 import {
   check,
   chooseMenuItem,
@@ -53,6 +53,7 @@ import {
   signedInAs,
   storedMessage,
   typeInComposer,
+  typeIntoFocused,
   unreadCount,
   visibleConversation,
   waitForComposerText,
@@ -69,7 +70,7 @@ describe('chat composer', function () {
   //   open      openConversation 100;  reset  resetComposer 30 (edit bar 5, reply bar 5, clear 5,
   //             the taps and reads)
   //   read      openDirectRead 110 (open 100, the DM read as read 10)
-  //   draft     the DM's inbox row read 112 (the DM read 1, scrollInboxTo 90, its label polled 10,
+  //   draft     the DM's inbox row read 142 (the DM read 1, scrollInboxTo 120, its label polled 10,
   //             overrun 10, the DM read 1)
   //   type      typeInComposer 15;  composer  waitForComposerText 5 (10 where given);  sent  sendMessage 25
   //   edit      startEdit 50 (keyboard 5, menu 35, edit bar 5, composer 5);  cancel  11
@@ -225,9 +226,9 @@ describe('chat composer', function () {
 
   describe('drafts', () => {
     it('a draft survives a conversation switch and an app relaunch', async function () {
-      // worst case (s): read 110, reset 30, type 15, step 2, open 100, draft 112, step 2, open 100,
-      // composer 5, open 100, draft 112, relaunch 200, signed in 90, draft 112, step 2, open 100,
-      // composer 5, step 2 = 1199; the margin covers a slow relaunch
+      // worst case (s): read 110, reset 30, type 15, step 2, open 100, draft 142, step 2, open 100,
+      // composer 5, open 100, draft 142, relaunch 200, signed in 90, draft 142, step 2, open 100,
+      // composer 5, step 2 = 1289; the margin covers a slow relaunch
       this.timeout(1500_000)
       await openDirectRead()
       await resetComposer()
@@ -262,10 +263,10 @@ describe('chat composer', function () {
     })
 
     it('a send clears the composer and the saved draft', async function () {
-      // worst case (s): read 110, reset 30, type 15, open 100, draft 112, step 2, open 100, composer 5,
-      // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 112, open 100, composer 5,
-      // step 2 = 896
-      this.timeout(920_000)
+      // worst case (s): read 110, reset 30, type 15, open 100, draft 142, step 2, open 100, composer 5,
+      // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 142, open 100, composer 5,
+      // step 2 = 956
+      this.timeout(980_000)
       await openDirectRead()
       await resetComposer()
       const text = rowBody('csend')
@@ -329,8 +330,8 @@ describe('chat composer', function () {
 
     it('leaving mid-edit discards the edit and saves no draft', async function () {
       // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
-      // step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 627
-      this.timeout(660_000)
+      // step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 657
+      this.timeout(680_000)
       await openDirectRead()
       await resetComposer()
       const text = rowBody('cleave')
@@ -354,8 +355,8 @@ describe('chat composer', function () {
 
     it('leaving mid-edit keeps the draft from before the edit', async function () {
       // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, composer 5, the
-      // pause 1, step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 642
-      this.timeout(670_000)
+      // pause 1, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 672
+      this.timeout(700_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-leave-draft')
@@ -380,8 +381,8 @@ describe('chat composer', function () {
 
     it('cancelling an edit puts the draft from before it back', async function () {
       // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, the pause 1,
-      // cancel 11, composer 5, step 2, open 100, draft 112, open 100, composer 5, cli 80, step 2 = 653
-      this.timeout(680_000)
+      // cancel 11, composer 5, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 683
+      this.timeout(710_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-cancel')
@@ -418,7 +419,7 @@ describe('chat composer', function () {
         timeout: 5_000,
       })
       // the keys go to the focused composer, into the edit
-      await browser.keys([' ', 'x'])
+      await typeIntoFocused('the composer', ' x')
       await waitForComposerText(`${text} x`)
       await step('Editing with the keyboard up, the keys went into the edit', {card: true})
     })
@@ -427,8 +428,8 @@ describe('chat composer', function () {
     it("an edit's text comes back after thread search, sending posts the edit, and no draft is saved", async function () {
       // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
       // search 20, the composer gone 5, close 5, composer 5, step 2, the tap 1, the edit bar 5,
-      // composer 5, the row 15, cli 80, step 2, open 100, draft 112, step 2 = 590
-      this.timeout(620_000)
+      // composer 5, the row 15, cli 80, step 2, open 100, draft 142, step 2 = 620
+      this.timeout(640_000)
       await openDirectRead()
       await resetComposer()
       const text = rowBody('cedsr')
@@ -548,8 +549,8 @@ describe('chat composer', function () {
     // the saved draft's text (a channel row shows only a draft icon).
     it('leaving with the @mention list open sends no typing after the leave and keeps the text as the draft', async function () {
       // worst case (s): calls 2, read 110, reset 30, type 15, the list 10, the typing sent 12, the
-      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 112, step 2 = 403
-      this.timeout(420_000)
+      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 142, step 2 = 433
+      this.timeout(460_000)
       const typed = `@${data.secondUser.slice(0, 3)}`
       const typingOn = (calls: ReadonlyArray<LoggedCall>) =>
         calls.filter(c => c.method === 'chat.1.local.updateTyping' && c.typing === true)
@@ -607,32 +608,20 @@ describe('chat composer', function () {
     })
   })
 
-  // Hardware keys reach the app through UIKit's key presses (AppDelegate.pressesBegan), which
-  // Appium's `mobile: keys` reaches only where XCTest synthesizes hardware key presses for the device.
+  // Hardware keys reach the app through UIKit's key presses (AppDelegate.pressesBegan). On this host's
+  // simulators Appium's `mobile: keys` never gets there (Shift-Enter only latches the soft keyboard's
+  // shift, and no newline lands), so a person presses them (ledger ruling: a harness limit).
   describe('hardware keyboard', () => {
-    const pressKey = async (key: string, modifierFlags = 0) =>
-      browser.execute('mobile: keys', {elementId: (await el(T.CHAT_INPUT).getElement()).elementId, keys: [{key, modifierFlags}]})
-    // XCUIKeyModifierShift
-    const shift = 1 << 17
-
     it('Enter sends and Shift-Enter inserts a newline', async function () {
-      // worst case (s): open 100, reset 30, type 15, the key 2, composer 5, step 2, clear 5, type 15,
-      // the key 2, row 15, composer 5, cli 80, step 2 = 278
-      this.timeout(300_000)
+      // worst case (s): open 100, reset 30, type 15, composer 5, step 2, the edge 2, clear 5 = 159
+      this.timeout(180_000)
       await openScratch()
       await resetComposer()
       await typeInComposer('ab')
-      await pressKey('\r', shift)
-      await waitForComposerText('ab\n')
-      await step('Shift-Enter broke the line')
-      const text = e2eMarker('composer-enter')
+      await waitForComposerText('ab')
+      await step('The composer focused with text, where a hardware Shift-Enter and Enter go')
+      await manualEdge('hardware-keyboard-enter')
       await clearComposer()
-      await typeInComposer(text)
-      await pressKey('\r')
-      await waitForRow(text)
-      await waitForComposerText('')
-      await expectCliBodies({topicName: E2E_CHANNELS.scratch}, 'the message Enter sent', bodies => bodies.includes(text))
-      await step('Enter sent the message', {card: true})
     })
   })
 
