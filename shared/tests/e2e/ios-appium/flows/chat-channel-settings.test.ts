@@ -349,6 +349,6 @@ describe('chat channel settings', function () {
     await waitFor("the app's inbox layout to drop the channel", async () => (!(await appInboxLists(convID)) ? true : undefined), {
       timeout: 10_000,
     })
-    await step('Back in the inbox, without the channel', {card: true})
+    await step('Back in the inbox, without the channel', {screenshot: false})
   })
 })

@@ -480,7 +480,7 @@ describe('chat views', function () {
     await escapeToTabs()
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
     check((await route())?.name !== 'chatNewChat', 'the team builder is still up')
-    await step('Closed: back at the inbox', {card: true})
+    await step('Closed: back at the inbox', {screenshot: false})
   })
 
   it("Clear entire conversation's warning cancels, and the channel keeps its messages", async function () {
@@ -535,7 +535,7 @@ describe('chat views', function () {
     await scrollInboxTo(data.smokeUser)
     const drawn = await scrollInboxToEnd()
     check(drawn > 0, 'the inbox draws nothing at its end')
-    await step('The inbox at its end', {card: true})
+    await step('The inbox at its end', {screenshot: false})
   })
 
   it('a thread dragged up leaves its end and shows older rows', async function () {

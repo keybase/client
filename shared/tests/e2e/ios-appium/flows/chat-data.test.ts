@@ -179,7 +179,7 @@ describe('chat data', function () {
       check(await tapBack(), 'the DM has no back button')
       await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000, timeoutMsg: 'back did not return to the inbox'})
       check((await visibleConversation()) === null, 'a conversation is still the visible screen after back')
-      await step('Back in the inbox', {card: true})
+      await step('Back in the inbox', {screenshot: false})
     })
   })
 
@@ -395,7 +395,7 @@ describe('chat data', function () {
       await waitFor('the conversation to count unread', async () => ((await unreadCount(data.direct.convID)) > 0 ? true : undefined), {
         timeout: 10_000,
       })
-      await step('The inbox counts the DM unread')
+      await step('The inbox counts the DM unread', {screenshot: false})
 
       // opening it again reads it; the line stays where it was for this visit
       await openDirect()
@@ -557,7 +557,7 @@ describe('chat data', function () {
         },
         {interval: 500, timeout: 10_000}
       )
-      await step("The DM's inbox row shows the incoming message", {card: true})
+      await step("The DM's inbox row shows the incoming message", {screenshot: false})
     })
   })
 

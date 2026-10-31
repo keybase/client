@@ -90,7 +90,7 @@ The gate's code lives in `tests/e2e/shared/gate/` (shared with the iOS gate); it
 The iOS release gate's flows run through `shared/tests/e2e/ios-appium/gate.test.ts` (specs wired in `wdio.gate.conf.ts`); its helpers are in `tests/e2e/ios-appium/gate/`, and the gate core it shares with desktop in `tests/e2e/shared/gate/`.
 
 - **Run:** `yarn test:e2e:ios:flows` (from `shared/`). Results go to `tests/results/ios-report/` (a Playwright-format json plus per-attempt records), project name `ios-flows`. `KB_E2E_RELEASE_ONLY=<grep>` runs only matching tests. Retries are 1; a flake is a failure, as on desktop.
-- **`gate/step.ts`:** `step(name, opts)`, `manualEdge(id)` (a `MANUAL_ONLY` entry) and `retriedNavigation(what, attempt, opts)`, same contracts as desktop.
+- **`gate/step.ts`:** `step(name, opts)`, `manualEdge(id)` (a `MANUAL_ONLY` entry) and `retriedNavigation(what, attempt, opts)`, same contracts as desktop. A step on the inbox takes `{screenshot: false}` (its name only): the inbox holds conversations that are not test ones. Failure screenshots stay in the local results, as on desktop.
 - **`gate/errors.ts`:** console errors and uncaught errors (thrown, or an unhandled promise rejection) from the app, captured from a test's start (`beginErrorCapture` / `takeErrors`); an uncaught one fails the test. `appLogTail` adds the app log to a failure.
 - **`gate/accounts.ts`:** `asSecond(f)`, `signedOutThenBack(f)`, `restoreToSmoke()`, `requireAppIsSmoke()`; every one ends on the smoke account.
 - **`gate/secret-input.ts`:** `submitSecret(fieldTestID, secret)`, plus `focusSecretField`, `emptySecretField`, `fieldLength`; failures never carry the value.

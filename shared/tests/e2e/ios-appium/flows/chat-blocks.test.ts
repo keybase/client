@@ -196,7 +196,7 @@ describe('chat blocks', function () {
     await waitFor("the app's inbox layout to drop the DM", async () => (!(await appInboxLists(data.direct.convID)) ? true : undefined), {
       timeout: 10_000,
     })
-    await step('Blocked: the DM is gone from the inbox', {card: true})
+    await step('Blocked: the DM is gone from the inbox', {screenshot: false})
 
     // the profile of a blocked account offers Manage blocking, which opens the same modal
     await escapeToTabs()

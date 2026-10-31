@@ -241,13 +241,13 @@ describe('chat conversations', function () {
     await waitFor("the app's inbox layout to drop the DM", async () => (!(await appInboxLists(convID)) ? true : undefined), {
       timeout: 10_000,
     })
-    await step('Hidden: the DM is gone from the inbox')
+    await step('Hidden: the DM is gone from the inbox', {screenshot: false})
 
     const text = e2eMarker('conv-unhide')
     await sendWithRetry(await sender(), convID, text)
     await expectStatus('the DM back after a new message', convID, conversationStatus.unfiled)
     await scrollInboxTo(data.secondUser)
-    await step('A new message brought the DM back', {card: true})
+    await step('A new message brought the DM back', {screenshot: false})
     // read, so the DM is not left unread
     await openConversation(convID)
     await waitForRow(text, 30_000)
@@ -285,7 +285,7 @@ describe('chat conversations', function () {
       true
     )
     creditSurface('relaunch')
-    await step('After a relaunch the DM is still muted')
+    await step('After a relaunch the DM is still muted', {screenshot: false})
 
     await openConversation(convID)
     await openSettings()
@@ -320,7 +320,7 @@ describe('chat conversations', function () {
     })
     // the channel's row, among KB_E2E_TEAM's channels: the inbox shows it unread
     await scrollInboxTo(`#${topicName}`)
-    await step('The channel unread in the inbox')
+    await step('The channel unread in the inbox', {screenshot: false})
 
     // KB_E2E_TEAM's own header, by its name: never another team's
     const gear = await scrollInboxToTeamHeader(data.team)
@@ -352,7 +352,7 @@ describe('chat conversations', function () {
     await waitForUiCall('the pin to go out', seq, 'keybase.1.gregor.updateCategory')
     await expectPinned('the self conversation pinned', p => p.includes(selfConvID))
     await expectApp('the self conversation pinned', async () => appConversationPinned(selfConvID), true)
-    await step('Pinned to the top')
+    await step('Pinned to the top', {screenshot: false})
 
     await expectPersists(
       'the self conversation pinned',
@@ -365,7 +365,7 @@ describe('chat conversations', function () {
       true
     )
     creditSurface('relaunch')
-    await step('After a relaunch the self conversation is still pinned')
+    await step('After a relaunch the self conversation is still pinned', {screenshot: false})
 
     await openRowMenu(data.smokeUser, selfConvID)
     seq = await currentCallSeq()
@@ -373,7 +373,7 @@ describe('chat conversations', function () {
     await waitForUiCall('the unpin to go out', seq, 'keybase.1.gregor.updateCategory')
     await expectPinned('the self conversation unpinned', p => !p.includes(selfConvID))
     await expectApp('the self conversation unpinned', async () => appConversationPinned(selfConvID), false)
-    await step('Unpinned', {card: true})
+    await step('Unpinned', {screenshot: false})
   })
 
   // The inbox filter lists name hits under "Chats", then other sections (open teams, bots, and

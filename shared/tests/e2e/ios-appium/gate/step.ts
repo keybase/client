@@ -21,12 +21,18 @@ const settledScreenshot = async (): Promise<string> => {
 
 // Attaches a screenshot of the current state, once it has settled, as step-NN-<name>, NN counting from
 // 01 within the attempt. {card: true} marks the step whose screenshot is the test's card image in the
-// report; with no marked step the first step is. {settle: false} takes it at once.
+// report; with no marked step the first step is. {settle: false} takes it at once. {screenshot: false}
+// records only the step's name (a 'step' annotation), for a screen that shows more than the test's
+// own data, such as the inbox, which holds conversations that are not test ones.
 // Like every app command, refuses to run in a test body mocha timed out.
-export async function step(name: string, opts?: {card?: boolean; settle?: boolean}): Promise<void> {
+export async function step(name: string, opts?: {card?: boolean; settle?: boolean} | {screenshot: false}): Promise<void> {
   const attempt = currentAttempt()
-  const png = opts?.settle === false ? await browser.takeScreenshot() : await settledScreenshot()
   const attName = stepAttachmentName(attempt.nextStepIndex(), name)
+  if (opts && 'screenshot' in opts) {
+    attempt.annotate('step', attName)
+    return
+  }
+  const png = opts?.settle === false ? await browser.takeScreenshot() : await settledScreenshot()
   attempt.addAttachment(attName, 'image/png', Buffer.from(png, 'base64'))
   if (opts?.card) attempt.annotate('card-step', attName)
 }

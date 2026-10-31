@@ -239,7 +239,7 @@ describe('chat composer', function () {
 
       await openScratch()
       await expectDirectDraft(draft)
-      await step("The DM's inbox row shows the draft")
+      await step("The DM's inbox row shows the draft", {screenshot: false})
       await openDirect()
       await waitForComposerText(draft)
 
@@ -257,7 +257,7 @@ describe('chat composer', function () {
       )
       await expectDirectDraft(draft)
       creditSurface('relaunch')
-      await step("After a relaunch the DM's inbox row still shows the draft")
+      await step("After a relaunch the DM's inbox row still shows the draft", {screenshot: false})
       await openDirect()
       await waitForComposerText(draft)
       await step('The DM opens with the draft in the composer', {card: true})
@@ -274,7 +274,7 @@ describe('chat composer', function () {
       await typeInComposer(text)
       await openScratch()
       await expectDirectDraft(text)
-      await step("The DM's inbox row shows the saved draft")
+      await step("The DM's inbox row shows the saved draft", {screenshot: false})
 
       await openDirect()
       await waitForComposerText(text)
@@ -465,7 +465,7 @@ describe('chat composer', function () {
       await step('The edit posted: the row and the host read the edited text', {card: true})
       await openScratch()
       await expectNoDirectDraft(edited)
-      await step('No draft saved for the edit, the row showing the edited text')
+      await step('No draft saved for the edit, the row showing the edited text', {screenshot: false})
     })
   })
 
@@ -577,7 +577,7 @@ describe('chat composer', function () {
       check(after.length === 0, `${after.length} typing updates said typing after the leave`)
       // the typed text holds part of an account name, so the wait names only what it is
       await expectDirectRow('the typed @ text as its draft', label => label.includes('Draft') && label.includes(typed))
-      await step("The DM's inbox row shows the typed text as its draft", {card: true})
+      await step("The DM's inbox row shows the typed text as its draft", {screenshot: false})
     })
 
     it('an emoji from the picker goes in after the text with one space after it', async function () {
