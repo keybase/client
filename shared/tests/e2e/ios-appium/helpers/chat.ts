@@ -947,6 +947,8 @@ export const menuLabels = async (): Promise<Array<string>> => {
     'the menu sheet read to its end',
     async () => {
       const now = await shown()
+      // a sheet still sliding in reads no items: never the end, and nothing to drag yet
+      if (!now.length) return undefined
       for (const l of now) seen.add(l)
       const signature = now.join('\n')
       if (signature === before) return true
