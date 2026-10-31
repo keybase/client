@@ -36,6 +36,7 @@ import {tapBack} from '../gate/screens'
 import {manualEdge, step} from '../gate/step'
 import {
   accountChangedSeq,
+  appInboxLists,
   check,
   chooseMenuItem,
   clearComposer,
@@ -47,7 +48,6 @@ import {
   heldWaitingKeys,
   hideKeyboard,
   isKeyboardUp,
-  jsEval,
   openConversation,
   openFromInbox,
   openMessageMenu,
@@ -695,12 +695,9 @@ describe('chat data', function () {
   // to the newest conversation). The app signs in as the second account, whose peer leaves; the
   // channel is made for the run and deleted by the host (the owner).
   describe('selection', () => {
-    // Whether the inbox lists the channel. It drops the channel as the leave's notification arrives
+    // The app's inbox layout (appInboxLists) drops a channel as the leave's notification arrives
     // (about 200ms after the leave); the channel's meta still says active well after.
-    const inInbox = async (convID: string) =>
-      jsEval<boolean>(
-        `const ls = kbModule('chat/inbox/layout-state.tsx'); return !!ls.getBigLayoutChannelRow(ls.useInboxLayoutState.getState(), ${JSON.stringify(convID)})`
-      )
+
     // the throwaway channels a test made, for the afterEach to delete
     let created: Array<string> = []
 
@@ -728,14 +725,14 @@ describe('chat data', function () {
       await sendWithRetry(await sender(), convID, e2eMarker('data-selection-hello'))
       await asSecond(async () => {
         await openConversation(convID)
-        await waitFor('the inbox to list the channel', async () => ((await inInbox(convID)) ? true : undefined), {timeout: 15_000})
+        await waitFor('the inbox to list the channel', async () => ((await appInboxLists(convID)) ? true : undefined), {timeout: 15_000})
         await step('As the second account, the throwaway channel open')
         await (await sender()).leave(convID)
         const shown = new Set<string | null>()
         let left = false
         for (const until = Date.now() + 5_000; Date.now() < until; ) {
           shown.add(await visibleConversation())
-          left ||= !(await inInbox(convID))
+          left ||= !(await appInboxLists(convID))
         }
         // the app heard about the leave, so the thread staying put is its choice
         check(left, 'the inbox still lists the channel 5s after leaving it')

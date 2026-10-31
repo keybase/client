@@ -37,6 +37,7 @@ import {
   closeSearch,
   expectPersists,
   hideKeyboard,
+  appInboxLists,
   inboxHasRow,
   openConversation,
   openInboxRowMenu,
@@ -221,8 +222,8 @@ describe('chat conversations', function () {
 
   it('the DM hidden from its inbox row leaves the inbox, and a new message brings it back', async function () {
     // worst case (s): conv 75, row menu 385, the seq 2, item 20, calls 10, conv 95, row 120 (the
-    // self conversation), absent 120, step 2, peer 70, peer send 90, conv 95, row 120, step 2, open
-    // 100, the row 30, step 2 = 1338
+    // self conversation), absent 120, the layout 10, step 2, peer 70, peer send 90, conv 95, row 120,
+    // step 2, open 100, the row 30, step 2 = 1348
     this.timeout(1_380_000)
     const {convID} = data.direct
     const original = await statusOf(convID)
@@ -237,6 +238,9 @@ describe('chat conversations', function () {
     // the self conversation shows the inbox loaded, so the DM's absence counts
     await scrollInboxTo(data.smokeUser)
     check(!(await inboxHasRow(data.secondUser)), 'the hidden DM is still in the inbox')
+    await waitFor("the app's inbox layout to drop the DM", async () => (!(await appInboxLists(convID)) ? true : undefined), {
+      timeout: 10_000,
+    })
     await step('Hidden: the DM is gone from the inbox')
 
     const text = e2eMarker('conv-unhide')

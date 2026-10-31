@@ -597,6 +597,9 @@ export const scrollInboxToTop = async () => {
   await inboxAtTop()
 }
 
+// How many drags in a row must change nothing before the inbox counts as at its end.
+const INBOX_END_STILL_DRAGS = 2
+
 // Drags the inbox from its top down until `find` picks a drawn item (its index in the drawing), and
 // brings that item wholly into view: inside the list less what floats over it (the unread shortcut,
 // the Big teams divider, the tab bar). `find` is handed the team whose section runs above the
@@ -616,6 +619,8 @@ const seekInbox = async (
   // geometry only, for the timeout's error: never a row's label
   let passes = 0
   let last = 'not drawn'
+  // drags in a row that changed nothing
+  let still = 0
   for (;;) {
     if (Date.now() > deadline) {
       const where = `list ${Math.round(list.top)}..${Math.round(list.bottom)}, ${passes} passes after ${atTop}ms to reach the top, last: ${last}`
@@ -638,7 +643,10 @@ const seekInbox = async (
     await dragInbox(list, -page)
     // the drawing after the drag is the next pass's: one page source a pass
     const next = await drawnInbox()
-    if (next.signature === drawn.signature) return undefined
+    // A drag that changed nothing is the end only when the next one changes nothing too: a drag
+    // taken as a tap, or one while the list still settles, also leaves the drawing as it was.
+    still = next.signature === drawn.signature ? still + 1 : 0
+    if (still >= INBOX_END_STILL_DRAGS) return undefined
     drawn = next
   }
 }
@@ -656,7 +664,7 @@ export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> 
 
 // Whether the inbox draws a row of the conversation named `name` (as scrollInboxTo finds it) anywhere
 // from its top to its end. false needs the whole inbox scrolled, so a caller checks a row it expects
-// is there first, which shows the inbox loaded.
+// is there first, which shows the inbox loaded, and pairs it with appInboxLists.
 export const inboxHasRow = async (name: string) => {
   const {team} = loadE2EAccounts()
   return (await seekInbox((items, carried) => findInboxRow(items, name, team, carried))) !== undefined
@@ -2133,7 +2141,21 @@ export const appConversationPinned = async (convID: string) =>
     return row ? !!row.isPinned : null
   `).then(v => v ?? undefined)
 
-// The inbox dragged from its top to its end (until a drag up changes nothing). Returns how many items
+// Whether the app's inbox layout lists the conversation (as a small row or a big team's channel).
+// Throws while the app holds no layout, so an absence is never read off an inbox not loaded yet.
+export const appInboxLists = async (convID: string) => {
+  const listed = await jsEval<boolean | null>(`
+    const l = ${INBOX_LAYOUT}
+    const s = l.useInboxLayoutState.getState()
+    if (!s.layout) return null
+    const id = ${JSON.stringify(convID)}
+    return !!(l.getSmallLayoutRow(s, id) || l.getBigLayoutChannelRow(s, id))
+  `)
+  if (listed === null) throw new Error('the app holds no inbox layout yet')
+  return listed
+}
+
+// The inbox dragged from its top to its end (until two drags up in a row change nothing). Returns how many items
 // (rows and team headers) the inbox draws there. Same bound as scrollInboxTo.
 export const scrollInboxToEnd = async () => {
   if ((await seekInbox(() => undefined)) !== undefined) throw new Error('the inbox picked an item while scrolling to its end')

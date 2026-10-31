@@ -26,6 +26,7 @@ import {
   dragUntilOnScreen,
   hideKeyboard,
   iconButton,
+  appInboxLists,
   inboxHasRow,
   openConversation,
   openInfoPanel,
@@ -162,10 +163,10 @@ describe('chat blocks', function () {
   it('the second account blocked from the DM leaves the inbox, and is unblocked from its profile', async function () {
     // worst case (s): blocks 75, conv 75, the folder 75, open 100, panel 25, on screen 20, the tap 1,
     // Finish 10, report 21, the manual edge 2, the seq 2, the tap 1, Finish gone 15, calls 10 twice
-    // 20, blocks 95, conv 95, the inbox 10, row 120, absent 120, step 2 = 884; escapeToTabs 30, the link
-    // 1, the profile 20, Manage blocking 10 and its tap 1, Finish 10, blocks 75, two switches tapped
-    // and turned 18, report 21, the seq 2, the tap 1, Finish gone 15, calls 10, blocks 95, step 2 = 311;
-    // = 1195
+    // 20, blocks 95, conv 95, the inbox 10, row 120, absent 120, the layout 10, step 2 = 894;
+    // escapeToTabs 30, the link 1, the profile 20, Manage blocking 10 and its tap 1, Finish 10, blocks
+    // 75, two switches tapped and turned 18, report 21, the seq 2, the tap 1, Finish gone 15, calls 10,
+    // blocks 95, step 2 = 311; = 1205
     this.timeout(1_240_000)
     const unblockedProblem = secondBlockedProblem(await secondBlocks())
     check(!unblockedProblem, `the second account must start unblocked: ${unblockedProblem}`)
@@ -192,6 +193,9 @@ describe('chat blocks', function () {
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
     await scrollInboxTo(data.smokeUser)
     check(!(await inboxHasRow(data.secondUser)), 'the blocked DM is still in the inbox')
+    await waitFor("the app's inbox layout to drop the DM", async () => (!(await appInboxLists(data.direct.convID)) ? true : undefined), {
+      timeout: 10_000,
+    })
     await step('Blocked: the DM is gone from the inbox', {card: true})
 
     // the profile of a blocked account offers Manage blocking, which opens the same modal

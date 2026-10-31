@@ -35,6 +35,7 @@ import {
   expectPersists,
   hideKeyboard,
   iconButton,
+  appInboxLists,
   inboxHasRow,
   notifyRadioBox,
   notifyRadioChosen,
@@ -326,7 +327,8 @@ describe('chat channel settings', function () {
 
   it('Leave channel from the info panel goes back to the inbox, without the channel', async function () {
     // worst case (s): channel 240, cli 60, open 100, panel 25, on screen 20, step 2, the seq 2, the
-    // tap 1, calls 10, the inbox 10, the screen 1, cli 80, row 120, absent 120, step 2 = 793
+    // tap 1, calls 10, the inbox 10, the screen 1, cli 80, row 120, absent 120, the layout 10, step 2
+    // = 803
     this.timeout(820_000)
     const {convID, topicName} = await newChannel('leave')
     check((await channelMembersFromCli(topicName)).includes(data.smokeUser), 'the account is not in the new channel')
@@ -344,6 +346,9 @@ describe('chat channel settings', function () {
     // e2e-scratch, a channel of the same team, shows the team's channels drawn
     await scrollInboxTo(`#${E2E_CHANNELS.scratch}`)
     check(!(await inboxHasRow(`#${topicName}`)), 'the left channel is still in the inbox')
+    await waitFor("the app's inbox layout to drop the channel", async () => (!(await appInboxLists(convID)) ? true : undefined), {
+      timeout: 10_000,
+    })
     await step('Back in the inbox, without the channel', {card: true})
   })
 })
