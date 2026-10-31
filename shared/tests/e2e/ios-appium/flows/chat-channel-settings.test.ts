@@ -31,18 +31,22 @@ import {
   chooseMenuItem,
   closeMessageMenu,
   dragUntilOnScreen,
+  elementWithLabelPartIn,
   expectPersists,
   hideKeyboard,
+  iconButton,
   inboxHasRow,
-  labelledElement,
   notifyRadioBox,
   notifyRadioChosen,
   openConversation,
   openInfoPanel,
   openMenuFrom,
   scrollInboxTo,
+  searchFilter,
   signedInAs,
+  tapControlIn,
   tapNotifyRadio,
+  typeInSearchFilter,
   visibleConversation,
   type NotifyChoice,
 } from '../helpers/chat'
@@ -52,7 +56,7 @@ import {escapeToTabs} from '../helpers/navigate'
 
 describe('chat channel settings', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  row  scrollInboxTo 90;  absent  inboxHasRow 90 (the same scroll)
+  //   open      openConversation 100;  row  scrollInboxTo 120;  absent  inboxHasRow 120 (the same scroll)
   //   panel     openInfoPanel 25 (the header menu 15, a tab 10);  gear  openMenuFrom 15;  item
   //             chooseMenuItem 20;  on screen  dragUntilOnScreen 20;  keyboard  5
   //   cli       a host CLI read 60, polled 80 (20, overrun by one read)
@@ -103,12 +107,6 @@ describe('chat channel settings', function () {
       interval: 1_000,
       timeout: 20_000,
     })
-
-  // A text field whose placeholder reads "Search <n> <noun>" (the channel and member pickers' filters).
-  const countedSearch = (noun: string) =>
-    browser.$(
-      `-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue BEGINSWITH "Search " AND (placeholderValue ENDSWITH " ${noun}" OR placeholderValue ENDSWITH " ${noun}s") AND visible == 1`
-    )
 
   // -- what the afterEach puts back ---------------------------------------------------------------
   // Each is set before the change it undoes and cleared once its restore reads back.
@@ -171,16 +169,20 @@ describe('chat channel settings', function () {
   // list draws membership from what the app last heard, so until the host's leave reaches the app
   // the row still says In: the list is closed and opened again until it offers Join.
   it('a channel the account left is joined again from Browse all channels', async function () {
-    // worst case (s): channel 240, leave 60, cli 80, the tries 60, overrun by one try 215
-    // (escapeToTabs 30, open 100, the panel 15, gear 15, item 20, the filter 10, type 15, keyboard 5,
-    // the rows 5) = 275, step 2, the seq 2, the tap 1, calls 10, cli 80, step 2, open 100, step 2 = 854
+    // worst case (s): channel 240, leave 60, cli 80, the tries 60, overrun by one try 216
+    // (escapeToTabs 30, open 100, the panel 15, gear 15, item 20, type 21 (typeInSearchFilter),
+    // keyboard 5, the rows 10) = 276, step 2, the seq 2, the tap 5 (tapControlIn), calls 10, cli 80,
+    // step 2, open 100, step 2 = 859
     this.timeout(900_000)
     const {convID, topicName} = await newChannel('join')
     await leaveChannelFromCli(topicName)
     await expectMembers('the account gone from the channel', topicName, m => !m.includes(data.smokeUser))
 
-    const channelText = `#${topicName}`
-    let join: WebdriverIO.Element | undefined
+    // The phone's channel row is one element ("#<channel>, <icon>, <members>, Join, <icon>"): a tap on it previews
+    // the channel, and its Join button has no element of its own, so it is tapped at its measured
+    // frame (tapControlIn).
+    const rowLabel = `#${topicName}, `
+    let row: WebdriverIO.Element | undefined
     await retriedNavigation(
       'Join offered for the channel',
       async () => {
@@ -189,28 +191,22 @@ describe('chat channel settings', function () {
         await openInfoPanel()
         await openMenuFrom("the channel's menu", async () => el(T.CHAT_INFO_PANEL_MENU_BUTTON).click())
         await chooseMenuItem('Browse all channels')
-        await countedSearch('channel').waitForExist({timeout: 10_000})
-        await countedSearch('channel').addValue(topicName)
+        await typeInSearchFilter(topicName)
         await hideKeyboard()
-        // the channel's row, and the one Join button level with it
-        const row = await labelledElement('-ios predicate string:type == "XCUIElementTypeStaticText" AND visible == 1', channelText, "the channel's row")
-        const {y} = await row.getLocation()
-        const {height} = await row.getSize()
-        const level: Array<WebdriverIO.Element> = []
-        for (const b of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Join" AND visible == 1').getElements()) {
-          const at = await b.getLocation()
-          const size = await b.getSize()
-          const mid = at.y + size.height / 2
-          if (mid >= y - 20 && mid <= y + height + 20) level.push(b)
+        const rows: Array<WebdriverIO.Element> = []
+        for (const r of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND visible == 1').getElements()) {
+          const label = (await r.getAttribute('label').catch(() => null)) ?? ''
+          // its parts: the name, icons (glyphs), the member count, the button's label, the "…" icon
+          if (label.startsWith(rowLabel) && label.split(', ').includes('Join')) rows.push(r)
         }
-        if (level.length !== 1) throw new Error(`${level.length} Join buttons beside the channel, not one`)
-        join = level[0]
+        if (rows.length !== 1) throw new Error(`${rows.length} rows of the channel offering Join, not one`)
+        row = rows[0]
       },
       {intervals: [2_000], timeout: 60_000}
     )
     await step('Browse all channels offers Join')
     const seq = await currentCallSeq()
-    await join!.click()
+    await tapControlIn(row!, {prop: 'channelMeta.channelname', value: topicName}, 'Join')
     await waitForCall('the join to go out', seq, 'chat.1.local.joinConversationByIDLocal')
     await expectMembers('the account in the channel', topicName, m => m.includes(data.smokeUser))
     await step('Joined')
@@ -222,8 +218,8 @@ describe('chat channel settings', function () {
 
   it('the second account is added to a channel from Add people', async function () {
     // worst case (s): channel 240, cli 60, open 100, the panel 15, the button 10, its menu 15, item
-    // 20, the filter 10, type 15, keyboard 5, the row 5, the tap 1, Add 5, step 2, the seq 2, the tap
-    // 1, the filter gone 10, calls 10, cli 80, step 2 = 608
+    // 20, type 21 (typeInSearchFilter), keyboard 5, the row 10, the tap 1, Add 5, step 2, the seq 2,
+    // the tap 1, the filter gone 10, calls 10, cli 80, step 2 = 609
     this.timeout(640_000)
     const {convID, topicName} = await newChannel('add')
     check(!(await channelMembersFromCli(topicName)).includes(data.secondUser), 'the new channel already has the second account')
@@ -233,19 +229,23 @@ describe('chat channel settings', function () {
     await addPeople().waitForExist({timeout: 10_000})
     await openMenuFrom('the add people menu', async () => addPeople().click())
     await chooseMenuItem('To channel')
-    const filter = countedSearch('member')
-    await filter.waitForExist({timeout: 10_000})
-    await filter.addValue(data.secondUser)
+    await typeInSearchFilter(data.secondUser)
     await hideKeyboard()
-    // the member row, by the name it shows: compared in memory
-    const member = await labelledElement('-ios predicate string:type == "XCUIElementTypeStaticText" AND visible == 1', data.secondUser, 'the second account in the member list')
+    // the member row, one element reading "<name>, " (", Already in, " once a member), found by the
+    // name as a part of its label: compared in memory, polled while the search's results draw
+    const member = await waitFor(
+      'the second account in the member list',
+      async () =>
+        elementWithLabelPartIn(['XCUIElementTypeOther'], data.secondUser, 'the second account in the member list'),
+      {interval: 500, timeout: 10_000}
+    )
     await member.click()
     const add = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add" AND enabled == 1 AND visible == 1')
     await add.waitForExist({timeout: 5_000})
     await step('The second account picked')
     const seq = await currentCallSeq()
     await add.click()
-    await filter.waitForExist({reverse: true, timeout: 10_000})
+    await searchFilter().waitForExist({reverse: true, timeout: 10_000})
     await waitForCall('the add to go out', seq, 'chat.1.local.bulkAddToConv')
     await expectMembers('the second account in the channel', topicName, m => m.includes(data.secondUser))
     await step('The second account added', {card: true})
@@ -277,9 +277,9 @@ describe('chat channel settings', function () {
   // panel shows both.
   it('the mobile notification setting is saved and stays through a relaunch', async function () {
     // worst case (s): channel 240, conv 75, open 100, panel 25, on screen 20, the chosen one 10, the
-    // seq 2, the tap 15, calls 10, conv 95, the chosen one 10, step 2, relaunch 200, signed in 90,
+    // seq 2, the tap 21, calls 10, conv 95, the chosen one 10, step 2, relaunch 200, signed in 90,
     // open 100, panel 25, on screen 20, the chosen one 10, its read 1, step 2, on screen 20, the tap
-    // 15, conv 95, step 2 = 1184
+    // 21, conv 95, step 2 = 1196
     this.timeout(1_240_000)
     const {convID} = await newChannel('notify')
     const original = await savedMobile(convID)
@@ -329,13 +329,13 @@ describe('chat channel settings', function () {
 
   it('Leave channel from the info panel goes back to the inbox, without the channel', async function () {
     // worst case (s): channel 240, cli 60, open 100, panel 25, on screen 20, step 2, the seq 2, the
-    // tap 1, calls 10, the inbox 10, the screen 1, cli 80, row 90, absent 90, step 2 = 733
-    this.timeout(780_000)
+    // tap 1, calls 10, the inbox 10, the screen 1, cli 80, row 120, absent 120, step 2 = 793
+    this.timeout(820_000)
     const {convID, topicName} = await newChannel('leave')
     check((await channelMembersFromCli(topicName)).includes(data.smokeUser), 'the account is not in the new channel')
     await openConversation(convID)
     await openInfoPanel(T.CHAT_INFO_PANEL_SETTINGS_TAB)
-    const leave = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Leave channel"')
+    const leave = () => iconButton('Leave channel')
     await dragUntilOnScreen('Leave channel', leave)
     await step('Leave channel in the info panel')
     const seq = await currentCallSeq()
