@@ -1101,20 +1101,29 @@ const headerMenuItem = (label: string) =>
   )
 
 // Opens `item` from the conversation header's menu, and waits for `opened` to say it took.
+// Each tap waits for its effect before the next: the menu closes as soon as its item is tapped but
+// what it opens can take longer to show, and a More tapped in that gap reopens the menu over it (seen
+// live: thread search open under the header menu). Bound: 15s.
 export const openHeaderMenuItem = async (item: string, opened: () => Promise<boolean>) => {
   await hideKeyboard()
+  const settle = async (what: string, done: () => Promise<boolean>) =>
+    waitFor(what, async () => ((await done()) ? true : undefined), {interval: 250, timeout: 3_000}).catch((e: unknown) => {
+      if (isAttemptOver(e)) throw e
+    })
   await waitFor(
     `${item} to open from the header menu`,
     async () => {
       if (await opened()) return true
       if (await headerMenuItem(item).isExisting()) {
         await headerMenuItem(item).click().catch(() => {})
+        await settle(`${item} to open`, opened)
       } else {
         await browser.$('~More').click().catch(() => {})
+        await settle('the header menu', async () => (await opened()) || (await headerMenuItem(item).isExisting()))
       }
       return undefined
     },
-    {interval: 500, timeout: 15_000}
+    {interval: 250, timeout: 15_000}
   )
 }
 

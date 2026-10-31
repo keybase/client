@@ -29,6 +29,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {peerSender, type IncomingSender} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
@@ -153,13 +154,23 @@ describe('chat scroll', function () {
     return waitForRow(token, 20_000)
   }
 
-  // Runs `body`, then closes thread search if it is still open, whatever `body` did.
+  // Runs `body`, then closes thread search if it is still open, whatever `body` did; a failed close
+  // never hides the body's own failure.
   const withSearchClosed = async (body: () => Promise<void>) => {
+    let failed: {e: unknown} | undefined
     try {
       await body()
-    } finally {
-      if (await searchOpen()) await closeSearch()
+    } catch (e) {
+      if (isAttemptOver(e)) throw e
+      failed = {e}
     }
+    try {
+      if (await searchOpen()) await closeSearch()
+    } catch (e) {
+      if (!failed) throw e
+      console.log(`  withSearchClosed: closing search after the failure also failed: ${e instanceof Error ? e.message : String(e)}`)
+    }
+    if (failed) throw failed.e
   }
 
   // How an incoming send moved the list, from samples taken from the send until it settled.
