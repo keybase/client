@@ -107,7 +107,7 @@ const topLevelNames = (sf: ts.SourceFile) => {
 
 // Body builders that only read, whose bodies the scan cannot see (they come from shared/ or take
 // their text as arguments): a jsEval of any other call is one the scan cannot read.
-const READ_ONLY_BUILDERS = new Set(['callsSinceBody', 'errorCaptureBody', 'resumeRecorderBody', 'startRecorderBody', 'takeRecorderBody'])
+const READ_ONLY_BUILDERS = new Set(['callsSinceBody', 'errorCaptureBody', 'resumeRecorderBody', 'startRecorderBody', 'takeRecorderBody', 'topModalScreenBody'])
 
 const lineOf = (file: string, sf: ts.SourceFile, n: ts.Node) => `${file}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1}`
 

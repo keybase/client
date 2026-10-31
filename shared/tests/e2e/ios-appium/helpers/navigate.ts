@@ -1,6 +1,9 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {byText, el, els, waitForTestID, tab} from './elements'
+import {fiberPrelude} from './fiber-prelude'
+import {jsEval} from './lifecycle'
+import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
 // present — a settings row below the fold still "exists" in the tree). Swiping
@@ -155,25 +158,102 @@ async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
 
 // A modal opened over another modal (the chat block modal over the info panel) has its header's
 // Cancel/Close/Done reported visible="false" by XCUITest, though on screen: DISMISS_PRED misses it.
-// Its header buttons are found without visibility, by exact label and as buttons only, in the header
-// band (the top 200pt): Cancel, else Close, and Done only when the header has neither (a Done can
-// commit a modal's edits). Tapped once; it counts only when it took the modal away (else the
-// back/pop path runs). The label tapped is logged.
+// The fallback asks the app for its top modal and the screen showing in it, and taps a header button
+// of that screen only:
+// - one the app draws (a React view): exactly one pressable under that screen labelled exactly the
+//   label, measured by the app, matched to the one button element of its size and left edge in the
+//   header band (measuredButtonAmong);
+// - a native bar item (a modal's Cancel on iOS), which the app cannot measure: the button so labelled
+//   inside the one navigation bar named with that screen's title. An empty title, or more than one
+//   bar with it, taps nothing.
+// Cancel, else Close, and Done only when the screen has neither (a Done can commit a modal's edits).
+// A tap counts only when the top modal then leaves the app's modal stack (else the back/pop path
+// runs, and escapeToTabs fails loudly if nothing works). Only the label is logged, never the title.
 const HEADER_DISMISS_LABELS = ['Cancel', 'Close', 'Done'] as const
+
+type TopModalScreen = {count: number; title: string; topKey: string}
+
+// Reads the top modal's showing screen, and starts measuring its pressables labelled `label` into
+// globalThis.__e2eHeaderFrames. null when no modal is up.
+const topModalScreenBody = (label: string) => `${fiberPrelude}
+  const g = globalThis
+  g.__e2eHeaderFrames = undefined
+  const router = kbModule('constants/router.tsx')
+  const top = router.getModalStack().at(-1)
+  const visible = router.getVisibleScreen()
+  if (!top || !visible) return null
+  const isScene = f => f.memoizedProps && f.memoizedProps.descriptor && f.memoizedProps.descriptor.route
+  let scene
+  const stack = [e2eRootFiber()]
+  while (stack.length && !scene) {
+    const f = stack.pop()
+    if (f.key === visible.key && isScene(f)) scene = f
+    if (f.sibling) stack.push(f.sibling)
+    if (f.child) stack.push(f.child)
+  }
+  let underTop = !!scene && visible.key === top.key
+  for (let p = scene && scene.return; p && !underTop; p = p.return) if (p.key === top.key && isScene(p)) underTop = true
+  if (!underTop) return {count: 0, title: '', topKey: top.key}
+  const options = scene.memoizedProps.descriptor.options || {}
+  const title = typeof options.title === 'string' ? options.title : ''
+  const label = ${JSON.stringify(label)}
+  const hits = []
+  const inner = scene.child ? [scene.child] : []
+  while (inner.length) {
+    const f = inner.pop()
+    const p = f.memoizedProps
+    const handler = p && (typeof p.onPress === 'function' ? p.onPress : typeof p.onClick === 'function' ? p.onClick : undefined)
+    if (f.tag !== 5 && handler && (p.children === label || p.label === label || p.title === label) && !hits.some(h => h.handler === handler)) hits.push({f, handler})
+    if (f.sibling) inner.push(f.sibling)
+    if (f.child) inner.push(f.child)
+  }
+  const hosts = hits.map(h => e2eHostOf(h.f)).filter(Boolean)
+  if (hits.length === 1 && hosts.length === 1) {
+    g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (g.__e2eHeaderFrames = {height, width, x, y}))
+  }
+  return {count: hits.length === hosts.length ? hits.length : -1, title, topKey: top.key}
+`
+
+const modalStillUp = async (key: string) =>
+  jsEval<boolean>(`return kbModule('constants/router.tsx').getModalStack().some(r => r.key === ${JSON.stringify(key)})`)
+
+// The header button element to tap for `label` on the top modal's screen, or undefined.
+async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
+  const screen = await browser.getWindowRect()
+  if (screenInfo.count === 1) {
+    const measured = await browser
+      .waitUntil(async () => (await jsEval<Rect | null>('return globalThis.__e2eHeaderFrames || null')) ?? false, {interval: 100, timeout: 3000})
+      .catch(() => undefined)
+    if (!measured) return undefined
+    const buttons = await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()
+    const rects: Array<Rect> = []
+    for (const b of buttons) rects.push(await b.getElementRect(b.elementId).catch(() => ({height: 0, width: 0, x: -1, y: -1})))
+    const at = measuredButtonAmong(measured, rects, screen)
+    return at === undefined ? undefined : buttons[at]
+  }
+  // a native bar item: only inside the one navigation bar named with the screen's title
+  if (screenInfo.count !== 0 || !screenInfo.title) return undefined
+  const bars: Array<WebdriverIO.Element> = []
+  for (const bar of await browser.$$('//XCUIElementTypeNavigationBar').getElements()) {
+    if ((await bar.getAttribute('name').catch(() => null)) === screenInfo.title) bars.push(bar)
+  }
+  if (bars.length !== 1) return undefined
+  const inBar = await bars[0]!.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()
+  if (inBar.length !== 1) return undefined
+  const r = await inBar[0]!.getElementRect(inBar[0]!.elementId).catch(() => undefined)
+  return r && onScreen(r, screen) && r.y + r.height <= HEADER_BAND ? inBar[0] : undefined
+}
+
 async function dismissStackedModal(): Promise<boolean> {
   for (const label of HEADER_DISMISS_LABELS) {
-    const inHeader: Array<WebdriverIO.Element> = []
-    for (const ctrl of await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()) {
-      const at = await ctrl.getLocation().catch(() => undefined)
-      if (at && at.y >= 0 && at.y <= 200) inHeader.push(ctrl)
-    }
-    // the topmost modal's header is the last drawn
-    const ctrl = inHeader.at(-1)
+    const screenInfo = await jsEval<TopModalScreen | null>(topModalScreenBody(label)).catch(() => null)
+    if (!screenInfo) return false
+    const ctrl = await topModalHeaderButton(label, screenInfo)
     if (!ctrl) continue
     console.log(`  escapeToTabs: dismissing a stacked modal with its "${label}"`)
     await ctrl.click().catch(() => {})
-    const gone = async () => (await atTabs()) || !(await ctrl.isExisting().catch(() => false))
-    await browser.waitUntil(gone, {interval: 80, timeout: 3000}).catch(() => {})
+    const gone = async () => !(await modalStillUp(screenInfo.topKey).catch(() => true))
+    await browser.waitUntil(gone, {interval: 100, timeout: 3000}).catch(() => {})
     return gone()
   }
   return false
@@ -221,7 +301,6 @@ export async function escapeToTabs(): Promise<void> {
     // so its Done/Close/Cancel must win.
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
-      // eslint-disable-next-line no-console
       if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
@@ -229,12 +308,10 @@ export async function escapeToTabs(): Promise<void> {
       // whose click no-ops (still present, still not at tabs) must fall through
       // to the back/pop path or we'd click it forever.
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
-      // eslint-disable-next-line no-console
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
     } else if (await dismissStackedModal()) {
       continue
     } else if (debug) {
-      // eslint-disable-next-line no-console
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
