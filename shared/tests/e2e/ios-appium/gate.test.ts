@@ -37,3 +37,6 @@ import './flows/teams-second.test'
 // after it can fail until the server's chain catches up
 import './flows/people-browse.test'
 import './flows/people-follow.test'
+import './flows/profile-edit.test'
+// the second account's proofs add links to its sigchain; after its other flows
+import './flows/profile-proofs.test'
