@@ -29,7 +29,6 @@ test.afterEach(async ({page}, testInfo) => {
   await restoreToSmoke(page)
 })
 
-
 const secondCli = async (args: Array<string>, timeoutMs = 60_000) => (await ensurePeer('second', loadE2EEnv())).cli(args, timeoutMs)
 
 type Lookup = {

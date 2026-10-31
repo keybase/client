@@ -11,10 +11,12 @@ import {
   pgpList,
   purgeFileFingerprint,
   purgePeerPgp,
+  recordProofSig,
   removePurgeFiles,
   requireThisRunPgpEmail,
   restoreProfileFields,
   revokeLeftovers,
+  sigIDsBefore,
   sigsList,
   stampedPgpEmail,
 } from './profile'
@@ -196,7 +198,8 @@ describe('purgePeerPgp', () => {
     expect(m).toMatch(/nothing purged/)
     expect(m).not.toContain(otherFp)
     expect(log.filter(l => l.includes('pgpPurge'))).toHaveLength(1)
-    expect(fs.readdirSync(dir).some(f => f.includes(fp))).toBe(false)
+    // the dry run's exports are gone too, the other key's included
+    expect(fs.readdirSync(dir)).toEqual([])
   })
 
   test('refuses a fingerprint that is not one, before any call', async () => {
@@ -241,31 +244,57 @@ describe('the second peer reads', () => {
     expect(await messageOf(pgpList())).toMatch(/device key/)
   })
 
-  test("revokeLeftovers revokes only this run's stamped sigs and keys, and reads back that none is left", async () => {
-    const start = Math.floor(Date.now() / 1000)
-    let sigs = [
-      sig({sig_id: 'eldest', type: 'eldest'}),
-      sig({sig_id: 'mydns', statement: `dns://e2e${run}.example.com`, type: 'proof'}),
-      sig({sig_id: 'otherdns', statement: `dns://e2e${other}.example.com`, type: 'proof'}),
-      sig({ctime: start, sig_id: 'myburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}),
-      sig({ctime: start - 7_200, sig_id: 'oldburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}),
-      sig({sig_id: 'gh', statement: 'github://testuser-mac', type: 'proof'}),
-    ]
-    let pgp: Record<string, object> = {
-      k1: {base: {kid: 'k1'}, fingerprint: fp, identities: [{email: stampedPgpEmail()}]},
-      k2: {base: {kid: 'k2'}, fingerprint: otherFp, identities: [{email: `e2e-${other}-pgp@example.com`}]},
-    }
-    const {log} = fakePeer({
-      call: m => (m === 'keybase.1.user.loadUserPlusKeysV2' ? {current: {deviceKeys: {d: {base: {kid: 'd'}}}, pgpKeys: pgp, username: 'testuser-mac'}} : null),
+  // a peer whose sigchain is `sigs` and whose keys are `pgp`, taking revokes and drops
+  const chainPeer = (sigs: Array<ReturnType<typeof sig>>, pgp: Record<string, object>) => {
+    const state = {pgp, sigs}
+    const peer = fakePeer({
+      call: m => (m === 'keybase.1.user.loadUserPlusKeysV2' ? {current: {deviceKeys: {d: {base: {kid: 'd'}}}, pgpKeys: state.pgp, username: 'testuser-mac'}} : null),
       cli: args => {
-        if (args[0] === 'sigs' && args[1] === 'revoke') sigs = sigs.map(s => (s.sig_id === args[2] ? {...s, revoked: true} : s))
-        if (args[0] === 'pgp' && args[1] === 'drop') pgp = Object.fromEntries(Object.entries(pgp).filter(([k]) => k !== args[2]))
-        if (args[0] === 'sigs' && args[1] === 'list') return JSON.stringify(sigs)
+        if (args[0] === 'sigs' && args[1] === 'revoke') state.sigs = state.sigs.map(s => (s.sig_id === args[2] ? {...s, revoked: true} : s))
+        if (args[0] === 'pgp' && args[1] === 'drop') state.pgp = Object.fromEntries(Object.entries(state.pgp).filter(([k]) => k !== args[2]))
+        if (args[0] === 'sigs' && args[1] === 'list') return JSON.stringify(state.sigs)
         return JSON.stringify({them: {id: 'uid'}})
       },
     })
+    return {...peer, state}
+  }
+
+  test('recordProofSig records the one new proof of its kind, and refuses none or two', async () => {
+    const {state} = chainPeer([sig({sig_id: 'eldest', type: 'eldest'}), sig({sig_id: 'oldburn', statement: BURN_ADDRESS, type: 'cryptocurrency'})], {})
+    const before = await sigIDsBefore()
+    expect(await messageOf(recordProofSig('bitcoin', before))).toMatch(/0 new bitcoin proofs/)
+    state.sigs.push(sig({sig_id: 'myburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}))
+    await expect(recordProofSig('bitcoin', before)).resolves.toBe('myburn')
+    state.sigs.push(sig({sig_id: 'd1', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    state.sigs.push(sig({sig_id: 'd2', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    expect(await messageOf(recordProofSig('dns', before))).toMatch(/2 new dns proofs/)
+    await revokeLeftovers()
+  })
+
+  test("revokeLeftovers revokes only the recorded proof sigs and this run's keys, and reads back that none is left", async () => {
+    const {log, state} = chainPeer(
+      [
+        sig({sig_id: 'eldest', type: 'eldest'}),
+        sig({sig_id: 'otherdns', statement: `dns://e2e${other}.example.com`, type: 'proof'}),
+        sig({sig_id: 'oldburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}),
+        sig({sig_id: 'gh', statement: 'github://testuser-mac', type: 'proof'}),
+      ],
+      {
+        k1: {base: {kid: 'k1'}, fingerprint: fp, identities: [{email: stampedPgpEmail()}]},
+        k2: {base: {kid: 'k2'}, fingerprint: otherFp, identities: [{email: `e2e-${other}-pgp@example.com`}]},
+      }
+    )
+    const before = await sigIDsBefore()
+    state.sigs.push(sig({sig_id: 'mydns', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    await recordProofSig('dns', before)
+    state.sigs.push(sig({sig_id: 'myburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}))
+    await recordProofSig('bitcoin', new Set([...before, 'mydns']))
     await revokeLeftovers()
     expect(log.filter(l => / revoke | drop /.test(l))).toEqual(['cli sigs revoke mydns', 'cli sigs revoke myburn', 'cli pgp drop k1'])
+    // once read back revoked, nothing is recorded any more
+    log.length = 0
+    await revokeLeftovers()
+    expect(log.filter(l => / revoke | drop /.test(l))).toEqual([])
   })
 })
 

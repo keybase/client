@@ -1,14 +1,13 @@
 // Profiles and proofs: the smoke account's profile fields on the host, and the second account's
 // proofs, sigs and PGP keys through its peer, with the writes that put them back. A proof or key a
-// flow makes is this run's (a stamped DNS domain, a burn address added since the run started, a key
-// on this run's stamped identity), and only those are ever revoked or dropped here. The PGP key a
+// flow makes is this run's (a proof sig whose id was recorded right after its add, a key on this run's
+// stamped identity), and only those are ever revoked or dropped here. The PGP key a
 // flow drops from the phone is made on the second peer (the phone cannot make one): its private half
 // stays in the peer's keyring, never on the server, and is purged after. No error names an account,
 // fingerprint or file. Framework-free: shared by the desktop and iOS flows.
 import * as fs from 'fs'
 import * as path from 'path'
 import {loadE2EAccounts, loadE2EEnv} from '../accounts/env.ts'
-import {parseRunId} from '../accounts/run-id.ts'
 import {waitFor} from './deadline.ts'
 import {mainRpc} from './main-rpc.ts'
 import {pgpKeyGenAnswers, type PeerRpc} from './peer-rpc.ts'
@@ -207,6 +206,8 @@ export const purgePeerPgp = async (fingerprint: string) => {
     const fps = listed.map(f => purgeFileFingerprint(f, dir))
     removePurgeFiles(listed.filter((_f, i) => fps[i] === fp), dir, fp)
     if (fps.some(f => f !== fp)) {
+      // the dry run's own exports of the other keys go too (each a pgpPurge export in the config dir)
+      removePurgeFiles(listed.filter((_f, i) => fps[i] !== fp), dir)
       throw new Error("the second peer's keyring holds a PGP key this run did not make; nothing purged (the owner has to look at it)")
     }
     if (!fps.length) return
@@ -217,28 +218,43 @@ export const purgePeerPgp = async (fingerprint: string) => {
   })
 }
 
-// This run's sigs on the second account still live: its DNS proof, and the burn address added since
-// the run started (the address is the same every run).
-const runSigs = (sigs: ReadonlyArray<Sig>) => {
-  const run = e2eRunId()
-  const startS = (parseRunId(run)?.startMs ?? Date.now()) / 1000
-  return sigs.filter(
-    s =>
-      !s.revoked &&
-      ((s.type === 'proof' && s.statement === `dns://e2e${run}.example.com`) ||
-        (s.type === 'cryptocurrency' && s.statement === BURN_ADDRESS && s.ctime >= startS))
-  )
+// The sig ids of the proofs this run added to the second account, each read back from its sigchain
+// right after the add (recordProofSig). Only these are ever revoked here: the burn address is the same
+// every run, so its statement alone cannot say which run added it.
+const recordedSigs = new Set<string>()
+
+export type ProofKind = 'bitcoin' | 'dns'
+const proofOf = (kind: ProofKind) =>
+  kind === 'bitcoin'
+    ? (s: Sig) => s.type === 'cryptocurrency' && s.statement === BURN_ADDRESS
+    : (s: Sig) => s.type === 'proof' && s.statement === `dns://e2e${e2eRunId()}.example.com`
+
+// The ids on the second account's sigchain now, for recordProofSig to compare with after an add.
+export const sigIDsBefore = async () => new Set((await sigsList()).map(s => s.sigID))
+
+// Records the one live `kind` proof on the second account's sigchain that was not there `before`,
+// and returns its id. Throws unless there is exactly one: an add that made none or two is never
+// guessed at.
+export const recordProofSig = async (kind: ProofKind, before: ReadonlySet<string>) => {
+  const added = (await sigsList()).filter(s => !s.revoked && !before.has(s.sigID) && proofOf(kind)(s))
+  const [sig] = added
+  if (!sig || added.length > 1) throw new Error(`the second account's sigchain shows ${added.length} new ${kind} proofs after the add, not one`)
+  recordedSigs.add(sig.sigID)
+  return sig.sigID
 }
+
+const liveRecorded = (sigs: ReadonlyArray<Sig>) => sigs.filter(s => !s.revoked && recordedSigs.has(s.sigID))
 const runKeys = (keys: ReadonlyArray<PgpKey>) => keys.filter(k => !k.revoked && k.emails.includes(stampedPgpEmail()))
 
-// Revokes, through the second peer, each of this run's sigs and keys still on the second account,
-// then reads back that none is. Bound: a revoke per leftover (60s each), then 60s of reads.
+// Revokes, through the second peer, each recorded proof sig and each key on this run's identity still
+// on the second account, then reads back that none is. Bound: a revoke per leftover (60s each), then 60s of reads.
 export const revokeLeftovers = async () => {
-  for (const s of runSigs(await sigsList())) await secondCli(['sigs', 'revoke', s.sigID])
+  for (const s of liveRecorded(await sigsList())) await secondCli(['sigs', 'revoke', s.sigID])
   for (const k of runKeys(await pgpList())) await secondCli(['pgp', 'drop', k.kid])
   await waitFor(
     'no sig or PGP key of this run left on the second account',
-    async () => (runSigs(await sigsList()).length || runKeys(await pgpList()).length ? undefined : true),
+    async () => (liveRecorded(await sigsList()).length || runKeys(await pgpList()).length ? undefined : true),
     {timeout: 60_000}
   )
+  recordedSigs.clear()
 }
