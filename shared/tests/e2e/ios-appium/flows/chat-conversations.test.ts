@@ -25,6 +25,7 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {inNameSection, type Rect} from '../gate/chat-lib'
+import {sourceElements} from '../gate/page-source-lib'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
@@ -46,11 +47,13 @@ import {
   scrollInboxTo,
   scrollInboxToTeamHeader,
   scrollInboxToTop,
+  searchFilter,
   searchFor,
   searchOpen,
   sendMessage,
   signedInAs,
   storedMessageState,
+  typeInSearchFilter,
   unreadCount,
   visibleConversation,
   waitForRow,
@@ -61,9 +64,9 @@ import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 
 describe('chat conversations', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  row  scrollInboxTo 90;  absent  inboxHasRow 90 (the same
-  //             scroll);  header  scrollInboxToTeamHeader 90;  top  the inbox at its top 90
-  //   row menu  openInboxRowMenu 295 (an open sheet closed 5, three long presses of scrollInboxTo 90,
+  //   open      openConversation 100;  row  scrollInboxTo 120;  absent  inboxHasRow 120 (the same
+  //             scroll);  header  scrollInboxToTeamHeader 120;  top  the inbox at its top 120
+  //   row menu  openInboxRowMenu 385 (an open sheet closed 5, three long presses of scrollInboxTo 120,
   //             the press 1 and the sheet 3, the menu's conversation read 1, closed 5);  item
   //             chooseMenuItem 20;
   //             gear  openMenuFrom 15
@@ -188,17 +191,13 @@ describe('chat conversations', function () {
     }
   }
 
-  // The inbox search placeholder's field, while the inbox filter is open.
-  const inboxSearchField = () =>
-    browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search" AND visible == 1')
-
   // No thread search or inbox filter left open. The filter ends with the X on its row (its search
   // filter's clear, which cancels the inbox search): the one level with the field.
   const closeSearches = async () => {
     if (await searchOpen()) await closeSearch()
     await escapeToTabs()
     await navigateToChat()
-    const field = inboxSearchField()
+    const field = searchFilter()
     if (!(await field.isExisting())) return
     const {y} = await field.getLocation()
     const {height} = await field.getSize()
@@ -224,10 +223,10 @@ describe('chat conversations', function () {
   })
 
   it('the DM hidden from its inbox row leaves the inbox, and a new message brings it back', async function () {
-    // worst case (s): conv 75, row menu 295, the seq 2, item 20, calls 10, conv 95, row 90 (the
-    // self conversation), absent 90, step 2, peer 70, peer send 90, conv 95, row 90, step 2, open
-    // 100, the row 30, step 2 = 1158
-    this.timeout(1_200_000)
+    // worst case (s): conv 75, row menu 385, the seq 2, item 20, calls 10, conv 95, row 120 (the
+    // self conversation), absent 120, step 2, peer 70, peer send 90, conv 95, row 120, step 2, open
+    // 100, the row 30, step 2 = 1338
+    this.timeout(1_380_000)
     const {convID} = data.direct
     const original = await statusOf(convID)
     check(original === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden or muted)')
@@ -256,8 +255,8 @@ describe('chat conversations', function () {
 
   it('the DM muted from its info panel stays muted through a relaunch, and unmutes', async function () {
     // worst case (s): conv 75, open 100, panel 25, switch 10, the seq 2, the tap 1, calls 10, conv
-    // 95, app 20, step 2, relaunch 200, signed in 90, row 90, app 20, step 2, open 100, panel 25,
-    // switch 10, the seq 2, the tap 1, calls 10, conv 95, app 20, step 2 = 1007
+    // 95, app 20, step 2, relaunch 200, signed in 90, row 120, app 20, step 2, open 100, panel 25,
+    // switch 10, the seq 2, the tap 1, calls 10, conv 95, app 20, step 2 = 1037
     this.timeout(1_060_000)
     const {convID} = data.direct
     const original = await statusOf(convID)
@@ -299,9 +298,9 @@ describe('chat conversations', function () {
 
   it("Mark all as read from KB_E2E_TEAM's header reads its unread channel", async function () {
     // worst case (s): channel 240, peer 70, peer send 90, conv 105 (polled 30, overrun by one read),
-    // badge 30, row 90, step 2, header 90, gear 15, the seq 2, item 20, calls 10, conv 95, app 20,
-    // step 2 = 881
-    this.timeout(940_000)
+    // badge 30, row 120, step 2, header 120, gear 15, the seq 2, item 20, calls 10, conv 95, app 20,
+    // step 2 = 941
+    this.timeout(990_000)
     const made = await createThrowawayChannel('read')
     channels.add(made.topicName)
     const {convID, topicName} = made
@@ -337,10 +336,10 @@ describe('chat conversations', function () {
   })
 
   it('the self conversation pinned from its row stays pinned through a relaunch, and unpins', async function () {
-    // worst case (s): self 60, gregor 75, conv 75, row menu 295, the seq 2, item 20, calls 10, gregor
-    // 95, app 20, step 2, relaunch 200, signed in 90, row 90, app 20, step 2, row menu 295, the seq 2,
-    // item 20, calls 10, gregor 95, app 20, step 2 = 1500
-    this.timeout(1_560_000)
+    // worst case (s): self 60, gregor 75, conv 75, row menu 385, the seq 2, item 20, calls 10, gregor
+    // 95, app 20, step 2, relaunch 200, signed in 90, row 120, app 20, step 2, row menu 385, the seq 2,
+    // item 20, calls 10, gregor 95, app 20, step 2 = 1710
+    this.timeout(1_760_000)
     const selfConvID = await directConvIDFromCli(data.smokeUser)
     const original = await pinnedConvs()
     check(!original.includes(selfConvID), 'the self conversation starts pinned (a failed restore left it pinned)')
@@ -379,48 +378,56 @@ describe('chat conversations', function () {
   // The inbox filter lists name hits under "Chats", then other sections (open teams, bots, and
   // messages whose text matches): only a name hit counts here.
   it('the inbox filter finds a channel by its name and opens it', async function () {
-    // worst case (s): top 90, the placeholder 5, the tap 1, the field 10, type 15, hits 20, step 2,
-    // the tap 1, the conversation 20, step 2 = 166
-    this.timeout(200_000)
+    // worst case (s): top 120, the placeholder 5, the tap 1, type 21 (typeInSearchFilter), hits 20,
+    // step 2, the tap 1, the conversation 20, step 2 = 192
+    this.timeout(230_000)
     const want = `#${E2E_CHANNELS.short}`
     const other = `#${E2E_CHANNELS.long}`
     await scrollInboxToTop()
     await el(T.CHAT_INBOX_SEARCH).waitForExist({timeout: 5_000})
     await el(T.CHAT_INBOX_SEARCH).click()
-    await inboxSearchField().waitForExist({timeout: 10_000})
-    await inboxSearchField().addValue(E2E_CHANNELS.short)
+    await typeInSearchFilter(E2E_CHANNELS.short)
 
-    // a channel hit reads "<team>" and " #<channel>" (a no-break space first)
-    const labelled = async (labels: ReadonlyArray<string>) => {
-      const out: Array<{e: WebdriverIO.Element; label: string; rect: Rect}> = []
-      for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeStaticText" AND visible == 1').getElements()) {
-        const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ').trim()
-        if (!labels.includes(label)) continue
-        const at = await e.getLocation().catch(() => undefined)
-        const size = await e.getSize().catch(() => undefined)
-        if (at && size) out.push({e, label, rect: {...at, ...size}})
-      }
-      return out
-    }
+    // Read off one page source: the section headers are rows labelled "<name>, " (their collapse
+    // arrow), a channel hit's name a text " #<channel>" (a no-break space first), drawn twice at one
+    // frame (a text in a text), so frames are counted once.
     const laterSections = ['Open teams', 'Suggested teams', 'Featured bots', 'Suggested bots', 'Messages']
-    const hit = await waitFor(
+    const hitFrame = await waitFor(
       'the channel among the name hits',
       async () => {
-        const found = await labelled(['Chats', ...laterSections, want, other])
-        const chats = found.filter(f => f.label === 'Chats')
+        const els = sourceElements(await browser.getPageSource()).filter(e => e.attrs['visible'] === 'true')
+        const rect = (a: Record<string, string>): Rect => ({
+          height: Number(a['height']),
+          width: Number(a['width']),
+          x: Number(a['x']),
+          y: Number(a['y']),
+        })
+        const header = (name: string) =>
+          els.filter(e => e.type === 'XCUIElementTypeOther' && (e.attrs['label'] ?? '').split(', ')[0] === name).map(e => rect(e.attrs))
+        const texts = (label: string) => {
+          const seen = new Set<string>()
+          return els
+            .filter(e => e.type === 'XCUIElementTypeStaticText' && (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').trim() === label)
+            .map(e => rect(e.attrs))
+            .filter(r => !seen.has(JSON.stringify(r)) && !!seen.add(JSON.stringify(r)))
+        }
+        const chats = header('Chats')
         if (chats.length !== 1) return undefined
-        const names = found.filter(f => f.label === want)
-        const inNames = inNameSection(
-          names.map(n => n.rect),
-          chats[0]!.rect,
-          found.filter(f => laterSections.includes(f.label)).map(f => f.rect)
-        )
-        if (found.some(f => f.label === other)) throw new Error('the filter lists a channel its query does not match')
+        if (texts(other).length) throw new Error('the filter lists a channel its query does not match')
+        const names = texts(want)
+        const inNames = inNameSection(names, chats[0]!, laterSections.flatMap(header))
         if (inNames.length > 1) throw new Error(`${inNames.length} name hits for the channel, not one`)
-        return inNames.length === 1 ? names[inNames[0]!]!.e : undefined
+        return inNames.length === 1 ? names[inNames[0]!] : undefined
       },
       {interval: 500, timeout: 20_000}
     )
+    // the element behind the hit, by its frame
+    let hit: WebdriverIO.Element | undefined
+    for (const e of await browser.$$(`-ios predicate string:type == "XCUIElementTypeStaticText" AND label ENDSWITH ${JSON.stringify(want)}`).getElements()) {
+      const at = await e.getLocation().catch(() => undefined)
+      if (at && Math.abs(at.y - hitFrame.y) < 1 && Math.abs(at.x - hitFrame.x) < 1) hit = e
+    }
+    if (!hit) throw new Error('the name hit moved before it could be tapped')
     await step('The filter lists the channel by name')
     await hit.click()
     await waitFor(
