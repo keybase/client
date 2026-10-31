@@ -19,19 +19,21 @@ import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {openLink} from '../gate/device'
+import {sourceElements} from '../gate/page-source-lib'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
   check,
   chooseMenuItem,
   closeMessageMenu,
-  elementWithLabelPart,
+  elementWithLabelPartIn,
   hideKeyboard,
   labelledElement,
   menuHas,
   openConversation,
   openMenuFrom,
   openMessageMenu,
+  typeInSearchFilter,
   waitForRow,
 } from '../helpers/chat'
 import {el, els, tapForTestID} from '../helpers/elements'
@@ -44,8 +46,7 @@ const restrictedBot = 6
 const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
 // what a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
 // merging its texts
-const NAMED =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink" OR type == "XCUIElementTypeOther") AND label != "" AND visible == 1'
+const NAMED = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 describe('chat bots', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -128,7 +129,9 @@ describe('chat bots', function () {
       timeout: 10_000,
     })
 
-  const tapButton = async (label: string, what: string) => (await labelledElement(BUTTONS, label, what)).click()
+  // The button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap 1 = 6.
+  const tapButton = async (label: string, what: string) =>
+    (await waitFor(what, async () => labelledElement(BUTTONS, label, what), {interval: 300, timeout: 5_000})).click()
 
   const route = async () => (await appSnapshot()).screen
   const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
@@ -174,20 +177,41 @@ describe('chat bots', function () {
   }
 
   // The one bot row's menu in the subteam's Bots tab (the second account is its only bot), with the
-  // row's name the second account's. Bound: the row 20, its name 5.
+  // row's name the second account's. Bound: the row 20, its name 5 (one page source).
   const botRowMenu = async () => {
     await waitFor('the bot row', async () => ((await els(T.TEAMS_BOT_ROW_MENU).length) === 1 ? true : undefined), {
       interval: 500,
       timeout: 20_000,
     })
-    await elementWithLabelPart(NAMED, data.secondUser, "the bot row's name")
-    return el(T.TEAMS_BOT_ROW_MENU)
+    // the row reads "<name> • by @<name>": the name shows in the menu's row, once or twice
+    const menu = el(T.TEAMS_BOT_ROW_MENU)
+    const {y} = await menu.getLocation()
+    const {height} = await menu.getSize()
+    const mid = y + height / 2
+    const named = sourceElements(await browser.getPageSource()).filter(e => {
+      const label = (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ')
+      const top = Number(e.attrs['y'])
+      const bottom = top + Number(e.attrs['height'])
+      return (
+        NAMED.includes(e.type) &&
+        e.attrs['visible'] === 'true' &&
+        top <= mid &&
+        bottom >= mid &&
+        label.split(/, | • by @| • /).some(part => part.trim() === data.secondUser)
+      )
+    })
+    if (!named.length) throw new Error("the bot row does not show the second account's name")
+    return menu
   }
 
-  // The install screen's channels dropdown reads `want` (its label ends with it after the team's name).
+  // The install screen's channels dropdown reads `want`: one part of its label (the team's name and
+  // `want`; its arrow's glyph can follow as a part of its own) ends with it.
   const channelsRead = async (want: string) => {
     const label = (await el(T.CHAT_BOT_CHANNELS_BUTTON).getAttribute('label')) ?? ''
-    return label.replace(/\u00a0/g, ' ').trim().endsWith(want)
+    return label
+      .replace(/\u00a0/g, ' ')
+      .split(', ')
+      .some(part => part.trim().endsWith(want))
   }
   const expectChannels = async (want: string) => {
     await el(T.CHAT_BOT_CHANNELS_BUTTON).waitForExist({timeout: 10_000})
@@ -202,10 +226,10 @@ describe('chat bots', function () {
   const pickChannels = async (channel?: string) => {
     await el(T.CHAT_BOT_CHANNELS_BUTTON).click()
     await el(T.CHAT_BOT_CHANNEL_PICKER).waitForExist({timeout: 10_000})
-    await (await elementWithLabelPart(NAMED, 'All channels', 'the All channels row')).click()
+    await (await elementWithLabelPartIn(NAMED, 'All channels', 'the All channels row')).click()
     if (channel) {
       // a channel row reads "#" and its name
-      await (await elementWithLabelPart(NAMED, channel, `the #${channel} row`)).click()
+      await (await elementWithLabelPartIn(NAMED, channel, `the #${channel} row`)).click()
     }
     await tapButton('Done', "the picker's Done")
     await el(T.CHAT_BOT_CHANNEL_PICKER).waitForExist({reverse: true, timeout: 5_000})
@@ -213,19 +237,20 @@ describe('chat bots', function () {
 
   it('the second account installed as a restricted bot in one channel, edited to all channels, offered elsewhere, and uninstalled', async function () {
     // worst case (s): subteam 600, host 75 (its id), host 75 (no role) = 750;
-    // install: page 21, bots tab 16, button 6, the search 10, type 15, named 15, the tap 1, screen 10,
+    // install: page 21, bots tab 16, button 6, type 21 (typeInSearchFilter), keyboard 5, named 15, the
+    //   tap 1, screen 10,
     //   the restricted label 10, button 6, the dropdown 15 (its marker 10, label 5), picker 34, the
     //   dropdown 15, step 2, the pin 1, seq 2, button 6, gone 20, calls 10, the row 25 (20, its name
-    //   5), polled 95, host 75, step 2 = 412;
+    //   5), polled 95, host 75, step 2 = 413;
     // edit: the row 25, menu 35, screen 10, the pin 1, the edit button steady 20, the tap 1, the
     //   dropdown 15, picker 34, the dropdown 15, the pin 1, seq 2, button 6, gone 20, calls 10, polled
     //   95, step 2 = 292;
     // offer: peer 70, peer send 90, open 100, row 30, message menu 65 (30, overrun by one try: its
-    //   open 15, its items read 15 and close 5), menu 15, seq 2, the item 20, screen 10, the search 5,
-    //   type 15, named 15, calls 10, step 2, escape 30 = 479;
+    //   open 15, its items read 15 and close 5), menu 15, seq 2, the item 20, screen 10, type 21
+    //   (typeInSearchFilter), named 15, calls 10, step 2, escape 30 = 480;
     // uninstall: page 21, bots tab 16, the row 25, menu 35, screen 10, the pin 1, seq 2, button 6,
     //   calls 10, polled 95, the row gone 20, step 2 = 243
-    // = 750 + 412 + 292 + 479 + 243 = 2176
+    // = 750 + 413 + 292 + 480 + 243 = 2178
     this.timeout(2_250_000)
     // a deleted team's name is not free again, so each attempt in a run takes its own
     const made = await createThrowawaySubteam(`bot${randomBytes(2).toString('hex')}`)
@@ -239,21 +264,20 @@ describe('chat bots', function () {
     await openBotsTab(name, teamID)
     check((await els(T.TEAMS_BOT_ROW_MENU).length) === 0, "a new subteam's Bots tab lists a bot")
     await tapButton('Install bots', "the Bots tab's Install bots")
-    const search = browser.$(
-      '-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search featured bots or users..." AND visible == 1'
-    )
-    await search.waitForExist({timeout: 10_000})
-    await search.addValue(data.secondUser)
+    await typeInSearchFilter(data.secondUser)
+    // the first tap with the keyboard up only puts it away
+    await hideKeyboard()
     const result = await waitFor(
       'the second account among the users found',
-      async () => elementWithLabelPart(NAMED, data.secondUser, 'the second account among the results'),
+      async () => elementWithLabelPartIn(NAMED, data.secondUser, 'the second account among the results'),
       {interval: 500, timeout: 15_000}
     )
     await result.click()
     await expectRoute('the install screen of the second account', 'chatInstallBot', p => p['botUsername'] === data.secondUser)
-    // a new install is a restricted bot unless changed
+    // a new install is a restricted bot unless changed: the dropdown reads it first, then its
+    // description
     await browser
-      .$('-ios predicate string:label == "Restricted bot (recommended)"')
+      .$('-ios predicate string:label == "Restricted bot (recommended)" OR label BEGINSWITH "Restricted bot (recommended), "')
       .waitForExist({timeout: 10_000, timeoutMsg: 'the install screen does not offer a restricted bot'})
     await tapButton('Review', "the install screen's Review")
     await expectChannels('(all channels)')
@@ -325,14 +349,10 @@ describe('chat bots', function () {
     seq = await currentCallSeq()
     await chooseMenuItem('Install bot in another team or chat')
     await expectRoute('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
-    const places = browser.$(
-      '-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search chats and teams..." AND visible == 1'
-    )
-    await places.waitForExist({timeout: 5_000})
-    await places.addValue(name)
+    await typeInSearchFilter(name)
     await waitFor(
       'the subteam among the places to install it',
-      async () => elementWithLabelPart(NAMED, name, 'the subteam among the places'),
+      async () => elementWithLabelPartIn(NAMED, name, 'the subteam among the places'),
       {interval: 500, timeout: 15_000}
     )
     await callOut('the place search to go out', seq, 'chat.1.local.addBotConvSearch')
