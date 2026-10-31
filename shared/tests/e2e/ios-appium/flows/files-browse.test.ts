@@ -5,7 +5,7 @@
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {el, els, tab} from '../helpers/elements'
-import {backToFilesRoot, expectFolder, expectScreen, filesRowNamed, openFilesRoot} from '../helpers/files'
+import {backToFilesRoot, expectFolder, expectScreen, filesRowNamed, openFilesRoot, tapFrame} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 
 const FOLDER_TYPES = ['private', 'public', 'team'] as const
@@ -35,7 +35,7 @@ describe('files browse', function () {
 
     for (const type of FOLDER_TYPES) {
       const row = await filesRowNamed(type, `the ${type} row`, {testID: T.FILES_TLF_ROW})
-      await row.e.click()
+      await tapFrame(row.rect, `the ${type} row`)
       await expectFolder(`the ${type} folder`, `/keybase/${type}`)
       await el(T.FILES_BROWSER).waitForExist({timeout: 10_000})
       // a folder type's list holds the smoke account's folders shared with people and teams that are

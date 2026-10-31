@@ -5,12 +5,19 @@
 //
 // A row's label merges its texts with ", ", and the app draws a name's extension (a dot within its
 // last ten characters) as a text of its own: a name a flow finds by its row has no such dot.
+//
+// On a folder screen inside a folder (the smoke account's, a work folder) XCUITest reports every
+// element visible=false, the header's buttons too, and an element click there taps nothing; the Files
+// root and the folder type screens report them visible. So rows and the controls on a folder screen
+// are found without `visible`, kept to the frame of the one files browser in the tree (the app keeps
+// no other screen's rows there), and tapped at their own frames (tapFrame).
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
-import {signedInAs} from './chat'
-import {labelledElement, openMenuFrom} from './menus'
+import {focusedFieldText, focusSecretField} from '../gate/secret-input.ts'
+import {signedInAs, typeIntoFocused} from './chat'
+import {check, labelledElement, openMenuFrom} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -46,6 +53,36 @@ const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
   return at && size ? {...at, ...size} : undefined
 }
 
+const inside = (r: Rect, area: Rect) =>
+  r.width > 0 && r.height > 0 && r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height
+
+// Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
+export const tapFrame = async (rect: Rect, what: string) => {
+  const {height, width} = await browser.getWindowRect()
+  check(inside(rect, {height, width, x: 0, y: 0}), `${what} is not wholly on screen: not tapping`)
+  await browser.execute('mobile: tap', {x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2)})
+}
+
+// Taps `e` at its own frame. Bound: its frame read and the tap 1.
+export const tapElement = async (e: WebdriverIO.Element, what: string) => {
+  const rect = await rectOf(e)
+  if (!rect) throw new Error(`${what} has no position`)
+  await tapFrame(rect, what)
+}
+
+// Where rows are drawn: `within`'s frame, else the files browser's, else the window. Bound: 1.
+const rowArea = async (within?: WebdriverIO.Element): Promise<Rect> => {
+  const browserEl = within ?? (await browser.$$(`~${T.FILES_BROWSER}`).getElements())[0]
+  const rect = browserEl ? await rectOf(browserEl) : undefined
+  if (rect) return rect
+  const {height, width} = await browser.getWindowRect()
+  return {height, width, x: 0, y: 0}
+}
+
+// The Files rows go by their frame in the browser; any other list's rows (a team's members) by
+// `visible`, as XCUITest reports those.
+const isFilesRow = (testID: string) => testID === T.FILES_ROW || testID === T.FILES_TLF_ROW
+
 const labelParts = (label: string) =>
   label
     .replace(/\u00a0/g, ' ')
@@ -54,19 +91,23 @@ const labelParts = (label: string) =>
 
 export type DrawnRow = {e: WebdriverIO.Element; rect: Rect}
 
-// The drawn element with `testID` whose label holds `name` as a part (the innermost of nested
-// matches), under `within` when given, or undefined when none is; and what every such element reads,
-// to tell a drag that moved the list from one that did not. Throws when more than one matches.
+// The element with `testID` drawn (a Files row: wholly inside the list, rowArea) whose label holds `name` as a part
+// (the innermost of nested matches), under `within` when given, or undefined when none is; and what
+// every such element reads, to tell a drag that moved the list from one that did not. Throws when more
+// than one matches.
 const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Element) => {
   const root = within ?? browser
+  const files = isFilesRow(testID)
+  const area = files ? await rowArea(within) : undefined
   const found: Array<DrawnRow> = []
   const labels: Array<string> = []
-  for (const e of await root.$$(`-ios predicate string:name == ${JSON.stringify(testID)} AND visible == 1`).getElements()) {
+  const visible = files ? '' : ' AND visible == 1'
+  for (const e of await root.$$(`-ios predicate string:name == ${JSON.stringify(testID)}${visible}`).getElements()) {
     const label = (await e.getAttribute('label').catch(() => null)) ?? ''
     labels.push(label)
     if (!labelParts(label).includes(name)) continue
     const rect = await rectOf(e)
-    if (rect) found.push({e, rect})
+    if (rect && (!area || inside(rect, area))) found.push({e, rect})
   }
   const inner = innermost(found.map(f => f.rect))
   if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
@@ -147,7 +188,7 @@ export const openFolder = async (path: string, rowTimeout = 30_000) => {
       i === 0
         ? await filesRowNamed(part, 'the folder type row', {testID: T.FILES_TLF_ROW})
         : await filesRowNamed(part, 'the next folder row on the way', {timeout: rowTimeout})
-    await row.e.click()
+    await tapFrame(row.rect, 'the folder row')
     await expectFolder('the folder tapped to open', at)
   }
 }
@@ -157,7 +198,7 @@ export const openFolder = async (path: string, rowTimeout = 30_000) => {
 export const openRowMenu = async (name: string, what: string) => {
   const row = await filesRowNamed(name, what)
   const button = await elementInRow(row.rect, T.FILES_ROW_MENU)
-  await openMenuFrom(`the menu of ${what}`, async () => button.click())
+  await openMenuFrom(`the menu of ${what}`, async () => tapElement(button, `the menu button of ${what}`))
 }
 
 const sameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
@@ -166,30 +207,48 @@ const sameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width ===
 // Upload, More), and its More item opens the sheet. Bound: the pill 1, openMenuFrom 15 overrun by one
 // try (the pill tap 1, the menu 5, its items read 2 and tapped 1, the sheet 3) = 28.
 export const openFolderMoreSheet = async () => {
-  const pill = await labelledElement(BUTTONS, 'More', "the header's More pill")
-  const pillRect = await rectOf(pill)
-  if (!pillRect) throw new Error("the header's More pill has no position")
-  const filter = browser.$('-ios predicate string:label == "Filter" AND visible == 1')
+  // the header's own More, in the folder screen's navigation bar (see the top of this file for why
+  // not `visible`)
+  const pills: Array<Rect> = []
+  for (const e of await browser
+    .$$('-ios class chain:**/XCUIElementTypeNavigationBar[`name == "fsBrowse"`]/XCUIElementTypeButton[`label == "More"`]')
+    .getElements()) {
+    const rect = await rectOf(e)
+    if (rect) pills.push(rect)
+  }
+  if (pills.length !== 1) throw new Error(`${pills.length} More buttons in the folder's header, not one`)
+  const pillRect = pills[0]!
+  // the menu's items report visible=false too
+  const filter = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Filter"')
   await openMenuFrom("the folder's More sheet", async () => {
     if (!(await filter.isExisting())) {
-      await pill.click()
+      await tapFrame(pillRect, "the header's More pill")
       await filter.waitForExist({timeout: 5_000})
     }
     // the menu's own More item, not the pill that opened it
     const items: Array<DrawnRow> = []
-    for (const e of await browser.$$('-ios predicate string:label == "More" AND visible == 1').getElements()) {
+    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "More"').getElements()) {
       const rect = await rectOf(e)
       if (rect && !sameRect(rect, pillRect)) items.push({e, rect})
     }
     const inner = innermost(items.map(i => i.rect))
     if (inner.length !== 1) throw new Error(`${inner.length} More items in the header's menu, not one`)
-    await items[inner[0]!]!.e.click()
+    await tapFrame(items[inner[0]!]!.rect, "the menu's More")
   })
 }
 
-// Taps the one button drawn labelled `label`, once it is drawn. Bound: 5s, the tap 1.
+// Every button, whether XCUITest reports it visible or not.
+const ANY_BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton"'
+
+// Taps the one button drawn labelled `label`, once it is drawn: one reported visible, else (on a
+// screen that reports its elements visible=false, a files confirmation) the one in the tree. A click
+// on a button takes either way. Bound: 5s, the tap 1.
 export const tapButton = async (label: string, what: string) => {
-  const button = await waitFor(what, async () => labelledElement(BUTTONS, label, what), {interval: 250, timeout: 5_000})
+  const button = await waitFor(
+    what,
+    async () => labelledElement(BUTTONS, label, what).catch(async () => labelledElement(ANY_BUTTONS, label, what)),
+    {interval: 250, timeout: 5_000}
+  )
   await button.click()
 }
 
@@ -201,6 +260,21 @@ export const fillField = async (field: () => ChainablePromiseElement, text: stri
   await field().setValue(text)
   const got = await field().getAttribute('value')
   if (got !== text) throw new Error(`${what} does not read what was typed`)
+}
+
+// Puts `text` in the field `fieldTestID` that XCUITest cannot see (the editing row of a new folder or
+// a rename is one accessible element, so its field is not in the tree): the field is focused through
+// the app, what it holds deleted and `text` typed as key presses, then read back from the app. Bound:
+// the focus 10 (its eval and 5 of reads), the read 1, the deletes 5, the typing 5, the read back 5 = 26.
+export const fillHiddenField = async (fieldTestID: string, text: string, what: string) => {
+  await focusSecretField(fieldTestID)
+  const held = await focusedFieldText(fieldTestID)
+  if (held.length) await typeIntoFocused(what, '\uE003'.repeat(held.length))
+  await typeIntoFocused(what, text)
+  await waitFor(`${what} to read what was typed`, async () => ((await focusedFieldText(fieldTestID)) === text ? true : undefined), {
+    interval: 250,
+    timeout: 5_000,
+  })
 }
 
 // Waits for the relaunched app to be signed in and not switching accounts. Bound: 90s.

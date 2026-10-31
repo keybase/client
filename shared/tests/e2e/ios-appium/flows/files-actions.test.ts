@@ -29,22 +29,25 @@ import {folderSyncConfig, setFolderSyncConfig, type FolderSyncConfig} from '../g
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
+import {focusedFieldText, focusSecretField} from '../gate/secret-input'
 import {step} from '../gate/step'
-import {closeMessageMenu, expectPersists, hideKeyboard} from '../helpers/chat'
+import {closeMessageMenu, expectPersists, hideKeyboard, isKeyboardUp, typeIntoFocused} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {
   expectScreen,
-  fillField,
+  fillHiddenField,
   filesRowNamed,
   openFolder,
   openFolderMoreSheet,
   openRowMenu,
   tapButton,
+  tapElement,
+  tapFrame,
   visibleScreen,
   waitSignedIn,
 } from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPart, menuItem, menuSheet, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 
 const txt = (() => {
@@ -62,7 +65,7 @@ describe('files actions', function () {
   //   entry     an entry's row, which may arrive late, 121 (120, one drag 1);  row  one drawn 31
   //   menu      openRowMenu 52 (the row 31, its button 2, openMenuFrom 19);  item  chooseMenuItem 22
   //             (15, overrun by one drag 1, the tap 1 and the sheet gone 5);  more  openFolderMoreSheet 28
-  //   field     fillField 26;  button  tapButton 6;  screen  a screen waited for 11, read 1
+  //   field     fillHiddenField 26;  button  tapButton 6;  screen  a screen waited for 11, read 1
   //   picker    the picker 10;  gone  10
   //   calls     the recorder's call log, one read 2;  waited for  10
   //   kbfs      waitForKbfs 180 (120, overrun by one listing 60);  listing  one host listing 60
@@ -162,12 +165,30 @@ describe('files actions', function () {
     syncBefore = undefined
   }
 
+  // A destination picker left up (one per try of a test that failed in it), closed from its header's
+  // Cancel: its header reports visible=false, so escapeToTabs does not see it. Bound: three tries of
+  // the read 1, the tap 1 and the picker gone 5 = 21.
+  const closeDestinationPickers = async () => {
+    for (let i = 0; i < 3 && (await el(T.FILES_DESTINATION_PICKER).isExisting()); i++) {
+      const cancels = await browser
+        .$$('-ios class chain:**/XCUIElementTypeNavigationBar/XCUIElementTypeButton[`label == "Cancel"`]')
+        .getElements()
+      if (!cancels.length) break
+      const before = await browser.$$(`~${T.FILES_DESTINATION_PICKER}`).length
+      await cancels[cancels.length - 1]!.click()
+      await waitFor('a destination picker to close', async () => ((await browser.$$(`~${T.FILES_DESTINATION_PICKER}`).length) < before ? true : undefined), {
+        interval: 250,
+        timeout: 5_000,
+      }).catch(() => undefined)
+    }
+  }
+
   // Nothing a test changed left behind, after a timeout too. The host's restores go first, then the
-  // phone's. Worst case (s): close 5, keyboard 5, the favorite 245, a work folder and the smoke+second
-  // folder's entry 390, the sync config 85, escape 30 = 760.
+  // phone's. Worst case (s): close 5, keyboard 5, pickers 21, the favorite 245, a work folder and the
+  // smoke+second folder's entry 390, the sync config 85, escape 30 = 781.
   afterEach(async function () {
     this.timeout(800_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, restorePairFavorite, removeMadePaths, restoreSync, escapeToTabs])
+    await withCleanup(closeMessageMenu, [hideKeyboard, closeDestinationPickers, restorePairFavorite, removeMadePaths, restoreSync, escapeToTabs])
   })
 
   // -- the work folder ----------------------------------------------------------------------------
@@ -182,18 +203,19 @@ describe('files actions', function () {
     await requireScreen("the folder's More sheet", 'fsBrowse', p => p['path'] === folder)
     await openFolderMoreSheet()
     await chooseMenuItem('New folder')
-    await fillField(() => el(T.FILES_EDITING_INPUT), made, "the new folder's name field")
+    await el(T.FILES_EDITING_ROW).waitForExist({timeout: 10_000})
+    await fillHiddenField(T.FILES_EDITING_INPUT, made, "the new folder's name field")
     await requireScreen('the new folder', 'fsBrowse', p => p['path'] === folder)
-    await el(T.FILES_EDITING_SAVE).click()
+    await tapElement(await el(T.FILES_EDITING_SAVE).getElement(), "the name's Save")
     await waitForKbfs(`${folder}/${made}`, 'dir')
     await filesRowNamed(made, 'the new folder row')
     await step('A new folder made in the work folder', {card: true})
   })
 
   it("a file renamed from its row's menu", async function () {
-    // worst case (s): work 120, open 365, entry 121, step 2, menu 52, item 22, the field 10 and its
-    // read 1, field 26, screen 1, calls 2, button 1, calls 10, kbfs 180, listing 60, row 31, step 2
-    // = 1006
+    // worst case (s): work 120, open 365, entry 121, step 2, menu 52, item 22, the editing row 10,
+    // its field focused 10 and read 1, field 26, screen 1, calls 2, button 1, calls 10, kbfs 180,
+    // listing 60, row 31, step 2 = 1016
     this.timeout(1_040_000)
     const from = stampedEntry('from')
     const to = stampedEntry('to')
@@ -204,12 +226,13 @@ describe('files actions', function () {
     await openRowMenu(from, 'the file row')
     await chooseMenuItem('Rename')
     // the editing row starts on the name it renames: the row being edited is the file's
-    await el(T.FILES_EDITING_INPUT).waitForExist({timeout: 10_000})
-    check((await el(T.FILES_EDITING_INPUT).getAttribute('value')) === from, 'the row being renamed is not the file')
-    await fillField(() => el(T.FILES_EDITING_INPUT), to, "the file's name field")
+    await el(T.FILES_EDITING_ROW).waitForExist({timeout: 10_000})
+    await focusSecretField(T.FILES_EDITING_INPUT)
+    check((await focusedFieldText(T.FILES_EDITING_INPUT)) === from, 'the row being renamed is not the file')
+    await fillHiddenField(T.FILES_EDITING_INPUT, to, "the file's name field")
     await requireScreen('the rename', 'fsBrowse', p => p['path'] === folder)
     const seq = await currentCallSeq()
-    await el(T.FILES_EDITING_SAVE).click()
+    await tapElement(await el(T.FILES_EDITING_SAVE).getElement(), "the name's Save")
     await waitForUiCall('the rename to go out', seq, 'keybase.1.SimpleFS.simpleFSMove')
     await waitForKbfs(`${folder}/${to}`, 'file')
     // the new name listed shows the listing has the rename: the old name is gone in the same read
@@ -236,9 +259,11 @@ describe('files actions', function () {
     await chooseMenuItem('Move or Copy')
     await el(T.FILES_DESTINATION_PICKER).waitForExist({timeout: 10_000})
     await expectScreen('the destination picker on the work folder', 'destinationPicker', p => p['parentPath'] === folder)
-    const picker = await el(T.FILES_DESTINATION_PICKER).getElement()
+    // the picker's rows are not under its testID's element in XCUITest's tree, but under the modal
+    // screen holding it (the folder screen behind the modal draws the same rows)
+    const picker = await browser.$(`//*[@name="${T.MODAL_SCREEN}"][.//*[@name="${T.FILES_DESTINATION_PICKER}"]]`).getElement()
     const row = await filesRowNamed(dest, "the picker's row of the folder beside the file", {within: picker})
-    await row.e.click()
+    await tapFrame(row.rect, "the picker's folder row")
     const aimed = (p: Record<string, unknown>) => {
       const src = (p['source'] as {path?: unknown} | undefined)?.path
       return p['parentPath'] === target && inWorkFolder(folder, target) && src === source && inWorkFolder(folder, src)
@@ -246,8 +271,14 @@ describe('files actions', function () {
     await expectScreen('the destination picker on the folder beside the file', 'destinationPicker', aimed)
     await requireScreen(`the picker's ${action}`, 'destinationPicker', aimed)
     const seq = await currentCallSeq()
-    const button = await labelledElement(`-ios predicate string:label == ${JSON.stringify(action)} AND visible == 1`, action, `the picker's ${action}`)
-    await button.click()
+    // the action is a row of the picker (one accessible box, its label ", Move here"), reported
+    // visible=false as on a folder screen, so it is tapped at its frame
+    const button = await elementWithLabelPart(
+      `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(action)}`,
+      action,
+      `the picker's ${action}`
+    )
+    await tapElement(button, `the picker's ${action}`)
     await el(T.FILES_DESTINATION_PICKER).waitForExist({reverse: true, timeout: 10_000})
     return {dest, file, folder, seq, target}
   }
@@ -301,8 +332,8 @@ describe('files actions', function () {
 
   it("a file shared to the self conversation from its row's menu, with a caption", async function () {
     // worst case (s): self 60, work 120, open 365, entry 121, step 2, menu 52, item 22, screen 11, the
-    // search 10, its tap 1, the typing 15, the result polled 20, its tap 1, screen 21 (20, its read),
-    // field 26, calls 2, button 6, calls 10, cli 120, step 2 = 987
+    // search 10, its tap 1, the keyboard 5, the typing 15, the result polled 20, its tap 1, screen 21
+    // (20, its read), field 26, calls 2, button 6, calls 10, cli 120, step 2 = 992
     this.timeout(1_040_000)
     const {smokeUser} = loadE2EAccounts()
     const selfConvID = await directConvIDFromCli(smokeUser)
@@ -314,27 +345,31 @@ describe('files actions', function () {
     await step('The file in the work folder')
 
     await openRowMenu(file, 'the file row')
-    await chooseMenuItem('Share to Chat')
+    // the item reads its subtitle after its title
+    await chooseMenuItem('Share to Chat, The file will be sent as an attachment.')
     await expectScreen('the conversation picker for the file', 'chatSendToChat', p => JSON.stringify(p['sendPaths']) === JSON.stringify([path]))
-    const search = browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search chats..." AND visible == 1')
-    await search.waitForExist({timeout: 10_000})
-    await search.click()
-    await search.addValue(smokeUser)
+    // the picker's search is a SearchFilter, one accessible box with its field not in the tree, and
+    // this modal reports its elements visible=false: the box is tapped at its frame and the account
+    // typed as key presses
+    await el(T.SEARCH_FILTER).waitForExist({timeout: 10_000})
+    await tapElement(await el(T.SEARCH_FILTER).getElement(), "the picker's search")
+    await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+    await typeIntoFocused("the picker's search", smokeUser)
     // the self conversation is the result named by the account alone
     const result = await waitFor(
       'the self conversation among the results',
-      async () =>
-        elementWithLabelPart(`-ios predicate string:name == "${T.CHAT_SEND_TO_CHAT_ROW}" AND visible == 1`, smokeUser, 'the self conversation result'),
+      async () => elementWithLabelPart(`-ios predicate string:name == "${T.CHAT_SEND_TO_CHAT_ROW}"`, smokeUser, 'the self conversation result'),
       {interval: 500, timeout: 20_000}
     )
-    await result.click()
+    await tapElement(result, 'the self conversation result')
     await expectScreen(
       'the titles screen for the self conversation',
       'chatAttachmentGetTitles',
       p => p['conversationIDKey'] === selfConvID && p['tlfName'] === smokeUser,
       20_000
     )
-    await fillField(() => browser.$('-ios predicate string:type == "XCUIElementTypeTextView" AND visible == 1'), title, 'the caption field')
+    // the caption field is inside the screen's one tappable box, so not in XCUITest's tree
+    await fillHiddenField(T.CHAT_ATTACHMENT_CAPTION, title, 'the caption field')
     const seq = await currentCallSeq()
     await tapButton('Send', "the titles screen's Send")
     await waitForUiCall('the attachment to go out', seq, 'chat.1.local.postFileAttachmentLocalNonblock')
@@ -385,8 +420,8 @@ describe('files actions', function () {
   it('Sync on this device turned on for the smoke+second folder stays on through a relaunch, and turns off', async function () {
     // worst case (s): smoke 10, app 25, work 60 (the entry), open 142, the toggle 120, its read 1,
     // calls 2, the tap 1, calls 10, app 45, step 2 = 418; relaunch 200, signed in 90, open 142, the
-    // toggle 30, app 25, step 2 = 489; smoke 10, its read 1, calls 2, the sheet 19, item 22, calls
-    // 10, app 45, step 2 = 111; = 1018
+    // toggle 30, app 25, step 2 = 489; smoke 10, its read 1, calls 2, the sheet 19, the tap 1, calls
+    // 10, app 45, the sheet read 1 and its Close 22, step 2 = 113; = 1020
     this.timeout(1_060_000)
     const pair = pairFolder()
     await requireAppIsSmoke()
@@ -407,7 +442,7 @@ describe('files actions', function () {
     await el(T.FILES_SYNC_TOGGLE).waitForExist({timeout: 120_000})
     await requireScreen('the sync switch', 'fsBrowse', p => p['path'] === pair)
     let seq = await currentCallSeq()
-    await el(T.FILES_SYNC_TOGGLE).click()
+    await tapElement(await el(T.FILES_SYNC_TOGGLE).getElement(), "the sync switch")
     await waitForUiCall('the sync to go out', seq, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig')
     await expectSync('enabled')
     await step('Synced on this device')
@@ -429,10 +464,15 @@ describe('files actions', function () {
     await requireAppIsSmoke()
     await requireScreen('the sync switch', 'fsBrowse', p => p['path'] === pair)
     seq = await currentCallSeq()
-    await openMenuFrom('the unsync confirmation', async () => el(T.FILES_SYNC_TOGGLE).click())
-    await chooseMenuItem('Yes, unsync')
+    await openMenuFrom('the unsync confirmation', async () => tapElement(await el(T.FILES_SYNC_TOGGLE).getElement(), "the sync switch"))
+    // one tap: the sheet stays up after it (below), so chooseMenuItem's second try would send it again
+    await menuItem('Yes, unsync').click()
     await waitForUiCall('the unsync to go out', seq, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig')
     await expectSync('disabled')
+    // PR 9 (app bug): the confirmation stays up after the unsync (its menu keeps open on select, and
+    // its Confirm header shows it again when the waiting flips), so it is closed from its Close. Drop
+    // this once the app closes it.
+    if (await menuSheet().isExisting()) await chooseMenuItem('Close')
     await step('Unsynced', {card: true})
   })
 })

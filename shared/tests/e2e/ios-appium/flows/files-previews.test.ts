@@ -14,7 +14,7 @@ import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, sta
 import * as T from '../../shared/test-ids'
 import {retriedNavigation, step} from '../gate/step'
 import {el} from '../helpers/elements'
-import {expectScreen, filesRowNamed, openFolder, visibleScreen} from '../helpers/files'
+import {expectScreen, filesRowNamed, openFolder, tapFrame, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs, goBack} from '../helpers/navigate'
@@ -93,7 +93,7 @@ describe('files previews', function () {
       const ext = k.corpus.slice(k.corpus.lastIndexOf('.'))
       const path = `${folder}/${name}${ext}`
       const row = await filesRowNamed(name, 'the file row')
-      await row.e.click()
+      await tapFrame(row.rect, "the file row")
       const aimed = (p: Record<string, unknown>) => p['path'] === path && requireOwnPath(path) === path
       await expectScreen('the preview of the file tapped', 'fsFilePreview', aimed)
       await el(k.testID).waitForExist({timeout: 60_000})
@@ -105,7 +105,8 @@ describe('files previews', function () {
         await waitFor(
           "the text preview's first line",
           async () =>
-            labelledElement(`-ios predicate string:label == ${JSON.stringify(firstLine)} AND visible == 1`, firstLine, 'the first line').catch(
+            // a preview screen, as a folder screen, reports its elements visible=false
+            labelledElement(`-ios predicate string:label == ${JSON.stringify(firstLine)}`, firstLine, 'the first line').catch(
               () => undefined
             ),
           {interval: 500, timeout: 15_000}
