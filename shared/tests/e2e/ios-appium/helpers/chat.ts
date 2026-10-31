@@ -17,14 +17,17 @@ import {
   carriedTeam,
   findInboxHeader,
   findInboxRow,
+  inboxIn,
   innermost,
   persistedMismatch,
+  sheetItemLabels,
   shiftIntoBand,
   type DrawnInboxItem,
   type Span,
   visibleBand,
   wholly as whollyInBand,
 } from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
 import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
 
@@ -512,7 +515,8 @@ export const openConversation = async (convID: string) => {
   await waitForThread(convID)
 }
 
-const INBOX_SCROLL_MS = 30_000
+// The inbox from its top to its end is ~8 pages on the test account (each drag ~3s, the app settling)
+const INBOX_SCROLL_MS = 60_000
 // how far inside the band's edges a row must sit to count as in view
 const INBOX_MARGIN = 4
 
@@ -542,67 +546,29 @@ const dragInbox = async (list: Rect, dy: number) => {
     .perform()
 }
 
-const spansOf = async (selector: string) => {
-  const out: Array<{e: WebdriverIO.Element; span: Span}> = []
-  for (const e of await browser.$$(selector).getElements()) {
+// What the inbox draws now, from one page source (inboxIn): a WebDriver call per element and
+// attribute costs ~65ms, which put a whole inbox seek past its bound. Working out `visible` for every
+// element is most of a source's cost (~1.5s against ~0.1s on a long inbox), and inboxIn reads none
+// of the attributes left out.
+const drawnInbox = async () =>
+  inboxIn(
+    sourceElements(
+      await browser.execute<string, [{excludedAttributes: string; format: string}]>('mobile: source', {
+        excludedAttributes: 'visible,accessible,enabled,index,traits',
+        format: 'xml',
+      })
+    )
+  )
+
+// The element behind a drawn inbox item: the one of its kind at its span.
+const elementOfItem = async (item: DrawnInboxItem) => {
+  const id = item.kind === 'small' ? T.CHAT_INBOX_ROW : item.kind === 'channel' ? T.CHAT_INBOX_CHANNEL_ROW : T.CHAT_INBOX_BIG_TEAM_HEADER
+  for (const e of await browser.$$(`~${id}`).getElements()) {
     const r = await rectOf(e).catch(() => undefined)
-    if (r) out.push({e, span: {bottom: r.bottom, top: r.top}})
+    if (r && Math.abs(r.top - item.span.top) < 1 && Math.abs(r.bottom - item.span.bottom) < 1) return e
   }
-  return out
+  throw new Error('the inbox item found moved before it could be tapped')
 }
-
-const labeledSpans = async (id: string) => {
-  const out: Array<{e: WebdriverIO.Element; label: string; span: Span}> = []
-  for (const {e, span} of await spansOf(`~${id}`)) {
-    const label = await e.getAttribute('label').catch(() => null)
-    if (label !== null) out.push({e, label, span})
-  }
-  return out
-}
-
-const overlaps = (a: Span, b: Span) => a.top < b.bottom && b.top < a.bottom
-
-// the texts a big team header's name can be read from (RN draws a pressable Text as either)
-const HEADER_TEXTS = `-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeButton") AND name != ${JSON.stringify(T.CHAT_INBOX_BIG_TEAM_HEADER)}`
-
-// What the inbox draws now (small rows, channel rows, big team headers named by their team-name
-// text), and the elements behind the rows. Team names stay in memory: they are never printed.
-const drawnInbox = async () => {
-  const small = await labeledSpans(T.CHAT_INBOX_ROW)
-  const channels = await labeledSpans(T.CHAT_INBOX_CHANNEL_ROW)
-  const gears = await spansOf(`~${T.CHAT_INBOX_BIG_TEAM_HEADER}`)
-  const texts: Array<{label: string; span: Span}> = []
-  if (gears.length) {
-    for (const {e, span} of await spansOf(HEADER_TEXTS)) {
-      if (!gears.some(g => overlaps(span, g.span))) continue
-      const label = await e.getAttribute('label').catch(() => null)
-      if (label) texts.push({label, span})
-    }
-  }
-  // the header's team name is a sibling of its gear, on the same row: the text nearest its middle
-  const teamOf = (g: Span) => {
-    const mid = (g.top + g.bottom) / 2
-    const near = texts
-      .filter(t => overlaps(t.span, g))
-      .sort((x, y) => Math.abs((x.span.top + x.span.bottom) / 2 - mid) - Math.abs((y.span.top + y.span.bottom) / 2 - mid))
-    return near[0]?.label
-  }
-  const elements = [...small.map(r => r.e), ...channels.map(r => r.e), ...gears.map(g => g.e)]
-  const items: Array<DrawnInboxItem> = [
-    ...small.map(r => ({kind: 'small' as const, label: r.label, span: r.span})),
-    ...channels.map(r => ({kind: 'channel' as const, label: r.label, span: r.span})),
-    ...gears.map(g => ({kind: 'header' as const, span: g.span, team: teamOf(g.span)})),
-  ]
-  const signature = items.map(i => `${i.kind}:${i.kind === 'header' ? (i.team ?? '') : i.label}`).join('\n')
-  return {elements, items, signature}
-}
-
-// What floats over the inbox list: the unread shortcut, the floating Big teams divider, the tab bar.
-const inboxCovers = async () => [
-  ...(await spansOf(`~${T.CHAT_INBOX_UNREAD_SHORTCUT}`)),
-  ...(await spansOf(`~${T.CHAT_INBOX_BIG_TEAMS_DIVIDER}`)),
-  ...(await spansOf('-ios class chain:**/XCUIElementTypeTabBar')),
-].map(c => c.span)
 
 // The chat tab's inbox dragged to its top (until a drag down changes nothing), from the tab root.
 // Returns the list's rect and the deadline of the scroll it starts (INBOX_SCROLL_MS).
@@ -613,14 +579,16 @@ const inboxAtTop = async () => {
   await waitForTestID(T.CHAT_INBOX_LIST, 15_000)
   const list = await rectOf(await el(T.CHAT_INBOX_LIST).getElement())
   const deadline = Date.now() + INBOX_SCROLL_MS
-  for (let before = (await drawnInbox()).signature; ; ) {
+  // iOS scrolls the list to its top on a status bar tap; the drags below confirm it got there (and
+  // finish the job if it did not), instead of one drag per page the list was scrolled down
+  await tapStatusBar()
+  for (let before = await drawnInbox(); ; ) {
     if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
     await dragInbox(list, list.bottom - list.top)
-    const now = (await drawnInbox()).signature
-    if (now === before) break
+    const now = await drawnInbox()
+    if (now.signature === before.signature) return {deadline, drawn: now, list}
     before = now
   }
-  return {deadline, list}
 }
 
 // The chat tab's inbox at its top, where its search placeholder is.
@@ -637,25 +605,40 @@ export const scrollInboxToTop = async () => {
 const seekInbox = async (
   find: (items: ReadonlyArray<DrawnInboxItem>, carried: string | undefined) => number | undefined
 ): Promise<WebdriverIO.Element | undefined> => {
-  const {deadline, list} = await inboxAtTop()
+  const started = Date.now()
+  const top = await inboxAtTop()
+  const {deadline, list} = top
+  let drawn = top.drawn
+  const atTop = Date.now() - started
   const page = list.bottom - list.top
   let carried: string | undefined
+  // geometry only, for the timeout's error: never a row's label
+  let passes = 0
+  let last = 'not drawn'
   for (;;) {
-    if (Date.now() > deadline) throw new Error(`the inbox item asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling`)
-    const drawn = await drawnInbox()
+    if (Date.now() > deadline) {
+      const where = `list ${Math.round(list.top)}..${Math.round(list.bottom)}, ${passes} passes after ${atTop}ms to reach the top, last: ${last}`
+      throw new Error(`the inbox item asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling (${where})`)
+    }
+    passes++
     const at = find(drawn.items, carried)
     // every drag below moves the content, so the section at the top is read off this drawing first
     carried = carriedTeam(drawn.items, list.top, carried)
     if (at !== undefined) {
-      const band = visibleBand(list, await inboxCovers())
+      const band = visibleBand(list, drawn.covers)
       const span = drawn.items[at]!.span
-      if (whollyInBand(span, band, INBOX_MARGIN)) return drawn.elements[at]!
+      last = `drawn at ${Math.round(span.top)}..${Math.round(span.bottom)}, band ${Math.round(band.top)}..${Math.round(band.bottom)}`
+      if (whollyInBand(span, band, INBOX_MARGIN)) return elementOfItem(drawn.items[at]!)
       // drawn but not wholly in view: bring it into the band
       await dragInbox(list, shiftIntoBand(span, band, INBOX_MARGIN))
+      drawn = await drawnInbox()
       continue
     }
     await dragInbox(list, -page)
-    if ((await drawnInbox()).signature === drawn.signature) return undefined
+    // the drawing after the drag is the next pass's: one page source a pass
+    const next = await drawnInbox()
+    if (next.signature === drawn.signature) return undefined
+    drawn = next
   }
 }
 
@@ -882,23 +865,9 @@ const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l =
 export const menuLabels = async (): Promise<Array<string>> => {
   if (!(await menuSheet().isExisting())) throw new Error('no menu sheet is open')
   const seen = new Set<string>()
-  const shown = async () => {
-    const sheet = await menuSheet().getElement()
-    const {y: top} = await sheet.getLocation()
-    const {height} = await sheet.getSize()
-    const {height: window} = await browser.getWindowRect()
-    const bottom = Math.min(top + height, window)
-    const out: Array<string> = []
-    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND label != "" AND visible == 1').getElements()) {
-      const label = await e.getAttribute('label').catch(() => null)
-      const at = await e.getLocation().catch(() => undefined)
-      const size = await e.getSize().catch(() => undefined)
-      if (!label || !at || !size || label === 'Bottom Sheet') continue
-      const mid = at.y + size.height / 2
-      if (mid >= top && mid <= bottom) out.push(label)
-    }
-    return out
-  }
+  // one page source a reading (a call per element made a reading take seconds); `visible` is kept,
+  // so rows the sheet covers do not count
+  const shown = async () => sheetItemLabels(sourceElements(await browser.getPageSource())) ?? []
   let before = ''
   await waitFor(
     'the menu sheet read to its end',
@@ -1849,22 +1818,37 @@ export const scrollInboxToEnd = async () => {
   return (await drawnInbox()).items.length
 }
 
-// The one element on screen of those `selector` finds whose label, split at its ", " joins, holds
-// `name` as a part (a tappable row merges its texts into one label): compared in memory, so a name
-// never goes into a selector or an error. The innermost of nested matches; none or more than one
-// throws. `what` names it.
-export const elementWithLabelPart = async (selector: string, name: string, what: string) => {
-  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await browser.$$(selector).getElements()) {
-    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-    if (!label.split(', ').some(part => part.trim() === name)) continue
-    const at = await e.getLocation().catch(() => undefined)
-    const size = await e.getSize().catch(() => undefined)
-    if (at && size) found.push({e, rect: {...at, ...size}})
+// The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
+// tappable row merges its texts into one label), read off one page source (a call per element on a
+// screen of rows is too slow) and compared in memory; then that element fetched by its type and
+// frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
+// than one throws. `what` names it.
+export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) => {
+  const found = sourceElements(await browser.getPageSource()).filter(
+    e =>
+      types.includes(e.type) &&
+      e.attrs['visible'] === 'true' &&
+      (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(part => part.trim() === name)
+  )
+  const rects = found.map(e => ({
+    height: Number(e.attrs['height']),
+    width: Number(e.attrs['width']),
+    x: Number(e.attrs['x']),
+    y: Number(e.attrs['y']),
+  }))
+  const inner = innermost(rects)
+  if (inner.length !== 1) {
+    const at = inner.map(k => `${found[k]!.type.replace('XCUIElementType', '')} ${rects[k]!.x},${rects[k]!.y} ${rects[k]!.width}x${rects[k]!.height}`)
+    throw new Error(`${inner.length} of ${what} on screen, not one${at.length ? `: ${at.join('; ')}` : ''}`)
   }
-  const inner = innermost(found.map(f => f.rect))
-  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
-  return found[inner[0]!]!.e
+  const i = inner[0]!
+  const r = rects[i]!
+  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+  // nested boxes can share the row's frame exactly: any of them is the same tap, the deepest is taken
+  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.type}" AND ${at}`).getElements()
+  const deepest = els.at(-1)
+  if (!deepest) throw new Error(`no element at the frame of ${what}`)
+  return deepest
 }
 
 // A loaded message's link previews as the visible thread's store holds them: its id, the domains

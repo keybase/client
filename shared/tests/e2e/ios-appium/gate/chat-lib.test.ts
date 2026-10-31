@@ -4,14 +4,18 @@ import {
   findInboxRow,
   forwardResultMatches,
   inNameSection,
+  inboxIn,
   inboxRowMatches,
   innermost,
   notifyChoiceOf,
   persistedMismatch,
+  sheetItemLabels,
   shiftIntoBand,
   visibleBand,
   wholly,
 } from './chat-lib'
+import {sourceElements} from './page-source-lib'
+import {CHAT_INBOX_BIG_TEAM_HEADER, CHAT_INBOX_CHANNEL_ROW, CHAT_INBOX_ROW, CHAT_INBOX_UNREAD_SHORTCUT} from '../../shared/test-ids'
 
 describe('inboxRowMatches', () => {
   test('a small conversation row matches by the exact name its label starts with', () => {
@@ -26,6 +30,13 @@ describe('inboxRowMatches', () => {
 
   test('the name must be the first field, not appear later in the label', () => {
     expect(inboxRowMatches('testuser-mac, 3:04 PM, testuser', 'testuser')).toBe(false)
+  })
+
+  test("a pinned row, its pin's icon glyph first, matches by the name after it", () => {
+    expect(inboxRowMatches('\ue95d, testuser, 3:04 PM, hello', 'testuser')).toBe(true)
+    expect(inboxRowMatches('\ue95d, testuser-mac, 3:04 PM, hello', 'testuser')).toBe(false)
+    // only an icon glyph is skipped, not any first field
+    expect(inboxRowMatches('x, testuser, 3:04 PM, hello', 'testuser')).toBe(false)
   })
 
   test('a row whose label is only the name matches', () => {
@@ -278,5 +289,61 @@ describe('notifyChoiceOf', () => {
     expect(notifyChoiceOf({'0': false, '1': false})).toBe('never')
     expect(notifyChoiceOf(undefined)).toBe('never')
     expect(notifyChoiceOf(null)).toBe('never')
+  })
+})
+
+const el = (type: string, attrs: Record<string, string | number>) =>
+  `<XCUIElementType${type} type="XCUIElementType${type}" ${Object.entries(attrs)
+    .map(([k, v]) => `${k}="${String(v)}"`)
+    .join(' ')}/>`
+
+describe('inboxIn', () => {
+  test('reads small rows, channel rows, headers named by their text, and what covers the list', () => {
+    const source = [
+      '<AppiumAUT>',
+      el('Other', {height: 64, label: 'testuser, 3:04 PM, hi &amp; bye', name: CHAT_INBOX_ROW, y: 200}),
+      el('Other', {height: 40, name: CHAT_INBOX_BIG_TEAM_HEADER, y: 300}),
+      el('StaticText', {height: 20, label: 'testteam', y: 310}),
+      el('StaticText', {height: 20, label: 'far away', y: 500}),
+      el('Other', {height: 30, label: '# general', name: CHAT_INBOX_CHANNEL_ROW, y: 340}),
+      el('Other', {height: 30, name: CHAT_INBOX_UNREAD_SHORTCUT, y: 700}),
+      el('TabBar', {height: 83, label: 'Tab Bar', y: 791}),
+    ].join('')
+    const {covers, items, signature} = inboxIn(sourceElements(source))
+    expect(items).toEqual([
+      {kind: 'small', label: 'testuser, 3:04 PM, hi & bye', span: {bottom: 264, top: 200}},
+      {kind: 'channel', label: '# general', span: {bottom: 370, top: 340}},
+      {kind: 'header', span: {bottom: 340, top: 300}, team: 'testteam'},
+    ])
+    expect(covers).toEqual([
+      {bottom: 730, top: 700},
+      {bottom: 874, top: 791},
+    ])
+    expect(signature).toBe('small:testuser, 3:04 PM, hi & bye\nchannel:# general\nheader:testteam')
+  })
+
+  test('a header whose name text is not drawn has no team', () => {
+    const {items} = inboxIn(sourceElements(el('Other', {height: 40, name: CHAT_INBOX_BIG_TEAM_HEADER, y: 300})))
+    expect(items).toEqual([{kind: 'header', span: {bottom: 340, top: 300}, team: undefined}])
+  })
+})
+
+describe('sheetItemLabels', () => {
+  const app = el('Application', {height: 874, label: 'Keybase', y: 0})
+  test('lists the visible labelled items inside the sheet, and none of what it covers', () => {
+    const source = [
+      app,
+      el('Other', {height: 40, label: 'a row behind', visible: 'true', y: 200}),
+      el('Other', {height: 500, label: 'Bottom Sheet', visible: 'true', y: 400}),
+      el('Other', {height: 40, label: '\ue900, Edit', visible: 'true', y: 450}),
+      el('Other', {height: 40, label: 'Reply', visible: 'false', y: 500}),
+      el('StaticText', {height: 20, label: 'Edit', visible: 'true', y: 460}),
+      el('Other', {height: 40, label: 'Close', visible: 'true', y: 860}),
+    ].join('')
+    expect(sheetItemLabels(sourceElements(source))).toEqual(['\ue900, Edit'])
+  })
+
+  test('undefined while no sheet is visible', () => {
+    expect(sheetItemLabels(sourceElements(app))).toBeUndefined()
   })
 })

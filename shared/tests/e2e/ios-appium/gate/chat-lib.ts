@@ -1,13 +1,23 @@
 // Pure pieces of the iOS chat helpers (helpers/chat.ts), kept apart so they can be unit-tested.
 import {isDeepStrictEqual} from 'util'
+import {
+  CHAT_INBOX_BIG_TEAM_HEADER,
+  CHAT_INBOX_BIG_TEAMS_DIVIDER,
+  CHAT_INBOX_CHANNEL_ROW,
+  CHAT_INBOX_ROW,
+  CHAT_INBOX_UNREAD_SHORTCUT,
+} from '../../shared/test-ids.ts'
+import type {SourceElement} from './page-source-lib.ts'
 
 // Whether an inbox row's accessibility label is the row of `name`. A small conversation's row reads
-// "<name>, <time>, <snippet>", so the name is its whole first field (a name holding ", " spans
+// "<name>, <time>, <snippet>" (after the pin's glyph when pinned), so the name is its whole first field (a name holding ", " spans
 // several): a row of a longer name that starts with `name` is not it. A big team's channel row reads
 // "# <channel>" and is asked for as "#<channel>".
 export const inboxRowMatches = (label: string, name: string) => {
   if (!name) return false
-  const l = label.replace(/^# /, '#')
+  // a pinned row draws its pin icon first: a field of icon-font glyphs (Unicode private use) before
+  // the name
+  const l = label.replace(/^[\uE000-\uF8FF]+, /, '').replace(/^# /, '#')
   return l === name || l.startsWith(`${name}, `)
 }
 
@@ -69,6 +79,73 @@ export const carriedTeam = (items: ReadonlyArray<DrawnInboxItem>, listTop: numbe
     if (item.kind === 'header') team = item.team
   }
   return team
+}
+
+const spanOf = (a: Record<string, string>): Span | undefined => {
+  const y = Number(a['y'])
+  const h = Number(a['height'])
+  return a['y'] === undefined || a['height'] === undefined || !Number.isFinite(y) || !Number.isFinite(h)
+    ? undefined
+    : {bottom: y + h, top: y}
+}
+
+const overlaps = (a: Span, b: Span) => a.top < b.bottom && b.top < a.bottom
+
+// What the inbox draws, read off one page source: small rows and channel rows by their labels, big
+// team headers named by the text nearest the middle of their gear's row (RN draws a pressable Text as
+// a StaticText or a Button), and what floats over the list (the unread shortcut, the floating Big
+// teams divider, the tab bar). `signature` changes when what is drawn changes. Team names stay in
+// memory: they are never printed.
+export const inboxIn = (els: ReadonlyArray<SourceElement>) => {
+  const items: Array<DrawnInboxItem> = []
+  const covers: Array<Span> = []
+  const texts: Array<{label: string; span: Span}> = []
+  const gears: Array<Span> = []
+  for (const {attrs, type} of els) {
+    const span = spanOf(attrs)
+    if (!span) continue
+    const name = attrs['name']
+    const label = attrs['label']
+    if (name === CHAT_INBOX_ROW || name === CHAT_INBOX_CHANNEL_ROW) {
+      if (label !== undefined) items.push({kind: name === CHAT_INBOX_ROW ? 'small' : 'channel', label, span})
+    } else if (name === CHAT_INBOX_BIG_TEAM_HEADER) {
+      gears.push(span)
+    } else if (name === CHAT_INBOX_UNREAD_SHORTCUT || name === CHAT_INBOX_BIG_TEAMS_DIVIDER || type === 'XCUIElementTypeTabBar') {
+      covers.push(span)
+    } else if ((type === 'XCUIElementTypeStaticText' || type === 'XCUIElementTypeButton') && label) {
+      texts.push({label, span})
+    }
+  }
+  for (const g of gears) {
+    const mid = (g.top + g.bottom) / 2
+    const near = texts
+      .filter(t => overlaps(t.span, g))
+      .sort((x, y) => Math.abs((x.span.top + x.span.bottom) / 2 - mid) - Math.abs((y.span.top + y.span.bottom) / 2 - mid))
+    items.push({kind: 'header', span: g, team: near[0]?.label})
+  }
+  const signature = items.map(i => `${i.kind}:${i.kind === 'header' ? (i.team ?? '') : i.label}`).join('\n')
+  return {covers, items, signature}
+}
+
+// The labels of the items an open bottom sheet shows, read off one page source: the visible labelled
+// elements of type Other whose middles lie inside the sheet ("Bottom Sheet") and the window, in
+// document order. Undefined when no sheet is visible.
+export const sheetItemLabels = (els: ReadonlyArray<SourceElement>): Array<string> | undefined => {
+  const app = els.find(e => e.type === 'XCUIElementTypeApplication')
+  const sheet = els.find(e => e.attrs['label'] === 'Bottom Sheet' && e.attrs['visible'] === 'true')
+  const span = sheet && spanOf(sheet.attrs)
+  if (!span) return undefined
+  const bottom = Math.min(span.bottom, app ? Number(app.attrs['height']) || Infinity : Infinity)
+  const out: Array<string> = []
+  for (const {attrs, type} of els) {
+    const label = attrs['label']
+    if (type !== 'XCUIElementTypeOther' || !label || label === 'Bottom Sheet' || attrs['visible'] !== 'true') continue
+    const s = spanOf(attrs)
+    if (!s) continue
+    const mid = (s.top + s.bottom) / 2
+    if (mid >= span.top && mid <= bottom) out.push(label)
+  }
+  return out
 }
 
 // The part of the inbox list rows are seen through: the list less what floats over it (the floating
