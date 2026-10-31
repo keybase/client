@@ -211,10 +211,11 @@ const linesSince = (mark: LogMark): Array<string> => {
   return text.split('\n').filter(Boolean)
 }
 
-// The Go service log inside the app's data container. The container moves on reinstall,
-// so resolve it each time.
-export const goLogPath = (udid = deviceUdid()) =>
-  path.join(simctl('get_app_container', udid, BUNDLE_ID, 'data').trim(), 'Library/Caches/Keybase/logs/ios.log')
+// The app's data container (a path on this Mac). It moves on reinstall, so resolve it each time.
+export const appDataContainer = (udid = deviceUdid()) => simctl('get_app_container', udid, BUNDLE_ID, 'data').trim()
+
+// The Go service log inside the app's data container.
+export const goLogPath = (udid = deviceUdid()) => path.join(appDataContainer(udid), 'Library/Caches/Keybase/logs/ios.log')
 
 export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(udid))
 

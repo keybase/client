@@ -1,5 +1,6 @@
 import * as mockVm from 'vm'
 import {
+  archiveJobStates,
   archiveJobs,
   askApp,
   compressPreference,
@@ -99,7 +100,13 @@ beforeEach(() => {
     IncomingShareCompressPreference: {compressed: 1, original: 0},
     PassphraseState: {known: 0, random: 1},
     SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise: async (p: {jobID: string}) => answer(`kbfs cancel ${p.jobID}`),
-    SimpleFSSimpleFSGetArchiveStatusRpcPromise: async () => answer('kbfs list', {jobs: [{desc: {jobID: 'k1'}}, {desc: {jobID: 'k2'}}]}),
+    SimpleFSSimpleFSGetArchiveStatusRpcPromise: async () =>
+      answer('kbfs list', {
+        jobs: [
+          {desc: {jobID: 'k1', stagingPath: '/c/s1', zipFilePath: '/c/s1/a.zip'}, phase: 3},
+          {desc: {jobID: 'k2', stagingPath: '/c/s2', zipFilePath: '/c/s2/b.zip'}, phase: 6},
+        ],
+      }),
     SimpleFSSimpleFSSetDebugLevelRpcPromise: async (p: {level: string}) => answer(`debug ${p.level}`),
     TLFIdentifyBehavior: {unset: 0},
     apiserverGetWithSessionRpcPromise: async (p: {endpoint: string}) => answer(`get ${p.endpoint}`, {body: '{"status":{"code":0}}'}),
@@ -120,7 +127,7 @@ beforeEach(() => {
   })
   const chat = {
     localArchiveChatDeleteRpcPromise: async (p: {jobID: string; deleteOutputPath: boolean}) => answer(`chat delete ${p.jobID} ${p.deleteOutputPath}`),
-    localArchiveChatListRpcPromise: async () => answer('chat list', {jobs: [{request: {jobID: 'c1'}}]}),
+    localArchiveChatListRpcPromise: async () => answer('chat list', {jobs: [{request: {jobID: 'c1', outputPath: '/c/o1'}, status: 1}]}),
   }
   const callPort = {
     getCallPort: () => ({
@@ -293,6 +300,17 @@ describe("the phone's local settings", () => {
 describe('backup jobs', () => {
   test("lists the phone's chat and files jobs", async () => {
     await expect(archiveJobs()).resolves.toEqual({chat: ['c1'], kbfs: ['k1', 'k2']})
+    expect(mockApp.log).toEqual(['pause', 'chat list', 'kbfs list', 'resume tok'])
+  })
+
+  test("lists the phone's jobs with their states and paths", async () => {
+    await expect(archiveJobStates()).resolves.toEqual({
+      chat: [{id: 'c1', outputPath: '/c/o1', status: 1}],
+      kbfs: [
+        {id: 'k1', phase: 3, stagingPath: '/c/s1', zipFilePath: '/c/s1/a.zip'},
+        {id: 'k2', phase: 6, stagingPath: '/c/s2', zipFilePath: '/c/s2/b.zip'},
+      ],
+    })
     expect(mockApp.log).toEqual(['pause', 'chat list', 'kbfs list', 'resume tok'])
   })
 

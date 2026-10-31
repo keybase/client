@@ -3,7 +3,3 @@
 // the whole suite in ONE session — no per-file session teardown/recreate (~800ms
 // each) and the app stays warm between flows.
 import './flows/android-activity-restart.test'
-import './flows/settings-debug-pages.test'
-import './flows/settings-navigation.test'
-import './flows/settings-subpages.test'
-import './flows/visual-states.test'

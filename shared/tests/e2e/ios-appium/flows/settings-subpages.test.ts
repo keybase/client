@@ -1,49 +1,104 @@
-import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, goBack, scrollToTestID, dismissKeyboard, tapSettingsRow} from '../helpers/navigate'
-import {el, waitForTestID} from '../helpers/elements'
+// The settings pages the phone's More list opens, one test per row, view only: each row opens its
+// page, read by its route and its testID. Feedback is opened and its Send is seen, never pressed; the
+// Wallet page is read by its testID alone (payments are no longer supported). About's "Terms and
+// Conditions" opens the in-app keybase.io view (webLinks) and goes back to About.
 import * as T from '../../shared/test-ids'
+import {step} from '../gate/step'
+import {hideKeyboard} from '../helpers/chat'
+import {el} from '../helpers/elements'
+import {BUTTONS, expectScreen} from '../helpers/files'
+import {waitFor} from '../helpers/lifecycle'
+import {check, labelledElement} from '../helpers/menus'
+import {escapeToTabs, goBack, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
 
-describe('settings subpages', () => {
-  // Open More once and visit each subpage (tap → assert → back). On phone this is
-  // 16/16; on the tablet two-pane (landscape) the Files settings tab is flaky
-  // under the full suite — see notes, tracked separately.
-  it('renders each settings subpage', async () => {
+const TERMS = 'https://keybase.io/_/webview/terms'
+const WEB_VIEW = '-ios predicate string:type == "XCUIElementTypeWebView"'
+
+type Page = {
+  // the More list row's label, and the row's own testID where its text is also a tab's label
+  row: string
+  rowTestID?: string
+  route: string
+  marker: string
+}
+
+const PAGES: ReadonlyArray<Page> = [
+  {marker: T.SETTINGS_ACCOUNT_PAGE, route: 'settingsTabs.accountTab', row: 'Account'},
+  {marker: T.SETTINGS_ADVANCED, route: 'settingsTabs.advancedTab', row: 'Advanced'},
+  {marker: T.SETTINGS_ARCHIVE, route: 'settingsTabs.archiveTab', row: 'Backup'},
+  {marker: T.SETTINGS_CHAT, route: 'settingsTabs.chatTab', row: 'Chat', rowTestID: T.SETTINGS_ROW_CHAT},
+  {marker: T.SETTINGS_DISPLAY, route: 'settingsTabs.displayTab', row: 'Display'},
+  {marker: T.SETTINGS_FEEDBACK, route: 'settingsTabs.feedbackTab', row: 'Feedback'},
+  {marker: T.SETTINGS_FILES, route: 'settingsTabs.fsTab', row: 'Files', rowTestID: T.SETTINGS_ROW_FILES},
+  {marker: T.SETTINGS_NOTIFICATIONS, route: 'settingsTabs.notificationsTab', row: 'Notifications'},
+  {marker: T.SETTINGS_WALLET, route: 'settingsTabs.walletsTab', row: 'Wallet'},
+  {marker: T.SETTINGS_ABOUT, route: 'settingsTabs.aboutTab', row: 'About'},
+]
+
+describe('settings subpages', function () {
+  // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   more      escapeToTabs 30, the More tab 20 = 50;  row  scrolled to 25 and tapped 1
+  //   screen    expectScreen 11;  marker  10;  label  a labelled element read 1, waited for 6
+  //   back      goBack 3;  step  2 (its 1s settle and the attach)
+
+  // Feedback's field can raise the keyboard. Bound: the keyboard 5, escapeToTabs 30 = 35.
+  afterEach(async function () {
+    this.timeout(60_000)
+    await hideKeyboard()
+    await escapeToTabs()
+  })
+
+  // The page from the More list. Bound: more 50, row 26, screen 11, marker 10 = 97.
+  const openPage = async ({marker, route, row, rowTestID}: Page) => {
     await escapeToTabs()
     await navigateToMore()
-    await waitForTestID(T.SETTINGS_ACCOUNT, 3000)
-
-    const visit = async (open: () => Promise<unknown>, marker: string) => {
-      // A prior subpage (e.g. Feedback) raises the keyboard, which covers the
-      // lower LeftNav rows on the tablet (they report displayed=false → taps
-      // no-op). Dismiss it before tapping the next row.
-      await dismissKeyboard()
-      await open()
-      await waitForTestID(marker, 5000)
-      await expect(el(marker)).toExist()
-      // Phone pushes a full-screen subpage (go back to the list); tablet keeps
-      // the left nav visible (no back needed).
-      if (!(await el(T.SETTINGS_ACCOUNT).isExisting())) {
-        await goBack()
-        await waitForTestID(T.SETTINGS_ACCOUNT, 4000)
-      }
+    if (rowTestID) {
+      await scrollToTestID(rowTestID)
+      await el(rowTestID).click()
+    } else {
+      await tapSettingsRow(row)
     }
+    await expectScreen(`the ${row} settings page`, route)
+    await el(marker).waitForExist({timeout: 10_000, timeoutMsg: `the ${row} settings page never drew`})
+  }
 
-    await visit(async () => tapSettingsRow('Advanced'), T.SETTINGS_ADVANCED)
-    await visit(async () => tapSettingsRow('Backup'), T.SETTINGS_ARCHIVE)
-    // Chat/Files by row testID — their text collides with the bottom tab bar.
-    // scrollToTestID first: on the tablet's short landscape LeftNav these rows
-    // can sit below the fold (present but not displayed → a tap would no-op).
-    await visit(async () => {
-      await scrollToTestID(T.SETTINGS_ROW_CHAT)
-      await el(T.SETTINGS_ROW_CHAT).click()
-    }, T.SETTINGS_CHAT)
-    await visit(async () => tapSettingsRow('Display'), T.SETTINGS_DISPLAY)
-    await visit(async () => tapSettingsRow('Feedback'), T.SETTINGS_FEEDBACK)
-    await visit(async () => {
-      await scrollToTestID(T.SETTINGS_ROW_FILES)
-      await el(T.SETTINGS_ROW_FILES).click()
-    }, T.SETTINGS_FILES)
-    await visit(async () => tapSettingsRow('Notifications'), T.SETTINGS_NOTIFICATIONS)
-    await visit(async () => tapSettingsRow('About'), T.SETTINGS_ABOUT)
+  for (const page of PAGES) {
+    it(`the More list's ${page.row} row opens its page`, async function () {
+      // worst case (s): openPage 97, the Send 1, step 2 = 100
+      this.timeout(150_000)
+      await openPage(page)
+      // the page's own Send, seen and never pressed: it sends the phone's logs
+      if (page.marker === T.SETTINGS_FEEDBACK) await labelledElement(BUTTONS, 'Send', "the Feedback page's Send")
+      await step(`The ${page.row} settings page`, {card: true})
+    })
+  }
+
+  it("About's Terms and Conditions open the in-app keybase.io view, and back to About", async function () {
+    // worst case (s): openPage 97, step 2, the link 6 and its tap 1, screen 11, the web view 10, step
+    // 2, back 3, screen 11, marker 10, the web view read 1, step 2 = 156
+    this.timeout(200_000)
+    const about = PAGES.find(p => p.marker === T.SETTINGS_ABOUT)!
+    await openPage(about)
+    await step('About')
+    const link = await waitFor(
+      'the Terms and Conditions link',
+      async () =>
+        labelledElement(
+          '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink") AND label == "Terms and Conditions" AND visible == 1',
+          'Terms and Conditions',
+          'the Terms and Conditions link'
+        ),
+      {interval: 250, timeout: 5_000}
+    )
+    await link.click()
+    await expectScreen('the in-app Terms view', 'webLinks', p => p['url'] === TERMS && p['title'] === 'Terms')
+    await browser.$(WEB_VIEW).waitForExist({timeout: 10_000, timeoutMsg: 'the in-app Terms view has no web view'})
+    await step('The in-app Terms view', {card: true})
+
+    await goBack()
+    await expectScreen('About again', about.route)
+    await el(T.SETTINGS_ABOUT).waitForExist({timeout: 10_000})
+    check(!(await browser.$(WEB_VIEW).isExisting()), 'the Terms view is still drawn over About')
+    await step('Back on About')
   })
 })

@@ -337,6 +337,27 @@ export const archiveJobs = async () =>
          .then(k => ({chat: (c.jobs || []).map(j => j.request.jobID), kbfs: (k.jobs || []).map(j => j.desc.jobID)})))`
   )
 
+// The phone's backup jobs with what each is doing: a chat job's status (ArchiveChatJobStatus) and
+// the directory it writes (its compressed output is that path with .tar.gzip after it), a files job's
+// phase (SimpleFSArchiveJobPhase) and its staging directory and zip. The paths are the phone's own
+// (in the simulator, paths on this Mac that hold the account's name): they stay in memory, never in
+// a step, an error or a log.
+export type ArchiveJobStates = {
+  chat: Array<{id: string; outputPath: string; status: number}>
+  kbfs: Array<{id: string; phase: number; stagingPath: string; zipFilePath: string}>
+}
+
+export const archiveJobStates = async () =>
+  askApp<ArchiveJobStates>(
+    "the phone's backup jobs and their states",
+    `${RPC_CHAT}.localArchiveChatListRpcPromise({identifyBehavior: ${RPC_GEN}.TLFIdentifyBehavior.unset})
+       .then(c => ${thenIfStillAsked(`${RPC_GEN}.SimpleFSSimpleFSGetArchiveStatusRpcPromise()`)}
+         .then(k => ({
+           chat: (c.jobs || []).map(j => ({id: j.request.jobID, outputPath: j.request.outputPath, status: j.status})),
+           kbfs: (k.jobs || []).map(j => ({id: j.desc.jobID, phase: j.phase, stagingPath: j.desc.stagingPath, zipFilePath: j.desc.zipFilePath})),
+         })))`
+  )
+
 const plainJobID = /^[A-Za-z0-9_.:-]+$/
 
 // Removes backup jobs a flow made on the phone: a chat job with its output (archiveChatDelete

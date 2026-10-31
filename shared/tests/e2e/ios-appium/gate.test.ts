@@ -44,6 +44,9 @@ import './flows/settings-account.test'
 // after the chat unfurl flow, which keeps the account's link preview settings in a file of its own
 // while it runs; it relaunches the app, as smoke
 import './flows/settings-persisted.test'
+import './flows/settings-archive.test'
+import './flows/settings-subpages.test'
+import './flows/settings-debug-pages.test'
 // the second account's proofs add links to its sigchain; after its other flows
 import './flows/profile-proofs.test'
 // relaunches with the second account signed out part way, so after the other second-account flows

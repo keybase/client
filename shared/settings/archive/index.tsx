@@ -89,12 +89,14 @@ const JobWrapper = (p: {
   children: React.ReactNode
   fullHeight?: boolean
   measureRef?: React.Ref<Kb.MeasureRef>
+  testID: string
 }) => {
-  const {index, icon, actions, children, fullHeight, measureRef} = p
+  const {index, icon, actions, children, fullHeight, measureRef, testID} = p
   return (
     <Kb.ListItem
       firstItem={index === 0}
       type="Small"
+      testID={testID}
       body={
         <Kb.Box2
           direction="horizontal"
@@ -239,6 +241,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
   return (
     <JobWrapper
       index={index}
+      testID={`${TestIDs.SETTINGS_ARCHIVE_ROW_PREFIX}${id}`}
       icon={
         <Kb.Box2 alignSelf="center" direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
           <Kb.Icon type="iconfont-chat" />
@@ -326,6 +329,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
   return (
     <JobWrapper
       index={index}
+      testID={`${TestIDs.SETTINGS_ARCHIVE_ROW_PREFIX}${id}`}
       fullHeight={true}
       measureRef={popupAnchor}
       icon={

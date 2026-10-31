@@ -334,6 +334,8 @@ export const SETTINGS_ARCHIVE_JOB_PAUSE = 'settings-archive-job-pause'
 export const SETTINGS_ARCHIVE_JOB_RESUME = 'settings-archive-job-resume'
 export const SETTINGS_ARCHIVE_JOB_CANCEL = 'settings-archive-job-cancel'
 export const SETTINGS_ARCHIVE_KBFS_REMOVE = 'settings-archive-kbfs-remove'
+// a Backup page job's row: the prefix, then the job's id
+export const SETTINGS_ARCHIVE_ROW_PREFIX = 'settings-archive-row-'
 export const SETTINGS_DISPLAY           = 'settings-display'
 export const SETTINGS_FEEDBACK          = 'settings-feedback'
 export const SETTINGS_FILES             = 'settings-files'
@@ -366,6 +368,12 @@ export const SETTINGS_WALLET = 'settings-wallet'
 // Dev-only debug pages (gated by __DEV__ in nav + routes)
 export const SETTINGS_TYPOGRAPHY        = 'settings-typography'
 export const SETTINGS_MARKDOWN          = 'settings-markdown'
+// the Typography page's controls, which say what they show: the Dark background switch and each
+// decoration button (the prefix, then the decoration) carry SETTING_ON or SETTING_OFF; the Next
+// button carries the index of the sample shown after its prefix
+export const SETTINGS_TYPOGRAPHY_DARK = 'settings-typography-dark'
+export const SETTINGS_TYPOGRAPHY_DECORATION_PREFIX = 'settings-typography-decoration-'
+export const SETTINGS_TYPOGRAPHY_NEXT_PREFIX = 'settings-typography-next-'
 export const SETTINGS_ICONS = 'settings-icons'
 
 // People

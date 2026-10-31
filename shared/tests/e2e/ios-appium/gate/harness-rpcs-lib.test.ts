@@ -199,6 +199,7 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
     'runtimeStatsEnabled',
     'phoneReachesServer',
     'archiveJobs',
+    'archiveJobStates',
     'removeArchiveJobs',
   ]) {
     expect(builders.has(b)).toBe(true)
