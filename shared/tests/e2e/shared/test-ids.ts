@@ -320,6 +320,8 @@ export const UNLOCK_FOLDERS_PAPER_KEY_INPUT = 'unlock-folders-paper-key-input'
 export const COMMON_BACK_BUTTON = 'backButton'
 // the phone search filter's X, which clears it or, where the filter has a cancel, ends its search
 export const SEARCH_FILTER_CLEAR = 'search-filter-clear'
+// the phone search filter's box: one accessible element on iOS, so its text field is not in the tree
+export const SEARCH_FILTER = 'search-filter'
 // The X on a desktop modal route. Needed because a page-wide search for the
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.

@@ -12,6 +12,7 @@ import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
+import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
 import {
   carriedTeam,
@@ -710,12 +711,37 @@ export const notifyRadioBox = (group: NotifyGroup, choice: NotifyChoice) =>
   browser.$(`-ios predicate string:name BEGINSWITH "${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-${choice}"`)
 
 // Taps a notification choice's radio: its own clickable (the circle and its label) inside the box,
-// since the box runs the panel's width and its middle can fall past the label.
+// since the box runs the panel's width and its middle can fall past the label. The tree shows the
+// clickable as the box's sibling, inside the box's frame, not as its child. Bound: the box 10, the
+// clickable 10, the tap 1 = 21s.
 export const tapNotifyRadio = async (group: NotifyGroup, choice: NotifyChoice) => {
   const box = notifyRadioBox(group, choice)
   await box.waitForExist({interval: 150, timeout: 10_000, timeoutMsg: `the ${group} "${NOTIFY_LABELS[choice]}" radio never appeared`})
-  const radio = box.$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}"`)
-  await radio.waitForExist({interval: 150, timeout: 5_000, timeoutMsg: `no clickable in the ${group} "${NOTIFY_LABELS[choice]}" radio's box`})
+  const radio = await waitFor(
+    `the clickable in the ${group} "${NOTIFY_LABELS[choice]}" radio's box`,
+    async () => {
+      const {x, y} = await box.getLocation()
+      const {height, width} = await box.getSize()
+      // the clickable and its label's text (reported twice) both lie in the box: the innermost counts
+      const inBox: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+      const seen: Array<string> = []
+      for (const e of await browser.$$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}" AND visible == 1`).getElements()) {
+        const at = await e.getLocation().catch(() => undefined)
+        const size = await e.getSize().catch(() => undefined)
+        if (!at || !size) continue
+        const mx = at.x + size.width / 2
+        const my = at.y + size.height / 2
+        seen.push(`${Math.round(mx)},${Math.round(my)}`)
+        if (mx >= x && mx <= x + width && my >= y && my <= y + height) inBox.push({e, rect: {...at, ...size}})
+      }
+      const inside = innermost(inBox.map(c => c.rect)).map(i => inBox[i]!.e)
+      if (inside.length === 1) return inside[0]
+      // geometry only, for the timeout's message
+      throw new Error(`${inside.length} in the box at ${x},${y} ${width}x${height}; middles seen: ${seen.join(' ') || 'none'}`)
+    },
+    // one pass reads the box and both groups' choices, several calls each, slower while recording
+    {interval: 150, timeout: 10_000}
+  )
   await radio.click()
 }
 
@@ -927,8 +953,24 @@ export const chooseMenuItem = async (label: string) => {
     },
     {interval: 300, timeout: 15_000}
   )
-  await menuItem(label).click()
-  await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+  // A tap while the sheet still settles after a drag can do nothing (seen live): the item is tapped
+  // again only while the sheet and the item are both still up, so a tap that took is never repeated.
+  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
+  // 5s wait was.
+  for (let tap = 1; ; tap++) {
+    await menuItem(label).click()
+    const closed = await menuSheet()
+      .waitForExist({reverse: true, timeout: 2_500})
+      .then(() => true)
+      .catch(() => false)
+    if (closed) return
+    // the tap took and the sheet is on its way down
+    if (!(await menuItem(label).isExisting())) {
+      await menuSheet().waitForExist({reverse: true, timeout: 2_500})
+      return
+    }
+    if (tap >= 2) throw new Error(`the menu sheet is still up after "${label}" was tapped twice`)
+  }
 }
 
 export const closeMessageMenu = async () => {
@@ -996,6 +1038,42 @@ export const openInboxRowMenu = async (name: string, convID: string) => {
 // Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.
 export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
   openSheetWith(what, async () => tap().catch(() => {}))
+
+// -- search filters ------------------------------------------------------------------------------
+
+// The search filter on screen (common-adapters/search-filter.tsx: the inbox filter, the forward,
+// channel, member and bot pickers). Its box is one accessible element on iOS, so the text field in it
+// is not in the tree: its text goes in through the focused field.
+export const searchFilter = () => browser.$(`-ios predicate string:name == "${T.SEARCH_FILTER}" AND visible == 1`)
+
+// Types `text` into whatever input has the keyboard's focus, as key presses (WDA types them through
+// the keyboard). The error says what was typed into, never the text: it can hold an account name.
+export const typeIntoFocused = async (what: string, text: string) => {
+  const actions = [...text].flatMap(c => [
+    {type: 'keyDown', value: c},
+    {type: 'keyUp', value: c},
+  ])
+  try {
+    await browser.performActions([{actions, id: 'keyboard', type: 'key'}])
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    // the cause would carry the text
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`typing into ${what} failed`)
+  } finally {
+    await browser.releaseActions().catch(() => {})
+  }
+}
+
+// Focuses the search filter on screen (a tap on its box, unless the keyboard is already up) and
+// types `text` into it. Bound: the filter 10, the tap 1, the keyboard 5, the keys 5 = 21s.
+export const typeInSearchFilter = async (text: string) => {
+  const filter = searchFilter()
+  await filter.waitForExist({timeout: 10_000})
+  if (!(await isKeyboardUp())) await filter.click()
+  await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+  await typeIntoFocused('the search filter', text)
+}
 
 // -- thread search -------------------------------------------------------------------------------
 
@@ -1739,18 +1817,50 @@ export const giphyImages = async () => {
 // -- the info panel, labels and the inbox's own state --------------------------------------------
 
 // Opens the visible conversation's info panel from the header's More menu and, given one, a tab of
-// it (its testID). Bound: the header menu 15, the tab 10.
+// it (its testID). Bound: the header menu 15, the tab 5 and its taps 5 = 25.
 export const openInfoPanel = async (tab?: string) => {
   await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
   if (tab === undefined) return
-  await el(tab).waitForExist({timeout: 10_000})
-  await el(tab).click()
+  await el(tab).waitForExist({timeout: 5_000})
+  // a tap while the panel still comes up can do nothing (seen live): tapped again until the panel's
+  // tabs read it selected
+  await waitFor(
+    'the info panel tab to be selected',
+    async () => {
+      if (await infoPanelTabSelected(tab)) return true
+      await el(tab).click()
+      return (await infoPanelTabSelected(tab)) ? true : undefined
+    },
+    {interval: 500, timeout: 5_000}
+  )
 }
 
+// Whether the info panel's tab with testID `tab` is the selected one, read off the tabs' props.
+const infoPanelTabSelected = async (tab: string) =>
+  jsEval<boolean>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && Array.isArray(p.tabs) && p.selectedTab !== undefined) {
+        const t = p.tabs.find(x => x && x.testID === ${JSON.stringify(tab)})
+        if (t) return p.selectedTab === t.title
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return false
+  `)
+
 // Drags the screen's scrolling content up until `target` sits on screen, with room above the bottom
-// edge for a tap, as a person scrolls a settings list to an item below the fold. Bound: `timeout`.
-export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) =>
-  waitFor(
+// edge for a tap, as a person scrolls a settings list to an item below the fold; or, at the content's
+// end (a drag no longer moves it), wholly on screen. Bound: `timeout`.
+export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
+  let lastY: number | undefined
+  return waitFor(
     `${what} on screen`,
     async () => {
       const e = target()
@@ -1759,6 +1869,8 @@ export const dragUntilOnScreen = async (what: string, target: () => ChainablePro
         const {height} = await e.getSize()
         const {height: window} = await browser.getWindowRect()
         if (y > 0 && y + height / 2 < window - 80) return true
+        if (lastY !== undefined && Math.abs(lastY - y) < 1 && y > 0 && y + height <= window) return true
+        lastY = y
       }
       const {height, width} = await browser.getWindowRect()
       const x = Math.round(width / 2)
@@ -1773,6 +1885,14 @@ export const dragUntilOnScreen = async (what: string, target: () => ChainablePro
       return undefined
     },
     {interval: 300, timeout}
+  )
+}
+
+// A button by its text, which an icon before it puts after its glyph and ", " in its label (the info
+// panel's "Leave channel" and "Block" read "<glyph>, Leave channel" and "<glyph>, Block").
+export const iconButton = (label: string) =>
+  browser.$(
+    `-ios predicate string:type == "XCUIElementTypeButton" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
   )
 
 // The one element on screen whose label is exactly `label`, of those `selector` finds: compared in

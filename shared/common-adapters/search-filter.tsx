@@ -291,6 +291,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
+      testID={TestIDs.SEARCH_FILTER}
       style={Styles.collapseStyles([
         styles.container,
         placeholderCentered && styles.containerCenter,
