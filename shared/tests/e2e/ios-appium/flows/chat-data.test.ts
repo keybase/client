@@ -11,6 +11,7 @@
 // deletes the throwaway channel. Every incoming message, and the leave, comes from the second
 // account's peer service. Every body is stamped with the run id.
 import {loadE2EEnv} from '../../accounts/env'
+import {parseStampedText} from '../../accounts/run-id'
 import type {LoggedCall} from '../../shared/call-log.ts'
 import {
   E2E_CHANNELS,
@@ -51,10 +52,10 @@ import {
   openConversation,
   openFromInbox,
   openMessageMenu,
+  openMessageMenuAt,
   openThreadSearch,
   ordinalsWithText,
   orangeLineOrdinals,
-  rowText,
   scrollInboxTo,
   searchFor,
   sendMessage,
@@ -75,6 +76,10 @@ import {
 import {el, els} from '../helpers/elements'
 import {openUrl, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
+
+const firstWord = (body: string) => body.split(/\s/, 1)[0] ?? ''
+// The DM's earliest test posts predate run stamps: e2e-<word>-<word>-<ms since the epoch>.
+const isHarnessToken = (w: string) => !!parseStampedText(w) || /^e2e-[a-z]+-[a-z]+-\d{13}$/.test(w)
 
 describe('chat data', function () {
   // no retries: a retry would let an intermittent race pass
@@ -416,9 +421,12 @@ describe('chat data', function () {
       // The DM holds every run's messages, far more than drags can climb in a bound: thread search
       // jumps to its second oldest text (its body read from the host), as a person finds old history,
       // and a few drags reach the top from there.
+      // The search is for a harness-made first word only (a run stamp, or the dated e2e marker of the
+      // DM's earliest test posts), never a message's text: the DM's oldest messages need not be the
+      // harness's, and the query reaches logs.
       const oldest = (await oldestFromCli(directOnHost(), 10)).filter(m => m.content.type === 'text')
-      const near = oldest[1]?.content.text?.body
-      if (!near) throw new Error('the DM has fewer than two text messages')
+      const near = oldest.map(m => firstWord(m.content.text?.body ?? '')).find(w => w && isHarnessToken(w))
+      if (!near) throw new Error("none of the DM's oldest ten messages starts with a harness-made token")
       await openDirect()
       await openThreadSearch()
       await searchFor(near)
@@ -436,7 +444,7 @@ describe('chat data', function () {
       )
       await step('The first message of the DM in view')
       const first = top.ordinals[0]!
-      await openMessageMenu(await rowText(first))
+      await openMessageMenuAt(first)
       // taken right before the tap, so the load below is the mark's own
       const atTap = await currentCallSeq()
       await chooseMenuItem('Mark as unread')
