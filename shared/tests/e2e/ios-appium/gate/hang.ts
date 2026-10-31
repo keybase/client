@@ -75,7 +75,11 @@ export const startHangWatch = async (): Promise<string> => {
     succeeded: () => succeeded,
   })
   let busy = false
-  const timer = setInterval(() => {
+  // The timer is started bound to no body, as a hook's work: its reads must keep running once the body
+  // is over (a mocha timeout runs the flow's afterEach hooks before the root one stops the watch),
+  // and a timer started in the body's context would refuse them as attempt over.
+  const timer = runAttempt(undefined, () =>
+    setInterval(() => {
     if (busy) return
     busy = true
     // a read that failed (the app exiting mid-sample) only waits for the next
@@ -85,7 +89,8 @@ export const startHangWatch = async (): Promise<string> => {
       .finally(() => {
         busy = false
       })
-  }, READ_EVERY_MS)
+    }, READ_EVERY_MS)
+  )
   slot.start({
     relaunching: watch.relaunching,
     stop: () => {

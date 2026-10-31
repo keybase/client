@@ -158,3 +158,28 @@ test('an attempt-over error is told apart by its message', () => {
   expect(isAttemptOver(new Error('timed out after 5ms waiting for x'))).toBe(false)
   expect(isAttemptOver('attempt over: x')).toBe(false)
 })
+
+test('a timer started bound to no body keeps passing the check once the body that started it is over', async () => {
+  const b = createBinding<string>()
+  const results: Array<string> = []
+  let timer: ReturnType<typeof setInterval> | undefined
+  let bound: ReturnType<typeof setInterval> | undefined
+  const check = (out: string) => () => {
+    try {
+      b.requireCurrent()
+      results.push(`${out} ok`)
+    } catch (e) {
+      results.push(`${out} ${isAttemptOver(e) ? 'over' : 'other'}`)
+    }
+  }
+  await b.runBody('a1', 'flow t', async () => {
+    timer = b.run(undefined, () => setInterval(check('unbound'), 5))
+    bound = setInterval(check('bound'), 5)
+    await tick()
+  })
+  await new Promise(resolve => setTimeout(resolve, 30))
+  clearInterval(timer)
+  clearInterval(bound)
+  expect(results.filter(r => r.startsWith('unbound')).every(r => r === 'unbound ok')).toBe(true)
+  expect(results).toContain('bound over')
+})
