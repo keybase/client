@@ -2,11 +2,23 @@
 // account, an addmedia path the host's home): the error says what failed and how, never the argv, and
 // the child's stderr has every hidden argument replaced, since tools echo what they were given.
 
-// simctl arguments shown as they are: the subcommand's keywords and a device's UDID. Anything else
-// (a link, a path, a bundle id, coordinates, a predicate) is hidden.
-const SHOWN_ARG = /^(?:-?[a-z_]+(?:-[a-z_]+)*|[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})$/i
+// simctl arguments shown as they are: the subcommands and keywords the gate passes, and a device's
+// UDID. Anything else (a link, a path, a bundle id, coordinates, a predicate, a time, a name) is
+// hidden, a letters-only one included.
+const SHOWN_WORDS = new Set([
+  // subcommands
+  'addmedia', 'boot', 'bootstatus', 'get_app_container', 'launch', 'list', 'location', 'openurl', 'privacy', 'push', 'shutdown',
+  'spawn', 'terminate',
+  // their keywords and flags
+  '-b', '--info', '--predicate', '--start', '--style', 'available', 'booted', 'compact', 'data', 'devices', 'grant', 'groups',
+  'launchctl', 'log', 'reset', 'revoke', 'set', 'show',
+  // privacy services
+  'all', 'calendar', 'camera', 'contacts', 'contacts-limited', 'location', 'location-always', 'media-library', 'microphone',
+  'motion', 'photos', 'photos-add', 'reminders', 'siri',
+])
+const UDID = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i
 
-export const hiddenSimctlArgs = (args: ReadonlyArray<string>) => args.slice(1).filter(a => a !== '' && !SHOWN_ARG.test(a))
+export const hiddenSimctlArgs = (args: ReadonlyArray<string>) => args.slice(1).filter(a => a !== '' && !SHOWN_WORDS.has(a) && !UDID.test(a))
 
 const HIDDEN = '<hidden>'
 

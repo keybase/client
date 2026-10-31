@@ -14,6 +14,12 @@ test('a link, a path, a bundle id and coordinates are hidden; keywords and the U
   expect(hiddenSimctlArgs(['location', udid, 'set', '37.1,-122.2'])).toEqual(['37.1,-122.2'])
 })
 
+test('a letters-only argument that is not a keyword the gate passes is hidden', () => {
+  expect(hiddenSimctlArgs(['openurl', udid, 'testuser'])).toEqual(['testuser'])
+  expect(hiddenSimctlArgs(['privacy', udid, 'grant', 'photos', 'some-team'])).toEqual(['some-team'])
+  expect(hiddenSimctlArgs(['spawn', udid, 'log', 'show', '--start', '2026-10-31 08:00:00', '--style', 'compact'])).toEqual(['2026-10-31 08:00:00'])
+})
+
 test('a non-zero exit names the step and the exit, and its stderr has the hidden args replaced', () => {
   const e = Object.assign(new Error(`Command failed: xcrun simctl openurl ${udid} ${link}`), {
     status: 1,
