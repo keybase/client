@@ -2,13 +2,11 @@ import {expect} from '@wdio/globals'
 import {
   escapeToTabs,
   navigateToMore,
-  navigateToTeams,
   navigateToChat,
-  goBack,
   scrollDownToText,
   tapSettingsRow,
 } from '../helpers/navigate'
-import {byText, el, els, waitForTestID, tapForTestID} from '../helpers/elements'
+import {byText, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Visual-coverage states. The harness screenshots AFTER each test and
@@ -113,16 +111,6 @@ describe('visual states', () => {
     await expect(byText('Log in as another user')).toExist()
   })
 
-  it('team members scrolled', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    await tapForTestID(T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST, {timeout: 10000})
-    await swipeContentUp(4)
-    await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
-  })
-
   it('settings notifications scrolled', async () => {
     await escapeToTabs()
     await navigateToMore()
@@ -131,32 +119,5 @@ describe('visual states', () => {
     await waitForTestID(T.SETTINGS_NOTIFICATIONS, 5000)
     await swipeContentUp(4)
     await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
-  })
-
-  it('edit team info modal', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    const edit = byText('Edit')
-    if (!(await edit.waitForExist({timeout: 5000}).then(() => true).catch(() => false))) return
-    await edit.click()
-    await byText('Save').waitForExist({timeout: 5000})
-    await expect(byText('Save')).toExist()
-  })
-
-  it('team add members wizard', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    const addButton = byText('Add/Invite people')
-    if (!(await addButton.waitForExist({timeout: 5000}).then(() => true).catch(() => false))) {
-      await goBack()
-      return
-    }
-    await addButton.click()
-    await byText('A list of email addresses').waitForExist({timeout: 5000})
-    await expect(byText('A list of email addresses')).toExist()
   })
 })

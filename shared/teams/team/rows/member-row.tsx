@@ -14,6 +14,7 @@ import {
 } from './common'
 import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../use-loaded-team'
@@ -142,6 +143,7 @@ const TeamMemberRow = (props: Props) => {
       style={selected ? selectionStyles.selected : selectionStyles.unselected}
       innerStyle={selected ? selectionStyles.selected : selectionStyles.unselected}
       onClick={onClick}
+      testID={TestIDs.TEAMS_MEMBER_ROW}
     />
   )
 }

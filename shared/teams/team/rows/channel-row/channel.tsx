@@ -168,6 +168,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       firstItem={isGeneral}
       style={selected ? selectionStyles.selected : selectionStyles.unselected}
       onClick={onNavToChannel}
+      testID={TestIDs.TEAMS_CHANNEL_ROW}
     />
   )
 }

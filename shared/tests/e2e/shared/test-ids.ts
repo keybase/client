@@ -195,12 +195,21 @@ export const TEAMS_BODY         = 'teams-body'
 export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
+// a member row in a team's Members tab, and a channel row in its Channels tab
+export const TEAMS_MEMBER_ROW = 'teams-member-row'
+export const TEAMS_CHANNEL_ROW = 'teams-channel-row'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
 // a member row's selection circle, and the bar that shows while any member is selected
 export const TEAMS_MEMBER_CHECK = 'teams-member-check'
 export const TEAMS_SELECTION_POPUP = 'teams-selection-popup'
 export const TEAMS_ROLE_PICKER = 'teams-role-picker'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
+// the team page header's edit icon by the team's name (a subteam's rename)
+export const TEAMS_HEADER_RENAME = 'teams-header-rename'
+// the delete-team confirm's three agreement switches
+export const TEAMS_DELETE_TEAM_CHATS_CHECK = 'teams-delete-team-chats-check'
+export const TEAMS_DELETE_TEAM_FOLDER_CHECK = 'teams-delete-team-folder-check'
+export const TEAMS_DELETE_TEAM_NOTIFY_CHECK = 'teams-delete-team-notify-check'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
