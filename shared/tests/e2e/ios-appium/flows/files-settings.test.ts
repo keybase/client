@@ -39,7 +39,7 @@ describe('files settings', function () {
   }
 
   // The settings put back whatever the test did, after a timeout too. Worst case (s): smoke 10, the
-  // restore 50 (a read 25 and the set 25), its read 25, escape 30 = 140 (the first read is the same).
+  // restore 50 (a read 25 and the set 25), its read 25, escape 30 = 115 (the first read is the same).
   afterEach(async function () {
     this.timeout(180_000)
     await withCleanup(restoreSettings, [escapeToTabs])
@@ -72,10 +72,10 @@ describe('files settings', function () {
 
   it('the low-space warning, its threshold and the mobile-network sync are set and stay through a relaunch', async function () {
     // worst case (s): smoke 10, app 25, open 96, the warn taps 3 * 58 = 174, the threshold (a read
-    // 25, the tap 1, the prompt 10, the wheel 10, the pick 15, Done 6, the sheet gone 10, calls 12,
-    // expectSettings 45) = 134, the cellular switch (the tap 1, calls 12, expectSettings 45) = 58,
-    // steps 4 * 2 = 8; relaunch 200, signed in 90, open 96, smoke 10, app 25, the shown threshold 1,
-    // step 2 = 424; = 933
+    // 25, the tap 1, the prompt 10, the wheel 10, the pick 15, the wheel showing it 5, Done 6, the
+    // sheet gone 10, calls 12, expectSettings 45) = 139, the cellular switch (the tap 1, calls 12,
+    // expectSettings 45) = 58, steps 4 * 2 = 8; relaunch 200, signed in 90, open 96, smoke 10, app
+    // 25, the shown threshold 1, step 2 = 424; = 934
     this.timeout(1_000_000)
     await requireAppIsSmoke()
     const original = await filesSettings()

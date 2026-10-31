@@ -68,9 +68,9 @@ describe('files previews', function () {
   it('opening a picture, a video, a PDF and a text shows the preview of its kind', async function () {
     // worst case (s): work 300 (the folder 60 and 60 for each of the four files), open 365 (the root
     // 56, the type row 31, its tap 1 and screen 11, then two levels of the row 121, its tap 1 and
-    // screen 11), the four rows drawn 484 (121 each), then for each kind 149 (its row 31, the tap 1,
+    // screen 11), the four rows drawn 484 (121 each), then for each kind 148 (its row 31, the tap 1,
     // the screen 11, the aim check 1, its preview 60, the other three kinds' absence 3, step 2, back
-    // 39) = 596 and for the text its first line 16 (15, one read 1) = 4 * 149 + 16 = 612; = 1761
+    // 39) = 592 and for the text its first line 16 (15, one read 1) = 4 * 148 + 16 = 608; = 1757
     this.timeout(1_800_000)
     const folder = newWorkFolder()
     madePaths.add(folder)
