@@ -25,6 +25,7 @@ export const measuredButtonAmong = (
   const at = elements.flatMap((e, i) =>
     near(e.width, measured.width) &&
     near(e.height, measured.height) &&
+    // the same left edge assumes full-width modals: the gate runs on iPhone only
     near(e.x, measured.x) &&
     near(e.y, measured.y + windowTop) &&
     onScreen(e, screen) &&
