@@ -1,5 +1,5 @@
 import {newRunId, stampedTeamName} from '../accounts/run-id'
-import {deleteRepoIfPresent, personalRepo, repoWrites, requireThisRunRepo, teamRepo, teamRepoChat, type RepoRef} from './git'
+import {listedUrls, deleteRepoIfPresent, personalRepo, repoWrites, requireThisRunRepo, teamRepo, teamRepoChat, type RepoRef} from './git'
 
 const saved = {...process.env}
 const run = newRunId()
@@ -62,4 +62,10 @@ test('repoWrites guards its writes with the guard it is given', async () => {
   await expect(w.deleteRepoIfPresent(personalRepo())).rejects.toThrow('test guard')
   await expect(w.teamRepoChat(teamRepo(sub()))).rejects.toThrow('test guard')
   expect(guard).toHaveBeenCalledTimes(2)
+})
+
+test('a git list answer must parse before a repo can read as gone', () => {
+  expect(listedUrls('repo  keybase://private/testuser/a\n\nteam/b keybase://team/t/b\n')).toEqual(['keybase://private/testuser/a', 'keybase://team/t/b'])
+  expect(listedUrls('')).toEqual([])
+  expect(() => listedUrls('Error: not logged in')).toThrow(/does not end with a repo URL/)
 })

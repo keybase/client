@@ -15,7 +15,7 @@ import {loadE2EAccounts} from '../../accounts/env'
 import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
 import {createThrowawaySubteam} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {deleteRepoIfPresent, personalRepo, repoListed, repoUrl, teamRepo, teamRepoChat, type RepoRef} from '../../shared/git.ts'
+import {deleteRepoIfPresent, personalRepo, repoGone, repoListed, repoUrl, teamRepo, teamRepoChat, type RepoRef} from '../../shared/git.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {deleteSubteamIfPresent, makeSubteamChannel, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
@@ -36,9 +36,11 @@ type Params = Record<string, unknown>
 
 describe('git', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   gone      repoGone reads the list, which must parse (a failed or reshaped list never reads as
+  //             gone); it may be empty, so no other entry is required
   //   host      a retried host read (readBack) of the CLI 255 (four of 60);  polled  30s of reads,
   //             overrun by one read: of the CLI 285
-  //   subteam   makeOwnSubteam 600;  seed  makeSubteamChannel 510
+  //   subteam   makeOwnSubteam 915 (600 and the id read 315);  seed  makeSubteamChannel 510
   //   app       requireAppIsSmoke 15;  git  openGit 90 (escapeToTabs 30, the More tab 15, the row 25,
   //             the screen 11, the list 5, slack 4)
   //   team      openTeamFromList: 60s of tries, overrun by one 109 = 169
@@ -94,7 +96,7 @@ describe('git', function () {
 
   // A subteam of the e2e team made by the host for one test, with its name in madeNames before the
   // make, so a test timed out during it still has it deleted. `prefix` is up to 3 characters.
-  // Bound: subteam 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
+  // Bound: subteam 600, then its id 315 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
   // general channel listed 90).
   const makeOwnSubteam = async (prefix: string) => {
     const label = `${prefix}${randomBytes(2).toString('hex')}`
@@ -169,7 +171,7 @@ describe('git', function () {
     // button 6, waited for 12, screen 11, polled 285, row 31, its tap 1, filler 30, the button 10 and
     // its tap 1, pasteboard 40, filler 30, step 2, button 6, screen 11, field 11, fill 26, step 2,
     // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1287
-    this.timeout(1_300_000)
+    this.timeout(1_400_000)
     await requireAppIsSmoke()
     const repo = personalRepo()
     check(!(await masked(async () => repoListed(repo))), 'this run already has its personal repo')
@@ -211,20 +213,20 @@ describe('git', function () {
     await tapButton('Delete', "the delete screen's Delete")
     await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deletePersonalRepo')
     await expectScreen('the git list after Delete', 'gitRoot')
-    await expectHost('the personal repo gone', async () => repoListed(repo), listed => !listed)
+    await expectHost('the personal repo gone', async () => repoGone(repo), gone => gone)
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The personal repo deleted', {screenshot: false})
   })
 
   it('a team repo made in a subteam, announced in a channel, its announcements turned off, and deleted', async function () {
-    // worst case (s): app 15, subteam 600, seed 510, host 255, team 169, git 90, new repo 52, prompt
+    // worst case (s): app 15, subteam 600 and its id 315, seed 510, host 255, team 169, git 90, new repo 52, prompt
     // 6 and its tap 1, pick 31 and its tap 1, picked 6, prompt gone 6, field 11, fill 26, notify 16,
     // step 2, calls 2, button 6, waited for 12, screen 11, polled 285, chat 255, row 31, its tap 1,
     // announce 11, link 16 and its tap 1, screen 11, channel 6 and its tap 1, step 2, pin 1, calls 2,
     // button 6, waited for 12, polled 285, screen 11, link 16, step 2, count 1, calls 2, its tap 1,
     // waited for 12, polled 285, step 2, button 6, screen 11, notify 16, field 11, fill 26, step 2,
-    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3477
-    this.timeout(3_500_000)
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3792
+    this.timeout(4_000_000)
     await requireAppIsSmoke()
     const {name, teamID} = await makeOwnSubteam('git')
     const channel = stampedChannelName('gitch', e2eRunId())
@@ -320,7 +322,7 @@ describe('git', function () {
     await tapButton('Delete', "the delete screen's Delete")
     await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deleteTeamRepo')
     await expectScreen('the git list after Delete', 'gitRoot')
-    await expectHost('the team repo gone', async () => repoListed(repo), listed => !listed)
+    await expectHost('the team repo gone', async () => repoGone(repo), gone => gone)
     // the git list holds the smoke account's other repos, of teams that are not test ones
     await step('The team repo deleted', {screenshot: false})
   })

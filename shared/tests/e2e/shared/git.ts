@@ -42,6 +42,23 @@ const git = async (args: ReadonlyArray<string>) => readBack(async () => runKeyba
 export const repoListed = async (r: RepoRef) =>
   (await git(['list'])).split('\n').some(l => l.trim().split(/\s+/).at(-1) === repoUrl(r))
 
+// The clone URLs a `keybase git list` answer holds. The answer must parse: every non-blank line ends
+// with a keybase:// URL, else this throws, so a list that failed or changed shape never reads as "gone".
+export const listedUrls = (out: string) =>
+  out
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l !== '')
+    .map(l => {
+      const url = l.split(/\s+/).at(-1)!
+      if (!url.startsWith('keybase://')) throw new Error('keybase git list: a line does not end with a repo URL')
+      return url
+    })
+
+// Whether the repo is absent from a list that parsed (see listedUrls). The list may be empty when
+// the repo was the account's only one, so no other entry is required.
+export const repoGone = async (r: RepoRef) => !listedUrls(await git(['list'])).includes(repoUrl(r))
+
 export type TeamRepoChat = {chatDisabled: boolean; channel?: string}
 
 // The writes, each behind `requireRepo` (the desktop gate's team repo lives in KB_E2E_TEAM itself, so
