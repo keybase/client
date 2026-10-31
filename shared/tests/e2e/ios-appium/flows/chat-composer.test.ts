@@ -26,6 +26,7 @@ import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {inboxRowMatches} from '../gate/chat-lib'
 import {relaunchApp} from '../gate/device'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {callsSince, currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {manualEdge, step} from '../gate/step'
@@ -668,8 +669,11 @@ describe('chat composer', function () {
           check(!(await el(id).isExisting()), `${id} shows in a channel the account cannot post to`)
         }
         // the input is disabled there, so the tap or the keys may be refused: what counts is what lands
-        await el(T.CHAT_INPUT).click().catch(() => {})
-        await el(T.CHAT_INPUT).addValue('e2e-readonly-typed').catch(() => {})
+        const refused = (e: unknown) => {
+          if (isAttemptOver(e)) throw e
+        }
+        await el(T.CHAT_INPUT).click().catch(refused)
+        await el(T.CHAT_INPUT).addValue('e2e-readonly-typed').catch(refused)
         await browser.pause(500)
         check((await composerText()) === '', 'typing in a read-only channel put text in the composer')
         check(!(await el(T.CHAT_SEND_BUTTON).isExisting()), 'typing in a read-only channel offers a send button')

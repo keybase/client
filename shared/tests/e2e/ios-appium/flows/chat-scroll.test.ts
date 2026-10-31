@@ -602,7 +602,10 @@ describe('chat scroll', function () {
           'a page of newer rows',
           async () => ((await requireThread()).ordinals.length > before.ordinals.length ? true : undefined),
           {timeout: 3_000}
-        ).catch(() => false)
+        ).catch((e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          return false
+        })
         if (came) {
           t = await waitForThreadStable()
           v = await viewport(t)
@@ -894,7 +897,10 @@ describe('chat scroll', function () {
             return held && Math.abs(t.offset) <= 1 ? t : undefined
           },
           {interval: 150, timeout: 5_000}
-        ).catch(() => last)
+        ).catch((e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          return last
+        })
       }
       let rest = before
       let rv = await viewport(rest)
@@ -909,7 +915,10 @@ describe('chat scroll', function () {
           'the next page of newer rows',
           async () => ((await requireThread()).ordinals.length > loaded ? true : undefined),
           {timeout: 4_000}
-        ).catch(() => false)
+        ).catch((e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          return false
+        })
       }
       check(
         Math.abs(rest.offset) <= 1 && rest.moreToLoadForward,
