@@ -173,6 +173,15 @@ export const openSheetWith = async (what: string, open: () => Promise<unknown>, 
 export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
   openSheetWith(what, async () => tap().catch(() => {}))
 
+// What `selector` finds; for a selector that asks for `visible == 1` and finds nothing, what it finds
+// without that (a modal or sheet XCUITest reports invisible now and then). Bound: two reads 2.
+const VISIBLE_CLAUSE = ' AND visible == 1'
+export const elementsOrUnseen = async (selector: string) => {
+  const found = await browser.$$(selector).getElements()
+  if (found.length || !selector.endsWith(VISIBLE_CLAUSE)) return [...found]
+  return [...(await browser.$$(selector.slice(0, -VISIBLE_CLAUSE.length)).getElements())]
+}
+
 // Throws `message` unless `ok`.
 export const check = (ok: boolean, message: string) => {
   if (!ok) throw new Error(message)
@@ -184,7 +193,7 @@ export const check = (ok: boolean, message: string) => {
 // none or more than one is drawn; `what` names it.
 export const labelledElement = async (selector: string, label: string, what: string) => {
   const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await browser.$$(selector).getElements()) {
+  for (const e of await elementsOrUnseen(selector)) {
     if ((await e.getAttribute('label').catch(() => null)) !== label) continue
     const at = await e.getLocation().catch(() => undefined)
     const size = await e.getSize().catch(() => undefined)
@@ -209,7 +218,7 @@ export const tapButton = async (label: string, what: string) =>
 // throws. `what` names it.
 export const elementWithLabelPart = async (selector: string, name: string, what: string) => {
   const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await browser.$$(selector).getElements()) {
+  for (const e of await elementsOrUnseen(selector)) {
     const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
     if (!label.split(', ').some(part => part.trim() === name)) continue
     const at = await e.getLocation().catch(() => undefined)
@@ -237,10 +246,19 @@ export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name:
 export const elementLabelledIn = async (types: ReadonlyArray<string>, label: string, what: string) =>
   drawnElementIn(types, l => l === label, what)
 
+// The one visible element of `types` whose label is `title` or starts `<title>, ` (a card's box merges
+// its title and subtitle, and a title can hold ", " itself), read as elementWithLabelPartIn reads.
+export const cardTitledIn = async (types: ReadonlyArray<string>, title: string, what: string) =>
+  drawnElementIn(types, l => l === title || l.startsWith(`${title}, `), what)
+
 const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string) => {
-  const found = sourceElements(await browser.getPageSource()).filter(
-    e => types.includes(e.type) && e.attrs['visible'] === 'true' && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' '))
+  const all = sourceElements(await browser.getPageSource()).filter(
+    e => types.includes(e.type) && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' '))
   )
+  // the visible ones; when XCUITest reports none visible (a modal or sheet it reports invisible now
+  // and then), every one in the tree
+  const shown = all.filter(e => e.attrs['visible'] === 'true')
+  const found = shown.length ? shown : all
   const rects = found.map(e => ({
     height: Number(e.attrs['height']),
     width: Number(e.attrs['width']),

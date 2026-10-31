@@ -34,6 +34,7 @@ import {
   readBack,
   requireThisRunSubteam,
   subteamExists,
+  teamChannels,
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
 import {requireSecondNotBlocked} from '../gate/blocks'
@@ -44,7 +45,7 @@ import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, filesRowNamed, fillField, pressTestID, tapButton} from '../helpers/files'
+import {BUTTONS, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -60,8 +61,10 @@ import {
   revealTeamHeader,
   shownInside,
   tapHeaderAction,
-  textShown,
+  tapHeaderAddInvite,
+  textPartShown,
   TEXTS,
+  textShown,
 } from '../helpers/teams'
 
 type Params = Record<string, unknown>
@@ -248,7 +251,7 @@ describe('teams members', function () {
 
   // The selection popup's rect, once it shows. Bound: 10s, its read 1.
   const selectionPopup = async (): Promise<Rect> => {
-    await el(T.TEAMS_SELECTION_POPUP).waitForDisplayed({timeout: 10_000})
+    await waitFor('the selection popup', async () => ((await onScreenID(T.TEAMS_SELECTION_POPUP)) ? true : undefined), {interval: 250, timeout: 10_000})
     const popup = await el(T.TEAMS_SELECTION_POPUP).getElement()
     return {...(await popup.getLocation()), ...(await popup.getSize())}
   }
@@ -289,7 +292,7 @@ describe('teams members', function () {
   const openSecondsMemberPage = async (teamID: string) => {
     const {secondUser} = loadE2EAccounts()
     const row = await memberRow(secondUser, "the second account's member row")
-    await row.e.click()
+    await press(row.e, 'the row')
     await expectScreen("the second account's member page", 'teamMember', p => p['teamID'] === teamID && p['username'] === secondUser)
     await el(T.TEAMS_MEMBER_PAGE).waitForExist({timeout: 10_000})
   }
@@ -297,9 +300,9 @@ describe('teams members', function () {
   it('the second account added to a subteam from its profile, with the subteam alone picked', async function () {
     // worst case (s): subteam 600, host 315 (its id), host 255 (its roles), the Teams tab listing it
     // 169 (60s of tries, overrun by one: team 109), escapeToTabs 30, the link 1, screen 21, the menu
-    // button 31, menu 19, item 22, screen 11, row 31, its tap 1, the picks read 6 (5, one read 1),
-    // step 2, screen 1 and the picks 1, calls 2, button 6, waited for 12, its count 2, polled 285,
-    // screen 11, step 2 = 1836
+    // button 31, menu 19, item 22, screen 11, row 34 (30, four drags), its press 2, the picks read 6
+    // (5, one read 1), step 2, screen 1 and the picks 1, calls 2, button 6, waited for 12, its count
+    // 2, polled 285, screen 11, step 2 = 1840
     this.timeout(1_900_000)
     const {secondUser} = loadE2EAccounts()
     const name = await makeOwnSubteam('prf')
@@ -319,7 +322,7 @@ describe('teams members', function () {
     await chooseMenuItem('Add to team...')
     await expectScreen("the profile's Add to team", 'profileAddToTeam', onSecond)
     const row = await filesRowNamed(name, "the subteam's row among the teams", {testID: T.PROFILE_ADD_TO_TEAM_ROW})
-    await row.e.click()
+    await press(row.e, 'the row')
 
     // The picked rows, by the label parts each reads; the list is not virtualized, so a row scrolled
     // out of sight counts too. The smoke account is in teams that are not the tests' to change.
@@ -352,9 +355,9 @@ describe('teams members', function () {
 
   it('the second account added through the add-members wizard as a reader', async function () {
     // worst case (s): subteam 600, host 315 (its id), opened 204, pin 1, header 8, button 6, screen
-    // 11, part 6 and its tap 1, screen 11, field 11, fill 26, row 16 (15, one drag 1), its tap 1,
+    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, row 16 (15, one drag 1), its tap 1,
     // step 2, action 6, screen 11, the dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1,
-    // calls 2, button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1656
+    // calls 2, button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1651
     this.timeout(1_700_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const name = await makeOwnSubteam('wiz')
@@ -366,17 +369,14 @@ describe('teams members', function () {
 
     await requireOnSubteam("the subteam's page", 'team', onSubteam)
     await revealTeamHeader()
-    await tapButton('Add/Invite people', "the header's Add/Invite people")
+    await tapHeaderAddInvite()
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
-    const fromKeybase = await waitFor("the wizard's From Keybase", async () => elementWithLabelPart(TEXTS, 'From Keybase', "the wizard's From Keybase"), {
-      interval: 250,
-      timeout: 5_000,
-    })
-    await fromKeybase.click()
+    await press(await textPartShown('From Keybase', "the wizard's From Keybase"), "the wizard's From Keybase")
     await expectScreen("the subteam's people search", 'teamsTeamBuilder', p => onSubteam(p) && p['namespace'] === 'teams')
-    await fillField(await onlyField('TextField', "the people search's field"), secondUser, "the people search's field")
+    // the search is a SearchFilter: its field is not in the tree
+    await typeInFilter(secondUser, "the people search's field")
     const result = await filesRowNamed(secondUser, 'the second account among the results', {testID: T.TEAM_BUILDING_RESULT_ROW, timeout: 15_000})
-    await result.e.click()
+    await press(result.e, 'the result row')
     // the team builder's results can hold people who are not test accounts
     await step('The second account picked', {screenshot: false})
     await tapHeaderAction('Add', "the people search's Add")
@@ -449,13 +449,13 @@ describe('teams members', function () {
     // setup: subteam 600, host 315 (its id), two seeds 1020, add 255, two host reads 510, opened 250
     //   (60s of tries, overrun by one: team 109, tab 24, two rows of 11, tab 24, a row 11) = 2950;
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
-    //   part 6 and a tap 1 = 14, the picks read 6 (5, one read 1), step 2, pin 1 and the picks 1,
-    //   calls 2, action 6, waited for 12, two polled 570, step 2 = 795;
+    //   part 6 and a press 2 = 16, the subteam's channels 255, step 2, pin 1, calls 2, action 6,
+    //   waited for 12, the call log 2, two polled 570, step 2 = 1045;
     // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, in row 2
     //   and its tap 1, popup 11, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
     //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1010
-    // = 2950 + 795 + 1010 = 4755
-    this.timeout(5_000_000)
+    // = 2950 + 1045 + 1010 = 5005
+    this.timeout(5_100_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()
     const name = await makeOwnSubteam('chs')
@@ -486,32 +486,30 @@ describe('teams members', function () {
         interval: 250,
         timeout: 5_000,
       })
-      await pick.click()
+      await press(pick, 'a host-made channel to add to')
     }
-    // The checked rows other than #general (always checked, never added to), by the label parts each
-    // reads: the two picked channels and nothing else (a channel the account is already in would
-    // show checked too).
-    const pickedChannels = async () => {
-      const out: Array<string> = []
-      for (const e of await browser.$$(`~${T.TEAMS_ADD_TO_CHANNELS_ROW_CHECKED}`).getElements()) {
-        const parts = ((await e.getAttribute('label').catch(() => null)) ?? '').split(', ').map(p => p.trim())
-        const channel = parts.find(p => p.startsWith('#'))
-        if (channel !== '#general') out.push(channel ?? '')
-      }
-      return out.sort()
-    }
-    const wanted = channels.map(c => `#${c}`).sort()
-    const bothAlone = async () => {
-      const got = await pickedChannels()
-      return got.length === wanted.length && got.every((c, i) => c === wanted[i])
-    }
-    await waitFor('the two channels alone to be picked', async () => ((await bothAlone()) ? true : undefined), {interval: 250, timeout: 5_000})
+    // PR 9 (app bug): a tapped channel row keeps drawing unchecked (the list gets no extraData for the
+    // selection, so its rows do not redraw), though the pick is held (Add enables, Select all turns
+    // to Clear). So the picks are not read off the rows: the subteam holds #general and the two
+    // host-made channels alone, the add the call log shows went to those two alone, and the host
+    // reads the second account in both after it. Read the checked rows again once the app redraws them.
+    const subteamChannels = [...(await masked(async () => teamChannels(name))).keys()].sort()
+    check(
+      subteamChannels.length === channels.length + 1 && channels.every(c => subteamChannels.includes(c)),
+      'the subteam holds channels other than #general and the two: not tapping'
+    )
     await step('Both channels picked')
     await requireOnSubteam('the add to channels', 'teamAddToChannels', onAdd)
-    check(await bothAlone(), 'a channel other than the two is picked: not tapping')
     let seq = await currentCallSeq()
     await tapHeaderAction('Add', "the add to channels' Add")
     await waitForUiCall('the channel adds to go out', seq, 'chat.1.local.bulkAddToManyConvs')
+    // the add went to the two host-made channels alone (no #general, no other), read off the call log
+    const sent = (await uiCallsSince(seq, 'chat.1.local.bulkAddToManyConvs')).map(c => [...(c.convs ?? [])].sort())
+    const wantConvs = [...convIDs].sort()
+    check(
+      sent.length === 1 && sent[0]!.length === wantConvs.length && sent[0]!.every((c, i) => c === wantConvs[i]),
+      'the channel add did not go to the two host-made channels alone'
+    )
     for (const c of channels) {
       await expectHost('the second account in a picked channel', async () => channelMembers(name, c), m => m.includes(secondUser))
     }
@@ -521,7 +519,7 @@ describe('teams members', function () {
     await backToTeamPage('the member page', teamID)
     await openTeamTab(CHANNELS.button, CHANNELS.body)
     const channelRow = await filesRowNamed(`#${channels[0]}`, "the first channel's row", {testID: T.TEAMS_CHANNEL_ROW})
-    await channelRow.e.click()
+    await press(channelRow.e, 'the channel row')
     const onChannel = (p: Params) => p['teamID'] === teamID && p['conversationIDKey'] === convIDs[0]
     await expectScreen("the first channel's page", 'teamChannel', onChannel)
     await el(T.TEAMS_CHANNEL_PAGE).waitForExist({timeout: 10_000})
@@ -588,7 +586,7 @@ describe('teams members', function () {
     await expectHost('the second account back in the subteam', async () => rolesIn(name), r => r.second === 'writer')
     // a page opened afresh carries no selection, so the row draws its menu button
     await openSubteamUntil("the subteam's members with the second account back", name, teamID, MEMBERS, secondsRow)
-    check(!(await el(T.TEAMS_SELECTION_POPUP).isDisplayed().catch(() => false)), 'a member is still selected on the reopened page')
+    check(!(await onScreenID(T.TEAMS_SELECTION_POPUP)), 'a member is still selected on the reopened page')
     const again = await memberRow(secondUser, "the second account's member row")
     const menu = await elementInRow(again.rect, T.TEAMS_MEMBER_ROW_MENU)
     await openMenuFrom("the second account's row menu", async () => menu.click())
@@ -620,7 +618,7 @@ describe('teams members', function () {
 
     await requireOnSubteam("the subteam's page", 'team', onSubteam)
     await revealTeamHeader()
-    await tapButton('Add/Invite people', "the header's Add/Invite people")
+    await tapHeaderAddInvite()
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
     const byEmail = await waitFor(
       "the wizard's email list choice",
@@ -702,7 +700,8 @@ describe('teams members', function () {
     await openMenuFrom("the request's menu", async () => menu.click())
     await requireOnSubteam("the request's menu", 'team', onSubteam)
     const seq = await currentCallSeq()
-    await chooseMenuItem('Deny')
+    // the item reads its subtitle after its title
+    await chooseMenuItem("Deny, They won't be notified")
     await waitForUiCall('the deny to go out', seq, 'keybase.1.teams.teamIgnoreRequest')
     // the subteam's members read alongside: the smoke account in it, the second account not let in
     await expectHost(

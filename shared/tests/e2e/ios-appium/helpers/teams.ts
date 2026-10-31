@@ -7,9 +7,10 @@ import {maskAccounts} from '../../accounts/sweep-lib.ts'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {innermost, type Rect} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
-import {BUTTONS, expectScreen, filesRowNamed, visibleScreen} from './files'
+import {BUTTONS, expectScreen, filesRowNamed, onScreen, onScreenID, press, visibleScreen} from './files'
 import {check, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, labelledElement} from './menus'
 import {waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
@@ -54,7 +55,7 @@ export const expectTeamPage = async (what: string, teamID: string) => expectScre
 export const openTeamFromList = async (name: string, teamID: string) => {
   await openTeamsRoot()
   const row = await filesRowNamed(name, 'the team row', {testID: T.TEAMS_ROW})
-  await row.e.click()
+  await press(row.e, 'the team row')
   await expectTeamPage('the team page of the row tapped', teamID)
 }
 
@@ -78,7 +79,7 @@ const drag = async (from: {x: number; y: number}, to: {x: number; y: number}) =>
 // (the phone's row scrolls sideways) is dragged into it first. Bound: up to three drags and their
 // reads 6, tapForTestID 18 (three taps 1 and waits 5) = 24.
 export const openTeamTab = async (button: string, body: string) => {
-  for (let i = 0; i < 3 && !(await el(button).isDisplayed().catch(() => false)); i++) {
+  for (let i = 0; i < 3 && !(await onScreenID(button)); i++) {
     const row = await rectOf(await el(T.TEAMS_TABS).getElement())
     const at = await el(button).getLocation().catch(() => undefined)
     const y = row.y + row.height / 2
@@ -93,11 +94,11 @@ export const openTeamTab = async (button: string, body: string) => {
 // Scrolls the team page back to its top until its header (marked by its "..." menu button) is on
 // screen. Bound: up to four drags and their reads 8.
 export const revealTeamHeader = async () => {
-  for (let i = 0; i < 4 && !(await el(T.TEAMS_HEADER_MENU_BUTTON).isDisplayed().catch(() => false)); i++) {
+  for (let i = 0; i < 4 && !(await onScreenID(T.TEAMS_HEADER_MENU_BUTTON)); i++) {
     const {height, width} = await browser.getWindowRect()
     await drag({x: width / 2, y: height * 0.35}, {x: width / 2, y: height * 0.75})
   }
-  check(await el(T.TEAMS_HEADER_MENU_BUTTON).isDisplayed().catch(() => false), "the team page's header is not on screen")
+  check(await onScreenID(T.TEAMS_HEADER_MENU_BUTTON), "the team page's header is not on screen")
 }
 
 // Refuses, before a tap that writes, unless the screen up is `name` and `ok` takes its params (the
@@ -204,6 +205,25 @@ export const tapHeaderAction = async (label: string, what: string) => {
   await action.click()
 }
 
+// Taps the team header's Add/Invite people: a page with no other members draws a second one lower
+// down, in its empty members list, so the header's is the upper of those on screen. Bound: 5s, the
+// tap 1.
+export const tapHeaderAddInvite = async () => {
+  const button = await waitFor(
+    "the header's Add/Invite people",
+    async () => {
+      const found: Array<{e: WebdriverIO.Element; y: number}> = []
+      for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add/Invite people"').getElements()) {
+        if (!(await onScreen(e))) continue
+        found.push({e, y: (await e.getLocation()).y})
+      }
+      return found.sort((a, b) => a.y - b.y)[0]?.e
+    },
+    {interval: 250, timeout: 5_000}
+  )
+  await button.click()
+}
+
 // The one field of `type` on screen (TextField for a line, TextView for a multi-line field), found by
 // its type so a placeholder holding a name never goes into a selector: the one reported visible, else
 // (a modal whose elements XCUITest reports visible=false now and then) the one in the tree.
@@ -218,24 +238,33 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
   return () => browser.$(selector)
 }
 
-// The one element `selector` finds whose label, split at its ", " joins, holds `part`, drawn with
-// its middle inside `rect` (a row, a popup), the innermost of nested matches: a label repeated
-// elsewhere on screen (a role behind the role picker) is not it. Compared in memory; `what` names
-// it. Throws when none or more than one is. Bound: one read 1.
+// The one element of TEXTS' or BUTTONS' types whose label, split at its ", " joins, holds `part`,
+// drawn with its middle inside `rect` (a row, a popup), the innermost of nested matches: a label
+// repeated elsewhere on screen (a role behind the role picker) is not it. Read off one page source
+// (an attribute call per labelled box took minutes) and compared in memory: the visible matches, or
+// when XCUITest reports none of them visible (a popup it reports invisible now and then) every one in
+// the rect; then fetched by its type and frame. `what` names it. Throws when none or more than one is.
+// Bound: one read 2.
 export const labelPartInside = async (rect: Rect, selector: string, part: string, what: string) => {
-  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
-  for (const e of await browser.$$(selector).getElements()) {
-    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-    if (!label.split(', ').some(p => p.trim() === part)) continue
-    const r = await rectOf(e).catch(() => undefined)
-    if (!r) continue
-    const x = r.x + r.width / 2
-    const y = r.y + r.height / 2
-    if (x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height) found.push({e, rect: r})
-  }
-  const inner = innermost(found.map(f => f.rect))
+  const types = selector === BUTTONS ? ['XCUIElementTypeButton'] : TEXT_TYPES
+  const inRect = sourceElements(await browser.getPageSource())
+    .filter(e => types.includes(e.type) && (e.attrs['label'] ?? '') !== '')
+    .filter(e => (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(p => p.trim() === part))
+    .map(e => ({e, r: {height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}}))
+    .filter(({r}) => {
+      const x = r.x + r.width / 2
+      const y = r.y + r.height / 2
+      return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
+    })
+  const shown = inRect.filter(({e}) => e.attrs['visible'] === 'true')
+  const found = shown.length ? shown : inRect
+  const inner = innermost(found.map(f => f.r))
   check(inner.length === 1, `${inner.length} of ${what} drawn, not one`)
-  return found[inner[0]!]!.e
+  const {e, r} = found[inner[0]!]!
+  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+  const el = (await browser.$$(`-ios predicate string:type == "${e.type}" AND ${at}`).getElements()).at(-1)
+  if (!el) throw new Error(`no element at the frame of ${what}`)
+  return el
 }
 
 // Waits for labelPartInside to find the element. Bound: `timeout`, plus one read 1.
@@ -244,7 +273,7 @@ export const shownInside = async (rect: Rect, selector: string, part: string, wh
 
 // The open role picker's rect, once it is drawn. Bound: 10s, its read 1.
 const rolePicker = async () => {
-  await el(T.TEAMS_ROLE_PICKER).waitForDisplayed({timeout: 10_000})
+  await waitFor('the role picker', async () => ((await onScreenID(T.TEAMS_ROLE_PICKER)) ? true : undefined), {interval: 250, timeout: 10_000})
   return rectOf(await el(T.TEAMS_ROLE_PICKER).getElement())
 }
 
@@ -254,7 +283,7 @@ const rolePicker = async () => {
 // `beforeSave`.
 export const pickRole = async (role: string, beforeSave: () => Promise<void>) => {
   const picker = await rolePicker()
-  await (await shownInside(picker, TEXTS, role, `the role picker's ${role}`)).click()
+  await press(await shownInside(picker, TEXTS, role, `the role picker's ${role}`), `the role picker's ${role}`)
   const save = await shownInside(picker, BUTTONS, 'Save', "the role picker's Save")
   await beforeSave()
   await save.click()

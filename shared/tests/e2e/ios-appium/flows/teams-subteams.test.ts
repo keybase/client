@@ -35,7 +35,7 @@ import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, visibleScreen} from '../helpers/files'
+import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, onScreen, pressTestID, tapButton, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -49,6 +49,7 @@ import {
   requireOnSubteam,
   revealTeamHeader,
   tapHeaderAction,
+  tapHeaderAddInvite,
   textPartShown,
   textShown,
 } from '../helpers/teams'
@@ -125,7 +126,7 @@ describe('teams subteams', function () {
   const drawnChannelRows = async () => {
     const out: Array<Array<string>> = []
     for (const e of await browser.$$(`~${T.TEAMS_CHANNEL_ROW}`).getElements()) {
-      if (!(await e.isDisplayed().catch(() => false))) continue
+      if (!(await onScreen(e))) continue
       const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
       out.push(label.split(', ').map(p => p.trim()))
     }
@@ -247,7 +248,7 @@ describe('teams subteams', function () {
 
     await requireOnSubteam("the subteam's page", 'team', onSubteam)
     await revealTeamHeader()
-    await tapButton('Add/Invite people', "the header's Add/Invite people")
+    await tapHeaderAddInvite()
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
     await textPartShown('A list of email addresses', "the wizard's email list choice")
     await step('The add-members wizard')

@@ -14,10 +14,11 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField} from '../gate/secret-input.ts'
-import {signedInAs, typeIntoFocused} from './chat'
+import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
 import {check, labelledElement, openMenuFrom} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
@@ -71,6 +72,22 @@ export const tapElement = async (e: WebdriverIO.Element, what: string) => {
   await tapFrame(rect, what)
 }
 
+// Whether `e` is in the tree and its frame lies wholly on screen: what isDisplayed() would say if
+// XCUITest's `visible` could be trusted (it reads false now and then on a team page, a modal or a
+// sheet that is up). Bound: the reads 1.
+export const onScreen = async (e: WebdriverIO.Element) => {
+  const rect = await rectOf(e)
+  if (!rect) return false
+  const {height, width} = await browser.getWindowRect()
+  return inside(rect, {height, width, x: 0, y: 0})
+}
+
+// onScreen for the one element with testID `id`; false when there is none. Bound: the reads 1.
+export const onScreenID = async (id: string) => {
+  const e = (await browser.$$(`~${id}`).getElements())[0]
+  return e ? onScreen(e) : false
+}
+
 // Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
 // read visible=false (a folder screen always, a team page or a modal now and then), and a click on
 // such a box taps nothing. Bound: the reads 1, the tap 1.
@@ -97,7 +114,7 @@ const rowArea = async (within?: WebdriverIO.Element): Promise<Rect> => {
 }
 
 // The Files rows go by their frame in the browser; any other list's rows (a team's members) by
-// `visible`, as XCUITest reports those.
+// `visible`, as XCUITest mostly reports those.
 const isFilesRow = (testID: string) => testID === T.FILES_ROW || testID === T.FILES_TLF_ROW
 
 const labelParts = (label: string) =>
@@ -113,13 +130,43 @@ export type DrawnRow = {e: WebdriverIO.Element; rect: Rect}
 // every such element reads, to tell a drag that moved the list from one that did not. Throws when more
 // than one matches.
 const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Element) => {
-  const root = within ?? browser
   const files = isFilesRow(testID)
   const area = files ? await rowArea(within) : undefined
+  // another list's rows go by `visible`, unless XCUITest reports none of them visible (a modal it
+  // reports invisible now and then): then every one in the tree
+  const pick = <E,>(all: Array<E>, visible: (e: E) => boolean) => {
+    const shown = files ? [] : all.filter(visible)
+    return files || !shown.length ? all : shown
+  }
+  if (!within) {
+    const {height, width} = await browser.getWindowRect()
+    const screen = {height, width, x: 0, y: 0}
+    // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
+    const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
+    const candidates = pick(all, e => e.attrs['visible'] === 'true')
+    const hits = candidates
+      .filter(e => labelParts(e.attrs['label'] ?? '').includes(name))
+      .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
+      // a row of another list is taken only on screen: one XCUITest reports invisible may be off it
+      .filter(r => inside(r, area ?? screen))
+    const inner = innermost(hits)
+    if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
+    const signature = candidates.map(e => e.attrs['label'] ?? '').join('\n')
+    if (!inner.length) {
+      // a list that is not virtualized keeps its off-screen rows in the tree: which way the row is
+      const off = all.find(e => labelParts(e.attrs['label'] ?? '').includes(name))
+      return {offscreen: off ? Number(off.attrs['y']) - height / 2 : undefined, row: undefined, signature}
+    }
+    const r = hits[inner[0]!]!
+    const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+    const e = (await browser.$$(`-ios predicate string:name == ${JSON.stringify(testID)} AND ${at}`).getElements()).at(-1)
+    return {row: e ? {e, rect: r} : undefined, signature}
+  }
   const found: Array<DrawnRow> = []
   const labels: Array<string> = []
-  const visible = files ? '' : ' AND visible == 1'
-  for (const e of await root.$$(`-ios predicate string:name == ${JSON.stringify(testID)}${visible}`).getElements()) {
+  const byID = `-ios predicate string:name == ${JSON.stringify(testID)}`
+  const shown = files ? [] : await within.$$(`${byID} AND visible == 1`).getElements()
+  for (const e of files || !shown.length ? await within.$$(byID).getElements() : shown) {
     const label = (await e.getAttribute('label').catch(() => null)) ?? ''
     labels.push(label)
     if (!labelParts(label).includes(name)) continue
@@ -128,7 +175,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   }
   const inner = innermost(found.map(f => f.rect))
   if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
-  return {row: inner.length ? found[inner[0]!] : undefined, signature: labels.join('\n')}
+  return {offscreen: undefined as number | undefined, row: inner.length ? found[inner[0]!] : undefined, signature: labels.join('\n')}
 }
 
 export const drag = async (fromY: number, toY: number) => {
@@ -146,7 +193,8 @@ export const drag = async (fromY: number, toY: number) => {
 
 // The row (`testID`, FILES_ROW by default) named exactly `name`, under `within` when given. The list
 // is dragged toward its end until the row shows, and back toward its start once a drag moves nothing,
-// so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one drag's 1.
+// so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one try's drags: 1,
+// or 4 toward a row the tree holds off screen.
 export const filesRowNamed = async (
   name: string,
   what: string,
@@ -157,12 +205,22 @@ export const filesRowNamed = async (
   return waitFor(
     what,
     async () => {
-      const {row, signature} = await drawnNamed(testID, name, within)
+      const {offscreen, row, signature} = await drawnNamed(testID, name, within)
       if (row) return row
+      const {height} = await browser.getWindowRect()
+      // a row the tree holds off screen (a list that is not virtualized) says which way and how far:
+      // long drags toward it, up to four between reads
+      if (offscreen !== undefined) {
+        const span = height * 0.5
+        for (let i = 0; i < Math.min(4, Math.ceil(Math.abs(offscreen) / span)); i++) {
+          await (offscreen > 0 ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
+        }
+        before = signature
+        return undefined
+      }
       // a drag that changed nothing reached the list's end (or the list fits): turn around
       if (signature === before) towardEnd = !towardEnd
       before = signature
-      const {height} = await browser.getWindowRect()
       await (towardEnd ? drag(height * 0.7, height * 0.35) : drag(height * 0.35, height * 0.7))
       return undefined
     },
@@ -310,6 +368,23 @@ export const fillHiddenField = async (fieldTestID: string, text: string, what: s
     interval: 250,
     timeout: 5_000,
   })
+}
+
+// Types `text` into the SearchFilter on screen (the team builder's, a picker's): its box is one
+// accessible element with the field not in the tree, so the box is pressed unless the keyboard is
+// already up, and the text goes in as key presses. Bound: the box 10, its press 2, the keyboard 5,
+// the keys 15 = 32.
+export const typeInFilter = async (text: string, what: string) => {
+  await browser.$(`~${T.SEARCH_FILTER}`).waitForExist({timeout: 10_000})
+  if (!(await isKeyboardUp())) {
+    // a filter of another tab's screen can be in the tree too: the visible one, else the newest
+    const boxes = await browser.$$(`~${T.SEARCH_FILTER}`).getElements()
+    let box = boxes.at(-1)!
+    for (const e of boxes) if ((await e.getAttribute('visible').catch(() => null)) === 'true') box = e
+    await press(box, what)
+  }
+  await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {interval: 250, timeout: 5_000})
+  await typeIntoFocused(what, text)
 }
 
 // Waits for the relaunched app to be signed in and not switching accounts. Bound: 90s.

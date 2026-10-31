@@ -14,9 +14,11 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {expectScreen, filesRowNamed} from '../helpers/files'
+import {expectScreen, filesRowNamed, press} from '../helpers/files'
+import {waitFor} from '../helpers/lifecycle'
+import {cardTitledIn} from '../helpers/menus'
 import {escapeToTabs, tabTo} from '../helpers/navigate'
-import {backToTeamPage, backToTeamsRoot, masked, onlyField, openTeamFromList, openTeamTab, openTeamsRoot, tapTeamsCard, textShown} from '../helpers/teams'
+import {backToTeamPage, backToTeamsRoot, masked, onlyField, openTeamFromList, openTeamTab, openTeamsRoot, tapTeamsCard} from '../helpers/teams'
 
 // each tab of a team page, and the testID its body carries while it is the tab up; Members last, as
 // the member page is opened from it
@@ -63,7 +65,7 @@ describe('teams browse', function () {
 
     // the Members tab is up: the smoke account's row, found by its name, opens its member page
     const row = await filesRowNamed(smokeUser, "the smoke account's member row", {testID: T.TEAMS_MEMBER_ROW})
-    await row.e.click()
+    await press(row.e, 'the member row')
     await expectScreen("the smoke account's member page", 'teamMember', p => p['teamID'] === teamID && p['username'] === smokeUser)
     await el(T.TEAMS_MEMBER_PAGE).waitForExist({timeout: 10_000})
     await step("The smoke account's member page", {card: true})
@@ -71,14 +73,19 @@ describe('teams browse', function () {
   })
 
   it("the new-team wizard's purpose and name screens backed out of, then the Teams tab left", async function () {
-    // worst case (s): root 56, button 6, screen 11, step 2, text 6 and its tap 1, screen 11, field
-    // 11, step 2, back 44; calls 2, tabTo 15, waited for 12, step 2 = 181
+    // worst case (s): root 56, button 6, screen 11, step 2, the card 6 and its press 2, screen 11, field
+    // 11, step 2, back 44; calls 2, tabTo 15, waited for 12, step 2 = 182
     this.timeout(200_000)
     await openTeamsRoot()
     await tapTeamsCard('Create a team', "the Teams tab's Create a team")
     await expectScreen("the new team's purpose screen", 'teamWizard1TeamPurpose')
     await step("The new team's purpose screen")
-    await (await textShown('Friends, family, or squad', 'the friends purpose')).click()
+    // a card: its box merges its title and subtitle
+    const friends = await waitFor('the friends purpose', async () => cardTitledIn(['XCUIElementTypeOther'], 'Friends, family, or squad', 'the friends purpose'), {
+      interval: 250,
+      timeout: 5_000,
+    })
+    await press(friends, 'the friends purpose')
     await expectScreen("the new team's name screen", 'teamWizard2TeamInfo', p => (p['wizard'] as {teamType?: string} | undefined)?.teamType === 'friends')
     // the name is never typed and Continue never tapped: the wizard would make a team for good
     await onlyField('TextField', "the new team's name field")
