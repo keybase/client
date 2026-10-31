@@ -61,6 +61,15 @@ export const menuLabels = async (): Promise<Array<string>> => {
 export const menuHas = async (label: string) => offers(await menuLabels(), label)
 export const menuOffers = offers
 
+// Waits for the open sheet to leave the tree, then reads the screen under it positively (a navigation
+// or tab bar in the tree): an absence alone could be a read of an empty or failed tree. Rejects
+// (as waitForExist does) when the sheet stays. Bound: `timeout`, the bar read 1.
+export const waitForSheetGone = async (timeout: number) => {
+  await menuSheet().waitForExist({reverse: true, timeout})
+  const bars = await browser.$$('-ios predicate string:type == "XCUIElementTypeNavigationBar" OR type == "XCUIElementTypeTabBar"').length
+  if (!bars) throw new Error('the menu sheet left, but no screen under it reads back')
+}
+
 type Rect = {height: number; width: number; x: number; y: number}
 const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
   const at = await e.getLocation().catch(() => undefined)
@@ -134,14 +143,13 @@ export const chooseMenuItem = async (label: string) => {
     const item = await sheetItem(label)
     if (!item) throw new Error(`"${label}" left the menu before it was tapped`)
     await tapSheetItem(item)
-    const closed = await menuSheet()
-      .waitForExist({reverse: true, timeout: 2_500})
+    const closed = await waitForSheetGone(2_500)
       .then(() => true)
       .catch(() => false)
     if (closed) return
     // the tap took and the sheet is on its way down
     if (!(await sheetItem(label))) {
-      await menuSheet().waitForExist({reverse: true, timeout: 2_500})
+      await waitForSheetGone(2_500)
       return
     }
     if (tap >= 2) throw new Error(`the menu sheet is still up after "${label}" was tapped twice`)

@@ -9,7 +9,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
-import {check, menuSheet, openSheetWith} from './menus'
+import {check, menuSheet, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
@@ -1017,8 +1017,16 @@ export const rowCentre = async (text: string) => {
 
 export const closeMessageMenu = async () => {
   if (!(await menuSheet().isExisting())) return
-  await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').click()
-  await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+  // a backdrop XCUITest reports visible=false takes no click: it is tapped at its frame then
+  const backdrop = await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').getElement()
+  if ((await backdrop.getAttribute('visible').catch(() => null)) === 'true') await backdrop.click()
+  else {
+    const at = await backdrop.getLocation()
+    const size = await backdrop.getSize()
+    // its top part: the sheet covers the bottom of the backdrop
+    await browser.execute('mobile: tap', {x: Math.round(at.x + size.width / 2), y: Math.round(at.y + Math.min(size.height / 4, 150))})
+  }
+  await waitForSheetGone(5_000)
 }
 
 // The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
