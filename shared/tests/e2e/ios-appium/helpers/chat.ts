@@ -1017,15 +1017,24 @@ export const rowCentre = async (text: string) => {
 
 export const closeMessageMenu = async () => {
   if (!(await menuSheet().isExisting())) return
-  // a backdrop XCUITest reports visible=false takes no click: it is tapped at its frame then
-  const backdrop = await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').getElement()
-  if ((await backdrop.getAttribute('visible').catch(() => null)) === 'true') await backdrop.click()
-  else {
-    const at = await backdrop.getLocation()
-    const size = await backdrop.getSize()
-    // its top part: the sheet covers the bottom of the backdrop
-    await browser.execute('mobile: tap', {x: Math.round(at.x + size.width / 2), y: Math.round(at.y + Math.min(size.height / 4, 150))})
+  // its Close when that is on screen (a sheet dragged open to the top leaves no backdrop to tap),
+  // else the backdrop above the sheet's top: the sheet covers the rest of it, so the backdrop's own
+  // middle can land on the sheet
+  const {height, width} = await browser.getWindowRect()
+  let top = height
+  for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
+    top = Math.min(top, (await sh.getLocation().catch(() => ({y: height}))).y)
   }
+  const closes = await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()
+  let close: {x: number; y: number} | undefined
+  for (const c of closes) {
+    const at = await c.getLocation().catch(() => undefined)
+    const size = await c.getSize().catch(() => undefined)
+    // the sheet's own Close: below the sheet's top and on screen
+    if (at && size && at.y >= top && at.y + size.height <= height) close = {x: at.x + size.width / 2, y: at.y + size.height / 2}
+  }
+  close ??= {x: width / 2, y: Math.max(top / 2, 80)}
+  await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
   await waitForSheetGone(5_000)
 }
 
