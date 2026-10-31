@@ -36,15 +36,20 @@ import {relaunchApp} from '../gate/device.ts'
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // Metro's inspector connection to the app drops now and then for a moment (the app keeps running);
-// an eval that fails to connect is tried again for a few seconds before it counts.
-export const jsEval = async <R>(body: string): Promise<R> => {
+// an eval that fails to connect is tried again for a few seconds before it counts. A body that
+// changes the app (calls a handler, dispatches, sets or takes a global) passes {once: true}: after a
+// timeout or a dropped connection it may already have run, so only a failed page lookup, before
+// anything was sent, is tried again. Retried bodies are reads only.
+const READ_TRANSIENT = /no Metro inspector page|inspector connection failed|inspector evaluate timed out/
+const UNSENT = /no Metro inspector page/
+export const jsEval = async <R>(body: string, opts?: {once?: boolean}): Promise<R> => {
   const end = Date.now() + 10_000
+  const transient = opts?.once ? UNSENT : READ_TRANSIENT
   for (;;) {
     try {
       return await jsEvalOnce<R>(body)
     } catch (e) {
-      const transient = e instanceof Error && /no Metro inspector page|inspector connection failed|inspector evaluate timed out/.test(e.message)
-      if (!transient || Date.now() > end) throw e
+      if (!(e instanceof Error && transient.test(e.message)) || Date.now() > end) throw e
       await sleep(500)
     }
   }
@@ -229,7 +234,7 @@ const startThreadSampler = async () => {
       }
     }, 16)
     return true
-  `)
+  `, {once: true})
   if (!ok) throw new Error('no thread list on screen to sample')
 }
 
@@ -243,7 +248,7 @@ const stopThreadSampler = async () => {
     g.__e2eSamples = undefined
     g.__e2eSamplerError = undefined
     return {error, samples: s}
-  `)
+  `, {once: true})
   if (error) throw new Error(`the thread sampler stopped: ${error}`)
   return samples
 }
@@ -867,7 +872,7 @@ export const waitForKeyboard = async (timeout = 5_000) =>
 // app's keyboards), and waits for it to go.
 export const hideKeyboard = async () => {
   if (!(await isKeyboardUp())) return
-  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`)
+  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
   await waitFor('the keyboard to close', async () => ((await isKeyboardUp()) ? undefined : true), {interval: 200, timeout: 5_000})
 }
 
@@ -1502,7 +1507,7 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
     if (!host) return -1
     g.nativeFabricUIManager.measureInWindow(host.stateNode.node, (x, y, width, height) => (g.__e2eTextFrame = {height, width, x, y}))
     return 1
-  `)
+  `, {once: true})
   if (started !== 1) {
     throw new Error(started === -1 ? `the "${text}" text has no view to measure` : `${started} pressable "${text}" texts in the message at ${ordinal}, not one`)
   }
@@ -1567,7 +1572,7 @@ export const pressInlineText = async (ordinal: number, text: string) => {
     }
     if (hits.length === 1) hits[0]()
     return hits.length
-  `)
+  `, {once: true})
   if (found !== 1) throw new Error(`${found} pressable "${text}" texts in the message at ${ordinal}, not one`)
 }
 
@@ -1619,7 +1624,7 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
     ui.measureInWindow(button.stateNode.node, (x, y, width, height) => ((frames.button = {height, width, x, y}), done()))
     ui.measureInWindow(row.stateNode.node, (x, y, width, height) => ((frames.row = {height, width, x, y}), done()))
     return 1
-  `)
+  `, {once: true})
   if (started !== 1) {
     throw new Error(
       started === -1
@@ -1717,7 +1722,7 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
     ui.measureInWindow(host.stateNode.node, (x, y, width, height) => ((frames.switch = {height, width, x, y}), done()))
     for (const a of anchorHosts) ui.measureInWindow(a.stateNode.node, (x, y, width, height) => (frames.anchors.push({height, width, x, y}), done()))
     return 1
-  `)
+  `, {once: true})
   if (started !== 1) {
     throw new Error(started === -1 ? 'the switch asked for or its anchor has no view to measure' : `${started} switches with the label asked for, not one`)
   }
@@ -1771,7 +1776,7 @@ export const watchAccountChange = async () =>
       if (s.uid !== prev.uid && g.__e2eAccountChangedSeq === null) g.__e2eAccountChangedSeq = recorder.calls(Number.MAX_SAFE_INTEGER).seq
     })
     return true
-  `)
+  `, {once: true})
 
 // The call seq at the first account change since watchAccountChange, or null before one.
 export const accountChangedSeq = async () => jsEval<number | null>(`return globalThis.__e2eAccountChangedSeq ?? null`)
@@ -1783,7 +1788,7 @@ export const stopAccountChangeWatch = async () => {
     if (g.__e2eUidWatch) g.__e2eUidWatch()
     g.__e2eUidWatch = undefined
     return true
-  `)
+  `, {once: true})
 }
 
 // Starts a switch to another account signed in on this device through the app's own switch (what
@@ -1792,7 +1797,8 @@ export const startAppAccountSwitch = async (username: string) => {
   // only the dispatch is paused: the flow's typing during the switch must still be credited
   const started = await withHarnessRpcs('the account switch', async () =>
     jsEval<boolean>(
-      `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+      `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`,
+      {once: true}
     )
   )
   if (!started) throw new Error('the app would not start the account switch')
@@ -1824,7 +1830,7 @@ const askApp = async <R,>(what: string, call: string, timeout = 20_000): Promise
   // unique across runs too: the app's global outlives this process
   const ask = `${Date.now()}-${++appAsks}`
   const r = await withHarnessRpcs(what, async () => {
-    await jsEval(appAskBody(ask, call))
+    await jsEval(appAskBody(ask, call), {once: true})
     return waitFor(
       `the phone's service to answer ${what}`,
       async () => {
