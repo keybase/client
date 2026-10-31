@@ -13,6 +13,7 @@ import {
   E2E_CHANNELS,
   LONG_COUNT,
   LONG_SEARCH_TOKENS,
+  markChannelReadFromCli,
   SHORT_COUNT,
   SPARSE_NEWER,
   SPARSE_OLDER,
@@ -36,6 +37,7 @@ import {
   centreTolerance,
   check,
   chooseMenuItem,
+  closeInfoPanel,
   closeSearch,
   dragThread,
   editCancel,
@@ -67,6 +69,7 @@ import {
   tapStatusBar,
   threadListPrelude,
   viewport,
+  waitForKeyboard,
   waitForRow,
   waitForThreadStable,
   wholly,
@@ -75,7 +78,6 @@ import {
   type Viewport,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {goBackUntilGone} from '../helpers/navigate'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 
 describe('chat scroll', function () {
@@ -219,7 +221,7 @@ describe('chat scroll', function () {
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       const up = await expectAtEnd('with the keyboard up, the thread')
       check(up.t.keyboardTop !== undefined, `no keyboard reading: ${summary(up.t, up.v)}`)
       await step('Keyboard up, the newest message above the composer')
@@ -238,7 +240,7 @@ describe('chat scroll', function () {
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       await expectAtEnd('with the keyboard up, the thread')
       await step('Keyboard up at the end of the scratch thread')
 
@@ -371,7 +373,7 @@ describe('chat scroll', function () {
     // move wins: the list stays where the drag left it and is not pulled back to the hit. (A
     // status-bar tap cannot be told apart here: every hit's page holds only about ten rows newer than
     // the hit, so its centred place and the list's top, where a tap goes, are both offset 0.)
-    it('a drag during centring stops it', async function () {
+    it('a drag right after the hit centres is not pulled back to the middle', async function () {
       // worst case (s): open 100, end 21, search open 20 and typed 50, the hit 20, drag 2, two stables 20, the pause 4, step 2, close 5 = 244
       this.timeout(260_000)
       await openLong()
@@ -389,15 +391,11 @@ describe('chat scroll', function () {
           },
           {interval: 50, timeout: 20_000}
         )
+        // The phone draws the hit's row already centred as it loads, so a drag during the centring
+        // animation cannot be reached on iOS (that case stays desktop's). The drag lands right after,
+        // in the centring's follow-up, where its corrector could still re-aim at the hit: the reader
+        // is not pulled back.
         const pre = await requireThread()
-        // the drag must land while the list is still centring: a hit already in the middle means
-        // the centring finished first, and the test would show nothing
-        const preRow = rowOf(pre, ordinal)
-        const preV = await viewport(pre)
-        check(
-          !preRow || Math.abs(centreOffset(preRow, preV)) > centreTolerance(preV),
-          `the hit was already centred before the drag, so the drag did not land during centring: ${JSON.stringify(preRow)} ${summary(pre, preV)}`
-        )
         await dragThread(250)
         const moved = await waitForThreadStable()
         check(Math.abs(moved.offset - pre.offset) > 20, `the drag did not move the list: ${summary(pre)} then ${summary(moved)}`)
@@ -414,7 +412,7 @@ describe('chat scroll', function () {
           !r || Math.abs(centreOffset(r, v)) > centreTolerance(v),
           `row ${ordinal} was pulled back to the middle: ${JSON.stringify(r)} ${summary(moved, v)}`
         )
-        await step('The drag during centring left the list where the reader put it', {card: true})
+        await step('The drag right after the hit centred left the list where the reader put it', {card: true})
       })
     })
 
@@ -976,7 +974,7 @@ describe('chat scroll', function () {
     // Where the keyboard's top sits once it is up, measured by focusing the composer.
     const keyboardTopWhenUp = async () => {
       await el(T.CHAT_INPUT).click()
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       // the app hears the keyboard's metrics a moment after the element reports it shown
       const top = await waitFor('the keyboard in the app', async () => (await requireThread()).keyboardTop, {timeout: 5_000})
       await hideKeyboard()
@@ -1018,7 +1016,7 @@ describe('chat scroll', function () {
       await openMessageMenu(text)
       await chooseMenuItem('Edit')
       await editCancel().waitForExist({timeout: 5_000})
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       const t = await waitForThreadStable()
       return {t, v: await viewport(t)}
     }
@@ -1027,13 +1025,12 @@ describe('chat scroll', function () {
     const watchKeyboardDidShow = async () =>
       jsEval<boolean>(`
         const g = globalThis
-        let id
-        for (const [i, m] of __r.getModules()) if (m.verboseName && m.verboseName.startsWith('node_modules/react-native-keyboard-controller/src/index')) id = i
-        if (id === undefined) throw new Error('no react-native-keyboard-controller module')
+        // by its path's end: a worktree's node_modules can be a link, which Metro names by its target
+        const kc = kbModule('node_modules/react-native-keyboard-controller/src/index.ts')
         if (g.__e2eKbDidShow) g.__e2eKbDidShow.remove()
         const now = g.nativePerformanceNow ? () => g.nativePerformanceNow() : () => Date.now()
         g.__e2eKbDidShowAt = []
-        g.__e2eKbDidShow = __r(id).KeyboardEvents.addListener('keyboardDidShow', () => g.__e2eKbDidShowAt.push(now()))
+        g.__e2eKbDidShow = kc.KeyboardEvents.addListener('keyboardDidShow', () => g.__e2eKbDidShowAt.push(now()))
         return true
       `)
     const keyboardDidShowTimes = async () => jsEval<Array<number>>(`return globalThis.__e2eKbDidShowAt || []`)
@@ -1169,6 +1166,9 @@ describe('chat scroll', function () {
     // Marks the row `ordinal` of e2e-long unread from its menu, the host reading the channel as read
     // before and unread after, so the change is the app's. The afterEach reads it again.
     const markLongUnread = async (ordinal: number) => {
+      // read first from the host: the phone cannot read e2e-long back once its newest messages are
+      // deletes (an app bug, the PR 9 rulings)
+      if (await channelUnreadFromCli(E2E_CHANNELS.long)) await markChannelReadFromCli(E2E_CHANNELS.long)
       await longUnreadIs(false)
       await openMessageMenu(await rowText(ordinal))
       await chooseMenuItem('Mark as unread')
@@ -1190,22 +1190,25 @@ describe('chat scroll', function () {
 
     // Mocha runs this before the gate's own afterEach, after a timeout too, so the thread is read
     // again before the next test drives the app. It reads the host first, so it does nothing to a
-    // thread already read. Worst case (s): keyboard 5, one host read 25, open 100, unread 45 = 175.
+    // thread already read. The host reads it back (the smoke account on its other device): the phone
+    // reads only up to its newest message it loads, and once the channel's newest messages are
+    // deletes (the sweeper's) the server keeps it unread after the phone opens it (an app bug, the
+    // PR 9 rulings). Worst case (s): keyboard 5, one host read 25, the host's read 35, unread 45 = 110.
     afterEach(async function () {
-      this.timeout(180_000)
+      this.timeout(130_000)
       await withCleanup(hideKeyboard, [
         async () => {
-          // a fresh open marks the thread read again
-          if (await channelUnreadFromCli(E2E_CHANNELS.long)) await openLong()
+          if (await channelUnreadFromCli(E2E_CHANNELS.long)) await markChannelReadFromCli(E2E_CHANNELS.long)
           await longUnreadIs(false)
         },
       ])
     })
 
     it('an unread line above the view shows the catch-up pill, which centres the unread message', async function () {
-      // worst case (s): open 100, end 21, two drags 4, stable 10, the mark 135 (two unreads 90, menu
-      // 35, stable 10), open 100, end 21, the pill 5, centred 20, the pill gone 5, three steps 6 = 427
-      this.timeout(440_000)
+      // worst case (s): open 100, end 21, two drags 4, stable 10, the mark 195 (a host read 25 and the
+      // host's read 35, two unreads 90, menu 35, stable 10), open 100, end 21, the pill 5, centred 20,
+      // the pill gone 5, three steps 6 = 487
+      this.timeout(500_000)
       const target = await markUnreadAboveTheView(2)
       check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
       await step('A row marked unread, its line in view, no catch-up pill')
@@ -1225,10 +1228,10 @@ describe('chat scroll', function () {
     // shows at all cannot pass it: a line above the view, never seen, shows the pill with the
     // keyboard up.
     it('once the unread line has been in view, the keyboard carrying it away does not show the catch-up pill', async function () {
-      // worst case (s): open 100, end 21, stable 10, the mark 135, open 100, end 21, keyboard 5,
-      // stable 10; the control: keyboard 5, the mark above the view 270 (open 100, end 21, two drags
-      // 4, stable 10, the mark 135), open 100, end 21, the pill 5, keyboard 5; four steps 8 = 816
-      this.timeout(840_000)
+      // worst case (s): open 100, end 21, stable 10, the mark 195, open 100, end 21, keyboard 5,
+      // stable 10; the control: keyboard 5, the mark above the view 330 (open 100, end 21, two drags
+      // 4, stable 10, the mark 195), open 100, end 21, the pill 5, keyboard 5; four steps 8 = 936
+      this.timeout(960_000)
       await openLong()
       await expectAtEnd()
       const t = await waitForThreadStable()
@@ -1243,7 +1246,7 @@ describe('chat scroll', function () {
       await step('Reopened with the unread line in view, no catch-up pill')
 
       await el(T.CHAT_INPUT).click()
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       const k = await waitForThreadStable()
       const kv = await viewport(k)
       const carried = rowOf(k, target.ordinal)
@@ -1257,16 +1260,16 @@ describe('chat scroll', function () {
       await expectAtEnd()
       await catchUpPill().waitForExist({timeout: 5_000})
       await el(T.CHAT_INPUT).click()
-      await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+      await waitForKeyboard()
       check(await catchUpPill().isExisting(), 'with the keyboard up, the catch-up pill went away for a line never seen')
       await step('Control: a line never seen shows the catch-up pill with the keyboard up')
     })
 
     it('after Catch up, scrolling down reaches the present', async function () {
-      // worst case (s): the mark above the view 274 (open 100, end 21, three drags 6, stable 10, the
-      // mark 135), open 100, the pill 10, centred 20, stable 10, 15 drags of 2 and stable 10 = 180,
-      // four steps 8 = 602
-      this.timeout(620_000)
+      // worst case (s): the mark above the view 334 (open 100, end 21, three drags 6, stable 10, the
+      // mark 195), open 100, the pill 10, centred 20, stable 10, 15 drags of 2 and stable 10 = 180,
+      // four steps 8 = 662
+      this.timeout(680_000)
       const target = await markUnreadAboveTheView(3)
       await step('A row well up in history marked unread')
       await openLong()
@@ -1376,7 +1379,7 @@ describe('chat scroll', function () {
 
       await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
       await step('The info panel over the thread')
-      await goBackUntilGone(T.CHAT_INFO_PANEL)
+      await closeInfoPanel()
       await waitFor('the thread to show again', async () => ((await readThread()) ? true : undefined), {timeout: 5_000})
       const after = await waitForThreadStable()
       expectRowWhere(after, anchor, 'back from the info panel')

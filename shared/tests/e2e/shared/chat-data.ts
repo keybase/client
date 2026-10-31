@@ -540,9 +540,8 @@ export const oldestFromCli = async (where: {topicName: string} | {tlfName: strin
   let all: Array<CliMessage> = []
   let next: string | undefined
   for (let page = 0; page < maxPages; page++) {
-    const res = await withApi(async api =>
-      api.callWithin<ReadResult>('read', {channel, pagination: {num: 1000, ...(next ? {next} : {})}, peek: true}, 60_000)
-    )
+    const pagination = {num: 1000, ...(next ? {next} : {})}
+    const res = await withApi(async api => api.callWithin<ReadResult>('read', {channel, pagination, peek: true}, 60_000))
     all = [...all, ...(res.messages ?? []).map(m => m.msg)]
     next = res.pagination?.next
     if (res.pagination?.last || !next || !res.messages?.length) return all.slice(-count).reverse()
@@ -590,6 +589,15 @@ export const channelMembersFromCli = async (topicName: string) => {
   const {team} = e2eAccounts()
   const members = await withApi(async api => api.call<Members>('listmembers', {channel: channelRef(team, topicName)}))
   return [...(members.owners ?? []), ...(members.admins ?? []), ...(members.writers ?? []), ...(members.readers ?? [])].map(m => m.username)
+}
+
+// Reads an e2e team channel as the host's account (smoke, on its other device), which moves its read
+// pointer to the channel's newest message, deleted ones included: a cleanup for a channel the phone
+// cannot read back itself (see channelUnreadFromCli). One call, bounded by `timeoutMs`.
+export const markChannelReadFromCli = async (topicName: E2EChannel, timeoutMs = 20_000) => {
+  const accounts = e2eAccounts()
+  await requireMainIsSmoke(accounts)
+  await withApi(async api => api.callWithin('read', {channel: channelRef(accounts.team, topicName), pagination: {num: 1}}, timeoutMs))
 }
 
 // Whether the host's account has an e2e team channel unread, as its inbox holds it: its read pointer

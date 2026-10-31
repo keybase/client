@@ -840,6 +840,19 @@ export const sendMessage = async (text: string) => {
 
 export const isKeyboardUp = async () => browser.isKeyboardShown().catch(() => false)
 
+// Waits for the keyboard to be up as the app sees it: WDA reports it as soon as an input takes focus,
+// while RN's Keyboard.metrics() (what the thread's keyboardTop reads) is set only once it has shown.
+export const waitForKeyboard = async (timeout = 5_000) =>
+  waitFor(
+    'the keyboard',
+    async () =>
+      (await isKeyboardUp()) &&
+      (await jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`))
+        ? true
+        : undefined,
+    {interval: 200, timeout}
+  )
+
 // Closes the keyboard the way the app does (WDA's own hideKeyboard cannot find a way to close this
 // app's keyboards), and waits for it to go.
 export const hideKeyboard = async () => {
@@ -1183,10 +1196,19 @@ export const searchAgain = async () => {
   await searchInput().addValue('\n')
 }
 
+// A tap can only put the keyboard away (seen live after a drag): Cancel is tapped again while the
+// search bar and its Cancel are both still up. Bound: two tries of the tap and 2.5s = 5s.
 export const closeSearch = async () => {
   const cancel = browser.$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Cancel" AND visible == 1')
-  await cancel.click()
-  await el(T.CHAT_THREAD_SEARCH).waitForExist({reverse: true, timeout: 5_000})
+  for (let tap = 1; ; tap++) {
+    await cancel.click()
+    const closed = await el(T.CHAT_THREAD_SEARCH)
+      .waitForExist({reverse: true, timeout: 2_500})
+      .then(() => true)
+      .catch(() => false)
+    if (closed) return
+    if (tap >= 2 || !(await cancel.isExisting())) throw new Error('thread search is still open after its Cancel was tapped')
+  }
 }
 
 export const searchOpen = async () => el(T.CHAT_THREAD_SEARCH).isExisting()
