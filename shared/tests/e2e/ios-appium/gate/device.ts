@@ -35,6 +35,7 @@ import {
   type PushPayload,
   type TccRow,
 } from './device-lib.ts'
+import {requireFixedPoint, type Point} from './location-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
 import {simulatorDataBirth} from './sim-data.ts'
 import {APP_POISON, clearGatePoison, poisonGate} from './poison-lib.ts'
@@ -97,9 +98,10 @@ export const pushNotification = (payload: PushPayload) => {
   }
 }
 
-// The flow credits 'location' once it has asserted the app used the location.
-export const setLocation = (lat: number, lon: number) => {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('refusing a location that is not two numbers')
+// Moves the simulator to `p`, one of the fixed public points (location-lib.ts); any other is refused
+// before simctl runs. The flow credits 'location' once it has asserted the app used the location.
+export const setLocation = (p: Point) => {
+  const {lat, lon} = requireFixedPoint(p)
   simctl('location', preflightUdid(), 'set', `${lat},${lon}`)
 }
 

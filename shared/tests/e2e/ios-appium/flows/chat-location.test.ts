@@ -40,11 +40,11 @@ import {
   GO_START_TRACKING,
   GO_STOP_ALL,
   GO_STOPPED,
+  GO_TRACKER_STOPPED,
   holdsLocationMessage,
   LIVE_15M,
   NEAR,
   NEARER,
-  requireFixedPoint,
   WATCHER,
   WATCHER_STARTED,
   WATCHER_STOPPED,
@@ -109,8 +109,9 @@ describe('chat location', function () {
     clearGatePoison(what)
   }
 
-  // From the composer, else the app's own send (recorder paused); then the service's stop, read off
-  // its log. Bound: mark 120, open 100, composer 8, the app's send 3, go 31 = 262.
+  // From the composer, else the app's own send (recorder paused); then the service's stop and the live
+  // tracker's own stop, read off its log. Bound: mark 120, open 100, composer 8, the app's send 3, the
+  // stops 61 = 292.
   const stopSharing = async () =>
     guarded('location sharing', "send /location stop in the run's location channel in the Keybase app", async () => {
       const convID = sharingIn
@@ -123,7 +124,7 @@ describe('chat location', function () {
         if (isAttemptOver(e)) throw e
         await stopSharingFromApp(convID)
       }
-      await waitForLinesInOrder('the phone service to stop tracking', () => goLogSince(mark), [GO_STOP_ALL], 30_000)
+      await waitForLinesInOrder('the phone service to stop the live tracker', () => goLogSince(mark), [GO_STOP_ALL, GO_TRACKER_STOPPED], 60_000)
       sharingIn = undefined
     })
 
@@ -150,8 +151,8 @@ describe('chat location', function () {
       }
     })
 
-  // Worst case (s): launchIfGone 272, stopSharing 262, clear 120, restore 150, launchIfGone 272, a
-  // channel 120, escapeToTabs 30 = 1226.
+  // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 150, launchIfGone 272, a
+  // channel 120, escapeToTabs 30 = 1256.
   afterEach(async function () {
     this.timeout(1_300_000)
     await withCleanup(launchIfGone, [stopSharing, clearMoves, putBackPrivacy, launchIfGone, deleteChannels, escapeToTabs])
@@ -161,9 +162,8 @@ describe('chat location', function () {
 
   // Bound: location 120.
   const moveTo = (p: Point) => {
-    const {lat, lon} = requireFixedPoint(p)
     located = true
-    setLocation(lat, lon)
+    setLocation(p)
   }
 
   // A throwaway channel, location granted, the simulator at Apple Park, the channel open. Bound:

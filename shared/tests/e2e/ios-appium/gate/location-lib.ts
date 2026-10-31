@@ -21,8 +21,10 @@ export const requireFixedPoint = (p: Point) => {
 
 export const GO_START_TRACKING = /LiveLocationTracker: StartTracking/
 export const GO_STOP_ALL = /LiveLocationTracker: StopAllTracking/
-// the tracker's last "done" post, before it lets go of the watcher
-export const GO_STOPPED = [GO_STOP_ALL, /tracker\[\d+\]: stopped, updating with done status/, /- LiveLocationTracker: updateMapUnfurl -> /]
+// a live tracker letting go once stopped, before its last "done" post
+export const GO_TRACKER_STOPPED = /tracker\[\d+\]: stopped, updating with done status/
+// the stop, the tracker's, and its last "done" post, before it lets go of the watcher
+export const GO_STOPPED = [GO_STOP_ALL, GO_TRACKER_STOPPED, /- LiveLocationTracker: updateMapUnfurl -> /]
 // a fix handed to the service, taken by the tracker, and posted to the conversation
 export const GO_MOVE_POSTED = [/\+ LiveLocationTracker: LocationUpdate/, /tracker\[\d+\]: got coords/, /\+ LiveLocationTracker: updateMapUnfurl/]
 // a relaunch that brought back at least one tracker

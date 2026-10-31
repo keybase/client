@@ -1,4 +1,4 @@
-import {APPLE_PARK, FAR, GO_MOVE_POSTED, GO_RESTORED, holdsLocationMessage, requireFixedPoint, stopLocationBody} from './location-lib'
+import {APPLE_PARK, FAR, GO_MOVE_POSTED, GO_RESTORED, GO_TRACKER_STOPPED, holdsLocationMessage, requireFixedPoint, stopLocationBody} from './location-lib'
 
 test('only the fixed points are taken', () => {
   expect(requireFixedPoint(FAR)).toBe(FAR)
@@ -20,6 +20,7 @@ test("the service's lines: a posted move in order, and a restore of at least one
   expect(GO_MOVE_POSTED.every((re, i) => re.test(lines[i]!))).toBe(true)
   expect(GO_RESTORED.test('LiveLocationTracker: restoreLocked: restored 1 trackers')).toBe(true)
   expect(GO_RESTORED.test('LiveLocationTracker: restoreLocked: restored 0 trackers')).toBe(false)
+  expect(GO_TRACKER_STOPPED.test('tracker[4]: stopped, updating with done status')).toBe(true)
 })
 
 test('the stop body takes only a conversation id, and reads the tlf name in the app', () => {

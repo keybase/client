@@ -3,7 +3,7 @@ import * as mockFs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../../accounts/run-id'
-import {clearLocation, ensurePhotoCorpus, grantPrivacy, launchedBy, launchIfGone, openLink, pushNotification, restorePrivacy, toBackground, toForeground} from './device'
+import {clearLocation, ensurePhotoCorpus, setLocation, grantPrivacy, launchedBy, launchIfGone, openLink, pushNotification, restorePrivacy, toBackground, toForeground} from './device'
 import {chatNewMessagePayload} from './device-lib'
 import {clearGatePoison, gatePoisoned} from './poison-lib'
 
@@ -369,5 +369,17 @@ describe('the app launched again by a hook', () => {
     mockDevice.runtime = 'r2'
     await launchIfGone()
     expect(gatePoisoned()).toBeUndefined()
+  })
+})
+
+describe('the simulated location', () => {
+  test('is set only to a fixed point, on the udid preflight proved', () => {
+    setLocation({lat: 37.3349, lon: -122.009})
+    expect(mockDevice.calls).toEqual([`simctl location ${UDID} set 37.3349,-122.009`])
+  })
+
+  test('refuses any other point before simctl runs', () => {
+    expect(() => setLocation({lat: 37.335, lon: -122.009})).toThrow('fixed points')
+    expect(mockDevice.calls).toEqual([])
   })
 })
