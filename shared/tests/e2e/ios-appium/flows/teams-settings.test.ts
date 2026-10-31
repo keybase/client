@@ -36,9 +36,9 @@ import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, expectPersists, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, drag, expectScreen, filesRowNamed, fillField, onScreen, press, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, labelledElement, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
@@ -75,6 +75,9 @@ const routesShown = async () =>
       name: r.name,
       teamID: str(r.params && r.params.teamID),
     }))`)
+
+// what a text a flow reads or taps can be drawn as, for a read off one page source
+const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 describe('teams settings', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -410,9 +413,10 @@ describe('teams settings', function () {
 
   it('a channel added to a subteam\'s default channels from the popup, and removed from its pill', async function () {
     // worst case (s): subteam 600, seed 510, host 315 (the defaults), opened 250 (team 109, tab 24,
-    // on screen 20, overrun by one try), its tap 1, part 6 and its tap 1, text 6, step 2, pin 1,
-    // calls 2, its tap 1, waited for 12, polled 345, the pill 6, the remove read 1, step 2, pin 1,
-    // calls 2, its tap 1, waited for 12, polled 345, the pill gone 11 (10, one read 1), step 2 = 2444
+    // on screen 20, overrun by one try), its press 2, the channel 12 (10 of reads and drags, overrun
+    // by one 2) and its press 2, text 6, step 2, pin 1, calls 2, its press 2, waited for 12, polled
+    // 345, the pill 6, the remove read 1, step 2, pin 1, calls 2, its tap 1, waited for 12, polled
+    // 345, the pill gone 11 (10, one read 1), step 2 = 2451
     this.timeout(2_500_000)
     const {name, teamID} = await makeOwnSubteam('dch')
     const channel = stampedChannelName('dflt', e2eRunId())
@@ -422,26 +426,36 @@ describe('teams settings', function () {
         c => c.channel
       )
     check(!(await masked(defaults)).includes(channel), 'a new channel is a default one')
-    const addChannels = async () => elementWithLabelPart(TEXTS, 'Add channels', 'the default channels\' Add channels')
+    const addChannels = async () => elementWithLabelPartIn(TEXT_TYPES, 'Add channels', "the default channels' Add channels")
     // a team with more than one channel draws its default channels; the app sees the host's channel
     // once it loads the team afresh
     await openSubteamUntil("the subteam's default channels", name, teamID, SETTINGS, async () =>
-      dragUntilOnScreen('the default channels', () => browser.$('-ios predicate string:label == "Add channels" AND visible == 1'))
+      // not by `visible`: a team page reads invisible now and then
+      dragUntilOnScreen('the default channels', () => browser.$('-ios predicate string:label == "Add channels"'))
     )
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
-    await (await addChannels()).click()
-    const pick = await waitFor('the channel in the popup', async () => elementWithLabelPart(TEXTS, `#${channel}`, 'the channel in the popup'), {
-      interval: 250,
-      timeout: 5_000,
-    })
-    await pick.click()
+    await press(await addChannels(), "the default channels' Add channels")
+    // the popup opens partway, its channel rows below the screen's bottom: it is dragged up until the
+    // channel shows
+    const pick = await waitFor(
+      'the channel in the popup',
+      async () => {
+        const found = await elementWithLabelPartIn(TEXT_TYPES, `#${channel}`, 'the channel in the popup').catch(() => undefined)
+        if (found && (await onScreen(found))) return found
+        const {height} = await browser.getWindowRect()
+        await drag(height - 80, height - 380)
+        return undefined
+      },
+      {interval: 250, timeout: 10_000}
+    )
+    await press(pick, 'the channel in the popup')
     // the subteam has #general (hidden here) and this channel alone: one picked is this one
     const add = await textShown('Add (1)', "the popup's Add with one channel picked")
     await step('The channel picked')
     await requireOnSubteam("the subteam's default channels", 'team', onSubteam)
     let seq = await currentCallSeq()
-    await add.click()
+    await press(add, "the popup's Add")
     await waitForUiCall('the default channels to go out', seq, 'chat.1.local.setDefaultTeamChannelsLocal')
     await expectHost('the channel among the default channels', defaults, d => d.includes(channel))
     await textShown(`#${channel}`, "the channel's pill")

@@ -226,11 +226,13 @@ export const findInboxHeader = (items: ReadonlyArray<DrawnInboxItem>, team: stri
 // A rectangle in window points.
 export type Rect = {height: number; width: number; x: number; y: number}
 
+// XCUITest rounds frames to whole points, so a text can read a point past the box that holds it
+const ROUNDING = 1
 const contains = (outer: Rect, inner: Rect) =>
-  outer.x <= inner.x &&
-  outer.y <= inner.y &&
-  outer.x + outer.width >= inner.x + inner.width &&
-  outer.y + outer.height >= inner.y + inner.height
+  outer.x <= inner.x + ROUNDING &&
+  outer.y <= inner.y + ROUNDING &&
+  outer.x + outer.width + ROUNDING >= inner.x + inner.width &&
+  outer.y + outer.height + ROUNDING >= inner.y + inner.height
 
 // The indexes of the rects that hold no other rect of the list: where several nested elements expose
 // the same label (a pressable box and its text), the innermost is the one drawn. Rects with the same

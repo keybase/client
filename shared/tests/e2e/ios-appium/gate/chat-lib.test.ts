@@ -254,6 +254,9 @@ describe('frameInside', () => {
 })
 
 describe('innermost', () => {
+  test('a text a rounded point past its box is still inside it', () => {
+    expect(innermost([{height: 29, width: 122, x: 140, y: 745}, {height: 21, width: 99, x: 164, y: 749}])).toEqual([1])
+  })
   test('of a box and the text inside it, only the text', () => {
     const box = {height: 60, width: 300, x: 0, y: 100}
     const text = {height: 20, width: 100, x: 10, y: 110}

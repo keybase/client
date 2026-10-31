@@ -174,12 +174,20 @@ export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
   openSheetWith(what, async () => tap().catch(() => {}))
 
 // What `selector` finds; for a selector that asks for `visible == 1` and finds nothing, what it finds
-// without that (a modal or sheet XCUITest reports invisible now and then). Bound: two reads 2.
+// without that and drawn on screen (a modal or sheet XCUITest reports invisible now and then). Bound:
+// two reads 2, and a frame read per element of the fallback.
 const VISIBLE_CLAUSE = ' AND visible == 1'
 export const elementsOrUnseen = async (selector: string) => {
   const found = await browser.$$(selector).getElements()
   if (found.length || !selector.endsWith(VISIBLE_CLAUSE)) return [...found]
-  return [...(await browser.$$(selector.slice(0, -VISIBLE_CLAUSE.length)).getElements())]
+  // only those drawn on screen: a screen under the top one keeps its elements in the tree
+  const {height, width} = await browser.getWindowRect()
+  const onScreen: Array<WebdriverIO.Element> = []
+  for (const e of await browser.$$(selector.slice(0, -VISIBLE_CLAUSE.length)).getElements()) {
+    const r = await rectOf(e)
+    if (r && r.width > 0 && r.height > 0 && r.x >= 0 && r.y >= 0 && r.x + r.width <= width && r.y + r.height <= height) onScreen.push(e)
+  }
+  return onScreen
 }
 
 // Throws `message` unless `ok`.
