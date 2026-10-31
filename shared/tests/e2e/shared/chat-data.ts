@@ -355,6 +355,28 @@ const seedScratch = async (api: ChatApi, team: string) => {
   }
 }
 
+// The text a scratch anchor carries: unstamped, so the sweeper never deletes it.
+export const SCRATCH_ANCHOR = 'e2e scratch anchor'
+// The page of newest messages the app loads when it opens a thread.
+const THREAD_PAGE = 60
+// What the app draws no row for.
+const HIDDEN_TYPES = new Set(['delete', 'deletehistory', 'edit', 'reaction', 'unfurl', 'none'])
+
+// The sweeper deletes the stamped messages each run posts to scratch, so its newest page can fill up
+// with deletes; the app then opens the thread with no row and never pages further back (PR 9). When
+// the newest page has nothing the app draws, the host posts one unstamped anchor as the smoke account
+// (from the host, never the app, so it counts as no coverage) and reads it back.
+const anchorScratch = async (api: ChatApi, team: string) => {
+  const channel = channelRef(team, E2E_CHANNELS.scratch)
+  const newest = async () =>
+    (await api.call<ReadResult>('read', {channel, pagination: {num: THREAD_PAGE}, peek: true})).messages ?? []
+  if ((await newest()).some(m => !HIDDEN_TYPES.has(m.msg.content.type))) return
+  log(`anchoring #${E2E_CHANNELS.scratch}: its newest page is all deletes`)
+  await sendText(api, channel, SCRATCH_ANCHOR)
+  const top = (await newest()).find(m => !HIDDEN_TYPES.has(m.msg.content.type))
+  if (top?.msg.content.text?.body !== SCRATCH_ANCHOR) throw new Error(`#${E2E_CHANNELS.scratch}'s anchor did not land as its newest message`)
+}
+
 const seedReadonly = async (api: ChatApi, team: string) => {
   const channel = channelRef(team, E2E_CHANNELS.readonly)
   const bodies = new Set(textBodies(await readAll(api, channel)))
@@ -464,6 +486,7 @@ export const ensureChatData = async (): Promise<ChatData> => {
       await seedShort(api, team)
       await seedSparse(api, team)
       await seedScratch(api, team)
+      await anchorScratch(api, team)
       await seedReadonly(api, team)
       await seedMedia(api, team)
       const direct = await ensureDirect(api, accounts.smokeUser, secondUser)
