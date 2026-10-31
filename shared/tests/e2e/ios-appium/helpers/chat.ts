@@ -10,6 +10,7 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, el, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
+import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
@@ -83,20 +84,16 @@ export type ThreadReading = {
 // e2eListInternals(list): the VirtualizedList (FlatList's _listRef) fields the readers use.
 // e2eThreadContexts(fiber): the conversation's centre context value and thread store, from the
 // providers above its list.
-export const threadListPrelude = `
+// It starts with fiberPrelude (e2eRootFiber, e2eHostOf), so a body that has it needs no other.
+export const threadListPrelude = `${fiberPrelude}
   const e2eFail = what => { throw new Error('e2e thread reader: ' + what + ' (React Native or app internals changed?)') }
   const e2eVisibleConvID = () => {
     const screen = kbModule('constants/router.tsx').getVisibleScreen()
     return (screen && screen.params && screen.params.conversationIDKey) || null
   }
   const e2eThreadList = convID => {
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    if (!hook || typeof hook.getFiberRoots !== 'function') e2eFail('no __REACT_DEVTOOLS_GLOBAL_HOOK__.getFiberRoots')
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    if (!root || !root.current) e2eFail('no React root fiber')
     let keyed
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)}) {
@@ -308,7 +305,7 @@ export const rowText = async (ordinal: number) => {
 
 // A loaded message, as the store holds the parts the flows read: `id` is its message id (0 until the
 // service has one for it).
-export type StoredMessage = {
+type StoredMessage = {
   author: string
   id: number
   reactions: Array<{emoji: string; users: Array<string>}>
@@ -365,7 +362,7 @@ export const waitForRow = async (text: string, timeout = 15_000) =>
 
 // The bottom of the thread a reader can see: the top of the composer, or of the search bar that
 // takes its place while thread search is open.
-export const composerTop = async () => {
+const composerTop = async () => {
   const search = el(T.CHAT_THREAD_SEARCH)
   if (await search.isExisting()) return search.getLocation('y')
   // the input sits in the composer bar with a margin above it
@@ -420,7 +417,7 @@ export const waitForThreadStable = async (timeout = 10_000) => {
 
 // At the end: holding the newest message (nothing newer to load), resting at the offset the list
 // keeps its newest row above the composer from, with that row in view.
-export const endGapMax = 40
+const endGapMax = 40
 export const isAtEnd = (t: ThreadReading, v: Viewport) => {
   const gap = newestGap(t, v)
   return !t.moreToLoadForward && gap !== undefined && gap >= -1 && gap <= endGapMax
@@ -716,7 +713,7 @@ export const expectPersists = async <V,>(what: string, read: () => Promise<V>, w
 // -- notification settings (the info panel's Settings tab) --------------------------------------
 
 const NOTIFY_LABELS = {never: 'Never', onAnyActivity: 'On any activity', onWhenAtMentioned: 'Only when @mentioned'} as const
-export type NotifyGroup = 'desktop' | 'mobile'
+type NotifyGroup = 'desktop' | 'mobile'
 export type NotifyChoice = keyof typeof NOTIFY_LABELS
 
 // the full-width box around one choice's radio, chosen or not
@@ -1021,12 +1018,9 @@ const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout
 // The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
 // items), read off the React tree.
 const inboxRowMenuConversations = async () =>
-  jsEval<Array<string>>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
+  jsEval<Array<string>>(`${fiberPrelude}
     const out = new Set()
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1152,11 +1146,8 @@ const counterText = async () => {
 // The search bar's text as the app holds it (its input's value prop), which trails the keys typed
 // into the native field while the JS thread is busy.
 const searchBarText = async () =>
-  jsEval<string | null>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    const stack = [root.current]
+  jsEval<string | null>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1404,15 +1395,12 @@ export const scrollRowIntoView = async (ordinal: number, timeout = 30_000) =>
 // What the info panel's attachments tab lists now, read off its rows' props: the Media grid's
 // thumbnails (message id, and whether the thumb is a video's) and the Docs list's rows (message id
 // and the name it shows).
-export type GalleryListing = {docs: Array<{id: number; name: string}>; media: Array<{id: number; video: boolean}>}
+type GalleryListing = {docs: Array<{id: number; name: string}>; media: Array<{id: number; video: boolean}>}
 export const galleryListing = async () =>
-  jsEval<GalleryListing>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
+  jsEval<GalleryListing>(`${fiberPrelude}
     const media = []
     const docs = []
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1484,16 +1472,13 @@ export const visibleConversation = async () =>
 // lies wholly inside `element` (the text's element, so the window is the screen here) and on screen.
 // The evals send nothing. Bound: 5s.
 export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, text: string) => {
-  const started = await jsEval<number>(`
+  const started = await jsEval<number>(`${fiberPrelude}
     const g = globalThis
     g.__e2eTextFrame = undefined
-    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
     const want = ${JSON.stringify(String(ordinal))}
     const label = ${JSON.stringify(text)}
     const rows = []
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1513,14 +1498,7 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
       }
     }
     if (hits.length !== 1) return hits.length
-    const hosts = [hits[0].child]
-    let host
-    while (hosts.length && !host) {
-      const f = hosts.shift()
-      if (!f) continue
-      if (f.tag === 5 && f.stateNode && f.stateNode.node) host = f
-      else if (f.child) hosts.push(f.child)
-    }
+    const host = e2eHostOf(hits[0])
     if (!host) return -1
     g.nativeFabricUIManager.measureInWindow(host.stateNode.node, (x, y, width, height) => (g.__e2eTextFrame = {height, width, x, y}))
     return 1
@@ -1560,15 +1538,12 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
 // the physical tap. It is the app's own UI handler, so what it sends is credited (no
 // withHarnessRpcs).
 export const pressInlineText = async (ordinal: number, text: string) => {
-  const found = await jsEval<number>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
+  const found = await jsEval<number>(`${fiberPrelude}
     const want = ${JSON.stringify(String(ordinal))}
     const label = ${JSON.stringify(text)}
     // the topmost fibers of the message: those carrying its ordinal under none that does
     const rows = []
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1605,18 +1580,15 @@ export const pressInlineText = async (ordinal: number, text: string) => {
 // element, which must be the measured row's size) and on screen (ledger ruling, the shape of the
 // inline-text one for a control with a view). The evals send nothing. Bound: 5s.
 export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: string; value: string}, label: string) => {
-  const started = await jsEval<number>(`
+  const started = await jsEval<number>(`${fiberPrelude}
     const g = globalThis
     g.__e2eControlFrame = undefined
-    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
     const prop = ${JSON.stringify(scope.prop)}
     const value = ${JSON.stringify(scope.value)}
     const label = ${JSON.stringify(label)}
     const read = p => prop.split('.').reduce((v, k) => (v && typeof v === 'object' ? v[k] : undefined), p)
     const scopes = []
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       if (f.sibling) stack.push(f.sibling)
@@ -1636,17 +1608,8 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
     }
     if (buttons.length !== 1 || scopes.length !== 1) return buttons.length === 1 ? -2 : buttons.length
     // a component's own native view: its first host descendant
-    const hostOf = c => {
-      const hosts = [c.child]
-      while (hosts.length) {
-        const f = hosts.shift()
-        if (!f) continue
-        if (f.tag === 5 && f.stateNode && f.stateNode.node) return f
-        if (f.child) hosts.push(f.child)
-      }
-    }
-    const button = hostOf(buttons[0])
-    const row = hostOf(scopes[0])
+    const button = e2eHostOf(buttons[0])
+    const row = e2eHostOf(scopes[0])
     if (!button || !row) return -1
     // both in the same coordinates (a modal's root view, not the screen); the row's element on screen
     // places them
@@ -1704,12 +1667,9 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
 export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Element, anchorLabel: string) => {
   type Frame = {height: number; width: number; x: number; y: number}
   const switchOn = async () =>
-    jsEval<Array<boolean>>(`
-      const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-      let root
-      for (const r of hook.getFiberRoots(1)) root = r
+    jsEval<Array<boolean>>(`${fiberPrelude}
       const out = []
-      const stack = [root.current]
+      const stack = [e2eRootFiber()]
       while (stack.length) {
         const f = stack.pop()
         const p = f.memoizedProps
@@ -1719,17 +1679,14 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
       }
       return out
     `)
-  const started = await jsEval<number>(`
+  const started = await jsEval<number>(`${fiberPrelude}
     const g = globalThis
     g.__e2eSwitchFrames = undefined
-    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
     const label = ${JSON.stringify(label)}
     const anchorLabel = ${JSON.stringify(anchorLabel)}
     const switches = []
     const anchors = []
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -1740,15 +1697,6 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
       if (f.child) stack.push(f.child)
     }
     if (switches.length !== 1) return switches.length
-    const hostOf = c => {
-      const hosts = [c.child]
-      while (hosts.length) {
-        const f = hosts.shift()
-        if (!f) continue
-        if (f.tag === 5 && f.stateNode && f.stateNode.node) return f
-        if (f.child) hosts.push(f.child)
-      }
-    }
     // the switch's own tappable box: the component under it carrying its handler
     const sw = switches[0]
     let box
@@ -1760,8 +1708,8 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
       if (f.child) inner.push(f.child)
       if (f.sibling) inner.push(f.sibling)
     }
-    const host = box && hostOf(box)
-    const anchorHosts = anchors.map(hostOf).filter(Boolean)
+    const host = box && e2eHostOf(box)
+    const anchorHosts = anchors.map(e2eHostOf).filter(Boolean)
     if (!host || !anchorHosts.length) return -1
     const frames = {anchors: []}
     const ui = g.nativeFabricUIManager
@@ -1951,7 +1899,7 @@ export const cancelAppOutbox = async (outboxIDs: ReadonlyArray<string>) => {
 // A loaded message's state as the store holds it: whether it was edited, whether it explodes (and
 // has, and who exploded it early), and, while it is not yet sent, its outbox record: its submit state
 // and the error the service gave (errorTyp, OutboxErrorType: 3 is too long).
-export type StoredMessageState = {
+type StoredMessageState = {
   edited: boolean
   errorTyp: number | null
   exploded: boolean
@@ -2026,11 +1974,8 @@ export const pasteIntoComposer = async () => {
 // Whether the visible screen draws the GIF picker: the phone's is a web view of the service's
 // gallery page (its url's key starts "gg"), read off the React tree.
 export const giphyGalleryShown = async () =>
-  jsEval<boolean>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    const stack = [root.current]
+  jsEval<boolean>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -2064,11 +2009,8 @@ export const openInfoPanel = async (tab?: string) => {
 
 // Whether the info panel's tab with testID `tab` is the selected one, read off the tabs' props.
 const infoPanelTabSelected = async (tab: string) =>
-  jsEval<boolean>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    const stack = [root.current]
+  jsEval<boolean>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -2214,7 +2156,7 @@ export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name:
 
 // A loaded message's link previews as the visible thread's store holds them: its id, the domains
 // the service asks the sender about (the unfurl prompt), and how many previews it carries.
-export type StoredUnfurls = {id: number; prompts: Array<string>; unfurls: number}
+type StoredUnfurls = {id: number; prompts: Array<string>; unfurls: number}
 export const storedUnfurls = async (ordinal: number) =>
   jsEval<StoredUnfurls | null>(`${threadStoreBody}
     const m = st && st.messageMap.get(${ordinal})

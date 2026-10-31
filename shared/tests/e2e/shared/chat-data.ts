@@ -389,7 +389,7 @@ const seedMedia = async (api: ChatApi, team: string) => {
 
 // The smoke user's one-on-one conversation with the second account: its conversation id, and its
 // tlf name (both names, sorted), which is what a send to it names.
-export type DirectConversation = {convID: string; tlfName: string}
+type DirectConversation = {convID: string; tlfName: string}
 
 export const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
 
