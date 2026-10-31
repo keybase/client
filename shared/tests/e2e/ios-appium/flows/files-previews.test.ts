@@ -16,7 +16,7 @@ import {retriedNavigation, step} from '../gate/step'
 import {el} from '../helpers/elements'
 import {expectScreen, filesRowNamed, openFolder, tapFrame, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, labelledElement} from '../helpers/menus'
+import {check} from '../helpers/menus'
 import {escapeToTabs, goBack} from '../helpers/navigate'
 
 const corpusFile = (name: string) => {
@@ -102,13 +102,15 @@ describe('files previews', function () {
         check(!(await el(other.testID).isExisting()), 'a preview of another kind is drawn too')
       }
       if (k.testID === T.FILES_TEXT_PREVIEW) {
+        // the preview draws the file as one text, its label the whole file (ending in its newline)
         await waitFor(
           "the text preview's first line",
-          async () =>
-            // a preview screen, as a folder screen, reports its elements visible=false
-            labelledElement(`-ios predicate string:label == ${JSON.stringify(firstLine)}`, firstLine, 'the first line').catch(
-              () => undefined
-            ),
+          async () => {
+            for (const e of await browser.$$(`-ios predicate string:type == "XCUIElementTypeStaticText" AND label BEGINSWITH ${JSON.stringify(firstLine)}`).getElements()) {
+              if (((await e.getAttribute('label').catch(() => null)) ?? '').split('\n')[0]!.trim() === firstLine) return true
+            }
+            return undefined
+          },
           {interval: 500, timeout: 15_000}
         )
       }
