@@ -531,6 +531,25 @@ export const readFromCli = async (where: {topicName: string} | {tlfName: string}
   return (res.messages ?? []).map(m => m.msg)
 }
 
+// The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read
+// through the host's CLI by paging back from the newest. Peeks. Bound: each page one call of 60s, at
+// most `maxPages` pages.
+export const oldestFromCli = async (where: {topicName: string} | {tlfName: string}, count: number, maxPages = 5): Promise<Array<CliMessage>> => {
+  const {team} = e2eAccounts()
+  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
+  let all: Array<CliMessage> = []
+  let next: string | undefined
+  for (let page = 0; page < maxPages; page++) {
+    const res = await withApi(async api =>
+      api.callWithin<ReadResult>('read', {channel, pagination: {num: 1000, ...(next ? {next} : {})}, peek: true}, 60_000)
+    )
+    all = [...all, ...(res.messages ?? []).map(m => m.msg)]
+    next = res.pagination?.next
+    if (res.pagination?.last || !next || !res.messages?.length) return all.slice(-count).reverse()
+  }
+  throw new Error(`the conversation holds more than ${maxPages} pages of messages`)
+}
+
 // The bot commands offered in a channel (none unless the team has a bot installed).
 export const botCommands = async (topicName: E2EChannel) => {
   const {team} = e2eAccounts()

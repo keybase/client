@@ -17,6 +17,7 @@ import {
   createThrowawayChannel,
   deleteThrowawayChannel,
   ensureChatData,
+  oldestFromCli,
   readFromCli,
   type ChatData,
   type CliMessage,
@@ -28,45 +29,47 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {inboxRowMatches} from '../gate/chat-lib'
-import {callsSince, currentCallSeq, withHarnessRpcs} from '../gate/recorder'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {callsSince, currentCallSeq} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {tapBack} from '../gate/screens'
-import {step} from '../gate/step'
+import {manualEdge, step} from '../gate/step'
 import {
   accountChangedSeq,
   check,
-  chooseDeleteBehindAReload,
   chooseMenuItem,
   clearComposer,
   closeMessageMenu,
+  closeSearch,
   deletePhase,
-  deleteWatch,
   dragThread,
   expectAtEnd,
   heldWaitingKeys,
   hideKeyboard,
+  isKeyboardUp,
   jsEval,
   openConversation,
   openFromInbox,
   openMessageMenu,
+  openThreadSearch,
   ordinalsWithText,
   orangeLineOrdinals,
   rowText,
   scrollInboxTo,
+  searchFor,
   sendMessage,
   signedInAs,
   startAppAccountSwitch,
   stopAccountChangeWatch,
-  stopDeleteWatch,
   storedMessage,
   typeInComposer,
+  typeIntoFocused,
   unreadCount,
   visibleConversation,
   waitForComposerText,
   waitForRow,
   waitForThreadStable,
   watchAccountChange,
-  watchDeleteThroughReloads,
   type DeletePhase,
 } from '../helpers/chat'
 import {el, els} from '../helpers/elements'
@@ -78,8 +81,8 @@ describe('chat data', function () {
   this.retries(0)
 
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  inbox  openFromInbox 325 (three taps of scrollInboxTo 90, each
-  //             waited 5, and the thread 35);  row  scrollInboxTo 90 + its label polled 10 = 100
+  //   open      openConversation 100;  inbox  openFromInbox 415 (three taps of scrollInboxTo 120, each
+  //             waited 5, and the thread 35);  row  scrollInboxTo 120 + its label polled 10 = 130
   //   sent      sendMessage 25;  type  typeInComposer 15;  composer  waitForComposerText 5 (10 given)
   //   row       waitForRow 15 (20 where given);  end  expectAtEnd 21;  stable  10
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  close  5;  keyboard  5
@@ -132,19 +135,19 @@ describe('chat data', function () {
   }
 
   // Back on the smoke account with no menu open and no watch left in the app, after a timeout too.
-  // Mocha runs this after the describes' own afterEach. Worst case (s): close 5, keyboard 5, the two
-  // watches 4, restore 160 = 174.
+  // Mocha runs this after the describes' own afterEach. Worst case (s): close 5, keyboard 5, the
+  // watch 2, restore 160 = 172.
   afterEach(async function () {
     this.timeout(190_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, stopDeleteWatch, stopAccountChangeWatch, restoreToSmoke])
+    await withCleanup(closeMessageMenu, [hideKeyboard, stopAccountChangeWatch, restoreToSmoke])
   })
 
   describe('basics', () => {
     it('the DM opens from its inbox row, each send settles at the end, and back returns to the inbox', async function () {
-      // worst case (s): inbox 325, the composer 1, step 2, three times (sent 25, end 21) = 138, type 15,
+      // worst case (s): inbox 415, the composer 1, step 2, three times (sent 25, end 21) = 138, type 15,
       // the typing 5, composer 5, the tap 1, row 15, end 21, cli 80, step 2, the back 1, the inbox 10,
-      // the screen 1, step 2 = 624
-      this.timeout(650_000)
+      // the screen 1, step 2 = 714
+      this.timeout(740_000)
       const convID = await openFromInbox(data.secondUser)
       check(convID === data.direct.convID, 'the inbox row opened another conversation than the DM')
       check(await el(T.CHAT_INPUT).isExisting(), 'the DM opened without its composer')
@@ -215,64 +218,21 @@ describe('chat data', function () {
       await step('The row is gone, and the host no longer has the message', {card: true})
     })
 
-    // A thread load while the delete waits to go out still carries the row unchanged (the service never
-    // puts a queued delete in a load). Offline the wait is long; here the thread is told it is stale
-    // right ahead of the delete and every 100ms after while it is in flight (see
-    // chooseDeleteBehindAReload and watchDeleteThroughReloads), so reloads come back before the delete
-    // lands. Whether one did is timing: an attempt in which none did proves nothing and is made again,
-    // up to four. Each attempt's delete goes out once, read off the recorder's call log.
+    // A delete waiting to go out keeps its row, showing deleting, through any thread load. The phone's
+    // delete lands within the thread's 500ms load throttle on a live service, so no load can come back
+    // while the row shows deleting (seen live in every attempt); a person checks it with the network
+    // off (ledger ruling).
     it('a delete keeps showing deleting through thread reloads until it lands', async function () {
-      // worst case (s): open 100, then four times (sent 25, keyboard 5, menu 15, the pause 1, calls 2,
-      // the watch 1, the delete and its call 11, the row gone 15, close 5, the watch done 16, calls 2)
-      // = 392, step 2 = 494
-      this.timeout(520_000)
+      // worst case (s): open 100, sent 25, keyboard 5, menu 15, step 2, the edge 2, close 5 = 154
+      this.timeout(180_000)
       await openScratch()
-      const attempts: Array<string> = []
-      let proven = false
-      for (let attempt = 1; attempt <= 4 && !proven; attempt++) {
-        const text = e2eMarker('data-delete-reload')
-        const ordinal = await sendMessage(text)
-        await hideKeyboard()
-        await openMessageMenu(text)
-        // the thread throttles its loads to one per 500ms, so the first reload must not follow another
-        await browser.pause(600)
-        const before = await currentCallSeq()
-        await watchDeleteThroughReloads(ordinal)
-        // the delete is chosen from an eval, and the reloads follow the stale notifications the watch
-        // hands the app, so the recorder leaves them out until the row is gone: the tap is the test above's
-        await withHarnessRpcs('the delete behind a reload', async () => {
-          await chooseDeleteBehindAReload()
-          await waitForCall('the delete to go out', before, 'chat.1.local.postDeleteNonblock')
-          await waitFor('the row to go', async () => ((await deletePhase(ordinal)) === 'gone' ? true : undefined), {
-            interval: 100,
-            timeout: 15_000,
-          })
-        })
-        await closeMessageMenu()
-        const watch = await waitFor(
-          'the delete watch to finish',
-          async () => {
-            const w = await deleteWatch()
-            return w?.done ? w : undefined
-          },
-          {interval: 250, timeout: 16_000}
-        )
-        const deletes = await callsOf(before, 'chat.1.local.postDeleteNonblock')
-        check(deletes.length === 1, `the delete went out ${deletes.length} times`)
-        const heard = watch.log.map(e => e.what)
-        // the delete can start before the watcher's first look, so the row may be first seen deleting
-        const phases = heard.filter(h => h !== 'pass')
-        check(
-          JSON.stringify(phases.slice(phases.indexOf('row+deleting'))) === JSON.stringify(['row+deleting', 'gone']),
-          `the row went ${phases.join(' -> ')}`
-        )
-        const deleting = heard.slice(heard.indexOf('row+deleting') + 1, heard.indexOf('gone'))
-        attempts.push(`${watch.stale} stale notifications; heard ${heard.join(' ')}`)
-        proven = deleting.includes('pass')
-      }
-      console.log(`delete through reloads: ${attempts.join('; ')}`)
-      check(proven, `no thread load landed while a row showed deleting in ${attempts.length} attempts: ${attempts.join('; ')}`)
-      await step('A thread pass landed while the row showed deleting, and the row went once the delete landed', {card: true})
+      const text = e2eMarker('data-delete-reload')
+      await sendMessage(text)
+      await hideKeyboard()
+      await openMessageMenu(text)
+      await step('A message menu open on a message sent, where Delete for everyone goes')
+      await manualEdge('delete-through-reloads')
+      await closeMessageMenu()
     })
   })
 
@@ -453,10 +413,20 @@ describe('chat data', function () {
     // to move to: the app looks around the message for one (a thread load), finds none, and marks
     // nothing, so no line is drawn for a mark that never happened.
     it('mark unread on the first message of a conversation marks nothing and draws no orange line', async function () {
-      // worst case (s): open 100, the oldest in view 180, step 2, the row text 1, calls 2, menu 35, the
-      // load 10, the pause 3, calls 2, the lines 3, step 2 = 340
-      this.timeout(360_000)
+      // worst case (s): host 300 (5 pages of 60), open 100, search 20, find 30, close 5, the oldest in
+      // view 120, step 2, the row text 1, calls 2, menu 35, the load 10, the pause 3, calls 2, the
+      // lines 3, step 2 = 635
+      this.timeout(660_000)
+      // The DM holds every run's messages, far more than drags can climb in a bound: thread search
+      // jumps to its second oldest text (its body read from the host), as a person finds old history,
+      // and a few drags reach the top from there.
+      const oldest = (await oldestFromCli(directOnHost(), 10)).filter(m => m.content.type === 'text')
+      const near = oldest[1]?.content.text?.body
+      if (!near) throw new Error('the DM has fewer than two text messages')
       await openDirect()
+      await openThreadSearch()
+      await searchFor(near)
+      await closeSearch()
       // drag to the top until nothing older is left to load and the oldest row is in view
       const top = await waitFor(
         'the oldest message in view',
@@ -466,11 +436,11 @@ describe('chat data', function () {
           await dragThread(600)
           return undefined
         },
-        {interval: 0, timeout: 180_000}
+        {interval: 0, timeout: 120_000}
       )
       await step('The first message of the DM in view')
-      const oldest = top.ordinals[0]!
-      await openMessageMenu(await rowText(oldest))
+      const first = top.ordinals[0]!
+      await openMessageMenu(await rowText(first))
       // taken right before the tap, so the load below is the mark's own
       const atTap = await currentCallSeq()
       await chooseMenuItem('Mark as unread')
@@ -504,8 +474,8 @@ describe('chat data', function () {
 
     it('reply privately opens the DM with the message quoted, and the reply posts there', async function () {
       // worst case (s): open 100, peer 70, send 60, row 20, the read 1, keyboard 5, calls 2, menu 35,
-      // the DM 15, composer 10, calls 10, step 2, the typing 5, composer 5, the tap 1, row 15,
-      // composer 5, cli 80, step 2 = 443
+      // the DM 15, composer 10, calls 10, step 2, keyboard 3, the tap 1, keyboard 5, the typing 5,
+      // composer 5, the tap 1, row 15, composer 5, cli 80, step 2 = 452
       this.timeout(460_000)
       await openScratch()
       const text = e2eMarker('data-private')
@@ -525,8 +495,25 @@ describe('chat data', function () {
       await waitForCall('the DM to be found for the reply', before, 'chat.1.local.newConversationLocal')
       await step('Reply privately opened the DM with the message quoted')
 
+      // The reply goes on the line under the quote. The composer sometimes has the keyboard already
+      // (its cursor after the quote) and sometimes not; then it is tapped where a person taps, on its
+      // empty last line, which puts the cursor at the end. (An element addValue taps the field's
+      // middle first, which put the cursor inside the quote.)
       const reply = e2eMarker('data-private-reply')
-      await el(T.CHAT_INPUT).addValue(reply)
+      const keyboard = async (timeout: number) =>
+        waitFor('the composer to have the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout}).catch(
+          (e: unknown) => {
+            if (isAttemptOver(e)) throw e
+            return false
+          }
+        )
+      if (!(await keyboard(3_000))) {
+        const input = await el(T.CHAT_INPUT).getElement()
+        const {height} = await input.getSize()
+        await browser.execute('mobile: tap', {elementId: input.elementId, x: 12, y: Math.max(1, Math.round(height - 6))})
+        if (!(await keyboard(5_000))) throw new Error('the composer did not take the keyboard')
+      }
+      await typeIntoFocused('the composer', reply)
       await waitForComposerText(`${quote}${reply}`)
       await el(T.CHAT_SEND_BUTTON).click()
       await waitForRow(reply)
@@ -538,9 +525,9 @@ describe('chat data', function () {
 
   describe('incoming', () => {
     it('an incoming message reaches the open thread and the inbox snippet', async function () {
-      // worst case (s): open 100, peer 70, send 60, row 20, the reads 2, step 2, keyboard 5, row 100,
-      // step 2 = 361
-      this.timeout(380_000)
+      // worst case (s): open 100, peer 70, send 60, row 20, the reads 2, step 2, keyboard 5, row 130,
+      // step 2 = 391
+      this.timeout(410_000)
       await openDirect()
       // a short body, so the inbox row's one-line snippet shows it whole
       const text = e2eMarker('dinc')
