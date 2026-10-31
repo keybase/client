@@ -3,6 +3,9 @@
 // longer shows it. While one is marked, step() refuses and a failed attempt's capture takes no
 // screenshot (finish.ts), so a test that timed out mid-way, before its cleanup closed the screen,
 // still leaves no picture of it. Each mark is cleared only by its own flow, by the label it set.
+// A mark that is never cleared (its screen would not close) makes every later step() in this worker
+// refuse and withholds every later failure screenshot: deliberate, as it fails safe, never showing
+// a screen that may still hold the secret.
 // Framework-free, so jest tests it.
 
 const shown = new Set<string>()

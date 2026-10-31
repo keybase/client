@@ -53,6 +53,12 @@ const secretResultMethods = new Set([
 ])
 const redactMaxDepth = 12
 
+// Whether a param named `key` holding `value` is a secret, by the key lists above. The e2e harness
+// reads route params through this too (tests/e2e/ios-appium/gate/screen-params-lib.ts).
+export const isSecretParam = (key: string, value: unknown) =>
+  (secretKeys.has(key.toLowerCase()) && typeof value !== 'boolean' && value !== undefined && value !== null) ||
+  (stringSecretKeys.has(key.toLowerCase()) && typeof value === 'string')
+
 // A secret a string carries under some other key: the local HTTP server's `token=` query value
 // (simpleFSGetGUIFileContext's url, attachment urls), and an invite link's key, everything after
 // the `#` of its /i/t/<id>#<key> url (getAnnotatedTeam's invite displayName, a message's text) or
@@ -86,8 +92,7 @@ export function redactRpcParams(value: unknown, depth = 0): unknown {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
     out[k] =
-      (secretKeys.has(k.toLowerCase()) && typeof v !== 'boolean' && v !== undefined && v !== null) ||
-      (stringSecretKeys.has(k.toLowerCase()) && typeof v === 'string') ||
+      isSecretParam(k, v) ||
       (paperKeyDevice && k === 'name' && typeof v === 'string')
         ? '<redacted>'
         : redactRpcParams(v, depth + 1)

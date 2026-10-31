@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import * as fs from 'fs'
 import * as path from 'path'
-import {redactRpcParams, redactRpcResult} from './transport-shared'
+import {isSecretParam, redactRpcParams, redactRpcResult} from './transport-shared'
+import {stripSecretParams} from '@/tests/e2e/ios-appium/gate/screen-params-lib'
 import type * as TS from './transport-shared'
 import type * as RT from './rpc-transport'
 
@@ -219,6 +220,24 @@ test('the invite-link join path logs no link and no key', () => {
     expect(l).not.toContain('keybase.io/i/t')
   }
   expect(logged[0]).toContain('<redacted>')
+})
+
+// The e2e harness reads the visible screen's route params through this key list, so a secret route
+// param (an invite link's key, a token) never leaves the app.
+test('route params lose inviteKey and every key the RPC log redacts', () => {
+  const link = 'https://keybase.io/i/t/abcdefghijklmnop#secretkey0123456789'
+  const params = {
+    inviteDetails: {teamID: 'tid'},
+    inviteKey: link,
+    list: [{code: '123456', passphrase: fixture, phrase: fixture, status: {code: 7}}],
+    storeSecret: true,
+    tokenOrName: link,
+  }
+  expect(stripSecretParams(params, isSecretParam)).toEqual({
+    inviteDetails: {teamID: 'tid'},
+    list: [{status: {code: 7}}],
+    storeSecret: true,
+  })
 })
 
 describe('rpcLog and invoke end to end', () => {
