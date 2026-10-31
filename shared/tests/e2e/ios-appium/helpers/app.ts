@@ -1,5 +1,5 @@
 import {execFileSync} from 'child_process'
-import {maskedRunError} from '../gate/run-errors-lib'
+import {maskedRunError} from '../gate/run-errors-lib.ts'
 import {existsSync} from 'fs'
 import * as path from 'path'
 
