@@ -21,6 +21,7 @@ import {
 import {withHarnessRpcs} from './recorder'
 import {pressBackToLoginList, tapUntil} from './screens'
 import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
+import {clearSecretOnScreen, markSecretOnScreen} from './secret-screen.ts'
 
 const SIGN_IN_MS = 60_000
 let asks = 0
@@ -86,6 +87,25 @@ export const emptyLoginField = async () => {
   if (!(await el(T.LOGIN_PASSWORD_INPUT).isExisting())) return
   await focusSecretField(T.LOGIN_PASSWORD_INPUT)
   await emptySecretField(T.LOGIN_PASSWORD_INPUT)
+}
+
+const LOGIN_PASSWORD_SHOWN = "the login screen's password field"
+
+// Runs `f`, which may put a password into the login screen's field, with the secret-on-screen mark
+// on (no step, and a failure's screenshot withheld) until the field is gone or empty after it. A
+// throw leaves the mark on: the flow's afterEach clears it with clearLoginPasswordMark.
+export const withLoginPasswordMarked = async <R,>(f: () => Promise<R>): Promise<R> => {
+  markSecretOnScreen(LOGIN_PASSWORD_SHOWN)
+  const r = await f()
+  await clearLoginPasswordMark()
+  return r
+}
+
+// Empties the login screen's password field when it is mounted, then clears the mark. Bound: the
+// field read 1, emptying it 20.
+export const clearLoginPasswordMark = async () => {
+  await emptyLoginField()
+  clearSecretOnScreen(LOGIN_PASSWORD_SHOWN)
 }
 
 const withFieldEmptied = async (e: unknown): Promise<never> => {

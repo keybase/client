@@ -296,6 +296,8 @@ export const SETTINGS_ACCOUNT           = 'settings-account'
 // the account sub-page itself (SETTINGS_ACCOUNT is the settings nav that holds it)
 export const SETTINGS_ACCOUNT_PAGE = 'settings-account-page'
 export const SETTINGS_ADVANCED          = 'settings-advanced'
+// Advanced's "Always stay logged in" switch (its toggle; shown only for an account with a password)
+export const SETTINGS_REMEMBER_PASSWORD_SWITCH = 'settings-remember-password-switch'
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
 export const SETTINGS_CHAT              = 'settings-chat'

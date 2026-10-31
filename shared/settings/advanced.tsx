@@ -254,6 +254,7 @@ const Advanced = () => {
                   </Kb.Box2>
                 }
                 onCheck={onChangeRememberPassword}
+                testID={TestIDs.SETTINGS_REMEMBER_PASSWORD_SWITCH}
               />
             )}
             {C.isLinux ? <UseNativeFrame /> : null}

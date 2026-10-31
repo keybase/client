@@ -40,5 +40,11 @@ import './flows/people-follow.test'
 import './flows/profile-edit.test'
 import './flows/crypto.test'
 import './flows/crypto-roundtrip.test'
+import './flows/settings-account.test'
 // the second account's proofs add links to its sigchain; after its other flows
 import './flows/profile-proofs.test'
+// relaunches with the second account signed out part way, so after the other second-account flows
+import './flows/settings-remember-password.test'
+// last: it changes the second account's password, and a change that stops part way leaves it to the
+// owner (no later flow could sign the second account in)
+import './flows/settings-password.test'

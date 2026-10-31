@@ -13,7 +13,7 @@ import {checkSecondSecretSurvives, sayMasked, secondPasswordIsCurrent, type Rota
 import {maskAccounts} from '../../accounts/sweep-lib'
 import {ensurePeer} from '../../shared/peer-service'
 import {appAccount, asSecond, restoreToSmoke} from './accounts'
-import {restoreSecondSecret, storedSecretOf} from './sign-in'
+import {restoreSecondSecret, storedSecretOf, withLoginPasswordMarked} from './sign-in'
 
 // What the rotation reads and repairs, each side as a function so the tests can hand in fakes.
 export type PhoneSides = {
@@ -41,7 +41,7 @@ const liveSides = (): PhoneSides => ({
   peerPasswordIsCurrent: async (env, password) => secondPasswordIsCurrent(env, password),
   phoneRepair: async password => {
     try {
-      await restoreSecondSecret(password)
+      await withLoginPasswordMarked(async () => restoreSecondSecret(password))
     } finally {
       await restoreToSmoke()
     }
