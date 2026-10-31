@@ -5,8 +5,9 @@ import {waitFor} from './lifecycle'
 import {innermost, sheetItemLabels} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 
-// The open menu sheet.
-export const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND visible == 1')
+// The open menu sheet. Not by `visible`: XCUITest reports a sheet (and its items) visible=false now
+// and then while it is up, and a closed sheet leaves the tree.
+export const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet"')
 
 // An item in the open menu sheet; its rows read ", <item>" (an icon, then the text).
 const menuItemPredicate = (label: string) =>
@@ -60,18 +61,63 @@ export const menuLabels = async (): Promise<Array<string>> => {
 export const menuHas = async (label: string) => offers(await menuLabels(), label)
 export const menuOffers = offers
 
+type Rect = {height: number; width: number; x: number; y: number}
+const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
+  const at = await e.getLocation().catch(() => undefined)
+  const size = await e.getSize().catch(() => undefined)
+  return at && size ? {...at, ...size} : undefined
+}
+const within = (r: Rect, area: Rect) => r.y >= area.y && r.y + r.height <= area.y + area.height && r.x >= area.x && r.x + r.width <= area.x + area.width
+
+// The item `label` of the open sheet: the one reported visible, else the one drawn inside the sheet
+// (see menuSheet), with whether it reads visible. Undefined when there is none; throws on more than one.
+const sheetItem = async (label: string) => {
+  const shown = await browser.$$(`${menuItemPredicate(label)} AND visible == 1`).getElements()
+  if (shown.length) return {e: shown[0]!, visible: true}
+  const sheets: Array<Rect> = []
+  for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
+    const r = await rectOf(sh)
+    if (r) sheets.push(r)
+  }
+  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
+  for (const e of await browser.$$(menuItemPredicate(label)).getElements()) {
+    const r = await rectOf(e)
+    if (r && sheets.some(sh => within(r, sh))) found.push({e, rect: r})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length > 1) throw new Error(`${inner.length} sheet items "${label}", not one`)
+  return inner.length ? {e: found[inner[0]!]!.e, visible: false} : undefined
+}
+
+// Taps a sheet item: a click when XCUITest reports it visible, else a tap at its frame (a click on an
+// element reported visible=false taps nothing).
+const tapSheetItem = async (item: {e: WebdriverIO.Element; visible: boolean}) => {
+  if (item.visible) return item.e.click()
+  const r = await rectOf(item.e)
+  if (!r) throw new Error('a sheet item has no position')
+  return browser.execute('mobile: tap', {x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
+}
+
+// Taps the open sheet's item `label` once, for an item whose sheet stays up after it. Bound: the read
+// 1, the tap 1.
+export const tapMenuItemOnce = async (label: string) => {
+  const item = await sheetItem(label)
+  if (!item) throw new Error(`no "${label}" in the menu`)
+  await tapSheetItem(item)
+}
+
 // Scrolls the menu until `label` shows, and taps it. The sheet opens partway, so later items start
 // below the screen.
 export const chooseMenuItem = async (label: string) => {
   await waitFor(
     `"${label}" in the menu`,
     async () => {
-      const item = menuItem(label)
-      if (await item.isExisting()) {
+      const item = await sheetItem(label)
+      if (item) {
         // A tap lands at the item's middle; once that is on screen the item can be tapped. The sheet
         // tops out with its last items low on the screen, where no drag moves them further up.
-        const {y} = await item.getLocation()
-        const {height: itemHeight} = await item.getSize()
+        const {y} = await item.e.getLocation()
+        const {height: itemHeight} = await item.e.getSize()
         const {height} = await browser.getWindowRect()
         if (y + itemHeight / 2 < height) return true
       }
@@ -85,14 +131,16 @@ export const chooseMenuItem = async (label: string) => {
   // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
   // 5s wait was.
   for (let tap = 1; ; tap++) {
-    await menuItem(label).click()
+    const item = await sheetItem(label)
+    if (!item) throw new Error(`"${label}" left the menu before it was tapped`)
+    await tapSheetItem(item)
     const closed = await menuSheet()
       .waitForExist({reverse: true, timeout: 2_500})
       .then(() => true)
       .catch(() => false)
     if (closed) return
     // the tap took and the sheet is on its way down
-    if (!(await menuItem(label).isExisting())) {
+    if (!(await sheetItem(label))) {
       await menuSheet().waitForExist({reverse: true, timeout: 2_500})
       return
     }
@@ -174,12 +222,16 @@ export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStati
 // screen of rows is too slow) and compared in memory; then that element fetched by its type and
 // frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
 // than one throws. `what` names it.
-export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) => {
+export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) =>
+  drawnElementIn(types, label => label.split(', ').some(part => part.trim() === name), what)
+
+// The one visible element of `types` labelled exactly `label`, read as elementWithLabelPartIn reads.
+export const elementLabelledIn = async (types: ReadonlyArray<string>, label: string, what: string) =>
+  drawnElementIn(types, l => l === label, what)
+
+const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string) => {
   const found = sourceElements(await browser.getPageSource()).filter(
-    e =>
-      types.includes(e.type) &&
-      e.attrs['visible'] === 'true' &&
-      (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(part => part.trim() === name)
+    e => types.includes(e.type) && e.attrs['visible'] === 'true' && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' '))
   )
   const rects = found.map(e => ({
     height: Number(e.attrs['height']),

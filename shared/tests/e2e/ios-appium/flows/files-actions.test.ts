@@ -47,7 +47,7 @@ import {
   waitSignedIn,
 } from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, menuItem, menuSheet, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPart, menuSheet, openMenuFrom, tapMenuItemOnce} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 
 const txt = (() => {
@@ -466,7 +466,7 @@ describe('files actions', function () {
     seq = await currentCallSeq()
     await openMenuFrom('the unsync confirmation', async () => tapElement(await el(T.FILES_SYNC_TOGGLE).getElement(), "the sync switch"))
     // one tap: the sheet stays up after it (below), so chooseMenuItem's second try would send it again
-    await menuItem('Yes, unsync').click()
+    await tapMenuItemOnce('Yes, unsync')
     await waitForUiCall('the unsync to go out', seq, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig')
     await expectSync('disabled')
     // PR 9 (app bug): the confirmation stays up after the unsync (its menu keeps open on select, and
