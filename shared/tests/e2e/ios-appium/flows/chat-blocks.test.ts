@@ -110,9 +110,10 @@ describe('chat blocks', function () {
   }
 
   // The block ignores the smoke+second folder, and unblocking leaves it ignored. The ignore can land
-  // after the unblock, so the folder's state settles first (two reads alike, 1s apart).
+  // after the unblock, so the folder's state settles first (two reads alike, 1s apart). Then it goes
+  // back to how it was: a folder ignored before stays ignored; any other is un-ignored, which the
+  // service only does by favoriting it (it has no call back to "neither"), and a favorite is one again.
   const restoreFolder = async (folder: PairFavoriteState) => {
-    if (!folder.favorite) return
     let last = ''
     await waitFor(
       'the smoke+second folder favorite state to settle',
@@ -124,9 +125,11 @@ describe('chat blocks', function () {
       },
       {interval: 1_000, timeout: 20_000}
     )
-    if (!(await pairFavoriteState()).favorite) await refavoritePair()
+    if (folder.ignored) return
+    const before = await pairFavoriteState()
+    if (before.ignored || (folder.favorite && !before.favorite)) await refavoritePair()
     const now = await pairFavoriteState()
-    check(now.favorite && !now.ignored, `the smoke+second folder after the restore: ${JSON.stringify(now)}`)
+    check(!now.ignored && (!folder.favorite || now.favorite), `the smoke+second folder after the restore: ${JSON.stringify(now)}`)
   }
 
   // the e2e accounts' own check, as the release runs it (from shared/)

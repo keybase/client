@@ -161,8 +161,10 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   }
   const leftover = await blockLeftovers(vars)
   if (leftover.dmBlocked) problems.push("the smoke account's DM with the second account is blocked (setup repairs it)")
-  if (leftover.folderIgnored) {
-    problems.push(`the smoke+second folder is ignored (setup repairs it only if it is recorded as a favorite)`)
+  // flagged only when setup would repair it: an ignored folder never recorded as a favorite may be
+  // ignored on purpose
+  if (leftover.folderIgnored && pairWasFavorite(vars)) {
+    problems.push('the smoke+second folder is ignored but was a favorite (setup repairs it)')
   }
   const members = async (topicName: string) =>
     (await mainChatApi({
