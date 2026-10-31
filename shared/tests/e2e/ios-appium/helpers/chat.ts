@@ -1430,135 +1430,146 @@ export const visibleConversation = async () =>
 
 // -- standing in for the service, and reading what the app asked of it ---------------------------
 
-// What a delete watch saw, in order: each change of the row's delete phase and each thread pass the
-// service sent the app (chatThreadCached / chatThreadFull), with the recorder's call seq at that
-// moment (calls up to that seq came before it); and how many ChatThreadsStale it handed the app.
-export type DeleteWatchEntry = {seq: number; what: DeletePhase | 'pass'}
-export type DeleteWatch = {done: boolean; log: Array<DeleteWatchEntry>; stale: number}
-
-// Watches the visible thread's row at `ordinal` from inside the app, every 16ms: notes each change of
-// its delete phase, and each thread pass the service sends while it watches (the engine's incoming
-// call handler is wrapped for that long, then put back); from the moment the row's delete is in
-// flight it hands the app a ChatThreadsStale for the conversation every 100ms, as the service sends
-// one when a thread changed underneath it, and each makes the thread reload. Stops by itself once
-// the row is gone or after 15s; stopDeleteWatch stops it sooner. Read it with deleteWatch.
-export const watchDeleteThroughReloads = async (ordinal: number) => {
-  const ok = await jsEval<boolean>(`${threadStoreBody}
-    if (!store) return false
-    const g = globalThis
-    if (g.__e2eDeleteWatch) g.__e2eDeleteWatch.stop()
-    const engine = g.DEBUGEngine
-    if (!engine || typeof engine._rpcIncoming !== 'function') throw new Error('e2e delete watch: no DEBUGEngine._rpcIncoming')
-    const recorder = g.__kbE2ERecorder
-    if (!recorder) throw new Error('e2e delete watch: the app has no __kbE2ERecorder')
-    // never throws: it runs inside the app's incoming handler
-    const seq = () => {
-      try {
-        return recorder.calls(Number.MAX_SAFE_INTEGER).seq
-      } catch {
-        return -1
-      }
-    }
-    const router = kbModule('chat/notification-router.tsx')
-    const types = kbModule('constants/types/chat/index.tsx')
-    const passes = new Set(['chat.1.chatUi.chatThreadCached', 'chat.1.chatUi.chatThreadFull'])
-    const ownIncoming = Object.prototype.hasOwnProperty.call(engine, '_rpcIncoming')
-    const incoming = engine._rpcIncoming
-    const started = Date.now()
-    let phase
-    let lastStale = Date.now()
-    let timer
-    const watch = {
-      done: false,
-      log: [],
-      stale: 0,
-      sendStale: () => {
-        watch.stale++
-        router.routeChatNotification({
-          payload: {params: {updates: [{convID: types.keyToConversationID(convID), updateType: 1}]}},
-          type: 'chat.1.NotifyChat.ChatThreadsStale',
-        })
-      },
-      stop: () => {
-        if (watch.done) return
-        watch.done = true
-        clearInterval(timer)
-        if (ownIncoming) engine._rpcIncoming = incoming
-        else delete engine._rpcIncoming
-      },
-    }
-    engine._rpcIncoming = function (payload) {
-      if (!watch.done && payload && passes.has(payload.method)) watch.log.push({seq: seq(), what: 'pass'})
-      return incoming.call(this, payload)
-    }
-    g.__e2eDeleteWatch = watch
-    timer = setInterval(() => {
-      const s = store.getState()
-      const now = !(s.messageOrdinals || []).includes(${ordinal}) ? 'gone' : [...s.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
-      if (now !== phase) {
-        phase = now
-        watch.log.push({seq: seq(), what: now})
-      }
-      if (now === 'gone' || Date.now() - started > 15000) {
-        watch.stop()
-        return
-      }
-      if (now === 'row+deleting' && Date.now() - lastStale >= 100) {
-        lastStale = Date.now()
-        watch.sendStale()
-      }
-    }, 16)
-    return true
-  `)
-  if (!ok) throw new Error('no thread store on screen to watch')
-}
-
-// What the running or last delete watch saw; null when none ran in this runtime.
-export const deleteWatch = async () =>
-  jsEval<DeleteWatch | null>(`
-    const w = globalThis.__e2eDeleteWatch
-    return w ? {done: w.done, log: w.log.slice(), stale: w.stale} : null
-  `)
-
-// Stops a delete watch still running, which puts the engine's incoming handler back. Cleanup:
-// nothing when none runs.
-export const stopDeleteWatch = async () => {
-  await jsEval<boolean>(`
-    const w = globalThis.__e2eDeleteWatch
-    if (w) w.stop()
-    return true
-  `)
-}
-
-// Chooses Delete in the open message menu from inside the app, right behind a ChatThreadsStale for
-// the visible conversation in the same task: the thread's reload is asked for just ahead of the
-// delete, so its pass can come back while the delete is still on its way (a phone's delete lands
-// within a tick or two of the tap, before a reload the tap starts). Needs a running delete watch,
-// which counts the notification. The menu stays open; close it after. The delete goes out from the
-// eval, not a tap: run this inside withHarnessRpcs.
-export const chooseDeleteBehindAReload = async () => {
-  const ok = await jsEval<boolean>(`
-    const watch = globalThis.__e2eDeleteWatch
-    if (!watch || watch.done) throw new Error('e2e: no delete watch running')
+// Presses the inline pressable text `text` (a link drawn inside a message's text, such as a failed
+// send's "Edit or Cancel") of the visible thread's message at `ordinal`. On iOS such a text has no
+// accessibility element (the row is one element) and no frame of its own (Fabric draws it inside its
+// paragraph as virtual text), so the simulator cannot tap it. Ledger ruling, after the camera and QR
+// precedent: the flow calls the handler a tap fires, found in the app's tree under that message
+// only, exactly one text rendering exactly `text`; the caller adds a manualEdge so a person checks
+// the physical tap. It is the app's own UI handler, so what it sends is credited (no
+// withHarnessRpcs).
+export const pressInlineText = async (ordinal: number, text: string) => {
+  const found = await jsEval<number>(`
     const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
     let root
     for (const r of hook.getFiberRoots(1)) root = r
-    let onClick
+    const want = ${JSON.stringify(String(ordinal))}
+    const label = ${JSON.stringify(text)}
+    // the topmost fibers of the message: those carrying its ordinal under none that does
+    const rows = []
     const stack = [root.current]
-    while (stack.length && !onClick) {
+    while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
-      const item = p && (p.item || p)
-      if (item && item.title === 'Delete' && item.rightTitle === 'for everyone' && typeof item.onClick === 'function') onClick = item.onClick
       if (f.sibling) stack.push(f.sibling)
-      if (f.child) stack.push(f.child)
+      if (p && p.ordinal !== undefined && String(p.ordinal) === want) rows.push(f)
+      else if (f.child) stack.push(f.child)
     }
-    if (!onClick) return false
-    watch.sendStale()
-    onClick()
-    return true
+    // the composite texts with a click handler rendering exactly the label (the host virtual text
+    // under each carries the same handler)
+    const hits = []
+    for (const row of rows) {
+      const inner = row.child ? [row.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        // from the row's first child, every child and sibling stays inside the row
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        if (f.tag !== 5 && p && p.children === label && typeof p.onClick === 'function') hits.push(p.onClick)
+      }
+    }
+    if (hits.length === 1) hits[0]()
+    return hits.length
   `)
-  if (!ok) throw new Error('no Delete for everyone in an open message menu')
+  if (found !== 1) throw new Error(`${found} pressable "${text}" texts in the message at ${ordinal}, not one`)
+}
+
+// Taps the button labelled exactly `label` inside a tappable row the accessibility tree shows as
+// one element (the row's box merges what it holds, so the button has no element of its own): the
+// app's tree finds the one button with that label under the one component whose prop `prop` equals
+// `value`, its native view and that component's own view are measured (in the app's window, which
+// for a modal is the sheet, not the screen), the row's element places them on screen, and the tap
+// lands at the middle of the button's frame only if it lies wholly inside `row` (the row's own
+// element, which must be the measured row's size) and on screen (ledger ruling, the shape of the
+// inline-text one for a control with a view). The evals send nothing. Bound: 5s.
+export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: string; value: string}, label: string) => {
+  const started = await jsEval<number>(`
+    const g = globalThis
+    g.__e2eControlFrame = undefined
+    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const prop = ${JSON.stringify(scope.prop)}
+    const value = ${JSON.stringify(scope.value)}
+    const label = ${JSON.stringify(label)}
+    const read = p => prop.split('.').reduce((v, k) => (v && typeof v === 'object' ? v[k] : undefined), p)
+    const scopes = []
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.sibling) stack.push(f.sibling)
+      if (f.memoizedProps && read(f.memoizedProps) === value) scopes.push(f)
+      else if (f.child) stack.push(f.child)
+    }
+    const buttons = []
+    for (const s of scopes) {
+      const inner = s.child ? [s.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        const p = f.memoizedProps
+        if (f.tag !== 5 && p && p.label === label && typeof p.onClick === 'function') buttons.push(f)
+      }
+    }
+    if (buttons.length !== 1 || scopes.length !== 1) return buttons.length === 1 ? -2 : buttons.length
+    // a component's own native view: its first host descendant
+    const hostOf = c => {
+      const hosts = [c.child]
+      while (hosts.length) {
+        const f = hosts.shift()
+        if (!f) continue
+        if (f.tag === 5 && f.stateNode && f.stateNode.node) return f
+        if (f.child) hosts.push(f.child)
+      }
+    }
+    const button = hostOf(buttons[0])
+    const row = hostOf(scopes[0])
+    if (!button || !row) return -1
+    // both in the same coordinates (a modal's root view, not the screen); the row's element on screen
+    // places them
+    const frames = {}
+    const done = () => frames.button && frames.row && (g.__e2eControlFrame = frames)
+    const ui = g.nativeFabricUIManager
+    ui.measureInWindow(button.stateNode.node, (x, y, width, height) => ((frames.button = {height, width, x, y}), done()))
+    ui.measureInWindow(row.stateNode.node, (x, y, width, height) => ((frames.row = {height, width, x, y}), done()))
+    return 1
+  `)
+  if (started !== 1) {
+    throw new Error(
+      started === -1
+        ? `the "${label}" button or its row has no view to measure`
+        : started === -2
+          ? 'more than one component matches the row asked for'
+          : `${started} "${label}" buttons in the row asked for, not one`
+    )
+  }
+  type Frame = {height: number; width: number; x: number; y: number}
+  const measured = await waitFor(
+    `the "${label}" button measured`,
+    async () => (await jsEval<{button: Frame; row: Frame} | null>('return globalThis.__e2eControlFrame || null')) ?? undefined,
+    {interval: 100, timeout: 3_000}
+  )
+  const at = await row.getLocation()
+  const size = await row.getSize()
+  // the row's view and its element are the same box: the difference places the button on screen
+  if (Math.abs(measured.row.width - size.width) > 1 || Math.abs(measured.row.height - size.height) > 1) {
+    throw new Error(`the row measured ${JSON.stringify(measured.row)} is not the row element ${JSON.stringify({...at, ...size})}`)
+  }
+  const frame = {...measured.button, x: measured.button.x + at.x - measured.row.x, y: measured.button.y + at.y - measured.row.y}
+  const {height: window} = await browser.getWindowRect()
+  const inRow =
+    frame.width > 0 &&
+    frame.height > 0 &&
+    frame.x >= at.x - 1 &&
+    frame.y >= at.y - 1 &&
+    frame.x + frame.width <= at.x + size.width + 1 &&
+    frame.y + frame.height <= at.y + size.height + 1
+  if (!inRow || frame.y < 0 || frame.y + frame.height > window) {
+    throw new Error(`the "${label}" button is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
+  }
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
 }
 
 // The waiting keys the app holds right now (a spinner or a disabled control waits on each).
@@ -1795,24 +1806,6 @@ export const giphyGalleryShown = async () =>
     }
     return false
   `)
-
-// The GIFs the picker's web view exposes, as image elements wholly on screen inside it: a WKWebView
-// hands its page's images to XCUITest. Empty while it shows none.
-export const giphyImages = async () => {
-  const views = await browser.$$('-ios class chain:**/XCUIElementTypeWebView').getElements()
-  if (views.length !== 1) return []
-  const view = views[0]!
-  const {x: vx, y: vy} = await view.getLocation()
-  const {height: vh, width: vw} = await view.getSize()
-  const out: Array<WebdriverIO.Element> = []
-  for (const img of await view.$$('-ios class chain:**/XCUIElementTypeImage').getElements()) {
-    const at = await img.getLocation().catch(() => undefined)
-    const size = await img.getSize().catch(() => undefined)
-    if (!at || !size || size.width < 10 || size.height < 10) continue
-    if (at.x >= vx && at.y >= vy && at.x + size.width <= vx + vw && at.y + size.height <= vy + vh) out.push(img)
-  }
-  return out
-}
 
 // -- the info panel, labels and the inbox's own state --------------------------------------------
 
