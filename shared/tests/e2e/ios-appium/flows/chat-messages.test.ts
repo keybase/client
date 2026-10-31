@@ -1,7 +1,7 @@
 // What the phone sends for a message once it is in the thread: an edit, a message too long to send
 // (pasted in, failing, and cancelled from its row), a forward to the self conversation, an exploding
 // message running out and one exploded from its menu, a channel's history cleared, a pinned message
-// dismissed by a member, the emoji skin tone, and a GIF from the GIF picker.
+// dismissed by a member, the emoji skin tone, and the GIF picker up to the pick (a person's).
 //
 // Each acts in e2e-scratch, the self conversation or a throwaway channel of KB_E2E_TEAM this run
 // made. The host stays on the smoke account: it seeds, reads back, and makes and deletes the
@@ -35,7 +35,7 @@ import {forwardResultMatches} from '../gate/chat-lib'
 import {setPasteboard} from '../gate/device'
 import {callsSince, currentCallSeq} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {step} from '../gate/step'
+import {manualEdge, step} from '../gate/step'
 import {
   appPinnedMessageID,
   appSkinTone,
@@ -43,6 +43,7 @@ import {
   check,
   chooseMenuItem,
   clearComposer,
+  closeInfoPanel,
   closeMessageMenu,
   composerText,
   dragUntilOnScreen,
@@ -51,7 +52,6 @@ import {
   expectPersists,
   explodingModeSeconds,
   giphyGalleryShown,
-  giphyImages,
   hideKeyboard,
   openConversation,
   openHeaderMenuItem,
@@ -60,6 +60,7 @@ import {
   outboxIDsWithText,
   pasteIntoComposer,
   pinnedBanner,
+  pressInlineText,
   readThread,
   restoreAppSkinTone,
   sendMessage,
@@ -68,6 +69,7 @@ import {
   storedAttachment,
   storedMessageState,
   typeInComposer,
+  typeInSearchFilter,
   visibleConversation,
   waitForComposerText,
   waitForRow,
@@ -90,7 +92,7 @@ describe('chat messages', function () {
   //   second    asSecond 250 (the switch 90, the restore 160);  restore  restoreToSmoke 160
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   relaunch  relaunchApp 200;  signed in  90
-  //   paste     setPasteboard 30, the edit menu's Paste 20 and its tap 1 = 51;  its length polled 20
+  //   paste     setPasteboard 40, the edit menu's Paste 20 and its tap 1 = 61;  its length polled 20
   //   panel     the header menu 15, the panel 10, a tab 10 = 35
   //   step      2 (its 1s settle and the attach)
 
@@ -311,10 +313,10 @@ describe('chat messages', function () {
   // in by the pasteboard (typing 10001 keys would take minutes), and it is filler: the run's marker,
   // then x's.
   it('a pasted message over the length limit fails, and its Cancel drops it for good', async function () {
-    // worst case (s): open 100, sent 25 (the anchor), keyboard 5, paste 51, its length 20, step 2, the
-    // seq 2, the button 5, the tap 1, row 30, the failed record 30, composer 5, keyboard 5, step 2, the
-    // Cancel 2, the tap 1, the row gone 15, calls 10, step 2, relaunch 200, signed in 90, open 100, the
-    // anchor 20, the read 1, cli 80, step 2 = 806
+    // worst case (s): open 100, sent 25 (the anchor), keyboard 5, paste 61, its length 20, step 2, the
+    // button 5, the tap 1, row 30, the failed record 30, composer 5, keyboard 5, step 2, the seq 2, the
+    // edge 2, the press 1, the row gone 15, calls 10, the record 1, step 2, relaunch 200, signed in 90,
+    // open 100, the anchor 20, the read 1, cli 80, step 2 = 817
     this.timeout(880_000)
     await openScratch()
     // a message sent first, which shows the thread loaded after the relaunch
@@ -325,7 +327,7 @@ describe('chat messages', function () {
     const marker = e2eMarker('msg-toolong')
     const text = `${marker} ${'x'.repeat(10_001)}`
     tooLongMarker = marker
-    setPasteboard(text)
+    await setPasteboard(text)
     await pasteIntoComposer()
     await waitFor(
       'the composer to hold the pasted text',
@@ -338,7 +340,6 @@ describe('chat messages', function () {
     creditSurface('pasteboard')
     await step('The over-length text pasted into the composer')
 
-    const seq = await currentCallSeq()
     await el(T.CHAT_SEND_BUTTON).waitForExist({timeout: 5_000})
     await el(T.CHAT_SEND_BUTTON).click()
     const ordinal = await waitForRow(marker, 30_000)
@@ -355,18 +356,18 @@ describe('chat messages', function () {
     await hideKeyboard()
     await step('The message failed: too long, with Edit or Cancel', {card: true})
 
-    // RN gives a pressable Text the link role, so the row's Cancel is its own element
-    const cancel = await elementInRow(
-      '-ios predicate string:type == "XCUIElementTypeLink" AND label == "Cancel" AND visible == 1',
-      ordinal,
-      "the failed row's Cancel"
-    )
-    await cancel.click()
+    // The row's Cancel is inline text with no element or frame on iOS: its own handler is called and
+    // a person checks the tap (ledger ruling); the CancelPost it sends is the app's own.
+    const beforeCancel = await currentCallSeq()
+    await manualEdge('failed-send-cancel')
+    await pressInlineText(ordinal, 'Cancel')
     await waitFor('the failed row to go', async () => ((await ordinalsWithText(marker)).length === 0 ? true : undefined), {
       interval: 250,
       timeout: 15_000,
     })
-    await waitForCall('the cancel to go out', seq, 'chat.1.local.CancelPost')
+    await waitForCall('the cancel to go out', beforeCancel, 'chat.1.local.CancelPost')
+    const record = await storedMessageState(ordinal)
+    check(!record, `the outbox record is still in the thread: ${JSON.stringify(record)}`)
     await step('Cancelled: the failed row is gone')
 
     // an outbox record comes back with the thread after a relaunch, so this shows the service dropped it
@@ -414,11 +415,7 @@ describe('chat messages', function () {
     await el(T.CHAT_FORWARD_SEARCH).waitForExist({timeout: 10_000})
     check((await appSnapshot()).screen?.name === 'chatForwardMsgPick', 'Forward did not open the forward picker')
 
-    const search = browser.$(
-      '-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search chats and teams..." AND visible == 1'
-    )
-    await search.waitForExist({timeout: 5_000})
-    await search.addValue(data.smokeUser)
+    await typeInSearchFilter(data.smokeUser)
     // the self conversation, by its name in memory: no selector holds it
     const selfRow = await waitFor(
       'the self conversation among the results',
@@ -577,8 +574,7 @@ describe('chat messages', function () {
     await confirm.click()
     await confirm.waitForExist({reverse: true, timeout: 10_000})
     await waitForCall('the clear to go out', seq, 'chat.1.local.postDeleteHistoryByAge')
-    await goBackUntilGone(T.CHAT_INFO_PANEL)
-    await el(T.CHAT_INFO_PANEL).waitForExist({reverse: true, timeout: 5_000})
+    await closeInfoPanel()
     check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
     await waitFor(
       'the cleared rows to go',
@@ -722,47 +718,28 @@ describe('chat messages', function () {
     await step(`After a relaunch the app shows tone ${want}`, {card: true})
   })
 
-  // A GIF's body is its url, which cannot carry the run's stamp: it goes to a throwaway channel. The
-  // phone's picker is a web view of the service's gallery page, and a tap on a GIF there asks the
-  // service itself to post it, so the app sends no trackGiphySelect (desktop's picker does).
-  it('a GIF picked from the GIF picker posts to a throwaway channel', async function () {
+  // The phone's picker is a web view of the service's gallery page, and a tap on a GIF there asks the
+  // service itself to post it (so the app sends no trackGiphySelect; desktop's picker does). The
+  // WKWebView exposes no image of the page to XCUITest (seen live), so the pick is a person's
+  // (ledger ruling). It runs in a throwaway channel, which a GIF picked there by hand would post to.
+  it('Share a GIF opens the GIF picker for the search typed, where a person picks one', async function () {
     // worst case (s): channel 240, open 100, the button 1, the item 10 and its tap 1, composer 5, type
-    // 15, composer 5, the gallery 30, its GIFs 30, step 2, the tap 1, the gallery gone 15, composer 10,
-    // the row 30, cli 80, step 2 = 577
-    this.timeout(620_000)
-    const {convID, topicName} = await newChannel('giphy', {withSecond: false})
+    // 15, composer 5, the gallery 30, step 2, the edge 2, clear 5, the gallery gone 15 = 431
+    this.timeout(460_000)
+    const {convID} = await newChannel('giphy', {withSecond: false})
     await openConversation(convID)
     await el(T.CHAT_MORE_BUTTON).click()
-    // the row reads ", Share a GIF, /giphy": its icon, the title, then its subtitle
-    const gifItem = browser.$('-ios predicate string:type == "XCUIElementTypeOther" AND label BEGINSWITH ", Share a GIF," AND visible == 1')
+    // the row reads "<glyph>, Share a GIF, /giphy": its icon, the title, then its subtitle
+    const gifItem = browser.$('-ios predicate string:type == "XCUIElementTypeOther" AND label ENDSWITH ", Share a GIF, /giphy" AND visible == 1')
     await gifItem.waitForExist({timeout: 10_000})
     await gifItem.click()
     await waitForComposerText('/giphy ')
     await el(T.CHAT_INPUT).addValue('cat')
     await waitForComposerText('/giphy cat')
     await waitFor('the GIF picker', async () => ((await giphyGalleryShown()) ? true : undefined), {interval: 500, timeout: 30_000})
-    // Any GIF the search shows is as good as another: the one picked is the first wholly on screen.
-    // If the web view never exposes its images, the pick becomes a manual one (manualEdge('giphy-pick')).
-    const gifs = await waitFor(
-      "the GIF picker's web view to expose its GIFs to XCUITest",
-      async () => {
-        const found = await giphyImages()
-        return found.length ? found : undefined
-      },
-      {interval: 1_000, timeout: 30_000}
-    )
-    await step('The GIF picker')
-    await gifs[0]!.click()
+    await step('The GIF picker for the search')
+    await manualEdge('giphy-pick')
+    await clearComposer()
     await waitFor('the GIF picker to close', async () => ((await giphyGalleryShown()) ? undefined : true), {interval: 500, timeout: 15_000})
-    await waitForComposerText('', 10_000)
-    await waitFor('the GIF row', async () => ((await ordinalsWithText('giphy.com/')).length === 1 ? true : undefined), {
-      interval: 500,
-      timeout: 30_000,
-    })
-    await expectCli({topicName}, "the GIF, the account's one text message in the channel", ms => {
-      const own = ms.filter(m => m.content.type === 'text' && m.sender.username === data.smokeUser)
-      return own.length === 1 && (own[0]?.content.text?.body ?? '').includes('giphy.com/')
-    })
-    await step('The GIF posted', {card: true})
   })
 })
