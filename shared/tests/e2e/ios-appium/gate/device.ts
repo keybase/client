@@ -12,7 +12,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {runSync} from '../helpers/app'
-import {activateApp, appPid, backgroundApp, BUNDLE_ID, deviceUdid, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
+import {activateApp, appPid, appState, backgroundApp, BUNDLE_ID, deviceUdid, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
 import {CORPUS} from '../../fixtures/corpus/corpus.ts'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {installAppLogCapture} from './app-log.ts'
@@ -226,22 +226,35 @@ export const pasteboardText = async (): Promise<string> => {
 const runtimeId = async (): Promise<string | undefined> =>
   (await jsEval<string | null>(RUNTIME_BODY)) ?? undefined
 
-const waitForRuntime = async (before: string | undefined) =>
+// `alive` runs after each runtime read and throws to stop the wait (an app that must not be
+// launched again exited).
+const waitForRuntime = async (before: string | undefined, alive?: () => void) =>
   waitFor('the relaunched app to start a new JS runtime', async () => {
     const now = await runtimeId()
+    alive?.()
     return now && now !== before ? now : undefined
   }, {interval: 500, timeout: RUNTIME_WAIT_MS})
 
-const startedAgain = async (before: string | undefined) => {
-  if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
-  await waitForRuntime(before)
+// The new runtime's error capture and app-log capture.
+const captured = async (before: string | undefined, alive?: () => void) => {
+  await waitForRuntime(before, alive)
   await ensureErrorCapture()
   await installAppLogCapture()
 }
 
-const launch = async (before: string | undefined) => {
-  await startedAgain(before)
+// The new runtime's captures and the attempt's recording.
+const started = async (before: string | undefined, alive?: () => void) => {
+  await captured(before, alive)
   await attemptRecording().checkpoint()
+}
+
+const launchIfNotRunning = () => {
+  if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
+}
+
+const launch = async (before: string | undefined) => {
+  launchIfNotRunning()
+  await started(before)
 }
 
 // What the app logged so far goes with its runtime, so it is kept on the attempt for afterTest.
@@ -269,7 +282,8 @@ export const relaunchApp = async () => {
 // Terminates the app, then has `deliver` launch it the way a person would (a link it opens, a
 // notification tapped), and waits for its new JS runtime with error capture, the app-log capture and
 // the recording on it. It never launches the app itself: an app that `deliver` did not start within
-// DELIVERED_LAUNCH_MS fails, so what the app shows next is what `deliver` opened. The flow credits
+// DELIVERED_LAUNCH_MS, or that exits again before its runtime starts, fails, so what the app shows
+// next is what `deliver` opened. The flow credits
 // 'relaunch' (and the surface `deliver` used) once it has asserted that screen.
 export const launchedBy = async (deliver: () => unknown) => {
   const before = await runtimeId().catch(() => undefined)
@@ -281,25 +295,34 @@ export const launchedBy = async (deliver: () => unknown) => {
     interval: 500,
     timeout: DELIVERED_LAUNCH_MS,
   })
-  await launch(before)
+  await started(before, () => {
+    if (appPid() === undefined) throw new Error('the app exited after what was delivered launched it')
+  })
 }
 
-// For a flow's afterEach (simctl and reads only, no recording): launches the app when a test left it
-// terminated, and waits for its JS runtime, so the next test's reset finds it. An app that does not
-// come back poisons the gate; one that does clears that poison.
+// XCUITest's state for an app running in the foreground (mobile: queryAppState)
+const FOREGROUND = 4
+const FRONT_MS = 30_000
+
+// For a flow's afterEach (simctl, Appium's activate and reads only; no recording): an app a test left
+// terminated is launched, one it left in the background is brought to the front, and either way this
+// waits for it in front with its JS runtime up, so the next test's reset finds it. An app that does
+// not come back poisons the gate; one that does clears that poison.
 export const launchIfGone = async () => {
   try {
-    if (appPid() === undefined) {
-      simctl('launch', deviceUdid(), BUNDLE_ID)
-      await waitFor('the launched app to start its JS runtime', async () => ((await runtimeId()) ? true : undefined), {
-        interval: 500,
-        timeout: RUNTIME_WAIT_MS,
-      })
-    }
+    const udid = preflightUdid()
+    if (appPid(udid) === undefined) simctl('launch', udid, BUNDLE_ID)
+    else if ((await appState()) !== FOREGROUND) await activateApp()
+    await waitFor('the app in front', async () => ((await appState()) === FOREGROUND ? true : undefined), {interval: 500, timeout: FRONT_MS})
+    // a launch that has a pid may not have started its runtime yet
+    await waitFor('the app to have its JS runtime', async () => ((await runtimeId()) ? true : undefined), {
+      interval: 500,
+      timeout: RUNTIME_WAIT_MS,
+    })
   } catch (e) {
     if (isAttemptOver(e)) throw e
-    poisonGate(APP_POISON, 'launch the Keybase app on the simulator and check it shows the smoke account')
-    throw new Error(`launching ${APP_POISON} again failed: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
+    poisonGate(APP_POISON, 'bring the Keybase app to the front on the simulator and check it shows the smoke account')
+    throw new Error(`bringing ${APP_POISON} back failed: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
   }
   clearGatePoison(APP_POISON)
 }
@@ -311,7 +334,8 @@ export const launchIfGone = async () => {
 export const relaunchHungApp = async () => {
   await keepErrors()
   await terminateApp()
-  await startedAgain(undefined)
+  launchIfNotRunning()
+  await captured(undefined)
   await openAttemptRecording()?.checkpoint()
 }
 

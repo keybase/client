@@ -26,6 +26,9 @@ const mockDevice = {
   // the app's pid, undefined while it is not running, and its JS runtime
   pid: 1 as number | undefined,
   runtime: 'r1' as string | undefined,
+  // XCUITest's app state (4: in front), and whether the next runtime read sees the app exit
+  appState: 4,
+  exitsOnEval: false,
   // a push file as simctl saw it
   pushed: [] as Array<{argv: string; file: string; mode: number; body: string}>,
   pushFails: false,
@@ -37,16 +40,21 @@ jest.mock('../helpers/lifecycle', () => ({
   BUNDLE_ID: 'keybase.ios',
   activateApp: async () => {
     mockDevice.calls.push('activate')
+    mockDevice.appState = 4
     return Promise.resolve()
   },
   appPid: () => mockDevice.pid,
+  appState: async () => Promise.resolve(mockDevice.appState),
   backgroundApp: async () => {
     mockDevice.calls.push('background')
     return Promise.resolve()
   },
   // a name lookup's answer, which nothing outside the app may use
   deviceUdid: () => '00000000-1111-2222-3333-444444444444',
-  jsEval: async () => Promise.resolve(mockDevice.runtime),
+  jsEval: async () => {
+    if (mockDevice.exitsOnEval) mockDevice.pid = undefined
+    return Promise.resolve(mockDevice.runtime)
+  },
   lookFor: async () => Promise.resolve(undefined),
   openUrl: (url: string) => {
     mockDevice.calls.push('openurl')
@@ -122,6 +130,8 @@ beforeEach(() => {
   mockDevice.openFails = false
   mockDevice.pid = 1
   mockDevice.runtime = 'r1'
+  mockDevice.appState = 4
+  mockDevice.exitsOnEval = false
 })
 afterEach(() => {
   if (savedEnv.udid === undefined) delete process.env['KB_IOS_UDID']
@@ -313,26 +323,49 @@ describe('a launch by what was delivered', () => {
     await expect(launchedBy(() => void mockDevice.calls.push('deliver'))).rejects.toThrow(/the app to launch from what was delivered/)
     expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
   })
+
+  test('fails when the app it delivered to exits before its runtime starts, and never starts it again', async () => {
+    await expect(
+      launchedBy(() => {
+        mockDevice.pid = 2
+        mockDevice.exitsOnEval = true
+      })
+    ).rejects.toThrow(/the app exited after what was delivered launched it/)
+    expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
+  })
 })
 
 describe('the app launched again by a hook', () => {
-  test('runs nothing while the app is up', async () => {
+  test('runs nothing while the app is up in front', async () => {
     await launchIfGone()
     expect(mockDevice.calls).toEqual([])
   })
 
-  test('launches an app a test left terminated and waits for its runtime', async () => {
+  test('launches an app a test left terminated, on the udid preflight proved, and waits for its runtime', async () => {
     mockDevice.pid = undefined
     mockDevice.runtime = 'r2'
     await launchIfGone()
-    expect(mockDevice.calls).toEqual(['simctl launch 00000000-1111-2222-3333-444444444444 keybase.ios'])
+    expect(mockDevice.calls).toEqual([`simctl launch ${UDID} keybase.ios`])
     expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('brings an app a test left in the background to the front without relaunching it', async () => {
+    mockDevice.appState = 3
+    await launchIfGone()
+    expect(mockDevice.calls).toEqual(['activate'])
+    expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('waits for the runtime of an app that has a pid but no runtime yet', async () => {
+    mockDevice.runtime = undefined
+    await expect(launchIfGone()).rejects.toThrow(/the app to have its JS runtime/)
+    expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
   })
 
   test('poisons the gate when the app does not come back, and a later launch that works clears it', async () => {
     mockDevice.pid = undefined
     mockDevice.runtime = undefined
-    await expect(launchIfGone()).rejects.toThrow(/launching the Keybase app again failed/)
+    await expect(launchIfGone()).rejects.toThrow(/bringing the Keybase app back failed/)
     expect(gatePoisoned()).toBeDefined()
     mockDevice.runtime = 'r2'
     await launchIfGone()

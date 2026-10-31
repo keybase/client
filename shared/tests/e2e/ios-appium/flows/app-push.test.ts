@@ -1,11 +1,12 @@
 // Push notifications delivered to the simulator (simctl push of a chat.newmessage, gate/device.ts),
 // each for a throwaway channel of the e2e team this run made and the smoke account's uid, its body
 // this run's stamped marker (no message content): one pushed while the app is in the foreground shows
-// nothing and opens nothing; one shown while the app is in the background and left untapped opens
-// nothing when the app comes back; a tapped banner opens its conversation; a banner tapped while the
-// app is not running launches the app into it. Then the Settings > Notifications "Phone
-// notifications" group: one of its settings switched from the phone, read back on the server, and
-// switched back.
+// nothing and opens nothing (a second one right after, to the app in the background, shows its
+// banner, so pushes were reaching the phone); one shown while the app is in the background and left
+// untapped opens nothing when the app comes back; a tapped banner opens its conversation; a banner
+// tapped while the app is not running launches the app into it. Then the Settings > Notifications
+// "Phone notifications" group: one of its settings switched from the phone, read back on the server,
+// and switched back.
 //
 // A push to the background waits for the phone's service to record the app in the background first:
 // one sent before that is handed to the app instead of shown. 'push-notification' (and 'relaunch'
@@ -13,10 +14,10 @@
 // conversation. Each "opened nothing" is read off the app's log up to a marker logged after the
 // delivery, and the screen read after it.
 //
-// The flow's afterEach launches the app again when a cold launch stopped part way, clears this run's
-// notifications from Notification Center (only those: their bodies carry the run's stamp; a failure
-// there poisons the gate), puts back the notification settings through the host (as smoke, each read
-// back) and deletes the channel.
+// The flow's afterEach launches the app again, or brings it to the front, when a test stopped part
+// way, clears this run's notifications from Notification Center (only those: their bodies carry the
+// run's stamp; a failure there poisons the gate), puts back the notification settings through the
+// host (as smoke, each read back) and deletes the channel.
 import {createThrowawayChannel, deleteThrowawayChannel} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker} from '../../shared/run-marker.ts'
@@ -95,6 +96,8 @@ describe('app push notifications', function () {
   }
 
   // Bound: three host restores 1065 (each a read 150, the write 35, 20s of reads overrun by one 170).
+  // One that fails keeps `notifications`, so every later afterEach tries it again, and the settings
+  // test refuses to start until it is put back.
   const restoreNotifications = async () => {
     const n = notifications
     if (!n) return
@@ -104,12 +107,12 @@ describe('app push notifications', function () {
     notifications = undefined
   }
 
-  // Nothing a test left behind, after a timeout too: the app back up first (simctl and reads only; the
+  // Nothing a test left behind, after a timeout too: the app back up in front first (no recording; the
   // next test's reset drives it), then this run's notifications, the settings, the channel and the tab
-  // root. Worst case (s): launchIfGone 121, clearBanners 55, restoreNotifications 1065, a channel 120,
-  // escapeToTabs 30 = 1391.
+  // root. Worst case (s): launchIfGone 272 (a launch 120 or the activate 1, in front 31, the runtime
+  // 121), clearBanners 55, restoreNotifications 1065, a channel 120, escapeToTabs 30 = 1542.
   afterEach(async function () {
-    this.timeout(1_450_000)
+    this.timeout(1_600_000)
     await withCleanup(launchIfGone, [clearBanners, restoreNotifications, deleteChannels, escapeToTabs])
   })
 
@@ -160,8 +163,8 @@ describe('app push notifications', function () {
 
   it('a push that arrives while the app is in the foreground shows nothing and opens nothing', async function () {
     // worst case (s): channel 240, uid 2, people 66, mark 2, push 30, window 9, until 12, screen 21,
-    // step 2 = 384
-    this.timeout(420_000)
+    // step 2; the delivery check: background 142, push 30, banner 9, foreground 32, step 2 = 599
+    this.timeout(640_000)
     const {convID, uid} = await pushTarget()
     await fromPeople()
     const mark = await appLogMark()
@@ -174,6 +177,15 @@ describe('app push notifications', function () {
     await expectScreen('People still up after the push', 'peopleRoot')
     // People lists people who are not test accounts
     await step('The push in the foreground opened nothing', {screenshot: false})
+
+    // the same push to the same conversation shows once the app is in the background, so pushes were
+    // reaching the phone while the one above showed nothing
+    await inBackground()
+    const shown = e2eMarker('push-delivered')
+    push(convID, uid, shown)
+    check((await findBanner(shown)) !== undefined, 'a push to the app in the background right after showed no banner: pushes were not reaching the phone')
+    await backInForeground()
+    await step('A push right after, in the background, showed its banner', {screenshot: false})
   })
 
   it('a push shown while the app is in the background, left untapped, opens nothing when the app comes back', async function () {
@@ -248,7 +260,7 @@ describe('app push notifications', function () {
 
   it('Settings > Notifications: a phone notification switched from the phone, read back on the server, and switched back', async function () {
     // worst case (s): host 150 x3, open 97, shown 41, step 2, tap 37, settles 180, shown 41, step 2,
-    // tap 37, settles 180, shown 41, step 2 = 1130
+    // tap 37, settles 180, shown 41, step 2 = 1110
     this.timeout(1_200_000)
     check(notifications === undefined, "refusing to run: an earlier attempt's notification settings were not put back")
     // refuses an account unsubscribed from all of a group; "Unsubscribe from all" is never pressed

@@ -66,11 +66,12 @@ describe('app deep links', function () {
     }
   }
 
-  // Nothing a test made left behind, after a timeout too: the app launched again when a cold launch
-  // stopped part way (simctl and reads only; the next test's reset drives it), the channel deleted,
-  // the tab root. Worst case (s): launchIfGone 121, a channel 120, escapeToTabs 30 = 271.
+  // Nothing a test made left behind, after a timeout too: the app launched again or brought to the
+  // front when a test stopped part way (no recording; the next test's reset drives it), the channel
+  // deleted, the tab root. Worst case (s): launchIfGone 272 (a launch 120 or the activate 1, in front 31, the
+  // runtime 121), a channel 120, escapeToTabs 30 = 422.
   afterEach(async function () {
-    this.timeout(300_000)
+    this.timeout(450_000)
     await withCleanup(launchIfGone, [deleteChannels, escapeToTabs])
   })
 
