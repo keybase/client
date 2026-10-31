@@ -102,7 +102,7 @@ describe('chat bots', function () {
   // the subteam a test made; the bot goes with it
   let subteam: string | undefined
 
-  // Bound: host 75, the delete 105, its read polled 95 (30, overrun by one read) = 275.
+  // Bound: host 75, the delete 105, its read polled 105 (30, overrun by one host read's 75) = 285.
   const deleteSubteam = async () => {
     if (subteam === undefined) return
     const name = subteam
@@ -115,7 +115,7 @@ describe('chat bots', function () {
     subteam = undefined
   }
 
-  // Worst case (s): close 5, keyboard 5, the subteam 275, escape 30 = 315.
+  // Worst case (s): close 5, keyboard 5, the subteam 285, escape 30 = 325.
   afterEach(async function () {
     this.timeout(330_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteSubteam, escapeToTabs])
