@@ -14,7 +14,8 @@ import {
 // Keys (lowercased) whose values are secrets in protocol/avdl params and results: passphrases
 // (account/login/signup/secretUi) and the passphrase stream, paper keys and phrases (login,
 // paperprovision, loginUi), the kex2 secret (provisionUi), tokens, invite codes and invite-link keys,
-// and per-team key seeds. Booleans such as storeSecret stay visible. transport-shared.test.ts checks
+// per-team key seeds, and saltpack text (the plaintext, ciphertext and signed message the saltpack
+// calls send and return). Booleans such as storeSecret stay visible. transport-shared.test.ts checks
 // every secret-shaped field name in rpc-gen against this list.
 const secretKeys = new Set([
   'passphrase',
@@ -36,6 +37,9 @@ const secretKeys = new Set([
   'passphrasestream',
   'seed',
   'perteamkeyseedsverified',
+  'plaintext',
+  'ciphertext',
+  'signedmsg',
 ])
 // `code` is also a numeric status code, so only a string value is a secret (the one-time code of
 // verifyPhoneNumber).

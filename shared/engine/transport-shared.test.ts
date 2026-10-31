@@ -259,6 +259,27 @@ test('route params lose inviteKey and every key the RPC log redacts', () => {
   })
 })
 
+// Each saltpack call that carries text, with what it sends and what it returns.
+const saltpackCalls: Array<[string, object, unknown]> = [
+  ['keybase.1.saltpack.saltpackEncryptString', {opts: {includeSelf: true, recipients: ['testuser']}, plaintext: fixture}, {ciphertext: fixture, unresolvedSBSAssertion: '', usedUnresolvedSBS: false}],
+  ['keybase.1.saltpack.saltpackDecryptString', {ciphertext: fixture}, {info: {sender: {username: 'testuser'}}, plaintext: fixture, signed: true}],
+  ['keybase.1.saltpack.saltpackSignString', {plaintext: fixture}, fixture],
+  ['keybase.1.saltpack.saltpackVerifyString', {signedMsg: fixture}, {plaintext: fixture, sender: {username: 'testuser'}, signingKID: 'kid', verified: true}],
+  ['keybase.1.saltpack.saltpackSaveCiphertextToFile', {ciphertext: fixture}, '/tmp/out.saltpack'],
+  ['keybase.1.saltpack.saltpackSaveSignedMsgToFile', {signedMsg: fixture}, '/tmp/out.saltpack'],
+]
+
+test.each(saltpackCalls)('%s: logged params and result hold no saltpack text', (method, params, result) => {
+  expect(JSON.stringify(redactRpcParams(params))).not.toContain(fixture)
+  expect(JSON.stringify(redactRpcResult(method, result))).not.toContain(fixture)
+})
+
+test('saltpack results keep what is not text', () => {
+  const out = redactRpcResult('keybase.1.saltpack.saltpackDecryptString', {info: {sender: {username: 'testuser'}}, plaintext: fixture, signed: true})
+  expect(out).toEqual({info: {sender: {username: 'testuser'}}, plaintext: '<redacted>', signed: true})
+  expect(redactRpcResult('keybase.1.saltpack.saltpackSaveCiphertextToFile', '/tmp/out.saltpack')).toBe('/tmp/out.saltpack')
+})
+
 describe('rpcLog and invoke end to end', () => {
   const lines = new Array<unknown[]>()
   let rpcLog: typeof TS.rpcLog
@@ -278,6 +299,12 @@ describe('rpcLog and invoke end to end', () => {
     lines.length = 0
   })
 
+  test.each(saltpackCalls)('rpcLog params of %s', (method, params) => {
+    rpcLog({extra: params, method, reason: '[+calling]', type: 'engineToServer'})
+    expect(lines).toHaveLength(1)
+    expect(JSON.stringify(lines)).not.toContain(fixture)
+  })
+
   test('rpcLog params path', () => {
     rpcLog({extra: {passphrase: fixture, sessionID: 1}, method: 'account.passphraseCheck', reason: '[+calling]', type: 'engineToServer'})
     expect(lines).toHaveLength(1)
@@ -291,6 +318,7 @@ describe('rpcLog and invoke end to end', () => {
     ['keybase.1.signup.getInvitationCode', fixture],
     ['keybase.1.account.passphrasePrompt', {passphrase: fixture}],
     ['keybase.1.device.deviceHistoryList', [{device: {name: fixture, type: 'backup'}}]],
+    ...saltpackCalls.map(([method, , result]) => [method, result] as [string, unknown]),
   ])('invoke [-calling] result of %s', (method, result) => {
     class T extends TransportShared {
       protected override writeMessage() {}
