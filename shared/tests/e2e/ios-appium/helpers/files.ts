@@ -193,8 +193,9 @@ export const drag = async (fromY: number, toY: number) => {
 
 // The row (`testID`, FILES_ROW by default) named exactly `name`, under `within` when given. The list
 // is dragged toward its end until the row shows, and back toward its start once a drag moves nothing,
-// so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one try's drags: 1,
-// or 4 toward a row the tree holds off screen.
+// so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one try's drag 1
+// (a list other than Files drags twice a try and stops a second sooner, so the same), or 4 toward a
+// row the tree holds off screen.
 export const filesRowNamed = async (
   name: string,
   what: string,
@@ -221,10 +222,14 @@ export const filesRowNamed = async (
       // a drag that changed nothing reached the list's end (or the list fits): turn around
       if (signature === before) towardEnd = !towardEnd
       before = signature
-      await (towardEnd ? drag(height * 0.7, height * 0.35) : drag(height * 0.35, height * 0.7))
+      if (isFilesRow(testID)) await (towardEnd ? drag(height * 0.7, height * 0.35) : drag(height * 0.35, height * 0.7))
+      else {
+        // another list can run to a hundred rows (every team of the account): two long drags a read
+        for (let i = 0; i < 2; i++) await (towardEnd ? drag(height * 0.8, height * 0.2) : drag(height * 0.2, height * 0.8))
+      }
       return undefined
     },
-    {interval: 300, timeout}
+    {interval: 300, timeout: isFilesRow(testID) ? timeout : timeout - 1_000}
   )
 }
 
