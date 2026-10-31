@@ -227,7 +227,8 @@ describe('crypto roundtrip', function () {
 
   // Copies the output with its "Copy to clipboard" and takes it off the pasteboard, which holds
   // filler before, so a stale pasteboard cannot pass; it is compared in memory, and the pasteboard is
-  // overwritten after. Bound: 106.
+  // overwritten after. Bound: setPasteboard 30, tapButton 7 (6, its read 1), the pasteboard 40 (10s of
+  // reads, overrun by one 30), the overwrite 30 = 107.
   const copyOutput = async (kind: ArmorKind) => {
     setPasteboard(filler())
     armorOnPasteboard = true
@@ -352,8 +353,8 @@ describe('crypto roundtrip', function () {
   // -- the phone encrypts or signs, the host or the peer reads it --------------------------------
 
   it('text encrypted to self decrypts on the host to the marker', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 106, done 22, mark 2, step 2,
-    // host 75, step 2 = 380
+    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 107, done 22, mark 2, step 2,
+    // host 75, step 2 = 381
     this.timeout(400_000)
     const marker = e2eMarker('crypto-self')
     await openCrypto()
@@ -374,8 +375,8 @@ describe('crypto roundtrip', function () {
   })
 
   it('text encrypted to the second account and self decrypts on its peer and the host', async function () {
-    // worst case (s): crypto 86, tab 29, recipient 99, step 2, type 26, step 2, run 28, copy 106,
-    // done 22, mark 2, step 2, second 105, host 75, step 2 = 586
+    // worst case (s): crypto 86, tab 29, recipient 99, step 2, type 26, step 2, run 28, copy 107,
+    // done 22, mark 2, step 2, second 105, host 75, step 2 = 587
     this.timeout(600_000)
     const marker = e2eMarker('crypto-to-second')
     await openCrypto()
@@ -400,8 +401,8 @@ describe('crypto roundtrip', function () {
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 106, done 22, mark 2, step 2,
-    // host 75, step 2 = 380
+    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 107, done 22, mark 2, step 2,
+    // host 75, step 2 = 381
     this.timeout(400_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-sign')
