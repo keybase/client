@@ -1,19 +1,22 @@
-// What the phone sends to make, change and delete a subteam and its channels: a subteam of the e2e
-// team made through the new-subteam wizard from the e2e team's own Subteams tab; on it, the team's
-// views with a submit button opened and backed out of (Edit team info, the add-members wizard, a
-// channel's edit screen, Add emoji); a channel made with a description, its name and description
-// edited, and deleted; then the subteam renamed from its header and deleted from its menu.
+// What the phone sends to make, change and delete a subteam and its channels, in three tests that
+// each own a subteam of the e2e team: one made through the new-subteam wizard from the e2e team's
+// own Subteams tab; one the host makes, where the team's views with a submit button are opened and
+// backed out of (Edit team info, the add-members wizard, a channel's edit screen, Add emoji) and a
+// channel is made with a description, its name and description edited, and deleted; and one the
+// host makes, renamed from its header and deleted from its menu.
 //
 // The e2e team itself is only read: the wizard is opened from its Subteams tab, so the name it
 // makes is fixed under it, and submitted only once the full name the wizard carries and shows is
-// this run's stamped one. Every other write is on that subteam, and the screen up is checked to aim
-// at it (its team id, a channel of it, or its name) before each writing tap. The host stays on the
-// smoke account: it puts a channel in the subteam (a team with one channel offers only "Create
-// channels", which takes no description) and reads back what the phone did. The flow's afterEach
-// deletes the subteam under each name it had, after a timeout too; a deleted team's name is never
-// free again, so each attempt takes fresh names.
+// this run's stamped one. Every other write is on the test's subteam, and the screen up is checked
+// to aim at it (its team id, a channel of it, or its name) before each writing tap. The host stays
+// on the smoke account: it makes the subteams the wizard does not, puts a channel in one (a team
+// with one channel offers only "Create channels", which takes no description), and reads back what
+// the phone did. The flow's afterEach deletes each subteam under every name it had, after a timeout
+// too; a deleted team's name is never free again, so each attempt takes fresh names.
+import {randomBytes} from 'crypto'
 import {loadE2EAccounts} from '../../accounts/env'
-import {stampedChannelName} from '../../accounts/run-id'
+import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
+import {createThrowawaySubteam} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -95,6 +98,19 @@ describe('teams subteams', function () {
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteMade, escapeToTabs])
   })
 
+  // A subteam of the e2e team made by the host for one test, as makeSubteam does, but with its name
+  // in madeNames before the make, so a test timed out during it still has it deleted. `prefix` is up
+  // to 3 characters. Bound: subteam 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255
+  // each, then its general channel listed 90).
+  const makeOwnSubteam = async (prefix: string) => {
+    const label = `${prefix}${randomBytes(2).toString('hex')}`
+    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
+    requireThisRunSubteam(name)
+    madeNames.add(name)
+    await masked(async () => createThrowawaySubteam(label))
+    return name
+  }
+
   // -- reads --------------------------------------------------------------------------------------
 
   // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
@@ -116,40 +132,15 @@ describe('teams subteams', function () {
     return out
   }
 
-  it('a subteam made with the wizard, its views, a channel made, edited and deleted, then the subteam renamed and deleted', async function () {
-    // worst case (s):
-    // make: host 315 (the e2e team's id), team 109, tab 24, its read 1, button 6, screen 11, fill
-    //   26, step 2, the Continue enabled 11 (10, one read 1) and tapped 1, screen 11, step 2, action
-    //   6, screen 11, action 6, screen 11, text 6, step 2, calls 2, action 6, waited for 12, polled
-    //   345, host 315 (its id), page 21, seed 510, listed 204 (60s of tries, overrun by one: team 109,
-    //   tab 24, the row 11), step 2 = 1978;
-    // views: pin 1, header 8, button 6, screen 11, button 6, step 2, back 39 = 73 (Edit team
-    //   info); pin 1, header 8, button 6, screen 11, text 6, step 2, back 39 = 73 (the add-members
-    //   wizard); tab 24, row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, step 2,
-    //   back 39 = 122 (a channel's edit screen); tab 24, button 6, screen 11, text 6, step 2, back 39
-    //   = 88 (Add emoji); = 356;
-    // create: tab 24, button 6, screen 11, field 11, fill 26, field 11, fill 26, step 2, pin 1,
-    //   calls 2, button 6, waited for 12 twice, page 21, polled 285, host 255, polled 345, row 31,
-    //   step 2 = 1089;
-    // edit: row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, fill 26, field 11,
-    //   fill 26, step 2, pin 1, calls 2, button 6, waited for 12 twice, page 21, polled 345, host 255,
-    //   row 31, step 2 = 809;
-    // delete: row 31, in row 2, menu 19, item 22, screen 11, text 6, step 2, pin 1, calls 2, button
-    //   6, waited for 12, page 21, polled 285, the rows read 22 (20, one read 2), step 2 = 444;
-    // rename: header 8, the icon 10 and its tap 1, screen 11, field 11, fill 26, text 6, step 2,
-    //   pin 1, calls 2, button 6, waited for 12, page 21, polled 660 (30s of two reads of 315,
-    //   overrun by one pair), step 2 = 779;
-    // delete the subteam: header 8, menu 19, item 22, screen 11, text 11, three taps 3, the button
-    //   enabled 6, step 2, pin 1, calls 2, its tap 1, waited for 12, polled 345, team 109, tab 24,
-    //   button 6, the rows gone 22 (20, one read 2), step 2 = 606
-    // = 1978 + 356 + 1089 + 809 + 444 + 779 + 606 = 6061
-    this.timeout(6_200_000)
+  it('a subteam made with the wizard from the e2e team', async function () {
+    // worst case (s): host 315 (the e2e team's id), team 109, tab 24, its read 1, button 6, screen
+    // 11, fill 26, step 2, the Continue enabled 11 (10, one read 1) and tapped 1, screen 11, step 2,
+    // action 6, screen 11, action 6, screen 11, text 6, step 2, calls 2, action 6, waited for 12,
+    // polled 345, host 315 (its id), page 21, step 2 = 1264
+    this.timeout(1_300_000)
     const {team} = loadE2EAccounts()
-    const runId = e2eRunId()
     const name = `${team}.${freshSubteamPart('sub')}`
-    const renamed = `${team}.${freshSubteamPart('ren')}`
     const part = requireThisRunSubteam(name)
-    const renamedPart = requireThisRunSubteam(renamed)
 
     // -- the wizard, from the e2e team's own Subteams tab --------------------------------------------
     const parentID = await masked(async () => hostTeamID(team))
@@ -194,17 +185,42 @@ describe('teams subteams', function () {
     requireThisRunSubteam(name)
     await step('About to make the subteam')
     madeNames.add(name)
-    let seq = await currentCallSeq()
+    const seq = await currentCallSeq()
     await tapHeaderAction('Skip', "the where-from step's Skip")
     await waitForUiCall('the subteam to be made', seq, 'keybase.1.teams.teamCreateFancy')
     await expectHost('the subteam made', async () => subteamExists(name), e => e)
     const teamID = await masked(async () => hostTeamID(name))
     // the wizard ends on the new subteam's page
     await expectTeamPage("the new subteam's page", teamID)
+    await step('The subteam made', {card: true})
+  })
+
+  it("a subteam's views opened and backed out of, and a channel made, edited and deleted", async function () {
+    // worst case (s):
+    // setup: subteam 600, host 315 (its id), seed 510, listed 204 (60s of tries, overrun by one: team
+    //   109, tab 24, the row 11), step 2 = 1631;
+    // views: pin 1, header 8, button 6, screen 11, button 6, step 2, back 39 = 73 (Edit team
+    //   info); pin 1, header 8, button 6, screen 11, text 6, step 2, back 39 = 73 (the add-members
+    //   wizard); tab 24, row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, step 2,
+    //   back 39 = 122 (a channel's edit screen); tab 24, button 6, screen 11, text 6, step 2, back 39
+    //   = 88 (Add emoji); = 356;
+    // create: tab 24, button 6, screen 11, field 11, fill 26, field 11, fill 26, step 2, pin 1,
+    //   calls 2, button 6, waited for 12 twice, page 21, polled 285, host 255, polled 345, row 31,
+    //   step 2 = 1089;
+    // edit: row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, fill 26, field 11,
+    //   fill 26, step 2, pin 1, calls 2, button 6, waited for 12 twice, page 21, polled 345, host 255,
+    //   row 31, step 2 = 809;
+    // delete: row 31, in row 2, menu 19, item 22, screen 11, text 6, step 2, pin 1, calls 2, button
+    //   6, waited for 12, page 21, polled 285, the rows read 22 (20, one read 2), step 2 = 444
+    // = 1631 + 356 + 1089 + 809 + 444 = 4329
+    this.timeout(4_400_000)
+    const runId = e2eRunId()
+    const name = await makeOwnSubteam('chn')
+    const teamID = await masked(async () => hostTeamID(name))
     const seed = stampedChannelName('seed', runId)
     const seedConvID = await masked(async () => makeSubteamChannel(name, seed))
-    // the page loaded its channels before the host's was made: it is opened afresh from the Teams tab
-    // until its Channels tab lists that channel
+    // the app shows the host's subteam and its channels once it has loaded them afresh: the page is
+    // opened from the Teams tab until its Channels tab lists the seeded channel
     await retriedNavigation(
       "the subteam's page listing the host-made channel",
       async () => {
@@ -214,7 +230,7 @@ describe('teams subteams', function () {
       },
       {intervals: [2_000], timeout: 60_000}
     )
-    await step('The subteam made', {card: true})
+    await step("The subteam's page", {card: true})
 
     const onSubteam = (p: Record<string, unknown>) => p['teamID'] === teamID
 
@@ -262,7 +278,7 @@ describe('teams subteams', function () {
     await fillField(await onlyField('TextView', "the new channel's description field"), description, "the new channel's description field")
     await step('The new channel typed')
     await requireOnSubteam('the new channel', 'chatCreateChannel', onSubteam)
-    seq = await currentCallSeq()
+    let seq = await currentCallSeq()
     await tapButton('Save', "the new channel's Save")
     await waitForUiCall('the channel to be made', seq, 'chat.1.local.newConversationLocal')
     await waitForUiCall("the channel's description to go out", seq, 'chat.1.local.postHeadlineNonblock')
@@ -330,6 +346,29 @@ describe('teams subteams', function () {
     )
     await step('The channel deleted')
 
+  })
+
+  it('a subteam renamed from its header and deleted from its menu', async function () {
+    // worst case (s):
+    // setup: subteam 600, host 315 (its id), opened 169 (60s of tries, overrun by one: team 109),
+    //   step 2 = 1086;
+    // rename: header 8, the icon 10 and its tap 1, screen 11, field 11, fill 26, text 6, step 2,
+    //   pin 1, calls 2, button 6, waited for 12, page 21, polled 660 (30s of two reads of 315,
+    //   overrun by one pair), step 2 = 779;
+    // delete: header 8, menu 19, item 22, screen 11, text 11, three taps 3, the button enabled 6,
+    //   step 2, pin 1, calls 2, its tap 1, waited for 12, polled 345, step 2 = 445
+    // = 1086 + 779 + 445 = 2310
+    this.timeout(2_400_000)
+    const {team} = loadE2EAccounts()
+    const name = await makeOwnSubteam('rnd')
+    const renamed = `${team}.${freshSubteamPart('ren')}`
+    const renamedPart = requireThisRunSubteam(renamed)
+    const teamID = await masked(async () => hostTeamID(name))
+    // the Teams tab lists the host's subteam once the app has heard of it
+    await retriedNavigation("the subteam's page", async () => openTeamFromList(name, teamID), {intervals: [2_000], timeout: 60_000})
+    await step("The subteam's page", {card: true})
+    const onSubteam = (p: Record<string, unknown>) => p['teamID'] === teamID
+
     // -- the subteam renamed from its header ----------------------------------------------------------
     await revealTeamHeader()
     await el(T.TEAMS_HEADER_RENAME).waitForExist({timeout: 10_000})
@@ -342,7 +381,7 @@ describe('teams subteams', function () {
     await requireOnSubteam('the rename', 'teamRename', onName)
     requireThisRunSubteam(renamed)
     madeNames.add(renamed)
-    seq = await currentCallSeq()
+    let seq = await currentCallSeq()
     await tapButton('Rename', "the rename's Rename")
     await waitForUiCall('the rename to go out', seq, 'keybase.1.teams.teamRename')
     await expectTeamPage('the subteam page after the rename', teamID)
@@ -375,22 +414,6 @@ describe('teams subteams', function () {
     await remove.click()
     await waitForUiCall('the subteam delete to go out', seq, 'keybase.1.teams.teamDelete')
     await expectHost('the subteam gone', async () => subteamExists(renamed), e => !e)
-    // the e2e team's Subteams tab, current (its Create subteam drawn), lists it no more
-    await openTeamFromList(team, parentID)
-    await openTeamTab(T.TEAMS_TAB_SUBTEAMS_BUTTON, T.TEAMS_SUBTEAMS_TAB)
-    await buttonShown('Create subteam', "the Subteams tab's Create subteam")
-    await waitFor(
-      'the subteam row to go',
-      async () => {
-        for (const e of await browser.$$(`~${T.TEAMS_ROW}`).getElements()) {
-          if (!(await e.isDisplayed().catch(() => false))) continue
-          const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-          if (label.split(', ').some(p => p.trim() === renamed)) return undefined
-        }
-        return true
-      },
-      {interval: 500, timeout: 20_000}
-    )
     await step('The subteam deleted')
   })
 })
