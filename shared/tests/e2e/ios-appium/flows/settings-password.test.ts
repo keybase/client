@@ -15,14 +15,14 @@
 // The flow's afterEach empties any password field and clears the marks, signs the second account in
 // with KB_SECOND_PASSWORD when the phone lost its stored secret (never while a change is pending),
 // and puts the app back on the smoke account.
-import {defaultEnvPath, loadE2EAccounts, loadE2EEnv, readEnvFile, requireSecondPassword} from '../../accounts/env'
+import {defaultEnvPath, loadE2EAccounts, loadE2EEnv, readEnvFile} from '../../accounts/env'
 import {CHECK_WORST_MS, rotateSecondPassword} from '../../accounts/second-password-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {appAccount, asSecond, requireAppIsSmoke, restoreToSmoke} from '../gate/accounts'
 import {randomPW} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {iosRotateDeps, requireRotatable} from '../gate/password'
+import {iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {emptySecretField, focusSecretField, submitSecret} from '../gate/secret-input'
@@ -110,11 +110,11 @@ describe('settings password', function () {
   }
 
   // The second account's stored secret back on the phone when it is gone, signed in with
-  // KB_SECOND_PASSWORD from the env file; nothing is typed while a change is pending (which of the
-  // two passwords the server holds is the owner's to check). Bound: env 1, stored 22, sign in 431.
+  // KB_SECOND_PASSWORD from the env file. While a change is pending nothing is typed (which of the
+  // two passwords the server holds is the owner's to check): this throws the owner action with the
+  // phone's note. Bound: env 1, stored 22, sign in 431.
   const restoreSecret = async () => {
-    if (readEnvFile(defaultEnvPath())['KB_SECOND_PASSWORD_NEXT']) return
-    const password = requireSecondPassword(loadE2EEnv())
+    const password = requirePhoneSecondPassword(loadE2EEnv())
     if (await storedSecretOf(loadE2EAccounts().secondUser)) return
     await withLoginPasswordMarked(async () => restoreSecondSecret(password))
   }
@@ -218,7 +218,7 @@ describe('settings password', function () {
     this.timeout((22 + 1 + 767 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 60) * 1_000)
     const env = loadE2EEnv()
     // refuses while a change that stopped part way is unresolved
-    requireSecondPassword(env)
+    requirePhoneSecondPassword(env)
     const {secondUser} = loadE2EAccounts()
     check(await storedSecretOf(secondUser), 'the phone keeps no stored secret for the second account before the change')
 

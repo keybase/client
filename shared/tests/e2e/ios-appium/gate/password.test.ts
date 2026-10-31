@@ -3,7 +3,7 @@ import * as os from 'os'
 import * as path from 'path'
 import type {E2EEnv} from '../../accounts/env'
 import {rotateSecondPassword} from '../../accounts/second-password-lib'
-import {iosRotateDeps, requireRotatable, type PhoneSides} from './password'
+import {iosRotateDeps, PHONE_PENDING_NOTE, requirePhoneSecondPassword, requireRotatable, type PhoneSides} from './password'
 
 // jest's global (this project's types are mocha's and wdio's)
 declare const jest: {mock: (path: string, factory: () => unknown) => void}
@@ -139,6 +139,15 @@ describe('requireRotatable', () => {
     fs.appendFileSync(envFile, "export KB_SECOND_PASSWORD_NEXT='e2e-pendingpendingpendingpe'\n")
     await expect(requireRotatable(env, s, envFile)).rejects.toThrow(/KB_SECOND_PASSWORD_NEXT/)
     expect(log).toEqual([])
+  })
+
+  test('a pending change is refused with the phone note, and no password is handed out', async () => {
+    const {sides: s} = sides()
+    await expect(requireRotatable({...env, secondPasswordChangePending: true}, s, envFile)).rejects.toThrow(PHONE_PENDING_NOTE)
+    expect(() => requirePhoneSecondPassword({...env, secondPassword: 'pw', secondPasswordChangePending: true}, envFile)).toThrow(PHONE_PENDING_NOTE)
+    expect(requirePhoneSecondPassword({...env, secondPassword: 'pw'}, envFile)).toBe('pw')
+    fs.appendFileSync(envFile, "export KB_SECOND_PASSWORD_NEXT='e2e-pendingpendingpendingpe'\n")
+    expect(() => requirePhoneSecondPassword({...env, secondPassword: 'pw'}, envFile)).toThrow(PHONE_PENDING_NOTE)
   })
 
   test('refuses an account with a server-synced PGP key', async () => {

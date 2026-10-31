@@ -11,10 +11,13 @@
 // screenshot withheld); a retry would type it again, so this file never retries. The setting is read
 // and set only while the app is on the second account: the service answers for the account signed in.
 //
+// Before the test, a setting an earlier run's failed restore left off is put back on (and a lost stored
+// secret signed in again), from the second account, so the test starts from on.
+//
 // The flow's afterEach empties the login field and clears the mark, signs the second account in with
 // its password when the phone lost its stored secret, puts the setting back on (from the second
 // account), checks the secret is stored, and puts the app back on the smoke account.
-import {loadE2EAccounts, loadE2EEnv, requireSecondPassword} from '../../accounts/env'
+import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
 import {secondPasswordIsCurrent} from '../../accounts/second-password-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
@@ -23,6 +26,8 @@ import {rememberPassphrase, setRememberPassphrase} from '../gate/app-ask'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {relaunchApp} from '../gate/device'
+import {requirePhoneSecondPassword} from '../gate/password'
+import {repairRememberLeftOff} from '../gate/remember-lib.ts'
 import {pressBackToLoginList} from '../gate/screens'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
@@ -59,43 +64,57 @@ describe('settings remember password', function () {
   //   restore   restoreToSmoke 275 (settling 60, a sign-in from the login list 215)
   //   step      2 (its 1s settle and the attach)
 
-  before(async function () {
-    // a failed chat-blocks restore refuses here; the host read 75
-    this.timeout(90_000)
-    await masked(async () => requireSecondNotBlocked())
-  })
-
-  // -- what the afterEach puts back ---------------------------------------------------------------
-
-  // set once the test may change the setting; the setting goes back on (the test refuses unless it
-  // started on)
-  let changing = false
-
   const onSecond = async () => {
     const a = await appAccount()
     return a.loggedIn && !a.switching && a.username === loadE2EAccounts().secondUser
   }
 
-  // The second account's stored secret on the phone, signed in with its password when the phone lost
-  // it, and the setting on again for it. Worst case (s): env 1, stored 22, sign in 431, settled 60,
-  // the login list 100 and a sign-in from it 65, switch 150, on second 1, ask 22, set 22, ask 22,
-  // stored 22 = 918.
+  // The setting on for the second account with its stored secret in place (remember-lib.ts): signed
+  // in with its password when the phone lost the secret, then read from the second account and put
+  // back on when it is off. Refuses, typing nothing, while a password change is pending. Worst case
+  // (s): env 1, stored 22, sign in 431, settled 60, the login list 100 and a sign-in from it 65,
+  // switch 150, on second 1, ask 22, set 22, ask 22, stored 22 = 918.
+  const repairRemember = async () => {
+    const {secondUser} = loadE2EAccounts()
+    const password = requirePhoneSecondPassword(loadE2EEnv())
+    await repairRememberLeftOff({
+      remember: async () => rememberPassphrase(),
+      setRememberOn: async () => {
+        await setRememberPassphrase(true)
+      },
+      signInWithPassword: async () => withLoginPasswordMarked(async () => restoreSecondSecret(password)),
+      storedSecret: async () => storedSecretOf(secondUser),
+      toSecond: async () => {
+        if (!(await settledAppAccount()).loggedIn) {
+          await pressBackToLoginList()
+          await signInFromStoredSecret(secondUser)
+        }
+        await switchAppAccount(secondUser)
+        // the service answers for the account signed in
+        check(await onSecond(), 'the app is not on the second account to read its remember-password setting')
+      },
+    })
+  }
+
+  // A failed restore of an earlier run can leave the setting off (or the secret gone): put back here,
+  // so the test starts from on. Worst case (s): the block read 75, repairRemember 918, restoreToSmoke
+  // 275 = 1268.
+  before(async function () {
+    this.timeout(1_350_000)
+    await masked(async () => requireSecondNotBlocked())
+    await repairRemember()
+    await restoreToSmoke()
+  })
+
+  // -- what the afterEach puts back ---------------------------------------------------------------
+
+  // set once the test may change the setting; the setting goes back on
+  let changing = false
+
+  // Bound: repairRemember 918.
   const restoreRemember = async () => {
     if (!changing) return
-    const {secondUser} = loadE2EAccounts()
-    // refuses while a password change that stopped part way is unresolved: nothing is typed then
-    const password = requireSecondPassword(loadE2EEnv())
-    if (!(await storedSecretOf(secondUser))) await withLoginPasswordMarked(async () => restoreSecondSecret(password))
-    if (!(await settledAppAccount()).loggedIn) {
-      await pressBackToLoginList()
-      await signInFromStoredSecret(secondUser)
-    }
-    await switchAppAccount(secondUser)
-    // the service answers for the account signed in
-    check(await onSecond(), 'the app is not on the second account to put its remember-password setting back')
-    if (!(await rememberPassphrase())) await setRememberPassphrase(true)
-    check(await rememberPassphrase(), 'the second account remember-password setting did not go back on')
-    check(await storedSecretOf(secondUser), 'the phone keeps no stored secret for the second account after the restore')
+    await repairRemember()
     changing = false
   }
 
@@ -140,7 +159,7 @@ describe('settings remember password', function () {
     // 97, step 2 = 1859
     this.timeout(1_950_000)
     const env = loadE2EEnv()
-    const password = requireSecondPassword(env)
+    const password = requirePhoneSecondPassword(env)
     const {secondUser, smokeUser} = loadE2EAccounts()
     // the relaunch with the setting off drops the stored secret, and only this password puts it back
     check(

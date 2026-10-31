@@ -8,7 +8,15 @@
 // - repair: the phone only, signing the second account in with the new password from its login screen.
 // A host check that fails, or a peer that does not take the new password, is thrown with the owner's
 // command and never repaired. No message names an account or carries a password.
-import {defaultEnvPath, loadE2EAccounts, readEnvFile, refuseWhileSecondPasswordChangePending, secondPasswordCommand, type E2EEnv} from '../../accounts/env'
+import {
+  defaultEnvPath,
+  loadE2EAccounts,
+  readEnvFile,
+  refuseWhileSecondPasswordChangePending,
+  requireSecondPassword,
+  secondPasswordCommand,
+  type E2EEnv,
+} from '../../accounts/env'
 import {checkSecondSecretSurvives, sayMasked, secondPasswordIsCurrent, type RotateDeps} from '../../accounts/second-password-lib'
 import {maskAccounts} from '../../accounts/sweep-lib'
 import {ensurePeer} from '../../shared/peer-service'
@@ -93,11 +101,35 @@ export const iosRotateDeps = (sides: PhoneSides = liveSides(), envFile = default
   say: sides.say,
 })
 
+// What a pending change means on the phone, after the env refusal: the gate types no password then.
+export const PHONE_PENDING_NOTE =
+  "the phone's second account may have no stored secret: once KB_SECOND_PASSWORD_NEXT is resolved, the next run's restore signs it in, or the owner signs it in on the phone"
+
+// Throws the env refusal with the phone's note while a change is pending (in `env` or, when
+// `envFile` is given, the env file now).
+export const refusePendingOnPhone = (env: Pick<E2EEnv, 'secondPasswordChangePending'>, envFile?: string) => {
+  const pending = !!env.secondPasswordChangePending || (envFile !== undefined && !!readEnvFile(envFile)['KB_SECOND_PASSWORD_NEXT'])
+  if (!pending) return
+  try {
+    refuseWhileSecondPasswordChangePending({secondPasswordChangePending: true})
+  } catch (e) {
+    // the refusal names no password or account
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`${e instanceof Error ? e.message : String(e)}; ${PHONE_PENDING_NOTE}`)
+  }
+}
+
+// The second account's password for a phone flow to type: refused, with the phone's note, while a
+// change is pending in `env` or the env file.
+export const requirePhoneSecondPassword = (env: E2EEnv, envFile = defaultEnvPath()) => {
+  refusePendingOnPhone(env, envFile)
+  return requireSecondPassword(env)
+}
+
 // Throws unless a password change may start: no KB_SECOND_PASSWORD_NEXT pending (in `env` or the env
 // file now) and no server-synced PGP key on the second account (a forced change would drop it).
 export const requireRotatable = async (env: E2EEnv, sides: PhoneSides = liveSides(), envFile = defaultEnvPath()) => {
-  refuseWhileSecondPasswordChangePending(env)
-  refuseWhileSecondPasswordChangePending({secondPasswordChangePending: !!readEnvFile(envFile)['KB_SECOND_PASSWORD_NEXT']})
+  refusePendingOnPhone(env, envFile)
   if (await sides.peerHasServerKeys(env)) {
     throw new Error('the second account has a server-synced PGP key, which a forced password change would drop; refusing')
   }
