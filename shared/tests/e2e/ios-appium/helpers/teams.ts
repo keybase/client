@@ -10,7 +10,7 @@ import {innermost, type Rect} from '../gate/chat-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {BUTTONS, expectScreen, filesRowNamed, visibleScreen} from './files'
-import {check, labelledElement} from './menus'
+import {check, elementWithLabelPart, labelledElement} from './menus'
 import {waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -136,6 +136,18 @@ export const backToTeamsRoot = async (what: string) =>
 // The one text drawn reading exactly `label`, once it is drawn. Bound: `timeout`, plus one read 1.
 export const textShown = async (label: string, what: string, timeout = 5_000) =>
   waitFor(what, async () => labelledElement(TEXTS, label, what), {interval: 250, timeout})
+
+// Taps the Teams tab's card `label` ("Create a team", "Join a team"): a tappable box whose label
+// merges its texts, not a button. Bound: 5s, the tap 1.
+export const tapTeamsCard = async (label: string, what: string) => {
+  const card = await waitFor(
+    what,
+    async () =>
+      elementWithLabelPart(`-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(label)} AND visible == 1`, label, what),
+    {interval: 250, timeout: 5_000}
+  )
+  await card.click()
+}
 
 // The one button drawn labelled `label`, once it is drawn. Bound: 5s, plus one read 1.
 export const buttonShown = async (label: string, what: string) =>

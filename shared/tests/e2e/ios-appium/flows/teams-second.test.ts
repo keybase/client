@@ -50,6 +50,7 @@ import {
   openTeamsRoot,
   requireOnSubteam,
   revealTeamHeader,
+  tapTeamsCard,
   textShown,
 } from '../helpers/teams'
 
@@ -287,7 +288,7 @@ describe('teams second account', function () {
 
     await asSecond(async () => {
       await openTeamsRoot()
-      await tapButton('Join a team', "the Teams tab's Join a team")
+      await tapTeamsCard('Join a team', "the Teams tab's Join a team")
       await expectScreen('Join a team', 'teamJoinTeamDialog')
       await el(T.TEAMS_JOIN_TEAM_INPUT).waitForExist({timeout: 10_000})
       // From here until the join screen replaces this dialog the field holds the link: no step.

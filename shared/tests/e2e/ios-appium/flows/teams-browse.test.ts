@@ -14,9 +14,9 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {expectScreen, filesRowNamed, tapButton} from '../helpers/files'
+import {expectScreen, filesRowNamed} from '../helpers/files'
 import {escapeToTabs, tabTo} from '../helpers/navigate'
-import {backToTeamPage, backToTeamsRoot, masked, onlyField, openTeamFromList, openTeamTab, openTeamsRoot, textShown} from '../helpers/teams'
+import {backToTeamPage, backToTeamsRoot, masked, onlyField, openTeamFromList, openTeamTab, openTeamsRoot, tapTeamsCard, textShown} from '../helpers/teams'
 
 // each tab of a team page, and the testID its body carries while it is the tab up; Members last, as
 // the member page is opened from it
@@ -75,7 +75,7 @@ describe('teams browse', function () {
     // 11, step 2, back 39; calls 2, tabTo 15, waited for 12, step 2 = 176
     this.timeout(200_000)
     await openTeamsRoot()
-    await tapButton('Create a team', "the Teams tab's Create a team")
+    await tapTeamsCard('Create a team', "the Teams tab's Create a team")
     await expectScreen("the new team's purpose screen", 'teamWizard1TeamPurpose')
     await step("The new team's purpose screen")
     await (await textShown('Friends, family, or squad', 'the friends purpose')).click()
