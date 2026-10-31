@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   name: string
@@ -100,6 +101,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
               checked={notifyTeam}
               onCheck={setNotifyTeam}
               style={styles.checkbox}
+              testID={notifyTeam ? TestIDs.GIT_DELETE_NOTIFY_ON : TestIDs.GIT_DELETE_NOTIFY_OFF}
             />
           )}
         </Kb.Box2>

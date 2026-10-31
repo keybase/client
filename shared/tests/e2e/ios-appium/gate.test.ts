@@ -30,5 +30,6 @@ import './flows/teams-browse.test'
 import './flows/teams-subteams.test'
 import './flows/teams-members.test'
 import './flows/teams-settings.test'
+import './flows/git.test'
 // after the other second-account flows, as chat-blocks is
 import './flows/teams-second.test'

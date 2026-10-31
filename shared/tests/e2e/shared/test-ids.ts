@@ -354,6 +354,11 @@ export const GIT_REPO_ROW  = 'git-repo-row'
 export const GIT_NEW_REPO = 'git-new-repo'
 export const GIT_REPO_COPY_URL = 'git-repo-copy-url'
 export const GIT_REPO_ANNOUNCE = 'git-repo-announce'
+// the "Notify the team" checkbox of the new team repository screen and of the delete screen, by its state
+export const GIT_NEW_NOTIFY_ON = 'git-new-notify-on'
+export const GIT_NEW_NOTIFY_OFF = 'git-new-notify-off'
+export const GIT_DELETE_NOTIFY_ON = 'git-delete-notify-on'
+export const GIT_DELETE_NOTIFY_OFF = 'git-delete-notify-off'
 
 // Crypto
 export const CRYPTO_INPUT         = 'crypto-input'

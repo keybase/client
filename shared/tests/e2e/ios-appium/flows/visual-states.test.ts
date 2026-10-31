@@ -79,19 +79,6 @@ describe('visual states', () => {
     await expect(byText('Protect your account by having more devices and paper keys.')).toExist()
   })
 
-  it('git new repo menu', async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Git')
-    await waitForTestID(T.GIT_REPO_LIST, 5000)
-    await byText('New encrypted git repository...').click()
-    // The sheet's menu items are NOT in the accessibility tree (FloatingMenu
-    // bottom-sheet items are a11y-invisible — real VoiceOver gap), so we can't
-    // tap through to the form. Capture the open-menu state instead.
-    await byText('Bottom Sheet').waitForExist({timeout: 8000})
-    await expect(byText('Bottom Sheet')).toExist()
-  })
-
   it('settings advanced scrolled', async () => {
     await escapeToTabs()
     await navigateToMore()

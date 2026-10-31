@@ -73,7 +73,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   return {row: inner.length ? found[inner[0]!] : undefined, signature: labels.join('\n')}
 }
 
-const drag = async (fromY: number, toY: number) => {
+export const drag = async (fromY: number, toY: number) => {
   const {width} = await browser.getWindowRect()
   const x = Math.round(width / 2)
   await browser

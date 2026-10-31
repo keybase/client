@@ -1,18 +1,327 @@
-import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
-import {el, waitForTestID} from '../helpers/elements'
+// What the phone sends to make, change and delete git repos, in two tests that each own their repo:
+// a personal repo made from "New personal repository", its clone URL copied (the pasteboard compared
+// with the host's URL, never logged, then overwritten) and deleted by typing its name; and a team
+// repo in a throwaway subteam of the e2e team, made with "Notify the team" off, announced in a channel
+// the host made, its announcements turned off, and deleted with "Notify the team" off.
+//
+// The e2e team itself never gets a repo: the team dropdown is read to show the subteam alone before
+// Create, and each later writing tap is behind a check that the screen aims at it. Archive is never
+// pressed. The host stays on the smoke account: it makes the subteam and its channel and reads back
+// what the phone did, and the flow's afterEach deletes each repo of this run's stamps (the team repo
+// first, with its chat notifications off, then reads that it is gone) and only then the subteam (a
+// deleted team's name is never free again, so each attempt takes a fresh one).
+import {randomBytes} from 'crypto'
+import {loadE2EAccounts} from '../../accounts/env'
+import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
+import {createThrowawaySubteam} from '../../shared/chat-data'
+import {withCleanup} from '../../shared/cleanup.ts'
+import {deleteRepoIfPresent, personalRepo, repoListed, repoUrl, teamRepo, teamRepoChat, type RepoRef} from '../../shared/git.ts'
+import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
+import {deleteSubteamIfPresent, makeSubteamChannel, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
+import {requireAppIsSmoke} from '../gate/accounts'
+import {creditSurface} from '../gate/attempt'
+import {pasteboardText, setPasteboard} from '../gate/device'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
+import {retriedNavigation, step} from '../gate/step'
+import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
+import {el, waitForTestID} from '../helpers/elements'
+import {drag, expectScreen, fillField, tapButton} from '../helpers/files'
+import {waitFor} from '../helpers/lifecycle'
+import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
+import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {masked, onlyField, openTeamFromList, requireOnSubteam, textShown, TEXTS} from '../helpers/teams'
 
-describe('git', () => {
-  it('renders the git repo list with a repo row', async () => {
+type Params = Record<string, unknown>
+
+describe('git', function () {
+  // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   host      a retried host read (readBack) of the CLI 255 (four of 60);  polled  30s of reads,
+  //             overrun by one read: of the CLI 285
+  //   subteam   makeOwnSubteam 600;  seed  makeSubteamChannel 510
+  //   app       requireAppIsSmoke 15;  git  openGit 90 (escapeToTabs 30, the More tab 15, the row 25,
+  //             the screen 11, the list 5, slack 4)
+  //   team      openTeamFromList: 60s of tries, overrun by one 109 = 169
+  //   screen    a screen waited for 11 (10, read 1);  pin  requireOnSubteam 1
+  //   button    tapButton 6;  text  textShown 6 (16 with a 15s wait);  field  onlyField 11;  fill
+  //             fillField 26 (the field 10, the typing 15, the read 1)
+  //   menu      openNewRepo 52 (openMenuFrom 19: 15, overrun by one try: the tap 1, the sheet 3;
+  //             chooseMenuItem 22: 15, overrun by one drag 1, the tap 1, the sheet gone 5; screen 11)
+  //   row       repoText 31 (30, one drag 1);  pick  the dropdown's team 31
+  //   pasteboard  setPasteboard 30;  pasteboardText 30, polled 10s overrun by one read 40
+  //   calls     one read 2;  waited for  12 (10, one read 2)
+  //   step      2 (its 1s settle and the attach)
+
+  // -- what the afterEach puts back ---------------------------------------------------------------
+
+  // every subteam a test made, added before its make
+  const madeNames = new Set<string>()
+  // every repo a test may have made, added before the tap that creates it
+  const madeRepos = new Set<RepoRef>()
+  // set before the copy button is tapped, cleared once filler replaced the clone URL
+  let urlOnPasteboard = false
+
+  const filler = () => `e2e-${e2eRunId()}-pasteboard`
+
+  // Bound: 30.
+  const overwritePasteboard = () => {
+    if (!urlOnPasteboard) return
+    setPasteboard(filler())
+    urlOnPasteboard = false
+  }
+
+  // Deletes every repo of the test, then every subteam: a failed repo delete leaves the subteam for
+  // the sweeper, which lists a stale subteam's repos before it deletes the subteam. Bound: 1020 a team
+  // repo (listed 255, chat off 255, delete 255, listed again 255), 765 a personal one, 750 a name
+  // (deleteSubteamIfPresent: an existence read 315, the delete 90, 30s of reads overrun by one 315).
+  const restoreMade = async () => {
+    for (const r of [...madeRepos]) {
+      await masked(async () => deleteRepoIfPresent(r))
+      madeRepos.delete(r)
+    }
+    for (const name of [...madeNames]) {
+      await masked(async () => deleteSubteamIfPresent(name))
+      madeNames.delete(name)
+    }
+  }
+
+  // Worst case (s): the pasteboard 30, a team repo 1020, the one name of a test 750, close 5,
+  // keyboard 5, escape 30 = 1840.
+  afterEach(async function () {
+    this.timeout(1_900_000)
+    await withCleanup(closeMessageMenu, [hideKeyboard, overwritePasteboard, restoreMade, escapeToTabs])
+  })
+
+  // A subteam of the e2e team made by the host for one test, with its name in madeNames before the
+  // make, so a test timed out during it still has it deleted. `prefix` is up to 3 characters.
+  // Bound: subteam 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
+  // general channel listed 90).
+  const makeOwnSubteam = async (prefix: string) => {
+    const label = `${prefix}${randomBytes(2).toString('hex')}`
+    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
+    requireThisRunSubteam(name)
+    madeNames.add(name)
+    await masked(async () => createThrowawaySubteam(label))
+    return {name, teamID: await masked(async () => hostTeamID(name))}
+  }
+
+  // -- reads --------------------------------------------------------------------------------------
+
+  // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
+  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
+    masked(async () =>
+      waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 30_000})
+    )
+
+  // The git list, from the More tab. Bound: 90.
+  const openGit = async () => {
     await escapeToTabs()
     await navigateToMore()
     await tapSettingsRow('Git')
-    await waitForTestID(T.GIT_REPO_LIST, 3000)
-    await expect(el(T.GIT_REPO_LIST)).toExist()
+    await expectScreen('the git list', 'gitRoot')
+    await waitForTestID(T.GIT_REPO_LIST, 5_000)
+  }
 
-    // Wait for a real repo row to load (the smoke account has git repos).
-    await waitForTestID(T.GIT_REPO_ROW, 8000)
-    await expect(el(T.GIT_REPO_ROW)).toExist()
+  // The one text drawn reading exactly `label`, the list dragged until it shows. The label goes only
+  // into the in-memory compare, never a selector or an error. Bound: 30s, one drag 1.
+  const repoText = async (label: string) => {
+    let towardEnd = true
+    let before: string | undefined
+    return waitFor(
+      'the repo row',
+      async () => {
+        const found = await elementWithLabelPart(TEXTS, label, 'the repo row').catch(() => undefined)
+        if (found) return found
+        // a drag that changed nothing reached the list's end (or the list fits): turn around
+        const shown = (await browser.$$(TEXTS).getElements()).length
+        const signature = String(shown)
+        if (signature === before) towardEnd = !towardEnd
+        before = signature
+        const {height} = await browser.getWindowRect()
+        await (towardEnd ? drag(height * 0.7, height * 0.35) : drag(height * 0.35, height * 0.7))
+        return undefined
+      },
+      {interval: 300, timeout: 30_000}
+    )
+  }
+
+  // Opens "New encrypted git repository..." and picks `item`. Bound: 52.
+  const openNewRepo = async (item: string, isTeam: boolean) => {
+    await openMenuFrom('the new repository menu', async () => el(T.GIT_NEW_REPO).click())
+    await chooseMenuItem(item)
+    await expectScreen('the new repository screen', 'gitNewRepo', p => p['isTeam'] === isTeam)
+  }
+
+  // Taps the "Notify the team" checkbox drawn `on` and waits for it to draw `off`. Bound: 10s, tap 1,
+  // 5s = 16.
+  const notifyOff = async (on: string, off: string) => {
+    await el(on).waitForExist({timeout: 10_000})
+    await el(on).click()
+    await el(off).waitForExist({timeout: 5_000})
+  }
+
+  // The number of repo rows drawn open (their announce checkbox is drawn only for a team repo).
+  // Bound: 1.
+  const announceCount = async () => (await browser.$$(`~${T.GIT_REPO_ANNOUNCE}`).getElements()).length
+
+  it('a personal repo made, its clone URL copied, and deleted', async function () {
+    // worst case (s): app 15, host 255, git 90, new repo 52, field 11, fill 26, step 2, calls 2,
+    // button 6, waited for 12, screen 11, polled 285, row 31, its tap 1, filler 30, the button 10 and
+    // its tap 1, pasteboard 40, filler 30, step 2, button 6, screen 11, field 11, fill 26, step 2,
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1287
+    this.timeout(1_300_000)
+    await requireAppIsSmoke()
+    const repo = personalRepo()
+    check(!(await masked(async () => repoListed(repo))), 'this run already has its personal repo')
+    await openGit()
+
+    await openNewRepo('New personal repository', false)
+    await fillField(await onlyField('TextField', 'the repo name field'), repo.name, 'the repo name field')
+    await step('The personal repo named')
+    madeRepos.add(repo)
+    let seq = await currentCallSeq()
+    await tapButton('Create', "the new repo's Create")
+    await waitForUiCall('the repo create to go out', seq, 'keybase.1.git.createPersonalRepo')
+    await expectScreen('the git list after Create', 'gitRoot')
+    await expectHost('the personal repo listed', async () => repoListed(repo), listed => listed)
+
+    await (await repoText(repo.name)).click()
+    // the clone URL is copied over filler, so a stale pasteboard cannot pass; it is compared here
+    // and never logged
+    setPasteboard(filler())
+    urlOnPasteboard = true
+    await el(T.GIT_REPO_COPY_URL).waitForExist({timeout: 10_000})
+    await el(T.GIT_REPO_COPY_URL).click()
+    await waitFor("the pasteboard to hold the repo's clone URL", async () => ((await pasteboardText()) === repoUrl(repo) ? true : undefined), {
+      interval: 500,
+      timeout: 10_000,
+    })
+    creditSurface('pasteboard')
+    overwritePasteboard()
+    // the git list holds the smoke account's other repos, of teams that are not test ones
+    await step('The clone URL copied', {screenshot: false})
+
+    await tapButton('Delete', "the repo's Delete")
+    const onRepo = (p: Params) => p['name'] === repo.name && !p['teamname']
+    await expectScreen('the delete screen of the personal repo', 'gitDeleteRepo', onRepo)
+    await fillField(await onlyField('TextField', 'the delete confirm field'), repo.name, 'the delete confirm field')
+    await step('The delete confirmed by name', {card: true})
+    await requireOnSubteam('the personal repo delete', 'gitDeleteRepo', onRepo)
+    seq = await currentCallSeq()
+    await tapButton('Delete', "the delete screen's Delete")
+    await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deletePersonalRepo')
+    await expectScreen('the git list after Delete', 'gitRoot')
+    await expectHost('the personal repo gone', async () => repoListed(repo), listed => !listed)
+    // the git list holds the smoke account's other repos, of teams that are not test ones
+    await step('The personal repo deleted', {screenshot: false})
+  })
+
+  it('a team repo made in a subteam, announced in a channel, its announcements turned off, and deleted', async function () {
+    // worst case (s): app 15, subteam 600, seed 510, host 255, team 169, git 90, new repo 52, prompt
+    // 6 and its tap 1, pick 31 and its tap 1, picked 6, prompt gone 6, field 11, fill 26, notify 16,
+    // step 2, calls 2, button 6, waited for 12, screen 11, polled 285, chat 255, row 31, its tap 1,
+    // announce 11, link 16 and its tap 1, screen 11, channel 6 and its tap 1, step 2, pin 1, calls 2,
+    // button 6, waited for 12, polled 285, screen 11, link 16, step 2, count 1, calls 2, its tap 1,
+    // waited for 12, polled 285, step 2, button 6, screen 11, notify 16, field 11, fill 26, step 2,
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3477
+    this.timeout(3_500_000)
+    await requireAppIsSmoke()
+    const {name, teamID} = await makeOwnSubteam('git')
+    const channel = stampedChannelName('gitch', e2eRunId())
+    await masked(async () => makeSubteamChannel(name, channel))
+    const repo = teamRepo(name)
+    check(!(await masked(async () => repoListed(repo))), 'this run already has its team repo in the new subteam')
+    // the picker and the channel list find the subteam in the app's teams list, which hears of a
+    // subteam the host made once it loads again: the Teams tab lists the subteam first
+    await retriedNavigation("the subteam's page", async () => openTeamFromList(name, teamID), {intervals: [2_000], timeout: 60_000})
+    await openGit()
+
+    // -- made, with the dropdown showing the subteam alone ------------------------------------------
+    await openNewRepo('New team repository', true)
+    await (await textShown('Pick a team', 'the team dropdown')).click()
+    const item = await waitFor(
+      'the subteam in the team dropdown',
+      async () => {
+        const found = await elementWithLabelPart(TEXTS, name, 'the subteam in the team dropdown').catch(() => undefined)
+        if (found) return found
+        const {height, width} = await browser.getWindowRect()
+        const x = Math.round(width / 2)
+        await browser
+          .action('pointer', {parameters: {pointerType: 'touch'}})
+          .move({x, y: height - 80})
+          .down()
+          .move({duration: 400, x, y: height - 380})
+          .pause(200)
+          .up()
+          .perform()
+        return undefined
+      },
+      {interval: 300, timeout: 30_000}
+    )
+    await item.click()
+    // the dropdown shows the one team picked: the subteam, never the e2e team
+    await textShown(name, 'the team picked in the dropdown')
+    await waitFor(
+      'the dropdown to stop prompting for a team',
+      async () => ((await labelledElement(TEXTS, 'Pick a team', 'the pick prompt').then(() => false, () => true)) ? true : undefined),
+      {interval: 250, timeout: 5_000}
+    )
+    await fillField(await onlyField('TextField', 'the repo name field'), repo.name, 'the repo name field')
+    await notifyOff(T.GIT_NEW_NOTIFY_ON, T.GIT_NEW_NOTIFY_OFF)
+    await step('The team repo named, the team not notified')
+    check(await el(T.GIT_NEW_NOTIFY_OFF).isExisting(), 'the team would be notified of the new repo: not tapping')
+    madeRepos.add(repo)
+    let seq = await currentCallSeq()
+    await tapButton('Create', "the new repo's Create")
+    await waitForUiCall('the repo create to go out', seq, 'keybase.1.git.createTeamRepo')
+    await expectScreen('the git list after Create', 'gitRoot')
+    await expectHost('the team repo listed', async () => repoListed(repo), listed => listed)
+    check(!(await masked(async () => teamRepoChat(repo))).chatDisabled, 'a new team repo has its chat notifications off')
+
+    // -- announced in the subteam's channel ---------------------------------------------------------
+    await (await repoText(`${name}/${repo.name}`)).click()
+    // only this repo's row is open: the one announce checkbox drawn is its
+    await el(T.GIT_REPO_ANNOUNCE).waitForExist({timeout: 10_000})
+    check((await announceCount()) === 1, 'more than the one repo row is open: not tapping')
+    await (await textShown('#general', 'the announce channel link', 15_000)).click()
+    const onSubteam = (p: Params) => p['teamname'] === name
+    await expectScreen("the repo's channel picker", 'gitSelectChannel', onSubteam)
+    await (await elementWithLabelPart(TEXTS, channel, 'the channel in the picker')).click()
+    await step('The channel picked')
+    await requireOnSubteam("the repo's channel picker", 'gitSelectChannel', onSubteam)
+    seq = await currentCallSeq()
+    await tapButton('Submit', "the picker's Submit")
+    await waitForUiCall('the channel to go out', seq, 'keybase.1.git.setTeamRepoSettings')
+    await expectHost('the repo announced in the channel', async () => teamRepoChat(repo), c => c.channel === channel && !c.chatDisabled)
+    await expectScreen('the git list after Submit', 'gitRoot')
+    await textShown(`#${channel}`, "the repo's announce channel", 15_000)
+    // the git list holds the smoke account's other repos, of teams that are not test ones
+    await step('The channel set', {screenshot: false})
+
+    // -- announcements turned off -------------------------------------------------------------------
+    check((await announceCount()) === 1, 'more than the one repo row is open: not tapping')
+    seq = await currentCallSeq()
+    await el(T.GIT_REPO_ANNOUNCE).click()
+    await waitForUiCall('the setting to go out', seq, 'keybase.1.git.setTeamRepoSettings')
+    await expectHost('the announcements off', async () => teamRepoChat(repo), c => c.chatDisabled)
+    // the git list holds the smoke account's other repos, of teams that are not test ones
+    await step('The announcements turned off', {screenshot: false})
+
+    // -- deleted, the team not notified -------------------------------------------------------------
+    await tapButton('Delete', "the repo's Delete")
+    const onRepo = (p: Params) => p['name'] === repo.name && p['teamname'] === name
+    await expectScreen('the delete screen of the team repo', 'gitDeleteRepo', onRepo)
+    await notifyOff(T.GIT_DELETE_NOTIFY_ON, T.GIT_DELETE_NOTIFY_OFF)
+    await fillField(await onlyField('TextField', 'the delete confirm field'), repo.name, 'the delete confirm field')
+    await step('The delete confirmed, the team not notified', {card: true})
+    await requireOnSubteam('the team repo delete', 'gitDeleteRepo', onRepo)
+    check(await el(T.GIT_DELETE_NOTIFY_OFF).isExisting(), 'the team would be notified of the delete: not tapping')
+    seq = await currentCallSeq()
+    await tapButton('Delete', "the delete screen's Delete")
+    await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deleteTeamRepo')
+    await expectScreen('the git list after Delete', 'gitRoot')
+    await expectHost('the team repo gone', async () => repoListed(repo), listed => !listed)
+    // the git list holds the smoke account's other repos, of teams that are not test ones
+    await step('The team repo deleted', {screenshot: false})
   })
 })

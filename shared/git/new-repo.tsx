@@ -3,6 +3,7 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -149,6 +150,7 @@ const NewRepo = (ownProps: OwnProps) => {
             checked={notifyTeam}
             onCheck={setNotifyTeam}
             style={styles.checkbox}
+            testID={notifyTeam ? TestIDs.GIT_NEW_NOTIFY_ON : TestIDs.GIT_NEW_NOTIFY_OFF}
           />
         )}
       </Kb.Box2>
