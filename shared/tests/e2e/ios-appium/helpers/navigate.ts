@@ -2,7 +2,8 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {byText, el, els, waitForTestID, tab} from './elements'
 import {fiberPrelude} from './fiber-prelude'
-import {jsEval} from './lifecycle'
+import {jsEval, waitFor} from './lifecycle'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
@@ -171,17 +172,22 @@ async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
 // runs, and escapeToTabs fails loudly if nothing works). Only the label is logged, never the title.
 const HEADER_DISMISS_LABELS = ['Cancel', 'Close', 'Done'] as const
 
-type TopModalScreen = {count: number; title: string; topKey: string}
+// The top modal's showing screen: its title, its route key, and for each label how many pressables
+// under it carry exactly that label (-1 when one has no view to measure).
+type TopModalScreen = {counts: Record<string, number>; title: string; topKey: string}
 
-// Reads the top modal's showing screen, and starts measuring its pressables labelled `label` into
-// globalThis.__e2eHeaderFrames. null when no modal is up.
-const topModalScreenBody = (label: string) => `${fiberPrelude}
+// Reads the top modal's showing screen for every label at once, and starts measuring each label's
+// one pressable into globalThis.__e2eHeaderFrames[label]. null when no modal is up.
+const topModalScreenBody = (labels: ReadonlyArray<string>) => `${fiberPrelude}
   const g = globalThis
-  g.__e2eHeaderFrames = undefined
+  g.__e2eHeaderFrames = {}
   const router = kbModule('constants/router.tsx')
   const top = router.getModalStack().at(-1)
   const visible = router.getVisibleScreen()
   if (!top || !visible) return null
+  const labels = ${JSON.stringify(labels)}
+  const counts = {}
+  for (const l of labels) counts[l] = 0
   const isScene = f => f.memoizedProps && f.memoizedProps.descriptor && f.memoizedProps.descriptor.route
   let scene
   const stack = [e2eRootFiber()]
@@ -193,34 +199,53 @@ const topModalScreenBody = (label: string) => `${fiberPrelude}
   }
   let underTop = !!scene && visible.key === top.key
   for (let p = scene && scene.return; p && !underTop; p = p.return) if (p.key === top.key && isScene(p)) underTop = true
-  if (!underTop) return {count: 0, title: '', topKey: top.key}
+  if (!underTop) return {counts, title: '', topKey: top.key}
   const options = scene.memoizedProps.descriptor.options || {}
   const title = typeof options.title === 'string' ? options.title : ''
-  const label = ${JSON.stringify(label)}
-  const hits = []
+  const hits = {}
+  for (const l of labels) hits[l] = []
   const inner = scene.child ? [scene.child] : []
   while (inner.length) {
     const f = inner.pop()
     const p = f.memoizedProps
     const handler = p && (typeof p.onPress === 'function' ? p.onPress : typeof p.onClick === 'function' ? p.onClick : undefined)
-    if (f.tag !== 5 && handler && (p.children === label || p.label === label || p.title === label) && !hits.some(h => h.handler === handler)) hits.push({f, handler})
+    if (f.tag !== 5 && handler) {
+      for (const l of labels) {
+        if ((p.children === l || p.label === l || p.title === l) && !hits[l].some(h => h.handler === handler)) hits[l].push({f, handler})
+      }
+    }
     if (f.sibling) inner.push(f.sibling)
     if (f.child) inner.push(f.child)
   }
-  const hosts = hits.map(h => e2eHostOf(h.f)).filter(Boolean)
-  if (hits.length === 1 && hosts.length === 1) {
-    g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (g.__e2eHeaderFrames = {height, width, x, y}))
+  for (const l of labels) {
+    const hosts = hits[l].map(h => e2eHostOf(h.f)).filter(Boolean)
+    counts[l] = hits[l].length === hosts.length ? hits[l].length : -1
+    if (hits[l].length === 1 && hosts.length === 1) {
+      g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (g.__e2eHeaderFrames[l] = {height, width, x, y}))
+    }
   }
-  return {count: hits.length === hosts.length ? hits.length : -1, title, topKey: top.key}
+  return {counts, title, topKey: top.key}
 `
 
 const modalStillUp = async (key: string) =>
   jsEval<boolean>(`return kbModule('constants/router.tsx').getModalStack().some(r => r.key === ${JSON.stringify(key)})`)
 
+// The app's measured frame of `label`'s one pressable, or undefined when it never arrives.
+const measuredHeaderFrame = async (label: string) =>
+  waitFor(
+    `the "${label}" header button measured`,
+    async () => (await jsEval<Rect | null>(`return (globalThis.__e2eHeaderFrames || {})[${JSON.stringify(label)}] || null`)) ?? undefined,
+    {interval: 100, timeout: 3000}
+  ).catch((e: unknown) => {
+    if (isAttemptOver(e)) throw e
+    return undefined
+  })
+
 // The header button element to tap for `label` on the top modal's screen, or undefined. Either way
 // the screen's title must be non-empty and name exactly one navigation bar: the top modal's own.
 async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
-  if (!screenInfo.title || screenInfo.count < 0 || screenInfo.count > 1) return undefined
+  const count = screenInfo.counts[label] ?? 0
+  if (!screenInfo.title || count < 0 || count > 1) return undefined
   const bars: Array<WebdriverIO.Element> = []
   for (const bar of await browser.$$('//XCUIElementTypeNavigationBar').getElements()) {
     if ((await bar.getAttribute('name').catch(() => null)) === screenInfo.title) bars.push(bar)
@@ -229,11 +254,9 @@ async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
   const bar = bars[0]!
   const screen = await browser.getWindowRect()
   const byLabel = `-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`
-  if (screenInfo.count === 1) {
+  if (count === 1) {
     // drawn by the app: at its measured frame, placed on screen by the modal window's top (its bar's top)
-    const measured = await browser
-      .waitUntil(async () => (await jsEval<Rect | null>('return globalThis.__e2eHeaderFrames || null')) ?? false, {interval: 100, timeout: 3000})
-      .catch(() => undefined)
+    const measured = await measuredHeaderFrame(label)
     const barRect = await bar.getElementRect(bar.elementId).catch(() => undefined)
     if (!measured || !barRect) return undefined
     const buttons = await browser.$$(byLabel).getElements()
@@ -249,16 +272,22 @@ async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
   return r && onScreen(r, screen) && r.y + r.height <= HEADER_BAND ? inBar[0] : undefined
 }
 
+// One read of the app for every label; a harness error (attempt over, no inspector page) is thrown,
+// never read as "no modal".
 async function dismissStackedModal(): Promise<boolean> {
+  const screenInfo = await jsEval<TopModalScreen | null>(topModalScreenBody(HEADER_DISMISS_LABELS))
+  if (!screenInfo) return false
   for (const label of HEADER_DISMISS_LABELS) {
-    const screenInfo = await jsEval<TopModalScreen | null>(topModalScreenBody(label)).catch(() => null)
-    if (!screenInfo) return false
     const ctrl = await topModalHeaderButton(label, screenInfo)
     if (!ctrl) continue
     console.log(`  escapeToTabs: dismissing a stacked modal with its "${label}"`)
     await ctrl.click().catch(() => {})
-    const gone = async () => !(await modalStillUp(screenInfo.topKey).catch(() => true))
-    await browser.waitUntil(gone, {interval: 100, timeout: 3000}).catch(() => {})
+    const gone = async () => !(await modalStillUp(screenInfo.topKey))
+    await waitFor('the stacked modal to leave', async () => ((await gone()) ? true : undefined), {interval: 100, timeout: 3000}).catch(
+      (e: unknown) => {
+        if (isAttemptOver(e)) throw e
+      }
+    )
     return gone()
   }
   return false
