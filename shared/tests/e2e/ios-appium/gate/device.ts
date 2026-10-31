@@ -43,11 +43,29 @@ export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, 
 // (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
 // own clipboard module writes it, over Metro (it sends no RPC; the recorder is paused all the same).
 // Never use it for a secret. The flow credits 'pasteboard' once it has asserted the pasted text landed
-// in the app. Bound: the write 30, its read back 10 = 40s.
+// in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
 export const setPasteboard = async (text: string) => {
-  await withHarnessRpcs('the pasteboard write', async () =>
-    jsEval(`kbModule('node_modules/expo-clipboard/build/Clipboard.js').setStringAsync(${JSON.stringify(text)}); return true`)
-  )
+  // an eval body runs synchronously, so the write's promise settles into a global the harness polls;
+  // its outcome holds no text, and a failure says only that the write failed
+  await withHarnessRpcs('the pasteboard write', async () => {
+    await jsEval(`
+      const g = globalThis
+      g.__e2ePasteboard = 'pending'
+      Promise.resolve()
+        .then(() => kbModule('node_modules/expo-clipboard/build/Clipboard.js').setStringAsync(${JSON.stringify(text)}))
+        .then(ok => { g.__e2ePasteboard = ok === false ? 'refused' : 'ok' }, () => { g.__e2ePasteboard = 'failed' })
+      return true
+    `)
+    const outcome = await waitFor(
+      'the app to finish the pasteboard write',
+      async () => {
+        const o = await jsEval<string | null>('return globalThis.__e2ePasteboard ?? null')
+        return o && o !== 'pending' ? o : undefined
+      },
+      {interval: 200, timeout: 10_000}
+    )
+    if (outcome !== 'ok') throw new Error(`the app's clipboard write ${outcome === 'refused' ? 'was refused' : 'failed'}`)
+  })
   await waitFor(
     'the pasteboard to hold the text',
     async () => {

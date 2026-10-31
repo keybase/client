@@ -92,7 +92,7 @@ describe('chat messages', function () {
   //   second    asSecond 250 (the switch 90, the restore 160);  restore  restoreToSmoke 160
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   relaunch  relaunchApp 200;  signed in  90
-  //   paste     setPasteboard 40, the edit menu's Paste 20 and its tap 1 = 61;  its length polled 20
+  //   paste     setPasteboard 50, the edit menu's Paste 20 and its tap 1 = 71;  its length polled 20
   //   panel     the header menu 15, the panel 10, a tab 10 = 35
   //   step      2 (its 1s settle and the attach)
 
@@ -309,10 +309,10 @@ describe('chat messages', function () {
   // in by the pasteboard (typing 10001 keys would take minutes), and it is filler: the run's marker,
   // then x's.
   it('a pasted message over the length limit fails, and its Cancel drops it for good', async function () {
-    // worst case (s): open 100, sent 25 (the anchor), keyboard 5, paste 61, its length 20, step 2, the
+    // worst case (s): open 100, sent 25 (the anchor), keyboard 5, paste 71, its length 20, step 2, the
     // button 5, the tap 1, row 30, the failed record 30, composer 5, keyboard 5, step 2, the seq 2, the
     // edge 2, the press 1, the row gone 15, calls 10, the record 1, step 2, relaunch 200, signed in 90,
-    // open 100, the anchor 20, the read 1, cli 80, step 2 = 817
+    // open 100, the anchor 20, the read 1, cli 80, step 2 = 827
     this.timeout(880_000)
     await openScratch()
     // a message sent first, which shows the thread loaded after the relaunch
