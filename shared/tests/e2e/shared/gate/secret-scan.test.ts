@@ -75,6 +75,22 @@ test('a rotation mid-run leaves both passwords scanned for: the old one, the pen
   }
 })
 
+test("the scan keeps the value rotated away even when no sample fell between the change and the promotion", () => {
+  const file = writeEnv()
+  const watch = watchEnvSecrets(() => envSecrets(file, noEnv), 60_000)
+  try {
+    // the whole rotation between two samples: the scan's own read sees only the promoted value
+    setEnvVars(file, {KB_SECOND_PASSWORD_NEXT: next})
+    setEnvVars(file, {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null})
+    const results = path.join(dir, 'results')
+    fs.mkdirSync(results)
+    fs.writeFileSync(path.join(results, 'metro.log'), `submitSecret ${first}\n`)
+    expect(scanAndPurge([results], watch.secrets()).hits).toEqual([path.join(results, 'metro.log')])
+  } finally {
+    watch.stop()
+  }
+})
+
 test('the timer catches a value between samples, and a failed read later on is skipped', () => {
   jest.useFakeTimers()
   try {

@@ -303,6 +303,17 @@ export const SETTINGS_CHAT              = 'settings-chat'
 export const SETTINGS_UNFURL_ALLOWED    = 'settings-unfurl-allowed'
 export const SETTINGS_UNFURL_BLOCKED    = 'settings-unfurl-blocked'
 export const SETTINGS_UNFURL_SAVE       = 'settings-unfurl-save'
+// the chat settings' "who may message you" Save
+export const SETTINGS_CONTACT_SAVE = 'settings-contact-save'
+// the add-email screen's address field, and an email row's gear (repeated per row)
+export const SETTINGS_EMAIL_INPUT = 'settings-email-input'
+export const SETTINGS_EMAIL_ROW_MENU = 'settings-email-row-menu'
+// the phone's Backup page: a chat job's pause, resume and cancel icons, and a running files job's
+// remove icon (each repeated per job)
+export const SETTINGS_ARCHIVE_JOB_PAUSE = 'settings-archive-job-pause'
+export const SETTINGS_ARCHIVE_JOB_RESUME = 'settings-archive-job-resume'
+export const SETTINGS_ARCHIVE_JOB_CANCEL = 'settings-archive-job-cancel'
+export const SETTINGS_ARCHIVE_KBFS_REMOVE = 'settings-archive-kbfs-remove'
 export const SETTINGS_DISPLAY           = 'settings-display'
 export const SETTINGS_FEEDBACK          = 'settings-feedback'
 export const SETTINGS_FILES             = 'settings-files'
@@ -353,6 +364,16 @@ export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
 export const PROFILE_ACTIONS_MENU = 'profile-actions-menu'
 export const PROFILE_ADD_TO_TEAM_ROW = 'profile-add-to-team-row'
 export const PROFILE_ADD_TO_TEAM_ROW_CHECKED = 'profile-add-to-team-row-checked'
+// Edit profile's fields
+export const PROFILE_EDIT_FULL_NAME = 'profile-edit-full-name'
+export const PROFILE_EDIT_BIO = 'profile-edit-bio'
+export const PROFILE_EDIT_LOCATION = 'profile-edit-location'
+// the Follow / Follow back / Following button
+export const PROFILE_FOLLOW_BUTTON = 'profile-follow-button'
+// an identity row's status icon, which opens its menu (repeated per row)
+export const PROFILE_ASSERTION_MENU = 'profile-assertion-menu'
+// the proofs list's "Search N platforms" filter
+export const PROFILE_PROOFS_FILTER = 'profile-proofs-filter'
 
 // Git
 export const GIT_REPO_LIST = 'git-repo-list'
@@ -436,6 +457,8 @@ export const LOGIN_USER_LIST = 'login-user-list'
 export const LOGIN_PASSWORD_INPUT = 'login-password-input'
 // the new-password field of Settings' change/set password screen
 export const SETTINGS_NEW_PASSWORD_INPUT = 'settings-new-password-input'
+// ... and its confirm field
+export const SETTINGS_CONFIRM_PASSWORD_INPUT = 'settings-confirm-password-input'
 // the signed-out screens' fields: signup's username, policy checkbox (its toggle on the phone) and
 // device name, the username screen "Someone else..." opens, Recover username's email, and the
 // paper key a password recovery asks for

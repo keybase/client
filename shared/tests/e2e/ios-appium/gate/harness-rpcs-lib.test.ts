@@ -47,9 +47,10 @@ test('a resume that fails after f answers names what was paused', async () => {
   )
 })
 
-// What makes the app send an RPC from inside an eval: an `...RpcPromise` call or a store's account
-// switch (which signs in).
-const SENDS = /RpcPromise|switchToAccount/
+// What makes the app send an RPC from inside an eval: an `...RpcPromise` call, a call through the
+// engine's call port (for a method the app has no generated call for), or a store's account switch
+// (which signs in).
+const SENDS = /RpcPromise|getCallPort|switchToAccount/
 
 const callee = (n: ts.Node) =>
   ts.isCallExpression(n) && ts.isIdentifier(n.expression) ? n.expression.text : undefined
@@ -177,7 +178,29 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
   // the scan sees the known harness bodies, so an empty answer is not a scan that matched nothing
   expect(builders.has('configuredAccountsAskBody')).toBe(true)
   // askApp's typed bodies in gate/app-ask.ts, and the chat helpers' asks through it
-  for (const b of ['filesSettings', 'setFilesSettings', 'folderSyncConfig', 'setFolderSyncConfig', 'appSkinTone']) expect(builders.has(b)).toBe(true)
+  for (const b of [
+    'filesSettings',
+    'setFilesSettings',
+    'folderSyncConfig',
+    'setFolderSyncConfig',
+    'appSkinTone',
+    'rememberPassphrase',
+    'setRememberPassphrase',
+    'proxyData',
+    'setProxyData',
+    'guiValue',
+    'guiSetValue',
+    'guiClearValue',
+    'compressPreference',
+    'setCompressPreference',
+    'randomPW',
+    'setDebugLevel',
+    'toggleRuntimeStats',
+    'archiveJobs',
+    'removeArchiveJobs',
+  ]) {
+    expect(builders.has(b)).toBe(true)
+  }
   expect(files.some(f => f.text.includes('withHarnessRpcs(') && f.text.includes('switchToAccount'))).toBe(true)
   expect(found).toEqual([])
   expect(rawEvalCalls(files)).toEqual([])
@@ -210,12 +233,13 @@ test('the scan finds an inline sending body and a body builder outside withHarne
     "const j = async (call: string) => withHarnessRpcs('ask', async () => jsEval(appAskBody('6', call)))",
     'const k = async () => jsEval(callsSinceBody(7))',
     "const l = async (x: boolean) => jsEval(x ? readBody : 'return 2')",
+    "const m = async () => jsEval(`kbModule('engine/call-port.tsx').getCallPort().call({method: 'keybase.1.config.guiClearValue'})`)",
   ].join('\n')
   const {found} = unpausedHarnessEvals([
     {file: 'lib.ts', text: builder},
     {file: 'use.ts', text: uses},
   ])
-  expect(found).toEqual(['use.ts:1', 'use.ts:2', 'use.ts:6', 'use.ts:10', 'use.ts:13'])
+  expect(found).toEqual(['use.ts:1', 'use.ts:2', 'use.ts:6', 'use.ts:10', 'use.ts:13', 'use.ts:14'])
 })
 
 test('the raw eval is called only by the retrying wrapper', () => {

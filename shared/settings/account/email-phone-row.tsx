@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
@@ -158,6 +159,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
             ref={popupAnchor}
             direction="vertical"
             style={styles.gearIconContainer}
+            testID={TestIDs.SETTINGS_EMAIL_ROW_MENU}
           >
             <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
             {gearIconBadge}

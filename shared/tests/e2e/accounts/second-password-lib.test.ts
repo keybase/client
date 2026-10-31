@@ -366,6 +366,29 @@ describe('checkOrRepairSecondSecret', () => {
   })
 })
 
+describe('checkOrRepairSecondSecret seams', () => {
+  test('the check is handed the password it checks', async () => {
+    const seen: string[] = []
+    await checkOrRepairSecondSecret(env, 'e2e-pw', {check: async (_e, pw) => void seen.push(`check ${pw}`), repair: async () => {}})
+    expect(seen).toEqual(['check e2e-pw'])
+  })
+
+  test('a failure the deps call unrepairable is thrown at once, without the password, and nothing is repaired', async () => {
+    const seen: string[] = []
+    const err = await checkOrRepairSecondSecret(env, 'e2e-pw', {
+      check: async () => {
+        seen.push('check')
+        throw new Error('the host is broken e2e-pw')
+      },
+      repair: async () => void seen.push('repair'),
+      repairable: () => false,
+    }).catch((e: unknown) => e as Error)
+    expect(seen).toEqual(['check'])
+    expect(String(err)).toContain('the host is broken')
+    expect(String(err)).not.toContain('e2e-pw')
+  })
+})
+
 describe('thenRestore', () => {
   test('a failed restore after a failed step keeps both errors, the step first, without the secret', async () => {
     const err = await thenRestore(

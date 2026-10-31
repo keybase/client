@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {SignupScreen, errorBanner} from './common'
 import {useAddEmail} from '@/settings/account/use-add-email'
 import {usePushState} from '@/stores/push'
@@ -86,6 +87,7 @@ export const EnterEmailBody = (props: BodyProps) => {
           onEnterKeyDown={props.onContinue}
           textContentType="emailAddress"
           value={props.email}
+          testID={TestIDs.SETTINGS_EMAIL_INPUT}
         />
         {props.showSearchable && (
           <Kb.Checkbox

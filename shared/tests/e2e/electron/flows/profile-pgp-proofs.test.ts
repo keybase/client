@@ -5,7 +5,6 @@
 // by the exact values it used, in the server's view of the second account and removes it through
 // the second peer if the app did not.
 import type {Locator, Page} from '@playwright/test'
-import * as fs from 'fs'
 import * as path from 'path'
 import {loadE2EAccounts, loadE2EEnv} from '@/tests/e2e/accounts/env'
 import {asSecond, RESTORE_WORST_MS, restoreToSmoke} from '@/tests/e2e/electron/helpers/accounts'
@@ -20,6 +19,7 @@ import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import {checkMarkShown, modalButton, modalRoot, readBack} from '@/tests/e2e/electron/helpers/teams'
 import {mainRpcAsSecond} from '@/tests/e2e/shared/main-rpc'
 import {ensurePeer} from '@/tests/e2e/shared/peer-service'
+import {BURN_ADDRESS, purgeFileFingerprint, removePurgeFiles} from '@/tests/e2e/shared/profile'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 test.describe.configure({mode: 'serial'})
@@ -29,8 +29,6 @@ test.afterEach(async ({page}, testInfo) => {
   await restoreToSmoke(page)
 })
 
-// a burn address: provably unspendable
-const BURN_ADDRESS = '1BitcoinEaterAddressDontSendf59kuE'
 
 const secondCli = async (args: Array<string>, timeoutMs = 60_000) => (await ensurePeer('second', loadE2EEnv())).cli(args, timeoutMs)
 
@@ -96,36 +94,6 @@ const mainConfigDir = async () => {
   if (!configPath || !path.isAbsolute(configPath)) throw new Error(`the main service reports no absolute config path (${configPath})`)
   return path.dirname(path.resolve(configPath))
 }
-const purgeFileName = /^kb-\d{4}-([0-9a-f]{40})\.saltpack$/
-
-// The fingerprint in a file pgpPurge wrote into `dir`; throws for any other path.
-const purgeFileFingerprint = (file: string, dir: string) => {
-  const m = purgeFileName.exec(path.basename(file))
-  if (path.dirname(path.resolve(file)) !== dir || !m?.[1]) {
-    throw new Error(`refusing to touch ${file}: not a pgpPurge export in ${dir}`)
-  }
-  return m[1]
-}
-
-// Deletes exactly the files pgpPurge reported, each a plain file in the service's config dir. One
-// that is refused or fails does not stop the others; every failure is thrown together after.
-const removePurgeFiles = (files: ReadonlyArray<string>, dir: string) => {
-  const errors: Array<Error> = []
-  for (const file of files) {
-    try {
-      purgeFileFingerprint(file, dir)
-      const st = fs.lstatSync(file)
-      if (!st.isFile() || st.isSymbolicLink()) throw new Error(`refusing to delete ${file}: not a plain file`)
-      fs.unlinkSync(file)
-    } catch (e) {
-      errors.push(e instanceof Error ? e : new Error(String(e)))
-    }
-  }
-  const [first] = errors
-  if (first && errors.length === 1) throw first
-  if (errors.length > 1) throw new AggregateError(errors, errors.map(e => e.message).join('; '))
-}
-
 type PurgeRes = {filenames?: Array<string> | null}
 const pgpPurge = async (doPurge: boolean) =>
   (await mainRpcAsSecond<PurgeRes>('keybase.1.pgp.pgpPurge', {doPurge, sessionID: 0})).filenames ?? []

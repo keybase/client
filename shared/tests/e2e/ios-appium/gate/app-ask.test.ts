@@ -1,5 +1,25 @@
 import * as mockVm from 'vm'
-import {askApp, filesSettings, setFilesSettings, setFolderSyncConfig} from './app-ask'
+import {
+  archiveJobs,
+  askApp,
+  compressPreference,
+  filesSettings,
+  guiClearValue,
+  guiSetValue,
+  guiValue,
+  proxyData,
+  randomPW,
+  rememberPassphrase,
+  removeArchiveJobs,
+  runtimeStats,
+  setCompressPreference,
+  setDebugLevel,
+  setFilesSettings,
+  setFolderSyncConfig,
+  setProxyData,
+  setRememberPassphrase,
+  toggleRuntimeStats,
+} from './app-ask'
 
 // jest's global (this project's types are mocha's and wdio's)
 declare const jest: {mock: (path: string, factory: () => unknown) => void}
@@ -9,9 +29,12 @@ declare const jest: {mock: (path: string, factory: () => unknown) => void}
 const mockApp = {
   context: undefined as mockVm.Context | undefined,
   evalFails: false,
+  // the next RPC fails with this
+  failNext: '',
   // set: the threshold call answers only once it is called
   holdThreshold: undefined as undefined | {release?: () => void},
   log: [] as Array<string>,
+  stats: undefined as undefined | object,
 }
 
 jest.mock('../helpers/lifecycle', () => ({
@@ -35,8 +58,10 @@ beforeEach(() => {
   mockApp.log = []
   mockApp.evalFails = false
   mockApp.holdThreshold = undefined
+  mockApp.failNext = ''
+  mockApp.stats = undefined
   const log = (s: string) => mockApp.log.push(s)
-  const rpc = {
+  const rpc: Record<string, unknown> = {
     SimpleFSSimpleFSSetFolderSyncConfigRpcPromise: async (p: unknown) => {
       log(`set sync ${JSON.stringify(p)}`)
       return Promise.resolve()
@@ -55,9 +80,56 @@ beforeEach(() => {
       return Promise.resolve({sfmiBannerDismissed: false, spaceAvailableNotificationThreshold: 3e9, syncOnCellular: true})
     },
   }
+  const answer = async (line: string, value?: unknown) => {
+    log(line)
+    if (mockApp.failNext) {
+      const why = mockApp.failNext
+      mockApp.failNext = ''
+      return Promise.reject(new Error(why))
+    }
+    return Promise.resolve(value)
+  }
+  Object.assign(rpc, {
+    IncomingShareCompressPreference: {compressed: 1, original: 0},
+    PassphraseState: {known: 0, random: 1},
+    SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise: async (p: {jobID: string}) => answer(`kbfs cancel ${p.jobID}`),
+    SimpleFSSimpleFSGetArchiveStatusRpcPromise: async () => answer('kbfs list', {jobs: [{desc: {jobID: 'k1'}}, {desc: {jobID: 'k2'}}]}),
+    SimpleFSSimpleFSSetDebugLevelRpcPromise: async (p: {level: string}) => answer(`debug ${p.level}`),
+    TLFIdentifyBehavior: {unset: 0},
+    configGetProxyDataRpcPromise: async () => answer('get proxy', {addressWithPort: 'localhost:8080', certPinning: true, proxyType: 1}),
+    configGetRememberPassphraseRpcPromise: async () => answer('get remember', true),
+    configGuiGetValueRpcPromise: async (p: {path: string}) =>
+      answer(`gui get ${p.path}`, p.path === 'ui.darkMode' ? {isNull: false, s: 'alwaysLight'} : undefined).then(v =>
+        v ? v : Promise.reject(new Error('no such key'))
+      ),
+    configGuiSetValueRpcPromise: async (p: {path: string; value: unknown}) => answer(`gui set ${p.path} ${JSON.stringify(p.value)}`),
+    configSetProxyDataRpcPromise: async (p: {proxyData: unknown}) => answer(`set proxy ${JSON.stringify(p.proxyData)}`),
+    configSetRememberPassphraseRpcPromise: async (p: {remember: boolean}) => answer(`set remember ${p.remember}`),
+    configToggleRuntimeStatsRpcPromise: async () => answer('toggle stats'),
+    incomingShareGetPreferenceRpcPromise: async () => answer('get compress', {compressPreference: 0}),
+    incomingShareSetPreferenceRpcPromise: async (p: {preference: {compressPreference: number}}) =>
+      answer(`set compress ${p.preference.compressPreference}`),
+    userLoadPassphraseStateRpcPromise: async () => answer('passphrase state', 0),
+  })
+  const chat = {
+    localArchiveChatDeleteRpcPromise: async (p: {jobID: string; deleteOutputPath: boolean}) => answer(`chat delete ${p.jobID} ${p.deleteOutputPath}`),
+    localArchiveChatListRpcPromise: async () => answer('chat list', {jobs: [{request: {jobID: 'c1'}}]}),
+  }
+  const callPort = {
+    getCallPort: () => ({
+      call: (p: {method: string; params: {path: string}; callback: (e?: Error) => void}) => {
+        log(`call ${p.method} ${p.params.path}`)
+        p.callback()
+        return 1
+      },
+    }),
+  }
   const modules: Record<string, object> = {
     'constants/fs.tsx': {pathToRPCPath: (p: string) => ({PathType: 1, kbfs: {path: p.slice('/keybase'.length)}})},
+    'constants/rpc/rpc-chat-gen.tsx': chat,
     'constants/rpc/rpc-gen.tsx': rpc,
+    'engine/call-port.tsx': callPort,
+    'stores/config.tsx': {useConfigState: {getState: () => ({runtimeStats: mockApp.stats})}},
   }
   const kbModule = (name: string) => {
     const m = modules[name]
@@ -129,4 +201,100 @@ test('a restore whose first call answers after the ask timed out never sends its
   expect(mockApp.log).toEqual(['pause', 'threshold 1000000000', 'resume tok'])
   const left = mockVm.runInContext('globalThis.__kbE2EAppAsk', mockApp.context as mockVm.Context) as {ask: string; state: string}
   expect(left).toEqual({ask: '', state: 'given up'})
+})
+
+describe("the phone's local settings", () => {
+  test('each read is answered with the recorder paused around it', async () => {
+    await expect(rememberPassphrase()).resolves.toBe(true)
+    await expect(proxyData()).resolves.toEqual({addressWithPort: 'localhost:8080', certPinning: true, proxyType: 1})
+    await expect(guiValue('ui.darkMode')).resolves.toEqual({isNull: false, s: 'alwaysLight'})
+    await expect(compressPreference()).resolves.toBe('original')
+    await expect(randomPW()).resolves.toBe(false)
+    await expect(runtimeStats()).resolves.toBe(false)
+    mockApp.stats = {cpu: 1}
+    await expect(runtimeStats()).resolves.toBe(true)
+    expect(mockApp.log).toEqual([
+      ...['get remember', 'get proxy', 'gui get ui.darkMode', 'get compress', 'passphrase state'].flatMap(l => ['pause', l, 'resume tok']),
+      ...['pause', 'resume tok', 'pause', 'resume tok'],
+    ])
+  })
+
+  test('a GUI config key that is not set reads as undefined, not as a failure', async () => {
+    await expect(guiValue('ui.forceSmallNav')).resolves.toBeUndefined()
+  })
+
+  test('each restore sends what it is given', async () => {
+    await setRememberPassphrase(false)
+    await setProxyData({addressWithPort: '', certPinning: true, proxyType: 0})
+    await guiSetValue('ui.darkMode', {isNull: false, s: 'system'})
+    await guiClearValue('ui.darkMode')
+    await setCompressPreference('compressed')
+    await setDebugLevel('vlog1')
+    await toggleRuntimeStats()
+    expect(mockApp.log.filter(l => l !== 'pause' && l !== 'resume tok')).toEqual([
+      'set remember false',
+      'set proxy {"addressWithPort":"","certPinning":true,"proxyType":0}',
+      'gui set ui.darkMode {"isNull":false,"s":"system"}',
+      'call keybase.1.config.guiClearValue ui.darkMode',
+      'set compress 1',
+      'debug vlog1',
+      'toggle stats',
+    ])
+  })
+
+  test('a restore of a value that is not plain is refused before any eval', async () => {
+    for (const f of [
+      async () => setProxyData({addressWithPort: 'a b`', certPinning: true, proxyType: 0}),
+      async () => setProxyData({addressWithPort: '', certPinning: true, proxyType: 7 as 0}),
+      async () => guiSetValue('ui.dark`Mode', {isNull: false, s: 'system'}),
+      async () => guiSetValue('ui.darkMode', {isNull: false, s: 'sys`tem'}),
+      async () => guiClearValue('../x'),
+      async () => setDebugLevel('v 1'),
+    ]) {
+      await expect(f()).rejects.toThrow(/^refusing /)
+    }
+    expect(mockApp.log).toEqual([])
+  })
+
+  test('a body that throws in the app resumes the recorder and names what it asked', async () => {
+    mockApp.failNext = 'the service is gone'
+    await expect(rememberPassphrase()).rejects.toThrow("the phone's remember-password setting: the phone's service answered the service is gone")
+    expect(mockApp.log).toEqual(['pause', 'get remember', 'resume tok'])
+  })
+})
+
+describe('backup jobs', () => {
+  test("lists the phone's chat and files jobs", async () => {
+    await expect(archiveJobs()).resolves.toEqual({chat: ['c1'], kbfs: ['k1', 'k2']})
+    expect(mockApp.log).toEqual(['pause', 'chat list', 'kbfs list', 'resume tok'])
+  })
+
+  test('removes the jobs the flow made, deleting the chat output too', async () => {
+    await removeArchiveJobs({chat: ['c9'], kbfs: ['k9']}, {chat: ['c1'], kbfs: ['k1']})
+    expect(mockApp.log).toEqual(['pause', 'chat delete c9 true', 'kbfs cancel k9', 'resume tok'])
+  })
+
+  test('refuses a job that was there before the flow, naming none, before any eval', async () => {
+    for (const ids of [
+      {chat: ['c1'], kbfs: []},
+      {chat: [], kbfs: ['k9', 'k1']},
+    ]) {
+      const err = await removeArchiveJobs(ids, {chat: ['c1'], kbfs: ['k1']}).catch((e: unknown) => e as Error)
+      expect(String(err)).toMatch(/refusing /)
+      expect(String(err)).not.toMatch(/c1|k1|k9/)
+    }
+    await expect(removeArchiveJobs({chat: ['c`'], kbfs: []}, {chat: [], kbfs: []})).rejects.toThrow(/^refusing /)
+    expect(mockApp.log).toEqual([])
+  })
+
+  test('removing no jobs asks nothing', async () => {
+    await removeArchiveJobs({chat: [], kbfs: []}, {chat: ['c1'], kbfs: []})
+    expect(mockApp.log).toEqual([])
+  })
+
+  test('a failed delete stops the chain: the next job is never sent, and the recorder is resumed', async () => {
+    mockApp.failNext = 'no such job'
+    await expect(removeArchiveJobs({chat: ['c8', 'c9'], kbfs: []}, {chat: [], kbfs: []})).rejects.toThrow(/no such job/)
+    expect(mockApp.log).toEqual(['pause', 'chat delete c8 true', 'resume tok'])
+  })
 })

@@ -40,3 +40,37 @@ test('the snapshot body strips the screen params inside the app', () => {
   expect(snap.screen).toEqual({name: 'teamInviteLinkJoin', params: {inviteDetails: {teamID: 'tid'}}})
   expect(JSON.stringify(snap)).not.toContain('secretkey')
 })
+
+test("a crypto output screen's input and output text stay in the app; its other params are kept", () => {
+  const ciphertext = 'BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb XMxIeCbf5rCmoht. END'
+  for (const name of ['encryptOutput', 'decryptOutput', 'signOutput', 'verifyOutput']) {
+    const modules: Record<string, unknown> = {
+      'constants/router.tsx': {
+        getVisibleScreen: () => ({
+          name,
+          params: {input: 'e2e-run-crypto-1234', output: ciphertext, outputSenderUsername: 'testuser-mac', outputValid: true, recipients: ['testuser']},
+        }),
+      },
+      'engine/transport-shared.tsx': {isSecretParam},
+      'stores/config.tsx': {useConfigState: {getState: () => ({httpSrv: {address: 'a', token: 't'}, loggedIn: true})}},
+      'stores/shell.tsx': {useShellState: {getState: () => ({mobileAppState: 'active'})}},
+    }
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const run = new Function('kbModule', appSnapshotBody) as (m: (name: string) => unknown) => {screen?: {name?: string; params?: unknown}}
+    const snap = run(n => modules[n])
+    expect(snap.screen).toEqual({name, params: {outputSenderUsername: 'testuser-mac', outputValid: true, recipients: ['testuser']}})
+    expect(JSON.stringify(snap)).not.toMatch(/SALTPACK|e2e-run-crypto/)
+  }
+})
+
+test("another screen's input and output params are kept", () => {
+  const modules: Record<string, unknown> = {
+    'constants/router.tsx': {getVisibleScreen: () => ({name: 'encryptTab', params: {input: 'x', output: 'y'}})},
+    'engine/transport-shared.tsx': {isSecretParam},
+    'stores/config.tsx': {useConfigState: {getState: () => ({httpSrv: {address: 'a', token: 't'}, loggedIn: true})}},
+    'stores/shell.tsx': {useShellState: {getState: () => ({mobileAppState: 'active'})}},
+  }
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  const run = new Function('kbModule', appSnapshotBody) as (m: (name: string) => unknown) => {screen?: {params?: unknown}}
+  expect(run(n => modules[n]).screen?.params).toEqual({input: 'x', output: 'y'})
+})

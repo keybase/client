@@ -260,8 +260,11 @@ export const secondPasswordIsCurrent = async (
 }
 
 export type RepairDeps = {
-  check: (env: E2EEnv) => Promise<void>
+  // `password` is the one the stored secret should be for (the iOS check also asks the second peer)
+  check: (env: E2EEnv, password: string) => Promise<void>
   repair: (env: E2EEnv, password: string) => Promise<void>
+  // false for a check failure the repair cannot fix (the iOS gate's host check): it is thrown at once
+  repairable?: (e: unknown) => boolean
   say?: (s: string) => void
 }
 
@@ -285,12 +288,15 @@ export const checkOrRepairSecondSecret = async (
   broken = `${brokenSecret} and signing it in again with KB_SECOND_PASSWORD did not fix it`
 ) => {
   try {
-    await deps.check(env)
+    await deps.check(env, password)
   } catch (first) {
+    // a scrubbed copy: the raw error may carry the password
+    // eslint-disable-next-line preserve-caught-error
+    if (deps.repairable && !deps.repairable(first)) throw new Error(scrub(message(first), password))
     deps.say?.(scrub(`the second account's stored secret check failed (${message(first)}); signing it in again on the main service`, password))
     try {
       await deps.repair(env, password)
-      await deps.check(env)
+      await deps.check(env, password)
     } catch (second) {
       // the causes are not attached: their messages may carry the password
       // eslint-disable-next-line preserve-caught-error

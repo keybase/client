@@ -4,28 +4,13 @@
 import {expect, type Locator, type Page} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {watchOutgoingRpcs} from '@/tests/e2e/electron/helpers/chat'
-import {requireMainIsSmoke, runKeybase} from '@/tests/e2e/shared/peer-service'
+import {followsSecond} from '@/tests/e2e/shared/people'
 import * as T from '@/tests/e2e/shared/test-ids'
 
-// whether the smoke account follows the second account, as the service lists it
-export const followsSecond = async () => {
-  const {secondUser} = loadE2EAccounts()
-  await requireMainIsSmoke(loadE2EAccounts())
-  const out = await runKeybase(['list-following'], {timeoutMs: 30_000})
-  return out.split('\n').some(l => l.trim() === secondUser)
-}
+export {followsSecond, setFollowSecondFromCli} from '@/tests/e2e/shared/people'
 
 export const expectFollowsSecond = async (want: boolean, what: string) =>
   expect.poll(followsSecond, {message: what, timeout: 30_000}).toBe(want)
-
-// Puts the smoke account's follow of the second account to `want` from the CLI and reads it back; a
-// no-op when it already is.
-export const setFollowSecondFromCli = async (want: boolean) => {
-  if ((await followsSecond()) === want) return
-  const {secondUser} = loadE2EAccounts()
-  await runKeybase(want ? ['follow', secondUser, '-y'] : ['unfollow', secondUser], {timeoutMs: 60_000})
-  await expectFollowsSecond(want, `the follow state of the second account put back to ${want ? 'following' : 'not following'}`)
-}
 
 export const visibleProfile = (page: Page) => page.getByTestId(T.PROFILE_PAGE).locator('visible=true').first()
 

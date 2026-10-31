@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   disabled?: boolean
@@ -24,6 +25,7 @@ const FollowButton = (props: Props) => {
         mode="Secondary"
         label={mouseOver ? 'Unfollow' : 'Following'}
         onClick={onUnfollow}
+        testID={TestIDs.PROFILE_FOLLOW_BUTTON}
         waitingKey={waitingKey}
         style={props.small ? style : {...styleButton, ...style}}
         {...otherProps}
@@ -47,6 +49,7 @@ const FollowButton = (props: Props) => {
         type="Success"
         label={followsYou ? 'Follow back' : 'Follow'}
         onClick={onFollow}
+        testID={TestIDs.PROFILE_FOLLOW_BUTTON}
         waitingKey={waitingKey}
         style={props.small ? style : {...styleButton, ...style}}
         {...otherProps}

@@ -1,7 +1,6 @@
 // The smoke account's own profile: its name, bio and location through Edit profile, read before and
 // put back exactly after, read back from the server. The avatar is in profile-avatar.
 import type {Page} from '@playwright/test'
-import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {e2eRunId, expect, test} from '@/tests/e2e/electron/helpers/fixtures'
 import {closeLeftoverModals} from '@/tests/e2e/electron/helpers/modal'
@@ -9,26 +8,12 @@ import {openOwnProfile} from '@/tests/e2e/electron/helpers/navigate'
 import {expectPersists} from '@/tests/e2e/electron/helpers/persisted'
 import {visibleProfile} from '@/tests/e2e/electron/helpers/people'
 import {step} from '@/tests/e2e/electron/helpers/step'
-import {modalButton, modalRoot, readBack} from '@/tests/e2e/electron/helpers/teams'
+import {modalButton, modalRoot} from '@/tests/e2e/electron/helpers/teams'
 import {mainRpc} from '@/tests/e2e/shared/main-rpc'
-import {requireMainIsSmoke, runKeybase} from '@/tests/e2e/shared/peer-service'
+import {profileFields, type ProfileFields} from '@/tests/e2e/shared/profile'
 
 test.describe.configure({mode: 'serial'})
 test.use({actionTimeout: 10_000})
-
-type Fields = {bio: string; fullName: string; location: string}
-
-// The smoke account's profile fields as the server has them.
-const profileFields = async (): Promise<Fields> => {
-  const {smokeUser} = loadE2EAccounts()
-  await requireMainIsSmoke({smokeUser})
-  const out = await readBack(async () =>
-    runKeybase(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${smokeUser}`, '-a', 'fields=profile'], {timeoutMs: 30_000})
-  )
-  const p = (JSON.parse(out) as {them?: {profile?: {bio?: string | null; full_name?: string | null; location?: string | null} | null}}).them?.profile
-  if (!p) throw new Error('user/lookup returned no profile for the smoke account')
-  return {bio: p.bio ?? '', fullName: p.full_name ?? '', location: p.location ?? ''}
-}
 
 // The profile's own "Edit profile" button, not a proof row or the counts under the name.
 const editProfileButton = (page: Page) =>
@@ -37,7 +22,7 @@ const editProfileButton = (page: Page) =>
 test('edit name, bio and location', async ({page}, testInfo) => {
   test.setTimeout(150_000)
   const original = await profileFields()
-  const wanted: Fields = {bio: `e2e-${e2eRunId()}-bio`, fullName: `e2e-${e2eRunId()}-name`, location: `e2e-${e2eRunId()}-loc`}
+  const wanted: ProfileFields = {bio: `e2e-${e2eRunId()}-bio`, fullName: `e2e-${e2eRunId()}-name`, location: `e2e-${e2eRunId()}-loc`}
   await withCleanup(
     async () => {
       await openOwnProfile(page)

@@ -414,6 +414,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
               label="Save"
               small={true}
               style={styles.save}
+              testID={TestIDs.SETTINGS_CONTACT_SAVE}
               waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
             {!!error && (

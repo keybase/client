@@ -20,6 +20,7 @@ import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {useNavigation} from '@react-navigation/native'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type ProveGenericParams = {
   buttonLabel: string
@@ -752,6 +753,7 @@ const ProviderPicker = ({
         inputStyle={styles.text}
         onChangeText={setFilter}
         placeholder={`Search ${providers.length} platforms`}
+        testID={TestIDs.PROFILE_PROOFS_FILTER}
         value={filter}
       />
       <Kb.BoxGrow2>
