@@ -307,6 +307,24 @@ export const SETTINGS_UNFURL_BLOCKED    = 'settings-unfurl-blocked'
 export const SETTINGS_UNFURL_SAVE       = 'settings-unfurl-save'
 // the chat settings' "who may message you" Save
 export const SETTINGS_CONTACT_SAVE = 'settings-contact-save'
+// the settings controls below are settingTestID bases (SETTING_ON)
+// the chat settings' "Only let someone message you..." switch
+export const SETTINGS_CONTACT_SWITCH = 'settings-contact-switch'
+// a notification group's switch: the prefix, then the group ('security', 'email', ...), '-' and the
+// setting's name
+export const SETTINGS_NOTIFY_SWITCH_PREFIX = 'settings-notify-switch-'
+// the link preview radios: the prefix, then the mode ('always', 'whitelisted', 'never')
+export const SETTINGS_UNFURL_MODE_PREFIX = 'settings-unfurl-mode-'
+// the iOS photos and videos radios: the prefix, then 'compressed' or 'original'
+export const SETTINGS_COMPRESS_PREFIX = 'settings-compress-'
+// Display's theme radios: the prefix, then 'system', 'alwaysDark' or 'alwaysLight'
+export const SETTINGS_THEME_PREFIX = 'settings-theme-'
+// Display's "Allow animated emoji" switch
+export const SETTINGS_ANIMATED_EMOJI_SWITCH = 'settings-animated-emoji-switch'
+// Advanced's lockdown mode switch
+export const SETTINGS_LOCKDOWN_SWITCH = 'settings-lockdown-switch'
+// Advanced's "Save Proxy Settings", with SETTING_PENDING after it until the proxy settings load
+export const SETTINGS_PROXY_SAVE = 'settings-proxy-save'
 // the add-email screen's address field, and an email row's gear (repeated per row)
 export const SETTINGS_EMAIL_INPUT = 'settings-email-input'
 export const SETTINGS_EMAIL_ROW_MENU = 'settings-email-row-menu'

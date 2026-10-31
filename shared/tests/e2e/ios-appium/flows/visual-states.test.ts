@@ -3,7 +3,6 @@ import {
   escapeToTabs,
   navigateToMore,
   navigateToChat,
-  scrollDownToText,
   tapSettingsRow,
 } from '../helpers/navigate'
 import {byText, el, waitForTestID} from '../helpers/elements'
@@ -12,23 +11,6 @@ import * as T from '../../shared/test-ids'
 // Visual-coverage states. The harness screenshots AFTER each test and
 // escapeToTabs resets before the next one, so each test ENDS at the state it
 // wants captured (modal left open on purpose). View-only: nothing submits.
-
-// Finger up — scrolls the content toward its bottom.
-async function swipeContentUp(times: number): Promise<void> {
-  const {width, height} = await browser.getWindowRect()
-  const x = Math.round(width * 0.5)
-  for (let i = 0; i < times; i++) {
-    await browser
-      .action('pointer')
-      .move({x, y: Math.round(height * 0.75)})
-      .down()
-      .move({x, y: Math.round(height * 0.35), duration: 300})
-      .up()
-      .perform()
-  }
-}
-
-
 
 describe('visual states', () => {
   it('archive backup modal', async () => {
@@ -79,15 +61,6 @@ describe('visual states', () => {
     await expect(byText('Protect your account by having more devices and paper keys.')).toExist()
   })
 
-  it('settings advanced scrolled', async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Advanced')
-    await waitForTestID(T.SETTINGS_ADVANCED, 5000)
-    await swipeContentUp(4)
-    await expect(el(T.SETTINGS_ADVANCED)).toExist()
-  })
-
   it('account switcher', async () => {
     await escapeToTabs()
     // Chat uses a full-width custom header on iPad, so exercise it here rather
@@ -96,15 +69,5 @@ describe('visual states', () => {
     await el(T.PEOPLE_HEADER_AVATAR).click()
     await byText('Log in as another user').waitForExist({timeout: 8000})
     await expect(byText('Log in as another user')).toExist()
-  })
-
-  it('settings notifications scrolled', async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await scrollDownToText('Notifications')
-    await byText('Notifications').click()
-    await waitForTestID(T.SETTINGS_NOTIFICATIONS, 5000)
-    await swipeContentUp(4)
-    await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
   })
 })

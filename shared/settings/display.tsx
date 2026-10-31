@@ -38,17 +38,20 @@ const Display = () => {
               label="Respect system settings"
               selected={darkModePreference === 'system'}
               onSelect={() => onSetDarkModePreference('system')}
+              testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_THEME_PREFIX}system`, darkModePreference === 'system')}
             />
           )}
           <Kb.RadioButton
             label="Dark"
             selected={darkModePreference === 'alwaysDark'}
             onSelect={() => onSetDarkModePreference('alwaysDark')}
+            testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_THEME_PREFIX}alwaysDark`, darkModePreference === 'alwaysDark')}
           />
           <Kb.RadioButton
             label={<Kb.Text type="Body">Light</Kb.Text>}
             selected={darkModePreference === 'alwaysLight'}
             onSelect={() => onSetDarkModePreference('alwaysLight')}
+            testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_THEME_PREFIX}alwaysLight`, darkModePreference === 'alwaysLight')}
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="tiny">
@@ -57,6 +60,7 @@ const Display = () => {
             label="Allow animated emoji"
             checked={allowAnimatedEmojis}
             onCheck={doToggleAnimatedEmoji}
+            testID={TestIDs.settingTestID(TestIDs.SETTINGS_ANIMATED_EMOJI_SWITCH, allowAnimatedEmojis)}
           />
         </Kb.Box2>
         {isElectron && (

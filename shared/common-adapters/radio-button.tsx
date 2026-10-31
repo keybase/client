@@ -11,6 +11,7 @@ type Props = {
   selected: boolean
   style?: object
   disabled?: boolean
+  testID?: string
 }
 
 const Kb = {
@@ -20,7 +21,7 @@ const Kb = {
 
 const RADIOBUTTON_SIZE = 22
 
-const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
+const RadioButton = ({disabled, label, onSelect, selected, style, testID}: Props) => {
   const desktopStyles = useDesktopStyles()
   const nativeStyles = useNativeStyles()
   const theme = Styles.useTheme()
@@ -29,6 +30,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
       <div
         style={{...desktopStyles.container, ...(disabled ? {} : Styles.desktopStyles.clickable), ...style}}
         onClick={disabled ? undefined : () => onSelect(!selected)}
+        data-testid={testID}
       >
         <div className={Styles.classNames('radio-button', {disabled, selected})}>
           <div style={Styles.castStyleDesktop(desktopStyles.radio)} />
@@ -46,6 +48,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
       gap="tiny"
       style={Styles.collapseStyles([nativeStyles.container, style])}
       onClick={disabled ? undefined : () => onSelect(!selected)}
+      testID={testID}
     >
       <View
         style={Styles.collapseStyles([

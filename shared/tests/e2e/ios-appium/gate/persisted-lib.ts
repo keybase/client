@@ -1,5 +1,6 @@
-// Parts of the iOS settings flows: what a settings control's testID says it shows (and the one read
-// of it off the screen, settingShown, the only part that drives the app).
+// Framework-free parts of the iOS persisted-settings flow: what a settings control's testID says it
+// shows, what "Save Proxy Settings" writes back for the settings it loaded, and the KBFS debug
+// levels the phone's service log records.
 import {SETTING_OFF, SETTING_ON, SETTING_PENDING} from '../../shared/test-ids'
 
 export type SettingShown = 'on' | 'off' | 'pending'
@@ -34,3 +35,23 @@ export const settingShown = async (base: string): Promise<SettingShown | undefin
   const id = found[0] ? await found[0].getAttribute('name').catch(() => null) : null
   return id ? settingShownOf(id, base) : undefined
 }
+
+export type ProxySettings = {addressWithPort: string; certPinning: boolean; proxyType: number}
+
+// What Save writes for the settings the form loaded (settings/proxy.tsx): the form splits the address
+// at its last ':' and writes `address:port` back, with the port 8080 when the address had none (an
+// address with no ':' loads as no address at all), and the same type and pinning.
+export const proxySaveWrites = (loaded: ProxySettings): ProxySettings => {
+  const parts = loaded.addressWithPort.split(':')
+  const address = parts.slice(0, -1).join(':')
+  const port = parts.length >= 2 ? (parts.at(-1) ?? '') : '8080'
+  return {addressWithPort: `${address}:${port}`, certPinning: loaded.certPinning, proxyType: loaded.proxyType}
+}
+
+// The KBFS debug levels set, in order, in `lines` of the phone's service log (libkb's VDebugLog logs
+// each one it is configured with). Only the level of each such line is kept.
+export const vdebugLevels = (lines: ReadonlyArray<string>) =>
+  lines.flatMap(l => {
+    const m = /Setting Vdebug to "([^"]*)"/.exec(l)
+    return m ? [m[1] ?? ''] : []
+  })

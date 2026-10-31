@@ -196,6 +196,8 @@ test('no eval body in the gate or its helpers sends an RPC from inside the app o
     'randomPW',
     'setDebugLevel',
     'toggleRuntimeStats',
+    'runtimeStatsEnabled',
+    'phoneReachesServer',
     'archiveJobs',
     'removeArchiveJobs',
   ]) {

@@ -3,15 +3,18 @@ import {
   archiveJobs,
   askApp,
   compressPreference,
+  darkModeState,
   filesSettings,
   guiClearValue,
   guiSetValue,
   guiValue,
   proxyData,
   randomPW,
+  phoneReachesServer,
   rememberPassphrase,
   removeArchiveJobs,
   runtimeStats,
+  runtimeStatsEnabled,
   setCompressPreference,
   setDebugLevel,
   setFilesSettings,
@@ -35,6 +38,8 @@ const mockApp = {
   holdThreshold: undefined as undefined | {release?: () => void},
   log: [] as Array<string>,
   stats: undefined as undefined | object,
+  // the service config's runtime stats flag; undefined: never set
+  statsEnabled: undefined as undefined | boolean,
 }
 
 jest.mock('../helpers/lifecycle', () => ({
@@ -60,6 +65,7 @@ beforeEach(() => {
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
   mockApp.stats = undefined
+  mockApp.statsEnabled = undefined
   const log = (s: string) => mockApp.log.push(s)
   const rpc: Record<string, unknown> = {
     SimpleFSSimpleFSSetFolderSyncConfigRpcPromise: async (p: unknown) => {
@@ -96,6 +102,7 @@ beforeEach(() => {
     SimpleFSSimpleFSGetArchiveStatusRpcPromise: async () => answer('kbfs list', {jobs: [{desc: {jobID: 'k1'}}, {desc: {jobID: 'k2'}}]}),
     SimpleFSSimpleFSSetDebugLevelRpcPromise: async (p: {level: string}) => answer(`debug ${p.level}`),
     TLFIdentifyBehavior: {unset: 0},
+    apiserverGetWithSessionRpcPromise: async (p: {endpoint: string}) => answer(`get ${p.endpoint}`, {body: '{"status":{"code":0}}'}),
     configGetProxyDataRpcPromise: async () => answer('get proxy', {addressWithPort: 'localhost:8080', certPinning: true, proxyType: 1}),
     configGetRememberPassphraseRpcPromise: async () => answer('get remember', true),
     configGuiGetValueRpcPromise: async (p: {path: string}) =>
@@ -117,9 +124,11 @@ beforeEach(() => {
   }
   const callPort = {
     getCallPort: () => ({
-      call: (p: {method: string; params: {path: string}; callback: (e?: Error) => void}) => {
+      call: (p: {method: string; params: {path: string}; callback: (e?: Error, v?: unknown) => void}) => {
         log(`call ${p.method} ${p.params.path}`)
-        p.callback()
+        if (p.method !== 'keybase.1.config.getValue') p.callback()
+        else if (mockApp.statsEnabled === undefined) p.callback(new Error(`no such key: ${p.params.path}`))
+        else p.callback(undefined, {b: mockApp.statsEnabled, isNull: false})
         return 1
       },
     }),
@@ -130,6 +139,9 @@ beforeEach(() => {
     'constants/rpc/rpc-gen.tsx': rpc,
     'engine/call-port.tsx': callPort,
     'stores/config.tsx': {useConfigState: {getState: () => ({runtimeStats: mockApp.stats})}},
+    'stores/darkmode.tsx': {
+      useDarkModeState: {getState: () => ({darkModePreference: 'alwaysLight', supported: true, systemDarkMode: false})},
+    },
   }
   const kbModule = (name: string) => {
     const m = modules[name]
@@ -216,6 +228,21 @@ describe("the phone's local settings", () => {
     expect(mockApp.log).toEqual([
       ...['get remember', 'get proxy', 'gui get ui.darkMode', 'get compress', 'passphrase state'].flatMap(l => ['pause', l, 'resume tok']),
       ...['pause', 'resume tok', 'pause', 'resume tok'],
+    ])
+  })
+
+  test("the runtime stats flag, the server read and the theme state are each answered with the recorder paused", async () => {
+    await expect(runtimeStatsEnabled()).resolves.toBe(false)
+    mockApp.statsEnabled = true
+    await expect(runtimeStatsEnabled()).resolves.toBe(true)
+    mockApp.statsEnabled = false
+    await expect(runtimeStatsEnabled()).resolves.toBe(false)
+    await expect(phoneReachesServer()).resolves.toBe(true)
+    await expect(darkModeState()).resolves.toEqual({preference: 'alwaysLight', supported: true, systemDark: false})
+    expect(mockApp.log).toEqual([
+      ...Array.from({length: 3}, () => ['pause', 'call keybase.1.config.getValue runtime_stats_enabled', 'resume tok']).flat(),
+      ...['pause', 'get account/subscriptions', 'resume tok'],
+      ...['pause', 'resume tok'],
     ])
   })
 

@@ -281,9 +281,48 @@ export const trackerState = async (username: string) => {
   )
 }
 
-// Toggles the phone's runtime stats (a restore: read runtimeStats first).
+// Toggles the phone's runtime stats (a restore: read runtimeStatsEnabled first).
 export const toggleRuntimeStats = async () =>
   askApp<boolean>('toggling the runtime stats', `${RPC_GEN}.configToggleRuntimeStatsRpcPromise().then(() => true)`)
+
+// Whether the phone's service config has runtime stats on (the flag Toggle Runtime Stats flips and
+// a relaunch keeps): the truth even before the first stats arrive or after the last one. The app
+// has no generated call for it, so this goes through the engine's call port.
+export const runtimeStatsEnabled = async () =>
+  askApp<boolean>(
+    "the phone's runtime stats setting",
+    `new Promise((resolve, reject) =>
+       kbModule('engine/call-port.tsx').getCallPort().call({
+         callback: (e, v) =>
+           e ? (/no such key/i.test(String(e && e.message)) ? resolve(false) : reject(e)) : resolve(!!(v && !v.isNull && v.b)),
+         method: 'keybase.1.config.getValue',
+         params: {path: 'runtime_stats_enabled'},
+       })
+     )`
+  )
+
+// Whether the phone's service reaches the API server: one cheap authenticated read answers (its body
+// is not kept). Bound: `timeout`, plus the pause and resume.
+export const phoneReachesServer = async (timeout = 30_000) =>
+  askApp<boolean>(
+    "the phone's service reaching the server",
+    `${RPC_GEN}.apiserverGetWithSessionRpcPromise({args: [], endpoint: 'account/subscriptions'}).then(r => !!(r && r.body))`,
+    timeout
+  )
+
+// The app's theme state (no RPC): the preference it shows, whether "Respect system settings" is
+// offered, and whether the system is dark.
+export type DarkModeState = {preference: string; supported: boolean; systemDark: boolean}
+
+export const darkModeState = async () =>
+  askApp<DarkModeState>(
+    "the app's theme state",
+    `Promise.resolve(kbModule('stores/darkmode.tsx').useDarkModeState.getState()).then(s => ({
+       preference: s.darkModePreference,
+       supported: !!s.supported,
+       systemDark: !!s.systemDarkMode,
+     }))`
+  )
 
 // -- backup jobs -------------------------------------------------------------------------------------
 
