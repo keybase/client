@@ -21,8 +21,8 @@
 // leaves: the smoke account blocking the second one, their DM's status blocked, and the
 // smoke+second folder ignored. It unblocks and puts the DM back to unfiled, and makes the folder a
 // favorite again if setup recorded it as one (~/.config/keybase-e2e/pair-folder.json); each read back. It writes only when both
-// accounts' names start with the env file's KB_E2E_TEST_ACCOUNT_PREFIX, and --check reports the
-// variable missing.
+// accounts' names start with the env file's KB_E2E_TEST_ACCOUNT_PREFIX; --check reports the variable
+// missing only when there is something to repair.
 import * as fs from 'fs'
 import * as path from 'path'
 import {parseArgs} from 'util'
@@ -146,9 +146,6 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   const second = vars['KB_SECOND_USER'] ?? ''
   const team = vars['KB_E2E_TEAM'] ?? ''
   const problems: string[] = []
-  // the repair below needs it, and a missing one would only show once there is something to repair
-  const notTest = notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], vars['KB_SMOKE_USER'] ?? '', second)
-  if (notTest) problems.push(notTest)
   const rpc = await connectPeerRpc(mainSocketPath(), 10_000)
   let blocks: Array<{username: string; chatBlocked: boolean; followBlocked: boolean}>
   try {
@@ -166,6 +163,11 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
   if (leftover.folderIgnored && pairWasFavorite(vars)) {
     problems.push('the smoke+second folder is ignored but was a favorite (setup repairs it)')
   }
+  // the repair writes only to test accounts (KB_E2E_TEST_ACCOUNT_PREFIX), so with something to repair
+  // say now whether it would refuse
+  const repairs = problems.some(p => p.endsWith('(setup repairs it)'))
+  const notTest = repairs ? notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], vars['KB_SMOKE_USER'] ?? '', second) : undefined
+  if (notTest) problems.push(notTest)
   const members = async (topicName: string) =>
     (await mainChatApi({
       method: 'listmembers',
