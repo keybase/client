@@ -2,6 +2,7 @@ import {
   fieldProblem,
   focusEvalBody,
   lengthEvalBody,
+  textEvalBody,
   prepareEvalBody,
   provisionPrepareEvalBody,
   provisionProblem,
@@ -135,6 +136,17 @@ test('a field with no value prop takes the text natively and through its current
 
 test('a controlled field reads the length of its value', () => {
   expect(makeApp({controlledValue: 'abc'}).run(lengthEvalBody('f'))).toEqual({length: 3, state: 'read'})
+})
+
+test('the text read gives the text a field holds, and the length read only its length', () => {
+  const app = makeApp()
+  expect(app.run(textEvalBody('f'))).toEqual({length: 0, state: 'read', text: ''})
+  app.run(prepareEvalBody('f'))
+  app.run(secretEvalBody('name'))
+  expect(app.run(textEvalBody('f'))).toEqual({length: 4, state: 'read', text: 'name'})
+  expect(app.run(lengthEvalBody('f'))).toEqual({length: 4, state: 'read'})
+  expect(makeApp({controlledValue: 'abc'}).run(textEvalBody('f'))).toEqual({length: 3, state: 'read', text: 'abc'})
+  expect(makeApp().run(textEvalBody('other'))).toMatchObject({state: 'other field'})
 })
 
 test('focus that moved between the check and the secret leaves the field unset', () => {
