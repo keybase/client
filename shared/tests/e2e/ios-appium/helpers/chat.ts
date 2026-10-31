@@ -272,19 +272,24 @@ export const requireThread = async () => {
 }
 
 // The visible conversation's thread store (from the provider above its list), as `store` and `st`;
-// both undefined while no thread list is mounted.
+// both undefined while no thread list is mounted. A reader whose empty answer means "not in the
+// thread" calls e2eRequireThreadStore() first, so a missing store is never read as gone.
 export const threadStoreBody = `${threadListPrelude}
   const convID = e2eVisibleConvID()
   const listFiber = convID ? e2eThreadList(convID) : null
   const store = listFiber ? e2eThreadContexts(listFiber).store : undefined
   const st = store && store.getState()
   const bodyOf = m => (m.text && m.text.stringValue ? m.text.stringValue() : '') + ' ' + (m.title || '')
+  const e2eRequireThreadStore = () => {
+    if (!st) throw new Error('no thread store: no thread list is mounted for the visible conversation')
+  }
 `
 
 // The ordinals of the loaded messages whose text (or attachment title) contains `text`, oldest first.
+// Throws while no thread is mounted.
 export const ordinalsWithText = async (text: string) =>
   jsEval<Array<number>>(`${threadStoreBody}
-    if (!st) return []
+    e2eRequireThreadStore()
     return (st.messageOrdinals || []).filter(o => {
       const m = st.messageMap.get(o)
       return m && bodyOf(m).includes(${JSON.stringify(text)})
@@ -1424,11 +1429,13 @@ export const galleryListing = async () =>
     return {docs: once(docs, d => d.id), media: once(media, m => m.id)}
   `)
 
-// Where a message is in its delete: shown, shown while its delete is in flight, or gone.
+// Where a message is in its delete: shown, shown while its delete is in flight, or gone from a thread
+// that is mounted. Throws while no thread is mounted.
 export type DeletePhase = 'gone' | 'row' | 'row+deleting'
 export const deletePhase = async (ordinal: number) =>
   jsEval<DeletePhase>(`${threadStoreBody}
-    if (!st || !(st.messageOrdinals || []).includes(${ordinal})) return 'gone'
+    e2eRequireThreadStore()
+    if (!(st.messageOrdinals || []).includes(${ordinal})) return 'gone'
     return [...st.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
   `)
 
@@ -1947,9 +1954,11 @@ export type StoredMessageState = {
   submitState: string | null
   text: string
 }
+// null when the mounted thread has no such message; throws while no thread is mounted.
 export const storedMessageState = async (ordinal: number) =>
   jsEval<StoredMessageState | null>(`${threadStoreBody}
-    const m = st && st.messageMap.get(${ordinal})
+    e2eRequireThreadStore()
+    const m = st.messageMap.get(${ordinal})
     if (!m) return null
     return {
       edited: !!m.hasBeenEdited,
