@@ -585,57 +585,54 @@ describe('chat data', function () {
     // seq at the moment the account changes.
     it('typing through an account switch sends nothing for the next account and leaves nothing waiting', async function () {
       // worst case (s): open 100, type 15, the pause 1, calls 2, the watch 1, the draft save 10, the
-      // switch 2, the typing 30, calls 2, signed in 60, the pause 5, the reads 4, step 2, restore 160 = 394
-      this.timeout(420_000)
-      try {
-        await openScratch()
-        await typeInComposer(e2eMarker('data-switch-draft'))
-        // the draft saves for the account that typed it
-        await browser.pause(1_000)
-        const before = await currentCallSeq()
-        await watchAccountChange()
-        // awaited below, once the switch has started: the keys keep coming in while it runs
-        const typing = el(T.CHAT_INPUT)
-          .addValue('x'.repeat(80))
-          .catch(() => {})
-        // switch once the composer is saving drafts of the keys coming in
-        await waitFor(
-          'a draft save of the keys being typed',
-          async () => ((await uiCallsSince(before, 'chat.1.local.updateUnsentText')).length > 0 ? true : undefined),
-          {interval: 50, timeout: 10_000}
-        )
-        await startAppAccountSwitch(data.secondUser)
-        await typing
-        // the account changed before the last key went in, so keys were typed through the change:
-        // without that, nothing after it could have come from the old composer anyway
-        check((await accountChangedSeq()) !== null, 'the typing ended before the account changed')
-        await waitFor(
-          'the switch to the second account',
-          async () => {
-            const a = await signedInAs().catch(() => undefined)
-            return a && a.loggedIn && !a.switching && a.username === data.secondUser ? true : undefined
-          },
-          {interval: 500, timeout: 60_000}
-        )
-        // outlast the composer's 200ms draft save and 1s typing throttle, and a load or two
-        await browser.pause(5_000)
-        const changed = await accountChangedSeq()
-        if (changed === null) throw new Error('the account change was never seen')
-        // the UI's calls: the switch's own dispatch went out paused
-        const calls = (await callsSince(before)).filter(c => !c.paused)
-        const composerBefore = calls.filter(c => c.seq <= changed && composerCall(c))
-        const after = calls.filter(c => c.seq > changed)
-        console.log(`the composer's calls before the account changed: ${composerBefore.map(c => c.method).join(', ')}`)
-        check(composerBefore.length > 0, 'the composer sent nothing while typing before the switch')
-        check(after.length > 0, 'no call logged after the account changed')
-        const stray = after.filter(composerCall).map(c => c.method)
-        check(!stray.length, `the old composer's calls after the account changed: ${stray.join(', ')}`)
-        const held = await heldWaitingKeys()
-        check(!held.length, `waiting keys still held 5s after the switch: ${held.join(', ')}`)
-        await step('Switched mid-typing: the old composer sent nothing after the change, and nothing waits', {card: true})
-      } finally {
-        await restoreToSmoke()
-      }
+      // switch 2, the typing 30, calls 2, signed in 60, the pause 5, the reads 4, step 2 = 234 (the
+      // afterEach restores smoke)
+      this.timeout(260_000)
+      await openScratch()
+      await typeInComposer(e2eMarker('data-switch-draft'))
+      // the draft saves for the account that typed it
+      await browser.pause(1_000)
+      const before = await currentCallSeq()
+      await watchAccountChange()
+      // awaited below, once the switch has started: the keys keep coming in while it runs
+      const typing = el(T.CHAT_INPUT)
+        .addValue('x'.repeat(80))
+        .catch(() => {})
+      // switch once the composer is saving drafts of the keys coming in
+      await waitFor(
+        'a draft save of the keys being typed',
+        async () => ((await uiCallsSince(before, 'chat.1.local.updateUnsentText')).length > 0 ? true : undefined),
+        {interval: 50, timeout: 10_000}
+      )
+      await startAppAccountSwitch(data.secondUser)
+      await typing
+      // the account changed before the last key went in, so keys were typed through the change:
+      // without that, nothing after it could have come from the old composer anyway
+      check((await accountChangedSeq()) !== null, 'the typing ended before the account changed')
+      await waitFor(
+        'the switch to the second account',
+        async () => {
+          const a = await signedInAs().catch(() => undefined)
+          return a && a.loggedIn && !a.switching && a.username === data.secondUser ? true : undefined
+        },
+        {interval: 500, timeout: 60_000}
+      )
+      // outlast the composer's 200ms draft save and 1s typing throttle, and a load or two
+      await browser.pause(5_000)
+      const changed = await accountChangedSeq()
+      if (changed === null) throw new Error('the account change was never seen')
+      // the UI's calls: the switch's own dispatch went out paused
+      const calls = (await callsSince(before)).filter(c => !c.paused)
+      const composerBefore = calls.filter(c => c.seq <= changed && composerCall(c))
+      const after = calls.filter(c => c.seq > changed)
+      console.log(`the composer's calls before the account changed: ${composerBefore.map(c => c.method).join(', ')}`)
+      check(composerBefore.length > 0, 'the composer sent nothing while typing before the switch')
+      check(after.length > 0, 'no call logged after the account changed')
+      const stray = after.filter(composerCall).map(c => c.method)
+      check(!stray.length, `the old composer's calls after the account changed: ${stray.join(', ')}`)
+      const held = await heldWaitingKeys()
+      check(!held.length, `waiting keys still held 5s after the switch: ${held.join(', ')}`)
+      await step('Switched mid-typing: the old composer sent nothing after the change, and nothing waits', {card: true})
     })
 
     it('a thread opened after switching accounts and back gets new messages for the account signed in', async function () {
