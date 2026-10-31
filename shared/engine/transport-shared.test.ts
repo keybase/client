@@ -200,6 +200,27 @@ test("a wallet account's secret key result is redacted", () => {
   expect(redactRpcResult('stellar.1.local.getWalletAccountSecretKeyLocal', fixture)).toBe('<redacted>')
 })
 
+// The phone's join by a pasted invite link: the join call takes the link, the service asks the app to
+// confirm with the invite's details (no key), and the app's answer and the call's result log the
+// payload and booleans. None of the logged copies holds the link or its key.
+test('the invite-link join path logs no link and no key', () => {
+  const key = 'secretkey0123456789'
+  const link = `https://keybase.io/i/t/abcdefghijklmnop#${key}`
+  const details = {inviteID: 'f00d', inviterUsername: 'testuser', teamID: 'tid', teamName: {parts: ['team', 'sub']}}
+  const logged = [
+    redactRpcParams({sessionID: 1, tokenOrName: link}),
+    redactRpcParams({sessionID: 1, tokenOrName: link.toLowerCase()}),
+    redactRpcParams({details, sessionID: 1}),
+    redactRpcParams({payload: {method: 'keybase.1.teamsUi.confirmInviteLinkAccept', param: [{details, sessionID: 1}], response: {}}}),
+    redactRpcParams({wasOpenTeam: false, wasSeitan: true, wasTeamName: false, wasToken: true}),
+  ].map(l => JSON.stringify(l))
+  for (const l of logged) {
+    expect(l).not.toContain(key)
+    expect(l).not.toContain('keybase.io/i/t')
+  }
+  expect(logged[0]).toContain('<redacted>')
+})
+
 describe('rpcLog and invoke end to end', () => {
   const lines = new Array<unknown[]>()
   let rpcLog: typeof TS.rpcLog
