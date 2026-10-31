@@ -6,6 +6,7 @@ import upperFirst from 'lodash/upperFirst'
 import * as React from 'react'
 import Success from './success'
 import {useNavigation} from '@react-navigation/native'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
 export const getJoinTeamError = (error: unknown) => {
@@ -126,6 +127,7 @@ const JoinTeamInner = ({initialTeamname, success: successParam}: OwnProps) => {
               placeholder="Token or team name"
               value={name}
               hideBorder={true}
+              testID={TestIDs.TEAMS_JOIN_TEAM_INPUT}
             />
           </Kb.RoundedBox>
           <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>

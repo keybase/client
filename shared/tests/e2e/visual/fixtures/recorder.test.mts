@@ -373,6 +373,37 @@ const container = (state: unknown) => {
 }
 const stack = (...names: Array<string>) => ({index: names.length - 1, routes: names.map((name, i) => ({key: `${i}`, name}))})
 
+// an invite link joined from the phone: the route carries its key, and the join call carries the link
+const inviteLink = 'https://keybase.io/i/t/abcdefghijklmnop#secretkey0123456789'
+
+test('routes: a teamInviteLinkJoin route records its name, never its inviteKey', () => {
+  const {g, rec} = routeHarness()
+  g.nav = fakeNav({routes: [{key: 'a', name: 'teamsRoot'}]})
+  rec.start()
+  g.nav.emit({
+    routes: [
+      {key: 'a', name: 'teamsRoot'},
+      {key: 'b', name: 'teamInviteLinkJoin', params: {inviteDetails: {teamID: 'tid'}, inviteKey: inviteLink}},
+    ],
+  })
+  const got = rec.take()
+  assert.deepEqual(got, {routes: ['teamInviteLinkJoin'], startRoutes: ['teamsRoot']})
+  assert.doesNotMatch(JSON.stringify(got), /secretkey|keybase\.io/)
+})
+
+test('the call log keeps no param of the invite-link join', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  hook()?.invoke(passingWith('keybase.1.teams.teamAcceptInviteOrRequestAccess', {sessionID: 1, tokenOrName: inviteLink}))
+  const log = rt.recording.calls(0)
+  assert.deepEqual(
+    log.calls.map(c => c.method),
+    ['keybase.1.teams.teamAcceptInviteOrRequestAccess']
+  )
+  assert.doesNotMatch(JSON.stringify(log), /secretkey|keybase\.io/)
+  assert.doesNotMatch(JSON.stringify(rt.recording.take()), /secretkey|keybase\.io/)
+})
+
 test('routes from a remounted navigation container are recorded', () => {
   const first = container(stack('loggedIn'))
   const router = {navigationRef: {current: first as Runtime.NavLike | null}}

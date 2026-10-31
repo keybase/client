@@ -124,6 +124,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
       fullDivider={true}
       height={isMobile ? 48 : 42}
       style={styles.container}
+      testID={TestIDs.TEAMS_EMOJI_ROW}
     />
   )
 }

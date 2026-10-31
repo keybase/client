@@ -238,6 +238,20 @@ export const TEAMS_EMOJI_ROW_MENU = 'teams-emoji-row-menu'
 // a default channel pill's remove icon in the team settings (one per pill)
 export const TEAMS_DEFAULT_CHANNEL_REMOVE = 'teams-default-channel-remove'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
+// an emoji's row in a team's Emoji tab
+export const TEAMS_EMOJI_ROW = 'teams-emoji-row'
+// the settings tab's "Feature team on your own profile" and "Don't allow requests to join this team"
+// switches (the id says whether each is on), and the message deletion dropdown (a team's settings
+// tab, a conversation's info panel)
+export const TEAMS_SETTINGS_FEATURE_ON = 'teams-settings-feature-on'
+export const TEAMS_SETTINGS_FEATURE_OFF = 'teams-settings-feature-off'
+export const TEAMS_SETTINGS_IGNORE_REQUESTS_ON = 'teams-settings-ignore-requests-on'
+export const TEAMS_SETTINGS_IGNORE_REQUESTS_OFF = 'teams-settings-ignore-requests-off'
+export const TEAMS_RETENTION_DROPDOWN = 'teams-retention-dropdown'
+// the "I understand..." switch of a destructive setting's warning (message deletion, open team)
+export const TEAMS_CONFIRM_WARNING_CHECK = 'teams-confirm-warning-check'
+// the Join a team dialog's "Token or team name" field
+export const TEAMS_JOIN_TEAM_INPUT = 'teams-join-team-input'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
 // which marks the settings tab's content).

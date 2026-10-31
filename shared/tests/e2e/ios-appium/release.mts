@@ -25,7 +25,8 @@
 // WebDriverAgent Appium left), leaving the simulator booted and the app running; then, even when
 // stopping failed, scans everything under tests/results (and the visual render root when
 // KB_VISUAL_RESULTS puts it elsewhere; only ios-logs/ when preflight refused the run) for the env
-// file's secrets (secrets phase; a file that holds one is deleted and named, and the run fails); then
+// file's secrets and the ones its flows record (paper key names, team invite links) (secrets phase;
+// a file that holds one is deleted and named, and the run fails); then
 // opens the report, when this run wrote it and the scan left it, unless KB_E2E_NO_OPEN=1; then prints
 // one line per phase and posts a macOS notification.
 // Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
@@ -44,7 +45,14 @@ import {newRunId} from '../accounts/run-id.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {resultsDir as visualResultsDir} from '../visual/store.mts'
-import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
+import {
+  envSecrets,
+  forgetRunInviteLinks,
+  runInviteLinkSecrets,
+  SCAN_INVITE_LINKS_VAR,
+  watchEnvSecrets,
+  type SecretWatch,
+} from '../shared/gate/secret-scan.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {pidAlive, stopPids} from '../shared/gate/processes.ts'
 import {logTally, nodeArgs, outcome, preflightPhase, releaseSettings, screenState, sweepPhase} from '../shared/gate/release-phases.mts'
@@ -109,9 +117,12 @@ const cleanup = async (code: number) => {
       run.holdsLock()
         ? scanResults(
             secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}),
-            // and the device names of the paper keys this run made and of the env file's own: each is
-            // the first two words of its phrase
-            () => withPaperKeyNames(watch ? watch.secrets() : envSecrets(), process.env['KB_E2E_RUN_ID'] ?? ''),
+            // and the device names of the paper keys this run made and of the env file's own (each is
+            // the first two words of its phrase), and the team invite links this run made
+            () => {
+              const runId = process.env['KB_E2E_RUN_ID'] ?? ''
+              return [...withPaperKeyNames(watch ? watch.secrets() : envSecrets(), runId), ...runInviteLinkSecrets(runId)]
+            },
             log
           )
         : undefined,
@@ -122,6 +133,11 @@ const cleanup = async (code: number) => {
     forgetRunPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')
   } catch (e) {
     log(`could not forget this run's paper key names: ${e instanceof Error ? e.message : String(e)}`)
+  }
+  try {
+    forgetRunInviteLinks(process.env['KB_E2E_RUN_ID'] ?? '')
+  } catch (e) {
+    log(`could not forget this run's invite links: ${e instanceof Error ? e.message : String(e)}`)
   }
   if (!stopped) {
     phases.push({line: 'something it started would not stop (see above)', name: 'cleanup', ok: false})
@@ -351,6 +367,8 @@ const main = async () => {
   process.env['KB_E2E_RUN_ID'] = runId
   // the flows it starts record the names of the paper keys they make, for its secret scan
   process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
+  // and the team invite links they make
+  process.env[SCAN_INVITE_LINKS_VAR] = '1'
   log(`run ${runId} on ${device}${only ? `, only flows matching ${JSON.stringify(only)} and settings/* tour entries` : ''}`)
 
   const e2eEnv = await preflightPhase(run, '[ios-release]', preflight)

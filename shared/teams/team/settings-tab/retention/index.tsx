@@ -17,6 +17,7 @@ import {
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
@@ -180,6 +181,7 @@ const RetentionPicker = (p: Props) => {
         direction="horizontal"
         alignItems="center"
         style={styles.retentionDropdown}
+        testID={TestIDs.TEAMS_RETENTION_DROPDOWN}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
           {policyToLabel(theme, policy, teamPolicy)}

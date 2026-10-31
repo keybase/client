@@ -44,8 +44,9 @@ export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, 
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator
 // (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
 // own clipboard module writes it, over Metro (it sends no RPC; the recorder is paused all the same).
-// Never use it for a secret. The flow credits 'pasteboard' once it has asserted the pasted text landed
-// in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
+// A secret goes on it only as the way into the app's own Paste (an invite link), and the flow
+// overwrites it once the app has it. The flow credits 'pasteboard' once it has asserted the pasted
+// text landed in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
 export const setPasteboard = async (text: string) => {
   // an eval body runs synchronously, so the write's promise settles into a global the harness polls;
   // its outcome holds no text, and a failure says only that the write failed
