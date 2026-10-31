@@ -4,6 +4,7 @@ import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {
   cancelAttachmentUploads,
   uploadAttachments,
@@ -550,6 +551,7 @@ const ContainerInner = (ownProps: OwnProps) => {
             value={titles[index]}
             onEnterKeyDown={onNext}
             onChangeText={updateTitle}
+            testID={TestIDs.CHAT_ATTACHMENT_CAPTION}
             hideBorder={true}
             containerStyle={styles.inputBare}
             inputStyle={styles.input}

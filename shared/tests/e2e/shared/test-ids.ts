@@ -146,6 +146,8 @@ export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
 export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
 export const CHAT_FORWARD_RESULT      = 'chat-forward-result'
 export const CHAT_FORWARD_CAPTION     = 'chat-forward-caption'
+// the caption field of the screen that sends an attachment (attachment-get-titles)
+export const CHAT_ATTACHMENT_CAPTION  = 'chat-attachment-caption'
 // a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
 // 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
 // of each group ends in the _SELECTED suffix
