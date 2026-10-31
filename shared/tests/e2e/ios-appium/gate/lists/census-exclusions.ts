@@ -26,6 +26,8 @@ export const IOS_EXCLUSIONS: Exclusions = {
     selectOtherDevice: phoneNew,
     setPublicName: phoneNew,
     signupError: 'manual-only: signup-submit (shown only when the final submit fails)',
+    teamInviteByContact:
+      'dead: nothing in the app navigates to it (teams/routes.tsx only registers it); the add-members wizard\'s "From your contacts" opens teamAddToTeamContacts instead',
   },
   rpcs: {
     'chat.1.local.addTeamMemberAfterReset': 'needs a member who reset their account; account resets are owner: excluded',
