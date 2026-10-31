@@ -2,9 +2,10 @@
 // every flow's tests.
 import './gate/hooks'
 import './flows/harness-helpers.test'
-// app-level: deep links and pushes
+// app-level: deep links, pushes and the app's lifecycle
 import './flows/app-deep-links.test'
 import './flows/app-push.test'
+import './flows/app-lifecycle.test'
 import './flows/devices-view.test'
 import './flows/device-detail.test'
 import './flows/device-paper-key.test'

@@ -1,4 +1,17 @@
-import {accountLinkLines, deepLinkEvents, focusChanges, GO_BACKGROUND, launchedInto, pushTapLinks, savedRouteIsPeople} from './links-push-lib'
+import {
+  accountLinkLines,
+  deepLinkEvents,
+  focusChanges,
+  GO_BACKGROUND,
+  GO_FOREGROUND,
+  GO_HTTP_SRV,
+  GO_INACTIVE,
+  GO_LAUNCHING,
+  launchedInto,
+  pushTapLinks,
+  roundTrips,
+  savedRouteIsPeople,
+} from './links-push-lib'
 
 test('the saved route is People only for the People tab with no conversation', () => {
   expect(savedRouteIsPeople(JSON.stringify({param: {}, routeName: 'tabs.peopleTab', uid: 'u'}))).toBe(true)
@@ -30,6 +43,17 @@ test("the app log's link lines are read by their own wording only", () => {
 test("Go's background line matches BACKGROUND alone, not BACKGROUNDACTIVE", () => {
   expect(GO_BACKGROUND.test('MobileAppState.Update: useful update: BACKGROUND, we are currently in state: FOREGROUND')).toBe(true)
   expect(GO_BACKGROUND.test('MobileAppState.Update: useful update: BACKGROUNDACTIVE, we are currently in state: BACKGROUND')).toBe(false)
+})
+
+test("Go's other app state lines, its image server's address, and round trips in order", () => {
+  const at = (s: string) => `MobileAppState.Update: useful update: ${s}, we are currently in state: X`
+  expect(GO_FOREGROUND.test(at('FOREGROUND'))).toBe(true)
+  expect(GO_INACTIVE.test(at('INACTIVE'))).toBe(true)
+  expect(GO_INACTIVE.test(at('BACKGROUND'))).toBe(false)
+  expect(GO_LAUNCHING.test(at('INACTIVE')) && GO_LAUNCHING.test(at('BACKGROUNDACTIVE'))).toBe(true)
+  expect(GO_LAUNCHING.test(at('FOREGROUND'))).toBe(false)
+  expect(GO_HTTP_SRV.exec('startHTTPSrv: start success: addr: 127.0.0.1:5000')?.[1]).toBe('127.0.0.1:5000')
+  expect(roundTrips(2)).toEqual([GO_BACKGROUND, GO_FOREGROUND, GO_BACKGROUND, GO_FOREGROUND])
 })
 
 test('a cold launch lands on a route only when its first recording starts there and never shows People', () => {

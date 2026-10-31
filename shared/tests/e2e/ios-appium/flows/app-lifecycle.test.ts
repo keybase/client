@@ -1,0 +1,199 @@
+// The app's own life on the phone: a cold launch (terminated and launched again) that comes up on the
+// screen it saved, with Go's launch transitions, the image server the app holds the address of, the
+// avatar served from it and no crash; a trip to the background and back while the second account
+// posts a stamped message into a throwaway channel of the e2e team this run made (the app is the same
+// process, active again, and shows the message); five round trips in a row, each seen by Go in order;
+// and Notification Center pulled over the app, which only makes it inactive and opens nothing.
+//
+// Go's transitions are read from the phone's service log (ios.log) from a mark, the app's own lines
+// from its in-runtime log capture, and the cold launch from the new runtime's first recording.
+// 'background-foreground' and 'relaunch' are credited only once all of that is asserted.
+//
+// The flow's afterEach launches the app again or brings it to the front when a test stopped part way
+// (no recording; a failure there poisons the gate), deletes the channel and goes back to the tab root.
+import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
+import {createThrowawayChannel, deleteThrowawayChannel} from '../../shared/chat-data'
+import {withCleanup} from '../../shared/cleanup.ts'
+import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {e2eMarker} from '../../shared/run-marker.ts'
+import {appLogMark, appLogUntilMarker} from '../gate/app-log'
+import {creditSurface} from '../gate/attempt'
+import {requireSecondNotBlocked} from '../gate/blocks'
+import {launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
+import {focusChanges, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
+import {attemptRecording} from '../gate/recording'
+import {leaveOnPeople, waitForScreen} from '../gate/screens'
+import {step} from '../gate/step'
+import {withNotificationCenter} from '../gate/system-ui'
+import {openConversation, rowElement, waitForRow} from '../helpers/chat'
+import {expectScreen, waitSignedIn} from '../helpers/files'
+import {
+  appPid,
+  appSnapshot,
+  crashReportsSince,
+  goLogMark,
+  goLogSince,
+  waitForAppState,
+  waitForAvatar200,
+  waitForLinesInOrder,
+} from '../helpers/lifecycle'
+import {check} from '../helpers/menus'
+import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {masked} from '../helpers/teams'
+
+const CYCLES = 5
+
+describe('app lifecycle', function () {
+  // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   leave     leaveOnPeople 103;  people  fromPeople 66 (escapeToTabs 30, the People tab 15, the
+  //             screen 21)
+  //   relaunch  relaunchApp 254 (a checkpoint 60, terminate 10, the new runtime 120, the error and log
+  //             captures 4, a checkpoint 60);  signed in  90;  rec  a checkpoint 60
+  //   mark      goLogMark 120 (the app's container through simctl);  go  waitForLinesInOrder 21 (20,
+  //             one read 1);  app mark  appLogMark 2;  until  appLogUntilMarker 12
+  //   state     appSnapshot 1;  active  waitForAppState 31 (30, one read 1);  pid  appPid and the crash
+  //             reports 2;  avatar  waitForAvatar200 21
+  //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120;  open  openConversation
+  //             100
+  //   peer      the peer found 45 and a failing call's diagnosis 25 = 70;  peer send  sendWithRetry 90
+  //             (30, overrun by one send's 60)
+  //   message   waitForRow 61 (60, one read 1);  drawn  10
+  //   center    withNotificationCenter 55, with its fn: inactive 16 and go 21
+  //   screen    expectScreen 11 (10, one read 1)
+  //   step      2 (its 1s settle and the attach)
+
+  before(async function () {
+    // the second account posts into the channel: a failed chat-blocks restore refuses here. The host
+    // read 75s.
+    this.timeout(90_000)
+    await masked(async () => requireSecondNotBlocked())
+  })
+
+  // The second account's peer service, found by the first test that needs it.
+  let peer: Promise<IncomingSender> | undefined
+  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
+
+  // the throwaway channels a test made
+  const channels = new Set<string>()
+
+  const deleteChannels = async () => {
+    for (const topicName of [...channels]) {
+      await masked(async () => deleteThrowawayChannel(topicName))
+      channels.delete(topicName)
+    }
+  }
+
+  // Nothing a test left behind, after a timeout too: the app back up in front first (no recording; the
+  // next test's reset drives it), the channel, the tab root. Worst case (s): launchIfGone 272 (a
+  // launch 120 or the activate 1, in front 31, the runtime 121), a channel 120, escapeToTabs 30 = 422.
+  afterEach(async function () {
+    this.timeout(450_000)
+    await withCleanup(launchIfGone, [deleteChannels, escapeToTabs])
+  })
+
+  // The same process as `pid`, with no crash report of the app's written since `since`. Bound: pid 2.
+  const sameProcess = (pid: number | undefined, since: number, what: string) => {
+    check(pid !== undefined && appPid() === pid, `the app is not the same process ${what}`)
+    check(crashReportsSince(since).length === 0, `the app wrote a crash report ${what}`)
+  }
+
+  it('a cold launch comes up on the screen it saved, serves images and does not crash', async function () {
+    // worst case (s): leave 103, step 2, mark 120, relaunch 254, signed in 90, rec 60, go 21, state 1,
+    // avatar 21, pid 2, step 2 = 676
+    this.timeout(720_000)
+    const {smokeUser} = loadE2EAccounts()
+    await leaveOnPeople()
+    await step('On People, saved as the screen the next launch opens')
+
+    const since = Date.now()
+    const goMark = goLogMark()
+    await relaunchApp()
+    await waitSignedIn()
+    const pid = appPid()
+    // the new runtime's first recording comes up on the saved screen
+    const rec = attemptRecording()
+    await rec.checkpoint()
+    check(!!rec.recordings.at(-1)?.startRoutes.includes('peopleRoot'), 'the relaunched app did not come up on People, the screen it saved')
+    // Go's launch: not yet active (whichever launch callback lands first), then active
+    await waitForLinesInOrder('the phone service to record the launch', () => goLogSince(goMark), [GO_LAUNCHING, GO_FOREGROUND])
+    // the app holds the address of the image server Go started for it, not a stale one
+    const started = goLogSince(goMark).flatMap(l => GO_HTTP_SRV.exec(l)?.[1] ?? []).at(-1)
+    check(started !== undefined && started === (await appSnapshot()).httpSrv.address, "the app does not hold the address of the image server Go started")
+    await waitForAvatar200(smokeUser)
+    sameProcess(pid, since, 'after the launch')
+    creditSurface('relaunch')
+    await step('The relaunched app is up on People with images served', {card: true})
+  })
+
+  it('a trip to the background and back keeps the app, and shows a message that came in meanwhile', async function () {
+    // worst case (s): channel 240, open 100, step 2, pid 2, mark 120, go 21, peer 70, peer send 90,
+    // go 21, active 31, screen 11, message 61, drawn 10, pid 2, step 2 = 783
+    this.timeout(820_000)
+    const made = await masked(async () => createThrowawayChannel('lifecycle', {withSecond: true}))
+    channels.add(made.topicName)
+    const {convID} = made
+    await openConversation(convID)
+    await step('In the channel')
+
+    const since = Date.now()
+    const pid = appPid()
+    const goMark = goLogMark()
+    await toBackground()
+    await waitForLinesInOrder('the phone service to record the app in the background', () => goLogSince(goMark), [GO_BACKGROUND])
+    const text = e2eMarker('lifecycle-recv')
+    await sendWithRetry(await sender(), convID, text)
+    await toForeground()
+
+    await waitForLinesInOrder('the phone service to record the trip in order', () => goLogSince(goMark), [GO_BACKGROUND, GO_FOREGROUND])
+    await waitForAppState('active', undefined, 30_000)
+    await expectScreen('the channel still up after the trip', 'chatConversation', p => p['conversationIDKey'] === convID)
+    // the message the second account sent while the app was away, loaded and drawn
+    await waitForRow(text, 60_000)
+    await rowElement(text).waitForExist({timeout: 10_000})
+    sameProcess(pid, since, 'after the trip to the background')
+    creditSurface('background-foreground')
+    await step('Back from the background with the new message', {card: true})
+  })
+
+  it('five round trips in a row are each seen in order, and leave the app active in the same process', async function () {
+    // worst case (s): active 31, pid 2, mark 120; each cycle: the background 1, go 21, the foreground 1,
+    // go 21 = 44, five 220; active 31, pid 2, step 2 = 408
+    this.timeout(440_000)
+    await waitForAppState('active', undefined, 30_000)
+    const since = Date.now()
+    const pid = appPid()
+    const goMark = goLogMark()
+    for (let i = 1; i <= CYCLES; i++) {
+      await toBackground()
+      await waitForLinesInOrder(`the phone service to record trip ${i} to the background`, () => goLogSince(goMark), [...roundTrips(i - 1), GO_BACKGROUND])
+      await toForeground()
+      await waitForLinesInOrder(`the phone service to record trip ${i} back`, () => goLogSince(goMark), roundTrips(i))
+    }
+    await waitForAppState('active', undefined, 30_000)
+    sameProcess(pid, since, `after ${CYCLES} round trips`)
+    await step(`Active after ${CYCLES} round trips`, {card: true})
+  })
+
+  it('Notification Center pulled over the app makes it inactive, then active again, and opens nothing', async function () {
+    // worst case (s): people 66, app mark 2, mark 120, center 55 + 16 + 21, go 21, until 12, screen 11,
+    // step 2 = 326
+    this.timeout(360_000)
+    await escapeToTabs()
+    await navigateToPeople()
+    await waitForScreen('peopleRoot')
+    const mark = await appLogMark()
+    const goMark = goLogMark()
+    await withNotificationCenter(async () => {
+      await waitForAppState('inactive', undefined, 15_000)
+      // Notification Center only resigns active; the same read that holds INACTIVE holds no BACKGROUND
+      await waitForLinesInOrder('the phone service to record the app inactive', () => goLogSince(goMark), [GO_INACTIVE])
+      check(!goLogSince(goMark).some(l => GO_BACKGROUND.test(l)), 'the app went to the background under Notification Center')
+    })
+    // withNotificationCenter waited for the app to be active again
+    await waitForLinesInOrder('the phone service to record the app active again', () => goLogSince(goMark), [GO_INACTIVE, GO_FOREGROUND])
+    const focus = focusChanges(await appLogUntilMarker(mark, 'notification-center'))
+    check(focus.join(',') === 'inactive,active', `the app's focus went ${focus.join(', ') || 'nowhere'}, not inactive then active`)
+    await expectScreen('People still up after Notification Center', 'peopleRoot')
+    await step('Active again on People after Notification Center', {card: true})
+  })
+})

@@ -306,7 +306,6 @@ export const openUrl = (url: string, udid = deviceUdid()) => simctl('openurl', u
 export const setLocation = (lat: number, lon: number, udid = deviceUdid()) =>
   simctl('location', udid, 'set', `${lat},${lon}`)
 
-const isBooted = (udid: string) => simctl('list', 'devices', 'booted').includes(udid)
 
 // -- app, springboard and chat actions -----------------------------------------
 
@@ -316,8 +315,6 @@ export const activateApp = async () => browser.execute('mobile: activateApp', {b
 
 // The app's state as XCUITest reads it: 1 not running, 2 or 3 in the background, 4 in the foreground.
 export const appState = async () => browser.execute<number, [{bundleId: string}]>('mobile: queryAppState', {bundleId: BUNDLE_ID})
-
-export const launchApp = async () => browser.execute('mobile: launchApp', {bundleId: BUNDLE_ID})
 
 // Runs fn with element lookups pointed at the home screen / system UI instead of the app.
 export const withSpringboard = async <R>(fn: () => Promise<R>): Promise<R> => {
@@ -410,53 +407,6 @@ export const openSelfConversation = async (username: string) => {
   await waitForTestID(T.CHAT_INPUT, 10000)
   await browser.waitUntil(async () => !(await atTabs()), {interval: 150, timeout: 5000}).catch(() => {})
   return convID
-}
-
-// A second simulator signed in to the same account sends the message, so it reaches this
-// device as an incoming message from another device.
-export const senderDeviceName = () => process.env['KB_IOS_SENDER_DEVICE'] ?? 'iPadTest'
-
-export const startSenderDevice = async (username: string) => {
-  const name = senderDeviceName()
-  const udid = udidForName(name)
-  const bootedHere = !isBooted(udid)
-  const stop = async () => {
-    await terminateApp(udid).catch(() => {})
-    if (bootedHere) simctl('shutdown', udid)
-  }
-  // Every step after a boot cleans up on failure, so a failed start never leaves a second
-  // simulator running (it render-throttles the one under test).
-  const ready = async () => {
-    if (bootedHere) {
-      simctl('boot', udid)
-      simctl('bootstatus', udid, '-b')
-    }
-    simctl('launch', udid, BUNDLE_ID)
-    await waitFor(
-      `${name} to be logged in as ${username}`,
-      async () =>
-        (await jsEval<boolean>(
-          `return kbModule('stores/config.tsx').useConfigState.getState().loggedIn &&
-             kbModule('stores/current-user.tsx').useCurrentUserState.getState().username === ${JSON.stringify(username)}`,
-          name
-        ))
-          ? true
-          : undefined,
-      {interval: 1000, timeout: 180000}
-    )
-  }
-  try {
-    await ready()
-  } catch (e) {
-    await stop().catch(() => {})
-    throw e
-  }
-  const send = async (conversationIDKey: string, text: string) =>
-    jsEval(
-      `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(username)}, ${JSON.stringify(text)}); return true`,
-      name
-    )
-  return {send, stop}
 }
 
 // The app's NSLog lines starting with a prefix since a time, read from the simulator's unified

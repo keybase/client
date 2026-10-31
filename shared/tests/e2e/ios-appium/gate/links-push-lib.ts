@@ -1,10 +1,20 @@
-// Framework-free reads for the deep link and push flows: the route the app saved for its next launch,
+// Framework-free reads for the deep link, push and lifecycle flows: Go's app state lines, the route the app saved for its next launch,
 // the app-log lines (app-log.ts `<level> <text>`) a link or a tapped push leaves, and what a cold
 // launch's first recording shows.
 
 // Go's "useful update: %v, we are currently in state: %v": the comma keeps it from also matching a
 // BACKGROUNDACTIVE transition. A push sent before this is handed to the app instead of shown.
 export const GO_BACKGROUND = /MobileAppState\.Update: useful update: BACKGROUND,/
+export const GO_FOREGROUND = /MobileAppState\.Update: useful update: FOREGROUND,/
+export const GO_INACTIVE = /MobileAppState\.Update: useful update: INACTIVE,/
+// before a launched app is active, iOS reports INACTIVE or BACKGROUNDACTIVE, whichever launch
+// callback lands first
+export const GO_LAUNCHING = /MobileAppState\.Update: useful update: (?:INACTIVE|BACKGROUNDACTIVE),/
+// Go's image server start, with the address the app must then hold
+export const GO_HTTP_SRV = /startHTTPSrv: start success: addr: (\S+)/
+
+// `n` round trips to the background and back, as Go logs them in order.
+export const roundTrips = (n: number) => Array.from({length: n}, () => [GO_BACKGROUND, GO_FOREGROUND]).flat()
 
 // Whether the route the app saved for its next launch (util/storeless-actions.tsx persistRoute:
 // ui.routeState2, JSON {routeName, param, uid}) is the People tab with no conversation: a cold launch
