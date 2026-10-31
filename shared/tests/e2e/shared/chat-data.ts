@@ -659,19 +659,32 @@ export const deleteThrowawayChannel = async (topicName: string) => {
   await cliConfirmed(['chat', 'delete-channel', team, topicName], 'please type:', `nuke ${topicName}`)
 }
 
-// The id of a one-on-one conversation (or the self conversation, named by the user alone), read
-// from its newest message through the host's CLI. Peeks.
-// Thrown by directConvIDFromCli for a conversation with no messages yet, which has no id to read.
+// Thrown by directConvIDFromCli for a conversation with no id to read yet: never created (the chat
+// API answers "no conversations matched"), or created with no messages.
 export class NoMessagesYet extends Error {
   constructor() {
-    super('the conversation has no messages to read its id from')
+    super('the conversation does not exist yet or has no messages to read its id from')
   }
 }
 
+// What directConvIDFromCli throws for its read failing with `e`: NoMessagesYet for a conversation
+// that does not exist, else the error with the conversation's name and each account in it masked
+// (the CLI echoes the name it was given).
+export const directReadFailure = (e: unknown, tlfName: string): Error => {
+  const text = e instanceof Error ? e.message : String(e)
+  if (text.includes('no conversations matched')) return new NoMessagesYet()
+  const names = [tlfName, ...tlfName.split(',')].filter(Boolean).sort((a, b) => b.length - a.length)
+  return new Error(`reading the conversation's id failed: ${names.reduce((t, n) => t.split(n).join('<name>'), text)}`)
+}
+
+// The id of a one-on-one conversation (or the self conversation, named by the user alone), read
+// from its newest message through the host's CLI. Peeks.
 export const directConvIDFromCli = async (tlfName: string) => {
   const res = await withApi(async api =>
     api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
-  )
+  ).catch((e: unknown) => {
+    throw directReadFailure(e, tlfName)
+  })
   const id = res.messages?.[0]?.msg.conversation_id
   if (!id) throw new NoMessagesYet()
   return id

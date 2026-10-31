@@ -180,8 +180,9 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
 }
 
 // What a block of the second account leaves besides the block itself: the DM's status blocked, and
-// the smoke+second folder ignored. A DM with no messages yet has no status to read; any other
-// failure to read it is thrown, so --check never reports a DM it could not read as fine.
+// the smoke+second folder ignored. A DM never created, or with no messages yet, has no status to read
+// (NoMessagesYet); any other failure to read it is thrown with the names masked, so --check never
+// reports a DM it could not read as fine.
 const blockLeftovers = async (vars: Vars) => {
   const tlfName = directTlfName(vars['KB_SMOKE_USER'] ?? '', vars['KB_SECOND_USER'] ?? '')
   const convID = await directConvIDFromCli(tlfName).catch((e: unknown) => {

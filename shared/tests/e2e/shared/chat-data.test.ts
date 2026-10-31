@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../accounts/run-id'
-import {createThrowawaySubteam} from './chat-data'
+import {createThrowawaySubteam, directReadFailure, NoMessagesYet} from './chat-data'
 
 // A stand-in `keybase` (KB_CLI): `team create` passes, `team add-member` fails, and `team delete`
 // asks for its confirmation and then fails.
@@ -49,3 +49,17 @@ test('createThrowawaySubteam keeps the setup error when deleting the half-made s
   expect(err.errors.map((e: unknown) => String(e))).toEqual([expect.stringMatching(/add-member boom/), expect.stringMatching(/delete boom/)])
   expect(String(err.cause)).toMatch(/delete boom/)
 }, 20_000)
+
+describe('directReadFailure', () => {
+  const tlf = 'testuser,testuser-mac'
+  test('a conversation that does not exist reads as NoMessagesYet', () => {
+    expect(directReadFailure(new Error(`chat api read: no conversations matched "${tlf}"`), tlf)).toBeInstanceOf(NoMessagesYet)
+  })
+
+  test('any other failure is rethrown with the conversation and account names masked', () => {
+    const e = directReadFailure(new Error(`chat api read: 504 Gateway Timeout for "${tlf}" (testuser-mac)`), tlf)
+    expect(e).not.toBeInstanceOf(NoMessagesYet)
+    expect(e.message).toContain('504 Gateway Timeout')
+    expect(e.message).not.toMatch(/testuser/)
+  })
+})
