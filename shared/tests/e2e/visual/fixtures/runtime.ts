@@ -296,10 +296,19 @@ export const createRuntime = (deps: {
   let callSeq = 0
   const logCall = (call: OutgoingCall) => {
     const entry: LoggedCall = {method: call.method, paused: pauses.size > 0, seq: ++callSeq}
-    // the only param value kept: whether a typing update says the user is typing
+    // the only param values kept: whether a typing update says the user is typing, and which
+    // conversations a bulk channel add went to (so a flow can check only its picks were sent)
     if (call.method === 'chat.1.local.updateTyping') {
       const typing = (call.param as {typing?: unknown} | undefined)?.typing
       if (typeof typing === 'boolean') entry.typing = typing
+    }
+    if (call.method === 'chat.1.local.bulkAddToManyConvs') {
+      const convs = (call.param as {conversations?: unknown} | undefined)?.conversations
+      if (Array.isArray(convs)) {
+        entry.convs = convs.map(c =>
+          c instanceof Uint8Array ? Array.from(c, b => b.toString(16).padStart(2, '0')).join('') : '?'
+        )
+      }
     }
     callLog.push(entry)
     if (callLog.length > CALL_LOG_SIZE * 2) callLog = callLog.slice(-CALL_LOG_SIZE)

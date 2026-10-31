@@ -222,6 +222,21 @@ test('the call log holds every call while recording, flags paused ones, and keep
   assert.deepEqual(rt.recording.take(), ['chat.1.local.updateTyping'])
 })
 
+test("the call log keeps a bulk channel add's conversation ids, as hex, and nothing else of it", () => {
+  const {hook, rt} = runtime(true)
+  rt.recording.start()
+  const from = rt.recording.calls(Number.MAX_SAFE_INTEGER).seq
+  hook()?.invoke(
+    passingWith('chat.1.local.bulkAddToManyConvs', {conversations: [new Uint8Array([0, 171]), new Uint8Array([1, 2])], usernames: ['secret-user']})
+  )
+  const log = rt.recording.calls(from)
+  assert.deepEqual(
+    log.calls.map(({seq: _seq, ...c}) => c),
+    [{convs: ['00ab', '0102'], method: 'chat.1.local.bulkAddToManyConvs', paused: false}]
+  )
+  assert.doesNotMatch(JSON.stringify(log), /secret/)
+})
+
 test('the call log says which runtime and recording it belongs to, and whether it is recording now', () => {
   const {rt} = runtime()
   const other = runtime().rt
