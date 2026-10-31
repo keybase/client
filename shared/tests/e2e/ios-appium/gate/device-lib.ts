@@ -169,6 +169,16 @@ export const chatNewMessagePayload = (o: {convID: string; uid: string; body: str
 
 export type CorpusRecordItem = {name: string; sha256: string}
 
+// A simulator's entry in the record: the identity of its data (sim-data.ts simulatorDataBirth)
+// when the items were added, and the items.
+export type CorpusEntry = {data: number; items: ReadonlyArray<CorpusRecordItem>}
+
+// What to add to a simulator whose data now has identity `data`: everything when its entry was
+// recorded for other data (the simulator was erased, and its library with it), else what corpusDiff
+// says.
+export const corpusToAdd = <T extends CorpusRecordItem>(entry: CorpusEntry | undefined, data: number, wanted: ReadonlyArray<T>): Array<T> =>
+  entry?.data === data ? corpusDiff(entry.items, wanted) : [...wanted]
+
 // The wanted items the simulator has never had added, by content: a recorded item is never added
 // again, whatever its name; a corpus file whose bytes changed is a new item.
 export const corpusDiff = <T extends CorpusRecordItem>(recorded: ReadonlyArray<CorpusRecordItem>, wanted: ReadonlyArray<T>): Array<T> => {

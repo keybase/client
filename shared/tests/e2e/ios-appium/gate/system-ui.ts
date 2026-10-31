@@ -44,10 +44,24 @@ export const tapBanner = async (body: string, timeout = BANNER_MS) => {
 // Brings the home screen to the front: the app goes to the background as when the person leaves it.
 export const springboardActivate = async () => browser.execute('mobile: activateApp', {bundleId: 'com.apple.springboard'})
 
-const clearButton = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear"')
+const clearButtons = () => browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear"')
 
-// Swipes each of this run's notifications (their bodies carry e2e-<runid>-push) aside and taps Clear,
-// until Notification Center shows none.
+// The one Clear button the swipe showed in the swiped row: the row's actions sit beside it at its
+// height, so a Clear whose middle is within the row's top and bottom is that row's (or its group's,
+// when iOS stacks them). Any other Clear on screen (another app's group) is never tapped.
+const clearInRow = async (row: {y: number; height: number}) => {
+  const inRow = []
+  for (const b of await clearButtons().getElements()) {
+    const r = await browser.getElementRect(b.elementId)
+    const mid = r.y + r.height / 2
+    if (mid >= row.y && mid <= row.y + row.height) inRow.push(b)
+  }
+  if (inRow.length > 1) throw new Error(`the swiped notification showed ${inRow.length} Clear buttons in its row`)
+  return inRow[0]
+}
+
+// Swipes each of this run's notifications (their bodies carry e2e-<runid>-push) aside and taps its
+// row's Clear, until Notification Center shows none.
 const clearRunNotifications = async () => {
   const stamp = `e2e-${e2eRunId()}-push`
   const end = Date.now() + CLEAR_MS
@@ -55,8 +69,9 @@ const clearRunNotifications = async () => {
     const shown = await shownWithLabel(stamp, 0)
     if (!shown) return
     if (Date.now() > end) throw new Error(`Notification Center still shows this run's notifications after ${CLEAR_MS}ms of clearing`)
+    const row = await browser.getElementRect(shown.elementId)
     await browser.execute('mobile: swipe', {direction: 'left', elementId: shown.elementId})
-    const clear = await lookFor(async () => ((await clearButton().isExisting()) ? clearButton() : undefined), {timeout: 3_000})
+    const clear = await lookFor(async () => clearInRow(row), {timeout: 3_000})
     if (!clear) throw new Error(`Notification Center showed no Clear for one of this run's notifications`)
     await clear.click()
   }

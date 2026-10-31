@@ -76,6 +76,7 @@ import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {
   appHasPushPermission,
+  appLocationPermission,
   BUNDLE_ID,
   forgetMetroPidfile,
   METRO_PORT,
@@ -92,6 +93,7 @@ import {
   iosPreflightProblems,
   isWdaResidue,
   IOS_RELEASE_PORTS,
+  locationStartProblem,
   pushPermissionProblem,
   secretScanDirs,
   simulatorFromList,
@@ -418,7 +420,10 @@ const main = async () => {
       sharedDir,
     })
     const account = await relaunchApp({device, log, udid: id})
-    const problem = notSmokeProblem(account, e2eEnv) ?? pushPermissionProblem(await appHasPushPermission(device), device)
+    const problem =
+      notSmokeProblem(account, e2eEnv) ??
+      pushPermissionProblem(await appHasPushPermission(device), device) ??
+      locationStartProblem(await appLocationPermission(device), device, id)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}

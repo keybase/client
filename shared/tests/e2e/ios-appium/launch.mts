@@ -10,7 +10,14 @@ import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
 import {runSync} from './helpers/app.ts'
-import {APP_ACCOUNT_BODY, PUSH_HAS_PERMISSIONS, settledAccount, type AppAccount} from './gate/app-account-lib.ts'
+import {
+  APP_ACCOUNT_BODY,
+  LOCATION_PERMISSION,
+  PUSH_HAS_PERMISSIONS,
+  settledAccount,
+  type AppAccount,
+  type LocationPermission,
+} from './gate/app-account-lib.ts'
 import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
@@ -21,6 +28,7 @@ const METRO_UP_MS = 3 * 60_000
 const APP_UP_MS = 5 * 60_000
 // the app reads its push permission from iOS shortly after launch, so a false holds this long first
 const PUSH_SETTLE_MS = 30_000
+const LOCATION_READ_MS = 15_000
 
 type MetroPidfile = {pgid: number; start: number}
 
@@ -147,4 +155,24 @@ export const appHasPushPermission = async (device: string): Promise<boolean> => 
     if (Date.now() > end) return false
     await sleep(1_000)
   }
+}
+
+// The just-launched app's location permission. The read is a promise, so its answer waits under a
+// global the next evals poll (as gate/app-ask.ts askApp does; no recorder runs yet, and it sends no
+// RPC). A read that fails or does not answer within LOCATION_READ_MS throws.
+export const appLocationPermission = async (device: string): Promise<LocationPermission> => {
+  const page = async () => inspectorPageFor(device, BUNDLE_ID)
+  await evalInPage<boolean>(
+    await page(),
+    `globalThis.__kbE2ELaunchLocation = {state: 'pending'}
+     Promise.resolve()
+       .then(() => ${LOCATION_PERMISSION})
+       .then(value => (globalThis.__kbE2ELaunchLocation = {state: 'answered', value}), e => (globalThis.__kbE2ELaunchLocation = {state: 'failed', error: String(e && e.message)}))
+     return true`
+  )
+  return until('the app to read its location permission', LOCATION_READ_MS, async () => {
+    const r = await evalInPage<{state: string; value?: LocationPermission; error?: string}>(await page(), 'return globalThis.__kbE2ELaunchLocation')
+    if (r.state === 'failed') throw new Error(`reading the app's location permission failed: ${r.error ?? '?'}`)
+    return r.state === 'answered' ? r.value : undefined
+  })
 }

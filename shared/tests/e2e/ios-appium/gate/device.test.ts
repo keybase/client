@@ -10,7 +10,6 @@ import {clearGatePoison, gatePoisoned} from './poison-lib'
 // jest's globals (this project's types are mocha's and wdio's)
 declare const jest: {
   mock: (path: string, factory: () => unknown) => void
-  fn: <F extends (...a: Array<never>) => unknown>(f?: F) => F & {mock: {calls: Array<Parameters<F>>}}
 }
 
 const UDID = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
@@ -19,9 +18,11 @@ const mockDevice = {
   calls: [] as Array<string>,
   // the e2e config dir (never the real ~/.config/keybase-e2e)
   configDir: '',
+  // the simulator data's identity
+  data: 1,
   credits: [] as Array<string>,
   // a push file as simctl saw it
-  pushed: [] as Array<{file: string; mode: number; body: string}>,
+  pushed: [] as Array<{argv: string; file: string; mode: number; body: string}>,
   pushFails: false,
   simctlFails: '',
   tcc: '',
@@ -38,7 +39,8 @@ jest.mock('../helpers/lifecycle', () => ({
     mockDevice.calls.push('background')
     return Promise.resolve()
   },
-  deviceUdid: () => 'B338EAF5-6A0E-4CAF-BD25-446C674751FB',
+  // a name lookup's answer, which nothing outside the app may use
+  deviceUdid: () => '00000000-1111-2222-3333-444444444444',
   jsEval: async () => Promise.resolve('r1'),
   lookFor: async () => Promise.resolve(undefined),
   openUrl: () => {},
@@ -52,6 +54,7 @@ jest.mock('../helpers/lifecycle', () => ({
   waitFor: async () => Promise.resolve(true),
 }))
 jest.mock('../../accounts/env.ts', () => ({e2eConfigDir: () => mockDevice.configDir}))
+jest.mock('./sim-data.ts', () => ({simulatorDataBirth: () => mockDevice.data}))
 jest.mock('../helpers/app', () => ({
   runSync: (file: string) => {
     if (file !== 'sqlite3') throw new Error(`unexpected ${file}`)
@@ -61,7 +64,7 @@ jest.mock('../helpers/app', () => ({
 jest.mock('child_process', () => ({
   execFileSync: (_file: string, args: Array<string>) => {
     const file = args[args.length - 1] as string
-    mockDevice.pushed.push({body: mockFs.readFileSync(file, 'utf8'), file, mode: mockFs.statSync(file).mode & 0o777})
+    mockDevice.pushed.push({argv: args.slice(0, 3).join(' '), body: mockFs.readFileSync(file, 'utf8'), file, mode: mockFs.statSync(file).mode & 0o777})
     if (mockDevice.pushFails) throw Object.assign(new Error(`Command failed: xcrun ${args.join(' ')}`), {status: 2})
     return ''
   },
@@ -89,6 +92,7 @@ beforeEach(() => {
   mockDevice.pushFails = false
   mockDevice.simctlFails = ''
   mockDevice.tcc = ''
+  mockDevice.data = 1
 })
 afterEach(() => {
   if (savedEnv.udid === undefined) delete process.env['KB_IOS_UDID']
@@ -128,6 +132,7 @@ describe('a push', () => {
     const runId = process.env['KB_E2E_RUN_ID'] ?? ''
     expect(mockDevice.pushed.map(p => p.file)).toEqual([`/tmp/kb-e2e/push-${runId}-1.json`, `/tmp/kb-e2e/push-${runId}-2.json`])
     for (const p of mockDevice.pushed) {
+      expect(p.argv).toBe(`simctl push ${UDID}`)
       expect(p.mode).toBe(0o600)
       expect(JSON.parse(p.body)).toEqual(payload())
       expect(fs.existsSync(p.file)).toBe(false)
@@ -145,6 +150,12 @@ describe('a push', () => {
     expect(err).toMatch(/simctl push failed \(exit 2\)/)
     expect(err).not.toMatch(/kb-e2e|push-|\.json|B338EAF5/)
     expect(fs.existsSync(mockDevice.pushed[0]?.file ?? '/')).toBe(false)
+  })
+
+  test('goes only to the udid preflight proved: without it nothing is written or sent', () => {
+    delete process.env['KB_IOS_UDID']
+    expect(() => pushNotification(payload())).toThrow(/KB_IOS_UDID/)
+    expect(mockDevice.pushed).toEqual([])
   })
 
   test('a silent push is refused before any file is written', () => {
@@ -206,7 +217,19 @@ describe('the photo corpus', () => {
     expect(added()).toEqual(items.map(i => `simctl addmedia ${UDID} /tmp/kb-e2e/media-${runId}/${i.name}`))
     expect(fs.existsSync(`/tmp/kb-e2e/media-${runId}`)).toBe(false)
     expect(fs.statSync(record()).mode & 0o777).toBe(0o600)
-    expect(JSON.parse(fs.readFileSync(record(), 'utf8'))).toEqual({[UDID]: items.map(i => ({name: i.name, sha256: i.sha256}))})
+    expect(JSON.parse(fs.readFileSync(record(), 'utf8'))).toEqual({[UDID]: {data: 1, items: items.map(i => ({name: i.name, sha256: i.sha256}))}})
+    mockDevice.calls = []
+    await ensurePhotoCorpus()
+    expect(added()).toEqual([])
+  })
+
+  test("is added again once the simulator's data changes (an erase), and the record keeps the new data's items only", async () => {
+    const items = await ensurePhotoCorpus()
+    mockDevice.calls = []
+    mockDevice.data = 2
+    await ensurePhotoCorpus()
+    expect(added()).toHaveLength(items.length)
+    expect(JSON.parse(fs.readFileSync(record(), 'utf8'))).toEqual({[UDID]: {data: 2, items: items.map(i => ({name: i.name, sha256: i.sha256}))}})
     mockDevice.calls = []
     await ensurePhotoCorpus()
     expect(added()).toEqual([])
@@ -215,7 +238,9 @@ describe('the photo corpus', () => {
   test('an add that fails records nothing for that item and stops', async () => {
     mockDevice.simctlFails = 'e2e-c.jpg'
     await expect(ensurePhotoCorpus()).rejects.toThrow('simctl exit 1')
-    expect((JSON.parse(fs.readFileSync(record(), 'utf8')) as Record<string, Array<{name: string}>>)[UDID]?.map(i => i.name)).toEqual(['e2e-c.png'])
+    expect((JSON.parse(fs.readFileSync(record(), 'utf8')) as Record<string, {items: Array<{name: string}>}>)[UDID]?.items.map(i => i.name)).toEqual([
+      'e2e-c.png',
+    ])
     const runId = process.env['KB_E2E_RUN_ID'] ?? ''
     expect(fs.existsSync(`/tmp/kb-e2e/media-${runId}`)).toBe(false)
     mockDevice.simctlFails = ''

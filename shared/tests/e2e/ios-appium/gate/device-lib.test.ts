@@ -1,6 +1,7 @@
 import {
   chatNewMessagePayload,
   corpusDiff,
+  corpusToAdd,
   parseTcc,
   privacyGrantArgs,
   privacyOriginal,
@@ -212,5 +213,19 @@ describe('the photo corpus', () => {
 
   test('a corpus file whose bytes changed is a new item', () => {
     expect(corpusDiff([item('e2e-c.png', 'a')], [item('e2e-c.png', 'z')])).toEqual([item('e2e-c.png', 'z')])
+  })
+})
+
+describe("the photo corpus after the simulator's data changes", () => {
+  const wanted = [{name: 'e2e-c.png', sha256: 'a'}, {name: 'e2e-c.jpg', sha256: 'b'}]
+
+  test('the same data adds only what is missing', () => {
+    expect(corpusToAdd({data: 111, items: [wanted[0]!]}, 111, wanted)).toEqual([wanted[1]])
+    expect(corpusToAdd({data: 111, items: wanted}, 111, wanted)).toEqual([])
+  })
+
+  test('new data (an erase) adds the whole corpus again, as does a simulator never recorded', () => {
+    expect(corpusToAdd({data: 111, items: wanted}, 222, wanted)).toEqual(wanted)
+    expect(corpusToAdd(undefined, 222, wanted)).toEqual(wanted)
   })
 })

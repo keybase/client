@@ -1,4 +1,4 @@
-import {APP_LOG_MAX, appLogCaptureBody, appLogMarkerBody, appLogReadBody, linesBefore, readSince, type AppLogRead} from './app-log-lib'
+import {APP_LOG_LINE_MAX, APP_LOG_MAX, appLogCaptureBody, appLogMarkerBody, appLogReadBody, linesBefore, readSince, type AppLogRead} from './app-log-lib'
 
 // The app's logger where it matters: one object whose level methods callers look up at each call.
 const fakeRuntime = () => {
@@ -88,4 +88,14 @@ describe('an absence anchored by the marker', () => {
     const before = linesBefore(readSince(mark, rt.run<AppLogRead>(appLogReadBody(mark.seq))), marker)
     expect(before).toEqual(['info [AccountLink] switching'])
   })
+})
+
+test('a long line is kept cut to its first 2 KB', () => {
+  const rt = fakeRuntime()
+  rt.run(appLogCaptureBody)
+  rt.logger['info']?.('x'.repeat(10_000))
+  const [line] = rt.run<AppLogRead>(appLogReadBody(0)).lines
+  expect(APP_LOG_LINE_MAX).toBe(2048)
+  expect(line).toBe(`info ${'x'.repeat(APP_LOG_LINE_MAX - 5)}`)
+  expect(rt.printed[0]).toHaveLength(10_006)
 })

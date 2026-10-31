@@ -21,7 +21,7 @@ import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {
-  corpusDiff,
+  corpusToAdd,
   parseTcc,
   privacyGrantArgs,
   privacyOriginal,
@@ -35,6 +35,7 @@ import {
   type TccRow,
 } from './device-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
+import {simulatorDataBirth} from './sim-data.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
@@ -66,7 +67,7 @@ let pushes = 0
 export const pushNotification = (payload: PushPayload) => {
   requireCurrentAttempt()
   const body = JSON.stringify(requireTappablePush(payload))
-  const udid = deviceUdid()
+  const udid = preflightUdid()
   fs.mkdirSync(E2E_TMP, {mode: 0o700, recursive: true})
   const file = path.join(E2E_TMP, `push-${e2eRunId()}-${++pushes}.json`)
   try {
@@ -116,14 +117,17 @@ const photoCorpus = (): Array<CorpusItem> =>
 
 // The corpus's photos and videos, each added to this simulator's library once ever: the library
 // can't be cleaned through simctl, so it grows by the corpus and nothing else. What was added is
-// recorded (udid and sha256) in ~/.config/keybase-e2e/ios-photo-corpus.json, mode 600, one item at a
-// time after its addmedia. Each goes in from a mode 600 copy under /tmp/kb-e2e/media-<runid>, removed
+// recorded (udid, the simulator data's identity and sha256) in ~/.config/keybase-e2e/ios-photo-corpus.json,
+// mode 600, one item at a time after its addmedia; an erase gives the data a new identity, so the
+// corpus goes in again. Each goes in from a mode 600 copy under /tmp/kb-e2e/media-<runid>, removed
 // after. A flow picks an item and proves what it picked by read-back, never by grid position.
 export const ensurePhotoCorpus = async (): Promise<Array<CorpusItem>> => {
   requireCurrentAttempt()
   const udid = preflightUdid()
   const wanted = photoCorpus()
-  const missing = corpusDiff(readCorpusRecord()[udid] ?? [], wanted)
+  // an erased simulator's data is new, and its library is empty again
+  const data = simulatorDataBirth(udid)
+  const missing = corpusToAdd(readCorpusRecord()[udid], data, wanted)
   if (missing.length) {
     const dir = path.join(E2E_TMP, `media-${e2eRunId()}`)
     fs.mkdirSync(dir, {mode: 0o700, recursive: true})
@@ -137,7 +141,7 @@ export const ensurePhotoCorpus = async (): Promise<Array<CorpusItem>> => {
         } finally {
           fs.rmSync(copy, {force: true})
         }
-        recordCorpusItem(udid, {name: item.name, sha256: item.sha256})
+        recordCorpusItem(udid, data, {name: item.name, sha256: item.sha256})
       }
     } finally {
       fs.rmSync(dir, {force: true, recursive: true})

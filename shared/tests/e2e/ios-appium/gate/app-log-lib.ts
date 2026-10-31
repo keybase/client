@@ -3,6 +3,8 @@
 
 // The most lines the capture holds: a read from a mark older than what it still holds throws.
 export const APP_LOG_MAX = 5000
+// the most characters of one line it keeps
+export const APP_LOG_LINE_MAX = 2048
 
 // A place in the capture: its runtime, and the seq of the first line logged after it.
 export type AppLogMark = {runtime: string; seq: number}
@@ -23,7 +25,7 @@ export const appLogCaptureBody = `const g = globalThis;
       const orig = logger[level];
       logger[level] = (...args) => {
         try {
-          log.lines.push([log.next++, level + ' ' + args.map(fmt).join(' ')]);
+          log.lines.push([log.next++, (level + ' ' + args.map(fmt).join(' ')).slice(0, ${APP_LOG_LINE_MAX})]);
           if (log.lines.length > ${APP_LOG_MAX}) log.lines.shift();
         } catch {}
         return orig(...args);
