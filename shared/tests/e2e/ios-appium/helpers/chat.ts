@@ -629,8 +629,9 @@ const seekInbox = async (
   // geometry only, for the timeout's error: never a row's label
   let passes = 0
   let last = 'not drawn'
-  // drags in a row that changed nothing
+  // drags in a row that changed nothing, paging on and bringing a found item into view
   let still = 0
+  let stillShifts = 0
   for (;;) {
     if (Date.now() > deadline) {
       const where = `list ${Math.round(list.top)}..${Math.round(list.bottom)}, ${passes} passes after ${atTop}ms to reach the top, last: ${last}`
@@ -647,7 +648,13 @@ const seekInbox = async (
       if (whollyInBand(span, band, INBOX_MARGIN)) return elementOfItem(drawn.items[at]!)
       // drawn but not wholly in view: bring it into the band
       await dragInbox(list, shiftIntoBand(span, band, INBOX_MARGIN))
-      drawn = await drawnInbox()
+      const shifted = await drawnInbox()
+      // as at the end: one still drag may be a tap or a settling list, two in a row cannot move it
+      stillShifts = shifted.signature === drawn.signature ? stillShifts + 1 : 0
+      if (stillShifts >= INBOX_END_STILL_DRAGS) {
+        throw new Error(`the inbox item asked for cannot be brought wholly into view: ${stillShifts} drags to move it changed nothing (${last})`)
+      }
+      drawn = shifted
       continue
     }
     await dragInbox(list, -page)
