@@ -36,7 +36,7 @@ import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, expectPersists, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, fillField, filesRowNamed, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -239,11 +239,11 @@ describe('teams settings', function () {
       p => p['entityType'] === entityType && (p['policy'] as {title?: string} | undefined)?.title === '30 days'
     )
     await el(T.TEAMS_CONFIRM_WARNING_CHECK).waitForExist({timeout: 10_000})
-    await el(T.TEAMS_CONFIRM_WARNING_CHECK).click()
+    await pressTestID(T.TEAMS_CONFIRM_WARNING_CHECK, "the warning's check")
     const confirm = await waitFor(
       "the warning's Confirm to be enabled",
       async () => {
-        const b = await labelledElement(BUTTONS, 'Confirm', "the warning's Confirm")
+        const b = await buttonLabelled('Confirm', "the warning's Confirm")
         return (await b.isEnabled()) ? b : undefined
       },
       {interval: 250, timeout: 10_000}
@@ -260,7 +260,7 @@ describe('teams settings', function () {
   it("a subteam's description saved from Edit team info", async function () {
     // worst case (s): subteam 600, host 315 (the showcase), opened 204 (team 109, tab 24, the header
     // 11), pin 1, header 8, button 6, screen 11, field 11, fill 26, step 2, pin 1, calls 2, button 6,
-    // waited for 12, polled 345, back 39, text 16 (15, read 1), step 2 = 1608
+    // waited for 12, polled 345, back 44, text 16 (15, read 1), step 2 = 1613
     this.timeout(1_700_000)
     const {name, teamID} = await makeOwnSubteam('dsc')
     const showcase = async () =>
@@ -539,7 +539,7 @@ describe('teams settings', function () {
     await waitFor(
       "the seeded emoji's row to go, with the tab's Add emoji still drawn",
       async () => {
-        const anchor = await labelledElement(BUTTONS, 'Add emoji', "the tab's Add emoji").then(() => true, () => false)
+        const anchor = await buttonLabelled('Add emoji', "the tab's Add emoji").then(() => true, () => false)
         const rows = await browser.$$(`-ios predicate string:name == "${T.TEAMS_EMOJI_ROW}" AND visible == 1`).getElements()
         let seedDrawn = false
         for (const r of rows) {

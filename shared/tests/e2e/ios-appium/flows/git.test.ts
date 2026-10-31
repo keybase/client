@@ -26,7 +26,7 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {drag, expectScreen, fillField, tapButton} from '../helpers/files'
+import {drag, expectScreen, fillField, pressTestID, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, labelledElement, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
@@ -149,7 +149,7 @@ describe('git', function () {
 
   // Opens "New encrypted git repository..." and picks `item`. Bound: 52.
   const openNewRepo = async (item: string, isTeam: boolean) => {
-    await openMenuFrom('the new repository menu', async () => el(T.GIT_NEW_REPO).click())
+    await openMenuFrom('the new repository menu', async () => pressTestID(T.GIT_NEW_REPO, 'the new repository button'))
     await chooseMenuItem(item)
     await expectScreen('the new repository screen', 'gitNewRepo', p => p['isTeam'] === isTeam)
   }
@@ -193,7 +193,7 @@ describe('git', function () {
     await setPasteboard(filler())
     urlOnPasteboard = true
     await el(T.GIT_REPO_COPY_URL).waitForExist({timeout: 10_000})
-    await el(T.GIT_REPO_COPY_URL).click()
+    await pressTestID(T.GIT_REPO_COPY_URL, "the repo's copy URL")
     await waitFor("the pasteboard to hold the repo's clone URL", async () => ((await pasteboardText()) === repoUrl(repo) ? true : undefined), {
       interval: 500,
       timeout: 10_000,
@@ -303,7 +303,7 @@ describe('git', function () {
     // -- announcements turned off -------------------------------------------------------------------
     check((await announceCount()) === 1, 'more than the one repo row is open: not tapping')
     seq = await currentCallSeq()
-    await el(T.GIT_REPO_ANNOUNCE).click()
+    await pressTestID(T.GIT_REPO_ANNOUNCE, "the repo's announce check")
     await waitForUiCall('the setting to go out', seq, 'keybase.1.git.setTeamRepoSettings')
     await expectHost('the announcements off', async () => teamRepoChat(repo), c => c.chatDisabled)
     // the git list holds the smoke account's other repos, of teams that are not test ones

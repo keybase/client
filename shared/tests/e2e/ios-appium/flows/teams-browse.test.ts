@@ -36,7 +36,7 @@ describe('teams browse', function () {
   //   root      openTeamsRoot 56;  team  openTeamFromList 109;  tab  openTeamTab 24
   //   row       a row by its name 31 (30, one drag 1);  screen  a screen waited for 11 (10, read 1)
   //   button    tapButton 6;  text  textShown 6;  field  onlyField 11;  back  backToTeamPage or
-  //             backToTeamsRoot 39
+  //             backToTeamsRoot 44
   //   calls     the recorder's call log, one read 2;  waited for  12 (10, one read 2)
   //   tabTo     15 (three taps and 4s waits);  step  2 (its 1s settle and the attach)
 
@@ -49,7 +49,7 @@ describe('teams browse', function () {
 
   it("the e2e team opened from its row, each of its tabs, and the smoke account's member page", async function () {
     // worst case (s): host 315, team 109, step 2; six tabs of tab 24 and step 2 = 156; the member
-    // row 31, its tap 1, screen 11, the page's marker 10, step 2, back 39 = 94; = 676
+    // row 31, its tap 1, screen 11, the page's marker 10, step 2, back 44 = 99; = 681
     this.timeout(720_000)
     const {smokeUser, team} = loadE2EAccounts()
     const teamID = await masked(async () => hostTeamID(team))
@@ -72,7 +72,7 @@ describe('teams browse', function () {
 
   it("the new-team wizard's purpose and name screens backed out of, then the Teams tab left", async function () {
     // worst case (s): root 56, button 6, screen 11, step 2, text 6 and its tap 1, screen 11, field
-    // 11, step 2, back 39; calls 2, tabTo 15, waited for 12, step 2 = 176
+    // 11, step 2, back 44; calls 2, tabTo 15, waited for 12, step 2 = 181
     this.timeout(200_000)
     await openTeamsRoot()
     await tapTeamsCard('Create a team', "the Teams tab's Create a team")

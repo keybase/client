@@ -10,7 +10,7 @@ import {innermost, type Rect} from '../gate/chat-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {BUTTONS, expectScreen, filesRowNamed, visibleScreen} from './files'
-import {check, elementWithLabelPart, labelledElement} from './menus'
+import {check, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, labelledElement} from './menus'
 import {waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -107,15 +107,54 @@ export const requireOnSubteam = async (what: string, name: string, ok: (params: 
   check(s?.name === name && ok(s.params ?? {}), `${what} is not aimed at the throwaway subteam: not tapping`)
 }
 
+// One step back from the screen on top. A modal's bar holds its Cancel or Close; a pushed page's, its
+// Back. The tree keeps the bars of the screens under a modal too (in no fixed order), and a modal's
+// elements can read visible=false, so goBack's pick (the leftmost visible bar button) can land on the
+// page under the modal and pop the page the flow means to come back to. So a Cancel or Close in any
+// bar wins over a Back (one under the top modal sits at the same frame, so its tap lands on the top
+// one's); among those, a visible one, else the lowest (a modal sheet's bar sits below a page's). Never
+// a bar's submit (Save, Done). Bound: the reads 3, the click 1, the route leaving 3 and the slide-out
+// 1 = 8 (goBack's 3 when there is none).
+const backOnce = async () => {
+  const pick = async (labels: ReadonlyArray<string>) => {
+    const found: Array<{e: WebdriverIO.Element; visible: boolean; y: number}> = []
+    for (const label of labels) {
+      for (const e of await browser
+        .$$(`-ios class chain:**/XCUIElementTypeNavigationBar/XCUIElementTypeButton[\`label == "${label}"\`]`)
+        .getElements()) {
+        const y = (await e.getLocation().catch(() => undefined))?.y ?? -1
+        found.push({e, visible: (await e.getAttribute('visible').catch(() => null)) === 'true', y})
+      }
+    }
+    // a modal sheet's bar sits below a full-screen page's
+    return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
+  }
+  const button = (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+  if (!button) return goBack()
+  // a click: a bar button takes one even when it reads visible=false, and a modal's frames are not
+  // where its window draws them
+  const before = (await visibleScreen())?.name
+  await button.click()
+  // the modal or page goes before the next read: a tab tapped while it still slides out can miss, and
+  // a drag then can pop the page under it. Its route leaves first, then its slide-out ends.
+  await waitFor('the screen to go', async () => ((await visibleScreen())?.name !== before ? true : undefined), {
+    interval: 200,
+    timeout: 3_000,
+  }).catch((e: unknown) => {
+    if (isAttemptOver(e)) throw e
+  })
+  await browser.pause(1_000)
+}
+
 // Backs out of a view opened from the team page of `teamID` without submitting it (its header's
-// Cancel or back), until that page is up again. Bound: 30s of tries, overrun by one (the back 3,
-// the page 5 and its read 1) = 39.
+// Cancel or back), until that page is up again. Bound: 30s of tries, overrun by one (backOnce 8,
+// the page 5 and its read 1) = 44.
 export const backToTeamPage = async (what: string, teamID: string) =>
   retriedNavigation(
     `back from ${what} to the team page`,
     async () => {
       const s = await visibleScreen()
-      if (!(s?.name === 'team' && s.params?.['teamID'] === teamID)) await goBack()
+      if (!(s?.name === 'team' && s.params?.['teamID'] === teamID)) await backOnce()
       await expectScreen('the team page', 'team', p => p['teamID'] === teamID, 5_000)
     },
     {intervals: [500], timeout: 30_000}
@@ -127,15 +166,24 @@ export const backToTeamsRoot = async (what: string) =>
   retriedNavigation(
     `back from ${what} to the Teams tab`,
     async () => {
-      if ((await visibleScreen())?.name !== 'teamsRoot') await goBack()
+      if ((await visibleScreen())?.name !== 'teamsRoot') await backOnce()
       await expectScreen("the Teams tab's root", 'teamsRoot', () => true, 5_000)
     },
     {intervals: [500], timeout: 30_000}
   )
 
+// The one text drawn holding `part` as a part of its label (a tappable box merges its texts, so a card
+// reads "<title>, <subtitle>"), once it is drawn. Bound: `timeout`, plus one read 1.
+export const textPartShown = async (part: string, what: string, timeout = 5_000) =>
+  waitFor(what, async () => elementWithLabelPartIn(TEXT_TYPES, part, what), {interval: 250, timeout})
+
+// what TEXTS finds, as element types, for a read off one page source (an attribute call per element
+// of every labelled box on a screen took minutes)
+const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
+
 // The one text drawn reading exactly `label`, once it is drawn. Bound: `timeout`, plus one read 1.
 export const textShown = async (label: string, what: string, timeout = 5_000) =>
-  waitFor(what, async () => labelledElement(TEXTS, label, what), {interval: 250, timeout})
+  waitFor(what, async () => elementLabelledIn(TEXT_TYPES, label, what), {interval: 250, timeout})
 
 // Taps the Teams tab's card `label` ("Create a team", "Join a team"): a tappable box whose label
 // merges its texts, not a button. Bound: 5s, the tap 1.
@@ -149,10 +197,6 @@ export const tapTeamsCard = async (label: string, what: string) => {
   await card.click()
 }
 
-// The one button drawn labelled `label`, once it is drawn. Bound: 5s, plus one read 1.
-export const buttonShown = async (label: string, what: string) =>
-  waitFor(what, async () => labelledElement(BUTTONS, label, what), {interval: 250, timeout: 5_000})
-
 // Taps the header's text action `label` (a native bar button, or a pressable text). Bound: 5s, the
 // tap 1.
 export const tapHeaderAction = async (label: string, what: string) => {
@@ -161,11 +205,14 @@ export const tapHeaderAction = async (label: string, what: string) => {
 }
 
 // The one field of `type` on screen (TextField for a line, TextView for a multi-line field), found by
-// its type so a placeholder holding a name never goes into a selector. Throws unless there is
-// exactly one. Bound: 10s, one read 1.
+// its type so a placeholder holding a name never goes into a selector: the one reported visible, else
+// (a modal whose elements XCUITest reports visible=false now and then) the one in the tree.
+// Throws unless there is exactly one. Bound: 10s, one read 1.
 export const onlyField = async (type: 'TextField' | 'TextView', what: string) => {
-  const selector = `-ios predicate string:type == "XCUIElementType${type}" AND visible == 1`
-  await waitFor(what, async () => ((await browser.$$(selector).length) > 0 ? true : undefined), {interval: 250, timeout: 10_000})
+  const any = `-ios predicate string:type == "XCUIElementType${type}"`
+  const visible = `${any} AND visible == 1`
+  await waitFor(what, async () => ((await browser.$$(any).length) > 0 ? true : undefined), {interval: 250, timeout: 10_000})
+  const selector = (await browser.$$(visible).length) > 0 ? visible : any
   const n = await browser.$$(selector).length
   check(n === 1, `${n} of ${what} on screen, not one`)
   return () => browser.$(selector)

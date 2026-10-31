@@ -44,7 +44,7 @@ import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, fillField, filesRowNamed, tapButton} from '../helpers/files'
+import {BUTTONS, expectScreen, filesRowNamed, fillField, pressTestID, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -315,7 +315,7 @@ describe('teams members', function () {
     await expectScreen("the second account's profile", 'profile', onSecond, 20_000)
     // the actions show once the profile's identify is done
     await el(T.PROFILE_ACTIONS_MENU).waitForExist({timeout: 30_000})
-    await openMenuFrom("the profile's menu", async () => el(T.PROFILE_ACTIONS_MENU).click())
+    await openMenuFrom("the profile's menu", async () => pressTestID(T.PROFILE_ACTIONS_MENU, "the profile's menu button"))
     await chooseMenuItem('Add to team...')
     await expectScreen("the profile's Add to team", 'profileAddToTeam', onSecond)
     const row = await filesRowNamed(name, "the subteam's row among the teams", {testID: T.PROFILE_ADD_TO_TEAM_ROW})
@@ -389,7 +389,7 @@ describe('teams members', function () {
     }
     await expectScreen("the wizard's confirm", 'teamAddToTeamConfirm', onConfirm('writer'))
     await el(T.TEAMS_WIZARD_ROLE_BUTTON).waitForExist({timeout: 10_000})
-    await el(T.TEAMS_WIZARD_ROLE_BUTTON).click()
+    await pressTestID(T.TEAMS_WIZARD_ROLE_BUTTON, "the wizard's role button")
     // choosing the role writes nothing: the confirm's route takes it
     await pickRole('Reader', async () => requireOnSubteam("the wizard's confirm", 'teamAddToTeamConfirm', onConfirm('writer')))
     await expectScreen('the confirm inviting a reader', 'teamAddToTeamConfirm', onConfirm('reader'))
@@ -451,10 +451,10 @@ describe('teams members', function () {
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
     //   part 6 and a tap 1 = 14, the picks read 6 (5, one read 1), step 2, pin 1 and the picks 1,
     //   calls 2, action 6, waited for 12, two polled 570, step 2 = 795;
-    // remove: back 39, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, in row 2
+    // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, in row 2
     //   and its tap 1, popup 11, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
-    //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1005
-    // = 2950 + 795 + 1005 = 4750
+    //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1010
+    // = 2950 + 795 + 1010 = 4755
     this.timeout(5_000_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()

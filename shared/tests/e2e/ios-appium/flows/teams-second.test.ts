@@ -39,9 +39,9 @@ import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard, openConversation} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, expectScreen, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   masked,
@@ -322,7 +322,7 @@ describe('teams second account', function () {
       await tapButton('Join team', 'the join screen\'s Join team')
       await waitForUiCall('the join to go out', seq, 'keybase.1.teams.teamAcceptInviteOrRequestAccess')
       // the join screen turns to its success once the service has let the account in
-      const close = await waitFor("the join's success", async () => labelledElement(BUTTONS, 'Close', "the join's Close"), {
+      const close = await waitFor("the join's success", async () => buttonLabelled('Close', "the join's Close"), {
         interval: 250,
         timeout: 20_000,
       })
@@ -351,7 +351,7 @@ describe('teams second account', function () {
       )
       await requireOnSubteam("the subteam's page", 'team', onSubteam)
       await revealTeamHeader()
-      await openMenuFrom("the team's menu", async () => el(T.TEAMS_HEADER_MENU_BUTTON).click())
+      await openMenuFrom("the team's menu", async () => pressTestID(T.TEAMS_HEADER_MENU_BUTTON, "the team's menu button"))
       await chooseMenuItem('Leave team')
       await expectScreen('the leave confirm', 'teamReallyLeaveTeam', onSubteam)
       await textShown(`Leave ${name}?`, 'the leave prompt for the subteam')
@@ -395,7 +395,7 @@ describe('teams second account', function () {
       await step('The invitation to block the adder')
       await expectScreen("the subteam's conversation", 'chatConversation', onConversation)
       const seq = await currentCallSeq()
-      await el(T.CHAT_BLOCK_BUTTONS_DISMISS).click()
+      await pressTestID(T.CHAT_BLOCK_BUTTONS_DISMISS, 'the block buttons dismiss')
       await waitForUiCall('the dismiss to go out', seq, 'keybase.1.user.dismissBlockButtons')
       check((await uiCallsSince(seq, 'keybase.1.user.dismissBlockButtons')).length === 1, 'the dismiss went out more than once')
       await el(T.CHAT_BLOCK_BUTTONS).waitForExist({reverse: true, timeout: 15_000})

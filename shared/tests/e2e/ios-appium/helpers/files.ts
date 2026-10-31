@@ -14,6 +14,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField} from '../gate/secret-input.ts'
 import {signedInAs, typeIntoFocused} from './chat'
@@ -68,6 +69,22 @@ export const tapElement = async (e: WebdriverIO.Element, what: string) => {
   const rect = await rectOf(e)
   if (!rect) throw new Error(`${what} has no position`)
   await tapFrame(rect, what)
+}
+
+// Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
+// read visible=false (a folder screen always, a team page or a modal now and then), and a click on
+// such a box taps nothing. Bound: the reads 1, the tap 1.
+export const press = async (e: WebdriverIO.Element, what: string) => {
+  if ((await e.getAttribute('visible').catch(() => null)) === 'true') await e.click()
+  else await tapElement(e, what)
+}
+
+// Presses the one element with testID `id` (press). Bound: its wait 10, the press 2.
+export const pressTestID = async (id: string, what: string) => {
+  await browser.$(`~${id}`).waitForExist({timeout: 10_000})
+  const found = await browser.$$(`~${id}`).getElements()
+  if (found.length !== 1) throw new Error(`${found.length} of ${what} in the tree, not one`)
+  await press(found[0]!, what)
 }
 
 // Where rows are drawn: `within`'s frame, else the files browser's, else the window. Bound: 1.
@@ -240,15 +257,33 @@ export const openFolderMoreSheet = async () => {
 // Every button, whether XCUITest reports it visible or not.
 const ANY_BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton"'
 
-// Taps the one button drawn labelled `label`, once it is drawn: one reported visible, else (on a
-// screen that reports its elements visible=false, a files confirmation) the one in the tree. A click
-// on a button takes either way. Bound: 5s, the tap 1.
+// The one button labelled `label`: one reported visible, else (on a screen that reports its elements
+// visible=false: a files confirmation, a modal stacked on a team page) the one in the tree. A click on
+// a button takes either way. Bound: one read 1.
+export const buttonLabelled = async (label: string, what: string) =>
+  labelledElement(BUTTONS, label, what).catch(async () => labelledElement(ANY_BUTTONS, label, what))
+
+// Clicks the button `button()` finds until `done()` says the click took: a click while the keyboard is
+// up only closes the keyboard (and XCUITest reports the keyboard shown or not unreliably, so it is not
+// closed first). A second click goes only if the first did not take, so nothing is submitted twice.
+// Bound: two of (the find 1, the click 1, 3s of reads) = 10.
+export const clickUntil = async (button: () => Promise<WebdriverIO.Element>, done: () => Promise<boolean>, what: string) => {
+  for (let i = 0; i < 2; i++) {
+    await (await button()).click()
+    const took = await waitFor(what, async () => ((await done()) ? true : undefined), {interval: 250, timeout: 3_000}).catch(
+      (e: unknown) => {
+        if (isAttemptOver(e)) throw e
+        return false
+      }
+    )
+    if (took) return
+  }
+  throw new Error(`${what}: two clicks did not take`)
+}
+
+// Taps the one button labelled `label` (buttonLabelled), once it is drawn. Bound: 5s, the tap 1.
 export const tapButton = async (label: string, what: string) => {
-  const button = await waitFor(
-    what,
-    async () => labelledElement(BUTTONS, label, what).catch(async () => labelledElement(ANY_BUTTONS, label, what)),
-    {interval: 250, timeout: 5_000}
-  )
+  const button = await waitFor(what, async () => buttonLabelled(label, what), {interval: 250, timeout: 5_000})
   await button.click()
 }
 

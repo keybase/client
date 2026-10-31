@@ -31,17 +31,16 @@ import {
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
 import {elementInRow} from '../gate/chat-lib.ts'
-import {currentCallSeq, waitForUiCall} from '../gate/recorder'
+import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, fillField, filesRowNamed, tapButton, visibleScreen} from '../helpers/files'
+import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
-  buttonShown,
   expectTeamPage,
   masked,
   onlyField,
@@ -50,6 +49,7 @@ import {
   requireOnSubteam,
   revealTeamHeader,
   tapHeaderAction,
+  textPartShown,
   textShown,
 } from '../helpers/teams'
 
@@ -68,7 +68,7 @@ describe('teams subteams', function () {
   //   team      openTeamFromList 109;  page  expectTeamPage 21;  tab  openTeamTab 24;  header
   //             revealTeamHeader 8
   //   screen    a screen waited for 11 (10, read 1);  pin  requireOnSubteam 1
-  //   button    tapButton 6, buttonShown 6;  action  tapHeaderAction 6;  text  textShown 6 (11 with a
+  //   button    tapButton 6;  action  tapHeaderAction 6;  text  textShown 6 (11 with a
   //             10s wait)
   //   field     onlyField 11;  fill  fillField 26 (the field 10, the typing 15, the read 1)
   //   row       a row by its name 31 (30, one drag 1);  in row  elementInRow 2
@@ -134,9 +134,9 @@ describe('teams subteams', function () {
 
   it('a subteam made with the wizard from the e2e team', async function () {
     // worst case (s): host 315 (the e2e team's id), team 109, tab 24, its read 1, button 6, screen
-    // 11, fill 26, step 2, the Continue enabled 11 (10, one read 1) and tapped 1, screen 11, step 2,
+    // 11, fill 26, step 2, the Continue enabled 11 (10, one read 1), clickUntil 10, screen 11, step 2,
     // action 6, screen 11, action 6, screen 11, text 6, step 2, calls 2, action 6, waited for 12,
-    // polled 345, host 315 (its id), page 21, step 2 = 1264
+    // polled 345, host 315 (its id), page 21, step 2 = 1273
     this.timeout(1_300_000)
     const {team} = loadE2EAccounts()
     const name = `${team}.${freshSubteamPart('sub')}`
@@ -154,17 +154,18 @@ describe('teams subteams', function () {
       const w = wizardOf(p)
       return w.teamType === 'subteam' && w.parentTeamID === parentID
     })
-    await fillField(() => browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "subteam" AND visible == 1'), part, "the subteam's name field")
+    // the wizard's modal reports its elements visible=false now and then: the one field so placeheld
+    await fillField(() => browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "subteam"'), part, "the subteam's name field")
     await step("The subteam's name")
     const next = await waitFor(
       "the wizard's Continue to be enabled",
       async () => {
-        const b = await labelledElement(BUTTONS, 'Continue', "the wizard's Continue")
+        const b = await buttonLabelled('Continue', "the wizard's Continue")
         return (await b.isEnabled()) ? b : undefined
       },
       {interval: 250, timeout: 10_000}
     )
-    await next.click()
+    await clickUntil(async () => Promise.resolve(next), async () => (await visibleScreen())?.name === 'profileEditAvatar', "the wizard's Continue")
     // the avatar step: no picture picked, skipped
     await expectScreen("the new subteam's avatar step", 'profileEditAvatar', p => {
       const w = (p['newTeamWizard'] ?? {}) as NewTeamWizard
@@ -199,20 +200,20 @@ describe('teams subteams', function () {
     // worst case (s):
     // setup: subteam 600, host 315 (its id), seed 510, listed 204 (60s of tries, overrun by one: team
     //   109, tab 24, the row 11), step 2 = 1631;
-    // views: pin 1, header 8, button 6, screen 11, button 6, step 2, back 39 = 73 (Edit team
-    //   info); pin 1, header 8, button 6, screen 11, text 6, step 2, back 39 = 73 (the add-members
+    // views: pin 1, header 8, button 6, screen 11, button 6, step 2, back 44 = 78 (Edit team
+    //   info); pin 1, header 8, button 6, screen 11, text 6, step 2, back 44 = 78 (the add-members
     //   wizard); tab 24, row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, step 2,
-    //   back 39 = 122 (a channel's edit screen); tab 24, button 6, screen 11, text 6, step 2, back 39
-    //   = 88 (Add emoji); = 356;
+    //   back 44 = 127 (a channel's edit screen); tab 24, button 6, screen 11, text 6, step 2, back 44
+    //   = 93 (Add emoji); = 376;
     // create: tab 24, button 6, screen 11, field 11, fill 26, field 11, fill 26, step 2, pin 1,
-    //   calls 2, button 6, waited for 12 twice, page 21, polled 285, host 255, polled 345, row 31,
-    //   step 2 = 1089;
+    //   calls 2, clickUntil 10, waited for 12, page 21, polled 285, host 255, polled 345, row 31,
+    //   step 2 = 1081;
     // edit: row 31, in row 2 and its tap 1, screen 11, field 11 and its read 1, fill 26, field 11,
-    //   fill 26, step 2, pin 1, calls 2, button 6, waited for 12 twice, page 21, polled 345, host 255,
-    //   row 31, step 2 = 809;
+    //   fill 26, step 2, pin 1, calls 2, clickUntil 10, waited for 12 twice, page 21, polled 345,
+    //   host 255, row 31, step 2 = 813;
     // delete: row 31, in row 2, menu 19, item 22, screen 11, text 6, step 2, pin 1, calls 2, button
     //   6, waited for 12, page 21, polled 285, the rows read 22 (20, one read 2), step 2 = 444
-    // = 1631 + 356 + 1089 + 809 + 444 = 4329
+    // = 1631 + 376 + 1081 + 813 + 444 = 4345
     this.timeout(4_400_000)
     const runId = e2eRunId()
     const name = await makeOwnSubteam('chn')
@@ -239,7 +240,8 @@ describe('teams subteams', function () {
     await revealTeamHeader()
     await tapButton('Edit', "the header's Edit")
     await expectScreen("the subteam's Edit team info", 'teamEditTeamInfo', onSubteam)
-    await buttonShown('Save', "Edit team info's Save")
+    // a disabled Save is drawn as its text alone
+    await textShown('Save', "Edit team info's Save")
     await step('Edit team info')
     await backToTeamPage('Edit team info', teamID)
 
@@ -247,7 +249,7 @@ describe('teams subteams', function () {
     await revealTeamHeader()
     await tapButton('Add/Invite people', "the header's Add/Invite people")
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
-    await textShown('A list of email addresses', "the wizard's email list choice")
+    await textPartShown('A list of email addresses', "the wizard's email list choice")
     await step('The add-members wizard')
     await backToTeamPage('the add-members wizard', teamID)
 
@@ -263,7 +265,7 @@ describe('teams subteams', function () {
     await tapButton('Add emoji', "the Emoji tab's Add emoji")
     await expectScreen("the subteam's Add emoji", 'teamAddEmoji', onSubteam)
     // its Choose Images opens the photo picker: never tapped here
-    await textShown('Choose images from your library', "Add emoji's prompt")
+    await textPartShown('Choose images from your library', "Add emoji's prompt")
     await step('Add emoji')
     await backToTeamPage('Add emoji', teamID)
 
@@ -279,8 +281,11 @@ describe('teams subteams', function () {
     await step('The new channel typed')
     await requireOnSubteam('the new channel', 'chatCreateChannel', onSubteam)
     let seq = await currentCallSeq()
-    await tapButton('Save', "the new channel's Save")
-    await waitForUiCall('the channel to be made', seq, 'chat.1.local.newConversationLocal')
+    await clickUntil(
+      async () => buttonLabelled('Save', "the new channel's Save"),
+      async () => (await uiCallsSince(seq, 'chat.1.local.newConversationLocal')).length > 0,
+      "the new channel's Save"
+    )
     await waitForUiCall("the channel's description to go out", seq, 'chat.1.local.postHeadlineNonblock')
     await expectTeamPage('the subteam page after the new channel', teamID)
     await expectHost('the new channel', async () => (await teamChannels(name)).has(channel), has => has)
@@ -304,7 +309,11 @@ describe('teams subteams', function () {
     await step('The channel edited')
     await requireOnSubteam("the channel's edit", 'teamEditChannel', onChannel)
     seq = await currentCallSeq()
-    await tapButton('Save', "the edit screen's Save")
+    await clickUntil(
+      async () => buttonLabelled('Save', "the edit screen's Save"),
+      async () => (await uiCallsSince(seq, 'chat.1.local.postMetadata')).length > 0,
+      "the edit screen's Save"
+    )
     await waitForUiCall("the channel's new name to go out", seq, 'chat.1.local.postMetadata')
     await waitForUiCall("the channel's new description to go out", seq, 'chat.1.local.postHeadline')
     await expectTeamPage('the subteam page after the edit', teamID)
@@ -353,11 +362,11 @@ describe('teams subteams', function () {
     // setup: subteam 600, host 315 (its id), opened 169 (60s of tries, overrun by one: team 109),
     //   step 2 = 1086;
     // rename: header 8, the icon 10 and its tap 1, screen 11, field 11, fill 26, text 6, step 2,
-    //   pin 1, calls 2, button 6, waited for 12, page 21, polled 660 (30s of two reads of 315,
-    //   overrun by one pair), step 2 = 779;
+    //   pin 1, calls 2, clickUntil 10, page 21, polled 660 (30s of two reads of 315, overrun by one
+    //   pair), step 2 = 771;
     // delete: header 8, menu 19, item 22, screen 11, text 11, three taps 3, the button enabled 6,
     //   step 2, pin 1, calls 2, its tap 1, waited for 12, polled 345, step 2 = 445
-    // = 1086 + 779 + 445 = 2310
+    // = 1086 + 771 + 445 = 2302
     this.timeout(2_400_000)
     const {team} = loadE2EAccounts()
     const name = await makeOwnSubteam('rnd')
@@ -372,7 +381,7 @@ describe('teams subteams', function () {
     // -- the subteam renamed from its header ----------------------------------------------------------
     await revealTeamHeader()
     await el(T.TEAMS_HEADER_RENAME).waitForExist({timeout: 10_000})
-    await el(T.TEAMS_HEADER_RENAME).click()
+    await pressTestID(T.TEAMS_HEADER_RENAME, "the header's rename")
     const onName = (p: Record<string, unknown>) => p['teamname'] === name
     await expectScreen("the subteam's rename", 'teamRename', onName)
     await fillField(await onlyField('TextField', "the subteam's new name field"), renamedPart, "the subteam's new name field")
@@ -382,15 +391,18 @@ describe('teams subteams', function () {
     requireThisRunSubteam(renamed)
     madeNames.add(renamed)
     let seq = await currentCallSeq()
-    await tapButton('Rename', "the rename's Rename")
-    await waitForUiCall('the rename to go out', seq, 'keybase.1.teams.teamRename')
+    await clickUntil(
+      async () => buttonLabelled('Rename', "the rename's Rename"),
+      async () => (await uiCallsSince(seq, 'keybase.1.teams.teamRename')).length > 0,
+      "the rename's Rename"
+    )
     await expectTeamPage('the subteam page after the rename', teamID)
     await expectHost('the subteam under its new name alone', async () => (await subteamExists(renamed)) && !(await subteamExists(name)), e => e)
     await step('The subteam renamed')
 
     // -- the subteam deleted from its menu ------------------------------------------------------------
     await revealTeamHeader()
-    await openMenuFrom("the subteam's menu", async () => el(T.TEAMS_HEADER_MENU_BUTTON).click())
+    await openMenuFrom("the subteam's menu", async () => pressTestID(T.TEAMS_HEADER_MENU_BUTTON, "the subteam's menu button"))
     await chooseMenuItem('Delete team')
     await expectScreen("the subteam's delete confirm", 'teamDeleteTeam', onSubteam)
     // the confirm names the team once its info is in
@@ -402,7 +414,7 @@ describe('teams subteams', function () {
     const remove = await waitFor(
       "the confirm's Delete team to be enabled",
       async () => {
-        const b = await labelledElement(BUTTONS, 'Delete team', "the confirm's Delete team")
+        const b = await buttonLabelled('Delete team', "the confirm's Delete team")
         return (await b.isEnabled()) ? b : undefined
       },
       {interval: 250, timeout: 5_000}
