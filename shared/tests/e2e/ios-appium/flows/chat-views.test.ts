@@ -421,7 +421,7 @@ describe('chat views', function () {
     await chooseMenuItem('Forward')
     await el(T.CHAT_FORWARD_SEARCH).waitForExist({timeout: 10_000})
     await expectRoute('the forward picker', 'chatForwardMsgPick')
-    await step('The forward picker')
+    await step('The forward picker', {screenshot: false})
     await goBackUntilGone(T.CHAT_FORWARD_SEARCH)
     await el(T.CHAT_FORWARD_SEARCH).waitForExist({reverse: true, timeout: 5_000})
     check((await visibleConversation()) === media(), 'closing the forward picker did not go back to e2e-media')
@@ -476,7 +476,7 @@ describe('chat views', function () {
     await expectRoute('the new chat team builder', 'chatNewChat')
     // the phone's builder offers the self conversation first
     await byText('Write secure notes to yourself').waitForExist({timeout: 10_000, timeoutMsg: 'the team builder does not offer the self row'})
-    await step('The new chat team builder')
+    await step('The new chat team builder', {screenshot: false})
     await escapeToTabs()
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
     check((await route())?.name !== 'chatNewChat', 'the team builder is still up')

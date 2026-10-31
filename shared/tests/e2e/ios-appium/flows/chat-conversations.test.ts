@@ -333,7 +333,7 @@ describe('chat conversations', function () {
       timeout: 20_000,
     })
     await expectApp('the channel read', async () => unreadCount(convID), 0)
-    await step('Marked read', {card: true})
+    await step('Marked read', {screenshot: false})
   })
 
   it('the self conversation pinned from its row stays pinned through a relaunch, and unpins', async function () {
@@ -429,7 +429,7 @@ describe('chat conversations', function () {
       if (at && Math.abs(at.y - hitFrame.y) < 1 && Math.abs(at.x - hitFrame.x) < 1) hit = e
     }
     if (!hit) throw new Error('the name hit moved before it could be tapped')
-    await step('The filter lists the channel by name')
+    await step('The filter lists the channel by name', {screenshot: false})
     await hit.click()
     await waitFor(
       'the channel to open',
