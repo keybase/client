@@ -1792,7 +1792,15 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
   const before = await switchOn()
   if (!before.length || before.some(o => o !== before[0])) throw new Error(`the switch reads ${JSON.stringify(before)}`)
   await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
-  await waitFor('the switch to turn', async () => ((await switchOn()).every(o => o !== before[0]) ? true : undefined), {interval: 200, timeout: 5_000})
+  // an unmounted switch reads no value, which is not a turn
+  await waitFor(
+    'the switch to turn',
+    async () => {
+      const now = await switchOn()
+      return now.length > 0 && now.every(o => o !== before[0]) ? true : undefined
+    },
+    {interval: 200, timeout: 5_000}
+  )
   return before[0]!
 }
 
