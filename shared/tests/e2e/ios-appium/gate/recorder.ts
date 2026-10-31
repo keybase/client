@@ -1,7 +1,7 @@
 // The dev app's route and RPC recorder (visual/fixtures/runtime.ts), driven over Metro's inspector
 // on the phone. A JS reload or relaunch starts a new runtime and drops the recording, so a run
 // checkpoints after any step that may do that.
-import type {CallLog} from '../../shared/call-log.ts'
+import type {CallLog, LoggedCall} from '../../shared/call-log.ts'
 import {listInspectorPages} from '../../shared/metro-eval.ts'
 import {
   callsSinceBody,
@@ -14,9 +14,9 @@ import {
   takePhoneRecorder as takeOn,
 } from '../../shared/phone-recorder.ts'
 import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
-import {BUNDLE_ID, deviceName, jsEval} from '../helpers/lifecycle'
+import {BUNDLE_ID, deviceName, jsEval, waitFor} from '../helpers/lifecycle'
 import {pausedAround} from './harness-rpcs-lib.ts'
-import {nextRecordingAction} from './recorder-lib.ts'
+import {type CallMark, callMarkOf, callsInWindow, nextRecordingAction, uiCallsOf} from './recorder-lib.ts'
 import {ensureErrorCapture} from './errors.ts'
 import {requireCurrentAttempt} from './attempt.ts'
 
@@ -41,15 +41,30 @@ const resumePhoneRecorder = async (token: string) => {
 export const withHarnessRpcs = async <R>(what: string, f: () => Promise<R>): Promise<R> =>
   pausedAround({pause: pausePhoneRecorder, resume: resumePhoneRecorder}, what, f)
 
-// The app's outgoing calls since `seq` while recording (paused ones flagged), read off its recorder.
-export const callsSince = async (seq: number): Promise<CallLog> => {
+const readCallLog = async (seq: number): Promise<CallLog> => {
   const log = await jsEval<CallLog | null>(callsSinceBody(seq))
   if (!log) throw new Error(NO_PHONE_RECORDER)
   return log
 }
 
-// The seq of the app's latest logged call, for a later callsSince.
-export const currentCallSeq = async () => (await callsSince(Number.MAX_SAFE_INTEGER)).seq
+// A mark at the app's latest logged call, for a later callsSince. Throws when the recorder is off.
+export const currentCallSeq = async (): Promise<CallMark> => callMarkOf(await readCallLog(Number.MAX_SAFE_INTEGER))
+
+// The app's outgoing calls since `mark` (paused ones flagged), read off its recorder. Throws when the
+// app's runtime changed or its recording stopped inside the window, so an absence never reads an
+// empty log.
+export const callsSince = async (mark: CallMark): Promise<Array<LoggedCall>> => callsInWindow(mark, await readCallLog(mark.seq))
+
+// The calls of `method` the app's own UI made since `mark` (a call sent during a harness pause is
+// not one), for presence and absence checks alike.
+export const uiCallsSince = async (mark: CallMark, method: string) => uiCallsOf(await callsSince(mark), method)
+
+// Waits for the app's UI to send `method` after `mark`.
+export const waitForUiCall = async (what: string, mark: CallMark, method: string, opts?: {interval?: number; timeout?: number}) =>
+  waitFor(what, async () => ((await uiCallsSince(mark, method)).length > 0 ? true : undefined), {
+    interval: opts?.interval ?? 250,
+    timeout: opts?.timeout ?? 10_000,
+  })
 
 const currentRuntime = async (): Promise<string | undefined> => {
   try {

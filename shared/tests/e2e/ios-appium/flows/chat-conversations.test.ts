@@ -26,7 +26,7 @@ import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {inNameSection, type Rect} from '../gate/chat-lib'
 import {sourceElements} from '../gate/page-source-lib'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
   appConversationMuted,
@@ -100,9 +100,6 @@ describe('chat conversations', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const callsOf = async (seq: number, method: string) => (await callsSince(seq)).calls.filter(c => c.method === method)
-  const waitForCall = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsOf(seq, method)).length > 0 ? true : undefined), {interval: 250, timeout: 10_000})
 
   const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
   const expectStatus = async (what: string, convID: string, want: number) =>
@@ -235,7 +232,7 @@ describe('chat conversations', function () {
     await openRowMenu(data.secondUser, convID)
     const seq = await currentCallSeq()
     await chooseMenuItem('Hide until next message')
-    await waitForCall('the hide to go out', seq, 'chat.1.local.SetConversationStatusLocal')
+    await waitForUiCall('the hide to go out', seq, 'chat.1.local.SetConversationStatusLocal')
     await expectStatus('the DM hidden', convID, conversationStatus.ignored)
     // the self conversation shows the inbox loaded, so the DM's absence counts
     await scrollInboxTo(data.smokeUser)
@@ -267,7 +264,7 @@ describe('chat conversations', function () {
     await openSettings()
     let seq = await currentCallSeq()
     await el(T.CHAT_INFO_PANEL_MUTE).click()
-    await waitForCall('the mute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
+    await waitForUiCall('the mute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
     await expectStatus('the DM muted', convID, conversationStatus.muted)
     await expectApp('the DM muted', async () => appConversationMuted(convID), true)
     await step('Muted from the info panel')
@@ -290,7 +287,7 @@ describe('chat conversations', function () {
     await openSettings()
     seq = await currentCallSeq()
     await el(T.CHAT_INFO_PANEL_MUTE).click()
-    await waitForCall('the unmute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
+    await waitForUiCall('the unmute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
     await expectStatus('the DM unmuted', convID, conversationStatus.unfiled)
     await expectApp('the DM unmuted', async () => appConversationMuted(convID), false)
     await step('Unmuted', {card: true})
@@ -326,7 +323,7 @@ describe('chat conversations', function () {
     await openMenuFrom("the team header's menu", async () => gear.click())
     const seq = await currentCallSeq()
     await chooseMenuItem('Mark all as read')
-    await waitForCall('the mark read to go out', seq, 'chat.1.local.markTLFAsReadLocal')
+    await waitForUiCall('the mark read to go out', seq, 'chat.1.local.markTLFAsReadLocal')
     await waitFor('the host to read the channel read', async () => ((await unread()) ? undefined : true), {
       interval: 1_000,
       timeout: 20_000,
@@ -348,7 +345,7 @@ describe('chat conversations', function () {
     await openRowMenu(data.smokeUser, selfConvID)
     let seq = await currentCallSeq()
     await chooseMenuItem('Pin to top')
-    await waitForCall('the pin to go out', seq, 'keybase.1.gregor.updateCategory')
+    await waitForUiCall('the pin to go out', seq, 'keybase.1.gregor.updateCategory')
     await expectPinned('the self conversation pinned', p => p.includes(selfConvID))
     await expectApp('the self conversation pinned', async () => appConversationPinned(selfConvID), true)
     await step('Pinned to the top')
@@ -369,7 +366,7 @@ describe('chat conversations', function () {
     await openRowMenu(data.smokeUser, selfConvID)
     seq = await currentCallSeq()
     await chooseMenuItem('Unpin')
-    await waitForCall('the unpin to go out', seq, 'keybase.1.gregor.updateCategory')
+    await waitForUiCall('the unpin to go out', seq, 'keybase.1.gregor.updateCategory')
     await expectPinned('the self conversation unpinned', p => !p.includes(selfConvID))
     await expectApp('the self conversation unpinned', async () => appConversationPinned(selfConvID), false)
     await step('Unpinned', {card: true})

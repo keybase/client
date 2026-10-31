@@ -16,7 +16,7 @@ import {cliChatApi, cliWhoami} from '../../shared/cli-account'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
   check,
@@ -207,11 +207,7 @@ describe('chat unfurl', function () {
       async () => ((await unfurlsOf(p)).prompts.length === 0 && (await inRow(`~${T.CHAT_UNFURL_PROMPT}`, p.ordinal)) === 0 ? true : undefined),
       {interval: 250, timeout: 10_000}
     )
-    await waitFor(
-      'the answer to go out',
-      async () => ((await callsSince(seq)).calls.some(c => c.method === 'chat.1.local.resolveUnfurlPrompt') ? true : undefined),
-      {interval: 250, timeout: 10_000}
-    )
+    await waitForUiCall('the answer to go out', seq, 'chat.1.local.resolveUnfurlPrompt')
   }
 
   // The preview on the row, in the store and drawn, with no prompt. Bound: unfurled 30.

@@ -217,8 +217,24 @@ test('the call log holds every call while recording, flags paused ones, and keep
   assert.equal(log.seq, log.calls.at(-1)?.seq)
   assert.ok(log.calls.every((c, i) => i === 0 || c.seq > log.calls[i - 1]!.seq))
   assert.doesNotMatch(JSON.stringify(log), /secret/)
-  assert.deepEqual(rt.recording.calls(log.seq), {calls: [], seq: log.seq})
+  assert.deepEqual(rt.recording.calls(log.seq).calls, [])
+  assert.equal(rt.recording.calls(log.seq).seq, log.seq)
   assert.deepEqual(rt.recording.take(), ['chat.1.local.updateTyping'])
+})
+
+test('the call log says which runtime and recording it belongs to, and whether it is recording now', () => {
+  const {rt} = runtime()
+  const other = runtime().rt
+  assert.equal(rt.recording.calls(0).recording, false)
+  rt.recording.start()
+  const at = rt.recording.calls(0)
+  assert.equal(at.recording, true)
+  assert.notEqual(at.runtime, other.recording.calls(0).runtime)
+  rt.recording.take()
+  assert.equal(rt.recording.calls(0).recording, false)
+  assert.equal(rt.recording.calls(0).runtime, at.runtime)
+  rt.recording.start()
+  assert.equal(rt.recording.calls(0).generation, at.generation + 1)
 })
 
 test('the call log keeps only the latest calls', () => {

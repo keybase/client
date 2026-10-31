@@ -24,7 +24,7 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {notifyChoiceOf} from '../gate/chat-lib'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {
   check,
@@ -79,9 +79,6 @@ describe('chat channel settings', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const callsOf = async (seq: number, method: string) => (await callsSince(seq)).calls.filter(c => c.method === method)
-  const waitForCall = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsOf(seq, method)).length > 0 ? true : undefined), {interval: 250, timeout: 10_000})
 
   const expectMembers = async (what: string, topicName: string, ok: (members: Array<string>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await channelMembersFromCli(topicName)) ? true : undefined), {
@@ -207,7 +204,7 @@ describe('chat channel settings', function () {
     await step('Browse all channels offers Join')
     const seq = await currentCallSeq()
     await tapControlIn(row!, {prop: 'channelMeta.channelname', value: topicName}, 'Join')
-    await waitForCall('the join to go out', seq, 'chat.1.local.joinConversationByIDLocal')
+    await waitForUiCall('the join to go out', seq, 'chat.1.local.joinConversationByIDLocal')
     await expectMembers('the account in the channel', topicName, m => m.includes(data.smokeUser))
     await step('Joined')
 
@@ -246,7 +243,7 @@ describe('chat channel settings', function () {
     const seq = await currentCallSeq()
     await add.click()
     await searchFilter().waitForExist({reverse: true, timeout: 10_000})
-    await waitForCall('the add to go out', seq, 'chat.1.local.bulkAddToConv')
+    await waitForUiCall('the add to go out', seq, 'chat.1.local.bulkAddToConv')
     await expectMembers('the second account in the channel', topicName, m => m.includes(data.secondUser))
     await step('The second account added', {card: true})
   })
@@ -265,7 +262,7 @@ describe('chat channel settings', function () {
     roleSetIn = topicName
     const seq = await currentCallSeq()
     await chooseMenuItem('Admin')
-    await waitForCall('the role to go out', seq, 'chat.1.local.setConvMinWriterRoleLocal')
+    await waitForUiCall('the role to go out', seq, 'chat.1.local.setConvMinWriterRoleLocal')
     await waitFor('the host to read the minimum role admin', async () => (/\badmin\b/i.test(await minWriterRoleFromCli(topicName)) ? true : undefined), {
       interval: 1_000,
       timeout: 20_000,
@@ -302,7 +299,7 @@ describe('chat channel settings', function () {
     await shown(original)
     const seq = await currentCallSeq()
     await tapNotifyRadio('mobile', want)
-    await waitForCall('the setting to go out', seq, 'chat.1.local.setAppNotificationSettingsLocal')
+    await waitForUiCall('the setting to go out', seq, 'chat.1.local.setAppNotificationSettingsLocal')
     await expectSavedMobile('the mobile setting saved', convID, want)
     await shown(want)
     await step('Mobile notifications: only when @mentioned')
@@ -340,7 +337,7 @@ describe('chat channel settings', function () {
     await step('Leave channel in the info panel')
     const seq = await currentCallSeq()
     await leave().click()
-    await waitForCall('the leave to go out', seq, 'chat.1.local.leaveConversationLocal')
+    await waitForUiCall('the leave to go out', seq, 'chat.1.local.leaveConversationLocal')
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
     check((await visibleConversation()) !== convID, 'the left channel is still the screen shown')
     await expectMembers('the account gone from the channel', topicName, m => !m.includes(data.smokeUser))

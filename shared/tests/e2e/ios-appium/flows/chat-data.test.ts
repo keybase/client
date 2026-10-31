@@ -30,7 +30,7 @@ import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {inboxRowMatches} from '../gate/chat-lib'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {callsSince, currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {tapBack} from '../gate/screens'
 import {manualEdge, step} from '../gate/step'
@@ -113,10 +113,6 @@ describe('chat data', function () {
   const openScratch = async () => openConversation(data.convIDs[E2E_CHANNELS.scratch])
   const openDirect = async () => openConversation(data.direct.convID)
 
-  // Calls of `method` in the recorder's call log since `seq`.
-  const callsOf = async (seq: number, method: string) => (await callsSince(seq)).calls.filter(c => c.method === method)
-  const waitForCall = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsOf(seq, method)).length > 0 ? true : undefined), {interval: 250, timeout: 10_000})
 
   // The host's read of a conversation's messages, polled until `ok` takes them.
   const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
@@ -385,7 +381,7 @@ describe('chat data', function () {
         const lines = await orangeLineOrdinals()
         return lines.length === 1 && lines[0] === firstOrdinal ? true : undefined
       })
-      await waitForCall('the mark unread to go out', before, 'chat.1.local.markAsReadLocal')
+      await waitForUiCall('the mark unread to go out', before, 'chat.1.local.markAsReadLocal')
       await directReadOnHost('behind the message', r => r.readMsgid > 0 && r.readMsgid < firstID)
       await step('Marked unread: the orange line above the message, the server read pointer behind it')
 
@@ -444,10 +440,10 @@ describe('chat data', function () {
       // taken right before the tap, so the load below is the mark's own
       const atTap = await currentCallSeq()
       await chooseMenuItem('Mark as unread')
-      await waitForCall('the load around the message', atTap, 'chat.1.local.getThreadNonblock')
+      await waitForUiCall('the load around the message', atTap, 'chat.1.local.getThreadNonblock')
       // well past the load's answer, so a mark would have gone out
       await browser.pause(3_000)
-      const marks = await callsOf(atTap, 'chat.1.local.markAsReadLocal')
+      const marks = await uiCallsSince(atTap, 'chat.1.local.markAsReadLocal')
       check(!marks.length, `${marks.length} marks went out for the first message`)
       // a line would be drawn within a frame of the answer; give it well past that
       for (const until = Date.now() + 2_000; Date.now() < until; ) {
@@ -492,7 +488,7 @@ describe('chat data', function () {
       })
       const quote = `> ${text}\n`
       await waitForComposerText(quote, 10_000)
-      await waitForCall('the DM to be found for the reply', before, 'chat.1.local.newConversationLocal')
+      await waitForUiCall('the DM to be found for the reply', before, 'chat.1.local.newConversationLocal')
       await step('Reply privately opened the DM with the message quoted')
 
       // The reply goes on the line under the quote. The composer sometimes has the keyboard already
@@ -597,7 +593,7 @@ describe('chat data', function () {
         // switch once the composer is saving drafts of the keys coming in
         await waitFor(
           'a draft save of the keys being typed',
-          async () => ((await callsOf(before, 'chat.1.local.updateUnsentText')).length > 0 ? true : undefined),
+          async () => ((await uiCallsSince(before, 'chat.1.local.updateUnsentText')).length > 0 ? true : undefined),
           {interval: 50, timeout: 10_000}
         )
         await startAppAccountSwitch(data.secondUser)
@@ -617,7 +613,8 @@ describe('chat data', function () {
         await browser.pause(5_000)
         const changed = await accountChangedSeq()
         if (changed === null) throw new Error('the account change was never seen')
-        const calls = (await callsSince(before)).calls
+        // the UI's calls: the switch's own dispatch went out paused
+        const calls = (await callsSince(before)).filter(c => !c.paused)
         const composerBefore = calls.filter(c => c.seq <= changed && composerCall(c))
         const after = calls.filter(c => c.seq > changed)
         console.log(`the composer's calls before the account changed: ${composerBefore.map(c => c.method).join(', ')}`)
@@ -683,7 +680,7 @@ describe('chat data', function () {
       })
       const shown = new Set<string | null>()
       for (const until = Date.now() + 6_000; Date.now() < until; ) shown.add(await visibleConversation())
-      const methods = [...new Set((await callsSince(before)).calls.map(c => c.method))]
+      const methods = [...new Set((await callsSince(before)).map(c => c.method))]
       console.log(`never joined: the app called ${methods.join(', ')}`)
       check(
         shown.size === 1 && shown.has(data.closedConvID),

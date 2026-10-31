@@ -18,7 +18,7 @@ import * as T from '../../shared/test-ids'
 import {secondBlocks, unblockSecondOnHost} from '../gate/blocks'
 import {secondBlockedProblem} from '../gate/blocks-lib'
 import {openLink} from '../gate/device'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {
   check,
@@ -55,9 +55,6 @@ describe('chat blocks', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const callsOf = async (seq: number, method: string) => (await callsSince(seq)).calls.filter(c => c.method === method)
-  const waitForCall = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsOf(seq, method)).length > 0 ? true : undefined), {interval: 250, timeout: 10_000})
 
   const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
   const expectStatus = async (what: string, want: number) =>
@@ -187,8 +184,8 @@ describe('chat blocks', function () {
     let seq = await currentCallSeq()
     await finish().click()
     await finish().waitForExist({reverse: true, timeout: 15_000})
-    await waitForCall('the blocks to go out', seq, 'keybase.1.user.setUserBlocks')
-    await waitForCall('the blocked status to go out', seq, 'chat.1.local.SetConversationStatusLocal')
+    await waitForUiCall('the blocks to go out', seq, 'keybase.1.user.setUserBlocks')
+    await waitForUiCall('the blocked status to go out', seq, 'chat.1.local.SetConversationStatusLocal')
     await expectBlocks('the second account chat blocked', b => b.chatBlocked)
     await expectStatus('the DM blocked', conversationStatus.blocked)
     // Finish goes to the inbox; the self conversation shows it loaded, so the DM's absence counts
@@ -222,7 +219,7 @@ describe('chat blocks', function () {
     seq = await currentCallSeq()
     await finish().click()
     await finish().waitForExist({reverse: true, timeout: 15_000})
-    await waitForCall('the unblock to go out', seq, 'keybase.1.user.setUserBlocks')
+    await waitForUiCall('the unblock to go out', seq, 'keybase.1.user.setUserBlocks')
     await expectBlocks('the second account unblocked', b => !b.chatBlocked && !b.followBlocked)
     await step('Unblocked from the profile')
   })

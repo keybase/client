@@ -20,7 +20,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {openLink} from '../gate/device'
 import {sourceElements} from '../gate/page-source-lib'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
   check,
@@ -122,12 +122,6 @@ describe('chat bots', function () {
   })
 
   // -- the phone ----------------------------------------------------------------------------------
-
-  const callOut = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsSince(seq)).calls.some(c => c.method === method) ? true : undefined), {
-      interval: 250,
-      timeout: 10_000,
-    })
 
   // The button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap 1 = 6.
   const tapButton = async (label: string, what: string) =>
@@ -289,7 +283,7 @@ describe('chat bots', function () {
     let seq = await currentCallSeq()
     await tapButton('Install', "the install screen's Install")
     await el(T.CHAT_BOT_INSTALL).waitForExist({reverse: true, timeout: 20_000})
-    await callOut('the install to go out', seq, 'chat.1.local.addBotMember')
+    await waitForUiCall('the install to go out', seq, 'chat.1.local.addBotMember')
     await botRowMenu()
     await expectHost("the second account's role as a restricted bot", async () => roleIn(generalConvID), r => r === restrictedBot)
     const convs = await botConvs(generalConvID)
@@ -324,7 +318,7 @@ describe('chat bots', function () {
     seq = await currentCallSeq()
     await tapButton('Save', "the edit screen's Save")
     await el(T.CHAT_BOT_INSTALL).waitForExist({reverse: true, timeout: 20_000})
-    await callOut('the edit to go out', seq, 'chat.1.local.setBotMemberSettings')
+    await waitForUiCall('the edit to go out', seq, 'chat.1.local.setBotMemberSettings')
     await expectHost('the bot reading every channel', async () => botConvs(generalConvID), c => c.length === 0)
     await step('Edited: the host reads the bot on all channels')
 
@@ -355,7 +349,7 @@ describe('chat bots', function () {
       async () => elementWithLabelPartIn(NAMED, name, 'the subteam among the places'),
       {interval: 500, timeout: 15_000}
     )
-    await callOut('the place search to go out', seq, 'chat.1.local.addBotConvSearch')
+    await waitForUiCall('the place search to go out', seq, 'chat.1.local.addBotConvSearch')
     await step('The bot offered for another team or chat')
     await escapeToTabs()
 
@@ -368,7 +362,7 @@ describe('chat bots', function () {
     await requireOnSubteam('the uninstall confirm', 'chatConfirmRemoveBot', teamID, generalConvID)
     seq = await currentCallSeq()
     await tapButton('Uninstall', "the confirm's Uninstall")
-    await callOut('the uninstall to go out', seq, 'chat.1.local.removeBotMember')
+    await waitForUiCall('the uninstall to go out', seq, 'chat.1.local.removeBotMember')
     await expectHost("the second account's role gone", async () => roleIn(generalConvID), r => r === 0)
     await waitFor('the bot row to go', async () => ((await els(T.TEAMS_BOT_ROW_MENU).length) === 0 ? true : undefined), {
       interval: 500,

@@ -26,7 +26,7 @@ import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {inboxRowMatches} from '../gate/chat-lib'
 import {relaunchApp} from '../gate/device'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {callsSince, currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {manualEdge, step} from '../gate/step'
 import {
@@ -549,29 +549,30 @@ describe('chat composer', function () {
     // the saved draft's text (a channel row shows only a draft icon).
     it('leaving with the @mention list open sends no typing after the leave and keeps the text as the draft', async function () {
       // worst case (s): calls 2, read 110, reset 30, type 15, the list 10, the typing sent 12, the
-      // pause 2, calls 2, step 2, open 100, the pause 2, calls 2, draft 142, step 2 = 433
-      this.timeout(460_000)
+      // pause 2, calls 2, step 2, open 100, the load 10, the pause 2, calls 2, draft 142, step 2 = 443
+      this.timeout(470_000)
       const typed = `@${data.secondUser.slice(0, 3)}`
       const typingOn = (calls: ReadonlyArray<LoggedCall>) =>
-        calls.filter(c => c.method === 'chat.1.local.updateTyping' && c.typing === true)
+        calls.filter(c => !c.paused && c.method === 'chat.1.local.updateTyping' && c.typing === true)
       const before = await currentCallSeq()
       await openDirectRead()
       await resetComposer()
       await typeInComposer(typed)
       await el(T.CHAT_SUGGESTION_LIST).waitForExist({timeout: 10_000})
-      await waitFor(
-        'the typing to go out',
-        async () => (typingOn((await callsSince(before)).calls).length > 0 ? true : undefined),
-        {interval: 500, timeout: 10_000}
-      )
+      await waitFor('the typing to go out', async () => (typingOn(await callsSince(before)).length > 0 ? true : undefined), {
+        interval: 500,
+        timeout: 10_000,
+      })
       // past the typing throttle (1s), so the typing from before the leave has all gone out
       await browser.pause(1_500)
       const atLeave = await currentCallSeq()
       await step('The @mention list open over the typed text')
 
       await openScratch()
+      // the scratch open's thread load, so the window after the leave is shown to log calls
+      await waitForUiCall('the scratch thread to load', atLeave, 'chat.1.local.getThreadNonblock')
       await browser.pause(1_500)
-      const after = typingOn((await callsSince(atLeave)).calls)
+      const after = typingOn(await callsSince(atLeave))
       check(after.length === 0, `${after.length} typing updates said typing after the leave`)
       // the typed text holds part of an account name, so the wait names only what it is
       await expectDirectRow('the typed @ text as its draft', label => label.includes('Draft') && label.includes(typed))

@@ -23,7 +23,7 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
@@ -269,11 +269,7 @@ describe('chat attachments', function () {
       if (expanded) break
       if (tap >= 3) throw new Error('the image did not expand after three taps on its "Collapsed" label')
     }
-    await waitFor(
-      'the expand to go out',
-      async () => ((await callsSince(before)).calls.some(c => c.method === 'chat.1.local.toggleMessageCollapse') ? true : undefined),
-      {interval: 250, timeout: 10_000}
-    )
+    await waitForUiCall('the expand to go out', before, 'chat.1.local.toggleMessageCollapse')
     await elementInRow(`~${T.CHAT_ATTACHMENT_IMAGE}`, expandOrdinal, 'the expanded image')
     await step('The image expanded from its row, the other still collapsed')
 

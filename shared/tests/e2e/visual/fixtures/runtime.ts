@@ -101,7 +101,8 @@ export type E2ERecorder = {
   // Resuming a token that is not open changes nothing; start() drops every open token.
   pause: () => string
   resume: (token: string) => void
-  // the calls sent while recording after `sinceSeq`, and the latest seq
+  // the calls sent while recording after `sinceSeq`, the latest seq, and which runtime and recording
+  // the log belongs to
   calls: (sinceSeq: number) => CallLog
 }
 
@@ -289,6 +290,8 @@ export const createRuntime = (deps: {
   // random per runtime, so a token from another runtime is never open in this one
   const pauseBase = Math.random().toString(36).slice(2)
   let pauseCount = 0
+  // counts start()s, so a reader can tell a recording that stopped and started again since its mark
+  let generation = 0
   let callLog: Array<LoggedCall> = []
   let callSeq = 0
   const logCall = (call: OutgoingCall) => {
@@ -493,6 +496,9 @@ export const createRuntime = (deps: {
   const recording = {
     calls: (sinceSeq: number): CallLog => ({
       calls: callLog.slice(-CALL_LOG_SIZE).filter(c => c.seq > sinceSeq),
+      generation,
+      recording: !!recorded,
+      runtime: pauseBase,
       seq: callSeq,
     }),
     pause: () => {
@@ -505,6 +511,7 @@ export const createRuntime = (deps: {
     },
     start: (opts?: {includeBoot?: boolean}) => {
       pauses.clear()
+      generation++
       recorded = new Set(opts?.includeBoot ? boot : undefined)
       sync()
     },

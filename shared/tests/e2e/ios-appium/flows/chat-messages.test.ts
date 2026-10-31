@@ -33,7 +33,7 @@ import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {forwardResultMatches} from '../gate/chat-lib'
 import {setPasteboard} from '../gate/device'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {manualEdge, step} from '../gate/step'
 import {
@@ -133,9 +133,6 @@ describe('chat messages', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const callsOf = async (seq: number, method: string) => (await callsSince(seq)).calls.filter(c => c.method === method)
-  const waitForCall = async (what: string, seq: number, method: string) =>
-    waitFor(what, async () => ((await callsOf(seq, method)).length > 0 ? true : undefined), {interval: 250, timeout: 10_000})
 
   const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await readFromCli(where)) ? true : undefined), {
@@ -299,7 +296,7 @@ describe('chat messages', function () {
       },
       {interval: 250, timeout: 15_000}
     )
-    await waitForCall('the edit to go out', seq, 'chat.1.local.postEditNonblock')
+    await waitForUiCall('the edit to go out', seq, 'chat.1.local.postEditNonblock')
     await step('Edited: the row shows the new body')
     await expectCli({topicName: E2E_CHANNELS.scratch}, 'the edited body and not the old one', ms => {
       const bodies = textBodies(ms)
@@ -365,7 +362,7 @@ describe('chat messages', function () {
       interval: 250,
       timeout: 15_000,
     })
-    await waitForCall('the cancel to go out', beforeCancel, 'chat.1.local.CancelPost')
+    await waitForUiCall('the cancel to go out', beforeCancel, 'chat.1.local.CancelPost')
     const record = await storedMessageState(ordinal)
     check(!record, `the outbox record is still in the thread: ${JSON.stringify(record)}`)
     await step('Cancelled: the failed row is gone')
@@ -459,7 +456,7 @@ describe('chat messages', function () {
       return newest?.content.type === 'attachment' && newest.content.attachment?.object?.title === title
     })
     check(destination === (await directConvIDFromCli(data.smokeUser)), 'the forward opened another conversation than the self conversation')
-    await waitForCall('the forward to go out', seq, 'chat.1.local.forwardMessageNonblock')
+    await waitForUiCall('the forward to go out', seq, 'chat.1.local.forwardMessageNonblock')
     await waitForRow(title, 30_000)
     await step('Forwarded: the self conversation shows it, and the host reads it there', {card: true})
   })
@@ -483,7 +480,7 @@ describe('chat messages', function () {
     let seq = await currentCallSeq()
     await el(T.CHAT_EXPLODING_BUTTON).click()
     await chooseMenuItem('30 seconds')
-    await waitForCall('the exploding mode to go out', seq, 'keybase.1.gregor.updateCategory')
+    await waitForUiCall('the exploding mode to go out', seq, 'keybase.1.gregor.updateCategory')
     await expectGregor('the exploding mode at 30 seconds', category, '30')
     await waitFor(
       'the timer button to read 30s',
@@ -529,7 +526,7 @@ describe('chat messages', function () {
       },
       {interval: 250, timeout: 20_000}
     )
-    await waitForCall('the explosion to go out', seq, 'chat.1.local.postDeleteNonblock')
+    await waitForUiCall('the explosion to go out', seq, 'chat.1.local.postDeleteNonblock')
     await step('Explode now: exploded at once, by the account')
   })
 
@@ -573,7 +570,7 @@ describe('chat messages', function () {
     const seq = await currentCallSeq()
     await confirm.click()
     await confirm.waitForExist({reverse: true, timeout: 10_000})
-    await waitForCall('the clear to go out', seq, 'chat.1.local.postDeleteHistoryByAge')
+    await waitForUiCall('the clear to go out', seq, 'chat.1.local.postDeleteHistoryByAge')
     await closeInfoPanel()
     check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
     await waitFor(
@@ -639,7 +636,7 @@ describe('chat messages', function () {
       const seq = await currentCallSeq()
       await el(T.CHAT_PINNED_DISMISS).click()
       await pinnedBanner().waitForExist({reverse: true, timeout: 10_000})
-      await waitForCall('the dismiss to go out', seq, 'chat.1.local.ignorePinnedMessage')
+      await waitForUiCall('the dismiss to go out', seq, 'chat.1.local.ignorePinnedMessage')
       await waitFor("the phone's service to hide the pin", async () => ((await appPinnedMessageID(convID)) === null ? true : undefined), {
         interval: 1_000,
         timeout: 20_000,
@@ -696,7 +693,7 @@ describe('chat messages', function () {
     await option.waitForExist({timeout: 5_000})
     await option.click()
     await el(T.CHAT_SKIN_TONE_OPTIONS).waitForExist({reverse: true, timeout: 5_000})
-    await waitForCall('the skin tone to go out', seq, 'chat.1.local.putReacjiSkinTone')
+    await waitForUiCall('the skin tone to go out', seq, 'chat.1.local.putReacjiSkinTone')
     await waitFor(`the phone's service to keep tone ${want}`, async () => ((await appSkinTone()) === want ? true : undefined), {
       interval: 1_000,
       timeout: 20_000,
