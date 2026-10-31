@@ -1,46 +1,150 @@
 // Simulator-side actions a flow takes at the app's boundary, each with a deadline. A relaunch starts
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
-// Delivering something to the app proves nothing about it, so these credit nothing: a flow calls
-// creditSurface(<surface>) once it has asserted the app used what was delivered.
-import {
-  activateApp,
-  appPid,
-  backgroundApp,
-  BUNDLE_ID,
-  deviceUdid,
-  jsEval,
-  openUrl,
-  sendPush,
-  setLocation as simctlSetLocation,
-  simctl,
-  terminateApp,
-  waitFor,
-} from '../helpers/lifecycle'
+// Delivering something to the app proves nothing about it, so these credit nothing: a flow credits
+// the surface (attempt.ts) once it has asserted the app used what was delivered, and device.test.ts
+// keeps any credit call out of this file.
+// What changes the phone beyond the app (its permissions, photo library and location) runs only
+// against the udid preflight proved booted (KB_IOS_UDID), and names keybase.ios where simctl takes
+// a bundle id.
+import {execFileSync} from 'child_process'
+import {createHash} from 'crypto'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import {runSync} from '../helpers/app'
+import {activateApp, appPid, backgroundApp, BUNDLE_ID, deviceUdid, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
+import {CORPUS} from '../../fixtures/corpus/corpus.ts'
+import {e2eRunId} from '../../shared/run-marker.ts'
+import {installAppLogCapture} from './app-log.ts'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
+import {
+  corpusDiff,
+  parseTcc,
+  privacyGrantArgs,
+  privacyOriginal,
+  privacyRestoreArgs,
+  requireTappablePush,
+  requireUdid,
+  restorePrivacyWith,
+  type PrivacyRestore,
+  type PrivacyService,
+  type PushPayload,
+  type TccRow,
+} from './device-lib.ts'
+import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
+import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
 import {pasteboardHolds} from './pasteboard-lib.ts'
 
 const PASTEBOARD_MS = 30_000
+const PUSH_MS = 30_000
+const TCC_MS = 15_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
+const E2E_TMP = '/tmp/kb-e2e'
+
+// The simulator preflight proved booted.
+const preflightUdid = () => requireUdid(process.env['KB_IOS_UDID'])
+
+const execFailure = (what: string, e: unknown) => {
+  const {signal, status} = e as {signal?: string | null; status?: number | null}
+  return `${what} failed (${signal ? `signal ${signal}` : `exit ${status ?? '?'}`})`
+}
 
 // The flow credits 'deep-link' once it has asserted the screen the app routed the link to.
 export const openLink = (url: string) => openUrl(url)
 
-// The flow credits 'push-notification' once it has asserted the app showed or handled it.
-export const pushNotification = (payload: object) => sendPush(payload)
+let pushes = 0
 
-export const addPhotos = (paths: Array<string>) => {
-  if (!paths.length) return
-  simctl('addmedia', deviceUdid(), ...paths)
+// Delivers a chat.newmessage push (device-lib.ts chatNewMessagePayload) through a mode 600 file
+// under /tmp/kb-e2e, removed after. A failure names neither the file nor the command line. The flow
+// credits 'push-notification' once it has asserted the app showed or handled it.
+export const pushNotification = (payload: PushPayload) => {
+  requireCurrentAttempt()
+  const body = JSON.stringify(requireTappablePush(payload))
+  const udid = deviceUdid()
+  fs.mkdirSync(E2E_TMP, {mode: 0o700, recursive: true})
+  const file = path.join(E2E_TMP, `push-${e2eRunId()}-${++pushes}.json`)
+  try {
+    fs.rmSync(file, {force: true})
+    fs.writeFileSync(file, body, {flag: 'wx', mode: 0o600})
+    execFileSync('xcrun', ['simctl', 'push', udid, BUNDLE_ID, file], {killSignal: 'SIGKILL', stdio: ['ignore', 'pipe', 'pipe'], timeout: PUSH_MS})
+  } catch (e) {
+    // no cause: the error holds the command line
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(execFailure('simctl push', e))
+  } finally {
+    fs.rmSync(file, {force: true})
+  }
 }
 
 // The flow credits 'location' once it has asserted the app used the location.
-export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, lon)
+export const setLocation = (lat: number, lon: number) => {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('refusing a location that is not two numbers')
+  simctl('location', preflightUdid(), 'set', `${lat},${lon}`)
+}
+
+const LOCATION = 'the simulated location'
+
+// Clears the simulated location (a restore: simctl only, so a hook can run it). A clear that fails
+// poisons the gate, naming the call to run by hand; one that works clears that poison.
+export const clearLocation = () => {
+  const udid = preflightUdid()
+  try {
+    simctl('location', udid, 'clear')
+  } catch (e) {
+    poisonGate(LOCATION, `run xcrun simctl location ${udid} clear`)
+    throw new Error(`clearing ${LOCATION} failed: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
+  }
+  clearGatePoison(LOCATION)
+}
+
+// -- the photo corpus ------------------------------------------------------------------------------
+
+export type CorpusItem = {file: string; kind: 'image' | 'video'; name: string; sha256: string}
+
+const photoCorpus = (): Array<CorpusItem> =>
+  CORPUS.flatMap(c =>
+    c.kind === 'image' || c.kind === 'video'
+      ? [{file: c.file, kind: c.kind, name: c.name, sha256: createHash('sha256').update(fs.readFileSync(c.file)).digest('hex')}]
+      : []
+  )
+
+// The corpus's photos and videos, each added to this simulator's library once ever: the library
+// can't be cleaned through simctl, so it grows by the corpus and nothing else. What was added is
+// recorded (udid and sha256) in ~/.config/keybase-e2e/ios-photo-corpus.json, mode 600, one item at a
+// time after its addmedia. Each goes in from a mode 600 copy under /tmp/kb-e2e/media-<runid>, removed
+// after. A flow picks an item and proves what it picked by read-back, never by grid position.
+export const ensurePhotoCorpus = async (): Promise<Array<CorpusItem>> => {
+  requireCurrentAttempt()
+  const udid = preflightUdid()
+  const wanted = photoCorpus()
+  const missing = corpusDiff(readCorpusRecord()[udid] ?? [], wanted)
+  if (missing.length) {
+    const dir = path.join(E2E_TMP, `media-${e2eRunId()}`)
+    fs.mkdirSync(dir, {mode: 0o700, recursive: true})
+    try {
+      for (const item of missing) {
+        const copy = path.join(dir, item.name)
+        fs.copyFileSync(item.file, copy)
+        fs.chmodSync(copy, 0o600)
+        try {
+          simctl('addmedia', udid, copy)
+        } finally {
+          fs.rmSync(copy, {force: true})
+        }
+        recordCorpusItem(udid, {name: item.name, sha256: item.sha256})
+      }
+    } finally {
+      fs.rmSync(dir, {force: true, recursive: true})
+    }
+  }
+  return Promise.resolve(wanted)
+}
 
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator
 // (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
@@ -114,6 +218,7 @@ const startedAgain = async (before: string | undefined) => {
   if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
   await waitForRuntime(before)
   await ensureErrorCapture()
+  await installAppLogCapture()
 }
 
 const launch = async (before: string | undefined) => {
@@ -154,24 +259,44 @@ export const relaunchHungApp = async () => {
   await openAttemptRecording()?.checkpoint()
 }
 
-// simctl privacy can terminate the app (iOS restarts a process whose permission changes), and the
-// kill can land seconds after the grant returns. When the app exited or came back with a new JS
-// runtime within PRIVACY_KILL_MS, it is launched if gone and this waits for its new runtime.
-export const grantPrivacy = async (service: string) => {
+// The app's rows in the simulator's TCC.db (its permissions but location), read only.
+export const tccSnapshot = (udid: string): Array<TccRow> => {
+  requireCurrentAttempt()
+  const db = path.join(os.homedir(), 'Library/Developer/CoreSimulator/Devices', requireUdid(udid), 'data/Library/TCC/TCC.db')
+  return parseTcc(runSync('sqlite3', ['-readonly', '-json', db, `SELECT service, auth_value FROM access WHERE client = '${BUNDLE_ID}'`], TCC_MS))
+}
+
+// Grants keybase.ios `service` and returns what restorePrivacy puts back, read from TCC.db first (a
+// permission this could not put back is refused before anything changes). simctl privacy can
+// terminate the app (iOS restarts a process whose permission changes), and the kill can land seconds
+// after the grant returns. When the app exited or came back with a new JS runtime within
+// PRIVACY_KILL_MS, it is launched if gone and this waits for its new runtime, so a body runs it,
+// never a hook.
+export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRestore> => {
+  const udid = preflightUdid()
+  const original = privacyOriginal(tccSnapshot(udid), service)
+  privacyRestoreArgs(original, service, udid)
+  const grant = privacyGrantArgs(service, udid, BUNDLE_ID)
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
   await keepErrors()
-  simctl('privacy', deviceUdid(), 'grant', service, BUNDLE_ID)
-  const changed = await waitFor(
-    'the app to exit or start a new JS runtime',
+  simctl(...grant)
+  const changed = await lookFor(
     async () => {
       if (appPid() === undefined) return true
       const now = await runtimeId().catch(() => undefined)
       return now !== undefined && now !== before ? true : undefined
     },
     {interval: 500, timeout: PRIVACY_KILL_MS}
-  ).catch(() => false)
+  )
   if (changed || appPid() === undefined) await launch(before)
+  return {done: false, original, udid}
+}
+
+// Puts back what grantPrivacy changed, once (device-lib.ts restorePrivacyWith): for a flow's
+// afterEach, as simctl is all it runs. A restore that fails poisons the gate.
+export const restorePrivacy = (r: PrivacyRestore) => {
+  restorePrivacyWith(r, {read: () => tccSnapshot(r.udid), run: args => void simctl(...args)})
 }
 
 export const toBackground = async () => backgroundApp()

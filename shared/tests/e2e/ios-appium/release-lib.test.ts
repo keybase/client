@@ -4,6 +4,7 @@ import {
   isMetroGroup,
   isWdaResidue,
   parsePs,
+  pushPermissionProblem,
   secretScanDirs,
   strayChildren,
   simulatorFromList,
@@ -230,4 +231,13 @@ describe('secretScanDirs', () => {
     expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/elsewhere/render'})).toEqual(['/s/tests/results', '/elsewhere/render'])
     expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/s/tests/results-other/render'})).toEqual(['/s/tests/results', '/s/tests/results-other/render'])
   })
+})
+
+test("the run refuses a phone without push permission, naming the owner's one-time grant", () => {
+  expect(pushPermissionProblem(true, 'iPhoneTest')).toBeUndefined()
+  expect(pushPermissionProblem(false, 'iPhoneTest')).toBe(
+    'push notifications are off for keybase.ios on iPhoneTest; turn them on once by hand ' +
+      '(on the simulator: Settings > Apps > Keybase > Notifications > Allow Notifications), then rerun; ' +
+      'the release command never asks for them, as asking opens the Settings app'
+  )
 })

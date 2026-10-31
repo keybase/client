@@ -74,8 +74,30 @@ import {portHolders, type PortHolder} from '../shared/gate/ports.ts'
 import {runSync, udidForName} from './helpers/app.ts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
-import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, metroGroups, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stopMetro} from './launch.mts'
-import {appSignedFromAppinfo, iosPreflightProblems, isWdaResidue, IOS_RELEASE_PORTS, secretScanDirs, simulatorFromList, strayChildren, type IosPreflightState} from './release-lib.ts'
+import {
+  appHasPushPermission,
+  BUNDLE_ID,
+  forgetMetroPidfile,
+  METRO_PORT,
+  metroGroups,
+  processes,
+  readMetroPidfile,
+  recordedMetroPgid,
+  relaunchApp,
+  startMetro,
+  stopMetro,
+} from './launch.mts'
+import {
+  appSignedFromAppinfo,
+  iosPreflightProblems,
+  isWdaResidue,
+  IOS_RELEASE_PORTS,
+  pushPermissionProblem,
+  secretScanDirs,
+  simulatorFromList,
+  strayChildren,
+  type IosPreflightState,
+} from './release-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -377,7 +399,9 @@ const main = async () => {
   // the scan at the end looks for every second-account password the env file held during the run
   secretWatch = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
-  Object.assign(process.env, childEnvVars(e2eEnv), {KB_IOS_DEVICE: device})
+  // KB_IOS_UDID: what changes the phone beyond the app (gate/device.ts) runs only against the
+  // simulator preflight proved booted
+  Object.assign(process.env, childEnvVars(e2eEnv), {KB_IOS_DEVICE: device, KB_IOS_UDID: id})
 
   const launched = await phase('launch', async () => {
     const left = recordedMetroPgid()
@@ -394,7 +418,7 @@ const main = async () => {
       sharedDir,
     })
     const account = await relaunchApp({device, log, udid: id})
-    const problem = notSmokeProblem(account, e2eEnv)
+    const problem = notSmokeProblem(account, e2eEnv) ?? pushPermissionProblem(await appHasPushPermission(device), device)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}

@@ -12,6 +12,10 @@ export const APP_ACCOUNT_BODY = `
     return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
   `
 
+// An expression for whether the app holds push permission (usePushState.hasPermissions, which it reads
+// from iOS at launch).
+export const PUSH_HAS_PERMISSIONS = `!!kbModule('stores/push.tsx').usePushState.getState().hasPermissions`
+
 // Names a test account by its role only (signedInName): this line lands in run output and results.
 export const notSmokeProblem = (a: AppAccount, accounts: {smokeUser: string; secondUser: string}): string | undefined => {
   if (a.loggedIn && a.username === accounts.smokeUser) return undefined

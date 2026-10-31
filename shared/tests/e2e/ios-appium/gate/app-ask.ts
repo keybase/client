@@ -4,6 +4,7 @@
 // back and restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
+import {PUSH_HAS_PERMISSIONS} from './app-account-lib.ts'
 import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 
@@ -373,5 +374,65 @@ export const removeArchiveJobs = async (ids: ArchiveJobs, before: ArchiveJobs) =
   await askApp<boolean>(
     "removing the flow's backup jobs",
     `Promise.resolve()${calls.map(c => `.then(() => ${thenIfStillAsked(c)})`).join('')}.then(() => true)`
+  )
+}
+
+// -- native permissions and the photo library --------------------------------------------------------
+
+const LOCATION = `kbModule('node_modules/expo-location/build/index.js')`
+const MEDIA = `kbModule('node_modules/expo-media-library/build/index.js')`
+
+// Whether the app holds push permission (usePushState.hasPermissions, which it reads from iOS at
+// launch). Never asked for: the app's request opens the Settings app, so the owner grants it once.
+export const pushHasPermissions = async () =>
+  askApp<boolean>("the app's push permission", `Promise.resolve(${PUSH_HAS_PERMISSIONS})`)
+
+// expo PermissionStatus values: 'granted', 'denied', 'undetermined'
+export type LocationPermission = {background: string; foreground: string}
+
+// The location permission as the app reads it (expo-location; native, no RPC).
+export const locationPermission = async () =>
+  askApp<LocationPermission>(
+    "the app's location permission",
+    `${LOCATION}.getForegroundPermissionsAsync()
+       .then(f => ${LOCATION}.getBackgroundPermissionsAsync().then(b => ({background: b.status, foreground: f.status})))`
+  )
+
+// The photo library permission as the app reads it (expo-media-library; native, no RPC): adding
+// (photos-add) and reading (photos), with how much of the library a read may see.
+export type MediaPermission = {add: string; read: string; readAccess: string}
+
+export const mediaPermission = async () =>
+  askApp<MediaPermission>(
+    "the app's photo library permission",
+    `${MEDIA}.getPermissionsAsync(false)
+       .then(r => ${MEDIA}.getPermissionsAsync(true).then(a => ({add: a.status, read: r.status, readAccess: r.accessPrivileges ?? 'none'})))`
+  )
+
+export type SavedAsset = {filename: string; id: string}
+
+const newestAsset = `new (${MEDIA}.Query)().orderBy({ascending: false, key: 'creationTime'}).limit(1).exe().then(a => a[0])`
+
+// The newest asset in the phone's photo library (needs the photos grant), or undefined when it has
+// none: the read-back of what Save to Photos added.
+export const latestSavedAsset = async (): Promise<SavedAsset | undefined> =>
+  (await askApp<SavedAsset | null>(
+    "the newest photo library asset",
+    `${newestAsset}.then(a => (a ? a.getFilename().then(filename => ({filename, id: a.id})) : null))`
+  )) ?? undefined
+
+// a PHAsset local identifier, as expo-media-library gives it
+const assetIdRe = /^(?:ph:\/\/)?[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\/L0\/001$/i
+
+// Deletes the asset the test saved, by its exact id, and only while it is still the library's
+// newest: anything else in the library is never touched. iOS asks to confirm, so the flow taps the
+// system prompt while this waits (`timeout`).
+export const deleteSavedAsset = async (id: string, timeout = 30_000) => {
+  if (!assetIdRe.test(id)) throw new Error('refusing a photo library asset id that is not one')
+  await askApp<boolean>(
+    "deleting the test's saved asset",
+    `${newestAsset}.then(a =>
+       a && a.id === ${JSON.stringify(id)} ? a.delete().then(() => true) : Promise.reject(new Error('the asset to delete is not the newest in the library')))`,
+    timeout
   )
 }

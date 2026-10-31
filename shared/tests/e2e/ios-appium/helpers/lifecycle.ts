@@ -14,9 +14,9 @@ import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 // Lifecycle flows assert on state and logs, never on screenshots:
 // - JS state is read from the running app through the Metro inspector (Runtime.evaluate).
 // - Native and Go transitions come from the app container's Go log (ios.log).
-// - JS log lines (logger.info/warn) come from Metro's start.log as metro:client_log events.
-//   start.log is shared by every device attached to Metro, so flows that read it keep a
-//   single app running.
+// - Gate flows read JS log lines (logger.info/warn) through gate/app-log.ts's in-runtime capture.
+//   The metroLog* reads below are the old lifecycle flows' (Metro's start.log, which Expo stopped
+//   writing in 58.1); they go with those flows.
 
 export const BUNDLE_ID = 'keybase.ios'
 
@@ -60,13 +60,24 @@ export const waitFor = async <R>(
   }
 }
 
-const statOrUndefined = (file: string) => {
-  try {
-    return fs.statSync(file)
-  } catch {
-    return undefined
+// Polls check until it returns a value, or answers undefined once the timeout passes. An error check
+// throws is thrown at once, so running out of time with nothing found is the only quiet outcome.
+export const lookFor = async <R>(
+  check: () => Promise<R | undefined> | R | undefined,
+  {timeout, interval = 250}: {timeout: number; interval?: number}
+): Promise<R | undefined> => {
+  const end = Date.now() + timeout
+  for (;;) {
+    requireCurrentAttempt()
+    const r = await check()
+    if (r !== undefined) return r
+    if (Date.now() > end) return undefined
+    await sleep(interval)
   }
 }
+
+// undefined when nothing is at the path; any other failure throws
+const statOrUndefined = (file: string) => fs.statSync(file, {throwIfNoEntry: false})
 
 // -- app process ------------------------------------------------------------
 
@@ -76,30 +87,40 @@ export const appPid = (udid = deviceUdid()): number | undefined => pidFromLaunch
 export const terminateApp = async (udid = deviceUdid()) => {
   try {
     simctl('terminate', udid, BUNDLE_ID)
-  } catch {}
+  } catch (e) {
+    // an app that is not running fails to terminate; the wait below is what says it is gone
+    if (isAttemptOver(e)) throw e
+  }
   await waitFor('the app to exit', () => (appPid(udid) === undefined ? true : undefined), {timeout: 10000})
 }
 
 // Crash reports for the iOS app written after `since`. Simulator crashes land in the host's
 // DiagnosticReports next to the host's own, including the desktop Keybase app's, so match on
 // the bundle id in the report's JSON header line.
+// A report written since `since` whose header can't be read throws, naming the report's file.
 export const crashReportsSince = (since: number): Array<string> => {
   const dir = path.join(os.homedir(), 'Library/Logs/DiagnosticReports')
-  let names: Array<string>
-  try {
-    names = fs.readdirSync(dir)
-  } catch {
-    return []
-  }
-  const bundleOf = (file: string) => {
+  if (!statOrUndefined(dir)) return []
+  // a report removed between the listing and its read reads as none
+  const headerOf = (file: string) => {
     try {
-      const header = fs.readFileSync(file, 'utf8').split('\n', 1)[0] ?? ''
-      return (JSON.parse(header) as {bundleID?: string}).bundleID
-    } catch {
-      return undefined
+      return fs.readFileSync(file, 'utf8').split('\n', 1)[0] ?? ''
+    } catch (e) {
+      if ((e as {code?: string}).code === 'ENOENT') return undefined
+      throw e
     }
   }
-  return names
+  const bundleOf = (file: string) => {
+    const header = headerOf(file)
+    if (header === undefined) return undefined
+    try {
+      return (JSON.parse(header) as {bundleID?: string}).bundleID
+    } catch {
+      throw new Error(`the crash report ${path.basename(file)} has no json header line`)
+    }
+  }
+  return fs
+    .readdirSync(dir)
     .filter(n => n.endsWith('.ips'))
     .map(n => path.join(dir, n))
     .filter(p => (statOrUndefined(p)?.mtimeMs ?? 0) >= since && bundleOf(p) === BUNDLE_ID)
@@ -221,7 +242,7 @@ export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(ud
 
 export const goLogSince = (mark: LogMark): Array<string> => linesSince(mark)
 
-export const metroLogPath = path.resolve('.expo/dev/logs/start.log')
+const metroLogPath = path.resolve('.expo/dev/logs/start.log')
 
 export const metroLogMark = (): LogMark => markFile(metroLogPath)
 
@@ -295,7 +316,7 @@ export const sendPush = (payload: object, udid = deviceUdid()) => {
 export const setLocation = (lat: number, lon: number, udid = deviceUdid()) =>
   simctl('location', udid, 'set', `${lat},${lon}`)
 
-export const isBooted = (udid: string) => simctl('list', 'devices', 'booted').includes(udid)
+const isBooted = (udid: string) => simctl('list', 'devices', 'booted').includes(udid)
 
 // -- app, springboard and chat actions -----------------------------------------
 
@@ -344,28 +365,33 @@ export const closeNotificationCenter = async () => {
     .perform()
 }
 
-// Waits for the system to show a notification whose text contains `body`, as a banner or,
-// once the banner is gone, a row in Notification Center, and taps it when asked. Returns where
-// it was found; a caller that doesn't tap must close Notification Center when it was opened.
-export const findNotification = async (body: string, {tap}: {tap: boolean}) =>
-  withSpringboard(async (): Promise<'banner' | 'center' | undefined> => {
-    const shown = async () => {
-      const els = await labelContains(body).getElements()
+// The system UI element whose label contains `text` (a notification's button when it shows one, as
+// the button takes the tap), once shown, or undefined after `timeout`. Run inside withSpringboard.
+export const shownWithLabel = async (text: string, timeout: number) =>
+  lookFor(
+    async () => {
+      const els = await labelContains(text).getElements()
       // The banner exposes a container, a button and the text; the button takes the tap.
       for (const e of els) {
         if ((await e.getAttribute('type')) === 'XCUIElementTypeButton') return e
       }
       return els[0]
-    }
-    const inBanner = await waitFor('the notification banner', shown, {interval: 300, timeout: 8000}).catch(() => undefined)
+    },
+    {interval: 300, timeout}
+  )
+
+// Waits for the system to show a notification whose text contains `body`, as a banner or,
+// once the banner is gone, a row in Notification Center, and taps it when asked. Returns where
+// it was found; a caller that doesn't tap must close Notification Center when it was opened.
+export const findNotification = async (body: string, {tap}: {tap: boolean}) =>
+  withSpringboard(async (): Promise<'banner' | 'center' | undefined> => {
+    const inBanner = await shownWithLabel(body, 8000)
     if (inBanner) {
       if (tap) await inBanner.click()
       return 'banner'
     }
     await openNotificationCenter()
-    const inCenter = await waitFor('the notification in Notification Center', shown, {interval: 300, timeout: 8000}).catch(
-      () => undefined
-    )
+    const inCenter = await shownWithLabel(body, 8000)
     if (!inCenter) {
       await closeNotificationCenter()
       return undefined

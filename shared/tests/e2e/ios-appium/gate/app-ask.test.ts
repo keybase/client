@@ -5,11 +5,16 @@ import {
   askApp,
   compressPreference,
   darkModeState,
+  deleteSavedAsset,
   filesSettings,
   guiClearValue,
   guiSetValue,
   guiValue,
+  latestSavedAsset,
+  locationPermission,
+  mediaPermission,
   proxyData,
+  pushHasPermissions,
   randomPW,
   phoneReachesServer,
   rememberPassphrase,
@@ -37,6 +42,9 @@ const mockApp = {
   // set: the threshold call answers only once it is called
   holdThreshold: undefined as undefined | {release?: () => void},
   log: [] as Array<string>,
+  // the newest asset in the phone's photo library; undefined: none
+  newestAsset: undefined as undefined | {id: string; filename: string},
+  push: false,
   // the service config's runtime stats flag; undefined: never set
   statsEnabled: undefined as undefined | boolean,
 }
@@ -64,6 +72,8 @@ beforeEach(() => {
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
   mockApp.statsEnabled = undefined
+  mockApp.push = false
+  mockApp.newestAsset = undefined
   const log = (s: string) => mockApp.log.push(s)
   const rpc: Record<string, unknown> = {
     SimpleFSSimpleFSSetFolderSyncConfigRpcPromise: async (p: unknown) => {
@@ -142,6 +152,36 @@ beforeEach(() => {
     'constants/rpc/rpc-chat-gen.tsx': chat,
     'constants/rpc/rpc-gen.tsx': rpc,
     'engine/call-port.tsx': callPort,
+    'node_modules/expo-location/build/index.js': {
+      getBackgroundPermissionsAsync: async () => answer('location background', {status: 'denied'}),
+      getForegroundPermissionsAsync: async () => answer('location foreground', {status: 'granted'}),
+    },
+    'node_modules/expo-media-library/build/index.js': {
+      Query: class {
+        private n = 0
+        private desc = false
+        orderBy(d: {key: string; ascending?: boolean}) {
+          this.desc = d.key === 'creationTime' && d.ascending === false
+          return this
+        }
+        limit(n: number) {
+          this.n = n
+          return this
+        }
+        async exe() {
+          log(`assets newest ${this.desc} limit ${this.n}`)
+          const a = mockApp.newestAsset
+          return Promise.resolve(
+            a && this.desc && this.n === 1
+              ? [{delete: async () => answer(`delete asset ${a.id}`), getFilename: async () => Promise.resolve(a.filename), id: a.id}]
+              : []
+          )
+        }
+      },
+      getPermissionsAsync: async (writeOnly?: boolean) =>
+        answer(`media permission ${writeOnly ? 'add' : 'read'}`, writeOnly ? {status: 'granted'} : {accessPrivileges: 'none', status: 'denied'}),
+    },
+    'stores/push.tsx': {usePushState: {getState: () => ({hasPermissions: mockApp.push})}},
     'stores/darkmode.tsx': {
       useDarkModeState: {getState: () => ({darkModePreference: 'alwaysLight', supported: true, systemDarkMode: false})},
     },
@@ -336,5 +376,39 @@ describe('backup jobs', () => {
     mockApp.failNext = 'no such job'
     await expect(removeArchiveJobs({chat: ['c8', 'c9'], kbfs: []}, {chat: [], kbfs: []})).rejects.toThrow(/no such job/)
     expect(mockApp.log).toEqual(['pause', 'chat delete c8 true', 'resume tok'])
+  })
+})
+
+describe('native permissions and the photo library', () => {
+  test("push, location and photo permissions are read as the app sees them, with the recorder paused", async () => {
+    await expect(pushHasPermissions()).resolves.toBe(false)
+    mockApp.push = true
+    await expect(pushHasPermissions()).resolves.toBe(true)
+    await expect(locationPermission()).resolves.toEqual({background: 'denied', foreground: 'granted'})
+    await expect(mediaPermission()).resolves.toEqual({add: 'granted', read: 'denied', readAccess: 'none'})
+    expect(mockApp.log).toEqual([
+      ...['pause', 'resume tok', 'pause', 'resume tok'],
+      ...['pause', 'location foreground', 'location background', 'resume tok'],
+      ...['pause', 'media permission read', 'media permission add', 'resume tok'],
+    ])
+  })
+
+  test("the newest asset in the phone's library, or undefined when there is none", async () => {
+    await expect(latestSavedAsset()).resolves.toBeUndefined()
+    mockApp.newestAsset = {filename: 'e2e-0abc12-save.png', id: '0F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'}
+    await expect(latestSavedAsset()).resolves.toEqual(mockApp.newestAsset)
+  })
+
+  test('deletes only the exact asset the test saved, and only while it is still the newest', async () => {
+    const id = '0F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'
+    mockApp.newestAsset = {filename: 'e2e-0abc12-save.png', id}
+    await deleteSavedAsset(id)
+    expect(mockApp.log.filter(l => l.startsWith('delete'))).toEqual([`delete asset ${id}`])
+    mockApp.log = []
+    await expect(deleteSavedAsset('1F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001')).rejects.toThrow(/not the newest/)
+    expect(mockApp.log.filter(l => l.startsWith('delete'))).toEqual([])
+    mockApp.log = []
+    for (const bad of ['', '*', `${id}'`, 'all']) await expect(deleteSavedAsset(bad)).rejects.toThrow(/^refusing /)
+    expect(mockApp.log).toEqual([])
   })
 })

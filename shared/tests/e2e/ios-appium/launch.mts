@@ -10,7 +10,7 @@ import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
 import {runSync} from './helpers/app.ts'
-import {APP_ACCOUNT_BODY, settledAccount, type AppAccount} from './gate/app-account-lib.ts'
+import {APP_ACCOUNT_BODY, PUSH_HAS_PERMISSIONS, settledAccount, type AppAccount} from './gate/app-account-lib.ts'
 import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
@@ -19,6 +19,8 @@ const METRO_PIDFILE = '/tmp/kb-e2e/ios-metro.json'
 // Metro always starts with --clear, so its first bundle is slow: the app gets longer to connect.
 const METRO_UP_MS = 3 * 60_000
 const APP_UP_MS = 5 * 60_000
+// the app reads its push permission from iOS shortly after launch, so a false holds this long first
+const PUSH_SETTLE_MS = 30_000
 
 type MetroPidfile = {pgid: number; start: number}
 
@@ -134,4 +136,15 @@ export const relaunchApp = async (o: {device: string; udid: string; log: (s: str
     },
     () => last
   )
+}
+
+// Whether the just-launched app holds push permission: true once it reads so, false once it has read
+// otherwise for PUSH_SETTLE_MS. An eval that fails throws.
+export const appHasPushPermission = async (device: string): Promise<boolean> => {
+  const end = Date.now() + PUSH_SETTLE_MS
+  for (;;) {
+    if (await evalInPage<boolean>(await inspectorPageFor(device, BUNDLE_ID), `return ${PUSH_HAS_PERMISSIONS}`)) return true
+    if (Date.now() > end) return false
+    await sleep(1_000)
+  }
 }

@@ -71,6 +71,15 @@ export const iosPreflightProblems = (s: IosPreflightState): Array<string> =>
     {lockedWhy: 'a locked session throttles the simulator'}
   )
 
+// The run's push flows need the permission, which the owner grants once on the simulator: asking for
+// it from the app opens the Settings app, so the run never does.
+export const pushPermissionProblem = (has: boolean, device: string): string | undefined =>
+  has
+    ? undefined
+    : `push notifications are off for keybase.ios on ${device}; turn them on once by hand ` +
+      '(on the simulator: Settings > Apps > Keybase > Notifications > Allow Notifications), then rerun; ' +
+      'the release command never asks for them, as asking opens the Settings app'
+
 // `xcrun simctl list devices booted -j`: whether `device` is among them.
 export const simulatorFromList = (json: string, device: string): {booted: boolean} | {error: string} => {
   let devices: Record<string, Array<{name?: string; state?: string}>>
