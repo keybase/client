@@ -203,6 +203,10 @@ export const TEAMS_CHANNEL_ROW = 'teams-channel-row'
 export const TEAMS_CHANNEL_MEMBER_ROW = 'teams-channel-member-row'
 export const TEAMS_INVITE_ROW = 'teams-invite-row'
 export const TEAMS_REQUEST_ROW = 'teams-request-row'
+// a channel row of a member's "Add to channels" on the phone (the id says whether its circle is checked:
+// picked, #general, or a channel the member is already in)
+export const TEAMS_ADD_TO_CHANNELS_ROW = 'teams-add-to-channels-row'
+export const TEAMS_ADD_TO_CHANNELS_ROW_CHECKED = 'teams-add-to-channels-row-checked'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
 // a member row's selection circle, and the bar that shows while any member is selected
 export const TEAMS_MEMBER_CHECK = 'teams-member-check'

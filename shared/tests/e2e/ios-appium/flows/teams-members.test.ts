@@ -18,7 +18,7 @@
 // this run's subteams.
 import {randomBytes} from 'crypto'
 import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
-import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
+import {parseStampedName, stampedChannelName, stampedTeamName} from '../../accounts/run-id'
 import {createThrowawaySubteam, retryTransient} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {ensurePeer, runKeybase} from '../../shared/peer-service'
@@ -156,7 +156,12 @@ describe('teams members', function () {
     const {team} = loadE2EAccounts()
     const out = await peer.cli(['team', 'list-memberships', '-j'], 60_000)
     const names = ((JSON.parse(out) as {teams?: Array<{fq_name: string}> | null}).teams ?? []).map(t => t.fq_name)
-    return {anchored: names.includes(team), inRun: names.filter(n => n.startsWith(`${team}.e2e${e2eRunId()}`))}
+    const runId = e2eRunId()
+    const inRun = names.filter(n => {
+      const part = n.startsWith(`${team}.`) ? n.slice(team.length + 1) : ''
+      return !part.includes('.') && parseStampedName(part, 'team')?.runId === runId
+    })
+    return {anchored: names.includes(team), inRun}
   }
 
   // Bound: the peer 70, then 30s of reads, overrun by one 60 = 160.
@@ -444,13 +449,13 @@ describe('teams members', function () {
     // setup: subteam 600, host 315 (its id), two seeds 1020, add 255, two host reads 510, opened 250
     //   (60s of tries, overrun by one: team 109, tab 24, two rows of 11, tab 24, a row 11) = 2950;
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
-    //   part 6 and a tap 1 = 14, step 2, pin 1, calls 2, action 6, waited for 12, two polled 570, step
-    //   2 = 788;
+    //   part 6 and a tap 1 = 14, the picks read 6 (5, one read 1), step 2, pin 1 and the picks 1,
+    //   calls 2, action 6, waited for 12, two polled 570, step 2 = 795;
     // remove: back 39, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, in row 2
     //   and its tap 1, popup 11, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
     //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1005
-    // = 2950 + 788 + 1005 = 4743
-    this.timeout(4_800_000)
+    // = 2950 + 795 + 1005 = 4750
+    this.timeout(5_000_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()
     const name = await makeOwnSubteam('chs')
@@ -483,8 +488,27 @@ describe('teams members', function () {
       })
       await pick.click()
     }
+    // The checked rows other than #general (always checked, never added to), by the label parts each
+    // reads: the two picked channels and nothing else (a channel the account is already in would
+    // show checked too).
+    const pickedChannels = async () => {
+      const out: Array<string> = []
+      for (const e of await browser.$$(`~${T.TEAMS_ADD_TO_CHANNELS_ROW_CHECKED}`).getElements()) {
+        const parts = ((await e.getAttribute('label').catch(() => null)) ?? '').split(', ').map(p => p.trim())
+        const channel = parts.find(p => p.startsWith('#'))
+        if (channel !== '#general') out.push(channel ?? '')
+      }
+      return out.sort()
+    }
+    const wanted = channels.map(c => `#${c}`).sort()
+    const bothAlone = async () => {
+      const got = await pickedChannels()
+      return got.length === wanted.length && got.every((c, i) => c === wanted[i])
+    }
+    await waitFor('the two channels alone to be picked', async () => ((await bothAlone()) ? true : undefined), {interval: 250, timeout: 5_000})
     await step('Both channels picked')
     await requireOnSubteam('the add to channels', 'teamAddToChannels', onAdd)
+    check(await bothAlone(), 'a channel other than the two is picked: not tapping')
     let seq = await currentCallSeq()
     await tapHeaderAction('Add', "the add to channels' Add")
     await waitForUiCall('the channel adds to go out', seq, 'chat.1.local.bulkAddToManyConvs')
