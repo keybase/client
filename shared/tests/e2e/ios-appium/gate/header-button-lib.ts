@@ -10,14 +10,25 @@ const near = (a: number, b: number) => Math.abs(a - b) <= 1
 export const onScreen = (r: Rect, screen: {height: number; width: number}) =>
   r.width > 0 && r.height > 0 && r.x >= 0 && r.y >= 0 && r.x + r.width <= screen.width && r.y + r.height <= screen.height
 
-// The index of the one element whose frame is the app-measured button's: the same size and left
-// edge (a modal's window is offset down from the screen, never across), wholly on screen and in the
-// header band. The measured frame (in the modal's window) must be on screen too. undefined unless
-// exactly one element qualifies: a hidden screen's button drawn at the same place makes it ambiguous.
-export const measuredButtonAmong = (measured: Rect, elements: ReadonlyArray<Rect>, screen: {height: number; width: number}) => {
+// The index of the one element whose frame is the app-measured button's, placed on screen: the same
+// size and left edge (a modal's window is offset down from the screen, never across), and its top at
+// the measured top plus `windowTop`, the screen y of the modal window's top (its navigation bar's top).
+// Wholly on screen and in the header band; the measured frame (in the modal's window) must be on
+// screen too. undefined unless exactly one element qualifies.
+export const measuredButtonAmong = (
+  measured: Rect,
+  elements: ReadonlyArray<Rect>,
+  screen: {height: number; width: number},
+  windowTop: number
+) => {
   if (!onScreen(measured, screen)) return undefined
   const at = elements.flatMap((e, i) =>
-    near(e.width, measured.width) && near(e.height, measured.height) && near(e.x, measured.x) && onScreen(e, screen) && e.y + e.height <= HEADER_BAND
+    near(e.width, measured.width) &&
+    near(e.height, measured.height) &&
+    near(e.x, measured.x) &&
+    near(e.y, measured.y + windowTop) &&
+    onScreen(e, screen) &&
+    e.y + e.height <= HEADER_BAND
       ? [i]
       : []
   )

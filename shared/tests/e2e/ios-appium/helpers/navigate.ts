@@ -159,13 +159,13 @@ async function settleAfter(ctrl: ChainablePromiseElement): Promise<void> {
 // A modal opened over another modal (the chat block modal over the info panel) has its header's
 // Cancel/Close/Done reported visible="false" by XCUITest, though on screen: DISMISS_PRED misses it.
 // The fallback asks the app for its top modal and the screen showing in it, and taps a header button
-// of that screen only:
+// of that screen only. That screen's title must be non-empty and name exactly one navigation bar, or
+// nothing is tapped. Then:
 // - one the app draws (a React view): exactly one pressable under that screen labelled exactly the
-//   label, measured by the app, matched to the one button element of its size and left edge in the
-//   header band (measuredButtonAmong);
+//   label, measured by the app, matched to the one button element of its size, left edge and top
+//   (the measured top plus that bar's top, the modal window's), in the header band (measuredButtonAmong);
 // - a native bar item (a modal's Cancel on iOS), which the app cannot measure: the button so labelled
-//   inside the one navigation bar named with that screen's title. An empty title, or more than one
-//   bar with it, taps nothing.
+//   inside that bar.
 // Cancel, else Close, and Done only when the screen has neither (a Done can commit a modal's edits).
 // A tap counts only when the top modal then leaves the app's modal stack (else the back/pop path
 // runs, and escapeToTabs fails loudly if nothing works). Only the label is logged, never the title.
@@ -217,28 +217,33 @@ const topModalScreenBody = (label: string) => `${fiberPrelude}
 const modalStillUp = async (key: string) =>
   jsEval<boolean>(`return kbModule('constants/router.tsx').getModalStack().some(r => r.key === ${JSON.stringify(key)})`)
 
-// The header button element to tap for `label` on the top modal's screen, or undefined.
+// The header button element to tap for `label` on the top modal's screen, or undefined. Either way
+// the screen's title must be non-empty and name exactly one navigation bar: the top modal's own.
 async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
-  const screen = await browser.getWindowRect()
-  if (screenInfo.count === 1) {
-    const measured = await browser
-      .waitUntil(async () => (await jsEval<Rect | null>('return globalThis.__e2eHeaderFrames || null')) ?? false, {interval: 100, timeout: 3000})
-      .catch(() => undefined)
-    if (!measured) return undefined
-    const buttons = await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()
-    const rects: Array<Rect> = []
-    for (const b of buttons) rects.push(await b.getElementRect(b.elementId).catch(() => ({height: 0, width: 0, x: -1, y: -1})))
-    const at = measuredButtonAmong(measured, rects, screen)
-    return at === undefined ? undefined : buttons[at]
-  }
-  // a native bar item: only inside the one navigation bar named with the screen's title
-  if (screenInfo.count !== 0 || !screenInfo.title) return undefined
+  if (!screenInfo.title || screenInfo.count < 0 || screenInfo.count > 1) return undefined
   const bars: Array<WebdriverIO.Element> = []
   for (const bar of await browser.$$('//XCUIElementTypeNavigationBar').getElements()) {
     if ((await bar.getAttribute('name').catch(() => null)) === screenInfo.title) bars.push(bar)
   }
   if (bars.length !== 1) return undefined
-  const inBar = await bars[0]!.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`).getElements()
+  const bar = bars[0]!
+  const screen = await browser.getWindowRect()
+  const byLabel = `-ios predicate string:type == "XCUIElementTypeButton" AND label == "${label}"`
+  if (screenInfo.count === 1) {
+    // drawn by the app: at its measured frame, placed on screen by the modal window's top (its bar's top)
+    const measured = await browser
+      .waitUntil(async () => (await jsEval<Rect | null>('return globalThis.__e2eHeaderFrames || null')) ?? false, {interval: 100, timeout: 3000})
+      .catch(() => undefined)
+    const barRect = await bar.getElementRect(bar.elementId).catch(() => undefined)
+    if (!measured || !barRect) return undefined
+    const buttons = await browser.$$(byLabel).getElements()
+    const rects: Array<Rect> = []
+    for (const b of buttons) rects.push(await b.getElementRect(b.elementId).catch(() => ({height: 0, width: 0, x: -1, y: -1})))
+    const at = measuredButtonAmong(measured, rects, screen, barRect.y)
+    return at === undefined ? undefined : buttons[at]
+  }
+  // a native bar item: the one so labelled inside that bar
+  const inBar = await bar.$$(byLabel).getElements()
   if (inBar.length !== 1) return undefined
   const r = await inBar[0]!.getElementRect(inBar[0]!.elementId).catch(() => undefined)
   return r && onScreen(r, screen) && r.y + r.height <= HEADER_BAND ? inBar[0] : undefined
