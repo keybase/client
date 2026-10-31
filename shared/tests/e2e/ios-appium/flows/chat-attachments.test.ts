@@ -43,6 +43,7 @@ import {
   scrollRowIntoView,
   signedInAs,
   storedAttachment,
+  tapTextIn,
   typeInComposer,
   videoFullscreenButton,
   waitForComposerText,
@@ -227,9 +228,9 @@ describe('chat attachments', function () {
   it('/collapse collapses the images, one expands from its row, and both stay so through a relaunch', async function () {
     // worst case (s): peer 70, two attaches 120, open 100, two landed 240, the command 35 (type 15,
     // the button 5, the tap 1, composer 10, keyboard 5, overrun 1), the collapse 20, step 2, calls 2,
-    // view 30, three tries of (stable 10, in row 2, the tap 1, the expand 5) = 54, calls 10, the image
+    // view 30, three tries of (stable 10, in row 2, the tap 5, the expand 5) = 66, calls 10, the image
     // 2, step 2, relaunch 200, signed in 90, open 100, the two reads 60 (each row 20 and its attachment
-    // 10), step 2 = 1139
+    // 10), step 2 = 1151
     this.timeout(1200_000)
     const expanded = e2eMarker('attach-expand')
     const kept = e2eMarker('attach-kept')
@@ -257,7 +258,7 @@ describe('chat attachments', function () {
     for (let tap = 1; ; tap++) {
       await waitForThreadStable()
       const label = await elementInRow(`-ios predicate string:label == "Collapsed" AND visible == 1`, expandOrdinal, 'the "Collapsed" label')
-      await label.click()
+      await tapTextIn(label, expandOrdinal, 'Collapsed')
       const expanded = await waitFor('the image to expand', async () => ((await expandedNow()) ? true : undefined), {
         interval: 250,
         timeout: 5_000,

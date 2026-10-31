@@ -1452,6 +1452,81 @@ export const visibleConversation = async () =>
 
 // -- standing in for the service, and reading what the app asked of it ---------------------------
 
+// Taps the pressable text rendering exactly `text` in the message at `ordinal` at its own frame.
+// XCUITest can report such a text with its line's full width (the "Collapsed" label of a collapsed
+// attachment: 0..402 while the word sits at the left), so a tap on the element's middle lands beside
+// the word and does nothing (seen live). The app's tree finds exactly one text with that handler in
+// the message, its own view is measured, and the tap lands at that frame's middle only if the frame
+// lies wholly inside `element` (the text's element, so the window is the screen here) and on screen.
+// The evals send nothing. Bound: 5s.
+export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, text: string) => {
+  const started = await jsEval<number>(`
+    const g = globalThis
+    g.__e2eTextFrame = undefined
+    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const want = ${JSON.stringify(String(ordinal))}
+    const label = ${JSON.stringify(text)}
+    const rows = []
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (f.sibling) stack.push(f.sibling)
+      if (p && p.ordinal !== undefined && String(p.ordinal) === want) rows.push(f)
+      else if (f.child) stack.push(f.child)
+    }
+    const hits = []
+    for (const row of rows) {
+      const inner = row.child ? [row.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        if (f.tag !== 5 && p && p.children === label && typeof p.onClick === 'function' && !hits.some(h => h.memoizedProps.onClick === p.onClick)) hits.push(f)
+      }
+    }
+    if (hits.length !== 1) return hits.length
+    const hosts = [hits[0].child]
+    let host
+    while (hosts.length && !host) {
+      const f = hosts.shift()
+      if (!f) continue
+      if (f.tag === 5 && f.stateNode && f.stateNode.node) host = f
+      else if (f.child) hosts.push(f.child)
+    }
+    if (!host) return -1
+    g.nativeFabricUIManager.measureInWindow(host.stateNode.node, (x, y, width, height) => (g.__e2eTextFrame = {height, width, x, y}))
+    return 1
+  `)
+  if (started !== 1) {
+    throw new Error(started === -1 ? `the "${text}" text has no view to measure` : `${started} pressable "${text}" texts in the message at ${ordinal}, not one`)
+  }
+  type Frame = {height: number; width: number; x: number; y: number}
+  const frame = await waitFor(
+    `the "${text}" text measured`,
+    async () => (await jsEval<Frame | null>('return globalThis.__e2eTextFrame || null')) ?? undefined,
+    {interval: 100, timeout: 3_000}
+  )
+  const at = await element.getLocation()
+  const size = await element.getSize()
+  const {height: window} = await browser.getWindowRect()
+  const inside =
+    frame.width > 0 &&
+    frame.height > 0 &&
+    frame.x >= at.x - 1 &&
+    frame.y >= at.y - 1 &&
+    frame.x + frame.width <= at.x + size.width + 1 &&
+    frame.y + frame.height <= at.y + size.height + 1
+  if (!inside || frame.y < 0 || frame.y + frame.height > window) {
+    throw new Error(`the "${text}" text is not wholly inside its element on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
+  }
+  console.log(`  tapTextIn: "${text}" at ${JSON.stringify(frame)} in its element ${JSON.stringify({...at, ...size})}`)
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+}
+
 // Presses the inline pressable text `text` (a link drawn inside a message's text, such as a failed
 // send's "Edit or Cancel") of the visible thread's message at `ordinal`. On iOS such a text has no
 // accessibility element (the row is one element) and no frame of its own (Fabric draws it inside its
