@@ -75,11 +75,11 @@ describe('crypto roundtrip', function () {
   //   crypto    openCrypto 86;  tab  openCryptoTab 29;  leave  leaveCryptoTab 24;  done
   //             closeCryptoOutput 22
   //   type      the marker typed 26 (fillField: the field 10, the typing 15, the read 1)
-  //   paste     setPasteboard 30, the field 10, pasteInto 21, its length 6 (5, one read 1), the
-  //             overwrite 30 = 97
+  //   paste     setPasteboard 50, the field 10, pasteInto 21, its length 6 (5, one read 1), the
+  //             overwrite 50 = 137
   //   run       seq 2, the tap 1, the call waited for 12, its count 2, the output screen 11 = 28
-  //   copy      filler 30, the button 6, the pasteboard polled 10s overrun by one read 40, the
-  //             overwrite 30 = 106
+  //   copy      filler 50, the button 6, the pasteboard polled 10s overrun by one read 40, the
+  //             overwrite 50 = 146
   //   output    the marker read 16 (15, one read 1);  signer  6 (5, one read 1);  banner  16, the
   //             output's absence 1
   //   mark      clearArmorShown 2
@@ -109,10 +109,10 @@ describe('crypto roundtrip', function () {
 
   const filler = () => `e2e-${e2eRunId()}-pasteboard`
 
-  // Bound: 30.
-  const overwritePasteboard = () => {
+  // Bound: 50.
+  const overwritePasteboard = async () => {
     if (!armorOnPasteboard) return
-    setPasteboard(filler())
+    await setPasteboard(filler())
     armorOnPasteboard = false
   }
 
@@ -148,7 +148,7 @@ describe('crypto roundtrip', function () {
     if (failed.length) throw failed[0]
   }
 
-  // Worst case (s): escapeToTabs 30, the overwrite 30, clearArmorShown 2, removeMade 1 = 63.
+  // Worst case (s): escapeToTabs 30, the overwrite 50, clearArmorShown 2, removeMade 1 = 83.
   afterEach(async function () {
     this.timeout(90_000)
     await withCleanup(escapeToTabs, [overwritePasteboard, clearArmorShown, removeMade])
@@ -227,10 +227,10 @@ describe('crypto roundtrip', function () {
 
   // Copies the output with its "Copy to clipboard" and takes it off the pasteboard, which holds
   // filler before, so a stale pasteboard cannot pass; it is compared in memory, and the pasteboard is
-  // overwritten after. Bound: setPasteboard 30, tapButton 7 (6, its read 1), the pasteboard 40 (10s of
-  // reads, overrun by one 30), the overwrite 30 = 107.
+  // overwritten after. Bound: setPasteboard 50, tapButton 7 (6, its read 1), the pasteboard 40 (10s of
+  // reads, overrun by one 30), the overwrite 50 = 147.
   const copyOutput = async (kind: ArmorKind) => {
-    setPasteboard(filler())
+    await setPasteboard(filler())
     armorOnPasteboard = true
     await tapButton('Copy to clipboard', "the output's Copy to clipboard")
     const text = await waitFor(
@@ -242,16 +242,16 @@ describe('crypto roundtrip', function () {
       {interval: 500, timeout: 10_000}
     )
     creditSurface('pasteboard')
-    overwritePasteboard()
+    await overwritePasteboard()
     return text
   }
 
   // Pastes `text` (a saltpack message) into the open operation's field from the pasteboard, as a
   // person does, with the mark on before the field holds it; the field's length is read inside the
-  // app, and the pasteboard is overwritten after. Bound: 97.
+  // app, and the pasteboard is overwritten after. Bound: 137.
   const pasteArmor = async (text: string) => {
     armorOnPasteboard = true
-    setPasteboard(text)
+    await setPasteboard(text)
     await el(T.CRYPTO_TEXT_INPUT).waitForExist({timeout: 10_000})
     armorInField = true
     markArmorShown()
@@ -262,7 +262,7 @@ describe('crypto roundtrip', function () {
       {interval: 250, timeout: 5_000}
     )
     creditSurface('pasteboard')
-    overwritePasteboard()
+    await overwritePasteboard()
   }
 
   // Waits for the output modal to draw `marker` as its text, compared in memory. Bound: 16.
@@ -353,9 +353,9 @@ describe('crypto roundtrip', function () {
   // -- the phone encrypts or signs, the host or the peer reads it --------------------------------
 
   it('text encrypted to self decrypts on the host to the marker', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 107, done 22, mark 2, step 2,
-    // host 75, step 2 = 381
-    this.timeout(400_000)
+    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 421
+    this.timeout(440_000)
     const marker = e2eMarker('crypto-self')
     await openCrypto()
     await openCryptoTab('encrypt')
@@ -375,9 +375,9 @@ describe('crypto roundtrip', function () {
   })
 
   it('text encrypted to the second account and self decrypts on its peer and the host', async function () {
-    // worst case (s): crypto 86, tab 29, recipient 99, step 2, type 26, step 2, run 28, copy 107,
-    // done 22, mark 2, step 2, second 105, host 75, step 2 = 587
-    this.timeout(600_000)
+    // worst case (s): crypto 86, tab 29, recipient 99, step 2, type 26, step 2, run 28, copy 147,
+    // done 22, mark 2, step 2, second 105, host 75, step 2 = 627
+    this.timeout(640_000)
     const marker = e2eMarker('crypto-to-second')
     await openCrypto()
     await openCryptoTab('encrypt')
@@ -401,9 +401,9 @@ describe('crypto roundtrip', function () {
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 107, done 22, mark 2, step 2,
-    // host 75, step 2 = 381
-    this.timeout(400_000)
+    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 421
+    this.timeout(440_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-sign')
     await openCrypto()
@@ -427,9 +427,9 @@ describe('crypto roundtrip', function () {
   // -- the second account's peer makes it, the phone reads it ---------------------------------------
 
   it('the second account’s ciphertext decrypts to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 97, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 419
-    this.timeout(440_000)
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, output 16, signer 6,
+    // done 22, leave 24, mark 2, step 2 = 459
+    this.timeout(480_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-from-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, smokeUser], 'from-second', 'ENCRYPTED')
@@ -448,9 +448,9 @@ describe('crypto roundtrip', function () {
   })
 
   it('the second account’s signed text verifies to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 97, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 419
-    this.timeout(440_000)
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, output 16, signer 6,
+    // done 22, leave 24, mark 2, step 2 = 459
+    this.timeout(480_000)
     const marker = e2eMarker('crypto-signed-by-second')
     const signed = await madeBy(second, ['sign', '-m', marker], 'signed-by-second', 'SIGNED')
     await openCrypto()
@@ -472,9 +472,9 @@ describe('crypto roundtrip', function () {
   // Text the second account encrypted for itself alone: no key of the smoke account opens it (the
   // service's decryption-key-not-found cause), which the app words for the reader.
   it('ciphertext for someone else says so', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 97, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 414
-    this.timeout(440_000)
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, banner 17, done 22,
+    // leave 24, mark 2, step 2 = 454
+    this.timeout(480_000)
     const {secondUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-for-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, secondUser], 'for-second', 'ENCRYPTED')
@@ -494,9 +494,9 @@ describe('crypto roundtrip', function () {
   // A changed body character fails the stream with no cause the service names, so the app shows its
   // generic message.
   it('tampered ciphertext fails to decrypt', async function () {
-    // worst case (s): host 75, crypto 86, tab 29, step 2, paste 97, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 384
-    this.timeout(400_000)
+    // worst case (s): host 75, crypto 86, tab 29, step 2, paste 137, run 28, banner 17, done 22,
+    // leave 24, mark 2, step 2 = 424
+    this.timeout(440_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-tampered')
     const ciphertext = await madeBy(host, ['encrypt', '-m', marker, smokeUser], 'to-tamper', 'ENCRYPTED')
