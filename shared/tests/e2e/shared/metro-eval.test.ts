@@ -1,4 +1,16 @@
-import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, retryFor, type WaitClock, whileLost} from './metro-eval'
+import {
+  evalInPage,
+  findModuleId,
+  INSPECTOR_CLOSED,
+  lostInspectorPage,
+  NO_INSPECTOR_PAGE,
+  pickInspectorPage,
+  retryFor,
+  WITHHELD_LINE,
+  whileLost,
+  withholdQuotedCode,
+  type WaitClock,
+} from './metro-eval'
 
 const mods = (...names: Array<string>): Array<[number, {verboseName?: string}]> => names.map((verboseName, i) => [i, {verboseName}])
 const TIS = 'node_modules/react-native/Libraries/Components/TextInput/TextInputState.js'
@@ -184,4 +196,52 @@ test('a read whose page stays lost fails at the bound with the last error', asyn
   await expect(retryFor(read, {clock, intervalMs: 500, ms: 15_000, retryIf: whileLost})).rejects.toThrow(NO_INSPECTOR_PAGE)
   expect(clock.now()).toBeGreaterThanOrEqual(1000 + 15_000)
   expect(clock.now()).toBeLessThan(1000 + 15_000 + 600)
+})
+
+// The text setPasteboard writes, as a secret would be: a long string inside the body's code.
+const SECRET_TEXT = 'https://keybase.io/team/invite/e2e-secret-0123456789abcdef'
+const secretBody = `kbModule('x').setStringAsync(${JSON.stringify(SECRET_TEXT)}); return true`
+
+test("a failed eval's error, and anything it logs, repeat none of the code it ran", async () => {
+  // the app throws a message built from the code's own data, with a stack, as Hermes reports it
+  const description = `Error: refused ${SECRET_TEXT}\n    at anonymous (:1:85)\n    at global (:1:91)`
+  const logged: Array<unknown> = []
+  const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map(level =>
+    jest.spyOn(console, level).mockImplementation((...args: Array<unknown>) => void logged.push(args))
+  )
+  try {
+    await withFakeSocket(
+      s =>
+        setTimeout(() => {
+          const data = JSON.stringify({id: 1, result: {exceptionDetails: {exception: {description}, text: `refused ${SECRET_TEXT}`}}})
+          s.emit('message', {data})
+        }, 0),
+      async () => {
+        const err = await evalInPage(evalPage, secretBody).then(
+          () => undefined,
+          (e: unknown) => e as Error
+        )
+        expect(err).toBeInstanceOf(Error)
+        expect(err?.message).toContain('app evaluate threw: ')
+        expect(err?.message).toContain(WITHHELD_LINE)
+        expect(err?.message).toContain('at anonymous (:1:85)')
+        // no stretch of the secret either, down to a short one
+        for (const part of [SECRET_TEXT, secretBody, SECRET_TEXT.slice(-20), 'e2e-secret-0123']) expect(err?.message).not.toContain(part)
+        expect(JSON.stringify(err)).not.toContain('e2e-secret')
+      }
+    )
+  } finally {
+    spies.forEach(s => s.mockRestore())
+  }
+  expect(logged).toEqual([])
+})
+
+test('a report keeps the lines that repeat no long stretch of the code', () => {
+  const code = `const ok = 1; throw new Error('no navigation state')`
+  expect(withholdQuotedCode('no navigation state\nError: no navigation state\n    at anonymous (:1:25)', code)).toBe(
+    'no navigation state\nError: no navigation state\n    at anonymous (:1:25)'
+  )
+  expect(withholdQuotedCode(`Error: ${SECRET_TEXT}`, `return ${JSON.stringify(SECRET_TEXT)}`)).toBe(WITHHELD_LINE)
+  // a line that carries only a short piece of the code stays
+  expect(withholdQuotedCode('Error: e2e-secret', `return ${JSON.stringify(SECRET_TEXT)}`)).toBe('Error: e2e-secret')
 })
