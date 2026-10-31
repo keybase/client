@@ -1594,6 +1594,38 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
   await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
 }
 
+// Turns the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") on screen by calling
+// the handler a tap fires: no synthesized tap reaches those switches or their labels on this host's
+// simulators (seen live; Finish beside them takes taps), so a flow calls it over Metro and adds a
+// manualEdge for the physical tap (ledger ruling, as pressInlineText). Exactly one switch with
+// exactly `label`; returns whether it was on before.
+export const pressSwitchLabelled = async (label: string) => {
+  const found = await jsEval<{n: number; on?: boolean}>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const want = ${JSON.stringify(label)}
+    const hits = []
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      // a component and its wrapper carry the same props: one switch is one handler
+      if (f.tag !== 5 && p && p.label === want && typeof p.on === 'boolean' && typeof p.onClick === 'function' && !hits.some(h => h.onClick === p.onClick)) {
+        hits.push(p)
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    if (hits.length !== 1) return {n: hits.length}
+    const on = hits[0].on
+    hits[0].onClick()
+    return {n: 1, on}
+  `)
+  if (found.n !== 1) throw new Error(`${found.n} switches with the label asked for, not one`)
+  return found.on ?? false
+}
+
 // The waiting keys the app holds right now (a spinner or a disabled control waits on each).
 export const heldWaitingKeys = async () =>
   jsEval<Array<string>>(

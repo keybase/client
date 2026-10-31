@@ -25,10 +25,11 @@ import {
   closeMessageMenu,
   dragUntilOnScreen,
   hideKeyboard,
+  iconButton,
   inboxHasRow,
-  labelledElement,
   openConversation,
   openInfoPanel,
+  pressSwitchLabelled,
   scrollInboxTo,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -37,7 +38,7 @@ import {escapeToTabs} from '../helpers/navigate'
 
 describe('chat blocks', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  row  scrollInboxTo 90;  absent  inboxHasRow 90 (the same scroll)
+  //   open      openConversation 100;  row  scrollInboxTo 120;  absent  inboxHasRow 120 (the same scroll)
   //   panel     openInfoPanel 25 (the header menu 15, a tab 10);  on screen  dragUntilOnScreen 20
   //   blocks    the host's read of the blocks 75 (whoami 15, the call 60), polled 95 (20, overrun by
   //             one read);  conv  the host's read of a conversation 75, polled 95
@@ -68,7 +69,10 @@ describe('chat blocks', function () {
   const expectBlocks = async (what: string, ok: (b: Awaited<ReturnType<typeof secondBlocks>>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await secondBlocks()) ? true : undefined), {interval: 1_000, timeout: 20_000})
 
-  const finish = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Finish" AND visible == 1')
+  // The block modal opens over the info panel's (or the profile's) screen, and XCUITest reports a
+  // modal stacked on a modal not visible (visible="false" on its Cancel and Finish, seen live), so
+  // the modal's own lookups leave visibility out: each matches one element of the modal.
+  const finish = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Finish"')
 
   // The block modal's report option must be off before Finish. Its row's testID carries its state;
   // when it shows on, its label (which turns it off) is tapped, and the state is read again. The
@@ -82,7 +86,7 @@ describe('chat blocks', function () {
     })
     if (await on.isExisting()) {
       const label = browser.$(
-        '-ios predicate string:type == "XCUIElementTypeStaticText" AND label BEGINSWITH "Report " AND label ENDSWITH " to Keybase admins" AND visible == 1'
+        '-ios predicate string:type == "XCUIElementTypeStaticText" AND label BEGINSWITH "Report " AND label ENDSWITH " to Keybase admins"'
       )
       await label.click()
     }
@@ -161,10 +165,10 @@ describe('chat blocks', function () {
   it('the second account blocked from the DM leaves the inbox, and is unblocked from its profile', async function () {
     // worst case (s): blocks 75, conv 75, the folder 75, open 100, panel 25, on screen 20, the tap 1,
     // Finish 10, report 21, the manual edge 2, the seq 2, the tap 1, Finish gone 15, calls 10 twice
-    // 20, blocks 95, conv 95, the inbox 10, row 90, absent 90, step 2 = 824; escapeToTabs 30, the link
+    // 20, blocks 95, conv 95, the inbox 10, row 120, absent 120, step 2 = 884; escapeToTabs 30, the link
     // 1, the profile 20, Manage blocking 10 and its tap 1, Finish 10, blocks 75, two options found 10
     // and tapped 2, report 21, the seq 2, the tap 1, Finish gone 15, calls 10, blocks 95, step 2 = 305;
-    // = 1129
+    // = 1189
     this.timeout(1_240_000)
     const unblockedProblem = secondBlockedProblem(await secondBlocks())
     check(!unblockedProblem, `the second account must start unblocked: ${unblockedProblem}`)
@@ -174,7 +178,7 @@ describe('chat blocks', function () {
 
     await openConversation(data.direct.convID)
     await openInfoPanel(T.CHAT_INFO_PANEL_SETTINGS_TAB)
-    const block = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Block"')
+    const block = () => iconButton('Block')
     await dragUntilOnScreen('Block', block)
     await block().click()
     await finish().waitForExist({timeout: 10_000})
@@ -210,11 +214,12 @@ describe('chat blocks', function () {
     await finish().waitForExist({timeout: 10_000})
     // each block still on is turned off by its label, read in memory (it holds the name)
     const now = await secondBlocks()
-    const anyText = '-ios predicate string:type == "XCUIElementTypeStaticText" AND visible == 1'
-    if (now.chatBlocked) await (await labelledElement(anyText, `Block ${data.secondUser}`, "the modal's block option")).click()
-    if (now.followBlocked) {
-      await (await labelledElement(anyText, `Hide ${data.secondUser} from your followers`, "the modal's followers option")).click()
-    }
+    // No synthesized tap reaches the modal's switches or their labels (seen live: the switch, its
+    // label and a pointer press all left it on), so each is turned through its own handler and a
+    // person checks the taps (ledger ruling, as the failed send's Cancel).
+    await manualEdge('block-modal-switches')
+    if (now.chatBlocked) check(await pressSwitchLabelled(`Block ${data.secondUser}`), "the modal's block option was not on")
+    if (now.followBlocked) check(await pressSwitchLabelled(`Hide ${data.secondUser} from your followers`), "the modal's followers option was not on")
     await requireReportOff()
     seq = await currentCallSeq()
     await finish().click()
