@@ -405,6 +405,8 @@ export const CRYPTO_RUN_BUTTON    = 'crypto-run-button'
 export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 // The recipients field is a display-only input inside a pointerEvents="none"
 // wrapper, so only this outer clickable can receive a click.
+// The text field itself (the Input3), inside the screen's clickable input box.
+export const CRYPTO_TEXT_INPUT    = 'crypto-text-input'
 
 // A desktop floating menu (message "..." menu, header menus); mobile menus are bottom sheets
 export const FLOATING_MENU = 'floating-menu'

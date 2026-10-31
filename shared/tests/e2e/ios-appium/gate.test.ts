@@ -38,5 +38,7 @@ import './flows/teams-second.test'
 import './flows/people-browse.test'
 import './flows/people-follow.test'
 import './flows/profile-edit.test'
+import './flows/crypto.test'
+import './flows/crypto-roundtrip.test'
 // the second account's proofs add links to its sigchain; after its other flows
 import './flows/profile-proofs.test'

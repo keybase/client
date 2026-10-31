@@ -121,6 +121,11 @@ const androidEnterText = async (id: string, text: string): Promise<void> => {
   await field.setValue(text)
 }
 
+// The tappable Paste of a field's edit menu. The menu exposes THREE "Paste" nodes: a MenuItem, a
+// non-tappable StaticText, and an "assistantPaste:" Button; only the MenuItem and Button paste.
+const PASTE_ITEM =
+  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
+
 // Enter text by pasting from the system pasteboard instead of per-key typing.
 // Appium's keyboard injection (setValue) drives UIKit's per-character a11y
 // insertion path, which desyncs RN's RCTBackedTextInputDelegateAdapter cached
@@ -136,12 +141,7 @@ const pasteText = async (id: string, text: string): Promise<void> => {
   })
   const field = await el(id).getElement()
   await field.click().catch(() => {})
-  // The edit menu exposes THREE "Paste" nodes — a MenuItem, a non-tappable
-  // StaticText, and an "assistantPaste:" Button. Match only the tappable
-  // MenuItem/Button (matching the StaticText clicks a no-op and nothing pastes).
-  const paste = browser.$(
-    '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
-  )
+  const paste = browser.$(PASTE_ITEM)
   // The long-press that summons the menu is occasionally swallowed, so retry it.
   for (let i = 0; i < 6; i++) {
     await browser.execute('mobile: touchAndHold', {elementId: field.elementId, duration: 1.3}).catch(() => {})
@@ -156,6 +156,23 @@ const pasteText = async (id: string, text: string): Promise<void> => {
     await browser.pause(300)
   }
   throw new Error(`pasteText: Paste menu never appeared for "${id}"`)
+}
+
+// Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
+// does to paste. The pasteboard is set before (gate/device.ts setPasteboard, over stdin, so no
+// WebDriver request carries the text). Bound: the tap 1, six tries of the hold 1.3 and 1.5 for the
+// menu = 21.
+export const pasteInto = async (testID: string) => {
+  const field = await el(testID).getElement()
+  await field.click()
+  for (let i = 0; i < 6; i++) {
+    await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: field.elementId})
+    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
+      await browser.$(PASTE_ITEM).click()
+      return
+    }
+  }
+  throw new Error("the field's edit menu never offered Paste")
 }
 
 // Tap a testID and wait for an expected testID to appear, re-tapping if it does
