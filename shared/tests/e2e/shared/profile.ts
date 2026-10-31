@@ -234,14 +234,21 @@ export const sigIDsBefore = async () => new Set((await sigsList()).map(s => s.si
 
 // Records the one live `kind` proof on the second account's sigchain that was not there `before`,
 // and returns its id. Throws unless there is exactly one: an add that made none or two is never
-// guessed at.
-export const recordProofSig = async (kind: ProofKind, before: ReadonlySet<string>) => {
+// guessed at. With `allowNone` (a cleanup after an add that may not have reached the server) none
+// records nothing and returns undefined; two still throw.
+export async function recordProofSig(kind: ProofKind, before: ReadonlySet<string>): Promise<string>
+export async function recordProofSig(kind: ProofKind, before: ReadonlySet<string>, opts: {allowNone: true}): Promise<string | undefined>
+export async function recordProofSig(kind: ProofKind, before: ReadonlySet<string>, opts?: {allowNone: true}) {
   const added = (await sigsList()).filter(s => !s.revoked && !before.has(s.sigID) && proofOf(kind)(s))
   const [sig] = added
+  if (!sig && opts?.allowNone) return undefined
   if (!sig || added.length > 1) throw new Error(`the second account's sigchain shows ${added.length} new ${kind} proofs after the add, not one`)
   recordedSigs.add(sig.sigID)
   return sig.sigID
 }
+
+// How many proof sigs are recorded and not yet read back revoked: a cleanup sizes its bound by it.
+export const recordedSigCount = () => recordedSigs.size
 
 const liveRecorded = (sigs: ReadonlyArray<Sig>) => sigs.filter(s => !s.revoked && recordedSigs.has(s.sigID))
 const runKeys = (keys: ReadonlyArray<PgpKey>) => keys.filter(k => !k.revoked && k.emails.includes(stampedPgpEmail()))

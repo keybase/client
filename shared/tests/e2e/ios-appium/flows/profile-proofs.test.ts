@@ -5,8 +5,10 @@
 // site is manual-only), then revoked; and a PGP key the second account's peer makes (the phone
 // cannot make one), dropped from its row and then purged from the peer's keyring.
 //
-// Each proof's sig id is read back from the second account's sigchain right after its add and
-// recorded (recordProofSig), so the flow's afterEach revokes, through the second peer, only what
+// Each proof's sig id is read back from the second account's sigchain right after its add's call goes
+// out and recorded (recordProofSig). The add's kind and the sigchain's ids before it are held from
+// before the tap, so a test that stopped between the add and its record still has the new sig of
+// that kind recorded by the afterEach (none is fine there). The afterEach then revokes, through the second peer, only what
 // this run added (revokeLeftovers, which also drops keys on this run's stamped PGP identity), purges
 // a key this run made from the peer's keyring, and puts the app back on the smoke account. Every
 // read through the peer is parse-anchored: the sig list holds the eldest link, the lookup the
@@ -24,6 +26,7 @@ import {
   peerMakePgpKey,
   pgpList,
   purgePeerPgp,
+  recordedSigCount,
   recordProofSig,
   revokeLeftovers,
   sigIDsBefore,
@@ -123,15 +126,33 @@ describe('profile proofs', function () {
     madeFingerprint = undefined
   }
 
-  // Bound: revokeLeftovers 2800 (the sigs 435, a revoke 435, the keys 500, a drop 435, then 60s of
-  // reads overrun by one 935).
+  // the add a test is making: its kind and the sigchain's ids before it, set before the add's tap
+  let pendingAdd: {before: ReadonlySet<string>; kind: 'bitcoin' | 'dns'} | undefined
+
+  // Records the new sig of the pending add's kind, if the server has one: only a sig new since
+  // `before` with that kind's statement, so it is revoked below. Bound: one read 435.
+  const recordPending = async () => {
+    if (!pendingAdd) return
+    const {before, kind} = pendingAdd
+    await masked(async () => recordProofSig(kind, before, {allowNone: true}))
+    pendingAdd = undefined
+  }
+
+  // Bound: revokeLeftovers: the sigs 435, a revoke 435 per recorded sig, the keys 500, a drop 435,
+  // then 60s of reads overrun by one 935 = 2305 and 435 a sig.
   const revokeRun = async () => masked(async () => revokeLeftovers())
 
-  // Worst case (s): close 5, revokeRun 2800, purgeMadeKeys 595, restoreToSmoke 160, escapeToTabs 30
-  // = 3590.
+  // A test records one sig, but an afterEach that failed before leaves its sigs recorded for the
+  // next one; the bound counts each, up to 4 (a longer list goes on in the next afterEach).
+  const MAX_SIGS = 4
+  const PER_SIG = 435
+
   afterEach(async function () {
-    this.timeout(3_700_000)
-    await withCleanup(closeMessageMenu, [revokeRun, purgeMadeKeys, restoreToSmoke, escapeToTabs])
+    // Worst case (s): close 5, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 595,
+    // restoreToSmoke 160, escapeToTabs 30 = 3530 and 435 a sig (at least one).
+    const sigs = Math.min(MAX_SIGS, Math.max(1, recordedSigCount() + (pendingAdd ? 1 : 0)))
+    this.timeout((3_530 + PER_SIG * sigs + 100) * 1_000)
+    await withCleanup(closeMessageMenu, [recordPending, revokeRun, purgeMadeKeys, restoreToSmoke, escapeToTabs])
   })
 
   // -- reads --------------------------------------------------------------------------------------
@@ -246,11 +267,12 @@ describe('profile proofs', function () {
 
   it('add the bitcoin burn address and revoke it from its row', async function () {
     // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, field 11, fill 26,
-    // step 2, calls 2, button 7, waited for 12, calls 2, text 16, record 465, polled 495, step 2,
+    // step 2, calls 2, button 7, waited for 12, record 465, calls 2, text 16, polled 495, step 2,
     // button 7, screen 21, identities 20, row 16, step 2, revoke 54, step 2, confirm 23, polled 495,
     // the address read 435, gone 57, step 2 = 3012
     this.timeout(3_050_000)
     const before = await masked(async () => sigIDsBefore())
+    pendingAdd = {before, kind: 'bitcoin'}
     const row = rowReads(BURN_ADDRESS, 'btc')
 
     await asSecond(async () => {
@@ -261,9 +283,10 @@ describe('profile proofs', function () {
       const seq = await currentCallSeq()
       await tapButton('Continue', "the address screen's Continue")
       await waitForUiCall('the address to go out', seq, REGISTER)
+      const sigID = await recordAdded('bitcoin', before)
+      pendingAdd = undefined
       check((await countOf(seq, REGISTER)) === 1, 'Continue sent the address more than once')
       await textShown('Verified!', 'the address added', 15_000)
-      const sigID = await recordAdded('bitcoin', before)
       await expectPeer('the burn address', cryptoAddresses, as => as.some(a => a.address === BURN_ADDRESS && a.sigID === sigID))
       await step('The address added')
 
@@ -287,11 +310,12 @@ describe('profile proofs', function () {
   it('start a DNS proof to its instructions and revoke the pending proof from its row', async function () {
     // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, text 6 and its tap 1,
     // calls 2, its tap 1, waited for 12, field 11, fill 26, step 2, button 7, the instructions 31,
-    // manual 2, header 6, screen 21, record 465, identities 20, row 31, step 2, revoke 54, step 2,
+    // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 54, step 2,
     // confirm 23, polled 495, gone 57, step 2 = 2117
     this.timeout(2_200_000)
     const domain = `e2e${e2eRunId()}.example.com`
     const before = await masked(async () => sigIDsBefore())
+    pendingAdd = {before, kind: 'dns'}
     const row = rowReads(domain, 'dns')
 
     await asSecond(async () => {
@@ -308,13 +332,14 @@ describe('profile proofs', function () {
       await tapButton('Continue', "the domain screen's Continue")
       // the instructions: what to put in the DNS zone, which no test can do
       await browser.$(DNS_INSTRUCTIONS).waitForExist({timeout: 30_000, timeoutMsg: 'the DNS instructions never showed'})
+      // the service posts the proof before it shows the instructions, so a pending one is left
+      const sigID = await recordAdded('dns', before)
+      pendingAdd = undefined
       await manualEdge('external-proofs')
 
       await browser.$(HEADER_CANCEL).waitForExist({timeout: 5_000})
       await browser.$(HEADER_CANCEL).click()
       await expectScreen("the second account's own profile after the instructions closed", 'profile', onOwnProfile, 20_000)
-      // the service posts the proof before it shows the instructions, so a pending one is left
-      const sigID = await recordAdded('dns', before)
 
       await revealIdentities()
       const shown = await identityRow(row, "the pending proof's row", 30_000)

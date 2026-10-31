@@ -116,8 +116,8 @@ describe('profile edit', function () {
 
   it('edit name, bio and location, read back on the server and after a relaunch', async function () {
     // worst case (s): profile 63, step 2, button 7, screen 11, field 11, fill 26 x3, step 2, calls 2,
-    // button 6, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
-    // profile 63, shown 16 x3, step 2 = 801
+    // button 7, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
+    // profile 63, shown 16 x3, step 2 = 802
     this.timeout(850_000)
     check(original !== undefined, 'the original profile fields were never read')
     const before = original!

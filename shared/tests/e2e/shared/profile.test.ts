@@ -12,6 +12,7 @@ import {
   purgeFileFingerprint,
   purgePeerPgp,
   recordProofSig,
+  recordedSigCount,
   removePurgeFiles,
   requireThisRunPgpEmail,
   restoreProfileFields,
@@ -269,6 +270,36 @@ describe('the second peer reads', () => {
     state.sigs.push(sig({sig_id: 'd2', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
     expect(await messageOf(recordProofSig('dns', before))).toMatch(/2 new dns proofs/)
     await revokeLeftovers()
+  })
+
+  test('recordProofSig with allowNone records nothing for no new proof, the one new proof of its kind, and refuses two', async () => {
+    const {log, state} = chainPeer(
+      [
+        sig({sig_id: 'eldest', type: 'eldest'}),
+        sig({sig_id: 'oldburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}),
+        sig({sig_id: 'otherdns', statement: `dns://e2e${other}.example.com`, type: 'proof'}),
+      ],
+      {}
+    )
+    const before = await sigIDsBefore()
+    // none new: nothing recorded, so nothing is revoked
+    await expect(recordProofSig('dns', before, {allowNone: true})).resolves.toBeUndefined()
+    expect(recordedSigCount()).toBe(0)
+    // a new sig of another kind or a revoked one of this kind is not this add's
+    state.sigs.push(sig({sig_id: 'newburn', statement: BURN_ADDRESS, type: 'cryptocurrency'}))
+    state.sigs.push(sig({revoked: true, sig_id: 'gonedns', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    await expect(recordProofSig('dns', before, {allowNone: true})).resolves.toBeUndefined()
+    // one new: recorded, and revoked by revokeLeftovers
+    state.sigs.push(sig({sig_id: 'mydns', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    await expect(recordProofSig('dns', before, {allowNone: true})).resolves.toBe('mydns')
+    expect(recordedSigCount()).toBe(1)
+    await revokeLeftovers()
+    expect(log.filter(l => l.includes(' revoke '))).toEqual(['cli sigs revoke mydns'])
+    expect(recordedSigCount()).toBe(0)
+    // two new: refused, never guessed at
+    state.sigs.push(sig({sig_id: 'd1', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    state.sigs.push(sig({sig_id: 'd2', statement: `dns://e2e${run}.example.com`, type: 'proof'}))
+    expect(await messageOf(recordProofSig('dns', before, {allowNone: true}))).toMatch(/2 new dns proofs/)
   })
 
   test("revokeLeftovers revokes only the recorded proof sigs and this run's keys, and reads back that none is left", async () => {
