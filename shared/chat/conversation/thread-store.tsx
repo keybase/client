@@ -72,9 +72,10 @@ export type ConversationThreadState = {
   // so the next page is asked for from past these instead. Dropped with the window by messagesClear.
   pagedNewestMessageID?: T.Chat.MessageID
   pagedOldestMessageID?: T.Chat.MessageID
-  // The newest message id any thread load carried, rendered or not: a deleted message arrives as a
-  // hidden placeholder that never becomes a row, yet the service still counts it. Mark read reads
-  // it. Dropped with the window by messagesClear.
+  // The newest message id any full (service) thread pass carried, rendered or not: a deleted message
+  // arrives as a hidden placeholder that never becomes a row, yet the service still counts it. Mark
+  // read reads it. Cached passes do not count: the cache can hold a placeholder above a gap that
+  // hides a visible message. Dropped with the window by messagesClear.
   newestLoadedMessageID?: T.Chat.MessageID
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
@@ -122,6 +123,8 @@ type ApplyThreadLoadParams = {
   disableActiveMarkRead?: boolean
   enableActiveMarkRead: boolean
   forceContainsLatestCalc?: boolean
+  // The service's own answer rather than the local cache's, which may hold gaps
+  fullPass?: boolean
   messages: ReadonlyArray<T.Chat.Message>
   moreToLoad: boolean
   reconcile?: ThreadLoadReconcile
@@ -457,8 +460,10 @@ export const makeThreadStore = (
     }
     updateThreadState(s => {
       s.loaded = true
-      for (const {id} of p.messages) {
-        if (id > (s.newestLoadedMessageID ?? 0)) s.newestLoadedMessageID = id
+      if (p.fullPass) {
+        for (const {id} of p.messages) {
+          if (id > 0 && id > (s.newestLoadedMessageID ?? 0)) s.newestLoadedMessageID = id
+        }
       }
       // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
       // answers with an empty full pass, and the span its earlier pass covered is authoritative

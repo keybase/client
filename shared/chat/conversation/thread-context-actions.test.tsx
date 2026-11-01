@@ -96,11 +96,16 @@ const renderThread = (id = convID) => {
 }
 
 // What a latest-page load that may mark read leaves behind: the window, and mark read armed.
-const armWith = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.Message>) => {
+const armWith = (
+  actions: ConversationThreadActions,
+  messages: ReadonlyArray<T.Chat.Message>,
+  fullPass = true
+) => {
   act(() => {
     actions.applyThreadLoad({
       centered: false,
       enableActiveMarkRead: true,
+      fullPass,
       messages,
       moreToLoad: false,
       scrollDirection: 'none',
@@ -260,6 +265,23 @@ describe('mark read gating', () => {
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 409}])
   })
 
+  test('a placeholder from the cached pass does not lift the read past a gap the cache may hold', async () => {
+    // the cache holds 403 and a placeholder for 409, but not the visible 406 the service still has
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(409)], false)
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 403}])
+  })
+
+  test('a thread ahead of the inbox meta marks read at its own newest message', async () => {
+    setMeta({maxMsgID: msgID(405), maxVisibleMsgID: msgID(405), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), textAt(408), deletedAt(410)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 410}])
+  })
+
   test('a window short of the latest message marks nothing, whatever the max id', async () => {
     setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(403), readMsgID: msgID(400)})
     const {h} = renderThread()
@@ -267,6 +289,7 @@ describe('mark read gating', () => {
       h().actions.applyThreadLoad({
         centered: true,
         enableActiveMarkRead: true,
+        fullPass: true,
         messages: [textAt(403)],
         moreToLoad: false,
         scrollDirection: 'none',

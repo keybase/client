@@ -379,6 +379,7 @@ export const loadConversationThreadMessages = (
         disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
         enableActiveMarkRead: canMarkReadForThreadWindow,
         forceContainsLatestCalc,
+        fullPass: why === 'full',
         messages,
         moreToLoad,
         reconcile,
