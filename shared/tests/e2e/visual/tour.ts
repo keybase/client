@@ -798,6 +798,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...modal('kext-permission', 'kextPermission'),
   ...teamModal('team-edit-info', 'teamEditTeamInfo', team, {phone: true}),
   ...teamModal('team-edit-description', 'teamEditTeamDescription', team, {phone: true}),
+  ...modal('backup-chat', 'archiveModal', {type: 'chatAll'}, {desktop: false, phone: true}),
   ...modal('backup-files', 'archiveModal', {type: 'fsAll'}, {phone: true}),
   ...modal('backup-repos', 'archiveModal', {type: 'gitAll'}, {phone: true}),
   ...modal('backup-repo', 'archiveModal', {gitURL: 'keybase://team/testteam/repo', type: 'git'}, {phone: true}),
