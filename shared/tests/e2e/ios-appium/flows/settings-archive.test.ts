@@ -184,12 +184,12 @@ describe('settings archive', function () {
       rememberOutputs(states, fresh)
       // the jobs go even when the anchor read fails: a job left running fills the phone (seen live:
       // a failed anchor once left a whole-files backup copying)
-      let unanchored: unknown
+      let unanchored: Error | undefined
       try {
         outputsAnchored('before the cleanup')
       } catch (e) {
         if (isAttemptOver(e)) throw e
-        unanchored = e
+        unanchored = e instanceof Error ? e : new Error(String(e))
       }
       await removeArchiveJobs(fresh, snapshot)
       if (unanchored) throw unanchored
