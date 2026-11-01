@@ -45,7 +45,7 @@ import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter} from '../helpers/files'
+import {buttonLabelled, BUTTONS, clickUntil, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -601,10 +601,10 @@ describe('teams members', function () {
 
   it("an email invite to this run's address made through the wizard and cancelled from its row", async function () {
     // worst case (s): subteam 600, host 315 (its id), opened 204, pin 1, header 8, button 6, screen
-    // 11, part 6 and its tap 1, screen 11, field 11, fill 26, step 2, button 6, screen 11, text 6,
+    // 11, part 6 and its tap 1, screen 11, field 11, fill 26, step 2, clickUntil 10, screen 11, text 6,
     // step 2, pin 1, calls 2, button 6, waited for 12, page 21, polled 285, the invite's row 31, step
     // 2, in row 2, menu 19, pin 1, calls 2, item 22, waited for 12, polled 540 (30s of two CLI reads
-    // of 255, overrun by one pair), the row gone 21 (20, one read 1), step 2 = 2208
+    // of 255, overrun by one pair), the row gone 21 (20, one read 1), step 2 = 2212
     this.timeout(2_300_000)
     const {smokeUser} = loadE2EAccounts()
     // example.com never delivers (RFC 2606)
@@ -629,7 +629,12 @@ describe('teams members', function () {
     await expectScreen("the subteam's email list", 'teamAddToTeamEmail', p => wizardOf(p).teamID === teamID)
     await fillField(await onlyField('TextView', "the email list's field"), email, "the email list's field")
     await step("This run's address typed")
-    await tapButton('Continue', "the email list's Continue")
+    // with the keyboard up the first tap below it only closes the keyboard
+    await clickUntil(
+      async () => buttonLabelled('Continue', "the email list's Continue"),
+      async () => (await visibleScreen())?.name === 'teamAddToTeamConfirm',
+      "the email list's Continue"
+    )
     // the address alone, as an email invite: never a Keybase account it resolved to
     const onConfirm = (p: Params) => {
       const w = wizardOf(p)
