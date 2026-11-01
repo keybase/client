@@ -26,7 +26,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {randomPW} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {HOST_UNCHECKED, iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
-import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
+import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {emptySecretField, focusSecretField, submitSecret} from '../gate/secret-input'
 import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
@@ -41,15 +41,15 @@ import {
   withLoginPasswordMarked,
 } from '../gate/sign-in'
 import {manualEdge, step} from '../gate/step'
-import {byText, el, waitForTestID} from '../helpers/elements'
+import {byText, el} from '../helpers/elements'
 import {buttonLabelled, clickUntil, expectScreen, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {ACCOUNT_TAB, openAccountPage} from '../helpers/settings'
 import {masked} from '../helpers/teams'
 
 const PASSPHRASE_CHANGE = 'keybase.1.account.passphraseChange'
-const ACCOUNT_TAB = 'settingsTabs.accountTab'
 const PASSWORD_FIELDS = [T.SETTINGS_NEW_PASSWORD_INPUT, T.SETTINGS_CONFIRM_PASSWORD_INPUT] as const
 const NEW_PASSWORD_SHOWN = "the change password screen's fields"
 
@@ -121,7 +121,7 @@ describe('settings password', function () {
     const mark = attemptMark
     if (!mark) return false
     try {
-      return (await countOf(mark, PASSPHRASE_CHANGE)) === 0
+      return (await uiCallCount(mark, PASSPHRASE_CHANGE)) === 0
     } catch (e) {
       if (isAttemptOver(e)) throw e
       return false
@@ -164,17 +164,6 @@ describe('settings password', function () {
 
   // -- the phone ----------------------------------------------------------------------------------
 
-  const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
-
-  // Settings > Account. Bound: 97.
-  const openAccountPage = async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Account')
-    await expectScreen('the account page', ACCOUNT_TAB)
-    await waitForTestID(T.SETTINGS_ACCOUNT_PAGE, 10_000)
-  }
-
   // On the second account: Account > Change, `next` into both fields, Save; the screen closes once the
   // change went through. Bound: asSecond 425, the account 1, ask 22, page 97, button 7, screen 11,
   // fields 22, step 2, secret 70, save 96, screen 21, step 2 = 776.
@@ -209,9 +198,9 @@ describe('settings password', function () {
       const seq = await currentCallSeq()
       // a click with the keyboard still up only closes it: a second click goes only when the first
       // sent nothing, so the change is never sent twice
-      await clickUntil(async () => Promise.resolve(save), async () => (await countOf(seq, PASSPHRASE_CHANGE)) > 0, "the change password screen's Save")
+      await clickUntil(async () => Promise.resolve(save), async () => (await uiCallCount(seq, PASSPHRASE_CHANGE)) > 0, "the change password screen's Save")
       await waitForUiCall('the password change to go out', seq, PASSPHRASE_CHANGE)
-      check((await countOf(seq, PASSPHRASE_CHANGE)) === 1, 'Save sent the password change more than once')
+      check((await uiCallCount(seq, PASSPHRASE_CHANGE)) === 1, 'Save sent the password change more than once')
       await waitFor(
         'the change password screen to close after the change',
         async () => ((await el(T.SETTINGS_NEW_PASSWORD_INPUT).isExisting()) ? undefined : true),

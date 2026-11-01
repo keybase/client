@@ -7,7 +7,7 @@
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, els, fieldText, PASTE_ITEM, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -1917,10 +1917,6 @@ export const explodingModeSeconds = async () =>
   `)
 
 // -- the composer's pasteboard -------------------------------------------------------------------
-
-// The edit menu's Paste: only its tappable MenuItem or Button, not the StaticText it also exposes.
-const PASTE_ITEM =
-  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
 
 // Long-presses the composer until its edit menu shows Paste, and taps it: what a person does to paste.
 // The pasteboard is set before (gate/device.ts setPasteboard). Bound: six tries of about 3s.

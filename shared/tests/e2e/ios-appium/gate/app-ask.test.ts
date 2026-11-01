@@ -14,7 +14,6 @@ import {
   phoneReachesServer,
   rememberPassphrase,
   removeArchiveJobs,
-  runtimeStats,
   runtimeStatsEnabled,
   setCompressPreference,
   setDebugLevel,
@@ -38,7 +37,6 @@ const mockApp = {
   // set: the threshold call answers only once it is called
   holdThreshold: undefined as undefined | {release?: () => void},
   log: [] as Array<string>,
-  stats: undefined as undefined | object,
   // the service config's runtime stats flag; undefined: never set
   statsEnabled: undefined as undefined | boolean,
 }
@@ -65,7 +63,6 @@ beforeEach(() => {
   mockApp.evalFails = false
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
-  mockApp.stats = undefined
   mockApp.statsEnabled = undefined
   const log = (s: string) => mockApp.log.push(s)
   const rpc: Record<string, unknown> = {
@@ -145,7 +142,6 @@ beforeEach(() => {
     'constants/rpc/rpc-chat-gen.tsx': chat,
     'constants/rpc/rpc-gen.tsx': rpc,
     'engine/call-port.tsx': callPort,
-    'stores/config.tsx': {useConfigState: {getState: () => ({runtimeStats: mockApp.stats})}},
     'stores/darkmode.tsx': {
       useDarkModeState: {getState: () => ({darkModePreference: 'alwaysLight', supported: true, systemDarkMode: false})},
     },
@@ -229,13 +225,9 @@ describe("the phone's local settings", () => {
     await expect(guiValue('ui.darkMode')).resolves.toEqual({isNull: false, s: 'alwaysLight'})
     await expect(compressPreference()).resolves.toBe('original')
     await expect(randomPW()).resolves.toBe(false)
-    await expect(runtimeStats()).resolves.toBe(false)
-    mockApp.stats = {cpu: 1}
-    await expect(runtimeStats()).resolves.toBe(true)
-    expect(mockApp.log).toEqual([
-      ...['get remember', 'get proxy', 'gui get ui.darkMode', 'get compress', 'passphrase state'].flatMap(l => ['pause', l, 'resume tok']),
-      ...['pause', 'resume tok', 'pause', 'resume tok'],
-    ])
+    expect(mockApp.log).toEqual(
+      ['get remember', 'get proxy', 'gui get ui.darkMode', 'get compress', 'passphrase state'].flatMap(l => ['pause', l, 'resume tok'])
+    )
   })
 
   test("the runtime stats flag, the server read and the theme state are each answered with the recorder paused", async () => {

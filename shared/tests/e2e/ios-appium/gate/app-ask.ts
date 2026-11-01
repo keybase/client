@@ -266,10 +266,6 @@ export const setDebugLevel = async (level: string) => {
   await askApp<boolean>('restoring the KBFS debug level', `${RPC_GEN}.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: ${JSON.stringify(level)}}).then(() => true)`)
 }
 
-// Whether the app holds runtime stats, which the service sends only while they are on.
-export const runtimeStats = async () =>
-  askApp<boolean>('the runtime stats', `Promise.resolve(!!kbModule('stores/config.tsx').useConfigState.getState().runtimeStats)`)
-
 // The identify state the app holds for `username`'s profile ('valid', 'checking', ...), or undefined
 // when it holds none: a read of the tracker's session, no RPC. The name is plain and goes only into
 // the eval.

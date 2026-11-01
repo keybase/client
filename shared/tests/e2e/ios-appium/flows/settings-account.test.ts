@@ -18,16 +18,16 @@ import {deleteEmailIfPresent, emails, primaryEmail, requireStampedEmail, setPrim
 import * as T from '../../shared/test-ids'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {randomPW} from '../gate/app-ask'
-import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
-import {callsSince, currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
-import type {CallMark} from '../gate/recorder-lib'
+import {elementInRow, innermost, rectOf, type Rect} from '../gate/chat-lib.ts'
+import {callsSince, currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
-import {el, waitForTestID} from '../helpers/elements'
+import {el} from '../helpers/elements'
 import {expectScreen, fillField, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, openMenuFrom, waitForSheetGone} from '../helpers/menus'
-import {dismissKeyboard, escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {dismissKeyboard, escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
+import {ACCOUNT_TAB, openAccountPage} from '../helpers/settings'
 import {masked, TEXTS, textShown} from '../helpers/teams'
 
 const ADD_EMAIL = 'keybase.1.emails.addEmail'
@@ -35,9 +35,6 @@ const SEND_VERIFICATION = 'keybase.1.emails.sendVerificationEmail'
 const SET_PRIMARY = 'keybase.1.emails.setPrimaryEmail'
 const DELETE_EMAIL = 'keybase.1.emails.deleteEmail'
 
-const ACCOUNT_TAB = 'settingsTabs.accountTab'
-// the modal's header Cancel (a native bar item), not the Cancel in its footer
-const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
 const DELETE_ACCOUNT_BUTTON = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Delete account" AND visible == 1'
 // what an address row draws its address as (selectable text can draw as a text view), and the row's
 // line under it
@@ -51,12 +48,6 @@ const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, m
 const labelOf = async (e: WebdriverIO.Element, attr: 'label' | 'value') =>
   ((await e.getAttribute(attr).catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
 
-const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
-  const at = await e.getLocation().catch(() => undefined)
-  const size = await e.getSize().catch(() => undefined)
-  return at && size ? {...at, ...size} : undefined
-}
-
 const inside = (r: Rect, band: Rect) => {
   const y = r.y + r.height / 2
   return y >= band.y && y <= band.y + band.height
@@ -66,8 +57,8 @@ describe('settings account', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   host      a host read 150 (whoami 15, four reads of 30, 5s apart);  polled  20s of reads, overrun
   //             by one 170
-  //   page      openAccountPage 113 (escapeToTabs 30, the More tab 20, the row scrolled to 25 and
-  //             tapped 1, screen 11, the page 10, the original's row 16)
+  //   page      openAddresses 113 (openAccountPage 97: openMore 50, the row scrolled to 25 and tapped
+  //             1, screen 11, the page 10; the original's row 16)
   //   add       addFromPhone 540 (a host read 150, page 113, seq 2, button 7, screen 11, fill 26,
   //             step 2, keyboard 1, button 7, the call 12, its count 2, screen 21, polled 170, the
   //             row 16)
@@ -129,8 +120,6 @@ describe('settings account', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
-
   // The account's entry for `addr` on the host, or undefined. Bound: a host read 150.
   const hostEmail = async (addr: string) => (await hidden(async () => emails())).find(e => e.email === addr)
 
@@ -191,13 +180,9 @@ describe('settings account', function () {
   }
 
   // Settings > Account with the account's addresses loaded (the original's row is always drawn).
-  // Bound: 113.
-  const openAccountPage = async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Account')
-    await expectScreen('the account page', ACCOUNT_TAB)
-    await waitForTestID(T.SETTINGS_ACCOUNT_PAGE, 10_000)
+  // Bound: openAccountPage 97, the row 16 = 113.
+  const openAddresses = async () => {
+    await openAccountPage()
     await addressRow(original!, "the original primary address's row")
   }
 
@@ -241,7 +226,7 @@ describe('settings account', function () {
     requireStampedEmail(addr)
     check((await hostEmail(addr)) === undefined, "the test's address is on the account before the test")
     owned = addr
-    await openAccountPage()
+    await openAddresses()
     const seq = await currentCallSeq()
     await tapButton('Add email', "the account page's Add email")
     await expectScreen('the add email screen', 'settingsAddEmail')
@@ -250,7 +235,7 @@ describe('settings account', function () {
     await dismissKeyboard()
     await tapButton('Continue', "the add email screen's Continue")
     await waitForUiCall('the add email call to go out', seq, ADD_EMAIL)
-    check((await countOf(seq, ADD_EMAIL)) === 1, 'Continue sent the add email call more than once')
+    check((await uiCallCount(seq, ADD_EMAIL)) === 1, 'Continue sent the add email call more than once')
     await expectScreen('the account page after the add', ACCOUNT_TAB, () => true, 20_000)
     await expectHost('the new address on the account, unverified', list => list.some(e => e.email === addr && !e.isVerified))
     await addressRow(addr, 'the new address row')
@@ -273,7 +258,7 @@ describe('settings account', function () {
     await openRowMenu(addr, "the run address's menu")
     await chooseMenuItem('Verify')
     await waitForUiCall('the verification mail call to go out', seq, SEND_VERIFICATION)
-    check((await countOf(seq, SEND_VERIFICATION)) === 1, 'Verify sent the verification mail call more than once')
+    check((await uiCallCount(seq, SEND_VERIFICATION)) === 1, 'Verify sent the verification mail call more than once')
     await expectHost('the server to record the new verification mail', list =>
       list.some(e => e.email === addr && e.lastVerifyEmailDate > before)
     )
@@ -294,7 +279,7 @@ describe('settings account', function () {
     await openRowMenu(addr, "the run address's menu")
     await chooseSubtitled('Make primary')
     await waitForUiCall('the make primary call to go out', seq, SET_PRIMARY)
-    check((await countOf(seq, SET_PRIMARY)) === 1, 'Make primary sent its call more than once')
+    check((await uiCallCount(seq, SET_PRIMARY)) === 1, 'Make primary sent its call more than once')
     // pinned: the server takes an unverified address as the primary one
     await expectHost('the run address primary on the server', list => list.some(e => e.email === addr && e.isPrimary))
     await rowReads(was, 'Primary', false, "the original address's row to stop saying Primary")
@@ -304,7 +289,7 @@ describe('settings account', function () {
     await openRowMenu(was, "the original address's menu")
     await chooseSubtitled('Make primary')
     await waitForUiCall('the make primary call to go out', back, SET_PRIMARY)
-    check((await countOf(back, SET_PRIMARY)) === 1, 'Make primary sent its call more than once')
+    check((await uiCallCount(back, SET_PRIMARY)) === 1, 'Make primary sent its call more than once')
     await expectHost('the original address primary again on the server', list => list.some(e => e.email === was && e.isPrimary))
     await rowReads(was, 'Primary', true, "the original address's row to say Primary")
     await step('The original address primary again')
@@ -328,7 +313,7 @@ describe('settings account', function () {
     const seq = await currentCallSeq()
     await tapButton('Yes, delete', "the delete confirm's Yes, delete")
     await waitForUiCall('the delete email call to go out', seq, DELETE_EMAIL)
-    check((await countOf(seq, DELETE_EMAIL)) === 1, 'Yes, delete sent the delete email call more than once')
+    check((await uiCallCount(seq, DELETE_EMAIL)) === 1, 'Yes, delete sent the delete email call more than once')
     await expectScreen('the account page after the delete', ACCOUNT_TAB, () => true, 20_000)
     // the list read is anchored by its primary address, and the original is the primary one
     await expectHost('the run address gone from the account', list => !list.some(e => e.email === addr) && list.some(e => e.email === was && e.isPrimary))
@@ -345,7 +330,7 @@ describe('settings account', function () {
     // worst case (s): page 113, seq 2, button 7, screen 11, text 11, manual 2, header 6, screen 11,
     // calls 2, step 2 = 167
     this.timeout(190_000)
-    await openAccountPage()
+    await openAddresses()
     const seq = await currentCallSeq()
     await tapButton('Add phone number', "the account page's Add phone number")
     await expectScreen('the add phone number screen', 'settingsAddPhone')
@@ -368,7 +353,7 @@ describe('settings account', function () {
     await requireAppIsSmoke()
     // an account with no password of its own deletes from this confirm at once
     check(!(await randomPW()), 'the smoke account has no password of its own, so its delete account confirm deletes at once; refusing')
-    await openAccountPage()
+    await openAddresses()
     await dragUntilOnScreen('the Delete account button', () => browser.$(DELETE_ACCOUNT_BUTTON))
     const seq = await currentCallSeq()
     await browser.$(DELETE_ACCOUNT_BUTTON).click()

@@ -39,16 +39,15 @@ import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib'
-import {openLink} from '../gate/device'
-import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
-import type {CallMark} from '../gate/recorder-lib'
+import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {manualEdge, retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
-import {el, waitForTestID} from '../helpers/elements'
+import {el} from '../helpers/elements'
 import {expectScreen, fillField, press, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
-import {escapeToTabs} from '../helpers/navigate'
+import {escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
+import {ADD_IDENTITIES, openOwnProfileOf} from '../helpers/profile'
 import {masked, onlyField, textPartShown, textShown} from '../helpers/teams'
 
 const REGISTER = 'keybase.1.cryptocurrency.registerAddress'
@@ -56,9 +55,6 @@ const START_PROOF = 'keybase.1.prove.startProof'
 const REVOKE_SIGS = 'keybase.1.revoke.revokeSigs'
 const REVOKE_KEY = 'keybase.1.revoke.revokeKey'
 
-const ADD_IDENTITIES = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add more identities" AND visible == 1'
-// the modal's header Cancel (a native bar item), not the Cancel in the instructions' body
-const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
 const DNS_INSTRUCTIONS = '-ios predicate string:label BEGINSWITH "Enter the following as a TXT entry" AND visible == 1'
 // what an identity row draws its value as: one text, its value then "@<type>"
 const ROW_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeTextView', 'XCUIElementTypeOther']
@@ -159,14 +155,8 @@ describe('profile proofs', function () {
 
   const onOwnProfile = (p: Params) => p['username'] === loadE2EAccounts().secondUser
 
-  // The second account's own profile, opened from a link while the app is on it. Bound: 63.
-  const openOwnProfile = async () => {
-    const {secondUser} = loadE2EAccounts()
-    await escapeToTabs()
-    openLink(`keybase://profile/show/${secondUser}`)
-    await expectScreen("the second account's own profile", 'profile', onOwnProfile, 20_000)
-    await waitForTestID(T.PROFILE_PAGE, 10_000)
-  }
+  // The second account's own profile, while the app is on it. Bound: 63.
+  const openOwnProfile = async () => openOwnProfileOf(loadE2EAccounts().secondUser, 'the second account')
 
   // Drags the profile until its "Add more identities" is on screen, which brings the identity rows
   // above it into view. Bound: 20.
@@ -265,15 +255,13 @@ describe('profile proofs', function () {
     await press(entry, `the platform ${name}`)
   }
 
-  const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
-
   // Taps the confirm's `label` and waits for `method` to go out once. Bound: calls 2, button 7,
   // waited for 12, calls 2 = 23.
   const confirmRevoke = async (label: string, method: string) => {
     const seq = await currentCallSeq()
     await tapButton(label, `the confirm's ${label}`)
     await waitForUiCall(`the ${label} to go out`, seq, method)
-    check((await countOf(seq, method)) === 1, `the confirm sent ${method} more than once`)
+    check((await uiCallCount(seq, method)) === 1, `the confirm sent ${method} more than once`)
   }
 
   it('add the bitcoin burn address and revoke it from its row', async function () {
@@ -296,7 +284,7 @@ describe('profile proofs', function () {
       await waitForUiCall('the address to go out', seq, REGISTER)
       const sigID = await recordAdded('bitcoin', before)
       pendingAdd = undefined
-      check((await countOf(seq, REGISTER)) === 1, 'Continue sent the address more than once')
+      check((await uiCallCount(seq, REGISTER)) === 1, 'Continue sent the address more than once')
       await textShown('Verified!', 'the address added', 15_000)
       await expectPeer('the burn address', cryptoAddresses, as => as.some(a => a.address === BURN_ADDRESS && a.sigID === sigID))
       await step('The address added')

@@ -29,8 +29,7 @@ import {relaunchApp} from '../gate/device'
 import {requirePhoneSecondPassword} from '../gate/password'
 import {repairRememberLeftOff} from '../gate/remember-lib.ts'
 import {pressBackToLoginList} from '../gate/screens'
-import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
-import type {CallMark} from '../gate/recorder-lib'
+import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {clearLoginPasswordMark, restoreSecondSecret, storedSecretOf, withLoginPasswordMarked} from '../gate/sign-in'
 import {step} from '../gate/step'
 import {switchAppAccount} from '../helpers/chat'
@@ -127,8 +126,6 @@ describe('settings remember password', function () {
 
   // -- the phone ----------------------------------------------------------------------------------
 
-  const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
-
   // Settings > Advanced, with its "Always stay logged in" switch drawn (only for an account with a
   // password). Bound: 97.
   const openAdvanced = async () => {
@@ -144,7 +141,7 @@ describe('settings remember password', function () {
     const seq = await currentCallSeq()
     await el(T.SETTINGS_REMEMBER_PASSWORD_SWITCH).click()
     await waitForUiCall('the remember-password call to go out', seq, SET_REMEMBER)
-    check((await countOf(seq, SET_REMEMBER)) === 1, 'the switch sent the remember-password call more than once')
+    check((await uiCallCount(seq, SET_REMEMBER)) === 1, 'the switch sent the remember-password call more than once')
     await waitFor(
       `the phone to read the remember-password setting ${want ? 'on' : 'off'}`,
       async () => ((await rememberPassphrase()) === want ? true : undefined),

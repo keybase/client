@@ -77,16 +77,18 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {relaunchApp} from '../gate/device'
-import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugLevels, type Rect} from '../gate/persisted-lib.ts'
+import {rectOf} from '../gate/chat-lib.ts'
+import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
 import {dragUntilOnScreen} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, tapButton, waitSignedIn} from '../helpers/files'
+import {BUTTONS, tapButton, waitSignedIn} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
-import {escapeToTabs, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {openMore, openSettingsPage} from '../helpers/settings'
 import {masked, TEXT_TYPES} from '../helpers/teams'
 import {sourceElements} from '../gate/page-source-lib'
 
@@ -192,29 +194,10 @@ const settles = async <V,>(what: string, read: () => Promise<V>, want: V) =>
 
 // -- pages ---------------------------------------------------------------------------------------
 
-// The More list. Bound: escapeToTabs 30, the More tab 20 = 50.
-const openMore = async () => {
-  await escapeToTabs()
-  await navigateToMore()
-}
-
-// A settings page from the More list. Bound: openMore 50, the row scrolled to 25 and tapped 1, the
-// screen 11, its marker 10 = 97.
-const openPage = async (row: string, screen: string, marker: string) => {
-  await openMore()
-  if (row === 'Chat') {
-    await scrollToTestID(T.SETTINGS_ROW_CHAT)
-    await el(T.SETTINGS_ROW_CHAT).click()
-  } else {
-    await tapSettingsRow(row)
-  }
-  await expectScreen(`the ${row} settings`, screen)
-  await el(marker).waitForExist({timeout: 10_000})
-}
-const openChat = async () => openPage('Chat', 'settingsTabs.chatTab', T.SETTINGS_CHAT)
-const openNotifications = async () => openPage('Notifications', 'settingsTabs.notificationsTab', T.SETTINGS_NOTIFICATIONS)
-const openDisplay = async () => openPage('Display', 'settingsTabs.displayTab', T.SETTINGS_DISPLAY)
-const openAdvanced = async () => openPage('Advanced', 'settingsTabs.advancedTab', T.SETTINGS_ADVANCED)
+const openChat = async () => openSettingsPage('Chat', 'settingsTabs.chatTab', T.SETTINGS_CHAT)
+const openNotifications = async () => openSettingsPage('Notifications', 'settingsTabs.notificationsTab', T.SETTINGS_NOTIFICATIONS)
+const openDisplay = async () => openSettingsPage('Display', 'settingsTabs.displayTab', T.SETTINGS_DISPLAY)
+const openAdvanced = async () => openSettingsPage('Advanced', 'settingsTabs.advancedTab', T.SETTINGS_ADVANCED)
 
 // A relaunch, back on the smoke account. Bound: relaunchApp 200, signed in 90, the account 1 = 291.
 const relaunched = async () => {
@@ -317,17 +300,13 @@ const moreListDraws = async () => {
   return {crypto, perf}
 }
 
-// Where `e` is drawn. Bound: two reads 1.
-const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => ({...(await e.getLocation()), ...(await e.getSize())})
-
-
 describe('settings persisted', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   smoke     requireAppIsSmoke 1;  host  a host read 150;  ask  an askApp 22 (20, the pause and
   //             resume 2);  reach  phoneReachesServer 32
   //   round     roundTrip 657 + 2C + 3S, C the change's bound, S its settles (host 180, phone 52)
   //   tap       tapAndCall 37;  save  saveAndCall 37;  shown  expectShown 41;  control  tapControl 21
-  //   open      openPage 97;  more  openMore 50;  relaunched  291
+  //   open      openSettingsPage 97;  more  openMore 50;  relaunched  291
   //   step      2 (its 1s settle and the attach)
   //   mark      logMark 120;  level  levelSetSince 21
   //   restore   a host restore 355 (a read 150, the write 35, 20s of reads overrun by one 150 = 170)
@@ -831,10 +810,11 @@ describe('settings persisted', function () {
       await dragUntilOnScreen('the developer warning line', () => browser.$(line))
       const text = await labelledElement(line, DEVELOPER_LINE, 'the developer warning line')
       const lineRect = await rectOf(text)
+      check(lineRect !== undefined, 'the developer line has no frame, so it cannot be seen clear of the buttons')
       for (const label of ['DB Nuke', 'Clear Logs']) {
         const at = await labelledElement(BUTTONS, label, `the ${label} button`).then(rectOf, () => undefined)
         check(label !== 'DB Nuke' || at !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
-        check(!at || !rectsOverlap(lineRect, at), `refusing to tap the developer line: it overlaps the ${label} button`)
+        check(!at || !rectsOverlap(lineRect!, at), `refusing to tap the developer line: it overlaps the ${label} button`)
       }
       for (let i = 0; i < DEVELOPER_TAPS; i++) await text.click()
       await dragUntilOnScreen('Toggle Runtime Stats', () =>

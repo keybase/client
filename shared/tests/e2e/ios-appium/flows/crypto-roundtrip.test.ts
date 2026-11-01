@@ -35,8 +35,7 @@ import {
   writeOwnFile,
 } from '../gate/crypto-lib.ts'
 import {pasteboardText, setPasteboard} from '../gate/device'
-import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
-import type {CallMark} from '../gate/recorder-lib'
+import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {fieldLength} from '../gate/secret-input'
 import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {step} from '../gate/step'
@@ -207,8 +206,6 @@ describe('crypto roundtrip', function () {
 
   // -- the phone ----------------------------------------------------------------------------------
 
-  const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
-
   // Puts the marker into the open operation's field and reads it back. The field is inside its box's
   // one element, so it is not in the tree: set through its own onChange. Bound: 30.
   const typeMarker = async (marker: string, tab: CryptoTab) => fillHiddenField(T.CRYPTO_TEXT_INPUT, marker, `the ${tab} field`)
@@ -219,7 +216,7 @@ describe('crypto roundtrip', function () {
     const seq = await currentCallSeq()
     await el(T.CRYPTO_RUN_BUTTON).click()
     await waitForUiCall(`the ${tab} call to go out`, seq, method)
-    check((await countOf(seq, method)) === 1, `the run button sent the ${tab} call more than once`)
+    check((await uiCallCount(seq, method)) === 1, `the run button sent the ${tab} call more than once`)
     await expectScreen(`the ${tab} output`, CRYPTO_TABS[tab].output)
   }
 

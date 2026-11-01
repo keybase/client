@@ -66,6 +66,9 @@ export async function tapSettingsRow(text: string): Promise<void> {
   await byText(text).click()
 }
 
+// A modal's header Cancel (a native bar item), not a Cancel in the screen's body or footer.
+export const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
+
 // A visible modal header button. Exact labels on buttons only: a tab root shows none of these,
 // while message snippets and feed text can contain the words.
 const MODAL_BUTTON_PRED =

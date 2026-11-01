@@ -123,7 +123,7 @@ const androidEnterText = async (id: string, text: string): Promise<void> => {
 
 // The tappable Paste of a field's edit menu. The menu exposes THREE "Paste" nodes: a MenuItem, a
 // non-tappable StaticText, and an "assistantPaste:" Button; only the MenuItem and Button paste.
-const PASTE_ITEM =
+export const PASTE_ITEM =
   '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
 
 // Enter text by pasting from the system pasteboard instead of per-key typing.

@@ -1,4 +1,5 @@
 // Settings pages, reached from the More list.
+import * as T from '../../shared/test-ids'
 import {expectScreen} from '../gate/screens.ts'
 import {el} from './elements'
 import {escapeToTabs, navigateToMore, scrollToTestID, tapSettingsRow} from './navigate'
@@ -23,3 +24,8 @@ export const openSettingsPage = async (row: string, screen: string, marker: stri
   await expectScreen(`the ${row} settings`, screen)
   await el(marker).waitForExist({timeout: 10_000, timeoutMsg: `the ${row} settings page never drew`})
 }
+
+export const ACCOUNT_TAB = 'settingsTabs.accountTab'
+
+// Settings > Account. Bound: openSettingsPage 97.
+export const openAccountPage = async () => openSettingsPage('Account', ACCOUNT_TAB, T.SETTINGS_ACCOUNT_PAGE)

@@ -4,7 +4,7 @@
 // its header's Done.
 import * as T from '../../shared/test-ids'
 import {jsEval} from '../gate/app-ask'
-import {el, tapForTestID, waitForTestID} from './elements'
+import {el, PASTE_ITEM, tapForTestID, waitForTestID} from './elements'
 import {expectScreen} from './files'
 import {fiberPrelude} from './fiber-prelude'
 import {waitFor} from './lifecycle'
@@ -58,11 +58,6 @@ export const closeCryptoOutput = async (tab: CryptoTab) => {
   await expectScreen(`the ${tab} screen after Done`, CRYPTO_TABS[tab].route)
   await el(T.CRYPTO_OUTPUT).waitForExist({reverse: true, timeout: 5_000})
 }
-
-// The tappable Paste of a field's edit menu (helpers/elements' PASTE_ITEM): the MenuItem or the
-// assistant's Button, never the menu's StaticText.
-const PASTE_ITEM =
-  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
 
 // How far into the field its first line of text is drawn, in points: the native multi-line field's
 // top inset and half a line. A long press below the text opens no edit menu (seen live).

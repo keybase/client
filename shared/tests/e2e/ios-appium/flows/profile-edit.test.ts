@@ -11,7 +11,7 @@ import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
-import {openLink, relaunchApp} from '../gate/device'
+import {relaunchApp} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
@@ -19,14 +19,12 @@ import {el, waitForTestID} from '../helpers/elements'
 import {expectScreen, fillField, tapButton, waitSignedIn} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
-import {escapeToTabs} from '../helpers/navigate'
+import {escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
+import {ADD_IDENTITIES, openOwnProfileOf} from '../helpers/profile'
 import {masked, textShown} from '../helpers/teams'
 
 const PROFILE_EDIT = 'keybase.1.user.profileEdit'
 
-const ADD_IDENTITIES = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add more identities" AND visible == 1'
-// the modal's header Cancel (a native bar item), not a Cancel in the screen's body
-const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
 
 describe('profile edit', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -67,14 +65,8 @@ describe('profile edit', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  // The smoke account's own profile, opened from a link. Bound: 63.
-  const openOwnProfile = async () => {
-    const {smokeUser} = loadE2EAccounts()
-    await escapeToTabs()
-    openLink(`keybase://profile/show/${smokeUser}`)
-    await expectScreen("the smoke account's own profile", 'profile', p => p['username'] === smokeUser, 20_000)
-    await waitForTestID(T.PROFILE_PAGE, 10_000)
-  }
+  // The smoke account's own profile. Bound: 63.
+  const openOwnProfile = async () => openOwnProfileOf(loadE2EAccounts().smokeUser, 'the smoke account')
 
   // Waits for the profile to draw `text` as one of its texts, read off one page source (an attribute
   // call per text of a profile with its teams and proofs took minutes, seen live: a read outlived its
