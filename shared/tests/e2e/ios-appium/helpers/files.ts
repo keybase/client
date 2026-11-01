@@ -136,9 +136,10 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
     const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
     const candidates = pick(all, e => e.attrs['visible'] === 'true')
-    // the named row is taken wherever it is drawn on screen, reported visible or not (a modal's row
-    // can read invisible while its neighbours read visible); off screen it only says which way to drag
-    const hits = all
+    // a Files row is taken wherever it is drawn in the files browser, reported visible or not (a
+    // folder screen reports every element invisible); another list's row only among the candidates,
+    // on screen
+    const hits = (files ? all : candidates)
       .filter(e => labelParts(e.attrs['label'] ?? '').includes(name))
       .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
       .filter(r => inside(r, area ?? screen))
@@ -146,8 +147,9 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
     const signature = candidates.map(e => e.attrs['label'] ?? '').join('\n')
     if (!inner.length) {
-      // a list that is not virtualized keeps its off-screen rows in the tree: which way the row is
-      const off = all.find(e => labelParts(e.attrs['label'] ?? '').includes(name))
+      // the Files list, which is not virtualized, keeps its off-screen rows in the tree: which way the
+      // row is. Another list's off-screen element can be a covered screen's, so it steers nothing.
+      const off = files ? all.find(e => labelParts(e.attrs['label'] ?? '').includes(name)) : undefined
       return {offscreen: off ? Number(off.attrs['y']) - height / 2 : undefined, row: undefined, signature}
     }
     const r = hits[inner[0]!]!
