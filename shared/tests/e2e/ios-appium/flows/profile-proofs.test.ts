@@ -148,10 +148,10 @@ describe('profile proofs', function () {
   const PER_SIG = 435
 
   afterEach(async function () {
-    // Worst case (s): close 5, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 595,
-    // restoreToSmoke 160, escapeToTabs 30 = 3530 and 435 a sig (at least one).
+    // Worst case (s): close 19, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 595,
+    // restoreToSmoke 160, escapeToTabs 30 = 3544 and 435 a sig (at least one).
     const sigs = Math.min(MAX_SIGS, Math.max(1, recordedSigCount() + (pendingAdd ? 1 : 0)))
-    this.timeout((3_530 + PER_SIG * sigs + 100) * 1_000)
+    this.timeout((3_544 + PER_SIG * sigs + 100) * 1_000)
     await withCleanup(closeMessageMenu, [recordPending, revokeRun, purgeMadeKeys, restoreToSmoke, escapeToTabs])
   })
 

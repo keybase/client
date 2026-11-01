@@ -121,7 +121,7 @@ describe('settings account', function () {
     owned = undefined
   }
 
-  // Worst case (s): close 5, restoreEmails 760, escapeToTabs 30 = 795.
+  // Worst case (s): close 19, restoreEmails 760, escapeToTabs 30 = 809.
   afterEach(async function () {
     this.timeout(850_000)
     await withCleanup(closeMessageMenu, [restoreEmails, escapeToTabs])
