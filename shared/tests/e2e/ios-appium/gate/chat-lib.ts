@@ -235,13 +235,18 @@ const contains = (outer: Rect, inner: Rect) =>
   outer.y + outer.height + ROUNDING >= inner.y + inner.height
 
 // The indexes of the rects that hold no other rect of the list: where several nested elements expose
-// the same label (a pressable box and its text), the innermost is the one drawn. Rects with the same
-// frame (a text in a text) are one thing on screen: the first stands for them.
+// the same label (a pressable box and its text), the innermost is the one drawn. Two rects within
+// ROUNDING of each other each contain the other: the smaller area is the inner one, and of equal areas
+// (the same frame, a text in a text, or one shifted by the rounding) the first stands for both.
 export const innermost = (rects: ReadonlyArray<Rect>) => {
-  const same = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
-  return rects.flatMap((r, i) =>
-    rects.some((o, j) => (j !== i && contains(r, o) && !contains(o, r)) || (j < i && same(o, r))) ? [] : [i]
-  )
+  const area = (r: Rect) => r.width * r.height
+  // whether `o` (at j) is inside `r` (at i), so `r` is not the innermost
+  const holds = (r: Rect, i: number, o: Rect, j: number) => {
+    if (j === i || !contains(r, o)) return false
+    if (!contains(o, r)) return true
+    return area(o) < area(r) || (area(o) === area(r) && j < i)
+  }
+  return rects.flatMap((r, i) => (rects.some((o, j) => holds(r, i, o, j)) ? [] : [i]))
 }
 
 // The inbox search's name hits among `matches` (rects of elements that read the asked-for text): those

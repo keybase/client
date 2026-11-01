@@ -275,6 +275,27 @@ describe('innermost', () => {
     const text = {height: 20, width: 100, x: 10, y: 110}
     expect(innermost([box, text, {...text}])).toEqual([1])
   })
+
+  // within the rounding each contains the other: the smaller area is the inner one, in either order
+  test('a rect inset 1pt inside another is the inner one', () => {
+    const box = {height: 30, width: 122, x: 140, y: 745}
+    const inset = {height: 28, width: 120, x: 141, y: 746}
+    expect(innermost([box, inset])).toEqual([1])
+    expect(innermost([inset, box])).toEqual([0])
+  })
+
+  test('a rect running 1pt past another of the same origin: the smaller is the inner one', () => {
+    const box = {height: 30, width: 122, x: 140, y: 745}
+    const past = {height: 31, width: 123, x: 140, y: 745}
+    expect(innermost([box, past])).toEqual([0])
+    expect(innermost([past, box])).toEqual([1])
+  })
+
+  test('two of one size shifted 1pt count once, as the first', () => {
+    const a = {height: 30, width: 122, x: 140, y: 745}
+    const b = {height: 30, width: 122, x: 141, y: 746}
+    expect(innermost([a, b])).toEqual([0])
+  })
 })
 
 describe('inNameSection', () => {
