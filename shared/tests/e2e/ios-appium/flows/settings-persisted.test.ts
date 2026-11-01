@@ -812,9 +812,13 @@ describe('settings persisted', function () {
       const lineRect = await rectOf(text)
       check(lineRect !== undefined, 'the developer line has no frame, so it cannot be seen clear of the buttons')
       for (const label of ['DB Nuke', 'Clear Logs']) {
-        const at = await labelledElement(BUTTONS, label, `the ${label} button`).then(rectOf, () => undefined)
-        check(label !== 'DB Nuke' || at !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
-        check(!at || !rectsOverlap(lineRect!, at), `refusing to tap the developer line: it overlaps the ${label} button`)
+        const button = await labelledElement(BUTTONS, label, `the ${label} button`).catch(() => undefined)
+        check(label !== 'DB Nuke' || button !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
+        if (!button) continue
+        // a drawn button with no frame cannot be seen clear of the line
+        const at = await rectOf(button)
+        check(at !== undefined, `the ${label} button has no frame, so the developer line cannot be seen clear of it`)
+        check(!rectsOverlap(lineRect!, at!), `refusing to tap the developer line: it overlaps the ${label} button`)
       }
       for (let i = 0; i < DEVELOPER_TAPS; i++) await text.click()
       await dragUntilOnScreen('Toggle Runtime Stats', () =>
