@@ -38,6 +38,7 @@ import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib'
 import {openLink} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
@@ -60,8 +61,7 @@ const ADD_IDENTITIES = '-ios predicate string:type == "XCUIElementTypeButton" AN
 const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
 const DNS_INSTRUCTIONS = '-ios predicate string:label BEGINSWITH "Enter the following as a TXT entry" AND visible == 1'
 // what an identity row draws its value as: one text, its value then "@<type>"
-const ROW_TEXTS =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeTextView" OR type == "XCUIElementTypeOther") AND visible == 1'
+const ROW_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeTextView', 'XCUIElementTypeOther']
 
 type Params = Record<string, unknown>
 
@@ -173,16 +173,16 @@ describe('profile proofs', function () {
   const revealIdentities = async () => dragUntilOnScreen('"Add more identities"', () => browser.$(ADD_IDENTITIES))
 
   // The rects of the texts on screen that `match` reads as the identity row's, innermost of nested
-  // ones. Bound: one read 1.
+  // ones, read off one page source (an attribute call per text of the profile took longer than the
+  // row's wait, seen live). Bound: one read 1.
   const rowTextRects = async (match: RowMatch) => {
     const rects: Array<Rect> = []
-    for (const e of await browser.$$(ROW_TEXTS).getElements()) {
-      const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-      const value = ((await e.getAttribute('value').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
+    for (const {attrs, type} of sourceElements(await browser.getPageSource())) {
+      if (!ROW_TYPES.includes(type) || attrs['visible'] !== 'true') continue
+      const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
+      const value = (attrs['value'] ?? '').replace(/\u00a0/g, ' ')
       if (!match(label) && !match(value)) continue
-      const at = await e.getLocation().catch(() => undefined)
-      const size = await e.getSize().catch(() => undefined)
-      if (at && size) rects.push({...at, ...size})
+      rects.push({height: Number(attrs['height']), width: Number(attrs['width']), x: Number(attrs['x']), y: Number(attrs['y'])})
     }
     return innermost(rects).map(i => rects[i]!)
   }
@@ -206,12 +206,12 @@ describe('profile proofs', function () {
   // Opens the row's menu from its status icon and picks `item` ("Revoke", or "Drop" for a key), then
   // waits for the confirm screen. The row is read again with its icon, as the profile can still move
   // after the row was first read (seen live: the pending DNS row's icon was not in the band read
-  // before the step's screenshot). Bound: 10s of row and icon reads, overrun by one 4, menu 19, item
-  // 22, screen 11 = 66.
+  // before the step's screenshot). Bound: 10s of row and icon reads, overrun by one (the row 4, the icon
+  // 2) 6, menu 19, item 22, screen 11 = 68.
   const openRevoke = async (match: RowMatch, item: 'Drop' | 'Revoke', what: string) => {
     const icon = await waitFor(
       `${what}'s menu icon`,
-      async () => elementInRow(await identityRow(match, what, 1_000), T.PROFILE_ASSERTION_MENU),
+      async () => elementInRow(await identityRow(match, what, 3_000), T.PROFILE_ASSERTION_MENU),
       {interval: 500, timeout: 10_000}
     )
     await openMenuFrom(`${what}'s menu`, async () => icon.click())
@@ -279,8 +279,8 @@ describe('profile proofs', function () {
   it('add the bitcoin burn address and revoke it from its row', async function () {
     // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, field 11, fill 26,
     // step 2, calls 2, button 7, waited for 12, record 465, calls 2, text 16, polled 495, step 2,
-    // button 7, screen 21, identities 20, row 16, step 2, revoke 66, step 2, confirm 23, polled 495,
-    // the address read 435, gone 57, step 2 = 3024
+    // button 7, screen 21, identities 20, row 16, step 2, revoke 68, step 2, confirm 23, polled 495,
+    // the address read 435, gone 57, step 2 = 3026
     this.timeout(3_050_000)
     const before = await masked(async () => sigIDsBefore())
     pendingAdd = {before, kind: 'bitcoin'}
@@ -321,8 +321,8 @@ describe('profile proofs', function () {
   it('start a DNS proof to its instructions and revoke the pending proof from its row', async function () {
     // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, text 16,
     // calls 2, its press 2, waited for 12, field 11, fill 26, step 2, button 7, the instructions 31,
-    // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 66, step 2,
-    // confirm 23, polled 495, gone 57, step 2 = 2139
+    // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 68, step 2,
+    // confirm 23, polled 495, gone 57, step 2 = 2141
     this.timeout(2_200_000)
     const domain = `e2e${e2eRunId()}.example.com`
     const before = await masked(async () => sigIDsBefore())
@@ -369,8 +369,8 @@ describe('profile proofs', function () {
 
   it('drop a PGP key the second account’s peer made from its row', async function () {
     // worst case (s): keygen 365, polled 560, second 250; in it: the row opened 159 (60s of tries,
-    // overrun by one: profile 63, identities 20, row 16), step 2, revoke 66, step 2, confirm 23,
-    // polled 560, gone 57, step 2; then purge 95 = 2141
+    // overrun by one: profile 63, identities 20, row 16), step 2, revoke 68, step 2, confirm 23,
+    // polled 560, gone 57, step 2; then purge 95 = 2143
     this.timeout(2_200_000)
     pgpStarted = true
     const fp = await masked(async () => peerMakePgpKey('drop'))
