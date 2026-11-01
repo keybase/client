@@ -36,6 +36,7 @@ import {
   teamChannels,
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {elementInRow, type Rect} from '../gate/chat-lib.ts'
 import {openLink} from '../gate/device'
@@ -172,9 +173,24 @@ describe('teams members', function () {
   const memberRow = async (username: string, what: string, timeout = 30_000) =>
     filesRowNamed(username, what, {testID: T.TEAMS_MEMBER_ROW, timeout})
 
-  // The selection popup's rect, once it shows. Bound: 10s, its read 1.
-  const selectionPopup = async (): Promise<Rect> => {
-    await waitFor('the selection popup', async () => ((await onScreenID(T.TEAMS_SELECTION_POPUP)) ? true : undefined), {interval: 250, timeout: 10_000})
+  // Checks the member row at `rowRect` and returns the selection popup's rect. A tap on the check
+  // that did not take (seen live: the circle stayed empty and no popup came) is tried once more,
+  // only while no popup shows, so a check that took is never unchecked. Bound: two of (the check in
+  // the row 2, its press 2, 5s of reads 6), the popup's read 1 = 21.
+  const checkRowForPopup = async (rowRect: Rect, what: string): Promise<Rect> => {
+    const popupUp = async () =>
+      waitFor('the selection popup', async () => ((await onScreenID(T.TEAMS_SELECTION_POPUP)) ? true : undefined), {interval: 250, timeout: 5_000}).then(
+        () => true,
+        (e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          return false
+        }
+      )
+    for (let i = 0; ; i++) {
+      await press(await elementInRow(rowRect, T.TEAMS_MEMBER_CHECK), what)
+      if (await popupUp()) break
+      if (i === 1) throw new Error(`two taps on ${what} brought no selection popup`)
+    }
     const popup = await el(T.TEAMS_SELECTION_POPUP).getElement()
     return {...(await popup.getLocation()), ...(await popup.getSize())}
   }
@@ -374,10 +390,10 @@ describe('teams members', function () {
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
     //   part 6 and a press 2 = 16, the subteam's channels 255, step 2, pin 1, calls 2, action 6,
     //   waited for 12, the call log 2, two polled 570, step 2 = 1045;
-    // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, in row 2
-    //   and its tap 1, popup 11, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
-    //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1010
-    // = 2950 + 1045 + 1010 = 5005
+    // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, the check
+    //   and its popup 21, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
+    //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1017
+    // = 2950 + 1045 + 1017 = 5012
     this.timeout(5_100_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()
@@ -447,8 +463,7 @@ describe('teams members', function () {
     await expectScreen("the first channel's page", 'teamChannel', onChannel)
     await el(T.TEAMS_CHANNEL_PAGE).waitForExist({timeout: 10_000})
     const inChannel = await filesRowNamed(secondUser, "the second account's row on the channel page", {testID: T.TEAMS_CHANNEL_MEMBER_ROW})
-    await (await elementInRow(inChannel.rect, T.TEAMS_MEMBER_CHECK)).click()
-    const popup = await selectionPopup()
+    const popup = await checkRowForPopup(inChannel.rect, "the second account's check on the channel page")
     await (await shownInside(popup, BUTTONS, 'Remove from channel', "the selection popup's Remove from channel")).click()
     const onRemove = (p: Params) =>
       onChannel(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
@@ -473,11 +488,11 @@ describe('teams members', function () {
   it('the second account removed from the subteam from the selection popup and from its row menu', async function () {
     // worst case (s):
     // setup: subteam 600, host 315 (its id), add 255, opened 204 = 1374;
-    // popup: row 31, in row 2 and its tap 1, popup 11, its button 6 and tap 1, screen 11, text 6,
-    //   step 2, pin 1, calls 2, button 6, waited for 12, polled 285, step 2 = 379;
+    // popup: row 31, the check and its popup 21, its button 6 and tap 1, screen 11, text 6,
+    //   step 2, pin 1, calls 2, button 6, waited for 12, polled 285, step 2 = 386;
     // menu: add 255, polled 285, opened 204, the popup's absence 1, row 31, in row 2, menu 19, pin
     //   1, calls 2, item 22, waited for 12, polled 285, step 2 = 1121
-    // = 1374 + 379 + 1121 = 2874
+    // = 1374 + 386 + 1121 = 2881
     this.timeout(2_900_000)
     const {secondUser} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('kck', madeNames)
@@ -489,8 +504,7 @@ describe('teams members', function () {
 
     // -- the selection popup's Remove from team, then Kick out ---------------------------------------
     const row = await memberRow(secondUser, "the second account's member row")
-    await (await elementInRow(row.rect, T.TEAMS_MEMBER_CHECK)).click()
-    const popup = await selectionPopup()
+    const popup = await checkRowForPopup(row.rect, "the second account's check")
     await (await shownInside(popup, BUTTONS, 'Remove from team', "the selection popup's Remove from team")).click()
     const onKick = (p: Params) =>
       onSubteam(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
