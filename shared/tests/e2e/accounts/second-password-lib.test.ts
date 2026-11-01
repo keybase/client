@@ -504,6 +504,45 @@ describe('settlePendingSecondPassword', () => {
     expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
   })
 
+  // the iOS afterEach: a change the phone sent may still be on its way to the server
+  describe('when it may not drop', () => {
+    const text = "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n"
+    const sent = async () => Promise.resolve(false)
+    const neverSent = async () => Promise.resolve(true)
+
+    test('a change sent and not yet applied: KB_SECOND_PASSWORD_NEXT stays and the owner runs --check', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const err = await settlePendingSecondPassword(env, file, holds(['old-pw']), sent).then(
+        () => new Error('it passed'),
+        (e: unknown) => e as Error
+      )
+      expect(err.message).toMatch(/yarn test:e2e:accounts:second-password --check/)
+      expect(err.message).not.toMatch(/old-pw|new-pw/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    })
+
+    test('a change applied: KB_SECOND_PASSWORD_NEXT is promoted', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      await expect(settlePendingSecondPassword(env, file, holds(['new-pw']), sent)).resolves.toBe('promoted')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('new-pw')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+    })
+
+    test('a change never sent: KB_SECOND_PASSWORD_NEXT is dropped', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      await expect(settlePendingSecondPassword(env, file, holds(['old-pw']), neverSent)).resolves.toBe('dropped')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('old-pw')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+    })
+
+    test('a call log that cannot be read changes nothing', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const unreadable = async () => Promise.reject(new Error('the call log is gone'))
+      await expect(settlePendingSecondPassword(env, file, holds(['old-pw']), unreadable)).rejects.toThrow(/call log/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    })
+  })
+
   test('changes nothing, naming no password, when neither or both check, or when none is pending', async () => {
     const text = "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n"
     for (const current of [[], ['old-pw', 'new-pw']]) {

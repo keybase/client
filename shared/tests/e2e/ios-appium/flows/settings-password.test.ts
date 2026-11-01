@@ -22,6 +22,7 @@ import {CHECK_WORST_MS, rotateSecondPassword, sayMasked, settlePendingSecondPass
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {appAccount, asSecond, requireAppIsSmoke, restoreToSmoke} from '../gate/accounts'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {randomPW} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {HOST_UNCHECKED, iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
@@ -111,11 +112,36 @@ describe('settings password', function () {
     clearSecretOnScreen(NEW_PASSWORD_SHOWN)
   }
 
+  // the call log's mark taken before the test's change, so the afterEach can tell whether the phone
+  // sent one
+  let attemptMark: CallMark | undefined
+
+  // Whether the phone's call log proves it sent no password change since attemptMark. A log that
+  // cannot be read (a new JS runtime, a stopped recorder, no mark) proves nothing. Bound: a read 2.
+  const provedNoChangeSent = async () => {
+    const mark = attemptMark
+    if (!mark) return false
+    try {
+      return (await countOf(mark, PASSPHRASE_CHANGE)) === 0
+    } catch (e) {
+      if (isAttemptOver(e)) throw e
+      return false
+    }
+  }
+
   // A KB_SECOND_PASSWORD_NEXT a change left pending, settled on the second peer: it checks both
-  // passwords (no prompt, nothing changes) and the one the server holds becomes KB_SECOND_PASSWORD;
-  // neither or both throws for the owner. Bound: the env file 1, two peer checks 2 x 105 = 211.
+  // passwords (no prompt, nothing changes). It is promoted when the server holds it. It is dropped
+  // only when the phone sent no change in this attempt: a change still on its way (Save sent it, the
+  // screen never closed) reads as not taken yet, so then it stays and the owner's --check settles it
+  // later. Neither or both throws for the owner. Bound: the env file 1, two peer checks 2 x 105, the
+  // call log 2 = 213.
   const settlePending = async () => {
-    const settled = await masked(async () => settlePendingSecondPassword(loadE2EEnv(), defaultEnvPath()))
+    let settled: Awaited<ReturnType<typeof settlePendingSecondPassword>>
+    try {
+      settled = await masked(async () => settlePendingSecondPassword(loadE2EEnv(), defaultEnvPath(), undefined, provedNoChangeSent))
+    } finally {
+      attemptMark = undefined
+    }
     if (settled !== 'none') sayMasked(`settings-password: a pending KB_SECOND_PASSWORD_NEXT was ${settled}`)
   }
 
@@ -129,8 +155,8 @@ describe('settings password', function () {
     await withLoginPasswordMarked(async () => restoreSecondSecret(password))
   }
 
-  // Worst case (s): clearChangeMark 70, the login mark 21, settlePending 211, restoreSecret 454,
-  // restoreToSmoke 275, escapeToTabs 30 = 1061 (it goes last: signed out, no tab bar is there to
+  // Worst case (s): clearChangeMark 70, the login mark 21, settlePending 213, restoreSecret 454,
+  // restoreToSmoke 275, escapeToTabs 30 = 1063 (it goes last: signed out, no tab bar is there to
   // reach).
   afterEach(async function () {
     this.timeout(1_100_000)
@@ -225,16 +251,18 @@ describe('settings password', function () {
     })
 
   it('the second account password changed from the phone, then signed in with', async function () {
-    // worst case (s): stored 22, the env file 1, change 776, checkOrRepair 2 CHECK_S + REPAIR_S, the
+    // worst case (s): stored 22, the env file 1, seq 2, change 776, checkOrRepair 2 CHECK_S + REPAIR_S, the
     // promotion 1, the env file 1, step 2, signOutAndBackIn 902, stored 22, smoke 1, step 2, manual 2;
     // and 60 to spare
-    this.timeout((22 + 1 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 2 + 60) * 1_000)
+    this.timeout((22 + 1 + 2 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 2 + 60) * 1_000)
     const env = loadE2EEnv()
     // refuses while a change that stopped part way is unresolved
     requirePhoneSecondPassword(env)
     const {secondUser} = loadE2EAccounts()
     check(await storedSecretOf(secondUser), 'the phone keeps no stored secret for the second account before the change')
 
+    // before the rotation writes KB_SECOND_PASSWORD_NEXT
+    attemptMark = await currentCallSeq()
     const next = await rotateSecondPassword(env, changeOnPhone, iosRotateDeps())
     const file = readEnvFile(defaultEnvPath())
     check(file['KB_SECOND_PASSWORD'] === next && !file['KB_SECOND_PASSWORD_NEXT'], 'the env file does not hold the new password as KB_SECOND_PASSWORD')

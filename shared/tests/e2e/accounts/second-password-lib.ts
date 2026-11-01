@@ -15,6 +15,7 @@ import {
   loadE2EAccounts,
   readEnvFile,
   refuseWhileSecondPasswordChangePending,
+  secondPasswordCommand,
   setEnvVars,
   type E2EEnv,
 } from './env.ts'
@@ -349,16 +350,26 @@ export const rotateSecondPassword = async (
 // peer checks both passwords (no prompt, nothing changes); the one the server holds becomes
 // KB_SECOND_PASSWORD and _NEXT is dropped. Throws, changing nothing, when neither or both check.
 // Returns what it did.
+//
+// `mayDrop` is asked only when the server does not hold _NEXT: a change that went out and is still
+// running reads exactly like one that never took, and dropping _NEXT then would lose the password the
+// server is about to take. Unless it answers true, _NEXT stays and this throws the owner's --check.
 export const settlePendingSecondPassword = async (
   env: E2EEnv,
   envFile: string,
-  isCurrent: (env: E2EEnv, password: string) => Promise<boolean> = async (e, pw) => secondPasswordIsCurrent(e, pw)
+  isCurrent: (env: E2EEnv, password: string) => Promise<boolean> = async (e, pw) => secondPasswordIsCurrent(e, pw),
+  mayDrop: () => Promise<boolean> = async () => Promise.resolve(true)
 ): Promise<'none' | 'promoted' | 'dropped'> => {
   const vars = readEnvFile(envFile)
   const next = vars['KB_SECOND_PASSWORD_NEXT'] ?? ''
   if (!next) return 'none'
   const old = vars['KB_SECOND_PASSWORD'] ?? ''
   const nextIs = await isCurrent(env, next)
+  if (!nextIs && !(await mayDrop())) {
+    throw new Error(
+      `KB_SECOND_PASSWORD_NEXT is pending and the second peer does not take it yet, but the change may still be on its way to the server, so it is left in place; the owner runs ${secondPasswordCommand} --check once it has settled`
+    )
+  }
   const oldIs = old ? await isCurrent(env, old) : false
   if (nextIs === oldIs) {
     throw new Error(
