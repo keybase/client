@@ -20,17 +20,13 @@ import {expectScreen, fillField, tapButton, waitSignedIn} from '../helpers/files
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {masked} from '../helpers/teams'
-import {innermost} from '../gate/chat-lib.ts'
+import {masked, textShown} from '../helpers/teams'
 
 const PROFILE_EDIT = 'keybase.1.user.profileEdit'
 
 const ADD_IDENTITIES = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add more identities" AND visible == 1'
 // the modal's header Cancel (a native bar item), not a Cancel in the screen's body
 const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
-// what the profile draws its texts as: the bio's fields are selectable, which can draw as a text view
-const PROFILE_TEXTS =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeTextView" OR type == "XCUIElementTypeOther") AND visible == 1'
 
 describe('profile edit', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -39,7 +35,7 @@ describe('profile edit', function () {
   //             overrun by one 180
   //   button    tapButton 6 and its tap 1;  screen  a screen waited for 11 (10, read 1), 21 with a 20s
   //             wait;  field  its value waited for 11;  fill  fillField 26
-  //   shown     a text on the profile 16 (15, one read 1);  identities  dragUntilOnScreen 20, its tap 1
+  //   shown     a text on the profile 31 (30, one read 1);  identities  dragUntilOnScreen 20, its tap 1
   //   header    the header's Cancel 6 (5, its tap 1)
   //   relaunch  relaunchApp 200;  signed in  90;  account  1
   //   calls     one read 2;  waited for  12 (10, one read 2)
@@ -63,7 +59,7 @@ describe('profile edit', function () {
     original = await masked(async () => profileFields())
   })
 
-  // Worst case (s): close 5, restoreFields 390, escapeToTabs 30 = 425.
+  // Worst case (s): close 19, restoreFields 390, escapeToTabs 30 = 439.
   afterEach(async function () {
     this.timeout(450_000)
     await withCleanup(closeMessageMenu, [restoreFields, escapeToTabs])
@@ -80,25 +76,10 @@ describe('profile edit', function () {
     await waitForTestID(T.PROFILE_PAGE, 10_000)
   }
 
-  // Waits for the profile to draw `text` as one of its texts (its label or, for a selectable text,
-  // its value), compared in memory. Bound: 15s, plus one read 1.
-  const profileShows = async (text: string, what: string) =>
-    waitFor(
-      what,
-      async () => {
-        const rects: Array<{height: number; width: number; x: number; y: number}> = []
-        for (const e of await browser.$$(PROFILE_TEXTS).getElements()) {
-          const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-          const value = ((await e.getAttribute('value').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-          if (label !== text && value !== text) continue
-          const at = await e.getLocation().catch(() => undefined)
-          const size = await e.getSize().catch(() => undefined)
-          if (at && size) rects.push({...at, ...size})
-        }
-        return innermost(rects).length > 0 ? true : undefined
-      },
-      {interval: 500, timeout: 15_000}
-    )
+  // Waits for the profile to draw `text` as one of its texts, read off one page source (an attribute
+  // call per text of a profile with its teams and proofs took minutes, seen live: a read outlived its
+  // wait). After a relaunch the profile can take a while to load. Bound: 30s, plus one read 1.
+  const profileShows = async (text: string, what: string) => textShown(text, what, 30_000)
 
   // The field's value once the edit screen has put the loaded field in it. An empty field reads its
   // placeholder. Bound: 10s, plus one read 1.
@@ -117,8 +98,8 @@ describe('profile edit', function () {
   it('edit name, bio and location, read back on the server and after a relaunch', async function () {
     // worst case (s): profile 63, step 2, button 7, screen 11, field 11, fill 26 x3, step 2, calls 2,
     // button 7, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
-    // profile 63, shown 16 x3, step 2 = 802
-    this.timeout(850_000)
+    // profile 63, shown 31 x3, step 2 = 847
+    this.timeout(900_000)
     check(original !== undefined, 'the original profile fields were never read')
     const before = original!
     const runId = e2eRunId()
