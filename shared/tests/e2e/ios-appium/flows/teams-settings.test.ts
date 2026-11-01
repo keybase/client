@@ -389,8 +389,11 @@ describe('teams settings', function () {
     // a team with more than one channel draws its default channels; the app sees the host's channel
     // once it loads the team afresh
     await openSubteamUntil("the subteam's default channels", name, teamID, SETTINGS, async () =>
-      // not by `visible`: a team page reads invisible now and then
-      dragUntilOnScreen('the default channels', () => browser.$('-ios predicate string:label == "Add channels"'))
+      // not by `visible`: a team page reads invisible now and then. Its box merges its icon and text
+      // (", Add channels"), and the text is not always in the tree on its own.
+      dragUntilOnScreen('the default channels', () =>
+        browser.$('-ios predicate string:label == "Add channels" OR label ENDSWITH ", Add channels"')
+      )
     )
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
