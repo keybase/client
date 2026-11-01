@@ -938,10 +938,16 @@ export const waitForKeyboard = async (timeout = 5_000) =>
 
 // Closes the keyboard the way the app does (WDA's own hideKeyboard cannot find a way to close this
 // app's keyboards), and waits for it to go.
+// The keyboard counts as up when either WDA or the app says so: WDA's isKeyboardShown has read false
+// with the keyboard drawn, and then a hide that trusted it alone did nothing.
+const appKeyboardUp = async () =>
+  jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`)
+const eitherSaysUp = async () => (await isKeyboardUp()) || (await appKeyboardUp())
+
 export const hideKeyboard = async () => {
-  if (!(await isKeyboardUp())) return
+  if (!(await eitherSaysUp())) return
   await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
-  await waitFor('the keyboard to close', async () => ((await isKeyboardUp()) ? undefined : true), {interval: 200, timeout: 5_000})
+  await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
 }
 
 // -- a message's menu ----------------------------------------------------------------------------
