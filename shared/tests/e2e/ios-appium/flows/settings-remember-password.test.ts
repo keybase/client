@@ -96,13 +96,19 @@ describe('settings remember password', function () {
   }
 
   // A failed restore of an earlier run can leave the setting off (or the secret gone): put back here,
-  // so the test starts from on. Worst case (s): the block read 75, repairRemember 918, restoreToSmoke
-  // 275 = 1268.
+  // so the test starts from on. Mocha runs no afterEach when before() throws, so its repair runs under
+  // the afterEach's own cleanups: the login-password mark cleared and the app put back on the smoke
+  // account and read back (restoreToSmoke), whatever stopped it. Worst case (s): the block read 75,
+  // repairRemember 918, the mark cleared 21, restoreToSmoke 275 = 1289.
   before(async function () {
     this.timeout(1_350_000)
-    await masked(async () => requireSecondNotBlocked())
-    await repairRemember()
-    await restoreToSmoke()
+    await withCleanup(
+      async () => {
+        await masked(async () => requireSecondNotBlocked())
+        await repairRemember()
+      },
+      [clearLoginPasswordMark, restoreToSmoke]
+    )
   })
 
   // -- what the afterEach puts back ---------------------------------------------------------------
