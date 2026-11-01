@@ -26,7 +26,7 @@ import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {BUTTONS, expectScreen, fillField, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, labelledElement, menuSheet, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, labelledElement, openMenuFrom, waitForSheetGone} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 import {masked, TEXTS, textShown} from '../helpers/teams'
 
@@ -226,7 +226,7 @@ describe('settings account', function () {
       {interval: 300, timeout: 10_000}
     )
     await item.click()
-    await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+    await waitForSheetGone(5_000)
   }
 
   // Taps the modal's header Cancel. Bound: 6.
