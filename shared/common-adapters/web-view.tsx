@@ -88,6 +88,8 @@ const WebView = (props: WebViewProps) => {
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
+  // only for the testID: it marks a page that finished loading without an error
+  const [loadFailed, setLoadFailed] = React.useState(false)
   const [opacity, setOpacity] = React.useState(isLoaded ? 1 : 0)
 
   const setLoading = (l: boolean) => {
@@ -117,7 +119,7 @@ const WebView = (props: WebViewProps) => {
 
   return (
     <>
-      <NativeView style={{...Styles.size('100%'), opacity}} testID={loading ? undefined : testID}>
+      <NativeView style={{...Styles.size('100%'), opacity}} testID={loading || loadFailed ? undefined : testID}>
         <NativeWebView
           key={String(forceReload)}
           allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
@@ -133,10 +135,14 @@ const WebView = (props: WebViewProps) => {
               props.showLoadingStateUntilLoaded && loading && styles.absolute,
             ]),
           ]}
-          onLoadStart={() => setLoading(true)}
+          onLoadStart={() => {
+            setLoadFailed(false)
+            setLoading(true)
+          }}
           onLoadEnd={() => setLoading(false)}
           onLoadProgress={({nativeEvent}) => setProgress(nativeEvent.progress)}
           onError={event => {
+            setLoadFailed(true)
             onError?.(event.nativeEvent.description)
           }}
           onMessage={() => {}}
