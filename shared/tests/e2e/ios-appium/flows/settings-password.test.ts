@@ -18,7 +18,7 @@
 // with KB_SECOND_PASSWORD when the phone lost its stored secret (never while a change is pending),
 // and puts the app back on the smoke account.
 import {defaultEnvPath, loadE2EAccounts, loadE2EEnv, readEnvFile} from '../../accounts/env'
-import {CHECK_WORST_MS, rotateSecondPassword, sayMasked, settlePendingSecondPassword} from '../../accounts/second-password-lib'
+import {rotateSecondPassword, sayMasked, settlePendingSecondPassword} from '../../accounts/second-password-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {appAccount, asSecond, requireAppIsSmoke, restoreToSmoke} from '../gate/accounts'
@@ -54,9 +54,8 @@ const PASSWORD_FIELDS = [T.SETTINGS_NEW_PASSWORD_INPUT, T.SETTINGS_CONFIRM_PASSW
 const NEW_PASSWORD_SHOWN = "the change password screen's fields"
 
 // the iOS check (gate/password.ts), in s: the second peer's check 150, the stored secret 22, the
-// switch to the second account and back 426 (the switch 150, the account 1, restoreToSmoke 275), the
-// host's check
-const CHECK_S = 150 + 22 + 426 + CHECK_WORST_MS / 1_000
+// switch to the second account and back 426 (the switch 150, the account 1, restoreToSmoke 275)
+const CHECK_S = 150 + 22 + 426
 // the phone's repair: restoreSecondSecret 410, the mark cleared 21, restoreToSmoke 275
 const REPAIR_S = 706
 
