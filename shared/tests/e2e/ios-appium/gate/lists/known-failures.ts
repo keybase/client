@@ -25,7 +25,10 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     "teams-settings › teams settings › a channel added to a subteam's default channels from the popup, and removed from its pill":
       "the phone's default-channels popup (teams/team/settings-tab/channel-popup.tsx) draws its channel list empty though it holds the channel (its count shows in the search placeholder); the list sits in a Kb.BoxGrow inside the sheet, likely laid out at no height; the file is the same on master (PR 9)",
     // PR 7 live (both release-only runs, 12:16 and 13:00): the peer's decrypt adds per-user keys 1..19
-    // while the phone encrypted to 21 ("no suitable key found"); a restart of the peer does not help
+    // while the phone encrypted to 21 ("no suitable key found"); a restart of the peer does not help.
+    // In a full run it can pass: the chat flows before it send from the second peer, which syncs its
+    // keyring (the workaround below), so a "known failure passed" there is expected; it fails again
+    // in a run without them, so keep the entry until the Go fix lands
     "crypto-roundtrip › crypto roundtrip › text encrypted to the second account decrypts on its peer":
       "the second peer's SaltpackDecrypt uses its per-user-key keyring without syncing it; after the account's key rolls on another device (the password flow), it cannot decrypt to the newest key (Go follow-up). Owner workaround: any chat send from the second peer syncs the keyring",
     // PR 7 live (two runs, 08:11 and 08:40): the host's main service hung in a logout hook on the
