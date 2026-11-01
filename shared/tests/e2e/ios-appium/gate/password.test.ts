@@ -3,7 +3,7 @@ import * as os from 'os'
 import * as path from 'path'
 import type {E2EEnv} from '../../accounts/env'
 import {rotateSecondPassword} from '../../accounts/second-password-lib'
-import {iosRotateDeps, PHONE_PENDING_NOTE, requirePhoneSecondPassword, requireRotatable, type PhoneSides} from './password'
+import {HOST_UNCHECKED, iosRotateDeps, PHONE_PENDING_NOTE, requirePhoneSecondPassword, requireRotatable, type PhoneSides} from './password'
 
 // jest's global (this project's types are mocha's and wdio's)
 declare const jest: {mock: (path: string, factory: () => unknown) => void}
@@ -37,7 +37,6 @@ afterEach(() => {
 })
 
 type Fakes = {
-  hostFails?: boolean
   peerCurrent?: boolean
   serverKeys?: boolean
   storedOnce?: Array<boolean>
@@ -48,11 +47,6 @@ const sides = (f: Fakes = {}) => {
   const log: Array<string> = []
   const stored = [...(f.storedOnce ?? [true])]
   const s: PhoneSides = {
-    hostCheck: async () => {
-      log.push('host check')
-      if (f.hostFails) throw new Error('the main service is testuser after switching to the second account')
-      return Promise.resolve()
-    },
     peerHasServerKeys: async () => {
       log.push('peer hasServerKeys')
       return Promise.resolve(!!f.serverKeys)
@@ -85,10 +79,10 @@ const changed = async (next: string) => {
 }
 
 describe('iosRotateDeps', () => {
-  test('checks the peer, then the phone, then the host, and promotes the new password', async () => {
+  test('checks the peer, then the phone, never the host, and promotes the new password', async () => {
     const {log, sides: s} = sides()
     const next = await rotateSecondPassword(env, changed, iosRotateDeps(s, envFile))
-    expect(log).toEqual(['peer passphraseCheck <pw>', 'phone stored secret second', 'phone switch', 'host check'])
+    expect(log).toEqual(['peer passphraseCheck <pw>', 'phone stored secret second', 'phone switch'])
     expect(fs.readFileSync(envFile, 'utf8')).toContain(`KB_SECOND_PASSWORD='${next}'`)
     expect(fs.readFileSync(envFile, 'utf8')).not.toContain('KB_SECOND_PASSWORD_NEXT')
   })
@@ -103,19 +97,12 @@ describe('iosRotateDeps', () => {
       'peer passphraseCheck <pw>',
       'phone stored secret second',
       'phone switch',
-      'host check',
     ])
   })
 
-  test("a failed host check is never repaired: it throws the owner's command, names nobody, and leaves the new password pending", async () => {
-    const {log, sides: s} = sides({hostFails: true})
-    const err = await rotateSecondPassword(env, changed, iosRotateDeps(s, envFile)).catch((e: unknown) => e as Error)
-    expect(log).toEqual(['peer passphraseCheck <pw>', 'phone stored secret second', 'phone switch', 'host check'])
-    expect(String(err)).toContain('yarn test:e2e:accounts:second-password --check')
-    expect(String(err)).not.toMatch(/testuser/)
-    const file = fs.readFileSync(envFile, 'utf8')
-    expect(file).toContain('KB_SECOND_PASSWORD_NEXT')
-    expect(file).toContain("KB_SECOND_PASSWORD='e2e-oldoldoldoldoldoldoldold'")
+  test('the owner action for the unchecked host names the --check command and no account', () => {
+    expect(HOST_UNCHECKED).toContain('yarn test:e2e:accounts:second-password --check')
+    expect(HOST_UNCHECKED).not.toMatch(/testuser/)
   })
 
   test('a peer that does not take the new password is not repaired either', async () => {

@@ -24,6 +24,10 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // its search reads "Search 1 channel", but no channel row is drawn, so there is nothing to pick
     "teams-settings › teams settings › a channel added to a subteam's default channels from the popup, and removed from its pill":
       "the phone's default-channels popup (teams/team/settings-tab/channel-popup.tsx) draws its channel list empty though it holds the channel (its count shows in the search placeholder); the list sits in a Kb.BoxGrow inside the sheet, likely laid out at no height; the file is the same on master (PR 9)",
+    // PR 7 live (two runs, 08:11 and 08:40): the host's main service hung in a logout hook on the
+    // switch to the second account right after the phone's change; the flow no longer switches it
+    "settings-password › settings password › the second account password changed from the phone, then signed in with":
+      "the host's stored secret for the second account is not checked: right after this change, the host's login switch deadlocks in a logout hook (Go follow-up). The owner runs yarn test:e2e:accounts:second-password --check after the release",
   },
   render: {},
 }

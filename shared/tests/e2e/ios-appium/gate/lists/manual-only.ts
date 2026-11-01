@@ -83,6 +83,11 @@ export const IOS_MANUAL_ONLY = {
       'On a throwaway account whose folders and repos are all its own: Settings > Backup > "Backup all files", then "Backup all Git repos"; every job listed runs to the end, and Share hands off its zip. Remove the jobs after.',
     title: 'Backup all files and all Git repos',
   },
+  'second-password-host-check': {
+    doByHand:
+      "After the release: run yarn test:e2e:accounts:second-password --check. It settles a password change left pending and checks that the host's main service still switches to the second account with its stored secret, which the iOS password flow does not do.",
+    title: "The host's stored secret for the second account, after the phone changed its password",
+  },
   'phone-new-device': {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',

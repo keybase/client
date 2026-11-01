@@ -2,8 +2,10 @@
 // rotation contract (accounts/second-password-lib.ts rotateSecondPassword): the new password is
 // written to the env file as KB_SECOND_PASSWORD_NEXT first, set from the phone, checked (the second
 // peer takes it, the phone keeps its stored secret and switches to the second account with no
-// prompt, the host's main service still switches to it; gate/password.ts iosRotateDeps) and only
-// then promoted to KB_SECOND_PASSWORD. The second account then signs out on the phone and signs back
+// prompt; gate/password.ts iosRotateDeps) and only then promoted to KB_SECOND_PASSWORD. The host's
+// main service is never switched: right after the change its login switch deadlocks in a logout hook,
+// so the test ends failed on purpose (a known failure, HOST_UNCHECKED) once everything else passed,
+// and the owner runs the --check after the release. The second account then signs out on the phone and signs back
 // in with the new password. The smoke account's password is never read or set.
 //
 // Each password goes into a field only through submitSecret, with the secret-on-screen mark on while
@@ -16,13 +18,13 @@
 // with KB_SECOND_PASSWORD when the phone lost its stored secret (never while a change is pending),
 // and puts the app back on the smoke account.
 import {defaultEnvPath, loadE2EAccounts, loadE2EEnv, readEnvFile} from '../../accounts/env'
-import {CHECK_WORST_MS, rotateSecondPassword} from '../../accounts/second-password-lib'
+import {CHECK_WORST_MS, rotateSecondPassword, sayMasked, settlePendingSecondPassword} from '../../accounts/second-password-lib'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {appAccount, asSecond, requireAppIsSmoke, restoreToSmoke} from '../gate/accounts'
 import {randomPW} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
+import {HOST_UNCHECKED, iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {emptySecretField, focusSecretField, submitSecret} from '../gate/secret-input'
@@ -37,7 +39,7 @@ import {
   signInWithPassword,
   withLoginPasswordMarked,
 } from '../gate/sign-in'
-import {step} from '../gate/step'
+import {manualEdge, step} from '../gate/step'
 import {byText, el, waitForTestID} from '../helpers/elements'
 import {buttonLabelled, clickUntil, expectScreen, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
@@ -109,6 +111,14 @@ describe('settings password', function () {
     clearSecretOnScreen(NEW_PASSWORD_SHOWN)
   }
 
+  // A KB_SECOND_PASSWORD_NEXT a change left pending, settled on the second peer: it checks both
+  // passwords (no prompt, nothing changes) and the one the server holds becomes KB_SECOND_PASSWORD;
+  // neither or both throws for the owner. Bound: the env file 1, two peer checks 2 x 105 = 211.
+  const settlePending = async () => {
+    const settled = await masked(async () => settlePendingSecondPassword(loadE2EEnv(), defaultEnvPath()))
+    if (settled !== 'none') sayMasked(`settings-password: a pending KB_SECOND_PASSWORD_NEXT was ${settled}`)
+  }
+
   // The second account's stored secret back on the phone when it is gone, signed in with
   // KB_SECOND_PASSWORD from the env file. While a change is pending nothing is typed (which of the
   // two passwords the server holds is the owner's to check): this throws the owner action with the
@@ -119,11 +129,12 @@ describe('settings password', function () {
     await withLoginPasswordMarked(async () => restoreSecondSecret(password))
   }
 
-  // Worst case (s): clearChangeMark 70, the login mark 21, restoreSecret 454, restoreToSmoke 275,
-  // escapeToTabs 30 = 850 (it goes last: signed out, no tab bar is there to reach).
+  // Worst case (s): clearChangeMark 70, the login mark 21, settlePending 211, restoreSecret 454,
+  // restoreToSmoke 275, escapeToTabs 30 = 1061 (it goes last: signed out, no tab bar is there to
+  // reach).
   afterEach(async function () {
-    this.timeout(900_000)
-    await withCleanup(clearChangeMark, [clearLoginPasswordMark, restoreSecret, restoreToSmoke, escapeToTabs])
+    this.timeout(1_100_000)
+    await withCleanup(clearChangeMark, [clearLoginPasswordMark, settlePending, restoreSecret, restoreToSmoke, escapeToTabs])
   })
 
   // -- the phone ----------------------------------------------------------------------------------
@@ -215,9 +226,9 @@ describe('settings password', function () {
 
   it('the second account password changed from the phone, then signed in with', async function () {
     // worst case (s): stored 22, the env file 1, change 776, checkOrRepair 2 CHECK_S + REPAIR_S, the
-    // promotion 1, the env file 1, step 2, signOutAndBackIn 902, stored 22, smoke 1, step 2; and 60
-    // to spare
-    this.timeout((22 + 1 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 60) * 1_000)
+    // promotion 1, the env file 1, step 2, signOutAndBackIn 902, stored 22, smoke 1, step 2, manual 2;
+    // and 60 to spare
+    this.timeout((22 + 1 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 2 + 60) * 1_000)
     const env = loadE2EEnv()
     // refuses while a change that stopped part way is unresolved
     requirePhoneSecondPassword(env)
@@ -233,5 +244,9 @@ describe('settings password', function () {
     check(await storedSecretOf(secondUser), 'the phone keeps no stored secret for the second account after signing in with the new password')
     await requireAppIsSmoke()
     await step('Back on the smoke account, the second account signed in')
+
+    // the host's stored secret for the second account is the owner's to check (gate/password.ts)
+    await manualEdge('second-password-host-check')
+    throw new Error(HOST_UNCHECKED)
   })
 })
