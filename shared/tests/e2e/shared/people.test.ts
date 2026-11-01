@@ -1,5 +1,5 @@
 import {runKeybase} from './peer-service'
-import {followingIn, followsSecond, requireFollowTarget, setFollowSecondFromCli} from './people'
+import {followersIn, followingIn, followsSecond, requireFollowTarget, serverSaysFollowsSecond, setFollowSecondFromCli} from './people'
 
 jest.mock('./peer-service', () => ({requireMainIsSmoke: jest.fn(async () => Promise.resolve()), runKeybase: jest.fn()}))
 
@@ -69,4 +69,45 @@ test('setFollowSecondFromCli follows the second account and reads it back; a fai
   const err = await setFollowSecondFromCli(false).catch((e: unknown) => e as Error)
   expect(String(err)).toContain('<second>')
   expect(String(err)).not.toMatch(/testuser/)
+})
+
+describe('followersIn', () => {
+  test('reads the usernames of the server’s list', () => {
+    const out = JSON.stringify({status: {code: 0, name: 'OK'}, users: [{uid: 'x', username: 'testuser'}], version: 3})
+    expect(followersIn(out)).toEqual(['testuser'])
+    expect(followersIn(JSON.stringify({status: {code: 0}, users: []}))).toEqual([])
+  })
+
+  test('throws on a failed or changed answer, so it never reads as "not following"', () => {
+    for (const out of [
+      JSON.stringify({status: {code: 100}, users: []}),
+      JSON.stringify({status: {code: 0}}),
+      JSON.stringify({status: {code: 0}, users: [{uid: 'x'}]}),
+      JSON.stringify({status: {code: 0}, users: [{username: 'not a name'}]}),
+    ]) {
+      expect(() => followersIn(out)).toThrow(/^keybase apicall user\/list_followers_for_display/)
+    }
+  })
+})
+
+describe('serverSaysFollowsSecond', () => {
+  const uid = 'a'.repeat(32)
+  test('looks the second account up and reads its followers from the server', async () => {
+    jest
+      .mocked(runKeybase)
+      .mockResolvedValueOnce(JSON.stringify({status: {code: 0}, them: {id: uid}}))
+      .mockResolvedValueOnce(JSON.stringify({status: {code: 0}, users: [{username: 'testuser'}]}))
+    await expect(serverSaysFollowsSecond()).resolves.toBe(true)
+    expect(jest.mocked(runKeybase).mock.calls[1]![0]).toEqual(['apicall', '-a', `uid=${uid}`, '-a', 'reverse=0', 'user/list_followers_for_display'])
+  })
+
+  test('a list without the smoke account is not following; a lookup without a uid throws', async () => {
+    jest
+      .mocked(runKeybase)
+      .mockResolvedValueOnce(JSON.stringify({them: {id: uid}}))
+      .mockResolvedValueOnce(JSON.stringify({status: {code: 0}, users: [{username: 'alice'}]}))
+    await expect(serverSaysFollowsSecond()).resolves.toBe(false)
+    jest.mocked(runKeybase).mockResolvedValueOnce(JSON.stringify({them: {}}))
+    await expect(serverSaysFollowsSecond()).rejects.toThrow(/holds no uid/)
+  })
 })

@@ -57,3 +57,48 @@ export const setFollowSecondFromCli = async (want: boolean) => {
     {timeout: 30_000}
   )
 }
+
+const uidPattern = /^[0-9a-f]{32}$/
+
+// The uid in a `keybase apicall user/lookup` answer for one user (fields=basics); it must parse.
+export const lookedUpUid = (out: string) => {
+  const parsed: unknown = JSON.parse(out)
+  const them = (parsed as {them?: {id?: unknown}} | null)?.them
+  const id = them?.id
+  if (typeof id !== 'string' || !uidPattern.test(id)) throw new Error('keybase apicall user/lookup: the answer holds no uid')
+  return id
+}
+
+// The usernames in a `keybase apicall user/list_followers_for_display` answer. It must parse: a
+// status code 0 and a list of users, each with a username, else this throws, so a failed call never
+// reads as "not following".
+export const followersIn = (out: string) => {
+  const parsed = JSON.parse(out) as {status?: {code?: unknown}; users?: unknown} | null
+  const users = parsed?.users
+  if (parsed?.status?.code !== 0 || !Array.isArray(users)) {
+    throw new Error('keybase apicall user/list_followers_for_display: the answer is not a list of users')
+  }
+  return users.map(u => {
+    const name = (u as {username?: unknown} | null)?.username
+    if (typeof name !== 'string' || !username.test(name)) {
+      throw new Error('keybase apicall user/list_followers_for_display: a user without a username')
+    }
+    return name
+  })
+}
+
+// Whether the smoke account follows the second account, as the server's follower list says. A
+// device's own list (followsSecond's `list-following`) shows another device's change only once the
+// server's merkle tree holds it, which can take minutes; the server's list shows it at once. Bound:
+// the lookup 30s, the list 30s.
+export const serverSaysFollowsSecond = async () => {
+  const {secondUser, smokeUser} = loadE2EAccounts()
+  await requireMainIsSmoke({smokeUser})
+  const call = async (args: Array<string>) =>
+    runKeybase(['apicall', ...args], {timeoutMs: 30_000}).catch((e: unknown) => {
+      throw new Error(masked(e))
+    })
+  const uid = lookedUpUid(await call(['-a', `username=${secondUser}`, '-a', 'fields=basics', 'user/lookup']))
+  const followers = followersIn(await call(['-a', `uid=${uid}`, '-a', 'reverse=0', 'user/list_followers_for_display']))
+  return followers.includes(smokeUser)
+}
