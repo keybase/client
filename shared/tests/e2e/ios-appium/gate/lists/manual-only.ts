@@ -78,6 +78,11 @@ export const IOS_MANUAL_ONLY = {
       'On an iPad or a phone with a hardware keyboard: in a chat composer, type two words with Shift-Enter between them (a new line), then press Enter; the message sends with both lines.',
     title: 'Hardware keyboard Shift-Enter and Enter in a chat composer',
   },
+  'backup-all': {
+    doByHand:
+      'On a throwaway account whose folders and repos are all its own: Settings > Backup > "Backup all files", then "Backup all Git repos"; every job listed runs to the end, and Share hands off its zip. Remove the jobs after.',
+    title: 'Backup all files and all Git repos',
+  },
   'phone-new-device': {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',

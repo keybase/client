@@ -1,8 +1,9 @@
 // Backups made from the phone as the smoke account, one job per test: the self conversation's
 // "Backup channel" (paused, resumed, paused again and cancelled from the Backup page), a folder's
-// "Backup folder" from its files row menu (removed from the Backup page while it runs), and the
-// Backup page's "Backup all files" and "Backup all Git repos" (cancelled the moment they start, so a
-// whole-account download never fills the phone).
+// "Backup folder" from its files row menu (removed from the Backup page while it runs). The Backup
+// page's "Backup all files" and "Backup all Git repos" are never pressed: they copy every folder and
+// repo of the account, non-test teams' too, onto the phone, and the status lists only some of the
+// jobs they start (census exclusions, manual-only 'backup-all').
 //
 // The jobs run on the phone's own service and write into the phone's storage (the phone has no
 // destination to pick: its modal only shares), so they are read and cleaned up through the phone's
@@ -16,10 +17,13 @@
 // The folder to back up is made by the host, stamped, inside a work folder of this run, and removed
 // by the afterEach. The self conversation is found by its exact name through the host's CLI.
 //
-// Never pressed: Share (on a finished job, or its "..." menu), "Clear completed".
+// Never pressed: Share (on a finished job, or its "..." menu), "Clear completed", "Backup all files",
+// "Backup all Git repos".
+import {randomBytes} from 'crypto'
 import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 import {loadE2EAccounts} from '../../accounts/env'
-import {CORPUS} from '../../fixtures/corpus/corpus'
 import {directConvIDFromCli} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
@@ -36,7 +40,6 @@ import {
   newJobIDs,
   outputPathsOf,
   simDataRoot,
-  startedJobsOf,
   stillListed,
 } from '../gate/archive-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
@@ -47,10 +50,10 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, filesRowNamed, openFolder, openRowMenu, tapButton, visibleScreen} from '../helpers/files'
+import {BUTTONS, expectScreen, filesRowNamed, onScreen, openFolder, openRowMenu, press, tapButton, visibleScreen} from '../helpers/files'
 import {appDataContainer, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart} from '../helpers/menus'
-import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {check, chooseMenuItem, dragBetween, elementWithLabelPart} from '../helpers/menus'
+import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
 const ARCHIVE_CHAT = 'chat.1.local.archiveChat'
@@ -58,8 +61,6 @@ const ARCHIVE_CHAT_PAUSE = 'chat.1.local.archiveChatPause'
 const ARCHIVE_CHAT_RESUME = 'chat.1.local.archiveChatResume'
 const ARCHIVE_CHAT_DELETE = 'chat.1.local.archiveChatDelete'
 const ARCHIVE_START = 'keybase.1.SimpleFS.simpleFSArchiveStart'
-const ARCHIVE_ALL_FILES = 'keybase.1.SimpleFS.simpleFSArchiveAllFiles'
-const ARCHIVE_ALL_GIT = 'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos'
 const ARCHIVE_CANCEL = 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob'
 
 const ARCHIVE_TAB = 'settingsTabs.archiveTab'
@@ -72,13 +73,10 @@ const BY_HAND =
 
 const plainJobID = /^[A-Za-z0-9_.:-]+$/
 
-const bin = (() => {
-  const entry = CORPUS.find(e => e.name === 'e2e-c.bin')
-  if (!entry) throw new Error('the corpus has no binary file')
-  return entry.file
-})()
+// the folder backup's file: 24 MB
+const BIG_BYTES = 24 * 1024 * 1024
 
-const STATIC_TEXT = (label: string) => `-ios predicate string:type == "XCUIElementTypeStaticText" AND label == ${JSON.stringify(label)} AND visible == 1`
+const STATIC_TEXT = (label: string) => `-ios predicate string:type == "XCUIElementTypeStaticText" AND label == ${JSON.stringify(label)}`
 
 describe('settings archive', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -90,7 +88,7 @@ describe('settings archive', function () {
   //             chooseMenuItem 22
   //   button    tapButton 6;  label  a labelled element read 1;  screen  expectScreen 11, 16 with 15s
   //   calls     seq 2;  waited for  waitForCall 12
-  //   page      the Backup page from See progress: screen 16, its marker 10 = 26;  more  openBackup 97
+  //   page      the Backup page from See progress: screen 16, its marker 10 = 26
   //   row       a job's row 16 (15, one read 1);  in row  elementInRow 2 and its tap 1 = 3
   //   storage   the simulator's storage 120 (its container, once);  gone  20s of reads 21
   //   step      2 (its 1s settle and the attach)
@@ -152,14 +150,31 @@ describe('settings archive', function () {
     }
   }
 
+  // Deletes the folder a removed chat job of `fresh` still left, once it is checked to be a plain
+  // folder inside the simulator. A job removed while it runs can write after the service's own delete
+  // (go/chat/archive.go Delete; seen live: a folder left 20s after the cleanup). Bound: one read 1.
+  const removeChatFolders = (states: ArchiveJobStates, fresh: ArchiveJobs) => {
+    requireCurrentAttempt()
+    const root = storageRoot()
+    for (const id of fresh.chat) {
+      const j = states.chat.find(c => c.id === id)
+      if (!j) continue
+      anchorsOf(j.outputPath, root)
+      const st = fs.lstatSync(j.outputPath, {throwIfNoEntry: false})
+      if (!st) continue
+      check(st.isDirectory() && !st.isSymbolicLink(), "refusing to delete a chat backup's output: it is not a plain folder")
+      fs.rmSync(j.outputPath, {force: true, recursive: true})
+    }
+  }
+
   // Waits for nothing the test's jobs wrote to be left (a chat job's output is deleted in the
   // background). Bound: gone 21.
   const outputsGone = async (what: string) =>
     waitFor(what, () => (outputsLeft() === 0 ? true : undefined), {interval: 500, timeout: 20_000})
 
   // The jobs that are not in the snapshot removed, read back gone, a finished chat job's compressed
-  // file deleted, and nothing they wrote left. Bound: ask 22, storage 120, the anchor 1, the remove 22,
-  // ask 22, the file 1, gone 21 = 209.
+  // file deleted, and nothing they wrote left (a chat job's folder the service left is deleted too).
+  // Bound: ask 22, storage 120, the anchor 1, the remove 22, ask 22, the file 1, gone 22 = 210.
   const cleanUpJobs = async () => {
     const snapshot = before
     if (!snapshot) return
@@ -167,12 +182,26 @@ describe('settings archive', function () {
       const states = await archiveJobStates()
       const fresh = newJobIDs(jobIDsOf(states), snapshot)
       rememberOutputs(states, fresh)
-      outputsAnchored('before the cleanup')
+      // the jobs go even when the anchor read fails: a job left running fills the phone (seen live:
+      // a failed anchor once left a whole-files backup copying)
+      let unanchored: unknown
+      try {
+        outputsAnchored('before the cleanup')
+      } catch (e) {
+        if (isAttemptOver(e)) throw e
+        unanchored = e
+      }
       await removeArchiveJobs(fresh, snapshot)
+      if (unanchored) throw unanchored
       // the answer lists the phone's jobs, so a job missing from it is gone
       check(stillListed(await archiveJobs(), fresh) === 0, "a backup job the test started is still on the phone after the cleanup")
       removeChatArchives(states, fresh)
-      await outputsGone("the test's backup output removed from the phone")
+      // the service deletes a chat job's folder in the background; what it left is deleted here
+      await waitFor("the test's backup output removed from the phone", () => {
+        if (outputsLeft() === 0) return true
+        removeChatFolders(states, fresh)
+        return undefined
+      }, {interval: 2_000, timeout: 20_000})
       outputs.clear()
       before = undefined
       clearGatePoison(POISON)
@@ -196,11 +225,12 @@ describe('settings archive', function () {
     before ??= await archiveJobs()
   })
 
-  // Worst case (s): the menu 5, the keyboard 5, cleanUpJobs 209, a folder 195, escapeToTabs 30 = 444.
+  // Worst case (s): the menu 19, the keyboard 5, cleanUpJobs 210, a folder 195, the sheet 7,
+  // escapeToTabs 30 = 466.
   afterEach(async function () {
-    this.timeout(480_000)
+    this.timeout(490_000)
     // the jobs first: one left running fills the phone
-    await withCleanup(cleanUpJobs, [closeMessageMenu, hideKeyboard, removeMadeFolders, escapeToTabs])
+    await withCleanup(cleanUpJobs, [closeMessageMenu, hideKeyboard, removeMadeFolders, leaveBackupSheet, escapeToTabs])
   })
 
   // -- reads ----------------------------------------------------------------------------------------
@@ -245,10 +275,18 @@ describe('settings archive', function () {
 
   // -- the modal and the Backup page --------------------------------------------------------------
 
-  // The phone's backup modal: its share line drawn, and no destination to save to. Bound: the line
-  // 10, two reads 2 = 12.
+  // The phone's backup modal: its share line drawn on screen, and no destination to save to anywhere
+  // in the tree. Over a files screen XCUITest reports the modal visible=false (seen live), so the
+  // line's frame on screen stands for visible. Bound: the line 10 and its reads 1, two reads 2 = 13.
   const expectPhoneModal = async () => {
-    await browser.$(STATIC_TEXT(SHARE_LINE)).waitForExist({timeout: 10_000, timeoutMsg: "the backup modal's line never showed"})
+    await waitFor(
+      "the backup modal's line",
+      async () => {
+        for (const e of await browser.$$(STATIC_TEXT(SHARE_LINE)).getElements()) if (await onScreen(e)) return true
+        return undefined
+      },
+      {interval: 250, timeout: 10_000}
+    )
     for (const label of ['Save To', 'Change']) {
       check((await browser.$$(STATIC_TEXT(label)).length) === 0, `the phone's backup modal offers "${label}"`)
     }
@@ -260,13 +298,20 @@ describe('settings archive', function () {
     await el(T.SETTINGS_ARCHIVE).waitForExist({timeout: 10_000})
   }
 
-  // The Backup page from the More list. Bound: escapeToTabs 30, the More tab 20, the row 25 and its
-  // tap 1, the page 26 = 102.
-  const openBackup = async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Backup')
-    await expectBackupPage('the Backup page')
+  // Closes the Backup page when it is up as a sheet (a backup modal's "See progress" opens it over the
+  // conversation, with no Close or Cancel: a person swipes it down), so escapeToTabs, which knows no
+  // swipe, finds a screen it can leave. A pushed Backup page takes no harm from the drag down its
+  // header. Bound: the screen 1, the drag 1, the route leaving 5 = 7.
+  const leaveBackupSheet = async () => {
+    if ((await visibleScreen())?.name !== ARCHIVE_TAB) return
+    const {height, width} = await browser.getWindowRect()
+    await dragBetween({x: width / 2, y: 110}, {x: width / 2, y: height - 60}, 300)
+    await waitFor('the Backup sheet to close', async () => ((await visibleScreen())?.name !== ARCHIVE_TAB ? true : undefined), {
+      interval: 250,
+      timeout: 5_000,
+    }).catch((e: unknown) => {
+      if (isAttemptOver(e)) throw e
+    })
   }
 
   const rowOf = (id: string) => `${T.SETTINGS_ARCHIVE_ROW_PREFIX}${id}`
@@ -279,11 +324,12 @@ describe('settings archive', function () {
   }
 
   // Taps the control `testID` in the job's row and waits for `method` to go out. Bound: row 16, calls
-  // 2, in row 3, waited for 12 = 33.
+  // 2, in row 3 and its press 1, waited for 12 = 34.
   const tapInRow = async (id: string, testID: string, method: string, what: string) => {
     const rect = await rowRect(id, 'the job')
     const seq = await currentCallSeq()
-    await (await elementInRow(rect, testID)).click()
+    // a frame tap when XCUITest reports the row's control visible=false (a click on one taps nothing)
+    await press(await elementInRow(rect, testID), what)
     await waitForUiCall(`${what} to go out`, seq, method)
   }
 
@@ -304,8 +350,8 @@ describe('settings archive', function () {
   // -- chat ---------------------------------------------------------------------------------------
 
   // Pauses the running chat job from its row. Pause is offered only while the job runs, so one that
-  // finished first fails here. Bound: polled 32, tapInRow 33, polled 52, the resume icon 16 and in row
-  // 2, step 2 = 137.
+  // finished first fails here. Bound: polled 32, tapInRow 34, polled 52, the resume icon 16 and in row
+  // 2, step 2 = 138.
   const pauseChatJob = async (id: string, what: string) => {
     const status = await waitFor(
       `the chat backup running ${what}`,
@@ -327,8 +373,9 @@ describe('settings archive', function () {
 
   it('the self conversation backed up from its info panel, paused, resumed, paused again and cancelled from the Backup page', async function () {
     // worst case (s): host 60, open 100, panel 25, drag 20, label 1 and its tap 1, screen 11, the
-    // modal 12, step 2, start 20, newJob 152, button 6, page 26, row 16, step 2; pause 137, resume
-    // (tapInRow 33), pause 137; cancel: the anchor 1, tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 887
+    // modal 13, step 2, start 20, newJob 152, button 6, page 26, row 16, step 2; pause 138, resume
+    // (tapInRow 34), pause 138; cancel: the anchor 1, tapInRow 34, polled 32, rowGone 37, gone 21, step 2,
+    // the sheet 7, its read 1 = 900
     this.timeout(920_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await masked(async () => directConvIDFromCli(smokeUser))
@@ -362,14 +409,17 @@ describe('settings archive', function () {
     await rowGone(id, 'the cancelled chat backup')
     await outputsGone('the chat backup output removed from the phone after Cancel')
     await step('Chat backup cancelled')
+    // the Backup page is up as a sheet over the conversation: swiped down, as a person does
+    await leaveBackupSheet()
+    check((await visibleScreen())?.name !== ARCHIVE_TAB, 'the Backup sheet stayed up after a swipe down')
   })
 
   // -- files --------------------------------------------------------------------------------------
 
   it("a folder backed up from its files row menu, listed on the Backup page and removed there while it runs", async function () {
     // worst case (s): mkdir 60 x2, copy 60, folder 365, entry 121, the screen read 1, step 2, menu 52,
-    // item 22, screen 11, the modal 12, step 2, start 20, newJob 152, button 6, page 26, row 16, ask
-    // 22, step 2; remove: the anchor 1, tapInRow 33, polled 32, rowGone 37, gone 21, step 2 = 1138
+    // item 22, screen 11, the modal 13, step 2, start 20, newJob 152, button 6, page 26, row 16, ask
+    // 22, step 2; remove: the anchor 1, tapInRow 34, polled 32, rowGone 37, gone 21, step 2 = 1140
     this.timeout(1_200_000)
     const work = newWorkFolder()
     madeFolders.add(work)
@@ -377,7 +427,15 @@ describe('settings archive', function () {
     const name = stampedEntry('backup')
     const folder = requireOwnPath(`${work}/${name}`)
     await masked(async () => kbfsMkdir(folder))
-    await masked(async () => kbfsCopyIn(bin, `${folder}/${stampedEntry('data')}`))
+    // a file big enough that the phone is still downloading it when the Backup page reads the job (a
+    // 64 KB folder was done by then, seen live): random, so nothing compresses it away
+    const big = path.join(os.tmpdir(), `${stampedEntry('archive-data')}.bin`)
+    fs.writeFileSync(big, randomBytes(BIG_BYTES), {mode: 0o600})
+    try {
+      await masked(async () => kbfsCopyIn(big, `${folder}/${stampedEntry('data')}`))
+    } finally {
+      fs.rmSync(big, {force: true})
+    }
 
     await openFolder(work, 120_000)
     await filesRowNamed(name, 'the folder to back up', {timeout: 120_000})
@@ -405,70 +463,5 @@ describe('settings archive', function () {
     await rowGone(id, 'the removed folder backup')
     await outputsGone('the folder backup output removed from the phone')
     await step('Folder backup removed')
-  })
-
-  // "Backup all files" or "Backup all Git repos" from the Backup page, cancelled the moment the modal
-  // says the jobs started: the service makes every job before it answers, so the jobs it lists then
-  // are all of them. Bound: more 102, step 2, button 6, screen 11, the modal 12, step 2, start 20, the
-  // started line 60 and its read 1, ask 22, storage 120, the anchor 1, the remove 22, polled 32, gone 21, step 2,
-  // button 6, page 26, the rows 1 each, step 2 = 471 + the rows.
-  const backupAll = async (button: string, type: 'fsAll' | 'gitAll', method: string, what: string) => {
-    const snapshot = before
-    if (!snapshot) throw new Error("the phone's backup jobs were never read before the test")
-    await openBackup()
-    await step('The Backup page')
-    await tapButton(button, `the Backup page's ${button}`)
-    await expectScreen(`the backup modal for ${what}`, 'archiveModal', p => p['type'] === type)
-    await expectPhoneModal()
-    await step(`The backup modal for ${what}`)
-
-    await start(method, `the ${what} backup`)
-    const line = await waitFor(
-      `the modal to say how many ${what} jobs started`,
-      async () => {
-        const found = await browser.$$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label BEGINSWITH "Started " AND visible == 1').getElements()
-        check(found.length <= 1, `${found.length} started lines in the modal, not one`)
-        return found[0] ? ((await found[0].getAttribute('label')) ?? undefined) : undefined
-      },
-      {interval: 250, timeout: 60_000}
-    )
-    // cancelled at once, before anything else, so the jobs download as little as they can
-    const states = await archiveJobStates()
-    const fresh = newJobIDs(jobIDsOf(states), snapshot)
-    rememberOutputs(states, fresh)
-    outputsAnchored(`before the ${what} cancel`)
-    await removeArchiveJobs(fresh, snapshot)
-    await waitFor(
-      `the ${what} jobs gone from the phone`,
-      async () => (stillListed(await archiveJobs(), fresh) === 0 ? true : undefined),
-      {interval: 500, timeout: 10_000}
-    )
-    await outputsGone(`the ${what} backup output removed from the phone`)
-
-    // checked once the jobs are gone, so a wrong count still leaves nothing running
-    const started = startedJobsOf(line)
-    check(started !== undefined, `the modal's started line for ${what} has no count`)
-    check(started! > 0, `no ${what} job started: the smoke account has nothing for this backup to cover`)
-    check(fresh.chat.length === 0, `the ${what} backup made a chat backup job`)
-    check(fresh.kbfs.length === started, `the phone's service made ${fresh.kbfs.length} ${what} jobs, the modal says ${started}`)
-    await step(`${what} backups started and cancelled`, {card: true})
-
-    await tapButton('Close', "the backup modal's Close")
-    await expectBackupPage('the Backup page after the modal')
-    // read on the page proven current, which follows the phone's job notifications while it is up
-    for (const id of fresh.kbfs) check(!(await el(rowOf(id)).isExisting()), `a cancelled ${what} job is still listed on the Backup page`)
-    await step(`The Backup page after the ${what} backups`)
-  }
-
-  it('"Backup all files" started from the Backup page and cancelled at once', async function () {
-    // worst case (s): backupAll 471 + a row read per job (well under 100 jobs) 100 = 571
-    this.timeout(620_000)
-    await backupAll('Backup all files', 'fsAll', ARCHIVE_ALL_FILES, 'all files')
-  })
-
-  it('"Backup all Git repos" started from the Backup page and cancelled at once', async function () {
-    // worst case (s): backupAll 471 + a row read per job (well under 100 jobs) 100 = 571
-    this.timeout(620_000)
-    await backupAll('Backup all Git repos', 'gitAll', ARCHIVE_ALL_GIT, 'all Git repos')
   })
 })

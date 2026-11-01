@@ -25,12 +25,6 @@ export const stillListed = (now: ArchiveJobs, ids: ArchiveJobs) => {
   return [...ids.chat, ...ids.kbfs].filter(id => listed.has(id)).length
 }
 
-// N of the backup modal's "Started N jobs successfully." line, or undefined for any other text.
-export const startedJobsOf = (label: string) => {
-  const m = /^Started (\d+) jobs successfully\.$/.exec(label.trim())
-  return m ? Number(m[1]) : undefined
-}
-
 // The simulator's own storage, from the app's data container (simctl get_app_container ... data):
 // the device's data folder, which holds the app's data and group containers alike.
 export const simDataRoot = (appDataContainer: string) => {
@@ -61,13 +55,16 @@ export const outputPathsOf = (states: ArchiveJobStates, ids: ArchiveJobs, root: 
   return paths
 }
 
-// Where an output's existence is anchored: the output itself, or the folder it is made in. That
-// folder must lie inside `root` and not be `root` itself, so a "gone" read later means the output was
-// removed from a folder the job used, not that it was looked for somewhere it never could be.
+// Where an output's existence is anchored: the output itself, the folder it is made in, or that
+// folder's own folder (a files job's zip sits inside its staging folder, and a queued or indexing job
+// has made neither yet, seen live). The folders must lie inside `root` and not be `root` itself, so a
+// "gone" read later means the output was removed from a folder the jobs use, not that it was looked
+// for somewhere it never could be; a grandparent that is `root` is left out.
 export const anchorsOf = (output: string, root: string) => {
   const parent = path.dirname(output)
   if (!inside(output, root) || !inside(parent, root)) throw new Error("refusing a backup output path outside the simulator's own storage")
-  return [output, parent]
+  const grandparent = path.dirname(parent)
+  return inside(grandparent, root) ? [output, parent, grandparent] : [output, parent]
 }
 
 // The compressed file a finished chat job of `ids` left beside its folder (the service adds

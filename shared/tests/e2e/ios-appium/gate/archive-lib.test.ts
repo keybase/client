@@ -1,4 +1,4 @@
-import {CHAT_PAUSED, anchorsOf, chatArchivesOf, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, startedJobsOf, stillListed} from './archive-lib'
+import {CHAT_PAUSED, anchorsOf, chatArchivesOf, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, stillListed} from './archive-lib'
 
 const root = '/Users/testuser/Library/Developer/CoreSimulator/Devices/D1/data/'
 const container = `${root}Containers/Data/Application/A1`
@@ -8,13 +8,6 @@ test("a test's jobs are the ones its snapshot did not have", () => {
   expect(newJobIDs({chat: [], kbfs: []}, {chat: ['c1'], kbfs: []})).toEqual({chat: [], kbfs: []})
   expect(stillListed({chat: ['c1'], kbfs: ['k1']}, {chat: ['c1', 'c9'], kbfs: ['k1']})).toBe(2)
   expect(stillListed({chat: ['c1'], kbfs: []}, {chat: ['c9'], kbfs: ['k9']})).toBe(0)
-})
-
-test('the started line reads its count, and nothing else does', () => {
-  expect(startedJobsOf('Started 3 jobs successfully.')).toBe(3)
-  expect(startedJobsOf('Started 0 jobs successfully.')).toBe(0)
-  expect(startedJobsOf('Skipped 3 folders.')).toBeUndefined()
-  expect(startedJobsOf('Started 3 jobs successfully. and more')).toBeUndefined()
 })
 
 test("the simulator's storage is the device's data folder, and anything else is refused", () => {
@@ -51,9 +44,11 @@ test("a job's outputs are its paths inside the simulator, and a path outside it 
   }
 })
 
-test("an output is anchored by itself or the folder it is made in, both inside the simulator", () => {
+test("an output is anchored by itself, the folder it is made in or that folder's folder, all inside the simulator", () => {
   const out = `${container}/Library/Caches/kbchat-c1`
-  expect(anchorsOf(out, root)).toEqual([out, `${container}/Library/Caches`])
+  expect(anchorsOf(out, root)).toEqual([out, `${container}/Library/Caches`, `${container}/Library`])
+  // a files job's zip inside a staging folder not made yet: the staging folder's own folder anchors it
+  expect(anchorsOf(`${root}x/stage/a.zip`, root)).toEqual([`${root}x/stage/a.zip`, `${root}x/stage`, `${root}x`])
   // a folder right under the storage root is the root's own child, still inside it
   expect(anchorsOf(`${root}x/y`, root)).toEqual([`${root}x/y`, `${root}x`])
   for (const bad of [`${root}x`, '/tmp/kbchat', `${root}../x/y`]) expect(() => anchorsOf(bad, root)).toThrow(/^refusing /)

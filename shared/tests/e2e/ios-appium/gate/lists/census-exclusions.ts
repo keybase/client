@@ -9,6 +9,10 @@ const phoneNew = 'manual-only: phone-new-device (the screens that provision this
 // the signed-out flows stop at "Start account reset" (flows/account-signed-out.test.ts)
 const resetStart = 'owner: excluded (account reset start and cancel)'
 
+// the Backup page's whole-account backups (controller ruling, PR 7 live)
+const backupAll =
+  "manual-only: backup-all (a whole-account backup copies every folder and repo of the account onto the phone, non-test teams' too, and the phone's backup status lists only some of the jobs it starts, so they cannot all be proven cancelled and removed)"
+
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     chatMessagePopup: 'dead: the app never navigates to it (message menus open in place)',
@@ -61,6 +65,8 @@ export const IOS_EXCLUSIONS: Exclusions = {
       'no screen that sends it opens: its one sender is the teamInviteByContact screen (teams/invite-by-contact/team-invite-by-contacts.tsx), and nothing in the app navigates to it',
     'keybase.1.teams.teamReAddMemberAfterReset':
       'needs a member who reset their account (the files reset banner, fs/banner/reset-banner.tsx); account resets are owner: excluded',
+    'keybase.1.SimpleFS.simpleFSArchiveAllFiles': backupAll,
+    'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': backupAll,
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {
