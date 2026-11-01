@@ -207,50 +207,45 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
     }
     if (!ref.isReady()) return
-    const activeStackState = NavTree.activeStack(ref.getRootState())
-    const activeStackKey = activeStackState?.key
+    const rs = ref.getRootState()
+    const routeName = typeof nameOrPath === 'string' ? nameOrPath : nameOrPath.name
+    const found = NavTree.upToScreenTarget(rs, routeName)
+    const stack = found?.stack ?? NavTree.activeStack(rs)
+    const stackKey = stack?.key
+    const targeted = (action: {type: string; payload?: object}) => (stackKey ? {...action, target: stackKey} : action)
+
+    const rootScreen = rs?.routes?.[0]?.name
+    if (found?.closeAboveTabs && rs?.key && rootScreen) {
+      ref.dispatch({...StackActions.popTo(rootScreen), target: rs.key})
+    }
+
     if (typeof nameOrPath === 'string') {
-      const action = StackActions.popTo(nameOrPath)
-      ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+      ref.dispatch(targeted(StackActions.popTo(nameOrPath)))
       return
     }
 
-    const routeName = nameOrPath.name
     const params = nameOrPath.params as object
-
-    const activeStackRoutes = activeStackState?.routes as Array<NavTree.Route> | undefined
-    let routeIndex = -1
-    if (activeStackRoutes) {
-      for (let i = activeStackRoutes.length - 1; i >= 0; i--) {
-        if (activeStackRoutes[i]?.name === routeName) {
-          routeIndex = i
-          break
-        }
-      }
-    }
-    if (routeIndex >= 0 && activeStackState) {
-      const nextRoutes = activeStackRoutes!
-        .slice(0, routeIndex + 1)
-        .map((route, index) => (index === routeIndex ? {...route, params} : route))
+    if (found) {
+      const nextRoutes = (found.stack.routes as Array<NavTree.Route>)
+        .slice(0, found.index + 1)
+        .map((route, index) => (index === found.index ? {...route, params} : route))
       ref.dispatch({
         ...CommonActions.reset({
-          ...activeStackState,
-          index: routeIndex,
+          ...found.stack,
+          index: found.index,
           routes: nextRoutes,
         } as Parameters<typeof CommonActions.reset>[0]),
-        target: activeStackKey,
+        target: stackKey,
       })
       return
     }
 
     if (replaceIfMissing) {
-      const action = StackActions.replace(routeName, params)
-      ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+      ref.dispatch(targeted(StackActions.replace(routeName, params)))
       return
     }
 
-    const action = StackActions.popTo(routeName)
-    ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+    ref.dispatch(targeted(StackActions.popTo(routeName)))
   }
 
   const switchTab = (name: Tabs.AppTab) => {

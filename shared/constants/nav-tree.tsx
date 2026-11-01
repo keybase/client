@@ -132,6 +132,36 @@ export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | 
   return descend(state, 0)
 }
 
+export type UpToScreenTarget = {
+  stack: Immutable<NonNullable<NavState>>
+  // where the nearest route of that name sits in `stack`
+  index: number
+  // `stack` is the tab's stack under screens above the tab bar, which must close first
+  closeAboveTabs: boolean
+}
+
+// The stack navUpToScreen acts on to go back to `name`. On a phone every screen but a tab's root
+// sits in the root stack above the tab bar, over a tab stack that registers only its root screen,
+// so with no modal up the nearest `name` is looked for in those screens first and then in the
+// selected tab's stack. With a modal up only the active stack is looked in. Undefined when neither
+// holds `name`.
+export const upToScreenTarget = (
+  state: Immutable<NavState> | undefined,
+  name: string
+): UpToScreenTarget | undefined => {
+  const lastIndexOf = (s?: Immutable<NavState>) => (s?.routes ?? []).map(r => r.name).lastIndexOf(name)
+  const aboveTabs = !!state && isLoggedIn(state) && (state.index ?? 0) > 0 && modalStack(state).length === 0
+  if (state && aboveTabs) {
+    const i = lastIndexOf(state)
+    if (i > 0) {
+      return {closeAboveTabs: false, index: i, stack: state}
+    }
+  }
+  const active = activeStack(state)
+  const j = lastIndexOf(active)
+  return active && j >= 0 ? {closeAboveTabs: aboveTabs, index: j, stack: active} : undefined
+}
+
 // loggedIn/tab/stack items, plus whatever sits above the tab navigator.
 export const visiblePath = (
   state?: Immutable<NavState>,

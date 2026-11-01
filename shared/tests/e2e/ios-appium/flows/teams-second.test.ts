@@ -38,12 +38,11 @@ import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard, openConversation, waitSignedIn} from '../helpers/chat'
 import {el, pasteInto} from '../helpers/elements'
 import {buttonLabelled, pressTestID, tapButton} from '../helpers/files'
-import {expectScreen, visibleScreen} from '../gate/screens'
+import {expectScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
-  backToTeamsRoot,
   drainMade,
   expectHost,
   makeOwnSubteamWithID,
@@ -235,9 +234,9 @@ describe('teams second account', function () {
   it('the second account leaves a subteam from its header menu', async function () {
     // worst case (s): subteam 915, add 255, polled 285, second 425; in it: opened 197 (team 109, tab
     // 24, the header 4, overrun by one try), pin 1, header 8, menu 19, item 22, screen 11, text 6,
-    // step 2, pin 1, calls 2, button 6, waited for 12, the confirm closing 21, back 44; then polled
-    // 285, step 2 = 2519
-    this.timeout(2_550_000)
+    // step 2, pin 1, calls 2, button 6, waited for 12, the Teams tab's root 21; then polled 285, step
+    // 2 = 2475
+    this.timeout(2_500_000)
     const {secondUser} = loadE2EAccounts()
     const {name, teamID} = await makeOwnSubteamWithID('lve', madeNames)
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
@@ -260,20 +259,8 @@ describe('teams second account', function () {
       const seq = await currentCallSeq()
       await tapButton('Leave team', "the confirm's Leave team")
       await waitForUiCall('the leave to go out', seq, 'keybase.1.teams.teamLeave')
-      // PR 9 (app bug, as device-revoke's): after the leave the app clears its modals and then pops
-      // to teamsRoot inside the closing confirm's stack ("[NAV] Unhandled action: POP_TO"), so it stays
-      // on the team page. The flow backs out itself, and throws once the app goes there on its own:
-      // then this back-out step is no longer needed.
-      const after = await waitFor(
-        'the leave confirm to close',
-        async () => {
-          const up = await visibleScreen()
-          return up?.name === 'teamsRoot' || (up?.name === 'team' && onSubteam(up.params ?? {})) ? up.name : undefined
-        },
-        {interval: 250, timeout: 20_000}
-      )
-      check(after !== 'teamsRoot', 'the app now leaves the team page itself after a leave: drop this back step (PR 9)')
-      await backToTeamsRoot('the team page after the leave')
+      // the app closes the confirm and the subteam's page itself
+      await expectScreen("the Teams tab's root after the leave", 'teamsRoot', () => true, 20_000)
     })
     await expectHost('the second account out of the subteam', async () => secondRoleIn(name), r => r.anchored && r.second === 'none')
     await step('The second account left', {card: true})

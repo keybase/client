@@ -11,6 +11,7 @@ import {
   setModalRouteNames,
   tabNavigatorState,
   tabState,
+  upToScreenTarget,
   visiblePath,
   visibleScreen,
 } from './nav-tree'
@@ -178,6 +179,48 @@ test('activeStack stops at the root stack when a modal is on top', () => {
 test('activeStack of an empty state is undefined', () => {
   expect(activeStack(undefined)).toBeUndefined()
   expect(activeStack({routes: []} as any)).toBeUndefined()
+})
+
+// ---- upToScreenTarget ----
+
+// A phone's device page: the devices list and the page sit above the tab bar, over a Settings
+// stack that holds only settingsRoot.
+const phoneDevicePage = () =>
+  makePhoneNavState([{name: 'settingsTabs.devicesTab'}, {name: 'devicePage', params: {deviceID: 'D'}}])
+
+test('upToScreenTarget finds a screen above the tabs in the root stack', () => {
+  const target = upToScreenTarget(phoneDevicePage(), 'settingsTabs.devicesTab')
+
+  expect(target?.stack.key).toBe('root')
+  expect(target?.index).toBe(1)
+  expect(target?.closeAboveTabs).toBe(false)
+})
+
+test("upToScreenTarget finds a tab's root under screens above the tabs, which close first", () => {
+  const target = upToScreenTarget(makePhoneNavState([{name: 'team'}]), 'chatRoot')
+
+  expect(target?.stack.key).toBe('chatStack')
+  expect(target?.index).toBe(0)
+  expect(target?.closeAboveTabs).toBe(true)
+})
+
+test('upToScreenTarget with nothing above the tabs looks in the selected tab stack only', () => {
+  const target = upToScreenTarget(makePhoneNavState(), 'chatRoot')
+
+  expect(target).toEqual({closeAboveTabs: false, index: 0, stack: activeStack(makePhoneNavState())})
+})
+
+// The modal's own flow (a wizard going back to an earlier step of itself) stays in the active stack.
+test('upToScreenTarget with a modal up looks in the active stack only', () => {
+  const navState = makePhoneNavState([{name: 'team'}, {name: 'chatInfoPanel'}])
+
+  expect(upToScreenTarget(navState, 'team')).toEqual({closeAboveTabs: false, index: 1, stack: navState})
+  expect(upToScreenTarget(navState, 'chatRoot')).toBeUndefined()
+})
+
+test('upToScreenTarget of a screen nowhere on the way back is undefined', () => {
+  expect(upToScreenTarget(phoneDevicePage(), 'teamsRoot')).toBeUndefined()
+  expect(upToScreenTarget(undefined, 'chatRoot')).toBeUndefined()
 })
 
 // ---- builders ----

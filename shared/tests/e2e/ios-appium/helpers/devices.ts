@@ -9,7 +9,7 @@ import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled, maskingName} from './elements'
-import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
+import {escapeToTabs, navigateToMore, tapSettingsRow} from './navigate'
 
 // A device the helpers find by its exact name. A paper key's name is the first two words of its
 // phrase, so it never goes into an error: it is passed with the label errors use instead, and any
@@ -154,10 +154,9 @@ export const openDevicePage = async (device: NamedDevice) =>
   })
 
 // From `name`'s open device page: Revoke this <kind>, the confirm screen naming it, `beforeConfirm`
-// (a step), Yes, delete it. Sends revoke.revokeDevice; ends once the app is back on the list.
-// The app closes the confirm but leaves its device page up: after clearModals it pops to the
-// devices list in the stack the confirm was in (the dismissal has not committed yet), which React
-// Navigation reports as an unhandled POP_TO. So the flow goes back from the device page itself.
+// (a step), Yes, delete it. Sends revoke.revokeDevice; ends once the app has gone back to the list
+// by itself. Bound (s): the confirm 15, its text 10, the step 5, the confirm closing 30, the device
+// page gone 20, the list 15 = 95.
 export const revokeOnPhone = async (device: NamedDevice, kind: 'computer' | 'paper key', beforeConfirm: () => Promise<void>) =>
   masking(device, async (name, label) => {
     await labeled('Button', `Revoke this ${kind}`).click()
@@ -170,13 +169,7 @@ export const revokeOnPhone = async (device: NamedDevice, kind: 'computer' | 'pap
   await beforeConfirm()
   await confirm.click()
   await confirm.waitForExist({reverse: true, timeout: 30_000, timeoutMsg: 'the revoke confirm stayed up for 30s'})
-  // watched for a while, so an app that pops asynchronously is caught before the flow's own back
-  const leftByItself = await el(T.DEVICE_PAGE)
-    .waitForExist({reverse: true, timeout: 2_000})
-    .then(() => true, () => false)
-  if (leftByItself) throw new Error('the app now leaves the device page by itself after a revoke: drop the flow\'s own back')
-  await goBackUntilGone(T.DEVICE_PAGE)
-  await el(T.DEVICE_PAGE).waitForExist({reverse: true, timeout: 5_000, timeoutMsg: 'the device page stayed up after going back from it'})
+  await el(T.DEVICE_PAGE).waitForExist({reverse: true, timeout: 20_000, timeoutMsg: 'the app left the device page up after the revoke'})
   await el(T.DEVICES_LIST).waitForExist({timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
   })
 

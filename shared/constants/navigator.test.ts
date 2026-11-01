@@ -228,6 +228,85 @@ describe('navUpToScreen', () => {
   })
 })
 
+// On a phone a tab's stack holds only its root screen; every other screen is pushed into the root
+// stack above the tab bar.
+describe('navUpToScreen on a phone', () => {
+  test('after a modal closes, goes back to a screen above the tabs in the root stack', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['deviceRevoke'],
+      rootState: makeRootState({
+        above: [{name: 'settingsTabs.devicesTab'}, {name: 'devicePage'}, {name: 'deviceRevoke'}],
+        tab: Tabs.settingsTab,
+      }),
+    })
+
+    clearModals()
+    navUpToScreen('settingsTabs.devicesTab')
+
+    expect(nav.lastAction()).toMatchObject({payload: {name: 'settingsTabs.devicesTab'}, target: 'root', type: 'POP_TO'})
+    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('settingsTabs.devicesTab')
+  })
+
+  test("after a modal closes, going back to a tab's root closes the screens above the tabs", () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['teamReallyLeaveTeam'],
+      rootState: makeRootState({
+        above: [{name: 'team', params: {teamID: 'T1'}}, {name: 'teamReallyLeaveTeam'}],
+        tab: Tabs.teamsTab,
+      }),
+    })
+
+    clearModals()
+    nav.clearActions()
+    navUpToScreen('teamsRoot')
+
+    expect(nav.actions).toMatchObject([
+      {payload: {name: 'loggedIn'}, target: 'root', type: 'POP_TO'},
+      {payload: {name: 'teamsRoot'}, target: `${Tabs.teamsTab}-stack`, type: 'POP_TO'},
+    ])
+    expect(NavTree.visiblePath(nav.getRootState()).map(r => r.name)).toEqual([
+      'loggedIn',
+      Tabs.teamsTab,
+      'teamsRoot',
+    ])
+  })
+
+  test('a path in the root stack resets the root stack onto it with the new params', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: [],
+      rootState: makeRootState({
+        above: [{name: 'team', params: {teamID: 'T1'}}, {name: 'teamChannel'}],
+        tab: Tabs.teamsTab,
+      }),
+    })
+
+    navUpToScreen({name: 'team', params: {teamID: 'T2'}})
+
+    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
+    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({name: 'team', params: {teamID: 'T2'}})
+  })
+
+  // A modal's own flow going back to an earlier step of itself, with a screen above the tabs under it.
+  test('with a modal up, only the root stack the modal is in is looked in', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['teamAddToTeamFromWhere', 'teamAddToTeamConfirm'],
+      rootState: makeRootState({
+        above: [{name: 'team'}, {name: 'teamAddToTeamFromWhere'}, {name: 'teamAddToTeamConfirm'}],
+        tab: Tabs.teamsTab,
+      }),
+    })
+
+    navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard: 'W'}} as never, true)
+
+    expect(nav.actions).toHaveLength(1)
+    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
+    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
+      name: 'teamAddToTeamFromWhere',
+      params: {wizard: 'W'},
+    })
+  })
+})
+
 // ---- clearModals ----
 
 describe('clearModals', () => {
