@@ -39,9 +39,9 @@ import {
 } from '../gate/sign-in'
 import {step} from '../gate/step'
 import {byText, el, waitForTestID} from '../helpers/elements'
-import {BUTTONS, expectScreen, tapButton} from '../helpers/files'
+import {buttonLabelled, clickUntil, expectScreen, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, labelledElement} from '../helpers/menus'
+import {check} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
@@ -67,8 +67,8 @@ describe('settings password', function () {
   //             1, screen 11, the page 10);  ask  an askApp 22;  stored  storedSecretOf 22
   //   button    tapButton 7;  screen  a screen waited for 11, 21 with a 20s wait;  fields  11 each
   //   secret    focusSecretField 15 and submitSecret 20, each field;  emptying  35 a field
-  //   save      the keyboard 1, Save enabled 6, seq 2, its tap 1, the call 12, its count 2, the screen
-  //             gone 61, the mark cleared 2 = 87
+  //   save      the keyboard 1, Save enabled 6, seq 2, clickUntil 10, the call 12, its count 2, the
+  //             screen gone 61, the mark cleared 2 = 96
   //   check     the iOS check CHECK_S;  repair  REPAIR_S;  checkOrRepair  2 CHECK_S + REPAIR_S
   //   sign out  the More tab 20, the row 26, its text 10, its tap 1, the login list 60, signed out 30,
   //             the secret dropped 52, the password screen 30, two row reads 20
@@ -141,7 +141,7 @@ describe('settings password', function () {
 
   // On the second account: Account > Change, `next` into both fields, Save; the screen closes once the
   // change went through. Bound: asSecond 425, the account 1, ask 22, page 97, button 7, screen 11,
-  // fields 22, step 2, secret 70, save 87, screen 21, step 2 = 767.
+  // fields 22, step 2, secret 70, save 96, screen 21, step 2 = 776.
   const changeOnPhone = async (next: string) =>
     asSecond(async () => {
       const {secondUser} = loadE2EAccounts()
@@ -165,13 +165,15 @@ describe('settings password', function () {
       const save = await waitFor(
         "the change password screen's Save enabled",
         async () => {
-          const b = await labelledElement(BUTTONS, 'Save', "the change password screen's Save")
+          const b = await buttonLabelled('Save', "the change password screen's Save")
           return (await b.getAttribute('enabled')) === 'true' ? b : undefined
         },
         {interval: 250, timeout: 5_000}
       )
       const seq = await currentCallSeq()
-      await save.click()
+      // a click with the keyboard still up only closes it: a second click goes only when the first
+      // sent nothing, so the change is never sent twice
+      await clickUntil(async () => save, async () => (await countOf(seq, PASSPHRASE_CHANGE)) > 0, "the change password screen's Save")
       await waitForUiCall('the password change to go out', seq, PASSPHRASE_CHANGE)
       check((await countOf(seq, PASSPHRASE_CHANGE)) === 1, 'Save sent the password change more than once')
       await waitFor(
@@ -212,10 +214,10 @@ describe('settings password', function () {
     })
 
   it('the second account password changed from the phone, then signed in with', async function () {
-    // worst case (s): stored 22, the env file 1, change 767, checkOrRepair 2 CHECK_S + REPAIR_S, the
+    // worst case (s): stored 22, the env file 1, change 776, checkOrRepair 2 CHECK_S + REPAIR_S, the
     // promotion 1, the env file 1, step 2, signOutAndBackIn 902, stored 22, smoke 1, step 2; and 60
     // to spare
-    this.timeout((22 + 1 + 767 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 60) * 1_000)
+    this.timeout((22 + 1 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 60) * 1_000)
     const env = loadE2EEnv()
     // refuses while a change that stopped part way is unresolved
     requirePhoneSecondPassword(env)
