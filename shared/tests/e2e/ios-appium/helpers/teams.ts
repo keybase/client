@@ -173,18 +173,20 @@ export const backToTeamsRoot = async (what: string) =>
     {intervals: [500], timeout: 30_000}
   )
 
-// The one text drawn holding `part` as a part of its label (a tappable box merges its texts, so a card
-// reads "<title>, <subtitle>"), once it is drawn. Bound: `timeout`, plus one read 1.
-export const textPartShown = async (part: string, what: string, timeout = 5_000) =>
-  waitFor(what, async () => elementWithLabelPartIn(TEXT_TYPES, part, what), {interval: 250, timeout})
+// The one visible text holding `part` as a part of its label (a tappable box merges its texts, so a
+// card reads "<title>, <subtitle>"), once it is drawn; `opts` as drawnElementIn's (forTap for a text
+// about to be tapped). Bound: `timeout`, plus one read 1.
+export const textPartShown = async (part: string, what: string, timeout = 5_000, opts?: DrawnOptions) =>
+  waitFor(what, async () => elementWithLabelPartIn(TEXT_TYPES, part, what, opts), {interval: 250, timeout})
 
 // what TEXTS finds, as element types, for a read off one page source (an attribute call per element
 // of every labelled box on a screen took minutes)
-const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
+export const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
-// The one text drawn reading exactly `label`, once it is drawn. Bound: `timeout`, plus one read 1.
-export const textShown = async (label: string, what: string, timeout = 5_000) =>
-  waitFor(what, async () => elementLabelledIn(TEXT_TYPES, label, what), {interval: 250, timeout})
+// The one visible text reading exactly `label`, once it is drawn; `opts` as textPartShown's. Bound:
+// `timeout`, plus one read 1.
+export const textShown = async (label: string, what: string, timeout = 5_000, opts?: DrawnOptions) =>
+  waitFor(what, async () => elementLabelledIn(TEXT_TYPES, label, what, opts), {interval: 250, timeout})
 
 // Taps the Teams tab's card `label` ("Create a team", "Join a team"): a tappable box whose label
 // merges its texts, not a button. Bound: 5s, the tap 1.

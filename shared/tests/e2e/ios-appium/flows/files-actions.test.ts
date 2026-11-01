@@ -184,8 +184,8 @@ describe('files actions', function () {
   }
 
   // Nothing a test changed left behind, after a timeout too. The host's restores go first, then the
-  // phone's. Worst case (s): close 5, keyboard 5, pickers 21, the favorite 245, a work folder and the
-  // smoke+second folder's entry 390, the sync config 85, escape 30 = 781.
+  // phone's. Worst case (s): close 19, keyboard 5, pickers 21, the favorite 245, a work folder and the
+  // smoke+second folder's entry 390, the sync config 85, escape 30 = 795.
   afterEach(async function () {
     this.timeout(800_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, closeDestinationPickers, restorePairFavorite, removeMadePaths, restoreSync, escapeToTabs])
@@ -477,7 +477,7 @@ describe('files actions', function () {
     // PR 9 (app bug): the confirmation stays up after the unsync (its menu keeps open on select, and
     // its Confirm header shows it again when the waiting flips), so it is closed from its Close. Drop
     // this once the app closes it.
-    if (await menuSheet().isExisting()) await chooseMenuItem('Close')
+    if (await (await menuSheet()).isExisting()) await chooseMenuItem('Close')
     await step('Unsynced', {card: true})
   })
 })

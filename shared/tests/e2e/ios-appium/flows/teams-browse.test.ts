@@ -42,8 +42,8 @@ describe('teams browse', function () {
   //   calls     the recorder's call log, one read 2;  waited for  12 (10, one read 2)
   //   tabTo     15 (three taps and 4s waits);  step  2 (its 1s settle and the attach)
 
-  // Nothing to put back: a menu or keyboard left up, and the screen. Worst case (s): close 5,
-  // keyboard 5, escape 30 = 40.
+  // Nothing to put back: a menu or keyboard left up, and the screen. Worst case (s): close 19,
+  // keyboard 5, escape 30 = 54.
   afterEach(async function () {
     this.timeout(60_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, escapeToTabs])
@@ -81,7 +81,7 @@ describe('teams browse', function () {
     await expectScreen("the new team's purpose screen", 'teamWizard1TeamPurpose')
     await step("The new team's purpose screen")
     // a card: its box merges its title and subtitle
-    const friends = await waitFor('the friends purpose', async () => cardTitledIn(['XCUIElementTypeOther'], 'Friends, family, or squad', 'the friends purpose'), {
+    const friends = await waitFor('the friends purpose', async () => cardTitledIn(['XCUIElementTypeOther'], 'Friends, family, or squad', 'the friends purpose', {forTap: true}), {
       interval: 250,
       timeout: 5_000,
     })

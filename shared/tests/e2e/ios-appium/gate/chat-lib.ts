@@ -1,5 +1,5 @@
 // Pieces of the iOS chat and row helpers (helpers/chat.ts, helpers/menus.ts), kept apart so they can be
-// unit-tested: pure, but for elementInRow, which reads the screen through `browser`.
+// unit-tested: pure, but for rectOf and elementInRow, which read the screen through `browser`.
 import {isDeepStrictEqual} from 'util'
 import {
   CHAT_INBOX_BIG_TEAM_HEADER,
@@ -274,14 +274,25 @@ export const inRow = (row: Rect, rects: ReadonlyArray<Rect>, what: string) => {
   return inside[0]!
 }
 
+// `e`'s frame in window points, or undefined when it has none (it left the tree). Reads the screen
+// through `browser`.
+export const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
+  const at = await e.getLocation().catch(() => undefined)
+  const size = await e.getSize().catch(() => undefined)
+  return at && size ? {...at, ...size} : undefined
+}
+
+// Whether `r` has a size and lies wholly inside `area`.
+export const inside = (r: Rect, area: Rect) =>
+  r.width > 0 && r.height > 0 && r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height
+
 // The element with `testID` drawn inside the row at `rowRect` (window points), of those the testID
 // repeats on, one per row. Throws when none or more than one lies in it.
 export const elementInRow = async (rowRect: Rect, testID: string) => {
   const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
   for (const e of await browser.$$(`~${testID}`).getElements()) {
-    const at = await e.getLocation().catch(() => undefined)
-    const size = await e.getSize().catch(() => undefined)
-    if (at && size) found.push({e, rect: {...at, ...size}})
+    const rect = await rectOf(e)
+    if (rect) found.push({e, rect})
   }
   return found[inRow(rowRect, found.map(f => f.rect), testID)]!.e
 }
