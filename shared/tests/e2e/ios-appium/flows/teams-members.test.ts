@@ -412,11 +412,11 @@ describe('teams members', function () {
     //   (60s of tries, overrun by one: team 109, tab 24, two rows of 11, tab 24, a row 11) = 2950;
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
     //   part 6 and a press 2 = 16, the subteam's channels 255, step 2, pin 1, calls 2, action 8,
-    //   waited for 12, the call log 2, two polled 570, step 2 = 1047;
+    //   waited for 12, the call log 2, two polled 570, step 2 = 1047, two checked rows of 6 = 12 -> 1059;
     // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, the check
     //   and its popup 21, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
     //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1017
-    // = 2950 + 1047 + 1017 = 5014
+    // = 2950 + 1059 + 1017 = 5026
     this.timeout(5_100_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()
@@ -450,11 +450,12 @@ describe('teams members', function () {
       })
       await press(pick, 'a host-made channel to add to')
     }
-    // PR 9 (app bug): a tapped channel row keeps drawing unchecked (the list gets no extraData for the
-    // selection, so its rows do not redraw), though the pick is held (Add enables, Select all turns
-    // to Clear). So the picks are not read off the rows: the subteam holds #general and the two
-    // host-made channels alone, the add the call log shows went to those two alone, and the host
-    // reads the second account in both after it. Read the checked rows again once the app redraws them.
+    // each pick reads checked off its row; the subteam holds #general and the two host-made channels
+    // alone, the add the call log shows went to those two alone, and the host reads the second account
+    // in both after it
+    for (const c of channels) {
+      await filesRowNamed(`#${c}`, 'a picked channel row drawn checked', {testID: T.TEAMS_ADD_TO_CHANNELS_ROW_CHECKED, timeout: 5_000})
+    }
     const subteamChannels = [...(await masked(async () => teamChannels(name))).keys()].sort()
     check(
       subteamChannels.length === channels.length + 1 && channels.every(c => subteamChannels.includes(c)),

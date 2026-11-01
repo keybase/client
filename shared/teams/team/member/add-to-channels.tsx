@@ -269,7 +269,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
               />
             </Kb.Box2>
             <Kb.BoxGrow2>
-              <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
+              <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} extraData={selected} />
             </Kb.BoxGrow2>
           </Kb.Box2>
         )}
