@@ -26,6 +26,7 @@ export const IOS_EXCLUSIONS: Exclusions = {
       "opened only from error screens: a global error's banner (app/global-errors.tsx), a load failure's Reload screen (common-adapters/reload.tsx), a failed bot install (chat/conversation/bot/install.tsx) and a login that failed to load (login/loading.tsx); the gate makes none. Settings > Feedback (settingsTabs.feedbackTab) is covered by settings-subpages",
     makeIcons: 'dead: settings/advanced.tsx shows its button only when showMakeIcons, which is `__DEV__ && false`',
     reallyRemoveAccount: walletRemove,
+    walletsRoot: 'not a route of its own: the screen of settingsTabs.walletsTab (settings/routes.tsx), which settings-subpages opens',
     chatMessagePopup: 'dead: the app never navigates to it (message menus open in place)',
     chatUnfurlMapPopup:
       "opened only from a map unfurl, and none is made: Keybase's maps proxy (maps-proxy.core.keybaseapi.com) returns 403 because its Google Maps billing is disabled",
@@ -69,6 +70,7 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.phoneNumbers.resendVerificationForPhoneNumber': 'manual-only: sms-code',
     'keybase.1.phoneNumbers.setVisibilityPhoneNumber': 'manual-only: sms-code (needs a verified phone number)',
     'keybase.1.phoneNumbers.verifyPhoneNumber': 'manual-only: sms-code',
+    'keybase.1.reachability.startReachability': 'dead: no call site in the app',
     'keybase.1.saltpack.saltpackDecryptFile': cryptoTextOnly,
     'keybase.1.saltpack.saltpackEncryptFile': cryptoTextOnly,
     'keybase.1.saltpack.saltpackSaveCiphertextToFile': cryptoTextOnly,
