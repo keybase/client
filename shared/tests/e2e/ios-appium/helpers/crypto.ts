@@ -3,8 +3,11 @@
 // operation's input screen opened from its row and left by its back, and the output modal closed by
 // its header's Done.
 import * as T from '../../shared/test-ids'
+import {jsEval} from '../gate/app-ask'
 import {el, tapForTestID, waitForTestID} from './elements'
 import {expectScreen} from './files'
+import {fiberPrelude} from './fiber-prelude'
+import {waitFor} from './lifecycle'
 import {check} from './menus'
 import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
 import {tapHeaderAction} from './teams'
@@ -39,12 +42,13 @@ export const openCryptoTab = async (tab: CryptoTab) => {
   await expectScreen(`the ${tab} screen`, route)
 }
 
-// Back from the operation's input screen to the sub-nav, with its field gone. Bound: goBackUntilGone
-// 12 (three backs 1 and 3s waits), the screen 11, the field 1 = 24.
+// Back from the operation's input screen to the sub-nav, with its field's box gone (the field itself
+// is inside the box's one element, never in the tree). Bound: goBackUntilGone 12 (three backs 1 and
+// 3s waits), the screen 11, the box 1 = 24.
 export const leaveCryptoTab = async (tab: CryptoTab) => {
   await goBackUntilGone(CRYPTO_TABS[tab].input)
   await expectScreen(`the crypto sub-nav after the ${tab} screen`, CRYPTO_SUB_NAV)
-  check(!(await el(T.CRYPTO_TEXT_INPUT).isExisting()), `the ${tab} screen's field is still drawn`)
+  check(!(await el(CRYPTO_TABS[tab].input).isExisting()), `the ${tab} screen's field is still drawn`)
 }
 
 // Closes the output modal by its header's Done, back to the operation's input screen. Bound:
@@ -54,3 +58,87 @@ export const closeCryptoOutput = async (tab: CryptoTab) => {
   await expectScreen(`the ${tab} screen after Done`, CRYPTO_TABS[tab].route)
   await el(T.CRYPTO_OUTPUT).waitForExist({reverse: true, timeout: 5_000})
 }
+
+// The tappable Paste of a field's edit menu (helpers/elements' PASTE_ITEM): the MenuItem or the
+// assistant's Button, never the menu's StaticText.
+const PASTE_ITEM =
+  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
+
+// How far into the field its first line of text is drawn, in points: the native multi-line field's
+// top inset and half a line. A long press below the text opens no edit menu (seen live).
+const FIRST_LINE = 20
+
+// Pastes the pasteboard into the open operation's field as a person does: a long press on the field's
+// first line opens its edit menu, and its Paste is pressed. The field sits inside the operation's
+// tappable box, so it has no element of its own: the box is tapped to focus it, the field's own native
+// view is measured in the app, and the press goes to its first line only when that lies inside the
+// box's element and on screen. Bound: the box 1 and its tap 1, the measure 4, six presses (1.3 and a
+// 1.5 wait) 17, the item 1 = 24.
+export const pasteIntoCryptoField = async (tab: CryptoTab) => {
+  const box = await el(CRYPTO_TABS[tab].input).getElement()
+  await box.click()
+  const started = await jsEval<number>(`${fiberPrelude}
+    const g = globalThis
+    g.__e2eCryptoFieldFrame = undefined
+    const hosts = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+      const p = f.memoizedProps
+      if (f.tag === 5 && p && p.testID === ${JSON.stringify(T.CRYPTO_TEXT_INPUT)} && f.stateNode && f.stateNode.node) hosts.push(f)
+    }
+    if (hosts.length !== 1) return hosts.length
+    g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (g.__e2eCryptoFieldFrame = {height, width, x, y}))
+    return 1
+  `)
+  if (started !== 1) throw new Error(`${started} native crypto text fields drawn, not one`)
+  type Frame = {height: number; width: number; x: number; y: number}
+  const frame = await waitFor(
+    `the ${tab} field measured`,
+    async () => (await jsEval<Frame | null>('return globalThis.__e2eCryptoFieldFrame || null')) ?? undefined,
+    {interval: 100, timeout: 3_000}
+  )
+  const at = {x: frame.x + Math.min(40, frame.width / 2), y: frame.y + Math.min(FIRST_LINE, frame.height / 2)}
+  const r = await box.getElementRect(box.elementId)
+  const {height: window} = await browser.getWindowRect()
+  if (frame.width <= 0 || frame.height <= 0 || at.x < r.x || at.x > r.x + r.width || at.y < r.y || at.y > r.y + r.height || at.y > window) {
+    throw new Error(`the ${tab} field's first line is not inside its box on screen: ${JSON.stringify(frame)} in ${JSON.stringify(r)}`)
+  }
+  for (let i = 0; i < 6; i++) {
+    await browser.execute('mobile: touchAndHold', {duration: 1.3, x: Math.round(at.x), y: Math.round(at.y)})
+    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
+      await browser.$(PASTE_ITEM).click()
+      return
+    }
+  }
+  throw new Error(`the ${tab} field's edit menu never offered Paste`)
+}
+
+// Whether the output modal renders `text` as its output. Its output is a selectable text, which
+// XCUITest does not expose, so the comparison runs in the app over the modal's React tree (the texts
+// under CRYPTO_OUTPUT); only the yes or no comes back, so no output ever leaves the app. Bound: 1.
+export const cryptoOutputReads = async (text: string) =>
+  jsEval<boolean>(`${fiberPrelude}
+    const want = ${JSON.stringify(text)}
+    const stack = [e2eRootFiber()]
+    const outputs = []
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.sibling) stack.push(f.sibling)
+      const p = f.memoizedProps
+      if (p && p.testID === ${JSON.stringify(T.CRYPTO_OUTPUT)}) outputs.push(f)
+      else if (f.child) stack.push(f.child)
+    }
+    if (outputs.length !== 1) return false
+    const inner = outputs[0].child ? [outputs[0].child] : []
+    while (inner.length) {
+      const f = inner.pop()
+      if (f.sibling) inner.push(f.sibling)
+      if (f.child) inner.push(f.child)
+      const p = f.memoizedProps
+      if (p && p.children === want) return true
+    }
+    return false
+  `)

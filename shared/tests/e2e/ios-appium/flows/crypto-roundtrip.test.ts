@@ -40,13 +40,13 @@ import type {CallMark} from '../gate/recorder-lib'
 import {fieldLength} from '../gate/secret-input'
 import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {step} from '../gate/step'
-import {CRYPTO_TABS, type CryptoTab, closeCryptoOutput, leaveCryptoTab, openCrypto, openCryptoTab} from '../helpers/crypto'
-import {el, pasteInto} from '../helpers/elements'
-import {expectScreen, fillField, filesRowNamed, tapButton} from '../helpers/files'
+import {CRYPTO_TABS, type CryptoTab, closeCryptoOutput, cryptoOutputReads, leaveCryptoTab, openCrypto, openCryptoTab, pasteIntoCryptoField} from '../helpers/crypto'
+import {el} from '../helpers/elements'
+import {expectScreen, fillHiddenField, filesRowNamed, tapButton, typeInFilter} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {masked, onlyField, tapHeaderAction, TEXTS} from '../helpers/teams'
+import {masked, tapHeaderAction, TEXTS} from '../helpers/teams'
 
 const ENCRYPT = 'keybase.1.saltpack.saltpackEncryptString'
 const DECRYPT = 'keybase.1.saltpack.saltpackDecryptString'
@@ -55,10 +55,6 @@ const VERIFY = 'keybase.1.saltpack.saltpackVerifyString'
 
 const FOR_SOMEONE_ELSE = "This message was encrypted for someone else or for a key you don't have."
 const FAILED_TO_DECRYPT = 'Failed to decrypt text.'
-
-// what the output modal draws its text as: a text, a selectable text's view, or a box merging it
-const OUTPUT_TEXTS =
-  '-ios predicate string:type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeTextView" OR type == "XCUIElementTypeOther"'
 
 const labelParts = (label: string | null) =>
   (label ?? '')
@@ -74,16 +70,16 @@ describe('crypto roundtrip', function () {
   //             105 (the peer 45, the call 60)
   //   crypto    openCrypto 86;  tab  openCryptoTab 29;  leave  leaveCryptoTab 24;  done
   //             closeCryptoOutput 22
-  //   type      the marker typed 26 (fillField: the field 10, the typing 15, the read 1)
-  //   paste     setPasteboard 50, the field 10, pasteInto 21, its length 6 (5, one read 1), the
-  //             overwrite 50 = 137
+  //   type      the marker set 30 (fillHiddenField: the field is inside its box's one element)
+  //   paste     setPasteboard 50, pasteIntoCryptoField 24, its length 6 (5, one read 1), the
+  //             overwrite 50 = 130
   //   run       seq 2, the tap 1, the call waited for 12, its count 2, the output screen 11 = 28
   //   copy      filler 50, the button 6, the pasteboard polled 10s overrun by one read 40, the
   //             overwrite 50 = 146
   //   output    the marker read 16 (15, one read 1);  signer  6 (5, one read 1);  banner  16, the
   //             output's absence 1
   //   mark      clearArmorShown 2
-  //   recipient addSecondAsRecipient 99
+  //   recipient addSecondAsRecipient 94
   //   step      2 (its 1s settle and the attach)
 
   before(async function () {
@@ -102,10 +98,10 @@ describe('crypto roundtrip', function () {
   // filler replaced it
   let armorOnPasteboard = false
   // set with the gate's secret-on-screen mark of this label, cleared once the screen no longer draws
-  // the message; armorInField when an operation's field holds one
+  // the message; armorInField names the operation whose field holds one
   const ARMOR_SHOWN = 'a saltpack message on the crypto screens'
   let armorShown = false
-  let armorInField = false
+  let armorInField: CryptoTab | undefined
 
   const filler = () => `e2e-${e2eRunId()}-pasteboard`
 
@@ -127,8 +123,9 @@ describe('crypto roundtrip', function () {
     if (!armorShown) return
     check(!(await el(T.CRYPTO_OUTPUT).isExisting()), 'the crypto output is still drawn')
     if (armorInField) {
-      check(!(await el(T.CRYPTO_TEXT_INPUT).isExisting()), 'the field the message was pasted into is still drawn')
-      armorInField = false
+      // the field is inside its box's one element: the box gone is the field gone
+      check(!(await el(CRYPTO_TABS[armorInField].input).isExisting()), 'the field the message was pasted into is still drawn')
+      armorInField = undefined
     }
     armorShown = false
     clearSecretOnScreen(ARMOR_SHOWN)
@@ -212,8 +209,9 @@ describe('crypto roundtrip', function () {
 
   const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
 
-  // Types the marker into the open operation's field and reads it back. Bound: 26.
-  const typeMarker = async (marker: string, tab: CryptoTab) => fillField(() => el(T.CRYPTO_TEXT_INPUT), marker, `the ${tab} field`)
+  // Puts the marker into the open operation's field and reads it back. The field is inside its box's
+  // one element, so it is not in the tree: set through its own onChange. Bound: 30.
+  const typeMarker = async (marker: string, tab: CryptoTab) => fillHiddenField(T.CRYPTO_TEXT_INPUT, marker, `the ${tab} field`)
 
   // Taps the operation's run button, waits for its call to go out once and for its output modal.
   // Bound: 28.
@@ -248,14 +246,13 @@ describe('crypto roundtrip', function () {
 
   // Pastes `text` (a saltpack message) into the open operation's field from the pasteboard, as a
   // person does, with the mark on before the field holds it; the field's length is read inside the
-  // app, and the pasteboard is overwritten after. Bound: 137.
-  const pasteArmor = async (text: string) => {
+  // app, and the pasteboard is overwritten after. Bound: 130.
+  const pasteArmor = async (text: string, tab: CryptoTab) => {
     armorOnPasteboard = true
     await setPasteboard(text)
-    await el(T.CRYPTO_TEXT_INPUT).waitForExist({timeout: 10_000})
-    armorInField = true
+    armorInField = tab
     markArmorShown()
-    await pasteInto(T.CRYPTO_TEXT_INPUT)
+    await pasteIntoCryptoField(tab)
     await waitFor(
       'the pasted message in the field',
       async () => ((await fieldLength(T.CRYPTO_TEXT_INPUT)) === text.length ? true : undefined),
@@ -265,22 +262,15 @@ describe('crypto roundtrip', function () {
     await overwritePasteboard()
   }
 
-  // Waits for the output modal to draw `marker` as its text, compared in memory. Bound: 16.
+  // Waits for the output modal to draw `marker` as its text. The output is a selectable text, which
+  // XCUITest does not expose (its element has no label or value, seen live), so the text the modal
+  // renders is compared with the marker inside the app; the answer is a yes or no, never the text.
+  // Bound: 16 (15, one read 1).
   const expectOutput = async (marker: string) =>
-    waitFor(
-      'the output to read the marker',
-      async () => {
-        const out = el(T.CRYPTO_OUTPUT)
-        if (!(await out.isExisting())) return undefined
-        for (const e of [await out.getElement(), ...(await out.$$(OUTPUT_TEXTS).getElements())]) {
-          const label = await e.getAttribute('label').catch(() => null)
-          const value = await e.getAttribute('value').catch(() => null)
-          if (label === marker || value === marker) return true
-        }
-        return undefined
-      },
-      {interval: 500, timeout: 15_000}
-    )
+    waitFor('the output to read the marker', async () => ((await cryptoOutputReads(marker)) ? true : undefined), {
+      interval: 500,
+      timeout: 15_000,
+    })
 
   // How many drawn texts read each of `names` as a label part, in one read, compared in memory.
   // Bound: one read 1.
@@ -326,14 +316,15 @@ describe('crypto roundtrip', function () {
   }
 
   // Picks the second account, by its exact name, as the open encrypt screen's recipient. Bound: the
-  // box 10 and its tap 1, the screen 11, the field 11, fill 26, the row 16 (15, one drag 1) and its
-  // tap 1, the header's Add 6, the screen 11, the name drawn 6 = 99.
+  // box 10 and its tap 1, the screen 11, typeInFilter 32, the row 16 (15, one drag 1) and its tap 1,
+  // the header's Add 6, the screen 11, the name drawn 6 = 94.
   const addSecondAsRecipient = async () => {
     const {secondUser} = loadE2EAccounts()
     await el(T.CRYPTO_RECIPIENTS).waitForExist({timeout: 10_000})
     await el(T.CRYPTO_RECIPIENTS).click()
     await expectScreen('the recipients search', 'cryptoTeamBuilder')
-    await fillField(await onlyField('TextField', "the recipients search's field"), secondUser, "the recipients search's field")
+    // the search is a SearchFilter: its field is not in the tree
+    await typeInFilter(secondUser, "the recipients search's field")
     const row = await filesRowNamed(secondUser, 'the second account among the results', {
       testID: T.TEAM_BUILDING_RESULT_ROW,
       timeout: 15_000,
@@ -353,8 +344,8 @@ describe('crypto roundtrip', function () {
   // -- the phone encrypts or signs, the host or the peer reads it --------------------------------
 
   it('text encrypted to self decrypts on the host to the marker', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 421
+    // worst case (s): crypto 86, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 425
     this.timeout(440_000)
     const marker = e2eMarker('crypto-self')
     await openCrypto()
@@ -375,8 +366,8 @@ describe('crypto roundtrip', function () {
   })
 
   it('text encrypted to the second account and self decrypts on its peer and the host', async function () {
-    // worst case (s): crypto 86, tab 29, recipient 99, step 2, type 26, step 2, run 28, copy 147,
-    // done 22, mark 2, step 2, second 105, host 75, step 2 = 627
+    // worst case (s): crypto 86, tab 29, recipient 94, step 2, type 30, step 2, run 28, copy 147,
+    // done 22, mark 2, step 2, second 105, host 75, step 2 = 626
     this.timeout(640_000)
     const marker = e2eMarker('crypto-to-second')
     await openCrypto()
@@ -401,8 +392,8 @@ describe('crypto roundtrip', function () {
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
-    // worst case (s): crypto 86, tab 29, type 26, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 421
+    // worst case (s): crypto 86, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 425
     this.timeout(440_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-sign')
@@ -427,7 +418,7 @@ describe('crypto roundtrip', function () {
   // -- the second account's peer makes it, the phone reads it ---------------------------------------
 
   it('the second account’s ciphertext decrypts to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, output 16, signer 6,
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, output 16, signer 6,
     // done 22, leave 24, mark 2, step 2 = 459
     this.timeout(480_000)
     const {smokeUser} = loadE2EAccounts()
@@ -437,7 +428,7 @@ describe('crypto roundtrip', function () {
     await openCryptoTab('decrypt')
     await step('The decrypt screen')
 
-    await pasteArmor(ciphertext)
+    await pasteArmor(ciphertext, 'decrypt')
     await runOperation('decrypt', DECRYPT)
     await expectOutput(marker)
     await expectSignedBySecond()
@@ -448,7 +439,7 @@ describe('crypto roundtrip', function () {
   })
 
   it('the second account’s signed text verifies to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, output 16, signer 6,
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, output 16, signer 6,
     // done 22, leave 24, mark 2, step 2 = 459
     this.timeout(480_000)
     const marker = e2eMarker('crypto-signed-by-second')
@@ -457,7 +448,7 @@ describe('crypto roundtrip', function () {
     await openCryptoTab('verify')
     await step('The verify screen')
 
-    await pasteArmor(signed)
+    await pasteArmor(signed, 'verify')
     await runOperation('verify', VERIFY)
     await expectOutput(marker)
     await expectSignedBySecond()
@@ -472,7 +463,7 @@ describe('crypto roundtrip', function () {
   // Text the second account encrypted for itself alone: no key of the smoke account opens it (the
   // service's decryption-key-not-found cause), which the app words for the reader.
   it('ciphertext for someone else says so', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 137, run 28, banner 17, done 22,
+    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, banner 17, done 22,
     // leave 24, mark 2, step 2 = 454
     this.timeout(480_000)
     const {secondUser} = loadE2EAccounts()
@@ -482,7 +473,7 @@ describe('crypto roundtrip', function () {
     await openCryptoTab('decrypt')
     await step('The decrypt screen')
 
-    await pasteArmor(ciphertext)
+    await pasteArmor(ciphertext, 'decrypt')
     await runOperation('decrypt', DECRYPT)
     await expectRefused(FOR_SOMEONE_ELSE, 'the encrypted-for-someone-else banner')
     await closeCryptoOutput('decrypt')
@@ -494,7 +485,7 @@ describe('crypto roundtrip', function () {
   // A changed body character fails the stream with no cause the service names, so the app shows its
   // generic message.
   it('tampered ciphertext fails to decrypt', async function () {
-    // worst case (s): host 75, crypto 86, tab 29, step 2, paste 137, run 28, banner 17, done 22,
+    // worst case (s): host 75, crypto 86, tab 29, step 2, paste 130, run 28, banner 17, done 22,
     // leave 24, mark 2, step 2 = 424
     this.timeout(440_000)
     const {smokeUser} = loadE2EAccounts()
@@ -506,7 +497,7 @@ describe('crypto roundtrip', function () {
     await openCryptoTab('decrypt')
     await step('The decrypt screen')
 
-    await pasteArmor(bad)
+    await pasteArmor(bad, 'decrypt')
     await runOperation('decrypt', DECRYPT)
     await expectRefused(FAILED_TO_DECRYPT, 'the failed-to-decrypt banner')
     await closeCryptoOutput('decrypt')
