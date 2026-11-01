@@ -80,7 +80,8 @@ describe('profile proofs', function () {
   //             10);  polled  60s of reads, overrun by one: of the peer 495, of the keys 560
   //   record    recordProofSig waited for 30s, overrun by one read 465
   //   keygen    peerMakePgpKey 365 (the peer 45, its connect 10, the keygen 300, the key check 10);
-  //             purge  purgePeerPgp 95 (the peer 45, its connect 10, the config 10, three purges 30)
+  //             purge  purgePeerPgp 540 (the peer 45, its connect 10, the config 10, three purges 30,
+  //             and for a key it did not make the lookup 435 and the keys 10)
   //   second    asSecond 425 (the switch 150, restoreToSmoke 275)
   //   profile   openOwnProfile 63 (escapeToTabs 30, the link 1, screen 21, the page 11);  identities
   //             dragUntilOnScreen 20, its tap 1
@@ -108,15 +109,15 @@ describe('profile proofs', function () {
   // the key's fingerprint, once the peer made it
   let madeFingerprint: string | undefined
 
-  // Removes from the second peer's keyring each key of this run: the one made, and any on this run's
-  // stamped identity the account lists (a keygen that stopped before it said its fingerprint).
-  // Bound: the keys 500, a purge 95 each.
+  // Removes from the second peer's keyring each key of this run, in one purge: the one made, and any
+  // on this run's stamped identity the account lists (a keygen that stopped before it said its
+  // fingerprint). Earlier runs' stamped keys go with it. Bound: the keys 500, the purge 540.
   const purgeMadeKeys = async () => {
     if (!pgpStarted) return
     await masked(async () => {
       const fps = new Set((await pgpList()).filter(k => k.emails.includes(stampedPgpEmail())).map(k => k.fingerprint))
       if (madeFingerprint) fps.add(madeFingerprint)
-      for (const fp of fps) await purgePeerPgp(fp)
+      await purgePeerPgp([...fps])
     })
     pgpStarted = false
     madeFingerprint = undefined
@@ -144,10 +145,10 @@ describe('profile proofs', function () {
   const PER_SIG = 435
 
   afterEach(async function () {
-    // Worst case (s): close 19, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 595,
-    // restoreToSmoke 275, escapeToTabs 30 = 3659 and 435 a sig (at least one).
+    // Worst case (s): close 19, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 1040,
+    // restoreToSmoke 275, escapeToTabs 30 = 4104 and 435 a sig (at least one).
     const sigs = Math.min(MAX_SIGS, Math.max(1, recordedSigCount() + (pendingAdd ? 1 : 0)))
-    this.timeout((3_659 + PER_SIG * sigs + 100) * 1_000)
+    this.timeout((4_104 + PER_SIG * sigs + 100) * 1_000)
     await withCleanup(closeMessageMenu, [recordPending, revokeRun, purgeMadeKeys, restoreToSmoke, escapeToTabs])
   })
 
@@ -358,8 +359,8 @@ describe('profile proofs', function () {
   it('drop a PGP key the second account’s peer made from its row', async function () {
     // worst case (s): keygen 365, polled 560, second 425; in it: the row opened 159 (60s of tries,
     // overrun by one: profile 63, identities 20, row 16), step 2, revoke 68, step 2, confirm 23,
-    // polled 560, gone 57, step 2; then purge 95 = 2318
-    this.timeout(2_350_000)
+    // polled 560, gone 57, step 2; then purge 540 = 2763
+    this.timeout(2_800_000)
     pgpStarted = true
     const fp = await masked(async () => peerMakePgpKey('drop'))
     madeFingerprint = fp
@@ -387,6 +388,6 @@ describe('profile proofs', function () {
       await rowGone(row, "the key's row gone from the profile")
       await step('The key dropped')
     })
-    await masked(async () => purgePeerPgp(fp))
+    await masked(async () => purgePeerPgp([fp]))
   })
 })

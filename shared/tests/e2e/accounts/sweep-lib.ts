@@ -16,6 +16,10 @@
 //                                 revoked by sig id
 //   PGP keys                      the second account's live keys whose one identity is
 //                                 e2e-<runid>-pgp@example.com, dropped by key id
+//   local PGP keys                the secret halves in the second peer's keyring of keys whose one
+//                                 identity on the account's sigchain is e2e-<runid>-pgp@example.com,
+//                                 purged together: pgpPurge removes every local key at once, so none
+//                                 goes while the keyring holds one the sweep keeps
 // Anything outside its scope is dropped, never judged. Other `e2e` names (seeded data, flows still
 // on older naming) are reported and kept.
 import {loadE2EAccounts} from './env.ts'
@@ -37,12 +41,14 @@ export type SweepKind =
   | 'paperKey'
   | 'proofSig'
   | 'pgpKey'
+  | 'localPgpKey'
 
 // `name` is the exact thing a delete targets: a channel's topic name, a repo name, an email address,
 // a KBFS path, a full team name, a device name, an emoji alias. For a message it is its body (or an
 // attachment's title); the delete targets `convID` and `messageID`. For a proof sig it is its
 // statement (`dns://<domain>`), the revoke targets `sigID`; for a PGP key its one identity's email,
-// the drop targets `kid`.
+// the drop targets `kid`; for a local PGP key the same email ('' when the sigchain names no one
+// identity for it), the purge targets `fingerprint`.
 export type SweepCandidate = {
   account: SweepAccount
   kind: SweepKind
@@ -63,6 +69,8 @@ export type SweepCandidate = {
   sigID?: string
   // pgpKey
   kid?: string
+  // localPgpKey
+  fingerprint?: string
 }
 
 export type SweepContext = {
@@ -159,6 +167,7 @@ const stampedPart = (c: SweepCandidate, ctx: SweepContext): string | undefined =
       return runId === undefined ? undefined : `e2e-${runId}-dns`
     }
     case 'pgpKey':
+    case 'localPgpKey':
       return c.account === 'second' ? pgpEmailRe.exec(c.name)?.[1] : undefined
     case 'channel':
     case 'device':
@@ -194,6 +203,10 @@ const judge = (c: SweepCandidate, ctx: SweepContext): Verdict => {
   if (c.kind === 'paperKey') return judgePaperKey(c, ctx)
   const part = stampedPart(c, ctx)
   const form = formOf(c.kind)
+  // never dropped unjudged: one kept holds back the purge of every other
+  if (c.kind === 'localPgpKey' && c.account === 'second' && part === undefined) {
+    return {reason: 'unrecognised key (no one run-stamped identity on the sigchain)', to: 'kept'}
+  }
   if (part === undefined || !prefixRe[form].test(part)) return {to: 'drop'}
 
   if (c.kind === 'channel' && ctx.seededChannels.includes(c.name)) return {reason: 'seeded channel', to: 'kept'}
@@ -208,6 +221,7 @@ const judge = (c: SweepCandidate, ctx: SweepContext): Verdict => {
   }
   if (c.kind === 'proofSig' && !c.sigID) return {reason: 'no sig id listed for it', to: 'kept'}
   if (c.kind === 'pgpKey' && !c.kid) return {reason: 'no key id listed for it', to: 'kept'}
+  if (c.kind === 'localPgpKey' && !c.fingerprint) return {reason: 'no fingerprint listed for it', to: 'kept'}
   if (c.kind === 'kbfs') {
     const roots = kbfsRoots(c.account, ctx)
     if (!safeEntryRe.test(part) || !roots.some(r => c.name === `${r}/${part}`)) {
@@ -246,8 +260,23 @@ export const selectSweepTargets = (candidates: ReadonlyArray<SweepCandidate>, ct
   const order = (c: SweepCandidate) =>
     c.kind === 'emoji' || c.kind === 'teamRepo' ? emojiOrder : c.kind === 'team' || c.kind === 'subteam' ? depth(c) : 0
   out.delete.sort((a, b) => order(b) - order(a))
+  // pgpPurge takes every local key or none
+  const localKept = [...out.kept, ...out.listOnly].some(n => n.candidate.kind === 'localPgpKey')
+  if (localKept) {
+    for (const candidate of out.delete.filter(c => c.kind === 'localPgpKey')) {
+      out.kept.push({candidate, reason: localPgpHeld})
+    }
+    out.delete = out.delete.filter(c => c.kind !== 'localPgpKey')
+  }
   return out
 }
+
+export const localPgpHeld = "held: the second peer's keyring also holds a key the sweep keeps, and a purge removes every local key"
+
+// The fingerprints a sweep may purge from the second peer's keyring: the local keys it selected.
+// The purge goes only when the keyring holds exactly these (sweep.mts reads it again right before).
+export const localPgpSelected = (selected: ReadonlyArray<SweepCandidate>) =>
+  new Set(selected.flatMap(c => (c.kind === 'localPgpKey' && c.account === 'second' && c.fingerprint ? [c.fingerprint] : [])))
 
 // Why a team or subteam delete waits for a later sweep, or undefined when it may go: a team repo of
 // it this sweep failed to delete, or a listing of the team repos that failed (a repo it did not see
@@ -274,6 +303,8 @@ export const describeCandidate = (c: SweepCandidate) => {
       return `${c.account} proofSig ${c.name} ${c.sigID ?? '?'}`
     case 'pgpKey':
       return `${c.account} pgpKey ${c.name} ${c.kid ?? '?'}`
+    case 'localPgpKey':
+      return `${c.account} localPgpKey ${c.name || '(unstamped)'} ${c.fingerprint ?? '?'}`
     case 'emoji':
     case 'teamRepo':
       return `${c.account} ${c.kind} ${c.team ?? '?'}/${c.name}`
@@ -284,7 +315,7 @@ export const describeCandidate = (c: SweepCandidate) => {
 
 // What tells two candidates apart: the same name can be two messages, or two devices.
 export const candidateKey = (c: SweepCandidate) =>
-  [c.account, c.kind, c.name, c.team ?? '', c.convID ?? '', c.messageID ?? '', c.deviceID ?? '', c.sigID ?? '', c.kid ?? ''].join('\u0000')
+  [c.account, c.kind, c.name, c.team ?? '', c.convID ?? '', c.messageID ?? '', c.deviceID ?? '', c.sigID ?? '', c.kid ?? '', c.fingerprint ?? ''].join('\u0000')
 
 // Run right before each delete, with the account the acting service says it is signed in as.
 export const checkDelete = (c: SweepCandidate, ctx: SweepContext, actingUser: string) => {

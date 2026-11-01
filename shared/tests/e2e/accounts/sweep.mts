@@ -10,7 +10,9 @@
 //   subteam), and KBFS entries directly in the folders kbfsRoots names; second only: its live DNS
 //   proof sigs and PGP keys (the iOS proof flows' dns://e2e<runid>.example.com and
 //   e2e-<runid>-pgp@example.com, left by a run killed before its afterEach), revoked by sig id and
-//   dropped by key id. A dropped key's local secret half stays in the second peer's keyring.
+//   dropped by key id, and those keys' secret halves in the second peer's local keyring, named by the
+//   identity the sigchain gives each and purged together (all of them or none: pgpPurge removes every
+//   local key, so an unstamped key, or this run's, holds the purge back).
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
@@ -42,6 +44,7 @@ import {
   describeCandidate,
   heldByTeamRepos,
   kbfsRoots,
+  localPgpSelected,
   listedEmojiAlias,
   maskAccounts,
   parseKbfsLs,
@@ -58,7 +61,8 @@ import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
 import {forgetStaleInviteLinks} from '../shared/gate/secret-scan.ts'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
-import {parseLookup, parseSigsList, parseUpkPgpKeys, type Upk} from '../shared/profile-parse.ts'
+import {localPgpFingerprints, purgeLocalPgp} from '../shared/pgp-purge.ts'
+import {parseLookup, parseSigsList, parseUpkPgpKeys, pgpEmailsByFingerprint, type Upk} from '../shared/profile-parse.ts'
 import {connectPeerRpc, type PeerRpc} from '../shared/peer-rpc.ts'
 import {
   ensurePeer,
@@ -239,19 +243,35 @@ const emails = async (actor: Actor) =>
 
 const whoOf = (actor: Actor) => `the ${actor.account} account`
 
+const upkOf = async (actor: Actor) => {
+  const out = await actor.cli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${actor.user}`, '-a', 'fields=basics'], 60_000)
+  const {id: uid} = parseLookup(out, whoOf(actor))
+  return call<Upk>(actor, 'keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
+}
+
 // The account's live DNS proof sigs.
 const proofSigs = async (actor: Actor): Promise<Array<SweepCandidate>> =>
   parseSigsList(await actor.cli(['sigs', 'list', '-j', '-r'], 60_000), whoOf(actor))
     .filter(s => s.type === 'proof' && !s.revoked && s.statement.startsWith('dns://'))
     .map(s => ({account: actor.account, kind: 'proofSig' as const, name: s.statement, sigID: s.sigID}))
 
+// The secret halves of PGP keys in the account's local keyring, each named by the one identity the
+// account's sigchain (past incarnations and revoked keys included) gives it ('' for a key it names
+// with more or none, or does not know).
+const localPgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
+  const fps = await withRpc(actor, async rpc => localPgpFingerprints(rpc))
+  if (!fps.length) return []
+  const emailsOf = pgpEmailsByFingerprint(await upkOf(actor))
+  return fps.map(fp => {
+    const emails = emailsOf.get(fp) ?? []
+    return {account: actor.account, fingerprint: fp, kind: 'localPgpKey' as const, name: emails.length === 1 ? (emails[0] ?? '') : ''}
+  })
+}
+
 // The account's live PGP keys, each named by its one identity's email ('' for a key with more or
 // none, which no sweep judges ours).
 const pgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
-  const out = await actor.cli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${actor.user}`, '-a', 'fields=basics'], 60_000)
-  const {id: uid} = parseLookup(out, whoOf(actor))
-  const upk = await call<Upk>(actor, 'keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
-  return parseUpkPgpKeys(upk, actor.user, whoOf(actor))
+  return parseUpkPgpKeys(await upkOf(actor), actor.user, whoOf(actor))
     .filter(k => !k.revoked)
     .map(k => ({account: actor.account, kid: k.kid, kind: 'pgpKey' as const, name: k.emails.length === 1 ? (k.emails[0] ?? '') : ''}))
 }
@@ -353,6 +373,7 @@ const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | und
   if (account === 'second') {
     await section('proofSig', 'proof sigs', async () => proofSigs(actor))
     await section('pgpKey', 'PGP keys', async () => pgpKeys(actor))
+    await section('localPgpKey', 'local PGP keys', async () => localPgpKeys(actor))
   }
   if (!kinds || kinds.has('device') || kinds.has('paperKey')) {
     signal?.throwIfAborted()
@@ -468,7 +489,9 @@ const removeStaleProvisionHomes = async (currentRunId: string, before: number, r
   }
 }
 
-const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv) => {
+// `localPgp` is the local keys the sweep selected: the first local key's delete purges them all, once
+// the keyring, read again, holds exactly those; the rest find it empty.
+const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv, localPgp: ReadonlySet<string>) => {
   switch (c.kind) {
     case 'channel': {
       const convID = convIDs.get(c.name)
@@ -527,6 +550,13 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
       return
     case 'pgpKey':
       await actor.cli(['pgp', 'drop', c.kid ?? ''], 60_000)
+      return
+    case 'localPgpKey':
+      await withRpc(actor, async rpc =>
+        purgeLocalPgp(rpc, async local =>
+          Promise.resolve(local.every(fp => localPgp.has(fp)) ? undefined : 'holds a PGP key the sweep did not select')
+        )
+      )
       return
   }
 }
@@ -675,6 +705,7 @@ export const sweep = async (
     const batchUser = sel.delete.some(c => c.kind === 'message') ? await actor.whoami() : ''
     // team repos sort before every team (selectSweepTargets), so these are known before any team goes
     const repos = {failedRepoTeams: new Set<string>(), reposListed: !failed.has('teamRepo')}
+    const localPgp = localPgpSelected(sel.delete)
     for (const c of sel.delete) {
       signal?.throwIfAborted()
       const held = heldByTeamRepos(c, repos)
@@ -684,7 +715,7 @@ export const sweep = async (
       }
       try {
         checkDelete(c, ctx, c.kind === 'message' ? batchUser : await actor.whoami())
-        await deleteOne(actor, c, convIDs, env)
+        await deleteOne(actor, c, convIDs, env, localPgp)
         result.deleted.push(c)
       } catch (e) {
         if (c.kind === 'teamRepo' && c.team) repos.failedRepoTeams.add(c.team)

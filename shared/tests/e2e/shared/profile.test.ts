@@ -167,13 +167,22 @@ describe('the purge guards', () => {
 })
 
 describe('purgePeerPgp', () => {
-  // the peer's pgpPurge: each call writes an export per local key; a real purge then drops the keys
+  const runFp = 'ef'.repeat(20)
+  const oldFp = '12'.repeat(20)
+  // the peer's pgpPurge: each call writes an export per local key; a real purge then drops the keys.
+  // Its sigchain names otherFp nothing, runFp this run's identity and oldFp an earlier run's.
   const purgingPeer = (local: Array<string>) => {
     let keys = [...local]
     let n = 0
+    const key = (fingerprint: string, email: string) => ({base: {kid: fingerprint}, fingerprint, identities: [{email}]})
     return fakePeer({
       call: (method, arg) => {
         if (method === 'keybase.1.config.getConfig') return {configPath: path.join(dir, 'config.json')}
+        if (method === 'keybase.1.user.loadUserPlusKeysV2') {
+          return {
+            current: {deviceKeys: {d: {base: {kid: 'd'}}}, pgpKeys: {r: key(runFp, stampedPgpEmail()), o: key(oldFp, `e2e-${other}-pgp@example.com`)}, username: 'testuser-mac'},
+          }
+        }
         if (method !== 'keybase.1.pgp.pgpPurge') throw new Error(`unexpected ${method}`)
         const filenames = keys.map(k => {
           const f = path.join(dir, `kb-${String(++n).padStart(4, '0')}-${k}.saltpack`)
@@ -183,29 +192,42 @@ describe('purgePeerPgp', () => {
         if (arg['doPurge']) keys = []
         return {filenames}
       },
+      cli: () => JSON.stringify({them: {id: 'uid'}}),
     })
   }
 
   test("purges the peer's key and leaves no export behind", async () => {
     const {log} = purgingPeer([fp])
-    await purgePeerPgp(fp)
+    await purgePeerPgp([fp])
     expect(fs.readdirSync(dir)).toEqual([])
     expect(log.filter(l => l.includes('pgpPurge'))).toHaveLength(3)
   })
 
-  test('purges nothing when the keyring holds a key this run did not make, and names none', async () => {
-    const {log} = purgingPeer([fp, otherFp])
-    const m = await messageOf(purgePeerPgp(fp))
-    expect(m).toMatch(/nothing purged/)
-    expect(m).not.toContain(otherFp)
-    expect(log.filter(l => l.includes('pgpPurge'))).toHaveLength(1)
-    // the dry run's exports are gone too, the other key's included
+  test("an earlier run's stamped key goes with the purge", async () => {
+    const {log} = purgingPeer([fp, oldFp])
+    await purgePeerPgp([fp])
+    expect(log.filter(l => l.includes('pgpPurge'))).toHaveLength(3)
     expect(fs.readdirSync(dir)).toEqual([])
+  })
+
+  test("purges nothing when the keyring holds a key no run made, or this run's that it did not make, and names none", async () => {
+    for (const held of [otherFp, runFp]) {
+      const {log} = purgingPeer([fp, held, oldFp])
+      const m = await messageOf(purgePeerPgp([fp]))
+      expect(m).toMatch(/nothing purged/)
+      for (const f of [otherFp, runFp, oldFp, run, 'testuser']) expect(m).not.toContain(f)
+      expect(log.filter(l => l.includes('pgpPurge'))).toHaveLength(1)
+      // the dry run's exports are gone too, the other keys' included
+      expect(fs.readdirSync(dir)).toEqual([])
+    }
+    // this run's key the flow made goes
+    purgingPeer([fp, runFp])
+    await purgePeerPgp([fp, runFp])
   })
 
   test('refuses a fingerprint that is not one, before any call', async () => {
     const {log} = purgingPeer([fp])
-    expect(await messageOf(purgePeerPgp('../x'))).toMatch(/^refusing /)
+    expect(await messageOf(purgePeerPgp(['../x']))).toMatch(/^refusing /)
     expect(log).toEqual([])
   })
 })

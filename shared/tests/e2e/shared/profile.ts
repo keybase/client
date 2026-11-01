@@ -3,15 +3,15 @@
 // flow makes is this run's (a proof sig whose id was recorded right after its add, a key on this run's
 // stamped identity), and only those are ever revoked or dropped here. The PGP key a
 // flow drops from the phone is made on the second peer (the phone cannot make one): its private half
-// stays in the peer's keyring, never on the server, and is purged after. No error names an account,
+// stays in the peer's keyring, never on the server, and is purged after (with earlier runs' stamped
+// keys: pgpPurge takes every local key, shared/pgp-purge.ts). No error names an account,
 // fingerprint or file. Framework-free: shared by the desktop and iOS flows.
-import * as fs from 'fs'
-import * as path from 'path'
 import {loadE2EAccounts, loadE2EEnv} from '../accounts/env.ts'
 import {waitFor} from './deadline.ts'
 import {mainRpc} from './main-rpc.ts'
 import {pgpKeyGenAnswers, type PeerRpc} from './peer-rpc.ts'
-import {parseLookup, parseSigsList, parseUpkPgpKeys, type PgpKey, type Sig, type Upk} from './profile-parse.ts'
+import {flowPurgeRefusal, purgeLocalPgp, requireFingerprint} from './pgp-purge.ts'
+import {parseLookup, parseSigsList, parseUpkPgpKeys, pgpEmailsByFingerprint, type PgpKey, type Sig, type Upk} from './profile-parse.ts'
 import {ensurePeer, requireMainIsSmoke, runKeybase} from './peer-service.ts'
 import {e2eRunId} from './run-marker.ts'
 import {readBack} from './teams.ts'
@@ -96,12 +96,6 @@ export const requireThisRunPgpEmail = (email: string) => {
   return email
 }
 
-const fingerprintRe = /^[0-9a-f]{40}$/
-const requireFingerprint = (fp: string) => {
-  if (!fingerprintRe.test(fp)) throw new Error('refusing a PGP fingerprint that is not 40 hex characters')
-  return fp
-}
-
 // Makes a PGP key on the second peer with this run's identity (name `e2e-<runid>-<label>`), its private
 // half kept only in the peer's keyring, and returns its fingerprint. Checks after that the account has
 // no server-synced key (a forced password change would drop one). Bound: the keygen (5 minutes).
@@ -120,63 +114,23 @@ export const peerMakePgpKey = async (label: string) => {
   return requireFingerprint(made)
 }
 
-// pgpPurge writes each local secret key, encrypted to the account, to `kb-NNNN-<fingerprint>.saltpack`
-// in the service's config dir.
-const purgeFileName = /^kb-\d{4}-([0-9a-f]{40})\.saltpack$/
+export {purgeFileFingerprint, removePurgeFiles} from './pgp-purge.ts'
 
-// The fingerprint in a file pgpPurge wrote into `dir`; throws for any other path.
-export const purgeFileFingerprint = (file: string, dir: string) => {
-  const m = purgeFileName.exec(path.basename(file))
-  if (path.dirname(path.resolve(file)) !== dir || !m?.[1]) throw new Error('refusing to touch a file that is not a pgpPurge export in the config dir')
-  return m[1]
-}
-
-// Deletes exactly the files pgpPurge reported, each a plain file in the service's config dir, and,
-// given `fingerprint`, only that key's. One that is refused or fails does not stop the others; every
-// failure is thrown together after.
-export const removePurgeFiles = (files: ReadonlyArray<string>, dir: string, fingerprint?: string) => {
-  const errors: Array<Error> = []
-  for (const file of files) {
-    try {
-      const fp = purgeFileFingerprint(file, dir)
-      if (fingerprint !== undefined && fp !== fingerprint) throw new Error("refusing to delete another key's pgpPurge export")
-      const st = fs.lstatSync(file)
-      if (!st.isFile() || st.isSymbolicLink()) throw new Error('refusing to delete a pgpPurge export that is not a plain file')
-      fs.unlinkSync(file)
-    } catch (e) {
-      errors.push(e instanceof Error ? e : new Error(String(e)))
-    }
-  }
-  const [first] = errors
-  if (first && errors.length === 1) throw first
-  if (errors.length > 1) throw new AggregateError(errors, errors.map(e => e.message).join('; '))
-}
-
-// Removes the local secret half of the key `fingerprint` from the second peer's keyring, deleting only
-// that key's exports from the peer's config dir. Purges nothing when the keyring holds any other key.
-export const purgePeerPgp = async (fingerprint: string) => {
-  const fp = requireFingerprint(fingerprint)
-  await withSecondRpc(async rpc => {
-    const {configPath} = await rpc.call<{configPath?: string}>('keybase.1.config.getConfig', {sessionID: 0})
-    if (!configPath || !path.isAbsolute(configPath)) throw new Error('the second peer reports no absolute config path')
-    const dir = path.dirname(path.resolve(configPath))
-    const purge = async (doPurge: boolean) =>
-      (await rpc.call<{filenames?: Array<string> | null}>('keybase.1.pgp.pgpPurge', {doPurge, sessionID: 0})).filenames ?? []
-    // a dry run lists the local keys, writing each to an export
-    const listed = await purge(false)
-    const fps = listed.map(f => purgeFileFingerprint(f, dir))
-    removePurgeFiles(listed.filter((_f, i) => fps[i] === fp), dir, fp)
-    if (fps.some(f => f !== fp)) {
-      // the dry run's own exports of the other keys go too (each a pgpPurge export in the config dir)
-      removePurgeFiles(listed.filter((_f, i) => fps[i] !== fp), dir)
-      throw new Error("the second peer's keyring holds a PGP key this run did not make; nothing purged (the owner has to look at it)")
-    }
-    if (!fps.length) return
-    removePurgeFiles(await purge(true), dir, fp)
-    const left = await purge(false)
-    removePurgeFiles(left, dir, fp)
-    if (left.length) throw new Error("a local PGP secret key is left in the second peer's keyring after the purge")
-  })
+// Removes the local secret halves of the keys `fingerprints` (the flow made them) from the second
+// peer's keyring, with the stamped keys of earlier runs it holds (a run killed before its purge).
+// Purges nothing when the keyring holds a key no e2e run made, or one of this run's not in
+// `fingerprints` (flowPurgeRefusal). Bound: the peer 45, its connect 10, purgeLocalPgp 40, and for a
+// key not made, the lookup 60 and the keys 10.
+export const purgePeerPgp = async (fingerprints: ReadonlyArray<string>) => {
+  const made = new Set(fingerprints.map(requireFingerprint))
+  await withSecondRpc(async rpc =>
+    purgeLocalPgp(rpc, async local => {
+      if (local.every(fp => made.has(fp))) return undefined
+      const {id} = await secondLookup('basics')
+      const upk = await rpc.call<Upk>('keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid: id})
+      return flowPurgeRefusal(local, made, pgpEmailsByFingerprint(upk), e2eRunId())
+    })
+  )
 }
 
 // The sig ids of the proofs this run added to the second account, each read back from its sigchain
