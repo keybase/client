@@ -1038,14 +1038,22 @@ const openSheetFrames = async () => {
   }
 }
 
+// The window's safe-area top: the status bar's height, as WDA reports it. Bound: 1.
+const safeAreaTop = async () => {
+  const info = await browser.execute('mobile: deviceScreenInfo')
+  const h = (info as {statusBarSize?: {height?: number}} | undefined)?.statusBarSize?.height
+  if (typeof h !== 'number' || !(h > 0)) throw new Error('no status bar height from the device: not tapping')
+  return h
+}
+
 // Closes the open message menu with the sheet's own Close (one lying wholly on screen and inside a
-// measured open sheet), else with a tap on the backdrop above the sheet's top, at its middle, when at
-// least BACKDROP_MIN of it shows. It never taps anywhere else below the sheet's top: a sheet's first
-// row is its quick reactions, where a tap writes. With neither, the sheet is dragged down by its top
+// measured open sheet), else with a tap on the backdrop above the sheet's top, at the middle of the
+// band below the safe-area top, when at least BACKDROP_MIN of that band shows. It never taps anywhere
+// else below the sheet's top: a sheet's first row is its quick reactions, where a tap writes. With neither, the sheet is dragged down by its top
 // edge (which lowers it or closes it) and read again, up to twice; then it fails. Bound: 19, a hard
 // deadline (no tap or drag starts after it): three rounds of reads (the window, the sheets read once
 // more when they give no frame, the Closes), two drags and their settles, the tap, the sheet gone 5.
-const BACKDROP_MIN = 88
+const BACKDROP_MIN = 44
 const CLOSE_MS = 19_000
 export const closeMessageMenu = async () =>
   underDeadline('closing the message menu', CLOSE_MS, async alive => {
@@ -1061,7 +1069,12 @@ export const closeMessageMenu = async () =>
         // the sheet's own Close: inside a measured open sheet and wholly on screen
         if (r && sheets.some(sh => inside(r, sh)) && inside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
       }
-      if (!close && top >= BACKDROP_MIN) close = {x: width / 2, y: top / 2}
+      if (!close) {
+        // the backdrop band between the safe-area top (the status bar, where a tap may not reach the
+        // app) and the sheet's top
+        const safeTop = await safeAreaTop()
+        if (top - safeTop >= BACKDROP_MIN) close = {x: width / 2, y: (safeTop + top) / 2}
+      }
       if (close) {
         alive()
         await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
