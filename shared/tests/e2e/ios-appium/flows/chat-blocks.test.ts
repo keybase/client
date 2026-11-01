@@ -150,8 +150,8 @@ describe('chat blocks', function () {
   // Nothing the block changed left behind, after a timeout too. Worst case (s): the unblock 245 (a
   // read 75, the set 75, its read polled 20 and overrun by one read 75), the status 245 (a read 75,
   // the set 75, its poll 95), the folder 415 (the settling 20 overrun by one read 75, a read 75, the
-  // refavorite 170 as the unblock's, the read after it 75), the accounts' check 120, close 5,
-  // keyboard 5, escapeToTabs 30 = 1065.
+  // refavorite 170 as the unblock's, the read after it 75), the accounts' check 120, close 19,
+  // keyboard 5, escapeToTabs 30 = 1079.
   afterEach(async function () {
     this.timeout(1_100_000)
     await withCleanup(restoreAll, [closeMessageMenu, hideKeyboard, escapeToTabs])

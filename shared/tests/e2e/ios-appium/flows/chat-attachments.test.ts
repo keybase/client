@@ -104,8 +104,8 @@ describe('chat attachments', function () {
     if (channel) await deleteThrowawayChannel(channel.topicName)
   })
 
-  // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 5,
-  // keyboard 5, the back 10, gone 5 = 25.
+  // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 19,
+  // keyboard 5, the back 10, gone 5 = 39.
   afterEach(async function () {
     this.timeout(40_000)
     await withCleanup(closeMessageMenu, [

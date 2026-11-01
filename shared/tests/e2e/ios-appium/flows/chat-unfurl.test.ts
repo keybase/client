@@ -121,7 +121,7 @@ describe('chat unfurl', function () {
     changed = false
   }
 
-  // Worst case (s): close 5, keyboard 5, the settings 105 = 115.
+  // Worst case (s): close 19, keyboard 5, the settings 105 = 129.
   afterEach(async function () {
     this.timeout(130_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, restoreSettings])

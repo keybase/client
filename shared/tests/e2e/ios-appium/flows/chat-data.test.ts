@@ -125,10 +125,10 @@ describe('chat data', function () {
   }
 
   // Back on the smoke account with no menu open and no watch left in the app, after a timeout too.
-  // Mocha runs this after the describes' own afterEach. Worst case (s): close 5, keyboard 5, the
-  // watch 2, restore 275 = 287.
+  // Mocha runs this after the describes' own afterEach. Worst case (s): close 19, keyboard 5, the
+  // watch 2, restore 275 = 301.
   afterEach(async function () {
-    this.timeout(300_000)
+    this.timeout(310_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, stopAccountChangeWatch, restoreToSmoke])
   })
 
@@ -213,7 +213,7 @@ describe('chat data', function () {
     // while the row shows deleting (seen live in every attempt); a person checks it with the network
     // off (ledger ruling).
     it('a delete keeps showing deleting through thread reloads until it lands', async function () {
-      // worst case (s): open 100, sent 25, keyboard 5, menu 15, step 2, the edge 2, close 5 = 154
+      // worst case (s): open 100, sent 25, keyboard 5, menu 15, step 2, the edge 2, close 19 = 168
       this.timeout(180_000)
       await openScratch()
       const text = e2eMarker('data-delete-reload')

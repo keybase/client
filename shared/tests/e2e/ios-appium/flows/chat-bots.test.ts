@@ -113,9 +113,9 @@ describe('chat bots', function () {
     subteam = undefined
   }
 
-  // Worst case (s): close 5, keyboard 5, the subteam 285, escape 30 = 325.
+  // Worst case (s): close 19, keyboard 5, the subteam 285, escape 30 = 339.
   afterEach(async function () {
-    this.timeout(330_000)
+    this.timeout(340_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteSubteam, escapeToTabs])
   })
 
@@ -222,12 +222,12 @@ describe('chat bots', function () {
     // edit: the row 25, menu 35, screen 10, the pin 1, the edit button steady 20, the tap 1, the
     //   dropdown 15, picker 34, the dropdown 15, the pin 1, seq 2, button 6, gone 20, calls 10, polled
     //   95, step 2 = 292;
-    // offer: peer 70, peer send 90, open 100, row 30, message menu 65 (30, overrun by one try: its
-    //   open 15, its items read 15 and close 5), menu 15, seq 2, the item 20, screen 10, type 21
-    //   (typeInSearchFilter), named 15, calls 10, step 2, escape 30 = 480;
+    // offer: peer 70, peer send 90, open 100, row 30, message menu 79 (30, overrun by one try: its
+    //   open 15, its items read 15 and close 19), menu 15, seq 2, the item 20, screen 10, type 21
+    //   (typeInSearchFilter), named 15, calls 10, step 2, escape 30 = 494;
     // uninstall: page 21, bots tab 16, the row 25, menu 35, screen 10, the pin 1, seq 2, button 6,
     //   calls 10, polled 95, the row gone 20, step 2 = 243
-    // = 750 + 413 + 292 + 480 + 243 = 2178
+    // = 750 + 413 + 292 + 494 + 243 = 2192
     this.timeout(2_250_000)
     // a deleted team's name is not free again, so each attempt in a run takes its own
     const made = await createThrowawaySubteam(`bot${randomBytes(2).toString('hex')}`)

@@ -207,12 +207,12 @@ describe('chat messages', function () {
   }
 
   // Back on smoke with nothing a test changed left behind, after a timeout too. The host's restores
-  // go first; the phone's need the app back on smoke. Worst case (s): close 5, keyboard 5, the
+  // go first; the phone's need the app back on smoke. Worst case (s): close 19, keyboard 5, the
   // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 275, the
   // skin tone 85 (the account 10, three asks), scratch 197 (the account 10, open 100, the load 15, the
-  // ids 1, one cancel 25, resetComposer 46) = 932.
+  // ids 1, one cancel 25, resetComposer 46) = 946.
   afterEach(async function () {
-    this.timeout(940_000)
+    this.timeout(960_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, channels.deleteAll, restoreToSmoke, restoreSkinTone, resetScratch])
   })
 

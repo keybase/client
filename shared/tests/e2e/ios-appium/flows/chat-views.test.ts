@@ -126,9 +126,9 @@ describe('chat views', function () {
   }
 
   // Nothing a test opened or changed left behind, after a timeout too. The host's deletes go first.
-  // Worst case (s): close 5, keyboard 5, a channel 120, scratch 146, escape 30 = 306.
+  // Worst case (s): close 19, keyboard 5, a channel 120, scratch 146, escape 30 = 320.
   afterEach(async function () {
-    this.timeout(320_000)
+    this.timeout(330_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, channels.deleteAll, resetScratch, escapeToTabs])
   })
 
@@ -283,10 +283,10 @@ describe('chat views', function () {
   // -- a message's menu and its pickers -----------------------------------------------------------
 
   it("a message's menu offers what its kind allows: the account's own text, another's, an image", async function () {
-    // worst case (s): open 100, sent 25, keyboard 5, menu 15, items 15, step 2, close 5; peer 70,
-    // peer send 90, row 30, menu 15, items 15, step 2, close 5; open 100, image 80, menu 15, items 15,
-    // step 2, close 5 = 611
-    this.timeout(640_000)
+    // worst case (s): open 100, sent 25, keyboard 5, menu 15, items 15, step 2, close 19; peer 70,
+    // peer send 90, row 30, menu 15, items 15, step 2, close 19; open 100, image 80, menu 15, items 15,
+    // step 2, close 19 = 653
+    this.timeout(680_000)
     await openConversation(scratch())
     scratchComposerUsed = true
     const own = e2eMarker('views-own')

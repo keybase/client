@@ -1022,26 +1022,43 @@ export const rowCentre = async (text: string) => {
   return {x: Math.round(x + width / 2), y: Math.round(y + height / 2)}
 }
 
+// Closes the open message menu with the sheet's own Close when that lies wholly on screen, else with
+// a tap on the backdrop above the sheet's top, at its middle, when at least BACKDROP_MIN of it shows.
+// It never taps anywhere else below the sheet's top: a sheet's first row is its quick reactions, where
+// a tap writes. With neither, the sheet is dragged down by its top edge (which lowers it or closes
+// it) and read again, up to twice; then it fails. Bound: three reads (the window 1, the sheets and
+// the Closes 2) = 9, two drags and their settles 4, the tap 1, the sheet gone 5 = 19.
+const BACKDROP_MIN = 88
 export const closeMessageMenu = async () => {
-  if (!(await menuSheet().isExisting())) return
-  // its Close when that is on screen (a sheet dragged open to the top leaves no backdrop to tap),
-  // else the backdrop above the sheet's top: the sheet covers the rest of it, so the backdrop's own
-  // middle can land on the sheet
-  const {height, width} = await browser.getWindowRect()
-  let top = height
-  for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
-    top = Math.min(top, (await sh.getLocation().catch(() => ({y: height}))).y)
+  if (!(await (await menuSheet()).isExisting())) return
+  for (let drags = 0; ; drags++) {
+    if (!(await (await menuSheet()).isExisting())) break
+    const {height, width} = await browser.getWindowRect()
+    let top = height
+    for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
+      top = Math.min(top, (await sh.getLocation().catch(() => ({y: height}))).y)
+    }
+    let close: {x: number; y: number} | undefined
+    for (const c of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()) {
+      const r = await frameOf(c)
+      // the sheet's own Close: below the sheet's top and wholly on screen
+      if (r && r.y >= top && inside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
+    }
+    if (!close && top >= BACKDROP_MIN) close = {x: width / 2, y: top / 2}
+    if (close) {
+      await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
+      break
+    }
+    if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
+    await browser
+      .action('pointer', {parameters: {pointerType: 'touch'}})
+      .move({x: Math.round(width / 2), y: Math.round(top + 8)})
+      .down()
+      .move({duration: 300, x: Math.round(width / 2), y: Math.round(Math.min(height - 40, top + 400))})
+      .up()
+      .perform()
+    await browser.pause(1_000)
   }
-  const closes = await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()
-  let close: {x: number; y: number} | undefined
-  for (const c of closes) {
-    const at = await c.getLocation().catch(() => undefined)
-    const size = await c.getSize().catch(() => undefined)
-    // the sheet's own Close: below the sheet's top and on screen
-    if (at && size && at.y >= top && at.y + size.height <= height) close = {x: at.x + size.width / 2, y: at.y + size.height / 2}
-  }
-  close ??= {x: width / 2, y: Math.max(top / 2, 80)}
-  await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
   await waitForSheetGone(5_000)
 }
 
@@ -1068,14 +1085,14 @@ const ROW_MENU_PRESSES = 3
 // Long-presses the inbox row of the conversation named `name` to open its menu, a bottom sheet of
 // the conversation's actions, finding the row afresh (scrollInboxTo) for each press. The sheet must
 // be the menu of `convID`, the conversation the caller means: any other is closed and refused, so
-// no item of it is ever tapped. Bound: an open sheet closed 5, three presses of scrollInboxTo 90,
-// the press 1 and the sheet 3, the menu's read 1 and its close 5 = 295.
+// no item of it is ever tapped. Bound: an open sheet closed 19, three presses of scrollInboxTo 90,
+// the press 1 and the sheet 3, the menu's read 1 and its close 19 = 323.
 export const openInboxRowMenu = async (name: string, convID: string) => {
   await closeMessageMenu()
   for (let press = 1; ; press++) {
     const row = await scrollInboxTo(name)
     await browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
-    if (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
+    if (await (await menuSheet()).waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
     if (press >= ROW_MENU_PRESSES) throw new Error(`the inbox row menu did not open after ${ROW_MENU_PRESSES} long presses`)
   }
   const shown = await inboxRowMenuConversations()

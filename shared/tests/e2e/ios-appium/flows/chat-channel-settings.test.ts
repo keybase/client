@@ -120,9 +120,9 @@ describe('chat channel settings', function () {
   }
 
   // Nothing a test changed left behind, after a timeout too: the host's restores first, then the
-  // phone's screens. Worst case (s): close 5, keyboard 5, the role 195 (a read 60, the clear 135),
+  // phone's screens. Worst case (s): close 19, keyboard 5, the role 195 (a read 60, the clear 135),
   // the notification setting 320 (a read 75, the current settings 75, the set 75, its poll 95), a
-  // channel 120 (each test makes one), escapeToTabs 30 = 675.
+  // channel 120 (each test makes one), escapeToTabs 30 = 689.
   afterEach(async function () {
     this.timeout(720_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, clearRole, restoreNotify, channels.deleteAll, escapeToTabs])
