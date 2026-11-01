@@ -367,8 +367,8 @@ describe('crypto roundtrip', function () {
 
   it('text encrypted to the second account and self decrypts on its peer and the host', async function () {
     // worst case (s): crypto 86, tab 29, recipient 94, step 2, type 30, step 2, run 28, copy 147,
-    // done 22, mark 2, step 2, second 300 of tries overrun by one 105, host 75, step 2 = 926
-    this.timeout(940_000)
+    // done 22, mark 2, step 2, second 105, host 75, step 2 = 626
+    this.timeout(640_000)
     const marker = e2eMarker('crypto-to-second')
     await openCrypto()
     await openCryptoTab('encrypt')
@@ -384,19 +384,7 @@ describe('crypto roundtrip', function () {
     await clearArmorShown()
     await step('The ciphertext copied and its output closed')
 
-    // The phone encrypts to the second account's latest per-user key as it knows it; the second peer
-    // can know an older one until the server's merkle tree catches up (seen live once: "no suitable
-    // key found", while a host-made message to the second account decrypted on the peer at once), so
-    // that refusal alone is read again.
-    const bySecond = await waitFor(
-      "the second account's peer to decrypt the phone's ciphertext",
-      async () =>
-        readsBy(second, ['decrypt'], ciphertext, 'to-second').catch((e: unknown) => {
-          if (e instanceof Error && e.message.includes('no suitable key found')) return undefined
-          throw e
-        }),
-      {interval: 20_000, timeout: 300_000}
-    )
+    const bySecond = await readsBy(second, ['decrypt'], ciphertext, 'to-second')
     check(bySecond === marker, "the second account's decrypt of the phone's ciphertext is not the marker")
     const bySelf = await readsBy(host, ['decrypt'], ciphertext, 'to-second-self')
     check(bySelf === marker, "the host's decrypt of the phone's ciphertext is not the marker")
