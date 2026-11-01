@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {settle} from '@/test/flush'
@@ -461,5 +462,98 @@ describe('identify failures through the engine listener', () => {
     expect(nav.types()).toEqual([])
     // the hover card / list showing it stops checking even though nothing navigates
     expect(getProfileDetails('testuser')?.state).toBe('error')
+  })
+})
+
+describe('own user changed notices', () => {
+  const ownUid = 'testuser-uid'
+  // identifies that have not answered yet, oldest first; each answers with a result and returns
+  let pending: Array<() => void> = []
+
+  const userChanged = () =>
+    notifyEngineActionListeners({
+      payload: {params: {uid: ownUid}},
+      type: 'keybase.1.NotifyUsers.userChanged',
+    } as never)
+
+  const finishOldest = async () => {
+    pending.shift()?.()
+    await flush()
+  }
+
+  beforeEach(() => {
+    pending = []
+    useCurrentUserState.setState({uid: ownUid, username: 'testuser'})
+    identifySpy.mockImplementation((async (p: {params: {guiID: string}}) =>
+      new Promise<void>(resolve => {
+        pending.push(() => {
+          notifyEngineActionListeners({
+            payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+            type: 'keybase.1.identify3Ui.identify3Result',
+          } as never)
+          resolve()
+        })
+      })) as never)
+  })
+
+  test('a burst during a running identify adds one identify after it, not one per notice', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    const firstGuiID = getProfileDetails('testuser')?.guiID
+    userChanged()
+    userChanged()
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    // the running identify is not superseded: its result still lands
+    expect(getProfileDetails('testuser')?.guiID).toBe(firstGuiID)
+
+    await finishOldest()
+    // its result may predate the change, so one more runs and the profile is checking again
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    await finishOldest()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('a notice with no identify running starts one right away', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+    unsub()
+  })
+
+  test('an identify the user changed under does not count as a recent check once its profile closed', async () => {
+    const mount = {freshAfter: 0, ignoreCache: false, maxAgeMs: 30_000}
+    const unsubA = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', mount)
+    userChanged()
+    unsubA()
+    await finishOldest()
+    // nobody shows the profile, so the follow-up identify is not run now ...
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+
+    // ... and the reopen checks again instead of trusting the result from before the change
+    const unsubB = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', mount)
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    unsubB()
+  })
+
+  test('an identify left running by an account switch does not start another for the old user', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    resetAllStores()
+    await finishOldest()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    unsub()
   })
 })
