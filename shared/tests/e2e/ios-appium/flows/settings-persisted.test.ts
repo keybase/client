@@ -761,14 +761,16 @@ describe('settings persisted', function () {
   })
 
   it('Advanced > Enable Detailed Logging: the phone service log shows the level set, and the original put back', async function () {
-    // worst case (s): smoke 1, relaunched 291, mark 120 and a read 1, open 97, the button on screen
+    // worst case (s): smoke 1, mark 120, relaunched 291, a read 1, open 97, the button on screen
     // 20, step 2, mark 120, seq 2, tapButton 7, calledOnce 14, level 21, step 2, mark 120, the set 22,
     // level 21, step 2 = 863
     this.timeout(950_000)
     await requireAppIsSmoke()
-    // a new process starts at its own level, logged when KBFS starts if it is not the default
+    // a new process starts at its own level, logged when KBFS starts if it is not the default: only
+    // lines written since the mark, which is taken before the relaunch, are the new process's (or
+    // the old one's last moments, which set no level), so no earlier launch's level is read
+    const fromLaunch = logMark()
     await relaunched()
-    const fromLaunch = {...logMark(), offset: 0}
     const was = levelsSince(fromLaunch).at(-1) ?? 'vlog0'
     check(was !== 'vlog2', 'refusing: KBFS detailed logging is already on in the relaunched app, so the button cannot be seen to turn it on')
     touched.debugLevel = was
