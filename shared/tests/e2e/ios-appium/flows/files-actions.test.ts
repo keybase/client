@@ -36,7 +36,7 @@ import {el} from '../helpers/elements'
 import {filesRowNamed, fillHiddenField, openFolder, openFolderMoreSheet, openRowMenu, tapButton} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, menuSheet, openMenuFrom, tapElement, tapFrame, tapMenuItemOnce} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom, tapElement, tapFrame, tapMenuItemOnce, waitForSheetGone} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 
 const txt = corpusEntry('e2e-c.txt').file
@@ -410,8 +410,8 @@ describe('files actions', function () {
     // worst case (s): smoke 10, app 25, work 60 (the entry), open 142, the toggle 120, its read 1,
     // calls 2, the tap 1, calls 10, app 45, step 2 = 418; relaunch 200, signed in 90, open 142, the
     // toggle 30, app 25, step 2 = 489; smoke 10, its read 1, calls 2, the sheet 19, the tap 1, calls
-    // 10, app 45, the sheet read 1 and its Close 22, step 2 = 113; = 1020
-    this.timeout(1_060_000)
+    // 10, app 45, the sheet gone 21 (20, the bar read 1), step 2 = 111; = 1018
+    this.timeout(1_058_000)
     const pair = pairFolder()
     await requireAppIsSmoke()
     const original = await folderSyncConfig(pair)
@@ -453,14 +453,11 @@ describe('files actions', function () {
     await requireScreen('the sync switch', 'fsBrowse', p => p['path'] === pair)
     seq = await currentCallSeq()
     await openMenuFrom('the unsync confirmation', async () => tapElement(await el(T.FILES_SYNC_TOGGLE).getElement(), "the sync switch"))
-    // one tap: the sheet stays up after it (below), so chooseMenuItem's second try would send it again
+    // one tap: the sheet stays up until the unsync lands, so chooseMenuItem's second try would send it again
     await tapMenuItemOnce('Yes, unsync')
     await waitForUiCall('the unsync to go out', seq, 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig')
     await expectSync('disabled')
-    // PR 9 (app bug): the confirmation stays up after the unsync (its menu keeps open on select, and
-    // its Confirm header shows it again when the waiting flips), so it is closed from its Close. Drop
-    // this once the app closes it.
-    if (await (await menuSheet()).isExisting()) await chooseMenuItem('Close')
+    await waitForSheetGone(20_000)
     await step('Unsynced', {card: true})
   })
 })

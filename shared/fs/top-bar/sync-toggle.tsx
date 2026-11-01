@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
 import * as FS from '@/constants/fs'
@@ -15,7 +14,7 @@ const setTlfSyncConfigRPC = async (
   enabled: boolean,
   refreshTlf: () => void,
   errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
-) => {
+): Promise<boolean> => {
   try {
     await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
       {
@@ -25,8 +24,10 @@ const setTlfSyncConfigRPC = async (
       C.waitingKeyFSSyncToggle
     )
     refreshTlf()
+    return true
   } catch (error) {
     errorToActionOrThrow(error, tlfPath)
+    return false
   }
 }
 
@@ -39,12 +40,11 @@ const SyncToggle = (ownProps: OwnProps) => {
   const refreshTlf = useFsRefreshTlf(tlfPath)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
 
-  const setTlfSyncConfig = (enabled: boolean) => {
-    C.ignorePromise(setTlfSyncConfigRPC(tlfPath, enabled, refreshTlf, errorToActionOrThrow))
-  }
-
   const enableSync = () => {
-    setTlfSyncConfig(true)
+    const run = async () => {
+      await setTlfSyncConfigRPC(tlfPath, true, refreshTlf, errorToActionOrThrow)
+    }
+    C.ignorePromise(run())
   }
   const syncConfig = tlf.syncConfig
   // Disable sync when the TLF is empty and it's not enabled yet.
@@ -56,9 +56,13 @@ const SyncToggle = (ownProps: OwnProps) => {
     !tlfPathItem.children.size
 
   const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup, showPopup} = p
+    const {attachTo, hidePopup} = p
+    // The sheet stays up while the unsync runs and closes once it lands; a failure leaves it up.
     const disableSync = () => {
-      setTlfSyncConfig(false)
+      const run = async () => {
+        if (await setTlfSyncConfigRPC(tlfPath, false, refreshTlf, errorToActionOrThrow)) hidePopup()
+      }
+      C.ignorePromise(run())
     }
     return (
       <Kb.FloatingMenu
@@ -68,7 +72,7 @@ const SyncToggle = (ownProps: OwnProps) => {
         position="bottom left"
         closeOnSelect={false}
         containerStyle={styles.floating}
-        header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
+        header={<Confirm waiting={waiting} disableSync={disableSync} hidePopup={hidePopup} />}
         items={
           isMobile
             ? [
@@ -105,16 +109,9 @@ const SyncToggle = (ownProps: OwnProps) => {
   ) : null
 }
 
-const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting: boolean}) => {
+const Confirm = (props: {hidePopup: () => void; disableSync: () => void; waiting: boolean}) => {
   const styles = useStyles()
-  const {showPopup, waiting, disableSync} = props
-  const wasWaiting = React.useRef(waiting)
-  React.useEffect(() => {
-    if (wasWaiting.current !== waiting) {
-      wasWaiting.current = waiting
-      showPopup()
-    }
-  }, [waiting, showPopup])
+  const {hidePopup, waiting, disableSync} = props
   return (
     <Kb.Box2 alignSelf="center" direction="vertical" style={styles.popupContainer} centerChildren={true}>
       <Kb.Text key="title" type="BodyBig">
@@ -136,7 +133,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
             small={true}
             type="Dim"
             label="Cancel"
-            onClick={showPopup}
+            onClick={hidePopup}
             disabled={waiting}
           />
           <Kb.Button
