@@ -12,6 +12,10 @@
 //   devices                       e2e-<runid>-prov only; peer devices are kept
 //   paper keys                    only those the ledger (paper-key-ledger.ts) recorded, by device id
 //                                 and unchanged name
+//   proof sigs                    the second account's live DNS proofs of dns://e2e<runid>.example.com,
+//                                 revoked by sig id
+//   PGP keys                      the second account's live keys whose one identity is
+//                                 e2e-<runid>-pgp@example.com, dropped by key id
 // Anything outside its scope is dropped, never judged. Other `e2e` names (seeded data, flows still
 // on older naming) are reported and kept.
 import {loadE2EAccounts} from './env.ts'
@@ -31,10 +35,14 @@ export type SweepKind =
   | 'emoji'
   | 'teamRepo'
   | 'paperKey'
+  | 'proofSig'
+  | 'pgpKey'
 
 // `name` is the exact thing a delete targets: a channel's topic name, a repo name, an email address,
 // a KBFS path, a full team name, a device name, an emoji alias. For a message it is its body (or an
-// attachment's title); the delete targets `convID` and `messageID`.
+// attachment's title); the delete targets `convID` and `messageID`. For a proof sig it is its
+// statement (`dns://<domain>`), the revoke targets `sigID`; for a PGP key its one identity's email,
+// the drop targets `kid`.
 export type SweepCandidate = {
   account: SweepAccount
   kind: SweepKind
@@ -51,6 +59,10 @@ export type SweepCandidate = {
   deviceID?: string
   // emoji, teamRepo: the full name of the team it belongs to
   team?: string
+  // proofSig
+  sigID?: string
+  // pgpKey
+  kid?: string
 }
 
 export type SweepContext = {
@@ -74,6 +86,9 @@ const peerDeviceRe = /^e2e-(?:second|owner)-svc(?:-\d+)?$/
 // the label a provisioning flow gives the device it makes (e2e-<runid>-prov)
 const provDeviceLabel = 'prov'
 const emailRe = /^([^@\s]+)@[A-Za-z0-9.-]+$/
+// what the iOS proof and PGP flows make on the second account (shared/profile.ts), as a dashed name
+const dnsProofRe = /^dns:\/\/e2e([0-9a-z]{5}[0-9])\.example\.com$/
+const pgpEmailRe = /^(e2e-[0-9a-z]{5}[0-9]-pgp)@example\.com$/
 const safeEntryRe = /^[A-Za-z0-9_.-]+$/
 
 // The KBFS folders swept per account. Peer services run no KBFS, so the second account has none:
@@ -139,6 +154,12 @@ const stampedPart = (c: SweepCandidate, ctx: SweepContext): string | undefined =
         : undefined
     case 'paperKey':
       return undefined
+    case 'proofSig': {
+      const runId = c.account === 'second' ? dnsProofRe.exec(c.name)?.[1] : undefined
+      return runId === undefined ? undefined : `e2e-${runId}-dns`
+    }
+    case 'pgpKey':
+      return c.account === 'second' ? pgpEmailRe.exec(c.name)?.[1] : undefined
     case 'channel':
     case 'device':
     case 'repo':
@@ -185,6 +206,8 @@ const judge = (c: SweepCandidate, ctx: SweepContext): Verdict => {
     }
     if (!c.deviceID) return {reason: 'no device id listed for it', to: 'kept'}
   }
+  if (c.kind === 'proofSig' && !c.sigID) return {reason: 'no sig id listed for it', to: 'kept'}
+  if (c.kind === 'pgpKey' && !c.kid) return {reason: 'no key id listed for it', to: 'kept'}
   if (c.kind === 'kbfs') {
     const roots = kbfsRoots(c.account, ctx)
     if (!safeEntryRe.test(part) || !roots.some(r => c.name === `${r}/${part}`)) {
@@ -247,6 +270,10 @@ export const describeCandidate = (c: SweepCandidate) => {
       return `${c.account} message ${c.messageID ?? '?'} ${c.name.split(/\s/, 1)[0] ?? ''}`
     case 'paperKey':
       return `${c.account} paperKey ${c.deviceID ?? '?'}`
+    case 'proofSig':
+      return `${c.account} proofSig ${c.name} ${c.sigID ?? '?'}`
+    case 'pgpKey':
+      return `${c.account} pgpKey ${c.name} ${c.kid ?? '?'}`
     case 'emoji':
     case 'teamRepo':
       return `${c.account} ${c.kind} ${c.team ?? '?'}/${c.name}`
@@ -257,7 +284,7 @@ export const describeCandidate = (c: SweepCandidate) => {
 
 // What tells two candidates apart: the same name can be two messages, or two devices.
 export const candidateKey = (c: SweepCandidate) =>
-  [c.account, c.kind, c.name, c.team ?? '', c.convID ?? '', c.messageID ?? '', c.deviceID ?? ''].join('\u0000')
+  [c.account, c.kind, c.name, c.team ?? '', c.convID ?? '', c.messageID ?? '', c.deviceID ?? '', c.sigID ?? '', c.kid ?? ''].join('\u0000')
 
 // Run right before each delete, with the account the acting service says it is signed in as.
 export const checkDelete = (c: SweepCandidate, ctx: SweepContext, actingUser: string) => {

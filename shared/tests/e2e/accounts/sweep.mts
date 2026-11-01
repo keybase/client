@@ -7,7 +7,10 @@
 //   conversation; personal git repos, emails, root teams it owns, devices and paper keys; and,
 //   smoke only (deleting needs a team admin; peer services run no KBFS): team channels, subteams,
 //   emoji and team repos of KB_E2E_TEAM (team repos of its stamped subteams too, deleted before the
-//   subteam), and KBFS entries directly in the folders kbfsRoots names.
+//   subteam), and KBFS entries directly in the folders kbfsRoots names; second only: its live DNS
+//   proof sigs and PGP keys (the iOS proof flows' dns://e2e<runid>.example.com and
+//   e2e-<runid>-pgp@example.com, left by a run killed before its afterEach), revoked by sig id and
+//   dropped by key id. A dropped key's local secret half stays in the second peer's keyring.
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
@@ -233,6 +236,50 @@ const teamRepos = async (actor: Actor): Promise<Array<SweepCandidate>> =>
 const emails = async (actor: Actor) =>
   (await call<Array<{email: string; isPrimary: boolean}> | null>(actor, 'keybase.1.emails.getEmails', {sessionID: 0})) ?? []
 
+type SigJSON = {revoked?: boolean; sig_id?: string; statement?: string; type?: string}
+
+// The account's live DNS proof sigs (`keybase sigs list -j -r`). Parse-anchored: the list holds the
+// account's eldest link, else this throws, so a list that failed or changed shape never reads as a
+// sig being gone.
+const proofSigs = async (actor: Actor): Promise<Array<SweepCandidate>> => {
+  const parsed = JSON.parse(await actor.cli(['sigs', 'list', '-j', '-r'], 60_000)) as unknown
+  if (!Array.isArray(parsed)) throw new Error('keybase sigs list: the answer is not a list')
+  const sigs = parsed as Array<SigJSON>
+  if (!sigs.some(s => s.type === 'eldest')) throw new Error('keybase sigs list: the list holds no eldest link')
+  return sigs
+    .filter(s => s.type === 'proof' && !s.revoked && (s.statement ?? '').startsWith('dns://'))
+    .map(s => ({account: actor.account, kind: 'proofSig' as const, name: s.statement ?? '', sigID: s.sig_id ?? ''}))
+}
+
+type KeyBase = {base?: {kid?: string; revocation?: unknown}}
+type Upk = {
+  current?: {
+    deviceKeys?: Record<string, KeyBase> | null
+    pgpKeys?: Record<string, KeyBase & {identities?: Array<{email?: string}> | null}> | null
+    username?: string
+  }
+}
+
+// The account's live PGP keys, each named by its one identity's email ('' for a key with more or
+// none, which no sweep judges ours). Parse-anchored: the keys are the account's and hold a live
+// device key, else this throws.
+const pgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
+  const out = await actor.cli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${actor.user}`, '-a', 'fields=basics'], 60_000)
+  const uid = (JSON.parse(out) as {them?: {id?: string} | null}).them?.id
+  if (!uid) throw new Error('user/lookup returned no uid')
+  const upk = await call<Upk>(actor, 'keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
+  const cur = upk.current
+  if (cur?.username !== actor.user || !Object.values(cur.deviceKeys ?? {}).some(k => !k.base?.revocation)) {
+    throw new Error("the account's keys hold no live device key")
+  }
+  return Object.values(cur.pgpKeys ?? {})
+    .filter(k => !k.base?.revocation)
+    .map(k => {
+      const emails = (k.identities ?? []).map(i => i.email ?? '')
+      return {account: actor.account, kid: k.base?.kid ?? '', kind: 'pgpKey' as const, name: emails.length === 1 ? (emails[0] ?? '') : ''}
+    })
+}
+
 type Device = {deviceID: string; name: string; type: string}
 const deviceList = async (actor: Actor) =>
   (await call<Array<Device> | null>(actor, 'keybase.1.device.deviceList', {sessionID: 0})) ?? []
@@ -326,6 +373,11 @@ const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | und
     (await emails(actor)).map(e => ({account, kind: 'email' as const, name: e.email, primary: e.isPrimary}))
   )
   await section('team', 'owned teams', async () => (await ownedRootTeams(actor)).map(name => ({account, kind: 'team' as const, name})))
+  // proofs and PGP keys are made only on the second account
+  if (account === 'second') {
+    await section('proofSig', 'proof sigs', async () => proofSigs(actor))
+    await section('pgpKey', 'PGP keys', async () => pgpKeys(actor))
+  }
   if (!kinds || kinds.has('device') || kinds.has('paperKey')) {
     signal?.throwIfAborted()
     try {
@@ -493,6 +545,12 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
     case 'paperKey':
       await revokeListed(actor, c, env)
       forgetPaperKey(c.deviceID ?? '')
+      return
+    case 'proofSig':
+      await actor.cli(['sigs', 'revoke', c.sigID ?? ''], 60_000)
+      return
+    case 'pgpKey':
+      await actor.cli(['pgp', 'drop', c.kid ?? ''], 60_000)
       return
   }
 }

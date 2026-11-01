@@ -299,6 +299,37 @@ describe('paper keys', () => {
   })
 })
 
+describe('second account proofs and PGP keys', () => {
+  const second = (c: Omit<SweepCandidate, 'account'>): SweepCandidate => ({account: 'second', ...c})
+  test("an older run's stamped DNS proof is revoked by its sig id, this run's is kept", () => {
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's1'}))).toBe('delete')
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${ctx.currentRunId}.example.com`, sigID: 's2'}))).toMatch(/^kept: made by this run/)
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${old}.example.com`}))).toMatch(/^kept: .*sig id/)
+  })
+  test('any other proof, or a proof on the smoke account, is never judged', () => {
+    for (const name of ['dns://keybase.io', `dns://e2e${old}.example.org`, `dns://x.e2e${old}.example.com`, `https://e2e${old}.example.com`]) {
+      expect(decide(second({kind: 'proofSig', name, sigID: 's3'}))).toBe('dropped')
+    }
+    expect(decide(smoke({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's4'}))).toBe('dropped')
+  })
+  test("an older run's stamped PGP key is dropped by its key id, this run's is kept", () => {
+    expect(decide(second({kid: 'k1', kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toBe('delete')
+    expect(decide(second({kid: 'k2', kind: 'pgpKey', name: `e2e-${ctx.currentRunId}-pgp@example.com`}))).toMatch(/^kept: made by this run/)
+    expect(decide(second({kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toMatch(/^kept: .*key id/)
+  })
+  test('any other PGP key, or one on the smoke account, is never judged', () => {
+    for (const name of ['', 'testuser@keybase.io', `e2e-${old}-pgp@example.org`, `e2e-${old}-other@example.com`]) {
+      expect(decide(second({kid: 'k3', kind: 'pgpKey', name}))).toBe('dropped')
+    }
+    expect(decide(smoke({kid: 'k4', kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toBe('dropped')
+  })
+  test('checkDelete re-judges them as the second account', () => {
+    const sig = second({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's1'})
+    expect(() => checkDelete(sig, ctx, 'testuser-mac')).not.toThrow()
+    expect(() => checkDelete(sig, ctx, 'testuser')).toThrow(/signed in as testuser/)
+  })
+})
+
 describe('checkDelete', () => {
   const target = smoke({kind: 'channel', name: `e2e-${old}-x`})
   test('passes for a delete target acted on by its own account', () => {
