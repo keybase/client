@@ -421,7 +421,7 @@ describe('teams members', function () {
       p['teamID'] === teamID && Array.isArray(p['usernames']) && p['usernames'].length === 1 && p['usernames'][0] === secondUser
     await expectScreen("the second account's add to channels", 'teamAddToChannels', onAdd)
     for (const c of channels) {
-      const pick = await waitFor('a host-made channel to add to', async () => elementWithLabelPart(TEXTS, `#${c}`, 'a host-made channel to add to'), {
+      const pick = await waitFor('a host-made channel to add to', async () => elementWithLabelPart(TEXTS, `#${c}`, 'a host-made channel to add to', {forTap: true}), {
         interval: 250,
         timeout: 5_000,
       })
@@ -559,7 +559,7 @@ describe('teams members', function () {
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
     const byEmail = await waitFor(
       "the wizard's email list choice",
-      async () => elementWithLabelPart(TEXTS, 'A list of email addresses', "the wizard's email list choice"),
+      async () => elementWithLabelPart(TEXTS, 'A list of email addresses', "the wizard's email list choice", {forTap: true}),
       {interval: 250, timeout: 5_000}
     )
     await byEmail.click()

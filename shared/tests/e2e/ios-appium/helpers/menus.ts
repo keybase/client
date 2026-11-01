@@ -212,13 +212,18 @@ export const check = (ok: boolean, message: string) => {
   if (!ok) throw new Error(message)
 }
 
+// What `selector` finds, or for a tap (`forTap`) elementsOrUnseen's read: a presence read never takes
+// an element XCUITest reports invisible.
+const candidates = async (selector: string, {forTap = false}: DrawnOptions = {}) =>
+  forTap ? elementsOrUnseen(selector) : browser.$$(selector).getElements()
+
 // The one element on screen whose label is exactly `label`, of those `selector` finds: compared in
 // memory, so a label holding an account name never goes into a selector or an error. Where nested
 // elements expose the same label (a pressable box and its text) the innermost is it. Throws when
-// none or more than one is drawn; `what` names it.
-export const labelledElement = async (selector: string, label: string, what: string) => {
+// none or more than one is drawn; `what` names it. `opts` as drawnElementIn's.
+export const labelledElement = async (selector: string, label: string, what: string, opts?: DrawnOptions) => {
   const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await elementsOrUnseen(selector)) {
+  for (const e of await candidates(selector, opts)) {
     if ((await e.getAttribute('label').catch(() => null)) !== label) continue
     const at = await e.getLocation().catch(() => undefined)
     const size = await e.getSize().catch(() => undefined)
@@ -240,10 +245,10 @@ export const tapButton = async (label: string, what: string) =>
 // The one element on screen of those `selector` finds whose label, split at its ", " joins, holds
 // `name` as a part (a tappable row merges its texts into one label): compared in memory, so a name
 // never goes into a selector or an error. The innermost of nested matches; none or more than one
-// throws. `what` names it.
-export const elementWithLabelPart = async (selector: string, name: string, what: string) => {
+// throws. `what` names it. `opts` as drawnElementIn's.
+export const elementWithLabelPart = async (selector: string, name: string, what: string, opts?: DrawnOptions) => {
   const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await elementsOrUnseen(selector)) {
+  for (const e of await candidates(selector, opts)) {
     const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
     if (!label.split(', ').some(part => part.trim() === name)) continue
     const at = await e.getLocation().catch(() => undefined)

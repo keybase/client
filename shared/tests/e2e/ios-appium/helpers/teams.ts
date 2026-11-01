@@ -268,7 +268,9 @@ export const tapTeamsCard = async (label: string, what: string) => {
   const card = await waitFor(
     what,
     async () =>
-      elementWithLabelPart(`-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(label)} AND visible == 1`, label, what),
+      elementWithLabelPart(`-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(label)} AND visible == 1`, label, what, {
+        forTap: true,
+      }),
     {interval: 250, timeout: 5_000}
   )
   await card.click()
@@ -277,7 +279,7 @@ export const tapTeamsCard = async (label: string, what: string) => {
 // Taps the header's text action `label` (a native bar button, or a pressable text). Bound: 5s, the
 // tap 1.
 export const tapHeaderAction = async (label: string, what: string) => {
-  const action = await waitFor(what, async () => labelledElement(HEADER_ACTIONS, label, what), {interval: 250, timeout: 5_000})
+  const action = await waitFor(what, async () => labelledElement(HEADER_ACTIONS, label, what, {forTap: true}), {interval: 250, timeout: 5_000})
   await action.click()
 }
 

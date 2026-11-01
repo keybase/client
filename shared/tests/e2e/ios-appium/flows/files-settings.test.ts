@@ -115,7 +115,7 @@ describe('files settings', function () {
       async () => ((await browser.$(wheel).getAttribute('value').catch(() => null)) === want.label ? true : undefined),
       {interval: 250, timeout: 5_000}
     )
-    const done = await waitFor('the threshold sheet Done', async () => labelledElement('-ios predicate string:label == "Done" AND visible == 1', 'Done', 'the Done of the sheet').catch(() => undefined), {
+    const done = await waitFor('the threshold sheet Done', async () => labelledElement('-ios predicate string:label == "Done" AND visible == 1', 'Done', 'the Done of the sheet', {forTap: true}).catch(() => undefined), {
       interval: 250,
       timeout: 5_000,
     })
