@@ -86,7 +86,7 @@ describe('teams second account', function () {
   //             CLI reads, overrun by one 285
   //   subteam   makeOwnSubteamWithID 915 (the make 600, its id 315);  add  addToSubteamFromCli 255;  link
   //             makeInviteLink 255
-  //   second    asSecond 250 (the switch 90, the restore 160)
+  //   second    asSecond 425 (the switch 150, restoreToSmoke 275)
   //   opened    openSubteamUntil: 60s of tries, overrun by one (team 109, tab 24, `ready`)
   //   team      openTeamsRoot 56;  header  revealTeamHeader 8
   //   screen    a screen waited for 11 (10, read 1), 21 with a 20s wait;  pin  requireOnSubteam 1
@@ -151,9 +151,9 @@ describe('teams second account', function () {
   }
 
   // Worst case (s): the field 27, the pasteboard 50, the one name of a test 1575, the memberships
-  // 160, close 19, keyboard 5, restoreToSmoke 160, escape 30 = 2026.
+  // 160, close 19, keyboard 5, restoreToSmoke 275, escape 30 = 2141.
   afterEach(async function () {
-    this.timeout(2_100_000)
+    this.timeout(2_200_000)
     await withCleanup(emptyJoinField, [overwritePasteboard, restoreMade, secondInNoSubteam, closeMessageMenu, hideKeyboard, restoreToSmoke, escapeToTabs])
   })
 
@@ -205,11 +205,11 @@ describe('teams second account', function () {
   }
 
   it('the second account joins a subteam by an invite link pasted into Join a team', async function () {
-    // worst case (s): subteam 915, host 255 (its roles), link 255, second 250; in it: team 56,
+    // worst case (s): subteam 915, host 255 (its roles), link 255, second 425; in it: team 56,
     // button 6, screen 11, the field 10, paste 127, button 6, the join screen 21 (20, one read 1), the
     // field gone 1, text 6, step 2, pin 1, calls 2, button 6, waited for 12, the success's Close 21
-    // (20, one read 1) and its tap 1, step 2; then polled 285, step 2 = 2253
-    this.timeout(2_300_000)
+    // (20, one read 1) and its tap 1, step 2; then polled 285, step 2 = 2428
+    this.timeout(2_450_000)
     const {name, teamID} = await makeOwnSubteamWithID('lnk', madeNames)
     check((await masked(async () => rolesIn(name))).second === 'none', 'the second account is already in the new subteam')
     const link = await makeInviteLink(name)
@@ -263,11 +263,11 @@ describe('teams second account', function () {
   })
 
   it('the second account leaves a subteam from its header menu', async function () {
-    // worst case (s): subteam 915, add 255, polled 285, second 250; in it: opened 197 (team 109, tab
+    // worst case (s): subteam 915, add 255, polled 285, second 425; in it: opened 197 (team 109, tab
     // 24, the header 4, overrun by one try), pin 1, header 8, menu 19, item 22, screen 11, text 6,
     // step 2, pin 1, calls 2, button 6, waited for 12, the confirm closing 21, back 44; then polled
-    // 285, step 2 = 2344
-    this.timeout(2_400_000)
+    // 285, step 2 = 2519
+    this.timeout(2_550_000)
     const {secondUser} = loadE2EAccounts()
     const {name, teamID} = await makeOwnSubteamWithID('lve', madeNames)
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
@@ -310,11 +310,11 @@ describe('teams second account', function () {
   })
 
   it('the second account dismisses the invitation to block its adder, and a relaunch still shows it dismissed', async function () {
-    // worst case (s): subteam 915, add 255, polled 285, second 250; in it: opened 160 (60s of tries,
+    // worst case (s): subteam 915, add 255, polled 285, second 425; in it: opened 160 (60s of tries,
     // overrun by one: open 100), the row 30, text 6, step 2, screen 11 (the pin), calls 2, its tap 1,
     // waited for 12, its count 2, the row gone 15, step 2, relaunch 200, signed in 90, the account 1,
-    // open 100, the store 31 (30, one read 1), the row 1, step 2 = 2373
-    this.timeout(2_500_000)
+    // open 100, the store 31 (30, one read 1), the row 1, step 2 = 2548
+    this.timeout(2_600_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const {generalConvID, name, teamID} = await makeOwnSubteamWithID('ibk', madeNames)
     // added without the chat message, so the second account has nothing of its own in the thread,
