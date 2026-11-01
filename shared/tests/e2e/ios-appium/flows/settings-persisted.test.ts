@@ -46,6 +46,7 @@ import {
   restoreEmojiAnimations,
   restoreGlobalNotifSettings,
   restoreUnfurlSettings,
+  same,
   setLockdownMode,
   sortedUnfurl,
   unfurlSettings,
@@ -78,7 +79,7 @@ import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {relaunchApp} from '../gate/device'
 import {rectOf} from '../gate/chat-lib.ts'
-import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
+import {proxySaveWrites, rectsOverlap, settingSelector, settingShown, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
@@ -119,40 +120,24 @@ const DEVELOPER_LINE = "Please don't do anything below here unless instructed to
 // the developer controls show after this many taps on the line (settings/advanced.tsx)
 const DEVELOPER_TAPS = 7
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
-
 // -- the controls -------------------------------------------------------------------------------------
 
 type Shown = {base: string; want: 'on' | 'off'}
-
-const controlSelector = (base: string) =>
-  `-ios predicate string:name IN {${settingIDs(base)
-    .map(id => `"${id}"`)
-    .join(', ')}}`
-
-// What the control with testID base `base` shows ('on', 'off', 'pending'), or undefined while it is
-// not drawn. Bound: one read 1.
-const shownNow = async (base: string) => {
-  const found = await browser.$$(controlSelector(base)).getElements()
-  check(found.length <= 1, `${found.length} of one setting's controls drawn, not one`)
-  const id = found[0] ? await found[0].getAttribute('name').catch(() => null) : null
-  return id ? settingShownOf(id, base) : undefined
-}
 
 // Scrolls the control on screen, once the page draws it. A page opened right after a relaunch draws
 // a group only once its settings load, and a drag before that scrolls past where it comes (seen live:
 // the chat page ended at its bottom with the notification group at its top). Bound: 10s for it to be
 // drawn, 10s of drags = 20.
 const dragToControl = async (base: string, what: string) => {
-  await browser.$(controlSelector(base)).waitForExist({timeout: 10_000})
-  await dragUntilOnScreen(what, () => browser.$(controlSelector(base)), 10_000)
+  await browser.$(settingSelector(base)).waitForExist({timeout: 10_000})
+  await dragUntilOnScreen(what, () => browser.$(settingSelector(base)), 10_000)
 }
 
 // Scrolls the control on screen and waits for it to show `want` (not pending). Bound: the drag 20,
 // 20s of reads, overrun by one 1 = 41.
 const expectShown = async ({base, want}: Shown, what: string) => {
   await dragToControl(base, what)
-  await waitFor(`${what} to show ${want}`, async () => ((await shownNow(base)) === want ? true : undefined), {
+  await waitFor(`${what} to show ${want}`, async () => ((await settingShown(base)) === want ? true : undefined), {
     interval: 250,
     timeout: 20_000,
   })
@@ -161,7 +146,7 @@ const expectShown = async ({base, want}: Shown, what: string) => {
 // Taps the control. Bound: the drag 20, its tap 1 = 21.
 const tapControl = async (base: string, what: string) => {
   await dragToControl(base, what)
-  await browser.$(controlSelector(base)).click()
+  await browser.$(settingSelector(base)).click()
 }
 
 // Waits for one call of `method` since `seq`, and no second. Bound: waitForUiCall 12, the count 2 = 14.

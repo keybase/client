@@ -7,7 +7,7 @@
 // non-default state has a test of its own; the afterEach puts the controls back while the page is up
 // (each read off its testID first, so it only acts on what is changed), and the page then leaves.
 import * as T from '../../shared/test-ids'
-import {settingIDs, settingShownOf} from '../gate/persisted-lib.ts'
+import {settingShown} from '../gate/persisted-lib.ts'
 import {step} from '../gate/step'
 import {el} from '../helpers/elements'
 import {expectScreen} from '../helpers/files'
@@ -92,15 +92,6 @@ const dragTowardEnd = async () => {
 const shown = async (part: string) =>
   (await browser.$$(`-ios predicate string:label CONTAINS ${JSON.stringify(part)} AND visible == 1`).length) > 0
 
-// What the control with testID base `base` shows, or undefined while it is not drawn. Bound: one
-// read 1.
-const shownOf = async (base: string) => {
-  const found = await browser.$$(`-ios predicate string:name IN {${settingIDs(base).map(id => `"${id}"`).join(', ')}}`).getElements()
-  check(found.length <= 1, `${found.length} of one control's states drawn, not one`)
-  const id = found[0] ? await found[0].getAttribute('name') : null
-  return id ? settingShownOf(id, base) : undefined
-}
-
 // The index of the sample the typography page shows, read off its Next button. Bound: one read 1.
 const sampleShown = async () => {
   const found = await browser.$$(`-ios predicate string:name BEGINSWITH "${T.SETTINGS_TYPOGRAPHY_NEXT_PREFIX}"`).getElements()
@@ -116,7 +107,7 @@ const decoration = (d: string) => `${T.SETTINGS_TYPOGRAPHY_DECORATION_PREFIX}${d
 
 // Waits for the control `base` to show `want`. Bound: 5s of reads, overrun by one 1 = 6.
 const expectShown = async (base: string, want: 'on' | 'off', what: string) =>
-  waitFor(`${what} to show ${want}`, async () => ((await shownOf(base)) === want ? true : undefined), {interval: 250, timeout: 5_000})
+  waitFor(`${what} to show ${want}`, async () => ((await settingShown(base)) === want ? true : undefined), {interval: 250, timeout: 5_000})
 
 // Waits for the page to show sample `want`. Bound: 6.
 const expectSample = async (want: number, what: string) =>
@@ -136,11 +127,11 @@ describe('settings debug pages', function () {
   // 1, then up to SAMPLES - 1 taps of 2) 9 and shown 6 = 34.
   const restoreTypography = async () => {
     if (!(await el(T.SETTINGS_TYPOGRAPHY).isExisting())) return
-    if ((await shownOf(DARK)) === 'on') {
+    if ((await settingShown(DARK)) === 'on') {
       await (await control('Dark')).click()
       await expectShown(DARK, 'off', 'the Dark background put back')
     }
-    if ((await shownOf(decoration('strikethrough'))) !== 'on') {
+    if ((await settingShown(decoration('strikethrough'))) !== 'on') {
       await (await control('strikethrough')).click()
       await expectShown(decoration('strikethrough'), 'on', 'the strikethrough decoration put back')
     }
@@ -172,8 +163,8 @@ describe('settings debug pages', function () {
       timeout: 10_000,
     })
     if (page !== TYPOGRAPHY) return
-    check((await shownOf(DARK)) === 'off', 'the typography page opened with a dark background')
-    check((await shownOf(decoration('strikethrough'))) === 'on', 'the typography page opened with another decoration')
+    check((await settingShown(DARK)) === 'off', 'the typography page opened with a dark background')
+    check((await settingShown(decoration('strikethrough'))) === 'on', 'the typography page opened with another decoration')
     check((await sampleShown()) === 0, 'the typography page opened on another sample')
   }
 

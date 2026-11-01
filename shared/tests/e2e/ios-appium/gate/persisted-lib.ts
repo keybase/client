@@ -1,6 +1,6 @@
-// Framework-free parts of the iOS persisted-settings flow: what a settings control's testID says it
-// shows, what "Save Proxy Settings" writes back for the settings it loaded, and the KBFS debug
-// levels the phone's service log records.
+// Parts of the iOS settings flows: what a settings control's testID says it shows (and the one read
+// of it off the screen, settingShown, the only part that drives the app), what "Save Proxy Settings"
+// writes back for the settings it loaded, and the KBFS debug levels the phone's service log records.
 import {SETTING_OFF, SETTING_ON, SETTING_PENDING} from '../../shared/test-ids'
 
 export type SettingShown = 'on' | 'off' | 'pending'

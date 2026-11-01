@@ -68,7 +68,8 @@ export const contactSettings = async (): Promise<ContactSettings> => {
   return {allowFolloweeDegrees, allowGoodTeams, enabled, teams}
 }
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+// Whether two JSON-shaped values are the same (keys in the same order).
+export const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
 export const restoreContactSettings = async (original: ContactSettings) => {
   if (same(await contactSettings(), original)) return
