@@ -12,7 +12,6 @@ import {
   E2E_CHANNELS,
   LONG_COUNT,
   LONG_SEARCH_TOKENS,
-  markChannelReadFromCli,
   SHORT_COUNT,
   SPARSE_NEWER,
   SPARSE_OLDER,
@@ -1157,11 +1156,9 @@ describe('chat scroll', function () {
       )
 
     // Marks the row `ordinal` of e2e-long unread from its menu, the host reading the channel as read
-    // before and unread after, so the change is the app's. The afterEach reads it again.
+    // before and unread after, so the change is the app's. Callers have just opened e2e-long at its
+    // end, which reads it. The afterEach reads it again.
     const markLongUnread = async (ordinal: number) => {
-      // read first from the host: the phone cannot read e2e-long back once its newest messages are
-      // deletes (an app bug, the PR 9 rulings)
-      if (await channelUnreadFromCli(E2E_CHANNELS.long)) await markChannelReadFromCli(E2E_CHANNELS.long)
       await longUnreadIs(false)
       await openMessageMenu(await rowText(ordinal))
       await chooseMenuItem('Mark as unread')
@@ -1183,25 +1180,25 @@ describe('chat scroll', function () {
 
     // Mocha runs this before the gate's own afterEach, after a timeout too, so the thread is read
     // again before the next test drives the app. It reads the host first, so it does nothing to a
-    // thread already read. The host reads it back (the smoke account on its other device): the phone
-    // reads only up to its newest message it loads, and once the channel's newest messages are
-    // deletes (the sweeper's) the server keeps it unread after the phone opens it (an app bug, the
-    // PR 9 rulings). Worst case (s): keyboard 5, one host read 25, the host's read 35, unread 45 = 110.
+    // thread already read; otherwise the phone opens e2e-long at its end, which reads it, the
+    // channel's newest messages being deletes (the sweeper's) or not, and the host reads it read.
+    // Worst case (s): keyboard 5, one host read 25, open 100, end 21, read 45 = 196.
     afterEach(async function () {
-      this.timeout(130_000)
+      this.timeout(220_000)
       await withCleanup(hideKeyboard, [
         async () => {
-          if (await channelUnreadFromCli(E2E_CHANNELS.long)) await markChannelReadFromCli(E2E_CHANNELS.long)
+          if (!(await channelUnreadFromCli(E2E_CHANNELS.long))) return
+          await openLong()
+          await expectAtEnd('e2e-long')
           await longUnreadIs(false)
         },
       ])
     })
 
     it('an unread line above the view shows the catch-up pill, which centres the unread message', async function () {
-      // worst case (s): open 100, end 21, two drags 4, stable 10, the mark 195 (a host read 25 and the
-      // host's read 35, two unreads 90, menu 35, stable 10), open 100, end 21, the pill 5, centred 20,
-      // the pill gone 5, three steps 6 = 487
-      this.timeout(500_000)
+      // worst case (s): open 100, end 21, two drags 4, stable 10, the mark 135 (two reads 90, menu 35,
+      // stable 10), open 100, end 21, the pill 5, centred 20, the pill gone 5, three steps 6 = 427
+      this.timeout(450_000)
       const target = await markUnreadAboveTheView(2)
       check(!(await catchUpPill().isExisting()), 'the catch-up pill shows with the unread line in view')
       await step('A row marked unread, its line in view, no catch-up pill')
@@ -1221,10 +1218,10 @@ describe('chat scroll', function () {
     // shows at all cannot pass it: a line above the view, never seen, shows the pill with the
     // keyboard up.
     it('once the unread line has been in view, the keyboard carrying it away does not show the catch-up pill', async function () {
-      // worst case (s): open 100, end 21, stable 10, the mark 195, open 100, end 21, keyboard 5,
-      // stable 10; the control: keyboard 5, the mark above the view 330 (open 100, end 21, two drags
-      // 4, stable 10, the mark 195), open 100, end 21, the pill 5, keyboard 5; four steps 8 = 936
-      this.timeout(960_000)
+      // worst case (s): open 100, end 21, stable 10, the mark 135, open 100, end 21, keyboard 5,
+      // stable 10; the control: keyboard 5, the mark above the view 270 (open 100, end 21, two drags
+      // 4, stable 10, the mark 135), open 100, end 21, the pill 5, keyboard 5; four steps 8 = 816
+      this.timeout(840_000)
       await openLong()
       await expectAtEnd()
       const t = await waitForThreadStable()
@@ -1259,10 +1256,10 @@ describe('chat scroll', function () {
     })
 
     it('after Catch up, scrolling down reaches the present', async function () {
-      // worst case (s): the mark above the view 334 (open 100, end 21, three drags 6, stable 10, the
-      // mark 195), open 100, the pill 10, centred 20, stable 10, 15 drags of 2 and stable 10 = 180,
-      // four steps 8 = 662
-      this.timeout(680_000)
+      // worst case (s): the mark above the view 272 (open 100, end 21, three drags 6, stable 10, the
+      // mark 135), open 100, the pill 10, centred 20, stable 10, 15 drags of 2 and stable 10 = 180,
+      // four steps 8 = 600
+      this.timeout(620_000)
       const target = await markUnreadAboveTheView(3)
       await step('A row well up in history marked unread')
       await openLong()

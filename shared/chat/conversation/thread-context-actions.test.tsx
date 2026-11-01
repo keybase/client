@@ -225,6 +225,67 @@ describe('mark read gating', () => {
     expect(markReads()).toEqual([])
   })
 
+  const deletedAt = (n: number) =>
+    makeMessageDeleted({
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(n),
+      ordinal: T.Chat.numberToOrdinal(n),
+    })
+  const msgID = T.Chat.numberToMessageID
+
+  test('newest messages that never load (deleted texts, then their deletes) are marked read up to the max id', async () => {
+    // 403 text; 404, 405, 408, 409 texts since deleted (hidden placeholders in the load); 406, 407,
+    // 410, 411 the deletes themselves, which the load never asks for
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(403)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(404), deletedAt(405), deletedAt(408), deletedAt(409)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 411}])
+  })
+
+  test('newest loaded 403 is the newest visible message: marked read up to the max id 411', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(403), readMsgID: msgID(403)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(400), textAt(403)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 411}])
+  })
+
+  test('a visible message newer than the window is never skipped over', async () => {
+    // the inbox already knows 412, the thread has not got it yet
+    setMeta({maxMsgID: msgID(412), maxVisibleMsgID: msgID(412), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(400), textAt(403), deletedAt(409)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 409}])
+  })
+
+  test('a window short of the latest message marks nothing, whatever the max id', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(403), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: true,
+        enableActiveMarkRead: true,
+        messages: [textAt(403)],
+        moreToLoad: false,
+        scrollDirection: 'none',
+      })
+    })
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([])
+  })
+
+  test('messagesClear forgets the ids the dropped window carried', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(409)])
+    act(() => h().actions.messagesClear())
+    armWith(h().actions, [textAt(403)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 403}])
+  })
+
   test('app focus: refused while unfocused, marked when focus comes back', async () => {
     const {h} = renderThread()
     armWith(h().actions, [textAt(10)])
