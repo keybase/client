@@ -2,10 +2,11 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as ts from 'typescript'
 
-// WDA's setValue and clearValue leave the app's process in hardware-keyboard mode: a later focus
-// draws no software keyboard until the app relaunches. So no iOS code calls either; fields are
-// cleared and typed with key presses (addValue, typeIntoFocused).
-const BANNED = new Set(['clearValue', 'setValue'])
+// WDA's setValue and clearValue (and the protocol command elementClear under clearValue) leave the
+// app's process in hardware-keyboard mode: a later focus draws no software keyboard until the app
+// relaunches. So no iOS code calls any of them; fields are cleared and typed with key presses
+// (addValue, typeIntoFocused).
+const BANNED = new Set(['clearValue', 'elementClear', 'setValue'])
 
 // Android-only code, which the iOS keyboard mode does not touch: as file and enclosing declaration.
 const ANDROID_ONLY = [{decl: 'androidEnterText', file: path.join('helpers', 'elements.ts')}]
@@ -27,7 +28,7 @@ const declaredIn = (n: ts.Node): Array<string> => {
   return names
 }
 
-// Every `.setValue(` or `.clearValue(` call outside ANDROID_ONLY, as file:line.
+// Every `.setValue(`, `.clearValue(` or `.elementClear(` call outside ANDROID_ONLY, as file:line.
 const bannedCalls = (files: ReadonlyArray<{file: string; text: string}>) => {
   const found: Array<string> = []
   for (const {file, text} of files) {
@@ -49,7 +50,7 @@ const gateFiles = () =>
     .filter(f => f !== __filename)
     .map(f => ({file: path.relative(ROOT, f), text: fs.readFileSync(f, 'utf8')}))
 
-test('no iOS e2e code calls WDA setValue or clearValue', () => {
+test('no iOS e2e code calls WDA setValue, clearValue or elementClear', () => {
   const files = gateFiles()
   // the scan reads the flows and the helpers, so an empty answer is not a scan that read nothing
   expect(files.some(f => f.file === path.join('helpers', 'files.ts'))).toBe(true)
@@ -57,13 +58,17 @@ test('no iOS e2e code calls WDA setValue or clearValue', () => {
   expect(bannedCalls(files)).toEqual([])
 })
 
-test('the scan flags a setValue or clearValue call, and spares the Android-only one', () => {
+test('the scan flags a setValue, clearValue or elementClear call, and spares the Android-only one', () => {
   const files = gateFiles()
   const elements = files.find(f => f.file === path.join('helpers', 'elements.ts'))
   expect(elements?.text).toContain('const androidEnterText')
   const planted = [
     ...files,
-    {file: path.join('flows', 'planted.ts'), text: 'const f = async () => {\n  await el(id).setValue(text)\n  await browser.$(s).clearValue()\n}\n'},
+    {
+      file: path.join('flows', 'planted.ts'),
+      text: 'const f = async () => {\n  await el(id).setValue(text)\n  await browser.$(s).clearValue()\n  await browser.elementClear(id)\n}\n',
+    },
   ]
-  expect(bannedCalls(planted)).toEqual([`${path.join('flows', 'planted.ts')}:2`, `${path.join('flows', 'planted.ts')}:3`])
+  const at = (line: number) => `${path.join('flows', 'planted.ts')}:${line}`
+  expect(bannedCalls(planted)).toEqual([at(2), at(3), at(4)])
 })
