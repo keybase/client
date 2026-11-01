@@ -9,10 +9,11 @@ import {openLink} from '../gate/device'
 import {step} from '../gate/step'
 import {signedInAs} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {expectScreen, fillField, filesRowNamed} from '../helpers/files'
+import {expectScreen, filesRowNamed, onScreen, press, typeInFilter} from '../helpers/files'
 import {check} from '../helpers/menus'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
-import {masked, onlyField, textShown} from '../helpers/teams'
+import {waitFor} from '../helpers/lifecycle'
+import {masked} from '../helpers/teams'
 
 describe('people browse', function () {
   before(async function () {
@@ -42,9 +43,9 @@ describe('people browse', function () {
   })
 
   it('the second account’s profile from the header’s search', async function () {
-    // worst case (s): escapeToTabs 30, the People tab 15, step 2, the header's Search 6 and its tap 1,
-    // screen 11, field 11, fill 26, row 16 (15, one drag 1), step 2, its tap 1, screen 11, the
-    // profile 11, step 2 = 145
+    // worst case (s): escapeToTabs 30, the People tab 15, step 2, the header's Search 6 and its tap 2,
+    // screen 11, typeInFilter 32, row 16 (15, one drag 1), step 2, its tap 1, screen 11, the profile
+    // 11, step 2 = 141
     this.timeout(165_000)
     const {secondUser} = loadE2EAccounts()
     await escapeToTabs()
@@ -52,17 +53,28 @@ describe('people browse', function () {
     // the feed suggests people who are not test accounts
     await step('The People feed', {screenshot: false})
 
-    const search = await textShown('Search', "the People header's Search")
-    await search.click()
+    // the header's Search is a SearchFilter box (", Search"), which opens the people search; another
+    // tab's filter can be in the tree too, so the one on screen
+    const search = await waitFor(
+      "the People header's Search",
+      async () => {
+        const on: Array<WebdriverIO.Element> = []
+        for (const e of await browser.$$(`~${T.SEARCH_FILTER}`).getElements()) if (await onScreen(e)) on.push(e)
+        return on.length === 1 ? on[0] : undefined
+      },
+      {interval: 250, timeout: 5_000}
+    )
+    await press(search, "the People header's Search")
     await expectScreen("the People tab's people search", 'peopleTeamBuilder')
-    await fillField(await onlyField('TextField', "the people search's field"), secondUser, "the people search's field")
+    // the people search's field is a SearchFilter too: its field is not in the tree
+    await typeInFilter(secondUser, "the people search's field")
     const result = await filesRowNamed(secondUser, 'the second account among the results', {
       testID: T.TEAM_BUILDING_RESULT_ROW,
       timeout: 15_000,
     })
     // the search's results can hold people who are not test accounts
     await step('The second account among the results', {screenshot: false})
-    await result.e.click()
+    await press(result.e, 'the result row')
 
     await expectScreen("the second account's profile", 'profile', p => p['username'] === secondUser)
     await el(T.PROFILE_PAGE).waitForExist({timeout: 10_000})
