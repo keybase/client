@@ -101,7 +101,15 @@ describe('files settings', function () {
     })
     const wheel = '-ios predicate string:type == "XCUIElementTypePickerWheel" AND visible == 1'
     await browser.$(wheel).waitForExist({timeout: 10_000})
-    await browser.$(wheel).setValue(want.label)
+    // turned a row at a time toward the threshold (the wheel lists them smallest first and opens on
+    // the one set), never WDA's setValue: see enterText
+    await browser.execute('mobile: selectPickerWheelValue', {
+      elementId: await browser.$(wheel).elementId,
+      maxAttempts: 5,
+      offset: 0.15,
+      order: want.bytes > now.spaceAvailableNotificationThreshold ? 'next' : 'previous',
+      value: want.label,
+    })
     await waitFor(
       'the wheel to show the threshold',
       async () => ((await browser.$(wheel).getAttribute('value').catch(() => null)) === want.label ? true : undefined),

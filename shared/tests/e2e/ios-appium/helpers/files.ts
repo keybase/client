@@ -362,22 +362,23 @@ export const tapButton = async (label: string, what: string) => {
 }
 
 // Puts `text` in the field `field` and reads it back, so a field that changed what was typed (a
-// capital, a correction) fails before anything is submitted. A field XCUITest reports invisible (a
-// modal it reports so now and then) takes no setValue: it is tapped at its frame, what it holds
-// deleted and `text` typed as key presses. Bound: the field 10, the typing 15 (the tap 1, its 1s
-// settle, the keys), the read 1 = 26.
+// capital, a correction) fails before anything is submitted. The field is tapped at its frame's
+// bottom-right corner (a tap takes whether XCUITest reports it visible or not, and puts the caret at
+// the text's end), what it holds deleted and `text` typed, all as key presses: never WDA's setValue or
+// clearValue, after which the app's process stays in hardware-keyboard mode and a later focus draws
+// no software keyboard until the app relaunches. Bound: the field 10, the typing 15 (the tap 1, its
+// 1s settle, the keys), the read 1 = 26.
 export const fillField = async (field: () => ChainablePromiseElement, text: string, what: string) => {
   await field().waitForExist({timeout: 10_000})
-  if ((await field().getAttribute('visible')) === 'true') await field().setValue(text)
-  else {
-    await tapElement(await field().getElement(), what)
-    await browser.pause(1_000)
-    const held = (await field().getAttribute('value')) ?? ''
-    const placeholder = (await field().getAttribute('placeholderValue')) ?? ''
-    const length = held === placeholder ? 0 : held.length
-    if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
-    await typeIntoFocused(what, text)
-  }
+  const rect = await rectOf(await field().getElement())
+  if (!rect) throw new Error(`${what} has no position`)
+  await tapFrame({height: 8, width: 8, x: rect.x + rect.width - 12, y: rect.y + rect.height - 12}, what)
+  await browser.pause(1_000)
+  const held = (await field().getAttribute('value')) ?? ''
+  const placeholder = (await field().getAttribute('placeholderValue')) ?? ''
+  const length = held === placeholder ? 0 : [...held].length
+  if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
+  await typeIntoFocused(what, text)
   const got = await field().getAttribute('value')
   if (got !== text) throw new Error(`${what} does not read what was typed`)
 }
