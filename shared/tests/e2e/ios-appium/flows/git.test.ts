@@ -10,15 +10,13 @@
 // what the phone did, and the flow's afterEach deletes each repo of this run's stamps (the team repo
 // first, with its chat notifications off, then reads that it is gone) and only then the subteam (a
 // deleted team's name is never free again, so each attempt takes a fresh one).
-import {randomBytes} from 'crypto'
 import {loadE2EAccounts} from '../../accounts/env'
-import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
-import {createThrowawaySubteam} from '../../shared/chat-data'
+import {stampedChannelName} from '../../accounts/run-id'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {deleteRepoIfPresent, personalRepo, repoGone, repoListed, repoUrl, teamRepo, teamRepoChat, type RepoRef} from '../../shared/git.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {deleteSubteamIfPresent, makeSubteamChannel, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
+import {deleteSubteamIfPresent, makeSubteamChannel} from '../../shared/teams.ts'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {pasteboardText, setPasteboard} from '../gate/device'
@@ -28,9 +26,9 @@ import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {drag, expectScreen, fillField, onScreen, press, pressTestID, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, dragSheetUp, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
-import {masked, onlyField, openTeamFromList, requireOnSubteam, textPartShown, TEXTS} from '../helpers/teams'
+import {expectHost, makeOwnSubteamWithID, masked, onlyField, openTeamFromList, requireOnSubteam, textPartShown, TEXTS} from '../helpers/teams'
 
 type Params = Record<string, unknown>
 
@@ -40,7 +38,7 @@ describe('git', function () {
   //             gone); it may be empty, so no other entry is required
   //   host      a retried host read (readBack) of the CLI 255 (four of 60);  polled  30s of reads,
   //             overrun by one read: of the CLI 285
-  //   subteam   makeOwnSubteam 915 (600 and the id read 315);  seed  makeSubteamChannel 510
+  //   subteam   makeOwnSubteamWithID 915 (600 and the id read 315);  seed  makeSubteamChannel 510
   //   app       requireAppIsSmoke 15;  git  openGit 90 (escapeToTabs 30, the More tab 15, the row 25,
   //             the screen 11, the list 5, slack 4)
   //   team      openTeamFromList: 60s of tries, overrun by one 109 = 169
@@ -49,7 +47,8 @@ describe('git', function () {
   //             fillField 26 (the field 10, the typing 15, the read 1)
   //   menu      openNewRepo 52 (openMenuFrom 19: 15, overrun by one try: the tap 1, the sheet 3;
   //             chooseMenuItem 22: 15, overrun by one drag 1, the tap 1, the sheet gone 5; screen 11)
-  //   row       repoText 31 (30, one drag 1);  pick  the dropdown's team 31
+  //   row       repoText 31 (30, one drag 1);  pick  the dropdown's team 31 (30, one drag 1, its settle
+  //             inside the 30)
   //   pasteboard  setPasteboard 50;  pasteboardText 30, polled 10s overrun by one read 40
   //   calls     one read 2;  waited for  12 (10, one read 2)
   //   step      2 (its 1s settle and the attach)
@@ -87,33 +86,14 @@ describe('git', function () {
     }
   }
 
-  // Worst case (s): the pasteboard 50, a team repo 1020, the one name of a test 750, close 5,
-  // keyboard 5, escape 30 = 1860.
+  // Worst case (s): the pasteboard 50, a team repo 1020, the one name of a test 750, close 19,
+  // keyboard 5, escape 30 = 1874.
   afterEach(async function () {
     this.timeout(1_900_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, overwritePasteboard, restoreMade, escapeToTabs])
   })
 
-  // A subteam of the e2e team made by the host for one test, with its name in madeNames before the
-  // make, so a test timed out during it still has it deleted. `prefix` is up to 3 characters.
-  // Bound: subteam 600, then its id 315 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
-  // general channel listed 90).
-  const makeOwnSubteam = async (prefix: string) => {
-    const label = `${prefix}${randomBytes(2).toString('hex')}`
-    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
-    requireThisRunSubteam(name)
-    madeNames.add(name)
-    await masked(async () => createThrowawaySubteam(label))
-    return {name, teamID: await masked(async () => hostTeamID(name))}
-  }
-
   // -- reads --------------------------------------------------------------------------------------
-
-  // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
-  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
-    masked(async () =>
-      waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 30_000})
-    )
 
   // The git list, from the More tab. Bound: 90.
   const openGit = async () => {
@@ -134,7 +114,7 @@ describe('git', function () {
       'the repo row',
       async () => {
         // one page source a read: an attribute call per labelled element took most of the bound
-        const found = await textPartShown(label, 'the repo row', 0).catch(() => undefined)
+        const found = await textPartShown(label, 'the repo row', 0, {forTap: true}).catch(() => undefined)
         if (found && (await onScreen(found))) return found
         const {height} = await browser.getWindowRect()
         // a row drawn off screen says which way; else a drag that changed nothing reached the list's
@@ -228,8 +208,8 @@ describe('git', function () {
   })
 
   it('a team repo made in a subteam, announced in a channel, its announcements turned off, and deleted', async function () {
-    // worst case (s): app 15, subteam 600 and its id 315, seed 510, host 255, team 169, git 90, new repo 52, prompt
-    // 6 and its tap 1, pick 31 and its tap 1, picked 6, prompt gone 6, field 11, fill 26, notify 16,
+    // worst case (s): app 15, subteam 600 and its id 315, seed 510, host 255, team 169, git 90, new repo 52, the
+    // dropdown 12 (its wait 10, the press 2), pick 31 and its tap 2, picked 6, field 11, fill 26, notify 16,
     // step 2, calls 2, button 6, waited for 12, screen 11, polled 285, chat 255, row 31, its tap 1,
     // announce 11, link 16 and its tap 1, screen 11, channel 6 and its tap 1, step 2, pin 1, calls 2,
     // button 6, waited for 12, polled 285, screen 11, link 16, step 2, count 1, calls 2, its tap 1,
@@ -237,7 +217,7 @@ describe('git', function () {
     // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3792
     this.timeout(4_000_000)
     await requireAppIsSmoke()
-    const {name, teamID} = await makeOwnSubteam('git')
+    const {name, teamID} = await makeOwnSubteamWithID('git', madeNames)
     const channel = stampedChannelName('gitch', e2eRunId())
     await masked(async () => makeSubteamChannel(name, channel))
     const repo = teamRepo(name)
@@ -249,36 +229,36 @@ describe('git', function () {
 
     // -- made, with the dropdown showing the subteam alone ------------------------------------------
     await openNewRepo('New team repository', true)
-    // the dropdown is one box: its label merges its texts
-    await press(await textPartShown('Pick a team', 'the team dropdown'), 'the team dropdown')
+    await pressTestID(T.GIT_NEW_TEAM_DROPDOWN, 'the team dropdown')
+    // the subteam's row in the dropdown's sheet, the sheet dragged up until it shows; a row found right
+    // after a drag is read again once the sheet settles, as a sheet still gliding takes a tap as the
+    // stop of its glide (the row above the subteam's is the e2e team's, the teams sorted by name)
+    let dragged = false
     const item = await waitFor(
       'the subteam in the team dropdown',
       async () => {
-        const found = await textPartShown(name, 'the subteam in the team dropdown', 0).catch(() => undefined)
-        if (found && (await onScreen(found))) return found
-        const {height, width} = await browser.getWindowRect()
-        const x = Math.round(width / 2)
-        await browser
-          .action('pointer', {parameters: {pointerType: 'touch'}})
-          .move({x, y: height - 80})
-          .down()
-          .move({duration: 400, x, y: height - 380})
-          .pause(200)
-          .up()
-          .perform()
+        const found = await textPartShown(name, 'the subteam in the team dropdown', 0, {forTap: true}).catch(() => undefined)
+        if (found && (await onScreen(found))) {
+          if (!dragged) return found
+          dragged = false
+          await browser.pause(800)
+          return undefined
+        }
+        dragged = true
+        await dragSheetUp()
         return undefined
       },
       {interval: 300, timeout: 30_000}
     )
     await press(item, 'the subteam in the team dropdown')
-    // the dropdown shows the one team picked: the subteam, never the e2e team; the same read that
-    // finds the subteam finds no pick prompt
+    // the dropdown itself shows the one team picked: the subteam, never the e2e team, and no prompt
+    const team = loadE2EAccounts().team
     await waitFor(
       'the dropdown to show the subteam alone',
       async () => {
-        const picked = await textPartShown(name, 'the team picked in the dropdown', 0).then(() => true, () => false)
-        const prompt = await textPartShown('Pick a team', 'the pick prompt', 0).then(() => true, () => false)
-        return picked && !prompt ? true : undefined
+        const label = (await el(T.GIT_NEW_TEAM_DROPDOWN).getAttribute('label').catch(() => null)) ?? ''
+        const parts = label.replace(/\u00a0/g, ' ').split(', ').map(p => p.trim())
+        return parts.includes(name) && !parts.includes(team) && !parts.includes('Pick a team') ? true : undefined
       },
       {interval: 250, timeout: 5_000}
     )
@@ -299,10 +279,10 @@ describe('git', function () {
     // only this repo's row is open: the one announce checkbox drawn is its
     await el(T.GIT_REPO_ANNOUNCE).waitForExist({timeout: 10_000})
     check((await announceCount()) === 1, 'more than the one repo row is open: not tapping')
-    await press(await textPartShown('#general', 'the announce channel link', 15_000), 'the announce channel link')
+    await press(await textPartShown('#general', 'the announce channel link', 15_000, {forTap: true}), 'the announce channel link')
     const onSubteam = (p: Params) => p['teamname'] === name
     await expectScreen("the repo's channel picker", 'gitSelectChannel', onSubteam)
-    await press(await textPartShown(channel, 'the channel in the picker'), 'the channel in the picker')
+    await press(await textPartShown(channel, 'the channel in the picker', 5_000, {forTap: true}), 'the channel in the picker')
     await step('The channel picked')
     await requireOnSubteam("the repo's channel picker", 'gitSelectChannel', onSubteam)
     seq = await currentCallSeq()

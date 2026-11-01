@@ -134,6 +134,7 @@ const NewRepo = (ownProps: OwnProps) => {
             selected={makeDropdownItem(selectedTeam)}
             onChangedIdx={dropdownChanged}
             style={styles.dropdown}
+            testID={TestIDs.GIT_NEW_TEAM_DROPDOWN}
           />
         )}
         <Kb.Input3

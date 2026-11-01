@@ -356,6 +356,8 @@ export const GIT_REPO_ROW  = 'git-repo-row'
 export const GIT_NEW_REPO = 'git-new-repo'
 export const GIT_REPO_COPY_URL = 'git-repo-copy-url'
 export const GIT_REPO_ANNOUNCE = 'git-repo-announce'
+// the new team repository screen's team dropdown (its label merges the team picked, or its prompt)
+export const GIT_NEW_TEAM_DROPDOWN = 'git-new-team-dropdown'
 // the "Notify the team" checkbox of the new team repository screen and of the delete screen, by its state
 export const GIT_NEW_NOTIFY_ON = 'git-new-notify-on'
 export const GIT_NEW_NOTIFY_OFF = 'git-new-notify-off'
