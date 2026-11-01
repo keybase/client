@@ -10,6 +10,7 @@ import {
   REPAIR_WORST_MS,
   checkOrRepairSecondSecret,
   checkSecondSecretSurvives,
+  KEYCHAIN_NOTE,
   newPassword,
   repairSecondSecret,
   rotateSecondPassword,
@@ -221,6 +222,37 @@ describe('checkSecondSecretSurvives', () => {
     expect(main.calls.at(-1)).toBe('switch testuser')
     expect(main.who()).toBe('testuser')
     expect(tripped).toBe(false)
+  })
+
+  test('after a switch that gives no answer, one switch back, then the owner action naming the Keychain', async () => {
+    const calls: string[] = []
+    const err = await checkSecondSecretSurvives(env, {
+      roundTrip: async () => {},
+      say: () => {},
+      switchMain: async user => {
+        calls.push(`switch ${user}`)
+        throw new Error(`keybase login --switch ${user}: no answer in 60s`)
+      },
+      whoami: async () => '',
+    }).catch((e: unknown) => e as Error)
+    expect(calls).toEqual(['switch testuser-mac', 'switch testuser'])
+    expect(err.message).toMatch(/after 1 attempts/)
+    expect(err.message).toContain(KEYCHAIN_NOTE)
+  })
+
+  test('a switch that fails with an answer keeps the three switches back', async () => {
+    const calls: string[] = []
+    const err = await checkSecondSecretSurvives(env, {
+      roundTrip: async () => {},
+      say: () => {},
+      switchMain: async user => {
+        calls.push(`switch ${user}`)
+        throw new Error('Input canceled')
+      },
+      whoami: async () => '',
+    }).catch((e: unknown) => e as Error)
+    expect(calls.filter(c => c === 'switch testuser')).toHaveLength(3)
+    expect(err.message).not.toContain(KEYCHAIN_NOTE)
   })
 
   test('fails when the peer round trip fails', async () => {

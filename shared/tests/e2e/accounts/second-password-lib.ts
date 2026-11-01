@@ -133,13 +133,21 @@ const liveRoundTrip = async (env: E2EEnv) => {
 
 const liveCheck = (): CheckDeps => ({...liveMain(), roundTrip: liveRoundTrip})
 
-// Back to the smoke account (retried) and checked; throws with the command to run by hand.
-const backToSmoke = async (env: E2EEnv, main: MainSide) => {
-  await restoreMainAccount(env.smokeUser, `keybase login --switch <KB_SMOKE_USER from ${defaultEnvPath()}>`, {
-    say: main.say,
-    switchTo: main.switchMain,
-    whoami: main.whoami,
-  })
+// A `keybase login --switch` that gave no answer: the main service may be waiting on something only
+// the owner can answer.
+const HUNG = /: no answer in \d+s/
+export const KEYCHAIN_NOTE = 'a macOS Keychain dialog may be waiting on the Mac'
+
+// Back to the smoke account (retried) and checked; throws with the command to run by hand. After a
+// switch that gave no answer it tries once: three more on a hung service only queue behind it.
+const backToSmoke = async (env: E2EEnv, main: MainSide, {hung = false}: {hung?: boolean} = {}) => {
+  const fix = `keybase login --switch <KB_SMOKE_USER from ${defaultEnvPath()}>`
+  await restoreMainAccount(
+    env.smokeUser,
+    hung ? `${fix} (the main service gave no answer: ${KEYCHAIN_NOTE})` : fix,
+    {say: main.say, switchTo: main.switchMain, whoami: main.whoami},
+    hung ? {attempts: 1} : {}
+  )
 }
 
 // `work`, then always `restore`. A restore that fails after `work` failed keeps both errors (the
@@ -175,6 +183,7 @@ export const thenRestore = async <T,>(work: () => Promise<T>, restore: () => Pro
 // peer still works. Switching the main service switches the app too, so this runs only between
 // tests (a file's beforeAll/afterAll, or the setup command).
 export const checkSecondSecretSurvives = async (env: E2EEnv, deps: CheckDeps = liveCheck()) => {
+  let hung = false
   await thenRestore(
     async () => {
       try {
@@ -184,10 +193,11 @@ export const checkSecondSecretSurvives = async (env: E2EEnv, deps: CheckDeps = l
           throw new Error(`the main service is ${who || 'signed out'} after switching to the second account`)
         }
       } catch (e) {
+        hung = HUNG.test(message(e))
         throw new Error(`the main service cannot switch to the second account without a password: ${message(e)}`, {cause: e})
       }
     },
-    async () => backToSmoke(env, deps)
+    async () => backToSmoke(env, deps, {hung})
   )
   await deps.roundTrip(env)
 }
