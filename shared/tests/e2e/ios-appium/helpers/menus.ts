@@ -154,8 +154,8 @@ export const chooseMenuItem = async (label: string) => {
   )
   // A tap while the sheet still settles after a drag can do nothing (seen live): the item is tapped
   // again only while the sheet and the item are both still up, so a tap that took is never repeated.
-  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
-  // 5s wait was.
+  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, the sheet
+  // gone 5 that chooseMenuItem's callers count.
   for (let tap = 1; ; tap++) {
     const item = await sheetItem(label)
     if (!item) throw new Error(`"${label}" left the menu before it was tapped`)

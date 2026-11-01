@@ -292,8 +292,8 @@ describe('teams second account', function () {
       await waitForUiCall('the leave to go out', seq, 'keybase.1.teams.teamLeave')
       // PR 9 (app bug, as device-revoke's): after the leave the app clears its modals and then pops
       // to teamsRoot inside the closing confirm's stack ("[NAV] Unhandled action: POP_TO"), so it stays
-      // on the team page. The flow backs out itself, and throws once the app goes there on its own,
-      // so PR 9's fix drops this step.
+      // on the team page. The flow backs out itself, and throws once the app goes there on its own:
+      // then this back-out step is no longer needed.
       const after = await waitFor(
         'the leave confirm to close',
         async () => {
