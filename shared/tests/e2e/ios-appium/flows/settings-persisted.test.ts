@@ -87,7 +87,8 @@ import {BUTTONS, expectScreen, tapButton, waitSignedIn} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
-import {masked, TEXTS} from '../helpers/teams'
+import {masked, TEXT_TYPES} from '../helpers/teams'
+import {sourceElements} from '../gate/page-source-lib'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
 const SET_CONTACT = 'keybase.1.account.userSetContactSettings'
@@ -136,10 +137,19 @@ const shownNow = async (base: string) => {
   return id ? settingShownOf(id, base) : undefined
 }
 
+// Scrolls the control on screen, once the page draws it. A page opened right after a relaunch draws
+// a group only once its settings load, and a drag before that scrolls past where it comes (seen live:
+// the chat page ended at its bottom with the notification group at its top). Bound: 10s for it to be
+// drawn, 10s of drags = 20.
+const dragToControl = async (base: string, what: string) => {
+  await browser.$(controlSelector(base)).waitForExist({timeout: 10_000})
+  await dragUntilOnScreen(what, () => browser.$(controlSelector(base)), 10_000)
+}
+
 // Scrolls the control on screen and waits for it to show `want` (not pending). Bound: the drag 20,
 // 20s of reads, overrun by one 1 = 41.
 const expectShown = async ({base, want}: Shown, what: string) => {
-  await dragUntilOnScreen(what, () => browser.$(controlSelector(base)))
+  await dragToControl(base, what)
   await waitFor(`${what} to show ${want}`, async () => ((await shownNow(base)) === want ? true : undefined), {
     interval: 250,
     timeout: 20_000,
@@ -148,7 +158,7 @@ const expectShown = async ({base, want}: Shown, what: string) => {
 
 // Taps the control. Bound: the drag 20, its tap 1 = 21.
 const tapControl = async (base: string, what: string) => {
-  await dragUntilOnScreen(what, () => browser.$(controlSelector(base)))
+  await dragToControl(base, what)
   await browser.$(controlSelector(base)).click()
 }
 
@@ -289,26 +299,27 @@ const levelSetSince = async (mark: ReturnType<typeof goLogMark>, level: string, 
 
 // -- the More list -------------------------------------------------------------------------------
 
-// How many of the drawn texts hold `part` (a row merges its texts into one label). Bound: one read 1.
-const drawnWithPart = async (part: string) => {
-  let n = 0
-  for (const e of await browser.$$(TEXTS).getElements()) {
-    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-    if (label.split(', ').some(p => p.trim() === part)) n++
+// The More list off one page source: how many texts on screen hold the Crypto row's label as a part
+// (a row merges its texts into one label), and how many PerfLog buttons (the perf row's, shown while
+// runtime stats are on) the tree holds. XCUITest can report the whole list visible=false (seen live),
+// so a frame on screen stands for visible. Bound: the source and the window 2.
+const moreListDraws = async () => {
+  const {height, width} = await browser.getWindowRect()
+  let crypto = 0
+  let perf = 0
+  for (const {attrs, type} of sourceElements(await browser.getPageSource())) {
+    const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
+    if (type === 'XCUIElementTypeButton' && label === 'PerfLog') perf++
+    if (!TEXT_TYPES.includes(type) || !label.split(', ').some(p => p.trim() === 'Crypto')) continue
+    const [x, y, w, h] = ['x', 'y', 'width', 'height'].map(k => Number(attrs[k]))
+    if (w! > 0 && h! > 0 && x! >= 0 && y! >= 0 && x! + w! <= width && y! + h! <= height) crypto++
   }
-  return n
+  return {crypto, perf}
 }
 
 // Where `e` is drawn. Bound: two reads 1.
 const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => ({...(await e.getLocation()), ...(await e.getSize())})
 
-// How many PerfLog buttons are drawn: the perf row's, shown in the More list while runtime stats
-// are on. Bound: one read 1.
-const perfButtons = async () => {
-  let n = 0
-  for (const e of await browser.$$(BUTTONS).getElements()) if ((await e.getAttribute('label').catch(() => null)) === 'PerfLog') n++
-  return n
-}
 
 describe('settings persisted', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -794,8 +805,12 @@ describe('settings persisted', function () {
     // off: the More list draws its Crypto row and no perf row, and there is no overlay
     const statsOff = async (what: string) => {
       await openMore()
-      await waitFor('the More list Crypto row', async () => ((await drawnWithPart('Crypto')) > 0 ? true : undefined), {interval: 250, timeout: 5_000})
-      check((await perfButtons()) === 0, `the More list draws the perf row ${what}`)
+      // the Crypto row anchors the perf row's absence in the same read
+      const drawn = await waitFor('the More list Crypto row', async () => {
+        const d = await moreListDraws()
+        return d.crypto > 0 ? d : undefined
+      }, {interval: 250, timeout: 5_000})
+      check(drawn.perf === 0, `the More list draws the perf row ${what}`)
       check(!(await el(T.RUNTIME_STATS).isExisting()), `the runtime stats overlay is drawn ${what}`)
     }
     await statsOff('before the test')
@@ -837,7 +852,7 @@ describe('settings persisted', function () {
     await settles('the runtime stats setting on', runtimeStatsEnabled, true)
     await step('Runtime stats on', {card: true})
     await openMore()
-    await waitFor('the More list perf row', async () => ((await perfButtons()) === 1 ? true : undefined), {interval: 250, timeout: 5_000})
+    await waitFor('the More list perf row', async () => ((await moreListDraws()).perf === 1 ? true : undefined), {interval: 250, timeout: 5_000})
     await step('The perf row in the More list')
 
     // the setting is kept in the phone's service config, so a relaunch starts them again
