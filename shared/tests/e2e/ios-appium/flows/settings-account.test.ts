@@ -24,9 +24,9 @@ import type {CallMark} from '../gate/recorder-lib'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {BUTTONS, expectScreen, fillField, tapButton} from '../helpers/files'
+import {expectScreen, fillField, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, labelledElement, openMenuFrom, waitForSheetGone} from '../helpers/menus'
+import {check, chooseMenuItem, openMenuFrom, waitForSheetGone} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 import {masked, TEXTS, textShown} from '../helpers/teams'
 
@@ -361,8 +361,8 @@ describe('settings account', function () {
 
   it('the delete account confirm opens with nothing ticked and is cancelled', async function () {
     // worst case (s): smoke 1, the passphrase state 22, page 113, drag 20, seq 2, its tap 1, screen
-    // 11, the prompt 11, the confirm button 6 and its state 1, manual 2, header 6, screen 11, the
-    // prompt gone 1, calls 2, step 2 = 212
+    // 11, the prompt 11, the confirm button 11 and its state 1, manual 2, header 6, screen 11, the
+    // prompt gone 1, calls 2, step 2 = 217
     this.timeout(240_000)
     // the passphrase state is the signed-in account's
     await requireAppIsSmoke()
@@ -374,9 +374,11 @@ describe('settings account', function () {
     await browser.$(DELETE_ACCOUNT_BUTTON).click()
     await expectScreen('the delete account confirm', 'deleteConfirm')
     await textShown('Permanently delete your account?', "the delete account confirm's prompt", 10_000)
-    // nothing is ticked, so its confirm cannot be pressed
-    const confirm = await labelledElement(BUTTONS, 'Yes, permanently delete it', "the delete account confirm's button")
-    check((await confirm.getAttribute('enabled')) === 'false', "the delete account confirm's button can be pressed with nothing ticked")
+    // nothing is ticked, so its confirm cannot be pressed: a disabled button draws as its text alone
+    // (no button element), and no enabled button reads its label
+    await textShown('Yes, permanently delete it', "the delete account confirm's button")
+    const pressable = await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "Yes, permanently delete it" AND enabled == 1`).getElements()
+    check(pressable.length === 0, "the delete account confirm's button can be pressed with nothing ticked")
     await manualEdge('delete-account-confirm')
 
     await tapHeaderCancel()
