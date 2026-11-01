@@ -44,11 +44,11 @@ import type {CallMark} from '../gate/recorder-lib'
 import {manualEdge, retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {expectScreen, fillField, tapButton} from '../helpers/files'
+import {expectScreen, fillField, press, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {masked, onlyField, TEXTS, textShown} from '../helpers/teams'
+import {masked, onlyField, textPartShown, textShown} from '../helpers/teams'
 
 const REGISTER = 'keybase.1.cryptocurrency.registerAddress'
 const START_PROOF = 'keybase.1.prove.startProof'
@@ -204,9 +204,16 @@ describe('profile proofs', function () {
     )
 
   // Opens the row's menu from its status icon and picks `item` ("Revoke", or "Drop" for a key), then
-  // waits for the confirm screen. Bound: in row 2, menu 19, item 22, screen 11 = 54.
-  const openRevoke = async (row: Rect, item: 'Drop' | 'Revoke', what: string) => {
-    const icon = await elementInRow(row, T.PROFILE_ASSERTION_MENU)
+  // waits for the confirm screen. The row is read again with its icon, as the profile can still move
+  // after the row was first read (seen live: the pending DNS row's icon was not in the band read
+  // before the step's screenshot). Bound: 10s of row and icon reads, overrun by one 4, menu 19, item
+  // 22, screen 11 = 66.
+  const openRevoke = async (match: RowMatch, item: 'Drop' | 'Revoke', what: string) => {
+    const icon = await waitFor(
+      `${what}'s menu icon`,
+      async () => elementInRow(await identityRow(match, what, 1_000), T.PROFILE_ASSERTION_MENU),
+      {interval: 500, timeout: 10_000}
+    )
     await openMenuFrom(`${what}'s menu`, async () => icon.click())
     await chooseMenuItem(item)
     await expectScreen(`${what}'s ${item} confirm`, 'profileRevoke')
@@ -247,11 +254,15 @@ describe('profile proofs', function () {
     await expectScreen('the proofs list', 'profileProofsList')
     await fillField(() => el(T.PROFILE_PROOFS_FILTER), name, "the proofs list's filter")
     // the platforms arrive from the service after the list shows
-    const entry = await waitFor(`the platform ${name} in the list`, async () => elementWithLabelPart(TEXTS, name, `the platform ${name}`), {
-      interval: 500,
-      timeout: 30_000,
-    })
-    await entry.click()
+    // the row's box, read off one page source (its text reads wider than the box, past the screen's
+    // edge, so the two never nest; seen live); a row XCUITest reports visible=false is pressed at its
+    // frame
+    const entry = await waitFor(
+      `the platform ${name} in the list`,
+      async () => elementWithLabelPartIn(['XCUIElementTypeOther'], name, `the platform ${name}`, {forTap: true}),
+      {interval: 500, timeout: 30_000}
+    )
+    await press(entry, `the platform ${name}`)
   }
 
   const countOf = async (seq: CallMark, method: string) => (await uiCallsSince(seq, method)).length
@@ -268,8 +279,8 @@ describe('profile proofs', function () {
   it('add the bitcoin burn address and revoke it from its row', async function () {
     // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, field 11, fill 26,
     // step 2, calls 2, button 7, waited for 12, record 465, calls 2, text 16, polled 495, step 2,
-    // button 7, screen 21, identities 20, row 16, step 2, revoke 54, step 2, confirm 23, polled 495,
-    // the address read 435, gone 57, step 2 = 3012
+    // button 7, screen 21, identities 20, row 16, step 2, revoke 66, step 2, confirm 23, polled 495,
+    // the address read 435, gone 57, step 2 = 3024
     this.timeout(3_050_000)
     const before = await masked(async () => sigIDsBefore())
     pendingAdd = {before, kind: 'bitcoin'}
@@ -293,9 +304,9 @@ describe('profile proofs', function () {
       await tapButton('Reload profile', "the result's Reload profile")
       await expectScreen("the second account's own profile", 'profile', onOwnProfile, 20_000)
       await revealIdentities()
-      const shown = await identityRow(row, "the address's row")
+      await identityRow(row, "the address's row")
       await step('The profile shows the address', {card: true})
-      await openRevoke(shown, 'Revoke', "the address's row")
+      await openRevoke(row, 'Revoke', "the address's row")
       await step('The revoke confirm')
       await confirmRevoke('Yes, revoke it', REVOKE_SIGS)
       // the sig list holds the eldest link, else it throws: a failed read never reads as revoked
@@ -308,10 +319,10 @@ describe('profile proofs', function () {
   })
 
   it('start a DNS proof to its instructions and revoke the pending proof from its row', async function () {
-    // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, text 6 and its tap 1,
-    // calls 2, its tap 1, waited for 12, field 11, fill 26, step 2, button 7, the instructions 31,
-    // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 54, step 2,
-    // confirm 23, polled 495, gone 57, step 2 = 2117
+    // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, text 16,
+    // calls 2, its press 2, waited for 12, field 11, fill 26, step 2, button 7, the instructions 31,
+    // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 66, step 2,
+    // confirm 23, polled 495, gone 57, step 2 = 2139
     this.timeout(2_200_000)
     const domain = `e2e${e2eRunId()}.example.com`
     const before = await masked(async () => sigIDsBefore())
@@ -323,9 +334,11 @@ describe('profile proofs', function () {
       await pickPlatform('Your own website')
       // A TXT-file proof first fetches the site, which a reserved domain never answers; a DNS proof
       // checks its record only when asked to, which this never does.
-      const dns = await textShown('Set a DNS', 'the website choice\'s "Set a DNS"')
+      // a choice row XCUITest can report visible=false: found among on-screen frames and pressed (a
+      // frame tap when invisible)
+      const dns = await textPartShown('Set a DNS', 'the website choice\'s "Set a DNS"', 15_000, {forTap: true})
       const seq = await currentCallSeq()
-      await dns.click()
+      await press(dns, 'the website choice\'s "Set a DNS"')
       await waitForUiCall('the proof to start', seq, START_PROOF)
       await fillField(await onlyField('TextField', 'the domain field'), domain, 'the domain field')
       await step('The domain typed')
@@ -342,9 +355,9 @@ describe('profile proofs', function () {
       await expectScreen("the second account's own profile after the instructions closed", 'profile', onOwnProfile, 20_000)
 
       await revealIdentities()
-      const shown = await identityRow(row, "the pending proof's row", 30_000)
+      await identityRow(row, "the pending proof's row", 30_000)
       await step('The profile shows the pending proof', {card: true})
-      await openRevoke(shown, 'Revoke', "the pending proof's row")
+      await openRevoke(row, 'Revoke', "the pending proof's row")
       await step('The revoke confirm')
       await confirmRevoke('Yes, revoke it', REVOKE_SIGS)
       // the sig list holds the eldest link, else it throws: a failed read never reads as revoked
@@ -356,8 +369,8 @@ describe('profile proofs', function () {
 
   it('drop a PGP key the second account’s peer made from its row', async function () {
     // worst case (s): keygen 365, polled 560, second 250; in it: the row opened 159 (60s of tries,
-    // overrun by one: profile 63, identities 20, row 16), step 2, revoke 54, step 2, confirm 23,
-    // polled 560, gone 57, step 2; then purge 95 = 2129
+    // overrun by one: profile 63, identities 20, row 16), step 2, revoke 66, step 2, confirm 23,
+    // polled 560, gone 57, step 2; then purge 95 = 2141
     this.timeout(2_200_000)
     pgpStarted = true
     const fp = await masked(async () => peerMakePgpKey('drop'))
@@ -368,18 +381,17 @@ describe('profile proofs', function () {
 
     await asSecond(async () => {
       // the profile shows a key made elsewhere once it loads the account afresh
-      let shown: Rect | undefined
       await retriedNavigation(
         "the key's row on the profile",
         async () => {
           await openOwnProfile()
           await revealIdentities()
-          shown = await identityRow(row, "the key's row")
+          await identityRow(row, "the key's row")
         },
         {intervals: [2_000], timeout: 60_000}
       )
       await step('The profile shows the key', {card: true})
-      await openRevoke(shown!, 'Drop', "the key's row")
+      await openRevoke(row, 'Drop', "the key's row")
       await step('The drop confirm')
       await confirmRevoke('Yes, drop it', REVOKE_KEY)
       // the key list holds a live device key of the second account, else it throws
