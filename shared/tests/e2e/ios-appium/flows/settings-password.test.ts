@@ -173,7 +173,7 @@ describe('settings password', function () {
       const seq = await currentCallSeq()
       // a click with the keyboard still up only closes it: a second click goes only when the first
       // sent nothing, so the change is never sent twice
-      await clickUntil(async () => save, async () => (await countOf(seq, PASSPHRASE_CHANGE)) > 0, "the change password screen's Save")
+      await clickUntil(async () => Promise.resolve(save), async () => (await countOf(seq, PASSPHRASE_CHANGE)) > 0, "the change password screen's Save")
       await waitForUiCall('the password change to go out', seq, PASSPHRASE_CHANGE)
       check((await countOf(seq, PASSPHRASE_CHANGE)) === 1, 'Save sent the password change more than once')
       await waitFor(
