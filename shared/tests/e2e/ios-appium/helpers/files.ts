@@ -16,6 +16,7 @@ import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {jsEval} from '../gate/app-ask.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
 import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
@@ -312,14 +313,51 @@ export const openFolderMoreSheet = async () => {
   })
 }
 
-// Every button, whether XCUITest reports it visible or not.
-const ANY_BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton"'
+// The buttons of the topmost drawn screen, whether XCUITest reports them visible or not: with no modal
+// up (the app's own modal stack), those wholly on screen (a page pushed over another takes the one
+// under it out of the tree); with one up, those inside the topmost modal's own subtree (its content,
+// MODAL_SCREEN, and the navigation bar above it), so a button of a screen the modal covers (a team
+// page's Leave team, a folder's Delete) is never one of them. Throws when the topmost modal cannot be
+// found. Bound: the eval 20, the reads 3.
+const topScreenButtons = async (): Promise<Array<WebdriverIO.Element>> => {
+  const modalUp = await jsEval<boolean>(`return kbModule('constants/router.tsx').getModalStack().length > 0`)
+  if (!modalUp) {
+    const {height, width} = await browser.getWindowRect()
+    const out: Array<WebdriverIO.Element> = []
+    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton"').getElements()) {
+      const r = await rectOf(e)
+      if (r && inside(r, {height, width, x: 0, y: 0})) out.push(e)
+    }
+    return out
+  }
+  // the last modal screen in the tree is the one presented last, on top
+  const top = (await browser.$$(`~${T.MODAL_SCREEN}`).getElements()).at(-1)
+  if (!top) throw new Error('a modal is up but no modal screen is in the tree: not tapping')
+  // its nearest container holding a navigation bar and no other modal screen: the modal with its bar
+  const withBar = await top.$(
+    `./ancestor::*[.//XCUIElementTypeNavigationBar and count(.//*[@name="${T.MODAL_SCREEN}"]) = 1][1]`
+  )
+  const root = (await withBar.isExisting()) ? withBar : top
+  return [...(await root.$$('.//XCUIElementTypeButton').getElements())]
+}
 
 // The one button labelled `label`: one reported visible, else (on a screen that reports its elements
-// visible=false: a files confirmation, a modal stacked on a team page) the one in the tree. A click on
-// a button takes either way. Bound: one read 1.
+// visible=false: a files confirmation, a modal stacked on a team page) the one among the topmost drawn
+// screen's buttons (topScreenButtons), never one of a covered screen. A click on a button takes either
+// way. Bound: one read 1, the fallback 23.
+const topScreenButtonLabelled = async (label: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
+  for (const e of await topScreenButtons()) {
+    if ((await e.getAttribute('label').catch(() => null)) !== label) continue
+    const rect = await rectOf(e)
+    if (rect) found.push({e, rect})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on the topmost screen, not one`)
+  return found[inner[0]!]!.e
+}
 export const buttonLabelled = async (label: string, what: string) =>
-  labelledElement(BUTTONS, label, what).catch(async () => labelledElement(ANY_BUTTONS, label, what))
+  labelledElement(BUTTONS, label, what).catch(async () => topScreenButtonLabelled(label, what))
 
 // Clicks the button `button()` finds until `done()` says the click took: a click while the keyboard is
 // up only closes the keyboard (and XCUITest reports the keyboard shown or not unreliably, so it is not
