@@ -26,10 +26,16 @@ const isOldDevice = (): boolean => /old$/i.test(process.env['KB_IOS_DEVICE'] ?? 
 
 // Enter text into a field. The testID is on the real input element (see Input3),
 // so el(id) is the editable itself. iOS-16.4 sims must paste (per-key injection
-// crashes RN there — see pasteText). On modern iOS, setValue works where the
-// input surfaces as a settable element (chat, sign, iPhone); the modern-iPad
-// encrypt input surfaces as an XCUIElementTypeOther (setValue → "element wasn't
-// found"), so fall back to pasting, which works regardless of element type.
+// crashes RN there — see pasteText). On modern iOS the text goes in as key
+// presses (addValue) where the input surfaces as a typeable element (chat, sign,
+// iPhone); the modern-iPad encrypt input surfaces as an XCUIElementTypeOther
+// (addValue → "element wasn't found"), so fall back to pasting, which works
+// regardless of element type.
+// A field is never set or cleared with WDA's setValue or clearValue: after either
+// the app's process stays in hardware-keyboard mode, so a later focus draws no
+// software keyboard until the app relaunches. What the field holds is deleted
+// with backspace keys first, its caret put at the end by a tap in the field's
+// bottom-right corner.
 export const enterText = async (id: string, text: string): Promise<void> => {
   if (browser.isAndroid) {
     await androidEnterText(id, text)
@@ -40,7 +46,17 @@ export const enterText = async (id: string, text: string): Promise<void> => {
     return
   }
   try {
-    await el(id).setValue(text)
+    const field = el(id)
+    const value = await field.getAttribute('value')
+    // an empty field reports its placeholder as its value
+    const placeholder = await field.getAttribute('placeholderValue').catch(() => null)
+    const held = value === null || value === placeholder ? '' : value
+    if (held) {
+      const r = await field.getElementRect(await field.elementId)
+      await browser.execute('mobile: tap', {x: Math.round(r.x + r.width - 4), y: Math.round(r.y + r.height - 4)})
+      await field.addValue('\b'.repeat([...held].length))
+    }
+    await field.addValue(text)
   } catch {
     await pasteText(id, text)
   }
