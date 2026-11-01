@@ -113,6 +113,10 @@ export const fieldLength = async (fieldTestID: string): Promise<number> => {
   return r.length
 }
 
+// Puts `text` into the focused field fieldTestID through the same path as a secret (the field's own
+// onChange, no key presses), for a field that holds no secret and that XCUITest cannot reach.
+export const setFieldText = async (fieldTestID: string, text: string): Promise<void> => setField(fieldTestID, text, 'setting the field')
+
 // The focused field's text, when it is the field fieldTestID and holds no secret (textEvalBody).
 export const focusedFieldText = async (fieldTestID: string): Promise<string> => {
   const r = await evalField(fieldTestID, textEvalBody(fieldTestID), 'reading the field')

@@ -65,7 +65,7 @@ describe('files actions', function () {
   //   entry     an entry's row, which may arrive late, 121 (120, one drag 1);  row  one drawn 31
   //   menu      openRowMenu 52 (the row 31, its button 2, openMenuFrom 19);  item  chooseMenuItem 22
   //             (15, overrun by one drag 1, the tap 1 and the sheet gone 5);  more  openFolderMoreSheet 28
-  //   field     fillHiddenField 26;  button  tapButton 6;  screen  a screen waited for 11, read 1
+  //   field     fillHiddenField 30;  button  tapButton 6;  screen  a screen waited for 11, read 1
   //   picker    the picker 10;  gone  10
   //   calls     the recorder's call log, one read 2;  waited for  10
   //   kbfs      waitForKbfs 180 (120, overrun by one listing 60);  listing  one host listing 60
@@ -194,8 +194,8 @@ describe('files actions', function () {
   // -- the work folder ----------------------------------------------------------------------------
 
   it("a folder made from the folder's More sheet", async function () {
-    // worst case (s): work 60, open 365, screen 1, more 28, item 22, field 26, screen 1, button 1,
-    // kbfs 180, row 31, step 2 = 717
+    // worst case (s): work 60, open 365, screen 1, more 28, item 22, field 30, screen 1, button 1,
+    // kbfs 180, row 31, step 2 = 721
     this.timeout(760_000)
     const folder = await workFolder({})
     const made = stampedEntry('made')
@@ -214,8 +214,8 @@ describe('files actions', function () {
 
   it("a file renamed from its row's menu", async function () {
     // worst case (s): work 120, open 365, entry 121, step 2, menu 52, item 22, the editing row 10,
-    // its field focused 10 and read 1, field 26, screen 1, calls 2, button 1, calls 10, kbfs 180,
-    // listing 60, row 31, step 2 = 1016
+    // its field focused 10 and read 1, field 30, screen 1, calls 2, button 1, calls 10, kbfs 180,
+    // listing 60, row 31, step 2 = 1020
     this.timeout(1_040_000)
     const from = stampedEntry('from')
     const to = stampedEntry('to')
@@ -333,7 +333,7 @@ describe('files actions', function () {
   it("a file shared to the self conversation from its row's menu, with a caption", async function () {
     // worst case (s): self 60, work 120, open 365, entry 121, step 2, menu 52, item 22, screen 11, the
     // search 10, its tap 1, the keyboard 5, the typing 15, the result polled 20, its tap 1, screen 21
-    // (20, its read), field 26, calls 2, button 6, calls 10, cli 120, step 2 = 992
+    // (20, its read), field 30, calls 2, button 6, calls 10, cli 120, step 2 = 996
     this.timeout(1_040_000)
     const {smokeUser} = loadE2EAccounts()
     const selfConvID = await directConvIDFromCli(smokeUser)

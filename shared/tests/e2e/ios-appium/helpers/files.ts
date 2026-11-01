@@ -17,7 +17,7 @@ import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {retriedNavigation} from '../gate/step.ts'
-import {focusedFieldText, focusSecretField} from '../gate/secret-input.ts'
+import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
 import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
 import {check, labelledElement, openMenuFrom} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
@@ -374,14 +374,13 @@ export const fillField = async (field: () => ChainablePromiseElement, text: stri
 
 // Puts `text` in the field `fieldTestID` that XCUITest cannot see (the editing row of a new folder or
 // a rename is one accessible element, so its field is not in the tree): the field is focused through
-// the app, what it holds deleted and `text` typed as key presses, then read back from the app. Bound:
-// the focus 10 (its eval and 5 of reads), the read 1, the deletes 5, the typing 5, the read back 5 = 26.
+// the app and set through its own onChange (secret-input's path; key presses dropped letters now and
+// then), then read back from the app. Bound: the focus 10 (its eval and 5 of reads), the set 15 (two
+// evals and 5 of length reads), the read back 5 = 30.
 export const fillHiddenField = async (fieldTestID: string, text: string, what: string) => {
   await focusSecretField(fieldTestID)
-  const held = await focusedFieldText(fieldTestID)
-  if (held.length) await typeIntoFocused(what, '\uE003'.repeat(held.length))
-  await typeIntoFocused(what, text)
-  await waitFor(`${what} to read what was typed`, async () => ((await focusedFieldText(fieldTestID)) === text ? true : undefined), {
+  await setFieldText(fieldTestID, text)
+  await waitFor(`${what} to read what was set`, async () => ((await focusedFieldText(fieldTestID)) === text ? true : undefined), {
     interval: 250,
     timeout: 5_000,
   })
