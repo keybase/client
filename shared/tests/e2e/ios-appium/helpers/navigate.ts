@@ -3,6 +3,7 @@ import * as T from '../../shared/test-ids'
 import {byText, el, els, waitForTestID, tab} from './elements'
 import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
+import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
 
@@ -276,12 +277,13 @@ async function topModalHeaderButton(label: string, screenInfo: TopModalScreen) {
 
 // One read of the app for every label; a harness error (attempt over, no inspector page) is thrown,
 // never read as "no modal".
-async function dismissStackedModal(): Promise<boolean> {
+async function dismissStackedModal(alive: () => void): Promise<boolean> {
   const screenInfo = await jsEval<TopModalScreen | null>(topModalScreenBody(HEADER_DISMISS_LABELS))
   if (!screenInfo) return false
   for (const label of HEADER_DISMISS_LABELS) {
     const ctrl = await topModalHeaderButton(label, screenInfo)
     if (!ctrl) continue
+    alive()
     console.log(`  escapeToTabs: dismissing a stacked modal with its "${label}"`)
     await ctrl.click().catch(() => {})
     const gone = async () => !(await modalStillUp(screenInfo.topKey))
@@ -295,16 +297,11 @@ async function dismissStackedModal(): Promise<boolean> {
   return false
 }
 
-// A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no
-// DISMISS_PRED match, and the stacked-modal fallback wants its title on the bar. While the app's modal
-// stack is not empty, this clicks a navigation bar's Cancel or Close, else its Back (never Save or
-// Done): a visible one, else the lowest (a modal sheet's bar sits below a page's). It counts only when
-// the app's top route then changes. Bound: two reads 2, the click 1, the change 3.
-const topRouteKey = async () =>
-  jsEval<string | null>(`const r = kbModule('constants/router.tsx'); return r.getModalStack().length ? (r.getVisibleScreen() || {}).key || null : null`)
-async function dismissModalByBar(): Promise<boolean> {
-  const before = await topRouteKey()
-  if (!before) return false
+// The navigation bar button to back out of the screen on top: a Cancel or Close in any bar, else a
+// Back (never a bar's submit, Save or Done); among those a visible one, else the lowest (a modal
+// sheet's bar sits below a page's, and the tree keeps the bars of the screens under a modal, in no
+// fixed order). Undefined when there is none. Bound: the reads 2.
+export const barButton = async () => {
   const pick = async (labels: ReadonlyArray<string>) => {
     const found: Array<{e: WebdriverIO.Element; visible: boolean; y: number}> = []
     for (const label of labels) {
@@ -317,8 +314,22 @@ async function dismissModalByBar(): Promise<boolean> {
     }
     return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
   }
-  const button = (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+}
+
+// A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no
+// DISMISS_PRED match, and the stacked-modal fallback wants its title on the bar. While the app's modal
+// stack is not empty, this clicks barButton's pick. It counts only when the app's top route then
+// changes. Bound: the route read 10 (one eval), barButton 2, the click 1, 3s of route reads overrun by
+// one 10 = 26, inside escapeToTabs' deadline.
+const topRouteKey = async () =>
+  jsEval<string | null>(`const r = kbModule('constants/router.tsx'); return r.getModalStack().length ? (r.getVisibleScreen() || {}).key || null : null`)
+async function dismissModalByBar(alive: () => void): Promise<boolean> {
+  const before = await topRouteKey()
+  if (!before) return false
+  const button = await barButton()
   if (!button) return false
+  alive()
   console.log('  escapeToTabs: dismissing a modal by its bar button')
   await button.click().catch(() => {})
   return waitFor('the modal to move', async () => ((await topRouteKey()) !== before ? true : undefined), {interval: 150, timeout: 3000}).then(
@@ -330,7 +341,12 @@ async function dismissModalByBar(): Promise<boolean> {
   )
 }
 
-export async function escapeToTabs(): Promise<void> {
+// Bound: 30s, a hard deadline (no step starts after it), so a slow inspector read or a run of hops
+// cannot outlast the sums that count it as 30.
+const ESCAPE_MS = 30_000
+export const escapeToTabs = async (): Promise<void> => underDeadline('escapeToTabs', ESCAPE_MS, escapeHops)
+
+async function escapeHops(alive: () => void): Promise<void> {
   // A flow may end with the keyboard up (chat input, crypto, feedback); it can
   // cover tappable UI on the next test, so dismiss it before resetting.
   await dismissKeyboard()
@@ -340,6 +356,7 @@ export async function escapeToTabs(): Promise<void> {
   // background/exit the app).
   if (browser.isAndroid) {
     for (let i = 0; i < 12; i++) {
+      alive()
       // A back pressed AT the root exits the app (screens can also settle slower
       // than the wait below, making the loop overshoot) — if that happened,
       // bring the existing task back to the foreground instead of pressing
@@ -363,6 +380,7 @@ export async function escapeToTabs(): Promise<void> {
     throw new Error('escapeToTabs(android): root tab bar not reached after 12 attempts')
   }
   for (let i = 0; i < 10; i++) {
+    alive()
     if (await atTabs()) return
     // Past the first few hops something is off — narrate each step so a stall
     // is diagnosable from the console instead of looking like a silent hang.
@@ -373,6 +391,7 @@ export async function escapeToTabs(): Promise<void> {
     if ((await browser.$$(DISMISS_PRED).length) > 0) {
       const ctrl = browser.$$(DISMISS_PRED)[0]!
       if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
+      alive()
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
       // Only loop when the click actually changed something; a dismiss control
@@ -380,13 +399,14 @@ export async function escapeToTabs(): Promise<void> {
       // to the back/pop path or we'd click it forever.
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
-    } else if (await dismissStackedModal()) {
+    } else if (await dismissStackedModal(alive)) {
       continue
-    } else if (await dismissModalByBar()) {
+    } else if (await dismissModalByBar(alive)) {
       continue
     } else if (debug) {
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
+    alive()
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
       const ctrl = els(T.COMMON_BACK_BUTTON)[0]!
       await ctrl.click().catch(() => {})
@@ -402,12 +422,14 @@ export async function escapeToTabs(): Promise<void> {
     // Native nav-bar back whose name varies by iOS version (e.g. "loggedIn" on
     // iOS 16.4) — match it by position instead. Must come before the edge-swipe:
     // the left-edge pop gesture does not reliably pop on older iOS here.
+    alive()
     if (await tapNavBack()) {
       await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
       continue
     }
     // No back button visible — try the iOS pop gesture (swipe from left edge).
     const {width, height} = await browser.getWindowRect()
+    alive()
     await browser
       .action('pointer')
       .move({x: 3, y: Math.round(height / 2)})

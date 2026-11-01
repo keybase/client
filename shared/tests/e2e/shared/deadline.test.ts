@@ -1,4 +1,4 @@
-import {runAbortable, withDeadline} from './deadline'
+import {runAbortable, underDeadline, withDeadline} from './deadline'
 
 describe('withDeadline', () => {
   test('passes the answer through', async () => {
@@ -7,6 +7,33 @@ describe('withDeadline', () => {
 
   test('rejects naming what it waited for', async () => {
     await expect(withDeadline(new Promise(() => {}), 10, 'the renderer')).rejects.toThrow('the renderer: no answer in 0.01s')
+  })
+})
+
+describe('underDeadline', () => {
+  test('passes the answer through', async () => {
+    await expect(underDeadline('the escape', 1_000, async alive => {
+      alive()
+      return Promise.resolve('home')
+    })).resolves.toBe('home')
+  })
+
+  test('rejects at the deadline, and a step the work starts after it never runs', async () => {
+    const steps: Array<string> = []
+    const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+    await expect(
+      underDeadline('the escape', 20, async alive => {
+        for (let i = 0; i < 10; i++) {
+          alive()
+          steps.push(`hop ${i}`)
+          await sleep(15)
+        }
+      })
+    ).rejects.toThrow('the escape: no answer in 0.02s')
+    const atDeadline = steps.length
+    await sleep(200)
+    expect(steps.length).toBe(atDeadline)
+    expect(atDeadline).toBeLessThan(10)
   })
 })
 

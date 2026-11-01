@@ -16,6 +16,7 @@ import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {askApp, jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
+import {underDeadline} from '../../shared/deadline.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
 import {
   carriedTeam,
@@ -23,11 +24,13 @@ import {
   findInboxRow,
   frameInside,
   inboxRowCandidates,
+  inside,
   isOneOnOneRow,
   type AppSmallRow,
   inboxIn,
   innermost,
   persistedMismatch,
+  rectOf as frameOf,
   shiftIntoBand,
   type DrawnInboxItem,
   type Rect as Frame,
@@ -972,11 +975,15 @@ const appKeyboardUp = async () =>
   jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`)
 const eitherSaysUp = async () => (await isKeyboardUp()) || (await appKeyboardUp())
 
-export const hideKeyboard = async () => {
-  if (!(await eitherSaysUp())) return
-  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
-  await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
-}
+// Bound: 5s, a hard deadline (no step starts after it): its reads are evals, each of which can take
+// 10s or more on a slow inspector.
+export const hideKeyboard = async () =>
+  underDeadline('hiding the keyboard', 5_000, async alive => {
+    if (!(await eitherSaysUp())) return
+    alive()
+    await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
+    await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
+  })
 
 // -- a message's menu ----------------------------------------------------------------------------
 
