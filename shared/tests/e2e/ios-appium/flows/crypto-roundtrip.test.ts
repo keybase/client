@@ -365,11 +365,11 @@ describe('crypto roundtrip', function () {
     await step('The host decrypted it to the marker')
   })
 
-  it('text encrypted to the second account and self decrypts on its peer and the host', async function () {
-    // worst case (s): crypto 86, tab 29, recipient 94, step 2, type 30, step 2, run 28, copy 147,
-    // done 22, mark 2, step 2, second 105, host 75, step 2 = 626
-    this.timeout(640_000)
-    const marker = e2eMarker('crypto-to-second')
+  // The phone encrypts this run's marker `label` to the second account and self, through the
+  // recipients search, and copies the ciphertext. Bound: crypto 86, tab 29, recipient 94, step 2,
+  // type 30, step 2, run 28, copy 147, done 22, mark 2, step 2 = 444.
+  const encryptForSecond = async (label: string) => {
+    const marker = e2eMarker(label)
     await openCrypto()
     await openCryptoTab('encrypt')
     await addSecondAsRecipient()
@@ -383,12 +383,28 @@ describe('crypto roundtrip', function () {
     await closeCryptoOutput('encrypt')
     await clearArmorShown()
     await step('The ciphertext copied and its output closed')
+    return {ciphertext, marker}
+  }
 
-    const bySecond = await readsBy(second, ['decrypt'], ciphertext, 'to-second')
-    check(bySecond === marker, "the second account's decrypt of the phone's ciphertext is not the marker")
+  it('text encrypted to the second account and self decrypts on the host', async function () {
+    // worst case (s): encryptForSecond 444, host 75, step 2 = 521
+    this.timeout(540_000)
+    const {ciphertext, marker} = await encryptForSecond('crypto-to-second')
     const bySelf = await readsBy(host, ['decrypt'], ciphertext, 'to-second-self')
     check(bySelf === marker, "the host's decrypt of the phone's ciphertext is not the marker")
-    await step('The second account and the host decrypted it to the marker')
+    await step('The host decrypted it to the marker')
+  })
+
+  // A known failure (known-failures.ts): the second peer's SaltpackDecrypt uses its per-user-key
+  // keyring without syncing it, so once the account's key rolled on another device it cannot decrypt
+  // a message to the newest key.
+  it('text encrypted to the second account decrypts on its peer', async function () {
+    // worst case (s): encryptForSecond 444, second 105, step 2 = 551
+    this.timeout(570_000)
+    const {ciphertext, marker} = await encryptForSecond('crypto-peer')
+    const bySecond = await readsBy(second, ['decrypt'], ciphertext, 'to-second')
+    check(bySecond === marker, "the second account's decrypt of the phone's ciphertext is not the marker")
+    await step('The second account decrypted it to the marker')
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
