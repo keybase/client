@@ -4,9 +4,9 @@
 // peer takes it, the phone keeps its stored secret and switches to the second account with no
 // prompt; gate/password.ts iosRotateDeps) and only then promoted to KB_SECOND_PASSWORD. The host's
 // main service is never switched: right after the change its login switch deadlocks in a logout hook,
-// so the test ends failed on purpose (a known failure, HOST_UNCHECKED) once everything else passed,
-// and the owner runs the --check after the release. The second account then signs out on the phone and signs back
-// in with the new password. The smoke account's password is never read or set.
+// so the test stops at the manual edge second-password-host-check once everything else passed, and
+// the owner runs the --check after the release. The second account then signs out on the phone and
+// signs back in with the new password. The smoke account's password is never read or set.
 //
 // Each password goes into a field only through submitSecret, with the secret-on-screen mark on while
 // a field may hold it (no step, a failure's screenshot withheld); nothing here reads a page source;
@@ -25,7 +25,7 @@ import {appAccount, asSecond, requireAppIsSmoke, restoreToSmoke} from '../gate/a
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {randomPW} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {HOST_UNCHECKED, iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
+import {iosRotateDeps, requirePhoneSecondPassword, requireRotatable} from '../gate/password'
 import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {emptySecretField, focusSecretField, submitSecret} from '../gate/secret-input'
@@ -263,6 +263,5 @@ describe('settings password', function () {
 
     // the host's stored secret for the second account is the owner's to check (gate/password.ts)
     await manualEdge('second-password-host-check')
-    throw new Error(HOST_UNCHECKED)
   })
 })

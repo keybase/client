@@ -31,10 +31,6 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // in a run without them, so keep the entry until the Go fix lands
     "crypto-roundtrip › crypto roundtrip › text encrypted to the second account decrypts on its peer":
       "the second peer's SaltpackDecrypt uses its per-user-key keyring without syncing it; after the account's key rolls on another device (the password flow), it cannot decrypt to the newest key (Go follow-up). Owner workaround: any chat send from the second peer syncs the keyring",
-    // PR 7 live (two runs, 08:11 and 08:40): the host's main service hung in a logout hook on the
-    // switch to the second account right after the phone's change; the flow no longer switches it
-    "settings-password › settings password › the second account password changed from the phone, then signed in with":
-      "the host's stored secret for the second account is not checked: right after this change, the host's login switch deadlocks in a logout hook (Go follow-up). The owner runs yarn test:e2e:accounts:second-password --check after the release",
   },
   render: {},
 }

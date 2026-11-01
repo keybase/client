@@ -3,7 +3,7 @@ import * as os from 'os'
 import * as path from 'path'
 import type {E2EEnv} from '../../accounts/env'
 import {rotateSecondPassword} from '../../accounts/second-password-lib'
-import {HOST_UNCHECKED, iosRotateDeps, PHONE_PENDING_NOTE, requirePhoneSecondPassword, requireRotatable, type PhoneSides} from './password'
+import {iosRotateDeps, PHONE_PENDING_NOTE, requirePhoneSecondPassword, requireRotatable, type PhoneSides} from './password'
 
 // jest's global (this project's types are mocha's and wdio's)
 declare const jest: {mock: (path: string, factory: () => unknown) => void}
@@ -98,11 +98,6 @@ describe('iosRotateDeps', () => {
       'phone stored secret second',
       'phone switch',
     ])
-  })
-
-  test('the owner action for the unchecked host names the --check command and no account', () => {
-    expect(HOST_UNCHECKED).toContain('yarn test:e2e:accounts:second-password --check')
-    expect(HOST_UNCHECKED).not.toMatch(/testuser/)
   })
 
   test('a peer that does not take the new password is not repaired either', async () => {

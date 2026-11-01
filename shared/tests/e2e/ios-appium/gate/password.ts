@@ -7,7 +7,8 @@
 // - repair: the phone only, signing the second account in with the new password from its login screen.
 // The host's main service is never switched here (controller ruling, PR 7 live): right after a change
 // made on the phone, the host's login switch deadlocks in a logout hook, so whether the host's stored
-// secret for the second account survived is left to the owner (HOST_UNCHECKED). A peer that does not
+// secret for the second account survived is left to the owner (the manual-only edge
+// second-password-host-check, manual-only.ts). A peer that does not
 // take the new password is thrown with the owner's command and never repaired. No message names an
 // account or carries a password.
 import {
@@ -64,9 +65,6 @@ const liveSides = (): PhoneSides => ({
 })
 
 const OWNER_CHECK = `${secondPasswordCommand} --check`
-
-// Why the iOS password flow ends failed, a known failure, after everything it can check passed.
-export const HOST_UNCHECKED = `the host's stored secret for the second account is not checked: right after this change, the host's login switch deadlocks in a logout hook (Go follow-up). The owner runs ${OWNER_CHECK} after the release`
 
 // A check failure the phone's repair cannot fix.
 class NotRepairable extends Error {}
