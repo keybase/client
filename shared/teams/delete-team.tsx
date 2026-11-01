@@ -8,7 +8,6 @@ import noop from 'lodash/noop'
 import {deleteTeam} from './actions'
 import {useLoadedTeam} from './team/use-loaded-team'
 import {useTeamsList} from './use-teams-list'
-import {useNavUpWhenDone} from './common/use-nav-up-when-done'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {teamID: T.Teams.TeamID}
@@ -38,7 +37,6 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsDeleteTeam(teamID))
-  useNavUpWhenDone(deleteWaiting, error)
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {

@@ -209,15 +209,18 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     if (!ref.isReady()) return
     const rs = ref.getRootState()
     const routeName = typeof nameOrPath === 'string' ? nameOrPath : nameOrPath.name
-    const found = NavTree.upToScreenTarget(rs, routeName)
+    const target = NavTree.upToScreenTarget(rs, routeName)
+    const rootScreen = rs?.routes?.[0]?.name
+    if (target?.closeAboveTabs && rs?.key && rootScreen) {
+      ref.dispatch({...StackActions.popTo(rootScreen), target: rs.key})
+    }
+    // another tab's root on a phone: no stack here can take it, so closing what was above is all
+    if (target && !target.found) return
+
+    const found = target?.found
     const stack = found?.stack ?? NavTree.activeStack(rs)
     const stackKey = stack?.key
     const targeted = (action: {type: string; payload?: object}) => (stackKey ? {...action, target: stackKey} : action)
-
-    const rootScreen = rs?.routes?.[0]?.name
-    if (found?.closeAboveTabs && rs?.key && rootScreen) {
-      ref.dispatch({...StackActions.popTo(rootScreen), target: rs.key})
-    }
 
     if (typeof nameOrPath === 'string') {
       ref.dispatch(targeted(StackActions.popTo(nameOrPath)))

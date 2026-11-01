@@ -343,8 +343,9 @@ describe('teams subteams', function () {
     //   pin 1, calls 2, clickUntil 10, page 21, polled 660 (30s of two reads of 315, overrun by one
     //   pair), step 2 = 771;
     // delete: header 8, menu 19, item 22, screen 11, text 11, three taps 3, the button enabled 6,
-    //   step 2, pin 1, calls 2, its tap 1, waited for 12, polled 345, step 2 = 445
-    // = 1086 + 771 + 445 = 2302
+    //   step 2, pin 1, calls 2, its tap 1, waited for 12, the Teams tab's root 21, polled 345,
+    //   step 2 = 466
+    // = 1086 + 771 + 466 = 2323
     this.timeout(2_400_000)
     const {team} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('rnd', madeNames)
@@ -403,6 +404,8 @@ describe('teams subteams', function () {
     seq = await currentCallSeq()
     await remove.click()
     await waitForUiCall('the subteam delete to go out', seq, 'keybase.1.teams.teamDelete')
+    // the app closes the confirm and the subteam's page itself
+    await expectScreen("the Teams tab's root after the delete", 'teamsRoot', () => true, 20_000)
     await expectHost('the subteam gone', async () => subteamExists(renamed), e => !e)
     await step('The subteam deleted')
   })

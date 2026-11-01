@@ -97,6 +97,8 @@ export const deleteTeam = (teamID: T.Teams.TeamID) => {
         params: {teamID},
         waitingKey: S.waitingKeyTeamsDeleteTeam(teamID),
       })
+      clearModals()
+      navUpToScreen('teamsRoot')
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('error:', error.message)

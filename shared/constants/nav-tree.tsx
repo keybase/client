@@ -133,18 +133,21 @@ export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | 
 }
 
 export type UpToScreenTarget = {
-  stack: Immutable<NonNullable<NavState>>
-  // where the nearest route of that name sits in `stack`
-  index: number
-  // `stack` is the tab's stack under screens above the tab bar, which must close first
+  // the stack holding the nearest route of that name, and where; none for another tab's root
+  found?: {stack: Immutable<NonNullable<NavState>>; index: number}
+  // the screens above the tab bar close first: `found` is under them, or nothing on a phone holds it
   closeAboveTabs: boolean
 }
 
-// The stack navUpToScreen acts on to go back to `name`. On a phone every screen but a tab's root
-// sits in the root stack above the tab bar, over a tab stack that registers only its root screen,
-// so with no modal up the nearest `name` is looked for in those screens first and then in the
-// selected tab's stack. With a modal up only the active stack is looked in. Undefined when neither
-// holds `name`.
+const tabRootNames = new Set<string>(Object.values(tabRoots).filter(Boolean))
+
+// What navUpToScreen acts on to go back to `name`. With no modal up, non-modal screens above the tab
+// bar are looked in first, then the selected tab's stack. Only a phone has such screens: it keeps
+// every screen but a tab's root in the root stack, over tab stacks that register only their root,
+// while tablet and desktop register only modals above the tabs. On a phone another tab's root is
+// in neither, so all it gets is the screens above the tabs closing, as a tablet or desktop pops
+// everything above that root. With a modal up only the active stack is looked in. Undefined when
+// there is nothing to act on.
 export const upToScreenTarget = (
   state: Immutable<NavState> | undefined,
   name: string
@@ -154,12 +157,15 @@ export const upToScreenTarget = (
   if (state && aboveTabs) {
     const i = lastIndexOf(state)
     if (i > 0) {
-      return {closeAboveTabs: false, index: i, stack: state}
+      return {closeAboveTabs: false, found: {index: i, stack: state}}
     }
   }
   const active = activeStack(state)
   const j = lastIndexOf(active)
-  return active && j >= 0 ? {closeAboveTabs: aboveTabs, index: j, stack: active} : undefined
+  if (active && j >= 0) {
+    return {closeAboveTabs: aboveTabs, found: {index: j, stack: active}}
+  }
+  return aboveTabs && tabRootNames.has(name) ? {closeAboveTabs: true} : undefined
 }
 
 // loggedIn/tab/stack items, plus whatever sits above the tab navigator.

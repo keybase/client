@@ -271,6 +271,19 @@ describe('navUpToScreen on a phone', () => {
     ])
   })
 
+  // A team page opened from the Chat tab, then left: teamsRoot is in no stack a phone shows.
+  test("going back to another tab's root closes the screens above the tabs and stops there", () => {
+    nav = installFakeNavigator({
+      modalRouteNames: [],
+      rootState: makeRootState({above: [{name: 'team', params: {teamID: 'T1'}}], tab: Tabs.chatTab}),
+    })
+
+    navUpToScreen('teamsRoot')
+
+    expect(nav.actions).toMatchObject([{payload: {name: 'loggedIn'}, target: 'root', type: 'POP_TO'}])
+    expect(NavTree.visiblePath(nav.getRootState()).map(r => r.name)).toEqual(['loggedIn', Tabs.chatTab, 'chatRoot'])
+  })
+
   test('a path in the root stack resets the root stack onto it with the new params', () => {
     nav = installFakeNavigator({
       modalRouteNames: [],
