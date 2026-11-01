@@ -74,7 +74,6 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.saltpack.saltpackSaveCiphertextToFile': cryptoTextOnly,
     'keybase.1.saltpack.saltpackSaveSignedMsgToFile': cryptoTextOnly,
     'keybase.1.saltpack.saltpackSignFile': cryptoTextOnly,
-    'keybase.1.saltpack.saltpackVerifyFile': cryptoTextOnly,
     'stellar.1.local.deleteWalletAccountLocal': walletRemove,
     'keybase.1.account.enterResetPipeline': resetStart,
     'keybase.1.config.startUpdateIfNeeded': `${desktopOnly}: the desktop app updater (desktop/renderer/remote-event-handler.desktop.tsx)`,
