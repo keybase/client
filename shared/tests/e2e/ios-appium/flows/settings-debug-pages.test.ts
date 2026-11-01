@@ -17,7 +17,7 @@ import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 
 // Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window.
 const MARKDOWN_SCREENS = 8
-const TYPOGRAPHY_SCREENS = 5
+const TYPOGRAPHY_SCREENS = 6
 
 type DebugPage = {
   // the More list row, the page's route and testID

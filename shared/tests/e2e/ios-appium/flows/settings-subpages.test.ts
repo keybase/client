@@ -6,13 +6,14 @@ import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen} from '../helpers/files'
+import {expectScreen, onScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs, goBack, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
 
 const TERMS = 'https://keybase.io/_/webview/terms'
 const WEB_VIEW = '-ios predicate string:type == "XCUIElementTypeWebView"'
+const SEND = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Send"'
 
 type Page = {
   // the More list row's label, and the row's own testID where its text is also a tab's label
@@ -64,11 +65,24 @@ describe('settings subpages', function () {
 
   for (const page of PAGES) {
     it(`the More list's ${page.row} row opens its page`, async function () {
-      // worst case (s): openPage 97, the Send 1, step 2 = 100
+      // worst case (s): openPage 97, the keyboard 5, the Send 6, step 2 = 110
       this.timeout(150_000)
       await openPage(page)
-      // the page's own Send, seen and never pressed: it sends the phone's logs
-      if (page.marker === T.SETTINGS_FEEDBACK) await labelledElement(BUTTONS, 'Send', "the Feedback page's Send")
+      // the page's own Send, seen on screen and never pressed: it sends the phone's logs. The page
+      // focuses its field (the keyboard can cover Send), and XCUITest can report the page's button
+      // visible=false, so its frame on screen stands for visible.
+      if (page.marker === T.SETTINGS_FEEDBACK) {
+        await hideKeyboard()
+        await waitFor(
+          "the Feedback page's Send",
+          async () => {
+            const on: Array<WebdriverIO.Element> = []
+            for (const e of await browser.$$(SEND).getElements()) if (await onScreen(e)) on.push(e)
+            return on.length === 1 ? true : undefined
+          },
+          {interval: 250, timeout: 5_000}
+        )
+      }
       await step(`The ${page.row} settings page`, {card: true})
     })
   }
