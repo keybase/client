@@ -17,7 +17,7 @@ import {sourceElements} from '../gate/page-source-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {BUTTONS, expectScreen, filesRowNamed, onScreen, onScreenID, press, visibleScreen} from './files'
-import {check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, labelledElement} from './menus'
+import {check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn} from './menus'
 import {waitFor} from './lifecycle'
 import {barButton, escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -26,8 +26,7 @@ import {barButton, escapeToTabs, goBack, tabTo} from './navigate'
 export const TEXTS =
   '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink" OR type == "XCUIElementTypeOther") AND label != "" AND visible == 1'
 // what a header's text action (Skip) can be drawn as: a native bar button, or a pressable text
-const HEADER_ACTIONS =
-  '-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink") AND label != "" AND visible == 1'
+const HEADER_ACTION_TYPES = ['XCUIElementTypeButton', 'XCUIElementTypeStaticText', 'XCUIElementTypeLink']
 
 // Runs a host read or setup `f`; an error it throws names the test accounts and the e2e team by role
 // only (a CLI or service error can quote a team's name; a subteam keeps its stamped part).
@@ -276,10 +275,11 @@ export const tapTeamsCard = async (label: string, what: string) => {
   await card.click()
 }
 
-// Taps the header's text action `label` (a native bar button, or a pressable text). Bound: 5s, the
-// tap 1.
+// Taps the header's text action `label` (a native bar button, or a pressable text), read off one page
+// source: an attribute call per element took 19s on the people search with its keyboard up (seen
+// live). Bound: 5s, overrun by one read 2, the tap 1.
 export const tapHeaderAction = async (label: string, what: string) => {
-  const action = await waitFor(what, async () => labelledElement(HEADER_ACTIONS, label, what, {forTap: true}), {interval: 250, timeout: 5_000})
+  const action = await waitFor(what, async () => elementLabelledIn(HEADER_ACTION_TYPES, label, what, {forTap: true}), {interval: 250, timeout: 5_000})
   await action.click()
 }
 

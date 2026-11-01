@@ -46,7 +46,7 @@ import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {buttonLabelled, BUTTONS, clickUntil, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter, visibleScreen} from '../helpers/files'
-import {waitFor} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
@@ -294,9 +294,9 @@ describe('teams members', function () {
 
   it('the second account added through the add-members wizard as a reader', async function () {
     // worst case (s): subteam 600, host 315 (its id), opened 204, pin 1, header 8, button 6, screen
-    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, row 16 (15, one drag 1), its tap 1,
-    // step 2, action 6, screen 11, the dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1,
-    // calls 2, button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1651
+    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, row 16 (15, one drag 1), the pick 10 (two
+    // taps 2, each with 3s of store reads, overrun by one 1), step 2, action 8, screen 11, the dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1,
+    // calls 2, button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1662
     this.timeout(1_700_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('wiz', madeNames)
@@ -315,7 +315,23 @@ describe('teams members', function () {
     // the search is a SearchFilter: its field is not in the tree
     await typeInFilter(secondUser, "the people search's field")
     const result = await filesRowNamed(secondUser, 'the second account among the results', {testID: T.TEAM_BUILDING_RESULT_ROW, timeout: 15_000})
-    await press(result.e, 'the result row')
+    // A tap on the row can land and pick nothing (seen live: the keyboard stayed up, the row stayed
+    // unpicked, so the header's Add never came): tap again until the people search holds one pick,
+    // read from its store, and never once it does
+    const picks = async () =>
+      jsEval<number>(`return kbModule('stores/team-building.tsx').TBstores.get('teams')?.getState().teamSoFar.size ?? -1`)
+    for (let i = 0; ; i++) {
+      await press(result.e, 'the result row')
+      const took = await waitFor('the pick', async () => ((await picks()) === 1 ? true : undefined), {interval: 250, timeout: 3_000}).then(
+        () => true,
+        (e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          return false
+        }
+      )
+      if (took) break
+      if (i >= 1) throw new Error('two taps on the second account among the results picked nothing')
+    }
     // the team builder's results can hold people who are not test accounts
     await step('The second account picked', {screenshot: false})
     await tapHeaderAction('Add', "the people search's Add")
@@ -388,12 +404,12 @@ describe('teams members', function () {
     // setup: subteam 600, host 315 (its id), two seeds 1020, add 255, two host reads 510, opened 250
     //   (60s of tries, overrun by one: team 109, tab 24, two rows of 11, tab 24, a row 11) = 2950;
     // add: member page 53, the row expanded 108, its button 6 and tap 1, screen 11, two channels of
-    //   part 6 and a press 2 = 16, the subteam's channels 255, step 2, pin 1, calls 2, action 6,
-    //   waited for 12, the call log 2, two polled 570, step 2 = 1045;
+    //   part 6 and a press 2 = 16, the subteam's channels 255, step 2, pin 1, calls 2, action 8,
+    //   waited for 12, the call log 2, two polled 570, step 2 = 1047;
     // remove: back 44, tab 24, row 31 and its tap 1, screen 11, the page's marker 10, row 31, the check
     //   and its popup 21, its button 6 and tap 1, screen 11, text 6, step 2, pin 1, calls 2,
     //   button 6, waited for 12, polled 285, two host reads 510, step 2 = 1017
-    // = 2950 + 1045 + 1017 = 5012
+    // = 2950 + 1047 + 1017 = 5014
     this.timeout(5_100_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const runId = e2eRunId()

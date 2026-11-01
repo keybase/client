@@ -117,8 +117,8 @@ describe('teams subteams', function () {
   it('a subteam made with the wizard from the e2e team', async function () {
     // worst case (s): host 315 (the e2e team's id), team 109, tab 24, its read 1, button 6, screen
     // 11, fill 26, step 2, the Continue enabled 11 (10, one read 1), clickUntil 10, screen 11, step 2,
-    // action 6, screen 11, action 6, screen 11, text 6, step 2, calls 2, action 6, waited for 12,
-    // polled 345, host 315 (its id), page 21, step 2 = 1273
+    // action 8, screen 11, action 8, screen 11, text 6, step 2, calls 2, action 8, waited for 12,
+    // polled 345, host 315 (its id), page 21, step 2 = 1279
     this.timeout(1_300_000)
     const {team} = loadE2EAccounts()
     const name = `${team}.${freshSubteamPart('sub')}`
