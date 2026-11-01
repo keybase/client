@@ -5,9 +5,11 @@ import {waitFor} from './lifecycle'
 import {innermost, sheetItemLabels} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 
-// The open menu sheet. Not by `visible`: XCUITest reports a sheet (and its items) visible=false now
-// and then while it is up, and a closed sheet leaves the tree.
-export const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet"')
+// The open menu sheet: one reported visible, or one whose top is on the screen's upper part. XCUITest
+// reports a sheet (and its items) visible=false now and then while it is up, so `visible` alone misses
+// it; a closed message menu's sheet can stay in the tree, moved below the screen, so the tree alone
+// would never see it close. The gate's phone (iPhoneTest) is 874pt tall.
+export const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND (visible == 1 OR rect.y < 760)')
 
 // An item in the open menu sheet; its rows read ", <item>" (an icon, then the text).
 const menuItemPredicate = (label: string) =>
@@ -84,7 +86,7 @@ const sheetItem = async (label: string) => {
   const shown = await browser.$$(`${menuItemPredicate(label)} AND visible == 1`).getElements()
   if (shown.length) return {e: shown[0]!, visible: true}
   const sheets: Array<Rect> = []
-  for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
+  for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet" AND (visible == 1 OR rect.y < 760)').getElements()) {
     const r = await rectOf(sh)
     if (r) sheets.push(r)
   }

@@ -144,10 +144,11 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
     const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
     const candidates = pick(all, e => e.attrs['visible'] === 'true')
-    const hits = candidates
+    // the named row is taken wherever it is drawn on screen, reported visible or not (a modal's row
+    // can read invisible while its neighbours read visible); off screen it only says which way to drag
+    const hits = all
       .filter(e => labelParts(e.attrs['label'] ?? '').includes(name))
       .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
-      // a row of another list is taken only on screen: one XCUITest reports invisible may be off it
       .filter(r => inside(r, area ?? screen))
     const inner = innermost(hits)
     if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
