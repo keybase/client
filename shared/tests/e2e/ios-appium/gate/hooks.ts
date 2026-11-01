@@ -26,7 +26,7 @@ import {
 } from './attempt.ts'
 import {requireAppIsSmoke, restoreToSmoke} from './accounts.ts'
 import {finishAttempt} from './finish.ts'
-import {requireGateNotPoisoned} from './poison-lib.ts'
+import {poisonCheckedFirst, requireGateNotPoisoned} from './poison-lib.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -159,10 +159,12 @@ const settledFirst = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
     return fn.call(this)
   }
 
-const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, settle = false) =>
+// A flow's before and beforeEach hooks refuse first while the gate is poisoned (poison-lib.ts): they
+// run ahead of the root beforeEach's check in the test body, and set the phone up for their file.
+const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, first?: 'settle' | 'poison') =>
   function (a: string | Mocha.AsyncFunc, b?: Mocha.AsyncFunc) {
     insideDescribe('a hook')
-    const wrap = (fn: Mocha.AsyncFunc) => kept(settle ? settledFirst(fn) : fn)
+    const wrap = (fn: Mocha.AsyncFunc) => kept(first === 'settle' ? settledFirst(fn) : first === 'poison' ? poisonCheckedFirst(fn) : fn)
     if (typeof a === 'function') return h(wrap(a))
     if (!b) throw new Error(`the hook "${a}" has no function`)
     return h(a, wrap(b))
@@ -195,9 +197,9 @@ const runLeftCleanup = async (token: AttemptToken, steps: Array<() => unknown>):
   return errors.length ? `the cleanup its body left, run once the gate ended the body, failed: ${errors.join('; ')}` : undefined
 }
 
-globalThis.before = declareHook(plain.before)
-globalThis.beforeEach = declareHook(plain.beforeEach)
-globalThis.afterEach = declareHook(plain.afterEach, true)
+globalThis.before = declareHook(plain.before, 'poison')
+globalThis.beforeEach = declareHook(plain.beforeEach, 'poison')
+globalThis.afterEach = declareHook(plain.afterEach, 'settle')
 globalThis.after = declareHook(plain.after)
 
 const flowFileOf = (test: Mocha.Test) => {
