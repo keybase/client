@@ -479,9 +479,13 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
       // chat notifications off first, so the delete is announced nowhere
       await actor.cli(['git', 'settings', '--disable-chat', c.name, c.team ?? ''], 60_000)
       await call(actor, 'keybase.1.git.deleteTeamRepo', {notifyTeam: false, repoName: c.name, teamName: {parts: (c.team ?? '').split('.')}})
-      // read back: a repo still listed holds its team back as a failed delete does
-      if ((await teamRepos(actor)).some(r => r.name === c.name && r.team === c.team)) throw new Error('still listed after its delete')
-      return
+      // read back: a repo still listed holds its team back as a failed delete does. The listing can
+      // lag the delete for a moment, so it is read up to REPO_GONE_READS times, REPO_GONE_PAUSE_MS apart.
+      for (let read = 1; ; read++) {
+        if (!(await teamRepos(actor)).some(r => r.name === c.name && r.team === c.team)) return
+        if (read >= REPO_GONE_READS) throw new Error('still listed after its delete')
+        await sleep(REPO_GONE_PAUSE_MS)
+      }
     case 'device':
       await retireProvisioned(actor, c, env)
       return
@@ -491,6 +495,10 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
       return
   }
 }
+
+// How a team repo's delete is read back: the listing, up to five times 2s apart.
+const REPO_GONE_READS = 5
+const REPO_GONE_PAUSE_MS = 2_000
 
 // Runs the CLI under `expect` (a pseudo-terminal), which types `answer` and Enter once `prompt`
 // appears. Exit code 2 means the prompt never came.
