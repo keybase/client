@@ -22,6 +22,7 @@ import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
+import {pasteboardHolds} from './pasteboard-lib.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
@@ -71,10 +72,7 @@ export const setPasteboard = async (text: string) => {
   })
   await waitFor(
     'the pasteboard to hold the text',
-    async () => {
-      const got = await browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'})
-      return Buffer.from(got, 'base64').toString('utf8') === text ? true : undefined
-    },
+    async () => pasteboardHolds(async () => browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}), text),
     {interval: 500, timeout: 10_000}
   )
 }
