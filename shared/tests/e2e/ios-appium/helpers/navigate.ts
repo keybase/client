@@ -295,6 +295,41 @@ async function dismissStackedModal(): Promise<boolean> {
   return false
 }
 
+// A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no
+// DISMISS_PRED match, and the stacked-modal fallback wants its title on the bar. While the app's modal
+// stack is not empty, this clicks a navigation bar's Cancel or Close, else its Back (never Save or
+// Done): a visible one, else the lowest (a modal sheet's bar sits below a page's). It counts only when
+// the app's top route then changes. Bound: two reads 2, the click 1, the change 3.
+const topRouteKey = async () =>
+  jsEval<string | null>(`const r = kbModule('constants/router.tsx'); return r.getModalStack().length ? (r.getVisibleScreen() || {}).key || null : null`)
+async function dismissModalByBar(): Promise<boolean> {
+  const before = await topRouteKey()
+  if (!before) return false
+  const pick = async (labels: ReadonlyArray<string>) => {
+    const found: Array<{e: WebdriverIO.Element; visible: boolean; y: number}> = []
+    for (const label of labels) {
+      for (const e of await browser
+        .$$(`-ios class chain:**/XCUIElementTypeNavigationBar/XCUIElementTypeButton[\`label == "${label}"\`]`)
+        .getElements()) {
+        const y = (await e.getLocation().catch(() => undefined))?.y ?? -1
+        found.push({e, visible: (await e.getAttribute('visible').catch(() => null)) === 'true', y})
+      }
+    }
+    return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
+  }
+  const button = (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+  if (!button) return false
+  console.log('  escapeToTabs: dismissing a modal by its bar button')
+  await button.click().catch(() => {})
+  return waitFor('the modal to move', async () => ((await topRouteKey()) !== before ? true : undefined), {interval: 150, timeout: 3000}).then(
+    () => true,
+    (e: unknown) => {
+      if (isAttemptOver(e)) throw e
+      return false
+    }
+  )
+}
+
 export async function escapeToTabs(): Promise<void> {
   // A flow may end with the keyboard up (chat input, crypto, feedback); it can
   // cover tappable UI on the next test, so dismiss it before resetting.
@@ -346,6 +381,8 @@ export async function escapeToTabs(): Promise<void> {
       if ((await atTabs()) || !(await ctrl.isExisting().catch(() => false))) continue
       if (debug) console.log(`  escapeToTabs[${i}]: dismiss no-oped, falling through to back/pop`)
     } else if (await dismissStackedModal()) {
+      continue
+    } else if (await dismissModalByBar()) {
       continue
     } else if (debug) {
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
