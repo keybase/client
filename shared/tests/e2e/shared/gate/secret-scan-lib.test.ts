@@ -1,5 +1,5 @@
 import * as zlib from 'zlib'
-import {holdsSaltpackArmor, holdsSecret, isZip, secretLedger, secretScanLine, zipEntries} from './secret-scan-lib'
+import {holdsSecretOrArmor, isZip, secretLedger, secretScanLine, zipEntries} from './secret-scan-lib'
 
 const secret = 'e2e-abcdefghijklmnopqrstuvwx'
 const paperKey = 'abandon ability able about above absent absorb abstract absurd abuse access accident acid'
@@ -32,8 +32,8 @@ const zipOf = (name: string, body: Buffer, deflate: boolean) => {
 }
 
 test('finds a secret as plain text, in an aria snapshot line', () => {
-  expect(holdsSecret(Buffer.from(`- textbox "Password": ${secret}\n`), [secret])).toBe(true)
-  expect(holdsSecret(Buffer.from('- textbox "Password"\n'), [secret])).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from(`- textbox "Password": ${secret}\n`), [secret], false)).toBe(true)
+  expect(holdsSecretOrArmor(Buffer.from('- textbox "Password"\n'), [secret], false)).toBe(false)
 })
 
 test('finds saltpack armor of any message type, plain, in a zip and in a base64 run', () => {
@@ -45,24 +45,24 @@ test('finds saltpack armor of any message type, plain, in a zip and in a base64 
     'BEGIN SALTPACK SIGNCRYPTED MESSAGE.',
   ]) {
     const armor = `${header} kiOUtMhcc4NXXRb XMxIeCbf5rCmoht.`
-    expect(holdsSaltpackArmor(Buffer.from(`log: ${armor}`))).toBe(true)
-    expect(holdsSaltpackArmor(zipOf('trace.trace', Buffer.from(armor), true))).toBe(true)
-    expect(holdsSaltpackArmor(Buffer.from(`base64,${Buffer.from(`${'x'.repeat(400)} ${armor}`).toString('base64')}`))).toBe(true)
+    expect(holdsSecretOrArmor(Buffer.from(`log: ${armor}`), [], true)).toBe(true)
+    expect(holdsSecretOrArmor(zipOf('trace.trace', Buffer.from(armor), true), [], true)).toBe(true)
+    expect(holdsSecretOrArmor(Buffer.from(`base64,${Buffer.from(`${'x'.repeat(400)} ${armor}`).toString('base64')}`), [], true)).toBe(true)
   }
   for (const clean of ['the crypto output: <saltpack message>', 'BEGIN KEYBASE', 'saltpack encrypt', 'BEGIN KEYBASE SALTPACK']) {
-    expect(holdsSaltpackArmor(Buffer.from(clean))).toBe(false)
+    expect(holdsSecretOrArmor(Buffer.from(clean), [], true)).toBe(false)
   }
 })
 
 test('finds a paper key, and ignores empty or short secrets', () => {
-  expect(holdsSecret(Buffer.from(`key: ${paperKey}`), ['', paperKey])).toBe(true)
-  expect(holdsSecret(Buffer.from('abc'), ['', 'abc'])).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from(`key: ${paperKey}`), ['', paperKey], false)).toBe(true)
+  expect(holdsSecretOrArmor(Buffer.from('abc'), ['', 'abc'], false)).toBe(false)
 })
 
 test("finds a paper key's device name under 8 characters, and no other short secret", () => {
-  expect(holdsSecret(Buffer.from('Paper Key (abc def...)'), ['abc def'])).toBe(true)
-  expect(holdsSecret(Buffer.from('id abc-def'), ['abc-def'])).toBe(false)
-  expect(holdsSecret(Buffer.from('Abc def'), ['Abc def'])).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from('Paper Key (abc def...)'), ['abc def'], false)).toBe(true)
+  expect(holdsSecretOrArmor(Buffer.from('id abc-def'), ['abc-def'], false)).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from('Abc def'), ['Abc def'], false)).toBe(false)
 })
 
 test('finds a secret inside a stored or deflated zip entry (a trace)', () => {
@@ -70,8 +70,8 @@ test('finds a secret inside a stored or deflated zip entry (a trace)', () => {
     const zip = zipOf('trace.trace', Buffer.from(`{"value":"${secret}"}`), deflate)
     expect(isZip(zip)).toBe(true)
     expect(zipEntries(zip).map(e => Buffer.from(e).toString())).toEqual([`{"value":"${secret}"}`])
-    expect(holdsSecret(zip, [secret])).toBe(true)
-    expect(holdsSecret(zipOf('trace.trace', Buffer.from('{"value":""}'), deflate), [secret])).toBe(false)
+    expect(holdsSecretOrArmor(zip, [secret], false)).toBe(true)
+    expect(holdsSecretOrArmor(zipOf('trace.trace', Buffer.from('{"value":""}'), deflate), [secret], false)).toBe(false)
   }
 })
 
@@ -79,9 +79,9 @@ test('finds a secret in a zip embedded as a base64 data URL (the HTML report)', 
   const padding = 'x'.repeat(400)
   const zip = zipOf('data/abc.md', Buffer.from(`${padding} textbox "Password": ${secret}`), true)
   const html = Buffer.from(`<script>window.playwrightReportBase64 = "data:application/zip;base64,${zip.toString('base64')}";</script>`)
-  expect(holdsSecret(html, [secret])).toBe(true)
+  expect(holdsSecretOrArmor(html, [secret], false)).toBe(true)
   const clean = zipOf('data/abc.md', Buffer.from(`${padding} textbox "Password"`), true)
-  expect(holdsSecret(Buffer.from(`base64,${clean.toString('base64')}`), [secret])).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from(`base64,${clean.toString('base64')}`), [secret], false)).toBe(false)
 })
 
 test('the verdict names paths, never a secret', () => {
@@ -96,4 +96,15 @@ test('the ledger keeps every value it was handed, not only the latest', () => {
   now = ['second-secret-value', '']
   ledger.sample()
   expect(ledger.all()).toEqual(['first-secret-value', 'second-secret-value'])
+})
+
+test('one walk finds a secret or, with armor on, a saltpack armor; armor off leaves armor alone', () => {
+  const secret = 'e2e-secret-value-1234'
+  const armor = 'BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb.'
+  const inZip = zipOf('trace.trace', Buffer.from(`${secret} and ${armor}`), true)
+  expect(holdsSecretOrArmor(inZip, [secret], true)).toBe(true)
+  expect(holdsSecretOrArmor(zipOf('trace.trace', Buffer.from(armor), true), [secret], true)).toBe(true)
+  expect(holdsSecretOrArmor(zipOf('trace.trace', Buffer.from(armor), true), [secret], false)).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from(armor), [], false)).toBe(false)
+  expect(holdsSecretOrArmor(Buffer.from('clean'), [secret], true)).toBe(false)
 })

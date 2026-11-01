@@ -67,20 +67,18 @@ const holdsWhere = (data: Uint8Array, found: (d: Uint8Array) => boolean, depth: 
   return false
 }
 
-// Whether `data` holds any of `secrets` (empty ones ignored), looking into zips and base64 runs.
-export const holdsSecret = (data: Uint8Array, secrets: ReadonlyArray<string>, depth = 0): boolean => {
-  const needles = secrets.filter(scannable).map(s => Buffer.from(s, 'utf8'))
-  if (!needles.length) return false
-  return holdsWhere(data, d => needles.some(n => contains(d, n)), depth)
-}
-
 // A saltpack armor header of any message type ("BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.", "BEGIN
 // SALTPACK DETACHED SIGNATURE."): a saltpack message is kept out of every artifact by construction,
 // and this is the backstop for one that got in anyway.
 const saltpackArmor = /BEGIN (?:KEYBASE )?SALTPACK [A-Z]+(?: [A-Z]+)*\./
 
-// Whether `data` holds a saltpack message's armor, looking into zips and base64 runs.
-export const holdsSaltpackArmor = (data: Uint8Array): boolean => holdsWhere(data, d => saltpackArmor.test(latin1(d)), 0)
+// Whether `data` holds any of `secrets` (empty ones ignored) or, with `armor`, a saltpack message's
+// armor, looking into zips and base64 runs in one walk (the decoding is the slow part of a scan).
+export const holdsSecretOrArmor = (data: Uint8Array, secrets: ReadonlyArray<string>, armor: boolean): boolean => {
+  const needles = secrets.filter(scannable).map(s => Buffer.from(s, 'utf8'))
+  if (!needles.length && !armor) return false
+  return holdsWhere(data, d => needles.some(n => contains(d, n)) || (armor && saltpackArmor.test(latin1(d))), 0)
+}
 
 // Every value `read` has returned, across samples: a password rotated mid-run was typed (and could
 // sit in an artifact) under its old value, and one written as KB_SECOND_PASSWORD_NEXT may never be

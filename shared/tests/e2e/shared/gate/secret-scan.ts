@@ -5,7 +5,7 @@ import * as path from 'path'
 import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
 import {runRecord} from '../../accounts/run-record.ts'
 import {parseRunId} from '../../accounts/run-id.ts'
-import {holdsSaltpackArmor, holdsSecret, secretLedger, secretScanLine} from './secret-scan-lib.ts'
+import {holdsSecretOrArmor, secretLedger, secretScanLine} from './secret-scan-lib.ts'
 
 const passwordVars = ['KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
 
@@ -88,10 +88,7 @@ export const scanAndPurge = (
   opts: {armor?: boolean} = {}
 ): SecretScan => {
   const files = dirs.flatMap(filesUnder)
-  const hits = files.filter(f => {
-    const data = fs.readFileSync(f)
-    return holdsSecret(data, secrets) || (!!opts.armor && holdsSaltpackArmor(data))
-  })
+  const hits = files.filter(f => holdsSecretOrArmor(fs.readFileSync(f), secrets, !!opts.armor))
   for (const f of hits) fs.rmSync(f, {force: true})
   return {hits, line: secretScanLine(hits, files.length), scanned: files.length}
 }
