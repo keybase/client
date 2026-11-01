@@ -96,7 +96,7 @@ describe('chat data', function () {
   //   cli       a host read polled 80 (20, overrun by one read's 60);  conv  the host's read of a
   //             conversation polled 95 (20, overrun by one read: whoami 15 and the call 60)
   //   calls     the recorder's call log, one read 2;  waited for  10
-  //   second    asSecond 250 (the switch 90, the restore 160);  restore  restoreToSmoke 160
+  //   second    asSecond 425 (the switch 150, restoreToSmoke 275);  restore  restoreToSmoke 275
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   step      2 (its 1s settle and the attach)
 
@@ -136,9 +136,9 @@ describe('chat data', function () {
 
   // Back on the smoke account with no menu open and no watch left in the app, after a timeout too.
   // Mocha runs this after the describes' own afterEach. Worst case (s): close 5, keyboard 5, the
-  // watch 2, restore 160 = 172.
+  // watch 2, restore 275 = 287.
   afterEach(async function () {
-    this.timeout(190_000)
+    this.timeout(300_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, stopAccountChangeWatch, restoreToSmoke])
   })
 
@@ -565,9 +565,9 @@ describe('chat data', function () {
 
   describe('account switch', () => {
     // Back on smoke with an empty e2e-scratch composer: the typing saved a draft there for smoke.
-    // After a timeout too. Worst case (s): the watch 2, restore 160, open 100, clear 5 = 267.
+    // After a timeout too. Worst case (s): the watch 2, restore 275, open 100, clear 5 = 382.
     afterEach(async function () {
-      this.timeout(290_000)
+      this.timeout(400_000)
       await withCleanup(stopAccountChangeWatch, [
         restoreToSmoke,
         async () => {
@@ -635,9 +635,9 @@ describe('chat data', function () {
     })
 
     it('a thread opened after switching accounts and back gets new messages for the account signed in', async function () {
-      // worst case (s): open 100, second 250 (open 100, the screen 2, peer 70, send 60, row 20, step 2
-      // inside it: 254), open 100, row 20, send 60, row 20, the read 1, step 2 = 807
-      this.timeout(830_000)
+      // worst case (s): open 100, second 425 (open 100, the screen 2, peer 70, send 60, row 20, step 2
+      // inside it: 254), open 100, row 20, send 60, row 20, the read 1, step 2 = 982
+      this.timeout(1_000_000)
       await openScratch()
       const scratch = data.convIDs[E2E_CHANNELS.scratch]
 
@@ -703,9 +703,9 @@ describe('chat data', function () {
     let created: Array<string> = []
 
     // Deletes the channels from the host, then puts the app back on smoke, each whether the one
-    // before threw; after a timeout too. Worst case (s), one channel: delete 120, restore 160 = 280.
+    // before threw; after a timeout too. Worst case (s), one channel: delete 120, restore 275 = 395.
     afterEach(async function () {
-      this.timeout(300_000)
+      this.timeout(410_000)
       const channels = created
       created = []
       await withCleanup(
@@ -718,8 +718,8 @@ describe('chat data', function () {
 
     it("a phone's open thread stays open when the account leaves the channel on another device", async function () {
       // worst case (s): channel 240, peer 70, the first send 90 (retried 30, then one send 60), second
-      // 250, its body (open 100, the inbox 15, step 2, leave 60, the 5s watch 6, step 2) 185 = 835
-      this.timeout(880_000)
+      // 425, its body (open 100, the inbox 15, step 2, leave 60, the 5s watch 6, step 2) 185 = 1010
+      this.timeout(1_030_000)
       const {convID, topicName} = await createThrowawayChannel('dsel')
       created.push(topicName)
       // the peer's inbox may not list a channel this new yet: its first send waits until it does

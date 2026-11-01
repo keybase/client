@@ -80,7 +80,7 @@ describe('chat composer', function () {
   //   relaunch  relaunchApp 200 (two checkpoints and the new runtime's 120), signed in 90
   //   cli       a host read polled 80 (20, overrun by one read's 60)
   //   calls     the recorder's call log, one read 2
-  //   second    asSecond 250 (the switch 90, the restore 160)
+  //   second    asSecond 425 (the switch 150, restoreToSmoke 275)
   //   channel   createThrowawayChannel 240 (four chat api calls);  role  setMinWriterRoleFromCli 135
   //             (the confirmed set 60, its read polled 15, overrun by one read's 60);  role read 60;
   //             delete  deleteThrowawayChannel 120
@@ -638,17 +638,17 @@ describe('chat composer', function () {
   // The second account is a writer; e2e-readonly takes posts from admins only (seeded so).
   describe('read-only channel', () => {
     // Back on the smoke account with no menu open, after a timeout too (asSecond's own restore runs
-    // in the body). Worst case (s): close 5, keyboard 5, the restore 160 = 170.
+    // in the body). Worst case (s): close 5, keyboard 5, the restore 275 = 285.
     afterEach(async function () {
-      this.timeout(180_000)
+      this.timeout(300_000)
       await withCleanup(closeMessageMenu, [hideKeyboard, restoreToSmoke])
     })
 
     it('as a writer: every way to post is hidden, typing takes nothing, and the menu offers no reply', async function () {
-      // worst case (s): role read 60, second 250, open 100, reset 30, the buttons 5, type 15, the
+      // worst case (s): role read 60, second 425, open 100, reset 30, the buttons 5, type 15, the
       // send button 5, clear 5, step 2, open 100, row 15, the buttons 5, the typing 15, the pause 1,
-      // the reads 2, keyboard 5, step 2, menu 15, the items 15, step 2, close 5 = 654
-      this.timeout(660_000)
+      // the reads 2, keyboard 5, step 2, menu 15, the items 15, step 2, close 5 = 829
+      this.timeout(840_000)
       const role = await minWriterRoleFromCli(E2E_CHANNELS.readonly)
       check(/\badmin\b/i.test(role), `e2e-readonly's minimum writer role is not admin: ${role}`)
       await asSecond(async () => {
@@ -705,9 +705,9 @@ describe('chat composer', function () {
 
     // Clears each channel's role, then deletes it from the host, then puts the app back on smoke,
     // each whether the one before threw; after a timeout too. Worst case (s), one channel: role 135,
-    // delete 120, close 5, keyboard 5, the restore 160 = 425.
+    // delete 120, close 5, keyboard 5, the restore 275 = 540.
     afterEach(async function () {
-      this.timeout(450_000)
+      this.timeout(560_000)
       const channels = created
       created = []
       await withCleanup(
@@ -726,11 +726,11 @@ describe('chat composer', function () {
     })
 
     it('cancelling the edit empties the composer and leaves the draft, which comes back once it can post', async function () {
-      // worst case (s): channel 240, second 250, open 100, the emoji button 10, sent 25, type 15, the
+      // worst case (s): channel 240, second 425, open 100, the emoji button 10, sent 25, type 15, the
       // pause 1, edit 50, the typing 5, composer 5, step 2, role 135, the button gone 20, step 2,
       // keyboard 5, the edit bar 5, cancel 11, composer 5, cli 80, menu 15, the items 15, close 5,
-      // step 2, role 135, the button 20, composer 10, step 2 = 1175
-      this.timeout(1200_000)
+      // step 2, role 135, the button 20, composer 10, step 2 = 1350
+      this.timeout(1375_000)
       const {convID, topicName} = await createThrowawayChannel(editLabel)
       created.push(topicName)
       await asSecond(async () => {
@@ -774,9 +774,9 @@ describe('chat composer', function () {
     })
 
     it('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async function () {
-      // worst case (s): channel 240, second 250, open 100, the emoji button 10, role 135, the button
-      // gone 20, step 2, role 135, the button 20, the read 1, step 2, sent 25, cli 80, step 2 = 1022
-      this.timeout(1040_000)
+      // worst case (s): channel 240, second 425, open 100, the emoji button 10, role 135, the button
+      // gone 20, step 2, role 135, the button 20, the read 1, step 2, sent 25, cli 80, step 2 = 1197
+      this.timeout(1210_000)
       const {convID, topicName} = await createThrowawayChannel(clearLabel)
       created.push(topicName)
       await asSecond(async () => {

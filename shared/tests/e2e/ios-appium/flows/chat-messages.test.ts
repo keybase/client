@@ -89,7 +89,7 @@ describe('chat messages', function () {
   //             (30, overrun by one send's 60);  peer pin  the second peer's read 65 (found 45, call 20)
   //   app       one ask of the phone's own service 25 (20, the pause and resume);  polled 45
   //   calls     the recorder's call log, one read 2;  waited for  10
-  //   second    asSecond 250 (the switch 90, the restore 160);  restore  restoreToSmoke 160
+  //   second    asSecond 425 (the switch 150, restoreToSmoke 275);  restore  restoreToSmoke 275
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   relaunch  relaunchApp 200;  signed in  90
   //   paste     setPasteboard 50, the edit menu's Paste 20 and its tap 1 = 71;  its length polled 20
@@ -257,11 +257,11 @@ describe('chat messages', function () {
 
   // Back on smoke with nothing a test changed left behind, after a timeout too. The host's restores
   // go first; the phone's need the app back on smoke. Worst case (s): close 5, keyboard 5, the
-  // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 160, the
+  // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 275, the
   // skin tone 85 (the account 10, three asks), scratch 161 (the account 10, open 100, the edit bar 5 and
-  // its wait 5, the load 15, the ids 1, one cancel 25) and its composer 5 = 786.
+  // its wait 5, the load 15, the ids 1, one cancel 25) and its composer 5 = 901.
   afterEach(async function () {
-    this.timeout(800_000)
+    this.timeout(920_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, deleteChannels, restoreToSmoke, restoreSkinTone, resetScratch])
   })
 
@@ -598,12 +598,12 @@ describe('chat messages', function () {
   // shown the pin.
   it('a writer dismisses a pinned banner for itself, and it stays dismissed through a relaunch', async function () {
     // worst case (s): channel 240, peer 70, peer send 90, open 100, sent 25, id 10, keyboard 5, menu 35,
-    // the banner 10, its text 5, pin 95, peer pin 65, step 2; asSecond 250 and in it: open 100, the
+    // the banner 10, its text 5, pin 95, peer pin 65, step 2; asSecond 425 and in it: open 100, the
     // banner 10, its text 5, the unpin 1, the dismiss 5, app 25, step 2, the seq 2, the tap 1, the
     // banner gone 10, calls 10, app polled 45, peer pin 65, step 2, relaunch 200, signed in 90, open
     // 100, row 30, the banner 1, app 25, step 2 = 731; then open 100, the banner 10, its text 5, pin
-    // 75, step 2 = 1925
-    this.timeout(2_000_000)
+    // 75, step 2 = 2100
+    this.timeout(2_150_000)
     const {convID} = await newChannel('pin')
     await sendWithRetry(await sender(), convID, e2eMarker('msg-pin-hello'))
     await openConversation(convID)
