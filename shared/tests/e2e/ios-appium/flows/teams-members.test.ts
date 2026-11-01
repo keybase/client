@@ -260,7 +260,7 @@ describe('teams members', function () {
     await openMenuFrom("the profile's menu", async () => pressTestID(T.PROFILE_ACTIONS_MENU, "the profile's menu button"))
     await chooseMenuItem('Add to team...')
     await expectScreen("the profile's Add to team", 'profileAddToTeam', onSecond)
-    const row = await filesRowNamed(name, "the subteam's row among the teams", {testID: T.PROFILE_ADD_TO_TEAM_ROW})
+    const row = await filesRowNamed(name, "the subteam's row among the teams", {inTree: true, testID: T.PROFILE_ADD_TO_TEAM_ROW})
     await press(row.e, 'the row')
 
     // The picked rows, by the label parts each reads; the list is not virtualized, so a row scrolled

@@ -120,8 +120,8 @@ export type DrawnRow = {e: WebdriverIO.Element; rect: Rect}
 // The element with `testID` drawn (a Files row: wholly inside the list, rowArea) whose label holds `name` as a part
 // (the innermost of nested matches), under `within` when given, or undefined when none is; and what
 // every such element reads, to tell a drag that moved the list from one that did not. Throws when more
-// than one matches.
-const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Element) => {
+// than one matches. `inTree` as filesRowNamed's.
+const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Element, inTree = false) => {
   const files = isFilesRow(testID)
   const area = files ? await rowArea(within) : undefined
   // another list's rows go by `visible`, unless XCUITest reports none of them visible (a modal it
@@ -148,8 +148,9 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     const signature = candidates.map(e => e.attrs['label'] ?? '').join('\n')
     if (!inner.length) {
       // the Files list, which is not virtualized, keeps its off-screen rows in the tree: which way the
-      // row is. Another list's off-screen element can be a covered screen's, so it steers nothing.
-      const off = files ? all.find(e => labelParts(e.attrs['label'] ?? '').includes(name)) : undefined
+      // row is. Another list's off-screen element can be a covered screen's, so it steers nothing
+      // unless the caller says only this list draws the testID and keeps every row (inTree).
+      const off = files || inTree ? all.find(e => labelParts(e.attrs['label'] ?? '').includes(name)) : undefined
       return {offscreen: off ? Number(off.attrs['y']) - height / 2 : undefined, row: undefined, signature}
     }
     const r = hits[inner[0]!]!
@@ -184,11 +185,19 @@ export const drag = async (fromY: number, toY: number) => {
 // so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one try's drag 1
 // (a list other than Files drags twice a try and stops a second sooner, so the same), or 4 toward a
 // row the tree holds off screen. A row found right after a drag is read again after an 0.8s settle
-// (inside `timeout`).
+// (inside `timeout`). `inTree` is for another list that is not virtualized and that no screen under it
+// draws `testID` in (the profile's Add to team): its row off screen steers the drags as a Files row
+// does, instead of blind drags that can carry a hundred-row list past it. A tap still takes only a
+// row drawn on screen.
 export const filesRowNamed = async (
   name: string,
   what: string,
-  {testID = T.FILES_ROW, timeout = 30_000, within}: {testID?: string; timeout?: number; within?: WebdriverIO.Element} = {}
+  {
+    inTree = false,
+    testID = T.FILES_ROW,
+    timeout = 30_000,
+    within,
+  }: {inTree?: boolean; testID?: string; timeout?: number; within?: WebdriverIO.Element} = {}
 ): Promise<DrawnRow> => {
   let towardEnd = true
   let before: string | undefined
@@ -196,7 +205,7 @@ export const filesRowNamed = async (
   return waitFor(
     what,
     async () => {
-      const {offscreen, row, signature} = await drawnNamed(testID, name, within)
+      const {offscreen, row, signature} = await drawnNamed(testID, name, within, inTree)
       if (row) {
         if (!dragged) return row
         // a list still gliding from a drag takes a tap as the stop of its glide: read the row again
