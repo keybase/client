@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import type {E2EEnv} from './env'
+import {readEnvFile, type E2EEnv} from './env'
 import {
   BACK_TO_SMOKE_WORST_MS,
   CHECK_OR_REPAIR_WORST_MS,
@@ -16,6 +16,7 @@ import {
   rotateSecondPassword,
   secondPasswordIsCurrent,
   setSecondPasswordViaPeer,
+  settlePendingSecondPassword,
   thenRestore,
   type MainSide,
   type RpcLike,
@@ -475,5 +476,44 @@ describe('hook budgets', () => {
     expect(REPAIR_WORST_MS).toBeGreaterThan(BACK_TO_SMOKE_WORST_MS)
     expect(CHECK_WORST_MS).toBeGreaterThan(BACK_TO_SMOKE_WORST_MS)
     expect(CHECK_OR_REPAIR_WORST_MS).toBeGreaterThan(30_000 * 10)
+  })
+})
+
+describe('settlePendingSecondPassword', () => {
+  let dir = ''
+  let file = ''
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-pw-'))
+    fs.chmodSync(dir, 0o700)
+    file = path.join(dir, 'env')
+  })
+  afterEach(() => fs.rmSync(dir, {force: true, recursive: true}))
+  const holds = (current: ReadonlyArray<string>) => async (_e: unknown, pw: string) => current.includes(pw)
+
+  test('promotes KB_SECOND_PASSWORD_NEXT when the server holds it', async () => {
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds(['new-pw']))).resolves.toBe('promoted')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('new-pw')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+  })
+
+  test('drops KB_SECOND_PASSWORD_NEXT when the server still holds the old one', async () => {
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds(['old-pw']))).resolves.toBe('dropped')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('old-pw')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+  })
+
+  test('changes nothing, naming no password, when neither or both check, or when none is pending', async () => {
+    const text = "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n"
+    for (const current of [[], ['old-pw', 'new-pw']]) {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const err = await settlePendingSecondPassword(env, file, holds(current)).then(() => new Error('it passed'), (e: unknown) => e as Error)
+      expect(err.message).toMatch(/settle it by hand/)
+      expect(err.message).not.toMatch(/old-pw|new-pw/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    }
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds([]))).resolves.toBe('none')
   })
 })

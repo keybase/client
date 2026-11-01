@@ -153,7 +153,7 @@ export const secondPasswordCommand = 'yarn test:e2e:accounts:second-password'
 export const refuseWhileSecondPasswordChangePending = (env: Pick<E2EEnv, 'secondPasswordChangePending'>) => {
   if (env.secondPasswordChangePending) {
     throw new Error(
-      'e2e env has KB_SECOND_PASSWORD_NEXT: a password change stopped part way and the server holds either it or KB_SECOND_PASSWORD; the owner has to check which and remove KB_SECOND_PASSWORD_NEXT before any password flow runs'
+      'e2e env has KB_SECOND_PASSWORD_NEXT: a password change stopped part way and the server holds either it or KB_SECOND_PASSWORD; the owner runs yarn test:e2e:accounts:second-password --check, which asks the second peer which one and settles it, before any password flow runs'
     )
   }
 }

@@ -344,3 +344,27 @@ export const rotateSecondPassword = async (
   setEnvVars(deps.envFile, {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null})
   return next
 }
+
+// Settles a KB_SECOND_PASSWORD_NEXT a change left in `envFile` (a no-op when none is): the second
+// peer checks both passwords (no prompt, nothing changes); the one the server holds becomes
+// KB_SECOND_PASSWORD and _NEXT is dropped. Throws, changing nothing, when neither or both check.
+// Returns what it did.
+export const settlePendingSecondPassword = async (
+  env: E2EEnv,
+  envFile: string,
+  isCurrent: (env: E2EEnv, password: string) => Promise<boolean> = async (e, pw) => secondPasswordIsCurrent(e, pw)
+): Promise<'none' | 'promoted' | 'dropped'> => {
+  const vars = readEnvFile(envFile)
+  const next = vars['KB_SECOND_PASSWORD_NEXT'] ?? ''
+  if (!next) return 'none'
+  const old = vars['KB_SECOND_PASSWORD'] ?? ''
+  const nextIs = await isCurrent(env, next)
+  const oldIs = old ? await isCurrent(env, old) : false
+  if (nextIs === oldIs) {
+    throw new Error(
+      `KB_SECOND_PASSWORD_NEXT is pending and the second peer takes ${nextIs ? 'both' : 'neither'} of it and KB_SECOND_PASSWORD; the owner has to settle it by hand`
+    )
+  }
+  setEnvVars(envFile, nextIs ? {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null} : {KB_SECOND_PASSWORD_NEXT: null})
+  return nextIs ? 'promoted' : 'dropped'
+}
