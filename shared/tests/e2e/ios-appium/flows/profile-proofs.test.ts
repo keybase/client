@@ -85,7 +85,7 @@ describe('profile proofs', function () {
   //   record    recordProofSig waited for 30s, overrun by one read 465
   //   keygen    peerMakePgpKey 365 (the peer 45, its connect 10, the keygen 300, the key check 10);
   //             purge  purgePeerPgp 95 (the peer 45, its connect 10, the config 10, three purges 30)
-  //   second    asSecond 250 (the switch 90, the restore 160)
+  //   second    asSecond 425 (the switch 150, restoreToSmoke 275)
   //   profile   openOwnProfile 63 (escapeToTabs 30, the link 1, screen 21, the page 11);  identities
   //             dragUntilOnScreen 20, its tap 1
   //   row       a row waited for 16 (15, one read 1), 31 with a 30s wait;  in row  elementInRow 2;
@@ -149,9 +149,9 @@ describe('profile proofs', function () {
 
   afterEach(async function () {
     // Worst case (s): close 19, recordPending 435, revokeRun 2305 and 435 a sig, purgeMadeKeys 595,
-    // restoreToSmoke 160, escapeToTabs 30 = 3544 and 435 a sig (at least one).
+    // restoreToSmoke 275, escapeToTabs 30 = 3659 and 435 a sig (at least one).
     const sigs = Math.min(MAX_SIGS, Math.max(1, recordedSigCount() + (pendingAdd ? 1 : 0)))
-    this.timeout((3_544 + PER_SIG * sigs + 100) * 1_000)
+    this.timeout((3_659 + PER_SIG * sigs + 100) * 1_000)
     await withCleanup(closeMessageMenu, [recordPending, revokeRun, purgeMadeKeys, restoreToSmoke, escapeToTabs])
   })
 
@@ -277,11 +277,11 @@ describe('profile proofs', function () {
   }
 
   it('add the bitcoin burn address and revoke it from its row', async function () {
-    // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, field 11, fill 26,
+    // worst case (s): the sigs 435, second 425; in it: profile 63, platform 90, field 11, fill 26,
     // step 2, calls 2, button 7, waited for 12, record 465, calls 2, text 16, polled 495, step 2,
     // button 7, screen 21, identities 20, row 16, step 2, revoke 68, step 2, confirm 23, polled 495,
-    // the address read 435, gone 57, step 2 = 3026
-    this.timeout(3_050_000)
+    // the address read 435, gone 57, step 2 = 3201
+    this.timeout(3_250_000)
     const before = await masked(async () => sigIDsBefore())
     pendingAdd = {before, kind: 'bitcoin'}
     const row = rowReads(BURN_ADDRESS, 'btc')
@@ -319,11 +319,11 @@ describe('profile proofs', function () {
   })
 
   it('start a DNS proof to its instructions and revoke the pending proof from its row', async function () {
-    // worst case (s): the sigs 435, second 250; in it: profile 63, platform 90, text 16,
+    // worst case (s): the sigs 435, second 425; in it: profile 63, platform 90, text 16,
     // calls 2, its press 2, waited for 12, field 11, fill 26, step 2, button 7, the instructions 31,
     // record 465, manual 2, header 6, screen 21, identities 20, row 31, step 2, revoke 68, step 2,
-    // confirm 23, polled 495, gone 57, step 2 = 2141
-    this.timeout(2_200_000)
+    // confirm 23, polled 495, gone 57, step 2 = 2316
+    this.timeout(2_350_000)
     const domain = `e2e${e2eRunId()}.example.com`
     const before = await masked(async () => sigIDsBefore())
     pendingAdd = {before, kind: 'dns'}
@@ -368,10 +368,10 @@ describe('profile proofs', function () {
   })
 
   it('drop a PGP key the second account’s peer made from its row', async function () {
-    // worst case (s): keygen 365, polled 560, second 250; in it: the row opened 159 (60s of tries,
+    // worst case (s): keygen 365, polled 560, second 425; in it: the row opened 159 (60s of tries,
     // overrun by one: profile 63, identities 20, row 16), step 2, revoke 68, step 2, confirm 23,
-    // polled 560, gone 57, step 2; then purge 95 = 2143
-    this.timeout(2_200_000)
+    // polled 560, gone 57, step 2; then purge 95 = 2318
+    this.timeout(2_350_000)
     pgpStarted = true
     const fp = await masked(async () => peerMakePgpKey('drop'))
     madeFingerprint = fp
