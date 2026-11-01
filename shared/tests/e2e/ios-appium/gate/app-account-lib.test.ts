@@ -1,19 +1,29 @@
 import {notSmokeProblem, settledAccount} from './app-account-lib'
 
 describe('notSmokeProblem', () => {
+  const accounts = {secondUser: 'testuser-mac', smokeUser: 'testuser'}
+
   test('the app on the smoke account is fine', () => {
-    expect(notSmokeProblem({loggedIn: true, switching: false, username: 'testuser'}, 'testuser')).toBeUndefined()
+    expect(notSmokeProblem({loggedIn: true, switching: false, username: 'testuser'}, accounts)).toBeUndefined()
   })
 
-  test('another account names the account switcher, never a command', () => {
-    const p = notSmokeProblem({loggedIn: true, switching: false, username: 'testuser-mac'}, 'testuser')
-    expect(p).toContain('signed in as testuser-mac')
-    expect(p).toContain('switch the simulator app to testuser with its account switcher')
+  test('the second account names the account switcher and no account name', () => {
+    const p = notSmokeProblem({loggedIn: true, switching: false, username: 'testuser-mac'}, accounts)
+    expect(p).toContain('signed in as KB_SECOND_USER')
+    expect(p).toContain('switch the simulator app to KB_SMOKE_USER with its account switcher')
     expect(p).not.toContain('keybase login')
+    expect(p).not.toContain('testuser')
+  })
+
+  test('any other account is not named either', () => {
+    const p = notSmokeProblem({loggedIn: true, switching: false, username: 'someone-else'}, accounts)
+    expect(p).toContain('neither KB_SMOKE_USER nor KB_SECOND_USER')
+    expect(p).not.toContain('someone-else')
+    expect(p).not.toContain('testuser')
   })
 
   test('a signed out app refuses', () => {
-    expect(notSmokeProblem({loggedIn: false, switching: false, username: ''}, 'testuser')).toContain('(nobody; signed out)')
+    expect(notSmokeProblem({loggedIn: false, switching: false, username: ''}, accounts)).toContain('(nobody; signed out)')
   })
 })
 

@@ -15,8 +15,7 @@ const SIGN_IN_MS = 60_000
 export const appAccount = signedInAs
 
 export const requireAppIsSmoke = async () => {
-  const {smokeUser} = loadE2EAccounts()
-  const problem = notSmokeProblem(await signedInAs(), smokeUser)
+  const problem = notSmokeProblem(await signedInAs(), loadE2EAccounts())
   if (problem) throw new Error(problem)
 }
 

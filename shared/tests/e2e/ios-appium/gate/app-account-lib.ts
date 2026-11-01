@@ -9,11 +9,19 @@ export const APP_ACCOUNT_BODY = `
     return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
   `
 
-export const notSmokeProblem = (a: AppAccount, smokeUser: string): string | undefined =>
-  a.loggedIn && a.username === smokeUser
-    ? undefined
-    : `the simulator app is signed in as ${a.loggedIn ? a.username : '(nobody; signed out)'}, not the e2e smoke account; ` +
-      `switch the simulator app to ${smokeUser} with its account switcher; refusing to run`
+// Names accounts by their env var only: this line lands in run output and results.
+export const notSmokeProblem = (a: AppAccount, accounts: {smokeUser: string; secondUser: string}): string | undefined => {
+  if (a.loggedIn && a.username === accounts.smokeUser) return undefined
+  const on = !a.loggedIn
+    ? '(nobody; signed out)'
+    : a.username === accounts.secondUser
+      ? 'KB_SECOND_USER'
+      : 'an account that is neither KB_SMOKE_USER nor KB_SECOND_USER'
+  return (
+    `the simulator app is signed in as ${on}, not the e2e smoke account; ` +
+    'switch the simulator app to KB_SMOKE_USER with its account switcher; refusing to run'
+  )
+}
 
 // How long a signed-out answer must hold before it is believed: a JS runtime that just started reports
 // {loggedIn: false, username: ''} until its service handshake.

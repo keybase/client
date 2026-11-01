@@ -412,7 +412,7 @@ const main = async () => {
       sharedDir,
     })
     const account = await relaunchApp({device, log, udid: id})
-    const problem = notSmokeProblem(account, e2eEnv.smokeUser)
+    const problem = notSmokeProblem(account, e2eEnv)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}
