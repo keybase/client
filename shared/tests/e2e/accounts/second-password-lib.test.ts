@@ -234,7 +234,7 @@ describe('checkSecondSecretSurvives', () => {
         throw new Error(`keybase login --switch ${user}: no answer in 60s`)
       },
       whoami: async () => '',
-    }).catch((e: unknown) => e as Error)
+    }).then(() => new Error('it passed'), (e: unknown) => e as Error)
     expect(calls).toEqual(['switch testuser-mac', 'switch testuser'])
     expect(err.message).toMatch(/after 1 attempts/)
     expect(err.message).toContain(KEYCHAIN_NOTE)
@@ -250,7 +250,7 @@ describe('checkSecondSecretSurvives', () => {
         throw new Error('Input canceled')
       },
       whoami: async () => '',
-    }).catch((e: unknown) => e as Error)
+    }).then(() => new Error('it passed'), (e: unknown) => e as Error)
     expect(calls.filter(c => c === 'switch testuser')).toHaveLength(3)
     expect(err.message).not.toContain(KEYCHAIN_NOTE)
   })
