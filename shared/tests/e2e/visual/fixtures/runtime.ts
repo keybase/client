@@ -16,7 +16,9 @@
 // test, take() after it, for the RPC methods the app sent and the routes it focused. While it
 // records and no fixture is active, __kbVisualRpc is a hook that only notes each outgoing method and
 // changes nothing: invoke returns false, so the engine sends the call itself, and incoming hands back
-// the payload it was given. In a desktop app the harness launched (KB_E2E_TEST=1), it also notes the
+// the payload it was given. For the few methods in answerLogged it sends the call itself instead, as
+// the engine would, and hands the answer back unchanged, noting in the call log when it came and its
+// error, if any. In a desktop app the harness launched (KB_E2E_TEST=1), it also notes the
 // methods sent from startup until the first take(), so the first test's recording can include them;
 // any other dev app has no hook outside a fixture or a recording. A driver that makes the app send an
 // RPC itself (an eval calling one) pauses the recorder around it, so the recording credits only what
@@ -108,6 +110,11 @@ export type E2ERecorder = {
 
 // the most calls the log keeps; older ones drop off
 const CALL_LOG_SIZE = 4000
+// The methods whose answers the call log notes: the iOS device-provision flow waits for the devices
+// list's reads after the add to be answered (ios-appium/gate/devices-lib.ts postAddListReads).
+const answerLogged: ReadonlySet<string> = new Set(['keybase.1.device.deviceAdd', 'keybase.1.device.deviceHistoryList'])
+// the longest error message an answer keeps
+const ANSWER_ERROR_SIZE = 500
 
 // What the route recorder needs of the app's navigation container (router-v2/router.tsx sets it on
 // window.DEBUGNavigator in a dev app).
@@ -294,7 +301,7 @@ export const createRuntime = (deps: {
   let generation = 0
   let callLog: Array<LoggedCall> = []
   let callSeq = 0
-  const logCall = (call: OutgoingCall) => {
+  const logCall = (call: OutgoingCall): LoggedCall => {
     const entry: LoggedCall = {method: call.method, paused: pauses.size > 0, seq: ++callSeq}
     // the only param values kept: whether a typing update says the user is typing, and which
     // conversations a bulk channel add went to (so a flow can check only its picks were sent)
@@ -312,6 +319,15 @@ export const createRuntime = (deps: {
     }
     callLog.push(entry)
     if (callLog.length > CALL_LOG_SIZE * 2) callLog = callLog.slice(-CALL_LOG_SIZE)
+    return entry
+  }
+  // Sends a logged call the way the engine does and notes its answer on its entry
+  const relayNotingAnswer = (call: OutgoingCall, entry: LoggedCall) => {
+    call.real((err, result) => {
+      entry.answer = {afterSeq: callSeq}
+      if (err) entry.answer.error = (err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err)).slice(0, ANSWER_ERROR_SIZE)
+      call.reply(err, result)
+    })
   }
   const sync = () => deps.install(cur || recorded || boot ? rpc : undefined)
 
@@ -388,13 +404,17 @@ export const createRuntime = (deps: {
       return payload
     },
     invoke: call => {
-      if (recorded) logCall(call)
+      const entry = recorded ? logCall(call) : undefined
       if (!pauses.size) {
         recorded?.add(call.method)
         boot?.add(call.method)
       }
       const a = cur
-      if (!a) return false
+      if (!a) {
+        if (!entry || !answerLogged.has(call.method)) return false
+        relayNotingAnswer(call, entry)
+        return true
+      }
       const sessionID = (call.param as {sessionID?: unknown} | undefined)?.sessionID
       if (typeof sessionID === 'number') a.sessions.set(sessionID, {method: call.method, param: call.param})
       const rule = a.def.rpc.find(r => r.method === call.method)
