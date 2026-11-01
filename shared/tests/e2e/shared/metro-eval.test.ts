@@ -244,4 +244,6 @@ test('a report keeps the lines that repeat no long stretch of the code', () => {
   expect(withholdQuotedCode(`Error: ${SECRET_TEXT}`, `return ${JSON.stringify(SECRET_TEXT)}`)).toBe(WITHHELD_LINE)
   // a line that carries only a short piece of the code stays
   expect(withholdQuotedCode('Error: e2e-secret', `return ${JSON.stringify(SECRET_TEXT)}`)).toBe('Error: e2e-secret')
+  // the app lowercased what it was given before quoting it
+  expect(withholdQuotedCode(`Error: ${SECRET_TEXT.toLowerCase()}`, `return ${JSON.stringify(SECRET_TEXT.toUpperCase())}`)).toBe(WITHHELD_LINE)
 })

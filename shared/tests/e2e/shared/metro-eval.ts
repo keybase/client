@@ -111,11 +111,14 @@ export const WITHHELD_LINE = '(a line repeating the evaluated code, withheld)'
 // code can carry a secret (the text setPasteboard writes, a secret field's value), and a message the
 // app builds from that data must not take it into an error. Hermes quotes no source in its reports, so
 // what this withholds is a message built from the code's own data, or a long message the code spells out.
+// Compared lowercased: the app can lowercase what it is given (the join field does) before quoting it.
 export const withholdQuotedCode = (report: string, code: string) => {
+  const lower = code.toLowerCase()
   const runs = new Set<string>()
-  for (let i = 0; i + QUOTED_RUN <= code.length; i++) runs.add(code.slice(i, i + QUOTED_RUN))
+  for (let i = 0; i + QUOTED_RUN <= lower.length; i++) runs.add(lower.slice(i, i + QUOTED_RUN))
   const quotes = (line: string) => {
-    for (let i = 0; i + QUOTED_RUN <= line.length; i++) if (runs.has(line.slice(i, i + QUOTED_RUN))) return true
+    const l = line.toLowerCase()
+    for (let i = 0; i + QUOTED_RUN <= l.length; i++) if (runs.has(l.slice(i, i + QUOTED_RUN))) return true
     return false
   }
   return report

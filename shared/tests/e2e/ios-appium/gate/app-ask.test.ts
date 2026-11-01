@@ -84,6 +84,18 @@ test('the recorder is resumed when the body throws in the app, and the ask fails
   expect(mockApp.log).toEqual(['pause', 'resume tok'])
 })
 
+test("a failed ask names the test accounts by role, never by name", async () => {
+  const saved = {...process.env}
+  Object.assign(process.env, {KB_E2E_TEAM: 'testteam', KB_SECOND_USER: 'testuser-mac', KB_SMOKE_USER: 'testuser'})
+  try {
+    await expect(
+      askApp('the sync config', `(() => { throw new Error('no folder /keybase/private/testuser,testuser-mac') })()`)
+    ).rejects.toThrow("the sync config: the phone's service answered no folder /keybase/private/<smoke>,<second>")
+  } finally {
+    process.env = saved
+  }
+})
+
 test('the recorder is resumed when the eval itself fails, and its error is the one thrown', async () => {
   mockApp.evalFails = true
   await expect(filesSettings()).rejects.toThrow('the inspector page went away')
