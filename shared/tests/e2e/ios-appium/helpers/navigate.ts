@@ -117,7 +117,8 @@ export async function dismissKeyboard(): Promise<void> {
 // leading button is mid-screen and is NOT a back control, so this skips it and
 // lets the caller fall back to the edge-swipe. escapeToTabs omits the guard
 // because its loop re-checks atTabs and self-corrects a mis-tap.
-async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
+// `beforeTap` runs right before the tap (escapeToTabs' deadline check).
+async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Promise<boolean> {
   const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
   let leftmost: {el: (typeof btns)[number]; x: number} | undefined
   for (const b of btns) {
@@ -130,6 +131,7 @@ async function tapNavBack(requireLeftEdge = false): Promise<boolean> {
     const {width} = await browser.getWindowRect()
     if (leftmost.x > width * 0.15) return false
   }
+  beforeTap?.()
   await leftmost.el.click().catch(() => {})
   return true
 }
@@ -365,11 +367,13 @@ async function escapeHops(alive: () => void): Promise<void> {
       // land on a dead blank RN root).
       const pkg = await browser.getCurrentPackage().catch(() => '')
       if (pkg && pkg !== 'io.keybase.ossifrage') {
+        alive()
         await browser.activateApp('io.keybase.ossifrage').catch(() => {})
         await browser.waitUntil(async () => atTabs(), {timeout: 5000, interval: 250}).catch(() => {})
         continue
       }
       if (await atTabs()) return
+      alive()
       await browser.back()
       // Short fixed settle for the pop animation, then loop back to the atTabs
       // check (itself a slow full-tree query, adding natural pacing). A back
@@ -406,15 +410,16 @@ async function escapeHops(alive: () => void): Promise<void> {
     } else if (debug) {
       console.log(`  escapeToTabs[${i}]: no dismiss control, trying back/pop`)
     }
-    alive()
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) {
       const ctrl = els(T.COMMON_BACK_BUTTON)[0]!
+      alive()
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
       continue
     }
     if ((await els('BackButton').length) > 0) {
       const ctrl = els('BackButton')[0]!
+      alive()
       await ctrl.click().catch(() => {})
       await settleAfter(ctrl)
       continue
@@ -422,8 +427,7 @@ async function escapeHops(alive: () => void): Promise<void> {
     // Native nav-bar back whose name varies by iOS version (e.g. "loggedIn" on
     // iOS 16.4) — match it by position instead. Must come before the edge-swipe:
     // the left-edge pop gesture does not reliably pop on older iOS here.
-    alive()
-    if (await tapNavBack()) {
+    if (await tapNavBack(false, alive)) {
       await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
       continue
     }
