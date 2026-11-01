@@ -1,5 +1,5 @@
 import * as zlib from 'zlib'
-import {holdsSecret, isZip, secretLedger, secretScanLine, zipEntries} from './secret-scan-lib'
+import {holdsSaltpackArmor, holdsSecret, isZip, secretLedger, secretScanLine, zipEntries} from './secret-scan-lib'
 
 const secret = 'e2e-abcdefghijklmnopqrstuvwx'
 const paperKey = 'abandon ability able about above absent absorb abstract absurd abuse access accident acid'
@@ -34,6 +34,24 @@ const zipOf = (name: string, body: Buffer, deflate: boolean) => {
 test('finds a secret as plain text, in an aria snapshot line', () => {
   expect(holdsSecret(Buffer.from(`- textbox "Password": ${secret}\n`), [secret])).toBe(true)
   expect(holdsSecret(Buffer.from('- textbox "Password"\n'), [secret])).toBe(false)
+})
+
+test('finds saltpack armor of any message type, plain, in a zip and in a base64 run', () => {
+  for (const header of [
+    'BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.',
+    'BEGIN KEYBASE SALTPACK SIGNED MESSAGE.',
+    'BEGIN KEYBASE SALTPACK DETACHED SIGNATURE.',
+    'BEGIN SALTPACK ENCRYPTED MESSAGE.',
+    'BEGIN SALTPACK SIGNCRYPTED MESSAGE.',
+  ]) {
+    const armor = `${header} kiOUtMhcc4NXXRb XMxIeCbf5rCmoht.`
+    expect(holdsSaltpackArmor(Buffer.from(`log: ${armor}`))).toBe(true)
+    expect(holdsSaltpackArmor(zipOf('trace.trace', Buffer.from(armor), true))).toBe(true)
+    expect(holdsSaltpackArmor(Buffer.from(`base64,${Buffer.from(`${'x'.repeat(400)} ${armor}`).toString('base64')}`))).toBe(true)
+  }
+  for (const clean of ['the crypto output: <saltpack message>', 'BEGIN KEYBASE', 'saltpack encrypt', 'BEGIN KEYBASE SALTPACK']) {
+    expect(holdsSaltpackArmor(Buffer.from(clean))).toBe(false)
+  }
 })
 
 test('finds a paper key, and ignores empty or short secrets', () => {

@@ -45,6 +45,22 @@ const writeEnv = () => {
   return p
 }
 
+test('with armor, a file holding saltpack armor is a hit and is deleted; without, it is left', () => {
+  const results = path.join(dir, 'results')
+  fs.mkdirSync(path.join(results, 'ios-logs'), {recursive: true})
+  const armored = path.join(results, 'ios-logs', 'flows.log')
+  const clean = path.join(results, 'run.json')
+  fs.writeFileSync(armored, 'step: BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb XMxIeCbf5rCmoht.\n')
+  fs.writeFileSync(clean, '{"output": "<saltpack message>"}\n')
+  expect(scanAndPurge([results], [first]).hits).toEqual([])
+  expect(fs.existsSync(armored)).toBe(true)
+  const scan = scanAndPurge([results], [first], {armor: true})
+  expect(scan.hits).toEqual([armored])
+  expect(scan.line).not.toMatch(/SALTPACK/)
+  expect(fs.existsSync(armored)).toBe(false)
+  expect(fs.existsSync(clean)).toBe(true)
+})
+
 test('envSecrets includes a pending KB_SECOND_PASSWORD_NEXT', () => {
   const file = writeEnv()
   setEnvVars(file, {KB_SECOND_PASSWORD_NEXT: next})
