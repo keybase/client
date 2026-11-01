@@ -58,6 +58,7 @@ import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
 import {forgetStaleInviteLinks} from '../shared/gate/secret-scan.ts'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
+import {parseLookup, parseSigsList, parseUpkPgpKeys, type Upk} from '../shared/profile-parse.ts'
 import {connectPeerRpc, type PeerRpc} from '../shared/peer-rpc.ts'
 import {
   ensurePeer,
@@ -236,48 +237,23 @@ const teamRepos = async (actor: Actor): Promise<Array<SweepCandidate>> =>
 const emails = async (actor: Actor) =>
   (await call<Array<{email: string; isPrimary: boolean}> | null>(actor, 'keybase.1.emails.getEmails', {sessionID: 0})) ?? []
 
-type SigJSON = {revoked?: boolean; sig_id?: string; statement?: string; type?: string}
+const whoOf = (actor: Actor) => `the ${actor.account} account`
 
-// The account's live DNS proof sigs (`keybase sigs list -j -r`). Parse-anchored: the list holds the
-// account's eldest link, else this throws, so a list that failed or changed shape never reads as a
-// sig being gone.
-const proofSigs = async (actor: Actor): Promise<Array<SweepCandidate>> => {
-  const parsed = JSON.parse(await actor.cli(['sigs', 'list', '-j', '-r'], 60_000)) as unknown
-  if (!Array.isArray(parsed)) throw new Error('keybase sigs list: the answer is not a list')
-  const sigs = parsed as Array<SigJSON>
-  if (!sigs.some(s => s.type === 'eldest')) throw new Error('keybase sigs list: the list holds no eldest link')
-  return sigs
-    .filter(s => s.type === 'proof' && !s.revoked && (s.statement ?? '').startsWith('dns://'))
-    .map(s => ({account: actor.account, kind: 'proofSig' as const, name: s.statement ?? '', sigID: s.sig_id ?? ''}))
-}
-
-type KeyBase = {base?: {kid?: string; revocation?: unknown}}
-type Upk = {
-  current?: {
-    deviceKeys?: Record<string, KeyBase> | null
-    pgpKeys?: Record<string, KeyBase & {identities?: Array<{email?: string}> | null}> | null
-    username?: string
-  }
-}
+// The account's live DNS proof sigs.
+const proofSigs = async (actor: Actor): Promise<Array<SweepCandidate>> =>
+  parseSigsList(await actor.cli(['sigs', 'list', '-j', '-r'], 60_000), whoOf(actor))
+    .filter(s => s.type === 'proof' && !s.revoked && s.statement.startsWith('dns://'))
+    .map(s => ({account: actor.account, kind: 'proofSig' as const, name: s.statement, sigID: s.sigID}))
 
 // The account's live PGP keys, each named by its one identity's email ('' for a key with more or
-// none, which no sweep judges ours). Parse-anchored: the keys are the account's and hold a live
-// device key, else this throws.
+// none, which no sweep judges ours).
 const pgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
   const out = await actor.cli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${actor.user}`, '-a', 'fields=basics'], 60_000)
-  const uid = (JSON.parse(out) as {them?: {id?: string} | null}).them?.id
-  if (!uid) throw new Error('user/lookup returned no uid')
+  const {id: uid} = parseLookup(out, whoOf(actor))
   const upk = await call<Upk>(actor, 'keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
-  const cur = upk.current
-  if (cur?.username !== actor.user || !Object.values(cur.deviceKeys ?? {}).some(k => !k.base?.revocation)) {
-    throw new Error("the account's keys hold no live device key")
-  }
-  return Object.values(cur.pgpKeys ?? {})
-    .filter(k => !k.base?.revocation)
-    .map(k => {
-      const emails = (k.identities ?? []).map(i => i.email ?? '')
-      return {account: actor.account, kid: k.base?.kid ?? '', kind: 'pgpKey' as const, name: emails.length === 1 ? (emails[0] ?? '') : ''}
-    })
+  return parseUpkPgpKeys(upk, actor.user, whoOf(actor))
+    .filter(k => !k.revoked)
+    .map(k => ({account: actor.account, kid: k.kid, kind: 'pgpKey' as const, name: k.emails.length === 1 ? (k.emails[0] ?? '') : ''}))
 }
 
 type Device = {deviceID: string; name: string; type: string}

@@ -11,6 +11,7 @@ import {loadE2EAccounts, loadE2EEnv} from '../accounts/env.ts'
 import {waitFor} from './deadline.ts'
 import {mainRpc} from './main-rpc.ts'
 import {pgpKeyGenAnswers, type PeerRpc} from './peer-rpc.ts'
+import {parseLookup, parseSigsList, parseUpkPgpKeys, type PgpKey, type Sig, type Upk} from './profile-parse.ts'
 import {ensurePeer, requireMainIsSmoke, runKeybase} from './peer-service.ts'
 import {e2eRunId} from './run-marker.ts'
 import {readBack} from './teams.ts'
@@ -61,68 +62,28 @@ const withSecondRpc = async <R,>(f: (rpc: PeerRpc) => Promise<R>, onInvoke?: Par
   }
 }
 
-type Lookup = {them?: {id?: string; cryptocurrency_addresses?: {bitcoin?: Array<{address: string; sig_id: string}> | null} | null} | null}
+export * from './profile-parse.ts'
 
-// The second account as the server has it (user/lookup through the second peer). Parse-anchored: the
-// answer names the account's uid.
+const SECOND = 'the second account'
+
+// The second account as the server has it (user/lookup through the second peer).
 const secondLookup = async (fields: string) => {
   const {secondUser} = loadE2EAccounts()
-  const out = await secondCli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${secondUser}`, '-a', `fields=${fields}`])
-  const them = (JSON.parse(out) as Lookup).them
-  if (!them?.id) throw new Error('user/lookup returned no uid for the second account')
-  return {...them, id: them.id}
+  return parseLookup(await secondCli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${secondUser}`, '-a', `fields=${fields}`]), SECOND)
 }
 
 // The second account's bitcoin addresses, as the server lists them.
 export const cryptoAddresses = async () =>
   ((await secondLookup('cryptocurrency_addresses')).cryptocurrency_addresses?.bitcoin ?? []).map(a => ({address: a.address, sigID: a.sig_id}))
 
-export type Sig = {ctime: number; revoked: boolean; sigID: string; statement: string; type: string}
-type SigJSON = {ctime?: number; revoked?: boolean; sig_id?: string; statement?: string; type?: string}
+// The second account's sigchain, revoked links included (`keybase sigs list -j -r`).
+export const sigsList = async (): Promise<Array<Sig>> => parseSigsList(await secondCli(['sigs', 'list', '-j', '-r']), SECOND)
 
-// The second account's sigchain, revoked links included (`keybase sigs list -j -r`). Parse-anchored:
-// the list holds the account's eldest link, else this throws, so a list that failed or changed shape
-// never reads as a sig being gone.
-export const sigsList = async (): Promise<Array<Sig>> => {
-  const parsed = JSON.parse(await secondCli(['sigs', 'list', '-j', '-r'])) as unknown
-  if (!Array.isArray(parsed)) throw new Error('keybase sigs list: the answer is not a list')
-  const sigs = (parsed as Array<SigJSON>).map(s => ({
-    ctime: s.ctime ?? 0,
-    revoked: !!s.revoked,
-    sigID: s.sig_id ?? '',
-    statement: s.statement ?? '',
-    type: s.type ?? '',
-  }))
-  if (!sigs.some(s => s.type === 'eldest')) throw new Error("keybase sigs list: the second account's list holds no eldest link")
-  return sigs
-}
-
-export type PgpKey = {emails: Array<string>; fingerprint: string; kid: string; revoked: boolean}
-type KeyBase = {base?: {kid?: string; revocation?: unknown}}
-type Upk = {
-  current?: {
-    deviceKeys?: Record<string, KeyBase> | null
-    pgpKeys?: Record<string, KeyBase & {fingerprint?: string | Uint8Array; identities?: Array<{email?: string}> | null}> | null
-    username?: string
-  }
-}
-const hex = (fp: string | Uint8Array | undefined) => (typeof fp === 'string' ? fp : Buffer.from(fp ?? []).toString('hex')).toLowerCase()
-
-// The second account's PGP keys, from its user-plus-keys through the second peer. Parse-anchored: the
-// answer is the second account's and holds a live device key, else this throws.
+// The second account's PGP keys, revoked ones included, from its user-plus-keys through the second peer.
 export const pgpList = async (): Promise<Array<PgpKey>> => {
   const {id} = await secondLookup('basics')
   const upk = await withSecondRpc(async rpc => rpc.call<Upk>('keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid: id}))
-  const cur = upk.current
-  if (cur?.username !== loadE2EAccounts().secondUser || !Object.values(cur.deviceKeys ?? {}).some(k => !k.base?.revocation)) {
-    throw new Error("the second account's keys hold no live device key")
-  }
-  return Object.values(cur.pgpKeys ?? {}).map(k => ({
-    emails: (k.identities ?? []).map(i => i.email ?? ''),
-    fingerprint: hex(k.fingerprint),
-    kid: k.base?.kid ?? '',
-    revoked: !!k.base?.revocation,
-  }))
+  return parseUpkPgpKeys(upk, loadE2EAccounts().secondUser, SECOND)
 }
 
 // -- PGP keys made on the second peer --------------------------------------------------------------
