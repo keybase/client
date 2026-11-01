@@ -28,7 +28,8 @@ import {drag, expectScreen, fillField, onScreen, press, pressTestID, tapButton} 
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, dragSheetUp, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
-import {expectHost, makeOwnSubteamWithID, masked, onlyField, openTeamFromList, requireOnSubteam, textPartShown, TEXTS} from '../helpers/teams'
+import {sourceElements} from '../gate/page-source-lib.ts'
+import {expectHost, makeOwnSubteamWithID, masked, onlyField, openTeamFromList, requireOnSubteam, TEXT_TYPES, textPartShown, TEXTS} from '../helpers/teams'
 
 type Params = Record<string, unknown>
 
@@ -117,10 +118,14 @@ describe('git', function () {
         const found = await textPartShown(label, 'the repo row', 0, {forTap: true}).catch(() => undefined)
         if (found && (await onScreen(found))) return found
         const {height} = await browser.getWindowRect()
-        // a row drawn off screen says which way; else a drag that changed nothing reached the list's
-        // end (or the list fits): turn around
-        if (found) {
-          const {y} = await found.getLocation()
+        // a row the tree holds off screen says which way (only a direction: it is never tapped or
+        // taken as shown); else a drag that changed nothing reached the list's end (or the list fits):
+        // turn around
+        const off = sourceElements(await browser.getPageSource()).find(
+          e => TEXT_TYPES.includes(e.type) && (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(p => p.trim() === label)
+        )
+        if (off) {
+          const y = Number(off.attrs['y'])
           await (y > height / 2 ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
           return undefined
         }
