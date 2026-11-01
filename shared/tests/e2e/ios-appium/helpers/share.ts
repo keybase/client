@@ -1,4 +1,4 @@
-// Helpers for the iOS share-source matrix (share.test.ts): seed a source app with a file, bring up its
+// Helpers for the iOS share-source matrix: seed a source app with a file, bring up its
 // share sheet, tap Keybase, then check what the share extension wrote and what the app sent.
 //
 // Ground truth comes from three places, never from screenshots:
@@ -39,10 +39,10 @@ const quote = (s: string) => JSON.stringify(s)
 
 // -- assets ------------------------------------------------------------------------------------
 
-// Written by share/make-assets.sh; run-ios-share.sh points KB_SHARE_ASSETS at them.
+// Written by share/make-assets.sh; KB_SHARE_ASSETS points at them.
 export const assetsDir = () => {
   const dir = process.env['KB_SHARE_ASSETS']
-  if (!dir) throw new Error('KB_SHARE_ASSETS is unset: run tests/e2e/run-ios-share.sh, or make-assets.sh and export it')
+  if (!dir) throw new Error('KB_SHARE_ASSETS is unset: run make-assets.sh and export it')
   return dir
 }
 export const asset = (name: string) => path.join(assetsDir(), name)

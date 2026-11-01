@@ -136,7 +136,7 @@ Same core as the desktop gate (`tests/e2e/shared/gate/`); the iOS code is `tests
 
 ## iOS chat flows
 
-The chat flows (`flows/chat-*.test.ts`) run in the gate like every other flow; the old chat runner (`chat.test.ts`, `wdio.chat.conf.ts`, `run-ios-chat.sh`, `yarn test:e2e:ios:chat`) is gone. Seeding is each file's describe-level `before(ensureChatData)` (20-minute bound on a first run).
+The chat flows (`flows/chat-*.test.ts`) run in the gate like every other flow. Seeding is each file's describe-level `before(ensureChatData)` (20-minute bound on a first run).
 
 - **The host stays smoke.** The host CLI and `mainRpc` act as the smoke account and are never switched. Incoming messages, typing, attachments and "second leaves" come from the second account's peer (`peerSender(loadE2EEnv())`, `sendWithRetry`, `IncomingSender.leave` / `attach`); a host CLI send is smoke's own message from another device, used only where that is the intent. The second account's own state is read through `ensurePeer('second').rpc()`.
 - **`requireSecondNotBlocked()`** runs in the `before()` of every file that needs the second account (messages from it, `asSecond`), in chat and in later PRs' files: a chat-blocks restore that failed refuses there instead of running blind. `chat-blocks` registers last among the chat files in `gate.test.ts`.
@@ -190,11 +190,8 @@ The chat flows (`flows/chat-*.test.ts`) run in the gate like every other flow; t
 |------|-------|
 | Flow files | `shared/tests/e2e/ios-appium/flows/*.test.ts` |
 | Helpers | `shared/tests/e2e/ios-appium/helpers/` (elements, navigate, app) |
-| Aggregate spec | `shared/tests/e2e/ios-appium/all.test.ts` (imports all flows → ONE session) |
-| Config | `shared/tests/e2e/ios-appium/wdio.conf.ts` |
-| Run both devices | `KB_SMOKE_USER=<user> yarn test:e2e:ios` (iPhoneTest + iPadTest in PARALLEL; app installed on both) |
-| Run one device | `KB_SMOKE_USER=<user> yarn test:e2e:ios:iphone` / `yarn test:e2e:ios:ipad` (serial runner, shuts down other sims) |
-| Report | `yarn test:e2e:ios:report` (reads ONLY `tests/results/ios-appium-debug-{iphone,ipad}`; each run overwrites its device's dir; per-image timestamps show when each device last ran) |
+| Config | `shared/tests/e2e/ios-appium/wdio.gate.conf.ts` (spec `gate.test.ts` → ONE session) |
+| Run | `KB_SMOKE_USER=<user> yarn test:e2e:ios:flows` (the gate flows; `yarn test:e2e:ios:release` for the full release) |
 
 Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
 

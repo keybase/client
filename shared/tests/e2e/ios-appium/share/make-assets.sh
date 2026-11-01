@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generates the files the iOS share-source matrix (share.test.ts) shares, into a temp dir.
+# Generates the files the iOS share-source matrix shares, into a temp dir.
 #
 # Usage: make-assets.sh <out-dir>
 #
