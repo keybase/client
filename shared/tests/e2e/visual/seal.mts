@@ -20,9 +20,8 @@
 //            recent edit: what the menubar widget's recent files show. Kept as its lines.
 // `git` is left out: nothing here can confirm `keybase git list` is read-only.
 import {createHash} from 'crypto'
-import {execFile} from 'child_process'
 import {e2eAccounts} from '../shared/chat-data.ts'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {readCli} from './cli-read.mts'
 
 export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate' | 'fsHistory'
 export type Seal = {
@@ -188,20 +187,8 @@ export const diffSeals = (a: Seal, b: Seal): Array<string> => {
   return out
 }
 
-const run = async (args: Array<string>, timeoutMs = 30_000) =>
-  new Promise<string>((resolve, reject) => {
-    const proc = execFile(
-      keybaseBin(),
-      args,
-      {encoding: 'utf8', killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024, timeout: timeoutMs},
-      (err, stdout, stderr) => {
-        if (err?.killed) reject(new Error(`seal: keybase ${args.join(' ')}: no answer in ${timeoutMs / 1000}s`))
-        else if (err) reject(new Error(`seal: keybase ${args.join(' ')}: ${stderr || err.message}`))
-        else resolve(stdout)
-      }
-    )
-    proc.stdin?.end()
-  })
+// every seal read is read-only. Bound: readCli's, 60s.
+const run = async (args: Array<string>) => readCli(args, `seal: keybase ${args.join(' ')}`)
 
 const readRaw = async (field: SealField): Promise<unknown> => {
   const {smokeUser, team} = e2eAccounts()

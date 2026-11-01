@@ -11,53 +11,14 @@
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
-import {execFile} from 'child_process'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {readCli} from './cli-read.mts'
 import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
 
-const CLI_TIMEOUT_MS = 30_000
-// The service's own fetch from the server timing out, which a second try usually gets past.
-const SERVICE_TIMEOUT = 'context deadline exceeded'
-
-// The CLI's error, from its last [ERRO ...] line without the timestamp and sequence number; the
-// warnings ahead of it (a CLI and service of different builds, say) are left out.
-export const cliError = (stderr: string, fallback: string) => {
-  const line = stderr
-    .split('\n')
-    .filter(l => l.includes('[ERRO '))
-    .pop()
-  const m = line?.match(/\[ERRO [^\]]*\]\s*(?:\d+\s+)?(.*)$/)
-  return m?.[1]?.trim() || stderr.trim().split('\n').pop()?.trim() || fallback
-}
-
-const runOnce = async (args: Array<string>) =>
-  new Promise<string>((resolve, reject) => {
-    const proc = execFile(
-      keybaseBin(),
-      args,
-      {encoding: 'utf8', killSignal: 'SIGKILL', timeout: CLI_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024},
-      (err, stdout, stderr) => {
-        if (err?.killed) reject(new Error(`keybase ${args[0]}: no answer in ${CLI_TIMEOUT_MS / 1000}s`))
-        else if (err) reject(new Error(`keybase ${args[0]}: ${cliError(stderr, err.message)}`))
-        else resolve(stdout)
-      }
-    )
-    proc.stdin?.end()
-  })
-
-// Every call here only reads, so one the service failed with its own server timeout is run once
-// more. Bound: two tries of CLI_TIMEOUT_MS, 60s.
-export const runCli: CliRunner = async args => {
-  try {
-    return await runOnce(args)
-  } catch (e) {
-    if (!(e instanceof Error) || !e.message.endsWith(SERVICE_TIMEOUT)) throw e
-    return runOnce(args)
-  }
-}
+// Every call here only reads. Bound: readCli's, 60s.
+export const runCli: CliRunner = async args => readCli(args, `keybase ${args[0]}`)
 
 type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})
