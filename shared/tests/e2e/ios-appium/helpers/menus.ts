@@ -11,7 +11,7 @@ import {sourceElements} from '../gate/page-source-lib.ts'
 // the tree, moved below the screen, so the tree alone would never see it close. Bound: the window
 // read 1.
 const SHEET_PEEK = 114
-const openSheets = async () => {
+export const openSheets = async () => {
   const {height} = await browser.getWindowRect()
   return `-ios predicate string:label == "Bottom Sheet" AND (visible == 1 OR rect.y < ${height - SHEET_PEEK})`
 }

@@ -9,7 +9,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
-import {check, menuSheet, openSheetWith, waitForSheetGone} from './menus'
+import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
@@ -31,6 +31,7 @@ import {
   innermost,
   persistedMismatch,
   rectOf as frameOf,
+  type Rect as Frame,
   shiftIntoBand,
   type DrawnInboxItem,
   type Rect as Frame,
@@ -1022,45 +1023,63 @@ export const rowCentre = async (text: string) => {
   return {x: Math.round(x + width / 2), y: Math.round(y + height / 2)}
 }
 
-// Closes the open message menu with the sheet's own Close when that lies wholly on screen, else with
-// a tap on the backdrop above the sheet's top, at its middle, when at least BACKDROP_MIN of it shows.
-// It never taps anywhere else below the sheet's top: a sheet's first row is its quick reactions, where
-// a tap writes. With neither, the sheet is dragged down by its top edge (which lowers it or closes
-// it) and read again, up to twice; then it fails. Bound: three reads (the window 1, the sheets and
-// the Closes 2) = 9, two drags and their settles 4, the tap 1, the sheet gone 5 = 19.
-const BACKDROP_MIN = 88
-export const closeMessageMenu = async () => {
-  if (!(await (await menuSheet()).isExisting())) return
-  for (let drags = 0; ; drags++) {
-    if (!(await (await menuSheet()).isExisting())) break
-    const {height, width} = await browser.getWindowRect()
-    let top = height
-    for (const sh of await browser.$$('-ios predicate string:label == "Bottom Sheet"').getElements()) {
-      top = Math.min(top, (await sh.getLocation().catch(() => ({y: height}))).y)
+// The frames of the open menu sheets (openSheets), read again once when none gives one (a sheet
+// re-rendering after a drag can fail its frame read); throws when the second read gives none either,
+// as a sheet with no measured top has no backdrop to tap. Bound: two reads 4.
+const openSheetFrames = async () => {
+  for (let read = 1; ; read++) {
+    const frames: Array<Frame> = []
+    for (const sh of await browser.$$(await openSheets()).getElements()) {
+      const r = await frameOf(sh)
+      if (r) frames.push(r)
     }
-    let close: {x: number; y: number} | undefined
-    for (const c of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()) {
-      const r = await frameOf(c)
-      // the sheet's own Close: below the sheet's top and wholly on screen
-      if (r && r.y >= top && inside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
-    }
-    if (!close && top >= BACKDROP_MIN) close = {x: width / 2, y: top / 2}
-    if (close) {
-      await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
-      break
-    }
-    if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
-    await browser
-      .action('pointer', {parameters: {pointerType: 'touch'}})
-      .move({x: Math.round(width / 2), y: Math.round(top + 8)})
-      .down()
-      .move({duration: 300, x: Math.round(width / 2), y: Math.round(Math.min(height - 40, top + 400))})
-      .up()
-      .perform()
-    await browser.pause(1_000)
+    if (frames.length) return frames
+    if (read >= 2) throw new Error('the open menu sheet gives no frame: not tapping')
   }
-  await waitForSheetGone(5_000)
 }
+
+// Closes the open message menu with the sheet's own Close (one lying wholly on screen and inside a
+// measured open sheet), else with a tap on the backdrop above the sheet's top, at its middle, when at
+// least BACKDROP_MIN of it shows. It never taps anywhere else below the sheet's top: a sheet's first
+// row is its quick reactions, where a tap writes. With neither, the sheet is dragged down by its top
+// edge (which lowers it or closes it) and read again, up to twice; then it fails. Bound: 19, a hard
+// deadline (no tap or drag starts after it): three rounds of reads (the window, the sheets read once
+// more when they give no frame, the Closes), two drags and their settles, the tap, the sheet gone 5.
+const BACKDROP_MIN = 88
+const CLOSE_MS = 19_000
+export const closeMessageMenu = async () =>
+  underDeadline('closing the message menu', CLOSE_MS, async alive => {
+    if (!(await (await menuSheet()).isExisting())) return
+    for (let drags = 0; ; drags++) {
+      if (!(await (await menuSheet()).isExisting())) break
+      const {height, width} = await browser.getWindowRect()
+      const sheets = await openSheetFrames()
+      const top = Math.min(...sheets.map(r => r.y))
+      let close: {x: number; y: number} | undefined
+      for (const c of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()) {
+        const r = await frameOf(c)
+        // the sheet's own Close: inside a measured open sheet and wholly on screen
+        if (r && sheets.some(sh => inside(r, sh)) && inside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
+      }
+      if (!close && top >= BACKDROP_MIN) close = {x: width / 2, y: top / 2}
+      if (close) {
+        alive()
+        await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
+        break
+      }
+      if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
+      alive()
+      await browser
+        .action('pointer', {parameters: {pointerType: 'touch'}})
+        .move({x: Math.round(width / 2), y: Math.round(top + 8)})
+        .down()
+        .move({duration: 300, x: Math.round(width / 2), y: Math.round(Math.min(height - 40, top + 400))})
+        .up()
+        .perform()
+      await browser.pause(1_000)
+    }
+    await waitForSheetGone(5_000)
+  })
 
 // The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
 // items), read off the React tree.
