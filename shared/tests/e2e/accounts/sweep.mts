@@ -301,7 +301,8 @@ const ownedRootTeams = async (actor: Actor) => {
 
 const subteams = async (actor: Actor, team: string) => {
   const res = await call<Array<{name: {parts: Array<string>}}> | null>(actor, 'keybase.1.teams.teamListSubteamsRecursive', {
-    forceRepoll: false,
+    // A cached parent still lists a subteam deleted minutes ago, and loading that one fails as tombstoned.
+    forceRepoll: true,
     parentTeamName: team,
     sessionID: 0,
   })
