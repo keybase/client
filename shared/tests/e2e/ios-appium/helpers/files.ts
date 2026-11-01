@@ -196,7 +196,8 @@ export const drag = async (fromY: number, toY: number) => {
 // is dragged toward its end until the row shows, and back toward its start once a drag moves nothing,
 // so a row anywhere in it, or one that arrives late, is found. Bound: `timeout`, plus one try's drag 1
 // (a list other than Files drags twice a try and stops a second sooner, so the same), or 4 toward a
-// row the tree holds off screen.
+// row the tree holds off screen. A row found right after a drag is read again after an 0.8s settle
+// (inside `timeout`).
 export const filesRowNamed = async (
   name: string,
   what: string,
@@ -204,11 +205,20 @@ export const filesRowNamed = async (
 ): Promise<DrawnRow> => {
   let towardEnd = true
   let before: string | undefined
+  let dragged = false
   return waitFor(
     what,
     async () => {
       const {offscreen, row, signature} = await drawnNamed(testID, name, within)
-      if (row) return row
+      if (row) {
+        if (!dragged) return row
+        // a list still gliding from a drag takes a tap as the stop of its glide: read the row again
+        // once it has settled
+        dragged = false
+        await browser.pause(800)
+        return undefined
+      }
+      dragged = true
       const {height} = await browser.getWindowRect()
       // a row the tree holds off screen (a list that is not virtualized) says which way and how far:
       // long drags toward it, up to four between reads
