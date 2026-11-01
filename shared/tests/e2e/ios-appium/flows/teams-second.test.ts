@@ -19,16 +19,14 @@
 // subteam, deletes it (after a timeout too; a deleted team's name is never free again, so each
 // attempt takes a fresh one), reads on the second account's peer that it is in none of this run's
 // subteams, and puts the app back on the smoke account.
-import {randomBytes} from 'crypto'
-import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
-import {parseStampedName, stampedTeamName} from '../../accounts/run-id'
-import {createThrowawaySubteam, retryTransient} from '../../shared/chat-data'
+import {loadE2EAccounts} from '../../accounts/env'
+import {retryTransient} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {rememberInviteLink} from '../../shared/gate/secret-scan.ts'
-import {ensurePeer, runKeybase} from '../../shared/peer-service'
+import {runKeybase} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {addToSubteamFromCli, deleteSubteamIfPresent, memberRoles, requireThisRunSubteam, subteamExists, teamID as hostTeamID} from '../../shared/teams.ts'
+import {addToSubteamFromCli, deleteSubteamIfPresent, memberRoles, requireThisRunSubteam, subteamExists} from '../../shared/teams.ts'
 import {appAccount, asSecond, restoreToSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
@@ -45,12 +43,15 @@ import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamsRoot,
+  expectHost,
+  makeOwnSubteamWithID,
   masked,
-  openTeamFromList,
+  openSubteamUntil,
   openTeamsRoot,
-  openTeamTab,
+  removeSecond,
   requireOnSubteam,
   revealTeamHeader,
+  secondInNoSubteam,
   tapTeamsCard,
   textShown,
 } from '../helpers/teams'
@@ -83,7 +84,7 @@ describe('teams second account', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   host      a retried CLI read (readBack: up to four reads of 60, 5s apart) 255;  polled  30s of
   //             CLI reads, overrun by one 285
-  //   subteam   makeOwnSubteam 915 (the make 600, its id 315);  add  addToSubteamFromCli 255;  link
+  //   subteam   makeOwnSubteamWithID 915 (the make 600, its id 315);  add  addToSubteamFromCli 255;  link
   //             makeInviteLink 255
   //   second    asSecond 250 (the switch 90, the restore 160)
   //   opened    openSubteamUntil: 60s of tries, overrun by one (team 109, tab 24, `ready`)
@@ -137,18 +138,6 @@ describe('teams second account', function () {
     clearSecretOnScreen(JOIN_FIELD)
   }
 
-  // Takes the second account out of a subteam of this run while it is in it, through the CLI.
-  // Bound: its roles 255, the removal 255 = 510.
-  const removeSecond = async (name: string) => {
-    const {secondUser} = loadE2EAccounts()
-    if (!(secondUser in (await memberRoles(name)))) return
-    requireThisRunSubteam(name)
-    await retryTransient(
-      async () => runKeybase(['team', 'remove-member', name, `--user=${secondUser}`, '--force'], {timeoutMs: 60_000}),
-      /not a member|not found/i
-    )
-  }
-
   // Bound: 1575 a name (exists 315, removeSecond 510, deleteSubteamIfPresent 750: an existence read
   // 315, the delete 90, 30s of reads overrun by one 315).
   const restoreMade = async () => {
@@ -161,54 +150,12 @@ describe('teams second account', function () {
     }
   }
 
-  // The subteams of this run the second account is in, read on its own peer, and whether that read
-  // lists the e2e team (the anchor: an empty read of the wrong account lists nothing). Bound: one
-  // peer call 60.
-  const secondMemberships = async (peer: Awaited<ReturnType<typeof ensurePeer>>) => {
-    const {team} = loadE2EAccounts()
-    const out = await peer.cli(['team', 'list-memberships', '-j'], 60_000)
-    const names = ((JSON.parse(out) as {teams?: Array<{fq_name: string}> | null}).teams ?? []).map(t => t.fq_name)
-    const runId = e2eRunId()
-    const inRun = names.filter(n => {
-      const part = n.startsWith(`${team}.`) ? n.slice(team.length + 1) : ''
-      return !part.includes('.') && parseStampedName(part, 'team')?.runId === runId
-    })
-    return {anchored: names.includes(team), inRun}
-  }
-
-  // Bound: the peer 70, then 30s of reads, overrun by one 60 = 160.
-  const secondInNoSubteam = async () =>
-    masked(async () => {
-      const peer = await ensurePeer('second', loadE2EEnv())
-      await waitFor(
-        "the second account's memberships to hold none of this run's subteams",
-        async () => {
-          const {anchored, inRun} = await secondMemberships(peer)
-          return anchored && inRun.length === 0 ? true : undefined
-        },
-        {interval: 2_000, timeout: 30_000}
-      )
-    })
-
   // Worst case (s): the field 27, the pasteboard 50, the one name of a test 1575, the memberships
-  // 160, close 5, keyboard 5, restoreToSmoke 160, escape 30 = 2012.
+  // 160, close 19, keyboard 5, restoreToSmoke 160, escape 30 = 2026.
   afterEach(async function () {
     this.timeout(2_100_000)
     await withCleanup(emptyJoinField, [overwritePasteboard, restoreMade, secondInNoSubteam, closeMessageMenu, hideKeyboard, restoreToSmoke, escapeToTabs])
   })
-
-  // A subteam of the e2e team made by the host for one test, with its name in madeNames before the
-  // make, so a test timed out during it still has it deleted. `prefix` is up to 3 characters.
-  // Bound: the make 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
-  // general channel listed 90), its id 315 = 915.
-  const makeOwnSubteam = async (prefix: string) => {
-    const label = `${prefix}${randomBytes(2).toString('hex')}`
-    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
-    requireThisRunSubteam(name)
-    madeNames.add(name)
-    const {generalConvID} = await masked(async () => createThrowawaySubteam(label))
-    return {generalConvID, name, teamID: await masked(async () => hostTeamID(name))}
-  }
 
   // An invite link to a subteam of this run, made through the CLI for one use within a day, as a
   // reader, and put in the run's secret-scan record before anything else is done with it. A failure
@@ -233,12 +180,6 @@ describe('teams second account', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
-  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
-    masked(async () =>
-      waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 30_000})
-    )
-
   // The second account's role in a subteam ('none' when it is not in it), and whether the same read
   // has the smoke account in it (the anchor for its absence). Bound: one CLI read 255.
   const rolesIn = async (name: string) => {
@@ -246,20 +187,6 @@ describe('teams second account', function () {
     const roles = await memberRoles(name)
     return {anchored: smokeUser in roles, second: roles[secondUser] ?? 'none'}
   }
-
-  // The subteam's page opened from the Teams tab until `ready` passes on it: the app loads a team
-  // afresh when its page opens, and its teams list hears of a membership the host gave on a reopen.
-  // Bound: 60s of tries, overrun by one (team 109, tab 24, `ready`).
-  const openSubteamUntil = async (what: string, name: string, teamID: string, ready: () => Promise<unknown>) =>
-    retriedNavigation(
-      what,
-      async () => {
-        await openTeamFromList(name, teamID)
-        await openTeamTab(MEMBERS.button, MEMBERS.body)
-        await ready()
-      },
-      {intervals: [2_000], timeout: 60_000}
-    )
 
   // Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
   // does to paste. The pasteboard is set before. Bound: the tap 1, six tries of the hold 1.3 and 1.5
@@ -283,7 +210,7 @@ describe('teams second account', function () {
     // field gone 1, text 6, step 2, pin 1, calls 2, button 6, waited for 12, the success's Close 21
     // (20, one read 1) and its tap 1, step 2; then polled 285, step 2 = 2253
     this.timeout(2_300_000)
-    const {name, teamID} = await makeOwnSubteam('lnk')
+    const {name, teamID} = await makeOwnSubteamWithID('lnk', madeNames)
     check((await masked(async () => rolesIn(name))).second === 'none', 'the second account is already in the new subteam')
     const link = await makeInviteLink(name)
 
@@ -342,13 +269,13 @@ describe('teams second account', function () {
     // 285, step 2 = 2344
     this.timeout(2_400_000)
     const {secondUser} = loadE2EAccounts()
-    const {name, teamID} = await makeOwnSubteam('lve')
+    const {name, teamID} = await makeOwnSubteamWithID('lve', madeNames)
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
     await expectHost('the second account in the subteam', async () => rolesIn(name), r => r.second === 'writer')
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
     await asSecond(async () => {
-      await openSubteamUntil("the subteam's page", name, teamID, async () =>
+      await openSubteamUntil("the subteam's page", name, teamID, MEMBERS, async () =>
         el(T.TEAMS_HEADER_MENU_BUTTON).waitForExist({timeout: 3_000})
       )
       await requireOnSubteam("the subteam's page", 'team', onSubteam)
@@ -389,7 +316,7 @@ describe('teams second account', function () {
     // open 100, the store 31 (30, one read 1), the row 1, step 2 = 2373
     this.timeout(2_500_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
-    const {generalConvID, name, teamID} = await makeOwnSubteam('ibk')
+    const {generalConvID, name, teamID} = await makeOwnSubteamWithID('ibk', madeNames)
     // added without the chat message, so the second account has nothing of its own in the thread,
     // which would dismiss the invitation on its own
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))

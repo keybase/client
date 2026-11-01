@@ -11,11 +11,8 @@
 // channel and the seeded emoji, reads back what the phone did, and, in the flow's afterEach, takes a
 // featured subteam off the smoke account's profile (a public change) before it deletes the subteam
 // (after a timeout too; a deleted team's name is never free again, so each attempt takes a fresh one).
-import {randomBytes} from 'crypto'
-import {loadE2EAccounts} from '../../accounts/env'
-import {stampedChannelName, stampedEmojiName, stampedTeamName} from '../../accounts/run-id'
+import {stampedChannelName, stampedEmojiName} from '../../accounts/run-id'
 import {CORPUS_DIR} from '../../fixtures/corpus/corpus'
-import {createThrowawaySubteam} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
@@ -30,27 +27,30 @@ import {
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
 import {creditSurface} from '../gate/attempt'
-import {elementInRow} from '../gate/chat-lib.ts'
+import {elementInRow, innermost} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
-import {retriedNavigation, step} from '../gate/step'
+import {step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, expectPersists, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {buttonLabelled, drag, expectScreen, filesRowNamed, fillField, onScreen, press, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPartIn, labelledElement, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
+  expectHost,
   expectTeamPage,
+  makeOwnSubteam,
+  makeOwnSubteamWithID,
   masked,
   onlyField,
-  openTeamFromList,
-  openTeamTab,
+  openSubteamUntil,
   requireOnSubteam,
   revealTeamHeader,
+  TEXT_TYPES,
   textShown,
-  TEXTS,
 } from '../helpers/teams'
 
 type Params = Record<string, unknown>
@@ -76,15 +76,13 @@ const routesShown = async () =>
       teamID: str(r.params && r.params.teamID),
     }))`)
 
-// what a text a flow reads or taps can be drawn as, for a read off one page source
-const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
-
 describe('teams settings', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   host      a retried host read (readBack: up to four reads 5s apart): of the main service 315
   //             (four of 75, whoami 15 and the call 60), of the CLI 255 (four of 60);  polled  30s of
   //             reads, overrun by one read: of the CLI 285, of the main service 345
-  //   subteam   makeOwnSubteam 600;  seed  makeSubteamChannel 510
+  //   subteam   makeOwnSubteamWithID 915 (the make 600, its id 315), makeOwnSubteam 600;  seed
+  //             makeSubteamChannel 510
   //   opened    openSubteamUntil: 60s of tries, overrun by one (team 109, tab 24, `ready`)
   //   team      openTeamFromList 109;  page  expectTeamPage 21;  tab  openTeamTab 24;  header
   //             revealTeamHeader 8
@@ -142,52 +140,13 @@ describe('teams settings', function () {
     }
   }
 
-  // Worst case (s): close 5, keyboard 5, unfeature 1680, the one name of a test 750, escape 30 = 2470.
+  // Worst case (s): close 19, keyboard 5, unfeature 1680, the one name of a test 750, escape 30 = 2484.
   afterEach(async function () {
     this.timeout(2_600_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, restoreMade, escapeToTabs])
   })
 
-  // A subteam of the e2e team made by the host for one test, with its name in madeNames before the
-  // make, so a test timed out during it still has it deleted. `prefix` is up to 3 characters.
-  // Bound: subteam 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255 each, then its
-  // general channel listed 90).
-  const makeOwnSubteam = async (prefix: string) => {
-    const label = `${prefix}${randomBytes(2).toString('hex')}`
-    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
-    requireThisRunSubteam(name)
-    madeNames.add(name)
-    const {generalConvID} = await masked(async () => createThrowawaySubteam(label))
-    return {generalConvID, name, teamID: await masked(async () => hostTeamID(name))}
-  }
-
   // -- reads --------------------------------------------------------------------------------------
-
-  // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
-  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
-    masked(async () =>
-      waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 30_000})
-    )
-
-  // The subteam's page opened from the Teams tab on its tab `tab` until `ready` passes on it: the app
-  // loads a team afresh when its page opens, so a host change (or a subteam the host made) shows on a
-  // reopen. Bound: 60s of tries, overrun by one (team 109, tab 24, `ready`).
-  const openSubteamUntil = async (
-    what: string,
-    name: string,
-    teamID: string,
-    tab: {body: string; button: string},
-    ready: () => Promise<unknown>
-  ) =>
-    retriedNavigation(
-      what,
-      async () => {
-        await openTeamFromList(name, teamID)
-        await openTeamTab(tab.button, tab.body)
-        await ready()
-      },
-      {intervals: [2_000], timeout: 60_000}
-    )
 
   // The settings tab has its team's settings once its message deletion dropdown is drawn. Bound: 10s.
   const settingsLoaded = async () => el(T.TEAMS_RETENTION_DROPDOWN).waitForExist({timeout: 10_000})
@@ -261,11 +220,11 @@ describe('teams settings', function () {
   }
 
   it("a subteam's description saved from Edit team info", async function () {
-    // worst case (s): subteam 600, host 315 (the showcase), opened 204 (team 109, tab 24, the header
+    // worst case (s): subteam 915, host 315 (the showcase), opened 204 (team 109, tab 24, the header
     // 11), pin 1, header 8, button 6, screen 11, field 11, fill 26, step 2, pin 1, calls 2, button 6,
-    // waited for 12, polled 345, back 44, text 16 (15, read 1), step 2 = 1613
-    this.timeout(1_700_000)
-    const {name, teamID} = await makeOwnSubteam('dsc')
+    // waited for 12, polled 345, back 44, text 16 (15, read 1), step 2 = 1928
+    this.timeout(2_000_000)
+    const {name, teamID} = await makeOwnSubteamWithID('dsc', madeNames)
     const showcase = async () =>
       mainRead<{teamShowcase: {description?: string | null}}>('keybase.1.teams.getTeamAndMemberShowcase', {teamID})
     check(((await masked(showcase)).teamShowcase.description ?? '') === '', 'a new subteam has a description')
@@ -294,11 +253,11 @@ describe('teams settings', function () {
   })
 
   it('a subteam featured on the smoke account\'s profile from its settings', async function () {
-    // worst case (s): subteam 600, featured 630, opened 230 (team 109, tab 24, loaded 10, overrun by
+    // worst case (s): subteam 915, featured 630, opened 230 (team 109, tab 24, loaded 10, overrun by
     // one try), on screen 20, calls 2, switch 21, waited for 12, polled 690 (30s of reads of 630,
-    // overrun by one), step 2 = 2207
-    this.timeout(2_300_000)
-    const {name, teamID} = await makeOwnSubteam('shw')
+    // overrun by one), step 2 = 2522
+    this.timeout(2_600_000)
+    const {name, teamID} = await makeOwnSubteamWithID('shw', madeNames)
     check(!(await masked(async () => isFeatured(name))), 'a new subteam is featured on the profile')
     await openSubteamUntil("the subteam's settings", name, teamID, SETTINGS, settingsLoaded)
     const onSubteam = (p: Params) => p['teamID'] === teamID
@@ -315,11 +274,11 @@ describe('teams settings', function () {
   })
 
   it("requests to join a subteam not allowed, and the switch still on after a relaunch", async function () {
-    // worst case (s): subteam 600, host 315 (tars), opened 230, on screen 20, calls 2, switch 21,
+    // worst case (s): subteam 915, host 315 (tars), opened 230, on screen 20, calls 2, switch 21,
     // waited for 12, polled 345, step 2, relaunch 200, signed in 90, opened 250 (team 109, tab 24, on
-    // screen 20, the switch on 15, overrun by one try), step 2 = 2089
-    this.timeout(2_200_000)
-    const {name, teamID} = await makeOwnSubteam('tar')
+    // screen 20, the switch on 15, overrun by one try), step 2 = 2404
+    this.timeout(2_500_000)
+    const {name, teamID} = await makeOwnSubteamWithID('tar', madeNames)
     const tarsDisabled = async () => mainRead<boolean>('keybase.1.teams.getTarsDisabled', {teamID})
     check(!(await masked(tarsDisabled)), 'a new subteam does not allow requests')
     await openSubteamUntil("the subteam's settings", name, teamID, SETTINGS, settingsLoaded)
@@ -356,10 +315,10 @@ describe('teams settings', function () {
   })
 
   it("a subteam's message deletion set to 30 days through the warning", async function () {
-    // worst case (s): subteam 600, host 315 (the policy), opened 230, pick 72, warning 41 (its pin
-    // 1), calls 2, waited for 12, polled 345, the dropdown's label 11 (10, one read 1), step 2 = 1630
-    this.timeout(1_700_000)
-    const {name, teamID} = await makeOwnSubteam('ret')
+    // worst case (s): subteam 915, host 315 (the policy), opened 230, pick 72, warning 41 (its pin
+    // 1), calls 2, waited for 12, polled 345, the dropdown's label 11 (10, one read 1), step 2 = 1945
+    this.timeout(2_000_000)
+    const {name, teamID} = await makeOwnSubteamWithID('ret', madeNames)
     const policy = async () => mainRead<Policy>('chat.1.local.getTeamRetentionLocal', {teamID})
     check(((await masked(policy))?.typ ?? retain) === retain, 'a new subteam deletes messages')
     await openSubteamUntil("the subteam's settings", name, teamID, SETTINGS, settingsLoaded)
@@ -385,7 +344,7 @@ describe('teams settings', function () {
     // worst case (s): subteam 600, seed 510, the channel's policy 315, open 100, panel 25, pick 72,
     // warning 41 (its pin 1), calls 2, waited for 12, polled 345, step 2 = 2024
     this.timeout(2_100_000)
-    const {name} = await makeOwnSubteam('cre')
+    const {name} = await makeOwnSubteam('cre', madeNames)
     const channel = stampedChannelName('ret', e2eRunId())
     const convID = await masked(async () => makeSubteamChannel(name, channel))
     const policy = async () => {
@@ -412,13 +371,13 @@ describe('teams settings', function () {
   })
 
   it('a channel added to a subteam\'s default channels from the popup, and removed from its pill', async function () {
-    // worst case (s): subteam 600, seed 510, host 315 (the defaults), opened 250 (team 109, tab 24,
+    // worst case (s): subteam 915, seed 510, host 315 (the defaults), opened 250 (team 109, tab 24,
     // on screen 20, overrun by one try), its press 2, the channel 12 (10 of reads and drags, overrun
     // by one 2) and its press 2, text 6, step 2, pin 1, calls 2, its press 2, waited for 12, polled
     // 345, the pill 6, the remove read 1, step 2, pin 1, calls 2, its tap 1, waited for 12, polled
-    // 345, the pill gone 11 (10, one read 1), step 2 = 2451
-    this.timeout(2_500_000)
-    const {name, teamID} = await makeOwnSubteam('dch')
+    // 345, the pill gone 11 (10, one read 1), step 2 = 2766
+    this.timeout(2_800_000)
+    const {name, teamID} = await makeOwnSubteamWithID('dch', madeNames)
     const channel = stampedChannelName('dflt', e2eRunId())
     await masked(async () => makeSubteamChannel(name, channel))
     const defaults = async () =>
@@ -426,7 +385,7 @@ describe('teams settings', function () {
         c => c.channel
       )
     check(!(await masked(defaults)).includes(channel), 'a new channel is a default one')
-    const addChannels = async () => elementWithLabelPartIn(TEXT_TYPES, 'Add channels', "the default channels' Add channels")
+    const addChannels = async () => elementWithLabelPartIn(TEXT_TYPES, 'Add channels', "the default channels' Add channels", {forTap: true})
     // a team with more than one channel draws its default channels; the app sees the host's channel
     // once it loads the team afresh
     await openSubteamUntil("the subteam's default channels", name, teamID, SETTINGS, async () =>
@@ -441,7 +400,7 @@ describe('teams settings', function () {
     const pick = await waitFor(
       'the channel in the popup',
       async () => {
-        const found = await elementWithLabelPartIn(TEXT_TYPES, `#${channel}`, 'the channel in the popup').catch(() => undefined)
+        const found = await elementWithLabelPartIn(TEXT_TYPES, `#${channel}`, 'the channel in the popup', {forTap: true}).catch(() => undefined)
         if (found && (await onScreen(found))) return found
         const {height} = await browser.getWindowRect()
         await drag(height - 80, height - 380)
@@ -451,7 +410,7 @@ describe('teams settings', function () {
     )
     await press(pick, 'the channel in the popup')
     // the subteam has #general (hidden here) and this channel alone: one picked is this one
-    const add = await textShown('Add (1)', "the popup's Add with one channel picked")
+    const add = await textShown('Add (1)', "the popup's Add with one channel picked", 5_000, {forTap: true})
     await step('The channel picked')
     await requireOnSubteam("the subteam's default channels", 'team', onSubteam)
     let seq = await currentCallSeq()
@@ -469,12 +428,22 @@ describe('teams settings', function () {
     await removes[0]!.click()
     await waitForUiCall('the default channels to go out', seq, 'chat.1.local.setDefaultTeamChannelsLocal')
     await expectHost('the channel no longer a default one', defaults, d => !d.includes(channel))
+    // both counted off one page source: none of the channel's, and #general's drawn in the same read
+    const pills = async () => {
+      const drawn = sourceElements(await browser.getPageSource()).filter(e => TEXT_TYPES.includes(e.type) && e.attrs['visible'] === 'true')
+      const count = (label: string) =>
+        innermost(
+          drawn
+            .filter(e => (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ') === label)
+            .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
+        ).length
+      return {general: count('#general'), mine: count(`#${channel}`)}
+    }
     await waitFor(
       "the channel's pill to go, with #general's still drawn",
       async () => {
-        const general = await labelledElement(TEXTS, '#general', "#general's pill").then(() => true, () => false)
-        const mine = await labelledElement(TEXTS, `#${channel}`, "the channel's pill").then(() => true, () => false)
-        return general && !mine ? true : undefined
+        const {general, mine} = await pills()
+        return general >= 1 && mine === 0 ? true : undefined
       },
       {interval: 500, timeout: 10_000}
     )
@@ -483,16 +452,16 @@ describe('teams settings', function () {
 
   it("a host-seeded emoji given an alias from its row's menu, then the alias and the emoji deleted", async function () {
     // worst case (s):
-    // setup: subteam 600, host 255 (the seed), polled 345, opened 224 (team 109, tab 24, the row 31,
-    //   overrun by one try) = 1424;
+    // setup: subteam 915, host 255 (the seed), polled 345, opened 224 (team 109, tab 24, the row 31,
+    //   overrun by one try) = 1739;
     // alias: row 31, in row 2, menu 19, item 22, screen 11, field 11, fill 26, step 2, pin 1, calls 2,
     //   button 6, waited for 12, polled 345, page 21, row 31, step 2 = 544;
     // deletes, each: row 31, in row 2, menu 19, pin 1, calls 2, item 22, waited for 12, polled 345 =
     //   434, twice = 868; the row gone 11, step 2 = 13
-    // = 1424 + 544 + 868 + 13 = 2849
-    this.timeout(2_900_000)
+    // = 1739 + 544 + 868 + 13 = 3164
+    this.timeout(3_200_000)
     const runId = e2eRunId()
-    const {generalConvID, name, teamID} = await makeOwnSubteam('emo')
+    const {generalConvID, name, teamID} = await makeOwnSubteamWithID('emo', madeNames)
     const seed = stampedEmojiName('s', runId)
     const alias = stampedEmojiName('b', runId)
     type UserEmojiRes = {emojis?: {emojis?: Array<{name: string; emojis?: Array<{alias: string}> | null}> | null}}

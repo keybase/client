@@ -13,10 +13,8 @@
 // with one channel offers only "Create channels", which takes no description), and reads back what
 // the phone did. The flow's afterEach deletes each subteam under every name it had, after a timeout
 // too; a deleted team's name is never free again, so each attempt takes fresh names.
-import {randomBytes} from 'crypto'
 import {loadE2EAccounts} from '../../accounts/env'
-import {stampedChannelName, stampedTeamName} from '../../accounts/run-id'
-import {createThrowawaySubteam} from '../../shared/chat-data'
+import {stampedChannelName} from '../../accounts/run-id'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -41,7 +39,9 @@ import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
+  expectHost,
   expectTeamPage,
+  makeOwnSubteam,
   masked,
   onlyField,
   openTeamFromList,
@@ -93,32 +93,13 @@ describe('teams subteams', function () {
     }
   }
 
-  // Worst case (s): close 5, keyboard 5, two names 1500, escape 30 = 1540.
+  // Worst case (s): close 19, keyboard 5, two names 1500, escape 30 = 1554.
   afterEach(async function () {
     this.timeout(1_600_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteMade, escapeToTabs])
   })
 
-  // A subteam of the e2e team made by the host for one test, as makeSubteam does, but with its name
-  // in madeNames before the make, so a test timed out during it still has it deleted. `prefix` is up
-  // to 3 characters. Bound: subteam 600 (two CLI calls of up to four tries of 60 with 5s pauses, 255
-  // each, then its general channel listed 90).
-  const makeOwnSubteam = async (prefix: string) => {
-    const label = `${prefix}${randomBytes(2).toString('hex')}`
-    const name = `${loadE2EAccounts().team}.${stampedTeamName(label, e2eRunId())}`
-    requireThisRunSubteam(name)
-    madeNames.add(name)
-    await masked(async () => createThrowawaySubteam(label))
-    return name
-  }
-
   // -- reads --------------------------------------------------------------------------------------
-
-  // Polls a host read until `ok` takes it. Bound: 30s, overrun by one read.
-  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
-    masked(async () =>
-      waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 30_000})
-    )
 
   const channelRow = async (channel: string, what: string) => filesRowNamed(`#${channel}`, what, {testID: T.TEAMS_CHANNEL_ROW})
 
@@ -217,7 +198,7 @@ describe('teams subteams', function () {
     // = 1631 + 376 + 1081 + 813 + 444 = 4345
     this.timeout(4_400_000)
     const runId = e2eRunId()
-    const name = await makeOwnSubteam('chn')
+    const {name} = await makeOwnSubteam('chn', madeNames)
     const teamID = await masked(async () => hostTeamID(name))
     const seed = stampedChannelName('seed', runId)
     const seedConvID = await masked(async () => makeSubteamChannel(name, seed))
@@ -370,7 +351,7 @@ describe('teams subteams', function () {
     // = 1086 + 771 + 445 = 2302
     this.timeout(2_400_000)
     const {team} = loadE2EAccounts()
-    const name = await makeOwnSubteam('rnd')
+    const {name} = await makeOwnSubteam('rnd', madeNames)
     const renamed = `${team}.${freshSubteamPart('ren')}`
     const renamedPart = requireThisRunSubteam(renamed)
     const teamID = await masked(async () => hostTeamID(name))

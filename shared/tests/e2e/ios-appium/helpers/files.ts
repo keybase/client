@@ -13,13 +13,13 @@
 // no other screen's rows there), and tapped at their own frames (tapFrame).
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
+import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
 import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
-import {check, labelledElement, openMenuFrom} from './menus'
+import {check, dragBetween, labelledElement, openMenuFrom} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -48,15 +48,6 @@ export const expectScreen = async (
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
-
-const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
-  const at = await e.getLocation().catch(() => undefined)
-  const size = await e.getSize().catch(() => undefined)
-  return at && size ? {...at, ...size} : undefined
-}
-
-const inside = (r: Rect, area: Rect) =>
-  r.width > 0 && r.height > 0 && r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height
 
 // Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
 export const tapFrame = async (rect: Rect, what: string) => {
@@ -179,17 +170,10 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   return {offscreen: undefined as number | undefined, row: inner.length ? found[inner[0]!] : undefined, signature: labels.join('\n')}
 }
 
+// A drag down the screen's middle from `fromY` to `toY`.
 export const drag = async (fromY: number, toY: number) => {
   const {width} = await browser.getWindowRect()
-  const x = Math.round(width / 2)
-  await browser
-    .action('pointer', {parameters: {pointerType: 'touch'}})
-    .move({x, y: Math.round(fromY)})
-    .down()
-    .move({duration: 300, x, y: Math.round(toY)})
-    .pause(200)
-    .up()
-    .perform()
+  await dragBetween({x: width / 2, y: fromY}, {x: width / 2, y: toY})
 }
 
 // The row (`testID`, FILES_ROW by default) named exactly `name`, under `within` when given. The list
