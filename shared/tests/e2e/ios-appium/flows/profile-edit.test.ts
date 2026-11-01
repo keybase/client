@@ -16,7 +16,7 @@ import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {expectScreen, fillField, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, expectScreen, fillField, tapButton, waitSignedIn} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 import {escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
@@ -88,10 +88,10 @@ describe('profile edit', function () {
     )
 
   it('edit name, bio and location, read back on the server and after a relaunch', async function () {
-    // worst case (s): profile 63, step 2, button 7, screen 11, field 11, fill 26 x3, step 2, calls 2,
+    // worst case (s): profile 63, step 2, settled 61, screen 11, field 11, fill 26 x3, step 2, calls 2,
     // button 7, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
-    // profile 63, shown 31 x3, step 2 = 847
-    this.timeout(900_000)
+    // profile 63, shown 31 x3, step 2 = 901
+    this.timeout(950_000)
     check(original !== undefined, 'the original profile fields were never read')
     const before = original!
     const runId = e2eRunId()
@@ -100,7 +100,15 @@ describe('profile edit', function () {
     await openOwnProfile()
     // the own profile lists its featured teams and followers, which are not test ones
     await step('The own profile', {screenshot: false})
-    await tapButton('Edit profile', "the profile's Edit profile")
+    // the own profile draws its buttons only once its identify ends, and after an account switch the
+    // service's user-changed notices restart that identify again and again (seen live: ten restarts
+    // over 19s right after teams-second's switch back to smoke). Bound: 60s, the tap 1.
+    const edit = await waitFor(
+      "the profile's Edit profile",
+      async () => buttonLabelled('Edit profile', "the profile's Edit profile"),
+      {interval: 500, timeout: 60_000}
+    )
+    await edit.click()
     await expectScreen('Edit profile', 'profileEdit')
     // the screen has put the account's loaded name in, so what is typed next is not overwritten
     await fieldReads(T.PROFILE_EDIT_FULL_NAME, before.fullName, 'Full name', 'the loaded full name in its field')
