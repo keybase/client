@@ -4,7 +4,7 @@
 // its header's Done.
 import * as T from '../../shared/test-ids'
 import {jsEval} from '../gate/app-ask'
-import {el, PASTE_ITEM, tapForTestID, waitForTestID} from './elements'
+import {el, pasteFromMenu, tapForTestID, waitForTestID} from './elements'
 import {expectScreen} from './files'
 import {fiberPrelude} from './fiber-prelude'
 import {waitFor} from './lifecycle'
@@ -67,8 +67,7 @@ const FIRST_LINE = 20
 // first line opens its edit menu, and its Paste is pressed. The field sits inside the operation's
 // tappable box, so it has no element of its own: the box is tapped to focus it, the field's own native
 // view is measured in the app, and the press goes to its first line only when that lies inside the
-// box's element and on screen. Bound: the box 1 and its tap 1, the measure 4, six presses (1.3 and a
-// 1.5 wait) 17, the item 1 = 24.
+// box's element and on screen. Bound: the box 1 and its tap 1, the measure 4, pasteFromMenu 18 = 24.
 export const pasteIntoCryptoField = async (tab: CryptoTab) => {
   const box = await el(CRYPTO_TABS[tab].input).getElement()
   await box.click()
@@ -101,14 +100,7 @@ export const pasteIntoCryptoField = async (tab: CryptoTab) => {
   if (frame.width <= 0 || frame.height <= 0 || at.x < r.x || at.x > r.x + r.width || at.y < r.y || at.y > r.y + r.height || at.y > window) {
     throw new Error(`the ${tab} field's first line is not inside its box on screen: ${JSON.stringify(frame)} in ${JSON.stringify(r)}`)
   }
-  for (let i = 0; i < 6; i++) {
-    await browser.execute('mobile: touchAndHold', {duration: 1.3, x: Math.round(at.x), y: Math.round(at.y)})
-    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
-      await browser.$(PASTE_ITEM).click()
-      return
-    }
-  }
-  throw new Error(`the ${tab} field's edit menu never offered Paste`)
+  await pasteFromMenu(at, `the ${tab} field`)
 }
 
 // Whether the output modal renders `text` as its output. Its output is a selectable text, which

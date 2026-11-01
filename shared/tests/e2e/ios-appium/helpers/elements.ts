@@ -140,39 +140,36 @@ const pasteText = async (id: string, text: string): Promise<void> => {
     encoding: 'base64',
   })
   const field = await el(id).getElement()
-  await field.click().catch(() => {})
-  const paste = browser.$(PASTE_ITEM)
-  // The long-press that summons the menu is occasionally swallowed, so retry it.
-  for (let i = 0; i < 6; i++) {
-    await browser.execute('mobile: touchAndHold', {elementId: field.elementId, duration: 1.3}).catch(() => {})
-    const shown = await paste
-      .waitForExist({timeout: 1500})
-      .then(() => true)
-      .catch(() => false)
-    if (shown) {
-      await paste.click().catch(() => {})
-      return
-    }
-    await browser.pause(300)
-  }
-  throw new Error(`pasteText: Paste menu never appeared for "${id}"`)
+  await field.click()
+  await pasteFromMenu({elementId: field.elementId}, `the field "${id}"`)
 }
 
-// Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
-// does to paste. The pasteboard is set before (gate/device.ts setPasteboard, over stdin, so no
-// WebDriver request carries the text). Bound: the tap 1, six tries of the hold 1.3 and 1.5 for the
-// menu = 21.
-export const pasteInto = async (testID: string) => {
-  const field = await el(testID).getElement()
-  await field.click()
+// Where a long press goes: an element, or a point on screen.
+export type HoldTarget = {elementId: string} | {x: number; y: number}
+
+// Long-presses `at` until its edit menu offers Paste, and taps it: what a person does to paste. The
+// long press that summons the menu is now and then swallowed, so it is tried six times; any other
+// error throws. `what` names the field in the error. Bound: six tries of the hold 1.3 and 1.5 for
+// the menu, the item 1 = 18.
+export const pasteFromMenu = async (at: HoldTarget, what: string) => {
+  const hold = 'elementId' in at ? {elementId: at.elementId} : {x: Math.round(at.x), y: Math.round(at.y)}
   for (let i = 0; i < 6; i++) {
-    await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: field.elementId})
+    await browser.execute('mobile: touchAndHold', {duration: 1.3, ...hold})
     if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
       await browser.$(PASTE_ITEM).click()
       return
     }
   }
-  throw new Error("the field's edit menu never offered Paste")
+  throw new Error(`${what}'s edit menu never offered Paste`)
+}
+
+// Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
+// does to paste. The pasteboard is set before (gate/device.ts setPasteboard, over stdin, so no
+// WebDriver request carries the text). Bound: the field and its tap 3, pasteFromMenu 18 = 21.
+export const pasteInto = async (testID: string) => {
+  const field = await el(testID).getElement()
+  await field.click()
+  await pasteFromMenu({elementId: field.elementId}, 'the field')
 }
 
 // Tap a testID and wait for an expected testID to appear, re-tapping if it does

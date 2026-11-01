@@ -92,7 +92,7 @@ describe('teams second account', function () {
   //   screen    a screen waited for 11 (10, read 1), 21 with a 20s wait;  pin  requireOnSubteam 1
   //   button    tapButton 6;  text  textShown 6
   //   menu      openMenuFrom 19;  item  chooseMenuItem 22
-  //   paste     setPasteboard 50, pasteInto 21 (the tap 1, six tries of 3s), its length 6 (5, one read
+  //   paste     setPasteboard 50, pasteInto 21 (the field and its tap 3, pasteFromMenu 18), its length 6 (5, one read
   //             1), the overwrite 50 = 127
   //   open      openConversation 100;  relaunch  relaunchApp 200;  signed in  90
   //   calls     one read 2;  waited for  12 (10, one read 2)
