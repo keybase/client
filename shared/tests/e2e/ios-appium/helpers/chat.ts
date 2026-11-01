@@ -907,9 +907,18 @@ export const typeInComposer = async (text: string) => {
   await el(T.CHAT_INPUT).addValue(text)
 }
 
+// Deletes `held` (what the field holds, its caret at the end) with backspace keys. A field is never
+// cleared with WDA's clearValue (or setValue, which clears first): after it the app's process stays
+// in hardware-keyboard mode, so a later focus draws no software keyboard and Keyboard.metrics() stays
+// unset until keys are typed again.
+const deleteByKeys = async (input: ChainablePromiseElement, held: string) => {
+  if (held) await input.addValue('\b'.repeat([...held].length))
+}
+
 export const clearComposer = async () => {
-  if ((await composerText()) === '') return
-  await el(T.CHAT_INPUT).clearValue()
+  const held = await composerText()
+  if (held === '') return
+  await deleteByKeys(el(T.CHAT_INPUT), held)
   await waitForComposerText('')
 }
 
@@ -1275,7 +1284,8 @@ export const searchFor = async (query: string, timeout = 30_000) => {
   const end = Date.now() + timeout
   for (;;) {
     await input.waitForExist({timeout: 5_000})
-    await input.clearValue().catch(() => {})
+    const native = await input.getAttribute('value')
+    await deleteByKeys(input, native === null || native === 'Search...' ? '' : native)
     await input.addValue(query)
     // Only not holding the query yet is waited out (and the query typed again); any other failure
     // (a lost session, the eval itself) is thrown. The wait ends with the overall deadline.

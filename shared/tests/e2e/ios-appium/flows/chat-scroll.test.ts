@@ -38,6 +38,7 @@ import {
   centreTolerance,
   check,
   chooseMenuItem,
+  clearComposer,
   closeInfoPanel,
   closeSearch,
   dragThread,
@@ -227,7 +228,7 @@ describe('chat scroll', function () {
     })
 
     it('with the keyboard up, the first keystroke keeps the newest message above the composer', async function () {
-      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 2, two steps 4 = 174
+      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 7 (its keys 2, the read back 5), two steps 4 = 179
       this.timeout(180_000)
       await openScratch()
       await expectAtEnd()
@@ -241,7 +242,7 @@ describe('chat scroll', function () {
         await expectAtEnd('after the first keystroke, the thread')
         await step('After the first keystroke, the newest message still above the composer', {card: true})
       } finally {
-        await el(T.CHAT_INPUT).clearValue()
+        await clearComposer()
       }
     })
 
