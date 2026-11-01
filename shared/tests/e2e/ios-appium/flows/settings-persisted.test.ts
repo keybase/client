@@ -78,7 +78,7 @@ import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {relaunchApp} from '../gate/device'
 import {rectOf} from '../gate/chat-lib.ts'
-import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugLevels} from '../gate/persisted-lib.ts'
+import {proxySaveWrites, rectsOverlap, settingIDs, settingShownOf, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
@@ -751,7 +751,7 @@ describe('settings persisted', function () {
     const fromLaunch = logMark()
     await relaunched()
     const was = levelsSince(fromLaunch).at(-1) ?? 'vlog0'
-    check(was !== 'vlog2', 'refusing: KBFS detailed logging is already on in the relaunched app, so the button cannot be seen to turn it on')
+    check(!vdebugDetailed(was), 'refusing: KBFS detailed logging is already on in the relaunched app, so the button cannot be seen to turn it on')
     touched.debugLevel = was
 
     await openAdvanced()

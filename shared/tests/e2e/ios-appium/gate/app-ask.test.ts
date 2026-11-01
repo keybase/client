@@ -256,6 +256,7 @@ describe("the phone's local settings", () => {
     await guiClearValue('ui.darkMode')
     await setCompressPreference('compressed')
     await setDebugLevel('vlog1')
+    await setDebugLevel('vlog1,dump-payload')
     await toggleRuntimeStats()
     expect(mockApp.log.filter(l => l !== 'pause' && l !== 'resume tok')).toEqual([
       'set remember false',
@@ -264,6 +265,7 @@ describe("the phone's local settings", () => {
       'call keybase.1.config.guiClearValue ui.darkMode',
       'set compress 1',
       'debug vlog1',
+      'debug vlog1,dump-payload',
       'toggle stats',
     ])
   })
@@ -276,6 +278,7 @@ describe("the phone's local settings", () => {
       async () => guiSetValue('ui.darkMode', {isNull: false, s: 'sys`tem'}),
       async () => guiClearValue('../x'),
       async () => setDebugLevel('v 1'),
+      async () => setDebugLevel('vlog1,vlog9'),
     ]) {
       await expect(f()).rejects.toThrow(/^refusing /)
     }

@@ -49,12 +49,28 @@ export const proxySaveWrites = (loaded: ProxySettings): ProxySettings => {
 }
 
 // The KBFS debug levels set, in order, in `lines` of the phone's service log (libkb's VDebugLog logs
-// each one it is configured with). Only the level of each such line is kept.
+// each one it is configured with). Only KBFS's own loggers' lines count (`kbfs`, `kbfs(<module>)`):
+// the service's own VDebugLog (`keybase`) logs the same line for its level, which the KBFS level
+// does not change. Only the level of each such line is kept.
+const kbfsVdebugRe = /▶ \[DEBU kbfs(?:\([^)]*\))? [^\]]*\].*?\bSetting Vdebug to "([^"]*)"/
 export const vdebugLevels = (lines: ReadonlyArray<string>) =>
   lines.flatMap(l => {
-    const m = /Setting Vdebug to "([^"]*)"/.exec(l)
+    const m = kbfsVdebugRe.exec(l)
     return m ? [m[1] ?? ''] : []
   })
+
+// libkb's VDebugLog directives (libkb/vdebug.go Configure), which a level lists separated by commas.
+const VDEBUG_TOKENS: ReadonlySet<string> = new Set(['mobile', 'vlog0', 'vlog1', 'vlog2', 'vlog3', 'dump-site-load-user', 'dump-payload'])
+// a level of every directive at most twice over
+const VDEBUG_MAX = 128
+
+// Whether `level` is one VDebugLog takes: empty (its default), or a comma list of its directives,
+// bounded in length.
+export const isVdebugLevel = (level: string) =>
+  level === '' || (level.length <= VDEBUG_MAX && level.split(',').every(t => VDEBUG_TOKENS.has(t)))
+
+// Whether `level` turns detailed logging (vlog2) on.
+export const vdebugDetailed = (level: string) => level.split(',').includes('vlog2')
 
 export type Rect = {height: number; width: number; x: number; y: number}
 

@@ -4,6 +4,7 @@
 // back and restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
+import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -262,7 +263,7 @@ export const randomPW = async () =>
 
 // Sets the phone's KBFS debug level (a restore of "Enable Detailed Logging").
 export const setDebugLevel = async (level: string) => {
-  if (!/^[A-Za-z0-9_-]{0,16}$/.test(level)) throw new Error('refusing a KBFS debug level that is not plain')
+  if (!isVdebugLevel(level)) throw new Error('refusing a KBFS debug level that is not a comma list of VDebugLog directives')
   await askApp<boolean>('restoring the KBFS debug level', `${RPC_GEN}.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: ${JSON.stringify(level)}}).then(() => true)`)
 }
 
