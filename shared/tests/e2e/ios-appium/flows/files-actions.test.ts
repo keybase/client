@@ -245,7 +245,7 @@ describe('files actions', function () {
   // Moves or copies a file into a folder beside it with the destination picker, which opens on the
   // work folder: the folder beside the file is opened in it, and `action` tapped there. Bound: work
   // 180, open 365, entry 242, step 2, menu 52, item 22, picker 10, screen 11, the picker's row 31, the
-  // tap 1, screen 11, its read 1, calls 2, the action 6, gone 10 = 946.
+  // tap 1, screen 11, its read 1, calls 2, the action 7 (5s of reads, its press 2), gone 10 = 947.
   const moveOrCopy = async (action: 'Copy here' | 'Move here') => {
     const file = stampedEntry('mc')
     const dest = stampedEntry('dest')
@@ -273,10 +273,15 @@ describe('files actions', function () {
     const seq = await currentCallSeq()
     // the action is a row of the picker (one accessible box, its label ", Move here"), reported
     // visible=false as on a folder screen, so it is tapped at its frame
-    const button = await elementWithLabelPart(
-      `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(action)}`,
-      action,
-      `the picker's ${action}`
+    const button = await waitFor(
+      `the picker's ${action}`,
+      async () =>
+        elementWithLabelPart(
+          `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(action)}`,
+          action,
+          `the picker's ${action}`
+        ),
+      {interval: 250, timeout: 5_000}
     )
     await tapElement(button, `the picker's ${action}`)
     await el(T.FILES_DESTINATION_PICKER).waitForExist({reverse: true, timeout: 10_000})
@@ -284,7 +289,7 @@ describe('files actions', function () {
   }
 
   it('a file moved into a folder beside it with the destination picker', async function () {
-    // worst case (s): moveOrCopy 946, calls 10, kbfs 180, listing 60, step 2 = 1198
+    // worst case (s): moveOrCopy 947, calls 10, kbfs 180, listing 60, step 2 = 1199
     this.timeout(1_250_000)
     const {dest, file, folder, seq, target} = await moveOrCopy('Move here')
     await waitForUiCall('the move to go out', seq, 'keybase.1.SimpleFS.simpleFSMove')
@@ -295,7 +300,7 @@ describe('files actions', function () {
   })
 
   it('a file copied into a folder beside it with the destination picker', async function () {
-    // worst case (s): moveOrCopy 946, calls 10, kbfs 180, listing 60, step 2 = 1198
+    // worst case (s): moveOrCopy 947, calls 10, kbfs 180, listing 60, step 2 = 1199
     this.timeout(1_250_000)
     const {dest, file, folder, seq, target} = await moveOrCopy('Copy here')
     await waitForUiCall('the copy to go out', seq, 'keybase.1.SimpleFS.simpleFSCopyRecursive')
