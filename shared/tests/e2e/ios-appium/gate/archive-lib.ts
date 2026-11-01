@@ -78,3 +78,24 @@ export const chatArchivesOf = (states: ArchiveJobStates, ids: ArchiveJobs, root:
     if (!inside(file, root) || !inside(j.outputPath, root)) throw new Error("refusing a backup output path outside the simulator's own storage")
     return file
   })
+
+const chatJobIDRe = /^[A-Za-z0-9-]+$/
+const keybaseCacheDirRe = /^Keybase[A-Za-z]*$/
+
+// The folder the chat job `id` of `states` left, for the host to delete, or undefined when `states`
+// does not list the job. The service names it kbchat-<job id> in its cache folder (go/chat/archive.go
+// ArchiveChat; go/libkb/home.go CacheDir is <home>/Library/Caches/Keybase), so the path must be
+// exactly kbchat-<id>, for this job's own id, in the app's own caches (`appDataContainer`'s
+// Library/Caches, or its Keybase folder there). Anything else is refused, naming no path.
+export const chatFolderToRemove = (states: ArchiveJobStates, id: string, appDataContainer: string) => {
+  const j = states.chat.find(c => c.id === id)
+  if (!j) return undefined
+  simDataRoot(appDataContainer)
+  const refuse = () => new Error("refusing to delete a chat backup's folder: it is not this job's kbchat folder in the app's own caches")
+  const p = j.outputPath
+  if (!chatJobIDRe.test(id) || !path.isAbsolute(p) || path.resolve(p) !== p || path.basename(p) !== `kbchat-${id}`) throw refuse()
+  const caches = path.join(path.resolve(appDataContainer), 'Library', 'Caches')
+  const parent = path.dirname(p)
+  if (parent !== caches && !(path.dirname(parent) === caches && keybaseCacheDirRe.test(path.basename(parent)))) throw refuse()
+  return p
+}

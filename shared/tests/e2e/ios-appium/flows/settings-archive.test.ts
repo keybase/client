@@ -32,6 +32,7 @@ import {archiveJobStates, archiveJobs, removeArchiveJobs, type ArchiveJobStates,
 import {
   anchorsOf,
   chatArchivesOf,
+  chatFolderToRemove,
   CHAT_COMPLETE,
   CHAT_PAUSED,
   CHAT_RUNNING,
@@ -102,14 +103,26 @@ describe('settings archive', function () {
   const outputs = new Set<string>()
   // work folders the host made
   const madeFolders = new Set<string>()
-  let storage: string | undefined
+  let container: string | undefined
+
+  // The app's data container. Bound: 120.
+  const appContainer = () => {
+    if (container) return container
+    try {
+      container = appDataContainer()
+      return container
+    } catch (e) {
+      if (isAttemptOver(e)) throw e
+      // no cause: the error names the container's path
+      // eslint-disable-next-line preserve-caught-error
+      throw new Error("finding the app's data container failed")
+    }
+  }
 
   // The simulator's own storage: the host only looks for a job's output inside it. Bound: storage 120.
   const storageRoot = () => {
-    if (storage) return storage
     try {
-      storage = simDataRoot(appDataContainer())
-      return storage
+      return simDataRoot(appContainer())
     } catch (e) {
       if (isAttemptOver(e)) throw e
       // no cause: the error names the container's path
@@ -150,20 +163,19 @@ describe('settings archive', function () {
     }
   }
 
-  // Deletes the folder a removed chat job of `fresh` still left, once it is checked to be a plain
-  // folder inside the simulator. A job removed while it runs can write after the service's own delete
-  // (go/chat/archive.go Delete; seen live: a folder left 20s after the cleanup). Bound: one read 1.
+  // Deletes the folder a removed chat job of `fresh` (this test's jobs) still left, once it is checked
+  // to be that job's own kbchat folder in the app's caches and a plain folder. A job removed while it
+  // runs can write after the service's own delete (go/chat/archive.go Delete; seen live: a folder left
+  // 20s after the cleanup). Bound: one read 1.
   const removeChatFolders = (states: ArchiveJobStates, fresh: ArchiveJobs) => {
     requireCurrentAttempt()
-    const root = storageRoot()
     for (const id of fresh.chat) {
-      const j = states.chat.find(c => c.id === id)
-      if (!j) continue
-      anchorsOf(j.outputPath, root)
-      const st = fs.lstatSync(j.outputPath, {throwIfNoEntry: false})
+      const folder = chatFolderToRemove(states, id, appContainer())
+      if (!folder) continue
+      const st = fs.lstatSync(folder, {throwIfNoEntry: false})
       if (!st) continue
       check(st.isDirectory() && !st.isSymbolicLink(), "refusing to delete a chat backup's output: it is not a plain folder")
-      fs.rmSync(j.outputPath, {force: true, recursive: true})
+      fs.rmSync(folder, {force: true, recursive: true})
     }
   }
 

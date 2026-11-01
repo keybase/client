@@ -1,4 +1,4 @@
-import {CHAT_PAUSED, anchorsOf, chatArchivesOf, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, stillListed} from './archive-lib'
+import {CHAT_PAUSED, anchorsOf, chatArchivesOf, chatFolderToRemove, jobIDsOf, newJobIDs, outputPathsOf, simDataRoot, stillListed} from './archive-lib'
 
 const root = '/Users/testuser/Library/Developer/CoreSimulator/Devices/D1/data/'
 const container = `${root}Containers/Data/Application/A1`
@@ -75,4 +75,38 @@ test("a finished chat job's compressed file is found for the test's chat jobs on
   })()
   expect(err?.message).toMatch(/^refusing /)
   expect(err?.message).not.toContain('testuser')
+})
+
+test("a chat job's leftover folder is deleted only as that job's kbchat folder in the app's own caches", () => {
+  const caches = `${container}/Library/Caches`
+  const states = (outputPath: string) => ({chat: [{id: 'c1-ab', outputPath, status: CHAT_PAUSED}], kbfs: []})
+  expect(chatFolderToRemove(states(`${caches}/Keybase/kbchat-c1-ab`), 'c1-ab', container)).toBe(`${caches}/Keybase/kbchat-c1-ab`)
+  expect(chatFolderToRemove(states(`${caches}/kbchat-c1-ab`), 'c1-ab', container)).toBe(`${caches}/kbchat-c1-ab`)
+  expect(chatFolderToRemove(states(`${caches}/Keybase/kbchat-c1-ab`), 'c9', container)).toBeUndefined()
+  for (const bad of [
+    // the caches root, the data root, another app's container, another job's folder
+    caches,
+    `${caches}/Keybase`,
+    root,
+    `${root}Containers/Data/Application/OTHER/Library/Caches/Keybase/kbchat-c1-ab`,
+    `${caches}/Keybase/kbchat-c2`,
+    `${caches}/Keybase/kbchat-c1-ab/inner`,
+    `${caches}/Other/kbchat-c1-ab`,
+    `${caches}/Keybase/x/kbchat-c1-ab`,
+    `${caches}/Keybase/../kbchat-c1-ab/../..`,
+    '',
+    'kbchat-c1-ab',
+  ]) {
+    const err = (() => {
+      try {
+        chatFolderToRemove(states(bad), 'c1-ab', container)
+      } catch (e) {
+        return e as Error
+      }
+      return undefined
+    })()
+    expect(err?.message).toMatch(/refusing/)
+    if (bad) expect(err?.message).not.toContain(bad)
+  }
+  expect(() => chatFolderToRemove(states(`${caches}/Keybase/kbchat-c1-ab`), 'c1-ab', '/tmp/somewhere')).toThrow(/not a simulator's/)
 })
