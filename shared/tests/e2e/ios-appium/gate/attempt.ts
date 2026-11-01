@@ -10,6 +10,7 @@ import * as path from 'path'
 import {slug as fullSlug} from '../../shared/step-name.ts'
 import {createBinding, refusal, type Frame} from './attempt-binding-lib.ts'
 import type {IosSurface} from './lists/surfaces.ts'
+import type {TakeSteps} from '../../shared/cleanup.ts'
 
 // shared/tests/results/ios-report whatever the cwd; KB_IOS_REPORT_DIR moves it (the unit tests do).
 export const iosReportDir = () => process.env['KB_IOS_REPORT_DIR'] ?? path.resolve(__dirname, '../../../results/ios-report')
@@ -44,11 +45,20 @@ type Running = AttemptToken & {
   steps: number
   surfaces: Set<IosSurface>
   ended?: AttemptRecord
+  // the withCleanups running in its body, outermost first
+  cleanups: Array<TakeSteps>
+  // set once the gate ended its body while it still ran: the cleanup steps it had left
+  left?: Array<() => unknown>
 }
 
 type End = Pick<AttemptRecord, 'status' | 'durationMs' | 'error'>
 
-const binding = createBinding<Running>()
+// A body ended while it still ran hands over the steps its withCleanups had left, the innermost
+// first, as each would have run them.
+const binding = createBinding<Running>(r => {
+  r.left = [...(r.left ?? []), ...r.cleanups.reverse().flatMap(take => take())]
+  r.cleanups = []
+})
 let started = 0
 
 const slug = (s: string) => fullSlug(s).slice(0, 80)
@@ -82,6 +92,7 @@ export const beginAttempt = (file: string, titlePath: Array<string>, attempt: nu
     annotations: [],
     attachments: [],
     attempt,
+    cleanups: [],
     file,
     id: `${String(started).padStart(4, '0')}-${name}-r${attempt}`,
     steps: 0,
@@ -110,6 +121,27 @@ export const leaveBody = (): AttemptToken => {
   const token = attemptToken()
   binding.endCurrentBody()
   return token
+}
+
+// For withCleanup (setCleanupStepKeeper): keeps its steps with the running body, so the gate can take
+// those left if it ends the body; nothing outside a running body (a hook's withCleanup runs to its end).
+export const keepCleanupSteps = (take: TakeSteps) => {
+  const f = binding.frame()
+  const r = f?.body && !f.body.over ? f.value : undefined
+  if (!r) return () => {}
+  r.cleanups.push(take)
+  return () => {
+    r.cleanups = r.cleanups.filter(t => t !== take)
+  }
+}
+
+// For the root afterEach: undefined when the attempt's body settled on its own; once the gate ended
+// it while it still ran, the cleanup steps it left (maybe none), handed over once.
+export const takeLeftCleanup = (token: AttemptToken): Array<() => unknown> | undefined => {
+  const r = token as Running
+  const left = r.left
+  r.left = undefined
+  return left
 }
 
 // Throws `attempt over: <test title>` in a test body that is over; nothing in a hook or outside an

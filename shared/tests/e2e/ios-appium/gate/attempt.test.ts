@@ -14,6 +14,7 @@ import {
   endRunningBodies,
   failEndedAttempt,
   iosReportDir,
+  keepCleanupSteps,
   leaveBody,
   NEVER_ENDED,
   openAttemptToken,
@@ -24,13 +25,16 @@ import {
   requireCurrentAttempt,
   runAttempt,
   runAttemptBody,
+  takeLeftCleanup,
 } from './attempt'
+import {setCleanupStepKeeper, withCleanup} from '../../shared/cleanup'
 
 beforeEach(() => {
   process.env['KB_IOS_REPORT_DIR'] = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-ios-attempt-'))
 })
 afterEach(() => {
   delete process.env['KB_IOS_REPORT_DIR']
+  setCleanupStepKeeper(() => () => {})
 })
 
 const file = 'flows/x.test.ts'
@@ -218,4 +222,91 @@ test('surfaces are credited to the running attempt once each, and only inside on
   })
   const b = beginAttempt(file, ['d', 't'], 1)
   runAttempt(b, () => expect(creditedSurfaces()).toEqual([]))
+})
+
+const tick = async () => new Promise<void>(resolve => setImmediate(resolve))
+
+test('a body the gate ends before its cleanup hands the restores it had left to the root afterEach', async () => {
+  setCleanupStepKeeper(keepCleanupSteps)
+  const a = beginAttempt(file, ['d', 'hung'], 0)
+  const ran: Array<string> = []
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  const body = runAttemptBody(a, 'd hung', async () =>
+    withCleanup(
+      async () =>
+        withCleanup(
+          async () => {
+            await stuck
+            requireCurrentAttempt()
+          },
+          [() => ran.push('inner restore')]
+        ),
+      [() => ran.push('outer restore'), () => ran.push('back to smoke')]
+    )
+  )
+  await tick()
+  // the hang watch relaunched the app: the gate ends the body while its command is stuck
+  expect(endRunningBodies()).toEqual(['d hung'])
+  release()
+  await expect(body).rejects.toThrow('attempt over: d hung')
+  // the over body ran none of them itself
+  expect(ran).toEqual([])
+  const left = takeLeftCleanup(a) ?? []
+  for (const s of left) s()
+  expect(ran).toEqual(['inner restore', 'outer restore', 'back to smoke'])
+  // handed over once
+  expect(takeLeftCleanup(a)).toBeUndefined()
+})
+
+test('a body ended while a restore ran hands over that restore too, and runs nothing after it', async () => {
+  setCleanupStepKeeper(keepCleanupSteps)
+  const a = beginAttempt(file, ['d', 'hung in cleanup'], 0)
+  const ran: Array<string> = []
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  const first = async () => {
+    ran.push('first started')
+    await stuck
+    requireCurrentAttempt()
+  }
+  const second = () => ran.push('second')
+  const body = runAttemptBody(a, 'd hung in cleanup', async () => withCleanup(async () => {}, [first, second]))
+  await tick()
+  endRunningBodies()
+  release()
+  await expect(body).rejects.toThrow('attempt over')
+  expect(ran).toEqual(['first started'])
+  expect(takeLeftCleanup(a)).toEqual([first, second])
+})
+
+test("a body that settles keeps nothing for the root afterEach, and a hook's cleanup is never kept", async () => {
+  setCleanupStepKeeper(keepCleanupSteps)
+  const a = beginAttempt(file, ['d', 'ok'], 0)
+  const ran: Array<string> = []
+  await runAttemptBody(a, 'd ok', async () => withCleanup(async () => {}, [() => ran.push('restore')]))
+  expect(endRunningBodies()).toEqual([])
+  expect(takeLeftCleanup(a)).toBeUndefined()
+  await runAttempt(a, async () => withCleanup(async () => {}, [() => ran.push('hook restore')]))
+  expect(ran).toEqual(['restore', 'hook restore'])
+  expect(takeLeftCleanup(a)).toBeUndefined()
+})
+
+test("wdio's afterTest ending a running body hands its cleanup over too", async () => {
+  setCleanupStepKeeper(keepCleanupSteps)
+  const a = beginAttempt(file, ['d', 'wdio'], 0)
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  const restore = () => {}
+  const body = runAttemptBody(a, 'd wdio', async () =>
+    withCleanup(async () => {
+      const done = stuck.then(() => requireCurrentAttempt())
+      leaveBody()
+      await done
+    }, [restore])
+  )
+  await tick()
+  release()
+  await expect(body).rejects.toThrow('attempt over')
+  expect(takeLeftCleanup(a)).toEqual([restore])
 })

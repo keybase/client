@@ -12,19 +12,21 @@ export const attemptOverMessage = (title: string) => `${OVER}${title}`
 
 export const isAttemptOver = (e: unknown) => e instanceof Error && e.message.startsWith(OVER)
 
-type Body = {title: string; over: boolean}
+type Body<T> = {title: string; over: boolean; value: T}
 
-export type Frame<T> = {value: T; body?: Body}
+export type Frame<T> = {value: T; body?: Body<T>}
 
 // Why code bound to `frame` may not drive the app, or undefined when it may: outside any attempt,
 // in a hook, or in a body mocha is still running.
 export const refusal = <T>(frame: Frame<T> | undefined): string | undefined =>
   frame?.body?.over ? attemptOverMessage(frame.body.title) : undefined
 
-export const createBinding = <T>() => {
+// `ended` is told of each body ended while it still ran (by endRunningBodies or endCurrentBody), not
+// of one that settled.
+export const createBinding = <T>(ended: (value: T) => void = () => {}) => {
   const store = new AsyncLocalStorage<Frame<T>>()
   // the bodies mocha started and that have not settled
-  const running = new Set<Body>()
+  const running = new Set<Body<T>>()
   return {
     // Runs a hook's work as `value` (or bound to nothing), never as the body whose async context the
     // hook may have inherited (a this.timeout() in a body starts mocha's timer, and so its timeout
@@ -32,7 +34,7 @@ export const createBinding = <T>() => {
     run: <R>(value: T | undefined, fn: () => R): R => (value === undefined ? store.exit(fn) : store.run({value}, fn)),
     // Runs a test body as `value`; the body is running until fn settles, and over from then.
     runBody: async <R>(value: T, title: string, fn: () => Promise<R>): Promise<R> => {
-      const body: Body = {over: false, title}
+      const body: Body<T> = {over: false, title, value}
       running.add(body)
       try {
         return await store.run({body, value}, fn)
@@ -44,18 +46,22 @@ export const createBinding = <T>() => {
     // Marks every running body over, for a hook beginning: mocha runs one only once no body is its
     // to run, so a body still running then is one it timed out.
     endRunningBodies: (): Array<string> => {
-      const titles = [...running].map(b => b.title)
-      for (const b of running) b.over = true
+      const bodies = [...running]
       running.clear()
-      return titles
+      for (const b of bodies) {
+        b.over = true
+        ended(b.value)
+      }
+      return bodies.map(b => b.title)
     },
     // Marks the body the caller is bound to over, for work that ends it from inside its own frame (wdio's
     // afterTest, which runs once wdio's own timer gave up on the body that is still running).
     endCurrentBody: () => {
       const body = store.getStore()?.body
-      if (!body) return
+      if (!body || body.over) return
       body.over = true
       running.delete(body)
+      ended(body.value)
     },
     frame: (): Frame<T> | undefined => store.getStore(),
     // Throws `attempt over: <title>` in a body that is over; nothing anywhere else.

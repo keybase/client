@@ -183,3 +183,24 @@ test('a timer started bound to no body keeps passing the check once the body tha
   expect(results.filter(r => r.startsWith('unbound')).every(r => r === 'unbound ok')).toBe(true)
   expect(results).toContain('bound over')
 })
+
+test('the owner is told of a body ended while it ran, not of one that settled', async () => {
+  const ended: Array<string> = []
+  const b = createBinding<string>(v => ended.push(v))
+  await b.runBody('settled', 'flow s', async () => {})
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const timedOut = b.runBody('timed out', 'flow t', async () => gate)
+  const wdio = b.runBody('wdio', 'flow w', async () => {
+    b.endCurrentBody()
+    // ended once: a second end and the hook's sweep tell the owner nothing more
+    b.endCurrentBody()
+    await gate
+  })
+  await tick()
+  expect(b.endRunningBodies()).toEqual(['flow t'])
+  release()
+  await timedOut
+  await wdio
+  expect(ended).toEqual(['wdio', 'timed out'])
+})
