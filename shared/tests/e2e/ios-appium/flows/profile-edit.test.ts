@@ -106,7 +106,8 @@ describe('profile edit', function () {
     const wanted: ProfileFields = {bio: `e2e-${runId}-bio`, fullName: `e2e-${runId}-name`, location: `e2e-${runId}-loc`}
 
     await openOwnProfile()
-    await step('The own profile')
+    // the own profile lists its featured teams and followers, which are not test ones
+    await step('The own profile', {screenshot: false})
     await tapButton('Edit profile', "the profile's Edit profile")
     await expectScreen('Edit profile', 'profileEdit')
     // the screen has put the account's loaded name in, so what is typed next is not overwritten
@@ -141,7 +142,7 @@ describe('profile edit', function () {
     await profileShows(wanted.bio, 'the new bio on the profile after a relaunch')
     await profileShows(wanted.location, 'the new location on the profile after a relaunch')
     creditSurface('relaunch')
-    await step('The new fields after a relaunch', {card: true})
+    await step('The new fields after a relaunch', {screenshot: false})
   })
 
   it('the proofs list opens from Add more identities and closes by its header', async function () {
@@ -161,6 +162,6 @@ describe('profile edit', function () {
     await browser.$(HEADER_CANCEL).click()
     await expectScreen('the own profile after the proofs list closed', 'profile', p => p['username'] === smokeUser, 20_000)
     check(!(await el(T.PROFILE_PROOFS_FILTER).isExisting()), 'the proofs list is still drawn after its Cancel')
-    await step('Back on the own profile')
+    await step('Back on the own profile', {screenshot: false})
   })
 })

@@ -39,7 +39,8 @@ describe('people browse', function () {
     openLink(`keybase://profile/show/${smokeUser}`)
     await expectScreen("the smoke account's own profile", 'profile', p => p['username'] === smokeUser, 20_000)
     await waitForTestID(T.PROFILE_PAGE, 10_000)
-    await step('The own profile', {card: true})
+    // the own profile lists its featured teams and followers, which are not test ones
+    await step('The own profile', {screenshot: false})
   })
 
   it('the second account’s profile from the header’s search', async function () {
