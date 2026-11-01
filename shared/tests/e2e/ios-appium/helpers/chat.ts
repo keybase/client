@@ -915,10 +915,15 @@ const deleteByKeys = async (input: ChainablePromiseElement, held: string) => {
   if (held) await input.addValue('\b'.repeat([...held].length))
 }
 
+// A draft left by an earlier test leaves the caret wherever the focusing tap landed, so the caret is
+// first put at the text's end by a tap in the input's bottom-right corner, past its last line.
 export const clearComposer = async () => {
   const held = await composerText()
   if (held === '') return
-  await deleteByKeys(el(T.CHAT_INPUT), held)
+  const input = el(T.CHAT_INPUT)
+  const r = await input.getElementRect(await input.elementId)
+  await browser.execute('mobile: tap', {x: Math.round(r.x + r.width - 4), y: Math.round(r.y + r.height - 4)})
+  await deleteByKeys(input, held)
   await waitForComposerText('')
 }
 

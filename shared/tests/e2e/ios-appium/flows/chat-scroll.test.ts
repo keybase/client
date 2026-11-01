@@ -228,8 +228,8 @@ describe('chat scroll', function () {
     })
 
     it('with the keyboard up, the first keystroke keeps the newest message above the composer', async function () {
-      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 7 (its keys 2, the read back 5), two steps 4 = 179
-      this.timeout(180_000)
+      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 9 (the tap 2, its keys 2, the read back 5), two steps 4 = 181
+      this.timeout(190_000)
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
