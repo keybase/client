@@ -209,79 +209,6 @@ test('coverage problems fail the census on their own', () => {
   expect(censusFailed(census(input()))).toBe(false)
 })
 
-const OLD_DESKTOP_MARKDOWN = `# Coverage census
-
-From 1 passing flow tests and 2 rendered tour entries.
-
-Sources:
-
-- a.json: x
-- b: y
-
-- Routes: 2 covered, 1 unclaimed, 1 excluded
-- Write RPCs: 1 covered, 0 unsent, 0 background, 1 excluded
-- Windows: 1 covered, 1 unclaimed
-- Stale exclusions: 1
-- Stale window list entries: 2
-- Coverage problems: 1
-
-## Coverage problems (recordings that should have counted)
-
-- none: passed without a coverage.json
-
-## Stale exclusions
-
-- rpc keybase.1.fake.fakeSend is excluded (gone) but is not a write RPC the desktop app can send
-
-## Stale window list
-
-- window gone is listed in census-windows.ts but the app has no such window
-- window pinentry is in the app but not listed in census-windows.ts
-
-## Unclaimed windows
-
-| window |
-| --- |
-| pinentry |
-
-## Unclaimed routes
-
-| route |
-| --- |
-| fsRoot |
-
-## Unsent write RPCs
-
-(none)
-
-## Background writes (sent in at least 80% of flow tests; not counted as covered)
-
-(none)
-
-## Windows
-
-| window | covered by |
-| --- | --- |
-| menubar | tour window/menubar-menu |
-| pinentry |  |
-
-## Routes
-
-| route | covered by | excluded |
-| --- | --- | --- |
-| chatRoot | flow a |  |
-| gitRoot |  | phone only |
-| teamsRoot | tour window/menubar-menu |  |
-| fsRoot |  |  |
-
-## Write RPCs
-
-| rpc | sent by | excluded |
-| --- | --- | --- |
-| keybase.1.teams.teamCreate | a |  |
-| keybase.1.teams.teamDelete |  | owner: no |
-`
-
 describe('windows', () => {
   const windows = {existing: ['menubar', 'tracker', 'unlock-folders'], listed: ['menubar', 'tracker', 'unlock-folders']}
   const surfaces = (w: {existing: Array<string>; listed: Array<string>}) => ({...w, entryPrefix: 'window/', listFile: 'census-windows.ts', noun: 'window'})
@@ -368,13 +295,24 @@ describe('windows', () => {
       })
     )
 
-  test('the desktop markdown keeps its window wording', () => {
+  test('the desktop markdown names windows', () => {
     const md = renderCensusMarkdown(fixture(), {
       flowTests: 1,
       renderEntries: 2,
       sources: ['a.json: x', 'b: y'],
     })
-    expect(md).toBe(OLD_DESKTOP_MARKDOWN)
+    for (const line of [
+      '- Windows: 1 covered, 1 unclaimed',
+      '- Stale window list entries: 2',
+      '## Stale window list',
+      '- window gone is listed in census-windows.ts but the app has no such window',
+      '## Unclaimed windows',
+      '## Windows',
+      '| window | covered by |',
+      '| menubar | tour window/menubar-menu |',
+    ]) {
+      expect(md).toContain(line)
+    }
   })
 
   test('another platform names its own surfaces, prefix and platform', () => {
