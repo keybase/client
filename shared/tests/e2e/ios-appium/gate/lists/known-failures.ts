@@ -31,6 +31,11 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // in a run without them, so keep the entry until the Go fix lands
     "crypto-roundtrip › crypto roundtrip › text encrypted to the second account decrypts on its peer":
       "the second peer's SaltpackDecrypt uses its per-user-key keyring without syncing it; after the account's key rolls on another device (the password flow), it cannot decrypt to the newest key (Go follow-up). Owner workaround: any chat send from the second peer syncs the keyring",
+    // PR 8 live B (two driven repros, and run 6's simulator log): the relaunched process never starts
+    // the native watcher; the restored tracker asks for the watch about 1s before the app registers
+    // its chat UI
+    'chat-location › chat location › with the app killed while sharing, the relaunched app restores the share and posts a move once it is in front':
+      "the service restores the share at startup (go/service/main.go LiveLocationTracker.Start) before the app has registered its chat UI; getChatUI then hands back NullChatUI, whose ChatWatchPosition answers watch 0 with no error, so startWatch's retry for a UI that isn't ready never runs (go/chat/maps/livelocation.go), the app is never asked to watch, and the tracker waits for a fix that never comes; the same on master (PR 9)",
   },
   render: {},
 }

@@ -326,6 +326,9 @@ describe('chat location', function () {
 
   // iOS relaunching the killed app for the move is manual-only (location-os-relaunch): on the
   // simulator simctl terminate is a force-quit, and iOS never relaunches a force-quit app for location.
+  // A known failure (gate/lists/known-failures.ts): the service restores the share before the app has
+  // registered its chat UI, so the restored tracker never asks the app to watch the location and no
+  // move is posted.
   it('with the app killed while sharing, the relaunched app restores the share and posts a move once it is in front', async function () {
     // worst case (s): in channel 1102, location screen 33, live share 302, cli 90, step 2; relaunch
     // 616, restored 121, signed in 90, the move 421, step 2 = 2779
