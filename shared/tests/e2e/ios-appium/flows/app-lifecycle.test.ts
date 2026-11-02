@@ -148,7 +148,7 @@ describe('app lifecycle', function () {
     // worst case (s): channel 240, open 100, step 2, the identity 121, mark 120, go 21, peer 70, peer
     // send 90, go 21, active 31, screen 11, message 61, drawn 10, same 122, step 2 = 1022
     this.timeout(1_060_000)
-    const made = await masked(async () => createThrowawayChannel('lifecycle', {withSecond: true}))
+    const made = await masked(async () => createThrowawayChannel('life', {withSecond: true}))
     channels.add(made.topicName)
     const {convID} = made
     await openConversation(convID)
