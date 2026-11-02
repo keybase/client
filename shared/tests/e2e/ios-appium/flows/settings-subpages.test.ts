@@ -6,7 +6,7 @@
 // contacts call and raise no system prompt (the page loads the import setting, and with it may write
 // the address book, only when the app has not loaded it yet, so that is checked before the tap).
 import * as T from '../../shared/test-ids'
-import {callsSince, currentCallSeq} from '../gate/recorder'
+import {callsSince, currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {systemAlertUp} from '../gate/system-ui'
 import {hideKeyboard} from '../helpers/chat'
@@ -81,7 +81,8 @@ describe('settings subpages', function () {
 
   it('the Contacts page opens view only: no contacts call and no system prompt', async function () {
     // worst case (s): more 50, the setting 1, calls 2, row 26, screen 11, marker 10, its button 6
-    // (5s of reads, overrun by one 1), calls 2, the alert read 1, step 2 = 111
+    // (5s of reads, overrun by one 1), the persisted route 12 (10, one read 2), calls 2, the alert
+    // read 1, step 2 = 123
     this.timeout(150_000)
     await escapeToTabs()
     await navigateToMore()
@@ -96,8 +97,9 @@ describe('settings subpages', function () {
     await el(T.SETTINGS_ROW_CONTACTS).click()
     await expectScreen('the Contacts settings page', 'settingsTabs.contactsTab')
     await el(T.SETTINGS_CONTACTS).waitForExist({timeout: 10_000, timeoutMsg: 'the Contacts settings page never drew'})
-    // drawn once the page has its import state: the anchor the absences below are read against;
-    // never pressed
+    // the page's import button drawn (never pressed), and the route's persistence the app sends on
+    // each navigation (config.guiSetValue of ui.routeState2) seen after the mark: the positive call
+    // the absence of contacts calls is read against
     await waitFor(
       "the Contacts page's import button",
       async () =>
@@ -106,6 +108,7 @@ describe('settings subpages', function () {
           : undefined,
       {interval: 250, timeout: 5_000}
     )
+    await waitForUiCall("the Contacts page's route to be persisted", mark, 'keybase.1.config.guiSetValue')
     const contactsCalls = (await callsSince(mark)).filter(c => c.method.startsWith('keybase.1.contacts.'))
     check(!contactsCalls.length, `opening the Contacts page sent ${contactsCalls.length} contacts calls`)
     check(!(await systemAlertUp()), 'opening the Contacts page raised a system prompt')

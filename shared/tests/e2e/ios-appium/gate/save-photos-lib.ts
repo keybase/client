@@ -55,3 +55,25 @@ export const requireSavedImage = (added: ReadonlyArray<string>, info: AssetInfo 
   if (`${info.width}x${info.height}` !== pixels) throw new Error(`the saved image is ${info.width}x${info.height}, not ${pixels}`)
   return id
 }
+
+// The library's ids before a test saves anything, proven a whole read: two reads that agree and hold
+// at least the corpus's `corpusCount` items. A read made while full access is still taking effect
+// can come back short or empty with no error, and every id missing from it would read as one the
+// test saved.
+export const requireWholeLibraryRead = (first: ReadonlyArray<string>, second: ReadonlyArray<string>, corpusCount: number) => {
+  const a = new Set(first)
+  if (a.size !== second.length || second.some(id => !a.has(id))) throw new Error('two reads of the photo library ids disagree: refusing to save')
+  if (a.size < corpusCount) throw new Error(`the photo library reads ${a.size} assets, fewer than the ${corpusCount} corpus items: refusing to save`)
+  return a
+}
+
+// What the afterEach does with the library: delete exactly the ids the test recorded when it proved
+// its save (each still in the library), and only report, never delete, an asset that is new since
+// `before` but was not recorded (a save the test never proved, or another app's).
+export const cleanupPlan = (recorded: ReadonlySet<string>, before: ReadonlySet<string>, now: ReadonlyArray<string>) => {
+  const present = new Set(now)
+  return {
+    toDelete: [...recorded].filter(id => present.has(id) && !before.has(id)),
+    unrecorded: now.filter(id => !before.has(id) && !recorded.has(id)),
+  }
+}

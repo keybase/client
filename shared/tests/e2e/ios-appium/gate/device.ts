@@ -482,11 +482,16 @@ export const privacySnapshot = (udid: string): PrivacySnapshot => {
 export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRestore> => {
   const udid = preflightUdid()
   const original = privacyOriginal(privacySnapshot(udid), service)
-  privacyRestoreArgs(original, service, udid)
+  const restore = privacyRestoreArgs(original, service, udid)
   const grant = privacyGrantArgs(service, udid, BUNDLE_ID)
   const before = await runtimeId().catch(() => undefined)
   await attemptRecording().checkpoint()
   await keepErrors()
+  // from the grant until the token is handed back, a failure leaves the permission changed with no
+  // token to put it back: the gate stays poisoned, naming the restore (restorePrivacy's own name, so
+  // a later restore of it clears this too)
+  const what = `the ${service} permission for ${BUNDLE_ID}`
+  poisonGate(what, `run xcrun simctl ${restore.join(' ')}`)
   simctl(...grant)
   const changed = await lookFor(
     async () => {
@@ -497,6 +502,7 @@ export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRest
     {interval: 500, timeout: PRIVACY_KILL_MS}
   )
   if (changed || appPid() === undefined) await launch(before)
+  clearGatePoison(what)
   return {done: false, original, udid}
 }
 

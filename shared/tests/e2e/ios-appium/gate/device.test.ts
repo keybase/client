@@ -245,6 +245,15 @@ describe('privacy', () => {
     expect(mockDevice.calls.filter(c => c.startsWith('simctl privacy'))).toEqual([])
   })
 
+  test('a grant that fails after simctl ran poisons the gate, naming the restore; one that returns its token clears it', async () => {
+    mockDevice.simctlFails = 'grant photos'
+    await expect(grantPrivacy('photos')).rejects.toThrow(/simctl exit 1/)
+    expect(gatePoisoned()).toMatch(/photos permission/)
+    mockDevice.simctlFails = ''
+    await grantPrivacy('photos')
+    expect(gatePoisoned()).toBeUndefined()
+  })
+
   test('without the udid preflight proved, nothing is granted', async () => {
     delete process.env['KB_IOS_UDID']
     await expect(grantPrivacy('photos')).rejects.toThrow(/KB_IOS_UDID/)

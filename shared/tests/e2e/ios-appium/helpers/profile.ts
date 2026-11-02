@@ -37,7 +37,6 @@ export const pickedImagesShown = async () =>
     }
     return [...urls]`)
 
-
 const corpusPng = () => {
   const entry = CORPUS.find(c => c.name === 'e2e-c.png')
   if (!entry) throw new Error('the corpus has no e2e-c.png')

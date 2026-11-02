@@ -1,18 +1,20 @@
 // Save to Photos from the phone: an image in Files saved from its row's menu, a large one whose save
 // is cancelled from the menu's Close while it downloads, and an image the second account attaches in
-// chat saved from its message menu. Each save is read back as the photo library's new newest asset,
-// an image of the corpus png's pixel size, and deleted again by its exact id (iOS's own confirm
-// tapped), read back gone; a cancelled save adds nothing. What a save added is the asset id the
-// library did not hold before the test, not the newest by date: a saved file keeps its own date,
-// which can tie with the corpus's.
+// chat saved from its message menu. Each save is read back as the one asset id the photo library did
+// not hold before the test (not the newest by date: a saved file keeps its own date, which can tie
+// with the corpus's), an image of the corpus png's pixel size; that id is recorded then, and deleted
+// again by it (iOS's own confirm tapped), read back gone. A cancelled save adds nothing.
 //
 // Saving to the library needs add access (granted already on the gate's phone) and the read-back and
 // delete need full access, which a simctl grant does not give PhotoKit: the body takes both privacy
 // tokens (grantPrivacy photos-add, then photos), then the app asks for full access and the system
 // prompt's Allow Full Access is tapped. With full access the flow only reads the library's asset ids
-// and deletes the ids it saved itself, never one the library held before the test. The afterEach deletes a photo a test
-// saved and left, then puts both permissions back (photos reset, photos-add granted again: iOS keeps
-// one of the two) and reads them back; either failing poisons the gate.
+// and deletes the ids it recorded as its proven saves, never another. The library's ids before a
+// save are read twice and must agree and hold the corpus (a read while full access takes effect can
+// come back short). The afterEach deletes a recorded photo a test left, and only reports (poisoning
+// the gate, naming the ids) an asset new since the test began that was never recorded; then it puts
+// both permissions back (photos reset, photos-add granted again: iOS keeps one of the two) and reads
+// them back; any of it failing poisons the gate.
 //
 // The phone's Save is no regular download: no download card shows (the footer's cards are regular
 // downloads only), so the save is read on the menu's own "In progress, Save" item and the calls it
@@ -34,12 +36,12 @@ import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import {assetInfo, libraryAssetIds, phoneDownloads} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {grantPrivacy, imageProps, launchIfGone, restorePrivacy} from '../gate/device'
+import {ensurePhotoCorpus, grantPrivacy, imageProps, launchIfGone, restorePrivacy} from '../gate/device'
 import type {PrivacyRestore} from '../gate/device-lib'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
-import {newAssetIds, noisePng, requireSavedImage} from '../gate/save-photos-lib.ts'
+import {cleanupPlan, newAssetIds, noisePng, requireSavedImage, requireWholeLibraryRead} from '../gate/save-photos-lib.ts'
 import {step} from '../gate/step'
 import {deleteSavedPhoto, grantFullPhotoAccess} from '../gate/system-ui'
 import {closeMessageMenu, hideKeyboard, openConversation, openMessageMenu, scrollRowIntoView, storedAttachment, waitForRow} from '../helpers/chat'
@@ -58,6 +60,8 @@ const SAVE_IN_PROGRESS = 'In progress, Save'
 // a noise png of this side is about 43 MB: under the 50 MB the phone asks to confirm a save at, and
 // its download runs for seconds
 const LARGE_SIDE = 3800
+// how long after a cancel the library is read for a save landing late
+const LATE_SAVE_MS = 5_000
 
 const corpusPng = () => {
   const entry = CORPUS.find(c => c.name === 'e2e-c.png')
@@ -71,6 +75,9 @@ describe('save to photos', function () {
   //             kill watch 15 overrun by one pid read 120, the launch: simctl 120, the runtime 120,
   //             the captures 4, a checkpoint 60), two 1280;  full  grantFullPhotoAccess 35 (the ask
   //             30 and its pause and resume, the prompt 20 and its tap 1 inside it)
+  //   access    fullPhotoAccess 2206 (the corpus 840, the grants 1280, full 35, two reads 50 a second
+  //             apart 1);  absent  the library read for a late save: 5s of reads, overrun by one 25
+  //             and its info 25 = 56
   //   ask       one ask of the phone 25 (20, the pause and resume);  saved  the new asset, 30s of
   //             asks overrun by one 55, its info 25 = 80;  delete  deleteSavedPhoto 60 (the delete
   //             35, the read 25)
@@ -95,8 +102,8 @@ describe('save to photos', function () {
   // photos-add's (granted again)
   let photos: PrivacyRestore | undefined
   let photosAdd: PrivacyRestore | undefined
-  // photos this run saved and has not deleted yet, and the library's asset ids once the test had
-  // full access, before anything was saved: an asset not among them is the test's own
+  // the ids of the photos this run proved it saved and has not deleted yet, recorded when proven, and
+  // the library's asset ids once the test had full access, before anything was saved
   const saved = new Set<string>()
   let libraryBefore: ReadonlySet<string> | undefined
   // the work folders the host made, the throwaway channel, and the local dir of the large file
@@ -110,21 +117,30 @@ describe('save to photos', function () {
 
   const SAVED_PHOTO = 'a photo this run saved'
 
-  // A photo a test saved and did not get to read (it failed first) is an asset the library did not
-  // hold in libraryBefore. Bound: ask 25, delete 60 a photo.
+  // The owner's instruction when a photo this run added is left: the ids, and how to find it by hand.
+  const byHand = (ids: ReadonlyArray<string>) =>
+    `delete the photo library asset(s) ${ids.join(', ')} that this run added (Photos > Recently Saved: a 64x48 or 3800x3800 image saved today), and no other photo`
+
+  // Deletes exactly the ids recorded as proven saves; an asset new since the test began that was never
+  // recorded is reported, never deleted. Bound: ask 25, delete 60 a photo (one at most).
   const deleteSaved = async () => {
+    const before = libraryBefore
+    if (!before) return
+    let left: Array<string> = [...saved]
     try {
-      const before = libraryBefore
-      if (!before) return
-      for (const id of newAssetIds([...before], await libraryAssetIds())) saved.add(id)
-      for (const id of [...saved]) {
+      const plan = cleanupPlan(saved, before, await libraryAssetIds())
+      left = [...plan.toDelete, ...plan.unrecorded]
+      for (const id of plan.toDelete) {
         await deleteSavedPhoto(id, before)
         saved.delete(id)
+        left = left.filter(l => l !== id)
       }
+      if (plan.unrecorded.length) throw new Error(`the photo library holds ${plan.unrecorded.length} asset(s) new since the test began that it never recorded as saved: not deleted`)
     } catch (e) {
-      poisonGate(SAVED_PHOTO, "delete the newest photo in the simulator's Photos, the one this run saved")
+      poisonGate(SAVED_PHOTO, byHand(left))
       throw e
     }
+    saved.clear()
     libraryBefore = undefined
     clearGatePoison(SAVED_PHOTO)
   }
@@ -181,19 +197,23 @@ describe('save to photos', function () {
   // -- helpers --------------------------------------------------------------------------------------
 
   // Both photo permissions taken (their restores kept), then full access; answers the library's asset
-  // ids then. Bound: two grants 1280, full 35, ask 25 = 1340.
+  // ids then, read twice a second apart and proven a whole read (requireWholeLibraryRead). Bound:
+  // corpus 840, two grants 1280, full 35, two asks 50 and the second 1 = 2206.
   const fullPhotoAccess = async () => {
+    const corpus = await ensurePhotoCorpus()
     photosAdd = await grantPrivacy('photos-add')
     photos = await grantPrivacy('photos')
     await grantFullPhotoAccess()
-    const before = new Set(await libraryAssetIds())
+    const first = await libraryAssetIds()
+    await new Promise(resolve => setTimeout(resolve, 1_000))
+    const before = requireWholeLibraryRead(first, await libraryAssetIds(), corpus.length)
     libraryBefore = before
     return before
   }
 
-  // The asset a save added, once the library holds one it did not hold `before`, kept as one this run
-  // saved before it is checked, then proven the saved image. Bound: saved 55, ask 25 = 80.
-  const savedImage = async (before: ReadonlySet<string>, what: string) => {
+  // The asset a save added, once the library holds one it did not hold `before`, proven the one saved
+  // image of `pixels` and only then recorded as this run's. Bound: saved 55, ask 25 = 80.
+  const savedImage = async (before: ReadonlySet<string>, what: string, pixels: string) => {
     const added = await waitFor(
       what,
       async () => {
@@ -202,9 +222,10 @@ describe('save to photos', function () {
       },
       {interval: 1_000, timeout: 30_000}
     )
-    for (const id of added) saved.add(id)
     const [first] = added
-    return requireSavedImage(added, added.length === 1 && first ? await assetInfo(first) : undefined, imageProps(corpusPng()).pixels)
+    const id = requireSavedImage(added, added.length === 1 && first ? await assetInfo(first) : undefined, pixels)
+    saved.add(id)
+    return id
   }
 
   // Deletes the photo this run saved and reads the library back to its ids from before the save.
@@ -238,10 +259,9 @@ describe('save to photos', function () {
   // -- tests ----------------------------------------------------------------------------------------
 
   it("an image in Files saved to Photos from its row's menu, then deleted by its id", async function () {
-    // worst case (s): grant 1280, full 35, work 120, open 365, entry 121, step 2, ask 25, menu 52, pin
-    // 1, calls 2, item 2, waited for 12, the save's end 32, gone 6, saved 80, step 2, delete 60, ask
-    // 25, step 2 = 2224
-    this.timeout(2_240_000)
+    // worst case (s): access 2206, work 120, open 365, entry 121, step 2, menu 52, pin 1, calls 2, item
+    // 2, waited for 12, the save's end 32, gone 6, saved 80, step 2, delete 60, ask 25, step 2 = 3090
+    this.timeout(3_120_000)
     const before = await fullPhotoAccess()
     const {folder, name} = await folderWith(corpusPng(), 'save')
     await step('The image in the work folder')
@@ -254,7 +274,7 @@ describe('save to photos', function () {
     // the photo is saved before the download is dismissed, and the sheet then closes itself
     await waitForUiCall('the saved download to be dismissed', seq, DISMISS, {timeout: 30_000})
     await waitForSheetGone(5_000)
-    const id = await savedImage(before, 'the saved image in the photo library')
+    const id = await savedImage(before, 'the saved image in the photo library', imageProps(corpusPng()).pixels)
     await step('The image saved to Photos', {card: true})
 
     await deleteAndReadBack(id, before)
@@ -262,10 +282,10 @@ describe('save to photos', function () {
   })
 
   it("a large image's save in Files cancelled from the menu's Close while it downloads saves nothing", async function () {
-    // worst case (s): grant 1280, full 35, large 10, work 120, open 365, entry 121, step 2, ask 25,
-    // downloads 25, menu 52, pin 1, calls 2, item 2, waited for 12, in progress 11, the sheet 1, item
-    // 2, waited for 12, gone 6, downloads 35, ask 25, calls 2, step 2 = 2148
-    this.timeout(2_180_000)
+    // worst case (s): access 2206, large 10, work 120, open 365, entry 121, step 2, downloads 25, menu
+    // 52, pin 1, calls 2, item 2, waited for 12, in progress 11, downloads 25, the sheet 1, item 2,
+    // waited for 12, gone 6, downloads 35, absent 56, calls 2, step 2 = 3070
+    this.timeout(3_100_000)
     const before = await fullPhotoAccess()
     const dir = path.join('/tmp/kb-e2e', `media-${e2eRunId()}`)
     localDirs.add(dir)
@@ -289,6 +309,9 @@ describe('save to photos', function () {
         sourceElements(await browser.getPageSource()).some(e => e.attrs['label'] === SAVE_IN_PROGRESS) ? true : undefined,
       {interval: 250, timeout: 10_000}
     )
+    // the save's download is still running as Close is tapped: a cancel, not a finished save dismissed
+    const running = (await phoneDownloads()).filter(d => !downloadsBefore.has(d.downloadID))
+    check(running.length === 1 && !running[0]!.done && !running[0]!.canceled, "the save's download is not running as Close is tapped")
     check(await (await menuSheet()).isExisting(), 'the menu sheet closed before its Close was tapped')
     await tapMenuItemOnce('Close')
     await waitForUiCall('the cancelled download to be dismissed', seq, DISMISS)
@@ -300,18 +323,31 @@ describe('save to photos', function () {
       async () => ((await phoneDownloads()).every(d => downloadsBefore.has(d.downloadID)) ? true : undefined),
       {interval: 1_000, timeout: 10_000}
     )
-    const added = newAssetIds([...before], await libraryAssetIds())
-    for (const id of added) saved.add(id)
-    check(!added.length, 'a photo was saved after the save was cancelled')
+    // read over a few seconds, not once: a save lands only after its download, in the app
+    const deadline = Date.now() + LATE_SAVE_MS
+    for (;;) {
+      const added = newAssetIds([...before], await libraryAssetIds())
+      if (added.length) {
+        // the large image itself is this run's own save, recorded so the afterEach deletes it
+        const [first] = added
+        if (added.length === 1 && first) {
+          const info = await assetInfo(first)
+          if (info.mediaType === 'image' && info.width === LARGE_SIDE && info.height === LARGE_SIDE) saved.add(first)
+        }
+        throw new Error('a photo was saved after the save was cancelled')
+      }
+      if (Date.now() > deadline) break
+      await new Promise(resolve => setTimeout(resolve, 1_000))
+    }
     check((await uiCallCount(seq, START)) === 1, 'the cancelled save started more than one download')
     await step('The save cancelled: nothing saved', {card: true})
   })
 
   it('an image the second account attaches in chat saved to Photos from its message menu, then deleted by its id', async function () {
-    // worst case (s): chat 240, peer 70, send 90, attach 60, grant 1280, full 35, open 100, landed 120,
-    // the check 1, view 30, keyboard 5, ask 25, message menu 15, step 2, calls 2, message menu 20,
-    // waited for 32, saved 80, step 2, delete 60, ask 25, step 2 = 2296
-    this.timeout(2_320_000)
+    // worst case (s): chat 240, peer 70, send 90, attach 60, access 2206, open 100, landed 120, the
+    // check 1, view 30, keyboard 5, message menu 15, step 2, calls 2, message menu 20, waited for 32,
+    // saved 80, step 2, delete 60, ask 25, step 2 = 3162
+    this.timeout(3_200_000)
     const made = await masked(async () => createThrowawayChannel('save'))
     channel = made.topicName
     await sendWithRetry(await sender(), made.convID, e2eMarker('save-hello'))
@@ -340,7 +376,7 @@ describe('save to photos', function () {
     const seq = await currentCallSeq()
     await chooseMenuItem('Save')
     await waitForUiCall('the attachment to download for the save', seq, CHAT_DOWNLOAD, {timeout: 30_000})
-    const id = await savedImage(before, 'the saved attachment in the photo library')
+    const id = await savedImage(before, 'the saved attachment in the photo library', imageProps(corpusPng()).pixels)
     await step('The attachment saved to Photos', {card: true})
 
     await deleteAndReadBack(id, before)
