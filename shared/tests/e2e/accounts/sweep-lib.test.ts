@@ -353,7 +353,7 @@ describe('second account proofs and PGP keys', () => {
   test('checkDelete re-judges them as the second account', () => {
     const sig = second({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's1'})
     expect(() => checkDelete(sig, ctx, 'testuser-mac')).not.toThrow()
-    expect(() => checkDelete(sig, ctx, 'testuser')).toThrow(/signed in as testuser/)
+    expect(() => checkDelete(sig, ctx, 'testuser')).toThrow(/signed in as <smoke>,/)
   })
 })
 
