@@ -3,7 +3,7 @@
 // so the name never goes into a selector or an error.
 import {waitFor} from './lifecycle'
 import {innermost, inside, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
-import {oneLabelledAtFrame} from '../gate/drawn-lib.ts'
+import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
@@ -273,7 +273,8 @@ export type DrawnOptions = {forTap?: boolean}
 // screen of rows is too slow) and compared in memory; then that element fetched by its type and
 // frame (and visible, when it read so) with its label checked again in memory, so no selector or error
 // ever holds `name`. The innermost of nested matches; none or more than one throws, in the page source
-// or at the frame (a covered screen's control can share it). `what` names it.
+// or at the frame, where nested boxes on one ancestor chain are one control but a covered screen's
+// control can share the frame too. `what` names it.
 export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string, opts?: DrawnOptions) =>
   drawnElementIn(types, label => label.split(', ').some(part => part.trim() === name), what, opts)
 
@@ -287,7 +288,8 @@ export const cardTitledIn = async (types: ReadonlyArray<string>, title: string, 
   drawnElementIn(types, l => l === title || l.startsWith(`${title}, `), what, opts)
 
 const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string, {forTap = false}: DrawnOptions = {}) => {
-  const all = sourceElements(await browser.getPageSource())
+  const source = await browser.getPageSource()
+  const all = sourceElements(source)
     .filter(e => types.includes(e.type) && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' ')))
     .map(e => ({
       e,
@@ -307,10 +309,13 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const i = inner[0]!
   const r = rects[i]!
   const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+  const type = found[i]!.e.type
+  const visibleOnly = shown.length > 0
+  const count = oneControlAtFrame(source, {matches, rect: r, type, visibleOnly}, what)
   // the label is compared in memory, never put in the selector
-  const visible = shown.length ? ' AND visible == 1' : ''
-  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.e.type}" AND ${at}${visible}`).getElements()
+  const visible = visibleOnly ? ' AND visible == 1' : ''
+  const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${at}${visible}`).getElements()
   const labels: Array<string | null> = []
   for (const e of els) labels.push(await e.getAttribute('label').catch(() => null))
-  return els[oneLabelledAtFrame(labels, matches, what)]!
+  return els[deepestLabelledAtFrame(labels, matches, count, what)]!
 }

@@ -19,3 +19,18 @@ const attrsOf = (tag: string) => {
 
 export const sourceElements = (source: string): Array<SourceElement> =>
   [...source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>/g)].map(m => ({attrs: attrsOf(m[0]), type: m[1] ?? ''}))
+
+// Each of sourceElements' elements' parent, as an index into them (-1: none), read off the same tags.
+export const sourceParents = (source: string): Array<number> => {
+  const parents: Array<number> = []
+  const open: Array<number> = []
+  for (const m of source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>|<\/XCUIElementType[A-Za-z]+>/g)) {
+    if (m[0].startsWith('</')) {
+      open.pop()
+      continue
+    }
+    parents.push(open.at(-1) ?? -1)
+    if (!m[0].endsWith('/>')) open.push(parents.length - 1)
+  }
+  return parents
+}
