@@ -30,6 +30,8 @@ import './flows/chat-blocks.test'
 import './flows/files-browse.test'
 import './flows/files-actions.test'
 import './flows/files-upload.test'
+// shares from Photos, Safari, Files and Maps through the share extension, and an image paste
+import './flows/share-extension.test'
 import './flows/files-previews.test'
 import './flows/files-settings.test'
 // changes and puts back the phone's photo permissions (each change relaunches the app)

@@ -585,6 +585,15 @@ export const downloadFromCli = async (where: {topicName: string} | {tlfName: str
   await withApi(async api => api.callWithin('download', {channel, message_id: id, output: file}, 60_000))
 }
 
+// Deletes message `id` (in a conversation as readFromCli names it) through the host's CLI, for a
+// flow's own message that carries no run stamp at its start (the sweeper finds a message by that).
+// Bound: one call of 60s.
+export const deleteFromCli = async (where: {topicName: string} | {tlfName: string}, id: number) => {
+  const {team} = e2eAccounts()
+  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
+  await withApi(async api => api.callWithin('delete', {channel, message_id: id}, 60_000))
+}
+
 // The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read
 // through the host's CLI by paging back from the newest. Peeks. Bound: each page one call of 60s, at
 // most `maxPages` pages.

@@ -226,6 +226,9 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
   return folder
 }
 
+// The path of a seed folder of this run in On My iPhone, for the link the Files app opens it by.
+export const seedFolderPath = (folder: string) => requireSeedFolder(folder)
+
 // Removes a seed folder of this run and reads back that it is gone; one already gone is left be.
 export const removeSeedFolder = (folder: string) => {
   const dir = requireSeedFolder(folder)
@@ -250,6 +253,18 @@ export const pickerCacheFile = (cache: PickerCache, name: string): PickedFile =>
   if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9]+$/.test(name)) throw new Error('refusing a picked file name that is not plain')
   const container = appData()
   return readPicked(pickedFilePath(`file://${path.join(container, PICKER_CACHES[cache], name)}`, container))
+}
+
+// The image the app wrote for a paste into the composer (Kb.mm handlePastedImages: the app's tmp
+// dir, paste_<uuid>.<ext>), as a titles screen holds it, with its sha256 and size.
+export const pastedImage = (p: string): PickedFile => {
+  requireCurrentAttempt()
+  const local = p.startsWith('file://') ? p.slice('file://'.length) : p
+  const dir = path.join(appData(), 'tmp')
+  if (path.dirname(local) !== dir || !/^paste_[0-9A-F-]{36}\.[a-z0-9]{2,5}$/i.test(path.basename(local))) {
+    throw new Error("a pasted image is not a paste file in the app's tmp dir")
+  }
+  return readPicked(local)
 }
 
 const appData = () => simctl('get_app_container', preflightUdid(), BUNDLE_ID, 'data').trim()
