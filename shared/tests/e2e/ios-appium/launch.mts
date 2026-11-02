@@ -18,6 +18,7 @@ import {
   type AppAccount,
   type LocationPermission,
 } from './gate/app-account-lib.ts'
+import {delivererInterval, linesFrom, outboxFlushes} from './gate/outbox-lib.ts'
 import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
@@ -29,6 +30,10 @@ const APP_UP_MS = 5 * 60_000
 // the app reads its push permission from iOS shortly after launch, so a false holds this long first
 const PUSH_SETTLE_MS = 30_000
 const LOCATION_READ_MS = 15_000
+// the service's deliverer logs its start within a minute of a launch
+const DELIVERER_UP_MS = 60_000
+// pulls of the outbox the read waits for after the deliverer starts, one each interval
+const OUTBOX_PULLS = 3
 
 type MetroPidfile = {pgid: number; start: number}
 
@@ -175,4 +180,31 @@ export const appLocationPermission = async (device: string): Promise<LocationPer
     if (r.state === 'failed') throw new Error(`reading the app's location permission failed: ${r.error ?? '?'}`)
     return r.state === 'answered' ? r.value : undefined
   })
+}
+
+// The just-launched app's Go log from `launchedAt` on: the lines of every log file written since then
+// (the app appends to ios.log and rotates it aside as it grows), in the order written, from the first
+// stamped at or after the launch.
+const goLogLinesSince = (udid: string, launchedAt: number) => {
+  const container = runSync('xcrun', ['simctl', 'get_app_container', udid, BUNDLE_ID, 'data'], 30_000).trim()
+  const dir = path.join(container, 'Library/Caches/Keybase/logs')
+  const lines = fs
+    .readdirSync(dir)
+    .filter(n => n === 'ios.log' || /^ios\.log-\d/.test(n))
+    .map(n => ({file: path.join(dir, n), st: fs.statSync(path.join(dir, n))}))
+    .filter(f => f.st.mtimeMs >= launchedAt)
+    .sort((a, b) => (a.file.endsWith('ios.log') ? 1 : b.file.endsWith('ios.log') ? -1 : a.file.localeCompare(b.file)))
+    .flatMap(f => fs.readFileSync(f.file, 'utf8').split('\n'))
+  return linesFrom(lines, launchedAt)
+}
+
+// The chat records pending in the just-launched app's outbox, per conversation (gate/outbox-lib.ts):
+// read once its service's deliverer has started and pulled the outbox OUTBOX_PULLS times, as it logs
+// every conversation with a pending record on each pull. Throws when the deliverer never starts.
+export const appPendingOutbox = async (udid: string, launchedAt: number) => {
+  const interval = await until('the phone service to start delivering chat messages', DELIVERER_UP_MS, async () =>
+    Promise.resolve(delivererInterval(goLogLinesSince(udid, launchedAt)))
+  )
+  await sleep(OUTBOX_PULLS * interval + 1_000)
+  return outboxFlushes(goLogLinesSince(udid, launchedAt))
 }

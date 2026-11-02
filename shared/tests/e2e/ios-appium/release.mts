@@ -77,6 +77,7 @@ import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {
   appHasPushPermission,
   appLocationPermission,
+  appPendingOutbox,
   BUNDLE_ID,
   forgetMetroPidfile,
   METRO_PORT,
@@ -100,6 +101,7 @@ import {
   strayChildren,
   type IosPreflightState,
 } from './release-lib.ts'
+import {pendingOutboxProblem} from './gate/outbox-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -419,11 +421,13 @@ const main = async () => {
       },
       sharedDir,
     })
+    const launchedAt = Date.now()
     const account = await relaunchApp({device, log, udid: id})
     const problem =
       notSmokeProblem(account, e2eEnv) ??
       pushPermissionProblem(await appHasPushPermission(device), device) ??
-      locationStartProblem(await appLocationPermission(device), device, id)
+      locationStartProblem(await appLocationPermission(device), device, id) ??
+      pendingOutboxProblem(await appPendingOutbox(id, launchedAt), device)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}
