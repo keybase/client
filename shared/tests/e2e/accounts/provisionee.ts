@@ -90,6 +90,8 @@ export type Provisionee = {
 
 export const startProvisionee = (p: {home: string; user: string; deviceName: string; fromDevice: string}): Provisionee => {
   const argv = [keybaseBin(), '--no-auto-fork', '--home', p.home, 'login', p.user, '--devicename', p.deviceName]
+  // refused before anything is made
+  const cmd = expectSpawnList(argv, 'keybase login')
   // For a phone approver the CLI also writes a QR of the phrase to $TMPDIR/keybase_qr.png: kept in
   // the home and removed once the CLI exits.
   const tmp = path.join(p.home, 'tmp')
@@ -97,7 +99,7 @@ export const startProvisionee = (p: {home: string; user: string; deviceName: str
   const removeTmp = () => fs.rmSync(tmp, {force: true, recursive: true})
   const env = {
     ...process.env,
-    KB_PROV_CMD: expectSpawnList(argv, 'keybase login'),
+    KB_PROV_CMD: cmd,
     KB_PROV_FROM: p.fromDevice,
     KEYBASE_SECRET_STORE_FILE: '1',
     TMPDIR: tmp,
