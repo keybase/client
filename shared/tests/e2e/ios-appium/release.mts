@@ -49,8 +49,13 @@ import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secr
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {pidAlive, sessionLocked, stopPids} from '../shared/gate/processes.ts'
 import {
+  censusPhaseResult,
   flowProblems,
+  flowsPhaseResult,
+  logFailed,
   parseTimeoutMin,
+  reportPhaseResult,
+  writtenSince,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -64,21 +69,7 @@ import {runSync, udidForName} from './helpers/app.ts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {BUNDLE_ID, forgetMetroPidfile, METRO_PORT, metroGroups, processes, readMetroPidfile, recordedMetroPgid, relaunchApp, startMetro, stopMetro} from './launch.mts'
-import {
-  appSignedFromAppinfo,
-  censusPhaseResult,
-  flowsPhaseResult,
-  iosPreflightProblems,
-  isWdaResidue,
-  IOS_RELEASE_PORTS,
-  logFailed,
-  reportPhaseResult,
-  secretScanDirs,
-  simulatorFromList,
-  strayChildren,
-  writtenSince,
-  type IosPreflightState,
-} from './release-lib.ts'
+import {appSignedFromAppinfo, iosPreflightProblems, isWdaResidue, IOS_RELEASE_PORTS, secretScanDirs, simulatorFromList, strayChildren, type IosPreflightState} from './release-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -446,9 +437,8 @@ const main = async () => {
       env: {...process.env, KB_IOS_DEVICE: device, ...(only ? {KB_E2E_RELEASE_ONLY: only} : {})},
       logFile: logFile('flows'),
     })
-    const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, () =>
-      summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
-    )
+    const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
+    const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize, 'wdio')
     if (s) {
       for (const n of s.fresh) log(`new failure: ${n}`)
       for (const n of s.known) log(`known on master: ${n}`)

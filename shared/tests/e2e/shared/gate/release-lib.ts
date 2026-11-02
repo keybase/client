@@ -160,3 +160,41 @@ export const parseTimeoutMin = (raw: string | undefined, fallback = 150): {minut
   if (n > MAX_TIMEOUT_MIN) return {error: `KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(raw)} is over ${MAX_TIMEOUT_MIN} minutes, the longest a timer can wait`}
   return {minutes: n}
 }
+
+// ---------------------------------------------------------------- phase results
+
+// `ms` down to its second: file times and ps start times are kept to the second on some filesystems
+export const toSecond = (ms: number) => Math.floor(ms / 1000) * 1000
+
+// A finished child, as the release run's runChild reports it.
+type PhaseChild = {code: number | null; stdout: string; logError?: string}
+// An output the phase must have written: `mtimeMs` left out when the file does not exist.
+type PhaseOutput = {path: string; mtimeMs?: number}
+
+export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
+// since `start`, to the second
+export const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= toSecond(start)
+
+// The flows phase reads only a results json `runner` wrote written since the phase started (one from an earlier run
+// is not this run's flows); `summarize` reads it. `summary` is left out when there was none to read.
+export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary, runner: string) => {
+  if (!writtenSince(results, start)) return {line: `${runner} exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
+  const summary = summarize()
+  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (${runner} exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
+}
+
+// The census phase passes only on what its own child did: its `census: routes …` line, and a census
+// json written since the phase started (a file from an earlier run is not this run's census).
+export const censusPhaseResult = (c: PhaseChild, json: PhaseOutput, start: number) => {
+  const line = /^census: (routes .+)$/m.exec(c.stdout)?.[1]
+  if (line === undefined) return {line: `census exited ${c.code} and printed no census line${logFailed(c)}`, ok: false}
+  if (!writtenSince(json, start)) return {line: `${line}; ${json.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${line}${logFailed(c)}`, ok: c.code === 0 && !c.logError}
+}
+
+// The report phase passes only on a report written since the phase started.
+export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: number) => {
+  if (c.code !== 0) return {line: `report generator exited ${c.code}${logFailed(c)}`, ok: false}
+  if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
+}

@@ -1,9 +1,9 @@
 // The iOS release command's decisions, kept free of I/O so they can be tested: whether a run may
-// start (iosPreflightProblems), what simctl and ps say about the simulator, whether the flows, census
-// and report phases wrote this run's outputs, and what the secret scan reads.
+// start (iosPreflightProblems), what simctl and ps say about the simulator, and what the secret scan
+// reads.
 import * as path from 'path'
 import type {PortHolder} from '../shared/gate/ports.ts'
-import {flowsLine, flowsOk, type FlowSummary, type Outcome} from '../shared/gate/release-lib.ts'
+import {toSecond, type Outcome} from '../shared/gate/release-lib.ts'
 import {KBFS_START_COMMAND} from '../shared/gate/processes.ts'
 
 // What the run's children listen on, which must be free when it starts.
@@ -134,9 +134,6 @@ export const parsePs = (text: string, now: number): Array<PsRow> =>
       : []
   })
 
-// `ms` down to its second: file times and ps start times are kept to the second on some filesystems
-const toSecond = (ms: number) => Math.floor(ms / 1000) * 1000
-
 // What a stopped child left behind: a wdio launcher stopped by the run's deadline or an interrupt
 // does not stop its worker, which goes on driving the app. Such a process is one of the e2e scripts in
 // the run's process group (children are not detached), started since the run did (`runStart`), that is
@@ -175,39 +172,6 @@ export const strayChildren = (rows: ReadonlyArray<PsRow>, self: number, runStart
 // an unrelated group later.
 export const isMetroGroup = (rows: ReadonlyArray<PsRow>, pgid: number, metroPortPgids: ReadonlyArray<number>) =>
   metroPortPgids.includes(pgid) || rows.some(r => r.pgid === pgid && /\brn:start\b|\bexpo start\b/.test(r.command))
-
-// A finished child, as the release run's runChild reports it.
-type PhaseChild = {code: number | null; stdout: string; logError?: string}
-// An output the phase must have written: `mtimeMs` left out when the file does not exist.
-type PhaseOutput = {path: string; mtimeMs?: number}
-
-export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
-// since `start`, to the second
-export const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= toSecond(start)
-
-// The flows phase reads only a results json written since the phase started (one from an earlier run
-// is not this run's flows); `summarize` reads it. `summary` is left out when there was none to read.
-export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary) => {
-  if (!writtenSince(results, start)) return {line: `wdio exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
-  const summary = summarize()
-  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (wdio exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
-}
-
-// The census phase passes only on what its own child did: its `census: routes …` line, and a census
-// json written since the phase started (a file from an earlier run is not this run's census).
-export const censusPhaseResult = (c: PhaseChild, json: PhaseOutput, start: number) => {
-  const line = /^census: (routes .+)$/m.exec(c.stdout)?.[1]
-  if (line === undefined) return {line: `census exited ${c.code} and printed no census line${logFailed(c)}`, ok: false}
-  if (!writtenSince(json, start)) return {line: `${line}; ${json.path} was not written by this run${logFailed(c)}`, ok: false}
-  return {line: `${line}${logFailed(c)}`, ok: c.code === 0 && !c.logError}
-}
-
-// The report phase passes only on a report written since the phase started.
-export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: number) => {
-  if (c.code !== 0) return {line: `report generator exited ${c.code}${logFailed(c)}`, ok: false}
-  if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
-  return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
-}
 
 // What the secret scan reads once a run that took the release lock ends. A run refused at preflight
 // wrote only its logs, and the rest of tests/results may be another live run's files (the visual gate
