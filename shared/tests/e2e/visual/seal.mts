@@ -13,7 +13,7 @@
 //   follows  `list-following --json <user>` -> [{username, uid, link_id}]; `list-followers <user>`
 //            -> one username per line (it has no --json). Keeps usernames only.
 //   devices  `device list` -> a text table (Name, Type, ID, Created, Last Used; it has no --json).
-//            Keeps name, type, id; Created and Last Used are dropped.
+//            Keeps name (sha256 hex for a paper key, type `backup`), type, id; Created and Last Used are dropped.
 //   kbfs     `fs ls -1 --nocolor /keybase/team/<team>` -> one entry name per line.
 //   kbfsPrivate  the same for /keybase/private/<smoke user>.
 //   fsHistory  `fs history` -> per folder and writer, a header line and one "<time>: <path>" line per
@@ -114,11 +114,16 @@ export const normalizeDevices = (raw: unknown) => {
   return byKey(
     rows
       .filter(r => r.trim())
-      .map(r => ({
-        id: r.slice(idAt, createdAt).trim(),
-        name: r.slice(0, typeAt).trim(),
-        type: r.slice(typeAt, idAt).trim(),
-      })),
+      .map(r => {
+        const name = r.slice(0, typeAt).trim()
+        const type = r.slice(typeAt, idAt).trim()
+        // A paper key's device name is the first words of its phrase, so it is stored as a hash.
+        return {
+          id: r.slice(idAt, createdAt).trim(),
+          name: type === 'backup' ? createHash('sha256').update(name).digest('hex') : name,
+          type,
+        }
+      }),
     r => r.id
   )
 }

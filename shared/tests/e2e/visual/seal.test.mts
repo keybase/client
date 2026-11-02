@@ -81,6 +81,22 @@ test('normalize devices parses the table by column and drops Created and Last Us
   ])
 })
 
+test('normalize devices stores a paper key name only as a hash, and a rename still changes it', () => {
+  const table = (paperName: string) =>
+    [
+      'Name                                    Type         ID                                 Created                Last Used',
+      '==========                              ==========   ==========                         ==========             ==========',
+      `${paperName.padEnd(40)}backup       cccc                               2019 Aug 1 15:05:29    2022 Apr 27 11:58:21`,
+      '',
+    ].join('\n')
+  const a = normalize('devices', table('alpha bravo')) as Array<{name: string; type: string}>
+  const b = normalize('devices', table('alpha charlie')) as Array<{name: string; type: string}>
+  assert.equal(a[0]!.type, 'backup')
+  assert.ok(!JSON.stringify(a).includes('alpha'))
+  assert.notEqual(a[0]!.name, b[0]!.name)
+  assert.notEqual(hashFields({devices: a}), hashFields({devices: b}))
+})
+
 test('normalize kbfs strips colour codes and sorts names', () => {
   assert.deepEqual(normalize('kbfs', '\u001b[0;34mzdir\u001b[0m\nafile.txt\n'), ['afile.txt', 'zdir'])
   assert.deepEqual(normalize('kbfs', ''), [])
