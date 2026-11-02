@@ -182,29 +182,50 @@ export const appLocationPermission = async (device: string): Promise<LocationPer
   })
 }
 
-// The just-launched app's Go log from `launchedAt` on: the lines of every log file written since then
-// (the app appends to ios.log and rotates it aside as it grows), in the order written, from the first
-// stamped at or after the launch.
-const goLogLinesSince = (udid: string, launchedAt: number) => {
+// The just-launched app's Go log from `launchedAt` on, read as it grows: each call reads only what
+// was appended since the last (the app appends to ios.log and rotates it aside as it grows, so a
+// file is followed by its inode) and answers every line so far, from the first stamped at or after
+// the launch.
+const goLogReader = (udid: string, launchedAt: number) => {
   const container = runSync('xcrun', ['simctl', 'get_app_container', udid, BUNDLE_ID, 'data'], 30_000).trim()
   const dir = path.join(container, 'Library/Caches/Keybase/logs')
-  const lines = fs
-    .readdirSync(dir)
-    .filter(n => n === 'ios.log' || /^ios\.log-\d/.test(n))
-    .map(n => ({file: path.join(dir, n), st: fs.statSync(path.join(dir, n))}))
-    .filter(f => f.st.mtimeMs >= launchedAt)
-    .sort((a, b) => (a.file.endsWith('ios.log') ? 1 : b.file.endsWith('ios.log') ? -1 : a.file.localeCompare(b.file)))
-    .flatMap(f => fs.readFileSync(f.file, 'utf8').split('\n'))
-  return linesFrom(lines, launchedAt)
+  // per inode: the bytes read, and a last line still being written
+  const read = new Map<number, {offset: number; partial: string}>()
+  const lines: Array<string> = []
+  return () => {
+    const files = fs
+      .readdirSync(dir)
+      .filter(n => n === 'ios.log' || /^ios\.log-\d/.test(n))
+      .map(n => ({file: path.join(dir, n), st: fs.statSync(path.join(dir, n))}))
+      .filter(f => f.st.mtimeMs >= launchedAt)
+      .sort((a, b) => (a.file.endsWith('ios.log') ? 1 : b.file.endsWith('ios.log') ? -1 : a.file.localeCompare(b.file)))
+    for (const {file, st} of files) {
+      const was = read.get(st.ino) ?? {offset: 0, partial: ''}
+      if (st.size <= was.offset) continue
+      const buf = Buffer.alloc(st.size - was.offset)
+      const fd = fs.openSync(file, 'r')
+      try {
+        fs.readSync(fd, buf, 0, buf.length, was.offset)
+      } finally {
+        fs.closeSync(fd)
+      }
+      const parts = (was.partial + buf.toString('utf8')).split('\n')
+      read.set(st.ino, {offset: st.size, partial: parts.pop() ?? ''})
+      lines.push(...parts)
+    }
+    return linesFrom(lines, launchedAt)
+  }
 }
 
 // The chat records pending in the just-launched app's outbox, per conversation (gate/outbox-lib.ts):
-// read once its service's deliverer has started and pulled the outbox OUTBOX_PULLS times, as it logs
-// every conversation with a pending record on each pull. Throws when the deliverer never starts.
+// what the latest pull logged, once its service's deliverer has started and pulled the outbox
+// OUTBOX_PULLS times (each pull logs every conversation with a pending record). Throws when the deliverer never
+// starts.
 export const appPendingOutbox = async (udid: string, launchedAt: number) => {
+  const goLog = goLogReader(udid, launchedAt)
   const interval = await until('the phone service to start delivering chat messages', DELIVERER_UP_MS, async () =>
-    Promise.resolve(delivererInterval(goLogLinesSince(udid, launchedAt)))
+    Promise.resolve(delivererInterval(goLog()))
   )
   await sleep(OUTBOX_PULLS * interval + 1_000)
-  return outboxFlushes(goLogLinesSince(udid, launchedAt))
+  return outboxFlushes(goLog(), {end: Date.now(), interval})
 }

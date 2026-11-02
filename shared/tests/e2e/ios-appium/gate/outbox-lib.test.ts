@@ -14,9 +14,23 @@ test("the deliverer's interval comes from its start line", () => {
   expect(delivererInterval([flush(1, A)])).toBeUndefined()
 })
 
-test('the pending records per conversation are the last pull of each', () => {
-  expect(outboxFlushes([flush(2, A), flush(1, B), flush(3, A)])).toEqual(new Map([[A, 3], [B, 1]]))
-  expect(outboxFlushes([at('Deliverer: deliverLoop: flushing outbox on new message: uid: x')])).toEqual(new Map())
+const T0 = Date.parse('2026-11-02T01:15:58.977026Z')
+// a line stamped `s` seconds after T0
+const atSec = (s: number, line: string) => line.replace('2026-11-02T01:15:58.977026Z', new Date(T0 + s * 1_000).toISOString())
+const pulls = {end: T0 + 16_000, interval: 5_000}
+
+test('the pending records per conversation are what the latest pull logged', () => {
+  const lines = [atSec(0, flush(2, A)), atSec(0, flush(1, B)), atSec(5, flush(3, A)), atSec(5, flush(1, B)), atSec(10, flush(3, A))]
+  // B's record went between the second pull and the third: it is not counted
+  expect(outboxFlushes(lines, pulls)).toEqual(new Map([[A, 3]]))
+  expect(outboxFlushes([atSec(10, flush(1, A)), atSec(10.2, flush(1, B))], pulls)).toEqual(new Map([[A, 1], [B, 1]]))
+  expect(outboxFlushes([at('Deliverer: deliverLoop: flushing outbox on new message: uid: x')], pulls)).toEqual(new Map())
+})
+
+test('an outbox no pull has logged for over two intervals is empty', () => {
+  expect(outboxFlushes([atSec(0, flush(2, A)), atSec(5, flush(1, A))], pulls)).toEqual(new Map())
+  expect(outboxFlushes([atSec(6, flush(1, A))], pulls)).toEqual(new Map([[A, 1]]))
+  expect(() => outboxFlushes([flush(1, A).replace(/^\S+ /, '')], pulls)).toThrow('no time stamp')
 })
 
 test("only the named conversations' failed sends give outbox ids, once each", () => {

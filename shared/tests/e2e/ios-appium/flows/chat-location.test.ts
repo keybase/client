@@ -64,9 +64,10 @@ import {masked} from '../helpers/teams'
 
 const LOCATION_UPDATE = 'chat.1.local.locationUpdate'
 
-// Three pulls of the outbox by the service's deliverer, which pulls every 5s (it logs "duration: 5s" as
-// it starts), and a second over.
-const OUTBOX_PULLS_MS = 16_000
+// The service's deliverer pulls the outbox every 5s (it logs "duration: 5s" as it starts); a read
+// waits three pulls, and a second over.
+const DELIVERER_MS = 5_000
+const OUTBOX_PULLS_MS = 3 * DELIVERER_MS + 1_000
 
 describe('chat location', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -171,7 +172,7 @@ describe('chat location', function () {
       }
       const after = goLogMark()
       await new Promise(resolve => setTimeout(resolve, OUTBOX_PULLS_MS))
-      const left = [...outboxFlushes(goLogSince(after)).keys()].filter(c => convIDs.has(c))
+      const left = [...outboxFlushes(goLogSince(after), {end: Date.now(), interval: DELIVERER_MS}).keys()].filter(c => convIDs.has(c))
       if (left.length) throw new Error(`the outbox still holds records for ${left.length} location channel(s) after the cancel`)
       convIDs.clear()
     })

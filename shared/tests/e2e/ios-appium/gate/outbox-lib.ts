@@ -19,14 +19,31 @@ export const delivererInterval = (lines: ReadonlyArray<string>): number | undefi
   return undefined
 }
 
-// The pending records per conversation, as the last flush of each logged them.
-export const outboxFlushes = (lines: ReadonlyArray<string>) => {
-  const out = new Map<string, number>()
+const STAMP = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z) /
+
+const stampOf = (line: string) => {
+  const m = STAMP.exec(line)
+  return m ? Date.parse(m[1] ?? '') : undefined
+}
+
+// The pending records per conversation as the deliverer's latest pull logged them, from `lines` read
+// at `end` (ms), with the deliverer's `interval`. A conversation the latest pull did not log has none.
+// One pull logs all its conversations' "flushing" lines together and the next comes an interval or
+// more later, so lines under half an interval apart are one pull. A pull of an empty outbox logs no
+// such line: none for over two intervals before `end` means the outbox is empty.
+export const outboxFlushes = (lines: ReadonlyArray<string>, {end, interval}: {end: number; interval: number}) => {
+  let latest = new Map<string, number>()
+  let latestAt: number | undefined
   for (const l of lines) {
     const m = FLUSHING.exec(l)
-    if (m) out.set(m[2] ?? '', Number(m[1]))
+    if (!m) continue
+    const at = stampOf(l)
+    if (at === undefined) throw new Error('an outbox flush line carries no time stamp')
+    if (latestAt === undefined || at - latestAt > interval / 2) latest = new Map()
+    latest.set(m[2] ?? '', Number(m[1]))
+    latestAt = at
   }
-  return out
+  return latestAt !== undefined && end - latestAt <= 2 * interval ? latest : new Map<string, number>()
 }
 
 // The outbox ids of the records the deliverer failed to send in `convIDs`, never another
@@ -62,13 +79,11 @@ export const pendingOutboxProblem = (flushes: ReadonlyMap<string, number>, devic
   )
 }
 
-const STAMP = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z) /
-
 // The log lines from the first stamped at or after `at` (ms) on.
 export const linesFrom = (lines: ReadonlyArray<string>, at: number) => {
   const i = lines.findIndex(l => {
-    const m = STAMP.exec(l)
-    return !!m && Date.parse(m[1] ?? '') >= at
+    const t = stampOf(l)
+    return t !== undefined && t >= at
   })
   return i < 0 ? [] : lines.slice(i)
 }
