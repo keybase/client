@@ -69,7 +69,7 @@ describe('teams subteams', function () {
   //   team      openTeamFromList 109;  page  expectTeamPage 21;  tab  openTeamTab 24;  header
   //             revealTeamHeader 8
   //   screen    a screen waited for 11 (10, read 1);  pin  requireOnSubteam 1
-  //   button    tapButton 6;  action  tapHeaderAction 6;  text  textShown 6 (11 with a
+  //   button    tapButton 6;  action  tapHeaderAction 8;  text  textShown 6 (11 with a
   //             10s wait)
   //   field     onlyField 11;  fill  fillField 26 (the field 10, the typing 15, the read 1)
   //   row       a row by its name 31 (30, one drag 1);  in row  elementInRow 2
