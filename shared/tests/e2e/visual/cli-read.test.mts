@@ -16,6 +16,23 @@ test('a CLI failure names its ERRO line, not the warnings before it', () => {
   assert.equal(cliError('no such team\n', 'Command failed'), 'no such team')
   assert.equal(cliError('', 'Command failed'), 'Command failed')
 })
+test('an error that goes on over several lines is kept whole', () => {
+  const stderr = `${WARNINGS}\n2026-01-01T12:00:05.000000-05:00 \u25b6 [ERRO keybase main.go:86] 006 team not found:\n  tried testteam\n  see the docs\n`
+  assert.equal(cliError(stderr, 'Command failed'), 'team not found:\n  tried testteam\n  see the docs')
+})
+test('stderr with no ERRO line is kept whole, up to its last 2000 characters', () => {
+  assert.equal(cliError('panic: boom\ngoroutine 1 [running]:\nmain.main()\n', 'Command failed'), 'panic: boom\ngoroutine 1 [running]:\nmain.main()')
+  const long = `${'a'.repeat(3000)}END`
+  const kept = cliError(long, 'Command failed')
+  assert.equal(kept.length, 2000)
+  assert.ok(kept.endsWith('aaaEND'))
+})
+test('only the log line\'s own sequence number is stripped, never a number the message starts with', () => {
+  const erro = (rest: string) => `2026-01-01T12:00:05.000000-05:00 \u25b6 [ERRO keybase main.go:86] ${rest}`
+  assert.equal(cliError(erro('006 404 Not Found'), 'x'), '404 Not Found')
+  assert.equal(cliError(erro('0a6 context deadline exceeded'), 'x'), 'context deadline exceeded')
+  assert.equal(cliError('[ERRO] 006 404 Not Found', 'x'), '404 Not Found')
+})
 
 // A fake CLI: it fails each call listed in FAILS (by call number) with the given ERRO text, and
 // prints the device table otherwise.

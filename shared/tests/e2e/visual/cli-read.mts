@@ -8,15 +8,23 @@ const CLI_TIMEOUT_MS = 30_000
 // `device list` waits 4-5s on a fetch whose deadline is about 4.8s).
 const SERVICE_TIMEOUT = 'context deadline exceeded'
 
-// The CLI's error, from its last [ERRO ...] line without the timestamp and sequence number; the
-// warnings ahead of it (a CLI and service of different builds, say) are left out.
+// The most of an unrecognised stderr kept, from its end.
+const ERROR_MAX_CHARS = 2000
+
+// libkb's log line (go/logger/formats_nix.go fileFormat, `[%{level:.4s} %{module} %{shortfile}]
+// %{id:03x} %{message}`, and plainFormat's `[ERRO] %{id:03x} %{message}`): the message follows a
+// hex sequence number of at least 3 digits.
+const ERRO_LINE = /\[ERRO[^\]]*\]\s*(?:[0-9a-f]{3,}\s)?(.*)$/
+
+// The CLI's error: from its last [ERRO ...] line (without timestamp and sequence number) to the end of
+// stderr, so a message that goes on over several lines survives and the warnings ahead of it (a CLI and
+// service of different builds, say) are left out. Stderr with no such line is kept whole, its tail.
 export const cliError = (stderr: string, fallback: string) => {
-  const line = stderr
-    .split('\n')
-    .filter(l => l.includes('[ERRO '))
-    .pop()
-  const m = line?.match(/\[ERRO [^\]]*\]\s*(?:\d+\s+)?(.*)$/)
-  return m?.[1]?.trim() || stderr.trim().split('\n').pop()?.trim() || fallback
+  const lines = stderr.trimEnd().split('\n')
+  const at = lines.findLastIndex(l => ERRO_LINE.test(l))
+  const text =
+    at < 0 ? stderr : [lines[at]?.match(ERRO_LINE)?.[1] ?? '', ...lines.slice(at + 1)].join('\n')
+  return text.trim().slice(-ERROR_MAX_CHARS) || fallback
 }
 
 const readOnce = async (args: ReadonlyArray<string>, what: string) =>
