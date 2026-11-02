@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {setEnvVars} from '../../accounts/env'
-import {envSecrets, scanAndPurge, watchEnvSecrets} from './secret-scan'
+import {envSecrets, scanAndPurge, SECRET_SCAN_FILE, unscannedProblem, watchEnvSecrets} from './secret-scan'
 
 let dir = ''
 beforeEach(() => {
@@ -95,4 +95,16 @@ test('a file named among the dirs is scanned, and a missing one is skipped', () 
   expect(scan.scanned).toBe(2)
   expect(fs.existsSync(hit)).toBe(false)
   expect(fs.existsSync(clean)).toBe(true)
+})
+
+test('a report is built only from results whose run scan passed after they were written', () => {
+  expect(unscannedProblem(dir)).toMatch(/never scanned/)
+  fs.writeFileSync(path.join(dir, 'results.json'), '{}')
+  fs.writeFileSync(path.join(dir, SECRET_SCAN_FILE), JSON.stringify({line: '1 file held a secret', ok: false}))
+  expect(unscannedProblem(dir)).toBe("the flow run's secret scan failed (1 file held a secret)")
+  fs.writeFileSync(path.join(dir, SECRET_SCAN_FILE), JSON.stringify({line: 'clean', ok: true}))
+  expect(unscannedProblem(dir)).toBeUndefined()
+  const later = new Date(Date.now() + 5_000)
+  fs.utimesSync(path.join(dir, 'results.json'), later, later)
+  expect(unscannedProblem(dir)).toMatch(/written after/)
 })
