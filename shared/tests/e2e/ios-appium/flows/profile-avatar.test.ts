@@ -7,12 +7,11 @@
 //
 // The flow's afterEach closes a picker a test left up.
 import {loadE2EAccounts} from '../../accounts/env'
-import {CORPUS} from '../../fixtures/corpus/corpus'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {smokeAvatarUrl} from '../../shared/profile'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
-import {ensurePhotoCorpus, imageProps, pickedFiles} from '../gate/device'
+import {ensurePhotoCorpus} from '../gate/device'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeSystemPickers, pickOnePhoto} from '../gate/system-ui'
@@ -20,18 +19,11 @@ import {tapControlIn} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {expectScreen, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {openOwnProfileOf, pickedImagesShown} from '../helpers/profile'
+import {openOwnProfileOf, requirePickedPng} from '../helpers/profile'
 import {masked} from '../helpers/teams'
 
 const UPLOAD_AVATAR = 'keybase.1.user.uploadUserAvatar'
-
-const corpusPng = () => {
-  const entry = CORPUS.find(c => c.name === 'e2e-c.png')
-  if (!entry) throw new Error('the corpus has no e2e-c.png')
-  return entry.file
-}
 
 describe('profile avatar', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -40,9 +32,8 @@ describe('profile avatar', function () {
   //             overrun by one 210
   //   profile   openOwnProfileOf 63;  avatar  tapControlIn 5;  pick  pickOnePhoto 58
   //   screen    a screen waited for 21 (20, read 1), 11 (10, read 1)
-  //   shown     pickedImagesShown 1;  picked  pickedFiles 121 (its container lookup 120);  pixels
-  //             imageProps twice 30
-  //   button    tapButton 6;  calls  one read 2;  waited for  10
+  //   png       requirePickedPng 162
+  //   button    tapButton 6;  calls  one read 2;  waited for  12 (10, one read 2)
   //   step      2 (its 1s settle and the attach)
   //   cleanup   closeSystemPickers 45, escapeToTabs 30 = 75
 
@@ -53,9 +44,8 @@ describe('profile avatar', function () {
   })
 
   it('the avatar set from a corpus png picked in the photo picker', async function () {
-    // worst case (s): corpus 840, host 150, profile 63, step 2, avatar 5, pick 58, screen 21, shown 1,
-    // picked 121, pixels 30, step 2, calls 2, button 6, waited for 10, screen 11, polled 210, step 2 =
-    // 1534
+    // worst case (s): corpus 840, host 150, profile 63, step 2, avatar 5, pick 58, screen 21, png 162,
+    // step 2, calls 2, button 6, waited for 12, screen 11, polled 210, step 2 = 1546
     this.timeout(1_560_000)
     const {smokeUser} = loadE2EAccounts()
     await ensurePhotoCorpus()
@@ -72,13 +62,7 @@ describe('profile avatar', function () {
       20_000
     )
     const uri = (editor.params?.['image'] as {uri: string}).uri
-    const shown = await pickedImagesShown()
-    check(shown.length === 1 && shown[0] === uri, "the avatar editor does not show the photo it was handed")
-    // the copy is re-encoded, and the corpus png, jpg and heic are all 64x48: its format and pixel size
-    // together are the png alone
-    const [picked] = pickedFiles([uri])
-    const got = imageProps(picked!.path)
-    check(got.format === 'png' && got.pixels === imageProps(corpusPng()).pixels, 'the picked image is not the corpus png')
+    await requirePickedPng('the avatar editor to show the photo it was handed', uri)
     creditSurface('photo-picker')
     await step('The picked png in the avatar editor')
 

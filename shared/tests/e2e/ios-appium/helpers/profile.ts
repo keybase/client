@@ -1,10 +1,12 @@
 // The profile screen, shared by the profile flows, and the photo picker images an avatar or emoji editor shows.
+import {CORPUS} from '../../fixtures/corpus/corpus'
 import * as T from '../../shared/test-ids'
-import {openLink} from '../gate/device'
+import {imageProps, openLink, pickedFiles} from '../gate/device'
 import {waitForTestID} from './elements'
 import {expectScreen} from '../gate/screens'
 import {fiberPrelude} from './fiber-prelude'
-import {jsEval} from './lifecycle'
+import {jsEval, waitFor} from './lifecycle'
+import {check} from './menus'
 import {escapeToTabs} from './navigate'
 
 // the profile's "Add more identities" button, drawn below its identity rows
@@ -34,3 +36,29 @@ export const pickedImagesShown = async () =>
       if (typeof src === 'string' && src.startsWith('file://') && src.includes('/Library/Caches/ImagePicker/')) urls.add(src)
     }
     return [...urls]`)
+
+
+const corpusPng = () => {
+  const entry = CORPUS.find(c => c.name === 'e2e-c.png')
+  if (!entry) throw new Error('the corpus has no e2e-c.png')
+  return entry.file
+}
+
+// The one photo-picker file the screen up shows, once it shows it (and, given `uri`, once that is it),
+// proven to be the corpus png: the copy is re-encoded, and the corpus png, jpg and heic are all 64x48,
+// so its format and pixel size together are the png alone. Bound: shown 11 (10, one read 1), picked
+// 121 (its container lookup 120), pixels 30 = 162.
+export const requirePickedPng = async (what: string, uri?: string) => {
+  const shown = await waitFor(
+    what,
+    async () => {
+      const urls = await pickedImagesShown()
+      if (urls.length > 1) throw new Error(`${what}: the screen shows ${urls.length} picked images, not one`)
+      return uri === undefined || urls[0] === uri ? urls[0] : undefined
+    },
+    {interval: 500, timeout: 10_000}
+  )
+  const [picked] = pickedFiles([shown])
+  const got = imageProps(picked!.path)
+  check(got.format === 'png' && got.pixels === imageProps(corpusPng()).pixels, 'the picked image is not the corpus png')
+}

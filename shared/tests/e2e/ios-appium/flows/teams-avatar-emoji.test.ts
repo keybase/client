@@ -12,14 +12,15 @@
 // seeded emoji is the anchor that the deleted one's absence is read against. The flow's afterEach
 // closes a picker a test left up and deletes the subteam.
 import {stampedEmojiName} from '../../accounts/run-id'
-import {CORPUS, CORPUS_DIR} from '../../fixtures/corpus/corpus'
+import {CORPUS_DIR} from '../../fixtures/corpus/corpus'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {deleteSubteamIfPresent, mainRead, requireThisRunSubteam, runChatApi, subteamAvatarUrl} from '../../shared/teams.ts'
 import {creditSurface} from '../gate/attempt'
 import {elementInRow} from '../gate/chat-lib.ts'
-import {ensurePhotoCorpus, imageProps, pickedFiles} from '../gate/device'
+import {ensurePhotoCorpus} from '../gate/device'
+import {sourceElements} from '../gate/page-source-lib.ts'
 import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeSystemPickers, pickOnePhoto} from '../gate/system-ui'
@@ -27,9 +28,9 @@ import {hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, pressTestID, tapButton} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
+import {chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {pickedImagesShown} from '../helpers/profile'
+import {requirePickedPng} from '../helpers/profile'
 import {expectHost, expectTeamPage, makeOwnSubteamWithID, masked, onlyField, openSubteamUntil, requireOnSubteam, revealTeamHeader} from '../helpers/teams'
 
 type Params = Record<string, unknown>
@@ -40,27 +41,6 @@ const REMOVE_EMOJI = 'chat.1.local.removeEmoji'
 
 const MEMBERS = {body: T.TEAMS_MEMBER_LIST, button: T.TEAMS_TAB_MEMBERS_BUTTON}
 const EMOJI = {body: T.TEAMS_EMOJI_TAB, button: T.TEAMS_TAB_EMOJI_BUTTON}
-
-const corpusPng = () => {
-  const entry = CORPUS.find(c => c.name === 'e2e-c.png')
-  if (!entry) throw new Error('the corpus has no e2e-c.png')
-  return entry.file
-}
-
-// The one photo-picker file the screen up shows, once it shows it, proven to be the corpus png: the
-// copy is re-encoded, and the corpus png, jpg and heic are all 64x48, so its format and pixel size
-// together are the png alone. Bound: shown 11 (10, one read 1), picked 121 (its container lookup
-// 120), pixels 30 = 162.
-const requirePickedPng = async (what: string) => {
-  const shown = await waitFor(what, async () => {
-    const urls = await pickedImagesShown()
-    if (urls.length > 1) throw new Error(`${what}: the screen shows ${urls.length} picked images, not one`)
-    return urls[0]
-  }, {interval: 500, timeout: 10_000})
-  const [picked] = pickedFiles([shown])
-  const got = imageProps(picked!.path)
-  check(got.format === 'png' && got.pixels === imageProps(corpusPng()).pixels, 'the picked image is not the corpus png')
-}
 
 describe('teams avatar and emoji', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -73,7 +53,8 @@ describe('teams avatar and emoji', function () {
   //   press     pressTestID 12;  button  tapButton 6;  screen  a screen waited for 11 (10, read 1)
   //   pick      pickOnePhoto 58;  png  requirePickedPng 162
   //   field     onlyField 11;  fill  fillField 26;  submit  clickUntil 10
-  //   row       a row by its name 31 (30, one drag 1);  in row  elementInRow 2
+  //   row       a row by its name 31 (30, one drag 1);  in row  elementInRow 2;  gone  10s of reads
+  //             (each the anchor's buttonLabelled 24 and one page source 1), overrun by one 35
   //   menu      openMenuFrom 19;  item  chooseMenuItem 22
   //   calls     one read 2;  waited for  12 (10, one read 2)
   //   step      2 (its 1s settle and the attach)
@@ -97,9 +78,9 @@ describe('teams avatar and emoji', function () {
   })
 
   it("a subteam's avatar set from a corpus png picked in the photo picker", async function () {
-    // worst case (s): corpus 840, subteam 915, host 135, opened 202 (60 of tries, overrun by one: team
+    // worst case (s): corpus 840, subteam 915, host 135, opened 203 (60 of tries, overrun by one: team
     // 109, tab 24, the header avatar 10), pin 1, header 8, press 12, screen 11, step 2, button 6, pick
-    // 58, png 162, step 2, pin 1, calls 2, button 6, waited for 12, polled 195, page 21, step 2 = 2593
+    // 58, png 162, step 2, pin 1, calls 2, button 6, waited for 12, polled 195, page 21, step 2 = 2594
     this.timeout(2_620_000)
     await ensurePhotoCorpus()
     const {name, teamID} = await makeOwnSubteamWithID('av', madeNames)
@@ -114,8 +95,8 @@ describe('teams avatar and emoji', function () {
     await expectScreen("the subteam's avatar editor", 'profileEditAvatar', p => onSubteam(p) && p['sendChatNotification'] === true)
     // App bug (PR 9 removes this tap): the editor opens the photo picker as it mounts, but on iOS that
     // picker is dropped while the modal is still presenting (seen live: none in 20s, no error), so the
-    // editor's own Pick an avatar opens it. Once the mount's picker shows, it covers the button and
-    // this tap fails.
+    // editor's own Pick an avatar opens it. Once the mount's picker shows, this fails loudly: the tap
+    // finds no button under the picker, or it lands on the picker and pickOnePhoto finds no picker.
     await step("The subteam's avatar editor with no photo")
     await tapButton('Pick an avatar', "the avatar editor's Pick an avatar")
     await pickOnePhoto('e2e-c.png')
@@ -146,10 +127,10 @@ describe('teams avatar and emoji', function () {
     // setup: corpus 840, subteam 915, seed 255, emoji 345, opened 224 (60 of tries, overrun by one:
     //   team 109, tab 24, the row 31) = 2579;
     // add: pin 1, button 6, screen 11, press 12, pick 58, png 162, field 11, fill 26, step 2, pin 1,
-    //   calls 2, submit 10, waited for 12, emoji 345, page 21, row 31, step 2 = 713;
-    // delete: row 31, in row 2, menu 19, pin 1, calls 2, item 22, waited for 12, emoji 345, the row
-    //   gone 11, step 2 = 447
-    // = 2579 + 713 + 447 = 3739
+    //   calls 2, submit 10, emoji 345, page 21, row 31, step 2 = 701;
+    // delete: row 31, in row 2, menu 19, pin 1, calls 2, item 22, waited for 12, emoji 345, gone 35,
+    //   step 2 = 471
+    // = 2579 + 701 + 471 = 3751
     this.timeout(3_780_000)
     const runId = e2eRunId()
     await ensurePhotoCorpus()
@@ -221,14 +202,11 @@ describe('teams avatar and emoji', function () {
           () => true,
           () => false
         )
-        const rows = await browser.$$(`-ios predicate string:name == "${T.TEAMS_EMOJI_ROW}" AND visible == 1`).getElements()
-        let seedDrawn = false
-        let aliasDrawn = false
-        for (const r of rows) {
-          const parts = ((await r.getAttribute('label').catch(() => null)) ?? '').split(', ').map(p => p.trim())
-          if (parts.includes(`:${seed}:`)) seedDrawn = true
-          if (parts.includes(`:${alias}:`)) aliasDrawn = true
-        }
+        const rows = sourceElements(await browser.getPageSource())
+          .filter(e => e.attrs['name'] === T.TEAMS_EMOJI_ROW && e.attrs['visible'] === 'true')
+          .map(e => (e.attrs['label'] ?? '').split(', ').map(p => p.trim()))
+        const seedDrawn = rows.some(parts => parts.includes(`:${seed}:`))
+        const aliasDrawn = rows.some(parts => parts.includes(`:${alias}:`))
         return anchor && seedDrawn && !aliasDrawn ? true : undefined
       },
       {interval: 500, timeout: 10_000}
