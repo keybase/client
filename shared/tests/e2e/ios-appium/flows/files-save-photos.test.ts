@@ -75,9 +75,9 @@ describe('save to photos', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   grant     grantPrivacy 640 each (the TCC read 15, the runtime 1, a checkpoint 60, simctl 120, the
   //             kill watch 15 overrun by one pid read 120, the launch: simctl 120, the runtime 120,
-  //             the captures 4, a checkpoint 60), two 1280;  full  grantFullPhotoAccess 35 (the ask
-  //             30 and its pause and resume, the prompt 20 and its tap 1 inside it)
-  //   access    fullPhotoAccess 1366 (the grants 1280, full 35, two reads 50 a second
+  //             the captures 4, a checkpoint 60), two 1280;  full  grantFullPhotoAccess 60 (the read
+  //             25, the ask 35: 30 and its pause and resume, the prompt 20 and its tap 1 inside it)
+  //   access    fullPhotoAccess 1391 (the grants 1280, full 60, two reads 50 a second
   //             apart 1);  absent  the library read for a late save: 5s of reads, overrun by one 25
   //             and its info 25 = 56
   //   ask       one ask of the phone 25 (20, the pause and resume);  saved  the new asset, 30s of
@@ -201,7 +201,7 @@ describe('save to photos', function () {
   // Both photo permissions taken (their restores kept), then full access; answers the library's asset
   // ids then, read twice a second apart and proven a whole read (requireWholeLibraryRead) holding at
   // least the corpus (its photos and videos, as ensurePhotoCorpus adds them). Bound: two grants 1280,
-  // full 35, two asks 50 and the second 1 = 1366.
+  // full 60, two asks 50 and the second 1 = 1391.
   const fullPhotoAccess = async () => {
     photosAdd = await grantPrivacy('photos-add')
     photos = await grantPrivacy('photos')
@@ -261,9 +261,9 @@ describe('save to photos', function () {
   // -- tests ----------------------------------------------------------------------------------------
 
   it("an image in Files saved to Photos from its row's menu, then deleted by its id", async function () {
-    // worst case (s): access 1366, work 120, open 365, entry 121, step 2, menu 52, pin 1, calls 2, item
-    // 2, waited for 12, the save's end 32, gone 6, saved 80, step 2, delete 60, ask 25, step 2 = 2250
-    this.timeout(2_280_000)
+    // worst case (s): access 1391, work 120, open 365, entry 121, step 2, menu 52, pin 1, calls 2, item
+    // 2, waited for 12, the save's end 32, gone 6, saved 80, step 2, delete 60, ask 25, step 2 = 2275
+    this.timeout(2_305_000)
     const before = await fullPhotoAccess()
     const {folder, name} = await folderWith(corpusPng(), 'save')
     await step('The image in the work folder')
@@ -284,10 +284,10 @@ describe('save to photos', function () {
   })
 
   it("a large image's save in Files cancelled from the menu's Close while it downloads saves nothing", async function () {
-    // worst case (s): access 1366, large 10, work 120, open 365, entry 121, step 2, downloads 25, menu
+    // worst case (s): access 1391, large 10, work 120, open 365, entry 121, step 2, downloads 25, menu
     // 52, pin 1, calls 2, item 2, waited for 12, in progress 11, downloads 25, the sheet 1, item 2,
-    // waited for 12, gone 6, downloads 35, absent 56, calls 2, step 2 = 2230
-    this.timeout(2_260_000)
+    // waited for 12, gone 6, downloads 35, absent 56, calls 2, step 2 = 2255
+    this.timeout(2_285_000)
     const before = await fullPhotoAccess()
     const dir = path.join('/tmp/kb-e2e', `media-${e2eRunId()}`)
     localDirs.add(dir)
@@ -346,10 +346,10 @@ describe('save to photos', function () {
   })
 
   it('an image the second account attaches in chat saved to Photos from its message menu, then deleted by its id', async function () {
-    // worst case (s): chat 240, peer 70, send 90, attach 60, access 1366, open 100, landed 120, the
+    // worst case (s): chat 240, peer 70, send 90, attach 60, access 1391, open 100, landed 120, the
     // check 1, view 30, keyboard 5, message menu 15, step 2, calls 2, message menu 20, waited for 32,
-    // saved 80, step 2, delete 60, ask 25, step 2 = 2322
-    this.timeout(2_350_000)
+    // saved 80, step 2, delete 60, ask 25, step 2 = 2347
+    this.timeout(2_375_000)
     const made = await masked(async () => createThrowawayChannel('save'))
     channel = made.topicName
     await sendWithRetry(await sender(), made.convID, e2eMarker('save-hello'))

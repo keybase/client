@@ -14,7 +14,7 @@ import {
 } from '../helpers/lifecycle'
 import {tapElement, tapFrame} from '../helpers/files'
 import {e2eRunId} from '../../shared/run-marker.ts'
-import {deleteSavedAsset, libraryHasAsset, requestFullPhotoAccess} from './app-ask.ts'
+import {deleteSavedAsset, libraryHasAsset, mediaPermission, requestFullPhotoAccess} from './app-ask.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {sourceElements} from './page-source-lib.ts'
 import {WaitStopped} from './wait-lib.ts'
@@ -266,15 +266,16 @@ const ALERT_SETTLE_MS = 1_000
 
 // Taps `button` on the system alert once one is up whose text `matches`, and waits for the alert to
 // go, tapping again only while that same alert is still up; an alert of any other text is never
-// tapped (it fails). Bound: `timeout` (its reads 1 each, the taps 1 each).
-const acceptAlert = async (what: string, matches: (text: string) => boolean, button: string, timeout = 20_000) => {
+// tapped (it fails). It stops with no alert up once `asked()` (the ask the alert answers has settled,
+// so none is coming). Bound: `timeout` (its reads 1 each, the taps 1 each).
+const acceptAlert = async (what: string, matches: (text: string) => boolean, button: string, asked: () => boolean, timeout = 20_000) => {
   let seenAt: number | undefined
   let tapped = false
   await waitFor(
     what,
     async () => {
       const text = await alertText()
-      if (text === undefined) return tapped ? true : undefined
+      if (text === undefined) return tapped || asked() ? true : undefined
       if (!matches(text)) throw new WaitStopped(`${what}: another system alert is up`)
       seenAt ??= Date.now()
       if (Date.now() - seenAt < ALERT_SETTLE_MS) return undefined
@@ -286,24 +287,32 @@ const acceptAlert = async (what: string, matches: (text: string) => boolean, but
   )
 }
 
-// Runs an ask of the app that waits on a system alert alongside the tap that answers it, and waits
-// for both, so neither is still running when this fails.
-const withAlert = async <R,>(ask: Promise<R>, tap: Promise<void>): Promise<R> => {
-  const [asked, tapped] = await Promise.allSettled([ask, tap])
+// Runs an ask of the app that waits on a system alert alongside the tap that answers it (`tap`, told
+// when the ask has settled), and waits for both, so neither is still running when this fails. The
+// ask's failure is the one thrown: the tap's (no alert came) follows from it.
+const withAlert = async <R,>(ask: Promise<R>, tap: (asked: () => boolean) => Promise<void>): Promise<R> => {
+  let settled = false
+  const asking = ask.finally(() => {
+    settled = true
+  })
+  const [got, tapped] = await Promise.allSettled([asking, tap(() => settled)])
+  if (got.status === 'rejected') throw got.reason
   if (tapped.status === 'rejected') throw tapped.reason
-  if (asked.status === 'rejected') throw asked.reason
-  return asked.value
+  return got.value
 }
 
 // Full photo access for the app, for a flow's read-back of what it saved and its delete by exact id:
 // a simctl photos grant is not what PhotoKit reads (live: the app reads it undetermined, and the
-// library reads empty), so the app asks iOS and this taps Allow Full Access. Taken after the flow's
-// grantPrivacy('photos-add') and grantPrivacy('photos'), whose restores put it back (iOS then holds
-// Photos in place of PhotosAdd). Credits nothing. Bound: the ask 30 (the alert's 20 inside it).
+// library reads empty), so the app asks iOS and this taps Allow Full Access. Access the app already
+// reads as full shows no prompt, so it is read first. Taken after the flow's grantPrivacy('photos-add')
+// and grantPrivacy('photos'), whose restores put it back (iOS then holds Photos in place of
+// PhotosAdd). Credits nothing. Bound: the read 25, the ask 35 (30 and its pause and resume; the
+// alert's 20 inside it) = 60.
 export const grantFullPhotoAccess = async () => {
-  const got = await withAlert(
-    requestFullPhotoAccess(),
-    acceptAlert('the full photo access prompt', t => t.includes('access to your Photo Library'), 'Allow Full Access')
+  const now = await mediaPermission()
+  if (now.read === 'granted' && now.readAccess === 'all') return
+  const got = await withAlert(requestFullPhotoAccess(), async asked =>
+    acceptAlert('the full photo access prompt', t => t.includes('access to your Photo Library'), 'Allow Full Access', asked)
   )
   if (!got.granted || got.readAccess !== 'all') throw new Error(`the app reads photo access ${got.readAccess}, not all, after Allow Full Access`)
 }
@@ -314,9 +323,8 @@ export const grantFullPhotoAccess = async () => {
 // query reads). Bound: the delete 35 (the ask 30 and its pause and resume; the alert's 20 inside
 // it), the read 25 = 60.
 export const deleteSavedPhoto = async (id: string, before: ReadonlySet<string>) => {
-  await withAlert(
-    deleteSavedAsset(id, before),
-    acceptAlert('the photo delete confirm', t => t.startsWith('Allow “Keybase” to delete this photo?'), 'Delete')
+  await withAlert(deleteSavedAsset(id, before), async asked =>
+    acceptAlert('the photo delete confirm', t => t.startsWith('Allow “Keybase” to delete this photo?'), 'Delete', asked)
   )
   if (await libraryHasAsset(id)) throw new Error('the photo library still holds the saved photo after its delete')
 }
