@@ -45,6 +45,7 @@ import {APP_POISON, clearGatePoison, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
 import {pasteboardHolds} from './pasteboard-lib.ts'
+import {WaitStopped} from './wait-lib.ts'
 
 const PASTEBOARD_MS = 30_000
 const PUSH_MS = 30_000
@@ -350,8 +351,8 @@ export const pasteboardText = async (): Promise<string> => {
 const runtimeId = async (): Promise<string | undefined> =>
   (await jsEval<string | null>(RUNTIME_BODY)) ?? undefined
 
-// `alive` runs after each runtime read and throws to stop the wait (an app that must not be
-// launched again exited).
+// `alive` runs after each runtime read and throws a WaitStopped to stop the wait (an app that must
+// not be launched again exited).
 const waitForRuntime = async (before: string | undefined, alive?: () => void) =>
   waitFor('the relaunched app to start a new JS runtime', async () => {
     const now = await runtimeId()
@@ -426,7 +427,7 @@ export const launchedBy = async (deliver: () => unknown) => {
     timeout: DELIVERED_LAUNCH_MS,
   })
   await started(before, () => {
-    if (appPid() === undefined) throw new Error('the app exited after what was delivered launched it')
+    if (appPid() === undefined) throw new WaitStopped('the app exited after what was delivered launched it')
   })
 }
 

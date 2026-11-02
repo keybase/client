@@ -5,6 +5,7 @@ import {pidFromLaunchctl, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {pollFor} from '../gate/wait-lib.ts'
 import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {sessionPingDue} from '../gate/hang-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
@@ -43,31 +44,21 @@ const keepSession = async () => {
   await browser.getTimeouts()
 }
 
-// Retries until check returns a value, or throws with the last error once the timeout passes.
+// Retries until check returns a value, or throws with the last error once the timeout passes. A check
+// throws gate/wait-lib.ts WaitStopped to end the wait at once.
 export const waitFor = async <R>(
   what: string,
   check: () => Promise<R | undefined> | R | undefined,
   {timeout = 20000, interval = 250}: {timeout?: number; interval?: number} = {}
-): Promise<R> => {
-  const end = Date.now() + timeout
-  let lastErr: unknown
-  for (;;) {
-    requireCurrentAttempt()
-    try {
-      const r = await check()
-      if (r !== undefined) return r
-    } catch (e) {
-      if (isAttemptOver(e)) throw e
-      lastErr = e
-    }
-    if (Date.now() > end) {
-      const detail = lastErr instanceof Error ? `: ${lastErr.message}` : ''
-      throw new Error(`timed out after ${timeout}ms waiting for ${what}${detail}`)
-    }
-    await keepSession()
-    await sleep(interval)
-  }
-}
+): Promise<R> =>
+  pollFor(what, check, {interval, timeout}, {
+    before: requireCurrentAttempt,
+    now: Date.now,
+    pause: async ms => {
+      await keepSession()
+      await sleep(ms)
+    },
+  })
 
 // Polls check until it returns a value, or answers undefined once the timeout passes. An error check
 // throws is thrown at once, so running out of time with nothing found is the only quiet outcome.

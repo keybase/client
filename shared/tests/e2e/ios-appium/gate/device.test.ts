@@ -6,6 +6,7 @@ import {newRunId} from '../../accounts/run-id'
 import {clearLocation, ensurePhotoCorpus, setLocation, grantPrivacy, launchedBy, launchIfGone, openLink, pushNotification, restorePrivacy, toBackground, toForeground} from './device'
 import {chatNewMessagePayload} from './device-lib'
 import {clearGatePoison, gatePoisoned} from './poison-lib'
+import {WaitStopped} from './wait-lib'
 
 // jest's globals (this project's types are mocha's and wdio's)
 declare const jest: {
@@ -351,13 +352,14 @@ describe('a launch by what was delivered', () => {
     expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
   })
 
-  test('fails when the app it delivered to exits before its runtime starts, and never starts it again', async () => {
-    await expect(
-      launchedBy(() => {
-        mockDevice.pid = 2
-        mockDevice.exitsOnEval = true
-      })
-    ).rejects.toThrow(/the app exited after what was delivered launched it/)
+  test('fails at once when the app it delivered to exits before its runtime starts, and never starts it again', async () => {
+    const launched = launchedBy(() => {
+      mockDevice.pid = 2
+      mockDevice.exitsOnEval = true
+    })
+    // a WaitStopped: waitFor throws it at once rather than retrying for the runtime's whole wait
+    await expect(launched).rejects.toBeInstanceOf(WaitStopped)
+    await expect(launched).rejects.toThrow(/the app exited after what was delivered launched it/)
     expect(mockDevice.calls.some(c => c.startsWith('simctl launch'))).toBe(false)
   })
 })

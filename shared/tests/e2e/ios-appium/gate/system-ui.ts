@@ -17,6 +17,7 @@ import {e2eRunId} from '../../shared/run-marker.ts'
 import {deleteSavedAsset, libraryHasAsset, requestFullPhotoAccess} from './app-ask.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {sourceElements} from './page-source-lib.ts'
+import {WaitStopped} from './wait-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
 
 const BANNER_MS = 8_000
@@ -142,7 +143,7 @@ export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
     'the corpus in the photo picker',
     async () => {
       const cells = await libraryNow()
-      if (cells.some(c => c.selected)) throw new Error('the photo picker opened with cells already selected')
+      if (cells.some(c => c.selected)) throw new WaitStopped('the photo picker opened with cells already selected')
       return corpusCells(cells)
     },
     {interval: 1_000, timeout: 20_000}
@@ -274,7 +275,7 @@ const acceptAlert = async (what: string, matches: (text: string) => boolean, but
     async () => {
       const text = await alertText()
       if (text === undefined) return tapped ? true : undefined
-      if (!matches(text)) throw new Error(`${what}: another system alert is up`)
+      if (!matches(text)) throw new WaitStopped(`${what}: another system alert is up`)
       seenAt ??= Date.now()
       if (Date.now() - seenAt < ALERT_SETTLE_MS) return undefined
       await browser.execute('mobile: alert', {action: 'accept', buttonLabel: button})
