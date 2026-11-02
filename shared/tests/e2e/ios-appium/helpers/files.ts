@@ -14,6 +14,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
+import {dragsToward, steerOffset} from '../gate/drawn-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
@@ -151,7 +152,8 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
       // row is. Another list's off-screen element can be a covered screen's, so it steers nothing
       // unless the caller says only this list draws the testID and keeps every row (inTree).
       const off = files || inTree ? all.find(e => labelParts(e.attrs['label'] ?? '').includes(name)) : undefined
-      return {offscreen: off ? Number(off.attrs['y']) - height / 2 : undefined, row: undefined, signature}
+      const offRect = off && {height: Number(off.attrs['height']), width: Number(off.attrs['width']), x: Number(off.attrs['x']), y: Number(off.attrs['y'])}
+      return {offscreen: steerOffset(offRect, screen, files), row: undefined, signature}
     }
     const r = hits[inner[0]!]!
     const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
@@ -217,10 +219,10 @@ export const filesRowNamed = async (
       dragged = true
       const {height} = await browser.getWindowRect()
       // a row the tree holds off screen (a list that is not virtualized) says which way and how far:
-      // long drags toward it, up to four between reads
-      if (offscreen !== undefined) {
-        const span = height * 0.5
-        for (let i = 0; i < Math.min(4, Math.ceil(Math.abs(offscreen) / span)); i++) {
+      // long drags toward it, up to four between reads; none (it is at the middle) drags blind
+      const toward = offscreen === undefined ? 0 : dragsToward(offscreen, height)
+      if (offscreen !== undefined && toward > 0) {
+        for (let i = 0; i < toward; i++) {
           await (offscreen > 0 ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
         }
         before = signature
