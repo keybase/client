@@ -88,10 +88,10 @@ const TeamMenuContainer = (ownProps: OwnProps) => {
     C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
   }
   const onDeleteTeam = () => {
-    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {context: 'teams', teamID}})
   }
   const onLeaveTeam = () => {
-    C.Router2.navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
+    C.Router2.navigateAppend({name: 'teamReallyLeaveTeam', params: {context: 'teams', teamID}})
   }
   const onOpenFolder = (teamname: string) => {
     FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))

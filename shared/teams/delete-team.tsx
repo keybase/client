@@ -5,16 +5,16 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import noop from 'lodash/noop'
-import {deleteTeam} from './actions'
+import {deleteTeam, type TeamExitContext} from './actions'
 import {useLoadedTeam} from './team/use-loaded-team'
 import {useTeamsList} from './use-teams-list'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
-type OwnProps = {teamID: T.Teams.TeamID}
+type OwnProps = {teamID: T.Teams.TeamID; context: TeamExitContext}
 
 const DeleteTeamContainer = (op: OwnProps) => {
   const styles = useStyles()
-  const teamID = op.teamID
+  const {teamID, context} = op
   const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
   const {teams} = useTeamsList()
   const teamname = teamMeta.teamname
@@ -26,7 +26,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
     : undefined
 
   const onBack = deleteWaiting ? noop : C.Router2.navigateUp
-  const onDelete = useSafeSubmit(() => deleteTeam(teamID), !deleteWaiting)
+  const onDelete = useSafeSubmit(() => deleteTeam(teamID, context), !deleteWaiting)
 
   const [checks, setChecks] = React.useState({
     checkChats: false,

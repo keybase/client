@@ -4,6 +4,7 @@ import {
   activeStack,
   currentTab,
   isLoggedIn,
+  isModalUp,
   modalStack,
   modalState,
   previousRouteIsModal,
@@ -146,6 +147,20 @@ test('modalStack holds only the registered modal names above the tab navigator',
   expect(modalStack(navState).map(r => r.name)).toEqual(['chatInfoPanel'])
   expect(modalStack(makePhoneNavState())).toEqual([])
   expect(modalStack({index: 0, routes: [{key: 'l', name: 'loggedOut'}]} as any)).toEqual([])
+})
+
+// A team's delete confirm decides whether its delete still takes the user away when it returns.
+test('isModalUp matches a modal by name and the params given', () => {
+  setModalRouteNames(['chatInfoPanel', 'teamDeleteTeam'])
+  const navState = makePhoneNavState([{name: 'team', params: {teamID: 'T1'}}, {name: 'teamDeleteTeam', params: {context: 'teams', teamID: 'T1'}}])
+
+  expect(isModalUp(navState, 'teamDeleteTeam', {teamID: 'T1'})).toBe(true)
+  expect(isModalUp(navState, 'teamDeleteTeam')).toBe(true)
+  expect(isModalUp(navState, 'teamDeleteTeam', {teamID: 'T2'})).toBe(false)
+  // a screen above the tabs that is not a modal
+  expect(isModalUp(navState, 'team', {teamID: 'T1'})).toBe(false)
+  expect(isModalUp(makePhoneNavState([{name: 'team', params: {teamID: 'T1'}}]), 'teamDeleteTeam', {teamID: 'T1'})).toBe(false)
+  expect(isModalUp(undefined, 'teamDeleteTeam')).toBe(false)
 })
 
 test('tabNavigatorState is the tab navigator, and nothing when logged out', () => {

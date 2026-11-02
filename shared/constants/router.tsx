@@ -83,6 +83,9 @@ export const getVisiblePath = (includeModals?: boolean) => NavTree.visiblePath(g
 
 export const getModalStack = () => NavTree.modalStack(getRootState())
 
+export const isModalUp = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
+  NavTree.isModalUp(getRootState(), name, params)
+
 export const getVisibleScreen = (includeModals?: boolean) =>
   NavTree.visibleScreen(getRootState(), {includeModals})
 

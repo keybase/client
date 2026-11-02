@@ -112,6 +112,17 @@ export const modalStack = (state?: Immutable<NavState>): Immutable<Array<Route>>
   return (state.routes?.slice(1) ?? []).filter(r => isModalRouteName(r.name)) as Immutable<Array<Route>>
 }
 
+// Whether a modal of that name is up whose params hold every entry of `params`.
+export const isModalUp = (
+  state: Immutable<NavState> | undefined,
+  name: string,
+  params: Readonly<Record<string, unknown>> = {}
+) =>
+  modalStack(state).some(r => {
+    const rp = r.params as Readonly<Record<string, unknown>> | undefined
+    return r.name === name && Object.entries(params).every(([k, v]) => rp?.[k] === v)
+  })
+
 // The innermost stack the user is looking at - the one a push/pop should target.
 export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | undefined => {
   const descend = (s: Immutable<NavState> | undefined, depth: number): Immutable<NavState> | undefined => {

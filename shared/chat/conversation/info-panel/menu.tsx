@@ -138,7 +138,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
 
   const onJoinChannel = () => joinConversation(conversationIDKey)
-  const onLeaveTeam = () => teamID && routerNavigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
+  const onLeaveTeam = () => teamID && routerNavigateAppend({name: 'teamReallyLeaveTeam', params: {context: 'chat', teamID}})
   const onManageChannels = () => {
     routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
     void dismissManageChannelsBadge()
