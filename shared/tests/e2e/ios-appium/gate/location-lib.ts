@@ -41,8 +41,8 @@ const WATCHER_STOPS = 'stopping location updates'
 export const WATCHER_STOPPED = new RegExp(WATCHER_STOPS)
 
 // Whether the native watcher's lines show it running at the end: a start with no stop after it. The
-// location screen starts the watcher as it opens (its preview wants a fix), and a share started from it
-// keeps that watcher running rather than starting another.
+// app starts the watcher once location is granted, and a share keeps that watcher rather than
+// starting another.
 export const watcherRunning = (lines: ReadonlyArray<string>) => {
   const last = [...lines].reverse().find(l => l.includes(WATCHER_STARTS) || l.includes(WATCHER_STOPS))
   return !!last?.includes(WATCHER_STARTS)
