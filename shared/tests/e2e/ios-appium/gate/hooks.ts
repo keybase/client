@@ -20,6 +20,7 @@ import {
   recordSkipped,
   runAttempt,
   runAttemptBody,
+  settleBody,
   takeLeftCleanup,
   type AttemptToken,
 } from './attempt.ts'
@@ -116,13 +117,27 @@ const crashCheckedAfter = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
     if (failure) throw failure.e
   }
 
+// Each test function marks its body settled as it ends, so wdio's afterTest, which runs after it in
+// the body's frame, tells a body that ended on its own from one its timer gave up on.
+const settling = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
+  async function (this: Mocha.Context) {
+    try {
+      await fn.call(this)
+    } finally {
+      settleBody()
+    }
+  }
 const declareTest = (t: Declare) =>
   function (this: unknown, ...args: Array<unknown>) {
     insideDescribe('a test')
-    const [title, fn, ...rest] = args
-    // a done-callback body (fn.length > 0) is left as it is: gate bodies are async
-    if (typeof fn === 'function' && fn.length === 0) return t.call(this, title, crashCheckedAfter(fn as Mocha.AsyncFunc), ...rest)
-    return t.apply(this, args)
+    // the crash check is part of the body, so the body settles after it; a done-callback body
+    // (length > 0) gets no crash check: gate bodies are async
+    return t.apply(
+      this,
+      args.map(a =>
+        typeof a === 'function' ? settling(a.length === 0 ? crashCheckedAfter(a as Mocha.AsyncFunc) : (a as Mocha.AsyncFunc)) : a
+      )
+    )
   }
 globalThis.it = Object.assign(declareTest(plain.it as Declare), {
   only: declareTest(plain.it.only as Declare),

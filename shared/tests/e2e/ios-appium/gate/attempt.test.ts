@@ -25,6 +25,7 @@ import {
   requireCurrentAttempt,
   runAttempt,
   runAttemptBody,
+  settleBody,
   takeLeftCleanup,
 } from './attempt'
 import {setCleanupStepKeeper, withCleanup} from '../../shared/cleanup'
@@ -278,6 +279,29 @@ test('a body ended while a restore ran hands over that restore too, and runs not
   await expect(body).rejects.toThrow('attempt over')
   expect(ran).toEqual(['first started'])
   expect(takeLeftCleanup(a)).toEqual([first, second])
+})
+
+test("wdio's afterTest on a body whose test function settled hands nothing over", async () => {
+  setCleanupStepKeeper(keepCleanupSteps)
+  const a = beginAttempt(file, ['d', 'passed'], 0)
+  const ran: Array<string> = []
+  await runAttemptBody(a, 'd passed', async () => {
+    // the test function, as gate/hooks.ts wraps it
+    try {
+      await withCleanup(async () => {}, [() => ran.push('restore')])
+    } finally {
+      settleBody()
+    }
+    // wdio's afterTest, still inside the body's frame
+    const token = leaveBody()
+    runAttempt(token, () => {
+      requireCurrentAttempt()
+      endAttempt({durationMs: 1, status: 'passed'})
+    })
+  })
+  expect(ran).toEqual(['restore'])
+  expect(takeLeftCleanup(a)).toBeUndefined()
+  expect(readAttempts().map(r => r.status)).toEqual(['passed'])
 })
 
 test("a body that settles keeps nothing for the root afterEach, and a hook's cleanup is never kept", async () => {

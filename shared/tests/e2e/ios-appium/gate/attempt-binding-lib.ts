@@ -12,7 +12,8 @@ export const attemptOverMessage = (title: string) => `${OVER}${title}`
 
 export const isAttemptOver = (e: unknown) => e instanceof Error && e.message.startsWith(OVER)
 
-type Body<T> = {title: string; over: boolean; value: T}
+// settled: the test's own function settled, though wdio's wrapper around it (afterTest) may still run
+type Body<T> = {title: string; over: boolean; settled: boolean; value: T}
 
 export type Frame<T> = {value: T; body?: Body<T>}
 
@@ -21,8 +22,8 @@ export type Frame<T> = {value: T; body?: Body<T>}
 export const refusal = <T>(frame: Frame<T> | undefined): string | undefined =>
   frame?.body?.over ? attemptOverMessage(frame.body.title) : undefined
 
-// `ended` is told of each body ended while it still ran (by endRunningBodies or endCurrentBody), not
-// of one that settled.
+// `ended` is told of each body ended while its test function still ran (by endRunningBodies or
+// endCurrentBody), not of one that settled.
 export const createBinding = <T>(ended: (value: T) => void = () => {}) => {
   const store = new AsyncLocalStorage<Frame<T>>()
   // the bodies mocha started and that have not settled
@@ -34,7 +35,7 @@ export const createBinding = <T>(ended: (value: T) => void = () => {}) => {
     run: <R>(value: T | undefined, fn: () => R): R => (value === undefined ? store.exit(fn) : store.run({value}, fn)),
     // Runs a test body as `value`; the body is running until fn settles, and over from then.
     runBody: async <R>(value: T, title: string, fn: () => Promise<R>): Promise<R> => {
-      const body: Body<T> = {over: false, title, value}
+      const body: Body<T> = {over: false, settled: false, title, value}
       running.add(body)
       try {
         return await store.run({body, value}, fn)
@@ -43,25 +44,32 @@ export const createBinding = <T>(ended: (value: T) => void = () => {}) => {
         running.delete(body)
       }
     },
+    // For the test's own function, as it settles: the body ends on its own from here, so ending it
+    // hands nothing over.
+    settleCurrentBody: () => {
+      const body = store.getStore()?.body
+      if (body) body.settled = true
+    },
     // Marks every running body over, for a hook beginning: mocha runs one only once no body is its
-    // to run, so a body still running then is one it timed out.
+    // to run, so a body still running then is one it timed out. Returns those whose test function
+    // still ran.
     endRunningBodies: (): Array<string> => {
       const bodies = [...running]
       running.clear()
-      for (const b of bodies) {
-        b.over = true
-        ended(b.value)
-      }
-      return bodies.map(b => b.title)
+      const cut = bodies.filter(b => !b.settled)
+      for (const b of bodies) b.over = true
+      for (const b of cut) ended(b.value)
+      return cut.map(b => b.title)
     },
     // Marks the body the caller is bound to over, for work that ends it from inside its own frame (wdio's
-    // afterTest, which runs once wdio's own timer gave up on the body that is still running).
+    // afterTest, which runs inside the body's frame once the test function settled or wdio's own timer
+    // gave up on it).
     endCurrentBody: () => {
       const body = store.getStore()?.body
       if (!body || body.over) return
       body.over = true
       running.delete(body)
-      ended(body.value)
+      if (!body.settled) ended(body.value)
     },
     frame: (): Frame<T> | undefined => store.getStore(),
     // Throws `attempt over: <title>` in a body that is over; nothing anywhere else.

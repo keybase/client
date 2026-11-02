@@ -204,3 +204,30 @@ test('the owner is told of a body ended while it ran, not of one that settled', 
   await wdio
   expect(ended).toEqual(['wdio', 'timed out'])
 })
+
+test('a body whose test function settled is ended without handing anything over', async () => {
+  const ended: Array<string> = []
+  const b = createBinding<string>(v => ended.push(v))
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const settled = b.runBody('a1', 'settled', async () => {
+    b.settleCurrentBody()
+    await gate
+  })
+  const cut = b.runBody('a2', 'cut', async () => {
+    await gate
+  })
+  await tick()
+  expect(b.endRunningBodies()).toEqual(['cut'])
+  expect(ended).toEqual(['a2'])
+  release()
+  await settled
+  await cut
+  await b.runBody('a3', 'wdio', async () => {
+    await tick()
+    b.settleCurrentBody()
+    b.endCurrentBody()
+    expect(() => b.requireCurrent()).toThrow('attempt over: wdio')
+  })
+  expect(ended).toEqual(['a2'])
+})
