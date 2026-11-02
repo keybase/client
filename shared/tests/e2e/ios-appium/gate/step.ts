@@ -1,6 +1,6 @@
 // Steps of a flow: screenshots attached to the running attempt, as the desktop flows' step.ts does.
 import {currentAttempt} from './attempt'
-import {stepAttachmentName} from './step-lib'
+import {stepAttachmentName} from '../../shared/step-name.ts'
 
 const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 

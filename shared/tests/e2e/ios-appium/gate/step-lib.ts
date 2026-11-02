@@ -1,13 +1,4 @@
-// Pure helpers of step.ts and errors.ts, kept apart so jest can test them without wdio.
-
-const kebab = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-
-// The report reads steps by this shape (step-NN-<slug>), as the desktop's do.
-export const stepAttachmentName = (index: number, name: string) => `step-${String(index).padStart(2, '0')}-${kebab(name)}`
+// Pure helpers of errors.ts and finish.ts, kept apart so jest can test them without wdio.
 
 // Marks an error captured from the app's global handler, which fails the attempt (a console.error does not).
 export const UNCAUGHT_PREFIX = 'uncaught: '

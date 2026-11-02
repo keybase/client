@@ -1,4 +1,5 @@
-import {stepAttachmentName, tailLines, uncaughtErrors, UNCAUGHT_PREFIX} from './step-lib'
+import {stepAttachmentName} from '../../shared/step-name'
+import {tailLines, uncaughtErrors, UNCAUGHT_PREFIX} from './step-lib'
 
 test('step attachments are numbered and kebab-cased', () => {
   expect(stepAttachmentName(1, 'Opened the Settings tab!')).toBe('step-01-opened-the-settings-tab')

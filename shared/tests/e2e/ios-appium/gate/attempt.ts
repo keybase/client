@@ -7,6 +7,7 @@
 import {AsyncLocalStorage} from 'async_hooks'
 import * as fs from 'fs'
 import * as path from 'path'
+import {slug as fullSlug} from '../../shared/step-name.ts'
 
 // shared/tests/results/ios-report whatever the cwd; KB_IOS_REPORT_DIR moves it (the unit tests do).
 export const iosReportDir = () => process.env['KB_IOS_REPORT_DIR'] ?? path.resolve(__dirname, '../../../results/ios-report')
@@ -47,12 +48,7 @@ type End = Pick<AttemptRecord, 'status' | 'durationMs' | 'error'>
 const bodies = new AsyncLocalStorage<Running>()
 let started = 0
 
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80)
+const slug = (s: string) => fullSlug(s).slice(0, 80)
 
 const EXTENSIONS: Record<string, string> = {'application/json': '.json', 'image/png': '.png', 'text/plain': '.txt'}
 
