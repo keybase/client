@@ -13,12 +13,6 @@ export const steerOffset = (row: Rect | undefined, screen: Rect, files: boolean)
 // The long drags (half a screen each, at most four) toward a row `offset` from the screen's middle.
 export const dragsToward = (offset: number, height: number) => Math.min(4, Math.ceil(Math.abs(offset) / (height * 0.5)))
 
-// filesRowNamed's `inTree` reads the whole page source, so a row search `within` an element cannot
-// take it: the pair is a caller's mistake, refused rather than one of them ignored.
-export const checkRowSearch = ({inTree, within}: {inTree: boolean; within: boolean}) => {
-  if (inTree && within) throw new Error('a row search takes inTree or within, not both')
-}
-
 // How many page-source elements of `type` lie exactly at `rect` (only visible ones when `visibleOnly`,
 // as the fetch at that frame asks) and read a label that `matches`, when they are one control: nested
 // boxes on one ancestor chain can share a frame exactly and are the same tap. Matches in different
