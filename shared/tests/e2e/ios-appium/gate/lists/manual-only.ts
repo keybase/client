@@ -88,6 +88,11 @@ export const IOS_MANUAL_ONLY = {
       "After the release: run yarn test:e2e:accounts:second-password --check. It settles a password change left pending and checks that the host's main service still switches to the second account with its stored secret, which the iOS password flow does not do.",
     title: "The host's stored secret for the second account, after the phone changed its password",
   },
+  'location-os-relaunch': {
+    doByHand:
+      'On a device: share live location from a chat, swipe the app away, move far enough for a significant change, and check iOS relaunches it and a move is posted without opening it. The simulator cannot: simctl terminate is a force-quit, and iOS never relaunches a force-quit app for location (live: no relaunch within 5 minutes of a far move).',
+    title: 'iOS relaunching a killed app for live location',
+  },
   'phone-new-device': {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',

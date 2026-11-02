@@ -4,10 +4,11 @@
 //   position and hands it to the service (chat.1.local.locationUpdate); "Send current location" posts
 //   it, and the host reads the location message back;
 // - live location for 15 minutes from the same screen: the service starts tracking and the native
-//   watcher starts; a move in the foreground and one in the background are each posted; `/location
+//   watcher runs; a move in the foreground and one in the background are each posted; `/location
 //   stop` from the composer stops the tracker and the watcher;
-// - live location with the app killed: a far move has iOS relaunch the app in the background, where
-//   the service restores the share; once the app is in front again a move is posted.
+// - live location with the app killed: a far move while it is down, and the relaunched service
+//   restores the share; once the app is in front a move is posted. iOS relaunching the app for the
+//   move itself is manual-only (location-os-relaunch).
 //
 // Location is granted to keybase.ios (location-always) in each test's body; the flow's afterEach puts
 // it back. The service's lines are read from its log (ios.log) from a mark, the native watcher's from
@@ -27,7 +28,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
-import {clearLocation, grantPrivacy, launchedBy, launchIfGone, restorePrivacy, setLocation, toBackground, toForeground} from '../gate/device'
+import {clearLocation, grantPrivacy, launchIfGone, relaunchApp, restorePrivacy, setLocation, toBackground, toForeground} from '../gate/device'
 import type {PrivacyRestore} from '../gate/device-lib.ts'
 import {stopSharingFromApp} from '../gate/location'
 import {
@@ -57,7 +58,7 @@ import {step} from '../gate/step'
 import {cancelAppOutbox, openConversation, typeInComposer} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {expectScreen, waitSignedIn} from '../helpers/files'
-import {appPid, goLogMark, goLogSince, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
+import {goLogMark, goLogSince, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
@@ -83,10 +84,9 @@ describe('chat location', function () {
   //   watcher   the simulator's log, 20s of reads overrun by one simctl read 120 = 140
   //   moves     toBackground 1;  toForeground 1;  active  waitForAppState 31
   //   composer  the stop typed 2, the send button 5 and its tap 1 = 8
-  //   relaunch  iOS's relaunch for the move: 300s of pid reads overrun by one 120 = 420;  restored
-  //             121 (120, one read 1);  launched  launchedBy 1186 (a checkpoint 60, terminate 10, the
-  //             delivery: mark 120, location 120, relaunch 420, restored 121, foreground 1 = 782, its
-  //             pid 150, the runtime 120, the captures 4, a checkpoint 60);  signed in  90
+  //   relaunch  relaunchApp 616 (the runtime read 1, a checkpoint 60, the errors 1, terminate 10, while
+  //             down: mark 120, location 120; the launch 120, the runtime 120, the captures 4, a
+  //             checkpoint 60);  restored  121 (120, one read 1);  signed in  90
   //   step      2 (its 1s settle and the attach)
 
   // -- what the afterEach puts back -----------------------------------------------------------------
@@ -324,10 +324,12 @@ describe('chat location', function () {
     await step('Sharing stopped', {card: true})
   })
 
-  it('with the app killed while sharing, a far move has iOS relaunch it, the share is restored, and a move is posted once it is in front', async function () {
-    // worst case (s): in channel 1102, location screen 33, live share 302, cli 90, step 2, launched
-    // 1186, signed in 90, the move 421, step 2 = 3228
-    this.timeout(3_300_000)
+  // iOS relaunching the killed app for the move is manual-only (location-os-relaunch): on the
+  // simulator simctl terminate is a force-quit, and iOS never relaunches a force-quit app for location.
+  it('with the app killed while sharing, the relaunched app restores the share and posts a move once it is in front', async function () {
+    // worst case (s): in channel 1102, location screen 33, live share 302, cli 90, step 2; relaunch
+    // 616, restored 121, signed in 90, the move 421, step 2 = 2779
+    this.timeout(2_850_000)
     const since = new Date(Date.now() - 1_000)
     const {convID, topicName} = await inChannelWithLocation()
     await openLocationScreen(convID)
@@ -335,24 +337,19 @@ describe('chat location', function () {
     await hostReads(topicName, LIVE_15M)
     await step('Sharing live location')
 
-    await launchedBy(async () => {
-      // marked once the killed process is gone, so its last lines are not read as the relaunch's
-      const mark = goLogMark()
-      moveTo(FAR)
-      // iOS delivers a significant change on its own schedule, seconds to minutes: a long wait that
-      // fails loudly
-      await waitFor('iOS to relaunch the killed app for the far move', () => (appPid() === undefined ? undefined : true), {
-        interval: 1_000,
-        timeout: 300_000,
-      })
-      await waitForLinesInOrder('the relaunched service to restore the share', () => goLogSince(mark), [GO_RESTORED], 120_000)
-      // a relaunch for location starts no scene, and no JS: the app is brought to the front
-      await toForeground()
+    // marked once the killed process is gone, so its last lines are not read as the relaunch's; the
+    // move lands while nothing runs
+    let mark = goLogMark()
+    await relaunchApp({
+      whileDown: () => {
+        mark = goLogMark()
+        moveTo(FAR)
+      },
     })
+    await waitForLinesInOrder('the relaunched service to restore the share', () => goLogSince(mark), [GO_RESTORED], 120_000)
     await waitSignedIn()
     await movePosted(NEAR, 'a move to be posted once the relaunched app is in front')
     creditSurface('location')
-    creditSurface('relaunch')
     await step('The restored share posted a move', {card: true})
   })
 })
