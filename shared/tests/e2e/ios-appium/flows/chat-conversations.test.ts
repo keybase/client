@@ -81,8 +81,8 @@ describe('chat conversations', function () {
   //   relaunch  relaunchApp 200;  signed in  90
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   sent      sendMessage 25;  id  a sent message's id 10;  keyboard  5
-  //   search    openThreadSearch 15;  searchFor 80 (45, overrun by a retry's close 5, open 15 and its
-  //             2s pause, and one counter wait 10)
+  //   search    openThreadSearch 15;  searchFor 96 (45, overrun by a retry's close 5, open 15 and its
+  //             2s pause, its clear 16, and one counter wait 10)
   //   self      the self conversation's id from the host CLI 60
   //   step      2 (its 1s settle and the attach)
 
@@ -439,8 +439,8 @@ describe('chat conversations', function () {
   })
 
   it('thread search finds a stamped word sent just before', async function () {
-    // worst case (s): open 100, sent 25, id 10, keyboard 5, search 15, searchFor 80, the row 5, step
-    // 2 = 242
+    // worst case (s): open 100, sent 25, id 10, keyboard 5, search 15, searchFor 96, the row 5, step
+    // 2 = 258
     this.timeout(270_000)
     await openConversation(data.convIDs[E2E_CHANNELS.scratch])
     // unique to this post: the search splits the stamp at its dashes and matches every part

@@ -102,6 +102,7 @@ describe('chat views', function () {
   //             90 (30, overrun by one send's 60)
   //   channel   createThrowawayChannel 240;  delete  deleteThrowawayChannel 120
   //   type      15;  list  the suggestion list 10;  composer  5;  inbox  scrollInboxTo 120
+  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5)
   //   escape    escapeToTabs 30;  step  2 (its 1s settle and the attach)
 
   let data: ChatData
@@ -137,7 +138,7 @@ describe('chat views', function () {
   }
 
   // e2e-scratch's composer empty, with no reply or edit under way. Bound: open 100, the reply bar 5
-  // and its wait 5, the edit bar 5 and its wait 5, the composer 5 = 125.
+  // and its wait 5, the edit bar 5 and its wait 5, clear 21 = 141.
   const resetScratch = async () => {
     if (!scratchComposerUsed) return
     await openConversation(scratch())
@@ -150,9 +151,9 @@ describe('chat views', function () {
   }
 
   // Nothing a test opened or changed left behind, after a timeout too. The host's deletes go first.
-  // Worst case (s): close 5, keyboard 5, a channel 120, scratch 125, escape 30 = 285.
+  // Worst case (s): close 5, keyboard 5, a channel 120, scratch 141, escape 30 = 301.
   afterEach(async function () {
-    this.timeout(300_000)
+    this.timeout(320_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteChannels, resetScratch, escapeToTabs])
   })
 
@@ -310,7 +311,7 @@ describe('chat views', function () {
 
   // Types `text` into the empty composer, waits for the list to offer exactly one row `pick` takes,
   // then empties the composer and waits for the list to go. Bound: type 15, list 10, the row 10,
-  // step 2, composer 5, gone 5 = 47.
+  // step 2, clear 21, gone 5 = 63.
   const expectSuggestion = async (text: string, what: string, pick: (words: Array<string>) => boolean) => {
     await typeInComposer(text)
     await el(T.CHAT_SUGGESTION_LIST).waitForExist({timeout: 10_000})
@@ -329,8 +330,8 @@ describe('chat views', function () {
   }
 
   it('the @, # and / suggestion lists each offer what was typed', async function () {
-    // worst case (s): open 100, composer 5, three suggestion lists of 47, step 2 = 248
-    this.timeout(280_000)
+    // worst case (s): open 100, clear 21, three suggestion lists of 63, step 2 = 312
+    this.timeout(330_000)
     await openConversation(scratch())
     scratchComposerUsed = true
     await clearComposer()
@@ -346,9 +347,9 @@ describe('chat views', function () {
 
   // The phone's GIF picker is a web view of the service's gallery page: no GIF in it carries a testID.
   it('/giphy shows the GIF preview, and emptying the composer closes it', async function () {
-    // worst case (s): open 100, composer 5, type 15, composer 5, the preview 30, step 2, composer 5,
-    // the preview gone 15, step 2 = 179
-    this.timeout(200_000)
+    // worst case (s): open 100, clear 21, type 15, composer 5, the preview 30, step 2, clear 21, the
+    // preview gone 15, step 2 = 211
+    this.timeout(230_000)
     await openConversation(scratch())
     scratchComposerUsed = true
     await clearComposer()

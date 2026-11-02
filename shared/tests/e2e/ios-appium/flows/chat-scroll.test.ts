@@ -92,8 +92,9 @@ describe('chat scroll', function () {
   //   stable    waitForThreadStable 10 (20 where given)
   //   end       expectAtEnd 21 (a stable reading, retaken for up to 3s)
   //   centred   expectCentred 20;  row  waitForRow 15 (20 where given)
-  //   search    openThreadSearch 20 + searchFor 50 (its 30 overall, overrun by one try's waits);
-  //             searchAndSelect 90;  close  closeSearch 5
+  //   search    openThreadSearch 20 + searchFor 66 (its 30 overall, overrun by one try's waits, its
+  //             clear 16 among them);  searchAndSelect 106;  close  closeSearch 5
+  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5)
   //   peer      the peer found, on the first send of a test, 45, and a failing send's diagnosis 25;
   //             send  one peer send 60
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  sent  sendMessage 25
@@ -228,8 +229,8 @@ describe('chat scroll', function () {
     })
 
     it('with the keyboard up, the first keystroke keeps the newest message above the composer', async function () {
-      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 9 (the tap 2, its keys 2, the read back 5), two steps 4 = 181
-      this.timeout(190_000)
+      // worst case (s): open 100, end 21, keyboard 5, end 21, end 21, the clear 21, two steps 4 = 193
+      this.timeout(210_000)
       await openScratch()
       await expectAtEnd()
       await el(T.CHAT_INPUT).click()
@@ -343,8 +344,8 @@ describe('chat scroll', function () {
 
   describe('search', () => {
     it('a deep hit loads its page and is centred', async function () {
-      // worst case (s): open 100, end 21, search 90, centred 20, step 2, close 5 = 238
-      this.timeout(240_000)
+      // worst case (s): open 100, end 21, search 106, centred 20, step 2, close 5 = 254
+      this.timeout(270_000)
       await openLong()
       await expectAtEnd()
       const {index, token} = LONG_SEARCH_TOKENS.deep
@@ -357,8 +358,8 @@ describe('chat scroll', function () {
     })
 
     it('searching again for the same hit after dragging away centres it again', async function () {
-      // worst case (s): open 100, search 90, centred 20, drag 2, stable 10, centred 20, three steps 6, close 5 = 253
-      this.timeout(260_000)
+      // worst case (s): open 100, search 106, centred 20, drag 2, stable 10, centred 20, three steps 6, close 5 = 269
+      this.timeout(290_000)
       await openLong()
       await withSearchClosed(async () => {
         const {token} = LONG_SEARCH_TOKENS.middle
@@ -386,8 +387,8 @@ describe('chat scroll', function () {
     // status-bar tap cannot be told apart here: every hit's page holds only about ten rows newer than
     // the hit, so its centred place and the list's top, where a tap goes, are both offset 0.)
     it('a drag right after the hit centres is not pulled back to the middle', async function () {
-      // worst case (s): open 100, end 21, search open 20 and typed 50, the hit 20, drag 2, two stables 20, the pause 4, step 2, close 5 = 244
-      this.timeout(260_000)
+      // worst case (s): open 100, end 21, search open 20 and typed 66, the hit 20, drag 2, two stables 20, the pause 4, step 2, close 5 = 260
+      this.timeout(280_000)
       await openLong()
       await expectAtEnd()
       await withSearchClosed(async () => {
@@ -432,8 +433,8 @@ describe('chat scroll', function () {
     // to the list where it was before search opened: the next message is followed as on any thread at
     // its end.
     it('closing search at the newest message, then an incoming message keeps the end', async function () {
-      // worst case (s): open 100, end 21, sent 25, keyboard 5, end 21, search open 20, the finding wait 30 overrun by a try (searchFor 50, close 5, reopen 20) = 105, end 21, close 5, three stables 30, peer 70, send 60, row 20, three steps 6, close 5 = 524
-      this.timeout(540_000)
+      // worst case (s): open 100, end 21, sent 25, keyboard 5, end 21, search open 20, the finding wait 30 overrun by a try (searchFor 66, close 5, reopen 20) = 121, end 21, close 5, three stables 30, peer 70, send 60, row 20, three steps 6, close 5 = 540
+      this.timeout(560_000)
       await openScratch()
       await expectAtEnd()
       // one word the search finds whole
@@ -487,8 +488,8 @@ describe('chat scroll', function () {
     })
 
     it('jump to recent from a deep hit lands at the newest message and closes search', async function () {
-      // worst case (s): open 100, search 90, centred 20, keyboard 5, the tap 2, row 15, end 21, the button 5, two steps 4, close 5 = 267
-      this.timeout(280_000)
+      // worst case (s): open 100, search 106, centred 20, keyboard 5, the tap 2, row 15, end 21, the button 5, two steps 4, close 5 = 283
+      this.timeout(300_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -515,8 +516,8 @@ describe('chat scroll', function () {
   // end by the search bar's height).
   describe('closing search', () => {
     it('closing search leaves the list where it is', async function () {
-      // worst case (s): open 100, search 90, centred 20, close 5, two stables 20, two steps 4, close 5 = 244
-      this.timeout(250_000)
+      // worst case (s): open 100, search 106, centred 20, close 5, two stables 20, two steps 4, close 5 = 260
+      this.timeout(280_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
@@ -826,8 +827,8 @@ describe('chat scroll', function () {
       {how: 'flicking down', move: async () => flickThread(-300), stride: -300},
     ]) {
       it(`${how} from an old hit loads newer pages until the present`, async function () {
-        // worst case (s): openOnOldHit 232 (open 100, search 90, centred 20, close 5, button 5, stable 10, step 2), stable 10, 40 steps of an edge wait 3, stable 10, drag 2 and stable 10 = 1000, expectAtThePresent 43 (row 15, end 21, button 5, step 2) = 1285
-        this.timeout(1300_000)
+        // worst case (s): openOnOldHit 248 (open 100, search 106, centred 20, close 5, button 5, stable 10, step 2), stable 10, 40 steps of an edge wait 3, stable 10, drag 2 and stable 10 = 1000, expectAtThePresent 43 (row 15, end 21, button 5, step 2) = 1301
+        this.timeout(1320_000)
         await openOnOldHit()
         const {explain, landed, moved} = await scrollThroughPages({
           done: (t, v) => isAtEnd(t, v),
@@ -850,8 +851,8 @@ describe('chat scroll', function () {
     // pages leaves older paging working: scrolling back up past where the window started loads older
     // rows.
     it('a status-bar tap from an old hit loads newer pages until the present', async function () {
-      // worst case (s): openOnOldHit 232, 12 taps of stable 10, a page 15 and the tap 1 = 312, expectAtThePresent 43, stable 10, 20 flicks of 1 and stable 10 = 220, step 2 = 819
-      this.timeout(840_000)
+      // worst case (s): openOnOldHit 248, 12 taps of stable 10, a page 15 and the tap 1 = 312, expectAtThePresent 43, stable 10, 20 flicks of 1 and stable 10 = 220, step 2 = 835
+      this.timeout(860_000)
       const start = await openOnOldHit()
       await tapToThePresent()
       await expectAtThePresent('a status-bar tap')
@@ -874,8 +875,8 @@ describe('chat scroll', function () {
     // tap rests the list on the newest row loaded, and the row at the bottom of the view stays where
     // it is once the page lands.
     it('resting on the newest row of a window of history, the next page leaves the reader where they are', async function () {
-      // worst case (s): open 100, search 90, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 289
-      this.timeout(300_000)
+      // worst case (s): open 100, search 106, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 305
+      this.timeout(320_000)
       await openLong()
       await withSearchClosed(async () => {
         const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)

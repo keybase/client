@@ -94,6 +94,7 @@ describe('chat messages', function () {
   //   relaunch  relaunchApp 200;  signed in  90
   //   paste     setPasteboard 50, the edit menu's Paste 20 and its tap 1 = 71;  its length polled 20
   //   panel     the header menu 15, the panel 10, a tab 10 = 35
+  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5)
   //   step      2 (its 1s settle and the attach)
 
   let data: ChatData
@@ -259,16 +260,16 @@ describe('chat messages', function () {
   // go first; the phone's need the app back on smoke. Worst case (s): close 5, keyboard 5, the
   // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 275, the
   // skin tone 85 (the account 10, three asks), scratch 161 (the account 10, open 100, the edit bar 5 and
-  // its wait 5, the load 15, the ids 1, one cancel 25) and its composer 5 = 901.
+  // its wait 5, the load 15, the ids 1, one cancel 25) and its clear 21 = 917.
   afterEach(async function () {
-    this.timeout(920_000)
+    this.timeout(940_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, deleteChannels, restoreToSmoke, restoreSkinTone, resetScratch])
   })
 
   it('an edit posted from the menu shows in the row, and the host reads the new body', async function () {
     // worst case (s): open 100, sent 25, id 10, cli 80, keyboard 5, menu 35, the edit bar 5, composer
-    // 5, clear 5, type 15, the seq 2, the button 5, the tap 1, the row 15, calls 10, step 2, cli 80,
-    // step 2 = 402
+    // 5, clear 21, type 15, the seq 2, the button 5, the tap 1, the row 15, calls 10, step 2, cli 80,
+    // step 2 = 418
     this.timeout(440_000)
     await openScratch()
     const before = e2eMarker('msg-edit')
@@ -720,7 +721,7 @@ describe('chat messages', function () {
   // (ledger ruling). It runs in a throwaway channel, which a GIF picked there by hand would post to.
   it('Share a GIF opens the GIF picker for the search typed, where a person picks one', async function () {
     // worst case (s): channel 240, open 100, the button 1, the item 10 and its tap 1, composer 5, type
-    // 15, composer 5, the gallery 30, step 2, the edge 2, clear 5, the gallery gone 15 = 431
+    // 15, composer 5, the gallery 30, step 2, the edge 2, clear 21, the gallery gone 15 = 447
     this.timeout(460_000)
     const {convID} = await newChannel('giphy', {withSecond: false})
     await openConversation(convID)

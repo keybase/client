@@ -84,9 +84,9 @@ describe('chat parity', function () {
   const bannerSays = async (text: string) => ((await pinnedBanner().getAttribute('label')) ?? '').includes(text)
 
   // e2e-scratch with search closed, no reply or menu open and an empty composer, after a timeout
-  // too. Worst case (s): close 5, keyboard 5, open 100, search 5, the reply 6, clear 5 = 126.
+  // too. Worst case (s): close 5, keyboard 5, open 100, search 5, the reply 6, clear 21 = 142.
   afterEach(async function () {
-    this.timeout(140_000)
+    this.timeout(160_000)
     await withCleanup(closeMessageMenu, [
       hideKeyboard,
       async () => {

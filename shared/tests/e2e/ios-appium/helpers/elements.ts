@@ -45,7 +45,7 @@ const tappableFrame = async (field: ChainablePromiseElement) => {
   return right - left >= 10 && bottom - top >= 10 ? {bottom, right} : undefined
 }
 
-const CLEAR_ROUNDS = 4
+const CLEAR_ROUNDS = 3
 
 // Deletes what a field holds with backspace keys. A field is never set or cleared with WDA's
 // setValue, clearValue or elementClear: after any of them the app's process stays in
@@ -56,6 +56,8 @@ const CLEAR_ROUNDS = 4
 // field back, until it is empty (at most CLEAR_ROUNDS rounds). addValue taps the field again only
 // when it has no keyboard focus (fb_prepareForTextInputWithSnapshot in WDA's
 // XCUIElement+FBTyping.m), so the corner tap's caret holds. Errors give the count, never the text.
+// Bound: CLEAR_ROUNDS rounds of (the read 1, the frame 1, the tap 1, the keys 2) 15, the last read
+// 1 = 16s.
 export const clearFieldByKeys = async (field: ChainablePromiseElement) => {
   for (let round = 0; ; round++) {
     const held = [...(await fieldText(field))].length

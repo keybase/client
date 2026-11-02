@@ -89,6 +89,8 @@ describe('chat data', function () {
   //   open      openConversation 100;  inbox  openFromInbox 415 (three taps of scrollInboxTo 120, each
   //             waited 5, and the thread 35);  row  scrollInboxTo 120 + its label polled 10 = 130
   //   sent      sendMessage 25;  type  typeInComposer 15;  composer  waitForComposerText 5 (10 given)
+  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5);  find  searchFor 66
+  //             (its 30 overall, overrun by one try's waits, its clear 16 among them)
   //   row       waitForRow 15 (20 where given);  end  expectAtEnd 21;  stable  10
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  close  5;  keyboard  5
   //   peer      the peer found, on a test's first send, 45, and a failing send's diagnosis 25 = 70;
@@ -413,10 +415,10 @@ describe('chat data', function () {
     // to move to: the app looks around the message for one (a thread load), finds none, and marks
     // nothing, so no line is drawn for a mark that never happened.
     it('mark unread on the first message of a conversation marks nothing and draws no orange line', async function () {
-      // worst case (s): host 300 (5 pages of 60), open 100, search 20, find 30, close 5, the oldest in
+      // worst case (s): host 300 (5 pages of 60), open 100, search 20, find 66, close 5, the oldest in
       // view 120, step 2, the row text 1, calls 2, menu 35, the load 10, the pause 3, calls 2, the
-      // lines 3, step 2 = 635
-      this.timeout(660_000)
+      // lines 3, step 2 = 671
+      this.timeout(690_000)
       // The DM holds every run's messages, far more than drags can climb in a bound: thread search
       // jumps to its second oldest text (its body read from the host), as a person finds old history,
       // and a few drags reach the top from there.
@@ -463,9 +465,9 @@ describe('chat data', function () {
 
   describe('reply privately', () => {
     // The quote goes into the DM's composer, which saves it as its draft; after a timeout too.
-    // Worst case (s): keyboard 5, open 100, the tap 1, clear 5 = 111.
+    // Worst case (s): keyboard 5, open 100, the tap 1, clear 21 = 127.
     afterEach(async function () {
-      this.timeout(130_000)
+      this.timeout(150_000)
       await withCleanup(hideKeyboard, [
         async () => {
           await openDirect()
@@ -565,9 +567,9 @@ describe('chat data', function () {
 
   describe('account switch', () => {
     // Back on smoke with an empty e2e-scratch composer: the typing saved a draft there for smoke.
-    // After a timeout too. Worst case (s): the watch 2, restore 275, open 100, clear 5 = 382.
+    // After a timeout too. Worst case (s): the watch 2, restore 275, open 100, clear 21 = 398.
     afterEach(async function () {
-      this.timeout(400_000)
+      this.timeout(420_000)
       await withCleanup(stopAccountChangeWatch, [
         restoreToSmoke,
         async () => {

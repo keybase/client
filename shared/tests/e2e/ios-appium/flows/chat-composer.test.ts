@@ -68,8 +68,8 @@ describe('chat composer', function () {
   this.retries(0)
 
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  reset  resetComposer 30 (edit bar 5, reply bar 5, clear 5,
-  //             the taps and reads)
+  //   open      openConversation 100;  reset  resetComposer 46 (edit bar 5, reply bar 5, clear 21,
+  //             the taps and reads);  clear  clearComposer 21 (clearFieldByKeys 16, the read 5)
   //   read      openDirectRead 110 (open 100, the DM read as read 10)
   //   draft     the DM's inbox row read 142 (the DM read 1, scrollInboxTo 120, its label polled 10,
   //             overrun 10, the DM read 1)
@@ -209,9 +209,9 @@ describe('chat composer', function () {
   // The composers of the DM and of e2e-scratch end every test empty, with no edit or reply open, so
   // nothing carries into the next test or run. Mocha runs this after the describes' own afterEach
   // (so on the smoke account again) and before the gate's, after a timeout too. Worst case (s):
-  // keyboard 5, two opens 200, two resets 60, the list gone 5 = 270.
+  // keyboard 5, two opens 200, two resets 92, the list gone 5 = 302.
   afterEach(async function () {
-    this.timeout(290_000)
+    this.timeout(320_000)
     await withCleanup(hideKeyboard, [
       async () => {
         await openDirect()
@@ -227,9 +227,9 @@ describe('chat composer', function () {
 
   describe('drafts', () => {
     it('a draft survives a conversation switch and an app relaunch', async function () {
-      // worst case (s): read 110, reset 30, type 15, step 2, open 100, draft 142, step 2, open 100,
+      // worst case (s): read 110, reset 46, type 15, step 2, open 100, draft 142, step 2, open 100,
       // composer 5, open 100, draft 142, relaunch 200, signed in 90, draft 142, step 2, open 100,
-      // composer 5, step 2 = 1289; the margin covers a slow relaunch
+      // composer 5, step 2 = 1305; the margin covers a slow relaunch
       this.timeout(1500_000)
       await openDirectRead()
       await resetComposer()
@@ -264,9 +264,9 @@ describe('chat composer', function () {
     })
 
     it('a send clears the composer and the saved draft', async function () {
-      // worst case (s): read 110, reset 30, type 15, open 100, draft 142, step 2, open 100, composer 5,
+      // worst case (s): read 110, reset 46, type 15, open 100, draft 142, step 2, open 100, composer 5,
       // the tap 1, row 15, composer 5, cli 80, step 2, open 100, draft 142, open 100, composer 5,
-      // step 2 = 956
+      // step 2 = 972
       this.timeout(980_000)
       await openDirectRead()
       await resetComposer()
@@ -292,9 +292,9 @@ describe('chat composer', function () {
     })
 
     it('typing straight after a send is not erased', async function () {
-      // worst case (s): read 110, reset 30, type 15, the tap 1, the typing 5, row 15, the pause 1,
-      // composer 5, cli 80, step 2 = 264
-      this.timeout(280_000)
+      // worst case (s): read 110, reset 46, type 15, the tap 1, the typing 5, row 15, the pause 1,
+      // composer 5, cli 80, step 2 = 280
+      this.timeout(300_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-quick')
@@ -312,8 +312,8 @@ describe('chat composer', function () {
 
   describe('editing', () => {
     it('Edit from the menu puts the message in the composer, and Cancel ends it', async function () {
-      // worst case (s): read 110, reset 30, sent 25, edit 50, step 2, cancel 11, composer 5, cli 80,
-      // step 2 = 315
+      // worst case (s): read 110, reset 46, sent 25, edit 50, step 2, cancel 11, composer 5, cli 80,
+      // step 2 = 331
       this.timeout(340_000)
       await openDirectRead()
       await resetComposer()
@@ -330,8 +330,8 @@ describe('chat composer', function () {
     })
 
     it('leaving mid-edit discards the edit and saves no draft', async function () {
-      // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
-      // step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 657
+      // worst case (s): read 110, reset 46, sent 25, edit 50, the typing 5, composer 5, the pause 1,
+      // step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 673
       this.timeout(680_000)
       await openDirectRead()
       await resetComposer()
@@ -355,8 +355,8 @@ describe('chat composer', function () {
     })
 
     it('leaving mid-edit keeps the draft from before the edit', async function () {
-      // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, composer 5, the
-      // pause 1, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 672
+      // worst case (s): read 110, reset 46, sent 25, type 15, edit 50, the typing 5, composer 5, the
+      // pause 1, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 688
       this.timeout(700_000)
       await openDirectRead()
       await resetComposer()
@@ -381,8 +381,8 @@ describe('chat composer', function () {
     })
 
     it('cancelling an edit puts the draft from before it back', async function () {
-      // worst case (s): read 110, reset 30, sent 25, type 15, edit 50, the typing 5, the pause 1,
-      // cancel 11, composer 5, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 683
+      // worst case (s): read 110, reset 46, sent 25, type 15, edit 50, the typing 5, the pause 1,
+      // cancel 11, composer 5, step 2, open 100, draft 142, open 100, composer 5, cli 80, step 2 = 699
       this.timeout(710_000)
       await openDirectRead()
       await resetComposer()
@@ -408,8 +408,8 @@ describe('chat composer', function () {
     })
 
     it('Edit from the menu raises the keyboard once the menu is gone', async function () {
-      // worst case (s): read 110, reset 30, sent 25, edit 50, keyboard 5, the keys 2, composer 5,
-      // step 2 = 229
+      // worst case (s): read 110, reset 46, sent 25, edit 50, keyboard 5, the keys 2, composer 5,
+      // step 2 = 245
       this.timeout(250_000)
       await openDirectRead()
       await resetComposer()
@@ -427,9 +427,9 @@ describe('chat composer', function () {
 
     // On a phone thread search takes the composer's place, and closing it attaches a new input.
     it("an edit's text comes back after thread search, sending posts the edit, and no draft is saved", async function () {
-      // worst case (s): read 110, reset 30, sent 25, edit 50, the typing 5, composer 5, the pause 1,
+      // worst case (s): read 110, reset 46, sent 25, edit 50, the typing 5, composer 5, the pause 1,
       // search 20, the composer gone 5, close 5, composer 5, step 2, the tap 1, the edit bar 5,
-      // composer 5, the row 15, cli 80, step 2, open 100, draft 142, step 2 = 620
+      // composer 5, the row 15, cli 80, step 2, open 100, draft 142, step 2 = 636
       this.timeout(640_000)
       await openDirectRead()
       await resetComposer()
@@ -471,8 +471,8 @@ describe('chat composer', function () {
 
   describe('reply and suggestions', () => {
     it('the reply bar shows, and its close button cancels it', async function () {
-      // worst case (s): open 100, reset 30, sent 25, keyboard 5, menu 35, the bar 5, its text 2,
-      // step 2, the tap 1, the bar gone 5, step 2 = 212
+      // worst case (s): open 100, reset 46, sent 25, keyboard 5, menu 35, the bar 5, its text 2,
+      // step 2, the tap 1, the bar gone 5, step 2 = 228
       this.timeout(230_000)
       await openScratch()
       await resetComposer()
@@ -519,8 +519,8 @@ describe('chat composer', function () {
     }
 
     it("@mention list: tapping the second account's row puts its name in the composer", async function () {
-      // worst case (s): open 100, reset 30, type 15, the list 10, the row 10, step 2, the tap 1, the
-      // list gone 5, composer 5, step 2 = 180
+      // worst case (s): open 100, reset 46, type 15, the list 10, the row 10, step 2, the tap 1, the
+      // list gone 5, composer 5, step 2 = 196
       this.timeout(200_000)
       const name = data.secondUser
       const row = await openListAndFind(`@${name.slice(0, 3)}`, 'the second account', label => words(label)[0] === name)
@@ -532,8 +532,8 @@ describe('chat composer', function () {
     })
 
     it('emoji list: tapping the tada row puts that emoji in the composer', async function () {
-      // worst case (s): open 100, reset 30, type 15, the list 10, the row 10, step 2, the tap 1, the
-      // list gone 5, composer 5, step 2 = 180
+      // worst case (s): open 100, reset 46, type 15, the list 10, the row 10, step 2, the tap 1, the
+      // list gone 5, composer 5, step 2 = 196
       this.timeout(200_000)
       const row = await openListAndFind(':tada', 'tada', label => words(label).includes('tada'))
       await step('The emoji list shows tada')
@@ -549,8 +549,8 @@ describe('chat composer', function () {
     // read off the recorder's call log, the positive control first. In the DM, whose inbox row shows
     // the saved draft's text (a channel row shows only a draft icon).
     it('leaving with the @mention list open sends no typing after the leave and keeps the text as the draft', async function () {
-      // worst case (s): calls 2, read 110, reset 30, type 15, the list 10, the typing sent 12, the
-      // pause 2, calls 2, step 2, open 100, the load 10, the pause 2, calls 2, draft 142, step 2 = 443
+      // worst case (s): calls 2, read 110, reset 46, type 15, the list 10, the typing sent 12, the
+      // pause 2, calls 2, step 2, open 100, the load 10, the pause 2, calls 2, draft 142, step 2 = 459
       this.timeout(470_000)
       const typed = `@${data.secondUser.slice(0, 3)}`
       const typingOn = (calls: ReadonlyArray<LoggedCall>) =>
@@ -581,10 +581,10 @@ describe('chat composer', function () {
     })
 
     it('an emoji from the picker goes in after the text with one space after it', async function () {
-      // worst case (s): open 100, reset 30, type 15, keyboard 5, the button 1, the picker 5, the
+      // worst case (s): open 100, reset 46, type 15, keyboard 5, the button 1, the picker 5, the
       // search 1, keyboard 5, the keys 4, the emoji 5, step 2, the tap 1, the picker gone 5,
-      // composer 5, step 2 = 186
-      this.timeout(200_000)
+      // composer 5, step 2 = 202
+      this.timeout(220_000)
       await openScratch()
       await resetComposer()
       await typeInComposer('hello ')
@@ -615,8 +615,8 @@ describe('chat composer', function () {
   // shift, and no newline lands), so a person presses them (ledger ruling: a harness limit).
   describe('hardware keyboard', () => {
     it('Enter sends and Shift-Enter inserts a newline', async function () {
-      // worst case (s): open 100, reset 30, type 15, composer 5, step 2, the edge 2, clear 5 = 159
-      this.timeout(180_000)
+      // worst case (s): open 100, reset 46, type 15, composer 5, step 2, the edge 2, clear 21 = 191
+      this.timeout(210_000)
       await openScratch()
       await resetComposer()
       await typeInComposer('ab')
@@ -645,10 +645,10 @@ describe('chat composer', function () {
     })
 
     it('as a writer: every way to post is hidden, typing takes nothing, and the menu offers no reply', async function () {
-      // worst case (s): role read 60, second 425, open 100, reset 30, the buttons 5, type 15, the
-      // send button 5, clear 5, step 2, open 100, row 15, the buttons 5, the typing 15, the pause 1,
-      // the reads 2, keyboard 5, step 2, menu 15, the items 15, step 2, close 5 = 829
-      this.timeout(840_000)
+      // worst case (s): role read 60, second 425, open 100, reset 46, the buttons 5, type 15, the
+      // send button 5, clear 21, step 2, open 100, row 15, the buttons 5, the typing 15, the pause 1,
+      // the reads 2, keyboard 5, step 2, menu 15, the items 15, step 2, close 5 = 861
+      this.timeout(880_000)
       const role = await minWriterRoleFromCli(E2E_CHANNELS.readonly)
       check(/\badmin\b/i.test(role), `e2e-readonly's minimum writer role is not admin: ${role}`)
       await asSecond(async () => {

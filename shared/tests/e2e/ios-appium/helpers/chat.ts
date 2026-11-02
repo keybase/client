@@ -902,6 +902,7 @@ export const typeInComposer = async (text: string) => {
   await el(T.CHAT_INPUT).addValue(text)
 }
 
+// Bound: clearFieldByKeys 16, the composer read empty 5 = 21s.
 export const clearComposer = async () => {
   await clearFieldByKeys(el(T.CHAT_INPUT))
   await waitForComposerText('')
