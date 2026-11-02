@@ -2,13 +2,7 @@
 // on the phone. A JS reload or relaunch starts a new runtime and drops the recording, so a run
 // checkpoints after any step that may do that.
 import {listInspectorPages} from '../../shared/metro-eval.ts'
-import {
-  NO_PHONE_RECORDER,
-  type PhoneTake,
-  recordingFrom,
-  startRecorderBody,
-  takeRecorderBody,
-} from '../../shared/phone-recorder.ts'
+import {recordingFrom, RUNTIME_BODY, startPhoneRecorder as startOn, takePhoneRecorder as takeOn} from '../../shared/phone-recorder.ts'
 import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
 import {BUNDLE_ID, deviceName, jsEval} from '../helpers/lifecycle'
 import {nextRecordingAction} from './recorder-lib.ts'
@@ -16,22 +10,13 @@ import {ensureErrorCapture} from './errors.ts'
 
 const RELOAD_WAIT_MS = 60_000
 
-const startPhoneRecorder = async (opts?: {includeBoot?: boolean}): Promise<string> => {
-  const runtime = await jsEval<string | null>(startRecorderBody(opts))
-  if (!runtime) throw new Error(NO_PHONE_RECORDER)
-  return runtime
-}
-
-const takePhoneRecorder = async (startedIn: string): Promise<PhoneTake> => {
-  const out = await jsEval<PhoneTake | null>(takeRecorderBody(startedIn))
-  if (!out) throw new Error(NO_PHONE_RECORDER)
-  return out
-}
+const startPhoneRecorder = async (opts?: {includeBoot?: boolean}) => startOn(jsEval, opts)
+const takePhoneRecorder = async (startedIn: string) => takeOn(jsEval, startedIn)
 
 const currentRuntime = async (): Promise<string | undefined> => {
   try {
     if (!(await listInspectorPages()).some(p => p.deviceName === deviceName() && p.appId === BUNDLE_ID)) return undefined
-    return (await jsEval<string | undefined>('return globalThis.__kbE2ERuntime')) ?? undefined
+    return (await jsEval<string | null>(RUNTIME_BODY)) ?? undefined
   } catch {
     return undefined
   }

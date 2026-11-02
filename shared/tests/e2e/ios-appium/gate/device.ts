@@ -15,6 +15,7 @@ import {
   terminateApp,
   waitFor,
 } from '../helpers/lifecycle'
+import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {attemptToken} from './attempt.ts'
 import {attemptRecording, recorders} from './recording.ts'
@@ -45,7 +46,7 @@ export const setPasteboard = (text: string) => {
 }
 
 const runtimeId = async (): Promise<string | undefined> =>
-  (await jsEval<string | null>('return globalThis.__kbE2ERuntime ?? null')) ?? undefined
+  (await jsEval<string | null>(RUNTIME_BODY)) ?? undefined
 
 const waitForRuntime = async (before: string | undefined) =>
   waitFor('the relaunched app to start a new JS runtime', async () => {

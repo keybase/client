@@ -1,4 +1,4 @@
-import {recordingFrom, startRecorderBody, takeRecorderBody} from './phone-recorder'
+import {NO_PHONE_RECORDER, recordingFrom, startPhoneRecorder, startRecorderBody, takePhoneRecorder, takeRecorderBody} from './phone-recorder'
 
 const recording = {routes: ['loggedIn', 'settingsRoot'], rpcs: ['a.b'], startRoutes: ['loggedIn']}
 
@@ -48,4 +48,11 @@ test('start answers its runtime, and null without a recorder', () => {
   expect((new Function('globalThis', startRecorderBody()) as (g: unknown) => unknown)({})).toBeNull()
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   expect((new Function('globalThis', takeRecorderBody('r1')) as (g: unknown) => unknown)({})).toBeNull()
+})
+
+test('start and take refuse an app with no recorder, through any eval channel', async () => {
+  const none = async <R,>(_body: string) => Promise.resolve(null as R)
+  await expect(startPhoneRecorder(none)).rejects.toThrow(NO_PHONE_RECORDER)
+  await expect(takePhoneRecorder(none, 'r1')).rejects.toThrow(NO_PHONE_RECORDER)
+  await expect(startPhoneRecorder(async <R,>(_b: string) => Promise.resolve('r2' as R))).resolves.toBe('r2')
 })

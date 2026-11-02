@@ -21,7 +21,7 @@ import {
   type Capture,
 } from './driver-desktop.mts'
 import {withDeadline} from '../shared/deadline.ts'
-import {NO_PHONE_RECORDER, type PhoneTake, recordingFrom, startRecorderBody, takeRecorderBody} from '../shared/phone-recorder.ts'
+import {recordingFrom, startPhoneRecorder, takePhoneRecorder} from '../shared/phone-recorder.ts'
 import type {Rect} from './compare.mts'
 import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'
@@ -796,17 +796,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     waitFor: async (what, check) => waitFor(what, READY_MS, check),
   }
 
-  // the app's __kbE2ERuntime names its JS runtime (set at module load), so a reload changes it
-  const startRecorder = async () => {
-    const runtime = await appEval<string | null>(startRecorderBody(), 'starting the route and RPC recorder')
-    if (!runtime) throw new Error(NO_PHONE_RECORDER)
-    return runtime
-  }
-  const takeRecorder = async (startedIn: string) => {
-    const taken = await appEval<PhoneTake | null>(takeRecorderBody(startedIn), 'taking the route and RPC recording')
-    if (!taken) throw new Error(NO_PHONE_RECORDER)
-    return taken
-  }
+  const startRecorder = async () => startPhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'starting the route and RPC recorder'))
+  const takeRecorder = async (startedIn: string) =>
+    takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
   const capture: IosSession['capture'] = async (entry, opts) => {
     let png: Buffer | undefined

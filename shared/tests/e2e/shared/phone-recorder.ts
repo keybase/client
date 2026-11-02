@@ -4,6 +4,12 @@ import type {Recording} from './recorder.ts'
 
 export const NO_PHONE_RECORDER = 'the app has no __kbE2ERecorder: reload or relaunch the dev app on the current bundle'
 
+// answers the app's JS runtime token (set at module load, so a reload changes it), or null
+export const RUNTIME_BODY = 'return globalThis.__kbE2ERuntime ?? null'
+
+// the caller's eval channel into the app
+export type PhoneEval = <R>(body: string) => Promise<R>
+
 // Starts a recording and answers the JS runtime it started in, or null when the app has no recorder.
 export const startRecorderBody = (opts?: {includeBoot?: boolean}) => `const r = globalThis.__kbE2ERecorder;
   if (!r || !globalThis.__kbE2ERuntime) return null;
@@ -21,6 +27,19 @@ export const takeRecorderBody = (startedIn: string) => `const r = globalThis.__k
   const runtime = globalThis.__kbE2ERuntime ?? null;
   if (runtime !== ${JSON.stringify(startedIn)}) return {runtime};
   return {runtime, recording: r.take()};`
+
+// Starts a recording and answers the runtime it started in.
+export const startPhoneRecorder = async (evalBody: PhoneEval, opts?: {includeBoot?: boolean}): Promise<string> => {
+  const runtime = await evalBody<string | null>(startRecorderBody(opts))
+  if (!runtime) throw new Error(NO_PHONE_RECORDER)
+  return runtime
+}
+
+export const takePhoneRecorder = async (evalBody: PhoneEval, startedIn: string): Promise<PhoneTake> => {
+  const out = await evalBody<PhoneTake | null>(takeRecorderBody(startedIn))
+  if (!out) throw new Error(NO_PHONE_RECORDER)
+  return out
+}
 
 // The recording a take holds, when it came from the runtime the recording started in.
 export const recordingFrom = (startedIn: string, taken: PhoneTake): Recording | undefined => {
