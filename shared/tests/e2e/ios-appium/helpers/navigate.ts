@@ -5,6 +5,8 @@ import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {expectScreen, visibleScreen} from '../gate/screens.ts'
+import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
@@ -557,3 +559,30 @@ export async function navigateToMore(): Promise<void> {
   }
   await waitForTestID(T.SETTINGS_ACCOUNT, 5000)
 }
+
+// A tab's root, from wherever the app is: back to the tabs, the tab tapped until `rootTestID` shows,
+// and its root screen `screen` checked. Bound: escapeToTabs 30, tabTo 15 (three taps and 4s waits),
+// the screen 11 = 56.
+export const openTabRoot = async (tabName: string, rootTestID: string, screen: string) => {
+  await escapeToTabs()
+  await tabTo(tabName, rootTestID)
+  await expectScreen(`the ${tabName} tab's root`, screen)
+}
+
+// `back` (once a try, only while the screen up is not it) until the screen up is `name` with params
+// `ok` takes. Bound: 30s of tries, overrun by one (the back, the screen 5 and its read 1).
+export const backUntil = async (
+  what: string,
+  name: string,
+  ok: (params: Record<string, unknown>) => boolean,
+  back: () => Promise<unknown>
+) =>
+  retriedNavigation(
+    what,
+    async () => {
+      const s = await visibleScreen()
+      if (!(s?.name === name && ok(s.params ?? {}))) await back()
+      await expectScreen(what, name, ok, 5_000)
+    },
+    {intervals: [500], timeout: 30_000}
+  )

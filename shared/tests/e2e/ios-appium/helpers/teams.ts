@@ -20,7 +20,7 @@ import {filesRowNamed} from './files'
 import {expectScreen, visibleScreen} from '../gate/screens'
 import {BUTTON_ELEMENTS, check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, frameOf, onScreen, onScreenID, press} from './menus'
 import {waitFor} from './lifecycle'
-import {barButton, escapeToTabs, goBack, tabTo} from './navigate'
+import {backUntil, barButton, goBack, openTabRoot} from './navigate'
 
 // what a text a flow reads or taps can be drawn as: its own text, a pressable text (a link), or a
 // tappable box merging its texts
@@ -135,11 +135,7 @@ export const secondInNoSubteam = async () =>
 
 // The Teams tab's root. Bound: escapeToTabs 30, tabTo 15 (three taps and 4s waits), the screen 11
 // = 56.
-export const openTeamsRoot = async () => {
-  await escapeToTabs()
-  await tabTo('Teams', T.TEAMS_LIST)
-  await expectScreen("the Teams tab's root", 'teamsRoot')
-}
+export const openTeamsRoot = async () => openTabRoot('Teams', T.TEAMS_LIST, 'teamsRoot')
 
 // Waits for the team page of `teamID`. Bound: 20s, one read 1 = 21.
 export const expectTeamPage = async (what: string, teamID: string) => expectScreen(what, 'team', p => p['teamID'] === teamID, 20_000)
@@ -236,27 +232,11 @@ const backOnce = async () => {
 // Cancel or back), until that page is up again. Bound: 30s of tries, overrun by one (backOnce 8,
 // the page 5 and its read 1) = 44.
 export const backToTeamPage = async (what: string, teamID: string) =>
-  retriedNavigation(
-    `back from ${what} to the team page`,
-    async () => {
-      const s = await visibleScreen()
-      if (!(s?.name === 'team' && s.params?.['teamID'] === teamID)) await backOnce()
-      await expectScreen('the team page', 'team', p => p['teamID'] === teamID, 5_000)
-    },
-    {intervals: [500], timeout: 30_000}
-  )
+  backUntil(`back from ${what} to the team page`, 'team', p => p['teamID'] === teamID, backOnce)
 
 // Backs out of a screen opened from the Teams tab's root until the root is up again. Bound: as
 // backToTeamPage, 39.
-export const backToTeamsRoot = async (what: string) =>
-  retriedNavigation(
-    `back from ${what} to the Teams tab`,
-    async () => {
-      if ((await visibleScreen())?.name !== 'teamsRoot') await backOnce()
-      await expectScreen("the Teams tab's root", 'teamsRoot', () => true, 5_000)
-    },
-    {intervals: [500], timeout: 30_000}
-  )
+export const backToTeamsRoot = async (what: string) => backUntil(`back from ${what} to the Teams tab`, 'teamsRoot', () => true, backOnce)
 
 // The one visible text holding `part` as a part of its label (a tappable box merges its texts, so a
 // card reads "<title>, <subtitle>"), once it is drawn; `opts` as drawnElementIn's (forTap for a text

@@ -18,13 +18,12 @@ import {checkRowSearch, dragsToward, steerOffset} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
-import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
 import {isKeyboardUp, typeIntoFocused} from './chat'
 import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, press, screenRect, tapElement, tapFrame} from './menus'
 import {waitFor} from './lifecycle'
-import {expectScreen, visibleScreen} from '../gate/screens.ts'
-import {escapeToTabs, goBack, tabTo} from './navigate'
+import {expectScreen} from '../gate/screens.ts'
+import {backUntil, goBack, openTabRoot} from './navigate'
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -174,23 +173,11 @@ export const filesRowNamed = async (
 
 // The Files tab's root (/keybase), from wherever the app is. Bound: escapeToTabs 30, tabTo 15 (three
 // taps and 4s waits), the screen 11 = 56.
-export const openFilesRoot = async () => {
-  await escapeToTabs()
-  await tabTo('Files', T.FILES_TLF_ROW)
-  await expectScreen("the Files tab's root", 'fsRoot')
-}
+export const openFilesRoot = async () => openTabRoot('Files', T.FILES_TLF_ROW, 'fsRoot')
 
 // Back from a folder to the Files tab's root (on a phone a folder is pushed above the tab bar, so
 // back is the way out). Bound: 30s of tries, overrun by one (the back 3, the screen 5 and its read 1) = 39.
-export const backToFilesRoot = async () =>
-  retriedNavigation(
-    "back to the Files tab's root",
-    async () => {
-      if ((await visibleScreen())?.name !== 'fsRoot') await goBack()
-      await expectScreen("the Files tab's root", 'fsRoot', () => true, 5_000)
-    },
-    {intervals: [500], timeout: 30_000}
-  )
+export const backToFilesRoot = async () => backUntil("back to the Files tab's root", 'fsRoot', () => true, goBack)
 
 // Opens the folder `path` (under /keybase/private, public or team) from the Files tab's root, tapping
 // each row on the way by its exact name, and checks each screen is the folder it should be. Bound:
