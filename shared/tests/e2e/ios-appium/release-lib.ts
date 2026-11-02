@@ -80,13 +80,13 @@ export const pushPermissionProblem = (has: boolean, device: string): string | un
       '(on the simulator: Settings > Apps > Keybase > Notifications > Allow Notifications), then rerun; ' +
       'the release command never asks for them, as asking opens the Settings app'
 
-// The location flow puts location back with a reset (TCC.db does not keep it, so its original can't
-// be read): the run must start with location never asked, or the restore would change it.
+// The run starts with location never asked: the location flow's restore (from locationd's own record)
+// is then a reset, and its first fix is a fresh one.
 export const locationStartProblem = (p: {background: string; foreground: string}, device: string, udid: string): string | undefined =>
   p.foreground === 'undetermined' && p.background === 'undetermined'
     ? undefined
     : `location is already ${p.foreground === p.background ? p.foreground : `${p.foreground} (background ${p.background})`} for keybase.ios on ${device}, ` +
-      'and the location flow puts it back to never asked; reset it once by hand ' +
+      'and the location flow starts from never asked; reset it once by hand ' +
       `(xcrun simctl privacy ${udid} reset location keybase.ios, then relaunch the app), then rerun`
 
 // `xcrun simctl list devices booted -j`: whether `device` is among them.

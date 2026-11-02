@@ -2,6 +2,7 @@ import {
   chatNewMessagePayload,
   corpusDiff,
   corpusToAdd,
+  parseLocationd,
   parseTcc,
   privacyGrantArgs,
   privacyOriginal,
@@ -10,10 +11,13 @@ import {
   requireUdid,
   restorePrivacyWith,
   type PrivacyRestore,
+  type TccRow,
 } from './device-lib'
 import {clearGatePoison, gatePoisoned} from './poison-lib'
 
 const UDID = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
+const snap = (tcc: ReadonlyArray<TccRow>, locationAuth?: number) => ({locationAuth, tcc})
+const photos = (authValue: number) => snap([{authValue, service: 'kTCCServicePhotos'}])
 
 afterEach(() => {
   for (const s of ['photos', 'photos-add', 'location', 'location-always']) clearGatePoison(`the ${s} permission for keybase.ios`)
@@ -35,16 +39,61 @@ describe('the TCC snapshot', () => {
     expect(() => parseTcc('{"service":"kTCCServicePhotos","auth_value":2}')).toThrow(/^the TCC read /)
   })
 
-  test("reads the original of each service: allowed, denied, never asked, and location (not kept in TCC)", () => {
-    const rows = parseTcc('[{"service":"kTCCServicePhotos","auth_value":2},{"service":"kTCCServicePhotosAdd","auth_value":0}]')
+  test('reads the original of each photo service: allowed, denied, never asked, limited', () => {
+    const rows = snap(parseTcc('[{"service":"kTCCServicePhotos","auth_value":2},{"service":"kTCCServicePhotosAdd","auth_value":0}]'))
     expect(privacyOriginal(rows, 'photos')).toEqual({bundleId: 'keybase.ios', service: 'photos', state: 'granted'})
     expect(privacyOriginal(rows, 'photos-add')).toEqual({bundleId: 'keybase.ios', service: 'photos-add', state: 'denied'})
-    expect(privacyOriginal([], 'photos')).toEqual({bundleId: 'keybase.ios', service: 'photos', state: 'unset'})
-    expect(privacyOriginal(rows, 'location-always')).toEqual({bundleId: 'keybase.ios', service: 'location-always', state: 'not-in-tcc'})
-    expect(privacyOriginal([{authValue: 3, service: 'kTCCServicePhotos'}], 'photos').state).toBe('limited')
-    expect(() => privacyOriginal([{authValue: 2, service: 'kTCCServicePhotos'}, {authValue: 0, service: 'kTCCServicePhotos'}], 'photos')).toThrow(
+    expect(privacyOriginal(snap([]), 'photos')).toEqual({bundleId: 'keybase.ios', service: 'photos', state: 'unset'})
+    expect(privacyOriginal(photos(3), 'photos').state).toBe('limited')
+    expect(() => privacyOriginal(snap([{authValue: 2, service: 'kTCCServicePhotos'}, {authValue: 0, service: 'kTCCServicePhotos'}]), 'photos')).toThrow(
       /more than one/
     )
+  })
+
+  test("reads location's original from locationd: never asked, denied, and granted at the level named", () => {
+    expect(privacyOriginal(snap([]), 'location-always').state).toBe('unset')
+    expect(privacyOriginal(snap([], 1), 'location').state).toBe('denied')
+    expect(privacyOriginal(snap([], 2), 'location').state).toBe('granted')
+    expect(privacyOriginal(snap([], 4), 'location-always').state).toBe('granted')
+    expect(() => privacyOriginal(snap([], 4), 'location')).toThrow(/cannot put back as location$/)
+    expect(() => privacyOriginal(snap([], 2), 'location-always')).toThrow(/cannot put back as location-always$/)
+    expect(() => privacyOriginal(snap([], 3), 'location')).toThrow(/authorization 3/)
+  })
+})
+
+describe("locationd's clients.plist", () => {
+  const entry = (body: string) => `<dict>
+	<key>ikeybase.ios.KeybaseShare:</key>
+	<dict><key>Authorization</key><integer>4</integer></dict>
+	<key>ikeybase.ios:</key>
+	<dict>
+		<key>BackgroundLocationCapability</key>
+		<true/>${body}
+		<key>PluginBundleIds</key>
+		<array><string>keybase.ios.KeybaseShare</string></array>
+	</dict>
+	<key>icom.apple.Maps:</key>
+	<dict><key>Authorization</key><integer>2</integer></dict>
+</dict>`
+
+  test("reads keybase.ios's own Authorization, never another client's", () => {
+    expect(parseLocationd(entry('\n\t\t<key>Authorization</key>\n\t\t<integer>1</integer>'))).toBe(1)
+    expect(parseLocationd(entry('\n\t\t<key>Authorization</key><integer>4</integer>'))).toBe(4)
+  })
+
+  test('no Authorization in its entry, or no entry, is never asked', () => {
+    expect(parseLocationd(entry(''))).toBeUndefined()
+    expect(parseLocationd('<dict><key>icom.apple.Maps:</key><dict><key>Authorization</key><integer>2</integer></dict></dict>')).toBeUndefined()
+  })
+
+  test('an Authorization in a dict nested in its entry is not its own', () => {
+    expect(parseLocationd(entry('<key>Sub</key><dict><key>Authorization</key><integer>2</integer></dict>'))).toBeUndefined()
+  })
+
+  test('refuses an entry that is not one closed dict', () => {
+    expect(() => parseLocationd('<key>ikeybase.ios:</key><string>x</string>')).toThrow(/not a dict/)
+    expect(() => parseLocationd('<key>ikeybase.ios:</key><dict><key>Authorization</key><integer>2</integer>')).toThrow(/does not close/)
+    expect(() => parseLocationd(`${entry('')}${entry('')}`)).toThrow(/more than one/)
   })
 })
 
@@ -54,11 +103,11 @@ describe('simctl privacy argv', () => {
   })
 
   test('a restore puts back exactly what was there: grant, revoke or reset, always for keybase.ios', () => {
-    const o = (state: 'granted' | 'denied' | 'unset' | 'not-in-tcc') => ({bundleId: 'keybase.ios', service: 'photos' as const, state})
+    const o = (state: 'granted' | 'denied' | 'unset') => ({bundleId: 'keybase.ios', service: 'photos' as const, state})
     expect(privacyRestoreArgs(o('granted'), 'photos', UDID)).toEqual(['privacy', UDID, 'grant', 'photos', 'keybase.ios'])
     expect(privacyRestoreArgs(o('denied'), 'photos', UDID)).toEqual(['privacy', UDID, 'revoke', 'photos', 'keybase.ios'])
     expect(privacyRestoreArgs(o('unset'), 'photos', UDID)).toEqual(['privacy', UDID, 'reset', 'photos', 'keybase.ios'])
-    expect(privacyRestoreArgs({bundleId: 'keybase.ios', service: 'location', state: 'not-in-tcc'}, 'location', UDID)).toEqual([
+    expect(privacyRestoreArgs({bundleId: 'keybase.ios', service: 'location', state: 'unset'}, 'location', UDID)).toEqual([
       'privacy',
       UDID,
       'reset',
@@ -91,7 +140,7 @@ describe('simctl privacy argv', () => {
 })
 
 describe('restoring a permission', () => {
-  const token = (state: 'granted' | 'denied' | 'unset' | 'not-in-tcc', service: 'photos' | 'location-always' = 'photos'): PrivacyRestore => ({
+  const token = (state: 'granted' | 'denied' | 'unset', service: 'photos' | 'location-always' = 'photos'): PrivacyRestore => ({
     done: false,
     original: {bundleId: 'keybase.ios', service, state},
     udid: UDID,
@@ -100,7 +149,7 @@ describe('restoring a permission', () => {
   test('runs the restore once: a second call does nothing', () => {
     const ran: Array<ReadonlyArray<string>> = []
     let rows = [{authValue: 2, service: 'kTCCServicePhotos'}]
-    const io = {read: () => rows, run: (a: ReadonlyArray<string>) => void ran.push(a)}
+    const io = {read: () => snap(rows), run: (a: ReadonlyArray<string>) => void ran.push(a)}
     const t = token('unset')
     restorePrivacyWith(t, {...io, run: a => {
       io.run(a)
@@ -116,22 +165,37 @@ describe('restoring a permission', () => {
   test('checks before acting: a permission already at its original is left alone', () => {
     const ran: Array<ReadonlyArray<string>> = []
     const t = token('granted')
-    restorePrivacyWith(t, {read: () => [{authValue: 2, service: 'kTCCServicePhotos'}], run: a => void ran.push(a)})
+    restorePrivacyWith(t, {read: () => photos(2), run: a => void ran.push(a)})
     expect(ran).toEqual([])
     expect(t.done).toBe(true)
   })
 
-  test('location, which TCC does not keep, is always reset for keybase.ios', () => {
-    const ran: Array<ReadonlyArray<string>> = []
-    restorePrivacyWith(token('not-in-tcc', 'location-always'), {read: () => [], run: a => void ran.push(a)})
-    expect(ran).toEqual([['privacy', UDID, 'reset', 'location-always', 'keybase.ios']])
+  test("location is reset and read back from locationd, even from a level its original can't hold", () => {
+    for (const before of [4, 2]) {
+      const ran: Array<ReadonlyArray<string>> = []
+      let auth: number | undefined = before
+      restorePrivacyWith(token('unset', 'location-always'), {
+        read: () => snap([], auth),
+        run: a => {
+          ran.push(a)
+          auth = undefined
+        },
+      })
+      expect(ran).toEqual([['privacy', UDID, 'reset', 'location-always', 'keybase.ios']])
+    }
+    expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('a location reset that did not take poisons the gate', () => {
+    expect(() => restorePrivacyWith(token('unset', 'location-always'), {read: () => snap([], 4), run: () => {}})).toThrow(/still reads granted, not unset/)
+    expect(gatePoisoned()).toMatch(/the location-always permission/)
   })
 
   test('a failed restore poisons the gate, names the simctl call to run by hand, and throws', () => {
     const t = token('denied')
     expect(() =>
       restorePrivacyWith(t, {
-        read: () => [{authValue: 2, service: 'kTCCServicePhotos'}],
+        read: () => photos(2),
         run: () => {
           throw new Error('simctl exit 1')
         },
@@ -143,7 +207,7 @@ describe('restoring a permission', () => {
 
   test('a restore that ran but did not take poisons the gate too', () => {
     const t = token('denied')
-    expect(() => restorePrivacyWith(t, {read: () => [{authValue: 2, service: 'kTCCServicePhotos'}], run: () => {}})).toThrow(/still reads granted/)
+    expect(() => restorePrivacyWith(t, {read: () => photos(2), run: () => {}})).toThrow(/still reads granted/)
     expect(gatePoisoned()).toMatch(/the photos permission/)
   })
 
@@ -161,9 +225,9 @@ describe('restoring a permission', () => {
 
   test('a later restore that reads back clears the poison', () => {
     const t = token('denied')
-    expect(() => restorePrivacyWith(t, {read: () => [{authValue: 2, service: 'kTCCServicePhotos'}], run: () => {}})).toThrow()
+    expect(() => restorePrivacyWith(t, {read: () => photos(2), run: () => {}})).toThrow()
     expect(gatePoisoned()).toBeDefined()
-    restorePrivacyWith(t, {read: () => [{authValue: 0, service: 'kTCCServicePhotos'}], run: () => {}})
+    restorePrivacyWith(t, {read: () => photos(0), run: () => {}})
     expect(gatePoisoned()).toBeUndefined()
   })
 })

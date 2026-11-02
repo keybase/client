@@ -248,7 +248,7 @@ test('the run refuses a phone whose location was ever asked, naming the reset fo
   expect(locationStartProblem(never, 'iPhoneTest', UDID)).toBeUndefined()
   const reset = `reset it once by hand (xcrun simctl privacy ${UDID} reset location keybase.ios, then relaunch the app), then rerun`
   expect(locationStartProblem({background: 'granted', foreground: 'granted'}, 'iPhoneTest', UDID)).toBe(
-    `location is already granted for keybase.ios on iPhoneTest, and the location flow puts it back to never asked; ${reset}`
+    `location is already granted for keybase.ios on iPhoneTest, and the location flow starts from never asked; ${reset}`
   )
   expect(locationStartProblem({background: 'undetermined', foreground: 'granted'}, 'iPhoneTest', UDID)).toMatch(
     /^location is already granted \(background undetermined\) for keybase\.ios on iPhoneTest, /

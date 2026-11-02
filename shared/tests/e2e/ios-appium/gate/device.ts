@@ -23,6 +23,7 @@ import {isAttemptOver} from './attempt-binding-lib.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {
   corpusToAdd,
+  parseLocationd,
   parseTcc,
   privacyGrantArgs,
   privacyOriginal,
@@ -32,8 +33,8 @@ import {
   restorePrivacyWith,
   type PrivacyRestore,
   type PrivacyService,
+  type PrivacySnapshot,
   type PushPayload,
-  type TccRow,
 } from './device-lib.ts'
 import {requireFixedPoint, type Point} from './location-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
@@ -347,22 +348,34 @@ export const relaunchHungApp = async () => {
   await openAttemptRecording()?.checkpoint()
 }
 
-// The app's rows in the simulator's TCC.db (its permissions but location), read only.
-export const tccSnapshot = (udid: string): Array<TccRow> => {
+// The app's permissions, read only: its rows in the simulator's TCC.db, and its location
+// authorization in locationd's clients.plist (TCC does not keep location). A simulator whose locationd
+// has no clients.plist yet has never asked any app.
+export const privacySnapshot = (udid: string): PrivacySnapshot => {
   requireCurrentAttempt()
-  const db = path.join(os.homedir(), 'Library/Developer/CoreSimulator/Devices', requireUdid(udid), 'data/Library/TCC/TCC.db')
-  return parseTcc(runSync('sqlite3', ['-readonly', '-json', db, `SELECT service, auth_value FROM access WHERE client = '${BUNDLE_ID}'`], TCC_MS))
+  const data = path.join(os.homedir(), 'Library/Developer/CoreSimulator/Devices', requireUdid(udid), 'data/Library')
+  const tcc = parseTcc(runSync('sqlite3', ['-readonly', '-json', path.join(data, 'TCC/TCC.db'), `SELECT service, auth_value FROM access WHERE client = '${BUNDLE_ID}'`], TCC_MS))
+  const clients = path.join(data, 'Caches/locationd/clients.plist')
+  let xml: string
+  try {
+    xml = runSync('plutil', ['-convert', 'xml1', '-o', '-', clients], TCC_MS)
+  } catch (e) {
+    if (!fs.existsSync(clients)) return {locationAuth: undefined, tcc}
+    throw e
+  }
+  return {locationAuth: parseLocationd(xml), tcc}
 }
 
-// Grants keybase.ios `service` and returns what restorePrivacy puts back, read from TCC.db first (a
+// Grants keybase.ios `service` and returns what restorePrivacy puts back, read first (a
 // permission this could not put back is refused before anything changes). simctl privacy can
-// terminate the app (iOS restarts a process whose permission changes), and the kill can land seconds
-// after the grant returns. When the app exited or came back with a new JS runtime within
+// terminate the app (iOS restarts a process whose permission changes): on iOS 26.5 every photos and
+// photos-add grant or reset kills it within a second, even one already granted, and no location
+// change does. When the app exited or came back with a new JS runtime within
 // PRIVACY_KILL_MS, it is launched if gone and this waits for its new runtime, so a body runs it,
 // never a hook.
 export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRestore> => {
   const udid = preflightUdid()
-  const original = privacyOriginal(tccSnapshot(udid), service)
+  const original = privacyOriginal(privacySnapshot(udid), service)
   privacyRestoreArgs(original, service, udid)
   const grant = privacyGrantArgs(service, udid, BUNDLE_ID)
   const before = await runtimeId().catch(() => undefined)
@@ -384,7 +397,7 @@ export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRest
 // Puts back what grantPrivacy changed, once (device-lib.ts restorePrivacyWith): for a flow's
 // afterEach, as simctl is all it runs. A restore that fails poisons the gate.
 export const restorePrivacy = (r: PrivacyRestore) => {
-  restorePrivacyWith(r, {read: () => tccSnapshot(r.udid), run: args => void simctl(...args)})
+  restorePrivacyWith(r, {read: () => privacySnapshot(r.udid), run: args => void simctl(...args)})
 }
 
 export const toBackground = async () => backgroundApp()

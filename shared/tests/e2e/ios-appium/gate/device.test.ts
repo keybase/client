@@ -33,6 +33,7 @@ const mockDevice = {
   pushed: [] as Array<{argv: string; file: string; mode: number; body: string}>,
   pushFails: false,
   simctlFails: '',
+  locationd: '<dict></dict>',
   tcc: '',
 }
 
@@ -82,6 +83,7 @@ jest.mock('../../accounts/env.ts', () => ({e2eConfigDir: () => mockDevice.config
 jest.mock('./sim-data.ts', () => ({simulatorDataBirth: () => mockDevice.data}))
 jest.mock('../helpers/app', () => ({
   runSync: (file: string) => {
+    if (file === 'plutil') return mockDevice.locationd
     if (file !== 'sqlite3') throw new Error(`unexpected ${file}`)
     return mockDevice.tcc
   },
@@ -120,6 +122,7 @@ beforeEach(() => {
   process.env['KB_IOS_UDID'] = UDID
   process.env['KB_E2E_RUN_ID'] = newRunId()
   mockDevice.calls = []
+  mockDevice.locationd = '<dict></dict>'
   mockDevice.credits = []
   mockDevice.pushed = []
   mockDevice.pushFails = false
@@ -218,6 +221,22 @@ describe('privacy', () => {
     restorePrivacy(t)
     expect(mockDevice.calls).toEqual([`simctl privacy ${UDID} revoke photos keybase.ios`])
     expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test("location's original is read from locationd's clients.plist, and its restore read back there", async () => {
+    const auth = (n?: number) => `<dict><key>ikeybase.ios:</key><dict>${n === undefined ? '' : `<key>Authorization</key><integer>${n}</integer>`}</dict></dict>`
+    mockDevice.locationd = auth()
+    const t = await grantPrivacy('location-always')
+    expect(t.original.state).toBe('unset')
+    mockDevice.calls = []
+    mockDevice.locationd = auth(4)
+    expect(() => restorePrivacy(t)).toThrow(/still reads granted, not unset/)
+    expect(mockDevice.calls).toEqual([`simctl privacy ${UDID} reset location-always keybase.ios`])
+    mockDevice.locationd = auth()
+    restorePrivacy(t)
+    expect(gatePoisoned()).toBeUndefined()
+    mockDevice.locationd = auth(2)
+    await expect(grantPrivacy('location-always')).rejects.toThrow(/cannot put back as location-always/)
   })
 
   test('a grant it could not put back is refused before anything changes', async () => {
