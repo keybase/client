@@ -1,4 +1,6 @@
 /// <reference types="jest" />
+import * as fs from 'fs'
+import * as path from 'path'
 import {redactRpcParams} from './transport-shared'
 import type * as TS from './transport-shared'
 import type * as RT from './rpc-transport'
@@ -45,19 +47,21 @@ test('cyclic and non-plain values do not throw', () => {
   expect(JSON.stringify(redactRpcParams({a: {passphrase: fixture}}))).not.toContain(fixture)
 })
 
-test('an object reached twice is redacted both times, and a cycle is marked', () => {
+test('an object reached twice is redacted both times, and a cycle ends at the depth cut-off', () => {
   const shared = {passphrase: fixture, user: 'testuser'}
   const looped: Record<string, unknown> = {phrase: fixture}
   looped['self'] = looped
-  const out = redactRpcParams({first: shared, list: [shared, shared], looped, second: shared})
-  expect(JSON.stringify(out)).not.toContain(fixture)
-  expect(out).toEqual({
+  const out = redactRpcParams({first: shared, list: [shared, shared], looped, second: shared}) as Record<string, unknown>
+  const logged = JSON.stringify(out)
+  expect(logged).not.toContain(fixture)
+  expect(logged).toContain('<depth>')
+  expect({...out, looped: undefined}).toEqual({
     first: {passphrase: '<redacted>', user: 'testuser'},
     list: [
       {passphrase: '<redacted>', user: 'testuser'},
       {passphrase: '<redacted>', user: 'testuser'},
     ],
-    looped: {phrase: '<redacted>', self: '<cycle>'},
+    looped: undefined,
     second: {passphrase: '<redacted>', user: 'testuser'},
   })
 })
@@ -92,6 +96,45 @@ test('token keys and string codes are redacted, numeric codes stay', () => {
   expect(JSON.stringify(logged)).not.toContain(fixture)
   expect(logged.code).toBe('<redacted>')
   expect(logged.status.code).toBe(7)
+})
+
+test("a string's token= query value is redacted wherever the string is, and the rest of it stays", () => {
+  const url = `http://127.0.0.1:5000/files/a.txt?token=${fixture}&viewType=1`
+  const out = redactRpcParams({contexts: [{url}], note: `see ?TOKEN=${fixture}`, plain: 'token=not-a-query'})
+  expect(JSON.stringify(out)).not.toContain(fixture)
+  expect(out).toEqual({
+    contexts: [{url: 'http://127.0.0.1:5000/files/a.txt?token=<redacted>&viewType=1'}],
+    note: 'see ?TOKEN=<redacted>',
+    plain: 'token=not-a-query',
+  })
+})
+
+// Every field of the generated protocol types whose name looks like a secret must be redacted by
+// name, or be listed here as not one. A new secret-bearing field fails this instead of logging.
+const secretShaped = /pass(phrase|word)|secret|paper(key|phrase)|phrase|token|seed|invite(code|link)|^code$/i
+const notSecrets: Record<string, string> = {
+  cursorToken: 'a paging cursor',
+  passphraseState: 'an enum of whether a passphrase is set',
+  secretNoteErrMsg: 'an error message',
+  seedChecks: 'check values of the seeds, not the seeds',
+}
+test('every secret-shaped field name in rpc-gen is redacted or known not to be a secret', () => {
+  const dir = path.join(__dirname, '../constants/rpc')
+  const fields = new Map<string, Set<string>>()
+  for (const f of fs.readdirSync(dir).filter(f => /^rpc-.*gen\.tsx$/.test(f))) {
+    for (const m of fs.readFileSync(path.join(dir, f), 'utf8').matchAll(/(?:readonly |[{,(] *)([A-Za-z]+)\??: ([^,}\n]+)/g)) {
+      const [, name = '', type = ''] = m
+      if (!secretShaped.test(name)) continue
+      fields.set(name, (fields.get(name) ?? new Set()).add(type.trim()))
+    }
+  }
+  expect(fields.size).toBeGreaterThan(10)
+  const unredacted = [...fields]
+    .filter(([, types]) => ![...types].every(t => t === 'boolean'))
+    .filter(([name]) => !(name in notSecrets))
+    .filter(([name]) => JSON.stringify(redactRpcParams({[name]: 'x'})) !== JSON.stringify({[name]: '<redacted>'}))
+    .map(([name, types]) => `${name}: ${[...types].join(' | ')}`)
+  expect(unredacted).toEqual([])
 })
 
 describe('rpcLog and invoke end to end', () => {
