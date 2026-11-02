@@ -7,7 +7,7 @@
 // device list and its name, and no error or log may carry any of them.
 // Relative imports only: plain node loads this too.
 import {spawn} from 'child_process'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
 
 // `--devicename` makes the CLI ask for a paper key, answered empty: it then provisions from a device.
 const script = String.raw`
@@ -85,10 +85,9 @@ export type Provisionee = {
 
 export const startProvisionee = (p: {home: string; user: string; deviceName: string; fromDevice: string}): Provisionee => {
   const argv = [keybaseBin(), '--no-auto-fork', '--home', p.home, 'login', p.user, '--devicename', p.deviceName]
-  if (argv.some(a => /[{}\\]/.test(a))) throw new Error('refusing to run keybase login: braces or backslashes in its arguments')
   const env = {
     ...process.env,
-    KB_PROV_CMD: argv.map(a => `{${a}}`).join(' '),
+    KB_PROV_CMD: expectSpawnList(argv, 'keybase login'),
     KB_PROV_FROM: p.fromDevice,
     KEYBASE_SECRET_STORE_FILE: '1',
   }
