@@ -151,7 +151,7 @@ const NewRepo = (ownProps: OwnProps) => {
             checked={notifyTeam}
             onCheck={setNotifyTeam}
             style={styles.checkbox}
-            testID={notifyTeam ? TestIDs.GIT_NEW_NOTIFY_ON : TestIDs.GIT_NEW_NOTIFY_OFF}
+            testID={TestIDs.settingTestID(TestIDs.GIT_NEW_NOTIFY, notifyTeam)}
           />
         )}
       </Kb.Box2>

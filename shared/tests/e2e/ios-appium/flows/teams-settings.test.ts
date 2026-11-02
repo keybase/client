@@ -21,6 +21,7 @@ import {mainRead, makeSubteamChannel, requireThisRunSubteam, runChatApi, subteam
 import {creditSurface} from '../gate/attempt'
 import {elementInRow, innermost} from '../gate/chat-lib.ts'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
+import {settingSelector, settingShown} from '../gate/persisted-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
@@ -160,11 +161,11 @@ describe('teams settings', function () {
   // disabled switch takes no tap (the feature switch waits for the app's teams list to have the
   // team), so a tap that changed nothing is tried again; one that took flips the id at once. Bound:
   // three tries of the pin 1, the tap 1, 5s = 21.
-  const switchOn = async (what: string, off: string, on: string, pin: () => Promise<void>) => {
+  const switchOn = async (what: string, base: string, pin: () => Promise<void>) => {
     for (let i = 0; i < 3; i++) {
       await pin()
-      await el(off).click()
-      if (await el(on).waitForExist({timeout: 5_000}).then(() => true, () => false)) return
+      await el(T.settingTestID(base, false)).click()
+      if (await el(T.settingTestID(base, true)).waitForExist({timeout: 5_000}).then(() => true, () => false)) return
     }
     throw new Error(`${what} never turned on`)
   }
@@ -257,10 +258,10 @@ describe('teams settings', function () {
     await openSubteamUntil("the subteam's settings", name, teamID, SETTINGS, settingsLoaded)
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
-    await dragUntilOnScreen("the settings' feature switch", () => el(T.TEAMS_SETTINGS_FEATURE_OFF))
+    await dragUntilOnScreen("the settings' feature switch", () => el(T.settingTestID(T.TEAMS_SETTINGS_FEATURE, false)))
     featured.add(name)
     const seq = await currentCallSeq()
-    await switchOn('the feature switch', T.TEAMS_SETTINGS_FEATURE_OFF, T.TEAMS_SETTINGS_FEATURE_ON, async () =>
+    await switchOn('the feature switch', T.TEAMS_SETTINGS_FEATURE, async () =>
       requireOnSubteam("the subteam's settings", 'team', onSubteam)
     )
     await waitForUiCall('the feature to go out', seq, 'keybase.1.teams.setTeamMemberShowcase')
@@ -279,9 +280,9 @@ describe('teams settings', function () {
     await openSubteamUntil("the subteam's settings", name, teamID, SETTINGS, settingsLoaded)
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
-    await dragUntilOnScreen("the settings' requests switch", () => el(T.TEAMS_SETTINGS_IGNORE_REQUESTS_OFF))
+    await dragUntilOnScreen("the settings' requests switch", () => el(T.settingTestID(T.TEAMS_SETTINGS_IGNORE_REQUESTS, false)))
     const seq = await currentCallSeq()
-    await switchOn('the requests switch', T.TEAMS_SETTINGS_IGNORE_REQUESTS_OFF, T.TEAMS_SETTINGS_IGNORE_REQUESTS_ON, async () =>
+    await switchOn('the requests switch', T.TEAMS_SETTINGS_IGNORE_REQUESTS, async () =>
       requireOnSubteam("the subteam's settings", 'team', onSubteam)
     )
     await waitForUiCall('the setting to go out', seq, 'keybase.1.teams.setTarsDisabled')
@@ -294,13 +295,11 @@ describe('teams settings', function () {
         // the switch draws off until the team's settings load
         await openSubteamUntil("the subteam's settings after the relaunch", name, teamID, SETTINGS, async () => {
           await dragUntilOnScreen("the settings' requests switch", () =>
-            browser.$(
-              `-ios predicate string:(name == "${T.TEAMS_SETTINGS_IGNORE_REQUESTS_ON}" OR name == "${T.TEAMS_SETTINGS_IGNORE_REQUESTS_OFF}") AND visible == 1`
-            )
+            browser.$(`${settingSelector(T.TEAMS_SETTINGS_IGNORE_REQUESTS)} AND visible == 1`)
           )
-          await el(T.TEAMS_SETTINGS_IGNORE_REQUESTS_ON).waitForExist({timeout: 15_000})
+          await el(T.settingTestID(T.TEAMS_SETTINGS_IGNORE_REQUESTS, true)).waitForExist({timeout: 15_000})
         })
-        return el(T.TEAMS_SETTINGS_IGNORE_REQUESTS_ON).isExisting()
+        return (await settingShown(T.TEAMS_SETTINGS_IGNORE_REQUESTS)) === 'on'
       },
       true
     )

@@ -243,13 +243,19 @@ export const TEAMS_DEFAULT_CHANNEL_REMOVE = 'teams-default-channel-remove'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // an emoji's row in a team's Emoji tab
 export const TEAMS_EMOJI_ROW = 'teams-emoji-row'
+// A settings switch or radio whose state the phone flows read (its control alone has none in the
+// accessibility tree): its testID is one of the bases below, then what it shows, on or off, or
+// pending while its value still loads or saves (what it shows then may not be the account's).
+export const SETTING_ON = '-on'
+export const SETTING_OFF = '-off'
+export const SETTING_PENDING = '-pending'
+export const settingTestID = (base: string, on: boolean, pending = false) =>
+  `${base}${pending ? SETTING_PENDING : on ? SETTING_ON : SETTING_OFF}`
 // the settings tab's "Feature team on your own profile" and "Don't allow requests to join this team"
-// switches (the id says whether each is on), and the message deletion dropdown (a team's settings
-// tab, a conversation's info panel)
-export const TEAMS_SETTINGS_FEATURE_ON = 'teams-settings-feature-on'
-export const TEAMS_SETTINGS_FEATURE_OFF = 'teams-settings-feature-off'
-export const TEAMS_SETTINGS_IGNORE_REQUESTS_ON = 'teams-settings-ignore-requests-on'
-export const TEAMS_SETTINGS_IGNORE_REQUESTS_OFF = 'teams-settings-ignore-requests-off'
+// switches (settingTestID bases), and the message deletion dropdown (a team's settings tab, a
+// conversation's info panel)
+export const TEAMS_SETTINGS_FEATURE = 'teams-settings-feature'
+export const TEAMS_SETTINGS_IGNORE_REQUESTS = 'teams-settings-ignore-requests'
 export const TEAMS_RETENTION_DROPDOWN = 'teams-retention-dropdown'
 // the "I understand..." switch of a destructive setting's warning (message deletion, open team)
 export const TEAMS_CONFIRM_WARNING_CHECK = 'teams-confirm-warning-check'
@@ -359,11 +365,10 @@ export const GIT_REPO_COPY_URL = 'git-repo-copy-url'
 export const GIT_REPO_ANNOUNCE = 'git-repo-announce'
 // the new team repository screen's team dropdown (its label merges the team picked, or its prompt)
 export const GIT_NEW_TEAM_DROPDOWN = 'git-new-team-dropdown'
-// the "Notify the team" checkbox of the new team repository screen and of the delete screen, by its state
-export const GIT_NEW_NOTIFY_ON = 'git-new-notify-on'
-export const GIT_NEW_NOTIFY_OFF = 'git-new-notify-off'
-export const GIT_DELETE_NOTIFY_ON = 'git-delete-notify-on'
-export const GIT_DELETE_NOTIFY_OFF = 'git-delete-notify-off'
+// the "Notify the team" checkbox of the new team repository screen and of the delete screen
+// (settingTestID bases)
+export const GIT_NEW_NOTIFY = 'git-new-notify'
+export const GIT_DELETE_NOTIFY = 'git-delete-notify'
 
 // Crypto
 export const CRYPTO_INPUT         = 'crypto-input'

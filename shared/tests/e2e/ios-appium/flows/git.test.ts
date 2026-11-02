@@ -20,6 +20,7 @@ import {makeSubteamChannel} from '../../shared/teams.ts'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {pasteboardText, setPasteboard} from '../gate/device'
+import {settingShown} from '../gate/persisted-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
@@ -159,10 +160,10 @@ describe('git', function () {
 
   // Taps the "Notify the team" checkbox drawn `on` and waits for it to draw `off`. Bound: 10s, tap 1,
   // 5s = 16.
-  const notifyOff = async (on: string, off: string) => {
-    await el(on).waitForExist({timeout: 10_000})
-    await el(on).click()
-    await el(off).waitForExist({timeout: 5_000})
+  const notifyOff = async (base: string) => {
+    await el(T.settingTestID(base, true)).waitForExist({timeout: 10_000})
+    await el(T.settingTestID(base, true)).click()
+    await el(T.settingTestID(base, false)).waitForExist({timeout: 5_000})
   }
 
   // The number of repo rows drawn open (their announce checkbox is drawn only for a team repo).
@@ -277,9 +278,9 @@ describe('git', function () {
       {interval: 250, timeout: 5_000}
     )
     await fillField(await onlyField('TextField', 'the repo name field'), repo.name, 'the repo name field')
-    await notifyOff(T.GIT_NEW_NOTIFY_ON, T.GIT_NEW_NOTIFY_OFF)
+    await notifyOff(T.GIT_NEW_NOTIFY)
     await step('The team repo named, the team not notified')
-    check(await el(T.GIT_NEW_NOTIFY_OFF).isExisting(), 'the team would be notified of the new repo: not tapping')
+    check((await settingShown(T.GIT_NEW_NOTIFY)) === 'off', 'the team would be notified of the new repo: not tapping')
     madeRepos.add(repo)
     let seq = await currentCallSeq()
     await tapButton('Create', "the new repo's Create")
@@ -321,11 +322,11 @@ describe('git', function () {
     await tapButton('Delete', "the repo's Delete")
     const onRepo = (p: Params) => p['name'] === repo.name && p['teamname'] === name
     await expectScreen('the delete screen of the team repo', 'gitDeleteRepo', onRepo)
-    await notifyOff(T.GIT_DELETE_NOTIFY_ON, T.GIT_DELETE_NOTIFY_OFF)
+    await notifyOff(T.GIT_DELETE_NOTIFY)
     await fillField(await onlyField('TextField', 'the delete confirm field'), repo.name, 'the delete confirm field')
     await step('The delete confirmed, the team not notified', {card: true})
     await requireOnSubteam('the team repo delete', 'gitDeleteRepo', onRepo)
-    check(await el(T.GIT_DELETE_NOTIFY_OFF).isExisting(), 'the team would be notified of the delete: not tapping')
+    check((await settingShown(T.GIT_DELETE_NOTIFY)) === 'off', 'the team would be notified of the delete: not tapping')
     seq = await currentCallSeq()
     await tapButton('Delete', "the delete screen's Delete")
     await waitForUiCall('the repo delete to go out', seq, 'keybase.1.git.deleteTeamRepo')

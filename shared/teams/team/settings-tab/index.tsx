@@ -64,7 +64,7 @@ const SetMemberShowcase = (props: {
         }
         onCheck={props.setNewPublicityMember}
         style={styles.paddingRight}
-        testID={props.newPublicityMember ? TestIDs.TEAMS_SETTINGS_FEATURE_ON : TestIDs.TEAMS_SETTINGS_FEATURE_OFF}
+        testID={TestIDs.settingTestID(TestIDs.TEAMS_SETTINGS_FEATURE, props.newPublicityMember)}
       />
     </Kb.Box2>
   )
@@ -192,11 +192,7 @@ const IgnoreAccessRequests = (props: {
           </Kb.Box2>
         }
         onCheck={props.setNewIgnoreAccessRequests}
-        testID={
-          props.newIgnoreAccessRequests
-            ? TestIDs.TEAMS_SETTINGS_IGNORE_REQUESTS_ON
-            : TestIDs.TEAMS_SETTINGS_IGNORE_REQUESTS_OFF
-        }
+        testID={TestIDs.settingTestID(TestIDs.TEAMS_SETTINGS_IGNORE_REQUESTS, props.newIgnoreAccessRequests)}
       />
     </Kb.Box2>
   )

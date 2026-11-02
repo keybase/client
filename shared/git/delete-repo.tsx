@@ -101,7 +101,7 @@ const DeleteRepo = (ownProps: OwnProps) => {
               checked={notifyTeam}
               onCheck={setNotifyTeam}
               style={styles.checkbox}
-              testID={notifyTeam ? TestIDs.GIT_DELETE_NOTIFY_ON : TestIDs.GIT_DELETE_NOTIFY_OFF}
+              testID={TestIDs.settingTestID(TestIDs.GIT_DELETE_NOTIFY, notifyTeam)}
             />
           )}
         </Kb.Box2>
