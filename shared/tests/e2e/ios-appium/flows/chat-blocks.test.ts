@@ -13,7 +13,7 @@ import path from 'path'
 import {ensureChatData, type ChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {pairFavoriteState, refavoritePair, type PairFavoriteState} from '../../shared/favorites.ts'
-import {conversationStatus, mainConversation, restoreConversationStatus} from '../../shared/main-rpc.ts'
+import {conversationStatus, restoreConversationStatus} from '../../shared/main-rpc.ts'
 import * as T from '../../shared/test-ids'
 import {secondBlocks, unblockSecondOnHost} from '../gate/blocks'
 import {secondBlockedProblem} from '../gate/blocks-lib'
@@ -33,6 +33,7 @@ import {
   scrollInboxTo,
   tapSwitchLabelled,
 } from '../helpers/chat'
+import {convStatus, expectConvStatus, expectHost} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
@@ -56,15 +57,9 @@ describe('chat blocks', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
-  const expectStatus = async (what: string, want: number) =>
-    waitFor(`the host to read ${what}`, async () => ((await statusOf(data.direct.convID)) === want ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
-
+  const expectDirectStatus = async (what: string, want: number) => expectConvStatus(what, data.direct.convID, want)
   const expectBlocks = async (what: string, ok: (b: Awaited<ReturnType<typeof secondBlocks>>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await secondBlocks()) ? true : undefined), {interval: 1_000, timeout: 20_000})
+    expectHost(what, secondBlocks, ok)
 
   // The block modal opens over the info panel's (or the profile's) screen, and XCUITest reports a
   // modal stacked on a modal not visible (visible="false" on its Cancel and Finish, seen live), so
@@ -104,9 +99,9 @@ describe('chat blocks', function () {
   }
 
   const restoreStatus = async (status: number) => {
-    if ((await statusOf(data.direct.convID)) === status) return
+    if ((await convStatus(data.direct.convID)) === status) return
     await restoreConversationStatus(data.direct.convID, status)
-    await expectStatus('the restored status of the DM', status)
+    await expectDirectStatus('the restored status of the DM', status)
   }
 
   // The block ignores the smoke+second folder, and unblocking leaves it ignored. The ignore can land
@@ -172,7 +167,7 @@ describe('chat blocks', function () {
     this.timeout(1_240_000)
     const unblockedProblem = secondBlockedProblem(await secondBlocks())
     check(!unblockedProblem, `the second account must start unblocked: ${unblockedProblem}`)
-    const status = await statusOf(data.direct.convID)
+    const status = await convStatus(data.direct.convID)
     check(status === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden, muted or blocked)')
     blockedFrom = {folder: await pairFavoriteState(), status}
 
@@ -190,7 +185,7 @@ describe('chat blocks', function () {
     await waitForUiCall('the blocks to go out', seq, 'keybase.1.user.setUserBlocks')
     await waitForUiCall('the blocked status to go out', seq, 'chat.1.local.SetConversationStatusLocal')
     await expectBlocks('the second account chat blocked', b => b.chatBlocked)
-    await expectStatus('the DM blocked', conversationStatus.blocked)
+    await expectDirectStatus('the DM blocked', conversationStatus.blocked)
     // Finish goes to the inbox; the self conversation shows it loaded, so the DM's absence counts
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
     await scrollInboxTo(data.smokeUser)

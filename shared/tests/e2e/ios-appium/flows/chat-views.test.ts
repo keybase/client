@@ -10,22 +10,18 @@
 // host stays on the smoke account; another account's message comes from the second account's peer
 // service. Every body is stamped with the run id. What a test leaves (the composer of e2e-scratch, a
 // throwaway channel) is put back by the flow's afterEach, after a timeout too.
-import {loadE2EEnv} from '../../accounts/env'
 import {
   E2E_CHANNELS,
   MEDIA_FIXTURES,
-  createThrowawayChannel,
-  deleteThrowawayChannel,
   ensureChatData,
   readFromCli,
   sendToThrowawayFromCli,
   type ChatData,
-  type CliMessage,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
 import {mainRpc} from '../../shared/main-rpc.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {requireSecondNotBlocked} from '../gate/blocks'
@@ -66,6 +62,7 @@ import {
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
+import {expectCli, secondSender, textBodies, throwawayChannels} from '../helpers/chat-host'
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, goBackUntilGone, navigateToChat} from '../helpers/navigate'
@@ -105,10 +102,6 @@ describe('chat views', function () {
     await requireSecondNotBlocked()
   })
 
-  // The second account's peer service, found by the first test that needs it.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-
   const scratch = () => data.convIDs[E2E_CHANNELS.scratch]
   const media = () => data.convIDs[E2E_CHANNELS.media]
 
@@ -119,14 +112,7 @@ describe('chat views', function () {
   // set once a test typed in e2e-scratch's composer or put it in a mode
   let scratchComposerUsed = false
   // throwaway channels a test made
-  const channels = new Set<string>()
-
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await deleteThrowawayChannel(topicName)
-      channels.delete(topicName)
-    }
-  }
+  const channels = throwawayChannels()
 
   // e2e-scratch's composer empty, with no reply or edit under way. Bound: open 100, resetComposer
   // 46 = 146.
@@ -141,17 +127,10 @@ describe('chat views', function () {
   // Worst case (s): close 5, keyboard 5, a channel 120, scratch 146, escape 30 = 306.
   afterEach(async function () {
     this.timeout(320_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, deleteChannels, resetScratch, escapeToTabs])
+    await withCleanup(closeMessageMenu, [hideKeyboard, channels.deleteAll, resetScratch, escapeToTabs])
   })
 
   // -- reads --------------------------------------------------------------------------------------
-
-  const expectCli = async (topicName: string, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await readFromCli({topicName})) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
-  const textBodies = (ms: Array<CliMessage>) => ms.filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
 
   // e2e-media's seeded image, loaded, ready and wholly in view; its ordinal and message id.
   // Bound: image 80.
@@ -317,7 +296,7 @@ describe('chat views', function () {
     await closeMessageMenu()
 
     const theirs = e2eMarker('views-theirs')
-    await sendWithRetry(await sender(), scratch(), theirs)
+    await sendWithRetry(await secondSender(), scratch(), theirs)
     await waitForRow(theirs, 30_000)
     await openMessageMenu(theirs)
     await expectMenu("the second account's message", ['Reply', 'Reply privately', 'Copy text'], ['Edit'])
@@ -410,12 +389,10 @@ describe('chat views', function () {
     // warning gone 10, the conversation 1, back 15, the conversation 1, held 81 (the clear's 20,
     // overrun by one host read 60 and the thread's 1), step 2 = 695
     this.timeout(720_000)
-    const made = await createThrowawayChannel('views', {withSecond: false})
-    channels.add(made.topicName)
-    const {convID, topicName} = made
+    const {convID, topicName} = await channels.make('views', {withSecond: false})
     const text = e2eMarker('views-hist')
     await sendToThrowawayFromCli(topicName, text)
-    await expectCli(topicName, 'the message', ms => textBodies(ms).includes(text))
+    await expectCli({topicName}, 'the message', ms => textBodies(ms).includes(text))
     await openConversation(convID)
     await waitForRow(text, 30_000)
 

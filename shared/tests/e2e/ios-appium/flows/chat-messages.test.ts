@@ -13,19 +13,15 @@ import {loadE2EEnv} from '../../accounts/env'
 import {
   E2E_CHANNELS,
   attachFromCli,
-  createThrowawayChannel,
-  deleteThrowawayChannel,
   directConvIDFromCli,
   ensureChatData,
-  readFromCli,
   sendToThrowawayFromCli,
   type ChatData,
-  type CliMessage,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
-import {mainConversation, mainRpc, type MainConversation} from '../../shared/main-rpc.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {mainRpc} from '../../shared/main-rpc.ts'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {ensurePeer} from '../../shared/peer-service.ts'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -53,6 +49,7 @@ import {
   explodingModeSeconds,
   giphyGalleryShown,
   hideKeyboard,
+  messageIDAt,
   openConversation,
   openHeaderMenuItem,
   openMessageMenu,
@@ -75,6 +72,7 @@ import {
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
+import {expectCli, expectHost, pinnedOnHost, secondSender, textBodies, throwawayChannels} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {goBackUntilGone} from '../helpers/navigate'
@@ -107,10 +105,6 @@ describe('chat messages', function () {
     await requireSecondNotBlocked()
   })
 
-  // The second account's peer service, found by the first test that needs it.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-
   const scratch = () => data.convIDs[E2E_CHANNELS.scratch]
   const openScratch = async () => openConversation(scratch())
 
@@ -125,25 +119,9 @@ describe('chat messages', function () {
   // the skin tone the phone had before a test changed it
   let skinToneBefore: number | undefined
   // throwaway channels a test made (a pin in one goes when it is deleted)
-  const channels = new Set<string>()
-
-  const newChannel = async (label: string, opts?: {withSecond?: boolean}) => {
-    const made = await createThrowawayChannel(label, opts)
-    channels.add(made.topicName)
-    return made
-  }
+  const channels = throwawayChannels()
 
   // -- reads --------------------------------------------------------------------------------------
-
-  const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await readFromCli(where)) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
-  const textBodies = (ms: Array<CliMessage>) => ms.filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
-
-  const messageID = async (ordinal: number) =>
-    waitFor('the message id', async () => (await storedMessageState(ordinal))?.id || undefined, {interval: 250, timeout: 10_000})
 
   // The smoke account's gregor item of `category`, as the host reads it (the server keeps the
   // exploding mode there, for every device), as text, or null when there is none.
@@ -154,17 +132,7 @@ describe('chat messages', function () {
     return item ? Buffer.from(item.body ?? new Uint8Array()).toString('utf8') : null
   }
   const expectGregor = async (what: string, category: string, want: string | null) =>
-    waitFor(`the host to read ${what}`, async () => ((await gregorBody(category)) === want ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
-
-  // The id of the message the host (the smoke account) reads as the conversation's pin, or null.
-  type WithPin = MainConversation & {
-    info: {pinnedMsg?: {message?: {valid?: {serverHeader?: {messageID?: number}}}} | null}
-  }
-  const pinnedOnHost = async (convID: string) =>
-    ((await mainConversation(convID)) as WithPin).info.pinnedMsg?.message?.valid?.serverHeader?.messageID ?? null
+    expectHost(what, async () => gregorBody(category), b => b === want)
 
   // The conversation's pin as the second account's peer service localizes it: 'shown' (a pin message
   // and its pinned message), 'ignored' (a pin message, hidden for this device) or 'none' (no pin
@@ -201,13 +169,6 @@ describe('chat messages', function () {
         await expectGregor('the exploding mode off', category, null)
       }
       explodingCategories.delete(category)
-    }
-  }
-
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await deleteThrowawayChannel(topicName)
-      channels.delete(topicName)
     }
   }
 
@@ -253,7 +214,7 @@ describe('chat messages', function () {
   // ids 1, one cancel 25, resetComposer 46) = 932.
   afterEach(async function () {
     this.timeout(940_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, deleteChannels, restoreToSmoke, restoreSkinTone, resetScratch])
+    await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, channels.deleteAll, restoreToSmoke, restoreSkinTone, resetScratch])
   })
 
   it('an edit posted from the menu shows in the row, and the host reads the new body', async function () {
@@ -264,7 +225,7 @@ describe('chat messages', function () {
     await openScratch()
     const before = e2eMarker('msg-edit')
     const ordinal = await sendMessage(before)
-    await messageID(ordinal)
+    await messageIDAt(ordinal)
     await expectCli({topicName: E2E_CHANNELS.scratch}, 'the message', ms => textBodies(ms).includes(before))
     await hideKeyboard()
     await openMessageMenu(before)
@@ -459,7 +420,7 @@ describe('chat messages', function () {
     // the pause 2, its second read 1, step 2, exploded 90, step 2, sent 25, keyboard 5, menu 35, the
     // seq 2, exploded 20, calls 10, step 2 = 784
     this.timeout(840_000)
-    const {convID} = await newChannel('explode', {withSecond: false})
+    const {convID} = await channels.make('explode', {withSecond: false})
     const category = `exploding:${convID}`
     await openConversation(convID)
     check((await explodingModeSeconds()) === 0, 'a new channel starts with exploding messages on')
@@ -525,7 +486,7 @@ describe('chat messages', function () {
     // 2, the tap 1, the warning gone 10, calls 10, the back 10, gone 5, the conversation 1, the rows gone
     // 20, step 2, host 60, cli 80, row 30, step 2 = 1002
     this.timeout(1_060_000)
-    const {convID, topicName} = await newChannel('history', {withSecond: false})
+    const {convID, topicName} = await channels.make('history', {withSecond: false})
     const texts = [e2eMarker('msg-hist'), e2eMarker('msg-hist'), e2eMarker('msg-hist')]
     for (const t of texts) await sendToThrowawayFromCli(topicName, t)
     // when the server took the newest, in its own clock
@@ -594,22 +555,19 @@ describe('chat messages', function () {
     // 100, row 30, the banner 1, app 25, step 2 = 731; then open 100, the banner 10, its text 5, pin
     // 75, step 2 = 2100
     this.timeout(2_150_000)
-    const {convID} = await newChannel('pin')
-    await sendWithRetry(await sender(), convID, e2eMarker('msg-pin-hello'))
+    const {convID} = await channels.make('pin')
+    await sendWithRetry(await secondSender(), convID, e2eMarker('msg-pin-hello'))
     await openConversation(convID)
     const text = e2eMarker('msg-pin')
     const ordinal = await sendMessage(text)
-    const id = await messageID(ordinal)
+    const id = await messageIDAt(ordinal)
     await hideKeyboard()
     await openMessageMenu(text)
     await chooseMenuItem('Pin message')
     const bannerSays = async () => ((await pinnedBanner().getAttribute('label')) ?? '').includes(text)
     await pinnedBanner().waitForExist({timeout: 10_000})
     await waitFor('the banner to show the pinned message', async () => ((await bannerSays()) ? true : undefined), {timeout: 5_000})
-    await waitFor('the host to read the message pinned', async () => ((await pinnedOnHost(convID)) === id ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    await expectHost('the message pinned', async () => pinnedOnHost(convID), p => p === id)
     check((await peerPinState(convID)) === 'shown', "the second account's other device is not shown the pin")
     await step('Pinned by the owner')
 
@@ -710,7 +668,7 @@ describe('chat messages', function () {
     // worst case (s): channel 240, open 100, the button 1, the item 10 and its tap 1, composer 5, type
     // 15, composer 5, the gallery 30, step 2, the edge 2, clear 21, the gallery gone 15 = 447
     this.timeout(460_000)
-    const {convID} = await newChannel('giphy', {withSecond: false})
+    const {convID} = await channels.make('giphy', {withSecond: false})
     await openConversation(convID)
     await el(T.CHAT_MORE_BUTTON).click()
     // the row reads "<glyph>, Share a GIF, /giphy": its icon, the title, then its subtitle

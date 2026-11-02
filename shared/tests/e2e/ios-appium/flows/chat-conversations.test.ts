@@ -8,18 +8,15 @@
 // message comes from the second account's peer service. Every body is stamped with the run id. What
 // a test changes is put back by the flow's afterEach, after a timeout too, and read back: the DM's
 // status, the pinned conversations, the throwaway channel.
-import {loadE2EEnv} from '../../accounts/env'
 import {
   E2E_CHANNELS,
-  createThrowawayChannel,
-  deleteThrowawayChannel,
   directConvIDFromCli,
   ensureChatData,
   type ChatData,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {conversationStatus, mainConversation, mainRpc, restoreConversationStatus} from '../../shared/main-rpc.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
@@ -58,6 +55,7 @@ import {
   visibleConversation,
   waitForRow,
 } from '../helpers/chat'
+import {convStatus, expectConvStatus, expectHost, secondSender, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
@@ -94,18 +92,7 @@ describe('chat conversations', function () {
     await requireSecondNotBlocked()
   })
 
-  // The second account's peer service, found by the first test that needs it.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-
   // -- reads --------------------------------------------------------------------------------------
-
-  const statusOf = async (convID: string) => (await mainConversation(convID)).info.status
-  const expectStatus = async (what: string, convID: string, want: number) =>
-    waitFor(`the host to read ${what}`, async () => ((await statusOf(convID)) === want ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
 
   // Polls a read of the app's store until it answers `want`.
   const expectApp = async <V,>(what: string, read: () => Promise<V | undefined>, want: V, timeout = 20_000) =>
@@ -120,11 +107,7 @@ describe('chat conversations', function () {
     const body = state.items?.find(i => i.item?.category === pinnedCategory)?.item?.body
     return body ? (JSON.parse(Buffer.from(body).toString('utf8')) as Array<string>) : []
   }
-  const expectPinned = async (what: string, ok: (pinned: Array<string>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await pinnedConvs()) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+  const expectPinned = async (what: string, ok: (pinned: Array<string>) => boolean) => expectHost(what, pinnedConvs, ok)
 
   // The info panel's Settings tab of the conversation the app shows, with its Mute switch drawn.
   const openSettings = async () => {
@@ -141,13 +124,13 @@ describe('chat conversations', function () {
   // the pinned conversations before a test changed them
   let pinnedBefore: Array<string> | undefined
   // throwaway channels a test made
-  const channels = new Set<string>()
+  const channels = throwawayChannels()
 
   const restoreStatuses = async () => {
     for (const [convID, want] of [...statusesBefore]) {
-      if ((await statusOf(convID)) !== want) {
+      if ((await convStatus(convID)) !== want) {
         await restoreConversationStatus(convID, want)
-        await expectStatus('a restored conversation status', convID, want)
+        await expectConvStatus('a restored conversation status', convID, want)
       }
       statusesBefore.delete(convID)
     }
@@ -156,7 +139,7 @@ describe('chat conversations', function () {
   // The row menu of the conversation `convID` named `name`, its status noted first for the
   // afterEach (a menu item can hide or mute it). Bound: conv 75 the first time, then row menu.
   const openRowMenu = async (name: string, convID: string) => {
-    if (!statusesBefore.has(convID)) statusesBefore.set(convID, await statusOf(convID))
+    if (!statusesBefore.has(convID)) statusesBefore.set(convID, await convStatus(convID))
     await openInboxRowMenu(name, convID)
   }
 
@@ -168,13 +151,6 @@ describe('chat conversations', function () {
       await expectPinned('the restored pinned conversations', p => JSON.stringify(p) === want)
     }
     pinnedBefore = undefined
-  }
-
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await deleteThrowawayChannel(topicName)
-      channels.delete(topicName)
-    }
   }
 
   // No thread search or inbox filter left open. The filter ends with the X on its row (its search
@@ -205,7 +181,7 @@ describe('chat conversations', function () {
   // 5) = 917.
   afterEach(async function () {
     this.timeout(960_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, restoreStatuses, restorePins, deleteChannels, closeSearches])
+    await withCleanup(closeMessageMenu, [hideKeyboard, restoreStatuses, restorePins, channels.deleteAll, closeSearches])
   })
 
   it('the DM hidden from its inbox row leaves the inbox, and a new message brings it back', async function () {
@@ -214,7 +190,7 @@ describe('chat conversations', function () {
     // step 2, open 100, the row 30, step 2 = 1348
     this.timeout(1_380_000)
     const {convID} = data.direct
-    const original = await statusOf(convID)
+    const original = await convStatus(convID)
     check(original === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden or muted)')
     statusesBefore.set(convID, original)
 
@@ -222,7 +198,7 @@ describe('chat conversations', function () {
     const seq = await currentCallSeq()
     await chooseMenuItem('Hide until next message')
     await waitForUiCall('the hide to go out', seq, 'chat.1.local.SetConversationStatusLocal')
-    await expectStatus('the DM hidden', convID, conversationStatus.ignored)
+    await expectConvStatus('the DM hidden', convID, conversationStatus.ignored)
     // the self conversation shows the inbox loaded, so the DM's absence counts
     await scrollInboxTo(data.smokeUser)
     check(!(await inboxHasRow(data.secondUser)), 'the hidden DM is still in the inbox')
@@ -232,8 +208,8 @@ describe('chat conversations', function () {
     await step('Hidden: the DM is gone from the inbox', {screenshot: false})
 
     const text = e2eMarker('conv-unhide')
-    await sendWithRetry(await sender(), convID, text)
-    await expectStatus('the DM back after a new message', convID, conversationStatus.unfiled)
+    await sendWithRetry(await secondSender(), convID, text)
+    await expectConvStatus('the DM back after a new message', convID, conversationStatus.unfiled)
     await scrollInboxTo(data.secondUser)
     await step('A new message brought the DM back', {screenshot: false})
     // read, so the DM is not left unread
@@ -248,7 +224,7 @@ describe('chat conversations', function () {
     // switch 10, the seq 2, the tap 1, calls 10, conv 95, app 20, step 2 = 1037
     this.timeout(1_060_000)
     const {convID} = data.direct
-    const original = await statusOf(convID)
+    const original = await convStatus(convID)
     check(original === conversationStatus.unfiled, 'the DM does not start unfiled (a failed restore left it hidden or muted)')
     statusesBefore.set(convID, original)
 
@@ -257,7 +233,7 @@ describe('chat conversations', function () {
     let seq = await currentCallSeq()
     await el(T.CHAT_INFO_PANEL_MUTE).click()
     await waitForUiCall('the mute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
-    await expectStatus('the DM muted', convID, conversationStatus.muted)
+    await expectConvStatus('the DM muted', convID, conversationStatus.muted)
     await expectApp('the DM muted', async () => appConversationMuted(convID), true)
     await step('Muted from the info panel')
 
@@ -279,7 +255,7 @@ describe('chat conversations', function () {
     seq = await currentCallSeq()
     await el(T.CHAT_INFO_PANEL_MUTE).click()
     await waitForUiCall('the unmute to go out', seq, 'chat.1.local.SetConversationStatusLocal')
-    await expectStatus('the DM unmuted', convID, conversationStatus.unfiled)
+    await expectConvStatus('the DM unmuted', convID, conversationStatus.unfiled)
     await expectApp('the DM unmuted', async () => appConversationMuted(convID), false)
     await step('Unmuted', {card: true})
   })
@@ -289,10 +265,8 @@ describe('chat conversations', function () {
     // badge 30, row 120, step 2, header 120, gear 15, the seq 2, item 20, calls 10, conv 95, app 20,
     // step 2 = 941
     this.timeout(990_000)
-    const made = await createThrowawayChannel('read')
-    channels.add(made.topicName)
-    const {convID, topicName} = made
-    await sendWithRetry(await sender(), convID, e2eMarker('conv-unread'))
+    const {convID, topicName} = await channels.make('read')
+    await sendWithRetry(await secondSender(), convID, e2eMarker('conv-unread'))
     const unread = async () => {
       const {readerInfo} = await mainConversation(convID)
       return readerInfo.readMsgid < readerInfo.maxMsgid
@@ -315,10 +289,7 @@ describe('chat conversations', function () {
     const seq = await currentCallSeq()
     await chooseMenuItem('Mark all as read')
     await waitForUiCall('the mark read to go out', seq, 'chat.1.local.markTLFAsReadLocal')
-    await waitFor('the host to read the channel read', async () => ((await unread()) ? undefined : true), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    await expectHost('the channel read', unread, u => !u)
     await expectApp('the channel read', async () => unreadCount(convID), 0)
     await step('Marked read', {screenshot: false})
   })

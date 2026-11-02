@@ -13,12 +13,11 @@ import {
   createThrowawayChannel,
   deleteThrowawayChannel,
   ensureChatData,
-  readFromCli,
   type CliMessage,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {CORPUS} from '../../fixtures/corpus/corpus'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
@@ -50,6 +49,7 @@ import {
   waitForRow,
   waitForThreadStable,
 } from '../helpers/chat'
+import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {goBackUntilGone} from '../helpers/navigate'
@@ -86,10 +86,6 @@ describe('chat attachments', function () {
     return channel.topicName
   }
 
-  // The second account's peer service, found once: one that is missing fails the tests that need it.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-
   // Host-side setup only: the channel with the second account in it, and a first message from the
   // peer, which waits until the peer's inbox lists a channel this new. Worst case (s): seeding 20
   // minutes on a first run (the second account's membership), the block check 75, channel 240, peer
@@ -100,7 +96,7 @@ describe('chat attachments', function () {
     // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
     await requireSecondNotBlocked()
     channel = await createThrowawayChannel('attach')
-    await sendWithRetry(await sender(), channel.convID, e2eMarker('attach-hello'))
+    await sendWithRetry(await secondSender(), channel.convID, e2eMarker('attach-hello'))
   })
 
   // Worst case (s): delete 120.
@@ -123,7 +119,7 @@ describe('chat attachments', function () {
     ])
   })
 
-  const attachIncoming = async (file: string, title: string) => (await sender()).attach(convID(), corpusFile(file), title)
+  const attachIncoming = async (file: string, title: string) => (await secondSender()).attach(convID(), corpusFile(file), title)
 
   // Waits for the attachment titled `title` to land in the open thread drawn as `renderType`, its
   // preview ready and no transfer under way, and returns its ordinal and how the store holds it.
@@ -182,10 +178,7 @@ describe('chat attachments', function () {
   const expectHostTitles = async (what: string, ok: (titles: Array<string>) => boolean) => {
     const titles = (ms: Array<CliMessage>) =>
       ms.filter(m => m.content.type === 'attachment').map(m => m.content.attachment?.object?.title ?? '')
-    await waitFor(`the host to read ${what}`, async () => (ok(titles(await readFromCli({topicName: topicName()}))) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    await expectCli({topicName: topicName()}, what, ms => ok(titles(ms)))
   }
 
   it('an image the second account attaches shows inline and opens fullscreen', async function () {

@@ -10,7 +10,6 @@
 // The host stays on the smoke account, the channel owner: it seeds, reads back, and makes and
 // deletes the throwaway channel. Every incoming message, and the leave, comes from the second
 // account's peer service. Every body is stamped with the run id.
-import {loadE2EEnv} from '../../accounts/env'
 import {parseStampedText} from '../../accounts/run-id'
 import type {LoggedCall} from '../../shared/call-log.ts'
 import {
@@ -19,13 +18,11 @@ import {
   deleteThrowawayChannel,
   ensureChatData,
   oldestFromCli,
-  readFromCli,
   type ChatData,
-  type CliMessage,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {mainConversation} from '../../shared/main-rpc.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
@@ -43,13 +40,14 @@ import {
   clearComposer,
   closeMessageMenu,
   closeSearch,
-  deletePhase,
   type DeletePhase,
+  deletePhase,
   dragThread,
   expectAtEnd,
   heldWaitingKeys,
   hideKeyboard,
   isKeyboardUp,
+  messageIDAt,
   openConversation,
   openFromInbox,
   openMessageMenu,
@@ -74,6 +72,7 @@ import {
   waitForThreadStable,
   watchAccountChange,
 } from '../helpers/chat'
+import {expectCli, secondSender, textBodies} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {openUrl, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
@@ -112,22 +111,11 @@ describe('chat data', function () {
     await requireSecondNotBlocked()
   })
 
-  // The second account's peer service, found by the first test that needs it: one that is missing
-  // fails only those tests, with the reason.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-  const sendIncoming = async (convID: string, text: string) => (await sender()).send(convID, text)
+  const sendIncoming = async (convID: string, text: string) => (await secondSender()).send(convID, text)
 
   const openScratch = async () => openConversation(data.convIDs[E2E_CHANNELS.scratch])
   const openDirect = async () => openConversation(data.direct.convID)
 
-  // The host's read of a conversation's messages, polled until `ok` takes them.
-  const expectCli = async (where: {topicName: string} | {tlfName: string}, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await readFromCli(where)) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
-  const textBodies = (ms: Array<CliMessage>) => ms.filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
   const scratchOnHost = () => ({topicName: E2E_CHANNELS.scratch})
   const directOnHost = () => ({tlfName: data.direct.tlfName})
 
@@ -260,16 +248,10 @@ describe('chat data', function () {
     // Waits for the host to read the message showing `text` with, or without, the account's thumbs-up:
     // the message itself must be there either way.
     const expectHostThumbsUp = async (text: string, on: boolean) =>
-      waitFor(
-        `the host to read the thumbs-up ${on ? 'on' : 'gone from'} the message`,
-        async () => {
-          const m = (await readFromCli(scratchOnHost())).find(x => x.content.type === 'text' && x.content.text?.body === text)
-          if (!m) return undefined
-          const users = Object.keys(m.reactions?.reactions?.[thumbsUp]?.users ?? {})
-          return users.includes(data.smokeUser) === on ? true : undefined
-        },
-        {interval: 1_000, timeout: 20_000}
-      )
+      expectCli(scratchOnHost(), `the thumbs-up ${on ? 'on' : 'gone from'} the message`, ms => {
+        const m = ms.find(x => x.content.type === 'text' && x.content.text?.body === text)
+        return !!m && Object.keys(m.reactions?.reactions?.[thumbsUp]?.users ?? {}).includes(data.smokeUser) === on
+      })
 
     // The messages a test reacted to, for the afterEach to take a thumbs-up a test left off.
     let reacted: Array<string> = []
@@ -338,17 +320,6 @@ describe('chat data', function () {
       {interval: 1_000, timeout: 20_000}
     )
 
-  // A sent message's id, once the service has given it one.
-  const messageID = async (ordinal: number) =>
-    waitFor(
-      'the message id',
-      async () => {
-        const id = (await storedMessage(ordinal))?.id
-        return id ? id : undefined
-      },
-      {interval: 250, timeout: 10_000}
-    )
-
   describe('mark unread', () => {
     // The DM read again, after a timeout too: an unread DM hides its draft in the inbox, which the
     // composer flows read. Worst case (s): keyboard 5, open 100, the read 10 = 115.
@@ -374,8 +345,8 @@ describe('chat data', function () {
       const first = e2eMarker('data-unread-a')
       const firstOrdinal = await sendMessage(first)
       const secondOrdinal = await sendMessage(e2eMarker('data-unread-b'))
-      const firstID = await messageID(firstOrdinal)
-      const secondID = await messageID(secondOrdinal)
+      const firstID = await messageIDAt(firstOrdinal)
+      const secondID = await messageIDAt(secondOrdinal)
       await hideKeyboard()
       // the read pointer the mark moves back: past both sends (maxMsgid also counts edits and
       // reactions, so the sends' ids are the anchor)
@@ -725,12 +696,12 @@ describe('chat data', function () {
       const {convID, topicName} = await createThrowawayChannel('dsel')
       created.push(topicName)
       // the peer's inbox may not list a channel this new yet: its first send waits until it does
-      await sendWithRetry(await sender(), convID, e2eMarker('data-selection-hello'))
+      await sendWithRetry(await secondSender(), convID, e2eMarker('data-selection-hello'))
       await asSecond(async () => {
         await openConversation(convID)
         await waitFor('the inbox to list the channel', async () => ((await appInboxLists(convID)) ? true : undefined), {timeout: 15_000})
         await step('As the second account, the throwaway channel open')
-        await (await sender()).leave(convID)
+        await (await secondSender()).leave(convID)
         const shown = new Set<string | null>()
         let left = false
         for (const until = Date.now() + 5_000; Date.now() < until; ) {

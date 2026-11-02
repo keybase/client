@@ -14,7 +14,6 @@ import {
   deleteThrowawayChannel,
   ensureChatData,
   minWriterRoleFromCli,
-  readFromCli,
   readonlyMarker,
   setMinWriterRoleFromCli,
   type ChatData,
@@ -62,6 +61,7 @@ import {
   waitForRow,
   waitSignedIn,
 } from '../helpers/chat'
+import {expectCli, textBodies} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 
@@ -185,14 +185,7 @@ describe('chat composer', function () {
     what: string,
     ok: (bodies: Array<string>) => boolean
   ) =>
-    waitFor(
-      `the host to read ${what}`,
-      async () => {
-        const bodies = (await readFromCli(where)).filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
-        return ok(bodies) ? true : undefined
-      },
-      {interval: 1_000, timeout: 20_000}
-    )
+    expectCli(where, what, ms => ok(textBodies(ms)))
   const directOnHost = () => ({tlfName: data.direct.tlfName})
   const unchanged = (text: string, change: string) => (bodies: Array<string>) =>
     bodies.includes(text) && !bodies.includes(`${text}${change}`)

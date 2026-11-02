@@ -29,6 +29,7 @@ import {
   sendMessage,
   storedUnfurls,
 } from '../helpers/chat'
+import {expectHost} from '../helpers/chat-host'
 import {waitFor} from '../helpers/lifecycle'
 
 type Mode = 'always' | 'never' | 'whitelisted'
@@ -236,7 +237,7 @@ describe('chat unfurl', function () {
 
   // The host's settings polled until `ok` takes them. Bound: polled 50.
   const expectSettings = async (what: string, ok: (s: UnfurlSettings) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await getSettings()) ? true : undefined), {interval: 1_000, timeout: 20_000})
+    expectHost(what, getSettings, ok)
 
   it('Ask per domain: No with Remember blocks keybase.io, and its next link neither prompts nor unfurls', async function () {
     // worst case (s): set 60, open 100, postLink 40, prompt 30, step 2, answer 34, polled 50, step 2,

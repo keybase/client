@@ -7,7 +7,7 @@
 import {E2E_CHANNELS, ensureChatData, type ChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
-import {mainConversation, mainRpc, type MainConversation} from '../../shared/main-rpc.ts'
+import {mainRpc} from '../../shared/main-rpc.ts'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
@@ -18,6 +18,7 @@ import {
   closeSearch,
   hideKeyboard,
   isKeyboardUp,
+  messageIDAt,
   openConversation,
   openMessageMenu,
   openThreadSearch,
@@ -28,9 +29,9 @@ import {
   searchOpen,
   sendMessage,
   showsText,
-  storedMessage,
   waitForThreadStable,
 } from '../helpers/chat'
+import {expectHost, pinnedOnHost} from '../helpers/chat-host'
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 
@@ -55,17 +56,8 @@ describe('chat parity', function () {
   const scratch = () => data.convIDs[E2E_CHANNELS.scratch]
   const openScratch = async () => openConversation(scratch())
 
-  // The id of the message the host reads as the conversation's pin, or null when nothing is pinned.
-  type WithPin = MainConversation & {
-    info: {pinnedMsg?: {message?: {valid?: {serverHeader?: {messageID?: number}}}} | null}
-  }
-  const pinnedOnHost = async (convID: string) =>
-    ((await mainConversation(convID)) as WithPin).info.pinnedMsg?.message?.valid?.serverHeader?.messageID ?? null
   const expectPinnedOnHost = async (what: string, want: number | null) =>
-    waitFor(`the host to read ${what}`, async () => ((await pinnedOnHost(scratch())) === want ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    expectHost(what, async () => pinnedOnHost(scratch()), p => p === want)
 
   // Takes a pin a failed test left off e2e-scratch from the host, and reads it gone. Cleanup and a
   // test's starting point: nothing when nothing is pinned.
@@ -109,10 +101,7 @@ describe('chat parity', function () {
       await openScratch()
       const text = e2eMarker('parity-pin')
       const ordinal = await sendMessage(text)
-      const id = await waitFor('the message id', async () => (await storedMessage(ordinal))?.id || undefined, {
-        interval: 250,
-        timeout: 10_000,
-      })
+      const id = await messageIDAt(ordinal)
       await hideKeyboard()
       await openMessageMenu(text)
       await chooseMenuItem('Pin message')

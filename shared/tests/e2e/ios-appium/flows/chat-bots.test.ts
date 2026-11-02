@@ -8,12 +8,11 @@
 // the subteam and reads back the second account's role and the channels it reads. The bot's message
 // comes from the second account's peer service.
 import {randomBytes} from 'crypto'
-import {loadE2EEnv} from '../../accounts/env'
 import {createThrowawaySubteam, deleteThrowawaySubteam, ensureChatData, type ChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
 import {mainRpc} from '../../shared/main-rpc.ts'
-import {peerSender, sendWithRetry} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
@@ -39,6 +38,7 @@ import {
   typeInSearchFilter,
   waitForRow,
 } from '../helpers/chat'
+import {expectHost, secondSender} from '../helpers/chat-host'
 import {el, els, tapForTestID} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
@@ -83,8 +83,6 @@ describe('chat bots', function () {
         username: data.secondUser,
       })
     ).convs ?? []
-  const expectHost = async <V,>(what: string, read: () => Promise<V>, ok: (v: V) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await read()) ? true : undefined), {interval: 1_000, timeout: 20_000})
 
   type SubteamList = Array<{id: string; name: {parts: Array<string> | null}}> | null
   const subteams = async () =>
@@ -307,7 +305,7 @@ describe('chat bots', function () {
 
     // -- a message the bot posts offers to install it elsewhere --------------------------------------
     const text = e2eMarker('bot')
-    await sendWithRetry(await peerSender(loadE2EEnv()), generalConvID, text)
+    await sendWithRetry(await secondSender(), generalConvID, text)
     await openConversation(generalConvID)
     await waitForRow(text, 30_000)
     // the menu offers the install once the app has the bot among the team's members

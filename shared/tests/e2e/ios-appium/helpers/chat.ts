@@ -328,6 +328,9 @@ export const storedMessage = async (ordinal: number) =>
     if (m.reactions) for (const [emoji, r] of m.reactions) reactions.push({emoji, users: [...(r.users || [])].map(u => u.username)})
     return {author: m.author, id: Number(m.id) || 0, reactions, text: bodyOf(m).trim(), type: m.type}
   `)
+// A sent message's id, once the service has given it one. Bound: 10.
+export const messageIDAt = async (ordinal: number) =>
+  waitFor('the message id', async () => (await storedMessage(ordinal))?.id || undefined, {interval: 250, timeout: 10_000})
 
 // A loaded attachment as the store holds it: how the thread draws it ('attachment:image',
 // 'attachment:video', 'attachment:file', ...), whether its preview has a url, whether it is shown
@@ -1381,7 +1384,6 @@ export const catchUpPill = () => el(T.CHAT_CATCH_UP)
 export const replyPreview = () => el(T.CHAT_REPLY_PREVIEW)
 export const pinnedBanner = () => el(T.CHAT_PINNED_BANNER)
 export const editCancel = () => el(T.CHAT_EDIT_CANCEL)
-
 
 // -- assertions ----------------------------------------------------------------------------------
 

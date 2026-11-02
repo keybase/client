@@ -9,8 +9,6 @@
 import {
   E2E_CHANNELS,
   channelMembersFromCli,
-  createThrowawayChannel,
-  deleteThrowawayChannel,
   ensureChatData,
   leaveChannelFromCli,
   minWriterRoleFromCli,
@@ -50,6 +48,7 @@ import {
   typeInSearchFilter,
   visibleConversation,
 } from '../helpers/chat'
+import {expectHost, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
@@ -80,35 +79,23 @@ describe('chat channel settings', function () {
   // -- reads --------------------------------------------------------------------------------------
 
   const expectMembers = async (what: string, topicName: string, ok: (members: Array<string>) => boolean) =>
-    waitFor(`the host to read ${what}`, async () => (ok(await channelMembersFromCli(topicName)) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    expectHost(what, async () => channelMembersFromCli(topicName), ok)
 
   // DeviceType.mobile, as the service keys a conversation's notification settings
   const mobile = '1'
   const savedMobile = async (convID: string) => notifyChoiceOf((await mainConversation(convID)).notifications?.settings?.[mobile])
   const expectSavedMobile = async (what: string, convID: string, want: NotifyChoice) =>
-    waitFor(`the host to read ${what}`, async () => ((await savedMobile(convID)) === want ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    expectHost(what, async () => savedMobile(convID), c => c === want)
 
   // -- what the afterEach puts back ---------------------------------------------------------------
   // Each is set before the change it undoes and cleared once its restore reads back.
 
   // throwaway channels a test made
-  const channels = new Set<string>()
+  const channels = throwawayChannels()
   // a channel whose minimum role a test set
   let roleSetIn: string | undefined
   // a channel whose mobile notification setting a test changed, and the setting it had
   let notifyBefore: {convID: string; choice: NotifyChoice} | undefined
-
-  const newChannel = async (label: string) => {
-    const made = await createThrowawayChannel(label, {withSecond: false})
-    channels.add(made.topicName)
-    return made
-  }
 
   // the menu offers no "none": the host clears it, and reads it back
   const clearRole = async () => {
@@ -135,20 +122,13 @@ describe('chat channel settings', function () {
     notifyBefore = undefined
   }
 
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await deleteThrowawayChannel(topicName)
-      channels.delete(topicName)
-    }
-  }
-
   // Nothing a test changed left behind, after a timeout too: the host's restores first, then the
   // phone's screens. Worst case (s): close 5, keyboard 5, the role 195 (a read 60, the clear 135),
   // the notification setting 320 (a read 75, the current settings 75, the set 75, its poll 95), a
   // channel 120 (each test makes one), escapeToTabs 30 = 675.
   afterEach(async function () {
     this.timeout(720_000)
-    await withCleanup(closeMessageMenu, [hideKeyboard, clearRole, restoreNotify, deleteChannels, escapeToTabs])
+    await withCleanup(closeMessageMenu, [hideKeyboard, clearRole, restoreNotify, channels.deleteAll, escapeToTabs])
   })
 
   // Browse all channels lists the team's channels with Join beside those the account is not in. The
@@ -160,7 +140,7 @@ describe('chat channel settings', function () {
     // keyboard 5, the rows 10) = 276, step 2, the seq 2, the tap 5 (tapControlIn), calls 10, cli 80,
     // step 2, open 100, step 2 = 859
     this.timeout(900_000)
-    const {convID, topicName} = await newChannel('join')
+    const {convID, topicName} = await channels.make('join', {withSecond: false})
     await leaveChannelFromCli(topicName)
     await expectMembers('the account gone from the channel', topicName, m => !m.includes(data.smokeUser))
 
@@ -207,7 +187,7 @@ describe('chat channel settings', function () {
     // 20, type 21 (typeInSearchFilter), keyboard 5, the row 10, the tap 1, Add 5, step 2, the seq 2,
     // the tap 1, the filter gone 10, calls 10, cli 80, step 2 = 609
     this.timeout(640_000)
-    const {convID, topicName} = await newChannel('add')
+    const {convID, topicName} = await channels.make('add', {withSecond: false})
     check(!(await channelMembersFromCli(topicName)).includes(data.secondUser), 'the new channel already has the second account')
     await openConversation(convID)
     await openInfoPanel()
@@ -241,7 +221,7 @@ describe('chat channel settings', function () {
     // worst case (s): channel 240, cli 60, open 100, panel 25, on screen 20, gear 15, the seq 2, item
     // 20, calls 10, cli 80, step 2 = 574
     this.timeout(620_000)
-    const {convID, topicName} = await newChannel('minwrtr')
+    const {convID, topicName} = await channels.make('minwrtr', {withSecond: false})
     check(/\bnot set\b/i.test(await minWriterRoleFromCli(topicName)), 'a new channel has a minimum role')
     await openConversation(convID)
     await openInfoPanel(T.CHAT_INFO_PANEL_SETTINGS_TAB)
@@ -252,10 +232,7 @@ describe('chat channel settings', function () {
     const seq = await currentCallSeq()
     await chooseMenuItem('Admin')
     await waitForUiCall('the role to go out', seq, 'chat.1.local.setConvMinWriterRoleLocal')
-    await waitFor('the host to read the minimum role admin', async () => (/\badmin\b/i.test(await minWriterRoleFromCli(topicName)) ? true : undefined), {
-      interval: 1_000,
-      timeout: 20_000,
-    })
+    await expectHost('the minimum role admin', async () => minWriterRoleFromCli(topicName), r => /\badmin\b/i.test(r))
     await step('Minimum role to post: Admin', {card: true})
   })
 
@@ -267,7 +244,7 @@ describe('chat channel settings', function () {
     // open 100, panel 25, on screen 20, the chosen one 10, its read 1, step 2, on screen 20, the tap
     // 21, conv 95, step 2 = 1196
     this.timeout(1_240_000)
-    const {convID} = await newChannel('notify')
+    const {convID} = await channels.make('notify', {withSecond: false})
     const original = await savedMobile(convID)
     check(original !== 'onWhenAtMentioned', 'a new channel starts with the mobile setting this test picks')
     notifyBefore = {choice: original, convID}
@@ -317,7 +294,7 @@ describe('chat channel settings', function () {
     // tap 1, calls 10, the inbox 10, the screen 1, cli 80, row 120, absent 120, the layout 10, step 2
     // = 803
     this.timeout(820_000)
-    const {convID, topicName} = await newChannel('leave')
+    const {convID, topicName} = await channels.make('leave', {withSecond: false})
     check((await channelMembersFromCli(topicName)).includes(data.smokeUser), 'the account is not in the new channel')
     await openConversation(convID)
     await openInfoPanel(T.CHAT_INFO_PANEL_SETTINGS_TAB)

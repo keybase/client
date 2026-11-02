@@ -8,7 +8,6 @@
 //
 // The app stays on the smoke account throughout. Incoming messages come from the second account's
 // peer service; what the phone sends is smoke's own. Every body is stamped with the run id.
-import {loadE2EEnv} from '../../accounts/env'
 import {
   E2E_CHANNELS,
   LONG_COUNT,
@@ -26,7 +25,6 @@ import {
   type E2EChannel,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {peerSender, type IncomingSender} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
@@ -79,6 +77,7 @@ import {
   type ThreadSample,
   type Viewport,
 } from '../helpers/chat'
+import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 
@@ -111,13 +110,7 @@ describe('chat scroll', function () {
     await requireSecondNotBlocked()
   })
 
-  // The second account's peer service, found by the first test that needs it: one that is missing
-  // fails only those tests, with the reason.
-  let sender: Promise<IncomingSender> | undefined
-  const sendIncoming = async (channel: E2EChannel, text: string) => {
-    sender ??= peerSender(loadE2EEnv())
-    await (await sender).send(data.convIDs[channel], text)
-  }
+  const sendIncoming = async (channel: E2EChannel, text: string) => (await secondSender()).send(data.convIDs[channel], text)
 
   const openLong = async () => openConversation(data.convIDs[E2E_CHANNELS.long])
   const openScratch = async () => openConversation(data.convIDs[E2E_CHANNELS.scratch])
