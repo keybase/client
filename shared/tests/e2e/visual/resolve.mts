@@ -11,14 +11,14 @@
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
-import {readCli} from '../shared/cli-read.ts'
+import {readCliMasked} from './cli-masked.mts'
 import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
 
-// Every call here only reads. Bound: readCli's, 60s.
-export const runCli: CliRunner = async args => readCli(args, `keybase ${args[0]}`)
+// Every call here only reads. Bound: readCli's, 61s.
+export const runCli: CliRunner = async args => readCliMasked(args, `keybase ${args[0]}`)
 
 type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})

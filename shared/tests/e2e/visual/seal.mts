@@ -21,7 +21,7 @@
 // `git` is left out: nothing here can confirm `keybase git list` is read-only.
 import {createHash} from 'crypto'
 import {e2eAccounts} from '../shared/chat-data.ts'
-import {readCli} from '../shared/cli-read.ts'
+import {readCliMasked} from './cli-masked.mts'
 
 export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate' | 'fsHistory'
 export type Seal = {
@@ -187,8 +187,8 @@ export const diffSeals = (a: Seal, b: Seal): Array<string> => {
   return out
 }
 
-// every seal read is read-only. Bound: readCli's, 60s.
-const run = async (args: Array<string>) => readCli(args, `seal: keybase ${args.join(' ')}`)
+// every seal read is read-only. Bound: readCli's, 61s.
+const run = async (args: Array<string>) => readCliMasked(args, `seal: keybase ${args[0]}`)
 
 const readRaw = async (field: SealField): Promise<unknown> => {
   const {smokeUser, team} = e2eAccounts()
