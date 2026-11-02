@@ -14,6 +14,7 @@ import {buildPwReport} from './gate/results-lib'
 import {beginErrorCapture} from './gate/errors'
 import {finishAttempt, type TestResult} from './gate/finish'
 import {noteProtocolResult} from './gate/hang'
+import {scanHeldSecrets} from './gate/run-secrets'
 import {forgetRunPaperKeyNames, SCAN_PAPER_KEY_NAMES_VAR, withPaperKeyNames} from '../accounts/paper-key-ledger'
 import {envSecrets, scanAndPurge, SECRET_SCAN_FILE, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan'
 
@@ -74,6 +75,13 @@ export const config: WebdriverIO.Config = {
       browser.on('result', (event: {result?: unknown}) => {
         noteProtocolResult(event.result)
       })
+    },
+  ],
+  // the secrets a flow handed the app that only the worker knows
+  after: [
+    ...[base.after ?? []].flat(),
+    () => {
+      for (const f of scanHeldSecrets()) console.error(`[ios gate] one-time secret found, deleted: ${f}`)
     },
   ],
   beforeTest: async () => {

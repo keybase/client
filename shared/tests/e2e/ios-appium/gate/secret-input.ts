@@ -7,6 +7,7 @@
 // and takes no step screenshot while the field holds it.
 import {evalInPage, INSPECTOR_CLOSED, inspectorPageFor} from '../../shared/metro-eval.ts'
 import {BUNDLE_ID, deviceName} from '../helpers/lifecycle'
+import {holdRunSecret} from './run-secrets'
 import {
   type FieldRead,
   fieldProblem,
@@ -109,8 +110,9 @@ export const fieldLength = async (fieldTestID: string): Promise<number> => {
 // Hands a provisioning phrase to the code page the app has open, through submitProvisionTextCode
 // (what its QR scanner calls with the code it read: the simulator has no camera). The phrase travels
 // only in the second eval, as a secret does above. The app's answer comes later: its code page
-// closes once the provisioning ends.
+// closes once the provisioning ends. The phrase is held for the worker's end-of-run scan.
 export const submitProvisionPhrase = async (phrase: string): Promise<void> => {
+  holdRunSecret(phrase)
   const ready = await evalWithheld<ProvisionSubmit>(provisionPrepareEvalBody(), 'checking the code page before submitting the phrase')
   if (ready?.state !== 'ready') throw new Error(provisionProblem(ready))
   const r = await evalWithheld<ProvisionSubmit>(secretEvalBody(phrase), 'submitting the phrase')
