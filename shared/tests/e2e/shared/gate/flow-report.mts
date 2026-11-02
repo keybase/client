@@ -16,8 +16,6 @@ export type FlowReportPlatform = {
   prevDir: string
   // sections appended after the flows, e.g. desktop's storybook
   extraSections?: () => Array<Section>
-  // names the extra sections' cards in the summary line, e.g. 'storybook stories'
-  extraLabel?: string
   // --save-baseline for the extra sections' screenshots
   saveExtraBaseline?: (cards: Array<CardData>) => void
   manualOnly: Record<string, {title: string; doByHand: string}>
@@ -270,7 +268,7 @@ export const runFlowReport = (p: FlowReportPlatform, argv: ReadonlyArray<string>
 
   const withDiff = [...e2eCards, ...extraCards].filter(c => c.diff !== null).length
   const diffNote = withDiff > 0 ? `, ${withDiff} vs baseline` : ''
-  const extraNote = extraCards.length > 0 ? `, ${extraCards.length} ${p.extraLabel ?? 'extra cards'}` : ''
+  const extraNote = extraSections.map(s => `, ${s.header ?? `${s.cards.length} extra cards`}`).join('')
   const errNote = globalErrorCards.length > 0 ? `, ${globalErrorCards.length} run error(s)` : ''
   const renderNote = renderCards.length > 0 ? `, tour ${renderCards.filter(c => c.passed).length}/${renderCards.length} rendered` : ''
   console.log(`Report written to ${p.outputPath} (${e2eCards.filter(c => c.passed).length}/${e2eCards.length} passed${diffNote}${extraNote}${errNote}${renderNote})`)

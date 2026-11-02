@@ -60,7 +60,7 @@ test('a covered route exits 0 and writes the prefixed census files', () => {
   assert.equal(quiet(() => runCensusCli(platform, ['--no-render'])), 0)
   assert.match(fs.readFileSync(path.join(dir, 'x-census.md'), 'utf8'), /routeA/)
   const json = JSON.parse(fs.readFileSync(path.join(dir, 'x-census.json'), 'utf8')) as Record<string, unknown>
-  assert.ok('panels' in json && 'unclaimedPanels' in json && 'stalePanels' in json)
+  assert.ok('surfaces' in json && 'unclaimedSurfaces' in json && 'staleSurfaces' in json && json['noun'] === 'panel')
 })
 
 test('an unclaimed route exits 1', () => {

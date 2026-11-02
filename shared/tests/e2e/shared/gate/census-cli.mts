@@ -3,7 +3,6 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {parseArgs} from 'util'
 import {
-  capitalized,
   census,
   censusFailed,
   censusTotals,
@@ -126,12 +125,10 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
   const mdFile = path.join(resultsDir, `${p.outPrefix}census.md`)
   fs.mkdirSync(resultsDir, {recursive: true})
   fs.writeFileSync(mdFile, md)
-  const {noun, staleSurfaces, surfaces: covered, unclaimedSurfaces, ...rest} = result
-  const cap = capitalized(noun)
-  const json = {[`stale${cap}s`]: staleSurfaces, [`unclaimed${cap}s`]: unclaimedSurfaces, [`${noun}s`]: covered, ...rest}
+  const {noun} = result
   fs.writeFileSync(
     path.join(resultsDir, `${p.outPrefix}census.json`),
-    JSON.stringify({...json, sources: {project: args.project, render: renderDir ?? null, results: args.results}}, null, 2)
+    JSON.stringify({...result, sources: {project: args.project, render: renderDir ?? null, results: args.results}}, null, 2)
   )
   const t = censusTotals(result)
   console.log(

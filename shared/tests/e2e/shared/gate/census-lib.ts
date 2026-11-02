@@ -357,7 +357,7 @@ export type CensusMeta = {
 }
 
 // `window` -> `Window`
-export const capitalized = (s: string) => `${s.charAt(0).toUpperCase()}${s.slice(1)}`
+const capitalized = (s: string) => `${s.charAt(0).toUpperCase()}${s.slice(1)}`
 
 export const renderCensusMarkdown = (r: CensusResult, meta: CensusMeta): string => {
   const t = censusTotals(r)

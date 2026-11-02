@@ -48,7 +48,6 @@ function saveStorybookBaseline(cards: CardData[]) {
 process.exitCode = runFlowReport({
   checklistPath: 'tests/results/manual-checklist.md',
   debugDir: 'tests/results/electron-debug',
-  extraLabel: 'storybook stories',
   extraSections: () => {
     const cards = parseStorybookScreenshots()
     return cards.length > 0 ? [{header: `Storybook · ${cards.length} stories`, cards, excludeFromStats: true}] : []
