@@ -5,7 +5,7 @@ import {appAccount, phoneDevice, signedOutThenBack} from '../gate/accounts'
 import {byText, el} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 import {beginErrorCapture, takeErrors} from '../gate/errors'
-import {screenName, tapToScreen} from '../gate/screens'
+import {screenName, swipeUpUntil, tapToScreen} from '../gate/screens'
 import {step} from '../gate/step'
 import {openLink, relaunchApp, setPasteboard} from '../gate/device'
 import {attemptRecording} from '../gate/recording'
@@ -38,31 +38,34 @@ describe('harness restore from signed-out screens', () => {
     await step('Back on the smoke account')
   }
 
-  it('backs out of a recover-password sub-screen', async () => {
-    await restoresFrom(async () => {
-      await tapToScreen(() => byText('Forgot password?'), 'recoverPasswordDeviceSelector')
-      // the reset row ends a list of every device the account has
-      const reset = byText('I lost all my devices/paper keys')
-      for (let i = 0; i < 60 && !(await reset.isExisting()); i++) await browser.execute('mobile: swipe', {direction: 'up'})
-      await tapToScreen(() => reset, 'recoverPasswordPromptResetAccount')
-      await byText('Start account reset').waitForExist({timeout: 15_000})
-    }, 'Recover password offers the account reset, two screens over the login screen')
-  })
-
-  it('backs out of the username screen', async () => {
-    await restoresFrom(async () => tapToScreen(() => byText('Someone else...'), 'username'), 'The username screen is over the login screen')
-  })
-
-  it('backs out of the logged-out feedback screen', async () => {
-    await restoresFrom(
+  const CASES: Array<[string, () => Promise<void>, string]> = [
+    [
+      'a recover-password sub-screen',
+      async () => {
+        await tapToScreen(() => byText('Forgot password?'), 'recoverPasswordDeviceSelector')
+        // the reset row ends a list of every device the account has
+        const reset = () => byText('I lost all my devices/paper keys')
+        await swipeUpUntil(reset, 'the account reset row', 60)
+        await tapToScreen(reset, 'recoverPasswordPromptResetAccount')
+        await byText('Start account reset').waitForExist({timeout: 15_000})
+      },
+      'Recover password offers the account reset, two screens over the login screen',
+    ],
+    ['the username screen', async () => tapToScreen(() => byText('Someone else...'), 'username'), 'The username screen is over the login screen'],
+    [
+      'the logged-out feedback screen',
       async () => tapToScreen(() => byText('Problems logging in?'), 'signupSendFeedbackLoggedOut'),
-      'The feedback screen is over the login screen'
-    )
-  })
-
-  it('backs out of the signup username screen', async () => {
-    await restoresFrom(async () => tapToScreen(() => byText('Create account'), 'signupEnterUsername'), 'The signup username screen is over the login screen')
-  })
+      'The feedback screen is over the login screen',
+    ],
+    [
+      'the signup username screen',
+      async () => tapToScreen(() => byText('Create account'), 'signupEnterUsername'),
+      'The signup username screen is over the login screen',
+    ],
+  ]
+  for (const [screen, open, what] of CASES) {
+    it(`backs out of ${screen}`, async () => restoresFrom(open, what))
+  }
 })
 
 describe('harness device helpers', () => {
