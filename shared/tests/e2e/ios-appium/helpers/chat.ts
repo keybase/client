@@ -7,7 +7,7 @@
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, el, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, fieldText, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
@@ -888,12 +888,7 @@ export const switchAppAccount = async (username: string) => {
 // -- composer ------------------------------------------------------------------------------------
 
 // The composer's text, read from the input element.
-export const composerText = async () => {
-  const v = await el(T.CHAT_INPUT).getAttribute('value')
-  // an empty UITextView reports its placeholder as its value
-  const placeholder = await el(T.CHAT_INPUT).getAttribute('placeholderValue').catch(() => null)
-  return v === null || v === placeholder ? '' : v
-}
+export const composerText = async () => fieldText(el(T.CHAT_INPUT))
 
 export const waitForComposerText = async (text: string, timeout = 5_000) =>
   waitFor(`the composer to read "${text}"`, async () => ((await composerText()) === text ? true : undefined), {
@@ -907,23 +902,8 @@ export const typeInComposer = async (text: string) => {
   await el(T.CHAT_INPUT).addValue(text)
 }
 
-// Deletes `held` (what the field holds, its caret at the end) with backspace keys. A field is never
-// cleared with WDA's clearValue (or setValue, which clears first): after it the app's process stays
-// in hardware-keyboard mode, so a later focus draws no software keyboard and Keyboard.metrics() stays
-// unset until keys are typed again.
-const deleteByKeys = async (input: ChainablePromiseElement, held: string) => {
-  if (held) await input.addValue('\b'.repeat([...held].length))
-}
-
-// A draft left by an earlier test leaves the caret wherever the focusing tap landed, so the caret is
-// first put at the text's end by a tap in the input's bottom-right corner, past its last line.
 export const clearComposer = async () => {
-  const held = await composerText()
-  if (held === '') return
-  const input = el(T.CHAT_INPUT)
-  const r = await input.getElementRect(await input.elementId)
-  await browser.execute('mobile: tap', {x: Math.round(r.x + r.width - 4), y: Math.round(r.y + r.height - 4)})
-  await deleteByKeys(input, held)
+  await clearFieldByKeys(el(T.CHAT_INPUT))
   await waitForComposerText('')
 }
 
@@ -1307,8 +1287,7 @@ export const searchFor = async (query: string, timeout = 30_000) => {
   const end = Date.now() + timeout
   for (;;) {
     await input.waitForExist({timeout: 5_000})
-    const native = await input.getAttribute('value')
-    await deleteByKeys(input, native === null || native === 'Search...' ? '' : native)
+    await clearFieldByKeys(input)
     await input.addValue(query)
     // Only not holding the query yet is waited out (and the query typed again); any other failure
     // (a lost session, the eval itself) is thrown. The wait ends with the overall deadline.
