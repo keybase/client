@@ -59,42 +59,32 @@ export const inspectorPageFor = async (device: string, appId: string) =>
 export type WaitClock = {now: () => number; sleep: (ms: number) => Promise<void>}
 const realClock: WaitClock = {now: () => Date.now(), sleep: async ms => new Promise(resolve => setTimeout(resolve, ms))}
 
-// Runs a side-effect-free `read` until it answers, trying it again for up to `ms` while it fails on a
-// lost page (while the app's inspector socket flaps, a lookup can find the page and the eval's socket
-// still be closed under it). Any other failure, or the last one at the bound, is thrown. Never for a
-// body that changes anything: one that already ran may have done it.
-export const retryReadWhileLost = async <R,>(read: () => Promise<R>, opts: {ms: number; intervalMs: number; clock?: WaitClock}): Promise<R> => {
+// Runs a side-effect-free `f` (a page lookup, a read) until it answers, trying it again every
+// `intervalMs` for up to `ms` while it fails in a way `retryIf` accepts (any failure when there is
+// none). A failure it does not accept, or the last one at the bound, is thrown, prefixed with `what`
+// when given. Never for a body that changes anything: one that already ran may have done it.
+export const retryFor = async <R,>(
+  f: () => Promise<R>,
+  opts: {ms: number; intervalMs: number; retryIf?: (e: Error) => boolean; what?: string; clock?: WaitClock}
+): Promise<R> => {
   const clock = opts.clock ?? realClock
   const end = clock.now() + opts.ms
   for (;;) {
     try {
-      return await read()
+      return await f()
     } catch (e) {
-      if (!lostInspectorPage((e as Error).message) || clock.now() >= end) throw e
+      const err = e as Error
+      if ((opts.retryIf && !opts.retryIf(err)) || clock.now() >= end) {
+        throw opts.what ? new Error(`${opts.what}: ${err.message}`, {cause: e}) : e
+      }
       await clock.sleep(opts.intervalMs)
     }
   }
 }
 
-// Runs `lookup` until it returns a page, every `intervalMs` for up to `ms`; the last failure is
-// thrown, prefixed with `what`. Only a lookup belongs here, never an eval: a body may not be safe to
-// run twice.
-export const waitForInspectorPage = async (
-  lookup: () => Promise<InspectorPage>,
-  what: string,
-  opts: {ms: number; intervalMs: number; clock?: WaitClock}
-): Promise<InspectorPage> => {
-  const clock = opts.clock ?? realClock
-  const end = clock.now() + opts.ms
-  for (;;) {
-    try {
-      return await lookup()
-    } catch (e) {
-      if (clock.now() >= end) throw new Error(`${what}: ${(e as Error).message}`, {cause: e})
-      await clock.sleep(opts.intervalMs)
-    }
-  }
-}
+// While the app's inspector socket flaps, a lookup can find the page and the eval's socket still be
+// closed under it: a read is tried again on that alone.
+export const whileLost = (e: Error) => lostInspectorPage(e.message)
 
 // The id of the module Metro registered as `name`: an exact verboseName first, then, for a
 // node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro

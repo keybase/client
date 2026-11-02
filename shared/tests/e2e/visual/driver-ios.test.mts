@@ -434,6 +434,18 @@ test('a router check that loses the page notes the drop, and a restarted runtime
   assert.deepEqual(calls, ['routerAt', 'noteDrop', 'readToken', 'reload'])
 })
 
+test('a router check that loses the page goes on as a drop: the page back on the same runtime gets the router once more', async () => {
+  const ok = recoverWith({router: [LOST]})
+  assert.equal(await recoverApp(ok.deps), undefined)
+  assert.deepEqual(ok.calls, ['routerAt', 'noteDrop', 'readToken', 'routerAt'])
+  const broken = recoverWith({router: [LOST, 'reading the router state: app evaluate threw: Error: no navigation state']})
+  assert.match((await recoverApp(broken.deps)) ?? '', /Metro lists nothing\); once the page was back: .*no navigation state\) and was reloaded/)
+  assert.deepEqual(broken.calls, ['routerAt', 'noteDrop', 'readToken', 'routerAt', 'reload'])
+  const gone = recoverWith({router: [LOST], token: [false]})
+  assert.match((await recoverApp(gone.deps)) ?? '', /Metro lists nothing\); the inspector page did not come back\) and was relaunched/)
+  assert.deepEqual(gone.calls, ['routerAt', 'noteDrop', 'readToken', 'relaunch'])
+})
+
 test('without a drop a working router needs nothing, and a broken one is reloaded', async () => {
   const ok = recoverWith({})
   assert.equal(await recoverApp(ok.deps), undefined)

@@ -1,4 +1,4 @@
-import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, retryReadWhileLost, waitForInspectorPage, type WaitClock} from './metro-eval'
+import {evalInPage, findModuleId, INSPECTOR_CLOSED, lostInspectorPage, NO_INSPECTOR_PAGE, pickInspectorPage, retryFor, type WaitClock, whileLost} from './metro-eval'
 
 const mods = (...names: Array<string>): Array<[number, {verboseName?: string}]> => names.map((verboseName, i) => [i, {verboseName}])
 const TIS = 'node_modules/react-native/Libraries/Components/TextInput/TextInputState.js'
@@ -64,7 +64,7 @@ const fakeClock = (lookupMs = 0) => {
 test('the page wait returns as soon as a lookup finds the page, without sleeping', async () => {
   const {clock, sleeps} = fakeClock()
   const found = page('iPhoneTest', 'keybase.ios', 'a')
-  await expect(waitForInspectorPage(async () => Promise.resolve(found), 'reading', {clock, intervalMs: 500, ms: 15_000})).resolves.toBe(found)
+  await expect(retryFor(async () => Promise.resolve(found), {clock, intervalMs: 500, ms: 15_000, what: 'reading'})).resolves.toBe(found)
   expect(sleeps).toEqual([])
 })
 
@@ -78,7 +78,7 @@ test('the page wait rides out a drop that ends inside its bound', async () => {
       ? Promise.reject(new Error(`${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`))
       : Promise.resolve(found)
   }
-  await expect(waitForInspectorPage(lookup, 'reading', {clock, intervalMs: 500, ms: 15_000})).resolves.toBe(found)
+  await expect(retryFor(lookup, {clock, intervalMs: 500, ms: 15_000, what: 'reading'})).resolves.toBe(found)
   expect(calls).toBe(5)
   expect(sleeps).toEqual([500, 500, 500, 500])
 })
@@ -89,7 +89,7 @@ test('a page that never comes back fails once, at the bound, naming the step', a
     tick()
     return Promise.reject(new Error(`${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`))
   }
-  await expect(waitForInspectorPage(lookup, 'reading the router state', {clock, intervalMs: 500, ms: 15_000})).rejects.toThrow(
+  await expect(retryFor(lookup, {clock, intervalMs: 500, ms: 15_000, what: 'reading the router state'})).rejects.toThrow(
     `reading the router state: ${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`
   )
   // 600ms per try (100ms lookup, 500ms sleep): the try at 15.0s still fails, the one past it stops
@@ -158,7 +158,7 @@ test('a read is tried again while its socket keeps closing under it, and answers
     calls++
     return clock.now() < 1000 + 1_500 ? Promise.reject(new Error(`reading the JS runtime token: ${INSPECTOR_CLOSED}`)) : Promise.resolve('tok-1')
   }
-  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).resolves.toBe('tok-1')
+  await expect(retryFor(read, {clock, intervalMs: 500, ms: 15_000, retryIf: whileLost})).resolves.toBe('tok-1')
   expect(calls).toBe(4)
   expect(sleeps).toEqual([500, 500, 500])
 })
@@ -170,7 +170,7 @@ test('a read that fails for another reason is not tried again', async () => {
     calls++
     return Promise.reject(new Error('app evaluate threw: Error: boom'))
   }
-  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).rejects.toThrow('boom')
+  await expect(retryFor(read, {clock, intervalMs: 500, ms: 15_000, retryIf: whileLost})).rejects.toThrow('boom')
   expect(calls).toBe(1)
   expect(sleeps).toEqual([])
 })
@@ -181,7 +181,7 @@ test('a read whose page stays lost fails at the bound with the last error', asyn
     tick()
     return Promise.reject(new Error(`reading: ${NO_INSPECTOR_PAGE} for iPhoneTest (Metro lists nothing)`))
   }
-  await expect(retryReadWhileLost(read, {clock, intervalMs: 500, ms: 15_000})).rejects.toThrow(NO_INSPECTOR_PAGE)
+  await expect(retryFor(read, {clock, intervalMs: 500, ms: 15_000, retryIf: whileLost})).rejects.toThrow(NO_INSPECTOR_PAGE)
   expect(clock.now()).toBeGreaterThanOrEqual(1000 + 15_000)
   expect(clock.now()).toBeLessThan(1000 + 15_000 + 600)
 })

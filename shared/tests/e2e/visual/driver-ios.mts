@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor, lostInspectorPage, retryReadWhileLost, waitForInspectorPage} from '../shared/metro-eval.ts'
+import {evalInPage, inspectorPageFor, lostInspectorPage, retryFor, whileLost} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -152,38 +152,37 @@ export type RecoverDeps = {
 // that restarted has a router too, but none of what prepare set, so it is reloaded. The router and
 // token reads are side-effect free, so they may run again; nothing else does.
 export const recoverApp = async (d: RecoverDeps): Promise<string | undefined> => {
-  let why: string
-  let step: 'reload' | 'relaunch'
-  const pageBack = d.dropPending() ? await d.readToken() : undefined
-  if (pageBack === false) {
-    why = 'the inspector page did not come back'
-    step = 'relaunch'
-  } else if (pageBack && d.runtimeRestarted()) {
-    why = 'the JS runtime restarted while the inspector page was gone'
-    step = 'reload'
-  } else {
+  let why = ''
+  let step: 'reload' | 'relaunch' = 'reload'
+  const also = (s: string) => {
+    why = why ? `${why}; ${s}` : s
+  }
+  // with no drop yet, the router first: a lost page there is a drop, and goes on as one
+  if (!d.dropPending()) {
     try {
       await d.routerAt()
       return undefined
     } catch (e) {
       why = (e as Error).message
+      step = recoveryFor(why)
     }
-    step = recoveryFor(why)
-    if (lostInspectorPage(why)) {
-      d.noteDrop()
-      const back = await d.readToken()
-      if (back && d.runtimeRestarted()) {
-        why = `${why}; the JS runtime restarted`
-        step = 'reload'
-      } else if (back) {
-        try {
-          await d.routerAt()
-          return undefined
-        } catch (e) {
-          const again = (e as Error).message
-          why = `${why}; once the page was back: ${again}`
-          step = recoveryFor(again)
-        }
+    if (lostInspectorPage(why)) d.noteDrop()
+  }
+  if (d.dropPending()) {
+    if (!(await d.readToken())) {
+      also('the inspector page did not come back')
+      step = 'relaunch'
+    } else if (d.runtimeRestarted()) {
+      also('the JS runtime restarted while the inspector page was gone')
+      step = 'reload'
+    } else {
+      try {
+        await d.routerAt()
+        return undefined
+      } catch (e) {
+        const again = (e as Error).message
+        also(why ? `once the page was back: ${again}` : again)
+        step = recoveryFor(again)
       }
     }
   }
@@ -485,10 +484,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
 
   const appEval = async <R,>(body: string, what: string) => {
-    const page = await waitForInspectorPage(async () => inspectorPageFor(device, BUNDLE_ID), what, {
-      intervalMs: PAGE_POLL_MS,
-      ms: PAGE_MS,
-    })
+    const page = await retryFor(async () => inspectorPageFor(device, BUNDLE_ID), {intervalMs: PAGE_POLL_MS, ms: PAGE_MS, what})
     return withDeadline(evalInPage<R>(page, body), EVAL_MS, what)
   }
   const appCmd = async <R,>(p: Promise<R>, what: string) => withDeadline(p, APP_CMD_MS, what)
@@ -554,23 +550,24 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const noteDrop = () => {
     drop ??= {pid: appPid(), tokenExpected: runtimeToken}
   }
+  // Reads the app's runtime token once its page answers, once per drop (a no-op once read, or with
+  // no drop): false when the page does not answer.
   const readDropToken = async () => {
+    const d = drop
+    if (!d || d.tokenSeen !== undefined) return true
     try {
-      const t = await retryReadWhileLost(async () => appEval<unknown>('return globalThis.__kbVisualRuntime', 'reading the JS runtime token'), {
+      const t = await retryFor(async () => appEval<unknown>('return globalThis.__kbVisualRuntime', 'reading the JS runtime token'), {
         intervalMs: PAGE_POLL_MS,
         ms: PAGE_MS,
+        retryIf: whileLost,
       })
-      if (drop && drop.tokenSeen === undefined) drop.tokenSeen = typeof t === 'string' ? t : null
+      d.tokenSeen = typeof t === 'string' ? t : null
       return true
     } catch {
       return false
     }
   }
   const runtimeRestarted = () => drop !== undefined && drop.tokenSeen !== drop.tokenExpected
-  const readDropTokenOnce = async () => (drop?.tokenSeen !== undefined ? true : readDropToken())
-  const readDropTokenIfUnread = async () => {
-    if (drop && drop.tokenSeen === undefined) await readDropToken()
-  }
   const relaunchApp = async () => {
     await markRuntime().catch(() => {})
     await appCmd(browser.terminateApp(BUNDLE_ID), 'terminating the app')
@@ -916,7 +913,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     return recoverApp({
       dropPending: () => drop !== undefined,
       noteDrop,
-      readToken: readDropTokenOnce,
+      readToken: readDropToken,
       relaunch: async () => relaunchPrepared(at),
       reload: async () => reloadPrepared(at),
       routerAt,
@@ -1040,7 +1037,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)
     // after a reload or relaunch this reads that new runtime, which keeps the entry failed
-    await readDropTokenIfUnread()
+    await readDropToken()
     const firstError = result.error ?? problems[0]
     if (problems.length) {
       const why = problems.join('; ')
