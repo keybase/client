@@ -6,6 +6,9 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
+import {createHash} from 'crypto'
+import * as fs from 'fs'
+import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, clearFieldByKeys, el, els, fieldText, pasteFromMenu, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
@@ -13,6 +16,8 @@ import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './m
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
+import {downloadFromCli, type CliMessage} from '../../shared/chat-data'
+import {e2eRunId} from '../../shared/run-marker'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {askApp, jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
@@ -2080,3 +2085,23 @@ export const storedUnfurls = async (ordinal: number) =>
     const prompts = st.unfurlPrompt.get(m.id)
     return {id: Number(m.id) || 0, prompts: prompts ? [...prompts] : [], unfurls: m.unfurls ? m.unfurls.size : 0}
   `)
+
+// -- attachments on the host -----------------------------------------------------------------------
+
+// The sha256 of a file on this Mac, in hex.
+export const fileSha = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')
+
+// What `read` makes of the host's copy of attachment `m` in the smoke account's self conversation,
+// downloaded into a folder of its own (mode 700) under /tmp/kb-e2e, removed after. Bound: the
+// download 60, and `read`.
+export const hostCopy = async <R,>(smokeUser: string, m: CliMessage, read: (file: string) => R) => {
+  fs.mkdirSync('/tmp/kb-e2e', {recursive: true})
+  const dir = fs.mkdtempSync(path.join('/tmp/kb-e2e', `dl-${e2eRunId()}-`))
+  try {
+    const file = path.join(dir, 'attachment')
+    await downloadFromCli({tlfName: smokeUser}, m.id, file)
+    return read(file)
+  } finally {
+    fs.rmSync(dir, {force: true, recursive: true})
+  }
+}

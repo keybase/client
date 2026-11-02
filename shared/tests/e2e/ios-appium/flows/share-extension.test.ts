@@ -14,18 +14,16 @@
 // this run's payload folders from incoming-shares (a failure poisons the gate) and the seed folder,
 // puts other text on the pasteboard after the image paste, and deletes the Maps test's message (its
 // text starts with the link, so the sweeper would not know it as this run's).
-import {createHash} from 'crypto'
-import * as fs from 'fs'
-import * as path from 'path'
 import {loadE2EAccounts} from '../../accounts/env'
-import {CORPUS} from '../../fixtures/corpus/corpus'
-import {deleteFromCli, downloadFromCli, readFromCli, type CliMessage} from '../../shared/chat-data'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
+import {deleteFromCli, readFromCli, type CliMessage} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {e2eMarker, e2eRunId} from '../../shared/run-marker'
+import {e2eMarker} from '../../shared/run-marker'
 import {unfurlSettings} from '../../shared/settings'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
+import {APPLE_PARK} from '../gate/location-lib.ts'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {
@@ -48,7 +46,7 @@ import {
 } from '../gate/share'
 import {extensionRequests, mapsShareProblem, requireOneItem, textPage, unfurlFetchProblem, type ManifestItem} from '../gate/share-lib.ts'
 import {step} from '../gate/step'
-import {composerText, pasteIntoComposer} from '../helpers/chat'
+import {composerText, fileSha, hostCopy, pasteIntoComposer} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {expectScreen, fillHiddenField, tapButton} from '../helpers/files'
 import {openSelfConversation, waitFor} from '../helpers/lifecycle'
@@ -59,12 +57,6 @@ const POST_TEXT = 'chat.1.local.postTextNonblock'
 const SEED_FOLDER = 'the share flow\'s seed folder'
 const PASTEBOARD = 'the share flow\'s pasteboard overwrite'
 
-const corpusFile = (name: string) => {
-  const entry = CORPUS.find(c => c.name === name)
-  if (!entry) throw new Error(`the corpus has no ${name}`)
-  return entry.file
-}
-const fileSha = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')
 const localPath = (p: string) => (p.startsWith('file://') ? p.slice('file://'.length) : p)
 
 describe('share extension', function () {
@@ -212,25 +204,11 @@ describe('share extension', function () {
     )
   }
 
-  // What `read` makes of the host's copy of attachment `m`, downloaded under a mode 700 dir of
-  // /tmp/kb-e2e, removed after. Bound: download 60, and `read`.
-  const hostCopy = async <R,>(smokeUser: string, m: CliMessage, read: (file: string) => R) => {
-    const dir = path.join('/tmp/kb-e2e', `share-dl-${e2eRunId()}`)
-    fs.mkdirSync(dir, {mode: 0o700, recursive: true})
-    try {
-      const file = path.join(dir, 'attachment')
-      await downloadFromCli({tlfName: smokeUser}, m.id, file)
-      return read(file)
-    } finally {
-      fs.rmSync(dir, {force: true, recursive: true})
-    }
-  }
-
   // The image attachment `m` reads, on the host, as the corpus png's pixel size. Bound: download 60,
   // sips 15 x 2 = 90.
   const requirePngSized = async (smokeUser: string, m: CliMessage) => {
     check((m.content.attachment?.object?.mimeType ?? '').startsWith('image/'), 'the photo went out as something other than an image')
-    const want = imageProps(corpusFile('e2e-c.png')).pixels
+    const want = imageProps(corpusEntry('e2e-c.png').file).pixels
     check((await hostCopy(smokeUser, m, f => imageProps(f).pixels)) === want, "the host's image is not the corpus png's pixel size")
   }
 
@@ -249,7 +227,7 @@ describe('share extension', function () {
     await pickSelfInSharePicker(smokeUser)
     const file = await titlesWith(convID, item)
     // the extension applies the compress preference itself: a copy of the photo, at its pixel size
-    check(imageProps(file).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the shared photo is not the corpus png's pixel size")
+    check(imageProps(file).pixels === imageProps(corpusEntry('e2e-c.png').file).pixels, "the shared photo is not the corpus png's pixel size")
     creditSurface('share-extension')
     await step('The titles screen with the shared photo')
     const sent = await sendTitled(smokeUser, convID, e2eMarker('share-photos'))
@@ -289,7 +267,7 @@ describe('share extension', function () {
     // sha 1, step 2, send 177, download 60, step 2 = 1334
     this.timeout(1_350_000)
     const {smokeUser} = loadE2EAccounts()
-    const pdf = corpusFile('e2e-c.pdf')
+    const pdf = corpusEntry('e2e-c.pdf').file
     seeded = seedDocumentFolder('share', ['e2e-c.pdf'])
     const convID = await fromSelf(smokeUser)
     const shared = await shareToKeybase(FILES, filesSheet(seeded, 'e2e-c.pdf'))
@@ -313,7 +291,7 @@ describe('share extension', function () {
     const {smokeUser} = loadE2EAccounts()
     const place = e2eMarker('share-maps')
     const convID = await fromSelf(smokeUser)
-    const shared = await shareToKeybase(MAPS, mapsSheet(37.3349, -122.009, place))
+    const shared = await shareToKeybase(MAPS, mapsSheet(APPLE_PARK.lat, APPLE_PARK.lon, place))
     const item = requireOneItem(shared, {type: 'text'})
     requireExtensionLogClean(shared.log)
     const text = item.content ?? ''
@@ -350,7 +328,7 @@ describe('share extension', function () {
     await pickSelfInSharePicker(smokeUser)
     // the titles screen holds the second share's file alone, not the first's
     const file = await titlesWith(convID, second)
-    check(imageProps(file).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the second share's photo is not the corpus png's pixel size")
+    check(imageProps(file).pixels === imageProps(corpusEntry('e2e-c.png').file).pixels, "the second share's photo is not the corpus png's pixel size")
     creditSurface('share-extension')
     await step("The titles screen with the second share's photo")
     const sent = await sendTitled(smokeUser, convID, e2eMarker('share-replaced'))
@@ -376,7 +354,7 @@ describe('share extension', function () {
     )
     const [first] = s.params?.['pathAndOutboxIDs'] as Array<{path: string}>
     const image = pastedImage(first!.path)
-    check(imageProps(image.path).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the pasted image is not the corpus png's pixel size")
+    check(imageProps(image.path).pixels === imageProps(corpusEntry('e2e-c.png').file).pixels, "the pasted image is not the corpus png's pixel size")
     creditSurface('pasteboard')
     await step('The titles screen with the pasted image')
     const sent = await sendTitled(smokeUser, convID, e2eMarker('share-paste'))

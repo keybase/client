@@ -9,9 +9,7 @@
 //
 // The flow's afterEach closes a picker a test left up, removes the seed folder and deletes the work
 // folder.
-import {createHash} from 'crypto'
-import * as fs from 'fs'
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsList, kbfsMkdir, newWorkFolder, removeOwnKbfs} from '../../shared/files.ts'
 import * as T from '../../shared/test-ids'
@@ -21,17 +19,12 @@ import type {PickerCache} from '../gate/picker-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeSystemPickers, pickDocument, pickFromLibrary} from '../gate/system-ui'
+import {fileSha} from '../helpers/chat'
 import {expectFolder, openFolder, openFolderUploadSheet, pressTestID} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 
 const START_UPLOAD = 'keybase.1.SimpleFS.simpleFSStartUpload'
-
-const corpusFile = (name: string) => {
-  const entry = CORPUS.find(c => c.name === name)
-  if (!entry) throw new Error(`the corpus has no ${name}`)
-  return entry.file
-}
 
 describe('files uploads from the phone', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -113,7 +106,7 @@ describe('files uploads from the phone', function () {
     // all 64x48. Nor does the .png the upload's name ends in, which is only the picker's naming of its
     // copy. The format read from the copy's bytes and the pixel size together are the png alone.
     const got = imageProps(picked.path)
-    check(got.format === 'png' && got.pixels === imageProps(corpusFile('e2e-c.png')).pixels, 'the picked image is not the corpus png')
+    check(got.format === 'png' && got.pixels === imageProps(corpusEntry('e2e-c.png').file).pixels, 'the picked image is not the corpus png')
     creditSurface('photo-picker')
     await step('The png uploaded into the work folder', {card: true})
   })
@@ -121,7 +114,7 @@ describe('files uploads from the phone', function () {
   it('a pdf from a folder of the document picker is uploaded into the folder', async function () {
     // worst case (s): seed 121, sheet 466, row 12, document 100, calls 10, host 361, step 2 = 1072
     this.timeout(1_100_000)
-    const pdf = corpusFile('e2e-c.pdf')
+    const pdf = corpusEntry('e2e-c.pdf').file
     seeded = seedDocumentFolder('upload', ['e2e-c.pdf'])
     const folder = await uploadSheetIn()
     const seq = await currentCallSeq()
@@ -129,7 +122,7 @@ describe('files uploads from the phone', function () {
     await pickDocument(seeded, 'e2e-c.pdf')
     await waitForUiCall('the upload to start', seq, START_UPLOAD)
     const picked = await uploadedAs(folder, '.pdf', 'document')
-    check(picked.sha256 === createHash('sha256').update(fs.readFileSync(pdf)).digest('hex'), 'the picked file is not the corpus pdf')
+    check(picked.sha256 === fileSha(pdf), 'the picked file is not the corpus pdf')
     creditSurface('file-picker')
     await step('The pdf uploaded into the work folder', {card: true})
   })

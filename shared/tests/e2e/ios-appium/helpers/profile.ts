@@ -1,5 +1,5 @@
 // The profile screen, shared by the profile flows, and the photo picker images an avatar or emoji editor shows.
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
 import * as T from '../../shared/test-ids'
 import {imageProps, openLink, pickedFiles} from '../gate/device'
 import {waitForTestID} from './elements'
@@ -37,12 +37,6 @@ export const pickedImagesShown = async () =>
     }
     return [...urls]`)
 
-const corpusPng = () => {
-  const entry = CORPUS.find(c => c.name === 'e2e-c.png')
-  if (!entry) throw new Error('the corpus has no e2e-c.png')
-  return entry.file
-}
-
 // The one photo-picker file the screen up shows, once it shows it (and, given `uri`, once that is it),
 // proven to be the corpus png: the copy is re-encoded, and the corpus png, jpg and heic are all 64x48,
 // so its format and pixel size together are the png alone. Bound: shown 11 (10, one read 1), picked
@@ -59,5 +53,5 @@ export const requirePickedPng = async (what: string, uri?: string) => {
   )
   const [picked] = pickedFiles([shown])
   const got = imageProps(picked!.path)
-  check(got.format === 'png' && got.pixels === imageProps(corpusPng()).pixels, 'the picked image is not the corpus png')
+  check(got.format === 'png' && got.pixels === imageProps(corpusEntry('e2e-c.png').file).pixels, 'the picked image is not the corpus png')
 }

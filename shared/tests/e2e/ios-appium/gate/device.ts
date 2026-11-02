@@ -13,7 +13,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {runSync} from '../helpers/app'
 import {activateApp, appPid, appState, backgroundApp, BUNDLE_ID, deviceUdid, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
-import {CORPUS} from '../../fixtures/corpus/corpus.ts'
+import {CORPUS, corpusEntry} from '../../fixtures/corpus/corpus.ts'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {installAppLogCapture} from './app-log.ts'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
@@ -214,11 +214,7 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
   requireCurrentAttempt()
   const folder = `e2e-${e2eRunId()}-${label}-${randomBytes(2).toString('hex')}`
   const dir = requireSeedFolder(folder)
-  const files = names.map(n => {
-    const c = CORPUS.find(e => e.name === n)
-    if (!c) throw new Error(`the corpus has no ${n}`)
-    return c
-  })
+  const files = names.map(corpusEntry)
   quietFs('making the seed folder', () => fs.mkdirSync(dir))
   try {
     for (const c of files) quietFs('seeding a corpus file', () => fs.copyFileSync(c.file, path.join(dir, c.name)))

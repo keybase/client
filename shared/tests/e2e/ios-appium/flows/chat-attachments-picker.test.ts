@@ -7,14 +7,12 @@
 //
 // The photo corpus is in the simulator's library once (gate/device.ts ensurePhotoCorpus). The flow's
 // afterEach closes a picker a test left up and removes the seed folder.
-import {createHash} from 'crypto'
 import * as fs from 'fs'
-import * as path from 'path'
 import {loadE2EAccounts} from '../../accounts/env'
-import {CORPUS} from '../../fixtures/corpus/corpus'
-import {downloadFromCli, readFromCli, type CliMessage} from '../../shared/chat-data'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
+import {readFromCli, type CliMessage} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {e2eMarker, e2eRunId} from '../../shared/run-marker'
+import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {ensurePhotoCorpus, imageProps, pickedFiles, removeSeedFolder, seedDocumentFolder} from '../gate/device'
@@ -22,6 +20,7 @@ import {requirePicked, type LibraryName} from '../gate/picker-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeSystemPickers, pickDocument, pickFromLibrary} from '../gate/system-ui'
+import {fileSha, hostCopy} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {expectScreen, fillHiddenField, pressTestID, tapButton} from '../helpers/files'
 import {openSelfConversation, waitFor} from '../helpers/lifecycle'
@@ -29,13 +28,7 @@ import {check, openMenuFrom} from '../helpers/menus'
 
 const POST_ATTACHMENT = 'chat.1.local.postFileAttachmentLocalNonblock'
 
-const fileSha = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')
 
-const corpusFile = (name: string) => {
-  const entry = CORPUS.find(c => c.name === name)
-  if (!entry) throw new Error(`the corpus has no ${name}`)
-  return entry
-}
 
 describe('chat attachments picked on the phone', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -102,21 +95,6 @@ describe('chat attachments picked on the phone', function () {
       {interval: 2_000, timeout: 60_000}
     )
 
-  // What `read` makes of the host's copy of attachment `m` in the self conversation, downloaded to a
-  // file under a mode 700 dir of /tmp/kb-e2e, removed after. Bound: the download 60, and `read`.
-  let downloads = 0
-  const hostCopy = async <R,>(smokeUser: string, m: CliMessage, read: (file: string) => R) => {
-    const dir = path.join('/tmp/kb-e2e', `dl-${e2eRunId()}`)
-    fs.mkdirSync(dir, {mode: 0o700, recursive: true})
-    const file = path.join(dir, `${++downloads}`)
-    try {
-      await downloadFromCli({tlfName: smokeUser}, m.id, file)
-      return read(file)
-    } finally {
-      fs.rmSync(dir, {force: true, recursive: true})
-    }
-  }
-
   // Opens the composer's attach sheet in the self conversation and taps its row `rowID`. Bound: self
   // 110, sheet 15, step 2, row 12 = 139.
   const attachFrom = async (smokeUser: string, rowID: string) => {
@@ -175,7 +153,7 @@ describe('chat attachments picked on the phone', function () {
     // calls 10, cli 120, download 60, step 2 = 721
     this.timeout(740_000)
     const {smokeUser} = loadE2EAccounts()
-    const pdf = corpusFile('e2e-c.pdf')
+    const pdf = corpusEntry('e2e-c.pdf')
     seeded = seedDocumentFolder('pick', [pdf.name])
     const convID = await attachFrom(smokeUser, T.CHAT_ATTACH_FILE)
     await pickDocument(seeded, pdf.name)

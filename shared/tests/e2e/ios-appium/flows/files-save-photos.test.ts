@@ -28,7 +28,7 @@ import {randomBytes} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import {loadE2EEnv} from '../../accounts/env'
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {CORPUS, corpusEntry} from '../../fixtures/corpus/corpus'
 import {createThrowawayChannel, deleteThrowawayChannel, ensureChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
@@ -64,12 +64,6 @@ const LARGE_SIDE = 3800
 const LATE_SAVE_MS = 5_000
 // the photos and videos of the corpus, all in the library of the gate's phone
 const CORPUS_MEDIA = CORPUS.filter(c => c.kind === 'image' || c.kind === 'video').length
-
-const corpusPng = () => {
-  const entry = CORPUS.find(c => c.name === 'e2e-c.png')
-  if (!entry) throw new Error('the corpus has no e2e-c.png')
-  return entry.file
-}
 
 describe('save to photos', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -266,7 +260,7 @@ describe('save to photos', function () {
     // 2, waited for 12, the save's end 32, gone 6, saved 80, step 2, delete 60, ask 25, step 2 = 2275
     this.timeout(2_305_000)
     const before = await fullPhotoAccess()
-    const {folder, name} = await folderWith(corpusPng(), 'save')
+    const {folder, name} = await folderWith(corpusEntry('e2e-c.png').file, 'save')
     await step('The image in the work folder')
 
     await openRowMenu(name, 'the image row')
@@ -277,7 +271,7 @@ describe('save to photos', function () {
     // the photo is saved before the download is dismissed, and the sheet then closes itself
     await waitForUiCall('the saved download to be dismissed', seq, DISMISS, {timeout: 30_000})
     await waitForSheetGone(5_000)
-    const id = await savedImage(before, 'the saved image in the photo library', imageProps(corpusPng()).pixels)
+    const id = await savedImage(before, 'the saved image in the photo library', imageProps(corpusEntry('e2e-c.png').file).pixels)
     await step('The image saved to Photos', {card: true})
 
     await deleteAndReadBack(id, before)
@@ -355,7 +349,7 @@ describe('save to photos', function () {
     channel = made.topicName
     await sendWithRetry(await sender(), made.convID, e2eMarker('save-hello'))
     const title = e2eMarker('save-img')
-    await (await sender()).attach(made.convID, corpusPng(), title)
+    await (await sender()).attach(made.convID, corpusEntry('e2e-c.png').file, title)
     // the grants relaunch the app: taken before the conversation opens
     const before = await fullPhotoAccess()
 
@@ -379,7 +373,7 @@ describe('save to photos', function () {
     const seq = await currentCallSeq()
     await chooseMenuItem('Save')
     await waitForUiCall('the attachment to download for the save', seq, CHAT_DOWNLOAD, {timeout: 30_000})
-    const id = await savedImage(before, 'the saved attachment in the photo library', imageProps(corpusPng()).pixels)
+    const id = await savedImage(before, 'the saved attachment in the photo library', imageProps(corpusEntry('e2e-c.png').file).pixels)
     await step('The attachment saved to Photos', {card: true})
 
     await deleteAndReadBack(id, before)

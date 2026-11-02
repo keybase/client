@@ -17,7 +17,7 @@
 // its own, so the row's label would not hold the name whole.
 import {loadE2EAccounts} from '../../accounts/env'
 import {maskE2E} from '../../accounts/sweep-lib.ts'
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
 import {directConvIDFromCli, readFromCli} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {pairFavoriteState, pairFolder, refavoritePair} from '../../shared/favorites.ts'
@@ -39,11 +39,7 @@ import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, menuSheet, openMenuFrom, tapElement, tapFrame, tapMenuItemOnce} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 
-const txt = (() => {
-  const entry = CORPUS.find(e => e.name === 'e2e-c.txt')
-  if (!entry) throw new Error('the corpus has no text file')
-  return entry.file
-})()
+const txt = corpusEntry('e2e-c.txt').file
 
 describe('files actions', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
