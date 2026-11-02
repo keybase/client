@@ -1004,39 +1004,54 @@ export const hideKeyboard = async () => {
 
 const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND visible == 1')
 
+// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
+// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
+const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
+  waitFor(
+    what,
+    async () => {
+      if (await menuSheet().isExisting()) return true
+      await open()
+      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
+    },
+    {interval: 300, timeout}
+  )
+
+// Drags the open sheet up by 300 points, from near the screen's bottom, to bring later items on screen.
+const dragSheetUp = async () => {
+  const {height, width} = await browser.getWindowRect()
+  const x = Math.round(width / 2)
+  await browser
+    .action('pointer', {parameters: {pointerType: 'touch'}})
+    .move({x, y: height - 80})
+    .down()
+    .move({duration: 400, x, y: height - 380})
+    .pause(200)
+    .up()
+    .perform()
+}
+
 // Long-presses the message showing `text` (at its middle, found afresh each try) to open its menu,
 // a bottom sheet, and waits for the sheet.
 export const openMessageMenu = async (text: string) => {
-  await waitFor(
-    `the menu of the message "${text}"`,
-    async () => {
-      if (await menuSheet().isExisting()) return true
-      const {x, y} = await rowCentre(text)
-      await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
-      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
-    },
-    {interval: 300, timeout: 15_000}
-  )
+  await openSheetWith(`the menu of the message "${text}"`, async () => {
+    const {x, y} = await rowCentre(text)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
+  })
 }
 
 // Long-presses the drawn row at `ordinal` (at its middle, read afresh each try) to open its menu, for
 // a message whose text must stay out of selectors, logs and errors.
 export const openMessageMenuAt = async (ordinal: number) => {
-  await waitFor(
-    `the menu of the message at ${ordinal}`,
-    async () => {
-      if (await menuSheet().isExisting()) return true
-      const r = rowOf(await requireThread(), ordinal)
-      if (!r) throw new Error(`row ${ordinal} is not drawn`)
-      // on its last line, the message's body: a row that opens a run of messages draws its author line
-      // above, outside the long-pressable body
-      const {width} = await browser.getWindowRect()
-      const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
-      await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
-      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
-    },
-    {interval: 300, timeout: 15_000}
-  )
+  await openSheetWith(`the menu of the message at ${ordinal}`, async () => {
+    const r = rowOf(await requireThread(), ordinal)
+    if (!r) throw new Error(`row ${ordinal} is not drawn`)
+    // on its last line, the message's body: a row that opens a run of messages draws its author line
+    // above, outside the long-pressable body
+    const {width} = await browser.getWindowRect()
+    const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
+  })
 }
 
 // The row showing `text` in the thread list (rows expose their text as their accessibility name;
@@ -1077,16 +1092,7 @@ export const menuLabels = async (): Promise<Array<string>> => {
       const signature = now.join('\n')
       if (signature === before) return true
       before = signature
-      const {height, width} = await browser.getWindowRect()
-      const x = Math.round(width / 2)
-      await browser
-        .action('pointer', {parameters: {pointerType: 'touch'}})
-        .move({x, y: height - 80})
-        .down()
-        .move({duration: 400, x, y: height - 380})
-        .pause(200)
-        .up()
-        .perform()
+      await dragSheetUp()
       return undefined
     },
     {interval: 300, timeout: 15_000}
@@ -1113,16 +1119,7 @@ export const chooseMenuItem = async (label: string) => {
         const {height} = await browser.getWindowRect()
         if (y + itemHeight / 2 < height) return true
       }
-      const {height, width} = await browser.getWindowRect()
-      const x = Math.round(width / 2)
-      await browser
-        .action('pointer', {parameters: {pointerType: 'touch'}})
-        .move({x, y: height - 80})
-        .down()
-        .move({duration: 400, x, y: height - 380})
-        .pause(200)
-        .up()
-        .perform()
+      await dragSheetUp()
       return undefined
     },
     {interval: 300, timeout: 15_000}
@@ -1152,19 +1149,6 @@ export const closeMessageMenu = async () => {
   await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').click()
   await menuSheet().waitForExist({reverse: true, timeout: 5_000})
 }
-
-// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
-// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
-const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
-  waitFor(
-    what,
-    async () => {
-      if (await menuSheet().isExisting()) return true
-      await open()
-      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
-    },
-    {interval: 300, timeout}
-  )
 
 // The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
 // items), read off the React tree.
