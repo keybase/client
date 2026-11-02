@@ -72,10 +72,10 @@ describe('files settings', function () {
 
   it('the low-space warning, its threshold and the mobile-network sync are set and stay through a relaunch', async function () {
     // worst case (s): smoke 10, app 25, open 96, the warn taps 3 * 58 = 174, the threshold (a read
-    // 25, the tap 1, the prompt 10, the wheel 10, the pick 15, the wheel showing it 5, Done 6, the
-    // sheet gone 10, calls 12, expectSettings 45) = 139, the cellular switch (the tap 1, calls 12,
+    // 25, the tap 1, the prompt 10, the sheet settled 10, the wheel 10, the pick 15, the wheel showing it 5, Done 6, the
+    // sheet gone 10, calls 12, expectSettings 45) = 149, the cellular switch (the tap 1, calls 12,
     // expectSettings 45) = 58, steps 4 * 2 = 8; relaunch 200, signed in 90, open 96, smoke 10, app
-    // 25, the shown threshold 1, step 2 = 424; = 934
+    // 25, the shown threshold 1, step 2 = 424; = 944
     this.timeout(1_000_000)
     await requireAppIsSmoke()
     const original = await filesSettings()
@@ -95,10 +95,23 @@ describe('files settings', function () {
     const seq = await currentCallSeq()
     await el(T.SETTINGS_FILES_THRESHOLD).click()
     const prompt = '-ios predicate string:label == "Pick a threshold" AND visible == 1'
-    await waitFor('the threshold prompt', async () => labelledElement(prompt, 'Pick a threshold', 'the threshold prompt').catch(() => undefined), {
+    const promptEl = await waitFor('the threshold prompt', async () => labelledElement(prompt, 'Pick a threshold', 'the threshold prompt').catch(() => undefined), {
       interval: 250,
       timeout: 10_000,
     })
+    // the wheel is not read until the sheet has stopped moving: an accessibility read of it
+    // mid-animation can crash the app
+    let lastRect: string | undefined
+    await waitFor(
+      'the threshold sheet to settle',
+      async () => {
+        const rect = JSON.stringify({...(await promptEl.getLocation()), ...(await promptEl.getSize())})
+        const settled = rect === lastRect
+        lastRect = rect
+        return settled ? true : undefined
+      },
+      {interval: 250, timeout: 10_000}
+    )
     const wheel = '-ios predicate string:type == "XCUIElementTypePickerWheel" AND visible == 1'
     await browser.$(wheel).waitForExist({timeout: 10_000})
     // turned a row at a time toward the threshold (the wheel lists them smallest first and opens on
