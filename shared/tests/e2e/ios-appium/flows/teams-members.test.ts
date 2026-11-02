@@ -296,12 +296,12 @@ describe('teams members', function () {
 
   it('the second account added through the add-members wizard as a reader', async function () {
     // worst case (s): subteam 600, host 315 (its id), opened 204, pin 1, header 8, button 6, screen
-    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, the pick 106 (a store read 24: 10s of tries
+    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, the pick 130 (a store read 24: 10s of tries
     // on a dropped inspector, overrun by one of page lookup 3, eval 10 and its pause 1; then two taps,
     // each a row, its press 2 and 3s of store reads overrun by a pause 1 and one read 24 = 28: the
-    // first row 16 (15, one drag 1), the second 6 (5, one drag 1)), step 2, action 8, screen 11, the
-    // dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1, calls 2, button 6, waited for 12,
-    // page 21, polled 285, row 31, step 2 = 1742
+    // first row 16 (15, one drag 1), the second 6 (5, one drag 1) and a read 24 before it), step 2,
+    // action 8, screen 11, the dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1, calls 2,
+    // button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1766
     this.timeout(1_800_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('wiz', madeNames)
@@ -339,6 +339,8 @@ describe('teams members', function () {
         testID: T.TEAM_BUILDING_RESULT_ROW,
         timeout: tap ? 5_000 : 15_000,
       })
+      // a first tap can land after its 3s of reads: read again before the second
+      if (tap && (state = await pick()) !== 'none') continue
       await press(row.e, 'the result row')
       const end = Date.now() + 3_000
       do {
