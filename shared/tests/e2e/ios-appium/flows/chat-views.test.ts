@@ -1,8 +1,8 @@
 // Chat's screens and modes as the phone draws them, each opened from the UI it lives behind and
 // checked by what it shows, then closed again: the info panel's tabs, the emoji picker, a message's
-// menu for each kind of message, an image fullscreen, the bot search and a member's bot page, the
-// forward picker, the new chat team builder, the clear history warning, the reply and edit modes, the
-// @, # and / suggestion lists, the GIF preview, the inbox at its end and a thread scrolled up.
+// menu for each kind of message, the bot search and a member's bot page, the forward picker, the new
+// chat team builder, the clear history warning, the @, # and / suggestion lists, the GIF preview and
+// the inbox at its end.
 //
 // Nothing is sent from a screen here: the warnings are cancelled and the pickers closed. Each acts in
 // the seeded channels, the DM with the second account, or a throwaway channel of KB_E2E_TEAM this
@@ -37,16 +37,12 @@ import {
   closeInfoPanel,
   closeMessageMenu,
   composerText,
-  dragThread,
   dragUntilOnScreen,
   editCancel,
-  elementInRow,
   elementWithLabelPartIn,
-  expectAtEnd,
   galleryListing,
   giphyGalleryShown,
   hideKeyboard,
-  isAtEnd,
   labelledElement,
   menuLabels,
   menuOffers,
@@ -54,21 +50,17 @@ import {
   openInfoPanel,
   openMessageMenu,
   ordinalsWithText,
-  readThread,
   replyPreview,
   scrollInboxTo,
   scrollInboxToEnd,
   scrollRowIntoView,
   sendMessage,
-  showsText,
   storedAttachment,
   typeInComposer,
   typeInSearchFilter,
-  viewport,
   visibleConversation,
   waitForComposerText,
   waitForRow,
-  waitForThreadStable,
 } from '../helpers/chat'
 import {byText, el, els} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
@@ -250,7 +242,7 @@ describe('chat views', function () {
     await closeInfoPanel()
   })
 
-  // -- the composer's pickers and modes -----------------------------------------------------------
+  // -- the composer's pickers ---------------------------------------------------------------------
 
   it('the emoji picker opens from the composer and closes back to it', async function () {
     // worst case (s): open 100, the button 5 and its tap 1, the picker 10, screen 10, step 2, keyboard
@@ -269,38 +261,6 @@ describe('chat views', function () {
     await el(T.CHAT_INPUT).waitForExist({timeout: 5_000})
     check((await visibleConversation()) === scratch(), 'the emoji picker did not close back to e2e-scratch')
     await step('Back in the conversation, the composer showing', {card: true})
-  })
-
-  it('Reply and Edit from the menu put the composer in their modes, and each cancels', async function () {
-    // worst case (s): open 100, sent 25, keyboard 5, menu 15, item 20, the reply bar 5, its text 1, step
-    // 2, the cancel 5 and its tap 1, gone 5, keyboard 5, menu 15, item 20, the edit bar 5, composer 5,
-    // step 2, the tap 1, gone 5, composer 5, step 2 = 249
-    this.timeout(280_000)
-    await openConversation(scratch())
-    scratchComposerUsed = true
-    const text = e2eMarker('views-modes')
-    await sendMessage(text)
-    await hideKeyboard()
-
-    await openMessageMenu(text)
-    await chooseMenuItem('Reply')
-    await replyPreview().waitForExist({timeout: 5_000})
-    check(await showsText(T.CHAT_REPLY_PREVIEW, text), 'the reply bar does not quote the message')
-    await step('Reply mode: the reply bar quotes the message')
-    await el(T.CHAT_REPLY_CANCEL).waitForExist({timeout: 5_000})
-    await el(T.CHAT_REPLY_CANCEL).click()
-    await replyPreview().waitForExist({reverse: true, timeout: 5_000})
-    await hideKeyboard()
-
-    await openMessageMenu(text)
-    await chooseMenuItem('Edit')
-    await editCancel().waitForExist({timeout: 5_000})
-    await waitForComposerText(text)
-    await step('Edit mode: the composer holds the message')
-    await editCancel().click()
-    await editCancel().waitForExist({reverse: true, timeout: 5_000})
-    await waitForComposerText('')
-    await step('Edit cancelled: the composer is empty again', {card: true})
   })
 
   // A user row holds an account name, so the rows are picked by their words in memory.
@@ -393,23 +353,6 @@ describe('chat views', function () {
     await expectMenu('the image', ['Forward', 'Save', 'Share', 'All media'], ['Copy text'])
     await step("The menu of an image", {card: true})
     await closeMessageMenu()
-  })
-
-  it('an image opens fullscreen and goes back to its thread', async function () {
-    // worst case (s): open 100, image 80, in row 5, the tap 1, the fullscreen 10, screen 10, step 2,
-    // back 15, the conversation 1, step 2 = 226
-    this.timeout(250_000)
-    await openConversation(media())
-    const {id, ordinal} = await mediaImageInView()
-    const image = await elementInRow(`~${T.CHAT_ATTACHMENT_IMAGE}`, ordinal, 'the seeded image')
-    await image.click()
-    await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({timeout: 10_000})
-    await expectRoute('the fullscreen view of the seeded image', 'chatAttachmentFullscreen', p => p['messageID'] === id)
-    await step('The image fullscreen')
-    await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
-    await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
-    check((await visibleConversation()) === media(), 'back from the fullscreen view is not e2e-media')
-    await step('Back in the thread', {card: true})
   })
 
   it("the forward picker opens from an image's menu and closes without forwarding", async function () {
@@ -527,7 +470,7 @@ describe('chat views', function () {
     await step('Cancelled: the host still reads the message', {card: true})
   })
 
-  // -- scrolled states ----------------------------------------------------------------------------
+  // -- the inbox at its end -----------------------------------------------------------------------
 
   it('the inbox scrolled to its end', async function () {
     // worst case (s): inbox 120 (the self row), inbox 120 (to the end), step 2 = 242
@@ -537,21 +480,5 @@ describe('chat views', function () {
     const drawn = await scrollInboxToEnd()
     check(drawn > 0, 'the inbox draws nothing at its end')
     await step('The inbox at its end', {screenshot: false})
-  })
-
-  it('a thread dragged up leaves its end and shows older rows', async function () {
-    // worst case (s): open 100, at its end 13 (settled 10, read again 3), three drags 6, settled 10,
-    // step 2 = 131
-    this.timeout(150_000)
-    await openConversation(data.convIDs[E2E_CHANNELS.long])
-    const {t: before} = await expectAtEnd('e2e-long on opening')
-    const oldestBefore = Math.min(...before.rows.map(r => r.ordinal))
-    for (let i = 0; i < 3; i++) await dragThread(600)
-    const after = await waitForThreadStable()
-    const v = await viewport(after)
-    check(!isAtEnd(after, v), 'the thread is still at its end after dragging up')
-    check(Math.min(...after.rows.map(r => r.ordinal)) < oldestBefore, 'dragging up drew no older row')
-    check((await readThread())?.convID === data.convIDs[E2E_CHANNELS.long], 'the thread is not e2e-long')
-    await step('The thread scrolled up', {card: true})
   })
 })

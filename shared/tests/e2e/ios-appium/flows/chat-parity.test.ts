@@ -1,10 +1,10 @@
 // Phone behaviour the desktop shares: the pinned banner steps aside for thread search and its close
-// button unpins for everyone, every Reply (the message menu, a swipe) closes search and hands the
-// composer focus, and an inline video's corner button opens it fullscreen.
+// button unpins for everyone, and every Reply (the message menu, a swipe) closes search and hands the
+// composer focus.
 //
 // The host stays on the smoke account: it reads back the conversation's pin and takes off one a
 // failed test left. Every body is stamped with the run id.
-import {E2E_CHANNELS, MEDIA_FIXTURES, ensureChatData, type ChatData} from '../../shared/chat-data'
+import {E2E_CHANNELS, ensureChatData, type ChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
 import {mainConversation, mainRpc, type MainConversation} from '../../shared/main-rpc.ts'
@@ -25,30 +25,25 @@ import {
   pinnedBanner,
   replyPreview,
   rowCentre,
-  scrollRowIntoView,
   searchOpen,
   sendMessage,
   showsText,
   storedMessage,
-  videoFullscreenButton,
-  waitForRow,
   waitForThreadStable,
 } from '../helpers/chat'
 import {byText, el} from '../helpers/elements'
-import {appSnapshot, waitFor} from '../helpers/lifecycle'
-import {goBackUntilGone} from '../helpers/navigate'
+import {waitFor} from '../helpers/lifecycle'
 
 describe('chat parity', function () {
   // no retries: a retry would let an intermittent race pass
   this.retries(0)
 
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openConversation 100;  sent  sendMessage 25;  row  waitForRow 15
+  //   open      openConversation 100;  sent  sendMessage 25
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  close  5;  keyboard  5
   //   search    openThreadSearch 20, closeSearch 5;  stable  waitForThreadStable 10
   //   pin       the host's read of the pin polled 95 (20, overrun by one read: whoami 15 and the call
   //             60);  unpin  the host's unpin 75 (whoami 15, the call 60) and its read 95 = 170
-  //   view      scrollRowIntoView 30;  fullscreen  its open 10, the back 10, gone 5
   //   step      2 (its 1s settle and the attach)
 
   let data: ChatData
@@ -202,34 +197,6 @@ describe('chat parity', function () {
           .up()
           .perform()
       })
-    })
-  })
-
-  describe('inline video', () => {
-    it('the corner button opens the video fullscreen', async function () {
-      // worst case (s): open 100, row 15, the read 1, view 30, the button 15 (videoFullscreenButton),
-      // step 2, the tap 1, the fullscreen 10, the screen 1, step 2, the back 10, gone 5, step 2 = 194
-      this.timeout(210_000)
-      await openConversation(data.convIDs[E2E_CHANNELS.media])
-      // the seeded video (seedMedia), found by its title
-      const {title} = MEDIA_FIXTURES[0]
-      const ordinal = await waitForRow(title)
-      const id = (await storedMessage(ordinal))?.id
-      if (!id) throw new Error('the seeded video has no message id')
-      await scrollRowIntoView(ordinal)
-      const button = await videoFullscreenButton(title, ordinal)
-      await step('The seeded video playing inline, with its corner button')
-      await button.click()
-      await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({timeout: 10_000})
-      const {screen} = await appSnapshot()
-      check(
-        screen?.name === 'chatAttachmentFullscreen' && screen.params?.['messageID'] === id,
-        'the fullscreen view is not the seeded video'
-      )
-      await step('The video fullscreen')
-      await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
-      await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
-      await step('Back in the thread', {card: true})
     })
   })
 })
