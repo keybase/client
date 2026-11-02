@@ -7,6 +7,10 @@
 // that reads back clears it.
 const poisons = new Map<string, string>()
 
+// The key for an app the gate could not bring back (crash.ts): every later test is refused until
+// something brings it back and clears it.
+export const APP_POISON = 'the Keybase app'
+
 // `what` could not be put back; `byHand` says how the owner puts it back.
 export const poisonGate = (what: string, byHand: string) => {
   poisons.set(what, byHand)
@@ -15,6 +19,8 @@ export const poisonGate = (what: string, byHand: string) => {
 export const clearGatePoison = (what: string) => {
   poisons.delete(what)
 }
+
+export const isGatePoisonedBy = (what: string) => poisons.has(what)
 
 // Why the gate refuses to run a test, or undefined when it may.
 export const gatePoisoned = () =>

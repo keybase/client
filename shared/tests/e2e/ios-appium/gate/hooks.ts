@@ -26,7 +26,7 @@ import {
 } from './attempt.ts'
 import {requireAppIsSmoke, restoreToSmoke} from './accounts.ts'
 import {finishAttempt} from './finish.ts'
-import {poisonCheckedFirst, requireGateNotPoisoned} from './poison-lib.ts'
+import {APP_POISON, isGatePoisonedBy, poisonCheckedFirst, requireGateNotPoisoned} from './poison-lib.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -230,8 +230,8 @@ plain.beforeEach(
     const test = this.currentTest
     if (!test?.fn) throw new Error('the gate hooks ran outside a test')
     // The app went away after the root afterEach saw it (a flow's after or before hook): it is brought
-    // back before this test's hooks drive it. A recovery that fails throws here, which ends the run,
-    // so every later test is recorded as never run with why.
+    // back before this test's hooks drive it. A recovery that fails poisons the gate (crash.ts), so this
+    // test and every later one is refused with why.
     const gone = await recoverGoneApp()
     if (gone) recordRunError(`before "${test.fullTitle()}": ${gone}`)
     const retry = (test as unknown as {currentRetry: () => number}).currentRetry()
@@ -339,26 +339,16 @@ plain.afterEach(
     const token = test && attempts.get(test)
     // An app gone now went away during this test where its body's own check did not see it (mocha
     // timed the body out, or a flow afterEach): it is brought back, inside the attempt while that is
-    // open, and the test fails of it. A recovery that fails is thrown once the attempt has ended,
-    // which ends the run, so every later test is recorded as never run with why.
-    let gone: string | undefined
-    let stop: Error | undefined
-    try {
-      gone = await recoverGoneApp(token)
-    } catch (e) {
-      stop = e instanceof Error ? e : new Error(String(e))
-    }
-    if (!test || !token) {
-      if (stop) throw stop
-      return
-    }
-    // What an ended body's cleanup left runs on the app brought back, never once the gate is stopping.
+    // open, and the test fails of it. A recovery that fails poisons the gate (crash.ts), so every later
+    // test is refused with why.
+    const gone = await recoverGoneApp(token)
+    if (!test || !token) return
+    // What an ended body's cleanup left runs on the app brought back, never on one the gate could not.
     const left = takeLeftCleanup(token)
-    const cleanupError = left && !stop ? await runLeftCleanup(token, left) : undefined
+    const cleanupError = left && !isGatePoisonedBy(APP_POISON) ? await runLeftCleanup(token, left) : undefined
     // the next test refuses on its own (requireAppIsSmoke) when the app is not back on smoke
     if (cleanupError) recordRunError(`${test.fullTitle()}: ${cleanupError}`)
-    await endTheAttempt(test, token, [gone, stop?.message].filter(Boolean).join('; ') || undefined, cleanupError)
-    if (stop) throw stop
+    await endTheAttempt(test, token, gone, cleanupError)
   })
 )
 

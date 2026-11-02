@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {clearGatePoison, gatePoisoned, poisonCheckedFirst, poisonGate, requireGateNotPoisoned} from './poison-lib'
+import {clearGatePoison, gatePoisoned, isGatePoisonedBy, poisonCheckedFirst, poisonGate, requireGateNotPoisoned} from './poison-lib'
 
 afterEach(() => {
   clearGatePoison('the proxy settings')
@@ -18,8 +18,10 @@ test('a poisoned gate refuses with every owner action, until each setting is put
   expect(() => requireGateNotPoisoned()).toThrow(
     /^refusing to run: an earlier flow could not put back the proxy settings \(choose No proxy in Settings > Advanced\); lockdown mode \(turn it off in Settings > Advanced\), /
   )
+  expect(isGatePoisonedBy('the proxy settings')).toBe(true)
   clearGatePoison('the proxy settings')
   expect(gatePoisoned()).toMatch(/lockdown mode/)
+  expect(isGatePoisonedBy('the proxy settings')).toBe(false)
   expect(gatePoisoned()).not.toMatch(/proxy/)
   clearGatePoison('lockdown mode')
   expect(() => requireGateNotPoisoned()).not.toThrow()

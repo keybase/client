@@ -7,6 +7,7 @@ const fake = () => {
     clock: RUN_START,
     logs: [] as Array<string>,
     pid: 42 as number | undefined,
+    poisoned: false,
     relaunches: 0,
     relaunchFails: false,
     reports: [] as Array<CrashReport>,
@@ -33,6 +34,10 @@ const fake = () => {
       await Promise.resolve()
       if (s.smokeFails) throw new Error('signed in as KB_SECOND_USER')
     },
+    stop: () => {
+      s.poisoned = true
+    },
+    stopped: () => s.poisoned,
   }
   return {deps, s}
 }
@@ -137,18 +142,28 @@ const breaks: Array<[string, (s: Fake) => void, RegExp]> = [
   ['read-back', s => (s.smokeFails = true), /bringing it back failed: signed in as KB_SECOND_USER/],
 ]
 for (const [what, breakIt, why] of breaks) {
-  test(`a failed ${what} stops the gate, and every later call refuses without relaunching`, async () => {
+  test(`a failed ${what} stops the gate, and no later call relaunches until the stop is cleared`, async () => {
     const {deps, s} = fake()
     const r = makeCrashRecovery(deps, RUN_START)
     s.reports = [{mtimeMs: RUN_START + 5, path: '/r/Keybase-c.ips'}]
     breakIt(s)
     s.pid = undefined
-    await expect(r.recover({crashOnly: true})).rejects.toThrow(why)
+    const stoppedWhy = await r.recover({crashOnly: true})
+    expect(stoppedWhy).toMatch(why)
+    expect(stoppedWhy).toMatch(/^stopping the gate: the app was gone \(its crash report: \/r\/Keybase-c\.ips\)/)
+    expect(s.poisoned).toBe(true)
+    expect(s.logs.at(-1)).toBe(stoppedWhy)
     const relaunches = s.relaunches
-    s.pid = 50
-    await expect(r.recover({crashOnly: false})).rejects.toThrow(/^stopping the gate: the app was gone \(its crash report: \/r\/Keybase-c\.ips\)/)
+    expect(await r.recover({crashOnly: false})).toBeUndefined()
     expect(s.relaunches).toBe(relaunches)
-    expect(s.logs.at(-1)).toMatch(/^stopping the gate/)
+    // something else brought the app back and cleared the stop: a later crash is recovered again
+    s.poisoned = false
+    s.relaunchFails = false
+    s.smokeFails = false
+    s.pid = undefined
+    s.reports = [{mtimeMs: RUN_START + 6, path: '/r/Keybase-d.ips'}]
+    expect(await r.recover({crashOnly: false})).toBe(crashMessage('/r/Keybase-d.ips'))
+    expect(s.relaunches).toBe(relaunches + 1)
   })
 }
 

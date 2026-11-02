@@ -11,6 +11,7 @@ import {isAttemptOver} from './attempt-binding-lib.ts'
 import {makeCrashRecovery, REPORT_WAIT_MS} from './crash-lib.ts'
 import {relaunchHungApp} from './device.ts'
 import {RELAUNCH_MS} from './hang.ts'
+import {APP_POISON, isGatePoisonedBy, poisonGate} from './poison-lib.ts'
 
 // the report wait, the relaunch, the read-back, and a margin
 export const CRASH_RECOVERY_MS = REPORT_WAIT_MS + RELAUNCH_MS + RELAUNCHED_SMOKE_MS + 20_000
@@ -32,6 +33,8 @@ const recovery = makeCrashRecovery(
     reportsSince: since => crashReportsSince(since).map(p => ({mtimeMs: mtimeMs(p), path: p})),
     sleep: async ms => new Promise(resolve => setTimeout(resolve, ms)),
     smoke: requireRelaunchedAppIsSmoke,
+    stop: () => poisonGate(APP_POISON, 'launch the Keybase app on the simulator and check it shows the smoke account'),
+    stopped: () => isGatePoisonedBy(APP_POISON),
   },
   Date.now()
 )
@@ -62,7 +65,8 @@ export const crashDuringAttempt = async () => {
 }
 
 // In a root hook: brings back an app that is gone for any reason, inside `token`'s attempt while it is
-// still open (a body mocha timed out), and says why it was gone.
+// still open (a body mocha timed out), and says why it was gone. A recovery that fails poisons the gate
+// instead of throwing, so every later test is refused with what to put back.
 export const recoverGoneApp = async (token?: AttemptToken) =>
   noted(
     token,
