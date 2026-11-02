@@ -5,34 +5,21 @@
 // rows near the viewport only. Pure: helpers/devices.ts drives the phone.
 import {DEVICES_ROW} from '../../shared/test-ids.ts'
 import {escapePredicate} from '../helpers/elements.ts'
+import {sourceElements} from './page-source-lib.ts'
 
 export type ListRow = {label: string; visible: boolean; y: number}
 
-const entities: Record<string, string> = {amp: '&', apos: "'", gt: '>', lt: '<', quot: '"'}
-const decode = (s: string) =>
-  s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-z]+);/g, (m, e: string) => {
-    if (e.startsWith('#x')) return String.fromCodePoint(parseInt(e.slice(2), 16))
-    if (e.startsWith('#')) return String.fromCodePoint(parseInt(e.slice(1), 10))
-    return entities[e] ?? m
-  })
-
-const attrsOf = (tag: string) => {
-  const out: Record<string, string> = {}
-  for (const m of tag.matchAll(/ ([a-zA-Z]+)="([^"]*)"/g)) out[m[1] ?? ''] = decode(m[2] ?? '')
-  return out
-}
-
 // The devices rows in an Appium page source, top to bottom.
 export const deviceRowsIn = (source: string): Array<ListRow> =>
-  [...source.matchAll(/<XCUIElementType[A-Za-z]+ [^>]*>/g)]
-    .map(m => attrsOf(m[0]))
+  sourceElements(source)
+    .map(e => e.attrs)
     .filter(a => a['name'] === DEVICES_ROW)
     .map(a => ({label: a['label'] ?? '', visible: a['visible'] === 'true', y: Number(a['y'])}))
     .sort((a, b) => a.y - b.y)
 
 // Whether the page source shows the "Revoked devices" divider that ends the active devices.
 export const showsRevokedDivider = (source: string) =>
-  [...source.matchAll(/<XCUIElementType[A-Za-z]+ [^>]*>/g)].some(m => attrsOf(m[0])['label']?.startsWith('Revoked devices'))
+  sourceElements(source).some(e => e.attrs['label']?.startsWith('Revoked devices'))
 
 const currentSuffix = ' (Current device), '
 

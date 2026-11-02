@@ -1,0 +1,21 @@
+// The elements of an Appium (XCUITest) page source, in document order, with their attributes
+// decoded. Pure: one page source read replaces a WebDriver call per element and attribute.
+
+export type SourceElement = {attrs: Record<string, string>; type: string}
+
+const entities: Record<string, string> = {amp: '&', apos: "'", gt: '>', lt: '<', quot: '"'}
+const decode = (s: string) =>
+  s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-z]+);/g, (m, e: string) => {
+    if (e.startsWith('#x')) return String.fromCodePoint(parseInt(e.slice(2), 16))
+    if (e.startsWith('#')) return String.fromCodePoint(parseInt(e.slice(1), 10))
+    return entities[e] ?? m
+  })
+
+const attrsOf = (tag: string) => {
+  const out: Record<string, string> = {}
+  for (const m of tag.matchAll(/ ([a-zA-Z]+)="([^"]*)"/g)) out[m[1] ?? ''] = decode(m[2] ?? '')
+  return out
+}
+
+export const sourceElements = (source: string): Array<SourceElement> =>
+  [...source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>/g)].map(m => ({attrs: attrsOf(m[0]), type: m[1] ?? ''}))
