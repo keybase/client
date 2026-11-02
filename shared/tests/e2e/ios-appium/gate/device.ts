@@ -220,7 +220,7 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
   try {
     for (const c of files) quietFs('seeding a corpus file', () => fs.copyFileSync(c.file, path.join(dir, c.name)))
   } catch (e) {
-    fs.rmSync(dir, {force: true, recursive: true})
+    quietFs('removing a part-seeded folder', () => fs.rmSync(dir, {force: true, recursive: true}))
     throw e
   }
   return folder
@@ -265,9 +265,10 @@ const readPicked = (p: string): PickedFile => {
 export const imageProps = (file: string) => {
   requireCurrentAttempt()
   const out = runSync('sips', ['-g', 'format', '-g', 'pixelWidth', '-g', 'pixelHeight', file], 15_000, {hidden: [file], what: 'sips'})
-  const format = /format: (\S+)/.exec(out)?.[1]
-  const w = /pixelWidth: (\d+)/.exec(out)?.[1]
-  const h = /pixelHeight: (\d+)/.exec(out)?.[1]
+  // sips prints the path first, so each value is read only off its own indented key line
+  const format = /^\s+format: (\S+)$/m.exec(out)?.[1]
+  const w = /^\s+pixelWidth: (\d+)$/m.exec(out)?.[1]
+  const h = /^\s+pixelHeight: (\d+)$/m.exec(out)?.[1]
   if (!format || !w || !h) throw new Error('sips read no format or pixel size')
   return {format, pixels: `${w}x${h}`}
 }
