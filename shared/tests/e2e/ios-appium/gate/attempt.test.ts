@@ -279,7 +279,12 @@ test('a body ended while a restore ran hands over that restore too, and runs not
   release()
   await expect(body).rejects.toThrow('attempt over')
   expect(ran).toEqual(['first started'])
-  expect(takeLeftCleanup(a)).toEqual([first, second])
+  const left = takeLeftCleanup(a) ?? []
+  expect(left).toHaveLength(2)
+  expect(left[1]).toBe(second)
+  // the body's run of the restore was cut off, so the root afterEach runs it again
+  for (const s of left) await s()
+  expect(ran).toEqual(['first started', 'first started', 'second'])
 })
 
 test("wdio's afterTest on a body whose test function settled hands nothing over", async () => {

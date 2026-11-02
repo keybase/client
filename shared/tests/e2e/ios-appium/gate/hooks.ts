@@ -174,8 +174,9 @@ setBeforeCleanupSteps(async () => {
 // and are kept with the body, for the root afterEach to take over if the gate ends it
 setCleanupStepKeeper(keepCleanupSteps)
 
-// The largest cleanup a flow declares (account-login's, 685s) and restoreToSmoke (275s) = 960s.
-const LEFT_CLEANUP_MS = 1_000_000
+// The largest cleanup a flow declares (account-login's, 685s), waiting out the step the body was
+// running (RUNNING_STEP_WAIT_MS, 60s) and restoreToSmoke (275s) = 1020s.
+const LEFT_CLEANUP_MS = 1_060_000
 
 // A body the gate ended while it still ran (its app hung and was relaunched, or mocha or wdio timed
 // it out) had every app command of its own refused from then, its cleanup's included. What that

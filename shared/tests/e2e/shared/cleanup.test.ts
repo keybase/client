@@ -67,3 +67,68 @@ test('with no keeper set, withCleanup runs every step itself (the desktop gate)'
   ).rejects.toThrow('body')
   expect(ran).toEqual(['a', 'b'])
 })
+
+test('a step the body was running when taken is waited for, and not run again once it passed', async () => {
+  let take: TakeSteps = () => []
+  setCleanupStepKeeper(t => {
+    take = t
+    return () => {}
+  })
+  const ran: Array<string> = []
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  const slow = async () => {
+    ran.push('slow started')
+    await stuck
+    ran.push('slow done')
+  }
+  const b = () => ran.push('b')
+  const run = withCleanup(async () => {}, [slow, b])
+  for (let i = 0; i < 5; i++) await Promise.resolve()
+  const taken = take()
+  expect(taken).toHaveLength(2)
+  expect(taken[1]).toBe(b)
+  const gate = (async () => {
+    for (const s of taken) await s()
+  })()
+  for (let i = 0; i < 5; i++) await Promise.resolve()
+  // the gate waits for the body's run of it, never starting its own beside it
+  expect(ran).toEqual(['slow started'])
+  release()
+  await run
+  await gate
+  // the body ran no step after it
+  expect(ran).toEqual(['slow started', 'slow done', 'b'])
+})
+
+test('a step the body was running when taken runs again once the body\'s run of it threw', async () => {
+  let take: TakeSteps = () => []
+  setCleanupStepKeeper(t => {
+    take = t
+    return () => {}
+  })
+  const ran: Array<string> = []
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  let calls = 0
+  const restore = async () => {
+    calls++
+    ran.push(`restore ${calls}`)
+    if (calls === 1) {
+      await stuck
+      throw new Error('attempt over: t')
+    }
+  }
+  const run = withCleanup(async () => {}, [restore])
+  for (let i = 0; i < 5; i++) await Promise.resolve()
+  const taken = take()
+  const gate = (async () => {
+    for (const s of taken) await s()
+  })()
+  for (let i = 0; i < 5; i++) await Promise.resolve()
+  expect(ran).toEqual(['restore 1'])
+  release()
+  await expect(run).rejects.toThrow('attempt over: t')
+  await gate
+  expect(ran).toEqual(['restore 1', 'restore 2'])
+})
