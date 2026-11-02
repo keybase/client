@@ -104,12 +104,12 @@ describe('device paper key', function () {
   it('makes a paper key from the phone, then revokes it from its device page', async function () {
     // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
     // 15, the device list before 15, openDevices 45, the chooser 20, the key listed and named 30, the
-    // words 30, acknowledging 50, the screen closing 10, findDeviceRow 240, openDevicePage 265 (its
-    // own findDeviceRow 240, the page 25), its label 10, the revoke guard 20, revokeOnPhone 95 (the
+    // words 30, acknowledging 50, the screen closing 10, findDeviceRow 250, openDevicePage 275 (its
+    // own findDeviceRow 250, the page 25), its label 10, the revoke guard 20, revokeOnPhone 95 (the
     // confirm 25, its close 30, the page's own leave 2, the back 15, the page gone 5, the list 15,
-    // a step 3), not listed active 30, revoked 30, five steps 25 = 930. Cleanups: closing the
-    // screen 130, retire 45 = 175. Total 1105.
-    this.timeout(1_200_000)
+    // a step 3), not listed active 30, revoked 30, five steps 25 = 950. Cleanups: closing the
+    // screen 130, retire 45 = 175. Total 1125.
+    this.timeout(1_220_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const phoneID = await phoneDeviceId()

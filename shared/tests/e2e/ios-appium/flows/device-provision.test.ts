@@ -69,11 +69,11 @@ describe('device provision', function () {
     // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
     // 15, the home's service 30, openDevices 45, the chooser 20, the manual edge 5, the code page 40,
     // the phrase 60, its submit 30, the CLI's login 120, the code page closing 30, whoami 15, the
-    // list 10, the devices list 15, openDevices again 45, openDevicePage 265 (findDeviceRow 240, the
+    // list 10, the devices list 15, openDevices again 45, openDevicePage 275 (findDeviceRow 250, the
     // page 25), its label 10, the shutdown 30, the revoke guard 20, revokeOnPhone 95, not listed
-    // active 30, revoked 30, three steps 15 = 975. Cleanups: closing the code page 125, the
-    // retirement 70 = 195. Total 1170.
-    this.timeout(1_200_000)
+    // active 30, revoked 30, three steps 15 = 985. Cleanups: closing the code page 125, the
+    // retirement 70 = 195. Total 1180.
+    this.timeout(1_210_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const home = provisionHomeFor(runId, provDeviceLabel)

@@ -30,10 +30,10 @@ describe('device revoke', function () {
   it('revokes a computer the CLI provisioned, from its device page', async function () {
     // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
     // 15, provisionCliDevice 265 (the home's service 30, the login 180, whoami 15, the list 10, its
-    // shutdown 30), openDevices 45, openDevicePage 265 (findDeviceRow 240, the page 25), its label
+    // shutdown 30), openDevices 45, openDevicePage 275 (findDeviceRow 250, the page 25), its label
     // 10, the revoke guard 20, revokeOnPhone 95, not listed active 30, revoked 30, three steps 15 =
-    // 790. Cleanup: retireCliDevice 70. Total 860.
-    this.timeout(960_000)
+    // 800. Cleanup: retireCliDevice 70. Total 870.
+    this.timeout(970_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const phoneID = await phoneDeviceId()

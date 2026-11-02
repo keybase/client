@@ -89,10 +89,12 @@ export const listedActiveDevices = async (shown: (name: string) => string = n =>
 // screen clear of the header, and returns it with its label.
 export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
   masking(device, async (name, label) => {
+    // the list's own header, the Add button, sits above its rows and does not scroll; it is drawn a
+    // moment after a screen over the list (the paper key's) closes
+    const add = labeled('Other', 'Add a device or paper key')
+    await add.waitForDisplayed({timeout: 10_000})
     const until = Date.now() + timeoutMs
     const {height} = await browser.getWindowRect()
-    // the list's own header, the Add button, sits above its rows and does not scroll
-    const add = labeled('Other', 'Add a device or paper key')
     const listTop = (await add.getLocation('y')) + (await add.getSize('height'))
     // clear of the home indicator's safe area at the bottom
     const listBottom = height * 0.9
