@@ -50,10 +50,11 @@ import {
   watcherRunning,
   type Point,
 } from '../gate/location-lib.ts'
+import {cancelledOutboxIDs, failedOutboxIDs, outboxFlushes} from '../gate/outbox-lib.ts'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
-import {openConversation, typeInComposer} from '../helpers/chat'
+import {cancelAppOutbox, openConversation, typeInComposer} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {expectScreen, waitSignedIn} from '../helpers/files'
 import {appPid, goLogMark, goLogSince, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
@@ -61,6 +62,10 @@ import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
 const LOCATION_UPDATE = 'chat.1.local.locationUpdate'
+
+// Three pulls of the outbox by the service's deliverer, which pulls every 5s (it logs "duration: 5s" as
+// it starts), and a second over.
+const OUTBOX_PULLS_MS = 16_000
 
 describe('chat location', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -95,6 +100,8 @@ describe('chat location', function () {
   let privacy: PrivacyRestore | undefined
   // the throwaway channels a test made
   const channels = new Set<string>()
+  // and their conversation ids, whose outbox records the afterEach cancels
+  const convIDs = new Set<string>()
 
   // Runs `restore`; a failure poisons the gate (the phone or the account is left changed for every
   // later flow), a success clears that poison.
@@ -142,6 +149,33 @@ describe('chat location', function () {
     privacy = undefined
   }
 
+  // The channels' pending outbox records cancelled through the service's own CancelPost, before the
+  // channels go: the map unfurl of each location post fails here, and the service would retry the
+  // record for an hour, even with its channel deleted, keeping the app background active (a background
+  // wait in any later flow fails). Their ids come off the service's log of the sends it failed (no RPC
+  // lists the outbox), the service's own "CancelPost -> ok" anchors the read-back, and then no pull of
+  // the outbox over OUTBOX_PULLS_MS logs a record for them. Only these channels' records are touched.
+  // Bound: mark 120, pulls 16, the cancels 3 each (a few), done 21, mark 120, pulls 16 = about 300.
+  const cancelOutbox = async () =>
+    guarded('the location outbox', "delete the run's pending location messages from the location channel in the Keybase app", async () => {
+      if (convIDs.size === 0) return
+      const mark = goLogMark()
+      await new Promise(resolve => setTimeout(resolve, OUTBOX_PULLS_MS))
+      const ids = failedOutboxIDs(goLogSince(mark), convIDs)
+      if (ids.length) {
+        await cancelAppOutbox(ids)
+        await waitFor('the phone service to cancel the outbox records', () => (ids.every(id => cancelledOutboxIDs(goLogSince(mark)).has(id)) ? true : undefined), {
+          interval: 500,
+          timeout: 20_000,
+        })
+      }
+      const after = goLogMark()
+      await new Promise(resolve => setTimeout(resolve, OUTBOX_PULLS_MS))
+      const left = [...outboxFlushes(goLogSince(after)).keys()].filter(c => convIDs.has(c))
+      if (left.length) throw new Error(`the outbox still holds records for ${left.length} location channel(s) after the cancel`)
+      convIDs.clear()
+    })
+
   // Bound: a channel 120.
   const deleteChannels = async () =>
     guarded('the location channel', "delete the run's stamped location channel of the e2e team", async () => {
@@ -151,11 +185,11 @@ describe('chat location', function () {
       }
     })
 
-  // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 150, launchIfGone 272, a
-  // channel 120, escapeToTabs 30 = 1256.
+  // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 150, launchIfGone 272, the
+  // outbox 300, a channel 120, escapeToTabs 30 = 1556.
   afterEach(async function () {
-    this.timeout(1_300_000)
-    await withCleanup(launchIfGone, [stopSharing, clearMoves, putBackPrivacy, launchIfGone, deleteChannels, escapeToTabs])
+    this.timeout(1_600_000)
+    await withCleanup(launchIfGone, [stopSharing, clearMoves, putBackPrivacy, launchIfGone, cancelOutbox, deleteChannels, escapeToTabs])
   })
 
   // -- helpers --------------------------------------------------------------------------------------
@@ -171,6 +205,7 @@ describe('chat location', function () {
   const inChannelWithLocation = async () => {
     const made = await masked(async () => createThrowawayChannel('loc', {withSecond: false}))
     channels.add(made.topicName)
+    convIDs.add(made.convID)
     privacy = await grantPrivacy('location-always')
     moveTo(APPLE_PARK)
     await openConversation(made.convID)
