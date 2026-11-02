@@ -19,6 +19,7 @@ import {
   carriedTeam,
   findInboxHeader,
   findInboxRow,
+  frameInside,
   inboxRowCandidates,
   isOneOnOneRow,
   type AppSmallRow,
@@ -28,6 +29,7 @@ import {
   sheetItemLabels,
   shiftIntoBand,
   type DrawnInboxItem,
+  type Rect as Frame,
   type Span,
   visibleBand,
   wholly as whollyInBand,
@@ -671,13 +673,19 @@ const seekInbox = async (
   }
 }
 
+// The frames an eval's e2eMeasure(key, hosts) puts at globalThis[key], in its hosts' order, once
+// every one is measured. Bound: 3.
+const measured = async (key: string, what: string) =>
+  waitFor(what, async () => (await jsEval<Array<Frame> | null>(`return globalThis[${JSON.stringify(key)}] || null`)) ?? undefined, {
+    interval: 100,
+    timeout: 3_000,
+  })
+
 // The app's drawn small conversation rows (AppSmallRow): each row's tappable box measured, and its
 // top line's participants and team. Bound: the read 1, the measures 3.
 const appSmallRows = async (): Promise<Array<AppSmallRow>> => {
-  const count = await jsEval<number>(
+  const lines = await jsEval<Array<{participants: Array<string>; team: boolean}>>(
     `${fiberPrelude}
-    const g = globalThis
-    g.__e2eSmallRows = undefined
     const boxes = []
     const stack = [e2eRootFiber()]
     while (stack.length) {
@@ -700,24 +708,13 @@ const appSmallRows = async (): Promise<Array<AppSmallRow>> => {
       const host = e2eHostOf(box)
       if (line && host) rows.push({host, participants: [...line.participants], team: !!line.teamDisplayName})
     }
-    const out = []
-    const done = () => out.length === rows.length && (g.__e2eSmallRows = out)
-    if (!rows.length) g.__e2eSmallRows = out
-    for (const r of rows) {
-      g.nativeFabricUIManager.measureInWindow(r.host.stateNode.node, (x, y, width, height) => {
-        out.push({bottom: y + height, participants: r.participants, team: r.team, top: y})
-        done()
-      })
-    }
-    return rows.length
+    e2eMeasure('__e2eSmallRows', rows.map(r => r.host))
+    return rows.map(r => ({participants: r.participants, team: r.team}))
   `,
     {once: true}
   )
-  return waitFor(
-    `the ${count} inbox rows measured`,
-    async () => (await jsEval<Array<AppSmallRow> | null>('return globalThis.__e2eSmallRows || null')) ?? undefined,
-    {interval: 100, timeout: 3_000}
-  )
+  const frames = await measured('__e2eSmallRows', `the ${lines.length} inbox rows measured`)
+  return lines.map((l, i) => ({...l, bottom: frames[i]!.y + frames[i]!.height, top: frames[i]!.y}))
 }
 
 // The drawn row named `name` in this drawing (findInboxRow). A small conversation's must also be the
@@ -1607,21 +1604,9 @@ export const visibleConversation = async () =>
 // The evals send nothing. Bound: 5s.
 export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, text: string) => {
   const started = await jsEval<number>(`${fiberPrelude}
-    const g = globalThis
-    g.__e2eTextFrame = undefined
-    const want = ${JSON.stringify(String(ordinal))}
     const label = ${JSON.stringify(text)}
-    const rows = []
-    const stack = [e2eRootFiber()]
-    while (stack.length) {
-      const f = stack.pop()
-      const p = f.memoizedProps
-      if (f.sibling) stack.push(f.sibling)
-      if (p && p.ordinal !== undefined && String(p.ordinal) === want) rows.push(f)
-      else if (f.child) stack.push(f.child)
-    }
     const hits = []
-    for (const row of rows) {
+    for (const row of e2eMessageFibers(${ordinal})) {
       const inner = row.child ? [row.child] : []
       while (inner.length) {
         const f = inner.pop()
@@ -1634,29 +1619,17 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
     if (hits.length !== 1) return hits.length
     const host = e2eHostOf(hits[0])
     if (!host) return -1
-    g.nativeFabricUIManager.measureInWindow(host.stateNode.node, (x, y, width, height) => (g.__e2eTextFrame = {height, width, x, y}))
+    e2eMeasure('__e2eTextFrame', [host])
     return 1
   `, {once: true})
   if (started !== 1) {
     throw new Error(started === -1 ? `the "${text}" text has no view to measure` : `${started} pressable "${text}" texts in the message at ${ordinal}, not one`)
   }
-  type Frame = {height: number; width: number; x: number; y: number}
-  const frame = await waitFor(
-    `the "${text}" text measured`,
-    async () => (await jsEval<Frame | null>('return globalThis.__e2eTextFrame || null')) ?? undefined,
-    {interval: 100, timeout: 3_000}
-  )
+  const [frame] = await measured('__e2eTextFrame', `the "${text}" text measured`)
   const at = await element.getLocation()
   const size = await element.getSize()
   const {height: window} = await browser.getWindowRect()
-  const inside =
-    frame.width > 0 &&
-    frame.height > 0 &&
-    frame.x >= at.x - 1 &&
-    frame.y >= at.y - 1 &&
-    frame.x + frame.width <= at.x + size.width + 1 &&
-    frame.y + frame.height <= at.y + size.height + 1
-  if (!inside || frame.y < 0 || frame.y + frame.height > window) {
+  if (!frame || !frameInside(frame, {...at, ...size}, window)) {
     throw new Error(`the "${text}" text is not wholly inside its element on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
   console.log(`  tapTextIn: "${text}" at ${JSON.stringify(frame)} in its element ${JSON.stringify({...at, ...size})}`)
@@ -1673,22 +1646,11 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
 // withHarnessRpcs).
 export const pressInlineText = async (ordinal: number, text: string) => {
   const found = await jsEval<number>(`${fiberPrelude}
-    const want = ${JSON.stringify(String(ordinal))}
     const label = ${JSON.stringify(text)}
-    // the topmost fibers of the message: those carrying its ordinal under none that does
-    const rows = []
-    const stack = [e2eRootFiber()]
-    while (stack.length) {
-      const f = stack.pop()
-      const p = f.memoizedProps
-      if (f.sibling) stack.push(f.sibling)
-      if (p && p.ordinal !== undefined && String(p.ordinal) === want) rows.push(f)
-      else if (f.child) stack.push(f.child)
-    }
     // the composite texts with a click handler rendering exactly the label (the host virtual text
     // under each carries the same handler)
     const hits = []
-    for (const row of rows) {
+    for (const row of e2eMessageFibers(${ordinal})) {
       const inner = row.child ? [row.child] : []
       while (inner.length) {
         const f = inner.pop()
@@ -1715,8 +1677,6 @@ export const pressInlineText = async (ordinal: number, text: string) => {
 // inline-text one for a control with a view). The evals send nothing. Bound: 5s.
 export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: string; value: string}, label: string) => {
   const started = await jsEval<number>(`${fiberPrelude}
-    const g = globalThis
-    g.__e2eControlFrame = undefined
     const prop = ${JSON.stringify(scope.prop)}
     const value = ${JSON.stringify(scope.value)}
     const label = ${JSON.stringify(label)}
@@ -1747,11 +1707,7 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
     if (!button || !row) return -1
     // both in the same coordinates (a modal's root view, not the screen); the row's element on screen
     // places them
-    const frames = {}
-    const done = () => frames.button && frames.row && (g.__e2eControlFrame = frames)
-    const ui = g.nativeFabricUIManager
-    ui.measureInWindow(button.stateNode.node, (x, y, width, height) => ((frames.button = {height, width, x, y}), done()))
-    ui.measureInWindow(row.stateNode.node, (x, y, width, height) => ((frames.row = {height, width, x, y}), done()))
+    e2eMeasure('__e2eControlFrames', [button, row])
     return 1
   `, {once: true})
   if (started !== 1) {
@@ -1763,28 +1719,17 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
           : `${started} "${label}" buttons in the row asked for, not one`
     )
   }
-  type Frame = {height: number; width: number; x: number; y: number}
-  const measured = await waitFor(
-    `the "${label}" button measured`,
-    async () => (await jsEval<{button: Frame; row: Frame} | null>('return globalThis.__e2eControlFrame || null')) ?? undefined,
-    {interval: 100, timeout: 3_000}
-  )
+  const [button, measuredRow] = await measured('__e2eControlFrames', `the "${label}" button measured`)
+  if (!button || !measuredRow) throw new Error(`the "${label}" button or its row was not measured`)
   const at = await row.getLocation()
   const size = await row.getSize()
   // the row's view and its element are the same box: the difference places the button on screen
-  if (Math.abs(measured.row.width - size.width) > 1 || Math.abs(measured.row.height - size.height) > 1) {
-    throw new Error(`the row measured ${JSON.stringify(measured.row)} is not the row element ${JSON.stringify({...at, ...size})}`)
+  if (Math.abs(measuredRow.width - size.width) > 1 || Math.abs(measuredRow.height - size.height) > 1) {
+    throw new Error(`the row measured ${JSON.stringify(measuredRow)} is not the row element ${JSON.stringify({...at, ...size})}`)
   }
-  const frame = {...measured.button, x: measured.button.x + at.x - measured.row.x, y: measured.button.y + at.y - measured.row.y}
+  const frame = {...button, x: button.x + at.x - measuredRow.x, y: button.y + at.y - measuredRow.y}
   const {height: window} = await browser.getWindowRect()
-  const inRow =
-    frame.width > 0 &&
-    frame.height > 0 &&
-    frame.x >= at.x - 1 &&
-    frame.y >= at.y - 1 &&
-    frame.x + frame.width <= at.x + size.width + 1 &&
-    frame.y + frame.height <= at.y + size.height + 1
-  if (!inRow || frame.y < 0 || frame.y + frame.height > window) {
+  if (!frameInside(frame, {...at, ...size}, window)) {
     throw new Error(`the "${label}" button is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
   await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
@@ -1799,7 +1744,6 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
 // lands at the middle of the switch's frame only if it is on screen. The evals send nothing. Returns
 // whether it was on before. Bound: 3 measured, the tap 1, the turn 5 = 9s.
 export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Element, anchorLabel: string) => {
-  type Frame = {height: number; width: number; x: number; y: number}
   const switchOn = async () =>
     jsEval<Array<boolean>>(`${fiberPrelude}
       const out = []
@@ -1814,8 +1758,6 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
       return out
     `)
   const started = await jsEval<number>(`${fiberPrelude}
-    const g = globalThis
-    g.__e2eSwitchFrames = undefined
     const label = ${JSON.stringify(label)}
     const anchorLabel = ${JSON.stringify(anchorLabel)}
     const switches = []
@@ -1845,28 +1787,22 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
     const host = box && e2eHostOf(box)
     const anchorHosts = anchors.map(e2eHostOf).filter(Boolean)
     if (!host || !anchorHosts.length) return -1
-    const frames = {anchors: []}
-    const ui = g.nativeFabricUIManager
-    const done = () => frames.switch && frames.anchors.length === anchorHosts.length && (g.__e2eSwitchFrames = frames)
-    ui.measureInWindow(host.stateNode.node, (x, y, width, height) => ((frames.switch = {height, width, x, y}), done()))
-    for (const a of anchorHosts) ui.measureInWindow(a.stateNode.node, (x, y, width, height) => (frames.anchors.push({height, width, x, y}), done()))
+    // the switch first, then every anchor
+    e2eMeasure('__e2eSwitchFrames', [host, ...anchorHosts])
     return 1
   `, {once: true})
   if (started !== 1) {
     throw new Error(started === -1 ? 'the switch asked for or its anchor has no view to measure' : `${started} switches with the label asked for, not one`)
   }
-  const measured = await waitFor(
-    'the switch measured',
-    async () => (await jsEval<{anchors: Array<Frame>; switch: Frame} | null>('return globalThis.__e2eSwitchFrames || null')) ?? undefined,
-    {interval: 100, timeout: 3_000}
-  )
+  const [sw, ...anchors] = await measured('__e2eSwitchFrames', 'the switch measured')
+  if (!sw) throw new Error('the switch was not measured')
   const at = await anchor.getLocation()
   const size = await anchor.getSize()
-  const sized = measured.anchors.filter(a => Math.abs(a.width - size.width) <= 1 && Math.abs(a.height - size.height) <= 1)
+  const sized = anchors.filter(a => Math.abs(a.width - size.width) <= 1 && Math.abs(a.height - size.height) <= 1)
   const placed = new Set(sized.map(a => `${a.x},${a.y}`))
   if (placed.size !== 1) throw new Error(`${placed.size} "${anchorLabel}" frames the size of its element, not one`)
   const ref = sized[0]!
-  const frame = {...measured.switch, x: measured.switch.x + at.x - ref.x, y: measured.switch.y + at.y - ref.y}
+  const frame = {...sw, x: sw.x + at.x - ref.x, y: sw.y + at.y - ref.y}
   const {height: window, width} = await browser.getWindowRect()
   if (frame.width <= 0 || frame.height <= 0 || frame.x < 0 || frame.y < 0 || frame.x + frame.width > width || frame.y + frame.height > window) {
     throw new Error(`the switch is not wholly on screen: ${JSON.stringify(frame)}`)

@@ -202,6 +202,18 @@ export const shiftIntoBand = (row: Span, band: Span, margin: number) => {
   return 0
 }
 
+// Whether a measured frame is drawn wholly inside `rect` (to within a point) and on a screen
+// `screenHeight` tall, and is not empty: where a tap at its middle lands on it.
+export const frameInside = (frame: Rect, rect: Rect, screenHeight: number) =>
+  frame.width > 0 &&
+  frame.height > 0 &&
+  frame.x >= rect.x - 1 &&
+  frame.y >= rect.y - 1 &&
+  frame.x + frame.width <= rect.x + rect.width + 1 &&
+  frame.y + frame.height <= rect.y + rect.height + 1 &&
+  frame.y >= 0 &&
+  frame.y + frame.height <= screenHeight
+
 // The index of the drawn big team header of `team`, by its exact name, or undefined when none is
 // drawn. A header whose name was not read is never it. Throws when more than one header matches.
 export const findInboxHeader = (items: ReadonlyArray<DrawnInboxItem>, team: string) => {

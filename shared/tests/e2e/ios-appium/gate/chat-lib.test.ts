@@ -4,6 +4,7 @@ import {
   findInboxRow,
   isOneOnOneRow,
   forwardResultMatches,
+  frameInside,
   inNameSection,
   inboxIn,
   inboxRowMatches,
@@ -231,6 +232,22 @@ describe('findInboxHeader', () => {
 
   test('two headers of the team are refused', () => {
     expect(() => findInboxHeader([header('e2eteam', 0), header('e2eteam', 100)], 'e2eteam')).toThrow(/more than one/)
+  })
+})
+
+describe('frameInside', () => {
+  const row = {height: 60, width: 300, x: 0, y: 100}
+  test('a frame inside the rect and on screen, and one a point over its edge', () => {
+    expect(frameInside({height: 20, width: 100, x: 10, y: 110}, row, 800)).toBe(true)
+    expect(frameInside({height: 61, width: 301, x: -1, y: 99}, row, 800)).toBe(true)
+  })
+
+  test('a frame past the rect, an empty one, and one off the screen are not', () => {
+    expect(frameInside({height: 20, width: 100, x: 250, y: 110}, row, 800)).toBe(false)
+    expect(frameInside({height: 20, width: 100, x: 10, y: 150}, row, 800)).toBe(false)
+    expect(frameInside({height: 0, width: 100, x: 10, y: 110}, row, 800)).toBe(false)
+    expect(frameInside({height: 20, width: 100, x: 10, y: 110}, row, 120)).toBe(false)
+    expect(frameInside({height: 20, width: 100, x: 10, y: -5}, {...row, y: -10}, 800)).toBe(false)
   })
 })
 
