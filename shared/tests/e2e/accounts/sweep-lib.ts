@@ -237,7 +237,7 @@ export const candidateKey = (c: SweepCandidate) =>
 export const checkDelete = (c: SweepCandidate, ctx: SweepContext, actingUser: string) => {
   const refuse = (why: string) => new Error(`refusing to delete ${describeCandidate(c)}: ${why}`)
   if (actingUser !== ctx.users[c.account]) {
-    throw refuse(`the acting service is signed in as ${actingUser || 'nobody'}, not the ${c.account} account`)
+    throw refuse(`the acting service is signed in as ${maskAccounts(actingUser, ctx) || 'nobody'}, not the ${c.account} account`)
   }
   const v = judge(c, ctx)
   if (v.to === 'drop') throw refuse('no e2e prefix, or outside its scope')

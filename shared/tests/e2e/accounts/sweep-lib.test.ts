@@ -277,7 +277,7 @@ describe('checkDelete', () => {
     expect(() => checkDelete(target, ctx, 'testuser')).not.toThrow()
   })
   test('refuses when the acting account is not the one the target belongs to', () => {
-    expect(() => checkDelete(target, ctx, 'testuser-mac')).toThrow(/signed in as testuser-mac/)
+    expect(() => checkDelete(target, ctx, 'testuser-mac')).toThrow(/^refusing to delete .*: the acting service is signed in as <second>, not the smoke account$/)
     expect(() => checkDelete(target, ctx, '')).toThrow(/signed in as nobody/)
   })
   test('refuses anything the selection would not delete', () => {

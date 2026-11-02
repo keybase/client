@@ -41,6 +41,7 @@ import {
   withSignalsDeferred,
 } from './peer-homes.ts'
 import {ensureRunId} from './run-id.ts'
+import {maskAccounts} from './sweep-lib.ts'
 import {E2E_CHANNELS} from '../shared/chat-data.ts'
 import {keybaseBin} from '../shared/keybase-bin.ts'
 import {connectPeerRpc} from '../shared/peer-rpc.ts'
@@ -80,6 +81,10 @@ const loadVars = (): Vars => {
   return vars
 }
 
+// A line for the console, with the test accounts and team named by role.
+const masked = (s: string, vars: Vars) =>
+  maskAccounts(s, {team: vars['KB_E2E_TEAM'] ?? '', users: {second: vars['KB_SECOND_USER'] ?? '', smoke: vars['KB_SMOKE_USER'] ?? ''}})
+
 const userFor = (role: PeerRole, vars: Vars) => (role === 'owner' ? vars['KB_SMOKE_USER'] : vars['KB_SECOND_USER']) ?? ''
 
 const envFor = (vars: Vars, role: PeerRole, home: string, paperKey: string): E2EEnv => {
@@ -118,7 +123,7 @@ const problemsFor = async (role: PeerRole, vars: Vars): Promise<string[]> => {
     problems.push(`peer ${role} at ${target} is not running`)
   } else {
     const who = await peerWhoami(target)
-    if (who !== user) problems.push(`peer ${role} at ${target} is signed in as ${who || 'nobody'}`)
+    if (who !== user) problems.push(masked(`peer ${role} at ${target} is signed in as ${who || 'nobody'}`, vars))
   }
   return problems
 }
@@ -234,7 +239,7 @@ const ensurePaperKey = async (role: PeerRole, vars: Vars) => {
 }
 
 // Signs `home`'s service in as `user` with the paper key, as the first free e2e-<role>-svc name.
-const provisionHome = async (role: PeerRole, home: string, user: string, paperKey: string) => {
+const provisionHome = async (role: PeerRole, home: string, user: string, paperKey: string, vars: Vars) => {
   fs.mkdirSync(home, {mode: 0o700, recursive: true})
   if (!peerUsesFileSecretStore(home)) {
     if (await socketAnswers(socketPathFor(home))) {
@@ -245,7 +250,7 @@ const provisionHome = async (role: PeerRole, home: string, user: string, paperKe
   await waitForPeerService(role, home)
   const who = await peerWhoami(home)
   if (who === user) return
-  if (who) throw new Error(`peer ${role} at ${home} is signed in as ${who}; not touching it`)
+  if (who) throw new Error(masked(`peer ${role} at ${home} is signed in as ${who}; not touching it`, vars))
   for (const name of deviceNameCandidates(role)) {
     try {
       await runKeybase(['--home', home, 'login', '--devicename', name, user], {
@@ -352,7 +357,7 @@ const setUpRole = async (role: PeerRole, vars: Vars, runId: string) => {
   const user = userFor(role, vars)
   const recorded = vars[homeVar(role)]
   const paperKey = await ensurePaperKey(role, vars)
-  await provisionHome(role, target, user, paperKey)
+  await provisionHome(role, target, user, paperKey, vars)
   await runKeybase(['id', user], {timeoutMs: 60_000})
   const peer = await ensurePeer(role, envFor(vars, role, target, paperKey))
   await proveRoundTrip(peer, vars, `${runId}-${role}`)
