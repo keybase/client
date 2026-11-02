@@ -45,10 +45,9 @@ import {runAbortable} from '../shared/deadline.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {resultsDir as visualResultsDir} from '../visual/store.mts'
-import {sessionLocked} from '../electron/helpers/main-process.ts'
 import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
-import {pidAlive, stopPids} from '../electron/app-pidfile.ts'
+import {pidAlive, sessionLocked, stopPids} from '../shared/gate/processes.ts'
 import {
   flowProblems,
   parseTimeoutMin,

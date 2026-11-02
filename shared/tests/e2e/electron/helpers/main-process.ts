@@ -8,8 +8,9 @@
 import {execFileSync} from 'child_process'
 import {readAppPidfile} from '../app-pidfile.ts'
 import {withDeadline} from '../../shared/deadline.ts'
+import {sessionLocked} from '../../shared/gate/processes.ts'
 import {mainSocketPath} from '../../shared/peer-service.ts'
-import {cdpEvaluate, consoleLocked, electronMainPid, inspectorListUrl, inspectorUrl, INSPECTOR_PORT, parseEvaluateReply, serviceSocketFds} from './main-process-lib.ts'
+import {cdpEvaluate, electronMainPid, inspectorListUrl, inspectorUrl, INSPECTOR_PORT, parseEvaluateReply, serviceSocketFds} from './main-process-lib.ts'
 
 export type MainProcess = {
   eval: <T>(expr: string) => Promise<T>
@@ -267,8 +268,6 @@ export const closeMainInspector = async () => {
   await withDeadline(conn.closed, OPEN_MS, 'the main process closing its inspector')
 }
 
-// Whether the macOS session is locked (main-process-lib's consoleLocked).
-export const sessionLocked = () => consoleLocked(execFileSync('ioreg', ['-n', 'Root', '-d1'], {encoding: 'utf8', timeout: 10_000}))
 
 // The main window's own fullscreen transitions, as the main process reports them ('enter-full-screen',
 // 'leave-full-screen'), from the call on: a video's fullscreen puts the window fullscreen too, about

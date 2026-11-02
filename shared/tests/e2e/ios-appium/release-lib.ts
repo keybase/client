@@ -4,7 +4,7 @@
 import * as path from 'path'
 import type {PortHolder} from '../shared/gate/ports.ts'
 import {flowsLine, flowsOk, type FlowSummary, type Outcome} from '../shared/gate/release-lib.ts'
-import {KBFS_START_COMMAND} from '../electron/release-lib.ts'
+import {KBFS_START_COMMAND} from '../shared/gate/processes.ts'
 
 // What the run's children listen on, which must be free when it starts.
 const PORT_NAMES: Record<number, string> = {4723: 'Appium', 8081: 'Metro', 8100: 'WebDriverAgent'}

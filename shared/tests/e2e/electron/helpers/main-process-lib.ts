@@ -76,11 +76,3 @@ export const serviceSocketFds = (lsof: string, pid: number, socketPath: string):
   return rows.filter(r => r.pid === pid && r.name.startsWith('->') && bound.has(r.name.slice(2))).map(r => r.fd)
 }
 
-// Whether the macOS console session is locked, from `ioreg -n Root -d1`. A locked session refuses
-// a window's native fullscreen: the window starts entering and drops back at once, with no
-// 'enter-full-screen'.
-export const consoleLocked = (ioreg: string): boolean => {
-  const m = /"IOConsoleLocked" = (Yes|No)\b/.exec(ioreg)
-  if (!m) throw new Error('ioreg -n Root -d1 does not report IOConsoleLocked')
-  return m[1] === 'Yes'
-}

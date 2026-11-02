@@ -5,7 +5,7 @@
 import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
-import {groupAlive, sleep, stopAppGroup} from '../electron/app-pidfile.ts'
+import {groupAlive, sleep, stopGroup} from '../shared/gate/processes.ts'
 import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
@@ -58,7 +58,7 @@ export const forgetMetroPidfile = (pgid: number) => {
 }
 
 export const stopMetro = async (pgid: number) => {
-  await stopAppGroup(pgid)
+  await stopGroup(pgid)
   forgetMetroPidfile(pgid)
 }
 
