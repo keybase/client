@@ -202,6 +202,29 @@ test('end answers stub replies still pending with an error and reports them; a l
   }
 })
 
+test("an answer-logged call is answered even when its error can't be described", () => {
+  const h = harness({rpc: []} as unknown as FixtureDef)
+  try {
+    h.rt.recording.start()
+    const cyclic: {self?: unknown} = {}
+    cyclic.self = cyclic
+    const replies: Array<unknown> = []
+    const handled = h.rt.rpc.invoke({
+      deliver: () => {},
+      method: 'keybase.1.device.deviceHistoryList',
+      param: {},
+      real: done => done(cyclic, undefined),
+      reply: err => replies.push(err),
+    })
+    assert.equal(handled, true)
+    assert.deepEqual(replies, [cyclic])
+    const [entry] = h.rt.recording.calls(0).calls
+    assert.equal(entry?.answer?.error, 'an error that could not be described')
+  } finally {
+    h.restore()
+  }
+})
+
 test('hold drops notifications but not session calls, answer prompts, cancels or injected ones', () => {
   const h = harness({
     hold: true,

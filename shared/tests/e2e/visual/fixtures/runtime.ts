@@ -115,6 +115,15 @@ const CALL_LOG_SIZE = 4000
 const answerLogged: ReadonlySet<string> = new Set(['keybase.1.device.deviceAdd', 'keybase.1.device.deviceHistoryList'])
 // the longest error message an answer keeps
 const ANSWER_ERROR_SIZE = 500
+// never throws: the answer it describes still has to reach the app
+const describeAnswerError = (err: unknown): string => {
+  try {
+    const text = err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err)
+    return String(text).slice(0, ANSWER_ERROR_SIZE)
+  } catch {
+    return 'an error that could not be described'
+  }
+}
 
 // What the route recorder needs of the app's navigation container (router-v2/router.tsx sets it on
 // window.DEBUGNavigator in a dev app).
@@ -325,7 +334,7 @@ export const createRuntime = (deps: {
   const relayNotingAnswer = (call: OutgoingCall, entry: LoggedCall) => {
     call.real((err, result) => {
       entry.answer = {afterSeq: callSeq}
-      if (err) entry.answer.error = (err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err)).slice(0, ANSWER_ERROR_SIZE)
+      if (err) entry.answer.error = describeAnswerError(err)
       call.reply(err, result)
     })
   }
