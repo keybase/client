@@ -32,7 +32,7 @@
 // Children log to tests/results/ios-logs/ (setup-check, metro, flows, render, census, report, sweep;
 // emptied when the run takes the lock) and get this run's KB_E2E_RUN_ID.
 //
-// KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 240)
+// KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 262)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
 //                             the settings/* tour entries (the census then reports gaps)
 import {spawn, spawnSync} from 'child_process'
@@ -122,7 +122,7 @@ const APPIUM_PORT = 4723
 const WDA_PORT = 8100
 const MIN = 60_000
 
-const {deadlineMs, lockPath} = releaseSettings('[ios-release]', 240)
+const {deadlineMs, lockPath} = releaseSettings('[ios-release]', 262)
 const only = process.env['KB_E2E_RELEASE_ONLY'] || undefined
 const device = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 

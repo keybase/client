@@ -38,12 +38,9 @@ export const IOS_MANUAL_ONLY = {
     title: 'Real push delivery from the server',
   },
   'os-permission-prompts': {
-    doByHand: 'On a fresh install: the notification and camera permission prompts appear when the app first needs them, and allowing each works.',
+    doByHand:
+      "On a fresh install: the notification and camera permission prompts appear when the app first needs them, and allowing each works. The simulator's push permission is granted once by hand (simctl privacy has no notification service, and iOS asks once per install), so the gate never sees the notification prompt.",
     title: 'OS permission prompts the simulator cannot pre-grant',
-  },
-  'face-id': {
-    doByHand: 'On a device with Face ID: any action the app gates behind Face ID or the passcode prompts and proceeds on success.',
-    title: 'Face ID or passcode prompts',
   },
   'share-sheet-out': {
     doByHand: 'Share a message, a file and a link from Keybase into another app through the system share sheet; each arrives.',
@@ -101,6 +98,26 @@ export const IOS_MANUAL_ONLY = {
     doByHand:
       'In a throwaway folder of Files on the phone, upload a file with the phone offline (or into a folder that refuses the write) so its row shows "Upload has failed.", tap Dismiss, and check the row and the error go. A successful phone upload never sends the dismiss: its card hides itself.',
     title: "A failed upload's Dismiss in Files",
+  },
+  'offline-reconnect': {
+    doByHand:
+      "On a device: turn on Airplane Mode with a chat open, check the thread shows \"Couldn't load all chat messages due to network connectivity. Retrying...\" once it reloads, send a message (it waits as pending), then turn Airplane Mode off: the app reconnects, the banner goes and the message sends. The simulator shares the Mac's network, so the gate never cuts it.",
+    title: 'Losing the network and reconnecting',
+  },
+  'audio-message': {
+    doByHand:
+      'On a device: in a throwaway chat, hold the composer\'s microphone button, speak, release, and check the audio message posts and plays back; then hold, slide to cancel, and check nothing posts. On a simulator the button records the Mac\'s microphone, so the gate never presses it.',
+    title: 'Recording and sending an audio message',
+  },
+  'share-extension-sources': {
+    doByHand:
+      'On a device, share each into Keybase\'s own self conversation through the share sheet and check it arrives: a Live Photo from Photos; a screenshot just taken (from its thumbnail); plain text from Notes; an attachment from Mail; an attachment from Messages. The simulator cannot make a Live Photo or take an in-device screenshot, and has no Notes or Mail, nor a Messages account to receive attachments.',
+    title: 'Share extension sources the simulator lacks',
+  },
+  'contacts-import': {
+    doByHand:
+      'On a device with a throwaway account: Settings > Contacts > "Import phone contacts", allow access, and check the count of imported contacts shows; then in a throwaway team, Add members > "From your contacts" and check the contacts list opens. Remove the import after. The gate never imports: it would send the whole address book to the server.',
+    title: 'Phone contacts import and adding team members from contacts',
   },
 } satisfies Record<string, {title: string; doByHand: string}>
 

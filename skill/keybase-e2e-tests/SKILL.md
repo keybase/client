@@ -134,7 +134,7 @@ Same core as the desktop gate (`tests/e2e/shared/gate/`); the iOS code is `tests
 - **Outputs** (`shared/tests/results/`): `ios-report.html`, `ios-census.md` / `ios-census.json`, `ios-manual-checklist.md`, and the logs in `ios-logs/` (emptied when the run takes the lock).
 - **Known failures:** `tests/e2e/ios-appium/gate/lists/known-failures.ts`, same contract as desktop (still fail the run; the report labels them). The crypto peer-decrypt entry can pass in a full run, because earlier chat flows send from the second peer and sync its keyring; that "known failure passed" is expected, and the entry stays until the Go fix lands (a run without those flows fails it again).
 - **Lists** (`tests/e2e/ios-appium/gate/lists/`): `manual-only.ts` (what a person must do by hand; feeds the checklist), `census-exclusions.ts` (routes, write RPCs and surfaces the run need not reach, each with why; `manual-only: <id>` reasons name a manual-only entry), `surfaces.ts` (the native surfaces with no route). A flow credits a surface with `creditSurface(<surface>)` right after it asserts the app used it. The `gate/device.ts` and `gate/system-ui.ts` helpers (`openLink`, `pushNotification`, `setLocation`, `setPasteboard`, `relaunchApp`, `toBackground`/`toForeground`, `tapBanner`) only deliver and credit nothing (a jest source scan keeps `creditSurface(` out of `device.ts`): `background-foreground` is credited by the flow once it has asserted the round trip.
-- **Knobs:** `KB_E2E_RELEASE_ONLY=<grep>` (only matching flows and the `settings/*` tour entries; the census then reports gaps), `KB_E2E_RELEASE_TIMEOUT_MIN` (default 240), `KB_E2E_NO_OPEN=1`.
+- **Knobs:** `KB_E2E_RELEASE_ONLY=<grep>` (only matching flows and the `settings/*` tour entries; the census then reports gaps), `KB_E2E_RELEASE_TIMEOUT_MIN` (default 262: the PR 8 full run took 175 minutes), `KB_E2E_NO_OPEN=1`.
 
 ## iOS chat flows
 
@@ -189,14 +189,36 @@ The chat flows (`flows/chat-*.test.ts`) run in the gate like every other flow. S
 - **Backups:** each test snapshots the phone's backup jobs first, and its afterEach removes only the jobs the test started (before any check that could throw: a job left running fills the phone), with their output. "See progress" opens the Backup page as a sheet with no Close, so it is swiped down.
 - **Long pages' texts** (a profile with its teams and proofs) are read off one page source (`textShown`): an attribute call per text outlived its wait.
 
+## iOS native surfaces
+
+The app-level and native flows (`app-deep-links`, `app-push`, `app-lifecycle`, `chat-location`, `chat-attachments-picker`, `files-upload`, `files-save-photos`, `profile-avatar`, `teams-avatar-emoji`, `share-extension`) reach outside the app through `gate/device.ts` (`simctl`, attempt-checked, udid from preflight) and `gate/system-ui.ts` (springboard, Notification Center, the photo and document pickers, system alerts). Neither credits anything: a flow calls `creditSurface(...)` once it has asserted the app used the surface.
+
+- **Privacy:** `grantPrivacy(service)` reads the original from the simulator's `TCC.db` (location from `locationd`'s clients plist), grants with the bundle id `keybase.ios` (never `all`, never a reset without the bundle id) and returns a restore token; `restorePrivacy(token)` in the flow's `afterEach` puts it back exactly and reads it back. Every photos grant or reset terminates the app within a second; location ones do not.
+- **simctl's photos grant is invisible to PhotoKit:** the app reads full access as undetermined after `simctl privacy grant photos`. Full access comes only through the app's own prompt, accepting "Allow Full Access" (`grantFullPhotoAccess`). The pickers need no grant at all (PHPicker runs out of process).
+- **Photo corpus once per simulator:** `ensurePhotoCorpus()` adds the committed corpus (`fixtures/corpus/`) once and records the udid and sha256 list in `~/.config/keybase-e2e/`; it is never added per run. A flow picks corpus items by name and proves the pick by read-back (sha256, or format and pixel size where the picker re-encodes), never by grid position.
+- **Save to Photos deletes only recorded saved ids:** the test reads the whole library first, records the one new asset id the save made, and its `afterEach` deletes exactly the recorded ids. Deleted assets sit in Photos' Recently Deleted for 30 days; nothing else in the library is ever touched.
+- **Push:** `pushNotification` delivers through `simctl push` (payload file 0600 under `/tmp/kb-e2e/`, never a silent payload). Push permission is granted once on the simulator by the owner (simctl privacy has no notification service); preflight refuses without it. No flow calls the app's `requestPermissions`.
+- **App log capture, not log files:** `gate/app-log.ts` captures the app's logger lines inside the JS runtime after each launch (`appLogMark` / `appLogSince` / `appLogMarker`); flows read it and the recorder, never `start.log` or `metro.log`. Cold-launch checks read `startRoutes` / `appSnapshot`.
+- **The share extension** runs in its own process: its log (`extensionLogSince`) and the group container's manifest are its read-backs, and every share ends with a host CLI read-back of the sent message in smoke's self conversation.
+- **A context menu is held once on a frame read twice:** the hold's target frame is read until two reads half a second apart agree, then held once; there is no second hold, since one made while a menu is up lands on that menu.
+- **No gate wait outlives Appium's newCommandTimeout silently:** a wait that sends no WebDriver command pings the session (`gate/hang-lib.ts`) or refuses; a 300 s silent wait once ended the session and the rest of the run.
+- **The release refuses a pending outbox:** launch reads the app's outbox and refuses while any entry is pending (a failed post retries for a long time and holds the app background-active). A flow that can leave one (chat-location's map posts) cancels its own in `afterEach` and reads the cancel back.
+- **The poisoned flag:** a restore whose failure leaves the phone broken (a privacy or location restore, Notification Center left open, a stuck share manifest, a seed folder left, the app not relaunchable) calls `poisonGate(what, byHand)`; every later test fails at once naming it, and the release fails. A person clears the phone by hand.
+- **Inline pressable Text:** iOS draws inline pressable text (`RCTVirtualText`) with no accessibility element or frame; the flow calls that control's own `onPress` over Metro (exact text, in its row, exactly one) and adds a `manualEdge` for the physical tap. Never a coordinate guess.
+- **State-carrying testIDs:** where iOS shows no control state (a checkbox, a radio, a toggle-like row), the testID carries it (`<ID>:on` / `<ID>:off`), registered in `shared/test-ids.ts`; reads go through the testID.
+- **Never pressed:** the camera's "Take photo or video", the composer's audio record button, "Import phone contacts", "Share to another app" (the system sheet out), Photos' Delete on anything but the test's exact saved asset, `pbsync` (the host's clipboard), and anything that cuts the network (offline and reconnect are manual-only). The account and settings never-press list above still holds.
+
 ## iOS — Appium + WebdriverIO (TypeScript)
 
-| What | Where |
+| Command (from `shared/`) | What it runs |
 |------|-------|
-| Flow files | `shared/tests/e2e/ios-appium/flows/*.test.ts` |
-| Helpers | `shared/tests/e2e/ios-appium/helpers/` (elements, navigate, app) |
-| Config | `shared/tests/e2e/ios-appium/wdio.gate.conf.ts` (spec `gate.test.ts` → ONE session) |
-| Run | `KB_SMOKE_USER=<user> yarn test:e2e:ios:flows` (the gate flows; `yarn test:e2e:ios:release` for the full release) |
+| `yarn test:e2e:ios:release` | the whole iOS release gate (preflight, launch, sweep, flows, render, census, report, secrets) |
+| `yarn test:e2e:ios:flows` | the gate flows alone (`wdio.gate.conf.ts`, spec `gate.test.ts`, one session) |
+| `yarn test:e2e:ios:census` | the census again over the last run's results |
+| `yarn test:e2e:ios:gate-report` | the report again over the last run's results |
+| `yarn test:e2e:accounts:second-password --check` | after a release: the host's stored secret for the second account |
+
+Flow files are `shared/tests/e2e/ios-appium/flows/*.test.ts`, the gate's helpers `ios-appium/gate/`, the element and navigation helpers `ios-appium/helpers/`.
 
 Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testID>` (testID → iOS accessibilityIdentifier). Helpers: `el/els/waitForTestID/byText/tab` (elements), `escapeToTabs/goBack/navigateTo*/scrollDownToText` (navigate). `escapeToTabs` runs before every test (resets to the tab root).
 
