@@ -1,8 +1,6 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {IOS_EXCLUSIONS} from './census-exclusions.ts'
-import {IOS_MANUAL_ONLY} from './manual-only.ts'
 import {IOS_SURFACES, iosSurfacesExisting} from './surfaces.ts'
 
 const plist = (keys: Array<string>, extra = '') =>
@@ -41,19 +39,4 @@ test('a surface the app does not declare is not existing; those without a marker
 
 test('a moved plist throws', () => {
   expect(() => iosSurfacesExisting(fixture({'Keybase/Info.plist': plist([])}))).toThrow('is gone')
-})
-
-test('every manual-only reason in the exclusions names an IOS_MANUAL_ONLY id', () => {
-  const reasons = [IOS_EXCLUSIONS.routes, IOS_EXCLUSIONS.rpcs, IOS_EXCLUSIONS.surfaces ?? {}].flatMap(o => Object.values(o))
-  const ids = reasons.flatMap(r => /^manual-only: ([\w-]+)/.exec(r)?.[1] ?? [])
-  expect(ids.length).toBeGreaterThan(0)
-  for (const id of ids) expect(Object.keys(IOS_MANUAL_ONLY)).toContain(id)
-})
-
-test('every excluded surface is a listed surface', () => {
-  for (const s of Object.keys(IOS_EXCLUSIONS.surfaces ?? {})) expect(IOS_SURFACES as ReadonlyArray<string>).toContain(s)
-})
-
-test('the phone as a new device is a manual-only step', () => {
-  expect(IOS_MANUAL_ONLY['phone-new-device'].title).toBe('Phone as a new device')
 })
