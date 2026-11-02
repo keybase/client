@@ -1,7 +1,6 @@
 // Simulator-side actions a flow takes at the app's boundary, each with a deadline. A relaunch starts
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
-// Delivering something to the app proves nothing about it, so these credit no surface (only
-// toForeground, for a background this attempt followed with a foreground): a flow calls
+// Delivering something to the app proves nothing about it, so these credit nothing: a flow calls
 // creditSurface(<surface>) once it has asserted the app used what was delivered.
 import {execFileSync} from 'child_process'
 import {
@@ -20,7 +19,7 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {attemptToken, creditSurface, openAttemptToken, type AttemptToken} from './attempt.ts'
+import {openAttemptToken} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
@@ -125,16 +124,6 @@ export const grantPrivacy = async (service: string) => {
   if (changed || appPid() === undefined) await launch(before)
 }
 
-const backgrounded = new WeakSet<AttemptToken>()
+export const toBackground = async () => backgroundApp()
 
-export const toBackground = async () => {
-  await backgroundApp()
-  backgrounded.add(attemptToken())
-}
-
-// The credit is for a background that this attempt followed with a foreground.
-export const toForeground = async () => {
-  await activateApp()
-  const token = attemptToken()
-  if (backgrounded.delete(token)) creditSurface('background-foreground')
-}
+export const toForeground = async () => activateApp()
