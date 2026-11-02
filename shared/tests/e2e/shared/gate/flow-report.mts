@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {buildReport, buildChecklist, chooseCardStep, computeDiff, parseStepName, sortSteps} from '../../generate-report-shared.mts'
+import {buildReport, buildChecklist, chooseCardStep, computeDiff, sortSteps} from '../../generate-report-shared.mts'
+import {parseStepName, slug} from '../step-name.ts'
 import {knownFlowCause, knownNote, knownRenderCause, knownVerdict, type KnownList} from './known.ts'
 import {eachFlowTest, specFileStem, stripAnsi, type SuiteOf} from './release-lib.ts'
 import type {CardData, Section} from '../../generate-report-shared.mts'
@@ -36,10 +37,6 @@ type PlaywrightSuite = SuiteOf<PlaywrightTest>
 // Playwright's json reporter also emits top-level `errors` for global failures
 // (global-setup throw, worker crash) that never attach to a spec.
 type Report = {suites: PlaywrightSuite[]; errors?: Array<{message?: string} | string>}
-
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
 
 // A failed card with no screenshot — used to surface run-level failures (missing
 // results, global errors) in the HTML so a crashed run produces a report that
@@ -85,7 +82,7 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
     const title = titles.at(-1) ?? ''
     // the innermost describe, else the spec's file
     const suiteName = specFileStem(titles.at(-2) ?? file)
-    const baseKey = `${slugify(suiteName)}-${slugify(title)}`
+    const baseKey = `${slug(suiteName)}-${slug(title)}`
     for (const [projectName, tests] of byProject) {
       const variant = p.variantOf?.(projectName)
       const key = variant ? `${baseKey}-${variant}` : baseKey

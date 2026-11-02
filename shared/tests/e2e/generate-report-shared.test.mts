@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises -- node:test registers top-level tests; they are not awaited */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {buildChecklist, buildReport, chooseCardStep, parseStepName, sortSteps, type CardData} from './generate-report-shared.mts'
+import {buildChecklist, buildReport, chooseCardStep, sortSteps, type CardData} from './generate-report-shared.mts'
+import {parseStepName} from './shared/step-name.ts'
 
 const card = (label: string, passed: boolean, extra: Partial<CardData> = {}): CardData => ({
   diff: null,
