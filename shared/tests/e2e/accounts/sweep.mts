@@ -7,7 +7,7 @@
 //   conversation; personal git repos, emails, root teams it owns, devices and paper keys; and,
 //   smoke only (deleting needs a team admin; peer services run no KBFS): team channels, subteams,
 //   emoji and team repos of KB_E2E_TEAM, and KBFS entries directly in the folders kbfsRoots names.
-// A stale e2e-<runid>-prov or -cli device is revoked after its home (homes/<label>-<runid>) is shut down and
+// A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it.
 // Each delete first re-checks the acting account and the name, targets one exact object and never
@@ -38,7 +38,6 @@ import {
   listedEmojiAlias,
   maskAccounts,
   parseKbfsLs,
-  provDeviceLabelOf,
   selectSweepTargets,
   type SweepAccount,
   type SweepCandidate,
@@ -387,13 +386,11 @@ const revokeListed = async (actor: Actor, c: SweepCandidate, env: E2EEnv) => {
 // directly if it is still listed (its home was already gone, or signed out).
 const retireProvisioned = async (actor: Actor, c: SweepCandidate, env: E2EEnv) => {
   const run = parseStampedName(c.name, 'dashed')
-  const label = run && provDeviceLabelOf(c.name, run.runId)
-  if (!run || !label) throw new Error(`refusing to revoke ${c.name}: not a provisioned device's stamped name`)
-  const home = provisionHomeFor(run.runId, label)
+  if (!run) throw new Error(`refusing to revoke ${c.name}: not a stamped device name`)
   const keep = defaultPeerHome(actor.peerRole)
   const say = (s: string) => console.log(maskAccounts(redactSecrets(s), {team: env.team, users: {second: env.secondUser, smoke: env.smokeUser}}))
   await retirePeerHome(
-    {newHome: keep, oldHome: home, role: actor.peerRole, user: actor.user},
+    {newHome: keep, oldHome: provisionHomeFor(run.runId), role: actor.peerRole, user: actor.user},
     {
       remove: async home => removeRetiredPeerHome(home, keep, env.smokeUser, say),
       revoke: async oldDevice => {
@@ -404,6 +401,7 @@ const retireProvisioned = async (actor: Actor, c: SweepCandidate, env: E2EEnv) =
       stop: stopPeerHomeService,
     }
   )
+  const home = provisionHomeFor(run.runId)
   if (fs.existsSync(home)) throw new Error(`${home} is still there`)
   await revokeWithHomeStopped(home, {
     answers: async h => socketAnswers(socketPathFor(h)),

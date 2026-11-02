@@ -1,16 +1,18 @@
 // The smoke account's devices as the main service reports them, the name a provisioning flow gives
-// the device it makes, and the check before a flow revokes one. Free of any test framework, so the
+// the device it makes, the check before a flow revokes one, and the retirement of what a phone
+// provisioning flow made. Free of any test framework, so the
 // desktop and the iOS flows share it. Relative imports only: plain node loads this too.
+import * as fs from 'fs'
 import {checkFlowRevokeTarget, protectedPaperKeyIn, type ListedDevice} from '../accounts/device-targets.ts'
-import type {E2EEnv} from '../accounts/env.ts'
-import {provDeviceLabel} from '../accounts/sweep-lib.ts'
+import {provisionHomeFor, type E2EEnv} from '../accounts/env.ts'
+import {removeRetiredPeerHome, retirePeerHome, stopPeerHomeService} from '../accounts/peer-homes.ts'
 import {mainRpc} from './main-rpc.ts'
 import {runKeybase} from './peer-service.ts'
 
 type DeviceDetail = {device: ListedDevice; revokedAt?: number | null}
 
-// The device a run provisions, by its label (sweep-lib provDeviceLabels): the names the sweeper revokes.
-export const provDeviceName = (runId: string, label = provDeviceLabel) => `e2e-${runId}-${label}`
+// The device a run's provisioning flow makes: the name the sweeper revokes.
+export const provDeviceName = (runId: string) => `e2e-${runId}-prov`
 
 // Revokes `device` through the main service, once requireRevocableFromPhone allows it: the cleanup
 // of a flow that failed before the app revoked what it made. A device already revoked is left.
@@ -84,3 +86,33 @@ export const requireRevocableFromHost = async (env: E2EEnv, expected: {deviceID:
 // For a flow on the phone: its own device (read from the app) is refused too; an empty id is refused.
 export const requireRevocableFromPhone = async (env: E2EEnv, expected: {deviceID: string; name: string}, phoneDeviceID: string) =>
   requireRevocable(env, expected, phoneDeviceID)
+
+// Retires run `runId`'s provisioned device and its home (provisionHomeFor, provDeviceName), made for
+// a phone flow, whatever the flow got to: the device id comes from the home's own config
+// (retirePeerHome reads it after shutting the service down), so a login that succeeded before a
+// later check threw is still found, and a device the server made before its home recorded it (a
+// login stopped part way) is found by its stamped name. A device the app did not revoke is revoked
+// here through the main service, guarded as a phone flow's revoke is; then the home goes.
+export const retirePhoneFlowDevice = async (env: E2EEnv, runId: string, phoneDeviceID: string) => {
+  const home = provisionHomeFor(runId)
+  const name = provDeviceName(runId)
+  const keep = env.peers.owner.home
+  const revoke = async (deviceID: string) => {
+    await revokeLeftoverFromPhoneFlow(env, {deviceID, name}, phoneDeviceID)
+    if (!(await deviceHistory()).find(d => d.deviceID === deviceID)?.revoked) {
+      throw new Error(`the service does not list ${name} as revoked after its cleanup`)
+    }
+  }
+  if (fs.existsSync(home)) {
+    await retirePeerHome(
+      {newHome: keep, oldHome: home, role: 'owner', user: env.smokeUser},
+      {
+        remove: async h => removeRetiredPeerHome(h, keep, env.smokeUser, () => {}),
+        revoke,
+        say: () => {},
+        stop: stopPeerHomeService,
+      }
+    )
+  }
+  for (const d of (await activeDevices()).filter(d => d.name === name)) await revoke(d.deviceID)
+}

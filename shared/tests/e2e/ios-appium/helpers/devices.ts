@@ -3,7 +3,10 @@
 // Yes, delete it). The list is virtualized and the smoke account has hundreds of devices, so every
 // read scrolls it with drags that stop before they lift (no fling skips rows) and reads one page
 // source per screen.
+import type {E2EEnv} from '../../accounts/env'
+import {requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
 import * as T from '../../shared/test-ids'
+import {step} from '../gate/step'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled, maskingName} from './elements'
 import {escapeToTabs, goBackUntilGone, navigateToMore, tapSettingsRow} from './navigate'
@@ -83,6 +86,13 @@ export const listedActiveDevices = async (shown: (name: string) => string = n =>
     if (Date.now() > until) throw new Error(`reading the devices list took over ${timeoutMs / 1000}s (${names.length} active rows so far)`)
     await dragList(0.85, 0.25)
   }
+}
+
+// Devices > Add a device or paper key: the add-a-device chooser.
+export const openAddDevice = async () => {
+  await openDevices()
+  await labeled('Other', 'Add a device or paper key').click()
+  await el(T.DEVICES_ADD_DEVICE).waitForExist({timeout: 15_000})
 }
 
 // Scrolls down from where the list is until the row of the device named exactly `name` sits on
@@ -181,3 +191,31 @@ export const waitNotListedActive = async (device: NamedDevice, timeoutMs = 30_00
       await sleep(1_000)
     }
   })
+
+const kindLabel = {computer: 'Computer', 'paper key': 'Paper key'} as const
+
+// From the devices list: `device`'s page, which must say its kind, then `pageStep`; `beforeRevoke`
+// (the flow's own checks); the phone's revoke guard; the app's revoke, its confirm a step; and the
+// read-backs that the list and the service no longer have it active, then a step. Worst case (s):
+// openDevicePage 275 (findDeviceRow 250, the page 25), its label 10, the guard 20, revokeOnPhone 95
+// (its confirm's step among them), not listed active 30, revoked 30, two steps 10 = 470, plus
+// `beforeRevoke`.
+export const revokeFromDevicePage = async (
+  env: E2EEnv,
+  device: {deviceID: string; shown: NamedDevice},
+  kind: 'computer' | 'paper key',
+  phoneDeviceID: string,
+  o: {beforeRevoke?: () => Promise<void> | void; pageStep: Parameters<typeof step>}
+) => {
+  const {deviceID, shown} = device
+  await openDevicePage(shown)
+  await labeled('StaticText', kindLabel[kind]).waitForExist({timeout: 10_000})
+  await step(...o.pageStep)
+  await o.beforeRevoke?.()
+  await requireRevocableFromPhone(env, {deviceID, name: named(shown).name}, phoneDeviceID)
+  // sends revoke.revokeDevice
+  await revokeOnPhone(shown, kind, async () => step(`The revoke confirm names the ${kind}`))
+  await waitNotListedActive(shown)
+  await waitServiceRevoked(deviceID, `the ${kind}`)
+  await step(`Back on the devices list, the ${kind} no longer active`)
+}
