@@ -17,7 +17,6 @@ export const iosCensusPlatform: CensusPlatform = {
   outPrefix: 'ios-',
   platform: 'iOS',
   project: 'ios-flows',
-  renderPlatform: 'ios',
   routes: listRoutes,
   surfaces: () => ({
     entryPrefix: 'surface/',
