@@ -12,7 +12,9 @@ export type AppLogMark = {runtime: string; seq: number}
 export type AppLogRead = {first: number; lines: Array<string>; next: number; runtime: string | null}
 
 // Wraps each level of the app's logger once per JS runtime, keeping `<level> <text>` lines with a
-// seq, and returns a mark at the end of what it holds. The wrapper calls the logger's own method, so
+// seq, and returns a mark at the end of what it holds. A function per level, never a for loop: in a
+// Metro eval Hermes gives every closure made in a for loop the loop's last binding, so each level's
+// wrapper would log as, and call, the last level. The wrapper calls the logger's own method, so
 // the app logs as it did. In the same runtime a second install changes nothing.
 export const appLogCaptureBody = `const g = globalThis;
   if (g.__kbE2EAppLogRuntime !== g.__kbE2ERuntime || !g.__kbE2EAppLog) {
@@ -21,7 +23,7 @@ export const appLogCaptureBody = `const g = globalThis;
     if (!logger || levels.some(l => typeof logger[l] !== 'function')) throw new Error('the app logger has no level methods');
     const log = {lines: [], next: 0};
     const fmt = a => (typeof a === 'string' ? a : a instanceof Error ? a.message : (() => { try { return JSON.stringify(a) } catch { return String(a) } })());
-    for (const level of levels) {
+    levels.forEach(level => {
       const orig = logger[level];
       logger[level] = (...args) => {
         try {
@@ -30,7 +32,7 @@ export const appLogCaptureBody = `const g = globalThis;
         } catch {}
         return orig(...args);
       };
-    }
+    });
     g.__kbE2EAppLog = log;
     g.__kbE2EAppLogRuntime = g.__kbE2ERuntime;
   }

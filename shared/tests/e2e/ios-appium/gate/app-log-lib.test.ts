@@ -27,6 +27,11 @@ test('the capture keeps every level the app logs, in order, and still logs them'
   expect(rt.printed).toEqual(['info: [AccountLink] switching 1', 'warn: careful'])
 })
 
+test("each level's wrapper is made in its own function: no for loop in the eval body", () => {
+  // Hermes, unlike node, shares one binding among the closures a Metro eval's for loop makes
+  expect(appLogCaptureBody).not.toMatch(/\bfor\s*\(/)
+})
+
 test('installing again in the same runtime wraps nothing twice and keeps what it holds', () => {
   const rt = fakeRuntime()
   rt.run(appLogCaptureBody)
