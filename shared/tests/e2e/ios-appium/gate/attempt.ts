@@ -103,6 +103,12 @@ const open = (r: Running | undefined): Running => {
 // The attempt of the running test body; throws outside one or once it has ended.
 export const attemptToken = (): AttemptToken => open(bodies.getStore())
 
+// The attempt of the running test body, or undefined outside one or once it has ended.
+export const openAttemptToken = (): AttemptToken | undefined => {
+  const r = bodies.getStore()
+  return r && !r.ended ? r : undefined
+}
+
 // Credits the attempt with a native surface it drove and checked; the census counts it for the flow once the attempt passes.
 export const creditSurface = (name: IosSurface) => {
   open(bodies.getStore()).surfaces.add(name)
@@ -150,6 +156,18 @@ export const failEndedAttempt = (token: AttemptToken, error: string): AttemptRec
   if (!r.ended) throw new Error(`attempt ${r.id} has not ended`)
   if (r.ended.status !== 'passed') return r.ended
   const record: AttemptRecord = {...r.ended, error, status: 'failed'}
+  write(r, record)
+  r.ended = record
+  return record
+}
+
+// Fails an ended attempt for what went wrong after its body (the app crashed in a flow afterEach),
+// adding `error` to a failure it already has.
+export const addEndedAttemptError = (token: AttemptToken, error: string): AttemptRecord => {
+  const r = token as Running
+  if (!r.ended) throw new Error(`attempt ${r.id} has not ended`)
+  const was = r.ended.status === 'failed' ? r.ended.error : undefined
+  const record: AttemptRecord = {...r.ended, error: was ? `${was}; ${error}` : error, status: 'failed'}
   write(r, record)
   r.ended = record
   return record

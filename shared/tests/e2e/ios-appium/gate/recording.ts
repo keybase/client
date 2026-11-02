@@ -1,4 +1,4 @@
-import {attemptToken, type AttemptToken} from './attempt.ts'
+import {attemptToken, openAttemptToken, type AttemptToken} from './attempt.ts'
 import type {PhoneRecording} from './recorder.ts'
 
 // errorsBefore: what the app logged before a relaunch ended its runtime, for afterTest to report
@@ -12,4 +12,10 @@ export const attemptRecording = (): PhoneRecording => {
   const recording = recorders.get(attemptToken())?.recording
   if (!recording) throw new Error('the attempt has no recording')
   return recording
+}
+
+// The open attempt's recording, or undefined between attempts or when its recorder never started.
+export const openAttemptRecording = (): PhoneRecording | undefined => {
+  const token = openAttemptToken()
+  return token && recorders.get(token)?.recording
 }

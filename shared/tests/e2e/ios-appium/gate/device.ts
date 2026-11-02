@@ -20,8 +20,8 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {attemptToken, creditSurface, type AttemptToken} from './attempt.ts'
-import {attemptRecording, recorders} from './recording.ts'
+import {attemptToken, creditSurface, openAttemptToken, type AttemptToken} from './attempt.ts'
+import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 
 const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
@@ -61,16 +61,21 @@ const waitForRuntime = async (before: string | undefined) =>
     return now && now !== before ? now : undefined
   }, {interval: 500, timeout: RUNTIME_WAIT_MS})
 
-const launch = async (before: string | undefined) => {
+const startedAgain = async (before: string | undefined) => {
   if (appPid() === undefined) simctl('launch', deviceUdid(), BUNDLE_ID)
   await waitForRuntime(before)
   await ensureErrorCapture()
+}
+
+const launch = async (before: string | undefined) => {
+  await startedAgain(before)
   await attemptRecording().checkpoint()
 }
 
 // What the app logged so far goes with its runtime, so it is kept on the attempt for afterTest.
 const keepErrors = async () => {
-  const rec = recorders.get(attemptToken())
+  const token = openAttemptToken()
+  const rec = token && recorders.get(token)
   if (!rec || appPid() === undefined) return
   try {
     rec.errorsBefore = [...(rec.errorsBefore ?? []), ...(await takeErrors())]
@@ -89,13 +94,15 @@ export const relaunchApp = async () => {
   await launch(before)
 }
 
-// The app hung for good (hang.ts): its runtime answers no eval, so what it recorded since the last
-// checkpoint is lost and reading its errors fails (keepErrors notes that on the attempt). It is
-// killed and launched; the attempt's recording and error capture move to the new runtime.
+// The app hung for good (hang.ts) or is gone (crash.ts): a hung runtime answers no eval, so what it
+// recorded since the last checkpoint is lost and reading its errors fails (keepErrors notes that on
+// the attempt). It is killed and launched; the open attempt's recording and error capture move to the
+// new runtime. Between attempts, or in one whose recorder never started, there is no recording to move.
 export const relaunchHungApp = async () => {
   await keepErrors()
   await terminateApp()
-  await launch(undefined)
+  await startedAgain(undefined)
+  await openAttemptRecording()?.checkpoint()
 }
 
 // simctl privacy can terminate the app (iOS restarts a process whose permission changes), and the

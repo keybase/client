@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {
+  addEndedAttemptError,
   attemptToken,
   beginAttempt,
   creditedSurfaces,
@@ -13,6 +14,7 @@ import {
   failEndedAttempt,
   iosReportDir,
   NEVER_ENDED,
+  openAttemptToken,
   readAttempts,
   readRunErrors,
   recordRunError,
@@ -100,6 +102,30 @@ test('a passed attempt can be failed after it ended, a failed one keeps its reas
     ['p', 'failed', '"after each" hook failed: boom'],
     ['f', 'failed', 'first'],
   ])
+})
+
+test('an ended attempt can be failed for a crash after its body, keeping a reason it had', () => {
+  const passed = beginAttempt(file, ['d', 'p'], 0)
+  expect(() => addEndedAttemptError(passed, 'x')).toThrow('has not ended')
+  endAttemptOf(passed, {durationMs: 3, status: 'passed'})
+  addEndedAttemptError(passed, 'the app crashed')
+  const failed = beginAttempt(file, ['d', 'f'], 0)
+  endAttemptOf(failed, {durationMs: 3, error: 'first', status: 'failed'})
+  addEndedAttemptError(failed, 'the app crashed')
+  expect(readAttempts().map(r => [r.titlePath.at(-1), r.status, r.error])).toEqual([
+    ['p', 'failed', 'the app crashed'],
+    ['f', 'failed', 'first; the app crashed'],
+  ])
+})
+
+test('the open attempt is the running body\'s until it ends, and none outside one', () => {
+  const token = beginAttempt(file, ['d', 'o'], 0)
+  expect(openAttemptToken()).toBeUndefined()
+  runAttempt(token, () => {
+    expect(openAttemptToken()).toBe(token)
+    endAttemptOf(token, {durationMs: 1, status: 'passed'})
+    expect(openAttemptToken()).toBeUndefined()
+  })
 })
 
 test('run errors are kept once each, in the order they were recorded', () => {

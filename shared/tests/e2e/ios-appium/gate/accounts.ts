@@ -7,7 +7,7 @@ import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {thenRestoring} from '../../shared/restore.ts'
-import {notSmokeProblem} from './app-account-lib.ts'
+import {notSmokeProblem, settledAccount} from './app-account-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
 const SIGN_IN_MS = 60_000
@@ -16,6 +16,26 @@ export const appAccount = signedInAs
 
 export const requireAppIsSmoke = async () => {
   const problem = notSmokeProblem(await signedInAs(), loadE2EAccounts())
+  if (problem) throw new Error(problem)
+}
+
+// covers settledAccount's wait for a signed-out answer to hold, and a slow first answer
+export const RELAUNCHED_SMOKE_MS = 90_000
+
+// requireAppIsSmoke for an app just launched: a new runtime reports signed out until its service
+// answers, so its answer is believed only once settled (app-account-lib.ts settledAccount).
+export const requireRelaunchedAppIsSmoke = async () => {
+  let firstAnswerAt: number | undefined
+  const a = await waitFor(
+    'the relaunched app to settle on an account',
+    async () => {
+      const now = await signedInAs()
+      firstAnswerAt ??= Date.now()
+      return settledAccount(now, firstAnswerAt, Date.now())
+    },
+    {interval: 1_000, timeout: RELAUNCHED_SMOKE_MS}
+  )
+  const problem = notSmokeProblem(a, loadE2EAccounts())
   if (problem) throw new Error(problem)
 }
 

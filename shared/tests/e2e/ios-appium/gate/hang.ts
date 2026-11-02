@@ -16,7 +16,7 @@ import {makeHangWatch, makeWatchSlot, protocolSucceeded, settleRelaunch, STUCK_R
 const READ_EVERY_MS = 15_000
 const SAMPLE_MS = 20_000
 // reading the hung app's errors (which fails), its kill, its launch and its new runtime
-const RELAUNCH_MS = 180_000
+export const RELAUNCH_MS = 180_000
 
 // WebDriver requests that succeeded this run (wdio.gate.conf.ts listens to webdriver's 'result'
 // event): a hung app answers none.
