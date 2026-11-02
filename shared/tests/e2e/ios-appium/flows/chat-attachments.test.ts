@@ -34,22 +34,21 @@ import {
   deletePhase,
   elementInRow,
   expectPersists,
+  galleryListing,
   hideKeyboard,
   openConversation,
   openHeaderMenuItem,
   openMessageMenu,
   ordinalsWithText,
-  galleryListing,
   scrollRowIntoView,
-  signedInAs,
   storedAttachment,
+  type StoredAttachment,
   tapTextIn,
   typeInComposer,
   videoFullscreenButton,
   waitForComposerText,
   waitForRow,
   waitForThreadStable,
-  type StoredAttachment,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
@@ -275,14 +274,6 @@ describe('chat attachments', function () {
 
     // read afresh after the relaunch: the rows' ordinals are the new runtime's
     const read = async () => {
-      await waitFor(
-        'the relaunched app to sign in',
-        async () => {
-          const s = await signedInAs().catch(() => undefined)
-          return s?.loggedIn && !s.switching ? true : undefined
-        },
-        {interval: 1_000, timeout: 90_000}
-      )
       await openConversation(convID())
       const state = async (title: string) => ((await loadedAttachment(title)).collapsed ? 'collapsed' : 'expanded')
       return {expanded: await state(expanded), kept: await state(kept)}

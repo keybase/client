@@ -145,16 +145,6 @@ describe('chat messages', function () {
   const messageID = async (ordinal: number) =>
     waitFor('the message id', async () => (await storedMessageState(ordinal))?.id || undefined, {interval: 250, timeout: 10_000})
 
-  const waitSignedIn = async () =>
-    waitFor(
-      'the relaunched app to sign in',
-      async () => {
-        const s = await signedInAs().catch(() => undefined)
-        return s?.loggedIn && !s.switching ? true : undefined
-      },
-      {interval: 1_000, timeout: 90_000}
-    )
-
   // The smoke account's gregor item of `category`, as the host reads it (the server keeps the
   // exploding mode there, for every device), as text, or null when there is none.
   type GregorState = {items?: Array<{item?: {body?: Uint8Array | null; category: string} | null}> | null}
@@ -371,7 +361,6 @@ describe('chat messages', function () {
     await expectPersists(
       'rows of the cancelled message in e2e-scratch',
       async () => {
-        await waitSignedIn()
         await openScratch()
         await waitForRow(anchor, 20_000)
         return (await ordinalsWithText(marker)).length
@@ -647,7 +636,6 @@ describe('chat messages', function () {
       await expectPersists(
         'the dismissed pin',
         async () => {
-          await waitSignedIn()
           await openConversation(convID)
           await waitForRow(text, 30_000)
           return {banner: await pinnedBanner().isExisting(), pinned: await appPinnedMessageID(convID)}
@@ -706,7 +694,6 @@ describe('chat messages', function () {
     await expectPersists(
       'the skin tone',
       async () => {
-        await waitSignedIn()
         return waitFor('the app to load its skin tone', shownSkinTone, {interval: 500, timeout: 30_000})
       },
       want

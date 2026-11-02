@@ -52,7 +52,6 @@ import {
   searchOpen,
   sendMessage,
   showsText,
-  signedInAs,
   storedMessage,
   suggestionRows,
   typeInComposer,
@@ -61,6 +60,7 @@ import {
   visibleConversation,
   waitForComposerText,
   waitForRow,
+  waitSignedIn,
 } from '../helpers/chat'
 import {el, els} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -238,14 +238,7 @@ describe('chat composer', function () {
       await openScratch()
       await expectDirectDraft(draft)
       await relaunchApp()
-      await waitFor(
-        'the relaunched app to sign in',
-        async () => {
-          const a = await signedInAs().catch(() => undefined)
-          return a?.loggedIn && !a.switching ? true : undefined
-        },
-        {interval: 1_000, timeout: 90_000}
-      )
+      await waitSignedIn()
       await expectDirectDraft(draft)
       creditSurface('relaunch')
       await step("After a relaunch the DM's inbox row still shows the draft", {screenshot: false})

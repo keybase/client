@@ -27,6 +27,7 @@ import {notifyChoiceOf} from '../gate/chat-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {
+  appInboxLists,
   check,
   chooseMenuItem,
   closeMessageMenu,
@@ -35,8 +36,8 @@ import {
   expectPersists,
   hideKeyboard,
   iconButton,
-  appInboxLists,
   inboxHasRow,
+  type NotifyChoice,
   notifyRadioBox,
   notifyRadioChosen,
   openConversation,
@@ -44,12 +45,10 @@ import {
   openMenuFrom,
   scrollInboxTo,
   searchFilter,
-  signedInAs,
   tapControlIn,
   tapNotifyRadio,
   typeInSearchFilter,
   visibleConversation,
-  type NotifyChoice,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -85,16 +84,6 @@ describe('chat channel settings', function () {
       interval: 1_000,
       timeout: 20_000,
     })
-
-  const waitSignedIn = async () =>
-    waitFor(
-      'the relaunched app to sign in',
-      async () => {
-        const s = await signedInAs().catch(() => undefined)
-        return s?.loggedIn && !s.switching ? true : undefined
-      },
-      {interval: 1_000, timeout: 90_000}
-    )
 
   // DeviceType.mobile, as the service keys a conversation's notification settings
   const mobile = '1'
@@ -307,7 +296,6 @@ describe('chat channel settings', function () {
     await expectPersists(
       'the mobile notification choice',
       async () => {
-        await waitSignedIn()
         await openNotifications()
         await shown(want)
         return notifyRadioChosen('mobile')

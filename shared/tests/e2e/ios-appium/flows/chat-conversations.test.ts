@@ -31,13 +31,13 @@ import {step} from '../gate/step'
 import {
   appConversationMuted,
   appConversationPinned,
+  appInboxLists,
   check,
   chooseMenuItem,
   closeMessageMenu,
   closeSearch,
   expectPersists,
   hideKeyboard,
-  appInboxLists,
   inboxHasRow,
   openConversation,
   openInboxRowMenu,
@@ -52,7 +52,6 @@ import {
   searchFor,
   searchOpen,
   sendMessage,
-  signedInAs,
   storedMessageState,
   typeInSearchFilter,
   unreadCount,
@@ -111,16 +110,6 @@ describe('chat conversations', function () {
   // Polls a read of the app's store until it answers `want`.
   const expectApp = async <V,>(what: string, read: () => Promise<V | undefined>, want: V, timeout = 20_000) =>
     waitFor(`the app to hold ${what}`, async () => ((await read()) === want ? true : undefined), {interval: 500, timeout})
-
-  const waitSignedIn = async () =>
-    waitFor(
-      'the relaunched app to sign in',
-      async () => {
-        const s = await signedInAs().catch(() => undefined)
-        return s?.loggedIn && !s.switching ? true : undefined
-      },
-      {interval: 1_000, timeout: 90_000}
-    )
 
   // The conversations the smoke account pins to the top of its inbox, as the host reads them from
   // gregor (the server keeps them there, for every device).
@@ -275,7 +264,6 @@ describe('chat conversations', function () {
     await expectPersists(
       'the DM muted',
       async () => {
-        await waitSignedIn()
         // the inbox loads the conversation's metadata with its row
         await scrollInboxTo(data.secondUser)
         await expectApp('the DM loaded', async () => (await appConversationMuted(convID)) !== undefined, true)
@@ -356,7 +344,6 @@ describe('chat conversations', function () {
     await expectPersists(
       'the self conversation pinned',
       async () => {
-        await waitSignedIn()
         await scrollInboxTo(data.smokeUser)
         await expectApp('the self conversation in the layout', async () => (await appConversationPinned(selfConvID)) !== undefined, true)
         return appConversationPinned(selfConvID)

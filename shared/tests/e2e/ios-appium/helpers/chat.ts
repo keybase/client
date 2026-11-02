@@ -774,11 +774,13 @@ export const openFromInbox = async (name: string) => {
 }
 
 // Whether what a flow changed survives a relaunch of the app: relaunches it (a new JS runtime, the
-// recording checkpointed on both sides), then `read`, which goes back to where the value shows and
-// reads it, and checks it equals `want`. It proves the change persisted only when `want` differs
-// from what the app shows by default: the caller picks a non-default value.
+// recording checkpointed on both sides) and waits for it to sign in, then `read`, which goes back to
+// where the value shows and reads it, and checks it equals `want`. It proves the change persisted
+// only when `want` differs from what the app shows by default: the caller picks a non-default value.
+// Bound: relaunchApp 200, waitSignedIn 90, then `read`'s own.
 export const expectPersists = async <V,>(what: string, read: () => Promise<V>, want: V) => {
   await relaunchApp()
+  await waitSignedIn()
   const miss = persistedMismatch(what, await read(), want)
   if (miss) throw new Error(miss)
 }
@@ -843,6 +845,17 @@ export const notifyRadioChosen = async (group: NotifyGroup): Promise<NotifyChoic
 // -- accounts -----------------------------------------------------------------------------------
 
 export const signedInAs = async () => jsEval<AppAccount>(APP_ACCOUNT_BODY)
+
+// Waits for the app, just relaunched, to be signed in with no account switch under way. Bound: 90.
+export const waitSignedIn = async () =>
+  waitFor(
+    'the relaunched app to sign in',
+    async () => {
+      const a = await signedInAs().catch(() => undefined)
+      return a?.loggedIn && !a.switching ? true : undefined
+    },
+    {interval: 1_000, timeout: 90_000}
+  )
 
 // Opens the account switcher sheet from the chat tab's avatar.
 export const openAccountSwitcher = async () => {
