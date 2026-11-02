@@ -1,6 +1,7 @@
 // The iOS release gate's flow run: every attempt is recorded under tests/results/ios-report/attempts
 // (gate/attempt.ts), and onComplete writes them as the Playwright json report the release summary
-// and the census read.
+// and the census read. Every run, a direct `yarn test:e2e:ios:flows` too, then scans what it wrote
+// for the env file's secrets: a file that holds one is deleted and named, and the run fails.
 import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
@@ -12,10 +13,37 @@ import {buildPwReport} from './gate/results-lib'
 import {beginErrorCapture} from './gate/errors'
 import {finishAttempt, type TestResult} from './gate/finish'
 import {noteProtocolResult} from './gate/hang'
+import {envSecrets, scanAndPurge, SECRET_SCAN_FILE, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan'
 
 const PROJECT = 'ios-flows'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+// started in onPrepare: every value the env file's secrets held during the run
+let secretWatch: SecretWatch | undefined
+
+const scanResults = () => {
+  const watch = secretWatch
+  const scan = scanAndPurge([iosReportDir()], watch ? watch.secrets() : envSecrets())
+  watch?.stop()
+  for (const f of scan.hits) console.error(`[ios gate] secret found, deleted: ${f}`)
+  console.log(`[ios gate] secrets: ${scan.line}`)
+  fs.mkdirSync(iosReportDir(), {recursive: true})
+  fs.writeFileSync(path.join(iosReportDir(), SECRET_SCAN_FILE), JSON.stringify({line: scan.line, ok: !scan.hits.length}))
+  if (scan.hits.length) throw new Error(`the secret scan deleted ${scan.hits.length} file(s) that held a secret`)
+}
+
+const writeResults = (exitCode: number) => {
+  const attempts = readAttempts()
+  const report = buildPwReport(attempts, PROJECT)
+  report.errors.push(...readRunErrors())
+  // a hook or worker failure leaves no failed attempt behind it
+  if (exitCode !== 0 && !attempts.some(a => a.status === 'failed')) {
+    report.errors.push(`wdio exited ${exitCode} with no failed test attempt`)
+  }
+  fs.mkdirSync(iosReportDir(), {recursive: true})
+  fs.writeFileSync(path.join(iosReportDir(), 'results.json'), JSON.stringify(report, null, 2))
+}
 
 export const config: WebdriverIO.Config = {
   ...base,
@@ -26,6 +54,7 @@ export const config: WebdriverIO.Config = {
     ...[base.onPrepare ?? []].flat(),
     () => {
       fs.rmSync(iosReportDir(), {force: true, recursive: true})
+      secretWatch = watchEnvSecrets()
     },
   ],
   // wdio only logs a beforeTest error and runs the test anyway, so nothing here throws: what failed
@@ -61,14 +90,10 @@ export const config: WebdriverIO.Config = {
   },
   afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
   onComplete: (exitCode: number) => {
-    const attempts = readAttempts()
-    const report = buildPwReport(attempts, PROJECT)
-    report.errors.push(...readRunErrors())
-    // a hook or worker failure leaves no failed attempt behind it
-    if (exitCode !== 0 && !attempts.some(a => a.status === 'failed')) {
-      report.errors.push(`wdio exited ${exitCode} with no failed test attempt`)
+    try {
+      writeResults(exitCode)
+    } finally {
+      scanResults()
     }
-    fs.mkdirSync(iosReportDir(), {recursive: true})
-    fs.writeFileSync(path.join(iosReportDir(), 'results.json'), JSON.stringify(report, null, 2))
   },
 }

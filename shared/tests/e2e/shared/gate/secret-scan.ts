@@ -57,6 +57,10 @@ const filesUnder = (dir: string): Array<string> => {
 
 export type SecretScan = {hits: Array<string>; scanned: number; line: string}
 
+// A flow run's scan result ({line, ok}), written beside the results it scanned: a report is built
+// only from results with a clean scan.
+export const SECRET_SCAN_FILE = 'secret-scan.json'
+
 export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray<string> = envSecrets()): SecretScan => {
   const files = dirs.flatMap(filesUnder)
   const hits = files.filter(f => holdsSecret(fs.readFileSync(f), secrets))
