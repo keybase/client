@@ -245,15 +245,17 @@ const NativeAvatarUploadWrapper = (p: Props) => {
     )
   }
 
-  // iOS drops a picker presented while this modal is still presenting, so it opens once the
-  // screen's transition has ended
   const noImage = !image
   const autoPickedRef = React.useRef(false)
+  // iOS drops a picker presented while this modal is still presenting, so it opens at the end of
+  // the modal's animated presentation. Only the first transition counts: a later one (the modal
+  // coming back into view) never opens the picker unasked.
   React.useEffect(() => {
     if (wizard || !noImage) return
     return navigation.addListener('transitionEnd', e => {
-      if (e.data.closing || autoPickedRef.current) return
+      if (autoPickedRef.current) return
       autoPickedRef.current = true
+      if (e.data.closing) return
       C.ignorePromise(chooseAvatar(setSelectedImage, () => nav.safeNavigateUp(), setImageError))
     })
   }, [navigation, noImage, wizard, nav])
