@@ -59,7 +59,7 @@ test('a run the deadline aborts mid-phase still scans its results from cleanup, 
     lockPath: path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-ios-secrets-')), 'release.lock'),
     notify: () => {},
     notifyTitle: 'test release',
-    printResults: () => {},
+    artifacts: () => [],
     tag: '[ios-release]',
   })
   await quiet(async () => {

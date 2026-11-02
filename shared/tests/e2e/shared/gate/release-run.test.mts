@@ -35,7 +35,7 @@ const newRun = (over: {exits: Array<number>; notes: Array<string>; lockPath?: st
     lockPath: over.lockPath ?? tmpLock(),
     notify: text => void over.notes.push(text),
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
 
@@ -56,7 +56,7 @@ test('two phases are timed, the run fails, and finish prints the summary once', 
   assert.ok(lines.includes('[release] --- first ---'))
   assert.ok(lines.includes('[release] second: FAILED: broke'))
   assert.ok(lines.includes('\n=== release summary ==='))
-  assert.equal(lines.filter(x => x === 'artifacts here').length, 1)
+  assert.equal(lines.filter(x => x === 'report           /nonexistent/report.html (not written by this run)').length, 1)
   assert.match(notes[0] ?? '', /^FAILED in \d+s: second$/)
   assert.deepEqual(exits, [1])
   // a second finish is a no-op
@@ -158,7 +158,7 @@ test('the overall deadline kills the running child, records the phase, and ends 
     lockPath: tmpLock(),
     notify: text => void notes.push(text),
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
   let pid = 0
@@ -196,7 +196,7 @@ const cleanupRun = (cleanup: (code: number) => Promise<number>, exits: Array<num
     lockPath: tmpLock(),
     notify: () => {},
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
 
@@ -242,7 +242,7 @@ test('runChild after an abort spawns nothing and resolves at once as timed out',
     lockPath: tmpLock(),
     notify: () => {},
     notifyTitle: 'test release',
-    printResults: () => {},
+    artifacts: () => [],
     tag: '[release]',
   })
   await capture(async () => until(() => exits.length > 0))

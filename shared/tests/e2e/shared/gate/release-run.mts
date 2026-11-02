@@ -1,12 +1,12 @@
 // The plumbing of a release gate run: timed phases, children under a deadline, the release lock,
 // the overall deadline and interrupts, and the summary and notification at the end. The platform's
 // release command supplies what it launches and stops.
-import {appendFileSync, mkdirSync} from 'fs'
+import {appendFileSync, existsSync, mkdirSync, statSync} from 'fs'
 import {dirname} from 'path'
 import {spawn, execFileSync, type ChildProcess} from 'child_process'
 import {redactSecrets} from '../peer-service.ts'
 import {acquireFileLock} from '../../visual/lock.mts'
-import {fmtMs, summaryLines, type Phase} from './release-lib.ts'
+import {fmtMs, summaryLines, writtenSince, type Phase} from './release-lib.ts'
 
 const MIN = 60_000
 const CLOSE_WAIT_MS = 2_000
@@ -46,8 +46,8 @@ export type ReleaseRunOptions = {
   lockPath: string
   deadlineMs: number
   notifyTitle: string
-  // what the summary shows after the phase lines
-  printResults: () => void
+  // what the summary lists after the phase lines, by label, each marked when this run did not write it
+  artifacts: () => ReadonlyArray<readonly [label: string, path: string]>
   // Runs first when the run ends, before the summary: may add phases and returns the exit code.
   cleanup?: (code: number) => Promise<number>
   notify?: (text: string) => void
@@ -205,7 +205,10 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   const printResults = () => {
     for (const line of summaryLines(phases)) console.log(line)
     console.log(`total ${fmtMs(Date.now() - runStart)}, run id ${process.env['KB_E2E_RUN_ID'] ?? '(none)'}`)
-    o.printResults()
+    for (const [label, p] of o.artifacts()) {
+      const fresh = writtenSince({path: p, ...(existsSync(p) ? {mtimeMs: statSync(p).mtimeMs} : {})}, runStart)
+      console.log(`${label.padEnd(17)}${p}${fresh ? '' : ' (not written by this run)'}`)
+    }
   }
 
   const finish = async (code: number, why?: string) => {

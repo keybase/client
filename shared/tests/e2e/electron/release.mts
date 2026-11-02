@@ -32,23 +32,21 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.ts'
 import {newRunId} from '../accounts/run-id.ts'
-import {formatSweep, sweep} from '../accounts/sweep.mts'
-import {runAbortable} from '../shared/deadline.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {appLogPath} from './app-log.ts'
 import {readAppPidfile, stopAppGroup} from './app-pidfile.ts'
 import {closeMainInspector} from './helpers/main-process.ts'
-import {groupAlive, sessionLocked} from '../shared/gate/processes.ts'
+import {groupAlive} from '../shared/gate/processes.ts'
 import {KNOWN_FAILURES} from './known-failures.ts'
 import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
+import {logTally, nodeArgs, outcome, preflightPhase, releaseSettings, screenState, sweepPhase} from '../shared/gate/release-phases.mts'
 import {
   flowProblems,
   flowsLine,
   flowsOk,
-  parseTimeoutMin,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -72,19 +70,17 @@ const out = {
 const project = 'electron-flows'
 const MIN = 60_000
 
-const timeout = parseTimeoutMin(process.env['KB_E2E_RELEASE_TIMEOUT_MIN'])
-if ('error' in timeout) {
-  console.error(`[release] refusing to run: ${timeout.error}`)
-  process.exit(1)
-}
-const deadlineMs = timeout.minutes * MIN
+const {deadlineMs, lockPath} = releaseSettings('[release]', 150)
 const only = process.env['KB_E2E_RELEASE_ONLY'] || undefined
-// The gate's own runs set this to skip the lock check; this command is not one of them.
-delete process.env['KB_VISUAL_RUN']
 
-// One release run at a time: a second one would sweep, relaunch and stop the app under the first.
-const releaseLockPath = () => process.env['KB_E2E_RELEASE_LOCK'] ?? '/tmp/kb-e2e-release.lock'
 const run = createReleaseRun({
+  artifacts: () => [
+    ['report', out.report],
+    ['census', out.census],
+    ['manual checklist', out.checklist],
+    ['flow results', out.results],
+    ...(renderDir ? [['render', renderDir] as const] : []),
+  ],
   cleanup: async code => {
     await watchdog.stop()
     const incidents = watchdog.incidents()
@@ -99,9 +95,8 @@ const run = createReleaseRun({
   },
   cwd: sharedDir,
   deadlineMs,
-  lockPath: releaseLockPath(),
+  lockPath,
   notifyTitle: 'Keybase desktop release',
-  printResults: () => printResults(),
   tag: '[release]',
 })
 const {endRun, log, phase, phases, remainingMs, runChild, runStart} = run
@@ -122,28 +117,13 @@ const watched = async <T,>(name: string, f: () => Promise<T>) => {
   }
 }
 
-const node = (script: string, ...args: Array<string>) =>
-  ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(sharedDir, script), ...args]
+const node = nodeArgs(sharedDir)
 
 // ---------------------------------------------------------------- preflight
-
-const outcome = async (p: Promise<unknown>): Promise<Outcome> =>
-  p.then(
-    () => ({ok: true}) as const,
-    (e: unknown) => ({error: errText(e), ok: false}) as const
-  )
 
 const portState = (port: number): PreflightState['ports'][number] => {
   const r = portHolders(port)
   return 'error' in r ? {error: r.error, holders: [], port} : {holders: r.holders, port}
-}
-
-const screenState = (): PreflightState['screen'] => {
-  try {
-    return {locked: sessionLocked()}
-  } catch (e) {
-    return {error: errText(e)}
-  }
 }
 
 const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
@@ -215,17 +195,6 @@ const stopApp = async () => {
   }
 }
 
-// the summary's lines after the phases
-const printResults = () => {
-  const fresh = (p: string) => fs.existsSync(p) && fs.statSync(p).mtimeMs >= runStart
-  const show = (what: string, p: string) => console.log(`${what.padEnd(17)}${p}${fresh(p) ? '' : ' (not written by this run)'}`)
-  show('report', out.report)
-  show('census', out.census)
-  show('manual checklist', out.checklist)
-  show('flow results', out.results)
-  if (renderDir) show('render', renderDir)
-}
-
 // ---------------------------------------------------------------- the run
 
 const main = async () => {
@@ -233,18 +202,8 @@ const main = async () => {
   process.env['KB_E2E_RUN_ID'] = runId
   log(`run ${runId}${only ? `, only flows matching ${JSON.stringify(only)} and settings/* tour entries` : ''}`)
 
-  let env: E2EEnv | undefined
-  const ready = await phase('preflight', async () => {
-    const r = await preflight()
-    env = r.env
-    if (r.problems.length) {
-      console.error(`[release] refusing to run:\n  - ${r.problems.join('\n  - ')}`)
-      return {line: `refused: ${r.problems.length} problem(s)`, ok: false}
-    }
-    return {line: 'ready', ok: true}
-  })
-  if (!ready || !env) return endRun(1)
-  const e2eEnv = env
+  const e2eEnv = await preflightPhase(run, '[release]', preflight)
+  if (!e2eEnv) return endRun(1)
   // the scan at the end looks for every second-account password the env file held during the run
   const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
@@ -259,22 +218,7 @@ const main = async () => {
   })
   if (!launched) return endRun(1)
 
-  // A sweep past its deadline is told to stop and waited for (each of its calls has its own deadline,
-  // the longest 90s), so no delete is still going when the flows start; one that does not stop
-  // stops the run.
-  const sweepState = {running: false}
-  await phase('sweep', async () => {
-    const r = await runAbortable('the sweep', Math.min(20 * MIN, remainingMs()), 2 * MIN, async signal =>
-      sweep(e2eEnv, {before: runStart, dryRun: false, runId, signal})
-    )
-    if (!r.ok) {
-      sweepState.running = !r.settled
-      return {line: r.message, ok: false}
-    }
-    console.log(formatSweep(r.value, e2eEnv, false))
-    return {line: `${r.value.deleted.length} deleted, ${r.value.listOnly.length} listed only, ${r.value.errors.length} errors`, ok: !r.value.errors.length}
-  })
-  if (sweepState.running) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
+  if (await sweepPhase(run, e2eEnv, runId)) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
 
   await phase('flows', async () => {
     const start = Date.now()
@@ -284,9 +228,7 @@ const main = async () => {
       return {line: `playwright exited ${r.code} and wrote no ${out.results}`, ok: false}
     }
     const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, KNOWN_FAILURES.flows)
-    for (const n of s.fresh) log(`new failure: ${n}`)
-    for (const n of s.known) log(`known on master: ${n}`)
-    for (const n of s.nowPasses) log(`known failure now passes, remove it from known-failures.ts: ${n}`)
+    logTally(log, s, {listFile: 'known-failures.ts'})
     for (const n of flowProblems(s)) log(n)
     return {line: `${flowsLine(s)}${r.code === 0 ? '' : ` (playwright exited ${r.code})`}`, ok: flowsOk(s, r.code)}
   })
@@ -303,9 +245,7 @@ const main = async () => {
     const file = renderDir && path.join(renderDir, 'render.json')
     if (!file || !fs.existsSync(file)) return {line: `visual render exited ${r.code} and wrote no render.json`, ok: false}
     const t = summarizeRender((JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: Array<RenderResultRow>}).entries, KNOWN_FAILURES.render)
-    for (const n of t.fresh) log(`new render failure: ${n}`)
-    for (const n of t.known) log(`known on master: ${n}`)
-    for (const n of t.nowPasses) log(`known render failure now passes, remove it from known-failures.ts: ${n}`)
+    logTally(log, t, {kind: 'render', listFile: 'known-failures.ts'})
     return {line: `${renderLine(t)}${r.code === 0 ? '' : ` (exited ${r.code})`}`, ok: r.code === 0 && t.failed === 0}
   })
 

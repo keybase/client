@@ -40,22 +40,19 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.ts'
 import {newRunId} from '../accounts/run-id.ts'
-import {formatSweep, sweep} from '../accounts/sweep.mts'
-import {runAbortable} from '../shared/deadline.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {resultsDir as visualResultsDir} from '../visual/store.mts'
 import {envSecrets, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
-import {pidAlive, sessionLocked, stopPids} from '../shared/gate/processes.ts'
+import {pidAlive, stopPids} from '../shared/gate/processes.ts'
+import {logTally, nodeArgs, outcome, preflightPhase, releaseSettings, screenState, sweepPhase} from '../shared/gate/release-phases.mts'
 import {
   censusPhaseResult,
   flowProblems,
   flowsPhaseResult,
   logFailed,
-  parseTimeoutMin,
   reportPhaseResult,
-  writtenSince,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -90,16 +87,9 @@ const APPIUM_PORT = 4723
 const WDA_PORT = 8100
 const MIN = 60_000
 
-const timeout = parseTimeoutMin(process.env['KB_E2E_RELEASE_TIMEOUT_MIN'], 240)
-if ('error' in timeout) {
-  console.error(`[ios-release] refusing to run: ${timeout.error}`)
-  process.exit(1)
-}
-const deadlineMs = timeout.minutes * MIN
+const {deadlineMs, lockPath} = releaseSettings('[ios-release]', 240)
 const only = process.env['KB_E2E_RELEASE_ONLY'] || undefined
 const device = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
-// The gate's own runs set this to skip the lock check; this command is not one of them.
-delete process.env['KB_VISUAL_RUN']
 
 // started once preflight passed: every value the env file's secrets held from then on
 let secretWatch: SecretWatch | undefined
@@ -137,12 +127,19 @@ const cleanup = async (code: number) => {
 }
 
 const run = createReleaseRun({
+  artifacts: () => [
+    ['report', out.report],
+    ['census', out.census],
+    ['manual checklist', out.checklist],
+    ['flow results', out.results],
+    ['logs', logsDir],
+    ...(renderDir ? [['render', renderDir] as const] : []),
+  ],
   cleanup,
   cwd: sharedDir,
   deadlineMs,
-  lockPath: process.env['KB_E2E_RELEASE_LOCK'] ?? '/tmp/kb-e2e-release.lock',
+  lockPath,
   notifyTitle: 'Keybase iOS release',
-  printResults: () => printResults(),
   tag: '[ios-release]',
 })
 const {endRun, log, phase, phases, remainingMs, runChild, runStart} = run
@@ -156,8 +153,7 @@ let renderDir: string | undefined
 // renderDir, once this run's render wrote an iOS render.json there
 let iosRenderDir: string | undefined
 
-const node = (script: string, ...args: Array<string>) =>
-  ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(sharedDir, script), ...args]
+const node = nodeArgs(sharedDir)
 
 const mtime = (p: string) => (fs.existsSync(p) ? {mtimeMs: fs.statSync(p).mtimeMs} : {})
 
@@ -242,12 +238,6 @@ const stopWhatItStarted = async () => {
 
 // ---------------------------------------------------------------- preflight
 
-const outcome = async (p: Promise<unknown>): Promise<Outcome> =>
-  p.then(
-    () => ({ok: true}) as const,
-    (e: unknown) => ({error: errText(e), ok: false}) as const
-  )
-
 const stderrOf = (e: unknown) => {
   const s = (e as {stderr?: string}).stderr?.trim()
   return s ? s.split('\n').slice(0, 3).join(' ') : errText(e)
@@ -282,14 +272,6 @@ const portState = (port: number, recordedMetro: number | undefined, id: string |
     (port === METRO_PORT && recordedMetro !== undefined && h.pgid === recordedMetro) ||
     (port === WDA_PORT && id !== undefined && isWdaResidue(fullCommand(h.pid), id))
   return {holders: r.holders, ours: r.holders.length > 0 && r.holders.every(residue), port}
-}
-
-const screenState = (): IosPreflightState['screen'] => {
-  try {
-    return {locked: sessionLocked()}
-  } catch (e) {
-    return {error: errText(e)}
-  }
 }
 
 const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
@@ -350,18 +332,6 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
   return {env, problems}
 }
 
-// the summary's lines after the phases
-const printResults = () => {
-  const fresh = (p: string) => writtenSince({path: p, ...mtime(p)}, runStart)
-  const show = (what: string, p: string) => console.log(`${what.padEnd(17)}${p}${fresh(p) ? '' : ' (not written by this run)'}`)
-  show('report', out.report)
-  show('census', out.census)
-  show('manual checklist', out.checklist)
-  show('flow results', out.results)
-  show('logs', logsDir)
-  if (renderDir) show('render', renderDir)
-}
-
 // ---------------------------------------------------------------- the run
 
 const main = async () => {
@@ -369,18 +339,8 @@ const main = async () => {
   process.env['KB_E2E_RUN_ID'] = runId
   log(`run ${runId} on ${device}${only ? `, only flows matching ${JSON.stringify(only)} and settings/* tour entries` : ''}`)
 
-  let env: E2EEnv | undefined
-  const ready = await phase('preflight', async () => {
-    const r = await preflight()
-    env = r.env
-    if (r.problems.length) {
-      console.error(`[ios-release] refusing to run:\n  - ${r.problems.join('\n  - ')}`)
-      return {line: `refused: ${r.problems.length} problem(s)`, ok: false}
-    }
-    return {line: 'ready', ok: true}
-  })
-  if (!ready || !env || !udid) return endRun(1)
-  const e2eEnv = env
+  const e2eEnv = await preflightPhase(run, '[ios-release]', preflight)
+  if (!e2eEnv || !udid) return endRun(1)
   const id = udid
   // the scan at the end looks for every second-account password the env file held during the run
   secretWatch = watchEnvSecrets()
@@ -411,25 +371,7 @@ const main = async () => {
   })
   if (!launched) return endRun(1)
 
-  // A sweep past its deadline is told to stop and waited for (each of its calls has its own deadline,
-  // the longest 90s), so no delete is still going when the flows start; one that does not stop
-  // stops the run.
-  const sweepState = {running: false}
-  await phase('sweep', async () => {
-    const r = await runAbortable('the sweep', Math.min(20 * MIN, remainingMs()), 2 * MIN, async signal =>
-      sweep(e2eEnv, {before: runStart, dryRun: false, runId, signal})
-    )
-    if (!r.ok) {
-      sweepState.running = !r.settled
-      fs.appendFileSync(logFile('sweep'), `${r.message}\n`)
-      return {line: r.message, ok: false}
-    }
-    const text = formatSweep(r.value, e2eEnv, false)
-    console.log(text)
-    fs.appendFileSync(logFile('sweep'), `${text}\n`)
-    return {line: `${r.value.deleted.length} deleted, ${r.value.listOnly.length} listed only, ${r.value.errors.length} errors`, ok: !r.value.errors.length}
-  })
-  if (sweepState.running) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
+  if (await sweepPhase(run, e2eEnv, runId, {logFile: logFile('sweep')})) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
 
   await phase('flows', async () => {
     const start = Date.now()
@@ -440,9 +382,7 @@ const main = async () => {
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize, 'wdio')
     if (s) {
-      for (const n of s.fresh) log(`new failure: ${n}`)
-      for (const n of s.known) log(`known on master: ${n}`)
-      for (const n of s.nowPasses) log(`known failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
+      logTally(log, s, {listFile: 'gate/lists/known-failures.ts'})
       for (const n of flowProblems(s)) log(n)
     }
     return {line, ok}
@@ -459,9 +399,7 @@ const main = async () => {
     const platformOk = rendered.platform === 'ios'
     if (platformOk) iosRenderDir = renderDir
     const t = summarizeRender(rendered.entries, IOS_KNOWN_FAILURES.render)
-    for (const n of t.fresh) log(`new render failure: ${n}`)
-    for (const n of t.known) log(`known on master: ${n}`)
-    for (const n of t.nowPasses) log(`known render failure now passes, remove it from gate/lists/known-failures.ts: ${n}`)
+    logTally(log, t, {kind: 'render', listFile: 'gate/lists/known-failures.ts'})
     for (const n of t.recaptured) log(`recaptured after the inspector page dropped: ${n}`)
     return {
       line: `${renderLine(t)}${r.code === 0 ? '' : ` (exited ${r.code})`}${platformOk ? '' : ' (render.json is not an iOS render)'}${logFailed(r)}`,
