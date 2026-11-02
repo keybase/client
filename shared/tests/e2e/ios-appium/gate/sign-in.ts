@@ -147,7 +147,7 @@ export const restoreSecondSecret = async (password: string) => {
   const loginList = async () => el(T.LOGIN_USER_LIST).isExisting()
   if (a.loggedIn) {
     await openAccountSwitcher()
-    const target = a.username === secondUser ? () => byText('Log in as another user') : () => el(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser)
+    const target = a.username === secondUser ? () => labeled('Button', 'Log in as another user') : () => el(T.ACCOUNT_SWITCHER_ROW_PREFIX + secondUser)
     await tapUntil(async () => target().click().catch(() => {}), loginList, 'the switcher never signed out to the login list')
   } else {
     await pressBackToLoginList()

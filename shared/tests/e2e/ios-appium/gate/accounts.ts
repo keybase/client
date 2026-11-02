@@ -2,12 +2,12 @@
 // account. Each wrapper checks the app is back on the smoke account before it returns.
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
-import {el} from '../helpers/elements'
+import {el, labeled} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {thenRestoring} from '../../shared/restore.ts'
-import {pressBackToLoginList} from './screens'
+import {pressBackToLoginList, tapUntil} from './screens'
 import {notSmokeProblem, settledAccount, PHONE_DEVICE_BODY, type PhoneDevice, phoneDeviceProblem} from './app-account-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
@@ -63,7 +63,7 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
       // The button is disabled while a login or an account switch is still settling (just after
       // asSecond's restore, say), and a disabled button renders a plain view with the same text: a
       // tap on that text does nothing. Only the enabled button is a Button element.
-      const loginAsOther = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Log in as another user"')
+      const loginAsOther = labeled('Button', 'Log in as another user')
       await loginAsOther.waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the switcher\'s "Log in as another user" never became tappable'})
       await loginAsOther.click()
       await el(T.LOGIN_USER_LIST).waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen never showed its account list'})
@@ -73,22 +73,18 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
     'signing the smoke account back in'
   )
 
-const ROW_TAPS = 5
-
 // On the login screen, signs `username` in by its row, which signs an account with a stored secret
 // in at once (no password), and waits until the app is signed in as it.
 export const signInFromStoredSecret = async (username: string) => {
   // the login screen ignores a tap for a moment after a sign-out: tap again until the sign-in starts
-  const row = el(T.LOGIN_USER_ROW_PREFIX + username)
-  for (let i = 0; ; i++) {
-    await row.click().catch(() => {})
-    const started = await waitFor(`${username} to start signing in`, async () => {
+  await tapUntil(
+    async () => el(T.LOGIN_USER_ROW_PREFIX + username).click().catch(() => {}),
+    async () => {
       const now = await signedInAs().catch(() => undefined)
-      return now?.loggedIn || now?.switching ? true : undefined
-    }, {interval: 500, timeout: 5_000}).then(() => true, () => false)
-    if (started) break
-    if (i >= ROW_TAPS - 1) throw new Error(`the row of ${username} in the login list started no sign-in after ${ROW_TAPS} taps`)
-  }
+      return !!(now?.loggedIn || now?.switching)
+    },
+    `the row of ${username} in the login list started no sign-in`
+  )
   await waitFor(`${username} to sign in`, async () => {
     const now = await signedInAs().catch(() => undefined)
     return now?.loggedIn && !now.switching && now.username === username ? true : undefined
