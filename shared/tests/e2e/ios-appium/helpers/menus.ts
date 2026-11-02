@@ -23,20 +23,6 @@ const menuItemPredicate = (label: string) =>
   `-ios predicate string:type == "XCUIElementTypeOther" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
 const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l => l === label || l.endsWith(`, ${label}`))
 
-// Drags the open sheet up by 300 points, from near the screen's bottom, to bring later items on screen.
-const dragSheetUp = async () => {
-  const {height, width} = await browser.getWindowRect()
-  const x = Math.round(width / 2)
-  await browser
-    .action('pointer', {parameters: {pointerType: 'touch'}})
-    .move({x, y: height - 80})
-    .down()
-    .move({duration: 400, x, y: height - 380})
-    .pause(200)
-    .up()
-    .perform()
-}
-
 // Every item label of the open menu sheet: the items drawn on screen inside the sheet, read as the
 // sheet is dragged up until a drag shows nothing new (its end), so an item below the fold counts.
 // Bound: 15s.

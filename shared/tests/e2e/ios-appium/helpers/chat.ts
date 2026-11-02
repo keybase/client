@@ -34,7 +34,6 @@ import {
   type Rect as Frame,
   shiftIntoBand,
   type DrawnInboxItem,
-  type Rect as Frame,
   type Span,
   visibleBand,
   wholly as whollyInBand,
