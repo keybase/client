@@ -1,5 +1,6 @@
 // Who the simulator app is signed in as, read over Metro's inspector, and the refusal when it is not
 // the smoke account. Free of wdio, so the release command (run by node) uses it too.
+import {signedInName} from '../../accounts/sweep-lib.ts'
 
 export type AppAccount = {loggedIn: boolean; switching: boolean; username: string}
 
@@ -9,14 +10,10 @@ export const APP_ACCOUNT_BODY = `
     return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
   `
 
-// Names accounts by their env var only: this line lands in run output and results.
+// Names a test account by its role only (signedInName): this line lands in run output and results.
 export const notSmokeProblem = (a: AppAccount, accounts: {smokeUser: string; secondUser: string}): string | undefined => {
   if (a.loggedIn && a.username === accounts.smokeUser) return undefined
-  const on = !a.loggedIn
-    ? '(nobody; signed out)'
-    : a.username === accounts.secondUser
-      ? 'KB_SECOND_USER'
-      : 'an account that is neither KB_SMOKE_USER nor KB_SECOND_USER'
+  const on = signedInName(a.loggedIn ? a.username : '', {second: accounts.secondUser, smoke: accounts.smokeUser})
   return (
     `the simulator app is signed in as ${on}, not the e2e smoke account; ` +
     'switch the simulator app to KB_SMOKE_USER with its account switcher; refusing to run'

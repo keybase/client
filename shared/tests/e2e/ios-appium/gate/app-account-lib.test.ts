@@ -9,7 +9,7 @@ describe('notSmokeProblem', () => {
 
   test('the second account names the account switcher and no account name', () => {
     const p = notSmokeProblem({loggedIn: true, switching: false, username: 'testuser-mac'}, accounts)
-    expect(p).toContain('signed in as KB_SECOND_USER')
+    expect(p).toContain('signed in as <second>')
     expect(p).toContain('switch the simulator app to KB_SMOKE_USER with its account switcher')
     expect(p).not.toContain('keybase login')
     expect(p).not.toContain('testuser')
@@ -23,7 +23,7 @@ describe('notSmokeProblem', () => {
   })
 
   test('a signed out app refuses', () => {
-    expect(notSmokeProblem({loggedIn: false, switching: false, username: ''}, accounts)).toContain('(nobody; signed out)')
+    expect(notSmokeProblem({loggedIn: false, switching: false, username: ''}, accounts)).toContain('signed in as nobody,')
   })
 })
 

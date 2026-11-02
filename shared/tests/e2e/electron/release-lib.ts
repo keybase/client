@@ -1,65 +1,49 @@
 // The release command's decisions, kept free of I/O so they can be tested: whether a run may
 // start (preflightProblems), and the renderer watchdog's verdicts.
 import type {PortHolder} from '../shared/gate/ports.ts'
-import type {Outcome} from '../shared/gate/release-lib.ts'
+import {commonPreflightProblems, serviceAccountName, type CommonPreflightState} from '../shared/gate/release-lib.ts'
 import {INSPECTOR_PORT} from './helpers/main-process-lib.ts'
-import {KBFS_START_COMMAND} from '../shared/gate/processes.ts'
-
 
 // The ports the run's app listens on, which must be free or held by the app launch-app.mts started:
 // the dev server, the renderer's CDP and the main process's inspector (helpers/main-process.ts).
 export const RELEASE_PORTS: ReadonlyArray<number> = [4000, 9222, INSPECTOR_PORT]
 
-export type PreflightState = {
-  // the release lock's live holder, when another release run holds it: nothing else is checked
-  releaseLockHeld?: string
+export type PreflightState = CommonPreflightState & {
   // `user` is who the main service is signed in as ('' when nobody)
   whoami: {ok: true; user: string} | {ok: false; error: string}
   smokeUser: string
+  secondUser: string
   // `error` when lsof could not say who listens
   ports: ReadonlyArray<{port: number; holders: ReadonlyArray<PortHolder>; error?: string}>
   // the process group launch-app.mts recorded for the app it started, if any
   appPgid: number | undefined
-  // the visual gate lock's holder, when a live process holds it
-  lockHeld: string | undefined
-  // these are left out when not checked: KBFS while the main service is not on the smoke account,
-  // peers and setup until every check above them passes
-  kbfs?: Outcome & {path: string}
-  // whether the macOS session is locked; `error` when ioreg could not say
-  screen?: {locked: boolean} | {error: string}
-  peers?: ReadonlyArray<{role: string} & Outcome>
-  setupCheck?: Outcome
 }
 
 // Every reason the run must not start, each saying what to do about it. Empty: go ahead.
-export const preflightProblems = (s: PreflightState): Array<string> => {
-  if (s.releaseLockHeld) return [`${s.releaseLockHeld}; another release run is going, wait for it to finish`]
-  const out: Array<string> = []
-  if (!s.whoami.ok) {
-    out.push(`the main keybase service does not answer whoami (${s.whoami.error}); start it signed in as KB_SMOKE_USER`)
-  } else if (s.whoami.user !== s.smokeUser) {
-    out.push(
-      `the main keybase service is signed in as ${s.whoami.user || 'nobody'}, not KB_SMOKE_USER; ` +
-        'sign it back in yourself (the release command never switches it)'
-    )
-  }
-  for (const {error, port, holders} of s.ports) {
-    if (error !== undefined) out.push(`could not tell whether port ${port} is free (${error}); fix lsof and rerun`)
-    for (const h of holders) {
-      if (s.appPgid !== undefined && h.pgid === s.appPgid) continue
-      out.push(`port ${port} is held by pid ${h.pid} (${h.command}), which launch-app.mts did not start; stop it to free the port`)
-    }
-  }
-  if (s.lockHeld) out.push(`${s.lockHeld}; wait for that run to finish`)
-  if (s.screen && 'error' in s.screen) out.push(`could not tell whether the macOS session is locked (${s.screen.error}); fix ioreg and rerun`)
-  else if (s.screen?.locked) out.push('the macOS session is locked, and a locked session refuses the window its fullscreen (the video flows need it); unlock it and rerun')
-  if (s.kbfs && !s.kbfs.ok) out.push(`KBFS does not answer for ${s.kbfs.path} (${s.kbfs.error}); start it: ${KBFS_START_COMMAND}`)
-  for (const p of s.peers ?? []) {
-    if (!p.ok) out.push(`peer ${p.role}: ${p.error}`)
-  }
-  if (s.setupCheck && !s.setupCheck.ok) out.push(`yarn test:e2e:accounts:setup --check failed:\n    ${s.setupCheck.error.trim().split('\n').join('\n    ')}`)
-  return out
-}
+export const preflightProblems = (s: PreflightState): Array<string> =>
+  commonPreflightProblems(
+    s,
+    () => {
+      const out: Array<string> = []
+      if (!s.whoami.ok) {
+        out.push(`the main keybase service does not answer whoami (${s.whoami.error}); start it signed in as KB_SMOKE_USER`)
+      } else if (s.whoami.user !== s.smokeUser) {
+        out.push(
+          `the main keybase service is signed in as ${serviceAccountName(s.whoami.user, s)}, not KB_SMOKE_USER; ` +
+            'sign it back in yourself (the release command never switches it)'
+        )
+      }
+      for (const {error, port, holders} of s.ports) {
+        if (error !== undefined) out.push(`could not tell whether port ${port} is free (${error}); fix lsof and rerun`)
+        for (const h of holders) {
+          if (s.appPgid !== undefined && h.pgid === s.appPgid) continue
+          out.push(`port ${port} is held by pid ${h.pid} (${h.command}), which launch-app.mts did not start; stop it to free the port`)
+        }
+      }
+      return out
+    },
+    {lockedWhy: 'a locked session refuses the window its fullscreen (the video flows need it)'}
+  )
 
 // ---------------------------------------------------------------- renderer watchdog
 

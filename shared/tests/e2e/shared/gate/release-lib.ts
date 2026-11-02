@@ -1,6 +1,8 @@
 // What the release summary and the census read from a gate run: Playwright's json report, the flow and
 // render tallies, and the phase summary. Free of I/O so they can be tested.
+import {signedInName} from '../../accounts/sweep-lib.ts'
 import {flowTestKey, knownFlowCause, knownRenderCause, knownVerdict, type KnownVerdict} from './known.ts'
+import {KBFS_START_COMMAND} from './processes.ts'
 
 export type Outcome = {ok: true} | {ok: false; error: string}
 
@@ -198,3 +200,38 @@ export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: num
   if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
   return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
 }
+
+// ---------------------------------------------------------------- preflight
+
+// What both release commands' preflights check the same way. Left out when not checked: KBFS while
+// the service is not on the smoke account, peers and setup until every check above them passes.
+export type CommonPreflightState = {
+  // the release lock's live holder, when another release run holds it: nothing else is checked
+  releaseLockHeld?: string
+  // the visual gate lock's holder, when a live process holds it
+  lockHeld?: string | undefined
+  // whether the macOS session is locked; `error` when ioreg could not say
+  screen?: {locked: boolean} | {error: string}
+  kbfs?: Outcome & {path: string}
+  peers?: ReadonlyArray<{role: string} & Outcome>
+  setupCheck?: Outcome
+}
+
+// Every reason the run must not start, each saying what to do about it; `platform` gives the
+// platform's own, which come first. Empty: go ahead. `lockedWhy` says what a locked session breaks.
+export const commonPreflightProblems = (s: CommonPreflightState, platform: () => Array<string>, o: {lockedWhy: string}): Array<string> => {
+  if (s.releaseLockHeld) return [`${s.releaseLockHeld}; another release run is going, wait for it to finish`]
+  const out = platform()
+  if (s.lockHeld) out.push(`${s.lockHeld}; wait for that run to finish`)
+  if (s.screen && 'error' in s.screen) out.push(`could not tell whether the macOS session is locked (${s.screen.error}); fix ioreg and rerun`)
+  else if (s.screen?.locked) out.push(`the macOS session is locked, and ${o.lockedWhy}; unlock it and rerun`)
+  if (s.kbfs && !s.kbfs.ok) out.push(`KBFS does not answer for ${s.kbfs.path} (${s.kbfs.error}); start it: ${KBFS_START_COMMAND}`)
+  for (const p of s.peers ?? []) {
+    if (!p.ok) out.push(`peer ${p.role}: ${p.error}; yarn test:e2e:accounts:setup provisions and signs in the peers`)
+  }
+  if (s.setupCheck && !s.setupCheck.ok) out.push(`yarn test:e2e:accounts:setup --check failed:\n    ${s.setupCheck.error.trim().split('\n').join('\n    ')}`)
+  return out
+}
+
+// Who a service is signed in as, for a refusal: a test account by role, never another account's name.
+export const serviceAccountName = (user: string, s: {smokeUser: string; secondUser: string}) => signedInName(user, {second: s.secondUser, smoke: s.smokeUser})

@@ -25,6 +25,7 @@ const ok = (over: Partial<PreflightState> = {}): PreflightState => ({
   ],
   screen: {locked: false},
   setupCheck: {ok: true},
+  secondUser: 'testuser-mac',
   smokeUser: 'testuser',
   whoami: {ok: true, user: 'testuser'},
   ...over,
@@ -38,7 +39,8 @@ describe('preflightProblems', () => {
   test('the main service on another account refuses, and never offers to switch it', () => {
     const p = preflightProblems(ok({whoami: {ok: true, user: 'testuser-mac'}}))
     expect(p).toHaveLength(1)
-    expect(p[0]).toContain('signed in as testuser-mac, not KB_SMOKE_USER')
+    expect(p[0]).toContain('signed in as <second>, not KB_SMOKE_USER')
+    expect(preflightProblems(ok({whoami: {ok: true, user: 'someone'}}))[0]).toContain('signed in as an account that is neither KB_SMOKE_USER nor KB_SECOND_USER,')
     expect(p[0]).toContain('never switches it')
   })
 
@@ -65,36 +67,6 @@ describe('preflightProblems', () => {
     expect(RELEASE_PORTS).toEqual([4000, 9222, 9229])
     const p = preflightProblems(ok({appPgid: 500, ports: [{holders: [{command: 'node --inspect', pgid: 77, pid: 78}], port: 9229}]}))
     expect(p).toEqual([expect.stringContaining('port 9229 is held by pid 78')])
-  })
-
-  test('a held visual gate lock refuses', () => {
-    const p = preflightProblems(ok({lockHeld: 'visual gate lock held by pid 9 (visual:render) since 2026-10-27T00:00:00.000Z'}))
-    expect(p).toEqual([expect.stringContaining('visual gate lock held by pid 9')])
-  })
-
-  test('a release lock held by another run refuses before anything else is checked', () => {
-    const held = 'release lock held by pid 9 (yarn test:e2e:desktop:release) since 2026-10-27T00:00:00.000Z'
-    expect(preflightProblems(ok({releaseLockHeld: held}))).toEqual([`${held}; another release run is going, wait for it to finish`])
-    expect(preflightProblems(ok({releaseLockHeld: undefined}))).toEqual([])
-  })
-
-  test('a locked macOS session refuses, as does not knowing', () => {
-    expect(preflightProblems(ok({screen: {locked: true}}))).toEqual([expect.stringContaining('the macOS session is locked')])
-    expect(preflightProblems(ok({screen: {error: 'ioreg timed out'}}))).toEqual([expect.stringContaining('(ioreg timed out)')])
-  })
-
-  test('KBFS not answering refuses with the command to start it', () => {
-    const p = preflightProblems(ok({kbfs: {error: 'no answer in 15s', ok: false, path: '/keybase/private/testuser'}}))
-    expect(p).toHaveLength(1)
-    expect(p[0]).toContain('KBFS does not answer for /keybase/private/testuser (no answer in 15s)')
-    expect(p[0]).toContain('kbfsfuse -debug -log-file /tmp/kb-e2e/kbfs.log /Volumes/Keybase &')
-  })
-
-  test('a failing setup check or peer refuses with what it said', () => {
-    expect(preflightProblems(ok({setupCheck: {error: 'e2e peers are not ready:\n  KB_SECOND_PAPERKEY is not set', ok: false}}))[0]).toContain(
-      'KB_SECOND_PAPERKEY is not set'
-    )
-    expect(preflightProblems(ok({peers: [{error: 'is not running', ok: false, role: 'second'}]}))).toEqual(['peer second: is not running'])
   })
 
   test('every problem is listed at once', () => {

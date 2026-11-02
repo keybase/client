@@ -29,6 +29,7 @@ const ok = (over: Partial<IosPreflightState> = {}): IosPreflightState => ({
   screen: {locked: false},
   setupCheck: {ok: true},
   simulator: {booted: true, visible: true},
+  secondUser: 'testuser-mac',
   smokeUser: 'testuser',
   ...over,
 })
@@ -44,15 +45,10 @@ describe('iosPreflightProblems', () => {
     expect(iosPreflightProblems(ok())).toEqual([])
   })
 
-  test('another release run holding the lock is the only problem named', () => {
-    expect(iosPreflightProblems(ok({hostWhoami: {error: 'x', ok: false}, releaseLockHeld: 'release lock held by pid 9'}))).toEqual([
-      'release lock held by pid 9; another release run is going, wait for it to finish',
-    ])
-  })
-
   test('the host service on another account refuses, naming the switch command', () => {
     const p = only(ok({hostWhoami: {ok: true, user: 'testuser-mac'}}))
-    expect(p).toContain('signed in as testuser-mac, not KB_SMOKE_USER')
+    expect(p).toContain('signed in as <second>, not KB_SMOKE_USER')
+    expect(only(ok({hostWhoami: {ok: true, user: 'someone'}}))).not.toContain('someone')
     expect(p).toContain('keybase login --switch testuser')
     expect(p).toContain('never switches it')
   })
@@ -100,26 +96,6 @@ describe('iosPreflightProblems', () => {
     expect(only(ok({ports: [{error: 'lsof exited 2', holders: [], ours: false, port: 8100}]}))).toContain('could not tell whether port 8100 (WebDriverAgent) is free (lsof exited 2)')
   })
 
-  test('the visual gate lock held refuses', () => {
-    expect(only(ok({lockHeld: 'visual gate lock held by pid 4'}))).toBe('visual gate lock held by pid 4; wait for that run to finish')
-  })
-
-  test('a locked macOS session refuses', () => {
-    expect(only(ok({screen: {locked: true}}))).toContain('the macOS session is locked')
-    expect(only(ok({screen: {error: 'ioreg failed'}}))).toContain('could not tell whether the macOS session is locked (ioreg failed)')
-  })
-
-  test('KBFS not answering names its start command', () => {
-    expect(only(ok({kbfs: {error: 'timed out', ok: false, path: '/keybase/private/testuser'}}))).toContain('kbfsfuse')
-  })
-
-  test('a failing peer refuses, naming its role', () => {
-    expect(only(ok({peers: [{error: 'no socket', ok: false, role: 'owner'}]}))).toBe('peer owner: no socket; yarn test:e2e:accounts:setup provisions and signs in the peers')
-  })
-
-  test('a failing setup check refuses with its output', () => {
-    expect(only(ok({setupCheck: {error: 'team missing\n', ok: false}}))).toBe('yarn test:e2e:accounts:setup --check failed:\n    team missing')
-  })
 })
 
 describe('simulatorFromList', () => {

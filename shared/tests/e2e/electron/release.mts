@@ -132,7 +132,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     run.acquireLock(`yarn test:e2e:desktop:release (run ${process.env['KB_E2E_RUN_ID'] ?? '?'})`)
   } catch (e) {
     const releaseLockHeld = errText(e)
-    return {env, problems: preflightProblems({appPgid: undefined, lockHeld: undefined, ports: [], releaseLockHeld, smokeUser: env.smokeUser, whoami: {ok: false, error: 'not checked'}})}
+    return {env, problems: preflightProblems({appPgid: undefined, lockHeld: undefined, ports: [], releaseLockHeld, secondUser: env.secondUser, smokeUser: env.smokeUser, whoami: {ok: false, error: 'not checked'}})}
   }
   const whoami = await mainWhoami().then(
     user => ({ok: true, user}) as const,
@@ -153,7 +153,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     lockHeld,
     ports: RELEASE_PORTS.map(portState),
     screen: screenState(),
-    smokeUser: env.smokeUser,
+    secondUser: env.secondUser, smokeUser: env.smokeUser,
     whoami,
   }
   // Peers are started only once nothing else stands in the way.

@@ -1,5 +1,6 @@
 import {
   censusPhaseResult,
+  commonPreflightProblems,
   flowProblems,
   flowsPhaseResult,
   flowsLine,
@@ -267,5 +268,43 @@ describe('flowsPhaseResult', () => {
       line: '3 passed, 0 failed, 0 flaky, 0 skipped (its log could not be written: EIO)',
       ok: false,
     })
+  })
+})
+
+describe('commonPreflightProblems', () => {
+  const lockedWhy = 'a locked session throttles the simulator'
+  const problems = (s: Parameters<typeof commonPreflightProblems>[0], platform: Array<string> = []) => commonPreflightProblems(s, () => [...platform], {lockedWhy})
+
+  test('another release run holding the lock is the only problem named', () => {
+    expect(problems({lockHeld: 'x', releaseLockHeld: 'release lock held by pid 9'}, ['platform'])).toEqual([
+      'release lock held by pid 9; another release run is going, wait for it to finish',
+    ])
+  })
+
+  test("the platform's problems come first, then each common one", () => {
+    expect(
+      problems(
+        {
+          kbfs: {error: 'timed out', ok: false, path: '/keybase/private/testuser'},
+          lockHeld: 'visual gate lock held by pid 4',
+          peers: [{error: 'no socket', ok: false, role: 'owner'}, {ok: true, role: 'second'}],
+          screen: {locked: true},
+          setupCheck: {error: 'team missing\n', ok: false},
+        },
+        ['platform']
+      )
+    ).toEqual([
+      'platform',
+      'visual gate lock held by pid 4; wait for that run to finish',
+      'the macOS session is locked, and a locked session throttles the simulator; unlock it and rerun',
+      'KBFS does not answer for /keybase/private/testuser (timed out); start it: ~/go/bin/kbfsfuse -debug -log-file /tmp/kb-e2e/kbfs.log /Volumes/Keybase &',
+      'peer owner: no socket; yarn test:e2e:accounts:setup provisions and signs in the peers',
+      'yarn test:e2e:accounts:setup --check failed:\n    team missing',
+    ])
+  })
+
+  test('not knowing whether the session is locked refuses; nothing checked is fine', () => {
+    expect(problems({screen: {error: 'ioreg failed'}})).toEqual(['could not tell whether the macOS session is locked (ioreg failed); fix ioreg and rerun'])
+    expect(problems({})).toEqual([])
   })
 })

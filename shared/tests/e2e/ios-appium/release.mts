@@ -281,7 +281,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     run.acquireLock(`yarn test:e2e:ios:release (run ${process.env['KB_E2E_RUN_ID'] ?? '?'})`)
   } catch (e) {
     const releaseLockHeld = errText(e)
-    return {env, problems: iosPreflightProblems({device, hostWhoami: {error: 'not checked', ok: false}, ports: [], releaseLockHeld, simulator: notChecked, smokeUser: env.smokeUser})}
+    return {env, problems: iosPreflightProblems({device, hostWhoami: {error: 'not checked', ok: false}, ports: [], releaseLockHeld, simulator: notChecked, secondUser: env.secondUser, smokeUser: env.smokeUser})}
   }
   // the logs hold this run's alone, preflight's children included
   fs.rmSync(logsDir, {force: true, recursive: true})
@@ -310,7 +310,7 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
     ports: IOS_RELEASE_PORTS.map(p => portState(p, recordedMetro, udid)),
     screen: screenState(),
     simulator,
-    smokeUser: env.smokeUser,
+    secondUser: env.secondUser, smokeUser: env.smokeUser,
   }
   // Peers are started only once nothing else stands in the way.
   if (!iosPreflightProblems(state).length) {
