@@ -11,7 +11,7 @@
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
-import {readCli} from './cli-read.mts'
+import {readCli} from '../shared/cli-read.ts'
 import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {cliError, readCli} from './cli-read.mts'
+import {cliError, readCli} from './cli-read.ts'
 
 const WARNINGS = [
   '2026-01-01T12:00:00.000000-05:00 \u25b6 [WARN keybase versionfix.go:133] 001 Service is running v1.0.1, while client is running v1.0.0.',

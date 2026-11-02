@@ -21,7 +21,7 @@
 // `git` is left out: nothing here can confirm `keybase git list` is read-only.
 import {createHash} from 'crypto'
 import {e2eAccounts} from '../shared/chat-data.ts'
-import {readCli} from './cli-read.mts'
+import {readCli} from '../shared/cli-read.ts'
 
 export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate' | 'fsHistory'
 export type Seal = {

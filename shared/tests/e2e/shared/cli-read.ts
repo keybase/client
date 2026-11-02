@@ -1,12 +1,12 @@
-// The `keybase` CLI reads the visual gate makes (resolve.mts's params, seal.mts's seal), each one
-// read-only.
+// Runs of the `keybase` CLI: readCli for the visual gate's read-only reads (resolve.mts's params,
+// seal.mts's seal), runCli for any call.
 import {execFile} from 'child_process'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {keybaseBin} from './keybase-bin.ts'
 
 const CLI_TIMEOUT_MS = 30_000
+const RETRY_PAUSE_MS = 1_000
 // The service's own fetch from the server timing out, which a second try usually gets past (the host's
 // `device list` waits 4-5s on a fetch whose deadline is about 4.8s).
-const RETRY_PAUSE_MS = 1_000
 const SERVICE_TIMEOUT = 'context deadline exceeded'
 
 // The most of an unrecognised stderr kept, from its end.
@@ -28,16 +28,23 @@ export const cliError = (stderr: string, fallback: string) => {
   return text.trim().slice(-ERROR_MAX_CHARS) || fallback
 }
 
-const readOnce = async (args: ReadonlyArray<string>, what: string) =>
+type RunOptions = {
+  // the answer is stdout then stderr, for a CLI that prints its result there
+  withStderr?: boolean
+  timeoutMs?: number
+}
+
+// Runs one CLI call; its error starts with `what`.
+export const runCli = async (args: ReadonlyArray<string>, what: string, {withStderr = false, timeoutMs = CLI_TIMEOUT_MS}: RunOptions = {}) =>
   new Promise<string>((resolve, reject) => {
     const proc = execFile(
       keybaseBin(),
       [...args],
-      {encoding: 'utf8', killSignal: 'SIGKILL', timeout: CLI_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024},
+      {encoding: 'utf8', killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024, timeout: timeoutMs},
       (err, stdout, stderr) => {
-        if (err?.killed) reject(new Error(`${what}: no answer in ${CLI_TIMEOUT_MS / 1000}s`))
+        if (err?.killed) reject(new Error(`${what}: no answer in ${timeoutMs / 1000}s`))
         else if (err) reject(new Error(`${what}: ${cliError(stderr, err.message)}`))
-        else resolve(stdout)
+        else resolve(withStderr ? `${stdout}${stderr}` : stdout)
       }
     )
     proc.stdin?.end()
@@ -47,10 +54,10 @@ const readOnce = async (args: ReadonlyArray<string>, what: string) =>
 // error starts with `what`. Bound: two tries of CLI_TIMEOUT_MS and the pause, 61s.
 export const readCli = async (args: ReadonlyArray<string>, what: string): Promise<string> => {
   try {
-    return await readOnce(args, what)
+    return await runCli(args, what)
   } catch (e) {
     if (!(e instanceof Error) || !e.message.includes(SERVICE_TIMEOUT)) throw e
     await new Promise(resolve => setTimeout(resolve, RETRY_PAUSE_MS))
-    return readOnce(args, what)
+    return runCli(args, what)
   }
 }
