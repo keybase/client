@@ -21,11 +21,16 @@ export const parseManifest = (text: string): Array<ManifestItem> => {
   })
 }
 
+// What a share handed over: the items of the manifest it wrote (undefined when none was seen), and why
+// one of their files could not be recorded for the cleanup, when one could not.
+export type Handed = {folderProblem?: string; items?: ReadonlyArray<ManifestItem>}
+
 export type WantItem = {type: 'file' | 'image' | 'text' | 'video'; ext?: string; content?: string}
 
 // The one item a share of one thing hands the app: none dropped, its type, and a file's extension
 // or the text exactly. Errors name no path or text.
-export const requireOneItem = (items: ReadonlyArray<ManifestItem> | undefined, want: WantItem): ManifestItem => {
+export const requireOneItem = ({folderProblem, items}: Handed, want: WantItem): ManifestItem => {
+  if (folderProblem) throw new Error(folderProblem)
   if (!items) throw new Error('the share extension wrote no manifest')
   if (items.some(i => i.error)) throw new Error('the share extension could not prepare an item')
   if (items.length !== 1) throw new Error(`the share extension handed over ${items.length} items, not 1`)

@@ -13,16 +13,21 @@ describe('share-lib', () => {
 
   test('requireOneItem wants exactly one prepared item of the type, extension and text', () => {
     const file = {originalPath: `${root}/s/i/e2e-c.pdf`, type: 'file'}
-    expect(requireOneItem([file], {ext: '.pdf', type: 'file'})).toBe(file)
-    expect(() => requireOneItem(undefined, {type: 'file'})).toThrow('no manifest')
-    expect(() => requireOneItem([], {type: 'file'})).toThrow('0 items')
-    expect(() => requireOneItem([file, file], {type: 'file'})).toThrow('2 items')
-    expect(() => requireOneItem([{error: 'x'}], {type: 'file'})).toThrow('could not prepare')
-    expect(() => requireOneItem([file], {type: 'image'})).toThrow('not a image')
-    expect(() => requireOneItem([file], {ext: '.png', type: 'file'})).toThrow('not a .png')
-    expect(() => requireOneItem([{type: 'image'}], {type: 'image'})).toThrow('no file')
-    expect(requireOneItem([{content: 't', type: 'text'}], {content: 't', type: 'text'}).content).toBe('t')
-    expect(() => requireOneItem([{content: 'u', type: 'text'}], {content: 't', type: 'text'})).toThrow('not the text shared')
+    expect(requireOneItem({items: [file]}, {ext: '.pdf', type: 'file'})).toBe(file)
+    expect(() => requireOneItem({}, {type: 'file'})).toThrow('no manifest')
+    expect(() => requireOneItem({items: []}, {type: 'file'})).toThrow('0 items')
+    expect(() => requireOneItem({items: [file, file]}, {type: 'file'})).toThrow('2 items')
+    expect(() => requireOneItem({items: [{error: 'x'}]}, {type: 'file'})).toThrow('could not prepare')
+    expect(() => requireOneItem({items: [file]}, {type: 'image'})).toThrow('not a image')
+    expect(() => requireOneItem({items: [file]}, {ext: '.png', type: 'file'})).toThrow('not a .png')
+    expect(() => requireOneItem({items: [{type: 'image'}]}, {type: 'image'})).toThrow('no file')
+    expect(requireOneItem({items: [{content: 't', type: 'text'}]}, {content: 't', type: 'text'}).content).toBe('t')
+    expect(() => requireOneItem({items: [{content: 'u', type: 'text'}]}, {content: 't', type: 'text'})).toThrow('not the text shared')
+  })
+
+  test("requireOneItem reports a file it could not record for the cleanup, not the manifest's shape", () => {
+    const why = 'a shared file is not in a payload folder of incoming-shares'
+    expect(() => requireOneItem({folderProblem: why, items: [{originalPath: '/elsewhere/f.png', type: 'image'}]}, {type: 'image'})).toThrow(why)
   })
 
   test('payloadFolder answers the share folder only for root/<share>/<item>/<file>', () => {

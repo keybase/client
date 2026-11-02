@@ -19,7 +19,7 @@ import {openLink, seedFolderPath} from './device.ts'
 import {sourceElements} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
-import {MANIFEST_NAMES, parseManifest, payloadFolder, type ManifestItem, type ServedRequest} from './share-lib.ts'
+import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
 import {expectScreen, tapFrame, typeInFilter, visibleScreen} from '../helpers/files'
 import {BUNDLE_ID, simctl, waitFor} from '../helpers/lifecycle'
 
@@ -53,29 +53,41 @@ let firstShareAt: number | undefined
 
 // Watches incoming-shares for the manifest a share writes from `since` on: the service claims it as
 // soon as the app asks (moves it to manifest.claimed, reads it, removes it), so it is caught while
-// the share runs. Each manifest's payload folders are recorded for the cleanup as soon as it is read.
+// the share runs. Each manifest's payload folders are recorded for the cleanup as soon as it is read;
+// a file outside a payload folder is kept as the share's problem (requireOneItem reports it).
 const watchManifest = (dir: string, since: number) => {
-  let seen: {items: Array<ManifestItem>; mtimeMs: number} | undefined
+  let seen: (Handed & {mtimeMs: number}) | undefined
   const peek = () => {
     for (const n of MANIFEST_NAMES) {
+      let items: Array<ManifestItem>
+      let mtimeMs: number
       try {
         const f = path.join(dir, n)
-        const {mtimeMs} = fs.statSync(f)
+        mtimeMs = fs.statSync(f).mtimeMs
         if (mtimeMs < since || (seen && mtimeMs < seen.mtimeMs)) continue
-        const items = parseManifest(fs.readFileSync(f, 'utf8'))
-        for (const i of items) if (i.originalPath) madeFolders.add(payloadFolder(dir, i.originalPath))
-        seen = {items, mtimeMs}
+        items = parseManifest(fs.readFileSync(f, 'utf8'))
       } catch {
         // not there, claimed between the stat and the read, or still being written
+        continue
       }
+      let folderProblem: string | undefined
+      for (const i of items) {
+        if (!i.originalPath) continue
+        try {
+          madeFolders.add(payloadFolder(dir, i.originalPath))
+        } catch (e) {
+          folderProblem = e instanceof Error ? e.message : String(e)
+        }
+      }
+      seen = {folderProblem, items, mtimeMs}
     }
   }
   const timer = setInterval(peek, 50)
   return {
-    stop: () => {
+    stop: (): Handed => {
       clearInterval(timer)
       peek()
-      return seen?.items
+      return {folderProblem: seen?.folderProblem, items: seen?.items}
     },
   }
 }
@@ -317,7 +329,7 @@ export const mapsSheet = (lat: number, lon: number, place: string) => async () =
 
 // -- the share ---------------------------------------------------------------------------------------
 
-export type Shared = {items: Array<ManifestItem> | undefined; log: Array<string>}
+export type Shared = Handed & {log: Array<string>}
 
 // In `host`, opens its share sheet (`open`) and taps Keybase, until the extension starts (a sheet
 // still loading its preview takes a tap without acting on it); then waits for the extension to open
@@ -333,7 +345,7 @@ export const shareToKeybase = async (host: string, open: () => Promise<void>): P
   // names no file in it), so the folders new since the share began are this run's too
   const entries = () => (fs.existsSync(dir) ? fs.readdirSync(dir) : [])
   const entriesBefore = new Set(entries())
-  let items: Array<ManifestItem> | undefined
+  let handed: Handed
   try {
     const before = new Set(extensionPids())
     await inApp(host, async () => {
@@ -356,13 +368,13 @@ export const shareToKeybase = async (host: string, open: () => Promise<void>): P
       timeout: 150_000,
     })
   } finally {
-    items = watch.stop()
+    handed = watch.stop()
     for (const n of entries()) {
       const f = path.join(dir, n)
       if (!entriesBefore.has(n) && fs.statSync(f, {throwIfNoEntry: false})?.isDirectory()) madeFolders.add(payloadFolder(dir, path.join(f, 'item', 'file')))
     }
   }
-  return {items, log: extensionLogSince(new Date(startedAt))}
+  return {...handed, log: extensionLogSince(new Date(startedAt))}
 }
 
 const appState = async () => Number(await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID}))
