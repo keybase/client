@@ -22,7 +22,9 @@ import type {RouteInfo} from '../../visual/routes-inventory.mts'
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..')
 
 export type CensusPlatform = {
-  platform: string
+  // also picks the render.json runs to read, by their lower-cased `platform` (one written without a
+  // platform is desktop's)
+  platform: 'desktop' | 'iOS'
   // the --project default
   project: string
   // the --results default
@@ -35,8 +37,6 @@ export type CensusPlatform = {
   manualOnly: Record<string, unknown>
   surfaces: () => NonNullable<CensusInput['surfaces']>
   routes: () => Array<RouteInfo>
-  // the `platform` of the render.json runs to read (one written without a platform is desktop's)
-  renderPlatform: 'desktop' | 'ios'
   // where census.md and census.json go and where the render dirs are looked up (default shared/tests/results)
   resultsDir?: string
   // the outgoing calls to cover (default: those in protocol/bin/enabled-calls.json)
@@ -66,7 +66,7 @@ const renderPlatformOf = (dir: string) => {
 }
 
 // iOS and desktop renders share visual/render/<stamp>, so the newest run may be the other platform's
-const newestRenderDir = (resultsDir: string, platform: CensusPlatform['renderPlatform']) => {
+const newestRenderDir = (resultsDir: string, platform: 'desktop' | 'ios') => {
   const root = path.join(resultsDir, 'visual/render')
   const dirs = fs.existsSync(root)
     ? fs
@@ -119,7 +119,7 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
   const runs = flowRuns(args.results, args.project, p.flowsCommand)
   const {flows, problems: flowProblems} = flowCoverageFromRuns(runs)
   if (args['no-render'] && args.render) throw new Error('--render and --no-render are exclusive')
-  const renderDir = args['no-render'] ? undefined : (args.render ?? newestRenderDir(resultsDir, p.renderPlatform))
+  const renderDir = args['no-render'] ? undefined : (args.render ?? newestRenderDir(resultsDir, p.platform === 'iOS' ? 'ios' : 'desktop'))
   const rows = renderDir ? renderRows(renderDir) : []
   const {entries, problems: renderProblems} = renderCoverageFromRows(rows)
   const result = census({

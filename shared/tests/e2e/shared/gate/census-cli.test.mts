@@ -36,9 +36,8 @@ const fixture = (routeCovered: boolean) => {
     flowsCommand: 'yarn flows',
     manualOnly: {},
     outPrefix: 'x-',
-    platform: 'test',
+    platform: 'desktop',
     project: 'proj',
-    renderPlatform: 'desktop',
     resultsDir: dir,
     routes: () => [{file: 'f', hasParams: false, modal: false, name: 'routeA'}],
     surfaces: () => ({entryPrefix: 'panel/', existing: [], listFile: 'panels.ts', listed: [], noun: 'panel'}),
@@ -80,7 +79,7 @@ test("the census reads its own platform's newest render, past a newer one from t
   const {dir, platform} = fixture(false)
   writeRender(dir, '2026-01-01T00-00-00', 'ios', ['routeA'])
   writeRender(dir, '2026-01-02T00-00-00', 'desktop', [])
-  assert.equal(quiet(() => runCensusCli({...platform, renderPlatform: 'ios'}, [])), 0)
+  assert.equal(quiet(() => runCensusCli({...platform, platform: 'iOS'}, [])), 0)
   assert.equal(quiet(() => runCensusCli(platform, [])), 1)
 })
 
@@ -92,7 +91,7 @@ test('a render.json without a platform is a desktop render', () => {
   const errors: Array<string> = []
   console.error = (l: string) => errors.push(l)
   try {
-    assert.equal(quiet(() => runCensusCli({...platform, renderPlatform: 'ios'}, [])), 1)
+    assert.equal(quiet(() => runCensusCli({...platform, platform: 'iOS'}, [])), 1)
   } finally {
     console.error = err
   }
