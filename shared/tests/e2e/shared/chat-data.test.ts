@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../accounts/run-id'
-import {createThrowawaySubteam, directReadFailure, NoMessagesYet} from './chat-data'
+import {createThrowawaySubteam, directReadFailure, newestDrawn, NoMessagesYet} from './chat-data'
 
 // A stand-in `keybase` (KB_CLI): `team create` passes, `team add-member` fails, and `team delete`
 // asks for its confirmation and then fails.
@@ -62,4 +62,24 @@ describe('directReadFailure', () => {
     expect(e.message).toContain('504 Gateway Timeout')
     expect(e.message).not.toMatch(/testuser/)
   })
+})
+
+const apiMsg = (id: number, type: string, body?: string) => ({
+  msg: {content: {type, ...(body ? {text: {body}} : {})}, id, sender: {username: 'testuser'}},
+})
+
+test('the newest drawn message skips messages that did not unbox', () => {
+  const res = {
+    messages: [
+      {error: 'could not unbox'},
+      apiMsg(9, 'delete'),
+      apiMsg(7, 'reaction'),
+      apiMsg(6, 'deletehistory'),
+      apiMsg(5, 'text', 'anchor'),
+      apiMsg(4, 'text', 'older'),
+    ],
+  }
+  expect(newestDrawn(res)?.id).toBe(5)
+  expect(newestDrawn({messages: [{error: 'could not unbox'}, apiMsg(1, 'edit')]})).toBeUndefined()
+  expect(newestDrawn({})).toBeUndefined()
 })

@@ -104,8 +104,10 @@ type ApiResponse<R> = {error?: ApiError; result?: R}
 
 type ChannelRef = {members_type: 'team'; name: string; topic_name: string}
 
+// A message the API could not unbox comes as {error} with no msg.
 type ApiMessage = {
-  msg: {
+  error?: string
+  msg?: {
     id: number
     content: {
       type: string
@@ -119,12 +121,16 @@ type ApiMessage = {
     sent_at_ms?: number
   }
 }
-export type CliMessage = ApiMessage['msg']
+export type CliMessage = NonNullable<ApiMessage['msg']>
 
-type ReadResult = {
+export type ReadResult = {
   messages?: Array<ApiMessage>
   pagination?: {next?: string; last?: boolean}
 }
+
+// A read's messages, newest first, leaving out those the API could not unbox (the app draws no row
+// for one).
+const unboxed = (res: ReadResult): Array<CliMessage> => (res.messages ?? []).flatMap(m => (m.msg ? [m.msg] : []))
 
 type ConvSummary = {id: string; channel: {topic_name?: string}}
 
@@ -244,7 +250,7 @@ const channelRef = (team: string, topicName: string): ChannelRef => ({
 
 // Every message in the channel, oldest first. Peeks, so reading does not mark the channel read.
 const readAll = async (api: ChatApi, channel: ChannelRef) => {
-  const out: Array<ApiMessage['msg']> = []
+  const out: Array<CliMessage> = []
   let next: string | undefined
   for (;;) {
     const res = await api.call<ReadResult>('read', {
@@ -252,14 +258,14 @@ const readAll = async (api: ChatApi, channel: ChannelRef) => {
       pagination: next ? {next, num: 500} : {num: 500},
       peek: true,
     })
-    out.push(...(res.messages ?? []).map(m => m.msg))
+    out.push(...unboxed(res))
     if (!res.pagination?.next || res.pagination.last || !res.messages?.length) break
     next = res.pagination.next
   }
   return out.reverse()
 }
 
-const textBodies = (msgs: ReadonlyArray<ApiMessage['msg']>) =>
+const textBodies = (msgs: ReadonlyArray<CliMessage>) =>
   msgs.filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
 
 const listChannels = async (api: ChatApi, team: string) => {
@@ -362,19 +368,21 @@ const THREAD_PAGE = 60
 // What the app draws no row for.
 const HIDDEN_TYPES = new Set(['delete', 'deletehistory', 'edit', 'reaction', 'unfurl', 'none'])
 
+// The newest message of a read that the app draws a row for.
+export const newestDrawn = (res: ReadResult) => unboxed(res).find(m => !HIDDEN_TYPES.has(m.content.type))
+
 // The sweeper deletes the stamped messages each run posts to scratch, so its newest page can fill up
 // with deletes; the app then opens the thread with no row and never pages further back (PR 9). When
 // the newest page has nothing the app draws, the host posts one unstamped anchor as the smoke account
 // (from the host, never the app, so it counts as no coverage) and reads it back.
 const anchorScratch = async (api: ChatApi, team: string) => {
   const channel = channelRef(team, E2E_CHANNELS.scratch)
-  const newest = async () =>
-    (await api.call<ReadResult>('read', {channel, pagination: {num: THREAD_PAGE}, peek: true})).messages ?? []
-  if ((await newest()).some(m => !HIDDEN_TYPES.has(m.msg.content.type))) return
+  const newest = async () => api.call<ReadResult>('read', {channel, pagination: {num: THREAD_PAGE}, peek: true})
+  if (newestDrawn(await newest())) return
   log(`anchoring #${E2E_CHANNELS.scratch}: its newest page is all deletes`)
   await sendText(api, channel, SCRATCH_ANCHOR)
-  const top = (await newest()).find(m => !HIDDEN_TYPES.has(m.msg.content.type))
-  if (top?.msg.content.text?.body !== SCRATCH_ANCHOR) throw new Error(`#${E2E_CHANNELS.scratch}'s anchor did not land as its newest message`)
+  const top = newestDrawn(await newest())
+  if (top?.content.text?.body !== SCRATCH_ANCHOR) throw new Error(`#${E2E_CHANNELS.scratch}'s anchor did not land as its newest message`)
 }
 
 const seedReadonly = async (api: ChatApi, team: string) => {
@@ -420,12 +428,12 @@ const ensureDirect = async (api: ChatApi, smokeUser: string, secondUser: string)
   const tlfName = directTlfName(smokeUser, secondUser)
   const channel = {name: tlfName}
   const newest = async () => {
-    const res = await api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {
+    const res = await api.call<{messages?: Array<{msg?: {conversation_id: string}}>}>('read', {
       channel,
       pagination: {num: 1},
       peek: true,
     })
-    return res.messages?.[0]?.msg.conversation_id
+    return res.messages?.[0]?.msg?.conversation_id
   }
   let convID = await newest().catch(() => undefined)
   if (!convID) {
@@ -551,7 +559,7 @@ export const readFromCli = async (where: {topicName: string} | {tlfName: string}
   const {team} = e2eAccounts()
   const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
   const res = await withApi(async api => api.call<ReadResult>('read', {channel, pagination: {num}, peek: true}))
-  return (res.messages ?? []).map(m => m.msg)
+  return unboxed(res)
 }
 
 // The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read
@@ -565,7 +573,7 @@ export const oldestFromCli = async (where: {topicName: string} | {tlfName: strin
   for (let page = 0; page < maxPages; page++) {
     const pagination = {num: 1000, ...(next ? {next} : {})}
     const res = await withApi(async api => api.callWithin<ReadResult>('read', {channel, pagination, peek: true}, 60_000))
-    all = [...all, ...(res.messages ?? []).map(m => m.msg)]
+    all = [...all, ...unboxed(res)]
     next = res.pagination?.next
     if (res.pagination?.last || !next || !res.messages?.length) return all.slice(-count).reverse()
   }
@@ -704,11 +712,11 @@ export const directReadFailure = (e: unknown, tlfName: string): Error => {
 // from its newest message through the host's CLI. Peeks.
 export const directConvIDFromCli = async (tlfName: string) => {
   const res = await withApi(async api =>
-    api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
+    api.call<{messages?: Array<{msg?: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
   ).catch((e: unknown) => {
     throw directReadFailure(e, tlfName)
   })
-  const id = res.messages?.[0]?.msg.conversation_id
+  const id = res.messages?.[0]?.msg?.conversation_id
   if (!id) throw new NoMessagesYet()
   return id
 }
