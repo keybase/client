@@ -930,13 +930,15 @@ export const clearComposer = async () => {
 // Sends `text` through the composer's send button and returns the ordinal of its row.
 // A Send tap right after the typing has now and then not taken: the text stayed in the composer and
 // nothing was sent. Send is tapped a second time only when the first sent nothing (no row with the
-// text, the composer not emptied), so nothing is sent twice. Bound with the typing 25: the button 5,
-// two taps of (the tap 1, 3s of reads) 8, the row 7.
+// text, the composer not emptied), read again right before the second tap since the first can land
+// after its 3s of reads, so nothing is sent twice. Bound 25: the typing 5, the button 5, the first
+// tap (the tap 1, 3s of reads) 4, the second (a read 1, the tap 1, 3s of reads) 5, the row 6.
 export const sendMessage = async (text: string) => {
   await typeInComposer(text)
   await waitForTestID(T.CHAT_SEND_BUTTON, 5_000)
   const took = async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === ''
   for (let i = 0; ; i++) {
+    if (i > 0 && (await took())) break
     await el(T.CHAT_SEND_BUTTON).click()
     const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval: 250, timeout: 3_000}).catch(
       (e: unknown) => {
@@ -948,7 +950,7 @@ export const sendMessage = async (text: string) => {
     if (i === 1) throw new Error('two taps on Send sent nothing: the text is still in the composer')
     console.log('sendMessage: the first Send tap sent nothing; tapping it again')
   }
-  return waitForRow(text, 7_000)
+  return waitForRow(text, 6_000)
 }
 
 export const isKeyboardUp = async () => browser.isKeyboardShown().catch(() => false)
