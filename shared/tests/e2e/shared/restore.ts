@@ -1,5 +1,3 @@
-// Pure part of accounts.ts, kept apart so jest can test it without wdio.
-
 // Runs `f`, then `restore` whether `f` passed or threw; a failed restore after a failed `f` keeps
 // both errors.
 export const thenRestoring = async <R,>(f: () => Promise<R>, restore: () => Promise<void>, what: string): Promise<R> => {

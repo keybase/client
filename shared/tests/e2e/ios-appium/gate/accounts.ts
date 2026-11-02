@@ -6,7 +6,7 @@ import {byText, el} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
-import {thenRestoring} from './restore-lib.ts'
+import {thenRestoring} from '../../shared/restore.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
 const SIGN_IN_MS = 60_000

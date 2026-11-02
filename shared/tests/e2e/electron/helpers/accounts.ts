@@ -4,6 +4,7 @@
 import {expect, type Page} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {mainWhoami, requireMainIsSmoke} from '@/tests/e2e/shared/peer-service'
+import {thenRestoring} from '@/tests/e2e/shared/restore'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {signedInAs, switchAccount} from './chat'
 import {openMenu} from './menu'
@@ -17,23 +18,17 @@ const SIGN_IN_MS = 30_000
 // own account switcher, then switches back to the smoke account whether `f` passed or threw.
 export const asSecond = async <T,>(page: Page, f: () => Promise<T>): Promise<T> => {
   const {secondUser, smokeUser} = loadE2EAccounts()
-  let result: T
-  try {
-    await switchAccount(page, secondUser)
-    result = await f()
-  } catch (e) {
-    // a failed switch back keeps the first error too
-    try {
+  return thenRestoring(
+    async () => {
+      await switchAccount(page, secondUser)
+      return f()
+    },
+    async () => {
       await switchAccount(page, smokeUser)
-    } catch (r) {
-      throw new AggregateError([e, r], `${String(e)}; and then switching back to the smoke account failed: ${String(r)}`, {cause: r})
-    }
-    await requireMainIsSmoke({smokeUser})
-    throw e
-  }
-  await switchAccount(page, smokeUser)
-  await requireMainIsSmoke({smokeUser})
-  return result
+      await requireMainIsSmoke({smokeUser})
+    },
+    'switching back to the smoke account'
+  )
 }
 
 // Signs the app out from the user menu's "Log in as another user" (the smoke account keeps its

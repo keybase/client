@@ -1,4 +1,4 @@
-import {thenRestoring} from './restore-lib'
+import {thenRestoring} from './restore'
 
 const fail = (m: string) => async () => Promise.reject(new Error(m))
 
