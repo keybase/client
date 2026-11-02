@@ -11,7 +11,7 @@ import {waitFor} from './deadline.ts'
 import {mainRpc} from './main-rpc.ts'
 import {pgpKeyGenAnswers, type PeerRpc} from './peer-rpc.ts'
 import {flowPurgeRefusal, purgeLocalPgp, requireFingerprint} from './pgp-purge.ts'
-import {parseLookup, parseSigsList, parseUpkPgpKeys, pgpEmailsByFingerprint, type PgpKey, type Sig, type Upk} from './profile-parse.ts'
+import {parseLookup, parsePicLookup, parseSigsList, parseUpkPgpKeys, pgpEmailsByFingerprint, type PgpKey, type Sig, type Upk} from './profile-parse.ts'
 import {ensurePeer, requireMainIsSmoke, runKeybase} from './peer-service.ts'
 import {e2eRunId} from './run-marker.ts'
 import {readBack} from './teams.ts'
@@ -30,6 +30,15 @@ export const profileFields = async (): Promise<ProfileFields> => {
   const p = (JSON.parse(out) as {them?: {profile?: {bio?: string | null; full_name?: string | null; location?: string | null} | null}}).them?.profile
   if (!p) throw new Error('user/lookup returned no profile for the smoke account')
   return {bio: p.bio ?? '', fullName: p.full_name ?? '', location: p.location ?? ''}
+}
+
+// The smoke account's avatar url (square_192) as the server has it, '' when it has none: the
+// server's own answer, not the host service's avatar cache.
+export const smokeAvatarUrl = async () => {
+  const {smokeUser} = loadE2EAccounts()
+  await requireMainIsSmoke({smokeUser})
+  const args = ['apicall', '-m', 'GET', 'image/username_pic_lookups', '-a', `usernames=${smokeUser}`, '-a', 'formats=square_192']
+  return parsePicLookup(await readBack(async () => runKeybase(args, {timeoutMs: 30_000})))
 }
 
 const sameFields = (a: ProfileFields, b: ProfileFields) => a.bio === b.bio && a.fullName === b.fullName && a.location === b.location

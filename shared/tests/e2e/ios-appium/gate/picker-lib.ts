@@ -11,6 +11,10 @@ export type LibraryName = (typeof LIBRARY_GRID_ORDER)[number]
 
 const kindOf = (name: string): 'Photo' | 'Video' => (/\.(mov|mp4)$/.test(name) ? 'Video' : 'Photo')
 
+// A picker the app opens for photos only (an avatar, an emoji) draws no videos: the corpus's photos,
+// in the same order.
+export const LIBRARY_PHOTO_ORDER: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDER.filter(n => kindOf(n) === 'Photo')
+
 export type Rect = {x: number; y: number; width: number; height: number}
 export type LibraryCell = {kind: 'Photo' | 'Video'; date: string; rect: Rect; selected: boolean}
 
@@ -35,10 +39,14 @@ export const libraryCells = (els: ReadonlyArray<SourceElement>): Array<LibraryCe
     return [{date, kind, rect: rectOf(e.attrs), selected: hasTrait(e.attrs, 'Selected')}]
   })
 
-// The corpus's cells, in LIBRARY_GRID_ORDER: the one run of consecutive cells sharing a date whose
-// kinds follow the order. Throws when there is none or more than one.
-export const corpusCells = (cells: ReadonlyArray<LibraryCell>): Array<LibraryCell> => {
-  const n = LIBRARY_GRID_ORDER.length
+// The corpus's cells, in `order` (the grid's order, or the photos-only one): the one run of
+// consecutive cells sharing a date whose kinds follow the order. Throws when there is none or more
+// than one.
+export const corpusCells = (
+  cells: ReadonlyArray<LibraryCell>,
+  order: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDER
+): Array<LibraryCell> => {
+  const n = order.length
   const runs: Array<Array<LibraryCell>> = []
   for (let i = 0; i + n <= cells.length; i++) {
     const run = cells.slice(i, i + n)
@@ -46,14 +54,18 @@ export const corpusCells = (cells: ReadonlyArray<LibraryCell>): Array<LibraryCel
     if (!date) continue
     // the run is the whole group of that date: not part of a longer one
     if (cells[i - 1]?.date === date || cells[i + n]?.date === date) continue
-    if (run.every((c, j) => c.date === date && c.kind === kindOf(LIBRARY_GRID_ORDER[j] ?? ''))) runs.push(run)
+    if (run.every((c, j) => c.date === date && c.kind === kindOf(order[j] ?? ''))) runs.push(run)
   }
   if (runs.length !== 1) throw new Error(`the photo picker shows ${runs.length} runs of cells that read as the corpus, not one`)
   return runs[0] ?? []
 }
 
-export const corpusCellOf = (run: ReadonlyArray<LibraryCell>, name: LibraryName) => {
-  const cell = run[LIBRARY_GRID_ORDER.indexOf(name)]
+export const corpusCellOf = (
+  run: ReadonlyArray<LibraryCell>,
+  name: LibraryName,
+  order: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDER
+) => {
+  const cell = run[order.indexOf(name)]
   if (!cell) throw new Error(`the corpus run has no cell for ${name}`)
   return cell
 }

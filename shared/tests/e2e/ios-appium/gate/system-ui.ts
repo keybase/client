@@ -16,7 +16,7 @@ import {tapElement, tapFrame} from '../helpers/files'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {sourceElements} from './page-source-lib.ts'
-import {corpusCellOf, corpusCells, fileCellName, folderCellName, libraryCells, type LibraryName} from './picker-lib.ts'
+import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
 
 const BANNER_MS = 8_000
 // clearing a few of this run's notifications, one swipe and tap each
@@ -158,6 +158,23 @@ export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
   }
   await button(PHOTO_ADD).waitForExist({timeout: 5_000, timeoutMsg: "the photo picker's confirm did not show"})
   await button(PHOTO_ADD).click()
+  await waitPickerGone('the photo picker', photoPickerUp)
+}
+
+// In a photos-only, single-pick photo picker the app opened (an avatar's, an emoji's), taps the
+// corpus photo `name`: such a picker hands the photo over on the tap, with no confirm, so nothing can
+// be read back before it goes. The corpus's photos are found as in pickFromLibrary (in
+// LIBRARY_PHOTO_ORDER) and the cell is tapped at its frame; the caller proves the pick by the file
+// the app was handed. Bound: the picker 20, the grid 20 overrun by one read 2, the tap 1, gone 15 =
+// 58.
+export const pickOnePhoto = async (name: LibraryName) => {
+  await button(PHOTO_PICKER).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the photo picker did not open'})
+  const run = await waitFor(
+    'the corpus photos in the photo picker',
+    async () => corpusCells(await libraryNow(), LIBRARY_PHOTO_ORDER),
+    {interval: 1_000, timeout: 20_000}
+  )
+  await tapFrame(corpusCellOf(run, name, LIBRARY_PHOTO_ORDER).rect, 'a corpus cell in the photo picker')
   await waitPickerGone('the photo picker', photoPickerUp)
 }
 

@@ -233,6 +233,8 @@ export const TEAMS_WIZARD_ROLE_BUTTON = 'teams-wizard-role-button'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 // the team page header's edit icon by the team's name (a subteam's rename)
 export const TEAMS_HEADER_RENAME = 'teams-header-rename'
+// the team page header's avatar, which opens the team avatar editor when you may change it
+export const TEAMS_HEADER_AVATAR = 'teams-header-avatar'
 // the delete-team confirm's three agreement switches
 export const TEAMS_DELETE_TEAM_CHATS_CHECK = 'teams-delete-team-chats-check'
 export const TEAMS_DELETE_TEAM_FOLDER_CHECK = 'teams-delete-team-folder-check'
@@ -256,6 +258,10 @@ export const TEAMS_DEFAULT_CHANNEL_REMOVE = 'teams-default-channel-remove'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // an emoji's row in a team's Emoji tab
 export const TEAMS_EMOJI_ROW = 'teams-emoji-row'
+// the phone's Add emoji screen's "Choose Images" button, which opens the photo picker
+export const TEAMS_ADD_EMOJI_CHOOSE_IMAGES = 'teams-add-emoji-choose-images'
+// its "Add emoji" button once images are picked (the Emoji tab under it has an Add emoji too)
+export const TEAMS_ADD_EMOJI_SUBMIT = 'teams-add-emoji-submit'
 // A settings switch or radio whose state the phone flows read (its control alone has none in the
 // accessibility tree): its testID is one of the bases below, then what it shows, on or off, or
 // pending while its value still loads or saves (what it shows then may not be the account's).
@@ -399,6 +405,8 @@ export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
+// the profile's avatar and name, one element on the phone (its avatar has none of its own)
+export const PROFILE_AVATAR_NAME = 'profile-avatar-name'
 // the hover profile card's proof icons, drawn only once its identify is not checking
 export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
 // a profile's "..." actions menu button, and a team row of its "Add to team..." picker (the id says

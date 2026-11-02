@@ -1,5 +1,5 @@
 import {sourceElements} from './page-source-lib'
-import {corpusCellOf, corpusCells, fileCellName, folderCellName, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
+import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
 
 const cell = (label: string, i: number, selected = false) =>
   `<XCUIElementTypeImage type="XCUIElementTypeImage" name="PXGGridLayout-Info" label="${label}" enabled="true" visible="false" accessible="true" x="${(i % 3) * 134}" y="${307 + Math.floor(i / 3) * 134}" width="133" height="133" index="${i}" traits="${selected ? 'Selected, Image' : 'Image'}"/>`
@@ -46,6 +46,16 @@ describe('picker-lib', () => {
     const other = corpusLabels.map(l => l.replace(NEW, 'May 01, 1:00 PM'))
     expect(() => corpusCells(grid([...corpusLabels, ...other]))).toThrow('2 runs')
     expect(() => corpusCells(grid([`Photo, ${NEW}`, ...corpusLabels]))).toThrow('0 runs')
+  })
+
+  test('finds the photos-only run, which has no videos, and refuses the full grid there', () => {
+    const photos = Array.from({length: 5}, () => `Photo, ${NEW}`)
+    const run = corpusCells(grid([...photos, ...older]), LIBRARY_PHOTO_ORDER)
+    expect(run).toHaveLength(5)
+    expect(corpusCellOf(run, 'e2e-c.png', LIBRARY_PHOTO_ORDER).rect).toMatchObject({x: 0, y: 307})
+    expect(corpusCellOf(run, 'e2e-c-large.png', LIBRARY_PHOTO_ORDER).rect).toMatchObject({x: 134, y: 441})
+    expect(() => corpusCellOf(run, 'e2e-c.mp4', LIBRARY_PHOTO_ORDER)).toThrow('no cell')
+    expect(() => corpusCells(grid(corpusLabels), LIBRARY_PHOTO_ORDER)).toThrow('0 runs')
   })
 
   test('names the document picker cells, refusing names that are not plain', () => {
