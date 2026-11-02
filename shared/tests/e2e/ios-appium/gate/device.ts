@@ -18,7 +18,7 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {creditSurface, openAttemptToken} from './attempt.ts'
+import {openAttemptToken} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {withHarnessRpcs} from './recorder.ts'
 
