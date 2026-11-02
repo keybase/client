@@ -36,6 +36,7 @@ import {
   teamChannels,
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
+import {jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {elementInRow, type Rect} from '../gate/chat-lib.ts'
@@ -43,10 +44,11 @@ import {openLink} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {retriedNavigation, step} from '../gate/step'
+import {pickState} from '../gate/team-pick-lib.ts'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {buttonLabelled, BUTTONS, clickUntil, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter, visibleScreen} from '../helpers/files'
-import {jsEval, waitFor} from '../helpers/lifecycle'
+import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
@@ -294,10 +296,13 @@ describe('teams members', function () {
 
   it('the second account added through the add-members wizard as a reader', async function () {
     // worst case (s): subteam 600, host 315 (its id), opened 204, pin 1, header 8, button 6, screen
-    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, row 16 (15, one drag 1), the pick 10 (two
-    // taps 2, each with 3s of store reads, overrun by one 1), step 2, action 8, screen 11, the dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1,
-    // calls 2, button 6, waited for 12, page 21, polled 285, row 31, step 2 = 1662
-    this.timeout(1_700_000)
+    // 11, part 6 and its tap 1, screen 11, typeInFilter 32, the pick 106 (a store read 24: 10s of tries
+    // on a dropped inspector, overrun by one of page lookup 3, eval 10 and its pause 1; then two taps,
+    // each a row, its press 2 and 3s of store reads overrun by a pause 1 and one read 24 = 28: the
+    // first row 16 (15, one drag 1), the second 6 (5, one drag 1)), step 2, action 8, screen 11, the
+    // dropdown 10 and its tap 1, role 36, screen 11, step 2, pin 1, calls 2, button 6, waited for 12,
+    // page 21, polled 285, row 31, step 2 = 1742
+    this.timeout(1_800_000)
     const {secondUser, smokeUser} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('wiz', madeNames)
     const teamID = await masked(async () => hostTeamID(name))
@@ -314,23 +319,32 @@ describe('teams members', function () {
     await expectScreen("the subteam's people search", 'teamsTeamBuilder', p => onSubteam(p) && p['namespace'] === 'teams')
     // the search is a SearchFilter: its field is not in the tree
     await typeInFilter(secondUser, "the people search's field")
-    const result = await filesRowNamed(secondUser, 'the second account among the results', {testID: T.TEAM_BUILDING_RESULT_ROW, timeout: 15_000})
     // A tap on the row can land and pick nothing (seen live: the keyboard stayed up, the row stayed
-    // unpicked, so the header's Add never came): tap again until the people search holds one pick,
-    // read from its store, and never once it does
-    const picks = async () =>
-      jsEval<number>(`return kbModule('stores/team-building.tsx').TBstores.get('teams')?.getState().teamSoFar.size ?? -1`)
-    for (let i = 0; ; i++) {
-      await press(result.e, 'the result row')
-      const took = await waitFor('the pick', async () => ((await picks()) === 1 ? true : undefined), {interval: 250, timeout: 3_000}).then(
-        () => true,
-        (e: unknown) => {
-          if (isAttemptOver(e)) throw e
-          return false
-        }
+    // unpicked, so the header's Add never came), so a second tap may follow. A tap on a picked row
+    // removes the pick, and a pick clears the search (the old row goes, recommendations come): the
+    // store is read before every tap, and the row found afresh for each. Its usernames are compared
+    // here, so no name goes into the eval; a failed read throws.
+    const pick = async () => {
+      const users = await jsEval<Array<string> | null>(
+        `const s = kbModule('stores/team-building.tsx').TBstores.get('teams'); return s ? [...s.getState().teamSoFar].map(u => u.username) : null`
       )
-      if (took) break
-      if (i >= 1) throw new Error('two taps on the second account among the results picked nothing')
+      if (!users) throw new Error("the people search's store is not there")
+      return pickState(users, secondUser)
+    }
+    let state = await pick()
+    for (let tap = 0; state !== 'picked'; tap++) {
+      if (state === 'stray') throw new Error('the people search holds a pick that is not the second account alone')
+      if (tap === 2) throw new Error('two taps on the second account among the results picked nothing')
+      const row = await filesRowNamed(secondUser, 'the second account among the results', {
+        testID: T.TEAM_BUILDING_RESULT_ROW,
+        timeout: tap ? 5_000 : 15_000,
+      })
+      await press(row.e, 'the result row')
+      const end = Date.now() + 3_000
+      do {
+        await browser.pause(250)
+        state = await pick()
+      } while (state === 'none' && Date.now() < end)
     }
     // the team builder's results can hold people who are not test accounts
     await step('The second account picked', {screenshot: false})
