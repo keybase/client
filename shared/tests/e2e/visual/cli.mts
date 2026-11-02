@@ -482,8 +482,6 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   if (unread.length) deps.log(`opened an unread conversation (and marked it read): ${unread.map(r => r.id).join(', ')}`)
   const failed = rows.filter(r => r.status === 'failed')
   const label = (r: (typeof rows)[number]) => (cmd.themes.length > 1 ? `${r.id} ${r.theme}` : r.id)
-  const noted = rows.filter(r => r.note)
-  if (noted.length) deps.log(`captured twice:\n  ${noted.map(r => `${label(r)}: ${r.note}`).join('\n  ')}`)
   if (failed.length) {
     deps.log(`✗ ${failed.length} of ${rows.length} entries failed:\n  ${failed.map(r => `${label(r)}: ${r.error ?? 'no error given'}`).join('\n  ')}`)
     return 1

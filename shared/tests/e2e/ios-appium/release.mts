@@ -400,7 +400,6 @@ const main = async () => {
     if (platformOk) iosRenderDir = renderDir
     const t = summarizeRender(rendered.entries, IOS_KNOWN_FAILURES.render)
     logTally(log, t, {kind: 'render', listFile: 'gate/lists/known-failures.ts'})
-    for (const n of t.recaptured) log(`recaptured after the inspector page dropped: ${n}`)
     return {
       line: `${renderLine(t)}${r.code === 0 ? '' : ` (exited ${r.code})`}${platformOk ? '' : ' (render.json is not an iOS render)'}${logFailed(r)}`,
       ok: r.code === 0 && t.failed === 0 && platformOk && !r.logError,
