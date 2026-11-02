@@ -5,6 +5,7 @@ import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {dragToClear} from '../gate/clear-row-lib'
 import {expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
@@ -63,7 +64,44 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // visible. Use this for every row tap that follows navigateToMore.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
+  if (!browser.isAndroid) await clearOfTabBar(byText(text), `the "${text}" row`)
   await byText(text).click()
+}
+
+// scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
+// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's frame
+// lies below the nav bar and above the tab bar; throws rather than let the caller tap a row that
+// overlaps the bar. Worst case (s): the window read 2, then four checks of 6 (the row read 2, the
+// bars read 2 and their frames 2) and three drags of 1 = 29.
+export async function clearOfTabBar(target: ChainablePromiseElement, what: string): Promise<void> {
+  const {height, width} = await browser.getWindowRect()
+  for (let i = 0; i <= 3; i++) {
+    const row = await browser.getElementRect((await target.getElement()).elementId)
+    const bars = await browser
+      .$$('-ios predicate string:type == "XCUIElementTypeTabBar" OR type == "XCUIElementTypeNavigationBar"')
+      .getElements()
+    let top = 0
+    let bottom = height
+    for (const b of bars) {
+      const r = await browser.getElementRect(b.elementId)
+      // a bar in the lower half is the tab bar; one in the upper half is the nav bar
+      if (r.y > height / 2) bottom = Math.min(bottom, r.y)
+      else top = Math.max(top, r.y + r.height)
+    }
+    const dy = dragToClear(row, top, bottom)
+    if (dy === 0) return
+    if (dy === undefined || i === 3) break
+    const x = Math.round(width * 0.15)
+    const from = Math.round(height / 2 - dy / 2)
+    await browser
+      .action('pointer')
+      .move({x, y: from})
+      .down()
+      .move({x, y: from + dy, duration: 300})
+      .up()
+      .perform()
+  }
+  throw new Error(`${what} could not be brought clear of the tab bar`)
 }
 
 // A modal's header Cancel (a native bar item), not a Cancel in the screen's body or footer.
