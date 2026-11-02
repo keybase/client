@@ -23,7 +23,7 @@ test('a failing read names its subcommand and hides the accounts the CLI quoted'
     await assert.rejects(readCliMasked(['team', 'list', 'testteam'], 'seal: keybase team'), /^Error: seal: keybase team: no team <team> for <smoke>$/)
   } finally {
     for (const k of ['KB_CLI', 'KB_E2E_TEAM', 'KB_SECOND_USER', 'KB_SMOKE_USER']) {
-      if (saved[k] === undefined) delete process.env[k]
+      if (saved[k] === undefined) Reflect.deleteProperty(process.env, k)
       else process.env[k] = saved[k]
     }
     fs.rmSync(dir, {force: true, recursive: true})
