@@ -14,8 +14,9 @@ const ERROR_MAX_CHARS = 2000
 
 // libkb's log line (go/logger/formats_nix.go fileFormat, `[%{level:.4s} %{module} %{shortfile}]
 // %{id:03x} %{message}`, and plainFormat's `[ERRO] %{id:03x} %{message}`): the message follows a
-// hex sequence number of at least 3 digits.
-const ERRO_LINE = /\[ERRO[^\]]*\]\s*(?:[0-9a-f]{3,}\s)?(.*)$/
+// hex sequence number of at least 3 digits, which every line carries (fancyFormat puts a colour reset after it).
+// eslint-disable-next-line no-control-regex
+const ERRO_LINE = /\[ERRO[^\]]*\]\s*[0-9a-f]{3,}(?:\x1b\[[0-9;]*m)?\s(.*)$/
 
 // The CLI's error: from its last [ERRO ...] line (without timestamp and sequence number) to the end of
 // stderr, so a message that goes on over several lines survives and the warnings ahead of it (a CLI and

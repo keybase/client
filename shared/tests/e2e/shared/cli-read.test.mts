@@ -32,6 +32,8 @@ test('only the log line\'s own sequence number is stripped, never a number the m
   assert.equal(cliError(erro('006 404 Not Found'), 'x'), '404 Not Found')
   assert.equal(cliError(erro('0a6 context deadline exceeded'), 'x'), 'context deadline exceeded')
   assert.equal(cliError('[ERRO] 006 404 Not Found', 'x'), '404 Not Found')
+  assert.equal(cliError(erro('006 bad request'), 'x'), 'bad request')
+  assert.equal(cliError(erro('006\x1b[0m bad request'), 'x'), 'bad request')
 })
 
 // A fake CLI: it fails each call listed in `fails` (by call number) with the given ERRO text, and
