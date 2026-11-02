@@ -129,7 +129,7 @@ const androidEnterText = async (id: string, text: string): Promise<void> => {
 // modern-iPad fallback for inputs that don't expose as a settable element.
 // Everything here is element-based (the testID is on the real input) — no
 // coordinates: focus the field, long-press IT to raise the edit menu, tap Paste.
-export const pasteText = async (id: string, text: string): Promise<void> => {
+const pasteText = async (id: string, text: string): Promise<void> => {
   await browser.execute('mobile: setPasteboard', {
     content: Buffer.from(text).toString('base64'),
     encoding: 'base64',

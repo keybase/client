@@ -243,6 +243,6 @@ export const inNameSection = (matches: ReadonlyArray<Rect>, chatsHeader: Rect, l
 
 // The info panel choice a group's notification settings stand for, as the service keys them
 // (NotificationKind generic '0', atmention '1'): on any activity, only when @mentioned, or never.
-export type NotifyKinds = Record<string, boolean> | null | undefined
+type NotifyKinds = Record<string, boolean> | null | undefined
 export const notifyChoiceOf = (kinds: NotifyKinds): 'never' | 'onAnyActivity' | 'onWhenAtMentioned' =>
   kinds?.['0'] ? 'onAnyActivity' : kinds?.['1'] ? 'onWhenAtMentioned' : 'never'

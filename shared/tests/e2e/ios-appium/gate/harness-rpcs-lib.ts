@@ -1,6 +1,6 @@
 // Runs a step that makes the app send RPCs itself (an eval calling one) with the phone's recorder
 // paused, so the census credits only what the UI sent.
-export type RecorderPause = {
+type RecorderPause = {
   pause: () => Promise<string>
   resume: (token: string) => Promise<void>
 }

@@ -52,7 +52,7 @@ export const LONG_SEARCH_TOKENS = {
 const tokenAt = new Map<number, string>(Object.values(LONG_SEARCH_TOKENS).map(t => [t.index, t.token]))
 
 // Every tenth message runs to three lines, so rows are not all one height.
-export const longBody = (index: number) => {
+const longBody = (index: number) => {
   const token = tokenAt.get(index)
   const first = token ? `${longMarker(index)} ${token}` : longMarker(index)
   return index % 10 === 0 ? `${first}\nsecond line of ${index}\nthird line of ${index}` : first
@@ -69,16 +69,16 @@ const shortBody = (index: number) =>
 // page of the newest messages is mostly the deleted ones, which draw nothing, so the rows a phone's
 // first page draws do not fill its view: the thread has to load older pages with nobody scrolling.
 export const SPARSE_OLDER = 30
-export const SPARSE_DELETED = 18
+const SPARSE_DELETED = 18
 export const SPARSE_NEWER = 2
 export const sparseMarker = (index: number) => `e2e-sparse-${String(index).padStart(4, '0')}`
 
 // e2e-scratch keeps at least this many text messages, so the scroll flows that post to it have
 // history above the viewport to scroll into from the first run on.
-export const SCRATCH_MIN_TEXTS = 60
+const SCRATCH_MIN_TEXTS = 60
 const scratchPadMarker = (index: number) => `e2e-scratch-pad-${String(index).padStart(4, '0')}`
 
-export const READONLY_COUNT = 3
+const READONLY_COUNT = 3
 export const readonlyMarker = (index: number) => `e2e-readonly-${String(index).padStart(4, '0')}`
 
 // e2e runners start in shared/
@@ -362,7 +362,7 @@ const seedScratch = async (api: ChatApi, team: string) => {
 }
 
 // The text a scratch anchor carries: unstamped, so the sweeper never deletes it.
-export const SCRATCH_ANCHOR = 'e2e scratch anchor'
+const SCRATCH_ANCHOR = 'e2e scratch anchor'
 // The page of newest messages the app loads when it opens a thread.
 const THREAD_PAGE = 60
 // What the app draws a row for: Go's chat1 visibleMessageTypes (go/protocol/chat1/extras.go:237),
