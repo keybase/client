@@ -257,7 +257,7 @@ describe('team repos', () => {
     const r = repo(`e2e-${old}-trepo`, subteam)
     expect(decide(r)).toBe('delete')
     expect(() => checkDelete(r, ctx, 'testuser')).not.toThrow()
-    expect(() => checkDelete(r, ctx, 'testuser-mac')).toThrow(/signed in as testuser-mac/)
+    expect(() => checkDelete(r, ctx, 'testuser-mac')).toThrow(/signed in as <second>,/)
     const sel = selectSweepTargets([smoke({kind: 'subteam', name: subteam}), smoke({kind: 'team', name: `e2e${old}ab`}), r], ctx)
     expect(sel.delete.map(c => c.kind)).toEqual(['teamRepo', 'subteam', 'team'])
   })
