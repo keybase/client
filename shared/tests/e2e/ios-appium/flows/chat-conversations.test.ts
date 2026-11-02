@@ -21,8 +21,8 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {inNameSection, type Rect} from '../gate/chat-lib'
-import {sourceElements} from '../gate/page-source-lib'
+import {inNameSection} from '../gate/chat-lib'
+import {labelParts, sourceElements, sourceRect} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
@@ -352,19 +352,13 @@ describe('chat conversations', function () {
       'the channel among the name hits',
       async () => {
         const els = sourceElements(await browser.getPageSource()).filter(e => e.attrs['visible'] === 'true')
-        const rect = (a: Record<string, string>): Rect => ({
-          height: Number(a['height']),
-          width: Number(a['width']),
-          x: Number(a['x']),
-          y: Number(a['y']),
-        })
         const header = (name: string) =>
-          els.filter(e => e.type === 'XCUIElementTypeOther' && (e.attrs['label'] ?? '').split(', ')[0] === name).map(e => rect(e.attrs))
+          els.filter(e => e.type === 'XCUIElementTypeOther' && labelParts(e.attrs['label'] ?? '')[0] === name).map(e => sourceRect(e.attrs))
         const texts = (label: string) => {
           const seen = new Set<string>()
           return els
             .filter(e => e.type === 'XCUIElementTypeStaticText' && (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').trim() === label)
-            .map(e => rect(e.attrs))
+            .map(e => sourceRect(e.attrs))
             .filter(r => !seen.has(JSON.stringify(r)) && !!seen.add(JSON.stringify(r)))
         }
         const chats = header('Chats')

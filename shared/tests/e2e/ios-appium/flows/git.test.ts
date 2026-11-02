@@ -28,7 +28,7 @@ import {drag, expectScreen, fillField, onScreen, press, pressTestID, tapButton} 
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, dragSheetUp, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
-import {sourceElements} from '../gate/page-source-lib.ts'
+import {labelHas, labelParts, sourceElements} from '../gate/page-source-lib.ts'
 import {expectHost, makeOwnSubteamWithID, masked, onlyField, openTeamFromList, requireOnSubteam, TEXT_TYPES, textPartShown, TEXTS} from '../helpers/teams'
 
 type Params = Record<string, unknown>
@@ -122,7 +122,7 @@ describe('git', function () {
         // taken as shown); else a drag that changed nothing reached the list's end (or the list fits):
         // turn around
         const off = sourceElements(await browser.getPageSource()).find(
-          e => TEXT_TYPES.includes(e.type) && (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(p => p.trim() === label)
+          e => TEXT_TYPES.includes(e.type) && labelHas(e.attrs['label'] ?? '', label)
         )
         if (off) {
           const y = Number(off.attrs['y'])
@@ -262,7 +262,7 @@ describe('git', function () {
       'the dropdown to show the subteam alone',
       async () => {
         const label = (await el(T.GIT_NEW_TEAM_DROPDOWN).getAttribute('label').catch(() => null)) ?? ''
-        const parts = label.replace(/\u00a0/g, ' ').split(', ').map(p => p.trim())
+        const parts = labelParts(label)
         return parts.includes(name) && !parts.includes(team) && !parts.includes('Pick a team') ? true : undefined
       },
       {interval: 250, timeout: 5_000}

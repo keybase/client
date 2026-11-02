@@ -18,7 +18,7 @@ import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {openLink} from '../gate/device'
-import {sourceElements} from '../gate/page-source-lib'
+import {labelParts, sourceElements} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
@@ -185,10 +185,7 @@ describe('chat bots', function () {
   // `want`; its arrow's glyph can follow as a part of its own) ends with it.
   const channelsRead = async (want: string) => {
     const label = (await el(T.CHAT_BOT_CHANNELS_BUTTON).getAttribute('label')) ?? ''
-    return label
-      .replace(/\u00a0/g, ' ')
-      .split(', ')
-      .some(part => part.trim().endsWith(want))
+    return labelParts(label).some(part => part.endsWith(want))
   }
   const expectChannels = async (want: string) => {
     await el(T.CHAT_BOT_CHANNELS_BUTTON).waitForExist({timeout: 10_000})

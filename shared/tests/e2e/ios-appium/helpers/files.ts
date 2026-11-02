@@ -15,7 +15,7 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
 import {checkRowSearch, dragsToward, steerOffset} from '../gate/drawn-lib.ts'
-import {sourceElements} from '../gate/page-source-lib.ts'
+import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
 import {retriedNavigation} from '../gate/step.ts'
@@ -110,12 +110,6 @@ const rowArea = async (within?: WebdriverIO.Element): Promise<Rect> => {
 // `visible`, as XCUITest mostly reports those.
 const isFilesRow = (testID: string) => testID === T.FILES_ROW || testID === T.FILES_TLF_ROW
 
-const labelParts = (label: string) =>
-  label
-    .replace(/\u00a0/g, ' ')
-    .split(', ')
-    .map(p => p.trim())
-
 export type DrawnRow = {e: WebdriverIO.Element; rect: Rect}
 
 // The element with `testID` drawn (a Files row: wholly inside the list, rowArea) whose label holds `name` as a part
@@ -141,8 +135,8 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     // folder screen reports every element invisible); another list's row only among the candidates,
     // on screen
     const hits = (files ? all : candidates)
-      .filter(e => labelParts(e.attrs['label'] ?? '').includes(name))
-      .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
+      .filter(e => labelHas(e.attrs['label'] ?? '', name))
+      .map(e => sourceRect(e.attrs))
       .filter(r => inside(r, area ?? screen))
     const inner = innermost(hits)
     if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
@@ -151,13 +145,11 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
       // the Files list, which is not virtualized, keeps its off-screen rows in the tree: which way the
       // row is. Another list's off-screen element can be a covered screen's, so it steers nothing
       // unless the caller says only this list draws the testID and keeps every row (inTree).
-      const off = files || inTree ? all.find(e => labelParts(e.attrs['label'] ?? '').includes(name)) : undefined
-      const offRect = off && {height: Number(off.attrs['height']), width: Number(off.attrs['width']), x: Number(off.attrs['x']), y: Number(off.attrs['y'])}
-      return {offscreen: steerOffset(offRect, screen, files), row: undefined, signature}
+      const off = files || inTree ? all.find(e => labelHas(e.attrs['label'] ?? '', name)) : undefined
+      return {offscreen: steerOffset(off && sourceRect(off.attrs), screen, files), row: undefined, signature}
     }
     const r = hits[inner[0]!]!
-    const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
-    const e = (await browser.$$(`-ios predicate string:name == ${JSON.stringify(testID)} AND ${at}`).getElements()).at(-1)
+    const e = (await browser.$$(`-ios predicate string:name == ${JSON.stringify(testID)} AND ${framePredicate(r)}`).getElements()).at(-1)
     return {row: e ? {e, rect: r} : undefined, signature}
   }
   const found: Array<DrawnRow> = []
@@ -167,7 +159,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   for (const e of files || !shown.length ? await within.$$(byID).getElements() : shown) {
     const label = (await e.getAttribute('label').catch(() => null)) ?? ''
     labels.push(label)
-    if (!labelParts(label).includes(name)) continue
+    if (!labelHas(label, name)) continue
     const rect = await rectOf(e)
     if (rect && (!area || inside(rect, area))) found.push({e, rect})
   }

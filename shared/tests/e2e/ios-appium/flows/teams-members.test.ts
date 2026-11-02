@@ -39,6 +39,7 @@ import {
 import {jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
+import {labelHas, labelParts} from '../gate/page-source-lib.ts'
 import {elementInRow, type Rect} from '../gate/chat-lib.ts'
 import {openLink} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
@@ -204,8 +205,7 @@ describe('teams members', function () {
     const selector = `-ios predicate string:(${testIDs.map(id => `name == ${JSON.stringify(id)}`).join(' OR ')}) AND visible == 1`
     for (const e of await browser.$$(selector).getElements()) {
       const testID = (await e.getAttribute('name').catch(() => null)) ?? ''
-      const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-      out.push({parts: label.split(', ').map(p => p.trim()), testID})
+      out.push({parts: labelParts((await e.getAttribute('label').catch(() => null)) ?? ''), testID})
     }
     return out
   }
@@ -270,8 +270,7 @@ describe('teams members', function () {
     const picked = async () => {
       const out: Array<Array<string>> = []
       for (const e of await browser.$$(`~${T.PROFILE_ADD_TO_TEAM_ROW_CHECKED}`).getElements()) {
-        const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-        out.push(label.split(', ').map(p => p.trim()))
+        out.push(labelParts((await e.getAttribute('label').catch(() => null)) ?? ''))
       }
       return out
     }
@@ -393,7 +392,7 @@ describe('teams members', function () {
 
     const row = await expandSubteamRow(name)
     const roleButton = await elementInRow(row.rect, T.TEAMS_MEMBER_ROLE_BUTTON)
-    check(((await roleButton.getAttribute('label').catch(() => null)) ?? '').split(', ').includes('Reader'), "the subteam row's role is not Reader")
+    check(labelHas((await roleButton.getAttribute('label').catch(() => null)) ?? '', 'Reader'), "the subteam row's role is not Reader")
     await roleButton.click()
     let seq: CallMark | undefined
     await pickRole('Writer', async () => {
@@ -408,7 +407,7 @@ describe('teams members', function () {
       async () => {
         const now = await filesRowNamed(name, "the subteam's expanded row", {testID: T.TEAMS_MEMBER_TEAM_ROW, timeout: 1_000})
         const label = (await (await elementInRow(now.rect, T.TEAMS_MEMBER_ROLE_BUTTON)).getAttribute('label').catch(() => null)) ?? ''
-        return label.split(', ').includes('Writer') ? true : undefined
+        return labelHas(label, 'Writer') ? true : undefined
       },
       {interval: 500, timeout: 10_000}
     )

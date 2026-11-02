@@ -29,6 +29,7 @@ import {
   teamID as hostTeamID,
 } from '../../shared/teams.ts'
 import {elementInRow} from '../gate/chat-lib.ts'
+import {labelParts} from '../gate/page-source-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
@@ -108,8 +109,7 @@ describe('teams subteams', function () {
     const out: Array<Array<string>> = []
     for (const e of await browser.$$(`~${T.TEAMS_CHANNEL_ROW}`).getElements()) {
       if (!(await onScreen(e))) continue
-      const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-      out.push(label.split(', ').map(p => p.trim()))
+      out.push(labelParts((await e.getAttribute('label').catch(() => null)) ?? ''))
     }
     return out
   }

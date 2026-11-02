@@ -4,7 +4,7 @@
 import {waitFor} from './lifecycle'
 import {innermost, inside, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
 import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
-import {sourceElements} from '../gate/page-source-lib.ts'
+import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
 // the bottom SHEET_PEEK points of the window. XCUITest reports a sheet (and its items) visible=false
@@ -236,8 +236,7 @@ export const tapButton = async (label: string, what: string) =>
 export const elementWithLabelPart = async (selector: string, name: string, what: string, opts?: DrawnOptions) => {
   const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
   for (const e of await candidates(selector, opts)) {
-    const label = ((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-    if (!label.split(', ').some(part => part.trim() === name)) continue
+    if (!labelHas((await e.getAttribute('label').catch(() => null)) ?? '', name)) continue
     const at = await e.getLocation().catch(() => undefined)
     const size = await e.getSize().catch(() => undefined)
     if (at && size) found.push({e, rect: {...at, ...size}})
@@ -262,7 +261,7 @@ export type DrawnOptions = {forTap?: boolean}
 // or at the frame, where nested boxes on one ancestor chain are one control but a covered screen's
 // control can share the frame too. `what` names it.
 export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string, opts?: DrawnOptions) =>
-  drawnElementIn(types, label => label.split(', ').some(part => part.trim() === name), what, opts)
+  drawnElementIn(types, label => labelHas(label, name), what, opts)
 
 // The one visible element of `types` labelled exactly `label`, read as elementWithLabelPartIn reads.
 export const elementLabelledIn = async (types: ReadonlyArray<string>, label: string, what: string, opts?: DrawnOptions) =>
@@ -279,7 +278,7 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
     .filter(e => types.includes(e.type) && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' ')))
     .map(e => ({
       e,
-      r: {height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])},
+      r: sourceRect(e.attrs),
     }))
   const shown = all.filter(({e}) => e.attrs['visible'] === 'true')
   // a tap's fallback keeps to frames wholly on screen: a screen under the top one, and a list's rows
@@ -294,13 +293,12 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   }
   const i = inner[0]!
   const r = rects[i]!
-  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
   const type = found[i]!.e.type
   const visibleOnly = shown.length > 0
   const count = oneControlAtFrame(source, {matches, rect: r, type, visibleOnly}, what)
   // the label is compared in memory, never put in the selector
   const visible = visibleOnly ? ' AND visible == 1' : ''
-  const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${at}${visible}`).getElements()
+  const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}${visible}`).getElements()
   const labels: Array<string | null> = []
   for (const e of els) labels.push(await e.getAttribute('label').catch(() => null))
   return els[deepestLabelledAtFrame(labels, matches, count, what)]!

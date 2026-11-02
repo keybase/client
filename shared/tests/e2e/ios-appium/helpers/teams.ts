@@ -13,7 +13,7 @@ import {memberRoles, requireThisRunSubteam, teamID as hostTeamID} from '../../sh
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {innermost, rectOf, type Rect} from '../gate/chat-lib.ts'
-import {sourceElements} from '../gate/page-source-lib.ts'
+import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {BUTTONS, expectScreen, filesRowNamed, onScreen, onScreenID, press, visibleScreen} from './files'
@@ -327,8 +327,8 @@ export const labelPartInside = async (rect: Rect, selector: string, part: string
   const types = selector === BUTTONS ? ['XCUIElementTypeButton'] : TEXT_TYPES
   const inRect = sourceElements(await browser.getPageSource())
     .filter(e => types.includes(e.type) && (e.attrs['label'] ?? '') !== '')
-    .filter(e => (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(p => p.trim() === part))
-    .map(e => ({e, r: {height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}}))
+    .filter(e => labelHas(e.attrs['label'] ?? '', part))
+    .map(e => ({e, r: sourceRect(e.attrs)}))
     .filter(({r}) => {
       const x = r.x + r.width / 2
       const y = r.y + r.height / 2
@@ -339,8 +339,7 @@ export const labelPartInside = async (rect: Rect, selector: string, part: string
   const inner = innermost(found.map(f => f.r))
   check(inner.length === 1, `${inner.length} of ${what} drawn, not one`)
   const {e, r} = found[inner[0]!]!
-  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
-  const el = (await browser.$$(`-ios predicate string:type == "${e.type}" AND ${at}`).getElements()).at(-1)
+  const el = (await browser.$$(`-ios predicate string:type == "${e.type}" AND ${framePredicate(r)}`).getElements()).at(-1)
   if (!el) throw new Error(`no element at the frame of ${what}`)
   return el
 }

@@ -34,3 +34,26 @@ export const sourceParents = (source: string): Array<number> => {
   }
   return parents
 }
+
+// The frame a page source element's attributes give, in window points.
+export const sourceRect = (attrs: Record<string, string>) => ({
+  height: Number(attrs['height']),
+  width: Number(attrs['width']),
+  x: Number(attrs['x']),
+  y: Number(attrs['y']),
+})
+
+// An XCUITest predicate clause for the element at exactly `r`, to fetch one read off a page source.
+export const framePredicate = (r: {height: number; width: number; x: number; y: number}) =>
+  `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+
+// The parts of an accessibility label: XCUITest joins a box's texts with ", ", and a text drawn with a
+// no-break space (a size, a date) reads as one with a space.
+export const labelParts = (label: string) =>
+  label
+    .replace(/[\u00a0\u2007\u202f]/g, ' ')
+    .split(', ')
+    .map(p => p.trim())
+
+// Whether `label` holds `part` as one of its parts.
+export const labelHas = (label: string, part: string) => labelParts(label).includes(part)

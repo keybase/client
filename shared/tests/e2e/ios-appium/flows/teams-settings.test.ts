@@ -28,7 +28,7 @@ import {
 } from '../../shared/teams.ts'
 import {creditSurface} from '../gate/attempt'
 import {elementInRow, innermost} from '../gate/chat-lib.ts'
-import {sourceElements} from '../gate/page-source-lib.ts'
+import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
@@ -173,10 +173,7 @@ describe('teams settings', function () {
 
   // Whether the message deletion dropdown reads `shows`. Bound: one read 1.
   const retentionShows = async (shows: string) =>
-    ((await el(T.TEAMS_RETENTION_DROPDOWN).getAttribute('label').catch(() => null)) ?? '')
-      .split(', ')
-      .map(p => p.trim())
-      .includes(shows)
+    labelHas((await el(T.TEAMS_RETENTION_DROPDOWN).getAttribute('label').catch(() => null)) ?? '', shows)
 
   // Opens the message deletion dropdown on screen, once it shows `shows` (the policy loads after the
   // dropdown draws), and picks `title`. Bound: on screen 20, its label 11 (10, one read 1), menu 19,
@@ -438,7 +435,7 @@ describe('teams settings', function () {
         innermost(
           drawn
             .filter(e => (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ') === label)
-            .map(e => ({height: Number(e.attrs['height']), width: Number(e.attrs['width']), x: Number(e.attrs['x']), y: Number(e.attrs['y'])}))
+            .map(e => sourceRect(e.attrs))
         ).length
       return {general: count('#general'), mine: count(`#${channel}`)}
     }
@@ -529,8 +526,7 @@ describe('teams settings', function () {
         const rows = await browser.$$(`-ios predicate string:name == "${T.TEAMS_EMOJI_ROW}" AND visible == 1`).getElements()
         let seedDrawn = false
         for (const r of rows) {
-          const parts = ((await r.getAttribute('label').catch(() => null)) ?? '').split(', ').map(p => p.trim())
-          if (parts.includes(`:${seed}:`)) seedDrawn = true
+          if (labelHas((await r.getAttribute('label').catch(() => null)) ?? '', `:${seed}:`)) seedDrawn = true
         }
         return anchor && !seedDrawn ? true : undefined
       },

@@ -6,6 +6,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {filesSettings, setFilesSettings, type FilesSettings} from '../gate/app-ask'
+import {labelHas} from '../gate/page-source-lib'
 import {creditSurface} from '../gate/attempt'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
@@ -154,8 +155,7 @@ describe('files settings', function () {
         await requireAppIsSmoke()
         await openFilesSettings()
         const s = await filesSettings()
-        const shown = ((await el(T.SETTINGS_FILES_THRESHOLD).getAttribute('label')) ?? '').replace(/\s/g, " ").split(', ')
-        check(shown.map(p => p.trim()).includes(want.label), 'the threshold the screen shows is not the one picked')
+        check(labelHas((await el(T.SETTINGS_FILES_THRESHOLD).getAttribute('label')) ?? '', want.label), 'the threshold the screen shows is not the one picked')
         return {cellular: s.syncOnCellular, threshold: s.spaceAvailableNotificationThreshold}
       },
       {cellular, threshold: want.bytes}

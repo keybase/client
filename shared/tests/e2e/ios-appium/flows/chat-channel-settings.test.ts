@@ -22,6 +22,7 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {notifyChoiceOf} from '../gate/chat-lib'
+import {labelHas} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {
@@ -160,7 +161,7 @@ describe('chat channel settings', function () {
         for (const r of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND visible == 1').getElements()) {
           const label = (await r.getAttribute('label').catch(() => null)) ?? ''
           // its parts: the name, icons (glyphs), the member count, the button's label, the "…" icon
-          if (label.startsWith(rowLabel) && label.split(', ').includes('Join')) rows.push(r)
+          if (label.startsWith(rowLabel) && labelHas(label, 'Join')) rows.push(r)
         }
         if (rows.length !== 1) throw new Error(`${rows.length} rows of the channel offering Join, not one`)
         row = rows[0]
