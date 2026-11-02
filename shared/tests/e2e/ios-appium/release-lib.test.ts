@@ -14,7 +14,7 @@ import {
   type IosPreflightState,
 } from './release-lib'
 
-const UDID = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
+const UDID = '00000000-1111-2222-3333-444444444444'
 
 const ok = (over: Partial<IosPreflightState> = {}): IosPreflightState => ({
   appSigned: true,
