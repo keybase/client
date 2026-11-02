@@ -57,25 +57,26 @@ import {
   pickAnchor,
   readThread,
   requireThread,
+  resetComposer,
   rowOf,
   rowText,
+  sampleThreadWhile,
+  sampleTop,
   searchAgain,
   searchFor,
   searchOpen,
-  sampleTop,
   sendMessage,
-  sampleThreadWhile,
   summary,
   tapStatusBar,
   threadListPrelude,
+  type ThreadReading,
+  type ThreadSample,
   viewport,
+  type Viewport,
   waitForKeyboard,
   waitForRow,
   waitForThreadStable,
   wholly,
-  type ThreadReading,
-  type ThreadSample,
-  type Viewport,
 } from '../helpers/chat'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
@@ -108,6 +109,15 @@ describe('chat scroll', function () {
     data = await ensureChatData()
     // the second account's messages and switches need it unblocked: a failed chat-blocks restore refuses here
     await requireSecondNotBlocked()
+  })
+
+  // No thread search left open, after a timeout too: closing it needs the thread still on screen,
+  // so it runs before the gate's own afterEach. Worst case (s): the read 1, close 5 = 6.
+  afterEach(async function () {
+    this.timeout(20_000)
+    await withCleanup(async () => {
+      if (await searchOpen()) await closeSearch()
+    }, [])
   })
 
   const sendIncoming = async (channel: E2EChannel, text: string) => (await secondSender()).send(data.convIDs[channel], text)
@@ -147,25 +157,6 @@ describe('chat scroll', function () {
     const counter = await searchFor(token)
     check(counter === '1 of 1', `the search for ${token} found "${counter}"`)
     return waitForRow(token, 20_000)
-  }
-
-  // Runs `body`, then closes thread search if it is still open, whatever `body` did; a failed close
-  // never hides the body's own failure.
-  const withSearchClosed = async (body: () => Promise<void>) => {
-    let failed: {e: unknown} | undefined
-    try {
-      await body()
-    } catch (e) {
-      if (isAttemptOver(e)) throw e
-      failed = {e}
-    }
-    try {
-      if (await searchOpen()) await closeSearch()
-    } catch (e) {
-      if (!failed) throw e
-      console.log(`  withSearchClosed: closing search after the failure also failed: ${e instanceof Error ? e.message : String(e)}`)
-    }
-    if (failed) throw failed.e
   }
 
   // How an incoming send moved the list, from samples taken from the send until it settled.
@@ -343,36 +334,32 @@ describe('chat scroll', function () {
       await expectAtEnd()
       const {index, token} = LONG_SEARCH_TOKENS.deep
       check(!(await ordinalsWithText(longMarker(index))).length, 'the deep hit is already loaded')
-      await withSearchClosed(async () => {
-        const ordinal = await searchAndSelect(token)
-        await expectCentred(ordinal)
-        await step('The deep search hit loaded and centred', {card: true})
-      })
+      const ordinal = await searchAndSelect(token)
+      await expectCentred(ordinal)
+      await step('The deep search hit loaded and centred', {card: true})
     })
 
     it('searching again for the same hit after dragging away centres it again', async function () {
       // worst case (s): open 100, search 106, centred 20, drag 2, stable 10, centred 20, three steps 6, close 5 = 269
       this.timeout(290_000)
       await openLong()
-      await withSearchClosed(async () => {
-        const {token} = LONG_SEARCH_TOKENS.middle
-        const ordinal = await searchAndSelect(token)
-        await expectCentred(ordinal)
-        await step('The search hit centred')
+      const {token} = LONG_SEARCH_TOKENS.middle
+      const ordinal = await searchAndSelect(token)
+      await expectCentred(ordinal)
+      await step('The search hit centred')
 
-        // toward older rows: the hit sits ten rows from the newest of its window, too near its edge
-        // for a drag toward newer rows to take it out of the middle
-        await dragThread(350)
-        const moved = await waitForThreadStable()
-        const mv = await viewport(moved)
-        const r = rowOf(moved, ordinal)
-        check(!r || Math.abs(centreOffset(r, mv)) > centreTolerance(mv), `the drag left row ${ordinal} centred`)
-        await step('Dragged away from the hit')
+      // toward older rows: the hit sits ten rows from the newest of its window, too near its edge
+      // for a drag toward newer rows to take it out of the middle
+      await dragThread(350)
+      const moved = await waitForThreadStable()
+      const mv = await viewport(moved)
+      const r = rowOf(moved, ordinal)
+      check(!r || Math.abs(centreOffset(r, mv)) > centreTolerance(mv), `the drag left row ${ordinal} centred`)
+      await step('Dragged away from the hit')
 
-        await searchAgain()
-        await expectCentred(ordinal)
-        await step('Searching again centred the hit again', {card: true})
-      })
+      await searchAgain()
+      await expectCentred(ordinal)
+      await step('Searching again centred the hit again', {card: true})
     })
 
     // A drag done the moment the hit's row lands, while the list is still centring it. The reader's
@@ -384,42 +371,40 @@ describe('chat scroll', function () {
       this.timeout(280_000)
       await openLong()
       await expectAtEnd()
-      await withSearchClosed(async () => {
-        const {token} = LONG_SEARCH_TOKENS.deep
-        await openThreadSearch()
-        await searchFor(token)
-        const ordinal = await waitFor(
-          'the hit to load',
-          async () => {
-            const found = await ordinalsWithText(token)
-            if (found.length > 1) throw new Error(`${found.length} rows hold the hit's token`)
-            return found[0]
-          },
-          {interval: 50, timeout: 20_000}
-        )
-        // The phone draws the hit's row already centred as it loads, so a drag during the centring
-        // animation cannot be reached on iOS (that case stays desktop's). The drag lands right after,
-        // in the centring's follow-up, where its corrector could still re-aim at the hit: the reader
-        // is not pulled back.
-        const pre = await requireThread()
-        await dragThread(250)
-        const moved = await waitForThreadStable()
-        check(Math.abs(moved.offset - pre.offset) > 20, `the drag did not move the list: ${summary(pre)} then ${summary(moved)}`)
-        // outlast the centring's own schedule, then check nothing pulled the reader back
-        await browser.pause(3_500)
-        const later = await waitForThreadStable()
-        check(
-          Math.abs(later.offset - moved.offset) <= stillTolerance,
-          `the list moved after the reader did: ${summary(moved)} then ${summary(later)}`
-        )
-        const v = await viewport(moved)
-        const r = rowOf(moved, ordinal)
-        check(
-          !r || Math.abs(centreOffset(r, v)) > centreTolerance(v),
-          `row ${ordinal} was pulled back to the middle: ${JSON.stringify(r)} ${summary(moved, v)}`
-        )
-        await step('The drag right after the hit centred left the list where the reader put it', {card: true})
-      })
+      const {token} = LONG_SEARCH_TOKENS.deep
+      await openThreadSearch()
+      await searchFor(token)
+      const ordinal = await waitFor(
+        'the hit to load',
+        async () => {
+          const found = await ordinalsWithText(token)
+          if (found.length > 1) throw new Error(`${found.length} rows hold the hit's token`)
+          return found[0]
+        },
+        {interval: 50, timeout: 20_000}
+      )
+      // The phone draws the hit's row already centred as it loads, so a drag during the centring
+      // animation cannot be reached on iOS (that case stays desktop's). The drag lands right after,
+      // in the centring's follow-up, where its corrector could still re-aim at the hit: the reader
+      // is not pulled back.
+      const pre = await requireThread()
+      await dragThread(250)
+      const moved = await waitForThreadStable()
+      check(Math.abs(moved.offset - pre.offset) > 20, `the drag did not move the list: ${summary(pre)} then ${summary(moved)}`)
+      // outlast the centring's own schedule, then check nothing pulled the reader back
+      await browser.pause(3_500)
+      const later = await waitForThreadStable()
+      check(
+        Math.abs(later.offset - moved.offset) <= stillTolerance,
+        `the list moved after the reader did: ${summary(moved)} then ${summary(later)}`
+      )
+      const v = await viewport(moved)
+      const r = rowOf(moved, ordinal)
+      check(
+        !r || Math.abs(centreOffset(r, v)) > centreTolerance(v),
+        `row ${ordinal} was pulled back to the middle: ${JSON.stringify(r)} ${summary(moved, v)}`
+      )
+      await step('The drag right after the hit centred left the list where the reader put it', {card: true})
     })
 
     // Closing search with the list resting at its end, the newest message loaded, gives the end back
@@ -436,67 +421,63 @@ describe('chat scroll', function () {
       await hideKeyboard()
       const rest = await expectAtEnd()
       const restGap = newestGap(rest.t, rest.v)!
-      await withSearchClosed(async () => {
-        await openThreadSearch()
-        // the search index can take a moment to hold a message just sent
-        await waitFor(
-          'the search for the message just sent to find it',
-          async () => {
-            const counter = await searchFor(token)
-            if (counter === '1 of 1') return true
-            await closeSearch()
-            await openThreadSearch()
-            return undefined
-          },
-          {interval: 1_000, timeout: 30_000}
-        )
-        const open = await expectAtEnd('with the newest message the hit, the thread')
-        await step('Search open on the newest message, the thread at its end')
-        const closing = await sampleThreadWhile(async () => {
+      await openThreadSearch()
+      // the search index can take a moment to hold a message just sent
+      await waitFor(
+        'the search for the message just sent to find it',
+        async () => {
+          const counter = await searchFor(token)
+          if (counter === '1 of 1') return true
           await closeSearch()
-          await waitForThreadStable()
-        })
-        const closed = await waitForThreadStable()
-        const cv = await viewport(closed)
-        const closedGap = newestGap(closed, cv)
-        console.log(
-          `closing search at the newest message: newest row ${closedGap}pt above the composer (${restGap} before search), offset ${closed.offset} (${rest.t.offset} before, ${open.t.offset} with search open, newest row ${newestGap(open.t, open.v)}pt above the search bar); closing, offset ${closing.filter((s, i) => i === 0 || Math.abs(s.offset - closing[i - 1]!.offset) >= 0.5).map(s => `${Math.round(s.t - closing[0]!.t)}ms: ${Math.round(s.offset * 10) / 10}`).join(', ')}`
-        )
-        check(
-          closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
-          `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
-        )
-        await step('Search closed, the thread back where it rested before search')
-
-        const text = e2eMarker('scroll-search-end-incoming')
-        await sendIncoming(E2E_CHANNELS.scratch, text)
-        const ordinal = await waitForRow(text, 20_000)
-        const t = await waitForThreadStable()
-        const v = await viewport(t)
-        console.log(`then an incoming message: newest row ${newestGap(t, v)}pt above the composer`)
-        check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
-        check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
-        await step('The incoming message is the newest row, the thread at its end', {card: true})
+          await openThreadSearch()
+          return undefined
+        },
+        {interval: 1_000, timeout: 30_000}
+      )
+      const open = await expectAtEnd('with the newest message the hit, the thread')
+      await step('Search open on the newest message, the thread at its end')
+      const closing = await sampleThreadWhile(async () => {
+        await closeSearch()
+        await waitForThreadStable()
       })
+      const closed = await waitForThreadStable()
+      const cv = await viewport(closed)
+      const closedGap = newestGap(closed, cv)
+      console.log(
+        `closing search at the newest message: newest row ${closedGap}pt above the composer (${restGap} before search), offset ${closed.offset} (${rest.t.offset} before, ${open.t.offset} with search open, newest row ${newestGap(open.t, open.v)}pt above the search bar); closing, offset ${closing.filter((s, i) => i === 0 || Math.abs(s.offset - closing[i - 1]!.offset) >= 0.5).map(s => `${Math.round(s.t - closing[0]!.t)}ms: ${Math.round(s.offset * 10) / 10}`).join(', ')}`
+      )
+      check(
+        closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
+        `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
+      )
+      await step('Search closed, the thread back where it rested before search')
+
+      const text = e2eMarker('scroll-search-end-incoming')
+      await sendIncoming(E2E_CHANNELS.scratch, text)
+      const ordinal = await waitForRow(text, 20_000)
+      const t = await waitForThreadStable()
+      const v = await viewport(t)
+      console.log(`then an incoming message: newest row ${newestGap(t, v)}pt above the composer`)
+      check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
+      check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
+      await step('The incoming message is the newest row, the thread at its end', {card: true})
     })
 
     it('jump to recent from a deep hit lands at the newest message and closes search', async function () {
       // worst case (s): open 100, search 106, centred 20, keyboard 5, the tap 2, row 15, end 21, the button 5, two steps 4, close 5 = 283
       this.timeout(300_000)
       await openLong()
-      await withSearchClosed(async () => {
-        const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
-        await expectCentred(ordinal)
-        await hideKeyboard()
-        await step('The deep hit centred, jump to recent offered')
-        await jumpToRecentButton().click()
-        const newest = await waitForRow(longMarker(LONG_COUNT), 15_000)
-        const {t, v} = await expectAtEnd('after jump to recent, the thread')
-        check(t.rows.at(-1)?.ordinal === newest, `the newest row is not ${newest}: ${summary(t, v)}`)
-        await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
-        check(!(await searchOpen()), 'thread search is still open')
-        await step('Jump to recent landed at the newest message and closed search', {card: true})
-      })
+      const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
+      await expectCentred(ordinal)
+      await hideKeyboard()
+      await step('The deep hit centred, jump to recent offered')
+      await jumpToRecentButton().click()
+      const newest = await waitForRow(longMarker(LONG_COUNT), 15_000)
+      const {t, v} = await expectAtEnd('after jump to recent, the thread')
+      check(t.rows.at(-1)?.ordinal === newest, `the newest row is not ${newest}: ${summary(t, v)}`)
+      await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
+      check(!(await searchOpen()), 'thread search is still open')
+      await step('Jump to recent landed at the newest message and closed search', {card: true})
     })
   })
 
@@ -512,32 +493,30 @@ describe('chat scroll', function () {
       // worst case (s): open 100, search 106, centred 20, close 5, two stables 20, two steps 4, close 5 = 260
       this.timeout(280_000)
       await openLong()
-      await withSearchClosed(async () => {
-        const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
-        const {t} = await expectCentred(ordinal)
-        const before = rowOf(t, ordinal)!
-        await step('The search hit centred, search open')
+      const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
+      const {t} = await expectCentred(ordinal)
+      const before = rowOf(t, ordinal)!
+      await step('The search hit centred, search open')
 
-        const samples = await sampleThreadWhile(async () => {
-          await closeSearch()
-          await waitForThreadStable()
-        })
-        const after = await waitForThreadStable()
-        const v = await viewport(after)
-        const tops = samples.map(s => sampleTop(s, ordinal))
-        const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i]! - before.top) > stillTolerance)
-        const most = Math.max(0, ...tops.map(top => (top === undefined ? 0 : Math.abs(top - before.top))))
-        console.log(
-          `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
-        )
-        await step('Search closed')
-        check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
-        const r = rowOf(after, ordinal)
-        check(
-          !!r && Math.abs(r.top - before.top) <= stillTolerance,
-          `row ${ordinal} moved from ${before.top} to ${r?.top}: ${summary(after, v)}`
-        )
+      const samples = await sampleThreadWhile(async () => {
+        await closeSearch()
+        await waitForThreadStable()
       })
+      const after = await waitForThreadStable()
+      const v = await viewport(after)
+      const tops = samples.map(s => sampleTop(s, ordinal))
+      const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i]! - before.top) > stillTolerance)
+      const most = Math.max(0, ...tops.map(top => (top === undefined ? 0 : Math.abs(top - before.top))))
+      console.log(
+        `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
+      )
+      await step('Search closed')
+      check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
+      const r = rowOf(after, ordinal)
+      check(
+        !!r && Math.abs(r.top - before.top) <= stillTolerance,
+        `row ${ordinal} moved from ${before.top} to ${r?.top}: ${summary(after, v)}`
+      )
     })
   })
 
@@ -674,10 +653,9 @@ describe('chat scroll', function () {
   // history that lacks the newest message.
   const openOnOldHit = async () => {
     await openLong()
-    await withSearchClosed(async () => {
-      const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
-      await expectCentred(ordinal)
-    })
+    const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
+    await expectCentred(ordinal)
+    if (await searchOpen()) await closeSearch()
     await jumpToRecentButton().waitForExist({timeout: 5_000})
     const start = await waitForThreadStable()
     check(start.moreToLoadForward, `the hit's page holds the newest message: ${summary(start)}`)
@@ -871,10 +849,9 @@ describe('chat scroll', function () {
       // worst case (s): open 100, search 106, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 305
       this.timeout(320_000)
       await openLong()
-      await withSearchClosed(async () => {
-        const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
-        await expectCentred(ordinal)
-      })
+      const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
+      await expectCentred(ordinal)
+      if (await searchOpen()) await closeSearch()
       const before = await waitForThreadStable()
       check(before.moreToLoadForward, `the hit's page holds the newest message: ${summary(before)}`)
       await step('On a deep search hit, search closed, the newest message not loaded')
@@ -987,15 +964,12 @@ describe('chat scroll', function () {
   })
 
   describe('editing', () => {
-    // Runs `body`, then leaves edit mode if it is still on, whatever `body` did.
-    const withEditCancelled = async (body: () => Promise<void>) => {
-      try {
-        await body()
-      } finally {
-        if (await editCancel().isExisting()) await editCancel().click()
-        await editCancel().waitForExist({reverse: true, timeout: 5_000})
-      }
-    }
+    // No edit left under way, after a timeout too: the thread must still be on screen, so it runs
+    // before the gate's own afterEach. Worst case (s): resetComposer 46.
+    afterEach(async function () {
+      this.timeout(60_000)
+      await withCleanup(resetComposer, [])
+    })
 
     // Where the keyboard's top sits once it is up, measured by focusing the composer.
     const keyboardTopWhenUp = async () => {
@@ -1082,14 +1056,12 @@ describe('chat scroll', function () {
       check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
       check(r.top < kbTop && r.bottom > kbTop, `row ${ordinal} does not straddle the keyboard's top ${kbTop}: ${JSON.stringify(r)}`)
       await step('The sent row sits where the keyboard will rise')
-      await withEditCancelled(async () => {
-        const {t: after, v} = await editWithKeyboard(text)
-        console.log(
-          `half covered: row ${ordinal} at ${r.top}-${r.bottom} with the keyboard's top at ${kbTop}; editing, ${JSON.stringify(rowOf(after, ordinal))} with the composer's top at ${v.bottom}`
-        )
-        check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
-        await step('Editing, the row is wholly in view above the keyboard', {card: true})
-      })
+      const {t: after, v} = await editWithKeyboard(text)
+      console.log(
+        `half covered: row ${ordinal} at ${r.top}-${r.bottom} with the keyboard's top at ${kbTop}; editing, ${JSON.stringify(rowOf(after, ordinal))} with the composer's top at ${v.bottom}`
+      )
+      check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
+      await step('Editing, the row is wholly in view above the keyboard', {card: true})
     })
 
     // A row near the top of the view when the edit starts: the keyboard rising must not leave it off
@@ -1119,40 +1091,38 @@ describe('chat scroll', function () {
       const v0 = await viewport(t)
       check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
       await step('The sent row near the top of the view')
-      await withEditCancelled(async () => {
-        await watchKeyboardDidShow()
-        let didShow: number | undefined
-        let samples: Array<ThreadSample>
-        try {
-          samples = await sampleThreadWhile(async () => {
-            await editWithKeyboard(text)
-            didShow = await waitFor('keyboardDidShow', async () => (await keyboardDidShowTimes())[0], {timeout: 5_000})
-            await browser.pause(1_200)
-          })
-        } finally {
-          await unwatchKeyboardDidShow()
-        }
-        const after = await waitForThreadStable()
-        const v = await viewport(after)
-        const final = rowOf(after, ordinal)
-        const rowHeight = final ? final.bottom - final.top : r.bottom - r.top
-        const inView = (s: ThreadSample) => {
-          const top = sampleTop(s, ordinal)
-          return top !== undefined && top >= v.top - 1 && top + rowHeight <= v.bottom + 1
-        }
-        const window = samples.filter(s => s.t >= didShow! && s.t <= didShow! + 1_000)
-        const firstIn = window.findIndex(inView)
-        const outAfterIn = firstIn < 0 ? [] : window.slice(firstIn).filter(s => !inView(s))
-        const at = (s: ThreadSample) => `${Math.round(s.t - didShow!)}ms: ${sampleTop(s, ordinal) ?? 'off'}`
-        console.log(
-          `near the top: row ${ordinal} at ${r.top}-${r.bottom}; editing, ${JSON.stringify(final)} with the view ${v.top}-${v.bottom}; in the second after keyboardDidShow ${window.length} samples, ${window.filter(s => !inView(s)).length} not wholly in view, first wholly in view at ${firstIn < 0 ? 'never' : at(window[firstIn]!)}; tops at didShow ${window.slice(0, 3).map(at).join(', ')}`
-        )
-        check(window.length > 0, `no samples in the second after keyboardDidShow (${samples.length} samples)`)
-        check(firstIn >= 0, `row ${ordinal} was never wholly in view in the second after keyboardDidShow: ${window.map(at).join(', ')}`)
-        check(!outAfterIn.length, `row ${ordinal} left the view after it was revealed: ${outAfterIn.map(at).join(', ')}`)
-        check(wholly(final, v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
-        await step('Editing, the row stayed wholly in view once the keyboard was up', {card: true})
-      })
+      await watchKeyboardDidShow()
+      let didShow: number | undefined
+      let samples: Array<ThreadSample>
+      try {
+        samples = await sampleThreadWhile(async () => {
+          await editWithKeyboard(text)
+          didShow = await waitFor('keyboardDidShow', async () => (await keyboardDidShowTimes())[0], {timeout: 5_000})
+          await browser.pause(1_200)
+        })
+      } finally {
+        await unwatchKeyboardDidShow()
+      }
+      const after = await waitForThreadStable()
+      const v = await viewport(after)
+      const final = rowOf(after, ordinal)
+      const rowHeight = final ? final.bottom - final.top : r.bottom - r.top
+      const inView = (s: ThreadSample) => {
+        const top = sampleTop(s, ordinal)
+        return top !== undefined && top >= v.top - 1 && top + rowHeight <= v.bottom + 1
+      }
+      const window = samples.filter(s => s.t >= didShow! && s.t <= didShow! + 1_000)
+      const firstIn = window.findIndex(inView)
+      const outAfterIn = firstIn < 0 ? [] : window.slice(firstIn).filter(s => !inView(s))
+      const at = (s: ThreadSample) => `${Math.round(s.t - didShow!)}ms: ${sampleTop(s, ordinal) ?? 'off'}`
+      console.log(
+        `near the top: row ${ordinal} at ${r.top}-${r.bottom}; editing, ${JSON.stringify(final)} with the view ${v.top}-${v.bottom}; in the second after keyboardDidShow ${window.length} samples, ${window.filter(s => !inView(s)).length} not wholly in view, first wholly in view at ${firstIn < 0 ? 'never' : at(window[firstIn]!)}; tops at didShow ${window.slice(0, 3).map(at).join(', ')}`
+      )
+      check(window.length > 0, `no samples in the second after keyboardDidShow (${samples.length} samples)`)
+      check(firstIn >= 0, `row ${ordinal} was never wholly in view in the second after keyboardDidShow: ${window.map(at).join(', ')}`)
+      check(!outAfterIn.length, `row ${ordinal} left the view after it was revealed: ${outAfterIn.map(at).join(', ')}`)
+      check(wholly(final, v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
+      await step('Editing, the row stayed wholly in view once the keyboard was up', {card: true})
     })
 
     it('editing a message in view does not scroll the thread', async function () {
@@ -1165,14 +1135,12 @@ describe('chat scroll', function () {
       await expectAtEnd()
       await step('The sent message at the end of the thread')
 
-      await withEditCancelled(async () => {
-        await openMessageMenu(text)
-        await chooseMenuItem('Edit')
-        await editCancel().waitForExist({timeout: 5_000})
-        const {t, v} = await expectAtEnd('editing, the thread')
-        check(wholly(rowOf(t, ordinal), v), `row ${ordinal} is not wholly in view: ${summary(t, v)}`)
-        await step('Editing, the thread still at its end with the row in view', {card: true})
-      })
+      await openMessageMenu(text)
+      await chooseMenuItem('Edit')
+      await editCancel().waitForExist({timeout: 5_000})
+      const {t, v} = await expectAtEnd('editing, the thread')
+      check(wholly(rowOf(t, ordinal), v), `row ${ordinal} is not wholly in view: ${summary(t, v)}`)
+      await step('Editing, the thread still at its end with the row in view', {card: true})
     })
   })
 
