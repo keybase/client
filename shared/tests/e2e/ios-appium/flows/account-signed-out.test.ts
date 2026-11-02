@@ -5,7 +5,7 @@ import {deviceNameCandidates} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {appAccount, asSecond, restoreToSmoke, signedOutThenBack} from '../gate/accounts'
-import {backToScreen, pressBackToLoginList, tapToScreen, waitForScreen} from '../gate/screens'
+import {backToScreen, pressBackToLoginList, swipeUpUntil, tapToScreen, waitForScreen} from '../gate/screens'
 import {emptyLoginField, loginScreen, restoreSecondSecret, storedSecretOf} from '../gate/sign-in'
 import {recoveryPicks, recoveryRowPredicate} from '../gate/signed-out-lib.ts'
 import {manualEdge, step} from '../gate/step'
@@ -84,15 +84,6 @@ const button = (label: string) => labeled('Button', label)
 const press = async (label: string) => {
   await dismissKeyboard()
   await button(label).click()
-}
-
-// Swipes the screen up until `target` is in the tree (iOS leaves rows scrolled out of it).
-const scrollTo = async (target: () => ReturnType<typeof byText>, what: string) => {
-  for (let i = 0; i < 30; i++) {
-    if (await target().isExisting()) return
-    await browser.execute('mobile: swipe', {direction: 'up'})
-  }
-  if (!(await target().isExisting())) throw new Error(`${what} never scrolled into view`)
 }
 
 // The username screen "Someone else..." opens: a login for an account the list does not have. Its
@@ -243,7 +234,7 @@ describe('account signed out', () => {
         const picks = recoveryPicks((await waitForScreen('recoverPasswordDeviceSelector'))['devices'], deviceNameCandidates('second'))
         if (typeof picks === 'string') throw new Error(picks)
         const {paperKey, peer} = picks
-        await scrollTo(row(peer.name), `the row of ${peer.name}`)
+        await swipeUpUntil(row(peer.name), `the row of ${peer.name}`)
         await step("The second account's devices", {card: true})
 
         await tapToScreen(row(peer.name), 'recoverPasswordExplainDevice')
@@ -255,7 +246,7 @@ describe('account signed out', () => {
         await backToScreen('recoverPasswordDeviceSelector')
         // its name is the first two words of its phrase: no error names it
         await maskingName(paperKey.name, 'the paper key', async () => {
-          await scrollTo(row(paperKey.name), 'the paper key row')
+          await swipeUpUntil(row(paperKey.name), 'the paper key row')
           await tapToScreen(row(paperKey.name), 'recoverPasswordPaperKey')
         })
         await step('Paper key screen')
@@ -278,7 +269,7 @@ describe('account signed out', () => {
       await fromSecondsLoginScreen(async () => {
         // one row whose label merges its two texts, like the device rows
         const lostAll = row('I lost all my devices/paper keys')
-        await scrollTo(lostAll, 'the row for losing every device')
+        await swipeUpUntil(lostAll, 'the row for losing every device')
         await tapToScreen(lostAll, 'recoverPasswordPromptResetAccount')
         expect(await waitForScreen('recoverPasswordPromptResetAccount')).toMatchObject({skipPassword: true, username: secondUser})
         await button('Start account reset').waitForExist({timeout: 15_000, timeoutMsg: 'the reset prompt has no Start account reset button'})

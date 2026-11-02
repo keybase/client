@@ -52,6 +52,16 @@ export const tapUntil = async (tap: () => Promise<unknown>, shown: () => Promise
   throw new Error(`${failure} after ${TAPS} tries; the app shows ${(await screenName()) ?? 'no screen'}`)
 }
 
+// Swipes the screen up until `target` is in the tree (iOS leaves rows scrolled out of it), at most
+// `max` swipes.
+export const swipeUpUntil = async (target: () => ChainablePromiseElement, what: string, max = 30) => {
+  for (let i = 0; i < max; i++) {
+    if (await target().isExisting()) return
+    await browser.execute('mobile: swipe', {direction: 'up'})
+  }
+  if (!(await target().isExisting())) throw new Error(`${what} never scrolled into view after ${max} swipes`)
+}
+
 const isScreen = (name: string) => async () => (await screenName()) === name
 
 // Taps `target` until the app shows the screen `name`: the login screen ignores a tap while it is
