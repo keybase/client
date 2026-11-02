@@ -16,8 +16,6 @@ import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 // - JS state is read from the running app through the Metro inspector (Runtime.evaluate).
 // - Native and Go transitions come from the app container's Go log (ios.log).
 // - Gate flows read JS log lines (logger.info/warn) through gate/app-log.ts's in-runtime capture.
-//   The metroLog* reads below are the old lifecycle flows' (Metro's start.log, which Expo stopped
-//   writing in 58.1); they go with those flows.
 
 export const BUNDLE_ID = 'keybase.ios'
 
@@ -253,26 +251,6 @@ export const goLogPath = (udid = deviceUdid()) => path.join(appDataContainer(udi
 export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(udid))
 
 export const goLogSince = (mark: LogMark): Array<string> => linesSince(mark)
-
-const metroLogPath = path.resolve('.expo/dev/logs/start.log')
-
-export const metroLogMark = (): LogMark => markFile(metroLogPath)
-
-// JS console output since the mark, one string per call (arguments joined by spaces); `level`
-// keeps only that level's calls (console.error is 'error').
-export const metroClientLogSince = (mark: LogMark, level?: string): Array<string> =>
-  linesSince(mark)
-    .filter(l => l.includes('"metro:client_log"'))
-    .map(l => {
-      try {
-        const e = JSON.parse(l) as {data?: Array<unknown>; level?: string}
-        if (level && e.level !== level) return ''
-        return (e.data ?? []).map(d => (typeof d === 'string' ? d : JSON.stringify(d))).join(' ')
-      } catch {
-        return ''
-      }
-    })
-    .filter(Boolean)
 
 // Waits until `read` yields a line matching every pattern, in order. Returns the matched lines.
 export const waitForLinesInOrder = async (

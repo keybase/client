@@ -47,9 +47,6 @@ export const tapBanner = async (body: string, timeout = BANNER_MS) => {
   })
 }
 
-// Brings the home screen to the front: the app goes to the background as when the person leaves it.
-export const springboardActivate = async () => browser.execute('mobile: activateApp', {bundleId: 'com.apple.springboard'})
-
 const clearButtons = () => browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear"')
 
 // The one Clear button the swipe showed in the swiped row: the row's actions sit beside it at its
