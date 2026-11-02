@@ -14,7 +14,7 @@ import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, labelledElement, onScreen} from '../helpers/menus'
-import {escapeToTabs, goBack, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
+import {escapeToTabs, goBack, navigateToMore, navigateToPeople, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
 
 const TERMS = 'https://keybase.io/_/webview/terms'
@@ -55,6 +55,30 @@ describe('settings subpages', function () {
     await escapeToTabs()
   })
 
+  // scrollToTestID stops once a row reads displayed, which a row under the floating tab bar does, and
+  // a tap there lands on the tab bar (live: the Files tab opened in place of the Contacts page). The
+  // row is dragged up until its frame ends above the tab bar's. Bound: three rounds of the reads 2 and
+  // a drag 1 = 9.
+  const clearOfTabBar = async (id: string, what: string) => {
+    for (let i = 0; i < 3; i++) {
+      const row = await browser.getElementRect((await el(id).getElement()).elementId)
+      const bars = await browser.$$('-ios predicate string:type == "XCUIElementTypeTabBar"').getElements()
+      const {height, width} = await browser.getWindowRect()
+      let top = height
+      for (const b of bars) top = Math.min(top, (await browser.getElementRect(b.elementId)).y)
+      if (row.y >= 0 && row.y + row.height <= top) return
+      const x = Math.round(width * 0.15)
+      await browser
+        .action('pointer')
+        .move({x, y: Math.round(height * 0.6)})
+        .down()
+        .move({x, y: Math.round(height * 0.4), duration: 300})
+        .up()
+        .perform()
+    }
+    throw new Error(`${what} stayed under the tab bar`)
+  }
+
   for (const page of PAGES) {
     it(`the More list's ${page.row} row opens its page`, async function () {
       // worst case (s): openSettingsPage 126, the keyboard 5, the Send 6, step 2 = 139
@@ -80,10 +104,11 @@ describe('settings subpages', function () {
   }
 
   it('the Contacts page opens view only: no contacts call and no system prompt', async function () {
-    // worst case (s): more 50, the setting 1, calls 2, row 26, screen 11, marker 10, its button 6
-    // (5s of reads, overrun by one 1), the persisted route 12 (10, one read 2), calls 2, the alert
-    // read 1, step 2 = 123
-    this.timeout(150_000)
+    // worst case (s): more 50, the setting 1, calls 2, row 26, clear of the tab bar 9, screen 11,
+    // marker 10, its button 6 (5s of reads, overrun by one 1), the alert read 1, step 2, calls 2,
+    // escapeToTabs 30, the People tab 13 (three taps of 4s, one read 1), the persisted route 12 (10,
+    // one read 2), calls 2 = 167
+    this.timeout(190_000)
     await escapeToTabs()
     await navigateToMore()
     // the page reads the import setting only when the app holds none, and that read is followed by a
@@ -94,12 +119,11 @@ describe('settings subpages', function () {
     check(loaded, 'the app has not loaded the contacts import setting: opening the page would write the address book, so it is not opened')
     const mark = await currentCallSeq()
     await scrollToTestID(T.SETTINGS_ROW_CONTACTS)
+    await clearOfTabBar(T.SETTINGS_ROW_CONTACTS, 'the Contacts row')
     await el(T.SETTINGS_ROW_CONTACTS).click()
     await expectScreen('the Contacts settings page', 'settingsTabs.contactsTab')
     await el(T.SETTINGS_CONTACTS).waitForExist({timeout: 10_000, timeoutMsg: 'the Contacts settings page never drew'})
-    // the page's import button drawn (never pressed), and the route's persistence the app sends on
-    // each navigation (config.guiSetValue of ui.routeState2) seen after the mark: the positive call
-    // the absence of contacts calls is read against
+    // the page's import button drawn (never pressed)
     await waitFor(
       "the Contacts page's import button",
       async () =>
@@ -108,11 +132,19 @@ describe('settings subpages', function () {
           : undefined,
       {interval: 250, timeout: 5_000}
     )
-    await waitForUiCall("the Contacts page's route to be persisted", mark, 'keybase.1.config.guiSetValue')
-    const contactsCalls = (await callsSince(mark)).filter(c => c.method.startsWith('keybase.1.contacts.'))
-    check(!contactsCalls.length, `opening the Contacts page sent ${contactsCalls.length} contacts calls`)
     check(!(await systemAlertUp()), 'opening the Contacts page raised a system prompt')
     await step('The Contacts settings page', {card: true})
+    // The positive call the absence of contacts calls is read against: the route persist the app sends
+    // after a navigation (config.guiSetValue of ui.routeState2). It is skipped when the persisted tab
+    // and conversation are unchanged (util/storeless-actions.tsx persistRoute), so opening a page
+    // inside More sends it only when More was not already the persisted tab; leaving for the People
+    // tab after the page was up always changes it. The page covers the tab bar, so it is left first.
+    const left = await currentCallSeq()
+    await escapeToTabs()
+    await navigateToPeople()
+    await waitForUiCall("the People tab's route to be persisted", left, 'keybase.1.config.guiSetValue')
+    const contactsCalls = (await callsSince(mark)).filter(c => c.method.startsWith('keybase.1.contacts.'))
+    check(!contactsCalls.length, `opening the Contacts page sent ${contactsCalls.length} contacts calls`)
   })
 
   it("About's Terms and Conditions open the in-app keybase.io view, and back to About", async function () {
