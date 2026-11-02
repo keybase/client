@@ -1,4 +1,4 @@
-import {checkRowSearch, dragsToward, steerOffset} from './drawn-lib'
+import {checkRowSearch, dragsToward, oneLabelledAtFrame, steerOffset} from './drawn-lib'
 
 const screen = {height: 800, width: 400, x: 0, y: 0}
 const row = (y: number) => ({height: 64, width: 400, x: 0, y})
@@ -40,5 +40,25 @@ describe('checkRowSearch', () => {
     expect(() => checkRowSearch({inTree: true, within: false})).not.toThrow()
     expect(() => checkRowSearch({inTree: false, within: true})).not.toThrow()
     expect(() => checkRowSearch({inTree: false, within: false})).not.toThrow()
+  })
+})
+
+describe('oneLabelledAtFrame', () => {
+  const skip = (l: string) => l === 'Skip'
+
+  test('the one element at the frame that reads the label', () => {
+    expect(oneLabelledAtFrame(['Back', 'Skip', null], skip, 'the Skip')).toBe(1)
+  })
+
+  test('labels are read with their no-break spaces as spaces', () => {
+    expect(oneLabelledAtFrame(['Add\u00a0to team'], l => l === 'Add to team', 'the action')).toBe(0)
+  })
+
+  test('two that read the label (a covered screen at the same frame) throw', () => {
+    expect(() => oneLabelledAtFrame(['Skip', 'Skip'], skip, 'the Skip')).toThrow('2 of the Skip at its frame, not one')
+  })
+
+  test('none that reads it throws', () => {
+    expect(() => oneLabelledAtFrame(['Back', null], skip, 'the Skip')).toThrow('0 of the Skip at its frame, not one')
   })
 })

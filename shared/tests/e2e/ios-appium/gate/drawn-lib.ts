@@ -17,3 +17,13 @@ export const dragsToward = (offset: number, height: number) => Math.min(4, Math.
 export const checkRowSearch = ({inTree, within}: {inTree: boolean; within: boolean}) => {
   if (inTree && within) throw new Error('a row search takes inTree or within, not both')
 }
+
+// Which of the elements fetched again at a drawn element's type and frame is it: the one whose label
+// (null: unread) `matches`. A covered screen keeps its elements in the tree, and its control can sit at
+// the same frame (a wizard step's Skip under the next step's), so none or more than one throws rather
+// than picking; the error names `what`, never a label.
+export const oneLabelledAtFrame = (labels: ReadonlyArray<string | null>, matches: (label: string) => boolean, what: string) => {
+  const at = labels.flatMap((l, i) => (l !== null && matches(l.replace(/\u00a0/g, ' ')) ? [i] : []))
+  if (at.length !== 1) throw new Error(`${at.length} of ${what} at its frame, not one`)
+  return at[0]!
+}

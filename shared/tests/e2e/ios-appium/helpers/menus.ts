@@ -3,6 +3,7 @@
 // so the name never goes into a selector or an error.
 import {waitFor} from './lifecycle'
 import {innermost, inside, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
+import {oneLabelledAtFrame} from '../gate/drawn-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
@@ -270,8 +271,9 @@ export type DrawnOptions = {forTap?: boolean}
 // The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
 // tappable row merges its texts into one label), read off one page source (a call per element on a
 // screen of rows is too slow) and compared in memory; then that element fetched by its type and
-// frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
-// than one throws. `what` names it.
+// frame (and visible, when it read so) with its label checked again in memory, so no selector or error
+// ever holds `name`. The innermost of nested matches; none or more than one throws, in the page source
+// or at the frame (a covered screen's control can share it). `what` names it.
 export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string, opts?: DrawnOptions) =>
   drawnElementIn(types, label => label.split(', ').some(part => part.trim() === name), what, opts)
 
@@ -305,9 +307,10 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const i = inner[0]!
   const r = rects[i]!
   const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
-  // nested boxes can share the row's frame exactly: any of them is the same tap, the deepest is taken
-  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.e.type}" AND ${at}`).getElements()
-  const deepest = els.at(-1)
-  if (!deepest) throw new Error(`no element at the frame of ${what}`)
-  return deepest
+  // the label is compared in memory, never put in the selector
+  const visible = shown.length ? ' AND visible == 1' : ''
+  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.e.type}" AND ${at}${visible}`).getElements()
+  const labels: Array<string | null> = []
+  for (const e of els) labels.push(await e.getAttribute('label').catch(() => null))
+  return els[oneLabelledAtFrame(labels, matches, what)]!
 }
