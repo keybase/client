@@ -52,7 +52,7 @@ describe('settings remember password', function () {
   //   ask       an askApp 22 (20, the pause and resume 2);  stored  storedSecretOf 22
   //   switch    switchAppAccount 150 (the switcher 60, the switch 60, escapeToTabs 30);  account  1;
   //             settled  60
-  //   advanced  openAdvanced 97 (escapeToTabs 30, the More tab 20, the row scrolled to 25 and tapped
+  //   advanced  openAdvanced 126 (escapeToTabs 30, the More tab 20, the row scrolled to 54 and tapped
   //             1, screen 11, the switch 10)
   //   tap       tapRemember 59 (seq 2, the tap 1, the call 12, its count 2, 20s of asks overrun by one
   //             22)
@@ -156,10 +156,10 @@ describe('settings remember password', function () {
   }
 
   it('Always stay logged in off, then on, each read back and through a relaunch', async function () {
-    // worst case (s): peer 150, stored 22, switch 150, account 1, ask 22, advanced 97, step 2, tap 59,
+    // worst case (s): peer 150, stored 22, switch 150, account 1, ask 22, advanced 126, step 2, tap 59,
     // step 2; relaunch 200, settled 60, stored 44, step 2, sign in 431, account 1, step 2; advanced
-    // 97, ask 22, tap 59, step 2; relaunch 200, signed in 90, account 1, ask 22, stored 22, advanced
-    // 97, step 2 = 1859
+    // 126, ask 22, tap 59, step 2; relaunch 200, signed in 90, account 1, ask 22, stored 22, advanced
+    // 126, step 2 = 1946
     this.timeout(1_950_000)
     const env = loadE2EEnv()
     const password = requirePhoneSecondPassword(env)

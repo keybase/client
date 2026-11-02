@@ -38,7 +38,7 @@ const PAGES: ReadonlyArray<Page> = [
 
 describe('settings subpages', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   more      escapeToTabs 30, the More tab 20 = 50;  row  scrolled to 25 and tapped 1
+  //   more      escapeToTabs 30, the More tab 20 = 50;  row  scrolled to 54 and tapped 1
   //   screen    expectScreen 11;  marker  10;  label  a labelled element read 1, waited for 6
   //   back      goBack 3;  step  2 (its 1s settle and the attach)
 
@@ -49,7 +49,7 @@ describe('settings subpages', function () {
     await escapeToTabs()
   })
 
-  // The page from the More list. Bound: more 50, row 26, screen 11, marker 10 = 97.
+  // The page from the More list. Bound: more 50, row 55, screen 11, marker 10 = 126.
   const openPage = async ({marker, route, row, rowTestID}: Page) => {
     await escapeToTabs()
     await navigateToMore()
@@ -65,7 +65,7 @@ describe('settings subpages', function () {
 
   for (const page of PAGES) {
     it(`the More list's ${page.row} row opens its page`, async function () {
-      // worst case (s): openPage 97, the keyboard 5, the Send 6, step 2 = 110
+      // worst case (s): openPage 126, the keyboard 5, the Send 6, step 2 = 139
       this.timeout(150_000)
       await openPage(page)
       // the page's own Send, seen on screen and never pressed: it sends the phone's logs. The page
@@ -88,8 +88,8 @@ describe('settings subpages', function () {
   }
 
   it("About's Terms and Conditions open the in-app keybase.io view, and back to About", async function () {
-    // worst case (s): openPage 97, step 2, the link 6 and its tap 1, screen 11, the web view 10, step
-    // 2, back 3, screen 11, marker 10, the web view read 1, step 2 = 156
+    // worst case (s): openPage 126, step 2, the link 6 and its tap 1, screen 11, the web view 10, step
+    // 2, back 3, screen 11, marker 10, the web view read 1, step 2 = 185
     this.timeout(200_000)
     const about = PAGES.find(p => p.marker === T.SETTINGS_ABOUT)!
     await openPage(about)

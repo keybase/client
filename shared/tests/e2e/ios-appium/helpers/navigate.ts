@@ -61,7 +61,8 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // Tap a settings-root row by its label, scrolling it into view first: Android's
 // uiautomator tree omits off-screen rows (and a prior test may have left the
 // list scrolled), while on iOS the scroll no-ops when the row is already
-// visible. Use this for every row tap that follows navigateToMore.
+// visible. Use this for every row tap that follows navigateToMore. Bound (s): the scroll 25 and the
+// tap 1, plus clearOfTabBar 29 on iOS = 55.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
   if (!browser.isAndroid) await clearOfTabBar(byText(text), `the "${text}" row`)

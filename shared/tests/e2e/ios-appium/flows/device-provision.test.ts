@@ -73,12 +73,12 @@ describe('device provision', function () {
 
   it('approves a computer that `keybase login` is provisioning, then revokes it', async function () {
     // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
-    // 15, the home's service 30, openDevices 45, the chooser 20, the manual edge 5, the code page 40,
+    // 15, the home's service 30, openDevices 74, the chooser 20, the manual edge 5, the code page 40,
     // the phrase 60, its submit 30, the CLI's login 120, the code page closing 30, whoami 15, the
-    // list 10, the devices list 15, a step 5, openDevices again 45, revokeFromDevicePage 470 and the
-    // shutdown 30 before its revoke = 985. Cleanups: closing the code page 125, the retirement 70 =
-    // 195. Total 1180.
-    this.timeout(1_210_000)
+    // list 10, the devices list 15, a step 5, openDevices again 74, revokeFromDevicePage 470 and the
+    // shutdown 30 before its revoke = 1043. Cleanups: closing the code page 125, the retirement 70 =
+    // 195. Total 1238.
+    this.timeout(1_310_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const home = provisionHomeFor(runId)

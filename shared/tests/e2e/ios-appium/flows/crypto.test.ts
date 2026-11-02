@@ -8,8 +8,8 @@ import {el} from '../helpers/elements'
 import {check} from '../helpers/menus'
 
 describe('crypto', function () {
-  // Each test's bound (s): openCrypto 86, step 2, openCryptoTab 29, the field 10, step 2,
-  // leaveCryptoTab 24, step 2 = 155.
+  // Each test's bound (s): openCrypto 115, step 2, openCryptoTab 29, the field 10, step 2,
+  // leaveCryptoTab 24, step 2 = 184.
   const tour = async (tab: CryptoTab, title: string) => {
     await openCrypto()
     check(await el(CRYPTO_TABS[tab].nav).isExisting(), `the sub-nav has no ${tab} row`)
@@ -23,26 +23,26 @@ describe('crypto', function () {
   }
 
   it('the encrypt screen from the crypto sub-nav', async function () {
-    // worst case (s): the tour 155
-    this.timeout(170_000)
+    // worst case (s): the tour 184
+    this.timeout(190_000)
     await tour('encrypt', 'Encrypt')
   })
 
   it('the decrypt screen from the crypto sub-nav', async function () {
-    // worst case (s): the tour 155
-    this.timeout(170_000)
+    // worst case (s): the tour 184
+    this.timeout(190_000)
     await tour('decrypt', 'Decrypt')
   })
 
   it('the sign screen from the crypto sub-nav', async function () {
-    // worst case (s): the tour 155
-    this.timeout(170_000)
+    // worst case (s): the tour 184
+    this.timeout(190_000)
     await tour('sign', 'Sign')
   })
 
   it('the verify screen from the crypto sub-nav', async function () {
-    // worst case (s): the tour 155
-    this.timeout(170_000)
+    // worst case (s): the tour 184
+    this.timeout(190_000)
     await tour('verify', 'Verify')
   })
 })

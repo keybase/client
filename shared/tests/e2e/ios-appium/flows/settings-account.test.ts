@@ -57,9 +57,9 @@ describe('settings account', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   host      a host read 150 (whoami 15, four reads of 30, 5s apart);  polled  20s of reads, overrun
   //             by one 170
-  //   page      openAddresses 113 (openAccountPage 97: openMore 50, the row scrolled to 25 and tapped
+  //   page      openAddresses 142 (openAccountPage 126: openMore 50, the row scrolled to 54 and tapped
   //             1, screen 11, the page 10; the original's row 16)
-  //   add       addFromPhone 540 (a host read 150, page 113, seq 2, button 7, screen 11, fill 26,
+  //   add       addFromPhone 569 (a host read 150, page 142, seq 2, button 7, screen 11, fill 26,
   //             step 2, keyboard 1, button 7, the call 12, its count 2, screen 21, polled 170, the
   //             row 16)
   //   row       a row waited for 16 (15, one read 1);  reads  a row's line waited for 16;  gone  32
@@ -180,7 +180,7 @@ describe('settings account', function () {
   }
 
   // Settings > Account with the account's addresses loaded (the original's row is always drawn).
-  // Bound: openAccountPage 97, the row 16 = 113.
+  // Bound: openAccountPage 126, the row 16 = 142.
   const openAddresses = async () => {
     await openAccountPage()
     await addressRow(original!, "the original primary address's row")
@@ -221,7 +221,7 @@ describe('settings account', function () {
   }
 
   // Adds `addr` from the phone (Add email, the address, Continue; "searchable" left as it defaults)
-  // and reads it on the host, unverified, and on the account page. Bound: 540.
+  // and reads it on the host, unverified, and on the account page. Bound: 569.
   const addFromPhone = async (addr: string) => {
     requireStampedEmail(addr)
     check((await hostEmail(addr)) === undefined, "the test's address is on the account before the test")
@@ -244,9 +244,9 @@ describe('settings account', function () {
   // -- the tests ----------------------------------------------------------------------------------
 
   it('an added address gets its verification mail sent again', async function () {
-    // worst case (s): add 540, host 150, the pause 2, step 2, seq 2, menu 37, item 22, the call 12,
-    // its count 2, polled 170, reads 32, step 2 = 973
-    this.timeout(1_000_000)
+    // worst case (s): add 569, host 150, the pause 2, step 2, seq 2, menu 37, item 22, the call 12,
+    // its count 2, polled 170, reads 32, step 2 = 1002
+    this.timeout(1_050_000)
     const addr = stampedEmail('verify')
     await addFromPhone(addr)
     const before = (await hostEmail(addr))?.lastVerifyEmailDate ?? 0
@@ -267,8 +267,8 @@ describe('settings account', function () {
   })
 
   it('an added address made primary, then the original made primary again', async function () {
-    // worst case (s): add 540, step 2, then twice: seq 2, menu 37, item 22, the call 12, its count 2,
-    // polled 170, reads 32, step 2 (279) = 1100
+    // worst case (s): add 569, step 2, then twice: seq 2, menu 37, item 22, the call 12, its count 2,
+    // polled 170, reads 32, step 2 (279) = 1129
     this.timeout(1_150_000)
     const addr = stampedEmail('primary')
     const was = original!
@@ -296,8 +296,8 @@ describe('settings account', function () {
   })
 
   it('an added address deleted from its row', async function () {
-    // worst case (s): add 540, step 2, menu 37, item 22, screen 11, the prompt 6, step 2, seq 2,
-    // button 7, the call 12, its count 2, screen 21, polled 170, gone 32, step 2 = 868
+    // worst case (s): add 569, step 2, menu 37, item 22, screen 11, the prompt 6, step 2, seq 2,
+    // button 7, the call 12, its count 2, screen 21, polled 170, gone 32, step 2 = 897
     this.timeout(900_000)
     const addr = stampedEmail('delete')
     const was = original!
@@ -327,9 +327,9 @@ describe('settings account', function () {
   })
 
   it('the add phone number screen opens and is cancelled, nothing sent', async function () {
-    // worst case (s): page 113, seq 2, button 7, screen 11, text 11, manual 2, header 6, screen 11,
-    // calls 2, step 2 = 167
-    this.timeout(190_000)
+    // worst case (s): page 142, seq 2, button 7, screen 11, text 11, manual 2, header 6, screen 11,
+    // calls 2, step 2 = 196
+    this.timeout(210_000)
     await openAddresses()
     const seq = await currentCallSeq()
     await tapButton('Add phone number', "the account page's Add phone number")
@@ -345,10 +345,10 @@ describe('settings account', function () {
   })
 
   it('the delete account confirm opens with nothing ticked and is cancelled', async function () {
-    // worst case (s): smoke 1, the passphrase state 22, page 113, drag 20, seq 2, its tap 1, screen
+    // worst case (s): smoke 1, the passphrase state 22, page 142, drag 20, seq 2, its tap 1, screen
     // 11, the prompt 11, the confirm button 11 and its state 1, manual 2, header 6, screen 11, the
-    // prompt gone 1, calls 2, step 2 = 217
-    this.timeout(240_000)
+    // prompt gone 1, calls 2, step 2 = 246
+    this.timeout(260_000)
     // the passphrase state is the signed-in account's
     await requireAppIsSmoke()
     // an account with no password of its own deletes from this confirm at once

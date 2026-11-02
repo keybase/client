@@ -24,8 +24,8 @@ export const CRYPTO_TABS = {
   verify: {input: T.CRYPTO_VERIFY_INPUT, nav: T.CRYPTO_NAV_VERIFY, output: 'verifyOutput', route: 'verifyTab'},
 } as const
 
-// The crypto sub-nav, from wherever the app is. Bound: escapeToTabs 30, the More tab 15, the row 25,
-// the screen 11, the sub-nav 5 = 86.
+// The crypto sub-nav, from wherever the app is. Bound: escapeToTabs 30, the More tab 15, the row 54,
+// the screen 11, the sub-nav 5 = 115.
 export const openCrypto = async () => {
   await escapeToTabs()
   await navigateToMore()

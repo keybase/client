@@ -65,14 +65,14 @@ describe('settings password', function () {
 
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   second    asSecond 425 and its body (the switch 150, restoreToSmoke 275)
-  //   page      openAccountPage 97 (escapeToTabs 30, the More tab 20, the row scrolled to 25 and tapped
+  //   page      openAccountPage 126 (escapeToTabs 30, the More tab 20, the row scrolled to 54 and tapped
   //             1, screen 11, the page 10);  ask  an askApp 22;  stored  storedSecretOf 22
   //   button    tapButton 7;  screen  a screen waited for 11, 21 with a 20s wait;  fields  11 each
   //   secret    focusSecretField 15 and submitSecret 20, each field;  emptying  35 a field
   //   save      the keyboard 1, Save enabled 6, seq 2, clickUntil 10, the call 12, its count 2, the
   //             screen gone 61, the mark cleared 2 = 96
   //   check     the iOS check CHECK_S;  repair  REPAIR_S;  checkOrRepair  2 CHECK_S + REPAIR_S
-  //   sign out  the More tab 20, the row 26, its text 10, its tap 1, the login list 60, signed out 30,
+  //   sign out  the More tab 20, the row 55, its text 10, its tap 1, the login list 60, signed out 30,
   //             the secret dropped 52, the password screen 30, two row reads 20
   //   sign in   signInWithPassword 150, the secret stored 52, the mark cleared 21
   //   step      2 (its 1s settle and the attach)
@@ -165,8 +165,8 @@ describe('settings password', function () {
   // -- the phone ----------------------------------------------------------------------------------
 
   // On the second account: Account > Change, `next` into both fields, Save; the screen closes once the
-  // change went through. Bound: asSecond 425, the account 1, ask 22, page 97, button 7, screen 11,
-  // fields 22, step 2, secret 70, save 96, screen 21, step 2 = 776.
+  // change went through. Bound: asSecond 425, the account 1, ask 22, page 126, button 7, screen 11,
+  // fields 22, step 2, secret 70, save 96, screen 21, step 2 = 805.
   const changeOnPhone = async (next: string) =>
     asSecond(async () => {
       const {secondUser} = loadE2EAccounts()
@@ -213,7 +213,7 @@ describe('settings password', function () {
 
   // On the second account: Settings > Sign out > "Just sign out" (which drops its stored secret), then
   // its password from the login screen, which stores it again. Bound: asSecond 425, the account 1,
-  // sign out 249, step 2, sign in 223, step 2 = 902.
+  // sign out 278, step 2, sign in 223, step 2 = 931.
   const signOutAndBackIn = async (password: string) =>
     asSecond(async () => {
       const {secondUser, smokeUser} = loadE2EAccounts()
@@ -239,10 +239,10 @@ describe('settings password', function () {
     })
 
   it('the second account password changed from the phone, then signed in with', async function () {
-    // worst case (s): stored 22, the env file 1, seq 2, change 776, checkOrRepair 2 CHECK_S + REPAIR_S, the
-    // promotion 1, the env file 1, step 2, signOutAndBackIn 902, stored 22, smoke 1, step 2, manual 2;
+    // worst case (s): stored 22, the env file 1, seq 2, change 805, checkOrRepair 2 CHECK_S + REPAIR_S, the
+    // promotion 1, the env file 1, step 2, signOutAndBackIn 931, stored 22, smoke 1, step 2, manual 2;
     // and 60 to spare
-    this.timeout((22 + 1 + 2 + 776 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 902 + 22 + 1 + 2 + 2 + 60) * 1_000)
+    this.timeout((22 + 1 + 2 + 805 + 2 * CHECK_S + REPAIR_S + 1 + 1 + 2 + 931 + 22 + 1 + 2 + 2 + 60) * 1_000)
     const env = loadE2EEnv()
     // refuses while a change that stopped part way is unresolved
     requirePhoneSecondPassword(env)

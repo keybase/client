@@ -206,8 +206,8 @@ type Case<V> = {
 }
 
 // Shown, changed to `other`, read back and shown; relaunched, shown and read; changed back to `was`,
-// read back and shown. Bound: open 97, shown 41, step 2, change C, settles S, shown 41, step 2,
-// relaunched 291, open 97, shown 41, settles S, step 2, change C, settles S, shown 41, step 2 = 657 +
+// read back and shown. Bound: open 126, shown 41, step 2, change C, settles S, shown 41, step 2,
+// relaunched 291, open 126, shown 41, settles S, step 2, change C, settles S, shown 41, step 2 = 715 +
 // 2C + 3S.
 const roundTrip = async <V,>(c: Case<V>, was: V, other: V) => {
   await c.open()
@@ -289,9 +289,9 @@ describe('settings persisted', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   smoke     requireAppIsSmoke 1;  host  a host read 150;  ask  an askApp 22 (20, the pause and
   //             resume 2);  reach  phoneReachesServer 32
-  //   round     roundTrip 657 + 2C + 3S, C the change's bound, S its settles (host 180, phone 52)
+  //   round     roundTrip 715 + 2C + 3S, C the change's bound, S its settles (host 180, phone 52)
   //   tap       tapAndCall 37;  save  saveAndCall 37;  shown  expectShown 41;  control  tapControl 21
-  //   open      openSettingsPage 97;  more  openMore 50;  relaunched  291
+  //   open      openSettingsPage 126;  more  openMore 50;  relaunched  291
   //   step      2 (its 1s settle and the attach)
   //   mark      logMark 120;  level  levelSetSince 21
   //   restore   a host restore 355 (a read 150, the write 35, 20s of reads overrun by one 150 = 170)
@@ -479,7 +479,7 @@ describe('settings persisted', function () {
 
   it('Chat > link previews: a mode saved from the phone, read back on the server and after a relaunch, and saved back', async function () {
     // worst case (s): smoke 1, host 150; round with C = control 21 + shown 41 + save 37 = 99 and S
-    // 180: 657 + 198 + 540 = 1395; = 1546
+    // 180: 715 + 198 + 540 = 1453; = 1604
     this.timeout(1_650_000)
     check(
       !fs.existsSync(UNFURL_FLOW_BACKUP),
@@ -514,7 +514,7 @@ describe('settings persisted', function () {
 
   it('Chat > who may message the account: switched and saved from the phone, read back on the server and after a relaunch, and back', async function () {
     // worst case (s): smoke 1, host 150; round with C = control 21 + shown 41 + save 37 = 99 and S
-    // 180: 1395; = 1546
+    // 180: 1453; = 1604
     this.timeout(1_650_000)
     await requireAppIsSmoke()
     const original = await masked(async () => contactSettings())
@@ -537,8 +537,8 @@ describe('settings persisted', function () {
   })
 
   it('Chat > message content in phone chat notifications: switched from the phone, read back on the server and after a relaunch, and back', async function () {
-    // worst case (s): smoke 1, host 150 x2; round with C = tap 37 and S 180: 657 + 74 + 540 = 1271;
-    // = 1572
+    // worst case (s): smoke 1, host 150 x2; round with C = tap 37 and S 180: 715 + 74 + 540 = 1329;
+    // = 1630
     this.timeout(1_650_000)
     await requireAppIsSmoke()
     // a toggle saves the email settings too (the app posts every group it loaded), so both go back
@@ -561,7 +561,7 @@ describe('settings persisted', function () {
   })
 
   it('Chat > photos and videos: Compress or Keep full size picked from the phone, read back on the phone and after a relaunch, and back', async function () {
-    // worst case (s): smoke 1, ask 22; round with C = tap 37 and S 52: 657 + 74 + 156 = 887; = 910
+    // worst case (s): smoke 1, ask 22; round with C = tap 37 and S 52: 715 + 74 + 156 = 945; = 968
     this.timeout(1_000_000)
     await requireAppIsSmoke()
     const was = await compressPreference()
@@ -583,7 +583,7 @@ describe('settings persisted', function () {
   // -- notifications ---------------------------------------------------------------------------------
 
   it('Notifications > the first email notification: switched from the phone, read back on the server and after a relaunch, and back', async function () {
-    // worst case (s): smoke 1, host 150 x2; round with C = tap 37 and S 180: 1271; = 1572
+    // worst case (s): smoke 1, host 150 x2; round with C = tap 37 and S 180: 1329; = 1630
     this.timeout(1_650_000)
     await requireAppIsSmoke()
     // refuses an account unsubscribed from all of them
@@ -615,7 +615,7 @@ describe('settings persisted', function () {
   // -- display -------------------------------------------------------------------------------------
 
   it('Display > theme: light and the system theme picked from the phone, read back on the phone and after a relaunch, and back', async function () {
-    // worst case (s): smoke 1, ask 22 x2; round with C = tap 37 and S 52: 887; = 932
+    // worst case (s): smoke 1, ask 22 x2; round with C = tap 37 and S 52: 945; = 990
     this.timeout(1_000_000)
     await requireAppIsSmoke()
     const original = await guiValue('ui.darkMode')
@@ -641,7 +641,7 @@ describe('settings persisted', function () {
   })
 
   it('Display > allow animated emoji: switched from the phone, read back on the server and after a relaunch, and back', async function () {
-    // worst case (s): smoke 1, host 150; round with C = tap 37 and S 180: 1271; = 1422
+    // worst case (s): smoke 1, host 150; round with C = tap 37 and S 180: 1329; = 1480
     this.timeout(1_500_000)
     await requireAppIsSmoke()
     const was = await masked(async () => emojiAnimations())
@@ -662,8 +662,8 @@ describe('settings persisted', function () {
   // -- advanced ------------------------------------------------------------------------------------
 
   it('Advanced > lockdown mode: on from the phone, read back on the server and after a relaunch, and off again', async function () {
-    // worst case (s): smoke 1, host 150, ask 22; round with C = tap 37 and S 180: 1271; = 1444
-    this.timeout(1_500_000)
+    // worst case (s): smoke 1, host 150, ask 22; round with C = tap 37 and S 180: 1329; = 1502
+    this.timeout(1_600_000)
     await requireAppIsSmoke()
     check(!(await masked(async () => lockdown())), 'refusing to turn lockdown mode on: it is already on for the smoke account (the flow starts from off and leaves it off)')
     check(!(await randomPW()), 'refusing to turn lockdown mode on: the smoke account has no password, so the switch is off limits')
@@ -682,9 +682,9 @@ describe('settings persisted', function () {
   })
 
   it('Advanced > proxy: the settings the form loaded saved from the phone, read back on the phone and after a relaunch, and put back', async function () {
-    // worst case (s): smoke 1, ask 22, open 97, the Save drawn (the drag 20, loaded 10) 30, step 2,
+    // worst case (s): smoke 1, ask 22, open 126, the Save drawn (the drag 20, loaded 10) 30, step 2,
     // the save (seq 2, its tap 1, calledOnce 14) 17, settles 52, reach 32, step 2; relaunched 291,
-    // settles 52, reach 32, open 97, the Save drawn 30, step 2; restoreProxy 98, step 2 = 859
+    // settles 52, reach 32, open 126, the Save drawn 30, step 2; restoreProxy 98, step 2 = 917
     this.timeout(950_000)
     await requireAppIsSmoke()
     const original = await proxyData()
@@ -725,9 +725,9 @@ describe('settings persisted', function () {
   })
 
   it('Advanced > Enable Detailed Logging: the phone service log shows the level set, and the original put back', async function () {
-    // worst case (s): smoke 1, mark 120, relaunched 291, a read 1, open 97, the button on screen
+    // worst case (s): smoke 1, mark 120, relaunched 291, a read 1, open 126, the button on screen
     // 20, step 2, mark 120, seq 2, tapButton 7, calledOnce 14, level 21, step 2, mark 120, the set 22,
-    // level 21, step 2 = 863
+    // level 21, step 2 = 892
     this.timeout(950_000)
     await requireAppIsSmoke()
     // a new process starts at its own level, logged when KBFS starts if it is not the default: only
@@ -759,11 +759,11 @@ describe('settings persisted', function () {
   })
 
   it('Advanced > Toggle Runtime Stats: the overlay and the perf row on, through a relaunch, and off again', async function () {
-    // worst case (s): smoke 1, ask 22, more 50, the anchor 6, the reads 2, step 2; open 97, the
+    // worst case (s): smoke 1, ask 22, more 50, the anchor 6, the reads 2, step 2; open 126, the
     // developer controls 65, tapButton 7, calledOnce 14, the overlay 20, settles 52, step 2, more 50,
-    // the perf row 6, step 2; relaunched 291, the overlay 20, settles 52, step 2; open 97, the
+    // the perf row 6, step 2; relaunched 291, the overlay 20, settles 52, step 2; open 126, the
     // developer controls 65, tapButton 7, calledOnce 14, the overlay gone 20, settles 52, more 50, the
-    // anchor 6, the reads 2, step 2 = 1078
+    // anchor 6, the reads 2, step 2 = 1136
     this.timeout(1_150_000)
     await requireAppIsSmoke()
     check(!(await runtimeStatsEnabled()), 'refusing: runtime stats are already on for the phone (the flow starts from off and leaves them off)')

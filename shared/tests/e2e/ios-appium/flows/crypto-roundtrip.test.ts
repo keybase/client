@@ -67,7 +67,7 @@ describe('crypto roundtrip', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   host      the host CLI 75 (the account check 15, the call 60);  second  the second peer's CLI
   //             105 (the peer 45, the call 60)
-  //   crypto    openCrypto 86;  tab  openCryptoTab 29;  leave  leaveCryptoTab 24;  done
+  //   crypto    openCrypto 115;  tab  openCryptoTab 29;  leave  leaveCryptoTab 24;  done
   //             closeCryptoOutput 22
   //   type      the marker set 30 (fillHiddenField: the field is inside its box's one element)
   //   paste     setPasteboard 50, pasteIntoCryptoField 24, its length 6 (5, one read 1), the
@@ -341,9 +341,9 @@ describe('crypto roundtrip', function () {
   // -- the phone encrypts or signs, the host or the peer reads it --------------------------------
 
   it('text encrypted to self decrypts on the host to the marker', async function () {
-    // worst case (s): crypto 86, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 425
-    this.timeout(440_000)
+    // worst case (s): crypto 115, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 454
+    this.timeout(470_000)
     const marker = e2eMarker('crypto-self')
     await openCrypto()
     await openCryptoTab('encrypt')
@@ -363,8 +363,8 @@ describe('crypto roundtrip', function () {
   })
 
   // The phone encrypts this run's marker `label` to the second account and self, through the
-  // recipients search, and copies the ciphertext. Bound: crypto 86, tab 29, recipient 94, step 2,
-  // type 30, step 2, run 28, copy 147, done 22, mark 2, step 2 = 444.
+  // recipients search, and copies the ciphertext. Bound: crypto 115, tab 29, recipient 94, step 2,
+  // type 30, step 2, run 28, copy 147, done 22, mark 2, step 2 = 473.
   const encryptForSecond = async (label: string) => {
     const marker = e2eMarker(label)
     await openCrypto()
@@ -384,8 +384,8 @@ describe('crypto roundtrip', function () {
   }
 
   it('text encrypted to the second account and self decrypts on the host', async function () {
-    // worst case (s): encryptForSecond 444, host 75, step 2 = 521
-    this.timeout(540_000)
+    // worst case (s): encryptForSecond 473, host 75, step 2 = 550
+    this.timeout(570_000)
     const {ciphertext, marker} = await encryptForSecond('crypto-to-second')
     const bySelf = await readsBy(host, ['decrypt'], ciphertext, 'to-second-self')
     check(bySelf === marker, "the host's decrypt of the phone's ciphertext is not the marker")
@@ -396,8 +396,8 @@ describe('crypto roundtrip', function () {
   // keyring without syncing it, so once the account's key rolled on another device it cannot decrypt
   // a message to the newest key.
   it('text encrypted to the second account decrypts on its peer', async function () {
-    // worst case (s): encryptForSecond 444, second 105, step 2 = 551
-    this.timeout(570_000)
+    // worst case (s): encryptForSecond 473, second 105, step 2 = 580
+    this.timeout(600_000)
     const {ciphertext, marker} = await encryptForSecond('crypto-peer')
     const bySecond = await readsBy(second, ['decrypt'], ciphertext, 'to-second')
     check(bySecond === marker, "the second account's decrypt of the phone's ciphertext is not the marker")
@@ -405,9 +405,9 @@ describe('crypto roundtrip', function () {
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
-    // worst case (s): crypto 86, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 425
-    this.timeout(440_000)
+    // worst case (s): crypto 115, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
+    // host 75, step 2 = 454
+    this.timeout(470_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-sign')
     await openCrypto()
@@ -431,9 +431,9 @@ describe('crypto roundtrip', function () {
   // -- the second account's peer makes it, the phone reads it ---------------------------------------
 
   it('the second account’s ciphertext decrypts to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 459
-    this.timeout(480_000)
+    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, output 16, signer 6,
+    // done 22, leave 24, mark 2, step 2 = 488
+    this.timeout(500_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-from-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, smokeUser], 'from-second', 'ENCRYPTED')
@@ -452,9 +452,9 @@ describe('crypto roundtrip', function () {
   })
 
   it('the second account’s signed text verifies to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 459
-    this.timeout(480_000)
+    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, output 16, signer 6,
+    // done 22, leave 24, mark 2, step 2 = 488
+    this.timeout(500_000)
     const marker = e2eMarker('crypto-signed-by-second')
     const signed = await madeBy(second, ['sign', '-m', marker], 'signed-by-second', 'SIGNED')
     await openCrypto()
@@ -476,9 +476,9 @@ describe('crypto roundtrip', function () {
   // Text the second account encrypted for itself alone: no key of the smoke account opens it (the
   // service's decryption-key-not-found cause), which the app words for the reader.
   it('ciphertext for someone else says so', async function () {
-    // worst case (s): second 105, crypto 86, tab 29, step 2, paste 130, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 454
-    this.timeout(480_000)
+    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, banner 17, done 22,
+    // leave 24, mark 2, step 2 = 483
+    this.timeout(500_000)
     const {secondUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-for-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, secondUser], 'for-second', 'ENCRYPTED')
@@ -498,9 +498,9 @@ describe('crypto roundtrip', function () {
   // A changed body character fails the stream with no cause the service names, so the app shows its
   // generic message.
   it('tampered ciphertext fails to decrypt', async function () {
-    // worst case (s): host 75, crypto 86, tab 29, step 2, paste 130, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 424
-    this.timeout(440_000)
+    // worst case (s): host 75, crypto 115, tab 29, step 2, paste 130, run 28, banner 17, done 22,
+    // leave 24, mark 2, step 2 = 453
+    this.timeout(470_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-tampered')
     const ciphertext = await madeBy(host, ['encrypt', '-m', marker, smokeUser], 'to-tamper', 'ENCRYPTED')

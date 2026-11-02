@@ -115,7 +115,7 @@ const expectSample = async (want: number, what: string) =>
 
 describe('settings debug pages', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openDebugPage 113 (escapeToTabs 30, the More tab 20, the row 25 and its tap 1, the
+  //   open      openDebugPage 142 (escapeToTabs 30, the More tab 20, the row 54 and its tap 1, the
   //             screen 11, its marker 10, the top line 10 and its read 1, the controls 5)
   //   drag      one drag 1, then a read 1;  control  a control read 1 and its tap 1;  shown  6
   //   step      2 (its 1s settle and the attach)
@@ -151,7 +151,7 @@ describe('settings debug pages', function () {
   })
 
   // The debug page from the More list, freshly opened at its first screenful; the typography page
-  // with its controls at the defaults. Bound: open 113.
+  // with its controls at the defaults. Bound: open 142.
   const openDebugPage = async (page: DebugPage) => {
     await escapeToTabs()
     await navigateToMore()
@@ -169,12 +169,12 @@ describe('settings debug pages', function () {
   }
 
   // Screenful `index` (from 0): `index` drags from the top, with the page's last line drawn there
-  // only on its last screenful. Bound: open 113, a drag 1 and its read 1 per screenful, the end read
+  // only on its last screenful. Bound: open 142, a drag 1 and its read 1 per screenful, the end read
   // 1, step 2.
   const screenTests = (page: DebugPage) => {
     for (let i = 0; i < page.screens; i++) {
       it(`${page.row.toLowerCase()} debug page screen ${i + 1}`, async function () {
-        // worst case (s): open 113, 2 per drag (at most 7) 14, the end read 1, step 2 = 130
+        // worst case (s): open 142, 2 per drag (at most 7) 14, the end read 1, step 2 = 159
         this.timeout(180_000)
         await openDebugPage(page)
         for (let d = 0; d < i; d++) {
@@ -194,7 +194,7 @@ describe('settings debug pages', function () {
   screenTests(TYPOGRAPHY)
 
   it('typography debug page dark background', async function () {
-    // worst case (s): open 113, control 2, shown 6, step 2 = 123
+    // worst case (s): open 142, control 2, shown 6, step 2 = 152
     this.timeout(180_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Dark')).click()
@@ -203,7 +203,7 @@ describe('settings debug pages', function () {
   })
 
   it('typography debug page underline decoration', async function () {
-    // worst case (s): open 113, control 2, shown 6 x2, step 2 = 129
+    // worst case (s): open 142, control 2, shown 6 x2, step 2 = 158
     this.timeout(180_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('underline')).click()
@@ -213,7 +213,7 @@ describe('settings debug pages', function () {
   })
 
   it('typography debug page next sample', async function () {
-    // worst case (s): open 113, control 2, shown 6, step 2 = 123
+    // worst case (s): open 142, control 2, shown 6, step 2 = 152
     this.timeout(180_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Next')).click()
