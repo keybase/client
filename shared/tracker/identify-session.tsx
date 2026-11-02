@@ -263,7 +263,8 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
       // Not once the session is gone: nobody shows it any more, or a store reset (account switch)
       // dropped it and its user is no longer the own user.
       if (s.rerunWhenDone && sessions.get(s.username) === s) {
-        loadProfileIdentify(s.username, {freshAfter: Infinity, ignoreCache: false})
+        // as strong as the identify it replaces: a forced remote check stays forced
+        loadProfileIdentify(s.username, {freshAfter: Infinity, ignoreCache: s.ignoreCache})
       }
     }
   }
@@ -386,7 +387,9 @@ const ensureEngineSubscriptions = () => {
   subscribeToEngineAction('keybase.1.identify3Ui.identify3Result', action => {
     const {guiID, result} = action.payload.params
     const s = sessionForGuiID(guiID)
-    if (!s) {
+    // the result of an identify the own user changed under is replaced by its rerun's, so it is not
+    // shown as settled meanwhile
+    if (!s || s.rerunWhenDone) {
       return
     }
     setDetails(s, updateTrackerDetailsResult(s.details, identifyResultToDetailsState(result)))
@@ -463,6 +466,15 @@ const ensureEngineSubscriptions = () => {
     // lock and keeps the profile checking until the last; one identify after the running one is enough.
     if (s.inFlight) {
       s.rerunWhenDone = true
+      // its result may already have landed, before the RPC returns
+      if (s.details.state !== 'checking') {
+        setDetails(
+          s,
+          produce(s.details, draft => {
+            draft.state = 'checking'
+          })
+        )
+      }
       return
     }
     loadProfileIdentify(username, {freshAfter: Date.now(), ignoreCache: false})

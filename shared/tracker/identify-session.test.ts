@@ -467,8 +467,9 @@ describe('identify failures through the engine listener', () => {
 
 describe('own user changed notices', () => {
   const ownUid = 'testuser-uid'
-  // identifies that have not answered yet, oldest first; each answers with a result and returns
-  let pending: Array<() => void> = []
+  // identifies that have not returned yet, oldest first
+  type Held = {fail: (e: Error) => void; result: () => void; returns: () => void}
+  let pending: Array<Held> = []
 
   const userChanged = () =>
     notifyEngineActionListeners({
@@ -476,8 +477,11 @@ describe('own user changed notices', () => {
       type: 'keybase.1.NotifyUsers.userChanged',
     } as never)
 
+  // the service sends the result, then the call returns
   const finishOldest = async () => {
-    pending.shift()?.()
+    const held = pending.shift()
+    held?.result()
+    held?.returns()
     await flush()
   }
 
@@ -485,13 +489,15 @@ describe('own user changed notices', () => {
     pending = []
     useCurrentUserState.setState({uid: ownUid, username: 'testuser'})
     identifySpy.mockImplementation((async (p: {params: {guiID: string}}) =>
-      new Promise<void>(resolve => {
-        pending.push(() => {
-          notifyEngineActionListeners({
-            payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
-            type: 'keybase.1.identify3Ui.identify3Result',
-          } as never)
-          resolve()
+      new Promise<void>((resolve, reject) => {
+        pending.push({
+          fail: reject,
+          result: () =>
+            notifyEngineActionListeners({
+              payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+              type: 'keybase.1.identify3Ui.identify3Result',
+            } as never),
+          returns: resolve,
         })
       })) as never)
   })
@@ -554,6 +560,68 @@ describe('own user changed notices', () => {
     resetAllStores()
     await finishOldest()
     expect(identifySpy).toHaveBeenCalledTimes(1)
+    unsub()
+  })
+
+  test('a result that lands after a notice is not shown as settled before the rerun', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    pending[0]?.result()
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    pending.shift()?.returns()
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('a notice after the result landed puts the profile back to checking until the rerun settles', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    pending[0]?.result()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+
+    // the call has not returned yet, so the identify is still running
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    pending.shift()?.returns()
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('an identify that fails after a notice still runs its rerun, which settles the profile', async () => {
+    jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    pending.shift()?.fail(new RPCError('network', T.RPCGen.StatusCode.scgeneric))
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test.each([true, false])('the rerun is as strong as the identify it replaces (ignoreCache %s)', async ignoreCache => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache})
+    userChanged()
+    await finishOldest()
+
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(identifySpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({params: expect.objectContaining({ignoreCache})})
+    )
     unsub()
   })
 })

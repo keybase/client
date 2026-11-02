@@ -15,7 +15,7 @@ import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
-import {fillField, tapButton} from '../helpers/files'
+import {buttonLabelled, fillField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
@@ -88,9 +88,9 @@ describe('profile edit', function () {
     )
 
   it('edit name, bio and location, read back on the server and after a relaunch', async function () {
-    // worst case (s): profile 63, step 2, button 7, screen 11, field 11, fill 26 x3, step 2, calls 2,
+    // worst case (s): profile 63, step 2, settled 16, screen 11, field 11, fill 26 x3, step 2, calls 2,
     // button 7, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
-    // profile 63, shown 31 x3, step 2 = 847
+    // profile 63, shown 31 x3, step 2 = 856
     this.timeout(900_000)
     check(original !== undefined, 'the original profile fields were never read')
     const before = original!
@@ -100,7 +100,14 @@ describe('profile edit', function () {
     await openOwnProfile()
     // the own profile lists its featured teams and followers, which are not test ones
     await step('The own profile', {screenshot: false})
-    await tapButton('Edit profile', "the profile's Edit profile")
+    // the own profile draws its buttons once its identify settles, and a user-changed notice during
+    // that identify (right after an account switch) runs a second one. Bound: 15s, the tap 1.
+    const edit = await waitFor(
+      "the profile's Edit profile",
+      async () => buttonLabelled('Edit profile', "the profile's Edit profile"),
+      {interval: 500, timeout: 15_000}
+    )
+    await edit.click()
     await expectScreen('Edit profile', 'profileEdit')
     // the screen has put the account's loaded name in, so what is typed next is not overwritten
     await fieldReads(T.PROFILE_EDIT_FULL_NAME, before.fullName, 'Full name', 'the loaded full name in its field')
