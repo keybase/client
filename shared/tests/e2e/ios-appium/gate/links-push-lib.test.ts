@@ -2,6 +2,7 @@ import {
   accountLinkLines,
   deepLinkEvents,
   focusChanges,
+  focusLeftAndBack,
   GO_BACKGROUND,
   GO_FOREGROUND,
   GO_HTTP_SRV,
@@ -64,4 +65,15 @@ test('a cold launch lands on a route only when its first recording starts there 
   // a recording from an older bundle, or none at all
   expect(launchedInto({routes: ['chatConversation']}, 'chatConversation')).toBe(false)
   expect(launchedInto(undefined, 'chatConversation')).toBe(false)
+})
+
+test('a trip away and back is inactive and active in turn, from inactive to active', () => {
+  expect(focusLeftAndBack(['inactive', 'active'])).toBe(true)
+  // iOS 26's Notification Center pull: a few ms of active as the center settles
+  expect(focusLeftAndBack(['inactive', 'active', 'inactive', 'active'])).toBe(true)
+  expect(focusLeftAndBack([])).toBe(false)
+  expect(focusLeftAndBack(['inactive'])).toBe(false)
+  expect(focusLeftAndBack(['active', 'inactive'])).toBe(false)
+  expect(focusLeftAndBack(['inactive', 'active', 'inactive'])).toBe(false)
+  expect(focusLeftAndBack(['inactive', 'background', 'active', 'active'])).toBe(false)
 })

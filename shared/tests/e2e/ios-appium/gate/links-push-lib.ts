@@ -47,6 +47,12 @@ export const accountLinkLines = (lines: ReadonlyArray<string>) => lines.filter(l
 // The app's own line for a change of its focus (constants/init/index.tsx), e.g. 'active'.
 export const focusChanges = (lines: ReadonlyArray<string>) => capturedOf(lines, /^info app focus changed: (\w+)$/)
 
+// Whether `focus` is the app going inactive and coming back: inactive and active in turn, from inactive
+// to active. On iOS 26 pulling Notification Center down resigns the app, makes it active for a few ms
+// and resigns it again as the center settles, so a pull can be two such turns.
+export const focusLeftAndBack = (focus: ReadonlyArray<string>) =>
+  focus.length >= 2 && focus.length % 2 === 0 && focus.every((f, i) => f === (i % 2 === 0 ? 'inactive' : 'active'))
+
 // Whether a relaunched app's first recording shows it came up on `route`: the screen up as the
 // recorder started on the new runtime, with People (the route it saved) never shown in it.
 export const launchedInto = (r: {routes: ReadonlyArray<string>; startRoutes?: ReadonlyArray<string>} | undefined, route: string) =>

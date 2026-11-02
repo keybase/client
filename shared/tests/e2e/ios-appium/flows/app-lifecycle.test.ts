@@ -20,7 +20,7 @@ import {appLogMark, appLogUntilMarker} from '../gate/app-log'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {appRuntime, launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
-import {focusChanges, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
+import {focusChanges, focusLeftAndBack, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
 import {leaveOnPeople, waitForScreen} from '../gate/screens'
 import {step} from '../gate/step'
@@ -211,7 +211,7 @@ describe('app lifecycle', function () {
     // withNotificationCenter waited for the app to be active again
     await waitForLinesInOrder('the phone service to record the app active again', () => goLogSince(goMark), [GO_INACTIVE, GO_FOREGROUND])
     const focus = focusChanges(await appLogUntilMarker(mark, 'notification-center'))
-    check(focus.join(',') === 'inactive,active', `the app's focus went ${focus.join(', ') || 'nowhere'}, not inactive then active`)
+    check(focusLeftAndBack(focus), `the app's focus went ${focus.join(', ') || 'nowhere'}, not inactive and back to active`)
     await expectScreen('People still up after Notification Center', 'peopleRoot')
     await step('Active again on People after Notification Center', {card: true})
   })
