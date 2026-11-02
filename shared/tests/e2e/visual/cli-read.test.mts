@@ -34,10 +34,10 @@ test('only the log line\'s own sequence number is stripped, never a number the m
   assert.equal(cliError('[ERRO] 006 404 Not Found', 'x'), '404 Not Found')
 })
 
-// A fake CLI: it fails each call listed in FAILS (by call number) with the given ERRO text, and
-// prints the device table otherwise.
+// A fake CLI: it fails each call listed in `fails` (by call number) with the given ERRO text, and
+// prints `out` otherwise.
 const withFakeCli = async (fails: Array<string>, f: (calls: () => number) => Promise<void>) => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-resolve-cli-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-cli-read-'))
   const counter = path.join(dir, 'calls')
   const script = path.join(dir, 'keybase')
   const cases = fails.map((msg, i) => `  ${i + 1}) echo '[ERRO keybase main.go:86] 006 ${msg}' >&2; exit 2;;`).join('\n')
@@ -60,6 +60,14 @@ test('a read the service failed with its server timeout is run once more', async
   await withFakeCli(['context deadline exceeded'], async calls => {
     assert.equal((await readCli(['device', 'list'], 'keybase device')).trim(), 'out')
     assert.equal(calls(), 2)
+  })
+})
+test('the retry waits a second first, and also covers a timeout with text after it', async () => {
+  await withFakeCli(['context deadline exceeded (Client.Timeout)'], async calls => {
+    const t0 = Date.now()
+    assert.equal((await readCli(['device', 'list'], 'keybase device')).trim(), 'out')
+    assert.equal(calls(), 2)
+    assert.ok(Date.now() - t0 >= 950)
   })
 })
 test('a second server timeout fails, naming it', async () => {
