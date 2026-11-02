@@ -9,7 +9,7 @@ import {maskAccounts} from '../../accounts/sweep-lib.ts'
 import {createThrowawaySubteam, retryTransient} from '../../shared/chat-data'
 import {ensurePeer, runKeybase} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
-import {memberRoles, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
+import {deleteSubteamIfPresent, memberRoles, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {innermost, type Rect} from '../gate/chat-lib.ts'
@@ -45,6 +45,24 @@ export const masked = async <R,>(f: () => Promise<R>): Promise<R> => {
 }
 
 // -- host setup and reads ------------------------------------------------------------------------
+
+// Cleans up each subteam name in `made` with `f` (deleteSubteamIfPresent by default), its errors
+// masked, dropping each name from `made` once its cleanup is done: one that throws stops there and
+// leaves itself and the rest in `made`. Bound: f's, a name.
+export const drainMade = async (made: Set<string>, f: (name: string) => Promise<unknown> = deleteSubteamIfPresent) => {
+  for (const name of [...made]) {
+    await masked(async () => f(name))
+    made.delete(name)
+  }
+}
+
+// The second account's role in a subteam ('none' when it is not in it), and whether the same read
+// has the smoke account in it (the anchor for its absence). Bound: one CLI read 255.
+export const secondRoleIn = async (name: string) => {
+  const {secondUser, smokeUser} = loadE2EAccounts()
+  const roles = await memberRoles(name)
+  return {anchored: smokeUser in roles, second: roles[secondUser] ?? 'none'}
+}
 
 // A subteam of the e2e team made by the host for one test, its name added to `made` (what the flow's
 // afterEach deletes) before the make, so a test timed out during it still has it deleted. `prefix` is

@@ -29,7 +29,6 @@ import {
   deleteSubteamIfPresent,
   inviteNames,
   makeSubteamChannel,
-  memberRoles,
   readBack,
   requireThisRunSubteam,
   subteamExists,
@@ -55,6 +54,7 @@ import {BUTTON_ELEMENTS, check, chooseMenuItem, elementWithLabelPart, onScreenID
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
+  drainMade,
   expectHost,
   expectTeamPage,
   makeOwnSubteam,
@@ -68,6 +68,7 @@ import {
   requireOnSubteam,
   revealTeamHeader,
   secondInNoSubteam,
+  secondRoleIn,
   shownInside,
   tapHeaderAction,
   tapHeaderAddInvite,
@@ -142,10 +143,7 @@ describe('teams members', function () {
   }
   const restoreMade = async () => {
     const email = invitedEmail
-    for (const name of [...madeNames]) {
-      await masked(async () => restoreName(name, email))
-      madeNames.delete(name)
-    }
+    await drainMade(madeNames, async name => restoreName(name, email))
     invitedEmail = undefined
   }
 
@@ -158,14 +156,7 @@ describe('teams members', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  // The second account's role in a subteam ('none' when it is not in it), and whether the same read
-  // has the smoke account in it (the anchor for its absence). Bound: one CLI read 255.
-  const rolesIn = async (name: string) => {
-    const {secondUser, smokeUser} = loadE2EAccounts()
-    const roles = await memberRoles(name)
-    return {anchored: smokeUser in roles, second: roles[secondUser] ?? 'none'}
-  }
-  const secondOut = (r: Awaited<ReturnType<typeof rolesIn>>) => r.anchored && r.second === 'none'
+  const secondOut = (r: Awaited<ReturnType<typeof secondRoleIn>>) => r.anchored && r.second === 'none'
 
   // The usernames with a request to join a subteam, read through the CLI. Bound: 255.
   const requesters = async (name: string) => {
@@ -249,7 +240,7 @@ describe('teams members', function () {
     const {secondUser} = loadE2EAccounts()
     const {name} = await makeOwnSubteam('prf', madeNames)
     const teamID = await masked(async () => hostTeamID(name))
-    check((await masked(async () => rolesIn(name))).second === 'none', 'the second account is already in the new subteam')
+    check((await masked(async () => secondRoleIn(name))).second === 'none', 'the second account is already in the new subteam')
     // the picker finds a picked team's id in the app's teams list, which hears of a subteam the host
     // made once it loads again: the Teams tab lists the subteam before the profile is opened
     await retriedNavigation("the subteam's page", async () => openTeamFromList(name, teamID), {intervals: [2_000], timeout: 60_000})
@@ -288,7 +279,7 @@ describe('teams members', function () {
     await tapButton('Add to team', "the picker's Add to team")
     await waitForUiCall('the add to go out', seq, 'keybase.1.teams.teamAddMember')
     check((await uiCallsSince(seq, 'keybase.1.teams.teamAddMember')).length === 1, 'the picker sent an add for more than one team')
-    await expectHost("the second account's role after Add to team", async () => rolesIn(name), r => r.second === 'writer')
+    await expectHost("the second account's role after Add to team", async () => secondRoleIn(name), r => r.second === 'writer')
     // the picker closes back to the profile
     await expectScreen('the profile after the add', 'profile', onSecond)
     await step('The second account added', {card: true})
@@ -370,7 +361,7 @@ describe('teams members', function () {
     await tapButton('Invite 1 person & finish', "the confirm's Invite 1 person & finish")
     await waitForUiCall('the invite to go out', seq, 'keybase.1.teams.teamAddMembersMultiRole')
     await expectTeamPage('the subteam page after the wizard', teamID)
-    await expectHost("the second account's role after the wizard", async () => rolesIn(name), r => r.second === 'reader')
+    await expectHost("the second account's role after the wizard", async () => secondRoleIn(name), r => r.second === 'reader')
     await memberRow(secondUser, "the second account's member row")
     await step('The second account added as a reader', {card: true})
   })
@@ -402,7 +393,7 @@ describe('teams members', function () {
     })
     if (!seq) throw new Error('the role was saved before its call-log mark was taken')
     await waitForUiCall('the role change to go out', seq, 'keybase.1.teams.teamEditMembers')
-    await expectHost("the second account's role after Save", async () => rolesIn(name), r => r.second === 'writer')
+    await expectHost("the second account's role after Save", async () => secondRoleIn(name), r => r.second === 'writer')
     await waitFor(
       "the subteam row's role to read Writer",
       async () => {
@@ -513,7 +504,7 @@ describe('teams members', function () {
       m => !m.includes(secondUser) && m.includes(smokeUser)
     )
     check((await masked(async () => channelMembers(name, channels[1]))).includes(secondUser), 'the second account left the other channel too')
-    check((await masked(async () => rolesIn(name))).second === 'writer', 'the second account is no longer a writer in the subteam')
+    check((await masked(async () => secondRoleIn(name))).second === 'writer', 'the second account is no longer a writer in the subteam')
     await step('The second account removed from the first channel')
   })
 
@@ -547,12 +538,12 @@ describe('teams members', function () {
     let seq = await currentCallSeq()
     await tapButton('Kick out', "the confirm's Kick out")
     await waitForUiCall('the removal to go out', seq, 'keybase.1.teams.teamRemoveMember')
-    await expectHost('the second account out of the subteam', async () => rolesIn(name), secondOut)
+    await expectHost('the second account out of the subteam', async () => secondRoleIn(name), secondOut)
     await step('Removed from the selection popup', {card: true})
 
     // -- back in through the host, then the row menu's Remove from team -----------------------------
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
-    await expectHost('the second account back in the subteam', async () => rolesIn(name), r => r.second === 'writer')
+    await expectHost('the second account back in the subteam', async () => secondRoleIn(name), r => r.second === 'writer')
     // a page opened afresh carries no selection, so the row draws its menu button
     await openSubteamUntil("the subteam's members with the second account back", name, teamID, MEMBERS, secondsRow)
     check(!(await onScreenID(T.TEAMS_SELECTION_POPUP)), 'a member is still selected on the reopened page')
@@ -564,7 +555,7 @@ describe('teams members', function () {
     // never Block, the item below it
     await chooseMenuItem('Remove from team')
     await waitForUiCall('the removal to go out', seq, 'keybase.1.teams.teamRemoveMember')
-    await expectHost('the second account out of the subteam again', async () => rolesIn(name), secondOut)
+    await expectHost('the second account out of the subteam again', async () => secondRoleIn(name), secondOut)
     await step('Removed from the row menu')
   })
 
@@ -634,7 +625,7 @@ describe('teams members', function () {
     // the same read still has the smoke account in the subteam
     await expectHost(
       "the subteam's invites after Cancel invite",
-      async () => ({invites: await inviteNames(name), roles: await rolesIn(name)}),
+      async () => ({invites: await inviteNames(name), roles: await secondRoleIn(name)}),
       r => !r.invites.includes(email) && r.roles.anchored
     )
     await waitFor(
@@ -680,7 +671,7 @@ describe('teams members', function () {
     // the subteam's members read alongside: the smoke account in it, the second account not let in
     await expectHost(
       'the request gone',
-      async () => ({requests: await requesters(name), roles: await rolesIn(name)}),
+      async () => ({requests: await requesters(name), roles: await secondRoleIn(name)}),
       r => !r.requests.includes(secondUser) && secondOut(r.roles)
     )
     await waitFor(

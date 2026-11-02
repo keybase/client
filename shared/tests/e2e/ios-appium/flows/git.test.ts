@@ -16,7 +16,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {deleteRepoIfPresent, personalRepo, repoGone, repoListed, repoUrl, teamRepo, teamRepoChat, type RepoRef} from '../../shared/git.ts'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {deleteSubteamIfPresent, makeSubteamChannel} from '../../shared/teams.ts'
+import {makeSubteamChannel} from '../../shared/teams.ts'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {pasteboardText, setPasteboard} from '../gate/device'
@@ -30,7 +30,18 @@ import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, dragSheetUp, onScreen, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 import {labelHas, labelParts, sourceElements} from '../gate/page-source-lib.ts'
-import {expectHost, makeOwnSubteamWithID, masked, onlyField, openTeamFromList, requireOnSubteam, TEXT_TYPES, textPartShown, TEXTS} from '../helpers/teams'
+import {
+  drainMade,
+  expectHost,
+  makeOwnSubteamWithID,
+  masked,
+  onlyField,
+  openTeamFromList,
+  requireOnSubteam,
+  TEXT_TYPES,
+  textPartShown,
+  TEXTS,
+} from '../helpers/teams'
 
 type Params = Record<string, unknown>
 
@@ -82,10 +93,7 @@ describe('git', function () {
       await masked(async () => deleteRepoIfPresent(r))
       madeRepos.delete(r)
     }
-    for (const name of [...madeNames]) {
-      await masked(async () => deleteSubteamIfPresent(name))
-      madeNames.delete(name)
-    }
+    await drainMade(madeNames)
   }
 
   // Worst case (s): the pasteboard 50, a team repo 1020, the one name of a test 750, close 19,

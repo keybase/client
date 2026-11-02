@@ -20,7 +20,6 @@ import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {
   conversationInfo,
-  deleteSubteamIfPresent,
   freshSubteamPart,
   makeSubteamChannel,
   requireThisRunSubteam,
@@ -41,6 +40,7 @@ import {check, chooseMenuItem, onScreen, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
+  drainMade,
   expectHost,
   expectTeamPage,
   makeOwnSubteam,
@@ -88,12 +88,7 @@ describe('teams subteams', function () {
 
   // Bound: 750 a name (deleteSubteamIfPresent: an existence read 315, the delete 90, 30s of reads
   // overrun by one 315).
-  const deleteMade = async () => {
-    for (const name of [...madeNames]) {
-      await masked(async () => deleteSubteamIfPresent(name))
-      madeNames.delete(name)
-    }
-  }
+  const deleteMade = async () => drainMade(madeNames)
 
   // Worst case (s): close 19, keyboard 5, two names 1500, escape 30 = 1554.
   afterEach(async function () {

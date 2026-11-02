@@ -17,15 +17,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {convIDBytes} from '../../shared/conv-id.ts'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {
-  deleteSubteamIfPresent,
-  mainRead,
-  makeSubteamChannel,
-  requireThisRunSubteam,
-  runChatApi,
-  subteamExists,
-  teamID as hostTeamID,
-} from '../../shared/teams.ts'
+import {mainRead, makeSubteamChannel, requireThisRunSubteam, runChatApi, subteamExists, teamID as hostTeamID} from '../../shared/teams.ts'
 import {creditSurface} from '../gate/attempt'
 import {elementInRow, innermost} from '../gate/chat-lib.ts'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
@@ -48,6 +40,7 @@ import {check, chooseMenuItem, elementWithLabelPartIn, onScreen, openMenuFrom, p
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
+  drainMade,
   expectHost,
   expectTeamPage,
   makeOwnSubteam,
@@ -142,10 +135,7 @@ describe('teams settings', function () {
       await masked(async () => unfeature(name))
       featured.delete(name)
     }
-    for (const name of [...madeNames]) {
-      await masked(async () => deleteSubteamIfPresent(name))
-      madeNames.delete(name)
-    }
+    await drainMade(madeNames)
   }
 
   // Worst case (s): close 19, keyboard 5, unfeature 1680, the one name of a test 750, escape 30 = 2484.

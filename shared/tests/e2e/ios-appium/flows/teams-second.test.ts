@@ -26,7 +26,7 @@ import {rememberInviteLink} from '../../shared/gate/secret-scan.ts'
 import {runKeybase} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {addToSubteamFromCli, deleteSubteamIfPresent, memberRoles, requireThisRunSubteam, subteamExists} from '../../shared/teams.ts'
+import {addToSubteamFromCli, deleteSubteamIfPresent, requireThisRunSubteam, subteamExists} from '../../shared/teams.ts'
 import {appAccount, asSecond, restoreToSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
@@ -44,6 +44,7 @@ import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamsRoot,
+  drainMade,
   expectHost,
   makeOwnSubteamWithID,
   masked,
@@ -53,6 +54,7 @@ import {
   requireOnSubteam,
   revealTeamHeader,
   secondInNoSubteam,
+  secondRoleIn,
   tapTeamsCard,
   textShown,
 } from '../helpers/teams'
@@ -141,15 +143,11 @@ describe('teams second account', function () {
 
   // Bound: 1575 a name (exists 315, removeSecond 510, deleteSubteamIfPresent 750: an existence read
   // 315, the delete 90, 30s of reads overrun by one 315).
-  const restoreMade = async () => {
-    for (const name of [...madeNames]) {
-      await masked(async () => {
-        if (await subteamExists(name)) await removeSecond(name)
-        await deleteSubteamIfPresent(name)
-      })
-      madeNames.delete(name)
-    }
-  }
+  const restoreMade = async () =>
+    drainMade(madeNames, async name => {
+      if (await subteamExists(name)) await removeSecond(name)
+      await deleteSubteamIfPresent(name)
+    })
 
   // Worst case (s): the field 27, the pasteboard 50, the one name of a test 1575, the memberships
   // 160, close 19, keyboard 5, restoreToSmoke 275, escape 30 = 2141.
@@ -181,13 +179,6 @@ describe('teams second account', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  // The second account's role in a subteam ('none' when it is not in it), and whether the same read
-  // has the smoke account in it (the anchor for its absence). Bound: one CLI read 255.
-  const rolesIn = async (name: string) => {
-    const {secondUser, smokeUser} = loadE2EAccounts()
-    const roles = await memberRoles(name)
-    return {anchored: smokeUser in roles, second: roles[secondUser] ?? 'none'}
-  }
 
   // Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
   // does to paste. The pasteboard is set before. Bound: the tap 1, six tries of the hold 1.3 and 1.5
@@ -212,7 +203,7 @@ describe('teams second account', function () {
     // (20, one read 1) and its tap 1, step 2; then polled 285, step 2 = 2428
     this.timeout(2_450_000)
     const {name, teamID} = await makeOwnSubteamWithID('lnk', madeNames)
-    check((await masked(async () => rolesIn(name))).second === 'none', 'the second account is already in the new subteam')
+    check((await masked(async () => secondRoleIn(name))).second === 'none', 'the second account is already in the new subteam')
     const link = await makeInviteLink(name)
 
     await asSecond(async () => {
@@ -259,7 +250,7 @@ describe('teams second account', function () {
       creditSurface('pasteboard')
       await step('Joined from the pasted link')
     })
-    await expectHost("the second account's role after the join", async () => rolesIn(name), r => r.second === 'reader')
+    await expectHost("the second account's role after the join", async () => secondRoleIn(name), r => r.second === 'reader')
     await step('The second account in the subteam', {card: true})
   })
 
@@ -272,7 +263,7 @@ describe('teams second account', function () {
     const {secondUser} = loadE2EAccounts()
     const {name, teamID} = await makeOwnSubteamWithID('lve', madeNames)
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
-    await expectHost('the second account in the subteam', async () => rolesIn(name), r => r.second === 'writer')
+    await expectHost('the second account in the subteam', async () => secondRoleIn(name), r => r.second === 'writer')
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
     await asSecond(async () => {
@@ -306,7 +297,7 @@ describe('teams second account', function () {
       check(after !== 'teamsRoot', 'the app now leaves the team page itself after a leave: drop this back step (PR 9)')
       await backToTeamsRoot('the team page after the leave')
     })
-    await expectHost('the second account out of the subteam', async () => rolesIn(name), r => r.anchored && r.second === 'none')
+    await expectHost('the second account out of the subteam', async () => secondRoleIn(name), r => r.anchored && r.second === 'none')
     await step('The second account left', {card: true})
   })
 
@@ -321,7 +312,7 @@ describe('teams second account', function () {
     // added without the chat message, so the second account has nothing of its own in the thread,
     // which would dismiss the invitation on its own
     await masked(async () => addToSubteamFromCli(name, secondUser, 'writer'))
-    await expectHost('the second account in the subteam', async () => rolesIn(name), r => r.second === 'writer')
+    await expectHost('the second account in the subteam', async () => secondRoleIn(name), r => r.second === 'writer')
     const onConversation = (p: Params) => p['conversationIDKey'] === generalConvID
     // The app's block buttons store for the subteam, once it has read the service's state: the row is
     // drawn from it, so an absent row means something only after this says loaded. Bound: one read 1.
