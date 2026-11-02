@@ -94,9 +94,10 @@ export const deviceListProblem = (shown: ReadonlyArray<string>, active: Readonly
 
 // The devices list's reads after a device add, from the app's call log (calls the UI sent since a mark
 // taken before the add): each deviceHistoryList that went out after the add was answered, with its
-// error if it failed. `settled` once the add was answered and the list has read since, every read is
-// answered and one of them succeeded: the list then shows what the service had then. A read that
-// failed leaves the list as it was, so it alone settles nothing.
+// error if it failed. `settled` once the add was answered and the latest read since then was answered
+// without an error: the list then shows what the service had then. An earlier read never answered
+// (cancelled, or its screen unmounted) does not hold it up; a failed latest read leaves the list as it
+// was, so it settles nothing.
 export const postAddListReads = (calls: ReadonlyArray<LoggedCall>): {settled: boolean; reads: Array<{answered: boolean; error?: string}>} => {
   const add = uiCallsOf(calls, 'keybase.1.device.deviceAdd').at(-1)
   if (!add?.answer) return {reads: [], settled: false}
@@ -104,7 +105,8 @@ export const postAddListReads = (calls: ReadonlyArray<LoggedCall>): {settled: bo
   const reads = uiCallsOf(calls, 'keybase.1.device.deviceHistoryList')
     .filter(c => c.seq > after)
     .map(c => (c.answer ? {answered: true, ...(c.answer.error === undefined ? {} : {error: c.answer.error})} : {answered: false}))
-  const settled = reads.length > 0 && reads.every(r => r.answered) && reads.some(r => r.error === undefined)
+  const latest = reads.at(-1)
+  const settled = !!latest?.answered && latest.error === undefined
   return {reads, settled}
 }
 

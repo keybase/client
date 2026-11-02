@@ -134,8 +134,8 @@ describe('device provision', function () {
         await step('Back on the devices list once the computer signed in')
 
         // The list refreshes itself after the add (on its focus and on the service's change to our
-        // user); findDeviceRow scans it once, so it waits for those reads to be answered first. A read
-        // can take seconds: one after an add re-fetches the account's keys.
+        // user); findDeviceRow scans it once, so it waits for the latest of those reads to come back
+        // good first. A read can take seconds: one after an add re-fetches the account's keys.
         const mark = addMark
         if (!mark) throw new Error('no call-log mark from before the add')
         const roles = [

@@ -110,13 +110,18 @@ describe('postAddListReads', () => {
     expect(postAddListReads(calls)).toEqual({reads: [], settled: false})
   })
 
-  test('a read still out, or only failed reads, settle nothing', () => {
+  test('a latest read still out, or failed, settles nothing', () => {
     const answered = {...add, answer: {afterSeq: 1}}
     expect(postAddListReads([answered, read(2, {afterSeq: 3}), read(3)]).settled).toBe(false)
-    expect(postAddListReads([answered, read(2, {afterSeq: 3, error: 'boom'})])).toEqual({
-      reads: [{answered: true, error: 'boom'}],
+    expect(postAddListReads([answered, read(2, {afterSeq: 3}), read(3, {afterSeq: 4, error: 'boom'})])).toEqual({
+      reads: [{answered: true}, {answered: true, error: 'boom'}],
       settled: false,
     })
+  })
+
+  test('an earlier read never answered does not hold up a good latest one', () => {
+    const calls = [{...add, answer: {afterSeq: 1}}, read(2), read(3, {afterSeq: 4})]
+    expect(postAddListReads(calls)).toEqual({reads: [{answered: false}, {answered: true}], settled: true})
   })
 
   test('a failed read and a later good one settle, keeping the failure', () => {
