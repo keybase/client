@@ -231,3 +231,19 @@ test('a body whose test function settled is ended without handing anything over'
   })
   expect(ended).toEqual(['a2'])
 })
+
+test('guarded hook work runs until its guard ends, then every check in it throws', async () => {
+  const b = createBinding<string>()
+  let release = () => {}
+  const gate = new Promise<void>(resolve => (release = resolve))
+  const {done, end} = b.runGuarded('a1', 'left cleanup', async () => {
+    b.requireCurrent()
+    expect(b.frame()?.value).toBe('a1')
+    await gate
+    b.requireCurrent()
+  })
+  await tick()
+  end()
+  release()
+  await expect(done).rejects.toThrow('attempt over: left cleanup')
+})

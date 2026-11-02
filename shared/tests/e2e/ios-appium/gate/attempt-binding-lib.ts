@@ -3,7 +3,8 @@
 // the body was still running: mocha timed it out). Code bound to an over body is work it left
 // running (a timed-out body's own chain, or a promise a finished body never awaited); every app
 // command checks its binding and refuses to run there.
-// A hook binds to no body, so it is never refused.
+// A hook binds to no body, so it is never refused, except work a hook runs in a guard (runGuarded),
+// which is refused once the hook stops waiting for it.
 import {AsyncLocalStorage} from 'async_hooks'
 
 const OVER = 'attempt over: '
@@ -14,13 +15,16 @@ export const isAttemptOver = (e: unknown) => e instanceof Error && e.message.sta
 
 // settled: the test's own function settled, though wdio's wrapper around it (afterTest) may still run
 type Body<T> = {title: string; over: boolean; settled: boolean; value: T}
+type Guard = {title: string; over: boolean}
 
-export type Frame<T> = {value: T; body?: Body<T>}
+export type Frame<T> = {value: T; body?: Body<T>; guard?: Guard}
 
 // Why code bound to `frame` may not drive the app, or undefined when it may: outside any attempt,
 // in a hook, or in a body mocha is still running.
-export const refusal = <T>(frame: Frame<T> | undefined): string | undefined =>
-  frame?.body?.over ? attemptOverMessage(frame.body.title) : undefined
+export const refusal = <T>(frame: Frame<T> | undefined): string | undefined => {
+  const over = frame?.body?.over ? frame.body : frame?.guard?.over ? frame.guard : undefined
+  return over ? attemptOverMessage(over.title) : undefined
+}
 
 // `ended` is told of each body ended while its test function still ran (by endRunningBodies or
 // endCurrentBody), not of one that settled.
@@ -42,6 +46,17 @@ export const createBinding = <T>(ended: (value: T) => void = () => {}) => {
       } finally {
         body.over = true
         running.delete(body)
+      }
+    },
+    // Runs `fn` as `value` bound to no body, and refused as `title` once `end` is called: work a hook
+    // gives up on (its deadline passed) cannot drive the app after the hook moves on.
+    runGuarded: <R>(value: T, title: string, fn: () => Promise<R>): {done: Promise<R>; end: () => void} => {
+      const guard: Guard = {over: false, title}
+      return {
+        done: store.run({guard, value}, fn),
+        end: () => {
+          guard.over = true
+        },
       }
     },
     // For the test's own function, as it settles: the body ends on its own from here, so ending it

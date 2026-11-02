@@ -25,6 +25,7 @@ import {
   requireCurrentAttempt,
   runAttempt,
   runAttemptBody,
+  runLeftSteps,
   settleBody,
   takeLeftCleanup,
 } from './attempt'
@@ -302,6 +303,55 @@ test("wdio's afterTest on a body whose test function settled hands nothing over"
   expect(ran).toEqual(['restore'])
   expect(takeLeftCleanup(a)).toBeUndefined()
   expect(readAttempts().map(r => r.status)).toEqual(['passed'])
+})
+
+test('the steps a body left are stopped at their deadline: their next app command throws', async () => {
+  const a = beginAttempt(file, ['d', 'slow cleanup'], 0)
+  let release = () => {}
+  const stuck = new Promise<void>(resolve => (release = resolve))
+  const seen: Array<string> = []
+  let after: Promise<void> = Promise.resolve()
+  const slow = async () => {
+    requireCurrentAttempt()
+    seen.push('slow started')
+    after = (async () => {
+      await stuck
+      try {
+        requireCurrentAttempt()
+        seen.push('slow drove the app')
+      } catch (e) {
+        seen.push(e instanceof Error ? e.message : String(e))
+      }
+    })()
+    await after
+  }
+  const errors = await runLeftSteps(a, [() => seen.push('first'), slow, () => seen.push('never')], 20, 'left steps')
+  expect(errors).toEqual(['left steps: not done in 0.02s; stopped it'])
+  release()
+  await after
+  await tick()
+  expect(seen).toEqual(['first', 'slow started', 'attempt over: left steps'])
+})
+
+test('the steps a body left run as the attempt, each whether an earlier one threw', async () => {
+  const a = beginAttempt(file, ['d', 'left'], 0)
+  const seen: Array<string> = []
+  const errors = await runLeftSteps(
+    a,
+    [
+      () => {
+        throw new Error('first failed')
+      },
+      () => {
+        requireCurrentAttempt()
+        seen.push('second')
+      },
+    ],
+    5_000,
+    'left steps'
+  )
+  expect(errors).toEqual(['first failed'])
+  expect(seen).toEqual(['second'])
 })
 
 test("a body that settles keeps nothing for the root afterEach, and a hook's cleanup is never kept", async () => {

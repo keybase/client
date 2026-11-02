@@ -7,7 +7,6 @@ import * as path from 'path'
 import {HANG_SETTLE_MS, settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
 import {setBeforeCleanupSteps, setCleanupStepKeeper} from '../../shared/cleanup.ts'
 import {CRASH_RECOVERY_MS, crashDuringAttempt, recoverGoneApp, settleCrashRecovery} from './crash.ts'
-import {withDeadline} from '../../shared/deadline.ts'
 import {
   addEndedAttemptError,
   beginAttempt,
@@ -20,6 +19,7 @@ import {
   recordSkipped,
   runAttempt,
   runAttemptBody,
+  runLeftSteps,
   settleBody,
   takeLeftCleanup,
   type AttemptToken,
@@ -182,26 +182,14 @@ const LEFT_CLEANUP_MS = 1_000_000
 // cleanup had left runs here instead, after the relaunch, and then the app is put back on the smoke
 // account and read back (every flow ends there). Returns why it failed, if it did.
 const runLeftCleanup = async (token: AttemptToken, steps: Array<() => unknown>): Promise<string | undefined> => {
-  const errors: Array<string> = []
-  const all = async () => {
-    for (const s of steps) {
-      try {
-        await runAttempt(token, s)
-      } catch (e) {
-        errors.push(message(e))
-      }
-    }
+  const backOnSmoke = async () => {
     try {
-      await runAttempt(token, restoreToSmoke)
+      await restoreToSmoke()
     } catch (e) {
-      errors.push(`putting the app back on the smoke account: ${message(e)}`)
+      throw new Error(`putting the app back on the smoke account: ${message(e)}`, {cause: e})
     }
   }
-  try {
-    await withDeadline(all(), LEFT_CLEANUP_MS, 'the cleanup the ended body left')
-  } catch (e) {
-    errors.push(message(e))
-  }
+  const errors = await runLeftSteps(token, [...steps, backOnSmoke], LEFT_CLEANUP_MS, 'the cleanup the ended body left')
   return errors.length ? `the cleanup its body left, run once the gate ended the body, failed: ${errors.join('; ')}` : undefined
 }
 

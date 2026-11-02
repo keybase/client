@@ -150,6 +150,37 @@ export const takeLeftCleanup = (token: AttemptToken): Array<() => unknown> | und
   return left
 }
 
+// For the root afterEach: runs the steps a body left as the attempt, each whether an earlier one
+// threw, within `ms`. At the deadline the work is refused from then (its next app command throws
+// attempt over, and no later step starts), so nothing it still runs drives the app into the next
+// test. Returns each failure.
+export const runLeftSteps = async (token: AttemptToken, steps: ReadonlyArray<() => unknown>, ms: number, what: string): Promise<Array<string>> => {
+  const errors: Array<string> = []
+  const {done, end} = binding.runGuarded(token as Running, what, async () => {
+    for (const s of steps) {
+      if (refusal(binding.frame())) return
+      try {
+        await s()
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : String(e))
+      }
+    }
+  })
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timedOut = new Promise<'timeout'>(resolve => {
+    timer = setTimeout(() => resolve('timeout'), ms)
+  })
+  try {
+    if ((await Promise.race([done, timedOut])) === 'timeout') {
+      end()
+      return [...errors, `${what}: not done in ${ms / 1000}s; stopped it`]
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+  return errors
+}
+
 // Throws `attempt over: <test title>` in a test body that is over; nothing in a hook or outside an
 // attempt. Every command that reaches the app calls this first.
 export const requireCurrentAttempt = () => binding.requireCurrent()
