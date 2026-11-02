@@ -41,7 +41,7 @@ import {
   withSignalsDeferred,
 } from './peer-homes.ts'
 import {ensureRunId} from './run-id.ts'
-import {maskAccounts} from './sweep-lib.ts'
+import {maskAccounts, signedInName} from './sweep-lib.ts'
 import {E2E_CHANNELS} from '../shared/chat-data.ts'
 import {keybaseBin} from '../shared/keybase-bin.ts'
 import {connectPeerRpc} from '../shared/peer-rpc.ts'
@@ -81,9 +81,11 @@ const loadVars = (): Vars => {
   return vars
 }
 
+const usersOf = (vars: Vars) => ({second: vars['KB_SECOND_USER'] ?? '', smoke: vars['KB_SMOKE_USER'] ?? ''})
+
 // A line for the console, with the test accounts and team named by role.
 const masked = (s: string, vars: Vars) =>
-  maskAccounts(s, {team: vars['KB_E2E_TEAM'] ?? '', users: {second: vars['KB_SECOND_USER'] ?? '', smoke: vars['KB_SMOKE_USER'] ?? ''}})
+  maskAccounts(s, {team: vars['KB_E2E_TEAM'] ?? '', users: usersOf(vars)})
 
 const userFor = (role: PeerRole, vars: Vars) => (role === 'owner' ? vars['KB_SMOKE_USER'] : vars['KB_SECOND_USER']) ?? ''
 
@@ -123,7 +125,7 @@ const problemsFor = async (role: PeerRole, vars: Vars): Promise<string[]> => {
     problems.push(`peer ${role} at ${target} is not running`)
   } else {
     const who = await peerWhoami(target)
-    if (who !== user) problems.push(masked(`peer ${role} at ${target} is signed in as ${who || 'nobody'}`, vars))
+    if (who !== user) problems.push(masked(`peer ${role} at ${target} is signed in as ${signedInName(who, usersOf(vars))}`, vars))
   }
   return problems
 }
@@ -250,7 +252,7 @@ const provisionHome = async (role: PeerRole, home: string, user: string, paperKe
   await waitForPeerService(role, home)
   const who = await peerWhoami(home)
   if (who === user) return
-  if (who) throw new Error(masked(`peer ${role} at ${home} is signed in as ${who}; not touching it`, vars))
+  if (who) throw new Error(masked(`peer ${role} at ${home} is signed in as ${signedInName(who, usersOf(vars))}; not touching it`, vars))
   for (const name of deviceNameCandidates(role)) {
     try {
       await runKeybase(['--home', home, 'login', '--devicename', name, user], {

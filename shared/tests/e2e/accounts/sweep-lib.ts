@@ -237,7 +237,7 @@ export const candidateKey = (c: SweepCandidate) =>
 export const checkDelete = (c: SweepCandidate, ctx: SweepContext, actingUser: string) => {
   const refuse = (why: string) => new Error(`refusing to delete ${describeCandidate(c)}: ${why}`)
   if (actingUser !== ctx.users[c.account]) {
-    throw refuse(`the acting service is signed in as ${maskAccounts(actingUser, ctx) || 'nobody'}, not the ${c.account} account`)
+    throw refuse(`the acting service is signed in as ${signedInName(actingUser, ctx.users)}, not the ${c.account} account`)
   }
   const v = judge(c, ctx)
   if (v.to === 'drop') throw refuse('no e2e prefix, or outside its scope')
@@ -255,6 +255,17 @@ export const parseKbfsLs = (out: string) =>
       return {isDir: fields[1] === '<DIR>', name: fields[fields.length - 1] ?? ''}
     })
     .filter(e => e.name !== '.' && e.name !== '..')
+
+// A signed-in username for a refusal: a test account by role, any other (possibly a personal one)
+// not by name.
+export const signedInName = (name: string, users: SweepContext['users']) =>
+  !name
+    ? 'nobody'
+    : name === users.smoke
+      ? '<smoke>'
+      : name === users.second
+        ? '<second>'
+        : 'an account that is neither KB_SMOKE_USER nor KB_SECOND_USER'
 
 // Output names the test accounts and team only by role.
 export const maskAccounts = (s: string, ctx: Pick<SweepContext, 'team' | 'users'>) =>
