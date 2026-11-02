@@ -40,7 +40,6 @@ import {
   composerText,
   currentRoute,
   dragUntilOnScreen,
-  editCancel,
   elementWithLabelPartIn,
   expectRoute,
   galleryListing,
@@ -53,12 +52,13 @@ import {
   openInfoPanel,
   openMessageMenu,
   ordinalsWithText,
-  replyPreview,
+  resetComposer,
   scrollInboxTo,
   scrollInboxToEnd,
   scrollRowIntoView,
   sendMessage,
   storedAttachment,
+  suggestionRows,
   tapButton,
   typeInComposer,
   typeInSearchFilter,
@@ -66,7 +66,7 @@ import {
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
-import {byText, el, els} from '../helpers/elements'
+import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, goBackUntilGone, navigateToChat} from '../helpers/navigate'
 
@@ -128,21 +128,17 @@ describe('chat views', function () {
     }
   }
 
-  // e2e-scratch's composer empty, with no reply or edit under way. Bound: open 100, the reply bar 5
-  // and its wait 5, the edit bar 5 and its wait 5, clear 21 = 141.
+  // e2e-scratch's composer empty, with no reply or edit under way. Bound: open 100, resetComposer
+  // 46 = 146.
   const resetScratch = async () => {
     if (!scratchComposerUsed) return
     await openConversation(scratch())
-    if (await el(T.CHAT_REPLY_CANCEL).isExisting()) await el(T.CHAT_REPLY_CANCEL).click()
-    await replyPreview().waitForExist({reverse: true, timeout: 5_000})
-    if (await editCancel().isExisting()) await editCancel().click()
-    await editCancel().waitForExist({reverse: true, timeout: 5_000})
-    await clearComposer()
+    await resetComposer()
     scratchComposerUsed = false
   }
 
   // Nothing a test opened or changed left behind, after a timeout too. The host's deletes go first.
-  // Worst case (s): close 5, keyboard 5, a channel 120, scratch 141, escape 30 = 301.
+  // Worst case (s): close 5, keyboard 5, a channel 120, scratch 146, escape 30 = 306.
   afterEach(async function () {
     this.timeout(320_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteChannels, resetScratch, escapeToTabs])
@@ -250,12 +246,6 @@ describe('chat views', function () {
     await step('Back in the conversation, the composer showing', {card: true})
   })
 
-  // A user row holds an account name, so the rows are picked by their words in memory.
-  const suggestionWords = async () => {
-    const found = [...(await els(T.CHAT_SUGGESTION_ROW).getElements()), ...(await els(T.CHAT_SUGGESTION_ROW_SELECTED).getElements())]
-    return Promise.all(found.map(async e => ((await e.getAttribute('label')) ?? '').split(/[ ,]+/).filter(w => !!w)))
-  }
-
   // Types `text` into the empty composer, waits for the list to offer exactly one row `pick` takes,
   // then empties the composer and waits for the list to go. Bound: type 15, list 10, the row 10,
   // step 2, clear 21, gone 5 = 63.
@@ -265,7 +255,7 @@ describe('chat views', function () {
     await waitFor(
       `the suggestion row of ${what}`,
       async () => {
-        const rows = (await suggestionWords()).filter(pick)
+        const rows = (await suggestionRows()).filter(r => pick(r.words))
         if (rows.length > 1) throw new Error(`${rows.length} suggestion rows are ${what}`)
         return rows.length === 1 ? true : undefined
       },

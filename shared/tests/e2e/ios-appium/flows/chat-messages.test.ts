@@ -62,6 +62,7 @@ import {
   pinnedBanner,
   pressInlineText,
   readThread,
+  resetComposer,
   restoreAppSkinTone,
   sendMessage,
   shownSkinTone,
@@ -236,14 +237,13 @@ describe('chat messages', function () {
     skinToneBefore = undefined
   }
 
-  // e2e-scratch with no edit under way and an empty composer, and no outbox record of an over-length
-  // message left: the service keeps a failed record through reloads, and only the phone's own
-  // service has it, so it is cancelled there (recorder paused). Needs the app on the smoke account.
+  // e2e-scratch with no edit or reply under way and an empty composer, and no outbox record of an
+  // over-length message left: the service keeps a failed record through reloads, and only the
+  // phone's own service has it, so it is cancelled there (recorder paused). Needs the app on the
+  // smoke account.
   const resetScratch = async () => {
     await requireSmoke('resetting e2e-scratch')
     await openScratch()
-    if (await editCancel().isExisting()) await editCancel().click()
-    await editCancel().waitForExist({reverse: true, timeout: 5_000})
     if (tooLongMarker !== undefined) {
       // the thread brings the outbox records with its first load
       await waitFor('e2e-scratch to load', async () => ((await readThread())?.ordinals.length ? true : undefined), {
@@ -253,14 +253,14 @@ describe('chat messages', function () {
       await cancelAppOutbox(await outboxIDsWithText(tooLongMarker))
       tooLongMarker = undefined
     }
-    await clearComposer()
+    await resetComposer()
   }
 
   // Back on smoke with nothing a test changed left behind, after a timeout too. The host's restores
   // go first; the phone's need the app back on smoke. Worst case (s): close 5, keyboard 5, the
   // exploding mode 245 (a read 75, the dismiss 75 and its poll 95), a channel 120, restore 275, the
-  // skin tone 85 (the account 10, three asks), scratch 161 (the account 10, open 100, the edit bar 5 and
-  // its wait 5, the load 15, the ids 1, one cancel 25) and its clear 21 = 917.
+  // skin tone 85 (the account 10, three asks), scratch 197 (the account 10, open 100, the load 15, the
+  // ids 1, one cancel 25, resetComposer 46) = 932.
   afterEach(async function () {
     this.timeout(940_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, resetExplodingModes, deleteChannels, restoreToSmoke, restoreSkinTone, resetScratch])

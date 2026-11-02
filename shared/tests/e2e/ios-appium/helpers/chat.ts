@@ -7,7 +7,7 @@
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, fieldText, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
@@ -906,6 +906,27 @@ export const typeInComposer = async (text: string) => {
 export const clearComposer = async () => {
   await clearFieldByKeys(el(T.CHAT_INPUT))
   await waitForComposerText('')
+}
+
+// Ends whatever the open conversation's composer holds (an edit, a reply, text), which saves an
+// empty draft; nothing where the conversation draws no composer. Cleanup only: it does what the
+// composer needs, whatever a test left. Bound: the composer read 5, the edit bar 5 and its wait 5,
+// the reply bar 5 and its wait 5, clear 21 = 46.
+export const resetComposer = async () => {
+  if (!(await el(T.CHAT_INPUT).isExisting())) return
+  if (await editCancel().isExisting()) await editCancel().click()
+  if (await replyPreview().isExisting()) await el(T.CHAT_REPLY_CANCEL).click()
+  await editCancel().waitForExist({reverse: true, timeout: 5_000})
+  await replyPreview().waitForExist({reverse: true, timeout: 5_000})
+  await clearComposer()
+}
+
+// The open suggestion list's rows, each with the words of its label (a row's label merges what it
+// shows); the highlighted one carries its own testID. A user row holds an account name, so callers
+// pick rows by their words in memory.
+export const suggestionRows = async () => {
+  const found = [...(await els(T.CHAT_SUGGESTION_ROW).getElements()), ...(await els(T.CHAT_SUGGESTION_ROW_SELECTED).getElements())]
+  return Promise.all(found.map(async e => ({e, words: ((await e.getAttribute('label')) ?? '').split(/[ ,]+/).filter(w => !!w)})))
 }
 
 // Sends `text` through the composer's send button and returns the ordinal of its row.

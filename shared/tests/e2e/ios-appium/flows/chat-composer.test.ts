@@ -47,12 +47,14 @@ import {
   openThreadSearch,
   ordinalsWithText,
   replyPreview,
+  resetComposer,
   scrollInboxTo,
   searchOpen,
   sendMessage,
   showsText,
   signedInAs,
   storedMessage,
+  suggestionRows,
   typeInComposer,
   typeIntoFocused,
   unreadCount,
@@ -97,17 +99,6 @@ describe('chat composer', function () {
 
   const openDirect = async () => openConversation(data.direct.convID)
   const openScratch = async () => openConversation(data.convIDs[E2E_CHANNELS.scratch])
-
-  // Ends whatever the composer holds (an edit, a reply, text), which saves an empty draft. Cleanup
-  // only: it does what the composer needs, whatever a test left.
-  const resetComposer = async () => {
-    if (!(await el(T.CHAT_INPUT).isExisting())) return
-    if (await editCancel().isExisting()) await editCancel().click()
-    if (await replyPreview().isExisting()) await el(T.CHAT_REPLY_CANCEL).click()
-    await editCancel().waitForExist({reverse: true, timeout: 5_000})
-    await replyPreview().waitForExist({reverse: true, timeout: 5_000})
-    await clearComposer()
-  }
 
   // Waits for the composer to read `text`, saying only `what`: for a text holding an account name.
   const composerReads = async (what: string, text: string, timeout = 5_000) =>
@@ -489,20 +480,9 @@ describe('chat composer', function () {
       await step('The reply bar closed', {card: true})
     })
 
-    // The open list's rows with their labels (a row's label merges what it shows); the highlighted
-    // one carries its own testID.
-    const suggestionRows = async () => {
-      const found = [
-        ...(await els(T.CHAT_SUGGESTION_ROW).getElements()),
-        ...(await els(T.CHAT_SUGGESTION_ROW_SELECTED).getElements()),
-      ]
-      return Promise.all(found.map(async e => ({e, label: ((await e.getAttribute('label')) ?? '').trim()})))
-    }
-    const words = (label: string) => label.split(/[ ,]+/).filter(w => !!w)
-
     // Types `text` into the empty composer of e2e-scratch and waits for the one row `pick` takes,
     // saying only `what` (a user row holds an account name).
-    const openListAndFind = async (text: string, what: string, pick: (label: string) => boolean) => {
+    const openListAndFind = async (text: string, what: string, pick: (words: Array<string>) => boolean) => {
       await openScratch()
       await resetComposer()
       await typeInComposer(text)
@@ -510,7 +490,7 @@ describe('chat composer', function () {
       return waitFor(
         `the suggestion row of ${what}`,
         async () => {
-          const rows = (await suggestionRows()).filter(r => pick(r.label))
+          const rows = (await suggestionRows()).filter(r => pick(r.words))
           if (rows.length > 1) throw new Error(`${rows.length} suggestion rows are ${what}`)
           return rows[0]?.e
         },
@@ -523,7 +503,7 @@ describe('chat composer', function () {
       // list gone 5, composer 5, step 2 = 196
       this.timeout(200_000)
       const name = data.secondUser
-      const row = await openListAndFind(`@${name.slice(0, 3)}`, 'the second account', label => words(label)[0] === name)
+      const row = await openListAndFind(`@${name.slice(0, 3)}`, 'the second account', words => words[0] === name)
       await step('The @mention list shows the second account')
       await row.click()
       await el(T.CHAT_SUGGESTION_LIST).waitForExist({reverse: true, timeout: 5_000})
@@ -535,7 +515,7 @@ describe('chat composer', function () {
       // worst case (s): open 100, reset 46, type 15, the list 10, the row 10, step 2, the tap 1, the
       // list gone 5, composer 5, step 2 = 196
       this.timeout(200_000)
-      const row = await openListAndFind(':tada', 'tada', label => words(label).includes('tada'))
+      const row = await openListAndFind(':tada', 'tada', words => words.includes('tada'))
       await step('The emoji list shows tada')
       await row.click()
       await el(T.CHAT_SUGGESTION_LIST).waitForExist({reverse: true, timeout: 5_000})

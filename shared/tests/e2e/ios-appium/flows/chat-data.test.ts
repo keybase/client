@@ -44,6 +44,7 @@ import {
   closeMessageMenu,
   closeSearch,
   deletePhase,
+  type DeletePhase,
   dragThread,
   expectAtEnd,
   heldWaitingKeys,
@@ -54,8 +55,9 @@ import {
   openMessageMenu,
   openMessageMenuAt,
   openThreadSearch,
-  ordinalsWithText,
   orangeLineOrdinals,
+  ordinalsWithText,
+  resetComposer,
   scrollInboxTo,
   searchFor,
   sendMessage,
@@ -71,7 +73,6 @@ import {
   waitForRow,
   waitForThreadStable,
   watchAccountChange,
-  type DeletePhase,
 } from '../helpers/chat'
 import {el, els} from '../helpers/elements'
 import {openUrl, waitFor} from '../helpers/lifecycle'
@@ -465,14 +466,13 @@ describe('chat data', function () {
 
   describe('reply privately', () => {
     // The quote goes into the DM's composer, which saves it as its draft; after a timeout too.
-    // Worst case (s): keyboard 5, open 100, the tap 1, clear 21 = 127.
+    // Worst case (s): keyboard 5, open 100, resetComposer 46 = 151.
     afterEach(async function () {
-      this.timeout(150_000)
+      this.timeout(170_000)
       await withCleanup(hideKeyboard, [
         async () => {
           await openDirect()
-          if (await el(T.CHAT_REPLY_CANCEL).isExisting()) await el(T.CHAT_REPLY_CANCEL).click()
-          await clearComposer()
+          await resetComposer()
         },
       ])
     })
