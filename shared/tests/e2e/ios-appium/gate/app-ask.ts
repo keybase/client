@@ -7,6 +7,7 @@ import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
 import {LOCATION_PERMISSION, PUSH_HAS_PERMISSIONS, type LocationPermission} from './app-account-lib.ts'
 import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
+import {ASSET_ID_RE, type AssetInfo} from './save-photos-lib.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -402,30 +403,59 @@ export const mediaPermission = async () =>
        .then(r => ${MEDIA}.getPermissionsAsync(true).then(a => ({add: a.status, read: r.status, readAccess: r.accessPrivileges ?? 'none'})))`
   )
 
-export type SavedAsset = {filename: string; id: string}
+export type {AssetInfo}
 
-const newestAsset = `new (${MEDIA}.Query)().orderBy({ascending: false, key: 'creationTime'}).limit(1).exe().then(a => a[0])`
+// The ids of every asset in the phone's photo library: the read-back of what a save added is the id
+// that was not there before. It needs full photo access (requestFullPhotoAccess): without it the
+// library reads empty.
+export const libraryAssetIds = async () =>
+  askApp<Array<string>>('the photo library asset ids', `new (${MEDIA}.Query)().exe().then(all => all.map(a => a.id))`)
 
-// The newest asset in the phone's photo library (needs the photos grant), or undefined when it has
-// none: the read-back of what Save to Photos added.
-export const latestSavedAsset = async (): Promise<SavedAsset | undefined> =>
-  (await askApp<SavedAsset | null>(
-    "the newest photo library asset",
-    `${newestAsset}.then(a => (a ? a.getFilename().then(filename => ({filename, id: a.id})) : null))`
-  )) ?? undefined
+const requireAssetId = (id: string) => {
+  if (!ASSET_ID_RE.test(id)) throw new Error('refusing a photo library asset id that is not one')
+  return id
+}
 
-// a PHAsset local identifier, as expo-media-library gives it
-const assetIdRe = /^(?:ph:\/\/)?[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\/L0\/001$/i
+// The kind and pixel size of the asset `id`.
+export const assetInfo = async (id: string) =>
+  askApp<AssetInfo>(
+    'a photo library asset',
+    `new (${MEDIA}.Asset)(${JSON.stringify(requireAssetId(id))}).getInfo().then(i => ({height: i.height, mediaType: i.mediaType, width: i.width}))`
+  )
 
-// Deletes the asset the test saved, by its exact id, and only while it is still the library's
-// newest: anything else in the library is never touched. iOS asks to confirm, so the flow taps the
-// system prompt while this waits (`timeout`).
-export const deleteSavedAsset = async (id: string, timeout = 30_000) => {
-  if (!assetIdRe.test(id)) throw new Error('refusing a photo library asset id that is not one')
-  await askApp<boolean>(
-    "deleting the test's saved asset",
-    `${newestAsset}.then(a =>
-       a && a.id === ${JSON.stringify(id)} ? a.delete().then(() => true) : Promise.reject(new Error('the asset to delete is not the newest in the library')))`,
+// Asks iOS for full photo access through the app (no RPC). A simctl photos grant is not what PhotoKit
+// reads, so the system asks: the caller accepts that prompt (system-ui.ts grantFullPhotoAccess) while
+// this waits. Answers the photo permission as the app then reads it.
+export const requestFullPhotoAccess = async (timeout = 30_000) =>
+  askApp<{granted: boolean; readAccess: string}>(
+    'full photo access',
+    `${MEDIA}.requestPermissionsAsync(false).then(r => ({granted: !!r.granted, readAccess: r.accessPrivileges ?? 'none'}))`,
     timeout
   )
+
+// Deletes the asset `id`, one the test saved: refused, before any eval, for an id in `before` (the
+// library's ids before the test saved anything), so nothing else in the library is ever touched. iOS
+// asks to confirm, so the flow taps the system prompt while this waits (`timeout`; system-ui.ts
+// deleteSavedPhoto).
+export const deleteSavedAsset = async (id: string, before: ReadonlySet<string>, timeout = 30_000) => {
+  requireAssetId(id)
+  if (before.has(id)) throw new Error('refusing to delete a photo library asset that was there before the test saved')
+  await askApp<boolean>("deleting the test's saved asset", `new (${MEDIA}.Asset)(${JSON.stringify(id)}).delete().then(() => true)`, timeout)
 }
+
+// Whether the photo library still holds the asset `id` (a read over the whole library).
+export const libraryHasAsset = async (id: string) => {
+  requireAssetId(id)
+  return askApp<boolean>('the photo library holding an asset', `new (${MEDIA}.Query)().exe().then(all => all.some(a => a.id === ${JSON.stringify(id)}))`)
+}
+
+// The downloads the phone's service holds (a Save to Photos one included): each id, and whether it is
+// done or cancelled. A dismissed download is gone from it.
+export type PhoneDownload = {canceled: boolean; done: boolean; downloadID: string}
+
+export const phoneDownloads = async () =>
+  askApp<Array<PhoneDownload>>(
+    "the phone's downloads",
+    `${RPC_GEN}.SimpleFSSimpleFSGetDownloadStatusRpcPromise().then(s =>
+       (s.states || []).map(d => ({canceled: !!d.canceled, done: !!d.done, downloadID: d.downloadID})))`
+  )

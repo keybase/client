@@ -1,15 +1,20 @@
 // The settings pages the phone's More list opens, one test per row, view only: each row opens its
 // page, read by its route and its testID. Feedback is opened and its Send is seen, never pressed; the
 // Wallet page is read by its testID alone (payments are no longer supported). About's "Terms and
-// Conditions" opens the in-app keybase.io view (webLinks) and goes back to About.
+// Conditions" opens the in-app keybase.io view (webLinks) and goes back to About. The Contacts page
+// is opened and read only: its "Import phone contacts" is never pressed, and opening it must send no
+// contacts call and raise no system prompt (the page loads the import setting, and with it may write
+// the address book, only when the app has not loaded it yet, so that is checked before the tap).
 import * as T from '../../shared/test-ids'
+import {callsSince, currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
+import {systemAlertUp} from '../gate/system-ui'
 import {hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
-import {waitFor} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, labelledElement, onScreen} from '../helpers/menus'
-import {escapeToTabs, goBack} from '../helpers/navigate'
+import {escapeToTabs, goBack, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
 
 const TERMS = 'https://keybase.io/_/webview/terms'
@@ -73,6 +78,39 @@ describe('settings subpages', function () {
       await step(`The ${page.row} settings page`, {card: true})
     })
   }
+
+  it('the Contacts page opens view only: no contacts call and no system prompt', async function () {
+    // worst case (s): more 50, the setting 1, calls 2, row 26, screen 11, marker 10, its button 6
+    // (5s of reads, overrun by one 1), calls 2, the alert read 1, step 2 = 111
+    this.timeout(150_000)
+    await escapeToTabs()
+    await navigateToMore()
+    // the page reads the import setting only when the app holds none, and that read is followed by a
+    // write of the address book (stores/settings-contacts.tsx manageContactsCache)
+    const loaded = await jsEval<boolean>(
+      "return kbModule('stores/settings-contacts.tsx').useSettingsContactsState.getState().importEnabled !== undefined"
+    )
+    check(loaded, 'the app has not loaded the contacts import setting: opening the page would write the address book, so it is not opened')
+    const mark = await currentCallSeq()
+    await scrollToTestID(T.SETTINGS_ROW_CONTACTS)
+    await el(T.SETTINGS_ROW_CONTACTS).click()
+    await expectScreen('the Contacts settings page', 'settingsTabs.contactsTab')
+    await el(T.SETTINGS_CONTACTS).waitForExist({timeout: 10_000, timeoutMsg: 'the Contacts settings page never drew'})
+    // drawn once the page has its import state: the anchor the absences below are read against;
+    // never pressed
+    await waitFor(
+      "the Contacts page's import button",
+      async () =>
+        (await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND (label == "Import phone contacts" OR label == "Remove contacts")').getElements()).length === 1
+          ? true
+          : undefined,
+      {interval: 250, timeout: 5_000}
+    )
+    const contactsCalls = (await callsSince(mark)).filter(c => c.method.startsWith('keybase.1.contacts.'))
+    check(!contactsCalls.length, `opening the Contacts page sent ${contactsCalls.length} contacts calls`)
+    check(!(await systemAlertUp()), 'opening the Contacts page raised a system prompt')
+    await step('The Contacts settings page', {card: true})
+  })
 
   it("About's Terms and Conditions open the in-app keybase.io view, and back to About", async function () {
     // worst case (s): openSettingsPage 126, step 2, the link 6 and its tap 1, screen 11, the web view 10, step

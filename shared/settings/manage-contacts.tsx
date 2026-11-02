@@ -4,6 +4,7 @@ import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {openAppSettings} from '@/util/storeless-actions'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -36,7 +37,7 @@ const ManageContacts = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.SETTINGS_CONTACTS}>
       <Kb.BoxGrow>
         <ManageContactsBanner />
         <SettingsSection>

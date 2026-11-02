@@ -14,6 +14,7 @@ import {
 } from '../helpers/lifecycle'
 import {tapElement, tapFrame} from '../helpers/files'
 import {e2eRunId} from '../../shared/run-marker.ts'
+import {deleteSavedAsset, libraryHasAsset, requestFullPhotoAccess} from './app-ask.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {sourceElements} from './page-source-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
@@ -244,3 +245,83 @@ export const closeSystemPickers = async () => {
   }
   clearGatePoison(SYSTEM_PICKERS)
 }
+
+// -- the photo library's system alerts -----------------------------------------------------------
+
+// XCUITest's answer when no system alert is up
+const NO_ALERT = /no such alert|modal dialog when one was not open/i
+
+// The system alert's text, or undefined when none is up. Bound: one read 1.
+const alertText = async () => {
+  try {
+    return await browser.getAlertText()
+  } catch (e) {
+    if (e instanceof Error && NO_ALERT.test(e.message)) return undefined
+    throw e
+  }
+}
+
+// An alert's button tapped while the alert still slides in does nothing (seen live: the tap
+// answered, the alert stayed up, and the ask it holds never answered), so a tap waits this long
+// after the alert is first read.
+const ALERT_SETTLE_MS = 1_000
+
+// Taps `button` on the system alert once one is up whose text `matches`, and waits for the alert to
+// go, tapping again only while that same alert is still up; an alert of any other text is never
+// tapped (it fails). Bound: `timeout` (its reads 1 each, the taps 1 each).
+const acceptAlert = async (what: string, matches: (text: string) => boolean, button: string, timeout = 20_000) => {
+  let seenAt: number | undefined
+  let tapped = false
+  await waitFor(
+    what,
+    async () => {
+      const text = await alertText()
+      if (text === undefined) return tapped ? true : undefined
+      if (!matches(text)) throw new Error(`${what}: another system alert is up`)
+      seenAt ??= Date.now()
+      if (Date.now() - seenAt < ALERT_SETTLE_MS) return undefined
+      await browser.execute('mobile: alert', {action: 'accept', buttonLabel: button})
+      tapped = true
+      return undefined
+    },
+    {interval: 500, timeout}
+  )
+}
+
+// Runs an ask of the app that waits on a system alert alongside the tap that answers it, and waits
+// for both, so neither is still running when this fails.
+const withAlert = async <R,>(ask: Promise<R>, tap: Promise<void>): Promise<R> => {
+  const [asked, tapped] = await Promise.allSettled([ask, tap])
+  if (tapped.status === 'rejected') throw tapped.reason
+  if (asked.status === 'rejected') throw asked.reason
+  return asked.value
+}
+
+// Full photo access for the app, for a flow's read-back of what it saved and its delete by exact id:
+// a simctl photos grant is not what PhotoKit reads (live: the app reads it undetermined, and the
+// library reads empty), so the app asks iOS and this taps Allow Full Access. Taken after the flow's
+// grantPrivacy('photos-add') and grantPrivacy('photos'), whose restores put it back (iOS then holds
+// Photos in place of PhotosAdd). Credits nothing. Bound: the ask 30 (the alert's 20 inside it).
+export const grantFullPhotoAccess = async () => {
+  const got = await withAlert(
+    requestFullPhotoAccess(),
+    acceptAlert('the full photo access prompt', t => t.includes('access to your Photo Library'), 'Allow Full Access')
+  )
+  if (!got.granted || got.readAccess !== 'all') throw new Error(`the app reads photo access ${got.readAccess}, not all, after Allow Full Access`)
+}
+
+// Deletes the photo the test saved, by its exact id (deleteSavedAsset refuses an id in `before`, the
+// library's ids before the test saved), tapping Delete on iOS's confirm, and reads back that the
+// library no longer holds it (iOS keeps it in Recently Deleted for 30 days, out of the library a
+// query reads). Bound: the delete 35 (the ask 30 and its pause and resume; the alert's 20 inside
+// it), the read 25 = 60.
+export const deleteSavedPhoto = async (id: string, before: ReadonlySet<string>) => {
+  await withAlert(
+    deleteSavedAsset(id, before),
+    acceptAlert('the photo delete confirm', t => t.startsWith('Allow “Keybase” to delete this photo?'), 'Delete')
+  )
+  if (await libraryHasAsset(id)) throw new Error('the photo library still holds the saved photo after its delete')
+}
+
+// Whether a system alert (a permission prompt, a confirm) is up over the app. Bound: one read 1.
+export const systemAlertUp = async () => (await alertText()) !== undefined

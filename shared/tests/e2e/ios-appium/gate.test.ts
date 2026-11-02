@@ -32,6 +32,8 @@ import './flows/files-actions.test'
 import './flows/files-upload.test'
 import './flows/files-previews.test'
 import './flows/files-settings.test'
+// changes and puts back the phone's photo permissions (each change relaunches the app)
+import './flows/files-save-photos.test'
 import './flows/teams-browse.test'
 import './flows/teams-subteams.test'
 import './flows/teams-members.test'

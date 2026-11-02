@@ -164,6 +164,7 @@ function SettingsNav() {
           onClick: () => {
             navigateAppend({name: Settings.settingsContactsTab, params: {}})
           },
+          testID: TestIDs.SETTINGS_ROW_CONTACTS,
           text: contactsLabel,
         },
         {

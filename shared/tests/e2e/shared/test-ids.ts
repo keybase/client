@@ -321,6 +321,8 @@ export const SETTINGS_REMEMBER_PASSWORD_SWITCH = 'settings-remember-password-swi
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
 export const SETTINGS_CHAT              = 'settings-chat'
+// the phone's Contacts page (Settings > Import phone contacts / Phone contacts)
+export const SETTINGS_CONTACTS = 'settings-contacts'
 // the chat settings' link preview lists and their Save button
 export const SETTINGS_UNFURL_ALLOWED    = 'settings-unfurl-allowed'
 export const SETTINGS_UNFURL_BLOCKED    = 'settings-unfurl-blocked'
@@ -369,6 +371,8 @@ export const SETTINGS_FILES_CELLULAR_SWITCH = 'settings-files-cellular-switch'
 // "Chat"/"Files" tabs, making a text match ambiguous.
 export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
 export const SETTINGS_ROW_FILES         = 'settings-row-files'
+// the phone's Contacts row: its text, "Import phone contacts", is also the label of the page's button
+export const SETTINGS_ROW_CONTACTS = 'settings-row-contacts'
 // the desktop left nav's other rows
 export const SETTINGS_ROW_ACCOUNT = 'settings-row-account'
 export const SETTINGS_ROW_ADVANCED = 'settings-row-advanced'

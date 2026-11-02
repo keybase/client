@@ -103,6 +103,8 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': backupAll,
     'keybase.1.SimpleFS.simpleFSDismissUpload':
       "manual-only: files-upload-failed-dismiss (the phone sends it only from a failed upload row's Dismiss, fs/browser/rows/still.tsx; a successful upload's card hides itself and sends nothing)",
+    'keybase.1.SimpleFS.simpleFSCancelDownload':
+      "iOS sends it only when another file action is picked while a Save runs (fs/common/path-item-action/menu-container.tsx cancelAfter); the phone has no download card (Save is not a regular download), and the user's cancel, the menu's Close, sends simpleFSDismissDownload, which the service cancels the download in (go/kbfs/simplefs/downloads.go dismissDownload; files-save-photos cancels a save that way). The desktop gate sends it from the download card",
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {
