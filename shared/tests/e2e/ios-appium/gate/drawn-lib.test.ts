@@ -1,4 +1,4 @@
-import {dragsToward, steerOffset} from './drawn-lib'
+import {checkRowSearch, dragsToward, steerOffset} from './drawn-lib'
 
 const screen = {height: 800, width: 400, x: 0, y: 0}
 const row = (y: number) => ({height: 64, width: 400, x: 0, y})
@@ -28,5 +28,17 @@ describe('dragsToward', () => {
     expect(dragsToward(10, 800)).toBe(1)
     expect(dragsToward(-401, 800)).toBe(2)
     expect(dragsToward(9000, 800)).toBe(4)
+  })
+})
+
+describe('checkRowSearch', () => {
+  test('inTree with within is refused', () => {
+    expect(() => checkRowSearch({inTree: true, within: true})).toThrow('a row search takes inTree or within, not both')
+  })
+
+  test('either alone, or neither, is fine', () => {
+    expect(() => checkRowSearch({inTree: true, within: false})).not.toThrow()
+    expect(() => checkRowSearch({inTree: false, within: true})).not.toThrow()
+    expect(() => checkRowSearch({inTree: false, within: false})).not.toThrow()
   })
 })

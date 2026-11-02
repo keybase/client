@@ -14,7 +14,7 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
-import {dragsToward, steerOffset} from '../gate/drawn-lib.ts'
+import {checkRowSearch, dragsToward, steerOffset} from '../gate/drawn-lib.ts'
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
@@ -190,7 +190,7 @@ export const drag = async (fromY: number, toY: number) => {
 // (inside `timeout`). `inTree` is for another list that is not virtualized and that no screen under it
 // draws `testID` in (the profile's Add to team): its row off screen steers the drags as a Files row
 // does, instead of blind drags that can carry a hundred-row list past it. A tap still takes only a
-// row drawn on screen.
+// row drawn on screen. It takes no `within` (throws).
 export const filesRowNamed = async (
   name: string,
   what: string,
@@ -201,6 +201,7 @@ export const filesRowNamed = async (
     within,
   }: {inTree?: boolean; testID?: string; timeout?: number; within?: WebdriverIO.Element} = {}
 ): Promise<DrawnRow> => {
+  checkRowSearch({inTree, within: !!within})
   let towardEnd = true
   let before: string | undefined
   let dragged = false
