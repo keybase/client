@@ -106,7 +106,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
       [{name: teamname, permanent}, waitingKey],
       () => {
         C.Router2.clearModals()
-        C.Router2.navUpToScreen('teamsRoot')
+        C.Router2.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
       },
       () => {}
     )
