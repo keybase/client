@@ -39,7 +39,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.ts'
-import {forgetRunPaperKeyNames, paperKeyNamesIn, runPaperKeyNames, SCAN_PAPER_KEY_NAMES_VAR} from '../accounts/paper-key-ledger.ts'
+import {forgetRunPaperKeyNames, SCAN_PAPER_KEY_NAMES_VAR, withPaperKeyNames} from '../accounts/paper-key-ledger.ts'
 import {newRunId} from '../accounts/run-id.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
@@ -111,10 +111,7 @@ const cleanup = async (code: number) => {
             secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}),
             // and the device names of the paper keys this run made and of the env file's own: each is
             // the first two words of its phrase
-            () => {
-              const secrets = watch ? watch.secrets() : envSecrets()
-              return [...secrets, ...paperKeyNamesIn(secrets), ...runPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')]
-            },
+            () => withPaperKeyNames(watch ? watch.secrets() : envSecrets(), process.env['KB_E2E_RUN_ID'] ?? ''),
             log
           )
         : undefined,

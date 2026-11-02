@@ -9,7 +9,7 @@
 //   emoji and team repos of KB_E2E_TEAM, and KBFS entries directly in the folders kbfsRoots names.
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
-// ledger (paper-key-ledger.ts) recorded it.
+// ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
 // Each delete first re-checks the acting account and the name, targets one exact object and never
 // recurses: a KBFS directory goes only when empty, a team only once its subteams are gone. Exits 1
 // when a listing or a delete failed. An aborted sweep (sweep's `signal`) stops between listings and
@@ -20,7 +20,7 @@ import {pathToFileURL} from 'url'
 import {parseArgs} from 'util'
 import {checkNotProtectedPaperKey, protectedPaperKeyIn} from './device-targets.ts'
 import {defaultPeerHome, loadE2EEnv, provisionHomeFor, type E2EEnv, type PeerRole} from './env.ts'
-import {forgetPaperKey, readPaperKeys} from './paper-key-ledger.ts'
+import {forgetPaperKey, forgetStalePaperKeyNames, readPaperKeys} from './paper-key-ledger.ts'
 import {
   checkRevocable,
   readPeerConfig,
@@ -616,6 +616,8 @@ export const sweep = async (
     result.errors.push(...after.errors.map(e => `re-checking deletes: ${e}`))
     for (const c of after.left) result.errors.push(`${describeCandidate(c)}: still there ${recheckMs / 1000}s after its delete`)
   }
+  // a run that died before its secret scan left its paper key names; the ledger has its keys
+  if (!opts.dryRun) forgetStalePaperKeyNames(opts.runId, opts.before)
   return result
 }
 
