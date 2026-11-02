@@ -53,6 +53,7 @@ import {
 import {ensureRunId, parseStampedName} from './run-id.ts'
 import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
+import {forgetStaleInviteLinks} from '../shared/gate/secret-scan.ts'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
 import {connectPeerRpc, type PeerRpc} from '../shared/peer-rpc.ts'
 import {
@@ -663,8 +664,12 @@ export const sweep = async (
     for (const c of after.left) result.errors.push(`${describeCandidate(c)}: still there ${recheckMs / 1000}s after its delete`)
   }
   if (!opts.dryRun) await removeStaleProvisionHomes(opts.runId, opts.before, result)
-  // a run that died before its secret scan left its paper key names; the ledger has its keys
-  if (!opts.dryRun) forgetStalePaperKeyNames(opts.runId, opts.before)
+  // a run that died before its secret scan left its paper key names (the ledger has its keys) and its
+  // invite links (the teams they joined went above)
+  if (!opts.dryRun) {
+    forgetStalePaperKeyNames(opts.runId, opts.before)
+    forgetStaleInviteLinks(opts.runId, opts.before)
+  }
   return result
 }
 

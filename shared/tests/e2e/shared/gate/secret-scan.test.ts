@@ -6,6 +6,7 @@ import {newRunId} from '../../accounts/run-id'
 import {
   envSecrets,
   forgetRunInviteLinks,
+  forgetStaleInviteLinks,
   inviteLinkSecrets,
   rememberInviteLink,
   runInviteLinkSecrets,
@@ -145,13 +146,30 @@ test("a run's invite link is recorded mode 600, and its scan finds the link or i
   expect(scan.hits.sort()).toEqual([path.join(results, 'metro.log'), path.join(results, 'route.json')])
   expect(fs.existsSync(path.join(results, 'clean.log'))).toBe(true)
 
+  // the run's scan deletes the record once it has read it
   forgetRunInviteLinks(run, file)
   expect(runInviteLinkSecrets(run, file)).toEqual([])
-  expect(fs.readFileSync(file, 'utf8')).not.toContain(key)
-  expect(fs.statSync(file).mode & 0o777).toBe(0o600)
+  expect(fs.existsSync(file)).toBe(false)
 })
 
-test('no invite link is recorded outside a scanning run, a week-old entry is dropped, and a readable record is refused', () => {
+test("another run's link replaces the record, and the sweep deletes a record a run before it left", () => {
+  const file = path.join(dir, 'keybase-e2e', 'invite-links.json')
+  const now = Date.now()
+  const dead = newRunId(now - 10 * 60_000)
+  const current = newRunId(now)
+  rememberInviteLink(link, dead, file, true)
+  rememberInviteLink(`${link}2`, current, file, true)
+  expect(runInviteLinkSecrets(dead, file)).toEqual([])
+  forgetStaleInviteLinks(current, now, file)
+  expect(fs.existsSync(file)).toBe(true)
+  forgetRunInviteLinks(dead, file)
+  expect(fs.existsSync(file)).toBe(true)
+  fs.writeFileSync(file, JSON.stringify({links: [link], runId: dead}), {mode: 0o600})
+  forgetStaleInviteLinks(current, now, file)
+  expect(fs.existsSync(file)).toBe(false)
+})
+
+test('no invite link is recorded outside a scanning run, and a readable record is refused', () => {
   const file = path.join(dir, 'keybase-e2e', 'invite-links.json')
   rememberInviteLink(link, newRunId(), file, false)
   expect(fs.existsSync(file)).toBe(false)
@@ -160,7 +178,6 @@ test('no invite link is recorded outside a scanning run, a week-old entry is dro
 
   const run = newRunId()
   rememberInviteLink(link, run, file, true)
-  expect(runInviteLinkSecrets(run, file, Date.now() + 8 * 24 * 60 * 60_000)).toEqual([])
   fs.chmodSync(file, 0o644)
   expect(() => runInviteLinkSecrets(run, file)).toThrow(/mode 644/)
   let message = ''

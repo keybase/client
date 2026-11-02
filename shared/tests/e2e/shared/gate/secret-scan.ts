@@ -2,8 +2,8 @@
 // holds one, and says which: a leak fails the run loudly instead of sitting in a report.
 import * as fs from 'fs'
 import * as path from 'path'
-import {defaultEnvPath, e2eConfigDir, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
-import {checkMode} from '../../accounts/paper-key-ledger.ts'
+import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
+import {runRecord} from '../../accounts/run-record.ts'
 import {parseRunId} from '../../accounts/run-id.ts'
 import {holdsSecret, secretLedger, secretScanLine} from './secret-scan-lib.ts'
 
@@ -88,20 +88,16 @@ export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray
   return {hits, line: secretScanLine(hits, files.length), scanned: files.length}
 }
 
-// -- invite links ----------------------------------------------------------------------------------
+// -- invite links ---------------------------------------------------------------------------------
 // A team invite link holds its invite's key, so no artifact may hold one. Within a run that scans for
-// them (the iOS release sets SCAN_INVITE_LINKS_VAR for the processes it starts), each link a flow makes
-// goes to the run's entry in ~/.config/keybase-e2e/invite-links.json (mode 600 in the mode 700 env
-// dir), which that run's scan reads and then forgets; a run's entry outlives it by a week at most. Any
-// other run writes nothing. The file is written whole and renamed into place, with no lock: the gate
-// has one writer (the release lock serializes runs, and wdio runs one worker).
+// them (SCAN_INVITE_LINKS_VAR: the iOS release sets it for the processes it starts, a direct iOS flow
+// run for its own), each link a flow makes goes to the run's record (accounts/run-record.ts), which
+// the run's final scan reads and then deletes. Any other run writes nothing.
 
 export const SCAN_INVITE_LINKS_VAR = 'KB_E2E_SCAN_INVITE_LINKS'
-export const inviteLinksPath = () => path.join(e2eConfigDir(), 'invite-links.json')
 const scansInviteLinks = () => process.env[SCAN_INVITE_LINKS_VAR] === '1'
-
-type RunLinks = {runId: string; links: Array<string>}
-const LINKS_KEPT_MS = 7 * 24 * 60 * 60_000
+const links = runRecord('invite-links.json', 'links')
+export const inviteLinksPath = links.defaultPath
 
 // What a scan looks for of one link: the link, as the app holds it once typed or pasted (its join
 // field lowercases what it is given), and its key (the part after "#"), plain and as a URL encodes it.
@@ -110,44 +106,13 @@ export const inviteLinkSecrets = (link: string) => {
   return [...new Set([link, link.toLowerCase(), key, encodeURIComponent(key)])].filter(s => s.length >= 8)
 }
 
-const recentLinks = (e: RunLinks, nowMs: number) => (parseRunId(e.runId, nowMs)?.startMs ?? 0) > nowMs - LINKS_KEPT_MS
-
-// The entries of runs from the last week; older ones are left out on every read and write.
-const readRunLinks = (file: string, nowMs: number): Array<RunLinks> => {
-  if (!fs.existsSync(file)) return []
-  checkMode(file, 0o600)
-  const parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown
-  if (!Array.isArray(parsed)) throw new Error(`${file} is not a list of invite link entries`)
-  return parsed
-    .map((raw: unknown) => {
-      const r = (raw ?? {}) as Partial<RunLinks>
-      return {links: Array.isArray(r.links) ? r.links.filter(l => typeof l === 'string') : [], runId: typeof r.runId === 'string' ? r.runId : ''}
-    })
-    .filter(e => recentLinks(e, nowMs))
-}
-
-const writeRunLinks = (entries: ReadonlyArray<RunLinks>, file: string, nowMs: number) => {
-  const kept = entries.filter(e => recentLinks(e, nowMs))
-  const dir = path.dirname(file)
-  fs.mkdirSync(dir, {mode: 0o700, recursive: true})
-  checkMode(dir, 0o700)
-  const tmp = `${file}.tmp-${process.pid}`
-  fs.writeFileSync(tmp, `${JSON.stringify(kept, null, 2)}\n`, {mode: 0o600})
-  fs.chmodSync(tmp, 0o600)
-  fs.renameSync(tmp, file)
-}
-
-// Adds `link` to run `runId`'s entry, within a run that scans for invite links; nothing otherwise. A
+// Adds `link` to run `runId`'s record, within a run that scans for invite links; nothing otherwise. A
 // failure says what failed, never the link.
-export const rememberInviteLink = (link: string, runId: string, file = inviteLinksPath(), record = scansInviteLinks(), nowMs = Date.now()) => {
+export const rememberInviteLink = (link: string, runId: string, file = inviteLinksPath(), record = scansInviteLinks()) => {
   if (!record) return
-  if (!parseRunId(runId, nowMs)) throw new Error("the invite link is not in the run's secret scan: no valid run id")
+  if (!parseRunId(runId)) throw new Error("the invite link is not in the run's secret scan: no valid run id")
   try {
-    const entries = readRunLinks(file, nowMs)
-    const mine = entries.find(e => e.runId === runId)
-    if (mine?.links.includes(link)) return
-    const others = entries.filter(e => e.runId !== runId)
-    writeRunLinks([...others, {links: [...(mine?.links ?? []), link], runId}], file, nowMs)
+    links.add(runId, link, file)
   } catch (e) {
     // no cause: a JSON parse error can quote the file, links and all
     // eslint-disable-next-line preserve-caught-error
@@ -156,15 +121,7 @@ export const rememberInviteLink = (link: string, runId: string, file = inviteLin
 }
 
 // What run `runId`'s secret scan looks for of the invite links it made.
-export const runInviteLinkSecrets = (runId: string, file = inviteLinksPath(), nowMs = Date.now()) =>
-  (readRunLinks(file, nowMs).find(e => e.runId === runId)?.links ?? []).flatMap(inviteLinkSecrets)
+export const runInviteLinkSecrets = (runId: string, file = inviteLinksPath()) => links.items(runId, file).flatMap(inviteLinkSecrets)
 
-// Drops run `runId`'s links, and any older than a week, from the file.
-export const forgetRunInviteLinks = (runId: string, file = inviteLinksPath(), nowMs = Date.now()) => {
-  if (!fs.existsSync(file)) return
-  writeRunLinks(
-    readRunLinks(file, nowMs).filter(e => e.runId !== runId),
-    file,
-    nowMs
-  )
-}
+export const forgetRunInviteLinks = links.forgetRun
+export const forgetStaleInviteLinks = links.forgetStale
