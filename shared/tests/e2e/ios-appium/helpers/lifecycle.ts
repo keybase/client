@@ -344,6 +344,8 @@ export const shownWithLabel = async (text: string, timeout: number) =>
   lookFor(
     async () => {
       const els = await labelContains(text).getElements()
+      // Indexing an empty result gives a not-found placeholder element, not undefined.
+      if (els.length === 0) return undefined
       // The banner exposes a container, a button and the text; the button takes the tap.
       for (const e of els) {
         if ((await e.getAttribute('type')) === 'XCUIElementTypeButton') return e
