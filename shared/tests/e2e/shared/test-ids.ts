@@ -206,8 +206,7 @@ export const TEAMS_CHANNEL_MEMBER_ROW = 'teams-channel-member-row'
 export const TEAMS_INVITE_ROW = 'teams-invite-row'
 export const TEAMS_REQUEST_ROW = 'teams-request-row'
 // a channel row of a member's "Add to channels" on the phone (the id says whether its circle is checked:
-// picked, #general, or a channel the member is already in). No test reads them yet: the add-to-channels
-// flow reads them once the phone's rows redraw on a pick (the PR 9 known failure).
+// picked, #general, or a channel the member is already in)
 export const TEAMS_ADD_TO_CHANNELS_ROW = 'teams-add-to-channels-row'
 export const TEAMS_ADD_TO_CHANNELS_ROW_CHECKED = 'teams-add-to-channels-row-checked'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
