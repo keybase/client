@@ -4,11 +4,8 @@
 // corpus pdf from "Upload file" (the document picker, from a folder of this run seeded in On My
 // iPhone). The host then lists exactly one new file in the work folder, the size of the copy the
 // picker handed the app (the upload keeps that copy's name). The photo picker hands the app a
-// re-encoded copy for an upload, so the png is proven by its pixel size against the corpus; the pdf
-// copy is the corpus file itself (sha256).
-//
-// The phone's upload card has no dismiss: it hides itself once the upload is done, and the app sends
-// simpleFSDismissUpload only from a failed upload's row, which no flow makes.
+// re-encoded copy for an upload, so the png is proven by the format its bytes say and its pixel
+// size; the pdf copy is the corpus file itself (sha256).
 //
 // The flow's afterEach closes a picker a test left up, removes the seed folder and deletes the work
 // folder.
@@ -19,7 +16,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsList, kbfsMkdir, newWorkFolder, removeOwnKbfs} from '../../shared/files.ts'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
-import {ensurePhotoCorpus, imagePixelSize, pickerCacheFile, removeSeedFolder, seedDocumentFolder} from '../gate/device'
+import {ensurePhotoCorpus, imageProps, pickerCacheFile, removeSeedFolder, seedDocumentFolder} from '../gate/device'
 import type {PickerCache} from '../gate/picker-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
@@ -41,20 +38,20 @@ describe('files uploads from the phone', function () {
   //   work      the folder made 60;  open  openFolder 365 (its rows 120 each), the folder 11
   //   corpus    ensurePhotoCorpus: one addmedia each when missing, 7 x 120 = 840 (0 once recorded)
   //   sheet     openFolderUploadSheet 28;  row  pressTestID 12
-  //   library   pickFromLibrary 60;  document  pickDocument 92;  seed  121 (its container lookup 120)
+  //   library   pickFromLibrary 66;  document  pickDocument 100;  seed  121 (its container lookup 120)
   //   calls     waitForUiCall 10
   //   host      uploadedAs 361 (180 of listings, overrun by one listing 60 and its copy read 121)
-  //   pixels    two sips 30
+  //   pixels    imageProps twice 30
   //   step      2 (its 1s settle and the attach)
-  //   cleanup   closeSystemPickers 19, the seed removal 120, the work folder 195 = 334
+  //   cleanup   closeSystemPickers 45, the seed removal 120, the work folder 195 = 360
 
   // the work folder and the seed folder a test made, each cleared once removed
   let work: string | undefined
   let seeded: string | undefined
 
-  // Worst case (s): 334.
+  // Worst case (s): 360.
   afterEach(async function () {
-    this.timeout(350_000)
+    this.timeout(380_000)
     await withCleanup(closeSystemPickers, [
       () => {
         if (!seeded) return
@@ -101,8 +98,8 @@ describe('files uploads from the phone', function () {
     )
 
   it('a png from the photo library is uploaded into the folder', async function () {
-    // worst case (s): corpus 840, sheet 466, row 12, library 60, calls 10, host 361, pixels 30, step
-    // 2 = 1781
+    // worst case (s): corpus 840, sheet 466, row 12, library 66, calls 10, host 361, pixels 30, step
+    // 2 = 1787
     this.timeout(1_820_000)
     await ensurePhotoCorpus()
     const folder = await uploadSheetIn()
@@ -111,13 +108,18 @@ describe('files uploads from the phone', function () {
     await pickFromLibrary(['e2e-c.png'])
     await waitForUiCall('the upload to start', seq, START_UPLOAD)
     const picked = await uploadedAs(folder, '.png', 'image')
-    check(imagePixelSize(picked.path) === imagePixelSize(corpusFile('e2e-c.png')), 'the picked image is not the corpus png')
+    // The copy is re-encoded (its bytes and its decoded pixels both differ from the corpus file), so
+    // no hash ties it to the png. Pixel size alone does not either: the corpus png, jpg and heic are
+    // all 64x48. Nor does the .png the upload's name ends in, which is only the picker's naming of its
+    // copy. The format read from the copy's bytes and the pixel size together are the png alone.
+    const got = imageProps(picked.path)
+    check(got.format === 'png' && got.pixels === imageProps(corpusFile('e2e-c.png')).pixels, 'the picked image is not the corpus png')
     creditSurface('photo-picker')
     await step('The png uploaded into the work folder', {card: true})
   })
 
   it('a pdf from a folder of the document picker is uploaded into the folder', async function () {
-    // worst case (s): seed 121, sheet 466, row 12, document 92, calls 10, host 361, step 2 = 1064
+    // worst case (s): seed 121, sheet 466, row 12, document 100, calls 10, host 361, step 2 = 1072
     this.timeout(1_100_000)
     const pdf = corpusFile('e2e-c.pdf')
     seeded = seedDocumentFolder('upload', ['e2e-c.pdf'])

@@ -191,18 +191,37 @@ const requireSeedFolder = (folder: string) => {
   return path.join(onMyIPhone(), folder)
 }
 
+// The file system's own error names the simulator's container path, and with it the host's home
+// directory: say only what failed and its code.
+const quietFs = <R,>(what: string, f: () => R): R => {
+  try {
+    return f()
+  } catch (e) {
+    const code = (e as {code?: string}).code ?? 'error'
+    // no cause: the error holds the path
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`${what} failed (${code})`)
+  }
+}
+
 // Makes a new folder of this run in On My iPhone (e2e-<runid>-<label>-<hex>, so a retry has its own)
 // holding the corpus files `names`, for the document picker to pick from. The flow's afterEach removes
-// it (removeSeedFolder).
+// it (removeSeedFolder); one that failed part way is removed here.
 export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) => {
   requireCurrentAttempt()
   const folder = `e2e-${e2eRunId()}-${label}-${randomBytes(2).toString('hex')}`
   const dir = requireSeedFolder(folder)
-  fs.mkdirSync(dir)
-  for (const n of names) {
+  const files = names.map(n => {
     const c = CORPUS.find(e => e.name === n)
     if (!c) throw new Error(`the corpus has no ${n}`)
-    fs.copyFileSync(c.file, path.join(dir, n))
+    return c
+  })
+  quietFs('making the seed folder', () => fs.mkdirSync(dir))
+  try {
+    for (const c of files) quietFs('seeding a corpus file', () => fs.copyFileSync(c.file, path.join(dir, c.name)))
+  } catch (e) {
+    fs.rmSync(dir, {force: true, recursive: true})
+    throw e
   }
   return folder
 }
@@ -210,7 +229,7 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
 // Removes a seed folder of this run and reads back that it is gone; one already gone is left be.
 export const removeSeedFolder = (folder: string) => {
   const dir = requireSeedFolder(folder)
-  fs.rmSync(dir, {force: true, recursive: true})
+  quietFs('removing the seed folder', () => fs.rmSync(dir, {force: true, recursive: true}))
   if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
 }
 
@@ -236,19 +255,21 @@ export const pickerCacheFile = (cache: PickerCache, name: string): PickedFile =>
 const appData = () => simctl('get_app_container', preflightUdid(), BUNDLE_ID, 'data').trim()
 
 const readPicked = (p: string): PickedFile => {
-  const data = fs.readFileSync(p)
+  const data = quietFs('reading a picked file', () => fs.readFileSync(p))
   return {path: p, sha256: createHash('sha256').update(data).digest('hex'), size: data.length}
 }
 
-// An image file's pixel size ("<w>x<h>"), read with the system's sips: how a re-encoded copy (the
-// photo picker's for an upload, the app's compressed send) is matched to its corpus item. Bound: 15.
-export const imagePixelSize = (file: string) => {
+// An image file's format as its bytes say (sips reads the file, not its name: "png", "jpeg", "heic")
+// and its pixel size ("<w>x<h>"): how a re-encoded copy (the photo picker's for an upload, the app's
+// compressed send) is matched to its corpus item. Bound: 15.
+export const imageProps = (file: string) => {
   requireCurrentAttempt()
-  const out = runSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', file], 15_000, {hidden: [file], what: 'sips'})
+  const out = runSync('sips', ['-g', 'format', '-g', 'pixelWidth', '-g', 'pixelHeight', file], 15_000, {hidden: [file], what: 'sips'})
+  const format = /format: (\S+)/.exec(out)?.[1]
   const w = /pixelWidth: (\d+)/.exec(out)?.[1]
   const h = /pixelHeight: (\d+)/.exec(out)?.[1]
-  if (!w || !h) throw new Error('sips read no pixel size')
-  return `${w}x${h}`
+  if (!format || !w || !h) throw new Error('sips read no format or pixel size')
+  return {format, pixels: `${w}x${h}`}
 }
 
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator

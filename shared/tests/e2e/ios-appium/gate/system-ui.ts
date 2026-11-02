@@ -135,7 +135,8 @@ const libraryNow = async () => libraryCells(sourceElements(await browser.getPage
 // dates and kinds (picker-lib.ts corpusCells), each tapped at its own frame (the grid reads
 // visible=false), and the selection read back off the grid before the confirm. The caller proves
 // the pick by the files the app was handed (device.ts pickedFiles). Bound: the picker 20, the grid
-// read 20 (each read 2), per item the tap 1, the selection read 2, the confirm 1, gone 15.
+// 20 overrun by one read 2, per item the tap 1, the selection read once 2, the confirm 5 and its tap
+// 1, gone 15 = 65 + 1 per item.
 export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
   if (!names.length || new Set(names).size !== names.length) throw new Error('pick each corpus item once')
   await button(PHOTO_PICKER).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the photo picker did not open'})
@@ -155,6 +156,7 @@ export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
   if (selected.length !== want.length || !want.every(r => selected.some(c => same(c.rect, r)))) {
     throw new Error(`the photo picker reads ${selected.length} cells selected, not the ${want.length} tapped`)
   }
+  await button(PHOTO_ADD).waitForExist({timeout: 5_000, timeoutMsg: "the photo picker's confirm did not show"})
   await button(PHOTO_ADD).click()
   await waitPickerGone('the photo picker', photoPickerUp)
 }
@@ -168,8 +170,8 @@ const browsingRootTitled = (title: string) =>
 // run, device.ts seedDocumentFolder), selects `file` and opens it. Browse lands on its sidebar or
 // wherever it was left: until the folder's cell shows, its sidebar's On My iPhone is tapped, or else
 // Browse again (which goes back to the sidebar). Bound: the picker 20, the way to the folder 30
-// (each try's reads and tap 2), the folder 10, the file 10 and its tap 1, its selection 5, Open 1,
-// gone 15.
+// overrun by one try's reads and tap 2, the folder's tap 1 and its screen 10, the file 10 and its
+// tap 1, its selection 5, Open 5 and its tap 1, gone 15 = 100.
 export const pickDocument = async (folder: string, file: string) => {
   const folderCell = folderCellName(folder)
   const fileCell = fileCellName(file)
@@ -195,6 +197,7 @@ export const pickDocument = async (folder: string, file: string) => {
     async () => (((await cell.getAttribute('traits')) ?? '').split(', ').includes('Selected') ? true : undefined),
     {interval: 250, timeout: 5_000}
   )
+  await button('Open').waitForExist({timeout: 5_000, timeoutMsg: "the document picker's Open did not show"})
   await button('Open').click()
   await waitPickerGone('the document picker', documentPickerUp)
 }
@@ -202,16 +205,19 @@ export const pickDocument = async (folder: string, file: string) => {
 // For a flow's afterEach: closes a photo or document picker a test left up (escapeToTabs can't: the
 // document picker with a file selected has no Cancel, and the app's own back does nothing under
 // either). A picker that won't close leaves every later test under it, so a failure poisons the gate;
-// one closed clears it. Bound: the reads 2, a deselect 1, the cancel 1, gone 15.
+// one closed clears it. Bound, for both pickers should both be up: the reads 2, then each picker's
+// Cancel 5 and its tap 1 (and a deselect 1) and gone 15 = 45.
 export const closeSystemPickers = async () => {
   try {
     if (await photoPickerUp()) {
+      await button('Cancel').waitForExist({timeout: 5_000})
       await button('Cancel').click()
       await waitPickerGone('the photo picker', photoPickerUp)
     }
     if (await documentPickerUp()) {
       const deselect = button('Deselect All')
       if (await deselect.isExisting()) await deselect.click()
+      await button('Cancel').waitForExist({timeout: 5_000})
       await button('Cancel').click()
       await waitPickerGone('the document picker', documentPickerUp)
     }

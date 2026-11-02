@@ -17,7 +17,7 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
-import {ensurePhotoCorpus, imagePixelSize, pickedFiles, removeSeedFolder, seedDocumentFolder} from '../gate/device'
+import {ensurePhotoCorpus, imageProps, pickedFiles, removeSeedFolder, seedDocumentFolder} from '../gate/device'
 import {requirePicked, type LibraryName} from '../gate/picker-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
@@ -43,21 +43,21 @@ describe('chat attachments picked on the phone', function () {
   //             screen 20, the composer 10, the tab bar 5)
   //   corpus    ensurePhotoCorpus: one addmedia each when missing, 7 x 120 = 840 (0 once recorded)
   //   sheet     openMenuFrom 15;  row  pressTestID 12
-  //   library   pickFromLibrary 20 + 20 + 2 x (1) + 2 + 1 + 15 = 60
-  //   document  pickDocument 20 + 30 + 10 + 11 + 5 + 1 + 15 = 92;  seed  121 (its container lookup 120)
+  //   library   pickFromLibrary 65 + 1 per item
+  //   document  pickDocument 100;  seed  121 (its container lookup 120)
   //   titles    expectScreen 11;  picked  the container read 120 and the reads 1
   //   caption   fillHiddenField 30;  next  tapButton 6;  send  tapButton 6;  calls  waitForUiCall 10
   //   cli       the host read polled 60, overrun by one read's 60 = 120;  download  60 each
-  //   pixels    imagePixelSize 15 each
+  //   pixels    imageProps 15 each
   //   step      2 (its 1s settle and the attach)
-  //   cleanup   closeSystemPickers 19, the seed removal 120 (its container lookup) = 139
+  //   cleanup   closeSystemPickers 45, the seed removal 120 (its container lookup) = 165
 
   // the seed folder a test made in On My iPhone, cleared once removed
   let seeded: string | undefined
 
-  // Worst case (s): 139.
+  // Worst case (s): 165.
   afterEach(async function () {
-    this.timeout(150_000)
+    this.timeout(180_000)
     await withCleanup(closeSystemPickers, [
       () => {
         if (!seeded) return
@@ -128,8 +128,8 @@ describe('chat attachments picked on the phone', function () {
   }
 
   it('a png and an mp4 chosen from the library are sent with their captions', async function () {
-    // worst case (s): corpus 840, attach 139, library 60, titles 131, step 2, two captions 60, next
-    // 6, send 6, calls 10 x 2, cli 120, two downloads 120, two sips 30, step 2 = 1536
+    // worst case (s): corpus 840, attach 139, library 67, titles 131, step 2, two captions 60, next
+    // 6, send 6, calls 10 x 2, cli 120, two downloads 120, two sips 30, step 2 = 1543
     this.timeout(1_560_000)
     const {smokeUser} = loadE2EAccounts()
     const names: Array<LibraryName> = ['e2e-c.png', 'e2e-c.mp4']
@@ -162,7 +162,7 @@ describe('chat attachments picked on the phone', function () {
     if (!image || !video) throw new Error('the host read fewer attachments than were sent')
     check((image.content.attachment?.object?.mimeType ?? '').startsWith('image/'), 'the png went out as something other than an image')
     check(
-      (await hostCopy(smokeUser, image, imagePixelSize)) === imagePixelSize(want[0]!.file),
+      (await hostCopy(smokeUser, image, f => imageProps(f).pixels)) === imageProps(want[0]!.file).pixels,
       "the host's image is not the png's pixel size"
     )
     check((video.content.attachment?.object?.mimeType ?? '').startsWith('video/'), 'the mp4 went out as something other than a video')
@@ -171,8 +171,8 @@ describe('chat attachments picked on the phone', function () {
   })
 
   it('a pdf chosen from a folder of the document picker is sent as a file', async function () {
-    // worst case (s): seed 121, attach 139, document 92, titles 131, step 2, caption 30, send 6,
-    // calls 10, cli 120, download 60, step 2 = 713
+    // worst case (s): seed 121, attach 139, document 100, titles 131, step 2, caption 30, send 6,
+    // calls 10, cli 120, download 60, step 2 = 721
     this.timeout(740_000)
     const {smokeUser} = loadE2EAccounts()
     const pdf = corpusFile('e2e-c.pdf')

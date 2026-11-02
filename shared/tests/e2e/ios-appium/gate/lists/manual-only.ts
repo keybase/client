@@ -97,6 +97,11 @@ export const IOS_MANUAL_ONLY = {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',
   },
+  'files-upload-failed-dismiss': {
+    doByHand:
+      'In a throwaway folder of Files on the phone, upload a file with the phone offline (or into a folder that refuses the write) so its row shows "Upload has failed.", tap Dismiss, and check the row and the error go. A successful phone upload never sends the dismiss: its card hides itself.',
+    title: "A failed upload's Dismiss in Files",
+  },
 } satisfies Record<string, {title: string; doByHand: string}>
 
 export type IosManualOnlyId = keyof typeof IOS_MANUAL_ONLY

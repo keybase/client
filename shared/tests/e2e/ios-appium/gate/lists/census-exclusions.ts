@@ -101,6 +101,8 @@ export const IOS_EXCLUSIONS: Exclusions = {
       'needs a member who reset their account (the files reset banner, fs/banner/reset-banner.tsx); account resets are owner: excluded',
     'keybase.1.SimpleFS.simpleFSArchiveAllFiles': backupAll,
     'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': backupAll,
+    'keybase.1.SimpleFS.simpleFSDismissUpload':
+      "manual-only: files-upload-failed-dismiss (the phone sends it only from a failed upload row's Dismiss, fs/browser/rows/still.tsx; a successful upload's card hides itself and sends nothing)",
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {
