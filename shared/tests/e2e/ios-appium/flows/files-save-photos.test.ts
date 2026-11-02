@@ -147,13 +147,14 @@ describe('save to photos', function () {
     clearGatePoison(SAVED_PHOTO)
   }
 
-  // restorePrivacy reads each back and poisons the gate itself. Bound: two restores 300.
-  const putBackPrivacy = () => {
+  // restorePrivacy reads each back, waits out the kill a photos reset brings (so launchIfGone, next,
+  // brings the app back after it) and poisons the gate itself. Bound: two restores 582.
+  const putBackPrivacy = async () => {
     try {
-      if (photos) restorePrivacy(photos)
+      if (photos) await restorePrivacy(photos)
       photos = undefined
     } finally {
-      if (photosAdd) restorePrivacy(photosAdd)
+      if (photosAdd) await restorePrivacy(photosAdd)
       photosAdd = undefined
     }
   }
@@ -189,10 +190,10 @@ describe('save to photos', function () {
     await requireSecondNotBlocked()
   })
 
-  // Worst case (s): the menu 19, ask 25, the saved photos 60 each (one at most), privacy 300,
-  // launchIfGone 272, a folder 195, the channel 120, escapeToTabs 30 = 1021.
+  // Worst case (s): the menu 19, ask 25, the saved photos 60 each (one at most), privacy 582,
+  // launchIfGone 272, a folder 195, the channel 120, escapeToTabs 30 = 1303.
   afterEach(async function () {
-    this.timeout(1_060_000)
+    this.timeout(1_340_000)
     await withCleanup(closeMessageMenu, [deleteSaved, putBackPrivacy, launchIfGone, removeMadePaths, deleteChannel, removeLocalDirs, escapeToTabs])
   })
 

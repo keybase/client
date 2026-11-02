@@ -149,23 +149,28 @@ const stateNow = (snap: PrivacySnapshot, service: PrivacyService) => {
 const restoreName = (service: PrivacyService) => `the ${service} permission for ${BUNDLE_ID}`
 
 // Puts the permission back once: a second call does nothing, and one whose permission already reads
-// as its original runs nothing. A restore that fails or does not take poisons the gate, naming the
-// simctl call to run by hand, and throws. simctl only, so a hook can run it: a reset may terminate
-// the app, and the next test's beforeEach brings it back.
-export const restorePrivacyWith = (
+// as its original runs nothing. After the restore runs, `readBack` polls its check (the permission
+// read as its original) for a few seconds: locationd writes clients.plist on its own schedule. A
+// restore that fails or does not take poisons the gate, naming the simctl call to run by hand, and
+// throws. Answers whether it ran the restore. simctl only, so a hook can run it: a reset may terminate
+// the app, and the caller waits that out (device.ts restorePrivacy).
+export const restorePrivacyWith = async (
   r: PrivacyRestore,
-  io: {read: () => PrivacySnapshot; run: (args: ReadonlyArray<string>) => void}
-) => {
-  if (r.done) return
+  io: {read: () => PrivacySnapshot; readBack: (taken: () => boolean) => Promise<boolean>; run: (args: ReadonlyArray<string>) => void}
+): Promise<boolean> => {
+  if (r.done) return false
   const {service} = r.original
   const what = restoreName(service)
   let args: ReadonlyArray<string> | undefined
+  let ran = false
   try {
     args = privacyRestoreArgs(r.original, service, r.udid)
     if (stateNow(io.read(), service) !== r.original.state) {
       io.run(args)
-      const now = stateNow(io.read(), service)
-      if (now !== r.original.state) throw new Error(`it still reads ${now}, not ${r.original.state}`)
+      ran = true
+      if (!(await io.readBack(() => stateNow(io.read(), service) === r.original.state))) {
+        throw new Error(`it still reads ${stateNow(io.read(), service)}, not ${r.original.state}`)
+      }
     }
   } catch (e) {
     poisonGate(what, args ? `run xcrun simctl ${args.join(' ')}` : `put it back in the simulator's Settings > Privacy & Security`)
@@ -173,6 +178,7 @@ export const restorePrivacyWith = (
   }
   r.done = true
   clearGatePoison(what)
+  return ran
 }
 
 // -- push --------------------------------------------------------------------------------------------

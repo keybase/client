@@ -30,6 +30,10 @@ const mockDevice = {
   // XCUITest's app state (4: in front), and whether the next runtime read sees the app exit
   appState: 4,
   exitsOnEval: false,
+  // lookFor's calls
+  looks: 0,
+  // runs after each simctl call (what the call changed)
+  onSimctl: () => {},
   // a push file as simctl saw it
   pushed: [] as Array<{argv: string; file: string; mode: number; body: string}>,
   pushFails: false,
@@ -57,7 +61,11 @@ jest.mock('../helpers/lifecycle', () => ({
     if (mockDevice.exitsOnEval) mockDevice.pid = undefined
     return Promise.resolve(mockDevice.runtime)
   },
-  lookFor: async () => Promise.resolve(undefined),
+  // one look: what it checks either holds now or the look answers nothing
+  lookFor: async (check: () => unknown) => {
+    mockDevice.looks++
+    return Promise.resolve(check())
+  },
   openUrl: (url: string) => {
     mockDevice.calls.push('openurl')
     if (mockDevice.openFails) throw Object.assign(new Error(`Command failed: xcrun simctl openurl ${UDID} ${url}`), {status: 3})
@@ -65,6 +73,7 @@ jest.mock('../helpers/lifecycle', () => ({
   simctl: (...args: Array<string>) => {
     mockDevice.calls.push(`simctl ${args.join(' ')}`)
     if (mockDevice.simctlFails && args.join(' ').includes(mockDevice.simctlFails)) throw new Error('simctl exit 1')
+    mockDevice.onSimctl()
     return ''
   },
   terminateApp: async () => {
@@ -135,6 +144,8 @@ beforeEach(() => {
   mockDevice.runtime = 'r1'
   mockDevice.appState = 4
   mockDevice.exitsOnEval = false
+  mockDevice.looks = 0
+  mockDevice.onSimctl = () => {}
 })
 afterEach(() => {
   if (savedEnv.udid === undefined) delete process.env['KB_IOS_UDID']
@@ -215,13 +226,42 @@ describe('privacy', () => {
     expect(mockDevice.calls).toContain(`simctl privacy ${UDID} grant photos keybase.ios`)
     mockDevice.calls = []
     mockDevice.tcc = '[{"service":"kTCCServicePhotos","auth_value":2}]'
-    expect(() => restorePrivacy(t)).toThrow(/still reads granted/)
+    await expect(restorePrivacy(t)).rejects.toThrow(/still reads granted/)
     expect(mockDevice.calls).toEqual([`simctl privacy ${UDID} revoke photos keybase.ios`])
     mockDevice.tcc = '[{"service":"kTCCServicePhotos","auth_value":0}]'
-    restorePrivacy(t)
-    restorePrivacy(t)
+    await restorePrivacy(t)
+    await restorePrivacy(t)
     expect(mockDevice.calls).toEqual([`simctl privacy ${UDID} revoke photos keybase.ios`])
     expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('a photos restore that ran waits out the kill it brings; one that ran nothing, or of location, does not', async () => {
+    mockDevice.tcc = '[{"service":"kTCCServicePhotos","auth_value":0}]'
+    const t = await grantPrivacy('photos')
+    mockDevice.tcc = '[{"service":"kTCCServicePhotos","auth_value":2}]'
+    mockDevice.onSimctl = () => {
+      mockDevice.tcc = '[{"service":"kTCCServicePhotos","auth_value":0}]'
+    }
+    mockDevice.looks = 0
+    await restorePrivacy(t)
+    // the read-back, then the kill watch
+    expect(mockDevice.looks).toBe(2)
+    mockDevice.onSimctl = () => {}
+    const same = await grantPrivacy('photos')
+    mockDevice.looks = 0
+    await restorePrivacy(same)
+    expect(mockDevice.looks).toBe(0)
+    const auth = (n?: number) => `<dict><key>ikeybase.ios:</key><dict>${n === undefined ? '' : `<key>Authorization</key><integer>${n}</integer>`}</dict></dict>`
+    mockDevice.locationd = auth()
+    const loc = await grantPrivacy('location-always')
+    mockDevice.locationd = auth(4)
+    mockDevice.onSimctl = () => {
+      mockDevice.locationd = auth()
+    }
+    mockDevice.looks = 0
+    await restorePrivacy(loc)
+    // the read-back only
+    expect(mockDevice.looks).toBe(1)
   })
 
   test("location's original is read from locationd's clients.plist, and its restore read back there", async () => {
@@ -231,10 +271,10 @@ describe('privacy', () => {
     expect(t.original.state).toBe('unset')
     mockDevice.calls = []
     mockDevice.locationd = auth(4)
-    expect(() => restorePrivacy(t)).toThrow(/still reads granted, not unset/)
+    await expect(restorePrivacy(t)).rejects.toThrow(/still reads granted, not unset/)
     expect(mockDevice.calls).toEqual([`simctl privacy ${UDID} reset location-always keybase.ios`])
     mockDevice.locationd = auth()
-    restorePrivacy(t)
+    await restorePrivacy(t)
     expect(gatePoisoned()).toBeUndefined()
     mockDevice.locationd = auth(2)
     await expect(grantPrivacy('location-always')).rejects.toThrow(/cannot put back as location-always/)

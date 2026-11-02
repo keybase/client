@@ -145,37 +145,45 @@ describe('restoring a permission', () => {
     original: {bundleId: 'keybase.ios', service, state},
     udid: UDID,
   })
+  // one look: the restore reads back as taken now, or not
+  const oneLook = async (taken: () => boolean) => Promise.resolve(taken())
 
-  test('runs the restore once: a second call does nothing', () => {
+  test('runs the restore once: a second call does nothing', async () => {
     const ran: Array<ReadonlyArray<string>> = []
     let rows = [{authValue: 2, service: 'kTCCServicePhotos'}]
-    const io = {read: () => snap(rows), run: (a: ReadonlyArray<string>) => void ran.push(a)}
+    const io = {read: () => snap(rows), readBack: oneLook, run: (a: ReadonlyArray<string>) => void ran.push(a)}
     const t = token('unset')
-    restorePrivacyWith(t, {...io, run: a => {
-      io.run(a)
-      rows = []
-    }})
+    expect(
+      await restorePrivacyWith(t, {
+        ...io,
+        run: a => {
+          io.run(a)
+          rows = []
+        },
+      })
+    ).toBe(true)
     expect(ran).toEqual([['privacy', UDID, 'reset', 'photos', 'keybase.ios']])
     expect(t.done).toBe(true)
-    restorePrivacyWith(t, io)
+    expect(await restorePrivacyWith(t, io)).toBe(false)
     expect(ran).toHaveLength(1)
     expect(gatePoisoned()).toBeUndefined()
   })
 
-  test('checks before acting: a permission already at its original is left alone', () => {
+  test('checks before acting: a permission already at its original is left alone', async () => {
     const ran: Array<ReadonlyArray<string>> = []
     const t = token('granted')
-    restorePrivacyWith(t, {read: () => photos(2), run: a => void ran.push(a)})
+    expect(await restorePrivacyWith(t, {read: () => photos(2), readBack: oneLook, run: a => void ran.push(a)})).toBe(false)
     expect(ran).toEqual([])
     expect(t.done).toBe(true)
   })
 
-  test("location is reset and read back from locationd, even from a level its original can't hold", () => {
+  test("location is reset and read back from locationd, even from a level its original can't hold", async () => {
     for (const before of [4, 2]) {
       const ran: Array<ReadonlyArray<string>> = []
       let auth: number | undefined = before
-      restorePrivacyWith(token('unset', 'location-always'), {
+      await restorePrivacyWith(token('unset', 'location-always'), {
         read: () => snap([], auth),
+        readBack: oneLook,
         run: a => {
           ran.push(a)
           auth = undefined
@@ -186,48 +194,73 @@ describe('restoring a permission', () => {
     expect(gatePoisoned()).toBeUndefined()
   })
 
-  test('a location reset that did not take poisons the gate', () => {
-    expect(() => restorePrivacyWith(token('unset', 'location-always'), {read: () => snap([], 4), run: () => {}})).toThrow(/still reads granted, not unset/)
+  test('the read-back is polled: a reset locationd writes a few reads late still takes', async () => {
+    let reads = 0
+    let looks = 0
+    let reset = false
+    const t = token('unset', 'location-always')
+    await restorePrivacyWith(t, {
+      // locationd has written the reset by the third read after it ran
+      read: () => snap([], reset && ++reads >= 3 ? undefined : 4),
+      readBack: async taken => {
+        for (; looks < 5; looks++) if (taken()) return Promise.resolve(true)
+        return Promise.resolve(false)
+      },
+      run: () => {
+        reset = true
+      },
+    })
+    expect(looks).toBe(2)
+    expect(t.done).toBe(true)
+    expect(gatePoisoned()).toBeUndefined()
+  })
+
+  test('a location reset that did not take poisons the gate', async () => {
+    await expect(restorePrivacyWith(token('unset', 'location-always'), {read: () => snap([], 4), readBack: oneLook, run: () => {}})).rejects.toThrow(
+      /still reads granted, not unset/
+    )
     expect(gatePoisoned()).toMatch(/the location-always permission/)
   })
 
-  test('a failed restore poisons the gate, names the simctl call to run by hand, and throws', () => {
+  test('a failed restore poisons the gate, names the simctl call to run by hand, and throws', async () => {
     const t = token('denied')
-    expect(() =>
+    await expect(
       restorePrivacyWith(t, {
         read: () => photos(2),
+        readBack: oneLook,
         run: () => {
           throw new Error('simctl exit 1')
         },
       })
-    ).toThrow(/^restoring the photos permission for keybase\.ios failed: simctl exit 1/)
+    ).rejects.toThrow(/^restoring the photos permission for keybase\.ios failed: simctl exit 1/)
     expect(t.done).toBe(false)
     expect(gatePoisoned()).toMatch(/the photos permission for keybase\.ios \(run xcrun simctl privacy B338EAF5-6A0E-4CAF-BD25-446C674751FB revoke photos keybase\.ios\)/)
   })
 
-  test('a restore that ran but did not take poisons the gate too', () => {
+  test('a restore that ran but did not take poisons the gate too', async () => {
     const t = token('denied')
-    expect(() => restorePrivacyWith(t, {read: () => photos(2), run: () => {}})).toThrow(/still reads granted/)
+    await expect(restorePrivacyWith(t, {read: () => photos(2), readBack: oneLook, run: () => {}})).rejects.toThrow(/still reads granted/)
     expect(gatePoisoned()).toMatch(/the photos permission/)
   })
 
-  test('a failed read poisons the gate', () => {
-    expect(() =>
+  test('a failed read poisons the gate', async () => {
+    await expect(
       restorePrivacyWith(token('granted'), {
         read: () => {
           throw new Error('database is locked')
         },
+        readBack: oneLook,
         run: () => {},
       })
-    ).toThrow(/database is locked/)
+    ).rejects.toThrow(/database is locked/)
     expect(gatePoisoned()).toMatch(/the photos permission/)
   })
 
-  test('a later restore that reads back clears the poison', () => {
+  test('a later restore that reads back clears the poison', async () => {
     const t = token('denied')
-    expect(() => restorePrivacyWith(t, {read: () => photos(2), run: () => {}})).toThrow()
+    await expect(restorePrivacyWith(t, {read: () => photos(2), readBack: oneLook, run: () => {}})).rejects.toThrow()
     expect(gatePoisoned()).toBeDefined()
-    restorePrivacyWith(t, {read: () => photos(0), run: () => {}})
+    await restorePrivacyWith(t, {read: () => photos(0), readBack: oneLook, run: () => {}})
     expect(gatePoisoned()).toBeUndefined()
   })
 })

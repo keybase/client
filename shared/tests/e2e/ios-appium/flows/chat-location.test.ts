@@ -75,7 +75,7 @@ describe('chat location', function () {
   //             openConversation 100
   //   grant     grantPrivacy 640 (the TCC read 15, the runtime 1, a checkpoint 60, simctl 120, the
   //             kill watch 15 overrun by one pid read 120, the launch: simctl 120, the runtime 120,
-  //             the captures 4, a checkpoint 60);  restore  restorePrivacy 150
+  //             the captures 4, a checkpoint 60);  restore  restorePrivacy 155
   //   location  setLocation 120 (simctl's deadline);  clear  clearLocation 120
   //   more      the + button 1, its row 10, the tap 1 = 12;  screen  expectScreen 21 (20, one read 1)
   //   calls     the recorder's call log, 30s of reads overrun by one 2 = 32;  button  10, its tap 1 = 11
@@ -143,10 +143,10 @@ describe('chat location', function () {
     located = false
   }
 
-  // restorePrivacy poisons the gate itself. Bound: restore 150.
-  const putBackPrivacy = () => {
+  // restorePrivacy poisons the gate itself. Bound: restore 155.
+  const putBackPrivacy = async () => {
     if (!privacy) return
-    restorePrivacy(privacy)
+    await restorePrivacy(privacy)
     privacy = undefined
   }
 
@@ -186,8 +186,8 @@ describe('chat location', function () {
       }
     })
 
-  // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 150, launchIfGone 272, the
-  // outbox 300, a channel 120, escapeToTabs 30 = 1556.
+  // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 155, launchIfGone 272, the
+  // outbox 300, a channel 120, escapeToTabs 30 = 1561.
   afterEach(async function () {
     this.timeout(1_600_000)
     await withCleanup(launchIfGone, [stopSharing, clearMoves, putBackPrivacy, launchIfGone, cancelOutbox, deleteChannels, escapeToTabs])

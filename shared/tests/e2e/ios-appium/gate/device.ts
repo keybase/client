@@ -52,6 +52,8 @@ const PUSH_MS = 30_000
 const TCC_MS = 15_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
+// locationd writes clients.plist on its own schedule after a reset
+const RESTORE_READ_BACK_MS = 5_000
 // a link or a tapped notification has iOS start the app within seconds
 const DELIVERED_LAUNCH_MS = 30_000
 const E2E_TMP = '/tmp/kb-e2e'
@@ -488,6 +490,22 @@ export const privacySnapshot = (udid: string): PrivacySnapshot => {
   return {locationAuth: parseLocationd(xml), tcc}
 }
 
+// The permissions whose simctl grant or reset terminates the app (on iOS 26.5, within a second, even
+// one already granted); no location change does.
+const KILLED_BY: ReadonlySet<PrivacyService> = new Set(['photos', 'photos-add'])
+
+// Whether the app exited, or came back with a JS runtime other than `before`, within PRIVACY_KILL_MS
+// of a permission change (iOS restarts a process whose permission changes).
+const privacyKilledApp = async (before: string | undefined) =>
+  !!(await lookFor(
+    async () => {
+      if (appPid() === undefined) return true
+      const now = await runtimeId().catch(() => undefined)
+      return now !== undefined && now !== before ? true : undefined
+    },
+    {interval: 500, timeout: PRIVACY_KILL_MS}
+  ))
+
 // Grants keybase.ios `service` and returns what restorePrivacy puts back, read first (a
 // permission this could not put back is refused before anything changes). simctl privacy can
 // terminate the app (iOS restarts a process whose permission changes): on iOS 26.5 every photos and
@@ -509,23 +527,26 @@ export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRest
   const what = `the ${service} permission for ${BUNDLE_ID}`
   poisonGate(what, `run xcrun simctl ${restore.join(' ')}`)
   simctl(...grant)
-  const changed = await lookFor(
-    async () => {
-      if (appPid() === undefined) return true
-      const now = await runtimeId().catch(() => undefined)
-      return now !== undefined && now !== before ? true : undefined
-    },
-    {interval: 500, timeout: PRIVACY_KILL_MS}
-  )
-  if (changed || appPid() === undefined) await launch(before)
+  if ((await privacyKilledApp(before)) || appPid() === undefined) await launch(before)
   clearGatePoison(what)
   return {done: false, original, udid}
 }
 
 // Puts back what grantPrivacy changed, once (device-lib.ts restorePrivacyWith): for a flow's
-// afterEach, as simctl is all it runs. A restore that fails poisons the gate.
-export const restorePrivacy = (r: PrivacyRestore) => {
-  restorePrivacyWith(r, {read: () => privacySnapshot(r.udid), run: args => void simctl(...args)})
+// afterEach, as simctl and reads are all it runs. A photos restore that ran then waits out the kill
+// it brings (grantPrivacy), so the afterEach's launchIfGone after it does not find the app still up
+// and then lose it. It never launches the app. A restore that fails poisons the gate. Bound: the
+// runtime 1 (a photos service), the TCC read 15, simctl 120, the read-back 5s overrun by one read 15,
+// the kill watch 15 overrun by one pid read 120 (a photos service) = 291; location's 155.
+export const restorePrivacy = async (r: PrivacyRestore) => {
+  const kills = KILLED_BY.has(r.original.service)
+  const before = kills ? await runtimeId().catch(() => undefined) : undefined
+  const ran = await restorePrivacyWith(r, {
+    read: () => privacySnapshot(r.udid),
+    readBack: async taken => (await lookFor(() => (taken() ? true : undefined), {interval: 500, timeout: RESTORE_READ_BACK_MS})) ?? false,
+    run: args => void simctl(...args),
+  })
+  if (ran && kills) await privacyKilledApp(before)
 }
 
 export const toBackground = async () => backgroundApp()
