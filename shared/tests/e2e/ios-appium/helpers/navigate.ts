@@ -177,10 +177,12 @@ const HEADER_DISMISS_LABELS = ['Cancel', 'Close', 'Done'] as const
 type TopModalScreen = {counts: Record<string, number>; title: string; topKey: string}
 
 // Reads the top modal's showing screen for every label at once, and starts measuring each label's
-// one pressable into globalThis.__e2eHeaderFrames[label]. null when no modal is up.
+// one pressable into globalThis.__e2eHeaderFrames[label]. null when no modal is up. Each call's
+// measures write to its own frames object, so one still pending from an earlier call lands nowhere.
 const topModalScreenBody = (labels: ReadonlyArray<string>) => `${fiberPrelude}
   const g = globalThis
-  g.__e2eHeaderFrames = {}
+  const frames = {}
+  g.__e2eHeaderFrames = frames
   const router = kbModule('constants/router.tsx')
   const top = router.getModalStack().at(-1)
   const visible = router.getVisibleScreen()
@@ -221,7 +223,7 @@ const topModalScreenBody = (labels: ReadonlyArray<string>) => `${fiberPrelude}
     const hosts = hits[l].map(h => e2eHostOf(h.f)).filter(Boolean)
     counts[l] = hits[l].length === hosts.length ? hits[l].length : -1
     if (hits[l].length === 1 && hosts.length === 1) {
-      g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (g.__e2eHeaderFrames[l] = {height, width, x, y}))
+      g.nativeFabricUIManager.measureInWindow(hosts[0].stateNode.node, (x, y, width, height) => (frames[l] = {height, width, x, y}))
     }
   }
   return {counts, title, topKey: top.key}
