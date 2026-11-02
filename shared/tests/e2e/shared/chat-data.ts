@@ -365,11 +365,26 @@ const seedScratch = async (api: ChatApi, team: string) => {
 export const SCRATCH_ANCHOR = 'e2e scratch anchor'
 // The page of newest messages the app loads when it opens a thread.
 const THREAD_PAGE = 60
-// What the app draws no row for.
-const HIDDEN_TYPES = new Set(['delete', 'deletehistory', 'edit', 'reaction', 'unfurl', 'none'])
+// What the app draws a row for: Go's chat1 visibleMessageTypes (go/protocol/chat1/extras.go:237),
+// and metadata, which the thread load asks for (threadLoadMessageTypes in
+// chat/conversation/chat-rpc.tsx) and uiMessageToMessage (constants/chat/message.tsx) makes a
+// channel rename row.
+const ROW_TYPES = new Set([
+  'text',
+  'attachment',
+  'join',
+  'leave',
+  'system',
+  'sendpayment',
+  'requestpayment',
+  'flip',
+  'headline',
+  'pin',
+  'metadata',
+])
 
 // The newest message of a read that the app draws a row for.
-export const newestDrawn = (res: ReadResult) => unboxed(res).find(m => !HIDDEN_TYPES.has(m.content.type))
+export const newestDrawn = (res: ReadResult) => unboxed(res).find(m => ROW_TYPES.has(m.content.type))
 
 // The sweeper deletes the stamped messages each run posts to scratch, so its newest page can fill up
 // with deletes; the app then opens the thread with no row and never pages further back (PR 9). When
