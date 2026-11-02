@@ -14,7 +14,8 @@ import {expectPersists} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
-import {escapeToTabs, navigateToMore, scrollToTestID} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {openSettingsPage} from '../helpers/settings'
 
 const GB = 1024 ** 3
 const THRESHOLDS: ReadonlyArray<{bytes: number; label: string}> = [
@@ -45,14 +46,9 @@ describe('files settings', function () {
     await withCleanup(restoreSettings, [escapeToTabs])
   })
 
-  // Settings > Files. Bound: escape 30, the More tab 20, the row scrolled to 25 and tapped 1, the
-  // screen 10, the warn switch 10 = 96.
+  // Settings > Files. Bound: openSettingsPage 97, the warn switch 10 = 107.
   const openFilesSettings = async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await scrollToTestID(T.SETTINGS_ROW_FILES)
-    await el(T.SETTINGS_ROW_FILES).click()
-    await el(T.SETTINGS_FILES).waitForExist({timeout: 10_000})
+    await openSettingsPage('Files', 'settingsTabs.fsTab', T.SETTINGS_FILES, T.SETTINGS_ROW_FILES)
     await el(T.SETTINGS_FILES_WARN_SWITCH).waitForExist({timeout: 10_000})
   }
 
@@ -71,11 +67,11 @@ describe('files settings', function () {
   }
 
   it('the low-space warning, its threshold and the mobile-network sync are set and stay through a relaunch', async function () {
-    // worst case (s): smoke 10, app 25, open 96, the warn taps 3 * 58 = 174, the threshold (a read
+    // worst case (s): smoke 10, app 25, open 107, the warn taps 3 * 58 = 174, the threshold (a read
     // 25, the tap 1, the prompt 10, the sheet settled 10, the wheel 10, the pick 15, the wheel showing it 5, Done 6, the
     // sheet gone 10, calls 12, expectSettings 45) = 149, the cellular switch (the tap 1, calls 12,
-    // expectSettings 45) = 58, steps 4 * 2 = 8; relaunch 200, signed in 90, open 96, smoke 10, app
-    // 25, the shown threshold 1, step 2 = 424; = 944
+    // expectSettings 45) = 58, steps 4 * 2 = 8; relaunch 200, signed in 90, open 107, smoke 10, app
+    // 25, the shown threshold 1, step 2 = 435; = 966
     this.timeout(1_000_000)
     await requireAppIsSmoke()
     const original = await filesSettings()
