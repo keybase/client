@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import useEditAvatar, {type Props} from './hooks'
-import {useNavigation} from '@react-navigation/native'
+import {useNavigation, type ParamListBase} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {ModalTitle} from '@/teams/common'
 import './edit-avatar.css'
@@ -227,7 +228,7 @@ const NativeAvatarUploadWrapper = (p: Props) => {
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
   const nav = useSafeNavigation()
-  const navigation = useNavigation()
+  const navigation = useNavigation() as unknown as NativeStackNavigationProp<ParamListBase>
   const navUp = () => nav.safeNavigateUp()
 
   const onChooseNewAvatar = () => {
@@ -244,12 +245,18 @@ const NativeAvatarUploadWrapper = (p: Props) => {
     )
   }
 
+  // iOS drops a picker presented while this modal is still presenting, so it opens once the
+  // screen's transition has ended
   const noImage = !image
+  const autoPickedRef = React.useRef(false)
   React.useEffect(() => {
-    if (!wizard && noImage) {
+    if (wizard || !noImage) return
+    return navigation.addListener('transitionEnd', e => {
+      if (e.data.closing || autoPickedRef.current) return
+      autoPickedRef.current = true
       C.ignorePromise(chooseAvatar(setSelectedImage, () => nav.safeNavigateUp(), setImageError))
-    }
-  }, [noImage, wizard, nav])
+    })
+  }, [navigation, noImage, wizard, nav])
 
   const error = _error || imageError
 
