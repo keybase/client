@@ -112,7 +112,7 @@ type ApiMessage = {
     content: {
       type: string
       text?: {body: string}
-      attachment?: {object?: {filename?: string; title?: string}}
+      attachment?: {object?: {filename?: string; mimeType?: string; title?: string}}
     }
     // each emoji's reactions, by the usernames that reacted
     reactions?: {reactions?: Record<string, {users?: Record<string, unknown> | null}> | null} | null
@@ -575,6 +575,14 @@ export const readFromCli = async (where: {topicName: string} | {tlfName: string}
   const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
   const res = await withApi(async api => api.call<ReadResult>('read', {channel, pagination: {num}, peek: true}))
   return unboxed(res)
+}
+
+// The attachment of message `id` (in a conversation as readFromCli names it), downloaded through the
+// host's CLI to `file`. Bound: one call of 60s.
+export const downloadFromCli = async (where: {topicName: string} | {tlfName: string}, id: number, file: string) => {
+  const {team} = e2eAccounts()
+  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
+  await withApi(async api => api.callWithin('download', {channel, message_id: id, output: file}, 60_000))
 }
 
 // The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read

@@ -1,6 +1,7 @@
-// The phone's system UI around the app: notification banners, Notification Center and the home
-// screen. Like device.ts these credit nothing: a flow credits 'push-notification' once it has
-// asserted what the app did with the notification. Every find has a deadline and answers a bounded
+// The phone's system UI around the app: notification banners, Notification Center, the home
+// screen and the system photo and document pickers. Like device.ts these credit nothing: a flow
+// credits 'push-notification' once it has asserted what the app did with the notification, and
+// 'photo-picker' / 'file-picker' once it has read back what the app was handed. Every find has a deadline and answers a bounded
 // result; errors are thrown, never read as "not shown".
 import {
   appSnapshot,
@@ -8,10 +9,14 @@ import {
   lookFor,
   openNotificationCenter,
   shownWithLabel,
+  waitFor,
   withSpringboard,
 } from '../helpers/lifecycle'
+import {tapElement, tapFrame} from '../helpers/files'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
+import {sourceElements} from './page-source-lib.ts'
+import {corpusCellOf, corpusCells, fileCellName, folderCellName, libraryCells, type LibraryName} from './picker-lib.ts'
 
 const BANNER_MS = 8_000
 // clearing a few of this run's notifications, one swipe and tap each
@@ -103,4 +108,116 @@ export const withNotificationCenter = async <R,>(fn: (find: (body: string) => Re
   clearGatePoison(NOTIFICATION_CENTER)
   if (failure) throw failure
   return out as R
+}
+
+// -- the system pickers ---------------------------------------------------------------------------
+
+const PICKER_OPEN_MS = 20_000
+const PICKER_GONE_MS = 15_000
+const SYSTEM_PICKERS = 'a system picker'
+
+const button = (name: string) => browser.$(`-ios predicate string:type == "XCUIElementTypeButton" AND name == "${name}"`)
+// The photo picker is up while its Photos / Collections switch is; its confirm reads "Done" and is
+// named Done with nothing selected, Add once something is. The document picker's tab bar.
+const PHOTO_PICKER = 'Collections'
+const PHOTO_ADD = 'Add'
+const DOC_TABS = '-ios predicate string:name == "DOC.browsingModeTabBar"'
+const photoPickerUp = async () => button(PHOTO_PICKER).isExisting()
+const documentPickerUp = async () => browser.$(DOC_TABS).isExisting()
+
+const waitPickerGone = async (what: string, up: () => Promise<boolean>) =>
+  waitFor(`${what} to close`, async () => ((await up()) ? undefined : true), {interval: 500, timeout: PICKER_GONE_MS})
+
+const libraryNow = async () => libraryCells(sourceElements(await browser.getPageSource()))
+
+// In the photo picker the app opened, selects the corpus items `names` (each once, in that order:
+// the app gets them in the order selected) and confirms. The corpus's cells are found by their
+// dates and kinds (picker-lib.ts corpusCells), each tapped at its own frame (the grid reads
+// visible=false), and the selection read back off the grid before the confirm. The caller proves
+// the pick by the files the app was handed (device.ts pickedFiles). Bound: the picker 20, the grid
+// read 20 (each read 2), per item the tap 1, the selection read 2, the confirm 1, gone 15.
+export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
+  if (!names.length || new Set(names).size !== names.length) throw new Error('pick each corpus item once')
+  await button(PHOTO_PICKER).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the photo picker did not open'})
+  const run = await waitFor(
+    'the corpus in the photo picker',
+    async () => {
+      const cells = await libraryNow()
+      if (cells.some(c => c.selected)) throw new Error('the photo picker opened with cells already selected')
+      return corpusCells(cells)
+    },
+    {interval: 1_000, timeout: 20_000}
+  )
+  for (const name of names) await tapFrame(corpusCellOf(run, name).rect, 'a corpus cell in the photo picker')
+  const want = names.map(n => corpusCellOf(run, n).rect)
+  const selected = (await libraryNow()).filter(c => c.selected)
+  const same = (a: {x: number; y: number}, b: {x: number; y: number}) => a.x === b.x && a.y === b.y
+  if (selected.length !== want.length || !want.every(r => selected.some(c => same(c.rect, r)))) {
+    throw new Error(`the photo picker reads ${selected.length} cells selected, not the ${want.length} tapped`)
+  }
+  await button(PHOTO_ADD).click()
+  await waitPickerGone('the photo picker', photoPickerUp)
+}
+
+const ON_MY_IPHONE = '-ios predicate string:type == "XCUIElementTypeCell" AND name == "DOC.sidebar.item.On My iPhone"'
+const cellNamed = (name: string) => browser.$(`-ios predicate string:type == "XCUIElementTypeCell" AND name == "${name}"`)
+const browsingRootTitled = (title: string) =>
+  browser.$(`-ios predicate string:name == "DOC.browsingRoot Source: com.apple.FileProvider.LocalStorage, Title: ${title}"`)
+
+// In the document picker the app opened, opens "On My iPhone" > `folder` (a seeded folder of this
+// run, device.ts seedDocumentFolder), selects `file` and opens it. Browse lands on its sidebar or
+// wherever it was left: until the folder's cell shows, its sidebar's On My iPhone is tapped, or else
+// Browse again (which goes back to the sidebar). Bound: the picker 20, the way to the folder 30
+// (each try's reads and tap 2), the folder 10, the file 10 and its tap 1, its selection 5, Open 1,
+// gone 15.
+export const pickDocument = async (folder: string, file: string) => {
+  const folderCell = folderCellName(folder)
+  const fileCell = fileCellName(file)
+  await browser.$(DOC_TABS).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the document picker did not open'})
+  await waitFor(
+    "the seeded folder in the document picker's On My iPhone",
+    async () => {
+      if (await cellNamed(folderCell).isExisting()) return true
+      const local = browser.$(ON_MY_IPHONE)
+      if (await local.isExisting()) await local.click()
+      else await button('Browse').click()
+      return undefined
+    },
+    {interval: 1_000, timeout: 30_000}
+  )
+  await cellNamed(folderCell).click()
+  await browsingRootTitled(folder).waitForExist({timeout: 10_000, timeoutMsg: 'the document picker did not open the seeded folder'})
+  const cell = cellNamed(fileCell)
+  await cell.waitForExist({timeout: 10_000, timeoutMsg: 'the seeded file is not in the folder'})
+  await tapElement(await cell.getElement(), 'the seeded file')
+  await waitFor(
+    'the seeded file selected',
+    async () => (((await cell.getAttribute('traits')) ?? '').split(', ').includes('Selected') ? true : undefined),
+    {interval: 250, timeout: 5_000}
+  )
+  await button('Open').click()
+  await waitPickerGone('the document picker', documentPickerUp)
+}
+
+// For a flow's afterEach: closes a photo or document picker a test left up (escapeToTabs can't: the
+// document picker with a file selected has no Cancel, and the app's own back does nothing under
+// either). A picker that won't close leaves every later test under it, so a failure poisons the gate;
+// one closed clears it. Bound: the reads 2, a deselect 1, the cancel 1, gone 15.
+export const closeSystemPickers = async () => {
+  try {
+    if (await photoPickerUp()) {
+      await button('Cancel').click()
+      await waitPickerGone('the photo picker', photoPickerUp)
+    }
+    if (await documentPickerUp()) {
+      const deselect = button('Deselect All')
+      if (await deselect.isExisting()) await deselect.click()
+      await button('Cancel').click()
+      await waitPickerGone('the document picker', documentPickerUp)
+    }
+  } catch (e) {
+    poisonGate(SYSTEM_PICKERS, 'close the photo or document picker left over the app on the simulator')
+    throw new Error(`closing a system picker failed: ${e instanceof Error ? e.message : String(e)}`, {cause: e})
+  }
+  clearGatePoison(SYSTEM_PICKERS)
 }

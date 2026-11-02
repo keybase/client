@@ -7,7 +7,7 @@
 // against the udid preflight proved booted (KB_IOS_UDID), and names keybase.ios where simctl takes
 // a bundle id.
 import {execFileSync} from 'child_process'
-import {createHash} from 'crypto'
+import {createHash, randomBytes} from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
@@ -39,6 +39,8 @@ import {
 import {requireFixedPoint, type Point} from './location-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
 import {simulatorDataBirth} from './sim-data.ts'
+import {PICKER_CACHES, pickedFilePath, type PickerCache} from './picker-lib.ts'
+import {parseStampedName} from '../../accounts/run-id.ts'
 import {APP_POISON, clearGatePoison, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
@@ -165,6 +167,88 @@ export const ensurePhotoCorpus = async (): Promise<Array<CorpusItem>> => {
     }
   }
   return Promise.resolve(wanted)
+}
+
+// -- the document picker's seed folder and the picked files ----------------------------------------
+
+const FILES_APP = 'com.apple.DocumentsApp'
+const LOCAL_STORAGE_GROUP = 'group.com.apple.FileProvider.LocalStorage'
+
+// The Files app's "On My iPhone" storage on this simulator.
+const onMyIPhone = () => {
+  const line = simctl('get_app_container', preflightUdid(), FILES_APP, 'groups')
+    .split('\n')
+    .find(l => l.startsWith(`${LOCAL_STORAGE_GROUP}\t`))
+  if (!line) throw new Error("the simulator has no Files app storage (On My iPhone)")
+  return path.join(line.slice(LOCAL_STORAGE_GROUP.length + 1).trim(), 'File Provider Storage')
+}
+
+// A folder of this run in On My iPhone, e2e-<runid>-<label>.
+const requireSeedFolder = (folder: string) => {
+  if (parseStampedName(folder, 'dashed')?.runId !== e2eRunId() || !/^[A-Za-z0-9-]+$/.test(folder)) {
+    throw new Error('refusing a seed folder that is not one of this run')
+  }
+  return path.join(onMyIPhone(), folder)
+}
+
+// Makes a new folder of this run in On My iPhone (e2e-<runid>-<label>-<hex>, so a retry has its own)
+// holding the corpus files `names`, for the document picker to pick from. The flow's afterEach removes
+// it (removeSeedFolder).
+export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) => {
+  requireCurrentAttempt()
+  const folder = `e2e-${e2eRunId()}-${label}-${randomBytes(2).toString('hex')}`
+  const dir = requireSeedFolder(folder)
+  fs.mkdirSync(dir)
+  for (const n of names) {
+    const c = CORPUS.find(e => e.name === n)
+    if (!c) throw new Error(`the corpus has no ${n}`)
+    fs.copyFileSync(c.file, path.join(dir, n))
+  }
+  return folder
+}
+
+// Removes a seed folder of this run and reads back that it is gone; one already gone is left be.
+export const removeSeedFolder = (folder: string) => {
+  const dir = requireSeedFolder(folder)
+  fs.rmSync(dir, {force: true, recursive: true})
+  if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
+}
+
+export type PickedFile = {path: string; sha256: string; size: number}
+
+// What the app was handed by a picker: the file:// urls a titles screen (or an upload) holds, each a
+// file in the app's picker caches (picker-lib.ts pickedFilePath), with its sha256 and size.
+export const pickedFiles = (urls: ReadonlyArray<string>): Array<PickedFile> => {
+  requireCurrentAttempt()
+  const container = appData()
+  return urls.map(u => readPicked(pickedFilePath(u, container)))
+}
+
+// The file `name` (an upload's leaf: the picker names its copy, and the upload keeps the name) in the
+// app's `cache` picker cache.
+export const pickerCacheFile = (cache: PickerCache, name: string): PickedFile => {
+  requireCurrentAttempt()
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9]+$/.test(name)) throw new Error('refusing a picked file name that is not plain')
+  const container = appData()
+  return readPicked(pickedFilePath(`file://${path.join(container, PICKER_CACHES[cache], name)}`, container))
+}
+
+const appData = () => simctl('get_app_container', preflightUdid(), BUNDLE_ID, 'data').trim()
+
+const readPicked = (p: string): PickedFile => {
+  const data = fs.readFileSync(p)
+  return {path: p, sha256: createHash('sha256').update(data).digest('hex'), size: data.length}
+}
+
+// An image file's pixel size ("<w>x<h>"), read with the system's sips: how a re-encoded copy (the
+// photo picker's for an upload, the app's compressed send) is matched to its corpus item. Bound: 15.
+export const imagePixelSize = (file: string) => {
+  requireCurrentAttempt()
+  const out = runSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', file], 15_000, {hidden: [file], what: 'sips'})
+  const w = /pixelWidth: (\d+)/.exec(out)?.[1]
+  const h = /pixelHeight: (\d+)/.exec(out)?.[1]
+  if (!w || !h) throw new Error('sips read no pixel size')
+  return `${w}x${h}`
 }
 
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator

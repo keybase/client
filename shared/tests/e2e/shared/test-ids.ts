@@ -42,6 +42,10 @@ export const CHAT_MENTION_BUTTON        = 'chat-mention-button'
 export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
+// the camera button's attach sheet on the phone: take a photo or video, choose from the library, choose a file
+export const CHAT_ATTACH_CAMERA         = 'chat-attach-camera'
+export const CHAT_ATTACH_LIBRARY        = 'chat-attach-library'
+export const CHAT_ATTACH_FILE           = 'chat-attach-file'
 // the + menu's "Share your location" row
 export const CHAT_MORE_SHARE_LOCATION = 'chat-more-share-location'
 // the location screen's buttons: live for 15 minutes, 1 hour, 8 hours, and the current location
@@ -193,6 +197,9 @@ export const FILES_EDITING_INPUT = 'files-editing-input'
 export const FILES_EDITING_SAVE = 'files-editing-save'
 // a folder's "Sync on this device" switch
 export const FILES_SYNC_TOGGLE = 'files-sync-toggle'
+// the phone's upload menu (the folder header's Upload): the photo library and the document picker
+export const FILES_UPLOAD_MEDIA = 'files-upload-media'
+export const FILES_UPLOAD_FILE = 'files-upload-file'
 export const FILES_DESTINATION_PICKER = 'files-destination-picker'
 // the Finder (system file manager) integration banner at the top of Files
 export const FILES_SFMI_BANNER = 'files-sfmi-banner'

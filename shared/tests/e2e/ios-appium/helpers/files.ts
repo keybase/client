@@ -208,10 +208,11 @@ export const openRowMenu = async (name: string, what: string) => {
 
 const sameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
 
-// Opens the folder screen's own "..." sheet: the header's More pill opens a native menu (Filter,
-// Upload, More), and its More item opens the sheet. Bound: the pill 1, openMenuFrom 15 overrun by one
-// try (the pill tap 1, the menu 5, its items read 2 and tapped 1, the sheet 3) = 28.
-export const openFolderMoreSheet = async () => {
+// Opens the sheet behind one of the folder header's native menu items: the header's More pill opens
+// a native menu (Filter, Upload, More), and its More item opens the folder's "..." sheet, its Upload
+// item the upload sheet. Bound: the pill 1, openMenuFrom 15 overrun by one try (the pill tap 1, the
+// menu 5, its items read 2 and tapped 1, the sheet 3) = 28.
+const openFolderHeaderSheet = async (item: 'More' | 'Upload', what: string) => {
   // the header's own More, in the folder screen's navigation bar (see the top of this file for why
   // not `visible`)
   const pills: Array<Rect> = []
@@ -225,22 +226,28 @@ export const openFolderMoreSheet = async () => {
   const pillRect = pills[0]!
   // the menu's items report visible=false too
   const filter = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Filter"')
-  await openMenuFrom("the folder's More sheet", async () => {
+  await openMenuFrom(what, async () => {
     if (!(await filter.isExisting())) {
       await tapFrame(pillRect, "the header's More pill")
       await filter.waitForExist({timeout: 5_000})
     }
-    // the menu's own More item, not the pill that opened it
+    // the menu's own item, not the pill that opened it
     const items: Array<DrawnRow> = []
-    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "More"').getElements()) {
+    for (const e of await browser.$$(`-ios predicate string:type == "XCUIElementTypeButton" AND label == "${item}"`).getElements()) {
       const rect = await rectOf(e)
       if (rect && !sameRect(rect, pillRect)) items.push({e, rect})
     }
     const inner = innermost(items.map(i => i.rect))
-    if (inner.length !== 1) throw new Error(`${inner.length} More items in the header's menu, not one`)
-    await tapFrame(items[inner[0]!]!.rect, "the menu's More")
+    if (inner.length !== 1) throw new Error(`${inner.length} ${item} items in the header's menu, not one`)
+    await tapFrame(items[inner[0]!]!.rect, `the menu's ${item}`)
   })
 }
+
+// The folder's "..." sheet. Bound: 28.
+export const openFolderMoreSheet = async () => openFolderHeaderSheet('More', "the folder's More sheet")
+
+// The folder's upload sheet (Upload photos/videos, Upload file). Bound: 28.
+export const openFolderUploadSheet = async () => openFolderHeaderSheet('Upload', "the folder's upload sheet")
 
 // The buttons of the topmost drawn screen, whether XCUITest reports them visible or not: with no modal
 // up (the app's own modal stack), those wholly on screen (a page pushed over another takes the one

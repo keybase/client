@@ -2,6 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {
   pickAndUploadMobile as pickAndUploadInPlatform,
   pickDocumentsMobile as pickDocumentsInPlatform,
@@ -48,10 +49,12 @@ const UploadButton = React.forwardRef<UploadButtonHandle, UploadButtonProps>((pr
         visible={true}
         onHidden={hidePopup}
         items={[
-          ...(props.pickAndUploadMixed ? [{onClick: props.pickAndUploadMixed, title: 'Upload photos/videos'}] : []),
+          ...(props.pickAndUploadMixed
+            ? [{onClick: props.pickAndUploadMixed, testID: TestIDs.FILES_UPLOAD_MEDIA, title: 'Upload photos/videos'}]
+            : []),
           ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
           ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
-          ...(pickAndUploadFile ? [{onClick: pickAndUploadFile, title: 'Upload file'}] : []),
+          ...(pickAndUploadFile ? [{onClick: pickAndUploadFile, testID: TestIDs.FILES_UPLOAD_FILE, title: 'Upload file'}] : []),
           ...(openAndUploadDirectory ? [{onClick: openAndUploadDirectory, title: 'Upload directory'}] : []),
           ...(openAndUploadFileDesktop ? [{onClick: openAndUploadFileDesktop, title: 'Upload file'}] : []),
         ]}
