@@ -26,27 +26,25 @@ import {
   check,
   chooseMenuItem,
   closeMessageMenu,
+  currentRoute,
   elementWithLabelPartIn,
+  expectRoute,
   hideKeyboard,
-  labelledElement,
   menuHas,
+  NAMED_ELEMENT_TYPES,
   openConversation,
   openMenuFrom,
   openMessageMenu,
+  tapButton,
   typeInSearchFilter,
   waitForRow,
 } from '../helpers/chat'
 import {el, els, tapForTestID} from '../helpers/elements'
-import {appSnapshot, waitFor} from '../helpers/lifecycle'
+import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 
 // TeamRole in the protocol
 const restrictedBot = 6
-
-const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
-// what a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
-// merging its texts
-const NAMED = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 describe('chat bots', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -123,25 +121,10 @@ describe('chat bots', function () {
 
   // -- the phone ----------------------------------------------------------------------------------
 
-  // The button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap 1 = 6.
-  const tapButton = async (label: string, what: string) =>
-    (await waitFor(what, async () => labelledElement(BUTTONS, label, what), {interval: 300, timeout: 5_000})).click()
-
-  const route = async () => (await appSnapshot()).screen
-  const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
-    waitFor(
-      what,
-      async () => {
-        const s = await route()
-        return s?.name === name && ok(s.params ?? {}) ? true : undefined
-      },
-      {interval: 250, timeout: 10_000}
-    )
-
   // Refuses, before any tap that writes, unless the screen up is `name` for the second account and
   // aims at the throwaway subteam: its team id, or its general channel. Bound: one route read 1.
   const requireOnSubteam = async (what: string, name: string, teamID: string, generalConvID: string) => {
-    const s = await route()
+    const s = await currentRoute()
     const p = s?.params ?? {}
     check(
       s?.name === name && p['botUsername'] === data.secondUser && (p['teamID'] === teamID || p['conversationIDKey'] === generalConvID),
@@ -162,7 +145,7 @@ describe('chat bots', function () {
     await waitFor(
       "the subteam's team page",
       async () => {
-        const s = await route()
+        const s = await currentRoute()
         return s?.name === 'team' && s.params?.['teamID'] === teamID ? true : undefined
       },
       {interval: 250, timeout: 20_000}
@@ -187,7 +170,7 @@ describe('chat bots', function () {
       const top = Number(e.attrs['y'])
       const bottom = top + Number(e.attrs['height'])
       return (
-        NAMED.includes(e.type) &&
+        NAMED_ELEMENT_TYPES.includes(e.type) &&
         e.attrs['visible'] === 'true' &&
         top <= mid &&
         bottom >= mid &&
@@ -220,10 +203,10 @@ describe('chat bots', function () {
   const pickChannels = async (channel?: string) => {
     await el(T.CHAT_BOT_CHANNELS_BUTTON).click()
     await el(T.CHAT_BOT_CHANNEL_PICKER).waitForExist({timeout: 10_000})
-    await (await elementWithLabelPartIn(NAMED, 'All channels', 'the All channels row')).click()
+    await (await elementWithLabelPartIn(NAMED_ELEMENT_TYPES, 'All channels', 'the All channels row')).click()
     if (channel) {
       // a channel row reads "#" and its name
-      await (await elementWithLabelPartIn(NAMED, channel, `the #${channel} row`)).click()
+      await (await elementWithLabelPartIn(NAMED_ELEMENT_TYPES, channel, `the #${channel} row`)).click()
     }
     await tapButton('Done', "the picker's Done")
     await el(T.CHAT_BOT_CHANNEL_PICKER).waitForExist({reverse: true, timeout: 5_000})
@@ -263,7 +246,7 @@ describe('chat bots', function () {
     await hideKeyboard()
     const result = await waitFor(
       'the second account among the users found',
-      async () => elementWithLabelPartIn(NAMED, data.secondUser, 'the second account among the results'),
+      async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, data.secondUser, 'the second account among the results'),
       {interval: 500, timeout: 15_000}
     )
     await result.click()
@@ -346,7 +329,7 @@ describe('chat bots', function () {
     await typeInSearchFilter(name)
     await waitFor(
       'the subteam among the places to install it',
-      async () => elementWithLabelPartIn(NAMED, name, 'the subteam among the places'),
+      async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, name, 'the subteam among the places'),
       {interval: 500, timeout: 15_000}
     )
     await waitForUiCall('the place search to go out', seq, 'chat.1.local.addBotConvSearch')

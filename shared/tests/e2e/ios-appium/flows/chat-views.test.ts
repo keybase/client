@@ -31,21 +31,24 @@ import * as T from '../../shared/test-ids'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
+  BUTTON_ELEMENTS,
   check,
   chooseMenuItem,
   clearComposer,
   closeInfoPanel,
   closeMessageMenu,
   composerText,
+  currentRoute,
   dragUntilOnScreen,
   editCancel,
   elementWithLabelPartIn,
+  expectRoute,
   galleryListing,
   giphyGalleryShown,
   hideKeyboard,
-  labelledElement,
   menuLabels,
   menuOffers,
+  NAMED_ELEMENT_TYPES,
   openConversation,
   openInfoPanel,
   openMessageMenu,
@@ -56,6 +59,7 @@ import {
   scrollRowIntoView,
   sendMessage,
   storedAttachment,
+  tapButton,
   typeInComposer,
   typeInSearchFilter,
   visibleConversation,
@@ -63,16 +67,11 @@ import {
   waitForRow,
 } from '../helpers/chat'
 import {byText, el, els} from '../helpers/elements'
-import {appSnapshot, waitFor} from '../helpers/lifecycle'
+import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, goBackUntilGone, navigateToChat} from '../helpers/navigate'
 
 // TeamRole in the protocol: a bot or a restricted bot
 const BOT_ROLES: ReadonlyArray<number> = [5, 6]
-
-const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
-// what a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
-// merging its texts
-const NAMED = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 // how long a clear history that went out takes to empty the thread (chat-messages waits as long)
 const CLEAR_BOUND_MS = 20_000
@@ -151,19 +150,6 @@ describe('chat views', function () {
 
   // -- reads --------------------------------------------------------------------------------------
 
-  const route = async () => (await appSnapshot()).screen
-  const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
-    waitFor(
-      what,
-      async () => {
-        const s = await route()
-        return s?.name === name && ok(s.params ?? {}) ? true : undefined
-      },
-      {interval: 250, timeout: 10_000}
-    )
-
-  const tapButton = async (label: string, what: string) => (await labelledElement(BUTTONS, label, what)).click()
-
   const expectCli = async (topicName: string, what: string, ok: (ms: Array<CliMessage>) => boolean) =>
     waitFor(`the host to read ${what}`, async () => (ok(await readFromCli({topicName})) ? true : undefined), {
       interval: 1_000,
@@ -205,10 +191,11 @@ describe('chat views', function () {
     await openConversation(media())
     await openInfoPanel(T.CHAT_INFO_PANEL_MEMBERS_TAB)
     // the members tab lists the second account, by its name in memory
-    await waitFor('the second account among the members', async () => elementWithLabelPartIn(NAMED, data.secondUser, "the second account's member row"), {
-      interval: 500,
-      timeout: 15_000,
-    })
+    await waitFor(
+      'the second account among the members',
+      async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, data.secondUser, "the second account's member row"),
+      {interval: 500, timeout: 15_000}
+    )
     await step('Info panel: Members lists the channel members')
 
     await el(T.CHAT_INFO_PANEL_ATTACHMENTS_TAB).waitForExist({timeout: 10_000})
@@ -391,7 +378,7 @@ describe('chat views', function () {
     await hideKeyboard()
     const result = await waitFor(
       'the second account among the users found',
-      async () => elementWithLabelPartIn(NAMED, data.secondUser, 'the second account among the results'),
+      async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, data.secondUser, 'the second account among the results'),
       {interval: 500, timeout: 15_000}
     )
     await step('The bot search finds the second account')
@@ -399,7 +386,7 @@ describe('chat views', function () {
     await expectRoute("the second account's bot page", 'chatInstallBot', p => p['botUsername'] === data.secondUser)
     await el(T.CHAT_BOT_INSTALL).waitForExist({timeout: 10_000})
     for (const label of ['Review', 'Install', 'Edit settings', 'Uninstall']) {
-      check(!(await browser.$(`${BUTTONS} AND label == ${JSON.stringify(label)}`).isExisting()), `a member's bot page offers ${label}`)
+      check(!(await browser.$(`${BUTTON_ELEMENTS} AND label == ${JSON.stringify(label)}`).isExisting()), `a member's bot page offers ${label}`)
     }
     const role = await mainRpc<number>('chat.1.local.getTeamRoleInConversation', {convID: convIDBytes(scratch()), username: data.secondUser})
     check(role > 0 && !BOT_ROLES.includes(role), 'the host does not read the second account as a member, not a bot')
@@ -423,7 +410,7 @@ describe('chat views', function () {
     await step('The new chat team builder', {screenshot: false})
     await escapeToTabs()
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
-    check((await route())?.name !== 'chatNewChat', 'the team builder is still up')
+    check((await currentRoute())?.name !== 'chatNewChat', 'the team builder is still up')
     await step('Closed: back at the inbox', {screenshot: false})
   })
 
@@ -455,7 +442,7 @@ describe('chat views', function () {
     await tapButton('Cancel', "the warning's Cancel")
     const cancelledAt = Date.now()
     await confirm().waitForExist({reverse: true, timeout: 10_000})
-    check((await route())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
+    check((await currentRoute())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
     // the Cancel goes back to the info panel: the thread is the one to read
     await closeInfoPanel()
     check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')

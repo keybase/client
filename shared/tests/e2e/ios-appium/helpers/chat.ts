@@ -2196,6 +2196,28 @@ export const labelledElement = async (selector: string, label: string, what: str
   return found[inner[0]!]!.e
 }
 
+// Every visible button, for labelledElement.
+export const BUTTON_ELEMENTS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
+
+// The visible button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap
+// 1 = 6.
+export const tapButton = async (label: string, what: string) =>
+  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS, label, what), {interval: 300, timeout: 5_000})).click()
+
+// The app's current route.
+export const currentRoute = async () => (await appSnapshot()).screen
+
+// Waits for the app's route to be `name` with params `ok` takes. Bound: 10.
+export const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
+  waitFor(
+    what,
+    async () => {
+      const s = await currentRoute()
+      return s?.name === name && ok(s.params ?? {}) ? true : undefined
+    },
+    {interval: 250, timeout: 10_000}
+  )
+
 const INBOX_METADATA = `kbModule('chat/inbox/metadata-store.tsx').useInboxMetadataState.getState()`
 const INBOX_LAYOUT = `kbModule('chat/inbox/layout-state.tsx')`
 
@@ -2235,6 +2257,10 @@ export const scrollInboxToEnd = async () => {
   if ((await seekInbox(() => undefined)) !== undefined) throw new Error('the inbox picked an item while scrolling to its end')
   return (await drawnInbox()).items.length
 }
+
+// What a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
+// merging its texts.
+export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 // The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
 // tappable row merges its texts into one label), read off one page source (a call per element on a
