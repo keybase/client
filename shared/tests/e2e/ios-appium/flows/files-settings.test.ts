@@ -12,7 +12,6 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {expectPersists} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {waitSignedIn} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, scrollToTestID} from '../helpers/navigate'
@@ -151,7 +150,6 @@ describe('files settings', function () {
     await expectPersists(
       'the files settings',
       async () => {
-        await waitSignedIn()
         await requireAppIsSmoke()
         await openFilesSettings()
         const s = await filesSettings()

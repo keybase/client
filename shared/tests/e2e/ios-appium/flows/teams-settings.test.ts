@@ -32,9 +32,17 @@ import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
-import {closeMessageMenu, dragUntilOnScreen, expectPersists, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
+import {
+  closeMessageMenu,
+  dragUntilOnScreen,
+  expectPersists,
+  hideKeyboard,
+  openConversation,
+  openInfoPanel,
+} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, drag, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, drag, filesRowNamed, fillField, pressTestID, tapButton} from '../helpers/files'
+import {expectScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, elementWithLabelPartIn, onScreen, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
@@ -293,7 +301,6 @@ describe('teams settings', function () {
     await expectPersists(
       "the subteam's requests switch",
       async () => {
-        await waitSignedIn()
         // the switch draws off until the team's settings load
         await openSubteamUntil("the subteam's settings after the relaunch", name, teamID, SETTINGS, async () => {
           await dragUntilOnScreen("the settings' requests switch", () =>

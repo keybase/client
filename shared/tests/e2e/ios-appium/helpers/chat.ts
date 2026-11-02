@@ -2033,20 +2033,6 @@ export const iconButton = (label: string) =>
     `-ios predicate string:type == "XCUIElementTypeButton" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
   )
 
-// The app's current route.
-export const currentRoute = async () => (await appSnapshot()).screen
-
-// Waits for the app's route to be `name` with params `ok` takes. Bound: 10.
-export const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
-  waitFor(
-    what,
-    async () => {
-      const s = await currentRoute()
-      return s?.name === name && ok(s.params ?? {}) ? true : undefined
-    },
-    {interval: 250, timeout: 10_000}
-  )
-
 const INBOX_METADATA = `kbModule('chat/inbox/metadata-store.tsx').useInboxMetadataState.getState()`
 const INBOX_LAYOUT = `kbModule('chat/inbox/layout-state.tsx')`
 

@@ -20,31 +20,11 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
-import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
+import {isKeyboardUp, typeIntoFocused} from './chat'
 import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, press, screenRect, tapElement, tapFrame} from './menus'
-import {appSnapshot, waitFor} from './lifecycle'
+import {waitFor} from './lifecycle'
+import {expectScreen, visibleScreen} from '../gate/screens.ts'
 import {escapeToTabs, goBack, tabTo} from './navigate'
-
-export type Screen = {name?: string; params?: Record<string, unknown>}
-
-// The screen the app shows. Bound: one read 1.
-export const visibleScreen = async (): Promise<Screen | undefined> => (await appSnapshot()).screen
-
-// Waits for the screen up to be `name` with params `ok` takes. Bound: `timeout`, plus one read 1.
-export const expectScreen = async (
-  what: string,
-  name: string,
-  ok: (params: Record<string, unknown>) => boolean = () => true,
-  timeout = 10_000
-) =>
-  waitFor(
-    what,
-    async () => {
-      const s = await visibleScreen()
-      return s?.name === name && ok(s.params ?? {}) ? s : undefined
-    },
-    {interval: 250, timeout}
-  )
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -397,14 +377,3 @@ export const typeInFilter = async (text: string, what: string) => {
   await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {interval: 250, timeout: 5_000})
   await typeIntoFocused(what, text)
 }
-
-// Waits for the relaunched app to be signed in and not switching accounts. Bound: 90s.
-export const waitSignedIn = async () =>
-  waitFor(
-    'the relaunched app to sign in',
-    async () => {
-      const s = await signedInAs().catch(() => undefined)
-      return s?.loggedIn && !s.switching ? true : undefined
-    },
-    {interval: 1_000, timeout: 90_000}
-  )

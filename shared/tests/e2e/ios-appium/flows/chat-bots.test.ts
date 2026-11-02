@@ -21,16 +21,8 @@ import {openLink} from '../gate/device'
 import {labelParts, sourceElements} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
-import {
-  closeMessageMenu,
-  currentRoute,
-  expectRoute,
-  hideKeyboard,
-  openConversation,
-  openMessageMenu,
-  typeInSearchFilter,
-  waitForRow,
-} from '../helpers/chat'
+import {closeMessageMenu, hideKeyboard, openConversation, openMessageMenu, typeInSearchFilter, waitForRow} from '../helpers/chat'
+import {expectScreen, visibleScreen} from '../gate/screens'
 import {
   check,
   chooseMenuItem,
@@ -124,7 +116,7 @@ describe('chat bots', function () {
   // Refuses, before any tap that writes, unless the screen up is `name` for the second account and
   // aims at the throwaway subteam: its team id, or its general channel. Bound: one route read 1.
   const requireOnSubteam = async (what: string, name: string, teamID: string, generalConvID: string) => {
-    const s = await currentRoute()
+    const s = await visibleScreen()
     const p = s?.params ?? {}
     check(
       s?.name === name && p['botUsername'] === data.secondUser && (p['teamID'] === teamID || p['conversationIDKey'] === generalConvID),
@@ -145,7 +137,7 @@ describe('chat bots', function () {
     await waitFor(
       "the subteam's team page",
       async () => {
-        const s = await currentRoute()
+        const s = await visibleScreen()
         return s?.name === 'team' && s.params?.['teamID'] === teamID ? true : undefined
       },
       {interval: 250, timeout: 20_000}
@@ -247,7 +239,7 @@ describe('chat bots', function () {
       {interval: 500, timeout: 15_000}
     )
     await result.click()
-    await expectRoute('the install screen of the second account', 'chatInstallBot', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the install screen of the second account', 'chatInstallBot', p => p['botUsername'] === data.secondUser)
     // a new install is a restricted bot unless changed: the dropdown reads it first, then its
     // description
     await browser
@@ -322,7 +314,7 @@ describe('chat bots', function () {
     await openMessageMenu(text)
     seq = await currentCallSeq()
     await chooseMenuItem('Install bot in another team or chat')
-    await expectRoute('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
     await typeInSearchFilter(name)
     await waitFor(
       'the subteam among the places to install it',
@@ -338,7 +330,7 @@ describe('chat bots', function () {
     const row = await botRowMenu()
     await openMenuFrom('the bot row menu', async () => row.click())
     await chooseMenuItem('Uninstall')
-    await expectRoute('the uninstall confirm', 'chatConfirmRemoveBot', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the uninstall confirm', 'chatConfirmRemoveBot', p => p['botUsername'] === data.secondUser)
     await requireOnSubteam('the uninstall confirm', 'chatConfirmRemoveBot', teamID, generalConvID)
     seq = await currentCallSeq()
     await tapButton('Uninstall', "the confirm's Uninstall")

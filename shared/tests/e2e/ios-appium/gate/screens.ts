@@ -22,7 +22,25 @@ export const tapBack = async () => {
   return false
 }
 
+// The screen the app shows. Bound: one read 1.
 export const visibleScreen = async () => (await appSnapshot()).screen
+
+// Waits for the screen up to be `name` with params `ok` takes, and returns it. Bound: `timeout`, plus
+// one read 1.
+export const expectScreen = async (
+  what: string,
+  name: string,
+  ok: (params: Record<string, unknown>) => boolean = () => true,
+  timeout = 10_000
+) =>
+  waitFor(
+    what,
+    async () => {
+      const s = await visibleScreen()
+      return s?.name === name && ok(s.params ?? {}) ? s : undefined
+    },
+    {interval: 250, timeout}
+  )
 
 export const screenName = async () => (await visibleScreen())?.name
 

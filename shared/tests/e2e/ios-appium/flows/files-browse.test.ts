@@ -5,7 +5,8 @@
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {el, els, tab} from '../helpers/elements'
-import {backToFilesRoot, expectFolder, expectScreen, filesRowNamed, openFilesRoot} from '../helpers/files'
+import {backToFilesRoot, expectFolder, filesRowNamed, openFilesRoot} from '../helpers/files'
+import {expectScreen} from '../gate/screens'
 import {tapFrame} from '../helpers/menus'
 import {waitFor} from '../helpers/lifecycle'
 

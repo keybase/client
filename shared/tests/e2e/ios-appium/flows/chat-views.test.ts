@@ -31,9 +31,7 @@ import {
   closeInfoPanel,
   closeMessageMenu,
   composerText,
-  currentRoute,
   dragUntilOnScreen,
-  expectRoute,
   galleryListing,
   giphyGalleryShown,
   hideKeyboard,
@@ -54,6 +52,7 @@ import {
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
+import {expectScreen, visibleScreen} from '../gate/screens'
 import {
   BUTTON_ELEMENTS,
   check,
@@ -216,7 +215,7 @@ describe('chat views', function () {
     await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 5_000})
     await el(T.CHAT_EMOJI_BUTTON).click()
     await el(T.CHAT_EMOJI_PICKER).waitForExist({timeout: 10_000})
-    await expectRoute('the emoji picker screen', 'chatChooseEmoji')
+    await expectScreen('the emoji picker screen', 'chatChooseEmoji')
     await step('The emoji picker')
     // the picker's search takes the keyboard, which covers the back
     await hideKeyboard()
@@ -322,7 +321,7 @@ describe('chat views', function () {
     await openMessageMenu(MEDIA_IMAGE)
     await chooseMenuItem('Forward')
     await el(T.CHAT_FORWARD_SEARCH).waitForExist({timeout: 10_000})
-    await expectRoute('the forward picker', 'chatForwardMsgPick')
+    await expectScreen('the forward picker', 'chatForwardMsgPick')
     await step('The forward picker', {screenshot: false})
     await goBackUntilGone(T.CHAT_FORWARD_SEARCH)
     await el(T.CHAT_FORWARD_SEARCH).waitForExist({reverse: true, timeout: 5_000})
@@ -343,7 +342,7 @@ describe('chat views', function () {
       .$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add a bot" AND visible == 1')
       .waitForExist({timeout: 10_000, timeoutMsg: 'the Bots tab does not offer Add a bot'})
     await tapButton('Add a bot', "the Bots tab's Add a bot")
-    await expectRoute('the bot search', 'chatSearchBots')
+    await expectScreen('the bot search', 'chatSearchBots')
     await typeInSearchFilter(data.secondUser)
     // the first tap with the keyboard up only puts it away
     await hideKeyboard()
@@ -354,7 +353,7 @@ describe('chat views', function () {
     )
     await step('The bot search finds the second account')
     await result.click()
-    await expectRoute("the second account's bot page", 'chatInstallBot', p => p['botUsername'] === data.secondUser)
+    await expectScreen("the second account's bot page", 'chatInstallBot', p => p['botUsername'] === data.secondUser)
     await el(T.CHAT_BOT_INSTALL).waitForExist({timeout: 10_000})
     for (const label of ['Review', 'Install', 'Edit settings', 'Uninstall']) {
       check(!(await browser.$(`${BUTTON_ELEMENTS} AND label == ${JSON.stringify(label)}`).isExisting()), `a member's bot page offers ${label}`)
@@ -375,13 +374,13 @@ describe('chat views', function () {
     await navigateToChat()
     await el(T.CHAT_NEW_CHAT_BUTTON).waitForExist({timeout: 5_000})
     await el(T.CHAT_NEW_CHAT_BUTTON).click()
-    await expectRoute('the new chat team builder', 'chatNewChat')
+    await expectScreen('the new chat team builder', 'chatNewChat')
     // the phone's builder offers the self conversation first
     await byText('Write secure notes to yourself').waitForExist({timeout: 10_000, timeoutMsg: 'the team builder does not offer the self row'})
     await step('The new chat team builder', {screenshot: false})
     await escapeToTabs()
     await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000})
-    check((await currentRoute())?.name !== 'chatNewChat', 'the team builder is still up')
+    check((await visibleScreen())?.name !== 'chatNewChat', 'the team builder is still up')
     await step('Closed: back at the inbox', {screenshot: false})
   })
 
@@ -405,13 +404,13 @@ describe('chat views', function () {
     const confirm = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Yes, clear for everyone" AND visible == 1')
     await confirm().waitForExist({timeout: 10_000})
     check((await visibleConversation()) === convID, 'the clear history warning is not over the throwaway channel')
-    await expectRoute('the clear history warning', 'chatDeleteHistoryWarning')
+    await expectScreen('the clear history warning', 'chatDeleteHistoryWarning')
     await step('The clear history warning')
 
     await tapButton('Cancel', "the warning's Cancel")
     const cancelledAt = Date.now()
     await confirm().waitForExist({reverse: true, timeout: 10_000})
-    check((await currentRoute())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
+    check((await visibleScreen())?.name !== 'chatDeleteHistoryWarning', 'the clear history warning is still up')
     // the Cancel goes back to the info panel: the thread is the one to read
     await closeInfoPanel()
     check((await visibleConversation()) === convID, 'back from the info panel is not the throwaway channel')
