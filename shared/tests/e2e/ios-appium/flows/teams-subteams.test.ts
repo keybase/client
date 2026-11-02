@@ -34,9 +34,9 @@ import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, onScreen, pressTestID, tapButton, visibleScreen} from '../helpers/files'
+import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, onScreen, openMenuFrom} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,

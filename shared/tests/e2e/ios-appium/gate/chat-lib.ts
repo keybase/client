@@ -203,9 +203,9 @@ export const shiftIntoBand = (row: Span, band: Span, margin: number) => {
   return 0
 }
 
-// Whether a measured frame is drawn wholly inside `rect` (to within a point) and on a screen
-// `screenHeight` tall, and is not empty: where a tap at its middle lands on it.
-export const frameInside = (frame: Rect, rect: Rect, screenHeight: number) =>
+// Whether `frame` has a size and lies wholly inside `rect` (to within a point: XCUITest rounds frames
+// to whole points), and on a screen `screenHeight` tall when given: where a tap at its middle lands on it.
+export const frameInside = (frame: Rect, rect: Rect, screenHeight = Infinity) =>
   frame.width > 0 &&
   frame.height > 0 &&
   frame.x >= rect.x - 1 &&
@@ -286,10 +286,6 @@ export const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> 
   const size = await e.getSize().catch(() => undefined)
   return at && size ? {...at, ...size} : undefined
 }
-
-// Whether `r` has a size and lies wholly inside `area`.
-export const inside = (r: Rect, area: Rect) =>
-  r.width > 0 && r.height > 0 && r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height
 
 // The element with `testID` drawn inside the row at `rowRect` (window points), of those the testID
 // repeats on, one per row. Throws when none or more than one lies in it.

@@ -24,7 +24,6 @@ import {
   findInboxRow,
   frameInside,
   inboxRowCandidates,
-  inside,
   isOneOnOneRow,
   type AppSmallRow,
   inboxIn,
@@ -1066,7 +1065,7 @@ export const closeMessageMenu = async () =>
       for (const c of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()) {
         const r = await frameOf(c)
         // the sheet's own Close: inside a measured open sheet and wholly on screen
-        if (r && sheets.some(sh => inside(r, sh)) && inside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
+        if (r && sheets.some(sh => frameInside(r, sh)) && frameInside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
       }
       if (!close) {
         // the backdrop band between the safe-area top (the status bar, where a tap may not reach the

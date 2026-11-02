@@ -34,9 +34,9 @@ import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, expectPersists, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, drag, expectScreen, filesRowNamed, fillField, onScreen, press, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
+import {buttonLabelled, drag, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, waitSignedIn} from '../helpers/files'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, onScreen, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,

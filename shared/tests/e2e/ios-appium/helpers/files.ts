@@ -13,7 +13,7 @@
 // no other screen's rows there), and tapped at their own frames (tapFrame).
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {elementInRow, innermost, inside, rectOf, type Rect} from '../gate/chat-lib.ts'
+import {elementInRow, frameInside, innermost, rectOf, type Rect} from '../gate/chat-lib.ts'
 import {checkRowSearch, dragsToward, steerOffset} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
@@ -21,11 +21,9 @@ import {jsEval} from '../gate/app-ask.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
 import {isKeyboardUp, signedInAs, typeIntoFocused} from './chat'
-import {check, dragBetween, labelledElement, openMenuFrom} from './menus'
+import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, press, screenRect, tapElement, tapFrame} from './menus'
 import {appSnapshot, waitFor} from './lifecycle'
 import {escapeToTabs, goBack, tabTo} from './navigate'
-
-export const BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
 
 export type Screen = {name?: string; params?: Record<string, unknown>}
 
@@ -51,44 +49,6 @@ export const expectScreen = async (
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
 
-// Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
-export const tapFrame = async (rect: Rect, what: string) => {
-  const {height, width} = await browser.getWindowRect()
-  check(inside(rect, {height, width, x: 0, y: 0}), `${what} is not wholly on screen: not tapping`)
-  await browser.execute('mobile: tap', {x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2)})
-}
-
-// Taps `e` at its own frame. Bound: its frame read and the tap 1.
-export const tapElement = async (e: WebdriverIO.Element, what: string) => {
-  const rect = await rectOf(e)
-  if (!rect) throw new Error(`${what} has no position`)
-  await tapFrame(rect, what)
-}
-
-// Whether `e` is in the tree and its frame lies wholly on screen: what isDisplayed() would say if
-// XCUITest's `visible` could be trusted (it reads false now and then on a team page, a modal or a
-// sheet that is up). Bound: the reads 1.
-export const onScreen = async (e: WebdriverIO.Element) => {
-  const rect = await rectOf(e)
-  if (!rect) return false
-  const {height, width} = await browser.getWindowRect()
-  return inside(rect, {height, width, x: 0, y: 0})
-}
-
-// onScreen for the one element with testID `id`; false when there is none. Bound: the reads 1.
-export const onScreenID = async (id: string) => {
-  const e = (await browser.$$(`~${id}`).getElements())[0]
-  return e ? onScreen(e) : false
-}
-
-// Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
-// read visible=false (a folder screen always, a team page or a modal now and then), and a click on
-// such a box taps nothing. Bound: the reads 1, the tap 1.
-export const press = async (e: WebdriverIO.Element, what: string) => {
-  if ((await e.getAttribute('visible').catch(() => null)) === 'true') await e.click()
-  else await tapElement(e, what)
-}
-
 // Presses the one element with testID `id` (press). Bound: its wait 10, the press 2.
 export const pressTestID = async (id: string, what: string) => {
   await browser.$(`~${id}`).waitForExist({timeout: 10_000})
@@ -101,9 +61,7 @@ export const pressTestID = async (id: string, what: string) => {
 const rowArea = async (within?: WebdriverIO.Element): Promise<Rect> => {
   const browserEl = within ?? (await browser.$$(`~${T.FILES_BROWSER}`).getElements())[0]
   const rect = browserEl ? await rectOf(browserEl) : undefined
-  if (rect) return rect
-  const {height, width} = await browser.getWindowRect()
-  return {height, width, x: 0, y: 0}
+  return rect ?? screenRect()
 }
 
 // The Files rows go by their frame in the browser; any other list's rows (a team's members) by
@@ -126,8 +84,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     return files || !shown.length ? all : shown
   }
   if (!within) {
-    const {height, width} = await browser.getWindowRect()
-    const screen = {height, width, x: 0, y: 0}
+    const screen = await screenRect()
     // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
     const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
     const candidates = pick(all, e => e.attrs['visible'] === 'true')
@@ -137,7 +94,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     const hits = (files ? all : candidates)
       .filter(e => labelHas(e.attrs['label'] ?? '', name))
       .map(e => sourceRect(e.attrs))
-      .filter(r => inside(r, area ?? screen))
+      .filter(r => frameInside(r, area ?? screen))
     const inner = innermost(hits)
     if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
     const signature = candidates.map(e => e.attrs['label'] ?? '').join('\n')
@@ -161,7 +118,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     labels.push(label)
     if (!labelHas(label, name)) continue
     const rect = await rectOf(e)
-    if (rect && (!area || inside(rect, area))) found.push({e, rect})
+    if (rect && (!area || frameInside(rect, area))) found.push({e, rect})
   }
   const inner = innermost(found.map(f => f.rect))
   if (inner.length > 1) throw new Error(`${inner.length} rows of the one name drawn, not one`)
@@ -328,11 +285,11 @@ export const openFolderMoreSheet = async () => {
 const topScreenButtons = async (): Promise<Array<WebdriverIO.Element>> => {
   const modalUp = await jsEval<boolean>(`return kbModule('constants/router.tsx').getModalStack().length > 0`)
   if (!modalUp) {
-    const {height, width} = await browser.getWindowRect()
+    const screen = await screenRect()
     const out: Array<WebdriverIO.Element> = []
     for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton"').getElements()) {
       const r = await rectOf(e)
-      if (r && inside(r, {height, width, x: 0, y: 0})) out.push(e)
+      if (r && frameInside(r, screen)) out.push(e)
     }
     return out
   }
@@ -363,7 +320,7 @@ const topScreenButtonLabelled = async (label: string, what: string) => {
   return found[inner[0]!]!.e
 }
 export const buttonLabelled = async (label: string, what: string) =>
-  labelledElement(BUTTONS, label, what).catch(async () => topScreenButtonLabelled(label, what))
+  labelledElement(BUTTON_ELEMENTS, label, what).catch(async () => topScreenButtonLabelled(label, what))
 
 // Clicks the button `button()` finds until `done()` says the click took: a click while the keyboard is
 // up only closes the keyboard (and XCUITest reports the keyboard shown or not unreliably, so it is not
@@ -398,8 +355,7 @@ export const tapButton = async (label: string, what: string) => {
 // 1s settle, the keys), the read 1 = 26.
 export const fillField = async (field: () => ChainablePromiseElement, text: string, what: string) => {
   await field().waitForExist({timeout: 10_000})
-  const rect = await rectOf(await field().getElement())
-  if (!rect) throw new Error(`${what} has no position`)
+  const rect = await frameOf(await field().getElement(), what)
   await tapFrame({height: 8, width: 8, x: rect.x + rect.width - 12, y: rect.y + rect.height - 12}, what)
   await browser.pause(1_000)
   const held = (await field().getAttribute('value')) ?? ''

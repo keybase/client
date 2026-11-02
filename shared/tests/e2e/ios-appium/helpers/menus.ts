@@ -2,7 +2,7 @@
 // sheet, read and pick its items, and find the one element whose label is a name, compared in memory
 // so the name never goes into a selector or an error.
 import {waitFor} from './lifecycle'
-import {innermost, inside, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
+import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
 import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 
@@ -95,19 +95,19 @@ const sheetItem = async (label: string) => {
   const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
   for (const e of await browser.$$(menuItemPredicate(label)).getElements()) {
     const r = await rectOf(e)
-    if (r && sheets.some(sh => inside(r, sh))) found.push({e, rect: r})
+    if (r && sheets.some(sh => frameInside(r, sh))) found.push({e, rect: r})
   }
   const inner = innermost(found.map(f => f.rect))
   if (inner.length > 1) throw new Error(`${inner.length} sheet items "${label}", not one`)
   return inner.length ? {e: found[inner[0]!]!.e, visible: false} : undefined
 }
 
-// Taps a sheet item: a click when XCUITest reports it visible, else a tap at its frame (a click on an
-// element reported visible=false taps nothing).
+// Taps a sheet item: a click when XCUITest reports it visible, else a tap at its frame's middle (a
+// click on an element reported visible=false taps nothing). Not press: the sheet tops out with its
+// last items partly below the screen, which tapFrame refuses, and only their middle need be on it.
 const tapSheetItem = async (item: {e: WebdriverIO.Element; visible: boolean}) => {
   if (item.visible) return item.e.click()
-  const r = await rectOf(item.e)
-  if (!r) throw new Error('a sheet item has no position')
+  const r = await frameOf(item.e, 'a sheet item')
   return browser.execute('mobile: tap', {x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
 }
 
@@ -185,18 +185,62 @@ export const elementsOrUnseen = async (selector: string) => {
   const found = await browser.$$(selector).getElements()
   if (found.length || !selector.endsWith(VISIBLE_CLAUSE)) return [...found]
   // only those drawn on screen: a screen under the top one keeps its elements in the tree
-  const {height, width} = await browser.getWindowRect()
-  const onScreen: Array<WebdriverIO.Element> = []
+  const screen = await screenRect()
+  const drawn: Array<WebdriverIO.Element> = []
   for (const e of await browser.$$(selector.slice(0, -VISIBLE_CLAUSE.length)).getElements()) {
     const r = await rectOf(e)
-    if (r && inside(r, {height, width, x: 0, y: 0})) onScreen.push(e)
+    if (r && frameInside(r, screen)) drawn.push(e)
   }
-  return onScreen
+  return drawn
 }
 
 // Throws `message` unless `ok`.
 export const check = (ok: boolean, message: string) => {
   if (!ok) throw new Error(message)
+}
+
+// The window, as a rect at the origin. Bound: 1.
+export const screenRect = async (): Promise<Rect> => {
+  const {height, width} = await browser.getWindowRect()
+  return {height, width, x: 0, y: 0}
+}
+
+// `e`'s frame; throws naming `what` when it has none. Bound: 1.
+export const frameOf = async (e: WebdriverIO.Element, what: string) => {
+  const r = await rectOf(e)
+  if (!r) throw new Error(`${what} has no position`)
+  return r
+}
+
+// Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
+export const tapFrame = async (rect: Rect, what: string) => {
+  check(frameInside(rect, await screenRect()), `${what} is not wholly on screen: not tapping`)
+  await browser.execute('mobile: tap', {x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2)})
+}
+
+// Taps `e` at its own frame. Bound: its frame read and the tap 1.
+export const tapElement = async (e: WebdriverIO.Element, what: string) => tapFrame(await frameOf(e, what), what)
+
+// Whether `e` is in the tree and its frame lies wholly on screen: what isDisplayed() would say if
+// XCUITest's `visible` could be trusted (it reads false now and then on a team page, a modal or a
+// sheet that is up). Bound: the reads 1.
+export const onScreen = async (e: WebdriverIO.Element) => {
+  const rect = await rectOf(e)
+  return !!rect && frameInside(rect, await screenRect())
+}
+
+// onScreen for the one element with testID `id`; false when there is none. Bound: the reads 1.
+export const onScreenID = async (id: string) => {
+  const e = (await browser.$$(`~${id}`).getElements())[0]
+  return e ? onScreen(e) : false
+}
+
+// Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
+// read visible=false (a folder screen always, a team page, a modal or a sheet now and then), and a
+// click on such a box taps nothing. Bound: the reads 1, the tap 1.
+export const press = async (e: WebdriverIO.Element, what: string) => {
+  if ((await e.getAttribute('visible').catch(() => null)) === 'true') await e.click()
+  else await tapElement(e, what)
 }
 
 // What `selector` finds, or for a tap (`forTap`) elementsOrUnseen's read: a presence read never takes
@@ -283,8 +327,8 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const shown = all.filter(({e}) => e.attrs['visible'] === 'true')
   // a tap's fallback keeps to frames wholly on screen: a screen under the top one, and a list's rows
   // scrolled away, keep their elements in the tree
-  const {height, width} = forTap && !shown.length ? await browser.getWindowRect() : {height: 0, width: 0}
-  const found = shown.length || !forTap ? shown : all.filter(({r}) => inside(r, {height, width, x: 0, y: 0}))
+  const screen = forTap && !shown.length ? await screenRect() : undefined
+  const found = screen ? all.filter(({r}) => frameInside(r, screen)) : shown
   const rects = found.map(f => f.r)
   const inner = innermost(rects)
   if (inner.length !== 1) {

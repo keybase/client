@@ -12,12 +12,12 @@ import {e2eRunId} from '../../shared/run-marker'
 import {memberRoles, requireThisRunSubteam, teamID as hostTeamID} from '../../shared/teams.ts'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
-import {innermost, rectOf, type Rect} from '../gate/chat-lib.ts'
+import {innermost, type Rect} from '../gate/chat-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
-import {BUTTONS, expectScreen, filesRowNamed, onScreen, onScreenID, press, visibleScreen} from './files'
-import {check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn} from './menus'
+import {expectScreen, filesRowNamed, visibleScreen} from './files'
+import {BUTTON_ELEMENTS, check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, frameOf, onScreen, onScreenID, press} from './menus'
 import {waitFor} from './lifecycle'
 import {barButton, escapeToTabs, goBack, tabTo} from './navigate'
 
@@ -133,13 +133,6 @@ export const openTeamFromList = async (name: string, teamID: string) => {
   const row = await filesRowNamed(name, 'the team row', {testID: T.TEAMS_ROW})
   await press(row.e, 'the team row')
   await expectTeamPage('the team page of the row tapped', teamID)
-}
-
-// `e`'s frame; throws naming `what` when it has none.
-const frameOf = async (e: WebdriverIO.Element, what: string) => {
-  const r = await rectOf(e)
-  if (!r) throw new Error(`${what} has no position`)
-  return r
 }
 
 // Taps the team page's tab `button` and waits for its body `body`. A tab scrolled out of the tab row
@@ -316,7 +309,7 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
   return () => browser.$(selector)
 }
 
-// The one element of TEXTS' or BUTTONS' types whose label, split at its ", " joins, holds `part`,
+// The one element of TEXTS' or BUTTON_ELEMENTS' types whose label, split at its ", " joins, holds `part`,
 // drawn with its middle inside `rect` (a row, a popup), the innermost of nested matches: a label
 // repeated elsewhere on screen (a role behind the role picker) is not it. Read off one page source
 // (an attribute call per labelled box took minutes) and compared in memory: the visible matches, or
@@ -324,7 +317,7 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
 // the rect; then fetched by its type and frame. `what` names it. Throws when none or more than one is.
 // Bound: one read 2.
 export const labelPartInside = async (rect: Rect, selector: string, part: string, what: string) => {
-  const types = selector === BUTTONS ? ['XCUIElementTypeButton'] : TEXT_TYPES
+  const types = selector === BUTTON_ELEMENTS ? ['XCUIElementTypeButton'] : TEXT_TYPES
   const inRect = sourceElements(await browser.getPageSource())
     .filter(e => types.includes(e.type) && (e.attrs['label'] ?? '') !== '')
     .filter(e => labelHas(e.attrs['label'] ?? '', part))
@@ -361,7 +354,7 @@ const rolePicker = async () => {
 export const pickRole = async (role: string, beforeSave: () => Promise<void>) => {
   const picker = await rolePicker()
   await press(await shownInside(picker, TEXTS, role, `the role picker's ${role}`), `the role picker's ${role}`)
-  const save = await shownInside(picker, BUTTONS, 'Save', "the role picker's Save")
+  const save = await shownInside(picker, BUTTON_ELEMENTS, 'Save', "the role picker's Save")
   await beforeSave()
   await save.click()
   await el(T.TEAMS_ROLE_PICKER).waitForExist({reverse: true, timeout: 10_000})

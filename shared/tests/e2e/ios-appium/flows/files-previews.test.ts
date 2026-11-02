@@ -14,9 +14,9 @@ import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, sta
 import * as T from '../../shared/test-ids'
 import {retriedNavigation, step} from '../gate/step'
 import {el} from '../helpers/elements'
-import {expectScreen, filesRowNamed, openFolder, tapFrame, visibleScreen} from '../helpers/files'
+import {expectScreen, filesRowNamed, openFolder, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check} from '../helpers/menus'
+import {check, tapFrame} from '../helpers/menus'
 import {escapeToTabs, goBack} from '../helpers/navigate'
 
 const corpusFile = (name: string) => {

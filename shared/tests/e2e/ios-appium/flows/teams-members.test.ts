@@ -48,9 +48,9 @@ import {retriedNavigation, step} from '../gate/step'
 import {pickState} from '../gate/team-pick-lib.ts'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {buttonLabelled, BUTTONS, clickUntil, expectScreen, filesRowNamed, fillField, onScreenID, press, pressTestID, tapButton, typeInFilter, visibleScreen} from '../helpers/files'
+import {buttonLabelled, clickUntil, expectScreen, filesRowNamed, fillField, pressTestID, tapButton, typeInFilter, visibleScreen} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, openMenuFrom} from '../helpers/menus'
+import {BUTTON_ELEMENTS, check, chooseMenuItem, elementWithLabelPart, onScreenID, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
@@ -447,7 +447,7 @@ describe('teams members', function () {
     // -- added to both channels from the member page ------------------------------------------------
     await openSecondsMemberPage(teamID)
     const row = await expandSubteamRow(name)
-    await (await shownInside(row.rect, BUTTONS, 'Add to channels', "the subteam row's Add to channels")).click()
+    await (await shownInside(row.rect, BUTTON_ELEMENTS, 'Add to channels', "the subteam row's Add to channels")).click()
     const onAdd = (p: Params) =>
       p['teamID'] === teamID && Array.isArray(p['usernames']) && p['usernames'].length === 1 && p['usernames'][0] === secondUser
     await expectScreen("the second account's add to channels", 'teamAddToChannels', onAdd)
@@ -495,7 +495,7 @@ describe('teams members', function () {
     await el(T.TEAMS_CHANNEL_PAGE).waitForExist({timeout: 10_000})
     const inChannel = await filesRowNamed(secondUser, "the second account's row on the channel page", {testID: T.TEAMS_CHANNEL_MEMBER_ROW})
     const popup = await checkRowForPopup(inChannel.rect, "the second account's check on the channel page")
-    await (await shownInside(popup, BUTTONS, 'Remove from channel', "the selection popup's Remove from channel")).click()
+    await (await shownInside(popup, BUTTON_ELEMENTS, 'Remove from channel', "the selection popup's Remove from channel")).click()
     const onRemove = (p: Params) =>
       onChannel(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
     await expectScreen("the remove from channel confirm", 'teamReallyRemoveChannelMember', onRemove)
@@ -536,7 +536,7 @@ describe('teams members', function () {
     // -- the selection popup's Remove from team, then Kick out ---------------------------------------
     const row = await memberRow(secondUser, "the second account's member row")
     const popup = await checkRowForPopup(row.rect, "the second account's check")
-    await (await shownInside(popup, BUTTONS, 'Remove from team', "the selection popup's Remove from team")).click()
+    await (await shownInside(popup, BUTTON_ELEMENTS, 'Remove from team', "the selection popup's Remove from team")).click()
     const onKick = (p: Params) =>
       onSubteam(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
     await expectScreen('the kick out confirm', 'teamReallyRemoveMember', onKick)

@@ -33,21 +33,9 @@ import {focusedFieldText, focusSecretField} from '../gate/secret-input'
 import {step} from '../gate/step'
 import {closeMessageMenu, expectPersists, hideKeyboard, isKeyboardUp, typeIntoFocused} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {
-  expectScreen,
-  fillHiddenField,
-  filesRowNamed,
-  openFolder,
-  openFolderMoreSheet,
-  openRowMenu,
-  tapButton,
-  tapElement,
-  tapFrame,
-  visibleScreen,
-  waitSignedIn,
-} from '../helpers/files'
+import {expectScreen, filesRowNamed, fillHiddenField, openFolder, openFolderMoreSheet, openRowMenu, tapButton, visibleScreen, waitSignedIn} from '../helpers/files'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPart, menuSheet, openMenuFrom, tapMenuItemOnce} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPart, menuSheet, openMenuFrom, tapElement, tapFrame, tapMenuItemOnce} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 
 const txt = (() => {
