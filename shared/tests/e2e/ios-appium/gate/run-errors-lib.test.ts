@@ -1,6 +1,6 @@
 import {hiddenSimctlArgs, maskedRunError, scrub} from './run-errors-lib'
 
-const udid = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
+const udid = '00000000-1111-2222-3333-444444444444'
 const link = 'keybase://profile/show/testuser'
 
 test('a link, a path, a bundle id and coordinates are hidden; keywords and the UDID are not', () => {
