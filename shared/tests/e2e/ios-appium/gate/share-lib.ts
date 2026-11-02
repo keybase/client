@@ -71,13 +71,29 @@ export const extensionRequests = (requests: ReadonlyArray<ServedRequest>, since:
 // chat1.UnfurlMode: ALWAYS 0, NEVER 1, WHITELISTED 2.
 export type UnfurlSettings = {mode: number; whitelist?: ReadonlyArray<string> | null}
 
-// Why a sent message holding a link to `domain` would have the phone's service fetch it, or
-// undefined when it would not (unfurls off, or the domain not whitelisted: the app then only offers
-// a preview). A gate run fetches no link but keybase.io's.
-export const unfurlFetchProblem = (s: UnfurlSettings, domain: string) => {
-  if (s.mode === 1) return undefined
-  if (s.mode === 2 && !(s.whitelist ?? []).some(d => d === domain || domain.endsWith(`.${d}`))) return undefined
-  return 'the smoke account unfurls this link: refusing to send it'
+// Domains the service unfurls in every mode (go/chat/unfurl/utils.go isAutoAllowedDomain).
+const AUTO_ALLOWED = ['giphy.com', 'keybasemaps']
+
+// Why sending `text` would have the phone's service fetch a link in it, or undefined when it would
+// not: the app then only offers a preview. A gate run fetches no link but keybase.io's. The service
+// matches a link by its host's eTLD+1 (go/chat/unfurl/utils.go:43-61 GetDomain) looked up exactly in
+// the whitelist (go/chat/unfurl/extractor.go:102); with no public suffix list here, every dot-suffix
+// of the host stands in for it, so a whitelist entry naming any of them refuses.
+export const unfurlFetchProblem = (s: UnfurlSettings, text: string) => {
+  for (const link of text.match(/https?:\/\/\S+/g) ?? []) {
+    let host: string
+    try {
+      host = new URL(link).hostname.toLowerCase()
+    } catch {
+      return 'the shared text holds a link the harness cannot read: refusing to send it'
+    }
+    const labels = host.split('.')
+    const suffixes = labels.map((_, i) => labels.slice(i).join('.'))
+    const whitelisted = (s.whitelist ?? []).some(d => suffixes.includes(d.toLowerCase()))
+    const auto = suffixes.some(d => AUTO_ALLOWED.includes(d))
+    if (s.mode === 0 || auto || (s.mode === 2 && whitelisted)) return 'the smoke account unfurls a link in the shared text: refusing to send it'
+  }
+  return undefined
 }
 
 // The text a Maps place card shares: its name and an Apple Maps link, each on a line.

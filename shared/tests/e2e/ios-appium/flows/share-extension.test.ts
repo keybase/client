@@ -26,6 +26,7 @@ import {unfurlSettings} from '../../shared/settings'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
+import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {
   copyPhoto,
@@ -55,6 +56,8 @@ import {check} from '../helpers/menus'
 
 const POST_ATTACHMENT = 'chat.1.local.postFileAttachmentLocalNonblock'
 const POST_TEXT = 'chat.1.local.postTextNonblock'
+const SEED_FOLDER = 'the share flow\'s seed folder'
+const PASTEBOARD = 'the share flow\'s pasteboard overwrite'
 
 const corpusFile = (name: string) => {
   const entry = CORPUS.find(c => c.name === name)
@@ -67,10 +70,11 @@ const localPath = (p: string) => (p.startsWith('file://') ? p.slice('file://'.le
 describe('share extension', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   self      openSelfConversation 110;  empty  the composer read 1
-  //   share     shareToKeybase 326 and its sheet:  photos  42;  safari  174;  files  290;  maps  168
+  //   share     shareToKeybase 451 and its sheet:  photos  42;  safari  174;  files  290;  maps  168
   //   log       the log check 0
   //   picker    pickSelfInSharePicker 86
-  //   titles    expectScreen 31;  picked  the container read 120, sips 15
+  //   titles    expectScreen 31;  pixels  sips 15 each;  sha  1;  pasted  the container read 120
+  //   aim       the screen read before a Send 11 (10, one read 1)
   //   caption   fillHiddenField 30;  send  tapButton 6;  calls  waitForUiCall 10
   //   text      the composer 10 of reads;  sent  the send button 5 and its tap 1
   //   cli       the host read polled 60, overrun by one read's 60 = 120;  download  60
@@ -78,50 +82,67 @@ describe('share extension', function () {
   //   unfurl    the host read 60
   //   step      2 (its 1s settle and the attach)
   //   cleanup   leaveShareHosts 6, leaveSharePicker 17, the payloads 120, the seed 120, the pasteboard
-  //             50, the page server 1, the Maps message 120 = 434
+  //             50, the page server 1, the Maps message 180 (the read 60, its delete 60, the read
+  //             back 60) = 494
 
   let seeded: string | undefined
   let pasted = false
-  // the Maps test's sent message: its text starts with the link, not the run stamp the sweeper finds
-  let unstamped: number | undefined
+  // the Maps test's place: the message it sends starts with the link, not the run stamp the sweeper
+  // finds, so the afterEach deletes the message holding it
+  let mapsPlace: string | undefined
   let server: Awaited<ReturnType<typeof startPageServer>> | undefined
 
-  // Worst case (s): 434.
+  // Worst case (s): 494.
   afterEach(async function () {
-    this.timeout(450_000)
+    this.timeout(510_000)
     await withCleanup(leaveShareHosts, [
       leaveSharePicker,
       removeSharePayloads,
       () => {
         if (!seeded) return
-        removeSeedFolder(seeded)
+        try {
+          removeSeedFolder(seeded)
+        } catch (e) {
+          poisonGate(SEED_FOLDER, "remove this run's e2e-<runid>-share-<hex> folder from the Files app's On My iPhone on the simulator")
+          throw e
+        }
+        clearGatePoison(SEED_FOLDER)
         seeded = undefined
       },
       async () => {
         if (!pasted) return
-        await setPasteboard(e2eMarker('share-paste-over'))
+        try {
+          await setPasteboard(e2eMarker('share-paste-over'))
+        } catch (e) {
+          poisonGate(PASTEBOARD, "copy any text on the simulator, over the corpus image the share flow's paste left on its pasteboard")
+          throw e
+        }
+        clearGatePoison(PASTEBOARD)
         pasted = false
       },
       () => {
         server?.close()
         server = undefined
       },
-      deleteUnstamped,
+      deleteMapsMessage,
     ])
   })
 
   // -- helpers --------------------------------------------------------------------------------------
 
-  // Deletes the Maps test's sent message on the host and reads it back gone. Bound: the delete 60,
-  // the read 60 = 120.
-  const deleteUnstamped = async () => {
-    if (unstamped === undefined) return
+  // Deletes the Maps test's message (found on the host as smoke's text holding the test's place on a
+  // line of its own, so a Send whose read-back failed is found too) and reads it back gone. Bound:
+  // the read 60, the delete 60 (one message: the place is the test's own marker), the read back 60 =
+  // 180.
+  const deleteMapsMessage = async () => {
+    if (mapsPlace === undefined) return
+    const place = mapsPlace
     const {smokeUser} = loadE2EAccounts()
-    const id = unstamped
-    await deleteFromCli({tlfName: smokeUser}, id)
-    const left = (await readFromCli({tlfName: smokeUser}, 30)).some(m => m.id === id && m.content.type === 'text')
-    if (left) throw new Error("the Maps test's message is still in the self conversation after its delete")
-    unstamped = undefined
+    const holding = async () =>
+      (await readFromCli({tlfName: smokeUser}, 30)).filter(m => m.content.type === 'text' && (m.content.text?.body ?? '').split('\n').includes(place))
+    for (const m of await holding()) await deleteFromCli({tlfName: smokeUser}, m.id)
+    if ((await holding()).length) throw new Error("the Maps test's message is still in the self conversation after its delete")
+    mapsPlace = undefined
   }
 
   // Opens the self conversation and reads its composer empty (a shared text goes after a draft).
@@ -145,10 +166,12 @@ describe('share extension', function () {
     return localPath(first!.path)
   }
 
-  // Captions the one attachment `title`, sends it and reads it back on the host by that title.
-  // Bound: caption 30, send 6, calls 10, cli 120 = 166.
-  const sendTitled = async (smokeUser: string, title: string) => {
+  // Captions the one attachment `title`, sends it once the screen up reads as the titles screen for
+  // the self conversation `convID`, and reads it back on the host by that title. Bound: caption 30,
+  // aim 11, send 6, calls 10, cli 120 = 177.
+  const sendTitled = async (smokeUser: string, convID: string, title: string) => {
     await fillHiddenField(T.CHAT_ATTACHMENT_CAPTION, title, 'the caption')
+    await expectScreen('the titles screen for the self conversation, before Send', 'chatAttachmentGetTitles', p => p['conversationIDKey'] === convID)
     const seq = await currentCallSeq()
     await tapButton('Send', "the titles screen's Send")
     await waitForUiCall('the attachment to go out', seq, POST_ATTACHMENT)
@@ -165,23 +188,25 @@ describe('share extension', function () {
     )
   }
 
-  // Sends what the composer holds, which must be `text` exactly, reads it back on the host and
-  // answers its id. Bound: text 10, sent 6, calls 10, cli 120 = 146.
-  const sendComposed = async (smokeUser: string, text: string) => {
+  // Sends what the composer holds, which must be `text` exactly, once the screen up reads as the self
+  // conversation `convID` (the picker's row is matched by its label alone), and reads it back on the
+  // host. Bound: text 10, aim 11, sent 6, calls 10, cli 120 = 157.
+  const sendComposed = async (smokeUser: string, convID: string, text: string) => {
     await waitFor('the composer to hold the shared text', async () => ((await composerText()) === text ? true : undefined), {
       interval: 500,
       timeout: 10_000,
     })
+    await expectScreen('the self conversation, before Send', 'chatConversation', p => p['conversationIDKey'] === convID)
     const seq = await currentCallSeq()
     await el(T.CHAT_SEND_BUTTON).waitForExist({timeout: 5_000})
     await el(T.CHAT_SEND_BUTTON).click()
     await waitForUiCall('the text to go out', seq, POST_TEXT)
-    return waitFor(
+    await waitFor(
       'the host to read the shared text',
       async () => {
-        const found = (await readFromCli({tlfName: smokeUser}, 30)).filter(m => m.content.type === 'text' && m.content.text?.body === text)
-        if (found.length > 1) throw new Error(`${found.length} messages hold the shared text, not one`)
-        return found[0]?.id
+        const n = (await readFromCli({tlfName: smokeUser}, 30)).filter(m => m.content.type === 'text' && m.content.text?.body === text).length
+        if (n > 1) throw new Error(`${n} messages hold the shared text, not one`)
+        return n === 1 ? true : undefined
       },
       {interval: 2_000, timeout: 60_000}
     )
@@ -212,9 +237,9 @@ describe('share extension', function () {
   // -- tests ----------------------------------------------------------------------------------------
 
   it('a corpus photo shared from Photos is sent to the self conversation', async function () {
-    // worst case (s): self 111, share 326, photos 42, log 0, step 2, picker 86, titles 31, picked
-    // 135, step 2, send 166, the image 90, step 2 = 993
-    this.timeout(1_020_000)
+    // worst case (s): self 111, share 451, photos 42, log 0, step 2, picker 86, titles 31, pixels 30,
+    // step 2, send 177, the image 90, step 2 = 1024
+    this.timeout(1_040_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await fromSelf(smokeUser)
     const shared = await shareToKeybase(PHOTOS, photosSheet('e2e-c.png'))
@@ -227,20 +252,20 @@ describe('share extension', function () {
     check(imageProps(file).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the shared photo is not the corpus png's pixel size")
     creditSurface('share-extension')
     await step('The titles screen with the shared photo')
-    const sent = await sendTitled(smokeUser, e2eMarker('share-photos'))
+    const sent = await sendTitled(smokeUser, convID, e2eMarker('share-photos'))
     await requirePngSized(smokeUser, sent!)
     await step('The shared photo sent to the self conversation', {card: true})
   })
 
   it('text selected in Safari is sent to the self conversation', async function () {
-    // worst case (s): self 111, the page 1, share 326, safari 174, log 0, step 2, picker 86, the
-    // composer 10, text 146, step 2 = 858
-    this.timeout(870_000)
+    // worst case (s): self 111, the page 1, share 451, safari 174, log 0, step 2, picker 86, the
+    // composer 10, text 157, step 2 = 994
+    this.timeout(1_010_000)
     const {smokeUser} = loadE2EAccounts()
     const text = e2eMarker('share-safari')
     const page = `${e2eMarker('share-page')}.html`
     server = await startPageServer(new Map([[page, textPage('shared text', text)]]))
-    await fromSelf(smokeUser)
+    const convID = await fromSelf(smokeUser)
     const since = server.requests.length
     const shared = await shareToKeybase(SAFARI, safariTextSheet(`${server.origin}/${page}`, 'shared text'))
     requireOneItem(shared.items, {content: text, type: 'text'})
@@ -255,14 +280,14 @@ describe('share extension', function () {
       timeout: 10_000,
     })
     creditSurface('share-extension')
-    await sendComposed(smokeUser, text)
+    await sendComposed(smokeUser, convID, text)
     await step('The shared text sent to the self conversation', {card: true})
   })
 
   it('the corpus pdf shared from a folder in Files is sent to the self conversation', async function () {
-    // worst case (s): seed 121, self 111, share 326, files 290, log 0, step 2, picker 86, titles 31,
-    // picked 120, step 2, send 166, download 60, step 2 = 1317
-    this.timeout(1_340_000)
+    // worst case (s): seed 121, self 111, share 451, files 290, log 0, step 2, picker 86, titles 31,
+    // sha 1, step 2, send 177, download 60, step 2 = 1334
+    this.timeout(1_350_000)
     const {smokeUser} = loadE2EAccounts()
     const pdf = corpusFile('e2e-c.pdf')
     seeded = seedDocumentFolder('share', ['e2e-c.pdf'])
@@ -276,18 +301,18 @@ describe('share extension', function () {
     check(fileSha(file) === fileSha(pdf), 'the shared file is not the corpus pdf')
     creditSurface('share-extension')
     await step('The titles screen with the shared pdf')
-    const sent = await sendTitled(smokeUser, e2eMarker('share-files'))
+    const sent = await sendTitled(smokeUser, convID, e2eMarker('share-files'))
     check((await hostCopy(smokeUser, sent!, fileSha)) === fileSha(pdf), "the host's attachment is not the corpus pdf")
     await step('The shared pdf sent to the self conversation', {card: true})
   })
 
   it('a place shared from Maps is sent to the self conversation', async function () {
-    // worst case (s): self 111, share 326, maps 168, log 0, unfurl 60, step 2, picker 86, the composer
-    // 10, text 146, step 2 = 911
-    this.timeout(920_000)
+    // worst case (s): self 111, share 451, maps 168, log 0, unfurl 60, step 2, picker 86, the composer
+    // 10, text 157, step 2 = 1047
+    this.timeout(1_060_000)
     const {smokeUser} = loadE2EAccounts()
     const place = e2eMarker('share-maps')
-    await fromSelf(smokeUser)
+    const convID = await fromSelf(smokeUser)
     const shared = await shareToKeybase(MAPS, mapsSheet(37.3349, -122.009, place))
     const item = requireOneItem(shared.items, {type: 'text'})
     requireExtensionLogClean(shared.log)
@@ -295,7 +320,7 @@ describe('share extension', function () {
     const problem = mapsShareProblem(text, place)
     if (problem) throw new Error(problem)
     // the share holds an Apple Maps link: sent only if the phone's service would not fetch it
-    const linkProblem = unfurlFetchProblem(await unfurlSettings(), 'maps.apple.com')
+    const linkProblem = unfurlFetchProblem(await unfurlSettings(), text)
     if (linkProblem) throw new Error(linkProblem)
     await step("The app's share screen for the place", {screenshot: false})
     await pickSelfInSharePicker(smokeUser)
@@ -304,14 +329,15 @@ describe('share extension', function () {
       timeout: 10_000,
     })
     creditSurface('share-extension')
-    unstamped = await sendComposed(smokeUser, text)
+    mapsPlace = place
+    await sendComposed(smokeUser, convID, text)
     await step('The shared place sent to the self conversation', {card: true})
   })
 
   it('a second share made while the first is unsent replaces it on the share screen', async function () {
-    // worst case (s): self 111, two shares 652 and two photos sheets 84, log 0, the first screen 31,
-    // step 2, picker 86, titles 31, picked 135, step 2, send 166, the image 90, step 2 = 1392
-    this.timeout(1_420_000)
+    // worst case (s): self 111, two shares 902 and two photos sheets 84, log 0, the first screen 31,
+    // step 2, picker 86, titles 31, pixels 30, step 2, send 177, the image 90, step 2 = 1548
+    this.timeout(1_570_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await fromSelf(smokeUser)
     const first = requireOneItem((await shareToKeybase(PHOTOS, photosSheet('e2e-c.jpg'))).items, {type: 'image'})
@@ -327,15 +353,15 @@ describe('share extension', function () {
     check(imageProps(file).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the second share's photo is not the corpus png's pixel size")
     creditSurface('share-extension')
     await step("The titles screen with the second share's photo")
-    const sent = await sendTitled(smokeUser, e2eMarker('share-replaced'))
+    const sent = await sendTitled(smokeUser, convID, e2eMarker('share-replaced'))
     await requirePngSized(smokeUser, sent!)
     await step('The second share sent to the self conversation', {card: true})
   })
 
   it('a photo copied in Photos and pasted into the composer is sent to the self conversation', async function () {
-    // worst case (s): copy 47, self 111, paste 21, titles 31, picked 135, step 2, send 166, the image
-    // 90, step 2 = 605
-    this.timeout(630_000)
+    // worst case (s): copy 47, self 111, paste 21, titles 31, pasted 120, pixels 30, step 2, send 177,
+    // the image 90, step 2 = 631
+    this.timeout(650_000)
     const {smokeUser} = loadE2EAccounts()
     pasted = true
     await copyPhoto('e2e-c.png')
@@ -353,7 +379,7 @@ describe('share extension', function () {
     check(imageProps(image.path).pixels === imageProps(corpusFile('e2e-c.png')).pixels, "the pasted image is not the corpus png's pixel size")
     creditSurface('pasteboard')
     await step('The titles screen with the pasted image')
-    const sent = await sendTitled(smokeUser, e2eMarker('share-paste'))
+    const sent = await sendTitled(smokeUser, convID, e2eMarker('share-paste'))
     await requirePngSized(smokeUser, sent!)
     await step('The pasted image sent to the self conversation', {card: true})
   })

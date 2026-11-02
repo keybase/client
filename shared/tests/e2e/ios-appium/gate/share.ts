@@ -271,7 +271,8 @@ export const safariTextSheet = (url: string, label: string) => async () => {
   // list, where Share sits; Forward is tapped once, only while that short menu is up
   const share = pred('(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND label == "Share…"')
   const shortMenu = pred('type == "XCUIElementTypeMenuItem" AND label == "Cut"')
-  const forward = pred('type == "XCUIElementTypeButton" AND label == "Forward"')
+  // the menu's own chevron is named Forward; Safari's toolbar button of that label is ForwardButton
+  const forward = pred('type == "XCUIElementTypeButton" AND name == "Forward" AND label == "Forward"')
   let opened = false
   await waitFor(
     "the edit menu's Share",
@@ -321,8 +322,8 @@ export type Shared = {items: Array<ManifestItem> | undefined; log: Array<string>
 // In `host`, opens its share sheet (`open`) and taps Keybase, until the extension starts (a sheet
 // still loading its preview takes a tap without acting on it); then waits for the extension to open
 // the app, and answers the manifest it wrote and its log lines. The extension's own watchdog gives
-// up after 120s. Bound: inApp 4, `open`, the Keybase cell 15, the start 30 overrun by one try 7, the
-// app 150, the log 120 = 326 and `open`.
+// up after 120s. Bound: the container 120, the pids 5, inApp 4, `open`, the Keybase cell 15, the
+// start 30 overrun by one try 7, the app 150, the log 120 = 451 and `open`.
 export const shareToKeybase = async (host: string, open: () => Promise<void>): Promise<Shared> => {
   const startedAt = Date.now() - 1_000
   firstShareAt ??= startedAt

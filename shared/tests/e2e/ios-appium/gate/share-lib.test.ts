@@ -49,12 +49,17 @@ describe('share-lib', () => {
     expect(extensionRequests(reqs, 1)).toEqual([reqs[2]])
   })
 
-  test('unfurlFetchProblem refuses unless unfurls are off or the domain is not whitelisted', () => {
-    expect(unfurlFetchProblem({mode: 1}, 'maps.apple.com')).toBeUndefined()
-    expect(unfurlFetchProblem({mode: 2, whitelist: ['keybase.io']}, 'maps.apple.com')).toBeUndefined()
-    expect(unfurlFetchProblem({mode: 2, whitelist: ['apple.com']}, 'maps.apple.com')).toBeDefined()
-    expect(unfurlFetchProblem({mode: 2, whitelist: ['maps.apple.com']}, 'maps.apple.com')).toBeDefined()
-    expect(unfurlFetchProblem({mode: 0}, 'maps.apple.com')).toBeDefined()
+  test('unfurlFetchProblem refuses a link of the text the service would fetch', () => {
+    const text = 'https://maps.apple/p/abc\ne2e-p'
+    expect(unfurlFetchProblem({mode: 1}, text)).toBeUndefined()
+    expect(unfurlFetchProblem({mode: 2, whitelist: ['keybase.io']}, text)).toBeUndefined()
+    expect(unfurlFetchProblem({mode: 2, whitelist: ['maps.apple']}, text)).toBeDefined()
+    expect(unfurlFetchProblem({mode: 2, whitelist: ['apple']}, text)).toBeDefined()
+    expect(unfurlFetchProblem({mode: 2, whitelist: ['apple.com']}, 'see https://maps.apple.com/x')).toBeDefined()
+    expect(unfurlFetchProblem({mode: 2, whitelist: ['apple.com']}, text)).toBeUndefined()
+    expect(unfurlFetchProblem({mode: 0}, text)).toBeDefined()
+    expect(unfurlFetchProblem({mode: 1}, 'https://media.giphy.com/x')).toBeDefined()
+    expect(unfurlFetchProblem({mode: 0}, 'e2e-p only')).toBeUndefined()
   })
 
   test('mapsShareProblem wants the place name and an Apple Maps link', () => {
@@ -62,5 +67,4 @@ describe('share-lib', () => {
     expect(mapsShareProblem('https://maps.apple.com/?q=x', 'e2e-p')).toContain('place name')
     expect(mapsShareProblem('e2e-p\nhttps://example.com/', 'e2e-p')).toContain('link')
   })
-
 })
