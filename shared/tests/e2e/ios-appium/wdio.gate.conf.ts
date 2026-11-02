@@ -98,8 +98,8 @@ export const config: WebdriverIO.Config = {
   // (gate/hooks.ts).
   // what the app-hang watch counts: WebDriver requests that got a successful answer
   before: () => {
-    browser.on('result', (event: {result?: unknown}) => {
-      noteProtocolResult(event.result)
+    browser.on('result', (event: {command?: string; result?: unknown}) => {
+      noteProtocolResult(event)
     })
   },
   beforeTest: async () => {

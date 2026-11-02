@@ -26,6 +26,17 @@ export const mainThreadInSnapshot = (report: string) => {
 export const protocolSucceeded = (result: unknown) =>
   !(typeof result === 'object' && result !== null && 'error' in result && (result as {error?: unknown}).error)
 
+// Appium ends a session that gets no command for its newCommandTimeout (helpers/app.ts, 120s), so a
+// wait that sends none (a log read) pings it every SESSION_PING_MS with a command Appium answers
+// itself. The ping says nothing about the app, so the hang watch never counts it.
+export const SESSION_PING_COMMAND = 'getTimeouts'
+export const SESSION_PING_MS = 30_000
+export const sessionPingDue = (now: number, lastPing: number) => now - lastPing >= SESSION_PING_MS
+
+// Whether a WebDriver 'result' event shows the app answering: a success that is not the session ping.
+export const countsForHangWatch = (event: {command?: string; result?: unknown}) =>
+  event.command !== SESSION_PING_COMMAND && protocolSucceeded(event.result)
+
 // Stuck reads in a row, and how many WebDriver requests had succeeded at the first of them.
 export type HangState = {stuck: number; commandsAtFirst: number}
 export const NO_HANG: HangState = {commandsAtFirst: 0, stuck: 0}

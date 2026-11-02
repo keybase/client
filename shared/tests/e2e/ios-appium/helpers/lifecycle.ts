@@ -6,6 +6,7 @@ import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {hiddenSimctlArgs} from '../gate/run-errors-lib'
+import {sessionPingDue} from '../gate/hang-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {appSnapshotBody} from '../gate/screen-params-lib.ts'
 import {waitForTestID} from './elements'
@@ -35,6 +36,15 @@ export const simctl = (...args: Array<string>): string => {
   return runSync('xcrun', ['simctl', ...args], simctlMs(args), {what: `simctl ${args[0] ?? ''}`, hidden: hiddenSimctlArgs(args)})
 }
 
+// Keeps the Appium session through a wait that sends it nothing (gate/hang-lib.ts sessionPingDue):
+// outside a wdio session it does nothing.
+let lastSessionPing = 0
+const keepSession = async () => {
+  if (typeof browser === 'undefined' || !browser.sessionId || !sessionPingDue(Date.now(), lastSessionPing)) return
+  lastSessionPing = Date.now()
+  await browser.getTimeouts()
+}
+
 // Retries until check returns a value, or throws with the last error once the timeout passes.
 export const waitFor = async <R>(
   what: string,
@@ -56,6 +66,7 @@ export const waitFor = async <R>(
       const detail = lastErr instanceof Error ? `: ${lastErr.message}` : ''
       throw new Error(`timed out after ${timeout}ms waiting for ${what}${detail}`)
     }
+    await keepSession()
     await sleep(interval)
   }
 }
@@ -72,6 +83,7 @@ export const lookFor = async <R>(
     const r = await check()
     if (r !== undefined) return r
     if (Date.now() > end) return undefined
+    await keepSession()
     await sleep(interval)
   }
 }

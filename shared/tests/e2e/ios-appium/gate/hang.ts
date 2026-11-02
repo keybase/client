@@ -11,7 +11,7 @@ import {withDeadline} from '../../shared/deadline.ts'
 import {appPid} from '../helpers/lifecycle'
 import {attemptToken, iosReportDir, runAttempt} from './attempt.ts'
 import {relaunchHungApp} from './device.ts'
-import {makeHangWatch, makeWatchSlot, protocolSucceeded, settleRelaunch, STUCK_READS} from './hang-lib.ts'
+import {countsForHangWatch, makeHangWatch, makeWatchSlot, settleRelaunch, STUCK_READS} from './hang-lib.ts'
 
 const READ_EVERY_MS = 15_000
 const SAMPLE_MS = 20_000
@@ -21,8 +21,8 @@ export const RELAUNCH_MS = 180_000
 // WebDriver requests that succeeded this run (wdio.gate.conf.ts listens to webdriver's 'result'
 // event): a hung app answers none.
 let succeeded = 0
-export const noteProtocolResult = (result: unknown) => {
-  if (protocolSucceeded(result)) succeeded++
+export const noteProtocolResult = (event: {command?: string; result?: unknown}) => {
+  if (countsForHangWatch(event)) succeeded++
 }
 
 const appCpuPercent = (pid: number) => {
