@@ -46,8 +46,8 @@ import {
   NEAR,
   NEARER,
   WATCHER,
-  WATCHER_STARTED,
   WATCHER_STOPPED,
+  watcherRunning,
   type Point,
 } from '../gate/location-lib.ts'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
@@ -178,12 +178,15 @@ describe('chat location', function () {
     return made
   }
 
-  // The location screen from the composer's + menu. Bound: more 12, screen 21 = 33.
+  // The location screen from the composer's + menu, and when it was asked for (the native watcher's
+  // lines are read from then). Bound: more 12, screen 21 = 33.
   const openLocationScreen = async (convID: string) => {
+    const opened = new Date(Date.now() - 1_000)
     await el(T.CHAT_MORE_BUTTON).click()
     await el(T.CHAT_MORE_SHARE_LOCATION).waitForExist({timeout: 10_000})
     await el(T.CHAT_MORE_SHARE_LOCATION).click()
     await expectScreen('the location screen', 'chatLocationPreview', p => p['conversationIDKey'] === convID, 20_000)
+    return opened
   }
 
   // Bound: button 11.
@@ -218,15 +221,18 @@ describe('chat location', function () {
     await waitForLinesInOrder(what, () => goLogSince(mark), GO_MOVE_POSTED, 180_000)
   }
 
-  // Starts a 15 minute live share from the location screen, and waits for the service to track and the
-  // native watcher to start. Bound: mark 120, button 11, go 31, watcher 140 = 302.
-  const startLiveShare = async (convID: string) => {
+  // Starts a 15 minute live share from the location screen opened at `opened`, and waits for the
+  // service to track with the native watcher running: the screen started it, and the share keeps it.
+  // Bound: mark 120, button 11, go 31, watcher 140 (20s of reads overrun by one 120) = 302.
+  const startLiveShare = async (convID: string, opened: Date) => {
     const mark = goLogMark()
-    const since = new Date(Date.now() - 1_000)
     sharingIn = convID
     await tapLocationButton(T.CHAT_LOCATION_LIVE_15M)
     await waitForLinesInOrder('the phone service to start tracking', () => goLogSince(mark), [GO_START_TRACKING], 30_000)
-    await waitForLinesInOrder('the native location watcher to start', () => nsLogSince(WATCHER, since), [WATCHER_STARTED])
+    await waitFor('the native location watcher to run for the share', () => (watcherRunning(nsLogSince(WATCHER, opened)) ? true : undefined), {
+      interval: 1_000,
+      timeout: 20_000,
+    })
   }
 
   // -- tests ----------------------------------------------------------------------------------------
@@ -255,8 +261,8 @@ describe('chat location', function () {
     // 2 = 2970
     this.timeout(3_050_000)
     const {convID, topicName} = await inChannelWithLocation()
-    await openLocationScreen(convID)
-    await startLiveShare(convID)
+    const opened = await openLocationScreen(convID)
+    await startLiveShare(convID, opened)
     await hostReads(topicName, LIVE_15M)
     await step('Sharing live location')
 
@@ -288,8 +294,8 @@ describe('chat location', function () {
     // 1186, signed in 90, the move 421, step 2 = 3228
     this.timeout(3_300_000)
     const {convID, topicName} = await inChannelWithLocation()
-    await openLocationScreen(convID)
-    await startLiveShare(convID)
+    const opened = await openLocationScreen(convID)
+    await startLiveShare(convID, opened)
     await hostReads(topicName, LIVE_15M)
     await step('Sharing live location')
 

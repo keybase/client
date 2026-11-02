@@ -1,4 +1,4 @@
-import {APPLE_PARK, FAR, GO_MOVE_POSTED, GO_RESTORED, GO_TRACKER_STOPPED, holdsLocationMessage, requireFixedPoint, stopLocationBody} from './location-lib'
+import {APPLE_PARK, FAR, GO_MOVE_POSTED, GO_RESTORED, GO_TRACKER_STOPPED, holdsLocationMessage, requireFixedPoint, stopLocationBody, watcherRunning} from './location-lib'
 
 test('only the fixed points are taken', () => {
   expect(requireFixedPoint(FAR)).toBe(FAR)
@@ -27,4 +27,14 @@ test('the stop body takes only a conversation id, and reads the tlf name in the 
   const body = stopLocationBody('0000abcdef0123456789')
   expect(body).toContain("sendTextToConversation(id, meta.tlfname, '/location stop')")
   expect(() => stopLocationBody('team#channel')).toThrow('not one')
+})
+
+test('the watcher runs when its last start has no stop after it', () => {
+  const line = (m: string) => `2026-11-01 19:40:23.545 Df Keybase[1:2] (Keybase.debug.dylib) KbLocationWatcher: ${m}`
+  expect(watcherRunning([line('starting location updates')])).toBe(true)
+  expect(watcherRunning([line('starting location updates'), line('location update failed: x')])).toBe(true)
+  expect(watcherRunning([line('starting location updates'), line('stopping location updates')])).toBe(false)
+  expect(watcherRunning([line('stopping location updates'), line('starting location updates')])).toBe(true)
+  expect(watcherRunning([line('not watching location: not authorized (status 0)')])).toBe(false)
+  expect(watcherRunning([])).toBe(false)
 })
