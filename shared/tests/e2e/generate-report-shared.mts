@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {createRequire} from 'module'
+import {parseStepName, slug} from './shared/step-name.ts'
 
 const require = createRequire(import.meta.url)
 // pngjs is a transitive dep (via image-diff etc.) — intentionally not in package.json
@@ -34,12 +35,6 @@ export type Section = {
 
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-// step-NN-<slug> attachment names (see electron/helpers/step.ts)
-export function parseStepName(name: string): {n: number; slug: string} | null {
-  const m = /^step-(\d+)-(.+)$/.exec(name)
-  return m ? {n: Number(m[1]), slug: m[2]!} : null
 }
 
 export function sortSteps<T extends {name: string}>(items: ReadonlyArray<T>): T[] {
@@ -156,12 +151,11 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
   const diffCount = allCards.filter(c => c.diff !== null && c.diff.pct >= 0.05).length
 
   const relFn = (p: string) => path.relative(path.dirname(outputPath), p)
-  const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
   let idx = 0
   const cardHtml = sections.map(section => {
     const sectionHeader = section.header
-      ? `<div class="section-hdr" id="sec-${slugify(section.header)}">${escapeHtml(section.header)}</div>`
+      ? `<div class="section-hdr" id="sec-${slug(section.header)}">${escapeHtml(section.header)}</div>`
       : ''
     const cards = [...section.cards.filter(c => !c.passed), ...section.cards.filter(c => c.passed)].map(card => buildCard(card, idx++, relFn)).join('\n')
     return [sectionHeader, cards].filter(Boolean).join('\n')
@@ -169,7 +163,7 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
 
   const navLinks = sections
     .filter(s => s.header)
-    .map(s => `<a class="sec-link" href="#sec-${slugify(s.header!)}">${escapeHtml(s.header!)}</a>`)
+    .map(s => `<a class="sec-link" href="#sec-${slug(s.header!)}">${escapeHtml(s.header!)}</a>`)
     .join('')
 
   return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks)

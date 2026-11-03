@@ -1,13 +1,8 @@
 import {expect, test, type Page, type TestInfo} from '@playwright/test'
 import type {ManualOnlyId} from '../manual-only'
+import {stepAttachmentName} from '../../shared/step-name.ts'
 
 const counters = new WeakMap<TestInfo, number>()
-
-const kebab = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 
 // A screenshot once the window stops changing (a modal fading in or out, a backdrop dimming), or
 // the last one taken when it doesn't within settleMs (a spinner, a progress bar).
@@ -36,7 +31,7 @@ export async function step(
   const n = (counters.get(testInfo) ?? 0) + 1
   counters.set(testInfo, n)
   const body = opts?.settle === false ? await page.screenshot() : await settledScreenshot(page)
-  const attName = `step-${String(n).padStart(2, '0')}-${kebab(name)}`
+  const attName = stepAttachmentName(n, name)
   await testInfo.attach(attName, {body, contentType: 'image/png'})
   if (opts?.card) testInfo.annotations.push({description: attName, type: 'card-step'})
 }

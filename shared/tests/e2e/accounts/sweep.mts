@@ -48,7 +48,7 @@ import {
 import {ensureRunId, parseStampedName} from './run-id.ts'
 import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
 import {connectPeerRpc, type PeerRpc} from '../shared/peer-rpc.ts'
 import {
   ensurePeer,
@@ -476,8 +476,7 @@ const confirmScript = [
 const confirmedCli = async (actor: Actor, args: Array<string>, prompt: string, answer: string) =>
   new Promise<void>((resolve, reject) => {
     const argv = [keybaseBin(), '--no-auto-fork', ...actor.cliFlags, ...args]
-    if (argv.some(a => /[{}\\]/.test(a))) throw new Error(`refusing to run ${argv.join(' ')}: braces or backslashes`)
-    const env = {...process.env, KB_CONFIRM_ANSWER: answer, KB_CONFIRM_CMD: argv.map(a => `{${a}}`).join(' '), KB_CONFIRM_PROMPT: prompt}
+    const env = {...process.env, KB_CONFIRM_ANSWER: answer, KB_CONFIRM_CMD: expectSpawnList(argv, argv.join(' ')), KB_CONFIRM_PROMPT: prompt}
     const proc = spawn('expect', ['-c', confirmScript], {env})
     let output = ''
     const timer = setTimeout(() => {

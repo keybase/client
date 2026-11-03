@@ -13,7 +13,7 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
-import {keybaseBin} from './keybase-bin.ts'
+import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
 
 // The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
 export const e2eAccounts = (): E2EAccounts => loadE2EAccounts()
@@ -210,7 +210,7 @@ const cliConfirmed = async (args: Array<string>, prompt = 'Hit Enter to confirm'
     const env = {
       ...process.env,
       KB_CONFIRM_ANSWER: answer,
-      KB_CONFIRM_CMD: [keybaseBin(), ...args].map(a => `{${a}}`).join(' '),
+      KB_CONFIRM_CMD: expectSpawnList([keybaseBin(), ...args], `keybase ${args[0] ?? ''}`),
       KB_CONFIRM_PROMPT: prompt,
     }
     const proc = spawn('expect', ['-c', confirmScript], {env})

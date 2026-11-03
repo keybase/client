@@ -42,6 +42,7 @@ build/
 project.xcworkspace
 xcuserdata
 shared
+!/tests/e2e/shared/
 ios/fastlane/README.md
 keybase.xcframework
 keybasego.xcframework
