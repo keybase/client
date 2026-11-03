@@ -27,10 +27,10 @@ import {el} from '../helpers/elements'
 import {fillField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom, press, waitForSheetGone} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, NAMED_ELEMENT_TYPES, openMenuFrom, press, waitForSheetGone} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
 import {ACCOUNT_TAB, openAccountPage} from '../helpers/settings'
-import {masked, TEXT_TYPES, textShown} from '../helpers/teams'
+import {masked, textShown} from '../helpers/teams'
 
 const ADD_EMAIL = 'keybase.1.emails.addEmail'
 const SEND_VERIFICATION = 'keybase.1.emails.sendVerificationEmail'
@@ -157,7 +157,7 @@ describe('settings account', function () {
   // Whether the row in `band` draws `word` as its line (or a part of it: "Primary • Not
   // searchable"). Bound: one read 1.
   const rowSays = async (band: Rect, word: string) =>
-    (await drawnOf(TEXT_TYPES)).some(
+    (await drawnOf(NAMED_ELEMENT_TYPES)).some(
       e =>
         labelParts(e.attrs['label'] ?? '')
           .flatMap(p => p.split(' • '))
@@ -173,7 +173,7 @@ describe('settings account', function () {
   }
 
   // Whether a text reading exactly `label` is drawn now. Bound: one read 1.
-  const textShownNow = async (label: string) => (await drawnOf(TEXT_TYPES)).some(e => plain(e.attrs['label']) === label)
+  const textShownNow = async (label: string) => (await drawnOf(NAMED_ELEMENT_TYPES)).some(e => plain(e.attrs['label']) === label)
 
   // Settings > Account with the account's addresses loaded (the original's row is always drawn).
   // Bound: openAccountPage 126, the row 16 = 142.

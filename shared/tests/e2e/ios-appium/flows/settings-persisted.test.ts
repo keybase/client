@@ -86,10 +86,10 @@ import {dragUntilOnScreen} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {tapButton} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
-import {BUTTON_ELEMENTS, check, labelledElement, screenRect} from '../helpers/menus'
+import {BUTTON_ELEMENTS, check, labelledElement, NAMED_ELEMENT_TYPES, screenRect} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openMore, openSettingsPage} from '../helpers/settings'
-import {masked, TEXT_TYPES} from '../helpers/teams'
+import {masked} from '../helpers/teams'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
@@ -270,7 +270,7 @@ const moreListDraws = async () => {
   for (const {attrs, type} of sourceElements(await browser.getPageSource())) {
     const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
     if (type === 'XCUIElementTypeButton' && label === 'PerfLog') perf++
-    if (!TEXT_TYPES.includes(type) || !labelHas(label, 'Crypto')) continue
+    if (!NAMED_ELEMENT_TYPES.includes(type) || !labelHas(label, 'Crypto')) continue
     if (frameInside(sourceRect(attrs), screen)) crypto++
   }
   return {crypto, perf}
