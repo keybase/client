@@ -50,9 +50,13 @@ export const zipEntries = (zip: Uint8Array): Array<Uint8Array> => {
 
 const contains = (hay: Uint8Array, needle: Buffer) => Buffer.from(hay.buffer, hay.byteOffset, hay.byteLength).includes(needle)
 
+// A secret under 8 characters would match ordinary text, so it is not looked for, except a paper
+// key's device name: two of its words (lowercase, joined by a space), as short as 7 characters.
+const scannable = (s: string) => s.length >= 8 || /^[a-z]+ [a-z]+$/.test(s)
+
 // Whether `data` holds any of `secrets` (empty ones ignored), looking into zips and base64 runs.
 export const holdsSecret = (data: Uint8Array, secrets: ReadonlyArray<string>, depth = 0): boolean => {
-  const needles = secrets.filter(s => s.length >= 8).map(s => Buffer.from(s, 'utf8'))
+  const needles = secrets.filter(scannable).map(s => Buffer.from(s, 'utf8'))
   if (!needles.length) return false
   if (needles.some(n => contains(data, n))) return true
   if (depth >= maxDepth) return false

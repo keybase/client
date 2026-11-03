@@ -41,6 +41,12 @@ test('finds a paper key, and ignores empty or short secrets', () => {
   expect(holdsSecret(Buffer.from('abc'), ['', 'abc'])).toBe(false)
 })
 
+test("finds a paper key's device name under 8 characters, and no other short secret", () => {
+  expect(holdsSecret(Buffer.from('Paper Key (abc def...)'), ['abc def'])).toBe(true)
+  expect(holdsSecret(Buffer.from('id abc-def'), ['abc-def'])).toBe(false)
+  expect(holdsSecret(Buffer.from('Abc def'), ['Abc def'])).toBe(false)
+})
+
 test('finds a secret inside a stored or deflated zip entry (a trace)', () => {
   for (const deflate of [false, true]) {
     const zip = zipOf('trace.trace', Buffer.from(`{"value":"${secret}"}`), deflate)
