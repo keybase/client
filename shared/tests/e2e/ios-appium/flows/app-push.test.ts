@@ -18,7 +18,6 @@
 // way, clears this run's notifications from Notification Center (only those: their bodies carry the
 // run's stamp; a failure there poisons the gate), puts back the notification settings through the
 // host (as smoke, each read back) and deletes the channel.
-import {createThrowawayChannel, deleteThrowawayChannel} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {e2eMarker} from '../../shared/run-marker.ts'
 import {
@@ -36,13 +35,14 @@ import {chatNewMessagePayload} from '../gate/device-lib.ts'
 import {launchedBy, launchIfGone, pushNotification, toBackground, toForeground} from '../gate/device'
 import {accountLinkLines, deepLinkEvents, focusChanges, GO_BACKGROUND, launchedInto, pushTapLinks} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
-import {expectScreen, leaveOnPeople, waitForScreen} from '../gate/screens'
+import {conversationOpened, expectScreen, fromPeople, leaveOnPeople} from '../gate/screens'
 import {step} from '../gate/step'
 import {findBanner, tapBanner, withNotificationCenter} from '../gate/system-ui'
 import {waitSignedIn} from '../helpers/chat'
 import {goLogMark, goLogSince, waitFor, waitForAppState} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
-import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {throwawayChannels} from '../helpers/chat-host'
 import {expectShown, openNotificationSettings, settles, switchOf, tapAndCall} from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
 
@@ -71,7 +71,7 @@ describe('app push notifications', function () {
   // -- what the afterEach puts back -----------------------------------------------------------------
 
   // the throwaway channels a test made
-  const channels = new Set<string>()
+  const channels = throwawayChannels()
   // set before a push is sent, cleared once Notification Center shows none of this run's
   let pushed = false
   // the notification settings a test may have changed, set before the first change and cleared once
@@ -80,12 +80,7 @@ describe('app push notifications', function () {
     | {map: Record<string, boolean>; email: Array<EmailSubscription>; push: Array<EmailSubscription>}
     | undefined
 
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await masked(async () => deleteThrowawayChannel(topicName))
-      channels.delete(topicName)
-    }
-  }
+  const deleteChannels = async () => masked(channels.deleteAll)
 
   // Bound: withNotificationCenter 55 (open 1, the clear 30 overrun by one swipe and its Clear 4, close
   // 1, the app active 11, the springboard settings 8).
@@ -120,8 +115,7 @@ describe('app push notifications', function () {
 
   // A throwaway channel for the push to name, and the smoke account's uid. Bound: channel 240, uid 2.
   const pushTarget = async () => {
-    const made = await masked(async () => createThrowawayChannel('push', {withSecond: false}))
-    channels.add(made.topicName)
+    const made = await masked(async () => channels.make('push', {withSecond: false}))
     return {convID: made.convID, uid: await appUid()}
   }
 
@@ -129,14 +123,6 @@ describe('app push notifications', function () {
   const push = (convID: string, uid: string, body: string) => {
     pushed = true
     pushNotification(chatNewMessagePayload({body, convID, uid}))
-  }
-
-  // Every tab at its root and People up, so a push that opened something would move the app. Bound:
-  // fromPeople 66.
-  const fromPeople = async () => {
-    await escapeToTabs()
-    await navigateToPeople()
-    await waitForScreen('peopleRoot')
   }
 
   // Moves the app to the background and waits for the phone's service to record it there. Bound:
@@ -155,9 +141,6 @@ describe('app push notifications', function () {
     await toForeground()
     await waitForAppState('active', undefined, 30_000)
   }
-
-  const conversationOpened = async (what: string, convID: string, timeout = 20_000) =>
-    expectScreen(what, 'chatConversation', p => p['conversationIDKey'] === convID, timeout)
 
   // -- pushes ---------------------------------------------------------------------------------------
 

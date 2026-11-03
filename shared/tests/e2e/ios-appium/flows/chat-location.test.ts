@@ -23,7 +23,7 @@
 // change can kill it); the channel deleted (which drops the outbox's retries). A failure of any of
 // those poisons the gate.
 import {loadE2EAccounts} from '../../accounts/env'
-import {createThrowawayChannel, deleteThrowawayChannel, readFromCli} from '../../shared/chat-data'
+import {readFromCli} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
@@ -60,6 +60,7 @@ import {el, waitForTestID} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {goLogMark, goLogSince, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
+import {throwawayChannels} from '../helpers/chat-host'
 import {masked} from '../helpers/teams'
 
 const LOCATION_UPDATE = 'chat.1.local.locationUpdate'
@@ -100,7 +101,7 @@ describe('chat location', function () {
   // what grantPrivacy changed
   let privacy: PrivacyRestore | undefined
   // the throwaway channels a test made
-  const channels = new Set<string>()
+  const channels = throwawayChannels()
   // and their conversation ids, whose outbox records the afterEach cancels
   const convIDs = new Set<string>()
 
@@ -166,12 +167,7 @@ describe('chat location', function () {
 
   // Bound: a channel 120.
   const deleteChannels = async () =>
-    guarded('the location channel', "delete the run's stamped location channel of the e2e team", async () => {
-      for (const topicName of [...channels]) {
-        await masked(async () => deleteThrowawayChannel(topicName))
-        channels.delete(topicName)
-      }
-    })
+    guarded('the location channel', "delete the run's stamped location channel of the e2e team", async () => masked(channels.deleteAll))
 
   // Worst case (s): launchIfGone 272, stopSharing 292, clear 120, restore 155, launchIfGone 272, the
   // outbox 300, a channel 120, escapeToTabs 30 = 1561.
@@ -191,8 +187,7 @@ describe('chat location', function () {
   // A throwaway channel, location granted, the simulator at Apple Park, the channel open. Bound:
   // channel 240, grant 640, location 120, open 100, step 2 = 1102.
   const inChannelWithLocation = async () => {
-    const made = await masked(async () => createThrowawayChannel('loc', {withSecond: false}))
-    channels.add(made.topicName)
+    const made = await masked(async () => channels.make('loc', {withSecond: false}))
     convIDs.add(made.convID)
     privacy = await grantPrivacy('location-always')
     moveTo(APPLE_PARK)

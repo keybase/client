@@ -11,10 +11,9 @@
 //
 // The flow's afterEach launches the app again or brings it to the front when a test stopped part way
 // (no recording; a failure there poisons the gate), deletes the channel and goes back to the tab root.
-import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
-import {createThrowawayChannel, deleteThrowawayChannel} from '../../shared/chat-data'
+import {loadE2EAccounts} from '../../accounts/env'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker.ts'
 import {appLogMark, appLogUntilMarker} from '../gate/app-log'
 import {creditSurface} from '../gate/attempt'
@@ -22,7 +21,7 @@ import {requireSecondNotBlocked} from '../gate/blocks'
 import {appRuntime, launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
 import {focusChanges, focusLeftAndBack, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
-import {expectScreen, leaveOnPeople, waitForScreen} from '../gate/screens'
+import {expectScreen, fromPeople, leaveOnPeople} from '../gate/screens'
 import {step} from '../gate/step'
 import {withNotificationCenter} from '../gate/system-ui'
 import {openConversation, rowElement, waitForRow, waitSignedIn} from '../helpers/chat'
@@ -37,7 +36,8 @@ import {
   waitForLinesInOrder,
 } from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
-import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {secondSender, throwawayChannels} from '../helpers/chat-host'
 import {masked} from '../helpers/teams'
 
 const CYCLES = 5
@@ -69,19 +69,10 @@ describe('app lifecycle', function () {
     await masked(async () => requireSecondNotBlocked())
   })
 
-  // The second account's peer service, found by the first test that needs it.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
-
   // the throwaway channels a test made
-  const channels = new Set<string>()
+  const channels = throwawayChannels()
 
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await masked(async () => deleteThrowawayChannel(topicName))
-      channels.delete(topicName)
-    }
-  }
+  const deleteChannels = async () => masked(channels.deleteAll)
 
   // Nothing a test left behind, after a timeout too: the app back up in front first (no recording; the
   // next test's reset drives it), the channel, the tab root. Worst case (s): launchIfGone 272 (a
@@ -147,8 +138,7 @@ describe('app lifecycle', function () {
     // worst case (s): channel 240, open 100, step 2, the identity 121, mark 120, go 21, peer 70, peer
     // send 90, go 21, active 31, screen 11, message 61, drawn 10, same 122, step 2 = 1022
     this.timeout(1_060_000)
-    const made = await masked(async () => createThrowawayChannel('life', {withSecond: true}))
-    channels.add(made.topicName)
+    const made = await masked(async () => channels.make('life', {withSecond: true}))
     const {convID} = made
     await openConversation(convID)
     await step('In the channel')
@@ -159,7 +149,7 @@ describe('app lifecycle', function () {
     await toBackground()
     await waitForLinesInOrder('the phone service to record the app in the background', () => goLogSince(goMark), [GO_BACKGROUND])
     const text = e2eMarker('lifecycle-recv')
-    await sendWithRetry(await sender(), convID, text)
+    await sendWithRetry(await secondSender(), convID, text)
     await toForeground()
 
     await waitForLinesInOrder('the phone service to record the trip in order', () => goLogSince(goMark), [GO_BACKGROUND, GO_FOREGROUND])
@@ -196,9 +186,7 @@ describe('app lifecycle', function () {
     // worst case (s): people 66, app mark 2, mark 120, center 55 + 16 + 21, go 21, until 12, screen 11,
     // step 2 = 326
     this.timeout(360_000)
-    await escapeToTabs()
-    await navigateToPeople()
-    await waitForScreen('peopleRoot')
+    await fromPeople()
     const mark = await appLogMark()
     const goMark = goLogMark()
     await withNotificationCenter(async () => {

@@ -29,10 +29,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {loadE2EEnv} from '../../accounts/env'
 import {CORPUS, corpusEntry} from '../../fixtures/corpus/corpus'
-import {createThrowawayChannel, deleteThrowawayChannel, ensureChatData} from '../../shared/chat-data'
+import {ensureChatData} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
-import {peerSender, sendWithRetry, type IncomingSender} from '../../shared/peer-actors'
+import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker, e2eRunId} from '../../shared/run-marker'
 import {assetInfo, libraryAssetIds, phoneDownloads} from '../gate/app-ask'
 import {requireSecondNotBlocked} from '../gate/blocks'
@@ -50,6 +50,7 @@ import {visibleScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, menuSheet, tapMenuItemOnce, waitForSheetGone} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
+import {secondSender, throwawayChannels} from '../helpers/chat-host'
 import {masked} from '../helpers/teams'
 
 const START = 'keybase.1.SimpleFS.simpleFSStartDownload'
@@ -105,12 +106,8 @@ describe('save to photos', function () {
   let libraryBefore: ReadonlySet<string> | undefined
   // the work folders the host made, the throwaway channel, and the local dir of the large file
   const madePaths = new Set<string>()
-  let channel: string | undefined
+  const channel = throwawayChannels()
   const localDirs = new Set<string>()
-
-  // The second account's peer service, found once.
-  let peer: Promise<IncomingSender> | undefined
-  const sender = async () => (peer ??= peerSender(loadE2EEnv()))
 
   const SAVED_PHOTO = 'a photo this run saved'
 
@@ -159,12 +156,7 @@ describe('save to photos', function () {
   }
 
   // Bound: delete 120.
-  const deleteChannel = async () => {
-    if (!channel) return
-    const topicName = channel
-    await masked(async () => deleteThrowawayChannel(topicName))
-    channel = undefined
-  }
+  const deleteChannel = async () => masked(channel.deleteAll)
 
   const removeLocalDirs = () => {
     for (const d of [...localDirs]) {
@@ -342,11 +334,10 @@ describe('save to photos', function () {
     // check 1, view 30, keyboard 5, message menu 15, step 2, calls 2, message menu 20, waited for 32,
     // saved 80, step 2, delete 60, ask 25, step 2 = 2347
     this.timeout(2_375_000)
-    const made = await masked(async () => createThrowawayChannel('save'))
-    channel = made.topicName
-    await sendWithRetry(await sender(), made.convID, e2eMarker('save-hello'))
+    const made = await masked(async () => channel.make('save'))
+    await sendWithRetry(await secondSender(), made.convID, e2eMarker('save-hello'))
     const title = e2eMarker('save-img')
-    await (await sender()).attach(made.convID, corpusEntry('e2e-c.png').file, title)
+    await (await secondSender()).attach(made.convID, corpusEntry('e2e-c.png').file, title)
     // the grants relaunch the app: taken before the conversation opens
     const before = await fullPhotoAccess()
 

@@ -9,7 +9,6 @@
 // 'deep-link' (and 'relaunch' for the cold link) is credited only once the screen the link opened
 // is asserted: its route and params, and what it draws.
 import {loadE2EAccounts} from '../../accounts/env'
-import {createThrowawayChannel, deleteThrowawayChannel} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsList, smokeFolder} from '../../shared/files.ts'
 import {teamID} from '../../shared/teams.ts'
@@ -20,14 +19,15 @@ import {creditSurface} from '../gate/attempt'
 import {launchedBy, launchIfGone, openLink} from '../gate/device'
 import {accountLinkLines, deepLinkEvents, launchedInto, pushTapLinks} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
-import {backToScreen, expectScreen, leaveOnPeople, waitForScreen} from '../gate/screens'
+import {backToScreen, conversationOpened, expectScreen, fromPeople, leaveOnPeople} from '../gate/screens'
 import {step} from '../gate/step'
 import {el, waitForTestID} from '../helpers/elements'
 import {expectFolder} from '../helpers/files'
 import {waitSignedIn} from '../helpers/chat'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
-import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {throwawayChannels} from '../helpers/chat-host'
 import {expectTeamPage, masked} from '../helpers/teams'
 
 // the texts of the navigation bar, where a conversation's header draws its channel's name
@@ -52,20 +52,9 @@ describe('app deep links', function () {
   //   step      2 (its 1s settle and the attach)
 
   // the throwaway channels a test made
-  const channels = new Set<string>()
-
-  const newChannel = async () => {
-    const made = await masked(async () => createThrowawayChannel('link', {withSecond: false}))
-    channels.add(made.topicName)
-    return made
-  }
-
-  const deleteChannels = async () => {
-    for (const topicName of [...channels]) {
-      await masked(async () => deleteThrowawayChannel(topicName))
-      channels.delete(topicName)
-    }
-  }
+  const channels = throwawayChannels()
+  const newChannel = async () => masked(async () => channels.make('link', {withSecond: false}))
+  const deleteChannels = async () => masked(channels.deleteAll)
 
   // Nothing a test made left behind, after a timeout too: the app launched again or brought to the
   // front when a test stopped part way (no recording; the next test's reset drives it), the channel
@@ -75,16 +64,6 @@ describe('app deep links', function () {
     this.timeout(450_000)
     await withCleanup(launchIfGone, [deleteChannels, escapeToTabs])
   })
-
-  // Every tab at its root and People up, so the link is what moves the app. Bound: fromPeople 66.
-  const fromPeople = async () => {
-    await escapeToTabs()
-    await navigateToPeople()
-    await waitForScreen('peopleRoot')
-  }
-
-  const conversationOpened = async (what: string, convID: string, timeout = 20_000) =>
-    expectScreen(what, 'chatConversation', p => p['conversationIDKey'] === convID, timeout)
 
   it('a team channel link opens the channel', async function () {
     // worst case (s): channel 240, people 66, link 120, screen 21, header 11, step 2 = 460
