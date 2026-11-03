@@ -1,8 +1,8 @@
 // The iOS release gate's flow run: every attempt is recorded under tests/results/ios-report/attempts
 // (gate/attempt.ts), and onComplete writes them as the Playwright json report the release summary
 // and the census read. Every run, a direct `yarn test:e2e:ios:flows` too, then scans what it wrote
-// for the env file's secrets and the names of the paper keys and the team invite links it made: a
-// file that holds one is deleted and named, and the run fails.
+// for the env file's secrets, the names of the paper keys and the team invite links it made, and
+// saltpack armor (the crypto flows): a file that holds one is deleted and named, and the run fails.
 import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
@@ -40,7 +40,7 @@ const scansOwnRecords = process.env[SCAN_PAPER_KEY_NAMES_VAR] !== '1'
 const scanResults = () => {
   const watch = secretWatch
   const runId = process.env['KB_E2E_RUN_ID'] ?? ''
-  const scan = scanAndPurge([iosReportDir()], [...withPaperKeyNames(watch ? watch.secrets() : envSecrets(), runId), ...runInviteLinkSecrets(runId)])
+  const scan = scanAndPurge([iosReportDir()], [...withPaperKeyNames(watch ? watch.secrets() : envSecrets(), runId), ...runInviteLinkSecrets(runId)], {armor: true})
   watch?.stop()
   for (const f of scan.hits) console.error(`[ios gate] secret found, deleted: ${f}`)
   console.log(`[ios gate] secrets: ${scan.line}`)
