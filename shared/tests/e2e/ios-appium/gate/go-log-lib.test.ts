@@ -37,3 +37,24 @@ test('a log that was not there at the mark is read from its start, and one repla
   fs.writeFileSync(log, 'relaunched\n')
   expect(linesSince(mark)).toEqual(['relaunched'])
 })
+
+test('every rotation since the mark is followed, in order, and a file rotated aside before the mark is not read again', () => {
+  fs.writeFileSync(path.join(dir, 'ios.log-20261103T000000'), 'long gone\n')
+  fs.writeFileSync(log, 'old 1\n')
+  const mark = markFile(log)
+  fs.appendFileSync(log, 'one\n')
+  fs.renameSync(log, path.join(dir, 'ios.log-20261103T010000'))
+  fs.writeFileSync(log, 'two\n')
+  fs.renameSync(log, path.join(dir, 'ios.log-20261103T020000'))
+  fs.writeFileSync(log, 'three\n')
+  expect(linesSince(mark)).toEqual(['one', 'two', 'three'])
+})
+
+test('a last line still being written is left until it is whole', () => {
+  fs.writeFileSync(log, '')
+  const mark = markFile(log)
+  fs.appendFileSync(log, 'whole\nduration: 100m')
+  expect(linesSince(mark)).toEqual(['whole'])
+  fs.appendFileSync(log, 's\n')
+  expect(linesSince(mark)).toEqual(['whole', 'duration: 100ms'])
+})

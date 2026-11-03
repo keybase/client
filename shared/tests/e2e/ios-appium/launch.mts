@@ -35,6 +35,8 @@ const LOCATION_READ_MS = 15_000
 const DELIVERER_UP_MS = 60_000
 // pulls of the outbox the read waits for after the deliverer starts, one each interval
 const OUTBOX_PULLS = 3
+// the longest deliverer interval the outbox read waits on (the service pulls every 5s unless set)
+const MAX_DELIVERER_INTERVAL_MS = 60_000
 
 type MetroPidfile = {pgid: number; start: number}
 
@@ -199,6 +201,8 @@ export const appPendingOutbox = async (mark: LogMark, launchedAt: number) => {
   const interval = await until('the phone service to start delivering chat messages', DELIVERER_UP_MS, async () =>
     Promise.resolve(delivererInterval(goLog()))
   )
+  // a longer one is a misread line, and would hold the launch phase that many pulls
+  if (interval > MAX_DELIVERER_INTERVAL_MS) throw new Error(`the phone service's deliverer logged an interval of ${interval}ms, over the ${MAX_DELIVERER_INTERVAL_MS}ms the outbox read waits on`)
   await sleep(OUTBOX_PULLS * interval + 1_000)
   return outboxFlushes(goLog(), {end: Date.now(), interval})
 }
