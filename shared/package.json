@@ -71,6 +71,7 @@
     "test:e2e:desktop:launch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/electron/launch-app.mts",
     "test:e2e:desktop:flows": "playwright test --config tests/e2e/electron/playwright.config.ts --project=electron-flows",
     "test:e2e:desktop:census": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/electron/census.mts",
+    "test:e2e:desktop:release": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/electron/release.mts",
     "test:e2e:desktop:rpc": "yarn test:e2e:desktop:flows tests/e2e/electron/flows/teams-browse.test.ts tests/e2e/electron/flows/teams-inner.test.ts tests/e2e/electron/flows/teams-modals.test.ts tests/e2e/electron/flows/team-member.test.ts tests/e2e/electron/flows/team-wizard-channel.test.ts tests/e2e/electron/flows/chat-interactions.test.ts",
     "test:e2e:desktop:report": "node tests/e2e/generate-electron-report.mts && open tests/results/electron-report.html",
     "test:e2e:desktop:save-baseline": "node tests/e2e/generate-electron-report.mts --save-baseline",

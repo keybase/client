@@ -9,7 +9,10 @@
 //                                                     (KB_VISUAL_COVERAGE=1, tests/e2e/visual/coverage)
 //
 // Options: --deadline <seconds> (default 120), --cdp-port <port> (default 9222), --log <path>
-// (default /tmp/chat-e2e-electron.log, appended to, one separator per launch).
+// (default KB_E2E_APP_LOG or /tmp/chat-e2e-electron.log, appended to, one separator per launch).
+//
+// A launch records the app's process group in /tmp/kb-e2e/app.json (see app-pidfile.ts); stopping the
+// app removes it.
 import {spawn, execFileSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -17,6 +20,8 @@ import {fileURLToPath} from 'url'
 import {chromium} from '@playwright/test'
 import {NAV_TAB_CHAT} from '../shared/test-ids.ts'
 import {VISUAL_ELECTRON_ARGS} from '../visual/electron-args.ts'
+import {appLogPath} from './app-log.ts'
+import {removeAppPidfile, writeAppPidfile} from './app-pidfile.ts'
 
 const arg = (name: string) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -27,7 +32,7 @@ const visual = process.argv.includes('--visual')
 const coverage = process.argv.includes('--coverage')
 const deadlineMs = Number(arg('deadline') ?? 120) * 1000
 const cdpPort = Number(arg('cdp-port') ?? 9222)
-const logPath = arg('log') ?? '/tmp/chat-e2e-electron.log'
+const logPath = arg('log') ?? appLogPath()
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const devServerPort = 4000
 
@@ -136,6 +141,7 @@ const killApp = async () => {
       process.kill(pid, 'SIGKILL')
     } catch {}
   }
+  removeAppPidfile()
 }
 
 const logTail = (lines: number) => {
@@ -192,6 +198,8 @@ const env = {
 }
 const child = spawn('yarn', ['desktop:start:hot:e2e'], {cwd: sharedDir, detached: true, env, stdio: ['ignore', out, out]})
 child.unref()
+// detached: the yarn process leads a new process group holding the dev server and Electron
+if (child.pid) writeAppPidfile(child.pid)
 log(`started the app (pid ${child.pid})${coverage ? ' with coverage marks' : ''}, log at ${logPath}`)
 if (!(await waitForReady())) await fail('launch failed')
 process.exit(0)

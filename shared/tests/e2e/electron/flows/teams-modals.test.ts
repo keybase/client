@@ -1,11 +1,12 @@
 import type {Locator} from '@playwright/test'
-import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {openFirstTeam} from '@/tests/e2e/electron/helpers/navigate'
+import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {openE2ETeam} from '@/tests/e2e/electron/helpers/navigate'
 import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeLeftoverModals, closeModal} from '@/tests/e2e/electron/helpers/modal'
+import {E2E_CHANNELS} from '@/tests/e2e/shared/chat-data'
 
-// Team modals and wizards, all open → screenshot → cancel. Nothing submits.
+// Team modals and wizards in the e2e team, all open → screenshot → cancel. Nothing submits.
 
 // locator.isVisible() doesn't wait — this does, without throwing
 const becomesVisible = async (l: Locator, timeout = 5_000) =>
@@ -26,21 +27,20 @@ const settles = async (l: Locator, timeout = 5_000) => {
   }
 }
 
+test.beforeAll(async () => {
+  test.setTimeout(20 * 60_000) // a first run seeds the e2e channels; later runs only check
+  await seedChatData()
+})
+
 // a test that died mid-modal poisons every test after it — close leftovers first
 test.beforeEach(async ({page}) => {
   await closeLeftoverModals(page)
 })
 
 test('add members wizard opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
   const addButton = page.getByText('Add/Invite people', {exact: true}).locator('visible=true')
-  if (!(await becomesVisible(addButton.first()))) {
-    test.skip()
-    return
-  }
+  await expect(addButton.first(), 'Add/Invite people on the e2e team page (the smoke account owns it)').toBeVisible({timeout: 5_000})
   await addButton.first().click()
   const emailOption = page.getByText('A list of email addresses', {exact: true})
   await expect(emailOption).toBeVisible({timeout: 5_000})
@@ -51,15 +51,9 @@ test('add members wizard opens', async ({page}, testInfo) => {
 })
 
 test('add by email screen opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
   const addButton = page.getByText('Add/Invite people', {exact: true}).locator('visible=true')
-  if (!(await becomesVisible(addButton.first()))) {
-    test.skip()
-    return
-  }
+  await expect(addButton.first(), 'Add/Invite people on the e2e team page (the smoke account owns it)').toBeVisible({timeout: 5_000})
   await addButton.first().click()
   await page.getByText('A list of email addresses', {exact: true}).click()
   const emailInput = page.getByPlaceholder('Email addresses')
@@ -72,15 +66,9 @@ test('add by email screen opens', async ({page}, testInfo) => {
 })
 
 test('edit team info modal opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
   const editButton = page.getByText('Edit', {exact: true}).locator('visible=true')
-  if ((await editButton.count()) === 0) {
-    test.skip()
-    return
-  }
+  await expect(editButton.first(), 'Edit on the e2e team page (the smoke account owns it)').toBeVisible({timeout: 5_000})
   await editButton.first().click()
   const description = page.getByPlaceholder('Description')
   await expect(description).toBeVisible({timeout: 5_000})
@@ -91,36 +79,24 @@ test('edit team info modal opens', async ({page}, testInfo) => {
 })
 
 test('edit channel modal opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
-  const channelsTab = page.getByText('Channels', {exact: true}).locator('visible=true').first()
-  if (!(await channelsTab.isVisible())) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
+  const channelsTab = page.getByTestId(T.TEAMS_TAB_CHANNELS_BUTTON).locator('visible=true').first()
+  await expect(channelsTab, 'the e2e team Channels tab').toBeVisible({timeout: 5_000})
   await channelsTab.click()
   await step(page, testInfo, 'channels tab')
   const channelList = page.getByTestId(T.TEAMS_CHANNEL_LIST)
-  if (!(await becomesVisible(channelList.first()))) {
-    test.skip()
-    return
-  }
-  // hover a channel row so its action buttons appear, then click ITS edit icon.
-  // The team-avatar edit pencil also matches iconfont-edit and sits earlier in
-  // the DOM (the header is a list section) — so take the LAST visible match.
-  const channelRowName = channelList.getByText(/^#\w/).locator('visible=true').first()
-  if (!(await becomesVisible(channelRowName))) {
-    test.skip()
-    return
-  }
+  await expect(channelList.first(), 'the e2e team channel list').toBeVisible({timeout: 5_000})
+  // hover the seeded e2e-scratch row so its action buttons appear, then click ITS edit icon: the
+  // nearest one right of its name (other rows and the team avatar have edit icons too)
+  const channelRowName = channelList.getByText(`#${E2E_CHANNELS.scratch}`, {exact: true}).locator('visible=true').first()
+  await expect(channelRowName, `#${E2E_CHANNELS.scratch} in the e2e team channel list`).toBeVisible({timeout: 10_000})
   await channelRowName.hover()
-  const editIcons = channelList.locator('.icon-gen-iconfont-edit:visible')
-  await expect.poll(async () => editIcons.count(), {timeout: 5_000}).toBeGreaterThan(0)
-  await editIcons.last().click()
+  const editIcon = channelList.locator(`.icon-gen-iconfont-edit:visible:right-of(:text-is("#${E2E_CHANNELS.scratch}"))`).first()
+  await expect(editIcon, `the edit icon on the #${E2E_CHANNELS.scratch} row`).toBeVisible({timeout: 5_000})
+  await editIcon.click()
   const channelName = page.getByPlaceholder('channelname')
   await expect(channelName).toBeVisible({timeout: 5_000})
+  await expect(channelName, 'the edit modal is for the hovered channel').toHaveValue(E2E_CHANNELS.scratch)
   await step(page, testInfo, 'edit channel modal', {card: true})
   await closeModal(page)
   await expect(channelName).not.toBeVisible({timeout: 5_000})
@@ -128,25 +104,18 @@ test('edit channel modal opens', async ({page}, testInfo) => {
 })
 
 test('retention warning opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
-  // 'Settings' also exists in the left nav — the team tab is the second visible match
-  await page.getByText('Settings', {exact: true}).locator('visible=true').nth(1).click()
-  // retention section renders only with admin rights
-  if (!(await becomesVisible(page.getByText('Message deletion', {exact: true}).locator('visible=true').first()))) {
-    test.skip()
-    return
-  }
-  const dropdown = page
-    .getByText(/^(Never auto-delete|Team default \(.*\)|\d+ (days?|weeks?|hours?|minutes?))$/)
-    .locator('visible=true')
-    .first()
-  if (!(await becomesVisible(dropdown))) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
+  await page.getByTestId(T.TEAMS_TAB_SETTINGS_BUTTON).locator('visible=true').first().click()
+  await expect(
+    page.getByText('Message deletion', {exact: true}).locator('visible=true').first(),
+    'the e2e team settings to show the retention section (the smoke account owns the team)'
+  ).toBeVisible({timeout: 5_000})
+  // Picking a shorter policy only opens the warning; a longer one saves at once. The e2e team never
+  // auto-deletes (its seeded channels depend on it), so 7 days is shorter and nothing is saved.
+  const dropdown = page.getByText('Never auto-delete', {exact: true}).locator('visible=true').first()
+  await expect(dropdown, 'the e2e team retention to be "Never auto-delete"; anything else and picking 7 days could save').toBeVisible({
+    timeout: 5_000,
+  })
   // the settings tab re-renders as the team's retention policy lands, which can
   // swallow the popup the first click opens — reopen until the menu sticks
   const sevenDays = page.getByText('7 days', {exact: true}).locator('visible=true').last()
@@ -162,12 +131,7 @@ test('retention warning opens', async ({page}, testInfo) => {
   ).toBe(true)
   await sevenDays.click()
   const confirm = page.getByText('Yes, set to 7 days')
-  if (!(await becomesVisible(confirm, 3_000))) {
-    // no warning fired (already at/below 7 days) — nothing to capture
-    await page.keyboard.press('Escape')
-    test.skip()
-    return
-  }
+  await expect(confirm, 'the retention warning for a shorter policy').toBeVisible({timeout: 3_000})
   await step(page, testInfo, 'retention warning')
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(confirm).not.toBeVisible({timeout: 5_000})
@@ -175,22 +139,13 @@ test('retention warning opens', async ({page}, testInfo) => {
 })
 
 test('add emoji modal opens', async ({page}, testInfo) => {
-  if (!(await openFirstTeam(page))) {
-    test.skip()
-    return
-  }
-  const emojiTab = page.getByText('Emoji', {exact: true}).locator('visible=true')
-  if (!(await becomesVisible(emojiTab.first()))) {
-    test.skip()
-    return
-  }
+  await openE2ETeam(page)
+  const emojiTab = page.getByTestId(T.TEAMS_TAB_EMOJI_BUTTON).locator('visible=true')
+  await expect(emojiTab.first(), 'the e2e team Emoji tab').toBeVisible({timeout: 5_000})
   await emojiTab.first().click()
   await step(page, testInfo, 'emoji tab')
   const addEmoji = page.getByText('Add emoji', {exact: true}).locator('visible=true')
-  if (!(await becomesVisible(addEmoji.first()))) {
-    test.skip()
-    return
-  }
+  await expect(addEmoji.first(), 'Add emoji on the e2e team Emoji tab').toBeVisible({timeout: 5_000})
   await addEmoji.first().click()
   const dragDrop = page.getByText('Drag and drop images or')
   await expect(dragDrop).toBeVisible({timeout: 5_000})

@@ -9,12 +9,6 @@ test('git repo list renders', async ({page}) => {
 
 test('git repo row is visible', async ({page}) => {
   await navigateToGit(page)
-  const rows = page.getByTestId(GIT_REPO_ROW)
-  try {
-    await rows.first().waitFor({timeout: 5_000})
-  } catch {
-    test.skip()
-    return
-  }
-  await expect(rows.first()).toBeVisible()
+  // the smoke account holds personal git repos (git-mutations makes a run-stamped one too)
+  await expect(page.getByTestId(GIT_REPO_ROW).first(), 'a git repo row for the smoke account').toBeVisible({timeout: 10_000})
 })

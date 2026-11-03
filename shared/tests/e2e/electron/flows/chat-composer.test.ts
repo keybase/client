@@ -410,7 +410,7 @@ test.describe('suggestions', () => {
     const all = await botCommands(E2E_CHANNELS.scratch)
     const bot = all[0]?.username
     const commands = all.filter(c => c.username === bot)
-    test.skip(commands.length < 2, 'the e2e team needs a bot with at least two commands to paste')
+    expect(commands.length, 'the e2e team needs a bot with at least two commands to paste').toBeGreaterThanOrEqual(2)
     return commands
   }
   const commandMarkdown = (page: Page) => page.getByTestId(T.CHAT_COMMAND_MARKDOWN)
@@ -460,7 +460,7 @@ test.describe('suggestions', () => {
 
   test('pasting a whole bot command shows that command\'s help instead of the list', async ({page}) => {
     const commands = (await botCommandsFor()).filter(c => titleLines(c.extended_description?.title).length)
-    test.skip(commands.length < 2, 'the bot needs two commands with help to tell them apart')
+    expect(commands.length, 'the e2e team bot needs two commands with help to tell them apart').toBeGreaterThanOrEqual(2)
     const target = commands[1]!
     await pasteIntoComposer(page, `!${target.name}`)
     await expect(commandMarkdown(page)).toBeVisible({timeout: 10_000})

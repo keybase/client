@@ -10,67 +10,57 @@ import * as T from '@/tests/e2e/shared/test-ids'
 // Screens overlap by 10% so nothing falls in a seam between two cards.
 const OVERLAP = 0.9
 
-// Screenful counts are upper bounds — a test whose offset is past the bottom
-// skips itself, so these can stay ahead of the pages growing.
-const MARKDOWN_SCREENS = 10
-const TYPOGRAPHY_SCREENS = 16
+// Screenfuls of each page at the gate's window size. Every case checks the page still has exactly
+// this many, so a page that grows or shrinks fails and names the count to set.
+const MARKDOWN_SCREENS = 8
+const TYPOGRAPHY_SCREENS = 5
 
 async function openDebugPage(page: Page, label: string, marker: string): Promise<void> {
   await navigateToSettings(page)
-  const item = page.getByTestId(T.SETTINGS_ACCOUNT).locator(`text=${label}`)
-  if ((await item.count()) === 0) {
-    // production build — the nav entry is gated by __DEV__
-    test.skip()
-    return
-  }
+  // the nav entry is gated by __DEV__, and the gate runs a dev build
+  const item = page.getByTestId(T.SETTINGS_ACCOUNT).locator(`text=${label}`).first()
+  await expect(item, `the ${label} debug page's nav entry`).toBeVisible({timeout: 5_000})
   await item.click()
   await expect(page.getByTestId(marker)).toBeVisible({timeout: 5_000})
 }
 
-// Scrolls the container to screenful `index`. Returns false when that offset is
-// past the bottom (fewer screenfuls of content than the constant above).
-async function scrollToScreen(page: Page, marker: string, index: number): Promise<boolean> {
-  const scroller = page.getByTestId(marker)
-  // structural type, not HTMLElement: tsconfig.native has no 'dom' lib
-  type Scrollable = {scrollHeight: number; clientHeight: number; scrollTop: number}
-  const fits = await scroller.evaluate((node, args: {index: number; overlap: number}) => {
+// structural type, not HTMLElement: tsconfig.native has no 'dom' lib
+type Scrollable = {scrollHeight: number; clientHeight: number; scrollTop: number}
+
+// How many screenfuls the page takes: the last one is the first whose window reaches the end.
+async function screenCount(page: Page, marker: string): Promise<number> {
+  return page.getByTestId(marker).evaluate((node, overlap: number) => {
     const div = node as unknown as Scrollable
-    const max = div.scrollHeight - div.clientHeight
-    const step = div.clientHeight * args.overlap
-    // Skip only once the PREVIOUS window already showed the end of the content.
-    // Skipping on `top > max` instead would drop the tail: the last unskipped
-    // window stops short of the bottom whenever max isn't a whole step.
-    if (args.index > 0 && step * (args.index - 1) + div.clientHeight >= div.scrollHeight - 1) return false
-    div.scrollTop = Math.min(step * args.index, max)
-    return true
+    const step = div.clientHeight * overlap
+    let n = 1
+    while (step * (n - 1) + div.clientHeight < div.scrollHeight - 1) n++
+    return n
+  }, OVERLAP)
+}
+
+// Scrolls the container to screenful `index` (the last one is pinned to the bottom).
+async function scrollToScreen(page: Page, marker: string, index: number): Promise<void> {
+  await page.getByTestId(marker).evaluate((node, args: {index: number; overlap: number}) => {
+    const div = node as unknown as Scrollable
+    div.scrollTop = Math.min(div.clientHeight * args.overlap * args.index, div.scrollHeight - div.clientHeight)
   }, {index, overlap: OVERLAP})
-  if (!fits) return false
   // let images/fonts settle at the new offset
   await page.waitForTimeout(300)
-  return true
 }
 
-for (let i = 0; i < MARKDOWN_SCREENS; i++) {
-  test(`markdown debug page screen ${i + 1}`, async ({page}, testInfo) => {
-    await openDebugPage(page, 'Markdown', T.SETTINGS_MARKDOWN)
-    if (!(await scrollToScreen(page, T.SETTINGS_MARKDOWN, i))) {
-      test.skip()
-      return
-    }
-    await step(page, testInfo, `markdown debug page screen ${i + 1}`)
-  })
+const screenTests = (name: string, label: string, marker: string, screens: number, constName: string) => {
+  for (let i = 0; i < screens; i++) {
+    test(`${name} debug page screen ${i + 1}`, async ({page}, testInfo) => {
+      await openDebugPage(page, label, marker)
+      expect(await screenCount(page, marker), `screenfuls of the ${label} page: set ${constName} to it`).toBe(screens)
+      await scrollToScreen(page, marker, i)
+      await step(page, testInfo, `${name} debug page screen ${i + 1}`)
+    })
+  }
 }
 
-for (let i = 0; i < TYPOGRAPHY_SCREENS; i++) {
-  test(`typography debug page screen ${i + 1}`, async ({page}, testInfo) => {
-    await openDebugPage(page, 'Typography', T.SETTINGS_TYPOGRAPHY)
-    if (!(await scrollToScreen(page, T.SETTINGS_TYPOGRAPHY, i))) {
-      test.skip()
-      return
-    }
-    await step(page, testInfo, `typography debug page screen ${i + 1}`)
-  })
-}
+screenTests('markdown', 'Markdown', T.SETTINGS_MARKDOWN, MARKDOWN_SCREENS, 'MARKDOWN_SCREENS')
+screenTests('typography', 'Typography', T.SETTINGS_TYPOGRAPHY, TYPOGRAPHY_SCREENS, 'TYPOGRAPHY_SCREENS')
 
 // The typography page's controls change what every sample row below renders;
 // capture the non-default states too. Each of these RESTORES the default after
