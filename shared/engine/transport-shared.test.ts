@@ -109,6 +109,23 @@ test("a string's token= query value is redacted wherever the string is, and the 
   })
 })
 
+test("an invite link's key is redacted wherever the string is, in each form the service and the app write it", () => {
+  const key = 'madeupkey0123456789'
+  const out = redactRpcParams({
+    app: `keybase://team-invite-link/abcdefghijklmnop/${key}`,
+    note: `join at https://KEYBASE.IO/I/T/abcdefghijklmnop#${key.toUpperCase()} please`,
+    plain: 'a # that is not a link, and /i/t/ alone',
+    url: `https://keybase.io/i/t/abcdefghijklmnop#${key}`,
+  })
+  expect(JSON.stringify(out).toLowerCase()).not.toContain(key)
+  expect(out).toEqual({
+    app: 'keybase://team-invite-link/abcdefghijklmnop/<redacted>',
+    note: 'join at https://KEYBASE.IO/I/T/abcdefghijklmnop#<redacted> please',
+    plain: 'a # that is not a link, and /i/t/ alone',
+    url: 'https://keybase.io/i/t/abcdefghijklmnop#<redacted>',
+  })
+})
+
 // Every field of the generated protocol types whose name looks like a secret must be redacted by
 // name, or be listed here as not one. A new secret-bearing field fails this instead of logging.
 const secretShaped = /pass(phrase|word)|secret|paper(key|phrase)|phrase|token|seed|invite(code|link)|^code$/i

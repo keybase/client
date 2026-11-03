@@ -54,16 +54,19 @@ const secretResultMethods = new Set([
 const redactMaxDepth = 12
 
 // A secret a string carries under some other key: the local HTTP server's `token=` query value
-// (simpleFSGetGUIFileContext's url, attachment urls).
+// (simpleFSGetGUIFileContext's url, attachment urls), and an invite link's key, everything after
+// the `#` of its /i/t/<id>#<key> url (getAnnotatedTeam's invite displayName, a message's text) or
+// after the id of the app's keybase://team-invite-link/<id>/<key>.
 const tokenQueryRe = /([?&]token=)[^&#\s"']+/gi
+const inviteLinkKeyRe = /(\/i\/t\/[^\s#"'/]+#|team-invite-link\/[^\s"'/]+\/)[^\s"']+/gi
 
-// Copy of `value` for logging, with secret-keyed values and `token=` query values replaced. Only
-// plain objects and arrays are walked; anything else (functions, Session, typed arrays) is passed
-// through unchanged. An object reached twice is copied (redacted) each time, and one that contains
-// itself ends at the depth cut-off, as '<depth>'.
+// Copy of `value` for logging, with secret-keyed values, `token=` query values and invite-link keys
+// replaced. Only plain objects and arrays are walked; anything else (functions, Session, typed
+// arrays) is passed through unchanged. An object reached twice is copied (redacted) each time, and
+// one that contains itself ends at the depth cut-off, as '<depth>'.
 export function redactRpcParams(value: unknown, depth = 0): unknown {
   if (typeof value === 'string') {
-    return value.replace(tokenQueryRe, '$1<redacted>')
+    return value.replace(tokenQueryRe, '$1<redacted>').replace(inviteLinkKeyRe, '$1<redacted>')
   }
   if (typeof value !== 'object' || value === null) {
     return value
