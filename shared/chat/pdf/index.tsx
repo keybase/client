@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {PdfEmbed} from '@/common-adapters/pdf-embed'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
@@ -47,7 +48,7 @@ const ChatPDF = (props: Props) => {
         padding="none"
         footer={<Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />}
       >
-        <embed src={url} width="100%" height="100%" />
+        <PdfEmbed url={url} />
       </Kb.ModalScreen>
     )
   }
