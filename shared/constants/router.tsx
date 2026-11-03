@@ -85,6 +85,9 @@ export const getModalStack = () => NavTree.modalStack(getRootState())
 
 export const isModalUp = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
   NavTree.isModalUp(getRootState(), name, params)
+export const topModalKey = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
+  NavTree.topModalKey(getRootState(), name, params)
+export const isModalKeyUp = (key: string) => NavTree.isModalKeyUp(getRootState(), key)
 
 export const getVisibleScreen = (includeModals?: boolean) =>
   NavTree.visibleScreen(getRootState(), {includeModals})

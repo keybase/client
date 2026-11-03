@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {getChatRpc} from '../chat-rpc'
-import {finishBotMutation, useBotConversationIDKey} from './install'
+import {botPopupKey, finishBotMutation, useBotConversationIDKey} from './install'
 
 type Props = {
   botUsername: string
@@ -22,6 +22,7 @@ const ConfirmBotRemoveImpl = (props: {
     clearModals()
   }
   const onRemove = () => {
+    const popupKey = botPopupKey('chatConfirmRemoveBot', botUsername)
     const f = async () => {
       try {
         await getChatRpc().removeBotMember({
@@ -35,7 +36,7 @@ const ConfirmBotRemoveImpl = (props: {
         }
         return
       }
-      await finishBotMutation(conversationIDKey, 'chatConfirmRemoveBot', botUsername)
+      await finishBotMutation(conversationIDKey, popupKey)
     }
     C.ignorePromise(f())
   }

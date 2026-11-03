@@ -7,6 +7,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import {isCancelled} from '@/util/errors'
 import logger from '@/logger'
 import {errors} from './rpc-transport'
 import {testWaitingKey} from '@/test/waiting-key'
@@ -267,6 +268,22 @@ test('a notification queued before an account switch never reaches its handler',
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   await afterTimers()
   expect(onRow).not.toHaveBeenCalled()
+  await expect(pushed).resolves.toEqual({result: null})
+  uninstallFakeEngine()
+})
+
+test('a reply that waits on a queued handler across an account switch is refused as an account change', async () => {
+  const fake = installFakeEngine()
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  const onRow = jest.fn()
+  const {ended, held, push} = await startIdentify(fake, onRow)
+  const pushed = push()
+  held[0]!.reply(undefined)
+  await tick()
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+  await afterTimers()
+  expect(onRow).not.toHaveBeenCalled()
+  expect(isCancelled(await ended, 'accountChange')).toBe(true)
   await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()
 })

@@ -201,6 +201,29 @@ describe('ConfirmBotRemove', () => {
     expect(modals()).toEqual(['chatNewChat'])
   })
 
+  test('a popup reopened for the same bot while the remove ran stays open', async () => {
+    const held = fake.hold(removeBotMember)
+    fake.answer(previewConversation, () => previewResult(['testuser']))
+
+    renderConfirm()
+    await clickConfirm()
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({
+        name: 'chatConfirmRemoveBot',
+        params: {botUsername: 'helperbot', conversationIDKey: convID, teamID},
+      })
+    })
+    await flush()
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
+
+    held[0]!.reply(null)
+    await flush()
+
+    expect(paramsOf(fake, previewConversation)).toEqual([{convID: T.Chat.keyToConversationID(convID)}])
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
+  })
+
   test('renders nothing without a valid conversation, while the team general channel is looked up and when it is not found', async () => {
     const held = fake.hold('chat.1.local.findGeneralConvFromTeamID')
     const {container} = render(<ConfirmBotRemove botUsername="helperbot" teamID={teamID} />)

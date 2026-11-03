@@ -22,15 +22,19 @@ import {getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
 
+// The popup a bot install, edit or removal is made from, taken before its calls start.
+export const botPopupKey = (popup: 'chatInstallBot' | 'chatConfirmRemoveBot', botUsername: string) =>
+  C.Router2.topModalKey(popup, {botUsername})
+
 // After a bot install, edit or removal succeeds: refresh the conversation's members, then close the
-// popup it was made from, only if that is still up: the user may have left it while the calls ran.
+// popup it was made from, only if that instance is still up: the user may have left it while the
+// calls ran, and even reopened the same bot's popup since.
 export const finishBotMutation = async (
   conversationIDKey: T.Chat.ConversationIDKey,
-  popup: 'chatInstallBot' | 'chatConfirmRemoveBot',
-  botUsername: string
+  popupKey: string | undefined
 ) => {
   await refreshBotMembership(conversationIDKey)
-  if (C.Router2.isModalUp(popup, {botUsername})) {
+  if (popupKey && C.Router2.isModalKeyUp(popupKey)) {
     C.Router2.clearModals()
   }
 }
@@ -201,6 +205,7 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    const popupKey = botPopupKey('chatInstallBot', botUsername)
     const f = async () => {
       const added = await addBotMember({
         botUsername,
@@ -211,7 +216,7 @@ const InstallBotPopup = (props: Props) => {
         installWithRestrict,
       })
       if (added) {
-        await finishBotMutation(conversationIDKey, 'chatInstallBot', botUsername)
+        await finishBotMutation(conversationIDKey, popupKey)
       }
     }
     C.ignorePromise(f())
@@ -221,6 +226,7 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    const popupKey = botPopupKey('chatInstallBot', botUsername)
     const f = async () => {
       try {
         await getChatRpc().setBotSettings({
@@ -235,7 +241,7 @@ const InstallBotPopup = (props: Props) => {
         }
         return
       }
-      await finishBotMutation(conversationIDKey, 'chatInstallBot', botUsername)
+      await finishBotMutation(conversationIDKey, popupKey)
     }
     C.ignorePromise(f())
   }

@@ -9,7 +9,7 @@ import {
 } from './types'
 import {wrapErrors} from '@/util/debug'
 import type {CallPort, ListenParams} from './call-port'
-import type {DeferRun} from './session'
+import {accountChangedError, type DeferRun} from './session'
 
 type ListenEngine = {
   call: CallPort['call']
@@ -135,7 +135,17 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
           }
         }
         if (pendingRuns.size) {
-          void Promise.all(pendingRuns).then(settle)
+          // The session has ended, so an account switch while the handlers wait no longer cancels it
+          const generation = getAccountGeneration()
+          void Promise.all(pendingRuns).then(() => {
+            if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
+              // An RPCError, as the session rejects with for an account change
+              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+              reject(accountChangedError())
+            } else {
+              settle()
+            }
+          })
         } else {
           settle()
         }

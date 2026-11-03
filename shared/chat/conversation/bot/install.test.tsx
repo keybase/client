@@ -281,6 +281,16 @@ describe('InstallBotPopup service calls', () => {
     expect(modals()).toEqual(['chatNewChat'])
   }
 
+  // the user closes the popup and opens the same bot's popup again
+  const reopenSameBot = async () => {
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({name: 'chatInstallBot', params: {botUsername: 'helperbot', conversationIDKey: convID}})
+    })
+    await settle()
+    expect(modals()).toEqual(['chatInstallBot'])
+  }
+
   const click = async (text: string) => {
     fireEvent.click(screen.getByText(text))
     await settle()
@@ -418,6 +428,23 @@ describe('InstallBotPopup service calls', () => {
       expect(modals()).toEqual(['chatNewChat'])
     })
 
+    test('a popup reopened for the same bot while the install ran stays open', async () => {
+      answerRole(T.RPCGen.TeamRole.none)
+      answerPublicCommands([])
+      const held = fake.hold(addBotMember)
+      answerPreview()
+
+      await renderPopup()
+      await click('Review')
+      await click('Install')
+      await reopenSameBot()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatInstallBot'])
+    })
+
     test('a failed install is logged, shows the error line, and neither refreshes nor closes', async () => {
       answerRole(T.RPCGen.TeamRole.none)
       answerPublicCommands([])
@@ -501,6 +528,21 @@ describe('InstallBotPopup service calls', () => {
 
       expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
       expect(modals()).toEqual(['chatNewChat'])
+    })
+
+    test('a popup reopened for the same bot while the save ran stays open', async () => {
+      answerPreview()
+
+      await renderInstalled({cmds: true, convs: [chanA], mentions: false})
+      const held = fake.hold(setBotSettings)
+      await click('Edit settings')
+      await click('Save')
+      await reopenSameBot()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatInstallBot'])
     })
 
     test('a failed save is logged, shows the error line, and neither refreshes nor closes', async () => {
