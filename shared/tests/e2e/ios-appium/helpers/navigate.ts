@@ -65,19 +65,18 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // tap 1, plus clearOfTabBar 29 on iOS = 55.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
-  if (!browser.isAndroid) await clearOfTabBar(byText(text), `the "${text}" row`)
+  if (!browser.isAndroid) await clearOfTabBar(() => byText(text), `the "${text}" row`)
   await byText(text).click()
 }
 
-// scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
-// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's frame
-// lies below the nav bar and above the tab bar; throws rather than let the caller tap a row that
-// overlaps the bar. Worst case (s): the window read 2, then four checks of 6 (the row read 2, the
-// bars read 2 and their frames 2) and three drags of 1 = 29.
-export async function clearOfTabBar(target: ChainablePromiseElement, what: string): Promise<void> {
-  const {height, width} = await browser.getWindowRect()
-  for (let i = 0; i <= 3; i++) {
-    const row = await browser.getElementRect((await target.getElement()).elementId)
+const isStale = (e: unknown) => e instanceof Error && /stale element/i.test(`${e.name} ${e.message}`)
+
+// The frame of the row `find` finds, and the band between the nav bar's bottom and the tab bar's top,
+// read afresh; undefined when an element went stale between its find and its read (the list drew it
+// again, as it does after a drag). Bound: the row read 2, the bars read 2 and their frames 2 = 6.
+const rowAndBand = async (find: () => ChainablePromiseElement, height: number) => {
+  try {
+    const row = await browser.getElementRect((await find().getElement()).elementId)
     const bars = await browser
       .$$('-ios predicate string:type == "XCUIElementTypeTabBar" OR type == "XCUIElementTypeNavigationBar"')
       .getElements()
@@ -89,7 +88,27 @@ export async function clearOfTabBar(target: ChainablePromiseElement, what: strin
       if (r.y > height / 2) bottom = Math.min(bottom, r.y)
       else top = Math.max(top, r.y + r.height)
     }
-    const dy = dragToClear(row, top, bottom)
+    return {bottom, row, top}
+  } catch (e) {
+    if (isStale(e)) return undefined
+    throw e
+  }
+}
+
+// scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
+// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's frame
+// lies below the nav bar and above the tab bar; throws rather than let the caller tap a row that
+// overlaps the bar. Each check finds the row again (`find`), and one that read a stale element counts
+// as a check with no drag. Worst case (s): the window read 2, then four checks of 6 (rowAndBand) and
+// three drags of 1 = 29.
+export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
+  const {height, width} = await browser.getWindowRect()
+  let stale = false
+  for (let i = 0; i <= 3; i++) {
+    const read = await rowAndBand(find, height)
+    stale = !read
+    if (!read) continue
+    const dy = dragToClear(read.row, read.top, read.bottom)
     if (dy === 0) return
     if (dy === undefined || i === 3) break
     const x = Math.round(width * 0.15)
@@ -102,7 +121,7 @@ export async function clearOfTabBar(target: ChainablePromiseElement, what: strin
       .up()
       .perform()
   }
-  throw new Error(`${what} could not be brought clear of the tab bar`)
+  throw new Error(`${what} could not be brought clear of the tab bar${stale ? ' (its last read found it stale)' : ''}`)
 }
 
 // A modal's header Cancel (a native bar item), not a Cancel in the screen's body or footer.
