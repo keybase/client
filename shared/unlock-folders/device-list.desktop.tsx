@@ -18,7 +18,7 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   )[device.type]
 
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="small">
+    <Kb.Box2 direction="horizontal" gap="small">
       <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.iconWrapper}>
         <Kb.ImageIcon type={icon} style={{height: 22}} />
       </Kb.Box2>

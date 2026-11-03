@@ -52,9 +52,10 @@ export const getStatusCodeMessage = (
     wrongTypeHelpText = ' Did you mean to verify it?'
   }
 
-  const fields = error.fields as Array<{key: string; value: RPCGen.StatusCode}> | undefined
-  const field = fields?.[1]
-  const causeStatusCode = field?.key === 'Code' ? field.value : RPCGen.StatusCode.scgeneric
+  // the service sends the cause's status code as a decimal string
+  const fields = error.fields as Array<{key: string; value: string}> | undefined
+  const codeField = fields?.find(f => f.key === 'Code')
+  const causeStatusCode: RPCGen.StatusCode = codeField ? Number(codeField.value) : RPCGen.StatusCode.scgeneric
   const causeStatusCodeToMessage = new Map([
     [RPCGen.StatusCode.scapinetworkerror, offlineMessage],
     [

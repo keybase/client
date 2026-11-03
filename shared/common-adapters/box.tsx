@@ -249,7 +249,8 @@ export const box2DesktopStyleForTest = box2DesktopStyle
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
     const {ref} = p
-    const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, testID} = p
+    const {onMouseMove, onMouseDown, onMouseEnter, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture} = p
+    const {children, testID} = p
     const {onContextMenu, onDragLeave, onDragOver, onDrop, title, tooltip} = p
     const style = box2DesktopStyle(p)
     const className = box2ClassNames(p)
@@ -266,6 +267,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
         onDragOver={onDragOver}
         onDrop={onDrop}
         onMouseDown={onMouseDown}
+        onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         onMouseOver={onMouseOver}

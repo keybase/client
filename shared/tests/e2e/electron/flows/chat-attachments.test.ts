@@ -132,6 +132,13 @@ test.describe('drop', () => {
             .poll(() => fs.statSync(target, {throwIfNoEntry: false})?.size, {message: `${target} after Download`, timeout: 30_000})
             .toBe(size)
           await expect(row.getByText(/^Show in /), 'the row offers to show the download').toBeVisible({timeout: 10_000})
+          // the download's toast (2s, from when the transfer ends, which can trail "Show in"), gone
+          // for good before the next test's screenshots
+          await expect(async () => {
+            for (const until = Date.now() + 2_500; Date.now() < until; await page.waitForTimeout(100)) {
+              await expect(visibleText(page, 'Saved'), 'the Saved toast').toHaveCount(0, {timeout: 0})
+            }
+          }).toPass({timeout: 15_000})
         } catch (e) {
           failure = e instanceof Error ? e : new Error(String(e))
         }
@@ -165,6 +172,8 @@ test('paste an image sends it', async ({page}, testInfo) => {
   await sendFromModal(page, title)
   const row = rowByOrdinal(page, await waitForRow(page, title, 60_000))
   await expect(row.getByTestId(T.CHAT_ATTACHMENT_IMAGE)).toHaveCount(1, {timeout: 30_000})
+  await expect(row.getByText('Uploading', {exact: true}), 'the pasted image uploaded').toHaveCount(0, {timeout: 60_000})
+  await expect(row.locator('.sendingStatus')).toHaveCount(0, {timeout: 60_000})
   await step(page, testInfo, 'pasted image sent')
   await expect.poll(async () => (await attachmentsTitled(title)).length, {message: 'the CLI reads the pasted image', timeout: 30_000}).toBe(1)
 })
@@ -184,7 +193,7 @@ test('delete an upload in flight', async ({page}, testInfo) => {
   const ordinal = await waitForRow(page, title, 60_000)
   const row = rowByOrdinal(page, ordinal)
   await expect(row.getByText('Uploading', {exact: true}), 'the upload in progress').toBeVisible({timeout: 30_000})
-  await step(page, testInfo, 'uploading')
+  await step(page, testInfo, 'uploading', {settle: false})
   // the row's Delete is how an upload in flight is stopped
   const menu = await messageMenu(page, ordinal)
   await clickUnoccluded(menu.getByText('Delete', {exact: true}))

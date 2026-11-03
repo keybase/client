@@ -281,6 +281,7 @@ function useMenubarTlfUpdates(
     )
   }, 5000)
 
+  // every show of the widget reloads, so it lists files written since the last show
   React.useEffect(() => {
     if (!loggedIn || userSwitching) {
       generationRef.current++
@@ -290,7 +291,7 @@ function useMenubarTlfUpdates(
       return
     }
     loadUserFileEdits()
-  }, [enabled, loadUserFileEdits, loggedIn, userSwitching])
+  }, [enabled, loadUserFileEdits, loggedIn, userSwitching, menuWindowShownCount])
 
   return currentTlfUpdateState.tlfUpdates
 }

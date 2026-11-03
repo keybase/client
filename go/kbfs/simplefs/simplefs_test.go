@@ -21,6 +21,7 @@ import (
 	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -1803,6 +1804,91 @@ func TestProfiles(t *testing.T) {
 		libfs.ListProfileNames()...)
 	buf = readRemoteFile(ctx, t, sfs, pathAppend(path, "goroutine"))
 	require.NotEmpty(t, buf)
+}
+
+// A favorite folder that was never written has no folder branch to archive, so backing up all
+// files must not count a job for it.
+func TestArchiveAllFilesCountsOnlyStartedJobs(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFStest")
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	require.NoError(t, err)
+
+	setCacheDirForTest(tempdir)
+	defer unsetCacheDirForTest()
+
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	writeRemoteFile(ctx, t, sfs, pathAppend(keybase1.NewPathWithKbfsPath(`/private/jdoe`), "test1.txt"), []byte("foo"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	// a writable favorite with nothing in it yet
+	err = sfs.config.KBFSOps().AddFavorite(ctx,
+		favorites.Folder{Name: "jdoe", Type: tlf.Public}, favorites.Data{})
+	require.NoError(t, err)
+
+	res, err := sfs.SimpleFSArchiveAllFiles(ctx, keybase1.SimpleFSArchiveAllFilesArg{
+		OutputDir: tempdir,
+	})
+	require.NoError(t, err)
+	require.Empty(t, res.TlfPathToError)
+	require.Contains(t, res.TlfPathToJobDesc, "/private/jdoe")
+	require.NotContains(t, res.TlfPathToJobDesc, "/public/jdoe")
+	require.Contains(t, res.SkippedTLFPaths, "/public/jdoe")
+
+	status, err := sfs.SimpleFSGetArchiveStatus(ctx)
+	require.NoError(t, err)
+	require.Len(t, status.Jobs, len(res.TlfPathToJobDesc))
+
+	ticker := time.NewTicker(time.Millisecond * 100)
+	defer ticker.Stop()
+	for {
+		status, err := sfs.SimpleFSGetArchiveStatus(ctx)
+		require.NoError(t, err)
+		done := true
+		for _, job := range status.Jobs {
+			require.Nil(t, job.Error)
+			done = done && job.Phase == keybase1.SimpleFSArchiveJobPhase_Done
+		}
+		if done {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			require.NoError(t, ctx.Err())
+		case <-ticker.C:
+		}
+	}
+}
+
+// Starting a backup of one folder that was never written starts no job, and says so with an error
+// rather than an empty job description.
+func TestArchiveStartNeverWrittenFolder(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFStest")
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	require.NoError(t, err)
+
+	setCacheDirForTest(tempdir)
+	defer unsetCacheDirForTest()
+
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	jobDesc, err := sfs.SimpleFSArchiveStart(ctx, keybase1.SimpleFSArchiveStartArg{
+		ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{Path: "/public/jdoe"}),
+		OutputPath:          filepath.Join(tempdir, "out.zip"),
+	})
+	require.ErrorIs(t, err, errArchiveNeverWritten)
+	require.Equal(t, keybase1.SimpleFSArchiveJobDesc{}, jobDesc)
+
+	status, err := sfs.SimpleFSGetArchiveStatus(ctx)
+	require.NoError(t, err)
+	require.Empty(t, status.Jobs)
 }
 
 func TestArchiveSymlink(t *testing.T) {

@@ -10,6 +10,7 @@ import {
   clickUnoccluded,
   composer,
   composerInput,
+  mediaInViewLoaded,
   messageMenu,
   openChannelWithRetries,
   openE2EChannel,
@@ -432,8 +433,10 @@ test('giphy sends a gif', async ({page}, testInfo) => {
     const tip = page.getByText("Tip: hit 'Enter' now to send a random GIF.")
     await expect(tip).toBeVisible({timeout: 10_000})
     // the results sit beside the tip, in the box that scrolls them
-    const first = page.locator('.text_BodySmall', {hasText: "Tip: hit 'Enter'"}).locator('xpath=ancestor::div[2]').locator('img, video').first()
+    const results = page.locator('.text_BodySmall', {hasText: "Tip: hit 'Enter'"}).locator('xpath=ancestor::div[2]')
+    const first = results.locator('img, video').first()
     await expect(first, 'the first GIF result').toBeVisible({timeout: 20_000})
+    await expect.poll(async () => mediaInViewLoaded(results), {message: 'the GIF results in view drawn', timeout: 30_000}).toBe(true)
     await step(page, testInfo, 'giphy results')
     await first.click()
     await expect(tip).toHaveCount(0, {timeout: 10_000})
