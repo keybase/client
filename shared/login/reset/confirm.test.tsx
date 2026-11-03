@@ -2,12 +2,13 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
-import {cleanup, render} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {CommonActions, StackActions} from '@react-navigation/core'
 import * as T from '@/constants/types'
+import {navigationRef} from '@/constants/navigator'
+import {navigationWrapper, stackKeyOf} from '@/test/navigation'
 
 const mockSubmitResetPrompt = jest.fn()
-const mockAddListener = jest.fn()
-const mockSetOptions = jest.fn()
 
 jest.mock('@/constants', () => ({
   waitingKeyAutoresetActuallyReset: 'waitingKeyAutoresetActuallyReset',
@@ -55,64 +56,78 @@ jest.mock('@/common-adapters', () => {
   }
 })
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}))
-
 jest.mock('./account-reset', () => ({
   submitResetPrompt: (...args: Array<unknown>) => mockSubmitResetPrompt(...args),
 }))
 
-import {useNavigation} from '@react-navigation/native'
 import ConfirmReset from './confirm'
 
-describe('ConfirmReset', () => {
-  let beforeRemove: undefined | (() => void)
-  let unsubscribe: jest.Mock
+const params = {hasWallet: false, resetKey: 'reset-1'}
 
+// The confirm screen as a real route of the logged-out stack.
+const renderConfirm = () => {
+  const nav = navigationWrapper({params, route: 'resetConfirm'})
+  const view = render(<ConfirmReset route={{params}} />, {wrapper: nav.wrapper})
+  const confirmRoute = () =>
+    nav.getRootState()?.routes?.[0]?.state?.routes.find(r => r.name === 'resetConfirm')
+  return {confirmRoute, nav, view}
+}
+
+describe('ConfirmReset', () => {
   beforeEach(() => {
-    beforeRemove = undefined
-    unsubscribe = jest.fn()
-    mockAddListener.mockReset()
-    mockAddListener.mockImplementation((event: string, callback: () => void) => {
-      if (event === 'beforeRemove') {
-        beforeRemove = callback
-      }
-      return unsubscribe
-    })
-    mockSetOptions.mockReset()
     mockSubmitResetPrompt.mockReset()
-    ;(useNavigation as unknown as jest.Mock).mockReturnValue({
-      addListener: mockAddListener,
-      setOptions: mockSetOptions,
-    })
   })
 
   afterEach(() => {
     cleanup()
   })
 
-  test('does not resolve the prompt during effect cleanup', () => {
-    const view = render(<ConfirmReset route={{params: {hasWallet: false, resetKey: 'reset-1'}}} />)
+  test('does not resolve the prompt when it unmounts without being removed', () => {
+    const {view} = renderConfirm()
 
-    expect(mockAddListener).toHaveBeenCalledWith('beforeRemove', expect.any(Function))
-    expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
-
+    expect(screen.getByText('Yes, reset account')).toBeTruthy()
     view.unmount()
 
-    expect(unsubscribe).toHaveBeenCalled()
     expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
   })
 
-  test('resolves the prompt from beforeRemove only once', () => {
-    render(<ConfirmReset route={{params: {hasWallet: false, resetKey: 'reset-1'}}} />)
+  test.each([
+    ['GO_BACK', () => CommonActions.goBack()],
+    ['POP', () => StackActions.pop()],
+  ] as const)('the screen being taken away (%s) resolves the prompt with nothing', (_type, action) => {
+    const {confirmRoute} = renderConfirm()
 
-    expect(beforeRemove).toBeDefined()
+    act(() => navigationRef.dispatch(action()))
 
-    beforeRemove?.()
-    beforeRemove?.()
-
+    expect(confirmRoute()).toBeUndefined()
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
     expect(mockSubmitResetPrompt).toHaveBeenCalledWith('reset-1', T.RPCGen.ResetPromptResponse.nothing)
+  })
+
+  test('a native dismissal resolves the prompt with nothing', () => {
+    const {confirmRoute} = renderConfirm()
+
+    act(() =>
+      navigationRef.dispatch({
+        ...StackActions.dismiss(),
+        source: confirmRoute()?.key,
+        target: stackKeyOf('resetConfirm'),
+      })
+    )
+
+    expect(confirmRoute()).toBeUndefined()
+    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
+    expect(mockSubmitResetPrompt).toHaveBeenCalledWith('reset-1', T.RPCGen.ResetPromptResponse.nothing)
+  })
+
+  test('removing the screen after an answer does not answer again', () => {
+    const {confirmRoute} = renderConfirm()
+
+    fireEvent.click(screen.getByText('Yes, reset account'))
+    act(() => navigationRef.dispatch(CommonActions.goBack()))
+
+    expect(confirmRoute()).toBeUndefined()
+    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
+    expect(mockSubmitResetPrompt).toHaveBeenCalledWith('reset-1', T.RPCGen.ResetPromptResponse.confirmReset)
   })
 })

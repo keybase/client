@@ -59,7 +59,8 @@ import * as C from '@/constants'
 import RPCError from '@/util/rpcerror'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 import {UpdatePassword, useSubmitNewPassword} from './password'
 
 const typePasswords = (password: string, confirm: string) => {
@@ -69,14 +70,16 @@ const typePasswords = (password: string, confirm: string) => {
 
 const saveButton = () => screen.getByText('Save') as HTMLButtonElement
 
-let nav: FakeNavigator
-
-beforeEach(() => {
-  nav = installFakeNavigator()
-})
+// The hook as the password screen runs it: a modal over the chat tab.
+const renderSubmit = (thenLogout: boolean) => {
+  const nav = navigationWrapper({route: 'settingsTabs.password'})
+  const {result} = renderHook(() => useSubmitNewPassword(thenLogout), {wrapper: nav.wrapper})
+  const passwordShown = () =>
+    NavTree.visibleScreen(nav.getRootState(), {includeModals: true})?.name === 'settingsTabs.password'
+  return {nav, passwordShown, result}
+}
 
 afterEach(() => {
-  restoreNavigator()
   cleanup()
   jest.clearAllMocks()
   jest.restoreAllMocks()
@@ -149,7 +152,7 @@ const mockChangeRPC = () => {
 
 test('useSubmitNewPassword force-changes the password and navigates back', () => {
   const rpc = mockChangeRPC()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
+  const {nav, passwordShown, result} = renderSubmit(false)
 
   act(() => {
     result.current.onSave('longenough')
@@ -165,6 +168,7 @@ test('useSubmitNewPassword force-changes the password and navigates back', () =>
     rpc.resolveNext()
   })
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
   expect(result.current.error).toBe('')
 })
 
@@ -193,7 +197,7 @@ const mockRPCsByFn = () => {
 
 test('useSubmitNewPassword logs the user out after a successful change when asked to', () => {
   const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(true))
+  const {nav, passwordShown, result} = renderSubmit(true)
 
   act(() => {
     result.current.onSave('longenough')
@@ -207,11 +211,12 @@ test('useSubmitNewPassword logs the user out after a successful change when aske
   // requestLogout() starts by asking the service whether logging out is safe
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).toHaveBeenCalled()
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
 })
 
 test('useSubmitNewPassword leaves the session alone when it is not asked to log out', () => {
   const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
+  const {nav, passwordShown, result} = renderSubmit(false)
 
   act(() => {
     result.current.onSave('longenough')
@@ -222,11 +227,12 @@ test('useSubmitNewPassword leaves the session alone when it is not asked to log 
 
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
 })
 
 test('useSubmitNewPassword does not log out when the change fails', () => {
   const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(true))
+  const {nav, passwordShown, result} = renderSubmit(true)
 
   act(() => {
     result.current.onSave('longenough')
@@ -240,12 +246,13 @@ test('useSubmitNewPassword does not log out when the change fails', () => {
 
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
   expect(nav.types()).not.toContain('GO_BACK')
+  expect(passwordShown()).toBe(true)
   expect(result.current.error).toBe('too weak')
 })
 
 test('useSubmitNewPassword shows the service description on failure and clears it on retry', () => {
   const rpc = mockChangeRPC()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
+  const {nav, passwordShown, result} = renderSubmit(false)
 
   act(() => {
     result.current.onSave('longenough')
@@ -255,6 +262,7 @@ test('useSubmitNewPassword shows the service description on failure and clears i
   })
   expect(result.current.error).toBe('too weak')
   expect(nav.types()).not.toContain('GO_BACK')
+  expect(passwordShown()).toBe(true)
 
   act(() => {
     result.current.onSave('longenough2')

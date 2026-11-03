@@ -8,6 +8,7 @@ import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {startNewAccountGeneration} from '@/engine/account-generation'
 import logger from '@/logger'
+import type * as FsPaths from '@/test/expo-file-system-paths'
 import {SendToChat} from './index'
 
 // the picker: the test chooses the conversation through the onSelect it was given
@@ -20,22 +21,30 @@ jest.mock('./conversation-list/conversation-list', () => ({
   },
 }))
 
-// the file system is native: this one records what is written, under a uri with the raw name
-const mockWrites = new Array<string>()
+// the file system is native: this one records what is written, under the uri expo-file-system's
+// own path utilities build (native reports a directory's with a trailing slash)
+const mockWrites = new Array<{text: string; uri: string}>()
 let mockWriteFails = false
 jest.mock('expo-file-system', () => {
+  const {PathUtilities} = jest.requireActual<typeof FsPaths>('@/test/expo-file-system-paths')
+  const join = (parts: Array<string | {uri: string}>) =>
+    PathUtilities.join(...parts.map(p => (typeof p === 'string' ? p : p.uri)))
   class Directory {
     uri: string
     constructor(...parts: Array<string | {uri: string}>) {
-      this.uri = parts.map(p => (typeof p === 'string' ? p : p.uri.replace(/\/$/, ''))).join('/') + '/'
+      this.uri = join(parts).replace(/\/?$/, '/')
     }
     create() {}
   }
   class File {
+    uri: string
+    constructor(...parts: Array<string | {uri: string}>) {
+      this.uri = join(parts)
+    }
     async write(text: string) {
       await Promise.resolve()
       if (mockWriteFails) throw new Error('disk full')
-      mockWrites.push(text)
+      mockWrites.push({text, uri: this.uri})
     }
   }
   return {Directory, File, Paths: {cache: new Directory('file:///cache')}}
@@ -95,7 +104,10 @@ test('picked for files and text the draft has no room for, the text goes as a .t
     {path: '/tmp/a.jpg'},
     {path: expect.stringMatching(/^\/cache\/shared-text\/[^/]+\/s+\.txt$/) as string},
   ])
-  expect(mockWrites).toEqual([text])
+  expect(mockWrites.map(w => w.text)).toEqual([text])
+  // the attached path is the file native wrote
+  const attached = calls[0]?.params.pathAndOutboxIDs as Array<{path: string}>
+  expect(mockWrites.map(w => decodeURIComponent(w.uri.replace('file://', '')))).toEqual([attached[1]?.path])
 })
 
 test('picked for text alone that fits after the draft, the text goes after it, with no titles screen', async () => {

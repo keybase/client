@@ -1,5 +1,7 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import {act} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
@@ -7,7 +9,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {settle} from '@/test/flush'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {
   getProfileDetails,
   loadProfileIdentify,
@@ -406,7 +408,7 @@ test('a block notification releases expired sessions instead of updating them', 
 })
 
 describe('identify failures through the engine listener', () => {
-  let nav: FakeNavigator
+  let nav: InstalledNavigation
   const profileStack = [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]
 
   const failIdentify = async (code: T.RPCGen.StatusCode) => {
@@ -416,18 +418,21 @@ describe('identify failures through the engine listener', () => {
     // A user that is not one yet loads its non-user details next
     fake.hold('keybase.1.userSearch.getNonUserDetails')
     unsubscribes.push(subscribeToProfile('testuser', () => {}))
-    loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: false})
-    await settle()
+    // a failure can navigate, which renders the tree
+    await act(async () => {
+      loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: false})
+      await settle()
+    })
   }
 
   const unsubscribes: Array<() => void> = []
   afterEach(() => {
     unsubscribes.splice(0).forEach(u => u())
-    restoreNavigator()
+    nav.unmount()
   })
 
   test('an assertion that resolves to no user is not a user yet', async () => {
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(T.RPCGen.StatusCode.scresolutionfailed)
 
     expect(getProfileDetails('testuser')?.state).toBe('notAUserYet')
@@ -435,11 +440,14 @@ describe('identify failures through the engine listener', () => {
   })
 
   test('a profile link to a user that does not exist replaces the profile with the link error', async () => {
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(T.RPCGen.StatusCode.scnotfound)
 
     expect(nav.types()[0]).toBe('GO_BACK')
-    expect(nav.navigations()).toEqual([expect.objectContaining({name: 'keybaseLinkError'})])
+    expect(nav.visibleScreen()?.name).toBe('keybaseLinkError')
+    // the profile is gone, not left under the error
+    const chatStack = nav.getRootState()?.routes?.[0]?.state?.routes.find(r => r.name === 'tabs.chatTab')?.state
+    expect(chatStack?.routes.map(r => r.name)).toEqual(['chatRoot', 'keybaseLinkError'])
     expect(getProfileDetails('testuser')?.state).toBe('error')
   })
 
@@ -448,7 +456,7 @@ describe('identify failures through the engine listener', () => {
     ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
   ])('%s logs no error and navigates nowhere', async (_, code) => {
     const errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(code)
 
     expect(errorLog).not.toHaveBeenCalled()
@@ -456,7 +464,7 @@ describe('identify failures through the engine listener', () => {
   })
 
   test('a user that does not exist leaves the screen alone when the profile is not showing', async () => {
-    nav = installFakeNavigator({rootState: makeRootState()})
+    nav = installNavigation({rootState: makeRootState()})
     await failIdentify(T.RPCGen.StatusCode.scnotfound)
 
     expect(nav.types()).toEqual([])

@@ -25,7 +25,8 @@ import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
-import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
+import {makeRootState, navigationWrapper, type RenderInNavigationOptions} from '@/test/navigation'
+import {navigationRef} from '@/constants/navigator'
 import * as NavTree from '@/constants/nav-tree'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
@@ -136,12 +137,26 @@ const mockPostText = () => {
   return () => rpc.params('postText').at(-1)
 }
 
+// The real navigation tree every provider here renders in, as the route its thread is on: the
+// conversation on the chat root, unless a test builds another with showRoute before rendering.
+let navigation: ReturnType<typeof navigationWrapper>
+const showRoute = (p: RenderInNavigationOptions) => {
+  navigation = navigationWrapper(p)
+  return navigation
+}
+function Nav(p: React.PropsWithChildren) {
+  const Tree = navigation.wrapper
+  return <Tree>{p.children}</Tree>
+}
+
 const wrapperFor = (id: T.Chat.ConversationIDKey) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
-      <ConversationThreadProvider id={id}>
-        <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={id}>
+          <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
+        </ConversationThreadProvider>
+      </Nav>
     )
   }
 
@@ -150,12 +165,14 @@ const wrapperFor = (id: T.Chat.ConversationIDKey) =>
 const fakeInputWrapperFor = (id: T.Chat.ConversationIDKey, fake: FakeComposerInput) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
-      <ConversationThreadProvider id={id}>
-        <ConversationInputProvider id={id}>
-          <FakeComposerInputView fake={fake} />
-          {p.children}
-        </ConversationInputProvider>
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={id}>
+          <ConversationInputProvider id={id}>
+            <FakeComposerInputView fake={fake} />
+            {p.children}
+          </ConversationInputProvider>
+        </ConversationThreadProvider>
+      </Nav>
     )
   }
 
@@ -210,6 +227,7 @@ const notifyInputEngineAction = (action: Parameters<typeof routeChatNotification
 }
 
 beforeEach(() => {
+  showRoute({params: {conversationIDKey: convID}, route: 'chatRoot'})
   rpc = installFakeChatRpc()
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -230,7 +248,6 @@ afterEach(() => {
   restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
-  restoreNavigator()
 })
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
@@ -881,7 +898,8 @@ test('two setEditing writes before the input provider mounts: the second one app
   const {rerender} = render(
     <ConversationThreadProvider id={convID}>
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
-    </ConversationThreadProvider>
+    </ConversationThreadProvider>,
+    {wrapper: Nav}
   )
 
   act(() => {
@@ -957,7 +975,8 @@ test('setThreadInputEditing reaches the store with no provider mounted, then app
   const {rerender} = render(
     <ConversationThreadProvider id={convID}>
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
-    </ConversationThreadProvider>
+    </ConversationThreadProvider>,
+    {wrapper: Nav}
   )
 
   act(() => {
@@ -1056,7 +1075,7 @@ test('a commandStatus written while the provider is frozen is applied on thaw', 
     </ConversationThreadProvider>
   )
 
-  const {rerender} = render(tree(false))
+  const {rerender} = render(tree(false), {wrapper: Nav})
   act(() => {
     rerender(tree(true))
   })
@@ -1195,7 +1214,7 @@ describe('the composer text', () => {
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const utils = render(tree(false))
+    const utils = render(tree(false), {wrapper: Nav})
     return {
       getHandles: () => handles!,
       setShowInput: (show: boolean) => {
@@ -1418,7 +1437,7 @@ describe('focusing the composer from the thread', () => {
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const utils = render(tree(true))
+    const utils = render(tree(true), {wrapper: Nav})
     return {
       focusInput: () => focusInput?.(),
       setShowInput: (show: boolean) => {
@@ -1463,14 +1482,36 @@ describe('focusing the composer from the thread', () => {
 describe('reply', () => {
   const replyOrdinal = T.Chat.numberToOrdinal(1201)
   // menuUp: the phone message menu, a modal route above the thread, is still up when Reply runs
-  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID, menuUp = false) =>
-    installFakeNavigator({
-      modalRouteNames: ['chatMessagePopup'],
+  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID, menuUp = false) => {
+    // a phone: the thread screen sits in the root stack above the tabs, and the menu above it
+    const nav = showRoute({
+      layout: 'phone',
       rootState: makeRootState({
-        above: menuUp ? [{name: 'chatMessagePopup'}] : [],
-        tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey, threadSearch}}],
+        above: [
+          {name: 'chatConversation', params: {conversationIDKey, threadSearch}},
+          ...(menuUp ? [{name: 'chatMessagePopup'}] : []),
+        ],
       }),
+      route: 'chatConversation',
     })
+    // the listeners our code holds on the container right now: what it asked of the
+    // library, not a model of it
+    let stateListeners = 0
+    const addListener = navigationRef.addListener.bind(navigationRef)
+    jest.spyOn(navigationRef, 'addListener').mockImplementation(((type: 'state', cb: () => void) => {
+      const unsub = addListener(type, cb)
+      stateListeners++
+      let subscribed = true
+      return () => {
+        if (subscribed) {
+          subscribed = false
+          stateListeners--
+        }
+        unsub()
+      }
+    }) as typeof navigationRef.addListener)
+    return {...nav, listenerCount: () => stateListeners}
+  }
   const threadParams = (nav: ReturnType<typeof installThread>) =>
     NavTree.visibleScreen(nav.getRootState(), {includeModals: false})?.params as {threadSearch?: object} | undefined
 
@@ -1502,7 +1543,7 @@ describe('reply', () => {
       clearModals()
     })
 
-    expect(nav.modalsCleared()).toBe(true)
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
     expect(composerInput.focusCount).toBe(1)
   })
 
@@ -1578,7 +1619,7 @@ describe('reply', () => {
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const {rerender} = render(tree(false))
+    const {rerender} = render(tree(false), {wrapper: Nav})
 
     act(() => {
       dispatch?.reply(replyOrdinal)

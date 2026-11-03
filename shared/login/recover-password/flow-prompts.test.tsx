@@ -1,4 +1,7 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
+import {flushSync} from 'react-dom'
+import {createRoot, type Root} from 'react-dom/client'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -18,36 +21,80 @@ import {
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
 } from './flow'
-import {newModalRoutes} from '../routes'
 import {navigateAppend} from '@/constants/router'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {navigationRef} from '@/constants/navigator'
+import {
+  NavigationTree,
+  installNavigation,
+  makeRootState,
+  uninstallNavigation,
+  type InstalledNavigation,
+} from '@/test/navigation'
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 
-// Recovery runs from a modal, so the fake starts with one open: clearModals only has
-// something to dispatch when a modal is actually on screen. Nothing below replaces onto
-// this name - a replace onto the visible route collapses into a setParams instead.
-const openModal = 'recoverPasswordPromptResetPassword'
+// Logged out, recovery starts from a screen of the logged-out stack above login. Nothing below
+// replaces onto this name - a replace onto the visible route collapses into a setParams instead.
+const openScreen = 'recoverPasswordPromptResetPassword'
+
+// The logged-out stack's screens, bottom to top.
+const loggedOutStack = () => nav.getRootState()?.routes?.[0]?.state?.routes.map(r => r.name)
+const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
+// Go asks for a new password and about pgp keys only after the paper key has logged the user in, so
+// those screens are modals over the logged-in app.
+const loggedInOverModal = (modal?: string) => {
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  nav = installNavigation({rootState: makeRootState(modal ? {above: [{name: modal}]} : undefined)})
+}
+
+// The app logs in by re-rendering its root with the logged-in group in place of the logged-out one, in
+// the same container, and the library rebuilds the root state for the new screens. installNavigation's
+// setRootState remounts the container instead, which emits no 'state' event, so this mounts the tree
+// itself to flip it the app's way.
+let flippableRoot: Root | undefined
+const mountLoggedOutThenLogIn = () => {
+  uninstallNavigation()
+  const root = createRoot(document.createElement('div'))
+  flippableRoot = root
+  const tree = (loggedIn: boolean) => <NavigationTree layout="desktop" loggedIn={loggedIn} screen={() => null} />
+  flushSync(() => root.render(tree(false)))
+  return {logIn: () => flushSync(() => root.render(tree(true)))}
+}
+const settleRender = async () => {
+  for (let i = 0; i < 5; i++) {
+    await new Promise<void>(resolve => setTimeout(resolve, 1))
+  }
+}
+const rootWarningId = () =>
+  (navigationRef.getRootState()?.routes.find(r => r.name === 'recoverPasswordPgpWarning')?.params as
+    | {id: number}
+    | undefined)?.id
 
 beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [openModal],
-    rootState: makeRootState({above: [{name: openModal}]}),
-  })
+  nav = installNavigation({rootState: makeRootState({above: [{name: openScreen}], loggedIn: false})})
 })
 
-afterEach(() => {
+afterEach(async () => {
   // A prompt left pending would keep its decline timer alive past the test.
   nav
     .pushes()
     .filter(p => p.name === 'recoverPasswordPgpWarning')
     .forEach(p => answerRecoverPasswordPgp((p.params as {id: number}).id, false))
-  restoreNavigator()
+  // The navigator holds a push as in flight until the 'state' event after its commit, and drops an
+  // identical push inside that window; let the commit land before the next test pushes the same screen.
+  jest.useRealTimers()
+  await settleRender()
+  if (flippableRoot) {
+    const root = flippableRoot
+    flippableRoot = undefined
+    flushSync(() => root.unmount())
+  }
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
 type Listener = Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0]
 
@@ -92,6 +139,7 @@ describe('device selection', () => {
       desc: 'Input canceled',
     })
     expect(nav.types()).toContain('GO_BACK')
+    expect(loggedOutStack()).toEqual(['login', openScreen])
   })
 
   test('selecting no device answers with an empty device id', async () => {
@@ -137,11 +185,8 @@ describe('device selection', () => {
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordDeviceSelector',
-      params: {devices: []},
-      replace: true,
-    })
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordDeviceSelector'])
+    expect(nav.visibleScreen()?.params).toEqual({devices: []})
   })
 })
 
@@ -155,11 +200,8 @@ describe('paper key prompt', () => {
       response as any
     )
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordPaperKey',
-      params: {error: 'nope'},
-      replace: true,
-    })
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPaperKey'])
+    expect(nav.visibleScreen()?.params).toEqual({error: 'nope'})
 
     submitRecoverPasswordPaperKey('one two three')
 
@@ -174,11 +216,8 @@ describe('paper key prompt', () => {
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordPaperKey',
-      params: {error: undefined},
-      replace: true,
-    })
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPaperKey'])
+    expect(nav.visibleScreen()?.params).toEqual({error: undefined})
   })
 
   test('backing out of the paper key prompt restarts recovery from the top', async () => {
@@ -205,6 +244,8 @@ describe('paper key prompt', () => {
 })
 
 describe('new password prompt', () => {
+  beforeEach(() => loggedInOverModal())
+
   test('the first ask pushes the set-password screen', async () => {
     const {first} = await startAttempt()
 
@@ -214,11 +255,8 @@ describe('new password prompt', () => {
       response as any
     )
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordSetPassword',
-      params: {error: undefined},
-      replace: false,
-    })
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+    expect(nav.visibleScreen()?.params).toEqual({error: undefined})
 
     submitRecoverPasswordPassword('hunter2hunter2')
 
@@ -227,17 +265,18 @@ describe('new password prompt', () => {
 
   test('a rejected password replaces the screen with the error', async () => {
     const {first} = await startAttempt()
+    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
+      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
 
     first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
       {pinentry: {retryLabel: 'too short', type: T.RPCGen.PassphraseType.passPhrase}} as any,
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordSetPassword',
-      params: {error: 'too short'},
-      replace: true,
-    })
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+    expect(nav.visibleScreen()?.params).toEqual({error: 'too short'})
   })
 
   test('cancelling the new password prompt rejects the rpc without restarting', async () => {
@@ -264,10 +303,11 @@ test('a device-recovery explanation replaces the current screen', async () => {
     {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'} as any
   )
 
-  expect(nav.navigations()).toContainEqual({
-    name: 'recoverPasswordExplainDevice',
-    params: {deviceName: 'testuser-mac', deviceType: T.RPCGen.DeviceType.mobile, username: 'testuser'},
-    replace: true,
+  expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
+  expect(nav.visibleScreen()?.params).toEqual({
+    deviceName: 'testuser-mac',
+    deviceType: T.RPCGen.DeviceType.mobile,
+    username: 'testuser',
   })
 })
 
@@ -280,34 +320,40 @@ test('a reset prompt that is not a password reset hands off to the account reset
     response as any
   )
 
-  expect(nav.navigations()).toContainEqual({
-    name: 'recoverPasswordPromptResetAccount',
-    params: {skipPassword: true, username: 'testuser'},
-    replace: true,
-  })
+  expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPromptResetAccount'])
+  expect(nav.visibleScreen()?.params).toEqual({skipPassword: true, username: 'testuser'})
   expect(response.result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
 })
 
 describe('completion', () => {
+  // By the end Go has logged the user in, and the set-password modal is up.
   test('a successful recovery clears the modals', async () => {
+    loggedInOverModal('recoverPasswordSetPassword')
     const {first} = await startAttempt()
 
     first.resolve()
     await flush()
 
-    expect(nav.modalsCleared()).toBe(true)
+    expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
   test('a cancelled recovery shows no error screen and leaves modals alone', async () => {
+    loggedInOverModal('recoverPasswordSetPassword')
     const {first} = await startAttempt()
 
     first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
     await flush()
 
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).not.toContainEqual(
-      expect.objectContaining({name: 'recoverPasswordError', replace: true})
-    )
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+  })
+
+  test('a cancelled recovery while logged out shows no error screen', async () => {
+    const {first} = await startAttempt()
+
+    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
+    await flush()
+
+    expect(loggedOutStack()).toEqual(['login', openScreen])
   })
 
   test('a failure while logged out shows the error screen', async () => {
@@ -317,30 +363,24 @@ describe('completion', () => {
     first.reject(error)
     await flush()
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordError',
-      params: {error: error.message},
-      replace: true,
-    })
-    expect(nav.modalsCleared()).toBe(false)
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordError'])
+    expect(nav.visibleScreen()?.params).toEqual({error: error.message})
   })
 
   test('a failure while logged in shows the error as a modal', async () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
+    loggedInOverModal('recoverPasswordSetPassword')
     const {first} = await startAttempt()
 
     const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
     first.reject(error)
     await flush()
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordErrorModal',
-      params: {error: error.message},
-      replace: true,
-    })
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    expect(nav.visibleScreen()?.params).toEqual({error: error.message})
   })
 
   test('handlers stop responding once the run is over', async () => {
+    loggedInOverModal()
     const {first} = await startAttempt()
 
     const response = {error: jest.fn(), result: jest.fn()}
@@ -360,16 +400,11 @@ describe('completion', () => {
 
 describe('pgp key warning', () => {
   // Go asks only after the paper key has logged the user in, so the warning is a modal over the app.
-  beforeEach(() => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-  })
+  beforeEach(() => loggedInOverModal())
 
   afterEach(() => {
     jest.useRealTimers()
   })
-
-  const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
   const prompt = (attempt: {listener: Listener}) => {
     const response = {error: jest.fn(), result: jest.fn()}
@@ -395,17 +430,19 @@ describe('pgp key warning', () => {
   })
 
   test('a prompt before the logged-in root mounts shows the warning once it does', async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: Object.keys(newModalRoutes),
-      rootState: makeRootState({loggedIn: false}),
-    })
+    const {logIn} = mountLoggedOutThenLogIn()
     const {first} = await startAttempt()
-    prompt(first)
-    expect(nav.pushes()).toEqual([])
+    const response = prompt(first)
+    expect(rootRouteNames()).toEqual(['loggedOut'])
 
-    nav.setRootState(makeRootState())
+    logIn()
+    await settleRender()
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    const id = rootWarningId()!
+    expect(isRecoverPasswordPgpPending(id)).toBe(true)
+    answerRecoverPasswordPgp(id, true)
+    expect(response.result).toHaveBeenCalledWith(true)
   })
 
   test('the answer is given once: Continue answers true and later answers are ignored', async () => {
@@ -530,10 +567,7 @@ describe('pgp key warning', () => {
   })
 
   test('a warning that never gets the logged-in root to mount on is declined when its push gives up', async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: Object.keys(newModalRoutes),
-      rootState: makeRootState({loggedIn: false}),
-    })
+    const {logIn} = mountLoggedOutThenLogIn()
     const {first} = await startAttempt()
     jest.useFakeTimers()
     const response = prompt(first)
@@ -544,8 +578,10 @@ describe('pgp key warning', () => {
 
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
-    nav.setRootState(makeRootState())
-    expect(nav.pushes()).toEqual([])
+    jest.useRealTimers()
+    logIn()
+    await settleRender()
+    expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
   test('a warning that mounted and was then covered by another modal is not declined by the push timeout', async () => {
@@ -553,11 +589,8 @@ describe('pgp key warning', () => {
     jest.useFakeTimers()
     const response = prompt(first)
     markRecoverPasswordPgpShown(warningId())
-    nav.setRootState(
-      makeRootState({
-        above: [{name: 'recoverPasswordPgpWarning', params: {id: warningId()}}, {name: 'proxySettingsModal'}],
-      })
-    )
+    navigateAppend({name: 'proxySettingsModal', params: {}})
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
 
     jest.advanceTimersByTime(10_000)
 
@@ -577,15 +610,14 @@ describe('pgp key warning', () => {
   })
 
   test('an answered prompt is not declined later by the push timeout', async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: Object.keys(newModalRoutes),
-      rootState: makeRootState({loggedIn: false}),
-    })
+    const {logIn} = mountLoggedOutThenLogIn()
     const {first} = await startAttempt()
     jest.useFakeTimers()
     const response = prompt(first)
-    nav.setRootState(makeRootState())
-    answerRecoverPasswordPgp(warningId(), true)
+    logIn()
+    await jest.advanceTimersByTimeAsync(10)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    answerRecoverPasswordPgp(rootWarningId()!, true)
 
     jest.advanceTimersByTime(10_000)
 
@@ -601,8 +633,7 @@ describe('pgp key warning waiting state', () => {
   let fake: FakeEngine
 
   beforeEach(() => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
+    loggedInOverModal()
     fake = installFakeEngine()
   })
 

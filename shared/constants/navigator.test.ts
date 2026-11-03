@@ -1,4 +1,8 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
+// The Navigator's operations on the real React Navigation tree: what each dispatches, and where the
+// library then has the app.
+import logger from '@/logger'
 import * as NavTree from '@/constants/nav-tree'
 import * as Tabs from '@/constants/tabs'
 import {CommonActions} from '@react-navigation/core'
@@ -11,42 +15,55 @@ import {
   popStack,
   setChatRootParams,
   switchTab,
+  whenModalsGone,
 } from '@/constants/router'
-import {getNavigator} from '@/constants/navigator'
-import {
-  installFakeNavigator,
-  makeRootState,
-  restoreNavigator,
-  type FakeNavigator,
-} from '@/test/fake-navigator'
+import {getNavigator, navigationRef} from '@/constants/navigator'
+import {installNavigation, makeRootState, stackKeyOf, type MountedNavigation} from '@/test/navigation'
 
-let nav: FakeNavigator
+let nav: MountedNavigation
 
 afterEach(() => {
-  restoreNavigator()
-  jest.useRealTimers()
+  jest.restoreAllMocks()
 })
 
-// The two adapters have to agree about readiness or the fake is not a stand-in: the real one
-// drops dispatches and reports no root state until the container has mounted.
-describe('readiness', () => {
-  test('a not-ready navigator drops raw dispatches and reports no root state', () => {
-    nav = installFakeNavigator({ready: false})
+// The library emits 'state' after React renders the dispatch, on React's schedule.
+const until = async (cond: () => boolean) => {
+  for (let i = 0; i < 100 && !cond(); i++) {
+    await new Promise(resolve => setTimeout(resolve, 1))
+  }
+}
+const rendersSettle = async () => {
+  for (let i = 0; i < 10; i++) {
+    await new Promise(resolve => setTimeout(resolve, 1))
+  }
+}
 
-    nav.dispatch(CommonActions.goBack())
+const visible = () => nav.visibleScreen()
+const activeNames = () => NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)
+const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
+describe('readiness', () => {
+  test('before the container mounts nothing is dispatched and there is no root state', () => {
+    nav = installNavigation({ready: false})
+
+    navigateUp()
+    popStack()
+    expect(navigateAppend({name: 'profile', params: {username: 'testuser'}})).toBe(false)
+    expect(getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})).toBe(false)
+    expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(false)
 
     expect(nav.actions).toEqual([])
     expect(nav.getRootState()).toBeUndefined()
   })
 
-  test('and serves both once the container has mounted', () => {
-    nav = installFakeNavigator({ready: false})
-    nav.setReady(true)
+  test('once it has mounted both are served', () => {
+    nav = installNavigation({ready: false})
+    nav.mount()
 
-    nav.dispatch(CommonActions.goBack())
+    expect(navigateAppend({name: 'profile', params: {username: 'testuser'}})).toBe(true)
 
-    expect(nav.actions).toEqual([{type: 'GO_BACK'}])
-    expect(nav.getRootState()?.key).toBe('root')
+    expect(nav.types()).toEqual(['PUSH'])
+    expect(visible()?.name).toBe('profile')
   })
 })
 
@@ -54,21 +71,22 @@ describe('readiness', () => {
 
 describe('navigateUp and popStack', () => {
   test('go back and pop-to-top are dispatched at the root, untargeted', () => {
-    nav = installFakeNavigator()
+    nav = installNavigation({
+      rootState: makeRootState({
+        tabStack: [
+          {name: 'chatRoot'},
+          {name: 'profile', params: {username: 'testuser'}},
+          {name: 'profile', params: {username: 'testuser-mac'}},
+        ],
+      }),
+    })
 
     navigateUp()
+    expect(visible()?.params).toEqual({username: 'testuser'})
     popStack()
+    expect(visible()?.name).toBe('chatRoot')
 
     expect(nav.actions).toEqual([{type: 'GO_BACK'}, {type: 'POP_TO_TOP'}])
-  })
-
-  test('a not-ready navigator dispatches neither', () => {
-    nav = installFakeNavigator({ready: false})
-
-    navigateUp()
-    popStack()
-
-    expect(nav.actions).toEqual([])
   })
 })
 
@@ -76,7 +94,7 @@ describe('navigateUp and popStack', () => {
 
 describe('navigateAppend', () => {
   beforeEach(() => {
-    nav = installFakeNavigator({
+    nav = installNavigation({
       rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]}),
     })
   })
@@ -85,6 +103,8 @@ describe('navigateAppend', () => {
     expect(navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})).toBe(true)
 
     expect(nav.pushes()).toEqual([{name: 'profile', params: {username: 'testuser-mac'}}])
+    expect(activeNames()).toEqual(['chatRoot', 'profile', 'profile'])
+    expect(visible()?.params).toEqual({username: 'testuser-mac'})
   })
 
   // The caller's goal - "that screen with those params is what the user is looking at" -
@@ -95,79 +115,77 @@ describe('navigateAppend', () => {
     expect(nav.actions).toEqual([])
   })
 
-  test('a not-ready navigator dispatches nothing and reports failure', () => {
-    nav.setReady(false)
-
-    expect(navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})).toBe(false)
-    expect(nav.actions).toEqual([])
-  })
-
   test('replace retargets the visible screen in place when the name matches', () => {
+    const key = visible()?.key
     expect(navigateAppend({name: 'profile', params: {username: 'testuser-mac'}}, true)).toBe(true)
 
     expect(nav.lastAction()?.type).toBe('SET_PARAMS')
-    expect(nav.lastAction()?.payload).toEqual({params: {username: 'testuser-mac'}})
+    expect(visible()).toMatchObject({key, params: {username: 'testuser-mac'}})
+    expect(activeNames()).toEqual(['chatRoot', 'profile'])
   })
 
   test('replace swaps the screen when the visible one is a different route', () => {
-    expect(navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}}, true)).toBe(true)
+    expect(navigateAppend({name: 'team', params: {teamID: 'T1'}}, true)).toBe(true)
 
     expect(nav.lastAction()?.type).toBe('REPLACE')
-    expect(nav.lastAction()?.payload).toMatchObject({name: 'chatNewChat'})
-  })
-})
-
-// A push dispatched this tick is not in getRootState() until React Navigation commits, so
-// the visible-route check above cannot see it. Repeat taps that land inside that window -
-// a janky JS thread queueing both - would otherwise push the same screen twice.
-describe('navigateAppend in-flight dedupe', () => {
-  // Manual commit keeps the pushed screen out of the tree, as it is in the app until React
-  // Navigation commits.
-  beforeEach(() => {
-    jest.useFakeTimers()
-    nav = installFakeNavigator({commit: 'manual'})
+    expect(activeNames()).toEqual(['chatRoot', 'team'])
+    expect(visible()?.params).toEqual({teamID: 'T1'})
   })
 
-  test('a second identical push before the state commits is dropped', () => {
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+  // A janky JS thread can queue two taps back to back. The library has the first push in
+  // getRootState() as soon as its dispatch returns, so the visible-route check sees it.
+  test('a second identical push straight after the first is dropped', () => {
+    expect(navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})).toBe(true)
+    expect(navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})).toBe(true)
 
-    expect(nav.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+    expect(nav.pushes()).toHaveLength(1)
+    expect(activeNames()).toEqual(['chatRoot', 'profile', 'profile'])
   })
 
-  test('a different push inside the window still goes through', () => {
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+  test('and so is one after the first has rendered', async () => {
     navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
-
-    expect(nav.pushes()).toHaveLength(2)
-  })
-
-  // The window is a backstop for the container tearing down before the state listener
-  // fires; it must not swallow a genuine repeat navigation forever.
-  test('the same push is allowed again once the 1000ms window has passed', () => {
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-    jest.advanceTimersByTime(1001)
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-
-    expect(nav.pushes()).toHaveLength(2)
-  })
-
-  test('the window is still closed one tick before it expires', () => {
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-    jest.advanceTimersByTime(999)
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+    await rendersSettle()
+    navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
 
     expect(nav.pushes()).toHaveLength(1)
   })
 
-  // The commit is the real end of the window: once the navigator reports new state the
-  // visible-route check can see the pushed screen, so the backstop stands down.
-  test('a committed state event ends the window early', () => {
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-    nav.setRootState(makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'peopleRoot'}]}))
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+  test('a different push straight after still goes through', () => {
+    navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
+    navigateAppend({name: 'profile', params: {username: 'testuser-a'}})
 
     expect(nav.pushes()).toHaveLength(2)
+    expect(visible()?.params).toEqual({username: 'testuser-a'})
+  })
+
+  test('the same push goes through again once the user has left that screen', () => {
+    navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
+    navigateUp()
+    navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
+
+    expect(nav.pushes()).toHaveLength(2)
+    expect(visible()?.params).toEqual({username: 'testuser-mac'})
+  })
+
+  // navigateToThread's params carry undefined-valued keys; dropping them would make the
+  // visible-route dupe check miss on key count and push a second screen.
+  test('the library keeps undefined-valued param keys, so a repeat push is still a dupe', async () => {
+    navigateAppend({name: 'profile', params: {extra: undefined, username: 'testuser-mac'}} as never)
+    await rendersSettle()
+    navigateAppend({name: 'profile', params: {extra: undefined, username: 'testuser-mac'}} as never)
+
+    expect(nav.pushes()).toHaveLength(1)
+  })
+
+  // Modals are registered only on the root stack, so the library hands a push of one from inside
+  // a tab up to the root, where clearModals finds it.
+  test('a modal pushed from a tab lands in the root stack', () => {
+    navigateAppend({name: 'chatInfoPanel', params: {}} as never)
+
+    expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['chatInfoPanel'])
+    clearModals()
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+    expect(activeNames()).toEqual(['chatRoot', 'profile'])
   })
 })
 
@@ -177,51 +195,45 @@ describe('navUpToScreen', () => {
   const stack = [{name: 'teamsRoot'}, {name: 'team', params: {teamID: 'T1'}}, {name: 'teamChannel'}]
 
   beforeEach(() => {
-    nav = installFakeNavigator({rootState: makeRootState({tab: Tabs.teamsTab, tabStack: stack})})
+    nav = installNavigation({rootState: makeRootState({tab: Tabs.teamsTab, tabStack: stack})})
   })
 
   test('a bare route name pops the active stack back to it', () => {
+    const target = stackKeyOf('teamsRoot')
     navUpToScreen('teamsRoot')
 
-    expect(nav.lastAction()).toMatchObject({
-      payload: {name: 'teamsRoot'},
-      target: `${Tabs.teamsTab}-stack`,
-      type: 'POP_TO',
-    })
+    expect(nav.lastAction()).toMatchObject({payload: {name: 'teamsRoot'}, target, type: 'POP_TO'})
+    expect(activeNames()).toEqual(['teamsRoot'])
   })
 
   // A path carries params, and popTo cannot set them, so the stack is rebuilt in place:
   // truncated at the target with the new params written onto it.
   test('a path already in the stack resets the stack onto it with the new params', () => {
+    const target = stackKeyOf('teamsRoot')
     navUpToScreen({name: 'team', params: {teamID: 'T2'}})
 
-    const action = nav.lastAction()
-    expect(action?.type).toBe('RESET')
-    expect(action?.target).toBe(`${Tabs.teamsTab}-stack`)
-    const payload = action?.payload as {index: number; routes: Array<{name: string; params?: object}>}
-    expect(payload.index).toBe(1)
-    expect(payload.routes.map(r => r.name)).toEqual(['teamsRoot', 'team'])
-    expect(payload.routes[1]?.params).toEqual({teamID: 'T2'})
+    expect(nav.lastAction()).toMatchObject({target, type: 'RESET'})
+    expect(activeNames()).toEqual(['teamsRoot', 'team'])
+    expect(visible()?.params).toEqual({teamID: 'T2'})
   })
 
   test('a path that is not in the stack is put in place of the current screen when asked', () => {
     navUpToScreen({name: 'teamMember', params: {teamID: 'T1', username: 'testuser'}}, true)
 
-    expect(nav.lastAction()).toMatchObject({
-      payload: {name: 'teamMember', params: {teamID: 'T1', username: 'testuser'}},
-      target: `${Tabs.teamsTab}-stack`,
-      type: 'REPLACE',
-    })
+    expect(nav.lastAction()).toMatchObject({target: stackKeyOf('teamsRoot'), type: 'REPLACE'})
+    expect(activeNames()).toEqual(['teamsRoot', 'team', 'teamMember'])
+    expect(visible()?.params).toEqual({teamID: 'T1', username: 'testuser'})
   })
 
-  test('a path that is not in the stack pops towards it otherwise', () => {
+  test("a path that is not in the stack pops towards it otherwise, which takes the current screen's place", () => {
     navUpToScreen({name: 'teamMember', params: {teamID: 'T1', username: 'testuser'}})
 
     expect(nav.lastAction()).toMatchObject({payload: {name: 'teamMember'}, type: 'POP_TO'})
+    expect(activeNames()).toEqual(['teamsRoot', 'team', 'teamMember'])
   })
 
-  test('a not-ready navigator dispatches nothing', () => {
-    nav.setReady(false)
+  test('before the container mounts it dispatches nothing', () => {
+    nav = installNavigation({ready: false})
     navUpToScreen('teamsRoot')
 
     expect(nav.actions).toEqual([])
@@ -232,91 +244,91 @@ describe('navUpToScreen', () => {
 // stack above the tab bar.
 describe('navUpToScreen on a phone', () => {
   test('after a modal closes, goes back to a screen above the tabs in the root stack', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['deviceRevoke'],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({
         above: [{name: 'settingsTabs.devicesTab'}, {name: 'devicePage'}, {name: 'deviceRevoke'}],
         tab: Tabs.settingsTab,
       }),
     })
+    const root = nav.getRootState()?.key
 
     clearModals()
     navUpToScreen('settingsTabs.devicesTab')
 
-    expect(nav.lastAction()).toMatchObject({payload: {name: 'settingsTabs.devicesTab'}, target: 'root', type: 'POP_TO'})
-    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('settingsTabs.devicesTab')
+    expect(nav.lastAction()).toMatchObject({payload: {name: 'settingsTabs.devicesTab'}, target: root, type: 'POP_TO'})
+    expect(rootNames()).toEqual(['loggedIn', 'settingsTabs.devicesTab'])
   })
 
   test("after a modal closes, going back to a tab's root closes the screens above the tabs", () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['teamReallyLeaveTeam'],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({
         above: [{name: 'team', params: {teamID: 'T1'}}, {name: 'teamReallyLeaveTeam'}],
         tab: Tabs.teamsTab,
       }),
     })
+    const root = nav.getRootState()?.key
 
     clearModals()
     nav.clearActions()
     navUpToScreen('teamsRoot')
 
     expect(nav.actions).toMatchObject([
-      {payload: {name: 'loggedIn'}, target: 'root', type: 'POP_TO'},
-      {payload: {name: 'teamsRoot'}, target: `${Tabs.teamsTab}-stack`, type: 'POP_TO'},
+      {payload: {name: 'loggedIn'}, target: root, type: 'POP_TO'},
+      {payload: {name: 'teamsRoot'}, target: stackKeyOf('teamsRoot'), type: 'POP_TO'},
     ])
-    expect(NavTree.visiblePath(nav.getRootState()).map(r => r.name)).toEqual([
-      'loggedIn',
-      Tabs.teamsTab,
-      'teamsRoot',
-    ])
+    expect(NavTree.visiblePath(nav.getRootState()).map(r => r.name)).toEqual(['loggedIn', Tabs.teamsTab, 'teamsRoot'])
   })
 
   // A team page opened from the Chat tab, then left: teamsRoot is in no stack a phone shows.
   test("going back to another tab's root closes the screens above the tabs and stops there", () => {
-    nav = installFakeNavigator({
-      modalRouteNames: [],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({above: [{name: 'team', params: {teamID: 'T1'}}], tab: Tabs.chatTab}),
     })
+    const root = nav.getRootState()?.key
 
     navUpToScreen('teamsRoot')
 
-    expect(nav.actions).toMatchObject([{payload: {name: 'loggedIn'}, target: 'root', type: 'POP_TO'}])
+    expect(nav.actions).toMatchObject([{payload: {name: 'loggedIn'}, target: root, type: 'POP_TO'}])
     expect(NavTree.visiblePath(nav.getRootState()).map(r => r.name)).toEqual(['loggedIn', Tabs.chatTab, 'chatRoot'])
   })
 
   test('a path in the root stack resets the root stack onto it with the new params', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: [],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({
         above: [{name: 'team', params: {teamID: 'T1'}}, {name: 'teamChannel'}],
         tab: Tabs.teamsTab,
       }),
     })
+    const root = nav.getRootState()?.key
 
     navUpToScreen({name: 'team', params: {teamID: 'T2'}})
 
-    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
-    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({name: 'team', params: {teamID: 'T2'}})
+    expect(nav.lastAction()).toMatchObject({target: root, type: 'RESET'})
+    expect(rootNames()).toEqual(['loggedIn', 'team'])
+    expect(visible()).toMatchObject({name: 'team', params: {teamID: 'T2'}})
   })
 
   // A modal's own flow going back to an earlier step of itself, with a screen above the tabs under it.
   test('with a modal up, only the root stack the modal is in is looked in', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['teamAddToTeamFromWhere', 'teamAddToTeamConfirm'],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({
         above: [{name: 'team'}, {name: 'teamAddToTeamFromWhere'}, {name: 'teamAddToTeamConfirm'}],
         tab: Tabs.teamsTab,
       }),
     })
+    const root = nav.getRootState()?.key
 
     navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard: 'W'}} as never, true)
 
     expect(nav.actions).toHaveLength(1)
-    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
-    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
-      name: 'teamAddToTeamFromWhere',
-      params: {wizard: 'W'},
-    })
+    expect(nav.lastAction()).toMatchObject({target: root, type: 'RESET'})
+    expect(rootNames()).toEqual(['loggedIn', 'team', 'teamAddToTeamFromWhere'])
+    expect(visible()).toMatchObject({name: 'teamAddToTeamFromWhere', params: {wizard: 'W'}})
   })
 })
 
@@ -324,42 +336,39 @@ describe('navUpToScreen on a phone', () => {
 
 describe('clearModals', () => {
   test('drops the modals and keeps the tab navigator and non-modal pushed screens', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
+    nav = installNavigation({
+      layout: 'phone',
       rootState: makeRootState({
         above: [{name: 'chatConversation', params: {conversationIDKey: 'CONV'}}, {name: 'chatInfoPanel'}],
       }),
     })
+    const root = nav.getRootState()?.key
 
     clearModals()
 
-    const action = nav.lastAction()
-    expect(action?.type).toBe('RESET')
-    expect(action?.target).toBe('root')
-    const payload = action?.payload as {index: number; routes: Array<{name: string}>}
-    expect(payload.routes.map(r => r.name)).toEqual(['loggedIn', 'chatConversation'])
-    expect(payload.index).toBe(1)
+    expect(nav.lastAction()).toMatchObject({target: root, type: 'RESET'})
+    expect(rootNames()).toEqual(['loggedIn', 'chatConversation'])
+    expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: 'CONV'}})
   })
 
   test('dispatches nothing when there is no modal to clear', () => {
-    nav = installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
+    nav = installNavigation()
 
     clearModals()
 
     expect(nav.actions).toEqual([])
   })
 
-  // A modal can sit above the logged-out stack too, so "nothing to clear" is not what makes
-  // this a no-op - clearModals only ever acts on the logged-in root.
-  test('dispatches nothing when logged out, even with a modal on top', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['chatInfoPanel'],
-      rootState: makeRootState({above: [{name: 'chatInfoPanel'}], loggedIn: false}),
-    })
+  // Modals are registered only while logged in, but some logged-out screens share a modal's name.
+  // clearModals only ever acts on the logged-in root.
+  test('dispatches nothing when logged out, even on a screen with a modal name', () => {
+    nav = installNavigation({rootState: makeRootState({above: [{name: 'username'}], loggedIn: false})})
+    const before = nav.getRootState()
 
     clearModals()
 
     expect(nav.actions).toEqual([])
+    expect(nav.getRootState()).toEqual(before)
   })
 })
 
@@ -367,22 +376,20 @@ describe('clearModals', () => {
 
 describe('setChatRootParams', () => {
   test('merges into the live chatRoot in place when it is already showing', () => {
-    nav = installFakeNavigator({
+    nav = installNavigation({
       rootState: makeRootState({tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}]}),
     })
+    const key = visible()?.key
 
     expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(true)
 
     // in place, targeting the chat tab's own stack - not a reset of the tab navigator
-    expect(nav.lastAction()).toMatchObject({
-      payload: {name: 'chatRoot', params: {conversationIDKey: 'NEW'}},
-      target: `${Tabs.chatTab}-stack`,
-      type: 'NAVIGATE',
-    })
+    expect(nav.lastAction()).toMatchObject({target: stackKeyOf('chatRoot'), type: 'NAVIGATE'})
+    expect(visible()).toMatchObject({key, name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
   })
 
   test('dispatches nothing when chatRoot already carries those params', () => {
-    nav = installFakeNavigator({
+    nav = installNavigation({
       rootState: makeRootState({tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'SAME'}}]}),
     })
 
@@ -393,32 +400,34 @@ describe('setChatRootParams', () => {
   // Something else is on top of the chat stack, so the tab navigator is reset back onto a
   // chatRoot carrying the merged params.
   test('resets the tab navigator when chatRoot is not the current screen', () => {
-    nav = installFakeNavigator({
+    nav = installNavigation({
       rootState: makeRootState({
-        tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}, {name: 'chatInfoPanel'}],
+        tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}, {name: 'profile', params: {username: 'testuser'}}],
       }),
     })
+    const tabs = NavTree.tabNavigatorState(nav.getRootState())?.key
 
     expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(true)
 
-    const action = nav.lastAction()
-    expect(action?.type).toBe('RESET')
-    expect(action?.target).toBe('tabs')
-    const payload = action?.payload as {routes: Array<{state?: {routes: Array<{params?: object}>}}>}
-    expect(payload.routes[0]?.state?.routes).toEqual([
-      {name: 'chatRoot', params: {conversationIDKey: 'NEW'}},
-    ])
+    expect(nav.lastAction()).toMatchObject({target: tabs, type: 'RESET'})
+    expect(activeNames()).toEqual(['chatRoot'])
+    expect(visible()?.params).toEqual({conversationIDKey: 'NEW'})
   })
 
-  test('reports failure when there is no chat tab to target', () => {
-    nav = installFakeNavigator({rootState: makeRootState({tab: Tabs.teamsTab})})
+  // The tab navigator always holds every tab, so the chat tab is there to select from another tab.
+  // Its stack had never mounted: the library shows it in getRootState() once React has rendered it.
+  test('from another tab, selects the chat tab onto a chatRoot carrying the params', async () => {
+    nav = installNavigation({rootState: makeRootState({tab: Tabs.teamsTab})})
 
-    expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(false)
-    expect(nav.actions).toEqual([])
+    expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(true)
+
+    expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
+    await until(() => visible()?.name === 'chatRoot')
+    expect(visible()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
   })
 
   test('reports failure when logged out', () => {
-    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    nav = installNavigation({rootState: makeRootState({loggedIn: false})})
 
     expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(false)
     expect(nav.actions).toEqual([])
@@ -428,17 +437,21 @@ describe('setChatRootParams', () => {
 // ---- switchTab ----
 
 describe('switchTab', () => {
-  test('jumps within the tab navigator, not the root stack', () => {
-    nav = installFakeNavigator()
+  test('jumps within the tab navigator, not the root stack', async () => {
+    nav = installNavigation()
+    const tabs = NavTree.tabNavigatorState(nav.getRootState())?.key
 
     switchTab(Tabs.teamsTab)
 
-    expect(nav.lastAction()).toMatchObject({payload: {name: Tabs.teamsTab}, target: 'tabs', type: 'JUMP_TO'})
+    expect(nav.lastAction()).toMatchObject({payload: {name: Tabs.teamsTab}, target: tabs, type: 'JUMP_TO'})
+    expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.teamsTab)
+    // a tab's stack is in the tree once it has mounted
+    await until(() => visible()?.name === 'teamsRoot')
+    expect(visible()?.name).toBe('teamsRoot')
   })
 
-  // The logged-out root has a stack of its own, with a key a tab jump could be aimed at.
   test('dispatches nothing when logged out', () => {
-    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    nav = installNavigation({rootState: makeRootState({loggedIn: false})})
 
     switchTab(Tabs.teamsTab)
 
@@ -449,168 +462,160 @@ describe('switchTab', () => {
 // ---- showAboveTabs / setRouteParams ----
 
 describe('showAboveTabs', () => {
-  test('resets the root onto the tab and pushes the screen above the tab bar', () => {
-    nav = installFakeNavigator({modalRouteNames: [], rootState: makeRootState({tab: Tabs.teamsTab})})
+  // The reset rebuilds the tab navigator, which is in getRootState() again once it has rendered; the
+  // screen above the tabs is there at once.
+  test('resets the root onto the tab and pushes the screen above the tab bar', async () => {
+    nav = installNavigation({layout: 'phone', rootState: makeRootState({tab: Tabs.teamsTab})})
+    const root = nav.getRootState()?.key
 
     expect(
       getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey: 'C'}})
     ).toBe(true)
 
-    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
+    expect(nav.lastAction()).toMatchObject({target: root, type: 'RESET'})
+    expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: 'C'}})
+    await until(() => NavTree.currentTab(nav.getRootState()) !== undefined)
     expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
-    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
-      name: 'chatConversation',
-      params: {conversationIDKey: 'C'},
-    })
-  })
-
-  test('a not-ready navigator dispatches nothing and reports failure', () => {
-    nav = installFakeNavigator({ready: false})
-
-    expect(getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})).toBe(false)
-    expect(nav.actions).toEqual([])
+    expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: 'C'}})
   })
 })
 
 describe('setRouteParams', () => {
   test('merges params into the route with that key, whatever is on top', () => {
-    nav = installFakeNavigator({
+    nav = installNavigation({
       rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]}),
     })
 
     expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(true)
 
     expect(nav.lastAction()).toMatchObject({source: 'chatRoot-0', type: 'SET_PARAMS'})
-    const stack = NavTree.activeStack(nav.getRootState())
-    expect(stack?.routes?.[0]?.params).toEqual({conversationIDKey: 'C'})
-    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('profile')
-  })
-
-  test('a not-ready navigator dispatches nothing and reports failure', () => {
-    nav = installFakeNavigator({ready: false})
-
-    expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(false)
-    expect(nav.actions).toEqual([])
+    expect(NavTree.activeStack(nav.getRootState())?.routes?.[0]?.params).toEqual({conversationIDKey: 'C'})
+    expect(visible()?.name).toBe('profile')
   })
 })
 
 // ---- navigateAppendOnceRootHas ----
 
 describe('navigateAppendOnceRootHas', () => {
-  // The wait belongs to the navigator it started on: swapping in another one (a test's
-  // teardown, say) must neither check nor push onto the newcomer.
-  test('stays bound to the navigator it was called on', () => {
-    jest.useFakeTimers()
-    const first = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+  test('a wait started before a login pushes once the logged-in root has mounted', async () => {
+    nav = installNavigation({rootState: makeRootState({loggedIn: false})})
     navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}})
+    expect(nav.actions).toEqual([])
 
-    const second = installFakeNavigator()
-    first.setRootState(makeRootState())
+    nav.setLoggedIn(true)
+    await until(() => nav.pushes().length > 0)
 
-    expect(first.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
-    expect(second.actions).toEqual([])
+    expect(nav.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+    expect(visible()).toMatchObject({name: 'profile', params: {username: 'testuser'}})
+  })
+
+  // The wait listens on the container it started on; a remounted container (the native user
+  // switch remounts it) never tells it, so it times out rather than pushing onto the newcomer.
+  test('a wait does not carry over to a remounted container', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    nav = installNavigation({rootState: makeRootState({loggedIn: false})})
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 20)
+
+    nav.setRootState(makeRootState())
+    await until(() => warn.mock.calls.length > 0)
+
+    expect(nav.pushes()).toEqual([])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedIn never mounted, dropping profile'))
   })
 })
 
-// ---- the fake itself ----
+// ---- whenModalsGone ----
 
-describe('fake navigator', () => {
-  test('a push lands in the tree, so the next navigation sees it', () => {
-    nav = installFakeNavigator()
+describe('whenModalsGone', () => {
+  const withConfirm = () =>
+    makeRootState({
+      above: [{name: 'teamDeleteTeam', params: {teamID: 'T1'}}],
+      tab: Tabs.teamsTab,
+      tabStack: [{name: 'teamsRoot'}, {name: 'team', params: {teamID: 'T1'}}],
+    })
 
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
-    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+  // clearModals' reset is in the tree by the time it returns
+  test('runs at once after clearModals', () => {
+    nav = installNavigation({rootState: withConfirm()})
+    const cb = jest.fn()
 
-    expect(nav.pushes()).toHaveLength(1)
-    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('profile')
-
-    navigateUp()
-    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('chatRoot')
-  })
-
-  test('an action it does not model throws instead of leaving the tree stale', () => {
-    nav = installFakeNavigator()
-
-    expect(() => nav.dispatch({type: 'OPEN_DRAWER'} as never)).toThrow('OPEN_DRAWER is not modelled')
-  })
-
-  // A root reset that happens to leave no modal is not clearModals: navToThread's phone reset
-  // is one.
-  test('modalsCleared only counts resets clearModals dispatched', () => {
-    nav = installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
-
-    getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})
-
-    expect(nav.modalsCleared()).toBe(false)
-  })
-
-  test('restoring puts back the modal route registration from before the install', () => {
-    installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
-    restoreNavigator()
-
-    expect(() => NavTree.isModalRouteName('chatInfoPanel')).toThrow('modalRouteNames not registered')
-  })
-
-  test('installing without names keeps the ones already registered', () => {
-    NavTree.setModalRouteNames(['chatInfoPanel'])
-    installFakeNavigator()
-
-    expect(NavTree.isModalRouteName('chatInfoPanel')).toBe(true)
-    restoreNavigator()
-    expect(NavTree.isModalRouteName('chatInfoPanel')).toBe(true)
-  })
-
-  // Modals are registered only on the root stack, so a push of one from inside a tab lands
-  // there, where clearModals can find it.
-  test('a modal pushed from a tab lands in the root stack', () => {
-    nav = installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
-
-    navigateAppend({name: 'chatInfoPanel', params: {}} as never)
-
-    expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['chatInfoPanel'])
     clearModals()
-    expect(nav.modalsCleared()).toBe(true)
+    whenModalsGone(cb)
+
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 
-  test('popTo a screen that is not in the stack takes the current screen\'s place', () => {
-    nav = installFakeNavigator({
-      rootState: makeRootState({tab: Tabs.teamsTab, tabStack: [{name: 'teamsRoot'}, {name: 'team'}]}),
+  // Asked while the modal is up, it waits for the 'state' event, which comes after React renders
+  // the dismissal rather than inside its dispatch.
+  test('asked with a modal up, runs once the dismissal has rendered', async () => {
+    nav = installNavigation({rootState: withConfirm()})
+    const cb = jest.fn()
+
+    whenModalsGone(cb)
+    navigateUp()
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+    expect(cb).not.toHaveBeenCalled()
+
+    await until(() => cb.mock.calls.length > 0)
+    expect(cb).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ---- what the library does with an action the Navigator relies on ----
+
+// Without pop, navigate reuses only the current route; an older one of that name is left alone
+// and a new screen is pushed. setChatRootParams navigates in place only when chatRoot is current.
+test('navigate to a name below the current screen pushes a new one', () => {
+  nav = installNavigation({rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile'}]})})
+
+  navigationRef.dispatch(CommonActions.navigate('chatRoot', {conversationIDKey: 'C'}))
+
+  expect(activeNames()).toEqual(['chatRoot', 'profile', 'chatRoot'])
+})
+
+// ---- bugs the hand-written fake hid ----
+
+const routeByKey = (key: string): NavTree.Route | undefined => {
+  const find = (st?: NavTree.NavState): NavTree.Route | undefined => {
+    for (const r of (st?.routes ?? []) as ReadonlyArray<NavTree.Route>) {
+      if (r.key === key) return r
+      const inner = find(r.state as NavTree.NavState | undefined)
+      if (inner) return inner
+    }
+    return undefined
+  }
+  return find(nav.getRootState())
+}
+
+describe('found on the real library', () => {
+  // Desktop and tablet keep the thread in the tab stack; React Navigation hands an action to the
+  // focused navigator, here the root stack under a modal, and SET_PARAMS never travels down to a
+  // nested stack, so the route has to be targeted through its own navigator.
+  test('setRouteParams reaches a route in a tab stack while a modal is up', () => {
+    nav = installNavigation({
+      rootState: makeRootState({
+        above: [{name: 'chatNewChat'}],
+        tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'C', threadSearch: {query: 'needle'}}}],
+      }),
     })
-
-    navUpToScreen('teamMember')
-
-    expect(NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)).toEqual([
-      'teamsRoot',
-      'teamMember',
-    ])
+    const errors = jest.spyOn(console, 'error')
+    expect(getNavigator().setRouteParams('chatRoot-0', {threadSearch: undefined})).toBe(true)
+    expect(errors).not.toHaveBeenCalled()
+    expect(routeByKey('chatRoot-0')?.params).toEqual({conversationIDKey: 'C', threadSearch: undefined})
   })
 
-  // Without pop, navigate reuses only the current route; an older one of that name is left
-  // alone and a new screen is pushed.
-  test('navigate to a name below the current screen pushes a new one', () => {
-    nav = installFakeNavigator({
-      rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile'}]}),
-    })
-
-    nav.dispatch(CommonActions.navigate('chatRoot', {conversationIDKey: 'C'}))
-
-    expect(NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)).toEqual([
-      'chatRoot',
-      'profile',
-      'chatRoot',
-    ])
+  // Provisioning another account while logged in shows its screens as modals; an error after
+  // clearModals asked to replace the visible screen with the modal 'error'. With no modal up the
+  // replace reached the root stack and replaced loggedIn itself.
+  test('a replace to a modal with no modal up opens it above the tabs instead of replacing them', () => {
+    nav = installNavigation({rootState: makeRootState({tab: Tabs.peopleTab})})
+    navigateAppend({name: 'error', params: {}} as never, true)
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'error'])
   })
 
-  // navigateToThread's params carry undefined-valued keys; dropping them would make the
-  // visible-route dupe check miss on key count and push a second screen.
-  test('params keep their undefined-valued keys, so a repeat push is still a dupe', () => {
-    nav = installFakeNavigator()
-
-    navigateAppend({name: 'profile', params: {username: 'testuser', extra: undefined}} as never)
-    // any later commit copies the tree
-    nav.dispatch(CommonActions.setParams({}))
-    navigateAppend({name: 'profile', params: {username: 'testuser', extra: undefined}} as never)
-
-    expect(nav.pushes()).toHaveLength(1)
+  test('a replace to a modal over a modal still replaces that modal', () => {
+    nav = installNavigation({rootState: makeRootState({above: [{name: 'codePage'}]})})
+    navigateAppend({name: 'error', params: {}} as never, true)
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'error'])
   })
 })

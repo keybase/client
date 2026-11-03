@@ -4,7 +4,7 @@ import type * as React from 'react'
 import type * as T from '@/constants/types'
 import type * as NavTreeModule from '@/constants/nav-tree'
 import type * as RTL from '@testing-library/react'
-import type * as FakeNavigatorModule from '@/test/fake-navigator'
+import type * as NavigationHarness from '@/test/navigation'
 import type * as JumpToRecentModule from './jump-to-recent'
 import type * as ThreadContext from '../thread-context'
 import type * as CurrentUser from '@/stores/current-user'
@@ -29,7 +29,7 @@ jest.mock('../thread-context', () => {
 const {act, cleanup, renderHook} = require('@testing-library/react') as typeof RTL
 const Types = require('@/constants/types') as typeof T
 const NavTree = require('@/constants/nav-tree') as typeof NavTreeModule
-const FakeNav = require('@/test/fake-navigator') as typeof FakeNavigatorModule
+const Harness = require('@/test/navigation') as typeof NavigationHarness
 const {useJumpToRecent} = require('./jump-to-recent') as typeof JumpToRecentModule
 const {ConversationThreadProvider} = require('../thread-context') as typeof ThreadContext
 const {useCurrentUserState} = require('@/stores/current-user') as typeof CurrentUser
@@ -49,71 +49,84 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  FakeNav.restoreNavigator()
   mockJumpToRecent.mockClear()
 })
 
 // menuUp: a modal route (the phone message menu) is presented above the thread
-const installThread = (threadSearch?: {query?: string}, menuUp = false) =>
-  FakeNav.installFakeNavigator({
-    modalRouteNames: ['chatMessagePopup'],
-    rootState: FakeNav.makeRootState({
-      above: menuUp ? [{name: 'chatMessagePopup'}] : [],
-      tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey: convID, threadSearch}}],
+const installThread = (threadSearch?: {query?: string}, menuUp = false) => {
+  const {wrapper: Nav, ...nav} = Harness.navigationWrapper({
+    layout: 'phone',
+    rootState: Harness.makeRootState({
+      above: [
+        {name: 'chatConversation', params: {conversationIDKey: convID, threadSearch}},
+        ...(menuUp ? [{name: 'chatMessagePopup'}] : []),
+      ],
     }),
+    route: 'chatConversation',
   })
-
-const jump = () => {
   const scrollToBottom = jest.fn()
   const {result} = renderHook(() => useJumpToRecent(scrollToBottom, 5), {
     wrapper: (p: {children: React.ReactNode}) => (
-      <ConversationThreadProvider id={convID}>{p.children}</ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={convID}>{p.children}</ConversationThreadProvider>
+      </Nav>
     ),
   })
-  const button = result.current as React.ReactElement<{onClick: () => void}>
-  act(() => {
-    button.props.onClick()
-  })
-  return scrollToBottom
+  const thread = () => NavTree.visibleScreen(nav.getRootState(), {includeModals: false})
+  const threadParams = () => thread()?.params as {threadSearch?: object} | undefined
+  const threadKey = () => thread()?.key
+  const before = {depth: nav.getRootState()?.routes?.length, key: threadKey()}
+  const jump = () => {
+    const button = result.current as React.ReactElement<{onClick: () => void}>
+    act(() => {
+      button.props.onClick()
+    })
+    return scrollToBottom
+  }
+  // the thread is still the same route at the same depth: nothing was pushed or replaced
+  const expectSameScreens = () => {
+    expect(nav.getRootState()?.routes?.length).toBe(before.depth)
+    expect(threadKey()).toBe(before.key)
+  }
+  return {...nav, expectSameScreens, jump, threadParams}
 }
-
-const threadParams = (nav: ReturnType<typeof installThread>) =>
-  NavTree.visibleScreen(nav.getRootState(), {includeModals: false})?.params as {threadSearch?: object} | undefined
 
 test('jumping to recent closes thread search in place', () => {
   const nav = installThread({query: 'needle'})
 
-  const scrollToBottom = jump()
+  const scrollToBottom = nav.jump()
 
   expect(scrollToBottom).toHaveBeenCalledTimes(1)
   expect(mockJumpToRecent).toHaveBeenCalledTimes(1)
-  expect(threadParams(nav)?.threadSearch).toBeUndefined()
-  expect(nav.navigations()).toEqual([])
+  expect(nav.threadParams()?.threadSearch).toBeUndefined()
+  nav.expectSameScreens()
 })
 
 test('jumping to recent with thread search closed leaves navigation alone', () => {
   const nav = installThread()
 
-  jump()
+  nav.jump()
 
   expect(nav.actions).toEqual([])
+  nav.expectSameScreens()
 })
 
 // the close reads the thread's route past the modal, and changes only that route
 test('with a modal up, closes the search behind it and leaves the modal', () => {
   const nav = installThread({query: 'needle'}, true)
 
-  jump()
+  nav.jump()
 
-  expect(threadParams(nav)?.threadSearch).toBeUndefined()
-  expect(nav.navigations()).toEqual([])
-  expect(NavTree.modalStack(nav.getRootState()).length).toBe(1)
+  expect(nav.threadParams()?.threadSearch).toBeUndefined()
+  nav.expectSameScreens()
+  expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['chatMessagePopup'])
 })
 
 test('with a modal up and thread search closed, leaves navigation alone', () => {
   const nav = installThread(undefined, true)
 
-  jump()
+  nav.jump()
 
   expect(nav.actions).toEqual([])
+  nav.expectSameScreens()
 })

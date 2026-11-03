@@ -79,7 +79,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {navigateUp} from '@/constants/router'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {navigationWrapper} from '@/test/navigation'
 import DeleteRepo from './delete-repo'
 
 const mockDeleteRPCs = () => {
@@ -94,13 +94,15 @@ const confirmButton = () => screen.getByText(/Delete this repository|^Delete$/) 
 const typeName = (name: string) =>
   fireEvent.change(screen.getByPlaceholderText('Name of the repository'), {target: {value: name}})
 
-beforeEach(() => {
-  installFakeNavigator()
-})
+// The confirm as a real modal route
+let nav: ReturnType<typeof navigationWrapper>
+const renderDelete = (ui: React.ReactElement) => {
+  nav = navigationWrapper({params: {name: 'myrepo'}, route: 'gitDeleteRepo'})
+  return render(ui, {wrapper: nav.wrapper})
+}
 
 afterEach(() => {
   cleanup()
-  restoreNavigator()
   jest.clearAllMocks()
   jest.restoreAllMocks()
   resetAllStores()
@@ -108,7 +110,7 @@ afterEach(() => {
 
 test('deleting a personal repo needs the exact repo name typed back', () => {
   const rpcs = mockDeleteRPCs()
-  render(<DeleteRepo name="myrepo" />)
+  renderDelete(<DeleteRepo name="myrepo" />)
 
   expect(confirmButton().disabled).toBe(true)
 
@@ -126,11 +128,17 @@ test('deleting a personal repo needs the exact repo name typed back', () => {
     expect.any(Function)
   )
   expect(rpcs.team).not.toHaveBeenCalled()
+
+  // a successful delete closes the confirm
+  const onSuccess = rpcs.personal.mock.calls[0]?.[1] as () => void
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'gitDeleteRepo'])
+  act(() => onSuccess())
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
 })
 
 test('a team repo also accepts the fully qualified teamname/repo form', () => {
   mockDeleteRPCs()
-  render(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
+  renderDelete(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
 
   typeName('myrepo')
   expect(confirmButton().disabled).toBe(false)
@@ -144,7 +152,7 @@ test('a team repo also accepts the fully qualified teamname/repo form', () => {
 
 test('a team delete splits the team name into parts and notifies the team by default', () => {
   const rpcs = mockDeleteRPCs()
-  render(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
+  renderDelete(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
 
   typeName('keybase.sub/myrepo')
   fireEvent.click(confirmButton())
@@ -162,7 +170,7 @@ test('a team delete splits the team name into parts and notifies the team by def
 
 test('unchecking notify the team is respected', () => {
   const rpcs = mockDeleteRPCs()
-  render(<DeleteRepo name="myrepo" teamname="keybase" />)
+  renderDelete(<DeleteRepo name="myrepo" teamname="keybase" />)
 
   fireEvent.click(screen.getByText('Notify the team'))
   typeName('myrepo')
@@ -177,7 +185,7 @@ test('unchecking notify the team is respected', () => {
 
 test('failures from the service are shown to the user', () => {
   const rpcs = mockDeleteRPCs()
-  render(<DeleteRepo name="myrepo" />)
+  renderDelete(<DeleteRepo name="myrepo" />)
 
   typeName('myrepo')
   fireEvent.click(confirmButton())

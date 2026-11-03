@@ -5,22 +5,20 @@ import type * as CurrentUser from '../current-user'
 import type * as Waiting from '@/stores/waiting'
 import type * as Logger from '@/logger'
 import type * as TT from '@/constants/types'
+import type {FakeNativeKbModule} from '@/test/fake-native-kb'
 
-// Jest maps every native-only package (expo-contacts, expo-localization, react-native-kb) to one
-// stub, so this mock stands in for all three.
+// The address book and the locale are native; their values are expo-contacts' own.
 const mockGetAllDetails = jest.fn()
 const mockRequestPermissions = jest.fn()
-jest.mock('../../test/mocks/native-module', () => ({
+jest.mock('expo-contacts', () => ({
   Contact: {getAllDetails: (...args: Array<unknown>) => mockGetAllDetails(...args)},
   ContactField: {EMAILS: 'emails', FULL_NAME: 'fullName', PHONES: 'phones'},
   PermissionStatus: {GRANTED: 'granted'},
-  addNotificationRequest: async () => Promise.resolve(),
-  getLocales: () => [{regionCode: 'US'}],
   getPermissionsAsync: async () => Promise.resolve({status: 'granted'}),
   requestPermissionsAsync: async (...args: Array<unknown>) => Promise.resolve(mockRequestPermissions(...args)),
-  requireNativeModule: () => ({}),
-  requireOptionalNativeModule: () => null,
 }))
+jest.mock('expo-localization', () => ({getLocales: () => [{regionCode: 'US'}]}))
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 
 const g = globalThis as {isMobile?: boolean}
 let store: typeof ContactsStore

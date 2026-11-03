@@ -2,12 +2,15 @@
 /// <reference types="jest" />
 
 import * as React from 'react'
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {GetOptionsRet} from '@/constants/types/router'
-import {ModalHeader, ModalWrapper, modalSizeStyles} from './screen-layout-modal.desktop'
-import {fakeModalNavigation, overlayEntries, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import * as NavTree from '@/constants/nav-tree'
+import {StackActions, useNavigation} from '@react-navigation/core'
+import {ModalHeader, modalSizeStyles} from './screen-layout-modal.desktop'
+import {flush} from '@/test/flush'
+import {RouteModal, overlayEntries, setupOverlayDom, showModals} from '@/test/overlay-dom.desktop'
 
 setupOverlayDom()
 
@@ -56,24 +59,38 @@ describe('desktop ModalWrapper', () => {
 
   const BoxSize = () => <>{`size:${Kb.useModalBox()?.size ?? 'none'}`}</>
 
-  const renderModal = (options: GetOptionsRet) =>
-    render(
-      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={options}>
-        <BoxSize />
-      </ModalWrapper>
-    )
+  // what a field inside the modal closes it with: its route's own navigation
+  const usePop = () => {
+    const navigation = useNavigation()
+    return () => navigation.dispatch(StackActions.pop())
+  }
+
+  // one modal route open over the chat tab, on the real navigation tree
+  const renderWith = (options: GetOptionsRet, children: React.ReactNode) => {
+    const nav = showModals([
+      {name: 'chatNewChat', render: () => <RouteModal navigationOptions={options}>{children}</RouteModal>},
+    ])
+    return {isOpen: () => NavTree.modalStack(nav.getRootState()).length > 0, nav}
+  }
+  const renderModal = (options: GetOptionsRet) => renderWith(options, <BoxSize />)
 
   test('the close X sits outside the clip box that holds the header and body', () => {
-    const {getByTestId} = renderModal({title: 'Edit team info'})
+    renderModal({title: 'Edit team info'})
     // the body renders bare text, so the element holding it is the body box, inside the clip box
     const body = elementHolding(document.body, 'size:small')
     expect(body.style.minHeight).toBe('0')
     const clip = body.parentElement as HTMLElement
     expect(clip.style.overflow).toBe('hidden')
     expect(clip.contains(elementHolding(document.body, 'Edit team info'))).toBe(true)
-    const close = getByTestId(TestIDs.MODAL_CLOSE)
+    const close = screen.getByTestId(TestIDs.MODAL_CLOSE)
     expect(clip.contains(close)).toBe(false)
     expect(close.parentElement).toBe(clip.parentElement)
+  })
+
+  test('the close X closes it', () => {
+    const {isOpen} = renderModal({title: 'Edit team info'})
+    fireEvent.click(screen.getByTestId(TestIDs.MODAL_CLOSE))
+    expect(isOpen()).toBe(false)
   })
 
   test('the header is a fixed 48px', () => {
@@ -91,16 +108,6 @@ describe('desktop ModalWrapper', () => {
     renderModal(modalSize ? {modalSize} : {})
     expect(elementHolding(document.body, `size:${size}`)).toBeTruthy()
   })
-
-  const renderWith = (options: GetOptionsRet, children: React.ReactNode) => {
-    const pop = jest.fn()
-    render(
-      <ModalWrapper canGoBack={false} navigation={fakeModalNavigation(pop)} navigationOptions={options}>
-        {children}
-      </ModalWrapper>
-    )
-    return pop
-  }
 
   // e.g. new chat's "Search Keybase" field
   test('a field that focuses on mount has focus once the modal is open', () => {
@@ -123,18 +130,17 @@ describe('desktop ModalWrapper', () => {
   test('Escape and a click on the dim area around the box close it', () => {
     const escaped = renderWith({title: 'Edit team info'}, <>body</>)
     fireEvent.keyDown(document.body, {key: 'Escape'})
-    expect(escaped).toHaveBeenCalledTimes(1)
-    cleanup()
+    expect(escaped.isOpen()).toBe(false)
 
-    const pop = renderWith({title: 'Edit team info'}, <>body</>)
+    const clicked = renderWith({title: 'Edit team info'}, <>body</>)
     const background = overlayEntries()[0]?.firstElementChild as HTMLElement
     // a press in the box that is released outside it is a drag, not a click
     fireEvent.mouseDown(screen.getByText('body'), {clientX: 1, clientY: 1})
     fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
-    expect(pop).not.toHaveBeenCalled()
+    expect(clicked.isOpen()).toBe(true)
     fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
     fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
-    expect(pop).toHaveBeenCalledTimes(1)
+    expect(clicked.isOpen()).toBe(false)
   })
 
   // people search: its empty search field closes the modal on Escape itself and stops the event
@@ -146,63 +152,66 @@ describe('desktop ModalWrapper', () => {
       jest.useRealTimers()
     })
 
-    const Field = (p: {close: () => void}) => {
-      const {close} = p
+    const Field = () => {
+      const pop = usePop()
       const onKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
-          close()
+          pop()
           e.stopPropagation()
         }
       }
       return <input aria-label="search" onKeyDown={onKeyDown} />
     }
 
-    const pressEscapeIn = (field: HTMLElement) => {
-      fireEvent.keyDown(field, {key: 'Escape'})
-      act(() => {
-        jest.runAllTimers()
-      })
+    // As in the app, outside act: the pop renders its new state in a transition, on React's
+    // schedule, so the modal is still up when the overlay hands a stopped Escape back to it on a
+    // 0ms timer. The fake timers run that one; React's scheduler keeps the real setTimeout it
+    // captured at load, so the commit waits for the flush.
+    const actEnvironment = globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}
+    const pressEscapeIn = async (field: HTMLElement) => {
+      actEnvironment.IS_REACT_ACT_ENVIRONMENT = false
+      try {
+        field.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, cancelable: true, key: 'Escape'}))
+        jest.runOnlyPendingTimers()
+      } finally {
+        actEnvironment.IS_REACT_ACT_ENVIRONMENT = true
+      }
+      jest.useRealTimers()
+      await flush()
     }
 
-    test('closes it once', () => {
-      const pop = jest.fn()
-      const navigation = fakeModalNavigation(pop)
-      render(
-        <ModalWrapper canGoBack={false} navigation={navigation} navigationOptions={{title: 'Search'}}>
-          <Field close={() => (navigation as {pop: () => void}).pop()} />
-        </ModalWrapper>
-      )
-      pressEscapeIn(screen.getByLabelText('search'))
-      expect(pop).toHaveBeenCalledTimes(1)
+    // a second pop would have nothing to remove: the library refuses it, and fail-on-console fails
+    // the test on that refusal
+    test('closes it once', async () => {
+      const {isOpen} = renderWith({title: 'Search'}, <Field />)
+      await pressEscapeIn(screen.getByLabelText('search'))
+      expect(isOpen()).toBe(false)
     })
 
-    test('leaves the modal under it open', () => {
-      // each pop removes the top route, as an unkeyed pop would
-      const routes = ['lower', 'upper']
-      const lower = fakeModalNavigation(() => routes.pop())
-      const upper = fakeModalNavigation(() => routes.pop())
-      render(
-        <>
-          <ModalWrapper canGoBack={false} navigation={lower} navigationOptions={{title: 'Lower'}}>
-            lower
-          </ModalWrapper>
-          <ModalWrapper canGoBack={true} navigation={upper} navigationOptions={{title: 'Upper'}}>
-            <Field close={() => (upper as {pop: () => void}).pop()} />
-          </ModalWrapper>
-        </>
-      )
-      pressEscapeIn(screen.getByLabelText('search'))
-      expect(routes).toEqual(['lower'])
+    test('leaves the modal under it open', async () => {
+      const nav = showModals([
+        {name: 'chatNewChat', render: () => <RouteModal navigationOptions={{title: 'Lower'}}>lower</RouteModal>},
+        {
+          name: 'chatCreateChannel',
+          render: () => (
+            <RouteModal navigationOptions={{title: 'Upper'}}>
+              <Field />
+            </RouteModal>
+          ),
+        },
+      ])
+      await pressEscapeIn(screen.getByLabelText('search'))
+      expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['chatNewChat'])
     })
   })
 
   test('overlayNoClose keeps it open on Escape and clicks, and keeps Escape from what is under it', () => {
-    const pop = renderWith({overlayNoClose: true, title: 'Must answer'}, <>body</>)
+    const {isOpen} = renderWith({overlayNoClose: true, title: 'Must answer'}, <>body</>)
     const ev = fireEvent.keyDown(document.body, {key: 'Escape'})
     expect(ev).toBe(false)
     const background = overlayEntries()[0]?.firstElementChild as HTMLElement
     fireEvent.mouseDown(background, {clientX: 1, clientY: 1})
     fireEvent.mouseUp(background, {clientX: 1, clientY: 1})
-    expect(pop).not.toHaveBeenCalled()
+    expect(isOpen()).toBe(true)
   })
 })

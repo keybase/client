@@ -60,14 +60,6 @@ let modalRouteNames: ReadonlySet<string> | undefined
 export const setModalRouteNames = (names: Iterable<string>) => {
   modalRouteNames = new Set<string>(names)
 }
-// For tests that register their own: returns a function that puts back the registration as
-// it is now, including "not registered".
-export const saveModalRouteNames = () => {
-  const saved = modalRouteNames
-  return () => {
-    modalRouteNames = saved
-  }
-}
 export const isModalRouteName = (name: string) => {
   if (!modalRouteNames) {
     throw new Error('modalRouteNames not registered; call setModalRouteNames at startup')
@@ -230,6 +222,19 @@ export const visiblePath = (
 
 export const visibleScreen = (state?: Immutable<NavState>, opts?: {includeModals?: boolean}) =>
   visiblePath(state, opts).at(-1)
+
+// The navigator whose routes include the route with this key, wherever it is in the tree.
+export const navigatorHoldingRoute = (
+  state: Immutable<NavState> | undefined,
+  routeKey: string
+): Immutable<NavState> | undefined => {
+  for (const route of (state?.routes ?? []) as Immutable<Array<Route>>) {
+    if (route.key === routeKey) return state
+    const inner = navigatorHoldingRoute(route.state as Immutable<NavState> | undefined, routeKey)
+    if (inner) return inner
+  }
+  return undefined
+}
 
 // ---- Builders ----
 

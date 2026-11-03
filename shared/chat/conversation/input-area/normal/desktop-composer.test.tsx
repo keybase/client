@@ -15,6 +15,7 @@ import {recordComposerAttaches} from '@/test/fake-composer-input'
 import Input from '.'
 import {List as SuggestionsList} from '../suggestors/common'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider, useConversationThreadActions} from '../../thread-context'
 
 jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
@@ -76,10 +77,13 @@ const Probe = (p: {onRender: (h: Handles) => void}) => {
   return null
 }
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const Wrapper = (p: React.PropsWithChildren) => (
-  <ConversationThreadProvider id={convID}>
-    <ConversationInputProvider id={convID}>{p.children}</ConversationInputProvider>
-  </ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>
+      <ConversationInputProvider id={convID}>{p.children}</ConversationInputProvider>
+    </ConversationThreadProvider>
+  </Nav>
 )
 
 const renderComposer = () => {
@@ -102,6 +106,7 @@ const type = (textarea: HTMLTextAreaElement, text: string, caret = text.length) 
 }
 
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   jest.useFakeTimers()
   jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
   jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)

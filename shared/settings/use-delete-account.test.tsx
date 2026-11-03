@@ -19,7 +19,8 @@ import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper, type NavigationRecorder} from '@/test/navigation'
 import {useDeleteAccount} from './use-delete-account'
 
 type DeleteSubmit = (
@@ -28,17 +29,13 @@ type DeleteSubmit = (
   reject: (error: RPCError) => void
 ) => void
 
-// The delete flow runs from a confirmation modal, so the fake starts with one open:
-// clearModals only has something to dispatch when a modal is actually on screen.
-const deleteModal = 'settingsDeleteConfirm'
-let nav: FakeNavigator
-
-beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [deleteModal],
-    rootState: makeRootState({above: [{name: deleteModal}]}),
-  })
-})
+// The delete flow runs from its confirmation modal, so the hook renders as that route.
+let nav: NavigationRecorder
+const renderDelete = () => {
+  const {wrapper, ...recorder} = navigationWrapper({route: 'deleteConfirm'})
+  nav = recorder
+  return renderHook(() => useDeleteAccount(), {wrapper})
+}
 
 const mockDeleteRPC = () => {
   const pending = new Array<{reject: (error: RPCError) => void; resolve: () => void}>()
@@ -60,7 +57,6 @@ const mockDeleteRPC = () => {
 }
 
 afterEach(() => {
-  restoreNavigator()
   cleanup()
   mockAndroidIsTestDevice.value = false
   jest.clearAllMocks()
@@ -70,7 +66,7 @@ afterEach(() => {
 
 test('refuses to delete when there is no logged in user', () => {
   const rpc = mockDeleteRPC()
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   expect(() => result.current('hunter2')).toThrow('Unable to delete account: no username set')
   expect(rpc.submit).not.toHaveBeenCalled()
@@ -82,7 +78,7 @@ test('deletes forever, records the deleted self and sends the user to login', ()
   useConfigState.setState(s => ({...s, dispatch: {...s.dispatch, setJustDeletedSelf}}))
   const rpc = mockDeleteRPC()
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
@@ -99,19 +95,17 @@ test('deletes forever, records the deleted self and sends the user to login', ()
   })
 
   expect(setJustDeletedSelf).toHaveBeenCalledWith('testuser')
-  // clearModals: the confirmation modal is reset away, leaving only the tab navigator
-  const cleared = nav.actions.find(a => a.type === 'RESET')
-  expect((cleared?.payload as {routes: Array<{name: string}>} | undefined)?.routes.map(r => r.name)).toEqual([
-    'loggedIn',
-  ])
-  expect(nav.pushes()).toContainEqual({name: C.Tabs.loginTab, params: {}})
+  // the confirmation modal is cleared away, leaving only the tab navigator
+  expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
+  expect(nav.pushes()).toEqual([])
 })
 
 test('passes an undefined passphrase through for accounts without one', () => {
   useCurrentUserState.setState({username: 'testuser'})
   const rpc = mockDeleteRPC()
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current()
@@ -131,7 +125,7 @@ test('pre-launch test devices never reach the delete rpc', () => {
   mockAndroidIsTestDevice.value = true
   const rpc = mockDeleteRPC()
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
@@ -139,6 +133,7 @@ test('pre-launch test devices never reach the delete rpc', () => {
 
   expect(rpc.submit).not.toHaveBeenCalled()
   expect(nav.actions).toEqual([])
+  expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['deleteConfirm'])
 })
 
 test('logs and stays put when the delete rpc fails', () => {
@@ -148,7 +143,7 @@ test('logs and stays put when the delete rpc fails', () => {
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
   const rpc = mockDeleteRPC()
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
@@ -163,4 +158,5 @@ test('logs and stays put when the delete rpc fails', () => {
   )
   expect(setJustDeletedSelf).not.toHaveBeenCalled()
   expect(nav.actions).toEqual([])
+  expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['deleteConfirm'])
 })

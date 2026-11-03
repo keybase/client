@@ -28,9 +28,10 @@ const PgpWarning = ({route}: Props) => {
     if (!navigation) return
     return navigation.addListener('beforeRemove', e => {
       // Only the user taking the warning away is a decline: the header Cancel, Android back or a native
-      // dismissal (REMOVE). Resets elsewhere also remove screens and are not answers.
+      // dismissal (DISMISS, from native-stack's onDismissed). Resets elsewhere also remove screens and
+      // are not answers.
       const {type} = e.data.action
-      if (type === 'POP' || type === 'GO_BACK' || type === 'REMOVE') {
+      if (type === 'POP' || type === 'GO_BACK' || type === 'DISMISS') {
         answerRecoverPasswordPgp(id, false)
       }
     })

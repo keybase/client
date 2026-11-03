@@ -14,6 +14,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
 import {resetAllStores} from '@/util/zustand'
+import {navigationWrapper} from '@/test/navigation'
 import {
   ConversationThreadProvider,
   LiveConversationThreadProvider,
@@ -227,27 +228,37 @@ const makeUIRequestInfo = (): T.RPCChat.UIRequestInfo => ({
   worthAtRequestTime: '$1.00',
 })
 
+// the thread is the conversation on desktop's chat root
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
+
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 const nestedSameThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID}>
-    <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
-  </ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>
+      <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+    </ConversationThreadProvider>
+  </Nav>
 )
 
 const liveThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <LiveConversationThreadProvider id={convID}>
-    {children}
-  </LiveConversationThreadProvider>
+  <Nav>
+    <LiveConversationThreadProvider id={convID}>{children}</LiveConversationThreadProvider>
+  </Nav>
 )
 
 const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -576,15 +587,17 @@ const renderJumpedThenScrolledToBottom = (allowMarkReadOnLoad: boolean) => {
   })
   const {result} = renderHook(() => useConversationThreadActions(), {
     wrapper: ({children}: {children: React.ReactNode}) => (
-      <ConversationThreadProvider id={convID}>
-        <ConversationThreadLoadStatusProvider
-          allowMarkReadOnLoad={allowMarkReadOnLoad}
-          id={convID}
-          skipThreadLoadOnSelection={true}
-        >
-          {children}
-        </ConversationThreadLoadStatusProvider>
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={convID}>
+          <ConversationThreadLoadStatusProvider
+            allowMarkReadOnLoad={allowMarkReadOnLoad}
+            id={convID}
+            skipThreadLoadOnSelection={true}
+          >
+            {children}
+          </ConversationThreadLoadStatusProvider>
+        </ConversationThreadProvider>
+      </Nav>
     ),
   })
   // jumping to a highlighted message blocks mark-read

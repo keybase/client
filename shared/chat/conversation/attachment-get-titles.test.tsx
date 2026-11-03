@@ -12,17 +12,16 @@ import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import type * as ReactTypes from 'react'
 import type {VideoEdit} from '@/util/media-process'
-import {processMedia} from 'react-native-kb'
+import type {processMedia} from 'react-native-kb'
+import {Platform} from 'react-native'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
 import {peekInputIntent} from './input-intent-store'
 
-// Native-only packages resolve to this one stub through jest.config's
-// moduleNameMapper, so it carries the export and the file deletes the real
-// processPaths makes.
-jest.mock('@/test/mocks/native-module', () => {
+// File IO is native: this one records the deletes the real processPaths makes.
+jest.mock('expo-file-system', () => {
   const deleted: Array<string> = []
   return {
-    ...jest.requireActual<object>('@/test/mocks/native-module'),
     File: class {
       private readonly path: string
       constructor(path: string) {
@@ -33,9 +32,9 @@ jest.mock('@/test/mocks/native-module', () => {
       }
     },
     deleted,
-    processMedia: jest.fn(),
   }
 })
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 
 // A clip whose name says so comes in trimmed, as if the user had dragged the handles.
 jest.mock('./attachment-trim', () => {
@@ -55,8 +54,16 @@ jest.mock('./attachment-trim', () => {
   return {__esModule: true, default: MockTrim}
 })
 
-const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
-const {deleted} = jest.requireMock<{deleted: Array<string>}>('@/test/mocks/native-module')
+// the native processMedia, under react-native-kb's own wrapper, which runs it on iOS alone
+const processMediaMock: jest.MockedFunction<typeof processMedia> = jest.fn()
+const {deleted} = jest.requireMock<{deleted: Array<string>}>('expo-file-system')
+beforeEach(() => {
+  fakeNativeKb.give({processMedia: processMediaMock})
+  jest.replaceProperty(Platform, 'OS', 'ios')
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+})
 
 describe('pathToAttachmentType', () => {
   test('common image extensions preview as images, case insensitively', () => {

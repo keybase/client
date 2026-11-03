@@ -16,7 +16,9 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
+import * as Router from '@/constants/router'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper} from '@/test/navigation'
 import {
   ConversationThreadProvider,
   ShownUsernameCacheContext,
@@ -30,20 +32,14 @@ import {
   type ConversationThreadActions,
 } from './thread-context'
 
-// the route's focus, both as the screen last rendered it and as navigation reports it now
-let mockRouteFocused = true
-let mockRouteFocusedNow = true
-jest.mock('@react-navigation/core', () => {
-  const actual = jest.requireActual<{useNavigation: () => object}>('@react-navigation/core')
-  return {
-    ...actual,
-    useIsFocused: () => mockRouteFocused,
-    useNavigation: () => ({...actual.useNavigation(), isFocused: () => mockRouteFocusedNow}),
-  }
-})
-const setRouteFocused = (focused: boolean) => {
-  mockRouteFocused = focused
-  mockRouteFocusedNow = focused
+// The thread is the conversation on desktop's chat root. A modal over it takes the route's focus,
+// as it does in the app, and closing it gives the focus back.
+const threadRoute = () => navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
+const coverThread = () => {
+  Router.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+}
+const uncoverThread = () => {
+  Router.clearModals()
 }
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -86,8 +82,11 @@ const useHarness = () => ({
 })
 
 const renderThread = (id = convID) => {
+  const Nav = threadRoute()
   const wrapper = ({children}: {children: React.ReactNode}) => (
-    <ConversationThreadProvider id={id}>{children}</ConversationThreadProvider>
+    <Nav>
+      <ConversationThreadProvider id={id}>{children}</ConversationThreadProvider>
+    </Nav>
   )
   const rendered = renderHook(useHarness, {wrapper})
   const h = () => rendered.result.current
@@ -149,7 +148,6 @@ const HideableThread = (p: {into: (v: Probed) => void; mode: 'hidden' | 'visible
 }
 
 beforeEach(() => {
-  setRouteFocused(true)
   rpc = installFakeChatRpc()
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -320,14 +318,12 @@ describe('mark read gating', () => {
   })
 
   test('route focus: refused while covered, marked when the route is focused again', async () => {
-    const {h, rendered} = renderThread()
+    const {h} = renderThread()
     armWith(h().actions, [textAt(10)])
-    setRouteFocused(false)
-    rendered.rerender()
+    act(coverThread)
     await run(() => h().actions.markThreadAsRead())
     expect(markReads()).toEqual([])
-    setRouteFocused(true)
-    await run(() => rendered.rerender())
+    await run(uncoverThread)
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
@@ -336,14 +332,16 @@ describe('mark read gating', () => {
     const into = (v: Probed) => {
       actions = v.actions
     }
-    const {rerender} = render(<HideableThread into={into} mode="visible" />)
-    setRouteFocused(false)
+    const {rerender} = render(<HideableThread into={into} mode="visible" />, {wrapper: threadRoute()})
+    act(coverThread)
     rerender(<HideableThread into={into} mode="hidden" />)
     armWith(actions!, [textAt(10)])
     await run(() => actions?.markThreadAsRead())
     expect(markReads()).toEqual([])
-    setRouteFocused(true)
-    await run(() => rerender(<HideableThread into={into} mode="visible" />))
+    await run(() => {
+      uncoverThread()
+      rerender(<HideableThread into={into} mode="visible" />)
+    })
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
@@ -357,20 +355,33 @@ describe('mark read gating', () => {
         <HideableThread into={into} mode={mode} />
       </React.StrictMode>
     )
-    const {rerender} = render(tree('visible'))
-    setRouteFocused(false)
+    const {rerender} = render(tree('visible'), {wrapper: threadRoute()})
+    act(coverThread)
     rerender(tree('hidden'))
     armWith(actions!, [textAt(10)])
-    setRouteFocused(true)
-    await run(() => rerender(tree('visible')))
+    await run(() => {
+      uncoverThread()
+      rerender(tree('visible'))
+    })
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
   test('a load that finishes after the route loses focus, before the screen renders again, is not marked read', async () => {
     const {h} = renderThread()
-    mockRouteFocusedNow = false
-    armWith(h().actions, [textAt(10)])
-    await run(() => h().actions.markThreadAsRead())
+    // one batch: the navigation lands in the library's state, and the load finishes and marks read,
+    // all before React renders the screen again
+    await run(() => {
+      coverThread()
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: true,
+        fullPass: true,
+        messages: [textAt(10)],
+        moreToLoad: false,
+        scrollDirection: 'none',
+      })
+      h().actions.markThreadAsRead()
+    })
     expect(markReads()).toEqual([])
   })
 
@@ -1171,7 +1182,8 @@ describe('provider lifecycle', () => {
         <ConversationThreadProvider id={convID}>
           <Probe into={v => (inner = v)} />
         </ConversationThreadProvider>
-      </ConversationThreadProvider>
+      </ConversationThreadProvider>,
+      {wrapper: threadRoute()}
     )
     expect(inner.store).toBe(outer.store)
     expect(inner.actions).toBe(outer.actions)
@@ -1195,7 +1207,7 @@ describe('provider lifecycle', () => {
       actions = v.actions
       store = v.store
     }
-    const {rerender} = render(<HideableThread into={into} mode="visible" />)
+    const {rerender} = render(<HideableThread into={into} mode="visible" />, {wrapper: threadRoute()})
     act(() => {
       actions?.addMessages([textAt(10)])
       actions?.loadMoreMessages({numberOfMessagesToLoad: 1, reason: 'scroll back', scrollDirection: 'back'})

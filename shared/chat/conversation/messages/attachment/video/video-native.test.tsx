@@ -15,9 +15,9 @@ g.isElectron = false
 
 type HostProps = {children?: unknown; onLongPress?: () => void; onPress?: () => void; testID?: string}
 let mockPressables: Array<HostProps> = []
-type FakePlayer = {loop: boolean; pause: jest.Mock; play: jest.Mock; replay: jest.Mock}
+// emit is native sending the player an event
+type FakePlayer = {emit: (event: string) => void; loop: boolean; pause: jest.Mock; play: jest.Mock; replay: jest.Mock}
 let mockPlayers: Array<FakePlayer> = []
-let mockPlayerListeners: Array<{event: string; listener: () => void}> = []
 let mockPlayerReleased = false
 let mockMountedVideoViews = 0
 
@@ -37,16 +37,15 @@ jest.mock('react-native', () => {
     useColorScheme: () => 'light',
   }
 })
-// expo, expo-image and expo-video all map to one native-module stub (jest.config.js), so this one
-// mock stands in for all three.
+// expo-image's view is native
+jest.mock('expo-image', () => ({Image: () => null}))
+// expo's own useEvent hooks, which subscribe through the player's addListener
+jest.mock('expo', () => jest.requireActual<object>('@/node_modules/expo/build/hooks/useEvent'))
+// the player and its view are native
 jest.mock('expo-video', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const {useEffect, useState} = require('react') as typeof React
   return {
-    Image: () => null,
-    useEventListener: (_player: unknown, event: string, listener: () => void) => {
-      mockPlayerListeners.push({event, listener})
-    },
     VideoView: () => {
       useEffect(() => {
         mockMountedVideoViews++
@@ -61,11 +60,28 @@ jest.mock('expo-video', () => {
         const released = () => {
           if (mockPlayerReleased) throw new Error('NativeSharedObjectNotFoundException')
         }
+        const listeners = new Map<string, Set<() => void>>()
+        const listenersTo = (event: string) => {
+          const set = listeners.get(event) ?? new Set()
+          listeners.set(event, set)
+          return set
+        }
         let loop = true
-        const p = {pause: jest.fn(released), play: jest.fn(released), replay: jest.fn(released)} as Omit<
-          FakePlayer,
-          'loop'
-        > as FakePlayer
+        const p = {
+          addListener: (event: string, listener: () => void) => {
+            listenersTo(event).add(listener)
+            return {remove: () => listenersTo(event).delete(listener)}
+          },
+          emit: (event: string) => {
+            for (const l of [...listenersTo(event)]) l()
+          },
+          pause: jest.fn(released),
+          play: jest.fn(released),
+          removeListener: (event: string, listener: () => void) => {
+            listenersTo(event).delete(listener)
+          },
+          replay: jest.fn(released),
+        } as Omit<FakePlayer, 'loop'> as FakePlayer
         Object.defineProperty(p, 'loop', {
           get: () => loop,
           set: (v: boolean) => {
@@ -120,7 +136,6 @@ afterEach(() => {
   cleanup()
   mockPressables = []
   mockPlayers = []
-  mockPlayerListeners = []
   mockPlayerReleased = false
   mockMountedVideoViews = 0
 })
@@ -134,7 +149,7 @@ test('the poster plays the video inline, once', () => {
   expect(player.play).toHaveBeenCalledTimes(1)
   expect(player.loop).toBe(false)
   act(() => {
-    mockPlayerListeners.filter(l => l.event === 'playToEnd').forEach(l => l.listener())
+    player.emit('playToEnd')
   })
   expect(player.replay).not.toHaveBeenCalled()
   expect(player.play).toHaveBeenCalledTimes(1)

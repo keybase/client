@@ -12,7 +12,7 @@ jest.mock('@/chat/conversation/info-panel', () => ({__esModule: true, default: (
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
-import {act, cleanup, render} from '@testing-library/react'
+import {act, cleanup} from '@testing-library/react'
 import {getSelectedConversation} from '@/constants/chat/common'
 import {navigateToThread} from '@/constants/router'
 import {InboxAndConversationShell} from '@/chat/inbox-and-conversation-shared'
@@ -25,7 +25,7 @@ import {metasReceived} from './metadata-store'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState} from '@/test/navigation'
 import {getChatRpc, setChatRpc} from '@/chat/conversation/chat-rpc'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
@@ -90,26 +90,29 @@ const deliverRequestedLayout = () => {
 const open = (id: T.Chat.ConversationIDKey, reason: Parameters<typeof navigateToThread>[1]) =>
   act(() => navigateToThread(id, reason))
 
-let rerenderShell: () => void
 let chatRpc: FakeChatRpc
+let nav: ReturnType<typeof installNavigation> | undefined
 
-// The chat tab as the new account's navigator mounts it: the shell reads its selection from the
-// chat root's params, as the route does.
-const mountShell = () => {
-  const shell = () => (
-    <InboxAndConversationShell conversationIDKey={getSelectedConversation()} leftPane={null} />
-  )
-  const {rerender} = render(shell())
-  rerenderShell = () => rerender(shell())
+// The chat tab of the new account's navigator, not yet mounted: its chat root renders the shell
+// with the selection from that route's params, as the route does.
+const installChatTab = () => {
+  nav = installNavigation({
+    ready: false,
+    rootState: makeRootState(),
+    screen: route => {
+      if (route.name !== 'chatRoot') return null
+      const params = route.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+      return <InboxAndConversationShell conversationIDKey={params?.conversationIDKey} leftPane={null} />
+    },
+  })
 }
 
 const selected = () => getSelectedConversation()
 
-// After each step the shell reruns with the chat root's new params, as the route would, and the
-// selected conversation's thread loads, which the service records as the one last loaded.
+// After each step the selected conversation's thread loads, which the service records as the one
+// last loaded.
 const step = (fn: () => void) => {
   fn()
-  rerenderShell()
   if (T.Chat.isValidConversationIDKey(selected())) {
     service.lastLoaded = selected()
   }
@@ -121,7 +124,8 @@ const step = (fn: () => void) => {
 // which a split layout keeps selected through the switch.
 const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
   if (keptSelected) {
-    installFakeNavigator()
+    installChatTab()
+    nav?.mount()
     open(keptSelected, 'misc')
   }
   act(() => {
@@ -134,13 +138,13 @@ const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     useConfigState.getState().dispatch.setUserSwitching(false)
   })
-  installFakeNavigator()
+  installChatTab()
   chatRpc = installFakeChatRpc()
   service.lastLoaded = previousAccountConv
+  nav?.mount()
   if (keptSelected) {
     open(keptSelected, 'misc')
   }
-  mountShell()
   // the inbox asks for its first layout as soon as it mounts for the new account
   act(() => {
     void useInboxLayoutState.getState().dispatch.refresh('componentNeverLoaded')
@@ -167,7 +171,7 @@ beforeEach(() => {
 afterEach(() => {
   stopWatchingAccount()
   cleanup()
-  restoreNavigator()
+  nav?.unmount()
   restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
@@ -317,7 +321,6 @@ test("a thread load that says the user is not in the conversation moves the sele
 
   loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
   await flush()
-  rerenderShell()
 
   expect(selected()).toBe(newest)
 })
@@ -341,7 +344,6 @@ test('a thread load the service fails through the engine listener with not-in-co
   await flush()
   held[0]!.reply(fakeError(T.RPCGen.StatusCode.scchatnotinconv, 'not in conv'))
   await flush()
-  rerenderShell()
 
   expect(selected()).toBe(newest)
 })
@@ -362,7 +364,6 @@ test('a thread load that says the user was never in the conversation leaves it s
 
   loadConversationThreadMessages(stranger, {reason: 'focused'}, actions)
   await flush()
-  rerenderShell()
 
   expect(selected()).toBe(stranger)
 })

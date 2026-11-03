@@ -10,12 +10,12 @@ import {
   minTrimMs,
   processPaths,
 } from '../media-process'
-import {processMedia} from 'react-native-kb'
+import {Platform} from 'react-native'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
+import type {processMedia} from 'react-native-kb'
 
-// Both native-only packages resolve to this one stub through jest.config's
-// moduleNameMapper, so that's what has to carry the mocks: mocking them under
-// their own names never reaches the mapped module.
-jest.mock('@/test/mocks/native-module', () => {
+// File IO is native: this one records what is deleted.
+jest.mock('expo-file-system', () => {
   const deleted: Array<string> = []
   return {
     File: class {
@@ -28,12 +28,13 @@ jest.mock('@/test/mocks/native-module', () => {
       }
     },
     deleted,
-    processMedia: jest.fn(),
   }
 })
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 
-const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
-const {deleted} = jest.requireMock<{deleted: Array<string>}>('@/test/mocks/native-module')
+// the native processMedia, under react-native-kb's own wrapper
+const processMediaMock: jest.MockedFunction<typeof processMedia> = jest.fn()
+const {deleted} = jest.requireMock<{deleted: Array<string>}>('expo-file-system')
 
 describe('isVideoPath', () => {
   it('matches common video extensions case-insensitively', () => {
@@ -139,8 +140,14 @@ describe('formatDuration', () => {
 describe('processPaths', () => {
   beforeEach(() => {
     processMediaMock.mockReset()
+    fakeNativeKb.give({processMedia: processMediaMock})
     deleted.length = 0
     global.isIOS = true
+    jest.replaceProperty(Platform, 'OS', 'ios')
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
   afterAll(() => {

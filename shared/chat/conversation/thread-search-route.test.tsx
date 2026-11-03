@@ -1,54 +1,55 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {cleanup, renderHook} from '@testing-library/react'
-
-let mockRoute: {name: string; params?: unknown} = {name: 'chatConversation', params: undefined}
-jest.mock('@react-navigation/native', () => ({
-  useRoute: () => mockRoute,
-}))
-
+// The hooks run as a route of the real navigation tree, so the route and params are the library's.
+import {act, cleanup, renderHook} from '@testing-library/react'
+import * as C from '@/constants'
+import {navigationWrapper} from '@/test/navigation'
 import {useChatThreadRouteParams, useThreadSearchRoute} from './thread-search-route'
 
-const params = () => renderHook(() => useChatThreadRouteParams()).result.current
-const search = () => renderHook(() => useThreadSearchRoute()).result.current
+const renderAs = <R,>(hook: () => R, route: string, params?: unknown) =>
+  renderHook(hook, {wrapper: navigationWrapper({params: params as object | undefined, route}).wrapper})
+const params = (route: string, p?: unknown) => renderAs(useChatThreadRouteParams, route, p).result.current
+const search = (route: string, p?: unknown) => renderAs(useThreadSearchRoute, route, p).result.current
 
-afterEach(() => {
-  cleanup()
-  mockRoute = {name: 'chatConversation', params: undefined}
-})
+afterEach(cleanup)
 
 test('only the chat routes carry thread params', () => {
   const threadSearch = {query: 'hello'}
-  mockRoute = {name: 'chatConversation', params: {threadSearch}}
-  expect(params()?.threadSearch).toBe(threadSearch)
-  mockRoute = {name: 'chatRoot', params: {threadSearch}}
-  expect(params()?.threadSearch).toBe(threadSearch)
-  mockRoute = {name: 'peopleRoot', params: {threadSearch}}
-  expect(params()).toBeUndefined()
+  expect(params('chatConversation', {threadSearch})?.threadSearch).toEqual(threadSearch)
+  cleanup()
+  expect(params('chatRoot', {threadSearch})?.threadSearch).toEqual(threadSearch)
+  cleanup()
+  expect(params('peopleRoot', {threadSearch})).toBeUndefined()
 })
 
 test('unrelated params on a chat route are ignored', () => {
-  mockRoute = {name: 'chatConversation', params: {conversationIDKey: 'conv1'}}
-  expect(params()).toBeUndefined()
+  expect(params('chatConversation', {conversationIDKey: 'conv1'})).toBeUndefined()
 })
 
 test('missing or non object params are ignored', () => {
-  mockRoute = {name: 'chatConversation', params: undefined}
-  expect(params()).toBeUndefined()
-  mockRoute = {name: 'chatConversation', params: 'nope'}
-  expect(params()).toBeUndefined()
+  expect(params('chatConversation')).toBeUndefined()
+  cleanup()
+  expect(params('chatConversation', 'nope')).toBeUndefined()
 })
 
 test('any of the recognized keys makes the params usable', () => {
   // hasOwnProperty, not truthiness: an explicitly undefined key still claims the params
-  const withError = {createConversationError: undefined}
-  mockRoute = {name: 'chatConversation', params: withError}
-  expect(params()).toBe(withError)
+  const got = params('chatConversation', {createConversationError: undefined})
+  expect(got).toBeDefined()
+  expect(Object.prototype.hasOwnProperty.call(got, 'createConversationError')).toBe(true)
 })
 
 test('the thread search shortcut only reads the search slice', () => {
-  mockRoute = {name: 'chatConversation', params: {createConversationError: undefined}}
-  expect(search()).toBeUndefined()
-  mockRoute = {name: 'chatConversation', params: {threadSearch: {query: 'hello'}}}
-  expect(search()).toEqual({query: 'hello'})
+  expect(search('chatConversation', {createConversationError: undefined})).toBeUndefined()
+  cleanup()
+  expect(search('chatConversation', {threadSearch: {query: 'hello'}})).toEqual({query: 'hello'})
+})
+
+test('a param change on the route reaches the hook', () => {
+  const {result} = renderAs(useThreadSearchRoute, 'chatRoot', {conversationIDKey: 'conv1'})
+  expect(result.current).toBeUndefined()
+  act(() => {
+    C.Router2.setChatRootParams({threadSearch: {query: 'later'}})
+  })
+  expect(result.current).toEqual({query: 'later'})
 })

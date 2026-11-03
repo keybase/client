@@ -28,6 +28,7 @@ import {useUsersState} from '@/stores/users'
 import {resetAllStores} from '@/util/zustand'
 import {flush} from '@/test/flush'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper} from '@/test/navigation'
 import {
   ConversationThreadProvider,
   useConversationThreadActions,
@@ -344,8 +345,10 @@ const settle = async () => {
 const mountScreens = async (ids: ReadonlyArray<T.Chat.ConversationIDKey>, afterMount?: () => void) =>
   mountTree(<Screens ids={ids} />, afterMount)
 
+// the screens are mounted in desktop's chat root, showing A
 const mountTree = async (tree: React.ReactElement, afterMount?: () => void) => {
-  const rendered = render(tree)
+  const {wrapper} = navigationWrapper({params: {conversationIDKey: convA}, route: 'chatRoot'})
+  const rendered = render(tree, {wrapper})
   await settle()
   act(() => {
     for (const m of mounted.values()) {

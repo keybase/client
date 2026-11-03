@@ -1,8 +1,9 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {useConfigState} from '@/stores/config'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {
   startRecoverPassword,
@@ -10,19 +11,22 @@ import {
   submitRecoverPasswordReset,
 } from './flow'
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 
+// The logged-out stack's screens, bottom to top.
+const loggedOutStack = () => nav.getRootState()?.routes?.[0]?.state?.routes.map(r => r.name)
+
+// Recovery starts from the login screen.
 beforeEach(() => {
-  nav = installFakeNavigator()
+  nav = installNavigation({rootState: makeRootState({loggedIn: false})})
 })
 
 afterEach(() => {
-  restoreNavigator()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
 const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop' | 'backup') =>
   ({
@@ -56,7 +60,8 @@ test('startRecoverPassword exposes device selection handlers', async () => {
     startRecoverPassword({username: 'alice'})
     await flush()
 
-    expect(nav.navigations()).toContainEqual({
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordDeviceSelector'])
+    expect(nav.visibleScreen()).toMatchObject({
       name: 'recoverPasswordDeviceSelector',
       params: {
         devices: [
@@ -67,7 +72,6 @@ test('startRecoverPassword exposes device selection handlers', async () => {
           }),
         ],
       },
-      replace: false,
     })
 
     submitRecoverPasswordDeviceSelect(T.Devices.stringToDeviceID('device-1'))
@@ -140,10 +144,10 @@ test('reset-password prompt resolves callback and local banner handler', async (
     startRecoverPassword({onResetEmailSent, username: 'alice'})
     await flush()
 
-    expect(nav.navigations()).toContainEqual({
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPromptResetPassword'])
+    expect(nav.visibleScreen()).toMatchObject({
       name: 'recoverPasswordPromptResetPassword',
       params: {username: 'alice'},
-      replace: false,
     })
 
     submitRecoverPasswordReset(T.RPCGen.ResetPromptResponse.confirmReset)
@@ -153,6 +157,7 @@ test('reset-password prompt resolves callback and local banner handler', async (
     expect(promptResponse?.result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
     expect(onResetEmailSent).toHaveBeenCalledTimes(1)
     expect(nav.types().filter(t => t === 'GO_BACK')).toHaveLength(1)
+    expect(loggedOutStack()).toEqual(['login'])
   } finally {
     finishListener()
     await flush()
@@ -169,20 +174,47 @@ describe('through the engine listener', () => {
     await flush()
   }
 
+  // Logged out, recovery runs from a screen of the logged-out stack above login.
+  const startLoggedOut = () => {
+    nav = installNavigation({
+      rootState: makeRootState({above: [{name: 'recoverPasswordExplainDevice'}], loggedIn: false}),
+    })
+  }
+
+  // Logged in, recovery runs from a modal, which an error replaces and nothing else clears.
+  const startLoggedIn = () => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    nav = installNavigation({rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}]})})
+  }
+  const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
   test('a service error replaces the screen with the recovery error', async () => {
+    startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
 
-    const errors = nav.navigations().filter(n => n.name === 'recoverPasswordError')
-    expect(errors).toHaveLength(1)
-    expect(errors[0]!.replace).toBe(true)
-    expect((errors[0]!.params as {error: string}).error).toContain('no such user')
-    expect(nav.modalsCleared()).toBe(false)
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordError'])
+    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
   })
 
-  test('a cancelled recovery shows no error and leaves the modals', async () => {
+  test('logged in, a service error replaces the modal with the error modal and leaves it up', async () => {
+    startLoggedIn()
+    await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
+
+    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
+  })
+
+  test('a cancelled recovery shows no error and leaves the screens where they were', async () => {
+    startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
 
-    expect(nav.navigations().filter(n => n.name === 'recoverPasswordError')).toEqual([])
-    expect(nav.modalsCleared()).toBe(false)
+    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
+  })
+
+  test('logged in, a cancelled recovery shows no error and leaves the modals', async () => {
+    startLoggedIn()
+    await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
+
+    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
   })
 })

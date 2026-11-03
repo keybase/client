@@ -2,8 +2,14 @@
 //
 // Everything that changes navigation goes through a Navigator: a thing that can
 // dispatch an action, read the root state, say whether it is ready, and be listened
-// to. There are exactly two implementations - the real binding to the app's
-// NavigationContainerRef (below), and the in-memory fake in test/fake-navigator.
+// to. It is bound to the app's NavigationContainerRef (below); tests mount the real
+// library on that same ref (test/navigation).
+//
+// React Navigation has a dispatch in getRootState() as soon as dispatch returns; only
+// the 'state' event waits for React to render it. So an operation can read the tree
+// straight after an earlier one and see its result. The exception is a navigator a
+// reset rebuilds or a tab focused for the first time: its nested state is in the tree
+// once it has rendered.
 //
 // The operations here are the ones that need the tree shape to decide what to
 // dispatch; they read it through NavTree and never re-derive it. The Navigator does
@@ -29,9 +35,7 @@ import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/rou
 type ContainerRef = NavigationContainerRef<RootParamList>
 type NavAction = Parameters<ContainerRef['dispatch']>[0]
 
-// What an adapter has to provide. Deliberately the smallest surface that the
-// operations below need, so a fake is a handful of lines rather than a mock of
-// React Navigation.
+// What an adapter has to provide: the smallest surface the operations below need.
 export type NavigatorRef = {
   isReady: () => boolean
   getRootState: () => NavTree.NavState | undefined
@@ -73,13 +77,7 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 // user has moved on to
 const modalsWaitMs = 1000
 
-export const makeNavigator = (ref: NavigatorRef): Navigator => {
-  // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
-  // visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
-  // thread queueing both). Track the in-flight push until the next state event; the time bound is a
-  // backstop in case the container tears down before the listener fires.
-  let pendingAppend: {name: string; params?: object; time: number} | undefined
-
+const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateUp = () => {
     if (DEBUG_NAV) {
       console.log('[Nav] navigateUp')
@@ -152,26 +150,15 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       if (visible?.name === routeName) {
         ref.dispatch(CommonActions.setParams(params))
         return true
-      } else {
+      }
+      // A modal replaces only a modal. With none up, the replace would reach the root stack and
+      // replace loggedIn, taking the tabs with it; there the modal opens above them instead.
+      if (!NavTree.isModalRouteName(routeName) || NavTree.modalStack(ns).length > 0) {
         ref.dispatch(StackActions.replace(routeName, params))
         return true
       }
     }
 
-    if (
-      pendingAppend?.name === routeName &&
-      shallowEqual(pendingAppend.params, params) &&
-      Date.now() - pendingAppend.time < 1000
-    ) {
-      console.log('Skipping append dupe (uncommitted)')
-      // An identical push is already in flight and uncommitted.
-      return true
-    }
-    pendingAppend = {name: routeName, params, time: Date.now()}
-    const unsub = ref.addListener('state', () => {
-      pendingAppend = undefined
-      unsub()
-    })
     ref.dispatch(StackActions.push(routeName, params))
     return true
   }
@@ -331,9 +318,13 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  // Targets the route's own navigator: React Navigation hands an action to the focused navigator,
+  // and SET_PARAMS never travels down from it, so under a modal a route in a tab stack is out of reach.
   const setRouteParams = (routeKey: string | undefined, params: object): boolean => {
-    if (!ref.isReady()) return false
-    ref.dispatch({...CommonActions.setParams(params), source: routeKey})
+    if (!ref.isReady() || !routeKey) return false
+    const holder = NavTree.navigatorHoldingRoute(ref.getRootState(), routeKey)
+    if (!holder?.key) return false
+    ref.dispatch({...CommonActions.setParams(params), source: routeKey, target: holder.key})
     return true
   }
 
@@ -401,12 +392,4 @@ const containerRefAdapter: NavigatorRef = {
 
 const realNavigator = makeNavigator(containerRefAdapter)
 
-let currentNavigator: Navigator = realNavigator
-
-export const getNavigator = () => currentNavigator
-
-// Swaps in another adapter - the in-memory fake in tests. Passing nothing restores
-// the real one.
-export const setNavigator = (navigator?: Navigator) => {
-  currentNavigator = navigator ?? realNavigator
-}
+export const getNavigator = () => realNavigator

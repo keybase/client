@@ -72,22 +72,22 @@ jest.mock('./text', () => ({
     require('react').createElement('span', null, children),
 }))
 
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, type InstalledNavigation} from '@/test/navigation'
 import {NameWithIcon} from './name-with-icon'
 
 const avatar = () => screen.queryByTestId('avatar')
 const followIcon = () => screen.queryByTestId('follow-icon')
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 
 describe('NameWithIcon', () => {
   beforeEach(() => {
     mockFollowerReads.length = 0
-    nav = installFakeNavigator()
+    nav = installNavigation()
   })
   afterEach(() => {
     cleanup()
-    restoreNavigator()
+    nav.unmount()
     mockFollowers.followers = new Set()
     mockFollowers.following = new Set()
   })

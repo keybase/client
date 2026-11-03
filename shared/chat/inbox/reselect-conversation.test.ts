@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
@@ -13,7 +14,7 @@ jest.mock('@/constants/chat/common', () => ({
 }))
 
 import * as Common from '@/constants/chat/common'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {conversationGone, maybeChangeSelectedConversation} from './selection'
 import * as Meta from '@/constants/chat/meta'
 import RPCError from '@/util/rpcerror'
@@ -28,20 +29,22 @@ const mockedSelected = Common.getSelectedConversation as jest.Mock
 const layout = (over: Partial<T.RPCChat.UIInboxReselectInfo>): T.RPCChat.UIInboxLayout =>
   ({reselectInfo: {oldConvID: '', ...over}}) as T.RPCChat.UIInboxLayout
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 
 // navigateToInbox defers a tick, so every assertion below has to let that tick run.
 const runDeferredNavigation = () => jest.advanceTimersByTime(1)
 
-// navUpToScreen reads which root-stack routes are modals, so every tree registers them.
-const modalRouteNames = ['incomingShareNew']
+const phoneTree = (rootState: ReturnType<typeof makeRootState>) => installNavigation({layout: 'phone', rootState})
 
 // The phone thread screen sits in the root stack above the tab bar; tab is the one beneath it.
 const threadOnTop = (tab: Tabs.AppTab = Tabs.chatTab) =>
-  installFakeNavigator({
-    modalRouteNames,
-    rootState: makeRootState({above: [{name: Common.threadRouteName}], tab}),
-  })
+  phoneTree(makeRootState({above: [{name: Common.threadRouteName}], tab}))
+
+// Nothing was dispatched, and the tree still shows what it showed.
+const expectLeftAlone = (screen: string) => {
+  expect(nav.actions).toEqual([])
+  expect(nav.visibleScreen()?.name).toBe(screen)
+}
 
 // Every test starts on the thread screen, the one screen the bounce may leave, so each guard
 // below is what decides whether it runs.
@@ -53,7 +56,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  restoreNavigator()
+  nav.unmount()
   jest.useRealTimers()
   jest.clearAllMocks()
   resetAllStores()
@@ -70,7 +73,7 @@ test('a reselect while a conversation creation is pending does not pop to the in
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })
 
 test('a reselect while the create error screen is up does not pop to the inbox', () => {
@@ -79,7 +82,7 @@ test('a reselect while the create error screen is up does not pop to the inbox',
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })
 
 // the real "we are on a dead conversation" case still has to bounce
@@ -90,8 +93,8 @@ test('a reselect while a phone thread screen has no conversation goes to the inb
 
   runDeferredNavigation()
   // navigateToInbox(false): stay on the chat tab and pop its stack back to the inbox
-  expect(nav.types()).toContain('POP_TO')
-  expect(nav.lastAction()?.payload).toMatchObject({name: 'chatRoot'})
+  expect(nav.visibleScreen()?.name).toBe('chatRoot')
+  expect(nav.getRootState()?.routes).toHaveLength(1)
 })
 
 // The bounce is navigateToInbox(false): a thread opened from another tab (here Teams) sits above
@@ -103,47 +106,41 @@ test('a reselect on a thread screen above another tab leaves that tab alone', ()
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })
 
 // The inbox is already where the bounce would go, and navigateToInbox focusing the chat stack
 // pops every screen above the tabs, so it must not run for screens it does not own.
 test('a reselect while the inbox is showing does not navigate', () => {
-  nav = installFakeNavigator({modalRouteNames, rootState: makeRootState()})
+  nav = phoneTree(makeRootState())
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone('chatRoot')
 })
 
 // The share picker opens over the chat tab's inbox, where nothing is selected. Inbox layouts keep
 // arriving while it is up and must not close it.
 test('a reselect while the share picker is over the inbox leaves the picker up', () => {
-  nav = installFakeNavigator({
-    modalRouteNames,
-    rootState: makeRootState({above: [{name: 'incomingShareNew'}]}),
-  })
+  nav = phoneTree(makeRootState({above: [{name: 'incomingShareNew'}]}))
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone('incomingShareNew')
 })
 
 test('a reselect while a modal is over an empty thread screen leaves the modal up', () => {
-  nav = installFakeNavigator({
-    modalRouteNames,
-    rootState: makeRootState({above: [{name: Common.threadRouteName}, {name: 'incomingShareNew'}]}),
-  })
+  nav = phoneTree(makeRootState({above: [{name: Common.threadRouteName}, {name: 'incomingShareNew'}]}))
   mockedSelected.mockReturnValue(T.Chat.noConversationIDKey)
 
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone('incomingShareNew')
 })
 
 // A phone has no auto-selection: the service naming the thread it has open (it names whatever it
@@ -155,7 +152,7 @@ test('a reselect naming the open thread on a phone leaves it open', () => {
   maybeChangeSelectedConversation(layout({newConvID, oldConvID: open}))
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })
 
 test('the open thread being gone on a phone leaves it open', () => {
@@ -165,7 +162,7 @@ test('the open thread being gone on a phone leaves it open', () => {
   conversationGone(open, 'left')
 
   runDeferredNavigation()
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })
 
 // Kicked from the team, removed from the conversation, or never in it: a phone's open thread stays
@@ -195,5 +192,5 @@ test.each([
   restoreChatRpc()
 
   expect(rpc.calls('loadThread')).toHaveLength(1)
-  expect(nav.actions).toEqual([])
+  expectLeftAlone(Common.threadRouteName)
 })

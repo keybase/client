@@ -2,12 +2,10 @@
 /// <reference types="jest" />
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import * as Tabs from '@/constants/tabs'
 import {act, cleanup, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({setOptions: () => {}}),
-}))
+import {navigationWrapper, type InstalledNavigation} from '@/test/navigation'
 
 // the file system is native: this one records what is written, under a uri with the raw name
 const mockWrites = new Array<string>()
@@ -41,10 +39,19 @@ const pendingIntent = () => useInputIntentState.getState().intents.get(conversat
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 let lastShareID = 0
-const shareToSuggestedConversation = async (share: Omit<T.RPCGen.IncomingShareItems, 'id'>, id?: string) => {
+let nav: Pick<InstalledNavigation, 'visibleScreen'>
+// The picker renders as the incomingShareNew modal of the real navigation tree, over `tab`, so
+// where its navigation lands is the library's answer.
+const shareToSuggestedConversation = async (
+  share: Omit<T.RPCGen.IncomingShareItems, 'id'>,
+  id?: string,
+  tab?: Tabs.AppTab
+) => {
   const res = {...share, id: id ?? `share-${++lastShareID}`}
   jest.spyOn(T.RPCGen, 'incomingShareGetIncomingShareItemsRpcPromise').mockResolvedValue(res)
-  render(<IncomingShareMain selectedConversationIDKey={conversationIDKey} />)
+  const {wrapper, ...recorder} = navigationWrapper({route: 'incomingShareNew', tab})
+  nav = recorder
+  render(<IncomingShareMain selectedConversationIDKey={conversationIDKey} />, {wrapper})
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 0))
   })
@@ -54,8 +61,9 @@ beforeEach(() => {
   mockWrites.length = 0
   mockWriteFails = false
   g.isIOS = true
-  jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
-  jest.spyOn(C.Router2, 'navigateAppend').mockReturnValue(true)
+  // pass-through: these record what the share asked for; the tree does what the library does
+  jest.spyOn(C.Router2, 'navigateToThread')
+  jest.spyOn(C.Router2, 'navigateAppend')
 })
 
 afterEach(() => {
@@ -72,6 +80,8 @@ test('a text share to a suggested conversation carries the dropped-items notice 
   })
 
   expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension')
+  // the picker modal is gone and the thread shows
+  expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
   expect(pendingIntent()).toEqual({
     append: true,
     notice: "1 item couldn't be prepared.",
@@ -211,11 +221,24 @@ describe('shared text and the draft', () => {
     expect(mockWrites).toEqual([over])
   })
 
-  test('with files, the titles screen opens even when the thread is not what the user sees', async () => {
-    jest.spyOn(C.Router2, 'getVisibleScreen').mockReturnValue({key: 'inbox', name: 'chatRoot', params: {}} as never)
-    await share(over, true)
+  test('with files, the titles screen opens even when the share started off the chat tab', async () => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
+      force: true,
+    })
+    await shareToSuggestedConversation(
+      {
+        droppedCount: 0,
+        items: [
+          {originalPath: '/tmp/a.jpg', type: T.RPCGen.IncomingShareType.image},
+          {content: over, type: T.RPCGen.IncomingShareType.text},
+        ],
+      },
+      undefined,
+      Tabs.peopleTab
+    )
 
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([{path: '/tmp/a.jpg'}, txt])
+    expect(nav.visibleScreen()?.name).toBe('chatAttachmentGetTitles')
   })
 
   test('the titles screen takes the tlfName of the meta the share loaded', async () => {

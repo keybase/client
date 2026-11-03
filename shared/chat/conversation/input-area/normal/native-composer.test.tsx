@@ -16,7 +16,7 @@ import type * as Metadata from '@/chat/inbox/metadata'
 import type * as MetaModule from '@/constants/chat/meta'
 import type * as FakeInput from '@/test/fake-composer-input'
 import type * as LoggerModule from '@/logger'
-import type * as FakeNavigatorModule from '@/test/fake-navigator'
+import type * as NavigationHarness from '@/test/navigation'
 import type * as RouterModule from '@/constants/router'
 
 // The composer picks its native or desktop half when its module loads, so the platform globals
@@ -140,6 +140,7 @@ const m: Modules = {
   useCurrentUserState: (require('@/stores/current-user') as typeof CurrentUser).useCurrentUserState,
   usePickerState: (require('@/chat/emoji-picker/use-picker') as typeof UsePicker).usePickerState,
 }
+const Harness = require('@/test/navigation') as typeof NavigationHarness
 /* eslint-enable @typescript-eslint/no-require-imports */
 const {act} = m
 const {CHAT_SEND_BUTTON} = require('@/tests/e2e/shared/test-ids') as {CHAT_SEND_BUTTON: string}
@@ -167,11 +168,17 @@ const InCommit = (p: {run?: () => void}) => {
   return null
 }
 
+// The thread screen on a phone's real navigation tree: the root stack above the tabs, with
+// anything in `above` (the message menu) over it.
+const threadTree = (above: ReadonlyArray<{name: string}> = []) =>
+  Harness.makeRootState({above: [{name: 'chatConversation', params: {conversationIDKey: convID}}, ...above]})
+
 // showInput(false) unmounts only the input, as thread search does on mobile; the conversation's
 // composer lives on in the provider. inCommit runs inside the commit that shows or hides it.
-const renderComposer = () => {
+const renderComposer = (rootState = threadTree()) => {
   const {ConversationInputProvider} = m.InputState
   const {ConversationThreadProvider} = m.Thread
+  const {wrapper, ...nav} = Harness.navigationWrapper({layout: 'phone', rootState, route: 'chatConversation'})
   const view = (show: boolean, inCommit?: () => void) => (
     <ConversationThreadProvider id={convID}>
       <ConversationInputProvider id={convID}>
@@ -181,9 +188,10 @@ const renderComposer = () => {
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
-  const utils = m.render(view(true))
+  const utils = m.render(view(true), {wrapper})
   return {
     ...utils,
+    nav,
     showInput: (show: boolean, inCommit?: () => void) => utils.rerender(view(show, inCommit)),
   }
 }
@@ -711,17 +719,8 @@ test('starting an edit fills the input and focuses it', () => {
 // first responder unreliably on iOS, so Edit and Reply both focus once it is gone.
 describe('from the message menu', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  const FakeNav = require('@/test/fake-navigator') as typeof FakeNavigatorModule
   const Router = require('@/constants/router') as typeof RouterModule
   /* eslint-enable @typescript-eslint/no-require-imports */
-  const installMenu = () =>
-    FakeNav.installFakeNavigator({
-      modalRouteNames: ['chatMessagePopup'],
-      rootState: FakeNav.makeRootState({
-        above: [{name: 'chatMessagePopup'}],
-        tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey: convID}}],
-      }),
-    })
   const addMessage = () => {
     /* eslint-disable @typescript-eslint/no-require-imports */
     const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule
@@ -743,16 +742,11 @@ describe('from the message menu', () => {
       )
     })
   }
-  afterEach(() => {
-    FakeNav.restoreNavigator()
-  })
-
   test.each([
     ['Edit', () => inputDispatch?.setEditing(m.T.Chat.numberToOrdinal(101))],
     ['Reply', () => inputDispatch?.reply(m.T.Chat.numberToOrdinal(101))],
   ])('%s focuses the input only once the menu is gone', (_name, run) => {
-    installMenu()
-    renderComposer()
+    const {nav} = renderComposer(threadTree([{name: 'chatMessagePopup'}]))
     addMessage()
 
     act(() => {
@@ -764,6 +758,7 @@ describe('from the message menu', () => {
       Router.clearModals()
     })
 
+    expect(nav.visibleScreen()?.name).toBe('chatConversation')
     expect(mockFocused).toBe(true)
   })
 })

@@ -3,7 +3,6 @@
 // The thread provider's commands that talk to the service: what each one sends, and what it does
 // to the thread store around the call.
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -17,6 +16,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper, type InstalledNavigation} from '@/test/navigation'
 import {
   deleteMessage,
   dismissJourneycard,
@@ -27,6 +27,7 @@ import {
   toggleReaction,
 } from './message-commands'
 import {Collapsed} from './messages/attachment/shared'
+import {peekInputIntent} from './input-intent-store'
 import {useConversationAttachmentActions} from './attachment-actions'
 import {useConversationSendActions} from './send-actions'
 import {applyFailedMessageToThread} from './thread-engine'
@@ -60,8 +61,12 @@ const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
     ...over,
   })
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
+let nav: Omit<InstalledNavigation, 'setRootState' | 'unmount'>
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
@@ -113,6 +118,9 @@ const run = async (f: () => void) => {
 }
 
 beforeEach(() => {
+  const {wrapper, ...recorder} = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'})
+  Nav = wrapper
+  nav = recorder
   useConfigState.setState({loggedIn: true})
   rpc = installFakeChatRpc()
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -296,10 +304,12 @@ describe('toggleMessageCollapse', () => {
   const renderCollapsed = (message: T.Chat.MessageAttachment) => {
     const {result} = renderHook(useConversationThreadActions, {
       wrapper: ({children}: {children: React.ReactNode}) => (
-        <ConversationThreadProvider id={conversationIDKey}>
-          {children}
-          <Collapsed isCollapsed={message.isCollapsed} ordinal={message.ordinal} />
-        </ConversationThreadProvider>
+        <Nav>
+          <ConversationThreadProvider id={conversationIDKey}>
+            {children}
+            <Collapsed isCollapsed={message.isCollapsed} ordinal={message.ordinal} />
+          </ConversationThreadProvider>
+        </Nav>
       ),
     })
     act(() => result.current.addMessages([message]))
@@ -395,7 +405,6 @@ describe('messageReplyPrivately', () => {
     jest
       .spyOn(Meta, 'inboxUIItemToConversationMeta')
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey, tlfname: tlfName})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     renderThread([textAt(10)])
 
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
@@ -404,9 +413,8 @@ describe('messageReplyPrivately', () => {
       [['testuser', 'testuser2'], Strings.waitingKeyChatCreating],
     ])
     expect(getInboxConversationMeta(newKey)).toBeDefined()
-    expect(navigate).toHaveBeenCalledWith(newKey, 'createdMessagePrivately', {
-      intent: {text: '> message 10\n', type: 'injectText'},
-    })
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: newKey}})
+    expect(peekInputIntent(newKey, ['injectText'])).toEqual({text: '> message 10\n', type: 'injectText'})
   })
 
   test('a missing message creates nothing', async () => {
@@ -934,7 +942,6 @@ describe('messageReplyPrivately edges', () => {
     jest
       .spyOn(Meta, 'inboxUIItemToConversationMeta')
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     const attachment = makeMessageAttachment({
       author: 'testuser2',
       conversationIDKey,
@@ -944,7 +951,7 @@ describe('messageReplyPrivately edges', () => {
     renderThread([attachment])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('createAdhocConversation')).toHaveLength(1)
-    expect(navigate).not.toHaveBeenCalled()
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(getInboxConversationMeta(newKey)).toBeUndefined()
   })
 
@@ -952,20 +959,18 @@ describe('messageReplyPrivately edges', () => {
     rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
     jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(navigate).not.toHaveBeenCalled()
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(warn).toHaveBeenCalledWith('replyPrivately: unable to make meta')
   })
 
   test('an empty conversation id, no navigation', async () => {
     rpc.on('createAdhocConversation', () => ({conv: {info: {id: new Uint8Array()}}, uiConv: {}}) as never)
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(navigate).not.toHaveBeenCalled()
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 

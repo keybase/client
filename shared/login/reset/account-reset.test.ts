@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
@@ -9,37 +10,40 @@ jest.mock('@/provision/flow', () => ({
   startProvision: (...args: Array<unknown>) => mockStartProvision(...args),
 }))
 
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 
 // The confirm screen is handed a one-shot key, and the only way to learn it is to read
-// the params the flow navigated with.
-const lastResetKey = () => (nav.navigations().at(-1)?.params as {resetKey?: string} | undefined)?.resetKey ?? ''
+// the params of the screen the flow navigated to.
+const lastResetKey = () => (nav.visibleScreen()?.params as {resetKey?: string} | undefined)?.resetKey ?? ''
 
+// The logged-out stack's screens, bottom to top.
+const loggedOutStack = () => nav.getRootState()?.routes?.[0]?.state?.routes.map(r => r.name)
+
+// The flow starts from a screen of the logged-out stack, above login.
 beforeEach(() => {
-  nav = installFakeNavigator()
+  nav = installNavigation({rootState: makeRootState({above: [{name: 'resetEnterPassword'}], loggedIn: false})})
 })
 
 afterEach(() => {
-  restoreNavigator()
   jest.restoreAllMocks()
   mockStartProvision.mockReset()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
 test('startAccountReset navigates into the reset flow', () => {
   startAccountReset(true, 'testuser')
 
-  expect(nav.navigations()).toContainEqual({
+  expect(nav.visibleScreen()).toMatchObject({
     name: 'recoverPasswordPromptResetAccount',
     params: {skipPassword: true, username: 'testuser'},
-    replace: true,
   })
+  expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPromptResetAccount'])
 })
 
 test('enterResetPipeline exposes a submit handler for the confirm screen and starts provision on confirm', async () => {
@@ -67,11 +71,9 @@ test('enterResetPipeline exposes a submit handler for the confirm screen and sta
     await flush()
 
     const resetKey = lastResetKey()
-    expect(nav.navigations()).toContainEqual({
-      name: 'resetConfirm',
-      params: {hasWallet: true, resetKey},
-      replace: true,
-    })
+    expect(resetKey).not.toBe('')
+    expect(nav.visibleScreen()).toMatchObject({name: 'resetConfirm', params: {hasWallet: true, resetKey}})
+    expect(loggedOutStack()).toEqual(['login', 'resetConfirm'])
 
     submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
 
@@ -102,11 +104,11 @@ test('enterResetPipeline responds and starts the reset flow for non-complete pro
   await Promise.resolve()
 
   expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
-  expect(nav.navigations()).toContainEqual({
+  expect(nav.visibleScreen()).toMatchObject({
     name: 'recoverPasswordPromptResetAccount',
     params: {skipPassword: true, username: 'testuser'},
-    replace: true,
   })
+  expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPromptResetAccount'])
 })
 
 test('submitResetPrompt sends cancel responses back to the login flow', async () => {
@@ -136,7 +138,8 @@ test('submitResetPrompt sends cancel responses back to the login flow', async ()
     submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.cancelReset)
 
     expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.cancelReset)
-    expect(nav.actions).toContainEqual(expect.objectContaining({payload: {name: 'login'}, type: 'POP_TO'}))
+    expect(nav.visibleScreen()?.name).toBe('login')
+    expect(loggedOutStack()).toEqual(['login'])
   } finally {
     finishListener()
     await flush()
@@ -170,7 +173,8 @@ test('submitResetPrompt sends nothing responses back to the login flow', async (
     submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.nothing)
 
     expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
-    expect(nav.actions).toContainEqual(expect.objectContaining({payload: {name: 'login'}, type: 'POP_TO'}))
+    expect(nav.visibleScreen()?.name).toBe('login')
+    expect(loggedOutStack()).toEqual(['login'])
   } finally {
     finishListener()
     await flush()
@@ -221,11 +225,11 @@ test('reset progress before verification shows the check-your-email screen', asy
   enterResetPipeline({username: 'testuser'})
   await flush()
 
-  expect(nav.navigations()).toContainEqual({
+  expect(nav.visibleScreen()).toMatchObject({
     name: 'resetWaiting',
     params: {endTime: undefined, pipelineStarted: false, username: 'testuser'},
-    replace: true,
   })
+  expect(loggedOutStack()).toEqual(['login', 'resetWaiting'])
 })
 
 test('reset progress after verification passes the countdown end time in milliseconds', async () => {
@@ -239,11 +243,11 @@ test('reset progress after verification passes the countdown end time in millise
   enterResetPipeline({username: 'testuser'})
   await flush()
 
-  expect(nav.navigations()).toContainEqual({
+  expect(nav.visibleScreen()).toMatchObject({
     name: 'resetWaiting',
     params: {endTime: 1700000000000, pipelineStarted: true, username: 'testuser'},
-    replace: true,
   })
+  expect(loggedOutStack()).toEqual(['login', 'resetWaiting'])
 })
 
 test('an rpc failure clears then reports the error to the caller', async () => {

@@ -2,58 +2,36 @@
 /// <reference types="jest" />
 
 import * as React from 'react'
-import {act, render, screen} from '@testing-library/react'
-import {fakeModalNavigation, setupOverlayDom} from '@/test/overlay-dom.desktop'
-
-// Focus effects run like react-navigation's, which can blur a screen pushed as a modal and focus it
-// again after it mounts.
-const focusEffects: Array<{cb: () => (() => void) | undefined; cleanup?: () => void}> = []
-jest.mock('@/constants', () => {
-  const actual = jest.requireActual<Record<string, unknown>>('@/constants')
-  const R = jest.requireActual<typeof React>('react')
-  return {
-    ...actual,
-    Router2: {
-      ...(actual['Router2'] as object),
-      useSafeFocusEffect: (cb: () => (() => void) | undefined) => {
-        R.useEffect(() => {
-          const item: (typeof focusEffects)[number] = {cb, cleanup: cb()}
-          focusEffects.push(item)
-          return () => {
-            item.cleanup?.()
-            focusEffects.splice(focusEffects.indexOf(item), 1)
-          }
-        }, [cb])
-      },
-    },
-  }
-})
-
-import {ModalWrapper} from './screen-layout-modal.desktop'
+import {act, screen} from '@testing-library/react'
+import {CommonActions, StackActions, useIsFocused} from '@react-navigation/core'
+import {navigationRef} from '@/constants/navigator'
+import {RouteModal, setupOverlayDom, showModals} from '@/test/overlay-dom.desktop'
 
 setupOverlayDom()
 
-const blurAndFocus = () => {
-  act(() => {
-    focusEffects.forEach(f => f.cleanup?.())
-  })
-  act(() => {
-    focusEffects.forEach(f => {
-      f.cleanup = f.cb()
-    })
-  })
-}
+// Modals here are routes of the real navigation tree (showModals), so pushing, popping, covering and
+// the transition each new state renders in are the library's.
+
+const SearchModal = () => (
+  <RouteModal navigationOptions={{title: 'New chat'}}>
+    <input aria-label="search" autoFocus={true} />
+  </RouteModal>
+)
 
 // e.g. new chat's "Search Keybase" field
-test('a field focused on mount keeps focus when the modal screen is blurred and focused again', () => {
-  render(
-    <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
-      <input aria-label="search" autoFocus={true} />
-    </ModalWrapper>
+test('a field focused on mount has focus again once a modal pushed over its modal closes', () => {
+  showModals(
+    [
+      {name: 'chatNewChat', render: () => <SearchModal />},
+      {name: 'chatCreateChannel', render: () => <RouteModal navigationOptions={{title: 'Other'}}>other</RouteModal>},
+    ],
+    {open: ['chatNewChat']}
   )
   const search = screen.getByLabelText('search')
   expect(document.activeElement).toBe(search)
-  blurAndFocus()
+  act(() => navigationRef.dispatch(StackActions.push('chatCreateChannel')))
+  expect(screen.getByText('other')).toBeTruthy()
+  act(() => navigationRef.dispatch(StackActions.pop()))
   expect(document.activeElement).toBe(search)
 })
 
@@ -68,13 +46,18 @@ describe('a lazily loaded modal screen', () => {
     return {Lazy: React.lazy(async () => loaded), resolve}
   }
   const renderModal = (Lazy: React.ComponentType) =>
-    render(
-      <React.Suspense>
-        <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
-          <Lazy />
-        </ModalWrapper>
-      </React.Suspense>
-    )
+    showModals([
+      {
+        name: 'chatNewChat',
+        render: () => (
+          <React.Suspense>
+            <RouteModal navigationOptions={{title: 'New chat'}}>
+              <Lazy />
+            </RouteModal>
+          </React.Suspense>
+        ),
+      },
+    ])
 
   test('a field focused on mount has focus once it loads', async () => {
     const {Lazy, resolve} = lazyScreen(() => <input aria-label="search" autoFocus={true} />)
@@ -104,46 +87,59 @@ describe('a lazily loaded modal screen', () => {
   })
 })
 
-// As in the app: react-navigation makes the screen under a modal inert, and lifts that in the same
-// commit that removes the modal, after the modal is gone. The modal's screen can unmount (and drop
-// focus) before the modal itself does. Modal layouts run in StrictMode.
+// As in the app: the screen under a modal is inert while the modal covers it, and that lifts in the
+// same commit that removes the modal, after the modal is gone. The harness's views are stand-ins,
+// so the screen here goes inert from the library's own focus state, as the app's stack view does.
+// The modal's screen can unmount (and drop focus) before the modal itself does. Modal layouts run
+// in StrictMode.
 describe('closing gives focus back to what had it', () => {
-  type Step = 'closed' | 'open' | 'contentGone'
-  const App = (p: {step: Step}) => (
-    <>
-      <div inert={p.step !== 'closed'}>
+  const Composer = () => {
+    const isFocused = useIsFocused()
+    return (
+      <div inert={!isFocused}>
         <textarea aria-label="composer" />
       </div>
-      {p.step !== 'closed' ? (
-        <React.StrictMode>
-          <ModalWrapper canGoBack={false} navigation={fakeModalNavigation()} navigationOptions={{title: 'New chat'}}>
-            {p.step === 'open' ? <input aria-label="search" autoFocus={true} /> : null}
-          </ModalWrapper>
-        </React.StrictMode>
-      ) : null}
-    </>
-  )
+    )
+  }
 
-  const stepThrough = async (rerender: (ui: React.ReactElement) => void, steps: ReadonlyArray<Step>) => {
-    for (const step of steps) {
-      // each step is its own task, a frame apart
-      await act(async () => {
-        rerender(<App step={step} />)
-        await new Promise(resolve => requestAnimationFrame(resolve))
-      })
-    }
+  const steps = {
+    // the modal's content unmounts first, its route still up
+    contentGone: () => navigationRef.dispatch(CommonActions.setParams({gone: true})),
+    closed: () => navigationRef.dispatch(StackActions.pop()),
   }
 
   test.each([
     ['with its screen', ['closed']],
     ['after its screen unmounted and dropped focus', ['contentGone', 'closed']],
-  ] as const)('a router modal closing %s', async (_, steps) => {
-    const {rerender} = render(<App step="closed" />)
+  ] as const)('a router modal closing %s', async (_, stepNames) => {
+    showModals(
+      [
+        {
+          name: 'chatNewChat',
+          render: route => (
+            <React.StrictMode>
+              <RouteModal navigationOptions={{title: 'New chat'}}>
+                {(route.params as {gone?: boolean} | undefined)?.gone ? null : (
+                  <input aria-label="search" autoFocus={true} />
+                )}
+              </RouteModal>
+            </React.StrictMode>
+          ),
+        },
+      ],
+      {open: [], under: () => <Composer />}
+    )
     const composer = screen.getByLabelText('composer')
     composer.focus()
-    rerender(<App step="open" />)
+    act(() => navigationRef.dispatch(StackActions.push('chatNewChat')))
     expect(document.activeElement).toBe(screen.getByLabelText('search'))
-    await stepThrough(rerender, steps)
+    for (const step of stepNames) {
+      // each step is its own task, a frame apart
+      await act(async () => {
+        steps[step]()
+        await new Promise(resolve => requestAnimationFrame(resolve))
+      })
+    }
     expect(document.activeElement).toBe(composer)
   })
 })

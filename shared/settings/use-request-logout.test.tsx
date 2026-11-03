@@ -13,7 +13,8 @@ import * as Tabs from '@/constants/tabs'
 import {settingsPasswordTab} from '@/constants/settings'
 import {resetAllStores} from '@/util/zustand'
 import {usePushState} from '@/stores/push'
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 import {useRequestLogout} from './use-request-logout'
 
 type MutableGlobals = {isMobile: boolean}
@@ -39,14 +40,19 @@ const mockCanLogoutRPC = () => {
   }
 }
 
-let nav: FakeNavigator
-
-beforeEach(() => {
-  nav = installFakeNavigator()
-})
+// The hook as the log-out screen runs it: a modal over the chat tab.
+const renderOnLogout = (layout: 'desktop' | 'phone' = 'desktop') => {
+  const nav = navigationWrapper({layout, route: 'settingsTabs.logOutTab'})
+  const {result} = renderHook(() => useRequestLogout(), {wrapper: nav.wrapper})
+  const shown = () => NavTree.visibleScreen(nav.getRootState(), {includeModals: true})
+  const selectedTab = () => {
+    const tabs = nav.getRootState()?.routes?.[0]?.state
+    return tabs?.routes[tabs.index ?? 0]?.name
+  }
+  return {nav, result, selectedTab, shown}
+}
 
 afterEach(() => {
-  restoreNavigator()
   cleanup()
   jest.clearAllMocks()
   jest.restoreAllMocks()
@@ -68,7 +74,7 @@ test('logs out after unregistering the push token when the service allows it', a
     return undefined as never
   })
 
-  const {result} = renderHook(() => useRequestLogout())
+  const {nav, result} = renderOnLogout()
 
   act(() => {
     result.current()
@@ -93,7 +99,7 @@ test('a failing logout rpc is swallowed', async () => {
     .spyOn(T.RPCGen, 'loginLogoutRpcPromise')
     .mockRejectedValue(new Error('service down'))
 
-  const {result} = renderHook(() => useRequestLogout())
+  const {nav, result} = renderOnLogout()
 
   act(() => {
     result.current()
@@ -111,7 +117,7 @@ test('desktop routes to the password tab when the user cannot log out yet', () =
   const rpc = mockCanLogoutRPC()
   const logoutRPC = jest.spyOn(T.RPCGen, 'loginLogoutRpcPromise').mockResolvedValue(undefined as never)
 
-  const {result} = renderHook(() => useRequestLogout())
+  const {nav, result, selectedTab, shown} = renderOnLogout()
 
   act(() => {
     result.current()
@@ -125,13 +131,15 @@ test('desktop routes to the password tab when the user cannot log out yet', () =
     expect.objectContaining({payload: {name: Tabs.settingsTab}, type: 'JUMP_TO'})
   )
   expect(nav.pushes()).toContainEqual({name: settingsPasswordTab, params: {}})
+  expect(selectedTab()).toBe(Tabs.settingsTab)
+  expect(shown()?.name).toBe(settingsPasswordTab)
 })
 
 test('mobile pushes the password tab without switching tabs', () => {
   g.isMobile = true
   const rpc = mockCanLogoutRPC()
 
-  const {result} = renderHook(() => useRequestLogout())
+  const {nav, result, selectedTab, shown} = renderOnLogout('phone')
 
   act(() => {
     result.current()
@@ -142,4 +150,6 @@ test('mobile pushes the password tab without switching tabs', () => {
 
   expect(nav.types()).not.toContain('JUMP_TO')
   expect(nav.pushes()).toContainEqual({name: settingsPasswordTab, params: {}})
+  expect(selectedTab()).toBe(Tabs.chatTab)
+  expect(shown()?.name).toBe(settingsPasswordTab)
 })

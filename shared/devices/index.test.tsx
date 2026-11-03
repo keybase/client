@@ -68,7 +68,6 @@ jest.mock('@/util/use-local-badging', () => {
   }
 })
 jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
-jest.mock('@react-navigation/native', () => ({useNavigation: () => ({setOptions: () => {}})}))
 
 let mockRPCResults: Array<T.RPCGen.DeviceDetail> = []
 jest.mock('@/util/use-rpc-load', () => ({
@@ -80,7 +79,13 @@ jest.mock('@/util/use-rpc-load', () => ({
 
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
+import * as Tabs from '@/constants/tabs'
+import {navigationWrapper} from '@/test/navigation'
 import Devices from './index'
+
+// the desktop devices tab's root, on the real navigation tree
+const renderDevices = () =>
+  render(<Devices />, {wrapper: navigationWrapper({route: 'devicesRoot', tab: Tabs.devicesTab}).wrapper})
 
 const makeDetail = (
   name: string,
@@ -125,7 +130,7 @@ test('active devices list the current device first, then alphabetically', () => 
     makeDetail('testuser-mac', {currentDevice: true}),
   ]
 
-  render(<Devices />)
+  renderDevices()
 
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-alpha', 'testuser-zeta'])
 })
@@ -136,7 +141,7 @@ test('revoked devices stay behind the collapsed section until it is expanded', (
     makeDetail('testuser-old', {revokedAt: 1000}),
   ]
 
-  render(<Devices />)
+  renderDevices()
 
   expect(renderedDevices()).toEqual(['testuser-mac'])
 
@@ -149,24 +154,24 @@ test('revoked devices stay behind the collapsed section until it is expanded', (
 test('revoking is only offered when more than one active device would remain', () => {
   mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1})]
 
-  const {unmount} = render(<Devices />)
+  const {unmount} = renderDevices()
   // the revoked device does not count towards the active total
   expect(screen.getByText('testuser-mac').getAttribute('data-can-revoke')).toBe('false')
   unmount()
 
   mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-phone')]
-  render(<Devices />)
+  renderDevices()
   expect(screen.getByText('testuser-mac').getAttribute('data-can-revoke')).toBe('true')
 })
 
 test('the paper key nudge shows only when the user has devices but no paper key', () => {
   mockRPCResults = []
-  const {unmount} = render(<Devices />)
+  const {unmount} = renderDevices()
   expect(screen.queryAllByText('Create a paper key')).toHaveLength(0)
   unmount()
 
   mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true})]
-  const second = render(<Devices />)
+  const second = renderDevices()
   expect(screen.queryAllByText('Create a paper key').length).toBeGreaterThan(0)
   second.unmount()
 
@@ -174,7 +179,7 @@ test('the paper key nudge shows only when the user has devices but no paper key'
     makeDetail('testuser-mac', {currentDevice: true}),
     makeDetail('testuser-paper', {type: 'backup'}),
   ]
-  render(<Devices />)
+  renderDevices()
   expect(screen.queryAllByText('Create a paper key')).toHaveLength(0)
 })
 
@@ -184,7 +189,7 @@ test('a newly badged revoked device expands the revoked section on its own', () 
     makeDetail('testuser-old', {revokedAt: 1000}),
   ]
 
-  const {rerender} = render(<Devices />)
+  const {rerender} = renderDevices()
   expect(renderedDevices()).toEqual(['testuser-mac'])
 
   mockBadged = new Set(['id-testuser-old'])
@@ -199,7 +204,7 @@ test('badging an active device leaves the revoked section collapsed', () => {
     makeDetail('testuser-old', {revokedAt: 1000}),
   ]
 
-  const {rerender} = render(<Devices />)
+  const {rerender} = renderDevices()
   mockBadged = new Set(['id-testuser-mac'])
   rerender(<Devices />)
 

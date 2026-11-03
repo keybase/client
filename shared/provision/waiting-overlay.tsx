@@ -38,9 +38,9 @@ const ProvisionWaitingOverlay = () => {
       // Only a genuine back-out parks the flow. beforeRemove also fires when the router removes
       // screens on state changes (e.g. login success unmounting the logged-out stack) and pausing
       // there would cancel an RPC that is about to resolve. Native back/swipe dismissals arrive
-      // as REMOVE (native-stack's onDismissed); we never dispatch REMOVE ourselves.
+      // as DISMISS (native-stack's onDismissed); we never dispatch DISMISS ourselves.
       const {type} = e.data.action
-      if (type !== 'POP' && type !== 'GO_BACK' && type !== 'REMOVE') {
+      if (type !== 'POP' && type !== 'GO_BACK' && type !== 'DISMISS') {
         return
       }
       if ((useWaitingState.getState().counts.get(waitingKeyProvision) ?? 0) > 0) {

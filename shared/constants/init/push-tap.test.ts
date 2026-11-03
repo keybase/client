@@ -4,34 +4,22 @@ import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 import {listenForPushTaps} from './shared'
 
 // The native slot, as far as these tests are concerned: a tap replaces whatever is held and gets a
 // fresh id, a peek reads without clearing, and an ack clears only when its id is the held tap's.
+// react-native-kb's own wrapper runs over it.
 const mockNative: {
   calls: Array<string>
   held?: {id: number; payload: string}
   lastID: number
-  listeners: Array<() => void>
-} = {calls: [], lastID: 0, listeners: []}
+  listeningAtPeek: Array<boolean>
+} = {calls: [], lastID: 0, listeningAtPeek: []}
 
-jest.mock('react-native-kb', () => ({
-  ackPushTap: (id: number) => {
-    mockNative.calls.push(`ack:${id}`)
-    if (mockNative.held?.id === id) mockNative.held = undefined
-  },
-  addPushTapListener: (cb: () => void) => {
-    mockNative.calls.push('listen')
-    mockNative.listeners.push(cb)
-    return () => {
-      mockNative.listeners = mockNative.listeners.filter(l => l !== cb)
-    }
-  },
-  peekPushTap: () => {
-    mockNative.calls.push('peek')
-    return mockNative.held ? {...mockNative.held} : null
-  },
-}))
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
+
+const nativeAvailable = () => fakeNativeKb.emit('onPushTapAvailable', undefined)
 
 const g = globalThis as unknown as {isAndroid: boolean; isIOS: boolean; isMobile: boolean}
 const originalGlobals = {isAndroid: g.isAndroid, isIOS: g.isIOS, isMobile: g.isMobile}
@@ -42,7 +30,7 @@ const nativeTap = (payload: object | string) => {
     id: ++mockNative.lastID,
     payload: typeof payload === 'string' ? payload : JSON.stringify(payload),
   }
-  for (const l of mockNative.listeners) l()
+  nativeAvailable()
   return mockNative.lastID
 }
 
@@ -67,7 +55,18 @@ beforeEach(() => {
   g.isIOS = false
   mockNative.calls = []
   mockNative.held = undefined
-  mockNative.listeners = []
+  mockNative.listeningAtPeek = []
+  fakeNativeKb.give({
+    ackPushTap: (id: number) => {
+      mockNative.calls.push(`ack:${id}`)
+      if (mockNative.held?.id === id) mockNative.held = undefined
+    },
+    peekPushTap: () => {
+      mockNative.calls.push('peek')
+      mockNative.listeningAtPeek.push(fakeNativeKb.count('onPushTapAvailable') > 0)
+      return mockNative.held ? {...mockNative.held} : null
+    },
+  })
   resetAllStores()
   setCurrentUid('uid-current')
   unbox = jest.spyOn(T.RPCChat, 'localUnboxMobilePushNotificationRpcPromise').mockResolvedValue('')
@@ -88,7 +87,17 @@ afterEach(() => {
 test('the listener is attached before the first peek', () => {
   stopListening = listenForPushTaps()
 
-  expect(mockNative.calls.slice(0, 2)).toEqual(['listen', 'peek'])
+  expect(mockNative.listeningAtPeek[0]).toBe(true)
+})
+
+test('stopping removes the native subscription', () => {
+  stopListening = listenForPushTaps()
+  expect(fakeNativeKb.count('onPushTapAvailable')).toBe(1)
+
+  stopListening()
+  stopListening = undefined
+
+  expect(fakeNativeKb.count('onPushTapAvailable')).toBe(0)
 })
 
 test('a tap held from before JS listened is taken by the first peek', () => {
@@ -119,7 +128,7 @@ test('peek twice without ack returns the same id and queues one intent', () => {
   const first = useNavigationIntentsState.getState().intent
 
   // a second availability event, as a JS reload or a repeated event would cause
-  for (const l of mockNative.listeners) l()
+  nativeAvailable()
 
   expect(peeks()).toHaveLength(3)
   expect(mockNative.held?.id).toBe(id)
@@ -151,7 +160,7 @@ test('consuming the intent acks the current id and the next peek is empty', () =
 
   expect(acks()).toEqual([`ack:${id}`])
   expect(mockNative.held).toBeUndefined()
-  for (const l of mockNative.listeners) l()
+  nativeAvailable()
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
@@ -196,7 +205,7 @@ describe('unboxing a tapped chat push', () => {
   test('taking the same tap twice unboxes it once', () => {
     stopListening = listenForPushTaps()
     nativeTap(chatTap('uid-current'))
-    for (const l of mockNative.listeners) l()
+    nativeAvailable()
 
     expect(unbox).toHaveBeenCalledTimes(1)
   })

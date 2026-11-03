@@ -4,7 +4,8 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 import {flush, tick} from '@/test/flush'
 import {RPCError} from '@/util/errors'
 import Choice, {generatePgp, validatePgpInfo} from './choice'
@@ -72,25 +73,23 @@ const pushKey = async (fake: FakeEngine, sessionID: number) =>
   fake.push(keyGenerated, {key: {key: publicKey}, kid: 'kid'}, {sessionID})
 
 describe('the generate flow', () => {
-  let nav: FakeNavigator
-
-  beforeEach(() => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['profilePgp'],
-      rootState: makeRootState({above: [{name: 'profilePgp'}]}),
-    })
-  })
+  // The screen as a real modal route; clearing the modals unmounts it, as in the app.
+  let nav: ReturnType<typeof navigationWrapper>
+  const renderChoice = () => {
+    nav = navigationWrapper({route: 'profilePgp'})
+    render(<Choice />, {wrapper: nav.wrapper})
+  }
+  const modalsCleared = () => NavTree.modalStack(nav.getRootState()).length === 0
 
   afterEach(() => {
     cleanup()
-    restoreNavigator()
   })
 
   // Renders the screen and walks it to the generate step; the service holds the RPC
   const startGenerating = async (onEngineIncoming?: () => void) => {
     const fake = installFakeEngine({onEngineIncoming})
     const held = fake.hold(pgpRpc)
-    render(<Choice />)
+    renderChoice()
     fireEvent.click(screen.getByText('Get a new PGP key'))
     fireEvent.change(screen.getByPlaceholderText('Your full name'), {target: {value: 'Test User'}})
     fireEvent.change(screen.getByPlaceholderText('Email 1'), {target: {value: 'testuser@example.com'}})
@@ -124,7 +123,7 @@ describe('the generate flow', () => {
       }
       fireEvent.click(screen.getByText(store ? 'Done, post to Keybase' : 'Done'))
       await expect(pushed).resolves.toEqual({result: store})
-      expect(nav.modalsCleared()).toBe(true)
+      expect(modalsCleared()).toBe(true)
       held[0]!.reply(undefined)
       await flush()
     }
@@ -139,8 +138,9 @@ describe('the generate flow', () => {
     fireEvent.click(screen.getByText("Store encrypted private key on Keybase's server"))
     fireEvent.click(screen.getByText('Done, post to Keybase'))
     await expect(pushed).resolves.toEqual({result: true})
-    // clearModals unmounts the screen
-    cleanup()
+    // clearing the modals unmounted the screen
+    expect(modalsCleared()).toBe(true)
+    expect(screen.queryByText('Here is your unique public key!')).toBeNull()
     void fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
     await settle()
     expect(onEngineIncoming).toHaveBeenCalledTimes(1)
@@ -185,19 +185,19 @@ describe('the generate flow', () => {
   test('cancel while generating clears the modals and refuses the key', async () => {
     const {fake, held, sessionID} = await startGenerating()
     fireEvent.click(screen.getByText('Cancel'))
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modalsCleared()).toBe(true)
     await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
   })
 
   test('cancel at the info step goes back to the choice without starting anything', async () => {
     const fake = installFakeEngine()
-    render(<Choice />)
+    renderChoice()
     fireEvent.click(screen.getByText('Get a new PGP key'))
     fireEvent.click(screen.getByText('Cancel'))
     await flush()
     expect(screen.getByText('I have one already')).toBeTruthy()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
     expect(fake.calls).toEqual([])
   })
 })

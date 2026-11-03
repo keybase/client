@@ -28,6 +28,7 @@ import {resetAllStores} from '@/util/zustand'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider} from '../thread-context'
 import ResetUser, {addTeamMemberAfterReset} from './reset-user'
 
@@ -100,10 +101,13 @@ describe('the Let them in button', () => {
       contactName: new Map(),
       name: [],
     })
+    const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'})
     render(
-      <ConversationThreadProvider id={conversationIDKey}>
-        <ResetUser />
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={conversationIDKey}>
+          <ResetUser />
+        </ConversationThreadProvider>
+      </Nav>
     )
   }
 

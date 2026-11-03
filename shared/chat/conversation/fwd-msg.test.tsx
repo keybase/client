@@ -42,6 +42,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper, type InstalledNavigation} from '@/test/navigation'
 import TeamPicker from './fwd-msg'
 
 let rpc: FakeChatRpc
@@ -76,12 +77,41 @@ const expectForwardSent = (title: string) => {
   ])
 }
 
-const spyNav = () => ({
-  clearModals: jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {}),
-  previewConversation: jest.spyOn(C.Router2, 'previewConversation').mockImplementation(() => {}),
-})
+const dstKey = T.Chat.conversationIDToKey(dstConvID)
 
-const renderPicker = () => render(<TeamPicker conversationIDKey={srcKey} messageID={msgID} />)
+let nav: Omit<InstalledNavigation, 'setRootState' | 'unmount'>
+// the picker as the modal it is, over the chat tab
+const renderPicker = () => {
+  const {wrapper, ...recorder} = navigationWrapper({
+    params: {conversationIDKey: srcKey, messageID: msgID},
+    route: 'chatForwardMsgPick',
+  })
+  nav = recorder
+  return render(<TeamPicker conversationIDKey={srcKey} messageID={msgID} />, {wrapper})
+}
+
+// the picker is still up, and nothing navigated away from it
+const expectStillPicking = () => {
+  expect(nav.visibleScreen()?.name).toBe('chatForwardMsgPick')
+}
+// the modal is gone and the chat shows the destination
+const expectShowingDestination = () => {
+  expect(nav.getRootState()?.routes).toHaveLength(1)
+  expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: dstKey}})
+}
+// the modal is gone and the chat shows no conversation
+const expectClosedWithoutForwarding = () => {
+  expect(nav.getRootState()?.routes).toHaveLength(1)
+  expect(nav.visibleScreen()?.name).toBe('chatRoot')
+  expect((nav.visibleScreen()?.params as {conversationIDKey?: string} | undefined)?.conversationIDKey).toBeUndefined()
+}
+
+// the clicks navigate, and previewConversation lands its navigation a tick later
+const settle = async () => {
+  await act(async () => {
+    await flushPromises()
+  })
+}
 
 beforeEach(() => {
   rpc = installFakeChatRpc()
@@ -192,7 +222,8 @@ describe('search', () => {
 describe('forward', () => {
   test('selecting a hit for a text message forwards immediately with an empty title', async () => {
     rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
-    const {clearModals, previewConversation} = spyNav()
+    // passes through: only records when the preview started, relative to the forward
+    const previewConversation = jest.spyOn(C.Router2, 'previewConversation')
     const previewCalledAtForward: Array<boolean> = []
     rpc.on('forwardMessage', () => {
       previewCalledAtForward.push(previewConversation.mock.calls.length === 1)
@@ -203,13 +234,10 @@ describe('forward', () => {
     })
 
     fireEvent.click(getByText('testuser-mac'))
+    await settle()
 
-    expect(previewConversation).toHaveBeenCalledWith({
-      conversationIDKey: T.Chat.conversationIDToKey(dstConvID),
-      reason: 'forward',
-    })
     expectForwardSent('')
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expectShowingDestination()
     // preview is started before the forward goes out, and modals clear without waiting on it
     expect(previewCalledAtForward).toEqual([true])
   })
@@ -217,28 +245,27 @@ describe('forward', () => {
   test('an attachment asks for a caption first and sends it as the title', async () => {
     mockMessage = {attachmentType: 'file', fileName: 'a.txt', id: msgID, type: 'attachment'} as unknown as T.Chat.Message
     rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
-    const {clearModals, previewConversation} = spyNav()
     const {getByTestId, getByText} = renderPicker()
     await act(async () => {
       await flushPromises()
     })
 
     fireEvent.click(getByText('testuser-mac'))
+    await settle()
     expect(rpc.calls('forwardMessage')).toEqual([])
-    expect(previewConversation).not.toHaveBeenCalled()
+    expectStillPicking()
 
     fireEvent.change(getByTestId('caption'), {target: {value: 'a caption'}})
     fireEvent.click(getByText('Send'))
+    await settle()
 
     expectForwardSent('a caption')
-    expect(previewConversation).toHaveBeenCalledTimes(1)
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expectShowingDestination()
   })
 
   test('cancel on the caption step clears modals without forwarding', async () => {
     mockMessage = {attachmentType: 'file', fileName: 'a.txt', id: msgID, type: 'attachment'} as unknown as T.Chat.Message
     rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
-    const {clearModals} = spyNav()
     const {getByText} = renderPicker()
     await act(async () => {
       await flushPromises()
@@ -246,8 +273,9 @@ describe('forward', () => {
 
     fireEvent.click(getByText('testuser-mac'))
     fireEvent.click(getByText('Cancel'))
+    await settle()
 
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expectClosedWithoutForwarding()
     expect(rpc.calls('forwardMessage')).toEqual([])
   })
 
@@ -256,20 +284,16 @@ describe('forward', () => {
     rpc.fail('forwardMessage', new RPCError('forward broke', T.RPCGen.StatusCode.scgeneric))
     const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    const {clearModals, previewConversation} = spyNav()
     const {getByText} = renderPicker()
     await act(async () => {
       await flushPromises()
     })
 
     fireEvent.click(getByText('testuser-mac'))
-    await act(async () => {
-      await flushPromises()
-    })
+    await settle()
 
     expectForwardSent('')
-    expect(previewConversation).toHaveBeenCalledTimes(1)
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expectShowingDestination()
     expect(info).toHaveBeenCalledTimes(1)
     expect(info.mock.calls[0]?.[0]).toMatch(/^TeamPicker: error forwarding message: .*forward broke/)
     expect(error).not.toHaveBeenCalled()
@@ -278,7 +302,6 @@ describe('forward', () => {
   test('with no message loaded, selecting shows the error and sends nothing', async () => {
     mockMessage = undefined
     rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
-    const {clearModals, previewConversation} = spyNav()
     const {container, getByText} = renderPicker()
     await act(async () => {
       await flushPromises()
@@ -288,7 +311,7 @@ describe('forward', () => {
 
     expect(container.textContent).toContain('Something went wrong, please try again.')
     expect(rpc.calls('forwardMessage')).toEqual([])
-    expect(previewConversation).not.toHaveBeenCalled()
-    expect(clearModals).not.toHaveBeenCalled()
+    await settle()
+    expectStillPicking()
   })
 })

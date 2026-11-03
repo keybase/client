@@ -1,9 +1,10 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 // Calls made while the app switches accounts wait for the switch to end, and calls that outlive an
 // account never wait.
 import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {installNavigation} from '@/test/navigation'
 import {openDialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
@@ -281,27 +282,23 @@ describe('every way a switch ends lets its calls out', () => {
   })
 
   test('the account needing provisioning', async () => {
-    installFakeNavigator()
+    installNavigation()
     let login: ReturnType<typeof switchLogin> | undefined
-    try {
-      await heldThenEnded(
-        async fake => {
-          login = switchLogin(fake)
-          await login.begin()
-        },
-        async fake => {
-          await fake.push(
-            'keybase.1.provisionUi.PromptNewDeviceName',
-            {errorMessage: '', existingDevices: []},
-            {sessionID: login!.sessionID()}
-          )
-          await settle()
-          login!.held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
-          await settle()
-        }
-      )
-    } finally {
-      restoreNavigator()
-    }
+    await heldThenEnded(
+      async fake => {
+        login = switchLogin(fake)
+        await login.begin()
+      },
+      async fake => {
+        await fake.push(
+          'keybase.1.provisionUi.PromptNewDeviceName',
+          {errorMessage: '', existingDevices: []},
+          {sessionID: login!.sessionID()}
+        )
+        await settle()
+        login!.held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
+        await settle()
+      }
+    )
   })
 })

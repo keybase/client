@@ -1,7 +1,10 @@
 /// <reference types="jest" />
 import type * as React from 'react'
 import {cleanup} from '@testing-library/react'
+import {useNavigation, type ParamListBase, type RouteProp} from '@react-navigation/core'
 import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {ModalWrapper, type ModalWrapperProps} from '@/router-v2/screen-layout-modal.desktop'
+import {installNavigation, makeRootState, type InstalledNavigation} from './navigation'
 
 // Desktop overlays are portaled into #modal-root, and the app root goes inert under a modal. jsdom has
 // no such roots, so tests that render overlays call this once: it adds both around every test.
@@ -58,21 +61,29 @@ export const EscapeHandler = (p: {onESC: () => void; children?: React.ReactNode}
   return <KeyEventHandler onKeyDown={onKeyDown}>{children}</KeyEventHandler>
 }
 
-// A modal route's navigation as ModalWrapper uses it. Like react-navigation, pop announces the
-// route's removal (beforeRemove) at once, while the new state renders later, in a transition: here
-// the modal stays rendered until the test unmounts it.
-export const fakeModalNavigation = (onPop: () => void = () => {}) => {
-  const listeners = new Set<(e: {defaultPrevented: boolean}) => void>()
-  return {
-    addListener: (_event: 'beforeRemove', listener: (e: {defaultPrevented: boolean}) => void) => {
-      listeners.add(listener)
-      return () => {
-        listeners.delete(listener)
-      }
-    },
-    pop: () => {
-      listeners.forEach(listener => listener({defaultPrevented: false}))
-      onPop()
-    },
-  } as never
+// ModalWrapper as the app mounts it: inside a modal route of the real navigation tree, with that
+// route's own navigation, so pop, beforeRemove (only for the routes a pop removes) and the transition
+// the new state renders in are the library's.
+export const RouteModal = (p: Omit<ModalWrapperProps, 'navigation' | 'canGoBack'>) => {
+  const {children, navigationOptions} = p
+  // a route's navigation, typed as the native stack's that ModalWrapper is written against
+  const navigation = useNavigation() as unknown as ModalWrapperProps['navigation']
+  return (
+    <ModalWrapper canGoBack={navigation.canGoBack()} navigation={navigation} navigationOptions={navigationOptions}>
+      {children}
+    </ModalWrapper>
+  )
 }
+
+// The real tree with modal routes over the chat tab. Each route renders what its entry returns, and
+// `under` renders the chat tab's root. `open` names the routes open at the start, bottom to top: all
+// of them unless given.
+export const showModals = (
+  modals: ReadonlyArray<{name: string; render: (route: RouteProp<ParamListBase>) => React.ReactNode}>,
+  p?: {open?: ReadonlyArray<string>; under?: () => React.ReactNode}
+): InstalledNavigation =>
+  installNavigation({
+    rootState: makeRootState({above: (p?.open ?? modals.map(m => m.name)).map(name => ({name}))}),
+    screen: (route): React.ReactNode =>
+      route.name === 'chatRoot' ? p?.under?.() : modals.find(m => m.name === route.name)?.render(route),
+  })

@@ -14,6 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {navigationWrapper} from '@/test/navigation'
 import {sendTextToConversation, useConversationSendActions} from './send-actions'
 import type {PostTextParams} from './chat-rpc'
 import {ConversationThreadProvider, useConversationThreadActions, useConversationThreadStore} from './thread-context'
@@ -49,8 +50,11 @@ const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
     ...over,
   })
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 const renderSendActions = (messages: ReadonlyArray<T.Chat.Message> = []) => {
@@ -71,6 +75,7 @@ const renderSendActions = (messages: ReadonlyArray<T.Chat.Message> = []) => {
 }
 
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'}).wrapper
   useConfigState.setState({loggedIn: true})
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({

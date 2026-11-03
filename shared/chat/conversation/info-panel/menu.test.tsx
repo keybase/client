@@ -3,12 +3,13 @@
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {flush} from '@/test/flush'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -53,7 +54,7 @@ jest.mock('@/common-adapters', () => {
 
 import InfoPanelMenu from './menu'
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 let rpc: FakeChatRpc
 
 const bigTeamChannelMeta = (teamID: T.Teams.TeamID): T.Chat.ConversationMeta => ({
@@ -95,17 +96,14 @@ const renderTeamMenu = (teamID: T.Teams.TeamID, p?: {hasHeader?: boolean; showPi
 
 beforeEach(() => {
   rpc = installFakeChatRpc()
-  nav = installFakeNavigator({
-    modalRouteNames: ['chatInfoPanel'],
-    rootState: makeRootState({above: [{name: 'chatInfoPanel'}]}),
-  })
+  nav = installNavigation({rootState: makeRootState({above: [{name: 'chatInfoPanel'}]})})
   useConfigState.getState().dispatch.setLoggedIn(true)
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
-  restoreNavigator()
+  nav.unmount()
   restoreChatRpc()
   resetAllStores()
   mockMeta = makeConversationMeta()
@@ -147,6 +145,8 @@ const renderChannelRowMenu = (meta: Partial<T.Chat.ConversationMeta> = {}) => {
   )
 }
 
+const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
+
 const itemTitles = () => screen.getAllByRole('button').map(b => b.textContent)
 
 describe('channel row menu', () => {
@@ -167,7 +167,7 @@ describe('channel row menu', () => {
     renderChannelRowMenu()
 
     fireEvent.click(screen.getByText('Mute'))
-    await flush()
+    await act(flush)
 
     expect(rpc.calls('setConversationStatus')).toEqual([
       [conversationIDKey, T.RPCChat.ConversationStatus.muted],
@@ -179,31 +179,29 @@ describe('channel row menu', () => {
 
     fireEvent.click(screen.getByText('Backup conversation'))
 
-    expect(nav.pushes().at(-1)).toEqual({
-      name: 'archiveModal',
-      params: {conversationIDKey, type: 'chatID'},
-    })
+    expect(nav.visibleScreen()?.name).toBe('archiveModal')
+    expect(nav.visibleScreen()?.params).toEqual({conversationIDKey, type: 'chatID'})
   })
 })
 
 describe('onMarkAsRead', () => {
   test('marks the whole team TLF read, sending the team id, and closes the modal', async () => {
     renderChannelMenu(hexTeamID)
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modals()).toEqual(['chatInfoPanel'])
 
     fireEvent.click(screen.getByText('Mark all as read'))
-    await flush()
+    await act(flush)
 
     // exactly one call, with the team id only
     expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modals()).toEqual([])
   })
 
   test('the team-level menu sends the team id from its teamID prop', async () => {
     renderTeamMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
-    await flush()
+    await act(flush)
 
     expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
   })
@@ -214,10 +212,10 @@ describe('onMarkAsRead', () => {
     renderChannelMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
-    await flush()
+    await act(flush)
 
     expect(rpc.calls('markTeamRead')).toEqual([])
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modals()).toEqual([])
   })
 
   test.each([
@@ -254,10 +252,10 @@ describe('onMarkAsRead', () => {
     const {container} = renderChannelMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
-    await flush()
+    await act(flush)
 
     expect(logError).toHaveBeenCalledWith('ignorePromise error', error)
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modals()).toEqual([])
     expect(container.textContent).not.toContain('mark read failed')
   })
 })

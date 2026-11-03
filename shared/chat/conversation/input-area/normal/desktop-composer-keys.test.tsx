@@ -13,6 +13,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import Input from '.'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider, useConversationThreadActions} from '../../thread-context'
 
 // Drives every key the desktop composer reacts to through the real textarea and the window-level
@@ -92,14 +93,15 @@ const threadRefs = {
   setScrollRef: () => {},
 }
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const Wrapper = (p: React.PropsWithChildren) => (
-  <>
+  <Nav>
     <ThreadRefsContext value={threadRefs}>
       <ConversationThreadProvider id={convID}>
         <ConversationInputProvider id={convID}>{p.children}</ConversationInputProvider>
       </ConversationThreadProvider>
     </ThreadRefsContext>
-  </>
+  </Nav>
 )
 
 const renderComposer = () => {
@@ -190,6 +192,7 @@ const openSuggestions = (textarea: HTMLTextAreaElement, text: string) => {
 }
 
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   jest.useFakeTimers()
   Object.defineProperty(document, 'execCommand', {configurable: true, value: execCommand})
   jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)

@@ -3,7 +3,6 @@
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as PlatformSpecific from '@/util/platform-specific'
-import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import RPCError from '@/util/rpcerror'
@@ -15,6 +14,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installNavigation, navigationWrapper, stateShowing, type InstalledNavigation} from '@/test/navigation'
 import {getChatRpc} from './chat-rpc'
 import {getClientPrevFromThread} from './client-prev'
 import {
@@ -36,10 +36,8 @@ import {
 import {ConversationThreadProvider, useConversationThreadActions, useConversationThreadStore} from './thread-context'
 
 const mockDeleteFile = jest.fn()
-// jest.config maps every native-only package (expo-file-system among them) to one
-// stub file, so extend that file rather than mocking the package by name.
-jest.mock('../../test/mocks/native-module.js', () => ({
-  ...jest.requireActual('../../test/mocks/native-module.js'),
+// expo-file-system is native-only, an empty stub under jest; the android save cleans up through File
+jest.mock('expo-file-system', () => ({
   File: class {
     uri: string
     constructor(uri: string) {
@@ -57,11 +55,16 @@ const messageID = T.Chat.numberToMessageID(42)
 const attachment = (id: number) =>
   makeMessageAttachment({conversationIDKey, id: T.Chat.numberToMessageID(id)})
 
-let navigateAppend: jest.SpyInstance
+let nav: InstalledNavigation
+// where the app navigated to, as the library's state has it
+const shown = () => {
+  const v = nav.visibleScreen()
+  return {name: v?.name, params: v?.params}
+}
 
 beforeEach(() => {
   mockDeleteFile.mockReset()
-  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
+  nav = installNavigation({rootState: stateShowing('chatRoot')})
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -115,8 +118,8 @@ describe('getClientPrevFromThread', () => {
 describe('attachment preview handoff', () => {
   test('hands the message to the fullscreen route exactly once', () => {
     const message = attachment(42)
-    showAttachmentPreview(conversationIDKey, message)
-    expect(navigateAppend).toHaveBeenCalledWith({
+    act(() => showAttachmentPreview(conversationIDKey, message))
+    expect(shown()).toEqual({
       name: 'chatAttachmentFullscreen',
       params: {conversationIDKey, messageID},
     })
@@ -127,7 +130,7 @@ describe('attachment preview handoff', () => {
 
   test('is keyed by conversation and message', () => {
     const message = attachment(42)
-    showAttachmentPreview(conversationIDKey, message)
+    act(() => showAttachmentPreview(conversationIDKey, message))
     const other = T.Chat.stringToConversationIDKey('conv2')
     expect(takeAttachmentPreviewMessage(other, messageID)).toBeUndefined()
     expect(takeAttachmentPreviewMessage(conversationIDKey, T.Chat.numberToMessageID(43))).toBeUndefined()
@@ -136,21 +139,21 @@ describe('attachment preview handoff', () => {
   })
 
   test('refuses to navigate for a message with no id', () => {
-    showAttachmentPreview(conversationIDKey, attachment(0))
-    expect(navigateAppend).not.toHaveBeenCalled()
+    act(() => showAttachmentPreview(conversationIDKey, attachment(0)))
+    expect(nav.actions).toEqual([])
     expect(takeAttachmentPreviewMessage(conversationIDKey, T.Chat.numberToMessageID(0))).toBeUndefined()
   })
 })
 
 describe('pdf handoff', () => {
   test('passes the url through only when there is one', () => {
-    showPDFViewer(conversationIDKey, attachment(42))
-    expect(navigateAppend).toHaveBeenCalledWith({
+    act(() => showPDFViewer(conversationIDKey, attachment(42)))
+    expect(shown()).toEqual({
       name: 'chatPDF',
       params: {conversationIDKey, messageID},
     })
-    showPDFViewer(conversationIDKey, attachment(42), 'https://example.com/a.pdf')
-    expect(navigateAppend).toHaveBeenLastCalledWith({
+    act(() => showPDFViewer(conversationIDKey, attachment(42), 'https://example.com/a.pdf'))
+    expect(shown()).toEqual({
       name: 'chatPDF',
       params: {conversationIDKey, messageID, url: 'https://example.com/a.pdf'},
     })
@@ -158,20 +161,20 @@ describe('pdf handoff', () => {
 
   test('does not share the preview mailbox', () => {
     const message = attachment(42)
-    showPDFViewer(conversationIDKey, message)
+    act(() => showPDFViewer(conversationIDKey, message))
     expect(takeAttachmentPreviewMessage(conversationIDKey, messageID)).toBeUndefined()
     expect(takePDFMessage(conversationIDKey, messageID)).toBe(message)
   })
 
   test('refuses to navigate for a message with no id', () => {
-    showPDFViewer(conversationIDKey, attachment(0))
-    expect(navigateAppend).not.toHaveBeenCalled()
+    act(() => showPDFViewer(conversationIDKey, attachment(0)))
+    expect(nav.actions).toEqual([])
   })
 })
 
 test('signing out drops messages waiting in the handoff mailboxes', () => {
-  showAttachmentPreview(conversationIDKey, attachment(42))
-  showPDFViewer(conversationIDKey, attachment(42))
+  act(() => showAttachmentPreview(conversationIDKey, attachment(42)))
+  act(() => showPDFViewer(conversationIDKey, attachment(42)))
   resetAllStores()
   expect(takeAttachmentPreviewMessage(conversationIDKey, messageID)).toBeUndefined()
   expect(takePDFMessage(conversationIDKey, messageID)).toBeUndefined()
@@ -226,13 +229,13 @@ describe('makePasteAttachment', () => {
     rpc.on('makeUploadTempFile', () => '/tmp/paste.png')
     const data = new Uint8Array([9, 9])
     makePasteAttachment(convKey, data, getChatRpc())
-    await flushPromises()
+    await act(flushPromises)
 
     expect(rpc.params('makeUploadTempFile')).toEqual([
       {data, filename: 'paste.png', outboxID: expect.any(Uint8Array)},
     ])
     const outboxID = rpc.params('makeUploadTempFile')[0]?.outboxID
-    expect(navigateAppend).toHaveBeenCalledWith({
+    expect(shown()).toEqual({
       name: 'chatAttachmentGetTitles',
       params: {conversationIDKey: convKey, noDragDrop: true, pathAndOutboxIDs: [{outboxID, path: '/tmp/paste.png'}]},
     })
@@ -243,7 +246,7 @@ describe('makePasteAttachment', () => {
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     makePasteAttachment(convKey, new Uint8Array(), getChatRpc())
     await flushPromises()
-    expect(navigateAppend).not.toHaveBeenCalled()
+    expect(nav.actions).toEqual([])
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 })
@@ -568,9 +571,9 @@ describe('storeless attachment download', () => {
       const share = jest.spyOn(PlatformSpecific, 'showShareActionSheet').mockResolvedValue({} as never)
       const message = downloadable()
       messageAttachmentNativeShareMessage(convKey, message, true)
-      await flushPromises()
+      await act(flushPromises)
       expect(share).not.toHaveBeenCalled()
-      expect(navigateAppend).toHaveBeenCalledWith({
+      expect(shown()).toEqual({
         name: 'chatPDF',
         params: {conversationIDKey: convKey, messageID: message.id, url: 'file:///cache/doc.pdf'},
       })
@@ -638,11 +641,13 @@ describe('useConversationAttachmentActions', () => {
       ...over,
     })
 
-  const wrapper = ({children}: {children: React.ReactNode}) => (
-    <ConversationThreadProvider id={convKey}>{children}</ConversationThreadProvider>
-  )
-
   const renderWith = (message: T.Chat.Message) => {
+    const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey: convKey}, route: 'chatRoot'})
+    const wrapper = ({children}: {children: React.ReactNode}) => (
+      <Nav>
+        <ConversationThreadProvider id={convKey}>{children}</ConversationThreadProvider>
+      </Nav>
+    )
     const rendered = renderHook(
       () => ({
         actions: useConversationThreadActions(),

@@ -3,10 +3,11 @@
 import type * as React from 'react'
 import type * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {flush} from '@/test/flush'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 
 jest.mock('../team-hooks', () => ({
   useChatTeamMembers: () => ({
@@ -55,7 +56,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
-  restoreNavigator()
   restoreChatRpc()
 })
 
@@ -84,24 +84,22 @@ test('a failed refresh does not fail the add', async () => {
 
 describe('the add-to-channel modal', () => {
   const renderModal = () => {
-    const nav = installFakeNavigator({
-      modalRouteNames: ['chatAddToChannel'],
-      rootState: makeRootState({above: [{name: 'chatAddToChannel'}]}),
-    })
-    render(<AddToChannel conversationIDKey={conversationIDKey} teamID={'team-1'} />)
+    const {wrapper, ...nav} = navigationWrapper({route: 'chatAddToChannel'})
+    render(<AddToChannel conversationIDKey={conversationIDKey} teamID={'team-1'} />, {wrapper})
     return nav
   }
 
   test('adding the ticked members sends them and closes the modal', async () => {
-      const nav = renderModal()
+    const nav = renderModal()
 
     fireEvent.click(screen.getByText('testuser-mac'))
     fireEvent.click(screen.getByText('Add 1 member'))
-    await flush()
+    await act(flush)
 
     // no waiting key
     expect(rpc.calls('addToConversation')).toEqual([[conversationIDKey, ['testuser-mac']]])
-    expect(nav.types()).toContain('GO_BACK')
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+    expect(nav.visibleScreen()?.name).toBe('chatRoot')
   })
 
   test('a failed add shows the error in a banner and keeps the modal open', async () => {
@@ -110,9 +108,9 @@ describe('the add-to-channel modal', () => {
 
     fireEvent.click(screen.getByText('testuser'))
     fireEvent.click(screen.getByText('Add 1 member'))
-    await flush()
+    await act(flush)
 
     expect(screen.getByText('not a team member')).toBeTruthy()
-    expect(nav.types()).not.toContain('GO_BACK')
+    expect(nav.visibleScreen()?.name).toBe('chatAddToChannel')
   })
 })
