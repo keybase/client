@@ -197,29 +197,23 @@ const uidRe = /^[0-9a-f]{32}$/
 // e2eMarker('push-<label>'): the run's stamp, so the body names no account, team or conversation
 const pushBodyRe = /^e2e-[0-9a-z]{5}[0-9]-push-[a-z0-9-]{1,40}$/
 
-// The one push type a flow sends: chat.newmessage shows a banner, and its tap carries the
-// conversation. Never chat.newmessageSilent_2, which hands the payload's body to the service.
-export const requireTappablePush = (p: PushPayload): PushPayload => {
-  if (p.type !== 'chat.newmessage') throw new Error('refusing a push whose type is not chat.newmessage')
-  const keys = Object.keys(p).sort().join(',')
-  if (keys !== 'aps,convID,m,t,type,uid') throw new Error('refusing a push with fields beyond a chat.newmessage')
-  const aps = p.aps as Record<string, unknown>
-  if (Object.keys(aps).sort().join(',') !== 'alert,sound') throw new Error('refusing a push whose aps is not an alert and a sound (no content-available)')
-  if (!pushBodyRe.test(p.aps.alert.body) || p.aps.alert.title !== 'e2e') throw new Error('refusing a push body that is not a stamped push marker')
-  if (!convIDRe.test(p.convID) || !uidRe.test(p.uid) || p.m !== '' || p.t !== '1') throw new Error('refusing a push whose ids are not ids')
-  return p
-}
+export type PushTarget = {convID: string; uid: string; body: string}
 
-// A banner for `convID`, for the account `uid`, showing the stamped `body`.
-export const chatNewMessagePayload = (o: {convID: string; uid: string; body: string}): PushPayload =>
-  requireTappablePush({
+// A banner for `convID`, for the account `uid`, showing the stamped `body`: the one push a flow sends.
+// chat.newmessage shows a banner, and its tap carries the conversation; never
+// chat.newmessageSilent_2, which hands the payload's body to the service, and no content-available.
+export const chatNewMessagePayload = (o: PushTarget): PushPayload => {
+  if (!pushBodyRe.test(o.body)) throw new Error('refusing a push body that is not a stamped push marker')
+  if (!convIDRe.test(o.convID) || !uidRe.test(o.uid)) throw new Error('refusing a push whose ids are not ids')
+  return {
     aps: {alert: {body: o.body, title: 'e2e'}, sound: 'default'},
     convID: o.convID,
     m: '',
     t: '1',
     type: 'chat.newmessage',
     uid: o.uid,
-  })
+  }
+}
 
 // -- the photo corpus --------------------------------------------------------------------------------
 

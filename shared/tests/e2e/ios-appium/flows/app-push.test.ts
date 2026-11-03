@@ -31,7 +31,6 @@ import * as T from '../../shared/test-ids'
 import {appUid} from '../gate/accounts'
 import {appLogMark, appLogUntilMarker} from '../gate/app-log'
 import {creditSurface} from '../gate/attempt'
-import {chatNewMessagePayload} from '../gate/device-lib.ts'
 import {launchedBy, launchIfGone, pushNotification, toBackground, toForeground} from '../gate/device'
 import {accountLinkLines, deepLinkEvents, focusChanges, GO_BACKGROUND, launchedInto, pushTapLinks} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
@@ -122,7 +121,7 @@ describe('app push notifications', function () {
   // Sends a push for `convID` showing `body`. Bound: push 30.
   const push = (convID: string, uid: string, body: string) => {
     pushed = true
-    pushNotification(chatNewMessagePayload({body, convID, uid}))
+    pushNotification({body, convID, uid})
   }
 
   // Moves the app to the background and waits for the phone's service to record it there. Bound:

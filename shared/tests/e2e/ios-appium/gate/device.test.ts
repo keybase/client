@@ -175,12 +175,11 @@ test('a background then a foreground only moves the app: it credits nothing', as
 })
 
 describe('a push', () => {
-  const payload = () =>
-    chatNewMessagePayload({
-      body: `e2e-${process.env['KB_E2E_RUN_ID']}-push-fg-1a2b3c4d`,
-      convID: '0000f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec58',
-      uid: '0123456789abcdef0123456789abcd19',
-    })
+  const payload = () => ({
+    body: `e2e-${process.env['KB_E2E_RUN_ID']}-push-fg-1a2b3c4d`,
+    convID: '0000f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec58',
+    uid: '0123456789abcdef0123456789abcd19',
+  })
 
   test('goes through a mode 600 file under /tmp/kb-e2e named for the run, removed after', () => {
     pushNotification(payload())
@@ -190,7 +189,7 @@ describe('a push', () => {
     for (const p of mockDevice.pushed) {
       expect(p.argv).toBe(`simctl push ${UDID}`)
       expect(p.mode).toBe(0o600)
-      expect(JSON.parse(p.body)).toEqual(payload())
+      expect(JSON.parse(p.body)).toEqual(chatNewMessagePayload(payload()))
       expect(fs.existsSync(p.file)).toBe(false)
     }
   })
@@ -214,8 +213,8 @@ describe('a push', () => {
     expect(mockDevice.pushed).toEqual([])
   })
 
-  test('a silent push is refused before any file is written', () => {
-    expect(() => pushNotification({...payload(), type: 'chat.newmessageSilent_2'})).toThrow(/^refusing /)
+  test('a push whose body is not a stamped marker is refused before any file is written', () => {
+    expect(() => pushNotification({...payload(), body: 'hi testuser'})).toThrow(/^refusing /)
     expect(mockDevice.pushed).toEqual([])
   })
 })

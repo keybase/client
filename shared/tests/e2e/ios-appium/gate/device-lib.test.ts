@@ -7,7 +7,6 @@ import {
   privacyGrantArgs,
   privacyOriginal,
   privacyRestoreArgs,
-  requireTappablePush,
   requireUdid,
   restorePrivacyWith,
   type PrivacyRestore,
@@ -273,7 +272,6 @@ describe('the push payload', () => {
   test('is a chat.newmessage for one conversation and uid, with the stamped body and nothing else', () => {
     const p = chatNewMessagePayload({body, convID, uid})
     expect(p).toEqual({aps: {alert: {body, title: 'e2e'}, sound: 'default'}, convID, m: '', t: '1', type: 'chat.newmessage', uid})
-    expect(requireTappablePush(p)).toBe(p)
   })
 
   test('holds no name: a body that is not a stamped push marker is refused, as are ids that are not ids', () => {
@@ -281,15 +279,6 @@ describe('the push payload', () => {
     expect(() => chatNewMessagePayload({body: 'e2e-0abc12-share-x', convID, uid})).toThrow(/^refusing /)
     expect(() => chatNewMessagePayload({body, convID: 'testuser', uid})).toThrow(/^refusing /)
     expect(() => chatNewMessagePayload({body, convID, uid: 'testuser'})).toThrow(/^refusing /)
-  })
-
-  test('refuses a silent type, content-available, or any extra field', () => {
-    const p = chatNewMessagePayload({body, convID, uid})
-    expect(() => requireTappablePush({...p, type: 'chat.newmessageSilent_2'})).toThrow(/^refusing .*chat\.newmessage/)
-    expect(() => requireTappablePush({...p, type: 'chat.readmessage'})).toThrow(/^refusing /)
-    expect(() => requireTappablePush({...p, aps: {...p.aps, 'content-available': 1} as typeof p.aps})).toThrow(/^refusing /)
-    expect(() => requireTappablePush({...p, c: convID} as typeof p)).toThrow(/^refusing /)
-    expect(() => requireTappablePush({...p, aps: {...p.aps, alert: {...p.aps.alert, body: 'hi testuser'}}})).toThrow(/^refusing /)
   })
 })
 

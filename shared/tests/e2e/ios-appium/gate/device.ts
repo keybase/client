@@ -22,19 +22,19 @@ import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {isAttemptOver} from './attempt-binding-lib.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {
+  chatNewMessagePayload,
   corpusToAdd,
   parseLocationd,
   parseTcc,
   privacyGrantArgs,
   privacyOriginal,
   privacyRestoreArgs,
-  requireTappablePush,
   requireUdid,
   restorePrivacyWith,
   type PrivacyRestore,
   type PrivacyService,
   type PrivacySnapshot,
-  type PushPayload,
+  type PushTarget,
 } from './device-lib.ts'
 import {requireFixedPoint, type Point} from './location-lib.ts'
 import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
@@ -82,12 +82,12 @@ export const openLink = (url: string) => {
 
 let pushes = 0
 
-// Delivers a chat.newmessage push (device-lib.ts chatNewMessagePayload) through a mode 600 file
-// under /tmp/kb-e2e, removed after. A failure names neither the file nor the command line. The flow
+// Delivers the chat.newmessage push for `target` (device-lib.ts chatNewMessagePayload) through a mode
+// 600 file under /tmp/kb-e2e, removed after. A failure names neither the file nor the command line. The flow
 // credits 'push-notification' once it has asserted the app showed or handled it.
-export const pushNotification = (payload: PushPayload) => {
+export const pushNotification = (target: PushTarget) => {
   requireCurrentAttempt()
-  const body = JSON.stringify(requireTappablePush(payload))
+  const body = JSON.stringify(chatNewMessagePayload(target))
   const udid = preflightUdid()
   fs.mkdirSync(E2E_TMP, {mode: 0o700, recursive: true})
   const file = path.join(E2E_TMP, `push-${e2eRunId()}-${++pushes}.json`)
