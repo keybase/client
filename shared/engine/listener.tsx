@@ -26,8 +26,9 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     }
 
     // Handler runs whose timer has not fired yet. The session acks a plain call at once, so the
-    // service may reply before they run; the call settles only once they have, or a caller that
-    // reads what they write after awaiting it sees nothing.
+    // service may reply before they run; the call settles only once they have, so a caller that
+    // awaits it sees what they write before their first await. What a handler writes after an
+    // await of its own is not ordered with the reply.
     const pendingRuns = new Set<Promise<void>>()
 
     // Handlers run on a timer so transport work can flush before heavier state updates. By then an

@@ -14,6 +14,7 @@ jest.mock('@/common-adapters', () => {
       createStyleHook: () => () => ({}),
       globalMargins: new Proxy({}, {get: () => 0}),
       globalStyles: new Proxy({}, {get: () => ({})}),
+      classNames: () => '',
       useTheme: () => ({redDark: 'red'}),
     },
     {get: (t: {[key: string]: unknown}, k) => (typeof k === 'string' && k in t ? t[k] : () => ({}))}
@@ -46,7 +47,7 @@ jest.mock('./channel-picker', () => ({__esModule: true, default: () => null}))
 import {act, cleanup, fireEvent, render, renderHook, screen} from '@testing-library/react'
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
@@ -59,6 +60,7 @@ import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
+import {navigationWrapper, type NavigationRecorder} from '@/test/navigation'
 import {useBotSettings} from './settings'
 import InstallBotPopup, {refreshBotMembership, useBotTeamRole} from './install'
 
@@ -201,7 +203,7 @@ describe('InstallBotPopup service calls', () => {
   const teamID = 'team1'
   const chanA = T.Chat.conversationIDToKey(new Uint8Array([9, 9]))
   const goneChan = T.Chat.conversationIDToKey(new Uint8Array([8, 8]))
-  let clearModals: jest.SpyInstance
+  let nav: NavigationRecorder
   let info: jest.SpyInstance
 
   const setMeta = (botCommands?: T.RPCChat.ConversationCommandGroups) => {
@@ -253,14 +255,30 @@ describe('InstallBotPopup service calls', () => {
 
   const answerPreview = () => fake.answer(previewConversation, () => previewResult(['testuser', 'helperbot']))
 
+  // as the chat opens it: a root-stack modal over the chat tab
   const renderPopup = async (botUsername = 'helperbot') => {
+    const n = navigationWrapper({params: {botUsername, conversationIDKey: convID}, route: 'chatInstallBot'})
+    nav = n
     const r = render(
       <LoadedTeamsListProvider>
         <InstallBotPopup botUsername={botUsername} conversationIDKey={convID} />
-      </LoadedTeamsListProvider>
+      </LoadedTeamsListProvider>,
+      {wrapper: n.wrapper}
     )
     await settle()
     return r
+  }
+
+  const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
+
+  // the user closes the popup and opens another modal
+  const leaveForNewChat = async () => {
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+    })
+    await settle()
+    expect(modals()).toEqual(['chatNewChat'])
   }
 
   const click = async (text: string) => {
@@ -311,7 +329,6 @@ describe('InstallBotPopup service calls', () => {
       offline: false,
     }))
     fake.answer('keybase.1.featuredBot.search', () => ({bots: []}))
-    clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
     info = jest.spyOn(logger, 'info').mockImplementation(() => {})
   })
 
@@ -344,7 +361,7 @@ describe('InstallBotPopup service calls', () => {
 
       expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
       expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual(['testuser', 'helperbot'])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
       expect(info).not.toHaveBeenCalled()
     })
 
@@ -365,7 +382,7 @@ describe('InstallBotPopup service calls', () => {
       expect(paramsOf(fake, addBotMember)).toEqual([
         {botSettings: null, convID: convIDOf(convID), role: T.RPCGen.TeamRole.bot, username: 'helperbot'},
       ])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
     })
 
     // The engine throttles a waiting "on" (500ms) but flushes an "off" at once, so an install this
@@ -381,7 +398,24 @@ describe('InstallBotPopup service calls', () => {
       await click('Install')
 
       expect(paramsOf(fake, addBotMember)).toHaveLength(1)
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
+    })
+
+    test('a popup the user left while the install ran leaves the modal they opened since alone', async () => {
+      answerRole(T.RPCGen.TeamRole.none)
+      answerPublicCommands([])
+      const held = fake.hold(addBotMember)
+      answerPreview()
+
+      await renderPopup()
+      await click('Review')
+      await click('Install')
+      await leaveForNewChat()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatNewChat'])
     })
 
     test('a failed install is logged, shows the error line, and neither refreshes nor closes', async () => {
@@ -398,7 +432,7 @@ describe('InstallBotPopup service calls', () => {
       )
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
       expect(paramsOf(fake, previewConversation)).toEqual([])
-      expect(clearModals).not.toHaveBeenCalled()
+      expect(modals()).toEqual(['chatInstallBot'])
     })
   })
 
@@ -435,7 +469,7 @@ describe('InstallBotPopup service calls', () => {
         },
       ])
       expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
     })
 
     test('channels that no longer exist are dropped from what is saved', async () => {
@@ -454,6 +488,21 @@ describe('InstallBotPopup service calls', () => {
       expect(paramsOf(fake, setBotSettings)[0]?.botSettings).toEqual({cmds: true, convs: [], mentions: true})
     })
 
+    test('a popup the user left while the save ran leaves the modal they opened since alone', async () => {
+      answerPreview()
+
+      await renderInstalled({cmds: true, convs: [chanA], mentions: false})
+      const held = fake.hold(setBotSettings)
+      await click('Edit settings')
+      await click('Save')
+      await leaveForNewChat()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatNewChat'])
+    })
+
     test('a failed save is logged, shows the error line, and neither refreshes nor closes', async () => {
       fake.answer(setBotSettings, () => fakeError(8, 'denied'))
 
@@ -466,7 +515,7 @@ describe('InstallBotPopup service calls', () => {
       )
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
       expect(paramsOf(fake, previewConversation)).toEqual([])
-      expect(clearModals).not.toHaveBeenCalled()
+      expect(modals()).toEqual(['chatInstallBot'])
     })
   })
 

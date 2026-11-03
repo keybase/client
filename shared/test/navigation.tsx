@@ -33,7 +33,7 @@ import * as Tabs from '@/constants/tabs'
 import {navigationRef} from '@/constants/navigator'
 import {createLeftTabNavigator} from '@/router-v2/left-tab-navigator'
 import {useRouterState, type NavState} from '@/stores/router'
-import {loggedOutRouteNames, modalRouteNames, routeNames, routeScreenOptions} from './route-names'
+import {loggedOutRouteNames, modalRouteNames, routeInitialParams, routeNames, routeScreenOptions} from './route-names'
 
 // jsdom has no layout engine, so nothing is ever resized; the navigators measure through this.
 const jsdomGlobals = globalThis as unknown as {
@@ -121,7 +121,7 @@ const tabStackComponents = Object.fromEntries(
       return (
         <TabStack.Navigator initialRouteName={NavTree.tabRoots[tab]} screenOptions={noHeader}>
           {tabStackScreens(layout, tab).map(name => (
-            <TabStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
+            <TabStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} initialParams={routeInitialParams[name]} />
           ))}
         </TabStack.Navigator>
       )
@@ -148,7 +148,7 @@ function LoggedOut() {
   return (
     <LoggedOutStack.Navigator initialRouteName="login" screenOptions={noHeader}>
       {loggedOutRouteNames.map(name => (
-        <LoggedOutStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
+        <LoggedOutStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} initialParams={routeInitialParams[name]} />
       ))}
     </LoggedOutStack.Navigator>
   )
@@ -169,10 +169,10 @@ function RootScreens({layout, loggedIn}: {layout: Layout; loggedIn: boolean}) {
     <RootStack.Navigator screenOptions={rootScreenOptions(layout)}>
       <RootStack.Screen name="loggedIn" component={LoggedInTabs} />
       {above.map(name => (
-        <RootStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
+        <RootStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} initialParams={routeInitialParams[name]} />
       ))}
       {modalRouteNames.map(name => (
-        <RootStack.Screen key={name} name={name} component={Leaf} options={modalOptions(layout, name)} />
+        <RootStack.Screen key={name} name={name} component={Leaf} options={modalOptions(layout, name)} initialParams={routeInitialParams[name]} />
       ))}
     </RootStack.Navigator>
   )

@@ -144,3 +144,27 @@ test('an add-phone link opens the add-phone modal over settings', async () => {
   expect(tabOf()).toBe(Tabs.settingsTab)
   expect(nav.getRootState()?.routes?.at(-1)?.name).toBe('settingsAddPhone')
 })
+
+// The same for the other links that open a screen in a tab: on a tablet the tab may never have
+// been opened, so its stack is not mounted when the link arrives.
+test.each([
+  ['keybase://private/testuser', Tabs.fsTab, 'fsRoot', 'fsBrowse'],
+  ['keybase://profile/show/testuser', Tabs.peopleTab, 'peopleRoot', 'profile'],
+] as const)('on a tablet %s lands on its tab never opened before', async (link, tab, root, screenName) => {
+  nav = installNavigation({layout: 'tablet', rootState: makeRootState({tab: Tabs.chatTab})})
+  await renders()
+  withIsMobile(
+    true,
+    () => {
+      handleAppLink(link)
+    },
+    true
+  )
+  await renders()
+  expect(tabOf()).toBe(tab)
+  expect(nav.visibleScreen()?.name).toBe(screenName)
+  const loggedIn = nav.getRootState()?.routes?.[0]?.state as
+    | {routes: ReadonlyArray<{name: string; state?: {routes: ReadonlyArray<{name: string}>}}>}
+    | undefined
+  expect(loggedIn?.routes.find(r => r.name === tab)?.state?.routes.map(r => r.name)).toEqual([root, screenName])
+})

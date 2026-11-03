@@ -1,6 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {
+  clearModals,
   navigateAppend,
   navigateToThread,
   navToProfile,
@@ -13,6 +14,18 @@ import * as Tabs from './tabs'
 import {isTablet} from './platform'
 import {settingsDevicesTab} from './settings'
 import {showTeamByName} from '@/teams/team-page-actions'
+
+// A tablet's tab mounts its stack only once focused, so a push right after switching to a tab never
+// opened reaches no stack; there the screen goes onto that tab's stack in one reset. On a phone the
+// screen sits above the tabs and on desktop every tab is mounted, so switching then pushing lands.
+const showInTab = (tab: Tabs.AppTab, screen: Parameters<typeof pushInTab>[1]) => {
+  if (isTablet) {
+    pushInTab(tab, screen)
+    return
+  }
+  switchTab(tab)
+  navigateAppend(screen as Parameters<typeof navigateAppend>[0])
+}
 
 const prefix = 'keybase://'
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -73,8 +86,8 @@ const handleKeybaseLink = (link: string) => {
       break
     case 'profile':
       if (parts[1] === 'show' && parts[2]) {
-        switchTab(Tabs.peopleTab)
-        navToProfile(parts[2])
+        if (isMobile) clearModals()
+        showInTab(Tabs.peopleTab, {name: 'profile', params: {username: parts[2]}})
         return
       }
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
@@ -92,15 +105,9 @@ const handleKeybaseLink = (link: string) => {
         navUpToScreen('devicesRoot')
         return
       }
-      if (isTablet) {
-        pushInTab(Tabs.settingsTab, {name: settingsDevicesTab, params: {}})
-        return
-      }
-      switchTab(Tabs.settingsTab)
-      // On a phone the screen is registered only on the root stack above the tabs, which an
-      // untargeted push reaches; navUpToScreen would pin its popTo to the Settings tab stack,
-      // where the route does not exist. Same call the phone settings list itself makes.
-      navigateAppend({name: settingsDevicesTab, params: {}})
+      // not navUpToScreen: on a phone it would pin its popTo to the Settings tab stack, where the
+      // route does not exist
+      showInTab(Tabs.settingsTab, {name: settingsDevicesTab, params: {}})
       return
     case 'settingsAddPhone':
       // Where the invite install link (https://keybase.io/phone-app) lands. The linking config
@@ -112,8 +119,7 @@ const handleKeybaseLink = (link: string) => {
     case 'public':
       try {
         const decoded = decodeURIComponent(link)
-        switchTab(Tabs.fsTab)
-        navigateAppend({name: 'fsBrowse', params: {path: `/keybase/${decoded}`}})
+        showInTab(Tabs.fsTab, {name: 'fsBrowse', params: {path: `/keybase/${decoded}`}})
         return
       } catch {
         logger.warn("Couldn't decode KBFS URI")

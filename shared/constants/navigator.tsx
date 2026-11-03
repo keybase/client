@@ -83,6 +83,11 @@ const modalsWaitMs = 1000
 
 let nextRouteKey = 0
 
+// A tab navigator reset is taken as given, history included. The app's tab navigators go back with
+// backBehavior 'none', for which the router keeps only the focused tab in history; a reset that
+// focuses another tab writes the same.
+const tabHistoryOf = (focusedTabKey: string) => [{key: focusedTabKey, type: 'route' as const}]
+
 const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateUp = () => {
     if (DEBUG_NAV) {
@@ -305,9 +310,12 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
       return true
     }
     ref.dispatch({
-      ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
-        typeof CommonActions.reset
-      >[0]),
+      ...CommonActions.reset({
+        ...tabNavState,
+        history: tabHistoryOf(tabRoutes[chatTabIndex]!.key),
+        index: chatTabIndex,
+        routes: updatedRoutes,
+      } as Parameters<typeof CommonActions.reset>[0]),
       target: tabNavState.key,
     })
     return true
@@ -342,22 +350,22 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
       ...r,
       key: r.key ?? `${r.name}-${nextRouteKey++}`,
     }))
+    // the screen already on top of that stack, with the same params, only gets its tab shown
+    const top = stackRoutes.at(-1)
+    const alreadyOnTop = top?.name === screen.name && shallowEqual(top.params, screen.params)
+    const nextStack = alreadyOnTop ? stackRoutes : [...stackRoutes, {key: `${screen.name}-${nextRouteKey++}`, ...screen}]
     const updatedRoutes = tabRoutes.map((route, i) =>
       i === tabIndex
-        ? {
-            ...route,
-            state: {
-              ...(route.state ?? {}),
-              index: stackRoutes.length,
-              routes: [...stackRoutes, {key: `${screen.name}-${nextRouteKey++}`, ...screen}],
-            },
-          }
+        ? {...route, state: {...(route.state ?? {}), index: nextStack.length - 1, routes: nextStack}}
         : route
     )
     ref.dispatch({
-      ...CommonActions.reset({...tabNavState, index: tabIndex, routes: updatedRoutes} as Parameters<
-        typeof CommonActions.reset
-      >[0]),
+      ...CommonActions.reset({
+        ...tabNavState,
+        history: tabHistoryOf(tabRoutes[tabIndex]!.key),
+        index: tabIndex,
+        routes: updatedRoutes,
+      } as Parameters<typeof CommonActions.reset>[0]),
       target: tabNavState.key,
     })
     return true

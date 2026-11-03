@@ -242,8 +242,9 @@ export const navigateToInbox = (
       }
       return
     }
-    setChatRootParams({refreshInbox})
+    // up first: a pop to a screen by name replaces its params, so the refresh is set once there
     navUpToScreen('chatRoot')
+    setChatRootParams({refreshInbox})
   }, 1)
 }
 

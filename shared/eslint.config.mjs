@@ -293,6 +293,18 @@ export default [
           selector:
             "CallExpression[callee.object.name='jest'][callee.property.name=/^(mock|doMock)$/][arguments.0.value='@/constants/router']",
         },
+        {
+          message:
+            'Run the real router on the real tree (test/navigation.tsx) instead of stubbing a router function: a stub tests a model of navigation.',
+          selector:
+            "CallExpression[callee.property.name=/^mock(Implementation|ReturnValue|ResolvedValue|RejectedValue)(Once)?$/][callee.object.callee.object.name='jest'][callee.object.callee.property.name='spyOn'][callee.object.arguments.0.name=/^Router2?$/]",
+        },
+        {
+          message:
+            'Run the real router on the real tree (test/navigation.tsx) instead of stubbing a router function: a stub tests a model of navigation.',
+          selector:
+            "CallExpression[callee.property.name=/^mock(Implementation|ReturnValue|ResolvedValue|RejectedValue)(Once)?$/][callee.object.callee.object.name='jest'][callee.object.callee.property.name='spyOn'][callee.object.arguments.0.property.name='Router2']",
+        },
       ],
     },
   },

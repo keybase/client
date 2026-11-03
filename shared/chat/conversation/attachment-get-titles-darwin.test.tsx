@@ -1,12 +1,13 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
+import {makeRootState, navigationWrapper} from '@/test/navigation'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -50,7 +51,6 @@ describe('Send without a tlfName prop on darwin', () => {
     fake.answer(postAttachment, () => ({outboxID: new Uint8Array([7])}))
     // the screen fetches a conversation meta the store does not hold whole; the service has none
     fake.answer('chat.1.local.getInboxAndUnboxUILocal', () => ({conversations: null}))
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     fake.answer(getUploadTempFile, () => '/tmp/chat-upload-temp')
   })
 
@@ -67,14 +67,25 @@ describe('Send without a tlfName prop on darwin', () => {
       undefined,
       {force: true}
     )
+    // the screen is up over the conversation's thread
+    const {wrapper, ...nav} = navigationWrapper({
+      rootState: makeRootState({
+        above: [{name: 'chatAttachmentGetTitles', params: {conversationIDKey}}],
+        tabStack: [{name: 'chatRoot', params: {conversationIDKey}}],
+      }),
+      route: 'chatAttachmentGetTitles',
+    })
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
         pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/a.pdf'}]}
-      />
+      />,
+      {wrapper}
     )
-    fireEvent.click(screen.getByText('Send'))
-    await flush(12)
+    await act(async () => {
+      fireEvent.click(screen.getByText('Send'))
+      await flush(12)
+    })
     const temp = paramsOf(fake, getUploadTempFile)
     expect(temp).toEqual([{filename: '/tmp/a.pdf', outboxID: expect.any(Uint8Array)}])
     expect(mockCopy).toHaveBeenCalledWith('/tmp/chat-upload-temp', '/tmp/a.pdf')
@@ -84,5 +95,8 @@ describe('Send without a tlfName prop on darwin', () => {
       outboxID: temp[0].outboxID,
       tlfName: 'testuser,testuser2',
     })
+    // and the screen is gone, back to the thread
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
   })
 })

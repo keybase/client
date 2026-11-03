@@ -22,7 +22,20 @@ import {getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
 
-// Run after a bot mutation succeeds; a failed preview leaves the stored participants as they were.
+// After a bot install, edit or removal succeeds: refresh the conversation's members, then close the
+// popup it was made from, only if that is still up: the user may have left it while the calls ran.
+export const finishBotMutation = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  popup: 'chatInstallBot' | 'chatConfirmRemoveBot',
+  botUsername: string
+) => {
+  await refreshBotMembership(conversationIDKey)
+  if (C.Router2.isModalUp(popup, {botUsername})) {
+    C.Router2.clearModals()
+  }
+}
+
+// A failed preview leaves the stored participants as they were.
 export const refreshBotMembership = async (conversationIDKey: T.Chat.ConversationIDKey | undefined) => {
   if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
     return
@@ -198,8 +211,7 @@ const InstallBotPopup = (props: Props) => {
         installWithRestrict,
       })
       if (added) {
-        await refreshBotMembership(conversationIDKey)
-        clearModals()
+        await finishBotMutation(conversationIDKey, 'chatInstallBot', botUsername)
       }
     }
     C.ignorePromise(f())
@@ -223,8 +235,7 @@ const InstallBotPopup = (props: Props) => {
         }
         return
       }
-      await refreshBotMembership(conversationIDKey)
-      clearModals()
+      await finishBotMutation(conversationIDKey, 'chatInstallBot', botUsername)
     }
     C.ignorePromise(f())
   }

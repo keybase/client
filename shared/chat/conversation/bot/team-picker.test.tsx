@@ -43,13 +43,14 @@ jest.mock('@/common-adapters', () => {
 jest.mock('@/chat/avatars', () => ({Avatars: () => null, TeamAvatar: () => null}))
 
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import * as Router from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
+import {navigationWrapper, renders} from '@/test/navigation'
 import BotTeamPicker from './team-picker'
 
 const search = 'chat.1.local.addBotConvSearch'
@@ -170,16 +171,23 @@ describe('BotTeamPicker', () => {
   })
 
   test('picking a hit opens the install screen for that conversation', async () => {
-    const navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
     fake.answer(search, () => [hit('acme', 7)])
+    const {wrapper, ...nav} = navigationWrapper({params: {botUsername: 'helperbot'}, route: 'chatInstallBotPick'})
 
-    render(<BotTeamPicker botUsername="helperbot" />)
+    render(<BotTeamPicker botUsername="helperbot" />, {wrapper})
     await flush()
-    fireEvent.click(screen.getByText('acme'))
-
-    expect(navigateAppend).toHaveBeenCalledWith({
-      name: 'chatInstallBot',
-      params: {botUsername: 'helperbot', conversationIDKey: T.Chat.conversationIDToKey(new Uint8Array([7]))},
+    act(() => {
+      fireEvent.click(screen.getByText('acme'))
     })
+    await renders()
+
+    // the install screen goes up over the picker
+    expect(NavTree.modalStack(nav.getRootState()).map(r => ({name: r.name, params: r.params}))).toEqual([
+      {name: 'chatInstallBotPick', params: {botUsername: 'helperbot'}},
+      {
+        name: 'chatInstallBot',
+        params: {botUsername: 'helperbot', conversationIDKey: T.Chat.conversationIDToKey(new Uint8Array([7]))},
+      },
+    ])
   })
 })
