@@ -222,6 +222,25 @@ test('the invite-link join path logs no link and no key', () => {
   expect(logged[0]).toContain('<redacted>')
 })
 
+// A team page's load returns each invite link of the team with its url, key included, as the
+// invite's displayName (the team's Invite links read it from there). The logged result keeps the
+// link's id and drops its key.
+test("a team load's invite links are logged without their keys", () => {
+  const key = 'madeupkey0123456789'
+  const invite = {
+    displayName: `https://keybase.io/i/t/abcdefghijklmnop#${key}`,
+    // TeamInviteCategory.invitelink
+    inviteExt: {c: 7, invitelink: {annotatedUsedInvites: null}},
+    inviterUsername: 'testuser',
+    isValid: true,
+    teamName: 'testteam',
+    validityDescription: 'Expires in 7 days',
+  }
+  const logged = JSON.stringify(redactRpcResult('keybase.1.teams.getAnnotatedTeam', {invites: [invite], name: 'testteam', teamID: 'tid'}))
+  expect(logged).not.toContain(key)
+  expect(logged).toContain('keybase.io/i/t/abcdefghijklmnop#<redacted>')
+})
+
 // The e2e harness reads the visible screen's route params through this key list, so a secret route
 // param (an invite link's key, a token) never leaves the app.
 test('route params lose inviteKey and every key the RPC log redacts', () => {
