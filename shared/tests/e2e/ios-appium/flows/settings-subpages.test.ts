@@ -14,7 +14,7 @@ import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {check, labelledElement, onScreen} from '../helpers/menus'
-import {clearOfTabBar, escapeToTabs, goBack, navigateToMore, navigateToPeople, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
+import {clearOfTabBar, escapeToTabs, goBack, navigateToMore, navigateToPeople, scrollToTestID} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
 
 const TERMS = 'https://keybase.io/_/webview/terms'

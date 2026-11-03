@@ -48,7 +48,8 @@ import {extensionRequests, mapsShareProblem, requireOneItem, textPage, unfurlFet
 import {step} from '../gate/step'
 import {composerText, fileSha, hostCopy, pasteIntoComposer} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {expectScreen, fillHiddenField, tapButton} from '../helpers/files'
+import {fillHiddenField, tapButton} from '../helpers/files'
+import {expectScreen} from '../gate/screens'
 import {openSelfConversation, waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
 

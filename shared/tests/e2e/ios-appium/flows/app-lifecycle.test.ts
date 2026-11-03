@@ -22,11 +22,10 @@ import {requireSecondNotBlocked} from '../gate/blocks'
 import {appRuntime, launchIfGone, relaunchApp, toBackground, toForeground} from '../gate/device'
 import {focusChanges, focusLeftAndBack, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SRV, GO_INACTIVE, GO_LAUNCHING, roundTrips} from '../gate/links-push-lib.ts'
 import {attemptRecording} from '../gate/recording'
-import {leaveOnPeople, waitForScreen} from '../gate/screens'
+import {expectScreen, leaveOnPeople, waitForScreen} from '../gate/screens'
 import {step} from '../gate/step'
 import {withNotificationCenter} from '../gate/system-ui'
-import {openConversation, rowElement, waitForRow} from '../helpers/chat'
-import {expectScreen, waitSignedIn} from '../helpers/files'
+import {openConversation, rowElement, waitForRow, waitSignedIn} from '../helpers/chat'
 import {
   appPid,
   appSnapshot,

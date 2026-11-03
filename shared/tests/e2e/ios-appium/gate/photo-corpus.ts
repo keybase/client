@@ -6,7 +6,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {e2eConfigDir} from '../../accounts/env.ts'
-import {checkMode} from '../../accounts/paper-key-ledger.ts'
+import {checkMode} from '../../accounts/run-record.ts'
 import type {CorpusEntry, CorpusRecordItem} from './device-lib.ts'
 
 export type CorpusRecord = Record<string, CorpusEntry>

@@ -12,7 +12,7 @@ import {
   waitFor,
   withSpringboard,
 } from '../helpers/lifecycle'
-import {tapElement, tapFrame} from '../helpers/files'
+import {tapElement, tapFrame} from '../helpers/menus'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {deleteSavedAsset, libraryHasAsset, mediaPermission, requestFullPhotoAccess} from './app-ask.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
