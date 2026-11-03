@@ -323,16 +323,8 @@ export const darkModeState = async () =>
 
 // -- backup jobs -------------------------------------------------------------------------------------
 
-// The ids of the phone's backup jobs: chat (archiveChatList) and files (simpleFSGetArchiveStatus).
+// The ids of backup jobs on the phone: chat (archiveChatList) and files (simpleFSGetArchiveStatus).
 export type ArchiveJobs = {chat: Array<string>; kbfs: Array<string>}
-
-export const archiveJobs = async () =>
-  askApp<ArchiveJobs>(
-    "the phone's backup jobs",
-    `${RPC_CHAT}.localArchiveChatListRpcPromise({identifyBehavior: ${RPC_GEN}.TLFIdentifyBehavior.unset})
-       .then(c => ${thenIfStillAsked(`${RPC_GEN}.SimpleFSSimpleFSGetArchiveStatusRpcPromise()`)}
-         .then(k => ({chat: (c.jobs || []).map(j => j.request.jobID), kbfs: (k.jobs || []).map(j => j.desc.jobID)})))`
-  )
 
 // The phone's backup jobs with what each is doing: a chat job's status (ArchiveChatJobStatus) and
 // the directory it writes (its compressed output is that path with .tar.gzip after it), a files job's
@@ -354,6 +346,12 @@ export const archiveJobStates = async () =>
            kbfs: (k.jobs || []).map(j => ({id: j.desc.jobID, phase: j.phase, stagingPath: j.desc.stagingPath, zipFilePath: j.desc.zipFilePath})),
          })))`
   )
+
+// The ids of `states`' jobs.
+export const archiveJobIDs = (states: ArchiveJobStates): ArchiveJobs => ({
+  chat: states.chat.map(j => j.id),
+  kbfs: states.kbfs.map(j => j.id),
+})
 
 const plainJobID = /^[A-Za-z0-9_.:-]+$/
 

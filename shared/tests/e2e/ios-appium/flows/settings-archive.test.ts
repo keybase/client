@@ -28,7 +28,7 @@ import {directConvIDFromCli} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
 import * as T from '../../shared/test-ids'
-import {archiveJobStates, archiveJobs, removeArchiveJobs, type ArchiveJobStates, type ArchiveJobs} from '../gate/app-ask'
+import {archiveJobIDs, archiveJobStates, removeArchiveJobs, type ArchiveJobStates, type ArchiveJobs} from '../gate/app-ask'
 import {
   anchorsOf,
   chatArchivesOf,
@@ -207,7 +207,7 @@ describe('settings archive', function () {
       await removeArchiveJobs(fresh, snapshot)
       if (unanchored) throw unanchored
       // the answer lists the phone's jobs, so a job missing from it is gone
-      check(stillListed(await archiveJobs(), fresh) === 0, "a backup job the test started is still on the phone after the cleanup")
+      check(stillListed(archiveJobIDs(await archiveJobStates()), fresh) === 0, "a backup job the test started is still on the phone after the cleanup")
       removeChatArchives(states, fresh)
       // the service deletes a chat job's folder in the background; what it left is deleted here
       await waitFor("the test's backup output removed from the phone", () => {
@@ -235,7 +235,7 @@ describe('settings archive', function () {
   // Bound: ask 22.
   beforeEach(async function () {
     this.timeout(60_000)
-    before ??= await archiveJobs()
+    before ??= archiveJobIDs(await archiveJobStates())
   })
 
   // Worst case (s): the menu 19, the keyboard 5, cleanUpJobs 210, a folder 195, the sheet 7,
@@ -280,7 +280,7 @@ describe('settings archive', function () {
     waitFor(
       what,
       async () => {
-        const now = await archiveJobs()
+        const now = archiveJobIDs(await archiveJobStates())
         return stillListed(now, {chat: [id], kbfs: [id]}) === 0 ? true : undefined
       },
       {interval: 500, timeout: 10_000}

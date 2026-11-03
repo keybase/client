@@ -1,7 +1,7 @@
 import * as mockVm from 'vm'
 import {
+  archiveJobIDs,
   archiveJobStates,
-  archiveJobs,
   askApp,
   compressPreference,
   darkModeState,
@@ -293,8 +293,8 @@ describe("the phone's local settings", () => {
 })
 
 describe('backup jobs', () => {
-  test("lists the phone's chat and files jobs", async () => {
-    await expect(archiveJobs()).resolves.toEqual({chat: ['c1'], kbfs: ['k1', 'k2']})
+  test("lists the phone's chat and files jobs by id", async () => {
+    expect(archiveJobIDs(await archiveJobStates())).toEqual({chat: ['c1'], kbfs: ['k1', 'k2']})
     expect(mockApp.log).toEqual(['pause', 'chat list', 'kbfs list', 'resume tok'])
   })
 
