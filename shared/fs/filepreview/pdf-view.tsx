@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import {PdfEmbed} from '@/common-adapters/pdf-embed'
 
 type Props = {
   url: string
@@ -7,7 +8,7 @@ type Props = {
 
 const PDFViewDesktop = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <embed src={props.url} width="100%" height="100%" />
+    <PdfEmbed url={props.url} />
   </Kb.Box2>
 )
 

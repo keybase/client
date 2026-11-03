@@ -6,6 +6,7 @@ import * as RemoteGen from '@/constants/remote-actions'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {DesktopNotification} from '@/util/electron'
 import type {RemoteComponentName} from '../remote/remote-component.desktop'
+import {isKbfsPath, isPreviewURL, localServerURL, parseURL} from '@/util/local-server-url'
 
 export type WindowKind = 'main' | RemoteComponentName
 
@@ -141,15 +142,6 @@ export const requestLogName = (request: BridgeRequest) => {
   return `action:${Object.hasOwn(knownActions, request.action) ? request.action : 'unknown'}`
 }
 
-const parseURL = (url: unknown) => {
-  if (typeof url !== 'string') return undefined
-  try {
-    return new URL(url)
-  } catch {
-    return undefined
-  }
-}
-
 // Opens http(s) and mailto links, and on macOS the System Settings links the files tab uses
 export const isExternalURLAllowed = (url: unknown, platform: string) => {
   switch (parseURL(url)?.protocol) {
@@ -169,15 +161,6 @@ export const isBrowserURL = (url: unknown) => {
   return protocol === 'http:' || protocol === 'https:'
 }
 
-// The service's local http servers on 127.0.0.1: chat attachments are served at /at
-// (go/chat/attachment_httpsrv.go) and KBFS files under /files/ (go/kbfs/libhttpserver)
-const localServerURL = (url: unknown) => {
-  const u = parseURL(url)
-  return u?.protocol === 'http:' && u.hostname === '127.0.0.1' ? u : undefined
-}
-const isKbfsPath = (pathname: string) => pathname.startsWith('/files/')
-const isPreviewPath = (pathname: string) => pathname === '/at' || isKbfsPath(pathname)
-
 // Subframes may only show PDF previews of chat attachments and KBFS files, and the built-in PDF
 // viewer those previews open in
 const pdfViewerID = 'mhjfbmdgcfjbbpaeojofohoefgiehjai'
@@ -185,9 +168,7 @@ export const isSubframeURLAllowed = (url: unknown) => {
   const u = parseURL(url)
   if (!u) return false
   if (u.href === 'about:blank') return true
-  const local = localServerURL(url)
-  if (local) return isPreviewPath(local.pathname)
-  return u.protocol === 'chrome-extension:' && u.host === pdfViewerID
+  return isPreviewURL(url) || (u.protocol === 'chrome-extension:' && u.host === pdfViewerID)
 }
 
 export type ResponseHeaders = Record<string, Array<string>>

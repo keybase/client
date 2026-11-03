@@ -246,8 +246,9 @@ const makeCsp = (isDev: boolean, isHot: boolean, isMain: boolean) =>
       ])}`,
       !isHot && "require-trusted-types-for 'script'",
       // google-libphonenumber's bundled Closure library creates this policy when it loads; it is
-      // never exported, and no other policy may be created
-      !isHot && 'trusted-types goog#html',
+      // never exported. kb-pdf-preview is common-adapters/pdf-embed.desktop.tsx. No other policy may
+      // be created
+      !isHot && 'trusted-types goog#html kb-pdf-preview',
     ],
     ';\n '
   )
