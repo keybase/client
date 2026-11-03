@@ -18,14 +18,28 @@ import {retriedNavigation} from '../gate/step.ts'
 import {el, tapForTestID} from './elements'
 import {filesRowNamed} from './files'
 import {expectScreen, visibleScreen} from '../gate/screens'
-import {BUTTON_ELEMENTS, check, dragBetween, type DrawnOptions, elementLabelledIn, elementWithLabelPart, elementWithLabelPartIn, frameOf, onScreen, onScreenID, press} from './menus'
+import {
+  BUTTON_ELEMENTS,
+  check,
+  dragBetween,
+  type DrawnOptions,
+  elementLabelledIn,
+  elementWithLabelPart,
+  elementWithLabelPartIn,
+  frameOf,
+  NAMED_ELEMENT_TYPES,
+  onScreen,
+  onScreenID,
+  press,
+} from './menus'
 import {waitFor} from './lifecycle'
 import {backUntil, barButton, goBack, openTabRoot} from './navigate'
 
 // what a text a flow reads or taps can be drawn as: its own text, a pressable text (a link), or a
-// tappable box merging its texts
-export const TEXTS =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeLink" OR type == "XCUIElementTypeOther") AND label != "" AND visible == 1'
+// tappable box merging its texts; as element types, for a read off one page source (an attribute call
+// per element of every labelled box on a screen took minutes), and as a selector of the visible ones
+export const TEXT_TYPES = NAMED_ELEMENT_TYPES
+export const TEXTS = `-ios predicate string:(${TEXT_TYPES.map(t => `type == "${t}"`).join(' OR ')}) AND label != "" AND visible == 1`
 // what a header's text action (Skip) can be drawn as: a native bar button, or a pressable text
 const HEADER_ACTION_TYPES = ['XCUIElementTypeButton', 'XCUIElementTypeStaticText', 'XCUIElementTypeLink']
 
@@ -242,9 +256,6 @@ export const backToTeamsRoot = async (what: string) => backUntil(`back from ${wh
 export const textPartShown = async (part: string, what: string, timeout = 5_000, opts?: DrawnOptions) =>
   waitFor(what, async () => elementWithLabelPartIn(TEXT_TYPES, part, what, opts), {interval: 250, timeout})
 
-// what TEXTS finds, as element types, for a read off one page source (an attribute call per element
-// of every labelled box on a screen took minutes)
-export const TEXT_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
 // The one visible text reading exactly `label`, once it is drawn; `opts` as textPartShown's. Bound:
 // `timeout`, plus one read 1.
