@@ -13,7 +13,7 @@ declare const jest: {
   mock: (path: string, factory: () => unknown) => void
 }
 
-const UDID = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
+const UDID = '00000000-1111-2222-3333-555555555555'
 
 const mockDevice = {
   calls: [] as Array<string>,
@@ -202,7 +202,7 @@ describe('a push', () => {
       err = String(e)
     }
     expect(err).toMatch(/simctl push failed \(exit 2\)/)
-    expect(err).not.toMatch(/kb-e2e|push-|\.json|B338EAF5/)
+    expect(err).not.toMatch(/kb-e2e|push-|\.json|00000000-1111-2222-3333-555555555555/)
     expect(fs.existsSync(mockDevice.pushed[0]?.file ?? '/')).toBe(false)
   })
 
@@ -307,7 +307,7 @@ test('clearing the location runs simctl only, and a failed clear poisons the gat
   expect(mockDevice.calls).toEqual([`simctl location ${UDID} clear`])
   mockDevice.simctlFails = 'location'
   expect(() => clearLocation()).toThrow(/simulated location/)
-  expect(gatePoisoned()).toMatch(/the simulated location \(run xcrun simctl location B338EAF5-6A0E-4CAF-BD25-446C674751FB clear\)/)
+  expect(gatePoisoned()).toMatch(/the simulated location \(run xcrun simctl location 00000000-1111-2222-3333-555555555555 clear\)/)
   mockDevice.simctlFails = ''
   clearLocation()
   expect(gatePoisoned()).toBeUndefined()

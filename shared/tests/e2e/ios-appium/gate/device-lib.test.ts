@@ -15,7 +15,7 @@ import {
 } from './device-lib'
 import {clearGatePoison, gatePoisoned} from './poison-lib'
 
-const UDID = 'B338EAF5-6A0E-4CAF-BD25-446C674751FB'
+const UDID = '00000000-1111-2222-3333-444444444444'
 const snap = (tcc: ReadonlyArray<TccRow>, locationAuth?: number) => ({locationAuth, tcc})
 const photos = (authValue: number) => snap([{authValue, service: 'kTCCServicePhotos'}])
 
@@ -234,7 +234,7 @@ describe('restoring a permission', () => {
       })
     ).rejects.toThrow(/^restoring the photos permission for keybase\.ios failed: simctl exit 1/)
     expect(t.done).toBe(false)
-    expect(gatePoisoned()).toMatch(/the photos permission for keybase\.ios \(run xcrun simctl privacy B338EAF5-6A0E-4CAF-BD25-446C674751FB revoke photos keybase\.ios\)/)
+    expect(gatePoisoned()).toMatch(/the photos permission for keybase\.ios \(run xcrun simctl privacy 00000000-1111-2222-3333-444444444444 revoke photos keybase\.ios\)/)
   })
 
   test('a restore that ran but did not take poisons the gate too', async () => {
