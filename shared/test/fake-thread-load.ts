@@ -65,7 +65,7 @@ type HeldTimer = {run: () => void; cancelled: boolean}
 
 // Picks the other legal order of a reply and the streams before it: the session acks a pushed call
 // at once and the listener hands it to its handler on a 0ms timer, so a reply that crosses the IPC
-// hop before that timer is due (a busy renderer, a loaded machine) settles the caller first. Real
+// hop before that timer is due (a busy renderer, a loaded machine) reaches the session first. Real
 // timers decide that race nondeterministically; this holds every 0ms timer set from now on, so a
 // test can choose it.
 //

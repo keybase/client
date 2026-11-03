@@ -1,8 +1,9 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 // The message-command module against a plain thread handle: which target picks which path, and
 // exactly what each path asks of the thread.
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
+import {act} from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
@@ -13,6 +14,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {settle} from '@/test/flush'
+import {installNavigation, renders, stateShowing} from '@/test/navigation'
+import {consumeInputIntent} from './input-intent-store'
 import {makeThreadChatRpc} from './chat-rpc'
 import type {ConversationThreadState} from './thread-context'
 import type {OptimisticReaction} from './thread-message-state'
@@ -314,13 +317,27 @@ describe('toggleReaction', () => {
 describe('replyPrivately', () => {
   test('both paths open the same conversation with the same quote', async () => {
     fake.answer('chat.1.local.newConversationLocal', () => ({conv: {info: {id: newConvID}}, uiConv: newConvItem}))
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     const {thread} = makeThread([textAt(10)])
-    replyPrivately({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
-    replyPrivately({conversationIDKey, message: textAt(10)})
-    await settle()
-    const opened = [newKey, 'createdMessagePrivately', {intent: {text: '> message 10\n', type: 'injectText'}}]
-    expect(navigate.mock.calls).toEqual([opened, opened])
+    // Each path from the thread it was issued in: where the app lands, and the quote waiting for
+    // the new thread's composer (taken here, as the composer would on mount)
+    const opened = async (reply: () => void) => {
+      const nav = installNavigation({rootState: stateShowing('chatRoot', {params: {conversationIDKey}})})
+      await act(async () => {
+        reply()
+        await settle()
+        await renders()
+      })
+      return {intent: consumeInputIntent(newKey, ['injectText']), visible: nav.visibleScreen()}
+    }
+    const expected = {
+      intent: {text: '> message 10\n', type: 'injectText'},
+      visible: expect.objectContaining({name: 'chatRoot', params: expect.objectContaining({conversationIDKey: newKey})}),
+    }
+
+    expect(await opened(() => replyPrivately({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}))).toEqual(
+      expected
+    )
+    expect(await opened(() => replyPrivately({conversationIDKey, message: textAt(10)}))).toEqual(expected)
     expect(paramsOf(fake, 'chat.1.local.newConversationLocal').map(p => p.tlfName)).toEqual([
       'testuser,testuser2',
       'testuser,testuser2',

@@ -104,16 +104,27 @@ export const modalStack = (state?: Immutable<NavState>): Immutable<Array<Route>>
   return (state.routes?.slice(1) ?? []).filter(r => isModalRouteName(r.name)) as Immutable<Array<Route>>
 }
 
+const modalMatches = (r: Immutable<Route>, name: string, params: Readonly<Record<string, unknown>>) => {
+  const rp = r.params as Readonly<Record<string, unknown>> | undefined
+  return r.name === name && Object.entries(params).every(([k, v]) => rp?.[k] === v)
+}
+
 // Whether a modal of that name is up whose params hold every entry of `params`.
 export const isModalUp = (
   state: Immutable<NavState> | undefined,
   name: string,
   params: Readonly<Record<string, unknown>> = {}
-) =>
-  modalStack(state).some(r => {
-    const rp = r.params as Readonly<Record<string, unknown>> | undefined
-    return r.name === name && Object.entries(params).every(([k, v]) => rp?.[k] === v)
-  })
+) => modalStack(state).some(r => modalMatches(r, name, params))
+
+// The route key of the topmost such modal, to tell later whether that same instance is still up.
+export const topModalKey = (
+  state: Immutable<NavState> | undefined,
+  name: string,
+  params: Readonly<Record<string, unknown>> = {}
+) => modalStack(state).findLast(r => modalMatches(r, name, params))?.key
+
+export const isModalKeyUp = (state: Immutable<NavState> | undefined, key: string) =>
+  modalStack(state).some(r => r.key === key)
 
 // The innermost stack the user is looking at - the one a push/pop should target.
 export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | undefined => {

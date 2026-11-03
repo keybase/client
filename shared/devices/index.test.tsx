@@ -12,6 +12,11 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {navigationWrapper} from '@/test/navigation'
 import Devices from './index'
 
+// Each test mounts the full devices tab on the real navigation tree, which can pass 5s on a loaded
+// CI runner. A timed-out test keeps running with an act() open, so every later test in the file
+// then fails on overlapping act() with nothing rendered.
+jest.setTimeout(30_000)
+
 const historyList = 'keybase.1.device.deviceHistoryList'
 const dismissBadges = 'keybase.1.device.dismissDeviceChangeNotifications'
 

@@ -7,6 +7,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import {isCancelled} from '@/util/errors'
 import logger from '@/logger'
 import {errors} from './rpc-transport'
 import {testWaitingKey} from '@/test/waiting-key'
@@ -234,15 +235,25 @@ test('a prompt queued before a logout is refused instead of reaching its handler
   await ended
 })
 
-test('a notification that arrives just before its session ends normally still reaches its handler', async () => {
+test('a prompt handler that answers and then waits on the user does not hold the call', async () => {
+  const fake = installFakeEngine()
+  const {ended, held, push} = await startRecover(fake, async (_, response) => {
+    response.result(true)
+    await new Promise(() => {})
+  })
+  await expect(push()).resolves.toEqual({result: true})
+  held[0]!.reply(undefined)
+  await expect(settledSoFar(ended)).resolves.toBeNull()
+  uninstallFakeEngine()
+})
+
+test('a notification that arrives just before its session ends normally reaches its handler before the call settles', async () => {
   const fake = installFakeEngine()
   const onRow = jest.fn()
   const {ended, held, push} = await startIdentify(fake, onRow)
   const pushed = push()
   held[0]!.reply(undefined)
   await expect(ended).resolves.toBeNull()
-  expect(onRow).not.toHaveBeenCalled()
-  await afterTimers()
   expect(onRow).toHaveBeenCalledTimes(1)
   await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()
@@ -257,6 +268,22 @@ test('a notification queued before an account switch never reaches its handler',
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   await afterTimers()
   expect(onRow).not.toHaveBeenCalled()
+  await expect(pushed).resolves.toEqual({result: null})
+  uninstallFakeEngine()
+})
+
+test('a reply that waits on a queued handler across an account switch is refused as an account change', async () => {
+  const fake = installFakeEngine()
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  const onRow = jest.fn()
+  const {ended, held, push} = await startIdentify(fake, onRow)
+  const pushed = push()
+  held[0]!.reply(undefined)
+  await tick()
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+  await afterTimers()
+  expect(onRow).not.toHaveBeenCalled()
+  expect(isCancelled(await ended, 'accountChange')).toBe(true)
   await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()
 })

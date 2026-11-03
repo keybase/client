@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {waitFor} from '@testing-library/react'
-import * as Router from '@/constants/router'
+import {act, waitFor} from '@testing-library/react'
+import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
@@ -9,6 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {settle} from '@/test/flush'
+import {installNavigation, makeRootState, renders, stackKeyOf, type MountedNavigation} from '@/test/navigation'
 import {
   hideConversation,
   joinConversation,
@@ -24,8 +25,8 @@ const refresh = 'chat.1.local.refreshParticipants'
 const setStatus = 'chat.1.local.SetConversationStatusLocal'
 
 let fake: FakeEngine
-let navigateToInbox: jest.SpyInstance
-let setChatRootParams: jest.SpyInstance
+let nav: MountedNavigation
+const infoPanel = {tab: 'settings' as const}
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
@@ -33,8 +34,14 @@ beforeEach(() => {
   fake.answer(join, () => undefined)
   fake.answer(refresh, () => undefined)
   fake.answer(setStatus, () => ({}))
-  navigateToInbox = jest.spyOn(Router, 'navigateToInbox').mockImplementation(() => {})
-  setChatRootParams = jest.spyOn(Router, 'setChatRootParams').mockImplementation(() => true)
+  // desktop: the conversation is selected in the chat root with its info panel open, and the user
+  // has gone on to a profile from it
+  nav = installNavigation({
+    rootState: makeRootState({
+      tab: Tabs.chatTab,
+      tabStack: [{name: 'chatRoot', params: {conversationIDKey, infoPanel}}, {name: 'profile', params: {username: 'testuser'}}],
+    }),
+  })
 })
 
 afterEach(() => {
@@ -72,23 +79,45 @@ describe('conversation status', () => {
       status,
     })
 
+  // hiding, with the navigation it does deferred a turn, all inside one act
+  const hide = async () =>
+    act(async () => {
+      hideConversation(conversationIDKey, true)
+      await settle()
+      await renders()
+    })
+
   test('hiding ignores the conversation and leaves it for the inbox', async () => {
-    hideConversation(conversationIDKey, true)
-    await settle()
+    await hide()
 
     expectStatus(T.RPCChat.ConversationStatus.ignored)
-    expect(navigateToInbox).toHaveBeenCalledTimes(1)
-    // not a phone: the desktop root also forgets the info panel for this conversation
-    expect(setChatRootParams).toHaveBeenCalledWith({conversationIDKey, infoPanel: undefined})
+    // back on the chat root, the profile gone
+    expect(nav.visibleScreen()?.name).toBe('chatRoot')
+    expect(stackKeyOf('profile')).toBeUndefined()
+  })
+
+  // navigateToInbox goes up to the chat root, which resets its params (the hidden conversation and its
+  // info panel), and then asks it to refresh; set before going up, the refresh was wiped with them
+  test('hiding asks the inbox to refresh, and the desktop root forgets the conversation and its panel', async () => {
+    await hide()
+
+    expect(nav.visibleScreen()?.params).toEqual({
+      refreshInbox: {nonce: expect.any(String), reason: 'navigatedToInbox'},
+    })
   })
 
   test('unhiding refiles the conversation without navigating', async () => {
-    hideConversation(conversationIDKey, false)
-    await settle()
+    const before = nav.getRootState()
+    await act(async () => {
+      hideConversation(conversationIDKey, false)
+      await settle()
+      await renders()
+    })
 
     expectStatus(T.RPCChat.ConversationStatus.unfiled)
-    expect(navigateToInbox).not.toHaveBeenCalled()
-    expect(setChatRootParams).not.toHaveBeenCalled()
+    expect(nav.actions).toEqual([])
+    expect(nav.getRootState()).toEqual(before)
+    expect(nav.visibleScreen()?.name).toBe('profile')
   })
 
   test('muting and unmuting set muted and unfiled', async () => {

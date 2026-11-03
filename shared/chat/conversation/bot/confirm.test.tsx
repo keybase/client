@@ -7,8 +7,12 @@ jest.mock('@/common-adapters', () => {
   const R = jest.requireActual<typeof React>('react')
   const passThrough = ({children}: {children?: React.ReactNode}) =>
     R.createElement('div', null, children)
-  // every Styles.* is a style-hook factory: createStyleHook(...) gives a hook that returns {}
-  const anyStyle: unknown = new Proxy({}, {get: () => () => () => ({})})
+  // every other Styles.* is a style-hook factory: createStyleHook(...) gives a hook that returns {};
+  // classNames is what the desktop tab navigator's modal backdrop reads
+  const anyStyle: unknown = new Proxy(
+    {classNames: () => ''},
+    {get: (t: {[key: string]: unknown}, k) => (typeof k === 'string' && k in t ? t[k] : () => () => ({}))}
+  )
   const components: {[key: string]: unknown} = {
     Avatar: () => null,
     ConfirmModal: (p: {onCancel: () => void; onConfirm: () => void; prompt: string}) =>
@@ -29,7 +33,7 @@ jest.mock('@/common-adapters', () => {
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {flush} from '@/test/flush'
 import * as C from '@/constants'
-import * as Router from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
@@ -37,6 +41,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
+import {navigationWrapper, type NavigationRecorder} from '@/test/navigation'
 import ConfirmBotRemove from './confirm'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -55,12 +60,11 @@ const previewResult = (participants: Array<string>) => ({
 })
 
 let fake: FakeEngine
-let clearModals: jest.SpyInstance
+let nav: NavigationRecorder
 let info: jest.SpyInstance
 
 beforeEach(() => {
   fake = installFakeEngine()
-  clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
   info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
@@ -70,8 +74,19 @@ afterEach(() => {
   resetAllStores()
 })
 
-const renderConfirm = () =>
-  render(<ConfirmBotRemove botUsername="helperbot" conversationIDKey={convID} />)
+const teamID = '0123456789abcdef0123456789abcd24' as T.Teams.TeamID
+
+// as the install popup opens it: a root-stack modal over the chat tab
+const renderConfirm = () => {
+  const n = navigationWrapper({
+    params: {botUsername: 'helperbot', conversationIDKey: convID, teamID},
+    route: 'chatConfirmRemoveBot',
+  })
+  nav = n
+  return render(<ConfirmBotRemove botUsername="helperbot" conversationIDKey={convID} />, {wrapper: n.wrapper})
+}
+
+const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
 
 const clickConfirm = async () => {
   act(() => {
@@ -105,7 +120,7 @@ describe('ConfirmBotRemove', () => {
       'testuser',
       'testuser-mac',
     ])
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expect(modals()).toEqual([])
     expect(info).not.toHaveBeenCalled()
   })
 
@@ -119,7 +134,7 @@ describe('ConfirmBotRemove', () => {
       'removeBotMember: failed to remove bot member: ERROR CODE 1 - bot not found in method chat.1.local.removeBotMember'
     )
     expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(clearModals).not.toHaveBeenCalled()
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
     // the failure is surfaced only through the waiting store's error for the remove key
     expect(useWaitingState.getState().errors.get(C.waitingKeyChatBotRemove)?.desc).toBe('bot not found')
   })
@@ -136,7 +151,7 @@ describe('ConfirmBotRemove', () => {
 
     expect(info).toHaveBeenCalledWith(expect.stringContaining('removeBotMember: failed to remove bot member: '))
     expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(clearModals).not.toHaveBeenCalled()
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
   })
 
   test('a failing membership preview still closes the modal and leaves participants alone', async () => {
@@ -150,20 +165,66 @@ describe('ConfirmBotRemove', () => {
 
     expect(paramsOf(fake, previewConversation)).toEqual([{convID: T.Chat.keyToConversationID(convID)}])
     expect(useInboxMetadataState.getState().participants.get(convID)).toBeUndefined()
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expect(modals()).toEqual([])
     expect(info).not.toHaveBeenCalled()
   })
 
-  test('cancel closes without calling the service', () => {
+  test('cancel closes without calling the service', async () => {
     renderConfirm()
-    fireEvent.click(screen.getByText('Cancel'))
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
+    act(() => {
+      fireEvent.click(screen.getByText('Cancel'))
+    })
+    await flush()
 
-    expect(clearModals).toHaveBeenCalledTimes(1)
+    expect(modals()).toEqual([])
     expect(fake.calls).toEqual([])
   })
 
+  test('a popup the user left while the remove ran leaves the modal they opened since alone', async () => {
+    const held = fake.hold(removeBotMember)
+    fake.answer(previewConversation, () => previewResult(['testuser']))
+
+    renderConfirm()
+    await clickConfirm()
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+    })
+    await flush()
+    expect(modals()).toEqual(['chatNewChat'])
+
+    held[0]!.reply(null)
+    await flush()
+
+    expect(paramsOf(fake, previewConversation)).toEqual([{convID: T.Chat.keyToConversationID(convID)}])
+    expect(modals()).toEqual(['chatNewChat'])
+  })
+
+  test('a popup reopened for the same bot while the remove ran stays open', async () => {
+    const held = fake.hold(removeBotMember)
+    fake.answer(previewConversation, () => previewResult(['testuser']))
+
+    renderConfirm()
+    await clickConfirm()
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({
+        name: 'chatConfirmRemoveBot',
+        params: {botUsername: 'helperbot', conversationIDKey: convID, teamID},
+      })
+    })
+    await flush()
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
+
+    held[0]!.reply(null)
+    await flush()
+
+    expect(paramsOf(fake, previewConversation)).toEqual([{convID: T.Chat.keyToConversationID(convID)}])
+    expect(modals()).toEqual(['chatConfirmRemoveBot'])
+  })
+
   test('renders nothing without a valid conversation, while the team general channel is looked up and when it is not found', async () => {
-    const teamID = '0123456789abcdef0123456789abcd24' as T.Teams.TeamID
     const held = fake.hold('chat.1.local.findGeneralConvFromTeamID')
     const {container} = render(<ConfirmBotRemove botUsername="helperbot" teamID={teamID} />)
     expect(container.innerHTML).toBe('')

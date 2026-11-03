@@ -14,6 +14,7 @@ jest.mock('@/common-adapters', () => {
       createStyleHook: () => () => ({}),
       globalMargins: new Proxy({}, {get: () => 0}),
       globalStyles: new Proxy({}, {get: () => ({})}),
+      classNames: () => '',
       useTheme: () => ({redDark: 'red'}),
     },
     {get: (t: {[key: string]: unknown}, k) => (typeof k === 'string' && k in t ? t[k] : () => ({}))}
@@ -46,10 +47,9 @@ jest.mock('./channel-picker', () => ({__esModule: true, default: () => null}))
 import {act, cleanup, fireEvent, render, renderHook, screen} from '@testing-library/react'
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -60,9 +60,9 @@ import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {testWaitingKey} from '@/test/waiting-key'
+import {navigationWrapper, type NavigationRecorder} from '@/test/navigation'
 import {useBotSettings} from './settings'
-import InstallBotPopup, {useBotTeamRole, useRefreshBotMembershipOnSuccess} from './install'
+import InstallBotPopup, {refreshBotMembership, useBotTeamRole} from './install'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -171,40 +171,10 @@ const previewResult = (participants: Array<string>) => ({
   } as unknown as T.RPCChat.InboxUIItem,
 })
 
-describe('useRefreshBotMembershipOnSuccess', () => {
-  const waitingKey = testWaitingKey('test:botMutation')
-  const run = (p: {
-    conversationIDKey: T.Chat.ConversationIDKey | undefined
-    error?: RPCError
-    shouldRefresh: boolean
-  }) => {
-    const onSuccess = jest.fn()
-    renderHook(() =>
-      useRefreshBotMembershipOnSuccess(p.conversationIDKey, waitingKey, p.error, p.shouldRefresh, onSuccess)
-    )
-    return onSuccess
-  }
-  const waitThenFinish = async () => {
-    act(() => {
-      useWaitingState.getState().dispatch.increment(waitingKey)
-    })
-    act(() => {
-      useWaitingState.getState().dispatch.decrement(waitingKey)
-    })
-    await settle()
-  }
-
-  test('does nothing on mount or while nothing was waiting', async () => {
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await settle()
-    expect(onSuccess).not.toHaveBeenCalled()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-  })
-
-  test('previews the conversation, stores its participants, then calls onSuccess', async () => {
+describe('refreshBotMembership', () => {
+  test('previews the conversation and stores its participants', async () => {
     fake.answer(previewConversation, () => previewResult(['testuser', 'helperbot']))
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(convID)
 
     expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
     expect(useInboxMetadataState.getState().participants.get(convID)).toEqual({
@@ -212,41 +182,20 @@ describe('useRefreshBotMembershipOnSuccess', () => {
       contactName: new Map(),
       name: ['testuser', 'helperbot'],
     })
-    expect(onSuccess).toHaveBeenCalledTimes(1)
   })
 
-  test('a failed preview still calls onSuccess and stores nothing', async () => {
+  test('a failed preview resolves and stores nothing', async () => {
     fake.answer(previewConversation, () => fakeError(2, 'offline'))
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(convID)
 
+    expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
     expect(useInboxMetadataState.getState().participants.get(convID)).toBeUndefined()
-    expect(onSuccess).toHaveBeenCalledTimes(1)
-  })
-
-  test('skips the preview when no refresh is wanted', async () => {
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: false})
-    await waitThenFinish()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(onSuccess).toHaveBeenCalledTimes(1)
   })
 
   test('skips the preview for a missing or invalid conversation', async () => {
-    const onMissing = run({conversationIDKey: undefined, shouldRefresh: true})
-    await waitThenFinish()
-    const onInvalid = run({conversationIDKey: T.Chat.noConversationIDKey, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(undefined)
+    await refreshBotMembership(T.Chat.noConversationIDKey)
     expect(paramsOf(fake, previewConversation)).toEqual([])
-    // the first hook sees both waiting cycles
-    expect(onMissing).toHaveBeenCalledTimes(2)
-    expect(onInvalid).toHaveBeenCalledTimes(1)
-  })
-
-  test('does nothing when the mutation ended in an error', async () => {
-    const onSuccess = run({conversationIDKey: convID, error: new RPCError('nope', 1), shouldRefresh: true})
-    await waitThenFinish()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(onSuccess).not.toHaveBeenCalled()
   })
 })
 
@@ -254,7 +203,7 @@ describe('InstallBotPopup service calls', () => {
   const teamID = 'team1'
   const chanA = T.Chat.conversationIDToKey(new Uint8Array([9, 9]))
   const goneChan = T.Chat.conversationIDToKey(new Uint8Array([8, 8]))
-  let clearModals: jest.SpyInstance
+  let nav: NavigationRecorder
   let info: jest.SpyInstance
 
   const setMeta = (botCommands?: T.RPCChat.ConversationCommandGroups) => {
@@ -293,9 +242,8 @@ describe('InstallBotPopup service calls', () => {
       visibility: T.RPCGen.TLFVisibility.private,
     }) as unknown as T.RPCChat.InboxUIItem
 
-  // A person takes longer than the engine's 500ms waiting throttle between opening the popup and
-  // pressing a button, so the press's waiting "on" reaches the store at once rather than in the
-  // batch that also carries its "off".
+  // The engine throttles waiting increments (500ms), so a press soon after the popup's own loads
+  // reaches the store late; waiting this out lets a test read the in-flight count.
   const waitOutWaitingThrottle = async () => {
     await act(async () => new Promise(resolve => setTimeout(resolve, 510)))
   }
@@ -307,14 +255,40 @@ describe('InstallBotPopup service calls', () => {
 
   const answerPreview = () => fake.answer(previewConversation, () => previewResult(['testuser', 'helperbot']))
 
+  // as the chat opens it: a root-stack modal over the chat tab
   const renderPopup = async (botUsername = 'helperbot') => {
+    const n = navigationWrapper({params: {botUsername, conversationIDKey: convID}, route: 'chatInstallBot'})
+    nav = n
     const r = render(
       <LoadedTeamsListProvider>
         <InstallBotPopup botUsername={botUsername} conversationIDKey={convID} />
-      </LoadedTeamsListProvider>
+      </LoadedTeamsListProvider>,
+      {wrapper: n.wrapper}
     )
     await settle()
     return r
+  }
+
+  const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
+
+  // the user closes the popup and opens another modal
+  const leaveForNewChat = async () => {
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+    })
+    await settle()
+    expect(modals()).toEqual(['chatNewChat'])
+  }
+
+  // the user closes the popup and opens the same bot's popup again
+  const reopenSameBot = async () => {
+    act(() => {
+      C.Router2.clearModals()
+      C.Router2.navigateAppend({name: 'chatInstallBot', params: {botUsername: 'helperbot', conversationIDKey: convID}})
+    })
+    await settle()
+    expect(modals()).toEqual(['chatInstallBot'])
   }
 
   const click = async (text: string) => {
@@ -365,7 +339,6 @@ describe('InstallBotPopup service calls', () => {
       offline: false,
     }))
     fake.answer('keybase.1.featuredBot.search', () => ({bots: []}))
-    clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
     info = jest.spyOn(logger, 'info').mockImplementation(() => {})
   })
 
@@ -398,7 +371,7 @@ describe('InstallBotPopup service calls', () => {
 
       expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
       expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual(['testuser', 'helperbot'])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
       expect(info).not.toHaveBeenCalled()
     })
 
@@ -411,7 +384,6 @@ describe('InstallBotPopup service calls', () => {
       await renderPopup()
       await click('Unrestricted bot')
       await click('Review')
-      await waitOutWaitingThrottle()
       await click('Install')
       held[0]!.reply(null)
       await settle()
@@ -420,15 +392,12 @@ describe('InstallBotPopup service calls', () => {
       expect(paramsOf(fake, addBotMember)).toEqual([
         {botSettings: null, convID: convIDOf(convID), role: T.RPCGen.TeamRole.bot, username: 'helperbot'},
       ])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
     })
 
-    // Suspected bug: the engine throttles a waiting "on" (500ms, across every key) but flushes an
-    // "off" at once. An install started within 500ms of another waiting-keyed call (here the teams
-    // list the popup loads on mount) that settles before the throttle fires reaches the store as
-    // one batch, on and off together, so useRefreshBotMembershipOnSuccess never sees waiting and
-    // the popup neither refreshes the membership nor closes.
-    test.failing('an install that settles inside the waiting throttle window still refreshes and closes', async () => {
+    // The engine throttles a waiting "on" (500ms) but flushes an "off" at once, so an install this
+    // quick is never seen as waiting; the close has to follow the call itself.
+    test('an install that settles inside the waiting throttle window still refreshes and closes', async () => {
       answerRole(T.RPCGen.TeamRole.none)
       answerPublicCommands([])
       fake.answer(addBotMember, () => null)
@@ -439,7 +408,41 @@ describe('InstallBotPopup service calls', () => {
       await click('Install')
 
       expect(paramsOf(fake, addBotMember)).toHaveLength(1)
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
+    })
+
+    test('a popup the user left while the install ran leaves the modal they opened since alone', async () => {
+      answerRole(T.RPCGen.TeamRole.none)
+      answerPublicCommands([])
+      const held = fake.hold(addBotMember)
+      answerPreview()
+
+      await renderPopup()
+      await click('Review')
+      await click('Install')
+      await leaveForNewChat()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatNewChat'])
+    })
+
+    test('a popup reopened for the same bot while the install ran stays open', async () => {
+      answerRole(T.RPCGen.TeamRole.none)
+      answerPublicCommands([])
+      const held = fake.hold(addBotMember)
+      answerPreview()
+
+      await renderPopup()
+      await click('Review')
+      await click('Install')
+      await reopenSameBot()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatInstallBot'])
     })
 
     test('a failed install is logged, shows the error line, and neither refreshes nor closes', async () => {
@@ -456,7 +459,7 @@ describe('InstallBotPopup service calls', () => {
       )
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
       expect(paramsOf(fake, previewConversation)).toEqual([])
-      expect(clearModals).not.toHaveBeenCalled()
+      expect(modals()).toEqual(['chatInstallBot'])
     })
   })
 
@@ -493,7 +496,7 @@ describe('InstallBotPopup service calls', () => {
         },
       ])
       expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
-      expect(clearModals).toHaveBeenCalledTimes(1)
+      expect(modals()).toEqual([])
     })
 
     test('channels that no longer exist are dropped from what is saved', async () => {
@@ -512,6 +515,36 @@ describe('InstallBotPopup service calls', () => {
       expect(paramsOf(fake, setBotSettings)[0]?.botSettings).toEqual({cmds: true, convs: [], mentions: true})
     })
 
+    test('a popup the user left while the save ran leaves the modal they opened since alone', async () => {
+      answerPreview()
+
+      await renderInstalled({cmds: true, convs: [chanA], mentions: false})
+      const held = fake.hold(setBotSettings)
+      await click('Edit settings')
+      await click('Save')
+      await leaveForNewChat()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatNewChat'])
+    })
+
+    test('a popup reopened for the same bot while the save ran stays open', async () => {
+      answerPreview()
+
+      await renderInstalled({cmds: true, convs: [chanA], mentions: false})
+      const held = fake.hold(setBotSettings)
+      await click('Edit settings')
+      await click('Save')
+      await reopenSameBot()
+      held[0]!.reply(null)
+      await settle()
+
+      expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
+      expect(modals()).toEqual(['chatInstallBot'])
+    })
+
     test('a failed save is logged, shows the error line, and neither refreshes nor closes', async () => {
       fake.answer(setBotSettings, () => fakeError(8, 'denied'))
 
@@ -524,7 +557,7 @@ describe('InstallBotPopup service calls', () => {
       )
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
       expect(paramsOf(fake, previewConversation)).toEqual([])
-      expect(clearModals).not.toHaveBeenCalled()
+      expect(modals()).toEqual(['chatInstallBot'])
     })
   })
 

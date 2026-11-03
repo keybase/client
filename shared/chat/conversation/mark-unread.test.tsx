@@ -42,7 +42,7 @@ const placeholders = (ids: ReadonlyArray<number>) =>
 
 // The service's answer to the load around the line, one pass each. It replies only once its passes
 // have reached their handlers (the listener runs them on a timer after acking), as a service slow
-// to finish the load does; replying at once is the race the test.failing below covers.
+// to finish the load does; replying at once is covered below.
 const aroundLine = (...passes: ReadonlyArray<ReadonlyArray<number>>) => {
   answerThreadLoads(fake, async l => {
     const [cached, full] = passes
@@ -132,10 +132,8 @@ describe('without a thread', () => {
 
   // loadConversationMessageIDs collects ids from the passes and reads them as soon as loadThread
   // resolves. The session acks each pass at once and the listener runs its handler on a timer, so
-  // a service that replies right after its last pass settles the load before that pass is read:
-  // the ids come back empty and nothing is marked. Fails today; passes once the load waits for its
-  // passes.
-  test.failing('marks even when the service replies right after its last pass', async () => {
+  // the service can reply before the last pass is read; loadThread still waits for it.
+  test('marks even when the service replies right after its last pass', async () => {
     answerThreadLoads(fake, async l => {
       const timers = holdHandlerTimers()
       await l.full(placeholders([3, 4, 5, 6]))

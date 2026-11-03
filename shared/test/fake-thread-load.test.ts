@@ -49,9 +49,9 @@ test('the load asks the service for the conversation, and its streams reach the 
 })
 
 // The session acks a plain call at once and the listener runs the handler on a 0ms timer, so the
-// reply, sent once the ack reached the service, races that timer. Either order is real; a caller
-// must not read stream-fed state right after awaiting the load.
-test('the load can resolve before the full pass it was sent ahead of reaches its callback', async () => {
+// reply, sent once the ack reached the service, can arrive before that timer; the load still
+// resolves only after the pass has reached its callback.
+test('a reply that arrives before the full pass reaches its callback resolves the load after it', async () => {
   answerThreadLoads(fake, async l => {
     const timers = holdHandlerTimers()
     await l.full('f')
@@ -59,9 +59,7 @@ test('the load can resolve before the full pass it was sent ahead of reaches its
   })
   const events: Array<string> = []
   await load(events)
-  expect(events).toEqual(['resolved {"offline":false}'])
-  await settle()
-  expect(events).toEqual(['resolved {"offline":false}', 'full f'])
+  expect(events).toEqual(['full f', 'resolved {"offline":false}'])
 })
 
 test('a service that replies once the handler ran resolves the load after the full pass', async () => {

@@ -85,6 +85,9 @@ export const getModalStack = () => NavTree.modalStack(getRootState())
 
 export const isModalUp = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
   NavTree.isModalUp(getRootState(), name, params)
+export const topModalKey = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
+  NavTree.topModalKey(getRootState(), name, params)
+export const isModalKeyUp = (key: string) => NavTree.isModalKeyUp(getRootState(), key)
 
 export const getVisibleScreen = (includeModals?: boolean) =>
   NavTree.visibleScreen(getRootState(), {includeModals})
@@ -242,8 +245,9 @@ export const navigateToInbox = (
       }
       return
     }
-    setChatRootParams({refreshInbox})
+    // up first: a pop to a screen by name replaces its params, so the refresh is set once there
     navUpToScreen('chatRoot')
+    setChatRootParams({refreshInbox})
   }, 1)
 }
 
@@ -468,6 +472,9 @@ export const previewConversation = (p: PreviewConversationParams) => {
 
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
   getNavigator().setChatRootParams(params)
+
+export const pushInTab = (tab: Tabs.AppTab, screen: {name: RouteKeys; params?: Record<string, unknown>}): boolean =>
+  getNavigator().pushInTab(tab, screen)
 
 // Merges params into the route with this key, even when it is not the focused one.
 export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>

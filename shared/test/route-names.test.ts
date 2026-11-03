@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import {loggedOutRoutes, modalRoutes, routes} from '@/router-v2/routes'
 import phoneInboxOptions from '@/chat/inbox/get-options'
-import {loggedOutRouteNames, modalRouteNames, routeNames, routeScreenOptions} from './route-names'
+import {loggedOutRouteNames, modalRouteNames, routeInitialParams, routeNames, routeScreenOptions} from './route-names'
 
 test('the harness registers the routes the app registers', () => {
   expect([...routeNames].sort()).toEqual(Object.keys(routes).sort())
@@ -29,4 +29,13 @@ test("desktop's routes set the keep/pause/unmount options the harness gives them
 
 test("the phone's unsplit inbox keeps itself, as the harness's phone chatRoot does", () => {
   expect(routeScreenOptions.phone['chatRoot']?.inactiveBehavior).toBe(phoneInboxOptions.inactiveBehavior)
+})
+
+test('the harness gives each route the initialParams the app gives it', () => {
+  const found: Record<string, object> = {}
+  for (const [name, def] of Object.entries({...routes, ...modalRoutes, ...loggedOutRoutes})) {
+    const initialParams = (def as {initialParams?: object}).initialParams
+    if (initialParams !== undefined) found[name] = initialParams
+  }
+  expect(found).toEqual(routeInitialParams)
 })

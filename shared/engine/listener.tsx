@@ -9,7 +9,7 @@ import {
 } from './types'
 import {wrapErrors} from '@/util/debug'
 import type {CallPort, ListenParams} from './call-port'
-import type {DeferRun} from './session'
+import {accountChangedError, type DeferRun} from './session'
 
 type ListenEngine = {
   call: CallPort['call']
@@ -25,6 +25,12 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
     }
 
+    // Handler runs whose timer has not fired yet. The session acks a plain call at once, so the
+    // service may reply before they run; the call settles only once they have, so a caller that
+    // awaits it sees what they write before their first await. What a handler writes after an
+    // await of its own is not ordered with the reply.
+    const pendingRuns = new Set<Promise<void>>()
+
     // Handlers run on a timer so transport work can flush before heavier state updates. By then an
     // account switch may have reset the stores the handler writes to, unless this call outlives it.
     const runDeferred = (
@@ -34,13 +40,24 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       handlerMethod: string
     ) => {
       const generation = getAccountGeneration()
+      let fired = () => {}
+      const firing = new Promise<void>(resolve => {
+        fired = resolve
+      })
+      pendingRuns.add(firing)
       setTimeout(() => {
-        if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
-          onStale()
-          return
+        try {
+          if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
+            onStale()
+            return
+          }
+          // wrapErrors logs the failure
+          wrapErrors(run, handlerMethod)().catch(onFailed)
+        } finally {
+          // Up to the handler's first await only: one that then waits on the user must not hold the call
+          pendingRuns.delete(firing)
+          fired()
         }
-        // wrapErrors logs the failure
-        wrapErrors(run, handlerMethod)().catch(onFailed)
       }, 0)
     }
 
@@ -108,12 +125,29 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
           clearInterval(outstandingIntervalID)
         }
 
-        if (error) {
-          // The RPCError itself, as the promise RPCs reject with, so callers can match on it
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-          reject(error instanceof RPCError ? error : ensureError(error))
+        const settle = () => {
+          if (error) {
+            // The RPCError itself, as the promise RPCs reject with, so callers can match on it
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+            reject(error instanceof RPCError ? error : ensureError(error))
+          } else {
+            resolve(params)
+          }
+        }
+        if (pendingRuns.size) {
+          // The session has ended, so an account switch while the handlers wait no longer cancels it
+          const generation = getAccountGeneration()
+          void Promise.all(pendingRuns).then(() => {
+            if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
+              // An RPCError, as the session rejects with for an account change
+              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+              reject(accountChangedError())
+            } else {
+              settle()
+            }
+          })
         } else {
-          resolve(params)
+          settle()
         }
       },
       customResponseIncomingCallMap: customMap,

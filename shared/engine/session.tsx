@@ -43,7 +43,7 @@ export type DeferRun = () => () => void
 // Before each retry of a call the service failed as login-required: two retries, three attempts
 const loginRequiredRetryDelaysMs: ReadonlyArray<number> = [250, 750]
 
-const accountChangedError = () =>
+export const accountChangedError = () =>
   new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
     reason: 'accountChange',
     type: 'cancelled',

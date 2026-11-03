@@ -234,11 +234,10 @@ describe('sendMessage', () => {
     expect(remove).not.toHaveBeenCalled()
   })
 
-  // BUG: sendText reads stellarCanceled as soon as postText resolves, but the listener hands
-  // chatStellarDone to its handler on a 0ms timer after the session acked it, and the service
-  // answers postText once that ack reaches it. When the answer lands first the canceled payment is
-  // taken for a send: its dismissals are dropped, and then restored when the handler runs.
-  test.failing('a canceled stellar send the service answers at once is not a send', async () => {
+  // sendText reads stellarCanceled as soon as postText resolves. The session acks chatStellarDone at
+  // once and the listener runs its handler on a timer, so the service's answer can arrive first;
+  // postText still resolves only after that handler has run.
+  test('a canceled stellar send the service answers at once is not a send', async () => {
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
     sendCanceledPayment(jest.fn(), 'at once')
     await untilStellarDone()

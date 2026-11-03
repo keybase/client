@@ -3,10 +3,12 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render as rtlRender, screen} from '@testing-library/react'
+import * as NavTree from '@/constants/nav-tree'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {settle} from '@/test/flush'
+import {makeRootState, navigationWrapper, renders, type InstalledNavigation} from '@/test/navigation'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -83,6 +85,30 @@ const posted = () =>
   paramsOf(fake, postAttachment).map(p => p.arg as {conversationID: Uint8Array; filename: string; title: string; tlfName: string})
 const cancelled = () => paramsOf(fake, cancelUploadTempFile).map(p => p.outboxID as Uint8Array)
 
+const shownConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+let nav: Omit<InstalledNavigation, 'setRootState' | 'unmount'>
+// The screen as the app shows it: a modal over the conversation's thread in the real navigation tree
+const render = (ui: ReactTypes.ReactElement) => {
+  const {wrapper, ...recorder} = navigationWrapper({
+    rootState: makeRootState({
+      above: [{name: 'chatAttachmentGetTitles', params: {conversationIDKey: shownConversationIDKey}}],
+      tabStack: [{name: 'chatRoot', params: {conversationIDKey: shownConversationIDKey}}],
+    }),
+    route: 'chatAttachmentGetTitles',
+  })
+  nav = recorder
+  return rtlRender(ui, {wrapper})
+}
+const screenUp = () => NavTree.modalStack(nav.getRootState()).some(r => r.name === 'chatAttachmentGetTitles')
+// the user dismisses the screen (Cancel, or a swipe down), as the app does: navigating up off it
+const dismiss = async () => {
+  await act(async () => {
+    C.Router2.navigateUp()
+    await renders()
+  })
+  expect(screenUp()).toBe(false)
+}
+
 beforeEach(() => {
   processMediaMock.mockReset()
   deleted.length = 0
@@ -126,8 +152,6 @@ describe('Send on iOS', () => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
     serve(T.RPCGen.IncomingShareCompressPreference.compressed)
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -157,7 +181,7 @@ describe('Send on iOS', () => {
     })
     expect(processMediaMock).not.toHaveBeenCalled()
     expect(posted()).toEqual([])
-    expect(C.Router2.clearModals).not.toHaveBeenCalled()
+    expect(screenUp()).toBe(true)
   })
 
   test('an export that finishes after an account switch uploads nothing and leaves navigation alone', async () => {
@@ -185,7 +209,7 @@ describe('Send on iOS', () => {
       await serviceTurns()
     })
     expect(posted()).toEqual([])
-    expect(C.Router2.clearModals).not.toHaveBeenCalled()
+    expect(screenUp()).toBe(true)
   })
 
   const isWaitingOrDisabled = (label: string) =>
@@ -300,8 +324,6 @@ describe('Send with an unresolved tlfName', () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
         // keep full size: nothing to export, so Send uploads directly
 serve(T.RPCGen.IncomingShareCompressPreference.original)
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -351,7 +373,7 @@ serve(T.RPCGen.IncomingShareCompressPreference.original)
       await serviceTurns()
     })
     expect(posted()).toEqual([])
-    expect(C.Router2.clearModals).not.toHaveBeenCalled()
+    expect(screenUp()).toBe(true)
     act(() => {
       metasReceived(
         [{...Meta.makeConversationMeta(), conversationIDKey, tlfname: 'testuser,testuser2'}],
@@ -372,8 +394,6 @@ describe('Send with compression off', () => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
     serve(T.RPCGen.IncomingShareCompressPreference.original)
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -420,9 +440,6 @@ describe('Send tapped twice', () => {
   beforeEach(() => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     serve(T.RPCGen.IncomingShareCompressPreference.compressed)
-    // the screen stays mounted, as it does while the modal animates away
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -440,12 +457,14 @@ describe('Send tapped twice', () => {
         tlfName="testuser,testuser2"
       />
     )
-    for (let i = 0; i < 2; i++) {
-      await act(async () => {
-        fireEvent.click(screen.getByText('Send'))
-        await serviceTurns()
-      })
-    }
+    // a double tap: the second lands before the first's navigation away has rendered
+    const send = screen.getByText('Send')
+    await act(async () => {
+      fireEvent.click(send)
+      fireEvent.click(send)
+      await serviceTurns()
+    })
+    expect(screenUp()).toBe(false)
   }
 
   test('on desktop it uploads once', async () => {
@@ -469,8 +488,6 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
     serve(T.RPCGen.IncomingShareCompressPreference.compressed)
-    jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -495,7 +512,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       pending.set(path, p)
       return p.promise
     })
-    const view = render(
+    render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
         pathAndOutboxIDs={paths.map((path, i) => ({outboxID: new Uint8Array([7 + i]), path}))}
@@ -520,13 +537,13 @@ describe('Send on iOS, with the real export bookkeeping', () => {
         await serviceTurns()
       })
     }
-    return {finish, view}
+    return {finish}
   }
 
   test('a screen dismissed while the export runs keeps the originals and throws away the outputs', async () => {
-    const {finish, view} = await sendAndHoldExport(['/tmp/clip.mov'])
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov'])
     expect(processMediaMock).toHaveBeenCalled()
-    view.unmount()
+    await dismiss()
     await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
     expect(posted()).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
@@ -645,7 +662,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
     await finish('/tmp/good.webp', 'file:///tmp/good.converted.jpg')
     expect(uploaded()).toEqual(['/tmp/clip.mov', '/tmp/photo.jpg', 'file:///tmp/good.converted.jpg'])
-    expect(C.Router2.clearModals).toHaveBeenCalled()
+    expect(screenUp()).toBe(false)
     expect(pendingNotice()).toBe(
       "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location."
     )
@@ -726,24 +743,23 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
     await sendOriginal()
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
-    expect(C.Router2.navigateToThread).toHaveBeenCalledWith(conversationIDKey, 'extension', {
-      intent: {
-        append: true,
-        notice:
-          "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location.",
-        text: 'look',
-        type: 'injectText',
-      },
+    expect(screenUp()).toBe(false)
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
+    expect(peekInputIntent(conversationIDKey, ['injectText'])).toEqual({
+      append: true,
+      notice: "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location.",
+      text: 'look',
+      type: 'injectText',
     })
   })
 
   test('a screen dismissed during Send original keeps the originals and throws away the conversion', async () => {
-    const {finish, view} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.webp'])
+    const {finish} = await sendAndHoldExport(['/tmp/clip.mov', '/tmp/photo.webp'])
     await finish('/tmp/clip.mov', new Error('nope'))
     await finish('/tmp/photo.webp', 'file:///tmp/photo.compressed.jpg')
     deleted.length = 0
     await sendOriginal()
-    view.unmount()
+    await dismiss()
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
     expect(posted()).toEqual([])
     expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
@@ -836,15 +852,15 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     })
 
     test('dismissing mid-export keeps a passthrough original', async () => {
-      const {finish, view} = await sendAndHoldExport([cover, passthrough], true)
-      view.unmount()
+      const {finish} = await sendAndHoldExport([cover, passthrough], true)
+      await dismiss()
       await finish(passthrough, `file://${passthrough}`)
       expect(deleted).toEqual([])
     })
 
     test('dismissing mid-export keeps a transcoded original and drops its output', async () => {
-      const {finish, view} = await sendAndHoldExport([transcoded])
-      view.unmount()
+      const {finish} = await sendAndHoldExport([transcoded])
+      await dismiss()
       await finish(transcoded, transcodedOut)
       expect(deleted).toEqual([transcodedOut])
     })

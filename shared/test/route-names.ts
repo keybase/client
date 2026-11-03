@@ -194,3 +194,15 @@ export const routeScreenOptions: Readonly<
   desktop: {},
   phone: {chatRoot: {inactiveBehavior: 'none'}},
 }
+
+// The params a route starts with, and goes back to when a pop by name replaces them (routes' initialParams).
+export const routeInitialParams: Readonly<Record<string, object>> = {
+  chatBlockingModal: {},
+  chatRoot: {},
+  chatSearchBots: {},
+  chatShowNewTeamDialog: {},
+  feedback: {},
+  modalFeedback: {},
+  'settingsTabs.feedbackTab': {},
+  teamsRoot: {},
+}

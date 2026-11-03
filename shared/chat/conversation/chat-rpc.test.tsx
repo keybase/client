@@ -550,10 +550,8 @@ describe('service adapter', () => {
         viewType: T.RPCChat.GalleryItemTyp.doc,
       })
     ).resolves.toEqual({last: true})
-    // The listener runs the hit's handler a timer after the session acked it, so the page can
-    // resolve before its last hit is handed over (the order this script picks)
-    expect(onHit).not.toHaveBeenCalled()
-    await settle()
+    // The listener runs the hit's handler a timer after the session acked it, and the reply here
+    // arrives first; the page still resolves only once its last hit is handed over
     expect(onHit).toHaveBeenCalledWith(hitMessage)
     expect(sent('chat.1.local.loadGallery')).toEqual([
       {convID, fromMsgID: 30, num: 50, typ: T.RPCChat.GalleryItemTyp.doc},

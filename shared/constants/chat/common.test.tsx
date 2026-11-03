@@ -1,8 +1,10 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import * as Router from '@/constants/router'
+import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
+import {installNavigation, makeRootState, stateShowing} from '@/test/navigation'
 import {
   generateOutboxID,
   getSelectedConversation,
@@ -14,10 +16,12 @@ import {
 const convID = T.Chat.stringToConversationIDKey('conv1')
 const otherConvID = T.Chat.stringToConversationIDKey('conv2')
 
-// the thread route holds the selected conversation in its params
-const mockVisibleScreen = (screen?: {name: string; params?: object}) => {
-  jest.spyOn(Router, 'getVisibleScreen').mockReturnValue(screen as never)
+// The app's real tree, on a desktop (split) layout, showing this route; the thread route holds the
+// selected conversation in its params
+const showing = (route: string, params?: object) => {
+  installNavigation({rootState: stateShowing(route, {params})})
 }
+const showingThread = (conversationIDKey = convID) => showing(threadRouteName, {conversationIDKey})
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -26,29 +30,46 @@ afterEach(() => {
 
 describe('getSelectedConversation', () => {
   test('is none when no screen is visible', () => {
-    mockVisibleScreen(undefined)
+    // the navigation container is not up yet
+    installNavigation({ready: false})
     expect(getSelectedConversation()).toBe(T.Chat.noConversationIDKey)
   })
 
   test('is none when the visible screen is not the thread', () => {
-    mockVisibleScreen({name: 'someOtherRoute', params: {conversationIDKey: convID}})
+    // the teams tab is showing the conversation's channel page, which names it too
+    installNavigation({
+      rootState: makeRootState({
+        tab: Tabs.teamsTab,
+        tabStack: [{name: 'teamsRoot'}, {name: 'teamChannel', params: {conversationIDKey: convID, teamID: 'team1'}}],
+      }),
+    })
     expect(getSelectedConversation()).toBe(T.Chat.noConversationIDKey)
   })
 
   test('is none when the thread route carries no conversation', () => {
-    mockVisibleScreen({name: threadRouteName})
+    showing(threadRouteName)
     expect(getSelectedConversation()).toBe(T.Chat.noConversationIDKey)
   })
 
   test('reads the conversation out of the thread route params', () => {
-    mockVisibleScreen({name: threadRouteName, params: {conversationIDKey: convID}})
+    showingThread()
+    expect(getSelectedConversation()).toBe(convID)
+  })
+
+  test('a modal over the thread leaves the conversation selected', () => {
+    installNavigation({
+      rootState: makeRootState({
+        above: [{name: 'chatInfoPanel', params: {conversationIDKey: convID}}],
+        tabStack: [{name: threadRouteName, params: {conversationIDKey: convID}}],
+      }),
+    })
     expect(getSelectedConversation()).toBe(convID)
   })
 })
 
 describe('isUserActivelyLookingAtThisThread', () => {
   beforeEach(() => {
-    mockVisibleScreen({name: threadRouteName, params: {conversationIDKey: convID}})
+    showingThread()
     useShellState.setState({active: true, appFocused: true})
   })
 
@@ -71,7 +92,7 @@ describe('isUserActivelyLookingAtThisThread', () => {
   })
 
   test('false when the thread route is not visible', () => {
-    mockVisibleScreen({name: 'someOtherRoute'})
+    showing('profile', {username: 'testuser'})
     expect(isUserActivelyLookingAtThisThread(convID)).toBe(false)
   })
 })

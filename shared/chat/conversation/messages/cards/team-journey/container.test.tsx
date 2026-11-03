@@ -151,9 +151,8 @@ describe('a welcome card whose thread has retired', () => {
   })
 })
 
-// The welcome card shows no channels, so it passes dontCallRPC to useAllChannelMetas, yet the
-// useLoadedTeam inside it still loads the whole annotated team for every card rendered.
-test.failing('a welcome card asks the service for no team load', async () => {
+// The welcome card shows no channels, so it loads neither the channels nor the team behind them.
+test('a welcome card asks the service for no team load', async () => {
   await renderCard()
   expect(paramsOf(fake, getAnnotatedTeam)).toEqual([])
 })

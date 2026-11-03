@@ -550,12 +550,10 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([expect.objectContaining({msgID: 18})])
   })
 
-  // BUG: loadConversationMessageIDs (data-hooks) reads the ids the passes streamed as soon as the
-  // load resolves. The listener hands each pass to its handler on a 0ms timer after the session
-  // acked it, and the service answers once the ack reaches it, so a service that answers at once
-  // resolves the load before the pass is read: no message below the line is known, and nothing is
-  // marked.
-  test.failing('an empty thread marks unread around the line when the service answers at once', async () => {
+  // loadConversationMessageIDs (data-hooks) reads the ids the passes streamed as soon as the load
+  // resolves. The listener hands each pass to its handler on a 0ms timer after the session acked
+  // it, so the service can answer first; the load still resolves only after the pass is read.
+  test('an empty thread marks unread around the line when the service answers at once', async () => {
     answerThreadLoads(fake, async l => {
       const timers = holdHandlerTimers()
       await l.cached(JSON.stringify({messages: [valid(20), valid(18)]}))
@@ -565,7 +563,8 @@ describe('setMarkAsUnread', () => {
     act(() => {
       result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20))
     })
-    await flush(10)
+    await act(settle)
+    await flush(8)
     expect(paramsOf(fake, getThreadNonblock)).toHaveLength(1)
     expect(markReads()).toEqual([expect.objectContaining({msgID: 18})])
   })

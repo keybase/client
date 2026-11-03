@@ -1,8 +1,8 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {cleanup, fireEvent, render} from '@testing-library/react'
-import * as C from '@/constants'
+import {act, cleanup, fireEvent, render} from '@testing-library/react'
+import * as NavTree from '@/constants/nav-tree'
 import * as Meta from '@/constants/chat/meta'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
@@ -10,6 +10,7 @@ import {metasReceived} from './inbox/metadata-store'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
+import {makeRootState, navigationWrapper, renders} from '@/test/navigation'
 import DeleteHistoryWarning from './delete-history-warning'
 
 const deleteHistory = 'chat.1.local.postDeleteHistoryByAge'
@@ -31,9 +32,36 @@ const expectDeleteSent = (tlfName: string) => {
   ])
 }
 
+// The warning is up over the conversation's info panel, both modals above the thread
+const renderWarning = () => {
+  const {wrapper, ...nav} = navigationWrapper({
+    rootState: makeRootState({
+      above: [
+        {name: 'chatInfoPanel', params: {conversationIDKey}},
+        {name: 'chatDeleteHistoryWarning', params: {conversationIDKey}},
+      ],
+      tabStack: [{name: 'chatRoot', params: {conversationIDKey}}],
+    }),
+    route: 'chatDeleteHistoryWarning',
+  })
+  const rendered = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />, {wrapper})
+  const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
+  expect(modals()).toEqual(['chatInfoPanel', 'chatDeleteHistoryWarning'])
+  return {...rendered, modals, nav}
+}
+
 const clickDelete = async (getByText: (t: string) => HTMLElement) => {
-  fireEvent.click(getByText('Yes, clear for everyone'))
+  act(() => {
+    fireEvent.click(getByText('Yes, clear for everyone'))
+  })
   await flush()
+  await renders()
+}
+
+// every modal is gone and the thread under them is showing
+const expectBackOnThread = (r: ReturnType<typeof renderWarning>) => {
+  expect(r.modals()).toEqual([])
+  expect(r.nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
 }
 
 beforeEach(() => {
@@ -48,59 +76,56 @@ afterEach(() => {
 })
 
 test('confirming clears modals and deletes all history by age 0', async () => {
-  const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-  const modalsClearedAtDelete: Array<boolean> = []
+  const r = renderWarning()
+  const modalsAtDelete: Array<ReadonlyArray<string>> = []
   fake.answer(deleteHistory, () => {
-    modalsClearedAtDelete.push(clearModals.mock.calls.length === 1)
+    modalsAtDelete.push(r.modals())
     return {}
   })
-  const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
 
-  await clickDelete(getByText)
+  await clickDelete(r.getByText)
 
-  expect(clearModals).toHaveBeenCalledTimes(1)
+  expectBackOnThread(r)
   expectDeleteSent('testuser,testuser-mac')
   // modals clear before the RPC is issued
-  expect(modalsClearedAtDelete).toEqual([true])
+  expect(modalsAtDelete).toEqual([[]])
 })
 
 test('with no tlfname it warns and skips the RPC, but still clears modals', async () => {
   resetAllStores()
-  const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-  const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
+  const r = renderWarning()
 
-  await clickDelete(getByText)
+  await clickDelete(r.getByText)
 
-  expect(clearModals).toHaveBeenCalledTimes(1)
+  expectBackOnThread(r)
   expect(paramsOf(fake, deleteHistory)).toEqual([])
   expect(warn).toHaveBeenCalledWith('Deleting message history for non-existent TLF:')
 })
 
 test('a failed delete is only logged through ignorePromise', async () => {
   fake.answer(deleteHistory, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'delete broke'))
-  const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-  const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
+  const r = renderWarning()
 
-  await clickDelete(getByText)
+  await clickDelete(r.getByText)
 
   expectDeleteSent('testuser,testuser-mac')
-  expect(clearModals).toHaveBeenCalledTimes(1)
+  expectBackOnThread(r)
   expect(error).toHaveBeenCalledWith(
     'ignorePromise error',
     expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric, desc: 'delete broke'})
   )
 })
 
-test('cancel navigates up and sends nothing', () => {
-  const navigateUp = jest.spyOn(C.Router2, 'navigateUp').mockImplementation(() => {})
-  const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-  const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
+test('cancel closes only the warning and sends nothing', async () => {
+  const r = renderWarning()
 
-  fireEvent.click(getByText('Cancel'))
+  act(() => {
+    fireEvent.click(r.getByText('Cancel'))
+  })
+  await renders()
 
-  expect(navigateUp).toHaveBeenCalledTimes(1)
-  expect(clearModals).not.toHaveBeenCalled()
+  expect(r.modals()).toEqual(['chatInfoPanel'])
   expect(paramsOf(fake, deleteHistory)).toEqual([])
 })

@@ -50,6 +50,7 @@ describe('readiness', () => {
     popStack()
     expect(navigateAppend({name: 'profile', params: {username: 'testuser'}})).toBe(false)
     expect(getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})).toBe(false)
+    expect(getNavigator().pushInTab(Tabs.settingsTab, {name: 'settingsTabs.devicesTab'})).toBe(false)
     expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(false)
 
     expect(nav.actions).toEqual([])
@@ -623,3 +624,33 @@ describe('found on the real library', () => {
     expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'error'])
   })
 })
+
+// ---- pushInTab ----
+
+describe('pushInTab', () => {
+  const settingsStack = () => {
+    const tabs = NavTree.tabNavigatorState(nav.getRootState())
+    return tabs?.routes?.find(r => r.name === Tabs.settingsTab)?.state?.routes.map(r => r.name)
+  }
+
+  test('focuses the tab with the screen on its stack, and history holds only that tab', async () => {
+    nav = installNavigation({layout: 'tablet', rootState: makeRootState({tab: Tabs.chatTab})})
+    getNavigator().pushInTab(Tabs.settingsTab, {name: 'settingsTabs.devicesTab'})
+    await renders()
+    const tabs = NavTree.tabNavigatorState(nav.getRootState())
+    expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.settingsTab)
+    expect(settingsStack()).toEqual(['settingsRoot', 'settingsTabs.devicesTab'])
+    const settingsKey = tabs?.routes?.find(r => r.name === Tabs.settingsTab)?.key
+    expect((tabs as {history?: ReadonlyArray<{key: string}>} | undefined)?.history?.map(h => h.key)).toEqual([settingsKey])
+  })
+
+  test('the screen already on top is not pushed again', async () => {
+    nav = installNavigation({layout: 'tablet', rootState: makeRootState({tab: Tabs.chatTab})})
+    getNavigator().pushInTab(Tabs.settingsTab, {name: 'settingsTabs.devicesTab'})
+    await renders()
+    getNavigator().pushInTab(Tabs.settingsTab, {name: 'settingsTabs.devicesTab'})
+    await renders()
+    expect(settingsStack()).toEqual(['settingsRoot', 'settingsTabs.devicesTab'])
+  })
+})
+

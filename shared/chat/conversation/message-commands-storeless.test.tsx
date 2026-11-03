@@ -1,6 +1,7 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
+import {act} from 'react'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -14,6 +15,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {settle} from '@/test/flush'
+import {installNavigation, renders, stateShowing, type MountedNavigation} from '@/test/navigation'
+import {peekInputIntent} from './input-intent-store'
 import {deleteMessage, dismissJourneycard, pinMessage, replyPrivately, toggleReaction} from './message-commands'
 
 // The message commands with no thread: each target is the message itself, or its id.
@@ -103,6 +106,21 @@ const textMessage = (over?: Partial<T.Chat.MessageText>) =>
     text: new HiddenString('line one\nline two'),
     ...over,
   })
+
+// The app's real tree, showing the conversation the reply is made from
+const showingThread = () => installNavigation({rootState: stateShowing('chatRoot', {params: {conversationIDKey}})})
+// Settles the service calls and the navigation they lead to, which renders the tree
+const settleAndNavigate = async () =>
+  act(async () => {
+    await settle()
+    await renders()
+  })
+// Nothing was opened: the tree is untouched and no quote waits for the new conversation
+const expectNothingOpened = (nav: MountedNavigation) => {
+  expect(nav.actions).toEqual([])
+  expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
+  expect(peekInputIntent(newKey, ['injectText'])).toBeUndefined()
+}
 
 beforeEach(() => {
   fake = installFakeEngine()
@@ -257,50 +275,49 @@ describe('reactions', () => {
 describe('replyPrivatelyToConversationMessage', () => {
   test('creates the adhoc conversation, stores its meta and opens it with the quote', async () => {
     const held = fake.hold(newConversation)
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const nav = showingThread()
 
     replyPrivatelyToConversationMessage(textMessage())
     await settle()
     expect(useWaitingState.getState().counts.get(Strings.waitingKeyChatCreating)).toBe(1)
     held[0]!.reply({conv: {info: {id: newConvID}}, uiConv: newConvItem()})
-    await settle()
+    await settleAndNavigate()
 
     expect(useWaitingState.getState().counts.get(Strings.waitingKeyChatCreating)).toBeUndefined()
     expect(paramsOf(fake, newConversation)).toEqual([
       expect.objectContaining({tlfName: 'testuser,testuser2'}),
     ])
     expect(getInboxConversationMeta(newKey)?.tlfname).toBe('testuser,testuser2')
-    expect(navigate).toHaveBeenCalledWith(newKey, 'createdMessagePrivately', {
-      intent: {text: '> line one\n> line two\n', type: 'injectText'},
-    })
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: newKey}})
+    expect(peekInputIntent(newKey, ['injectText'])).toEqual({text: '> line one\n> line two\n', type: 'injectText'})
   })
 
   test('replying to yourself does not repeat the name', async () => {
     created(newConvItem({name: 'testuser'}))
-    jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    showingThread()
     replyPrivatelyToConversationMessage(textMessage({author: 'testuser'}))
-    await settle()
+    await settleAndNavigate()
     // the adapter dedupes the names
     expect(paramsOf(fake, newConversation)).toEqual([expect.objectContaining({tlfName: 'testuser'})])
   })
 
   test('a non-text message makes the conversation but does not open it', async () => {
     created()
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const nav = showingThread()
     replyPrivatelyToConversationMessage(
       makeMessageAttachment({author: 'testuser2', conversationIDKey, id: T.Chat.numberToMessageID(3)})
     )
-    await settle()
-    expect(navigate).not.toHaveBeenCalled()
+    await settleAndNavigate()
+    expectNothingOpened(nav)
     expect(getInboxConversationMeta(newKey)).toBeUndefined()
   })
 
   test('no meta for the new conversation, no navigation', async () => {
     created(noMeta())
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const nav = showingThread()
     replyPrivatelyToConversationMessage(textMessage())
-    await settle()
-    expect(navigate).not.toHaveBeenCalled()
+    await settleAndNavigate()
+    expectNothingOpened(nav)
   })
 
   test('logged out it creates nothing', async () => {
@@ -417,10 +434,10 @@ describe('storeless edges', () => {
   test('reply privately with an empty conversation id does not open anything', async () => {
     created(newConvItem(), new Uint8Array())
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const nav = showingThread()
     replyPrivatelyToConversationMessage(textMessage())
-    await settle()
-    expect(navigate).not.toHaveBeenCalled()
+    await settleAndNavigate()
+    expectNothingOpened(nav)
     expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 

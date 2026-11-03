@@ -358,8 +358,8 @@ describe('setMarkAsUnread', () => {
   test('a window that does not reach the line asks the service for the message before it', async () => {
     // a search jump left the window far below the newest visible message
     setMeta(convA, {maxVisibleMsgID: T.Chat.numberToMessageID(20)})
-    // The service replies once the pass has reached its handler; replying at once marks nothing
-    // (see the test.failing in mark-unread.test.tsx).
+    // The service replies once the pass has reached its handler (replying at once is covered in
+    // mark-unread.test.tsx)
     answerThreadLoads(fake, async l => {
       const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
       await l.full(JSON.stringify({messages: [valid(19), valid(20)]}))
@@ -509,10 +509,10 @@ describe('the reload a clear issues', () => {
   })
 
   // The load releases the gate in its finally, once loadThread resolves. The session acks the full
-  // pass at once and the listener applies it on a timer, so a service that replies right after
-  // that pass settles the load first: the gate comes down over an empty window, the gap the gate
-  // exists to close. Fails today.
-  test.failing('a service that replies right after its full pass keeps the gate up until the page lands', async () => {
+  // pass at once and the listener applies it on a timer, so the service can reply before that;
+  // loadThread still resolves only after the pass is applied, so the gate never comes down over an
+  // empty window.
+  test('a service that replies right after its full pass keeps the gate up until the page lands', async () => {
     answerThreadLoads(fake, async l => {
       const timers = holdHandlerTimers()
       await l.full(placeholders([50, 51]))
