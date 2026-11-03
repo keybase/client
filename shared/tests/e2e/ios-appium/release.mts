@@ -380,7 +380,7 @@ const main = async () => {
       logFile: logFile('flows'),
     })
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
-    const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize, 'wdio')
+    const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {
       logTally(log, s, {listFile: 'gate/lists/known-failures.ts'})
       for (const n of flowProblems(s)) log(n)

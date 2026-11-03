@@ -156,15 +156,15 @@ describe('parseLsof', () => {
 
 describe('parseTimeoutMin', () => {
   test('unset uses the default; a positive number is taken', () => {
-    expect(parseTimeoutMin(undefined)).toEqual({minutes: 150})
-    expect(parseTimeoutMin('')).toEqual({minutes: 150})
-    expect(parseTimeoutMin('2.5')).toEqual({minutes: 2.5})
+    expect(parseTimeoutMin(undefined, 150)).toEqual({minutes: 150})
+    expect(parseTimeoutMin('', 150)).toEqual({minutes: 150})
+    expect(parseTimeoutMin('2.5', 150)).toEqual({minutes: 2.5})
     // the longest a timer can wait
-    expect(parseTimeoutMin('35791')).toEqual({minutes: 35791})
+    expect(parseTimeoutMin('35791', 150)).toEqual({minutes: 35791})
   })
   test('anything else is refused, naming the value', () => {
     for (const bad of ['0', '-5', 'abc', 'Infinity', '10m', '35792']) {
-      expect(parseTimeoutMin(bad)).toEqual({error: expect.stringContaining(`KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(bad)}`)})
+      expect(parseTimeoutMin(bad, 150)).toEqual({error: expect.stringContaining(`KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(bad)}`)})
     }
   })
 })
@@ -245,7 +245,7 @@ describe('flowsPhaseResult', () => {
   const summary = {failed: 0, flaky: [], fresh: [], known: [], nowPasses: [], passed: 3, runErrors: [], skipped: []}
 
   it('summarizes a results json written since the phase started', () => {
-    expect(flowsPhaseResult({code: 0, stdout: ''}, results(1_500), start, () => summary, 'wdio')).toEqual({line: '3 passed, 0 failed, 0 flaky, 0 skipped', ok: true, summary})
+    expect(flowsPhaseResult({code: 0, stdout: ''}, results(1_500), start, () => summary)).toEqual({line: '3 passed, 0 failed, 0 flaky, 0 skipped', ok: true, summary})
   })
 
   it('never reads a results json left from before the phase, or none', () => {
@@ -254,8 +254,8 @@ describe('flowsPhaseResult', () => {
       reads++
       return summary
     }
-    expect(flowsPhaseResult({code: 1, stdout: ''}, results(999), start, read, 'wdio')).toEqual({line: 'wdio exited 1 and wrote no /r/results.json', ok: false})
-    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(), start, read, 'wdio')).toEqual({
+    expect(flowsPhaseResult({code: 1, stdout: ''}, results(999), start, read)).toEqual({line: 'wdio exited 1 and wrote no /r/results.json', ok: false})
+    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(), start, read)).toEqual({
       line: 'wdio exited 0 and wrote no /r/results.json (its log could not be written: EIO)',
       ok: false,
     })
@@ -263,8 +263,8 @@ describe('flowsPhaseResult', () => {
   })
 
   it('fails on a nonzero wdio exit and on a log write failure, keeping the summary line', () => {
-    expect(flowsPhaseResult({code: 1, stdout: ''}, results(1_500), start, () => summary, 'wdio')).toMatchObject({line: '3 passed, 0 failed, 0 flaky, 0 skipped (wdio exited 1)', ok: false})
-    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(1_500), start, () => summary, 'wdio')).toMatchObject({
+    expect(flowsPhaseResult({code: 1, stdout: ''}, results(1_500), start, () => summary)).toMatchObject({line: '3 passed, 0 failed, 0 flaky, 0 skipped (wdio exited 1)', ok: false})
+    expect(flowsPhaseResult({code: 0, logError: 'EIO', stdout: ''}, results(1_500), start, () => summary)).toMatchObject({
       line: '3 passed, 0 failed, 0 flaky, 0 skipped (its log could not be written: EIO)',
       ok: false,
     })

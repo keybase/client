@@ -154,7 +154,7 @@ export const releaseFailed = (phases: ReadonlyArray<Phase>) => phases.some(p => 
 const MAX_TIMEOUT_MIN = Math.floor((2 ** 31 - 1) / 60_000)
 
 // KB_E2E_RELEASE_TIMEOUT_MIN: the overall deadline in minutes, or why the value is refused.
-export const parseTimeoutMin = (raw: string | undefined, fallback = 150): {minutes: number} | {error: string} => {
+export const parseTimeoutMin = (raw: string | undefined, fallback: number): {minutes: number} | {error: string} => {
   if (raw === undefined || raw === '') return {minutes: fallback}
   const n = Number(raw)
   if (!Number.isFinite(n) || n <= 0) return {error: `KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(raw)} is not a positive number of minutes`}
@@ -177,12 +177,12 @@ export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (i
 // since `start`, to the second
 export const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= toSecond(start)
 
-// The flows phase reads only a results json `runner` wrote written since the phase started (one from an earlier run
+// The flows phase reads only a results json wdio wrote since the phase started (one from an earlier run
 // is not this run's flows); `summarize` reads it. `summary` is left out when there was none to read.
-export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary, runner: string) => {
-  if (!writtenSince(results, start)) return {line: `${runner} exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
+export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary) => {
+  if (!writtenSince(results, start)) return {line: `wdio exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
   const summary = summarize()
-  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (${runner} exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
+  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (wdio exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
 }
 
 // The census phase passes only on what its own child did: its `census: routes …` line, and a census
