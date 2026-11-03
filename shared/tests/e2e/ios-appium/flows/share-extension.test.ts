@@ -22,13 +22,12 @@ import {e2eMarker} from '../../shared/run-marker'
 import {unfurlSettings} from '../../shared/settings'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
-import {imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
+import {FILES_APP, imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
 import {APPLE_PARK} from '../gate/location-lib.ts'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {
   copyPhoto,
-  FILES,
   filesSheet,
   leaveSharePicker,
   leaveShareHosts,
@@ -271,7 +270,7 @@ describe('share extension', function () {
     const pdf = corpusEntry('e2e-c.pdf').file
     seeded = seedDocumentFolder('share', ['e2e-c.pdf'])
     const convID = await fromSelf(smokeUser)
-    const shared = await shareToKeybase(FILES, filesSheet(seeded, 'e2e-c.pdf'))
+    const shared = await shareToKeybase(FILES_APP, filesSheet(seeded, 'e2e-c.pdf'))
     const item = requireOneItem(shared, {ext: '.pdf', type: 'file'})
     requireExtensionLogClean(shared.log)
     await step("The app's share screen for the pdf", {screenshot: false})

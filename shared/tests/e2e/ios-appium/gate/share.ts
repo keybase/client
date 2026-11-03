@@ -14,8 +14,7 @@ import * as http from 'http'
 import * as path from 'path'
 import * as T from '../../shared/test-ids'
 import {requireCurrentAttempt} from './attempt.ts'
-import {requireUdid} from './device-lib.ts'
-import {openLink, seedFolderPath} from './device.ts'
+import {FILES_APP, groupContainer, openLink, preflightUdid, seedFolderPath} from './device.ts'
 import {labelHas, sourceElements, sourceRect} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
@@ -23,29 +22,24 @@ import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type Manifest
 import {typeInFilter} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
 import {tapFrame} from '../helpers/menus'
-import {BUNDLE_ID, simctl, waitFor} from '../helpers/lifecycle'
+import {appState, BUNDLE_ID, FOREGROUND, simctl, waitFor} from '../helpers/lifecycle'
 
 export const PHOTOS = 'com.apple.mobileslideshow'
-export const FILES = 'com.apple.DocumentsApp'
 export const SAFARI = 'com.apple.mobilesafari'
 export const MAPS = 'com.apple.Maps'
-const HOSTS = [PHOTOS, FILES, SAFARI, MAPS]
-const FOREGROUND = 4
+const HOSTS = [PHOTOS, FILES_APP, SAFARI, MAPS]
 const INCOMING_SHARES = 'the share payloads in incoming-shares'
 
 const pred = (p: string) => browser.$(`-ios predicate string:${p}`)
-const udid = () => requireUdid(process.env['KB_IOS_UDID'])
 
 // -- the app group ---------------------------------------------------------------------------------
 
 // The app group's incoming-shares folder, where the extension writes its manifest and payloads. A
 // build installed without signing has no app group. Bound: simctl 120.
 export const incomingSharesDir = () => {
-  const line = simctl('get_app_container', udid(), BUNDLE_ID, 'groups')
-    .split('\n')
-    .find(l => l.startsWith('group.keybase\t'))
-  if (!line) throw new Error('keybase.ios has no group.keybase container: the installed build is not signed')
-  return path.join(line.slice('group.keybase\t'.length).trim(), 'Library', 'Caches', 'incoming-shares')
+  const dir = groupContainer(BUNDLE_ID, 'group.keybase')
+  if (!dir) throw new Error('keybase.ios has no group.keybase container: the installed build is not signed')
+  return path.join(dir, 'Library', 'Caches', 'incoming-shares')
 }
 
 // This run's payload folders, recorded as the manifests name them, and when the first share began
@@ -145,7 +139,7 @@ const logTime = (d: Date) => {
 export const extensionLogSince = (since: Date) =>
   simctl(
     'spawn',
-    udid(),
+    preflightUdid(),
     'log',
     'show',
     '--start',
@@ -377,8 +371,6 @@ export const shareToKeybase = async (host: string, open: () => Promise<void>): P
   }
   return {...handed, log: extensionLogSince(new Date(startedAt))}
 }
-
-const appState = async () => Number(await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID}))
 
 // The extension's log holds no failed share (ShareViewController's "share failed: ..." lines).
 export const requireExtensionLogClean = (log: ReadonlyArray<string>) => {

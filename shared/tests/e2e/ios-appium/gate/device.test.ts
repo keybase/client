@@ -44,12 +44,14 @@ const mockDevice = {
 
 jest.mock('../helpers/lifecycle', () => ({
   BUNDLE_ID: 'keybase.ios',
+  FOREGROUND: 4,
   activateApp: async () => {
     mockDevice.calls.push('activate')
     mockDevice.appState = 4
     return Promise.resolve()
   },
   appPid: () => mockDevice.pid,
+  appDataContainer: () => '',
   appState: async () => Promise.resolve(mockDevice.appState),
   backgroundApp: async () => {
     mockDevice.calls.push('background')

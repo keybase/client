@@ -277,7 +277,9 @@ export const backgroundApp = async () => browser.execute('mobile: backgroundApp'
 
 export const activateApp = async () => browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
 
-// The app's state as XCUITest reads it: 1 not running, 2 or 3 in the background, 4 in the foreground.
+// The app's state as XCUITest reads it: 1 not running, 2 or 3 in the background, 4 (FOREGROUND) in
+// the foreground.
+export const FOREGROUND = 4
 export const appState = async () => browser.execute<number, [{bundleId: string}]>('mobile: queryAppState', {bundleId: BUNDLE_ID})
 
 // Runs fn with element lookups pointed at the home screen / system UI instead of the app.

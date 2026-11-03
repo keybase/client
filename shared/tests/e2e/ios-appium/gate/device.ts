@@ -12,7 +12,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {runSync} from '../helpers/app'
-import {activateApp, appPid, appState, backgroundApp, BUNDLE_ID, deviceUdid, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
+import {activateApp, appDataContainer, appPid, appState, backgroundApp, BUNDLE_ID, deviceUdid, FOREGROUND, jsEval, lookFor, openUrl, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
 import {CORPUS, corpusEntry} from '../../fixtures/corpus/corpus.ts'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {installAppLogCapture} from './app-log.ts'
@@ -59,7 +59,7 @@ const DELIVERED_LAUNCH_MS = 30_000
 const E2E_TMP = '/tmp/kb-e2e'
 
 // The simulator preflight proved booted.
-const preflightUdid = () => requireUdid(process.env['KB_IOS_UDID'])
+export const preflightUdid = () => requireUdid(process.env['KB_IOS_UDID'])
 
 const execFailure = (what: string, e: unknown) => {
   const {signal, status} = e as {signal?: string | null; status?: number | null}
@@ -174,16 +174,21 @@ export const ensurePhotoCorpus = async (): Promise<Array<CorpusItem>> => {
 
 // -- the document picker's seed folder and the picked files ----------------------------------------
 
-const FILES_APP = 'com.apple.DocumentsApp'
-const LOCAL_STORAGE_GROUP = 'group.com.apple.FileProvider.LocalStorage'
+export const FILES_APP = 'com.apple.DocumentsApp'
+
+// The folder of app group `group` that `bundleId` holds on this simulator, if it holds one.
+export const groupContainer = (bundleId: string, group: string) => {
+  const line = simctl('get_app_container', preflightUdid(), bundleId, 'groups')
+    .split('\n')
+    .find(l => l.startsWith(`${group}\t`))
+  return line?.slice(group.length + 1).trim()
+}
 
 // The Files app's "On My iPhone" storage on this simulator.
 const onMyIPhone = () => {
-  const line = simctl('get_app_container', preflightUdid(), FILES_APP, 'groups')
-    .split('\n')
-    .find(l => l.startsWith(`${LOCAL_STORAGE_GROUP}\t`))
-  if (!line) throw new Error("the simulator has no Files app storage (On My iPhone)")
-  return path.join(line.slice(LOCAL_STORAGE_GROUP.length + 1).trim(), 'File Provider Storage')
+  const dir = groupContainer(FILES_APP, 'group.com.apple.FileProvider.LocalStorage')
+  if (!dir) throw new Error("the simulator has no Files app storage (On My iPhone)")
+  return path.join(dir, 'File Provider Storage')
 }
 
 // A folder of this run in On My iPhone, e2e-<runid>-<label>.
@@ -266,7 +271,7 @@ export const pastedImage = (p: string): PickedFile => {
   return readPicked(local)
 }
 
-const appData = () => simctl('get_app_container', preflightUdid(), BUNDLE_ID, 'data').trim()
+const appData = () => appDataContainer(preflightUdid())
 
 const readPicked = (p: string): PickedFile => {
   const data = quietFs('reading a picked file', () => fs.readFileSync(p))
@@ -429,8 +434,6 @@ export const launchedBy = async (deliver: () => unknown) => {
   })
 }
 
-// XCUITest's state for an app running in the foreground (mobile: queryAppState)
-const FOREGROUND = 4
 const FRONT_MS = 30_000
 
 // For a flow's afterEach (simctl, Appium's activate and reads only; no recording): an app a test left
