@@ -11,6 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {startRecoverPassword} from '@/login/recover-password/flow'
 import {startProvision} from '@/provision/flow'
 import UserList from './user-list'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 type Props = {
   users: Array<T.Config.ConfiguredAccount>
   onForgotPassword: () => void
@@ -81,6 +82,7 @@ const DesktopLogin = (props: Props) => {
                 onEnterKeyDown={onSubmit}
                 ref={_inputRef}
                 secureTextEntry={true}
+                testID={TestIDs.LOGIN_PASSWORD_INPUT}
                 value={password}
               />
             </Kb.Box2>
@@ -171,6 +173,7 @@ const NativeLoginRender = (props: Props) => {
     onEnterKeyDown: () => onSubmit(),
     placeholder: 'Password',
     secureTextEntry: !showTyping,
+    testID: TestIDs.LOGIN_PASSWORD_INPUT,
   } as const
 
   return (

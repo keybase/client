@@ -489,8 +489,23 @@ test('render: notes the entries that opened an unread conversation (they marked 
   assert.deepEqual(summary.entries.map(e => `${e.id} ${e.openedUnread}`), ['tab/chat true', 'tab/git false'])
 })
 
-test('render: refuses --ios, --base and --coverage, an unknown id, and an app served from another tree', async () => {
-  await assert.rejects(runRender(renderDeps(), ['--ios']), /render is desktop only/)
+test('render --ios: captures the phone entries, recording each, into a render.json marked ios', async () => {
+  const seen: Array<string> = []
+  const lines: Array<string> = []
+  const capture = async (e: TourEntry, o: {frozenAt: number; theme: string; platform: string; record?: boolean}): Promise<Capture> => {
+    seen.push(`${e.id} ${o.platform} ${o.theme} ${o.record}`)
+    return {coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'}
+  }
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), ['--ios']), 0)
+  assert.deepEqual(seen, ['tab/chat ios light true'])
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  const summary = JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {platform: string; entries: Array<{id: string; routes: Array<string>}>}
+  assert.equal(summary.platform, 'ios')
+  assert.deepEqual(summary.entries.map(e => `${e.id} ${e.routes.join(',')}`), ['tab/chat loggedIn,chatRoot'])
+  await assert.rejects(runRender(renderDeps(), ['--ios', 'tab/git']), /no tour entry matches tab\/git/)
+})
+
+test('render: refuses --base and --coverage, an unknown id, and an app served from another tree', async () => {
   await assert.rejects(runRender(renderDeps(), ['--base', 'HEAD']), /render takes no --base/)
   await assert.rejects(runRender(renderDeps(), ['--coverage']), /render takes no --coverage/)
   await assert.rejects(runRender(renderDeps(), ['nope/*']), /no tour entry matches nope\/\*/)

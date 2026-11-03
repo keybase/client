@@ -80,6 +80,8 @@ declare global {
   var __kbVisualRpc: VisualRpc | undefined
   var __kbVisualFixtures: VisualFixtures | undefined
   var __kbE2ERecorder: E2ERecorder | undefined
+  // a random token set once per JS runtime, so a driver can tell a reloaded or relaunched app from the one it started a recording in
+  var __kbE2ERuntime: string | undefined
 }
 
 export type E2ERecorder = {
@@ -125,8 +127,11 @@ export type DevNavGlobals = {DEBUGRouter2?: {navigationRef?: {current?: NavLike 
 
 // The navigation container now mounted: the router remounts its container (a new key) on every
 // sign-in, sign-out and account switch, and DEBUGNavigator keeps the first one, so the live one is
-// read through the router's navigationRef.
-export const liveNavigator = (g: DevNavGlobals): NavLike | undefined => g.DEBUGRouter2?.navigationRef?.current ?? g.DEBUGNavigator
+// read through the router's navigationRef. The phone never sets either global (the router sets them
+// in an effect that runs before the container is ready and not again), so there routerRef reads
+// the same navigationRef from the navigator module.
+export const liveNavigator = (g: DevNavGlobals, routerRef?: () => NavLike | null | undefined): NavLike | undefined =>
+  g.DEBUGRouter2?.navigationRef?.current ?? g.DEBUGNavigator ?? routerRef?.() ?? undefined
 
 // Records the focused route names of every navigation state between start() and take(): each
 // 'state' event, and the state shown at start, at take and on every poll in between (a nested
@@ -472,10 +477,18 @@ export const createRuntime = (deps: {
 }
 
 // The desktop app's main-process env, as the preload hands it over (no such global on the phone).
-const launchedByHarness = () =>
-  (globalThis as {_fromPreload?: {constants?: {env?: {KB_E2E_TEST?: string}}}})._fromPreload?.constants?.env?.KB_E2E_TEST === '1'
+const launchedByHarness = (g: PlatformGlobals) => g._fromPreload?.constants?.env?.KB_E2E_TEST === '1'
+
+type PlatformGlobals = {_fromPreload?: {constants?: {env?: {KB_E2E_TEST?: string}}}; navigator?: {product?: string}}
+
+const isNativeApp = (g: PlatformGlobals) => g.navigator?.product === 'ReactNative'
+
+// The phone has no preload to say a harness launched it, and any dev app on it may be driven, so it
+// always notes the methods sent from startup.
+export const recordsBoot = (g: PlatformGlobals) => launchedByHarness(g) || isNativeApp(g)
 
 if (__DEV__) {
+  globalThis.__kbE2ERuntime = Math.random().toString(36).slice(2)
   const {fixtures, recording} = createRuntime({
     forget,
     inject: payload => (globalThis.DEBUGEngine as {_rpcIncoming: (p: IncomingPayload) => void})._rpcIncoming(payload),
@@ -483,7 +496,7 @@ if (__DEV__) {
       globalThis.__kbVisualRpc = rpc
     },
     now: () => Date.now(),
-    recordBoot: launchedByHarness(),
+    recordBoot: recordsBoot(globalThis as PlatformGlobals),
     stores: devStores(),
   })
   globalThis.__kbVisualFixtures = fixtures
@@ -492,7 +505,14 @@ if (__DEV__) {
       const id = setInterval(f, ms)
       return () => clearInterval(id)
     },
-    navigator: () => liveNavigator(globalThis as DevNavGlobals),
+    navigator: () =>
+      liveNavigator(
+        globalThis as DevNavGlobals,
+        isNativeApp(globalThis as PlatformGlobals)
+          ? // resolved at use: the router's modules are not loaded when this one is
+            () => (require('@/constants/navigator') as {navigationRef: {current?: NavLike | null}}).navigationRef.current
+          : undefined
+      ),
   })
   globalThis.__kbE2ERecorder = {
     start: opts => {

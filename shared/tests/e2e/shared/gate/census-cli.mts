@@ -22,7 +22,9 @@ import type {RouteInfo} from '../../visual/routes-inventory.mts'
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..')
 
 export type CensusPlatform = {
-  platform: string
+  // also picks the render.json runs to read, by their lower-cased `platform` (one written without a
+  // platform is desktop's)
+  platform: 'desktop' | 'iOS'
   // the --project default
   project: string
   // the --results default
@@ -52,16 +54,34 @@ const flowRuns = (file: string, project: string, flowsCommand: string): Array<Fl
   return flowRunsFromReport(report.suites, project, readCoverage)
 }
 
-const newestRenderDir = (resultsDir: string) => {
+// A render.json that does not parse (a render cut off mid-write) is no platform's, and is named.
+const renderPlatformOf = (dir: string) => {
+  const file = path.join(dir, 'render.json')
+  try {
+    return (JSON.parse(fs.readFileSync(file, 'utf8')) as {platform?: string}).platform ?? 'desktop'
+  } catch (e) {
+    console.warn(`census: skipping ${file}: ${e instanceof Error ? e.message : String(e)}`)
+    return undefined
+  }
+}
+
+// iOS and desktop renders share visual/render/<stamp>, so the newest run may be the other platform's
+const newestRenderDir = (resultsDir: string, platform: 'desktop' | 'ios') => {
   const root = path.join(resultsDir, 'visual/render')
   const dirs = fs.existsSync(root)
     ? fs
         .readdirSync(root)
-        .filter(d => fs.existsSync(path.join(root, d, 'render.json')))
+        .filter(d => fs.existsSync(path.join(root, d, 'render.json')) && renderPlatformOf(path.join(root, d)) === platform)
         .sort()
     : []
   const last = dirs.at(-1)
-  if (!last) throw new Error(`no render.json under ${root}: run yarn visual:render first`)
+  if (!last) {
+    throw new Error(
+      platform === 'ios'
+        ? `no ios render.json under ${root}: run yarn visual:render --ios first`
+        : `no render.json under ${root}: run yarn visual:render first`
+    )
+  }
   return path.join(root, last)
 }
 
@@ -99,7 +119,7 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
   const runs = flowRuns(args.results, args.project, p.flowsCommand)
   const {flows, problems: flowProblems} = flowCoverageFromRuns(runs)
   if (args['no-render'] && args.render) throw new Error('--render and --no-render are exclusive')
-  const renderDir = args['no-render'] ? undefined : (args.render ?? newestRenderDir(resultsDir))
+  const renderDir = args['no-render'] ? undefined : (args.render ?? newestRenderDir(resultsDir, p.platform === 'iOS' ? 'ios' : 'desktop'))
   const rows = renderDir ? renderRows(renderDir) : []
   const {entries, problems: renderProblems} = renderCoverageFromRows(rows)
   const result = census({

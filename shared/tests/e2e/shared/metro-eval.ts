@@ -40,8 +40,22 @@ export const inspectorPageFor = async (device: string, appId: string) => {
   return page
 }
 
+// The id of the module Metro registered as `name`: an exact verboseName first, then, for a
+// node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro
+// name them relative to the other checkout, `../../client/shared/node_modules/...`). Runs in the page
+// too, so it closes over nothing.
+export const findModuleId = <Id,>(modules: Iterable<[Id, {verboseName?: string}]>, name: string): Id | undefined => {
+  const all = [...modules]
+  const exact = all.find(([, m]) => m.verboseName === name)
+  if (exact) return exact[0]
+  if (!name.startsWith('node_modules/')) return undefined
+  const matches = all.filter(([, m]) => String(m.verboseName).endsWith('/' + name))
+  if (matches.length > 1) throw new Error('ambiguous module ' + name + ': ' + String(matches.length) + ' matches')
+  return matches[0]?.[0]
+}
+
 // Metro dev bundles register modules by path; this finds and requires one by that path.
-const prelude = `const kbModule = name => { for (const [id, m] of __r.getModules()) if (m.verboseName === name) return __r(id); throw new Error('no module ' + name) };`
+const prelude = `const findModuleId = ${findModuleId.toString()}; const kbModule = name => { const id = findModuleId(__r.getModules(), name); if (id === undefined) throw new Error('no module ' + name); return __r(id) };`
 
 // Evaluates a synchronous function body in the page's JS runtime and returns its value. The body
 // can call kbModule('<path under shared/>') to reach an app module.

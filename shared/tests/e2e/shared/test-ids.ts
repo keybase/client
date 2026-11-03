@@ -300,9 +300,18 @@ export const KEYBASE_LINK_ERROR = 'keybase-link-error'
 export const PAPER_KEY_FORM = 'paper-key-form'
 // the login screen's list of the accounts on this device
 export const LOGIN_USER_LIST = 'login-user-list'
+// the login screen's password field (shown for an account with no stored secret)
+export const LOGIN_PASSWORD_INPUT = 'login-password-input'
+// the new-password field of Settings' change/set password screen
+export const SETTINGS_NEW_PASSWORD_INPUT = 'settings-new-password-input'
 
 // Debug overlays: the global error bar and the runtime stats the service sends when turned on
 export const GLOBAL_ERROR = 'global-error'
 // the overlay the main window shows while it has no connection to the service
 export const DISCONNECT_OVERLAY = 'disconnect-overlay'
 export const RUNTIME_STATS = 'runtime-stats'
+
+// A row of the account switcher sheet and of the login screen's account list, each followed by the
+// account's username
+export const ACCOUNT_SWITCHER_ROW_PREFIX = 'account-switcher-row-'
+export const LOGIN_USER_ROW_PREFIX = 'login-user-row-'

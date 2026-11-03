@@ -8,6 +8,7 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {rememberAccountSwitchTab} from '../account-switch'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const styles = useStyles()
@@ -159,6 +160,7 @@ const AccountRow = (props: AccountRowProps) => {
       type={isMobile ? 'Large' : 'Small'}
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={entry.account.username} />}
       firstItem={true}
+      testID={TestIDs.ACCOUNT_SWITCHER_ROW_PREFIX + entry.account.username}
       action={clicked ? <Kb.ProgressIndicator type="Large" /> : undefined}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>
