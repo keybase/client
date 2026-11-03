@@ -8,7 +8,7 @@ export const NO_PHONE_RECORDER = 'the app has no __kbE2ERecorder: reload or rela
 export const RUNTIME_BODY = 'return globalThis.__kbE2ERuntime ?? null'
 
 // the caller's eval channel into the app
-export type PhoneEval = <R>(body: string) => Promise<R>
+type PhoneEval = <R>(body: string) => Promise<R>
 
 // Starts a recording and answers the JS runtime it started in, or null when the app has no recorder.
 export const startRecorderBody = (opts?: {includeBoot?: boolean}) => `const r = globalThis.__kbE2ERecorder;
