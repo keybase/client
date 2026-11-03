@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   url: string
@@ -9,7 +10,7 @@ type Props = {
 const AVPreview = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Video url={props.url} style={styles.video} onUrlError={props.onUrlError} />
+    <Kb.Video url={props.url} style={styles.video} onUrlError={props.onUrlError} testID={TestIDs.FILES_VIDEO_PREVIEW} />
   )
 }
 export default AVPreview

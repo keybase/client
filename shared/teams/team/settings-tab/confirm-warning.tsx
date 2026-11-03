@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   body: React.ReactNode
@@ -45,6 +46,7 @@ const ConfirmWarning = (props: Props) => {
               {checkboxLabel}
             </Kb.Box2>
           }
+          testID={TestIDs.TEAMS_CONFIRM_WARNING_CHECK}
         />
       </Kb.Box2>
     </Kb.ModalScreen>

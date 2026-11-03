@@ -11,6 +11,7 @@ import * as T from '../../shared/test-ids'
 import {phoneDevice} from '../gate/accounts'
 import {relaunchApp} from '../gate/device'
 import {submitProvisionPhrase} from '../gate/secret-input'
+import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {manualEdge, step} from '../gate/step'
 import {openAddDevice, openDevices, revokeFromDevicePage} from '../helpers/devices'
 import {el, labeled} from '../helpers/elements'
@@ -27,6 +28,9 @@ import {escapeToTabs} from '../helpers/navigate'
 // logged, and the phone's own, which its code page shows as a QR the whole time it is up, so no step
 // runs then and a code page that will not close is ended before any failure screenshot. Keybase
 // never lets a device name be used twice, so this runs once per run id.
+// the gate's secret-on-screen mark while the code page (its QR) may show
+const CODE_PAGE = "the provision code page's QR"
+
 describe('device provision', function () {
   this.retries(0)
 
@@ -35,14 +39,18 @@ describe('device provision', function () {
   const qrTab = () => browser.$('-ios predicate string:label == "Type secret instead"')
 
   // The code page is gone, whatever happened on it: the add-device run cancelled and its screens
-  // closed, or the app relaunched. Runs before any error leaves the test.
+  // closed, or the app relaunched. Runs before any error leaves the test. Once it is gone, the gate's
+  // secret-on-screen mark is cleared; a page still up keeps it.
   const closeCodePage = async () => {
-    if (!(await codePage().isExisting())) return
-    await jsEval<undefined>(`kbModule('provision/flow.tsx').cancelProvision()`).catch(() => {})
-    await escapeToTabs().catch(() => {})
-    if (await codePage().waitForExist({reverse: true, timeout: 10_000}).then(() => true, () => false)) return
-    await relaunchApp()
-    if (await codePage().isExisting()) throw new Error('the code page is still up after relaunching the app')
+    if (await codePage().isExisting()) {
+      await jsEval<undefined>(`kbModule('provision/flow.tsx').cancelProvision()`).catch(() => {})
+      await escapeToTabs().catch(() => {})
+      if (!(await codePage().waitForExist({reverse: true, timeout: 10_000}).then(() => true, () => false))) {
+        await relaunchApp()
+        if (await codePage().isExisting()) throw new Error('the code page is still up after relaunching the app')
+      }
+    }
+    clearSecretOnScreen(CODE_PAGE)
   }
 
   // The new home's retirement, once the test knows what to retire. Idempotent: the test's own
@@ -99,6 +107,7 @@ describe('device provision', function () {
         await withCleanup(
           async () => {
             // sends device.deviceAdd; its secret exchange opens the code page
+            markSecretOnScreen(CODE_PAGE)
             await labeled('Other', 'Add a computer').click()
             await codePage().waitForExist({timeout: 30_000, timeoutMsg: 'the code page did not open within 30s of Add a computer'})
             await qrTab().waitForExist({timeout: 10_000, timeoutMsg: 'the code page did not open on its QR tab'})

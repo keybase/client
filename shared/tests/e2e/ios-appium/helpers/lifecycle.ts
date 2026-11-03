@@ -7,6 +7,7 @@ import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {requireCurrentAttempt} from '../gate/attempt'
+import {appSnapshotBody} from '../gate/screen-params-lib.ts'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
@@ -123,20 +124,9 @@ export type AppSnapshot = {
 }
 
 // JS app state (shell store, fed by the service's appState notification), the http
-// server address JS uses for images, and the visible screen.
-export const appSnapshot = async (device = deviceName()) =>
-  jsEval<AppSnapshot>(
-    `const shell = kbModule('stores/shell.tsx').useShellState.getState()
-     const config = kbModule('stores/config.tsx').useConfigState.getState()
-     const screen = kbModule('constants/router.tsx').getVisibleScreen()
-     return {
-       httpSrv: config.httpSrv,
-       loggedIn: config.loggedIn,
-       mobileAppState: shell.mobileAppState,
-       screen: screen ? {name: screen.name, params: screen.params} : undefined,
-     }`,
-    device
-  )
+// server address JS uses for images, and the visible screen, its secret params left in the app
+// (gate/screen-params-lib.ts).
+export const appSnapshot = async (device = deviceName()) => jsEval<AppSnapshot>(appSnapshotBody, device)
 
 // Waits for a relaunched JS runtime to be logged in and report `state`. There is only one
 // derivation of it now, so there is no second value to agree with.

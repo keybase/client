@@ -18,26 +18,20 @@ import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {openLink} from '../gate/device'
-import {sourceElements} from '../gate/page-source-lib'
+import {labelParts, sourceElements} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
+import {closeMessageMenu, hideKeyboard, openConversation, openMessageMenu, typeInSearchFilter, waitForRow} from '../helpers/chat'
+import {expectScreen, visibleScreen} from '../gate/screens'
 import {
   check,
   chooseMenuItem,
-  closeMessageMenu,
-  currentRoute,
   elementWithLabelPartIn,
-  expectRoute,
-  hideKeyboard,
   menuHas,
   NAMED_ELEMENT_TYPES,
-  openConversation,
   openMenuFrom,
-  openMessageMenu,
   tapButton,
-  typeInSearchFilter,
-  waitForRow,
-} from '../helpers/chat'
+} from '../helpers/menus'
 import {expectHost, secondSender} from '../helpers/chat-host'
 import {el, els, tapForTestID} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -111,9 +105,9 @@ describe('chat bots', function () {
     subteam = undefined
   }
 
-  // Worst case (s): close 5, keyboard 5, the subteam 285, escape 30 = 325.
+  // Worst case (s): close 19, keyboard 5, the subteam 285, escape 30 = 339.
   afterEach(async function () {
-    this.timeout(330_000)
+    this.timeout(340_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, deleteSubteam, escapeToTabs])
   })
 
@@ -122,7 +116,7 @@ describe('chat bots', function () {
   // Refuses, before any tap that writes, unless the screen up is `name` for the second account and
   // aims at the throwaway subteam: its team id, or its general channel. Bound: one route read 1.
   const requireOnSubteam = async (what: string, name: string, teamID: string, generalConvID: string) => {
-    const s = await currentRoute()
+    const s = await visibleScreen()
     const p = s?.params ?? {}
     check(
       s?.name === name && p['botUsername'] === data.secondUser && (p['teamID'] === teamID || p['conversationIDKey'] === generalConvID),
@@ -143,7 +137,7 @@ describe('chat bots', function () {
     await waitFor(
       "the subteam's team page",
       async () => {
-        const s = await currentRoute()
+        const s = await visibleScreen()
         return s?.name === 'team' && s.params?.['teamID'] === teamID ? true : undefined
       },
       {interval: 250, timeout: 20_000}
@@ -183,10 +177,7 @@ describe('chat bots', function () {
   // `want`; its arrow's glyph can follow as a part of its own) ends with it.
   const channelsRead = async (want: string) => {
     const label = (await el(T.CHAT_BOT_CHANNELS_BUTTON).getAttribute('label')) ?? ''
-    return label
-      .replace(/\u00a0/g, ' ')
-      .split(', ')
-      .some(part => part.trim().endsWith(want))
+    return labelParts(label).some(part => part.endsWith(want))
   }
   const expectChannels = async (want: string) => {
     await el(T.CHAT_BOT_CHANNELS_BUTTON).waitForExist({timeout: 10_000})
@@ -220,12 +211,12 @@ describe('chat bots', function () {
     // edit: the row 25, menu 35, screen 10, the pin 1, the edit button steady 20, the tap 1, the
     //   dropdown 15, picker 34, the dropdown 15, the pin 1, seq 2, button 6, gone 20, calls 10, polled
     //   95, step 2 = 292;
-    // offer: peer 70, peer send 90, open 100, row 30, message menu 65 (30, overrun by one try: its
-    //   open 15, its items read 15 and close 5), menu 15, seq 2, the item 20, screen 10, type 21
-    //   (typeInSearchFilter), named 15, calls 10, step 2, escape 30 = 480;
+    // offer: peer 70, peer send 90, open 100, row 30, message menu 79 (30, overrun by one try: its
+    //   open 15, its items read 15 and close 19), menu 15, seq 2, the item 20, screen 10, type 21
+    //   (typeInSearchFilter), named 15, calls 10, step 2, escape 30 = 494;
     // uninstall: page 21, bots tab 16, the row 25, menu 35, screen 10, the pin 1, seq 2, button 6,
     //   calls 10, polled 95, the row gone 20, step 2 = 243
-    // = 750 + 413 + 292 + 480 + 243 = 2178
+    // = 750 + 413 + 292 + 494 + 243 = 2192
     this.timeout(2_250_000)
     // a deleted team's name is not free again, so each attempt in a run takes its own
     const made = await createThrowawaySubteam(`bot${randomBytes(2).toString('hex')}`)
@@ -248,7 +239,7 @@ describe('chat bots', function () {
       {interval: 500, timeout: 15_000}
     )
     await result.click()
-    await expectRoute('the install screen of the second account', 'chatInstallBot', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the install screen of the second account', 'chatInstallBot', p => p['botUsername'] === data.secondUser)
     // a new install is a restricted bot unless changed: the dropdown reads it first, then its
     // description
     await browser
@@ -323,7 +314,7 @@ describe('chat bots', function () {
     await openMessageMenu(text)
     seq = await currentCallSeq()
     await chooseMenuItem('Install bot in another team or chat')
-    await expectRoute('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the place picker for the bot', 'chatInstallBotPick', p => p['botUsername'] === data.secondUser)
     await typeInSearchFilter(name)
     await waitFor(
       'the subteam among the places to install it',
@@ -339,7 +330,7 @@ describe('chat bots', function () {
     const row = await botRowMenu()
     await openMenuFrom('the bot row menu', async () => row.click())
     await chooseMenuItem('Uninstall')
-    await expectRoute('the uninstall confirm', 'chatConfirmRemoveBot', p => p['botUsername'] === data.secondUser)
+    await expectScreen('the uninstall confirm', 'chatConfirmRemoveBot', p => p['botUsername'] === data.secondUser)
     await requireOnSubteam('the uninstall confirm', 'chatConfirmRemoveBot', teamID, generalConvID)
     seq = await currentCallSeq()
     await tapButton('Uninstall', "the confirm's Uninstall")

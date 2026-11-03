@@ -20,6 +20,7 @@ import {
   type ProvisionSubmit,
   secretEvalBody,
   secureDots,
+  textEvalBody,
 } from './secret-input-lib.ts'
 
 const SETTLE_MS = 5_000
@@ -110,6 +111,17 @@ export const fieldLength = async (fieldTestID: string): Promise<number> => {
   const r = await evalField(fieldTestID, lengthEvalBody(fieldTestID), 'reading the field')
   if (r?.state !== 'read') throw new Error(fieldProblem(fieldTestID, r))
   return r.length
+}
+
+// Puts `text` into the focused field fieldTestID through the same path as a secret (the field's own
+// onChange, no key presses), for a field that holds no secret and that XCUITest cannot reach.
+export const setFieldText = async (fieldTestID: string, text: string): Promise<void> => setField(fieldTestID, text, 'setting the field')
+
+// The focused field's text, when it is the field fieldTestID and holds no secret (textEvalBody).
+export const focusedFieldText = async (fieldTestID: string): Promise<string> => {
+  const r = await evalField(fieldTestID, textEvalBody(fieldTestID), 'reading the field')
+  if (r?.state !== 'read' || r.text === undefined) throw new Error(fieldProblem(fieldTestID, r))
+  return r.text
 }
 
 // Hands a provisioning phrase to the code page the app has open, through submitProvisionTextCode

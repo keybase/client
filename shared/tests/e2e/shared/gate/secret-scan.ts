@@ -3,6 +3,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
+import {runRecord} from '../../accounts/run-record.ts'
+import {parseRunId} from '../../accounts/run-id.ts'
 import {holdsSecret, secretLedger, secretScanLine} from './secret-scan-lib.ts'
 
 const passwordVars = ['KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
@@ -85,3 +87,41 @@ export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray
   for (const f of hits) fs.rmSync(f, {force: true})
   return {hits, line: secretScanLine(hits, files.length), scanned: files.length}
 }
+
+// -- invite links ---------------------------------------------------------------------------------
+// A team invite link holds its invite's key, so no artifact may hold one. Within a run that scans for
+// them (SCAN_INVITE_LINKS_VAR: the iOS release sets it for the processes it starts, a direct iOS flow
+// run for its own), each link a flow makes goes to the run's record (accounts/run-record.ts), which
+// the run's final scan reads and then deletes. Any other run writes nothing.
+
+export const SCAN_INVITE_LINKS_VAR = 'KB_E2E_SCAN_INVITE_LINKS'
+const scansInviteLinks = () => process.env[SCAN_INVITE_LINKS_VAR] === '1'
+const links = runRecord('invite-links.json', 'links')
+const inviteLinksPath = links.defaultPath
+
+// What a scan looks for of one link: the link, as the app holds it once typed or pasted (its join
+// field lowercases what it is given), and its key (the part after "#"), plain and as a URL encodes it.
+export const inviteLinkSecrets = (link: string) => {
+  const key = link.includes('#') ? link.slice(link.indexOf('#') + 1) : ''
+  return [...new Set([link, link.toLowerCase(), key, encodeURIComponent(key)])].filter(s => s.length >= 8)
+}
+
+// Adds `link` to run `runId`'s record, within a run that scans for invite links; nothing otherwise. A
+// failure says what failed, never the link.
+export const rememberInviteLink = (link: string, runId: string, file = inviteLinksPath(), record = scansInviteLinks()) => {
+  if (!record) return
+  if (!parseRunId(runId)) throw new Error("the invite link is not in the run's secret scan: no valid run id")
+  try {
+    links.add(runId, link, file)
+  } catch (e) {
+    // no cause: a JSON parse error can quote the file, links and all
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`the invite link is not in the run's secret scan: ${e instanceof Error && e.message.startsWith(file) ? e.message : 'its record could not be written'}`)
+  }
+}
+
+// What run `runId`'s secret scan looks for of the invite links it made.
+export const runInviteLinkSecrets = (runId: string, file = inviteLinksPath()) => links.items(runId, file).flatMap(inviteLinkSecrets)
+
+export const forgetRunInviteLinks = links.forgetRun
+export const forgetStaleInviteLinks = links.forgetStale

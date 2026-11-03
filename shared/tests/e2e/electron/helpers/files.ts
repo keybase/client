@@ -1,88 +1,25 @@
-// The Files tab: opening folders, rows and their menus, and the KBFS entries the files flows make.
-// Every entry a flow makes or deletes is run-stamped (e2e-<runid>-<label>) and sits directly in the
-// smoke account's private folder or the smoke+second folder; a delete targets one exact such path
-// of this run (or something inside it) and nothing else.
-import {randomBytes} from 'crypto'
+// The Files tab: opening folders, rows and their menus. The KBFS entries the files flows make, and
+// the guard on every write to them, are shared/files.ts's.
 import {expect, type Locator, type Page} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
-import {parseStampedName} from '@/tests/e2e/accounts/run-id'
-import {pairFolder} from '@/tests/e2e/shared/favorites'
-import {requireMainIsSmoke, runKeybase} from '@/tests/e2e/shared/peer-service'
+import {kbfsCopyIn, kbfsEntry, kbfsMkdir, leaf} from '@/tests/e2e/shared/files'
 import * as T from '@/tests/e2e/shared/test-ids'
-import {e2eRunId} from './fixtures'
 import {openMenu} from './menu'
 import {retriedNavigation} from './step'
 
 export {pairFavoriteState, pairFolder, refavoritePair} from '@/tests/e2e/shared/favorites'
-
-export const smokeFolder = () => `/keybase/private/${loadE2EAccounts().smokeUser}`
-
-// e2e-<runid>-<label>, the name of an entry a flow makes.
-export const stampedEntry = (label: string) => {
-  const name = `e2e-${e2eRunId()}-${label}`
-  if (parseStampedName(name, 'dashed')?.runId !== e2eRunId()) throw new Error(`${name} is not a stamped name of this run`)
-  return name
-}
-
-const safeName = /^[A-Za-z0-9_.-]+$/
-
-// `path`, when it is an entry this run made in one of the two folders flows write to, or something
-// inside one; throws otherwise. `keybase fs` expands globs, so every name in it must be plain.
-const requireOwnPath = (path: string) => {
-  const root = [smokeFolder(), pairFolder()].find(r => path.startsWith(`${r}/`))
-  if (!root) throw new Error(`refusing ${path}: not in ${smokeFolder()} or ${pairFolder()}`)
-  const parts = path.slice(root.length + 1).split('/')
-  if (!parts.every(p => safeName.test(p) && p !== '.' && p !== '..')) throw new Error(`refusing ${path}: not a plain path`)
-  if (parseStampedName(parts[0] ?? '', 'dashed')?.runId !== e2eRunId()) throw new Error(`refusing ${path}: not under an entry of run ${e2eRunId()}`)
-  return path
-}
-
-const kbfsTimeoutMs = 60_000
-
-export type KbfsEntry = {name: string; isDir: boolean; size: number}
-
-// `keybase fs ls -w` lines (tab-separated, so a name may hold spaces): `<time>\t<DIR>\t\t<name>` for
-// a directory, `<time>\t<size>\t<name>` for a file.
-export const kbfsList = async (dir: string): Promise<Array<KbfsEntry>> => {
-  if (dir !== smokeFolder() && dir !== pairFolder()) requireOwnPath(dir)
-  const out = await runKeybase(['fs', 'ls', '-w', '-a', '--nocolor', dir], {timeoutMs: kbfsTimeoutMs})
-  return out
-    .split('\n')
-    .filter(l => l.trim())
-    .map(l => {
-      const fields = l.split('\t')
-      const isDir = fields[1] === '<DIR>'
-      return {isDir, name: fields[fields.length - 1] ?? '', size: isDir ? 0 : Number(fields[1])}
-    })
-    .filter(e => e.name !== '.' && e.name !== '..')
-}
-
-export const kbfsEntry = async (dir: string, name: string) => (await kbfsList(dir)).find(e => e.name === name)
-
-export const kbfsMkdir = async (path: string) => {
-  await runKeybase(['fs', 'mkdir', requireOwnPath(path)], {timeoutMs: kbfsTimeoutMs})
-}
-
-// Copies a local file in as `path` (setup only: flows never count it as coverage).
-export const kbfsCopyIn = async (localFile: string, path: string) => {
-  await runKeybase(['fs', 'cp', localFile, requireOwnPath(path)], {timeoutMs: kbfsTimeoutMs})
-}
-
-const parentAndName = (path: string) => {
-  const i = path.lastIndexOf('/')
-  return {dir: path.slice(0, i), name: path.slice(i + 1)}
-}
-
-// Removes `path` (with what is in it) when it is there, and reads back that it is gone.
-export const removeOwnKbfs = async (path: string) => {
-  requireOwnPath(path)
-  const {dir, name} = parentAndName(path)
-  if (!(await kbfsEntry(dir, name))) return
-  // a recursive delete runs as whoever the main service is signed in as: checked right before it
-  await requireMainIsSmoke(loadE2EAccounts())
-  await runKeybase(['fs', 'rm', '-r', path], {timeoutMs: kbfsTimeoutMs})
-  if (await kbfsEntry(dir, name)) throw new Error(`${path} is still there after keybase fs rm`)
-}
+export {
+  kbfsCopyIn,
+  kbfsEntry,
+  kbfsList,
+  kbfsMkdir,
+  leaf,
+  newWorkFolder,
+  removeOwnKbfs,
+  smokeFolder,
+  stampedEntry,
+  type KbfsEntry,
+} from '@/tests/e2e/shared/files'
 
 // Runs `act` on `target`, retrying while the list under it re-renders (a resorted or re-pushed list
 // replaces the row the first attempt found).
@@ -144,11 +81,6 @@ export const pickFromFolderMenu = async (page: Page, item: string) => {
   await openMenu(page, trigger, entry, "the folder's menu")
   await entry.click()
 }
-
-// A new folder for one test to work in (made through the app's New folder): each test, and each
-// repeat of it, has its own.
-export const newWorkFolder = () => `${smokeFolder()}/${stampedEntry(`files-${randomBytes(2).toString('hex')}`)}`
-export const leaf = (path: string) => path.slice(path.lastIndexOf('/') + 1)
 
 // Makes `folder` with the app's New folder, in the folder above it, and checks the CLI sees it.
 export const makeFolderInApp = async (page: Page, folder: string) => {

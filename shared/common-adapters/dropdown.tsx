@@ -80,12 +80,13 @@ type Props<N> = {
   selected?: N
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
+  testID?: string
 }
 
 function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const styles = useStyles()
   const disabled = p.disabled ?? false
-  const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
+  const {style, onChangedIdx, overlayStyle, selectedBoxStyle, testID} = p
   const {position, itemBoxStyle, items, selected} = p
 
   const makePopup = (p: Popup2Parms) => {
@@ -145,6 +146,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
         selectedBoxStyle={selectedBoxStyle}
         popupAnchor={popupAnchor}
         toggleOpen={toggleOpen}
+        testID={testID}
       />
       {popup}
     </Kb.Box2>
@@ -157,6 +159,7 @@ type InlineDropdownProps = {
   style?: Styles.StylesCrossPlatform
   loading?: boolean
   selectedStyle?: Styles.StylesCrossPlatform
+  testID?: string
 } & (
   | {
       textWrapperType: null
@@ -170,7 +173,7 @@ type InlineDropdownProps = {
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const styles = useStyles()
-  const {containerStyle, label, loading, onPress, selectedStyle, style, textWrapperType} = props
+  const {containerStyle, label, loading, onPress, selectedStyle, style, testID, textWrapperType} = props
 
   const selected = (
     <Kb.Box2
@@ -193,6 +196,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
       }}
       selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, style])}
       selected={selected}
+      testID={testID}
     />
   )
 }

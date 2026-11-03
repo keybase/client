@@ -28,7 +28,7 @@ const CloneRow = (p: {url: string}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.cloneRow}>
       <Kb.Text type="Body">Clone:</Kb.Text>
-      <Kb.CopyText text={p.url} containerStyle={styles.copyTextContainer} />
+      <Kb.CopyText text={p.url} containerStyle={styles.copyTextContainer} testID={TestIDs.GIT_REPO_COPY_URL} />
     </Kb.Box2>
   )
 }
@@ -103,6 +103,7 @@ const ChatRow = (p: {
         <Kb.Checkbox
           checked={!chatDisabled}
           onCheck={onToggleChatEnabled}
+          testID={TestIDs.GIT_REPO_ANNOUNCE}
           label=""
           labelComponent={
             channelLoading ? (

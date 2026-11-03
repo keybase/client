@@ -9,6 +9,7 @@ import {deleteTeam} from './actions'
 import {useLoadedTeam} from './team/use-loaded-team'
 import {useTeamsList} from './use-teams-list'
 import {useNavUpWhenDone} from './common/use-nav-up-when-done'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
@@ -125,16 +126,19 @@ const Checkboxes = (props: CheckboxesProps) => {
         checked={props.checkChats}
         label="Team chats will be lost"
         onCheck={checked => onSetCheckChats(checked)}
+        testID={TestIDs.TEAMS_DELETE_TEAM_CHATS_CHECK}
       />
       <Kb.Checkbox
         checked={props.checkFolder}
         label="Data in the team folder will be lost"
         onCheck={checked => onSetCheckFolder(checked)}
+        testID={TestIDs.TEAMS_DELETE_TEAM_FOLDER_CHECK}
       />
       <Kb.Checkbox
         checked={props.checkNotify}
         label="Team members will be notified"
         onCheck={checked => onSetCheckNotify(checked)}
+        testID={TestIDs.TEAMS_DELETE_TEAM_NOTIFY_CHECK}
       />
     </Kb.Box2>
   )

@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {
   checkDelete,
+  heldByTeamRepos,
   kbfsRoots,
   listedEmojiAlias,
   parseKbfsLs,
@@ -246,8 +247,26 @@ describe('team repos', () => {
     expect(decide(repo(`e2e-${ctx.currentRunId}-r`, 'testteam'))).toMatch(/^kept: made by this run/)
     expect(decide(repo('e2e-vis-repo', 'testteam'))).toMatch(/^kept: unrecognised/)
   })
-  test('a repo of any other team, a subteam included, is dropped', () => {
-    for (const team of ['otherteam', 'testteam.e2esub', 'testteamx', undefined]) expect(decide(repo(`e2e-${old}-r`, team))).toBe('dropped')
+  test('a repo of any other team, an unstamped or nested subteam included, is dropped', () => {
+    for (const team of ['otherteam', 'testteam.e2esub', 'testteam.e2eclosed', 'testteamx', `testteam.e2e${old}ab.x`, `other.e2e${old}ab`, undefined]) {
+      expect(decide(repo(`e2e-${old}-r`, team))).toBe('dropped')
+    }
+  })
+  test("a stale stamped subteam's stamped repo is deleted, and before the subteam", () => {
+    const subteam = `testteam.e2e${old}ab`
+    const r = repo(`e2e-${old}-trepo`, subteam)
+    expect(decide(r)).toBe('delete')
+    expect(() => checkDelete(r, ctx, 'testuser')).not.toThrow()
+    expect(() => checkDelete(r, ctx, 'testuser-mac')).toThrow(/signed in as <second>,/)
+    const sel = selectSweepTargets([smoke({kind: 'subteam', name: subteam}), smoke({kind: 'team', name: `e2e${old}ab`}), r], ctx)
+    expect(sel.delete.map(c => c.kind)).toEqual(['teamRepo', 'subteam', 'team'])
+  })
+  test("a stamped subteam's repo that is not stamped, or is this run's, is never deleted", () => {
+    const subteam = `testteam.e2e${old}ab`
+    expect(decide(repo('myrepo', subteam))).toBe('dropped')
+    expect(decide(repo('e2e-vis-repo', subteam))).toMatch(/^kept: unrecognised/)
+    expect(decide(repo(`e2e-${ctx.currentRunId}-trepo`, subteam))).toMatch(/^kept: made by this run/)
+    expect(() => checkDelete(repo('myrepo', subteam), ctx, 'testuser')).toThrow(/no e2e prefix/)
   })
   test('the delete guard passes only an older run\'s stamped repo in the e2e team', () => {
     expect(() => checkDelete(repo(`e2e-${old}-trepo`, 'testteam'), ctx, 'testuser')).not.toThrow()
@@ -346,5 +365,18 @@ describe('staleRunIds', () => {
     const before = Date.parse('2026-10-27T12:00:30Z')
     const names = ['prov-98rza1', 'prov-98s0a1', 'prov-98qcb2', 'prov-98qca1', 'prov-notarun', 'second-98qcb2', 'x-98rza1']
     expect(staleRunIds(names, 'prov-', '98qca1', before)).toEqual(['98rza1', '98qcb2'])
+  })
+})
+
+describe('heldByTeamRepos', () => {
+  const subteam = smoke({kind: 'subteam', name: `testteam.e2e${old}ab`})
+  test('holds a subteam whose repo delete failed, or every subteam when the repos could not be listed', () => {
+    expect(heldByTeamRepos(subteam, {failedRepoTeams: new Set([subteam.name]), reposListed: true})).toMatch(/repo/)
+    expect(heldByTeamRepos(subteam, {failedRepoTeams: new Set(), reposListed: false})).toMatch(/repo/)
+    expect(heldByTeamRepos(smoke({kind: 'team', name: `e2e${old}ab`}), {failedRepoTeams: new Set(), reposListed: false})).toMatch(/repo/)
+  })
+  test('lets a subteam go once its repos are gone, and never holds anything else', () => {
+    expect(heldByTeamRepos(subteam, {failedRepoTeams: new Set(['testteam.other']), reposListed: true})).toBeUndefined()
+    expect(heldByTeamRepos(smoke({kind: 'channel', name: `e2e-${old}-x`}), {failedRepoTeams: new Set(), reposListed: false})).toBeUndefined()
   })
 })

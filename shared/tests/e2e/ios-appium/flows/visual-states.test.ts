@@ -2,14 +2,11 @@ import {expect} from '@wdio/globals'
 import {
   escapeToTabs,
   navigateToMore,
-  navigateToTeams,
-  navigateToFiles,
   navigateToChat,
-  goBack,
   scrollDownToText,
   tapSettingsRow,
 } from '../helpers/navigate'
-import {byText, el, els, anyExist, waitForTestID, tapForTestID} from '../helpers/elements'
+import {byText, el, waitForTestID} from '../helpers/elements'
 import * as T from '../../shared/test-ids'
 
 // Visual-coverage states. The harness screenshots AFTER each test and
@@ -82,19 +79,6 @@ describe('visual states', () => {
     await expect(byText('Protect your account by having more devices and paper keys.')).toExist()
   })
 
-  it('git new repo menu', async () => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow('Git')
-    await waitForTestID(T.GIT_REPO_LIST, 5000)
-    await byText('New encrypted git repository...').click()
-    // The sheet's menu items are NOT in the accessibility tree (FloatingMenu
-    // bottom-sheet items are a11y-invisible — real VoiceOver gap), so we can't
-    // tap through to the form. Capture the open-menu state instead.
-    await byText('Bottom Sheet').waitForExist({timeout: 8000})
-    await expect(byText('Bottom Sheet')).toExist()
-  })
-
   it('settings advanced scrolled', async () => {
     await escapeToTabs()
     await navigateToMore()
@@ -102,20 +86,6 @@ describe('visual states', () => {
     await waitForTestID(T.SETTINGS_ADVANCED, 5000)
     await swipeContentUp(4)
     await expect(el(T.SETTINGS_ADVANCED)).toExist()
-  })
-
-  it('files folder overflow menu', async () => {
-    await escapeToTabs()
-    await navigateToFiles()
-    // the native More menu only exists inside a TLF (hidden at the files root)
-    if (!(await anyExist(T.FILES_TLF_ROW, 5000))) return
-    await els(T.FILES_TLF_ROW)[0]!.click()
-    await browser.pause(1000)
-    const more = el('More')
-    if (!(await more.waitForExist({timeout: 4000}).then(() => true).catch(() => false))) return
-    await more.click()
-    await browser.pause(800)
-    await expect(el(T.FILES_BROWSER)).toExist()
   })
 
   it('account switcher', async () => {
@@ -128,16 +98,6 @@ describe('visual states', () => {
     await expect(byText('Log in as another user')).toExist()
   })
 
-  it('team members scrolled', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    await tapForTestID(T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST, {timeout: 10000})
-    await swipeContentUp(4)
-    await expect(el(T.TEAMS_MEMBER_LIST)).toExist()
-  })
-
   it('settings notifications scrolled', async () => {
     await escapeToTabs()
     await navigateToMore()
@@ -146,32 +106,5 @@ describe('visual states', () => {
     await waitForTestID(T.SETTINGS_NOTIFICATIONS, 5000)
     await swipeContentUp(4)
     await expect(el(T.SETTINGS_NOTIFICATIONS)).toExist()
-  })
-
-  it('edit team info modal', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    const edit = byText('Edit')
-    if (!(await edit.waitForExist({timeout: 5000}).then(() => true).catch(() => false))) return
-    await edit.click()
-    await byText('Save').waitForExist({timeout: 5000})
-    await expect(byText('Save')).toExist()
-  })
-
-  it('team add members wizard', async () => {
-    await escapeToTabs()
-    await navigateToTeams()
-    await waitForTestID(T.TEAMS_ROW, 8000)
-    await els(T.TEAMS_ROW)[0]!.click()
-    const addButton = byText('Add/Invite people')
-    if (!(await addButton.waitForExist({timeout: 5000}).then(() => true).catch(() => false))) {
-      await goBack()
-      return
-    }
-    await addButton.click()
-    await byText('A list of email addresses').waitForExist({timeout: 5000})
-    await expect(byText('A list of email addresses')).toExist()
   })
 })

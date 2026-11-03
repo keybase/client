@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // Joining or leaving changes who is in the channel, and nothing recomputes its
 // participants on its own - see refreshConversationParticipants.
@@ -220,6 +221,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
       gap="tiny"
       justifyContent="space-between"
       style={Kb.Styles.collapseStyles([{height: rowHeight}, itemStyle])}
+      testID={selected || allInChannel ? TestIDs.TEAMS_ADD_TO_CHANNELS_ROW_CHECKED : TestIDs.TEAMS_ADD_TO_CHANNELS_ROW}
     >
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}

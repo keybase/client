@@ -18,10 +18,13 @@ import {
 } from '../helpers/lifecycle'
 import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
-import {openAttemptToken} from './attempt.ts'
+import {openAttemptToken, requireCurrentAttempt} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
 import {withHarnessRpcs} from './recorder.ts'
+import {withDeadline} from '../../shared/deadline.ts'
+import {pasteboardHolds} from './pasteboard-lib.ts'
 
+const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
@@ -42,8 +45,9 @@ export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, 
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator
 // (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
 // own clipboard module writes it, over Metro (it sends no RPC; the recorder is paused all the same).
-// Never use it for a secret. The flow credits 'pasteboard' once it has asserted the pasted text landed
-// in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
+// A secret goes on it only as the way into the app's own Paste (an invite link), and the flow
+// overwrites it once the app has it. The flow credits 'pasteboard' once it has asserted the pasted
+// text landed in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
 export const setPasteboard = async (text: string) => {
   // an eval body runs synchronously, so the write's promise settles into a global the harness polls;
   // its outcome holds no text, and a failure says only that the write failed
@@ -68,12 +72,33 @@ export const setPasteboard = async (text: string) => {
   })
   await waitFor(
     'the pasteboard to hold the text',
-    async () => {
-      const got = await browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'})
-      return Buffer.from(got, 'base64').toString('utf8') === text ? true : undefined
-    },
+    async () => pasteboardHolds(async () => browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}), text),
     {interval: 500, timeout: 10_000}
   )
+}
+
+// The simulator's pasteboard text (what the app copied), read through WDA's mobile: getPasteboard
+// (setPasteboard's reader: `simctl pbpaste` does not see the app's pasteboard on this host). The value
+// is the caller's to compare and is never logged: a failed read says only that it failed. The flow
+// credits 'pasteboard' once it has asserted the text is what the app copied. Bound: 30s.
+export const pasteboardText = async (): Promise<string> => {
+  requireCurrentAttempt()
+  let got: string
+  try {
+    got = await withDeadline(
+      browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}),
+      PASTEBOARD_MS,
+      'reading the simulator pasteboard'
+    )
+  } catch (e) {
+    // no cause, and only a deadline's own message: a WebDriver error may echo what it read
+    const late = e instanceof Error && e.message.startsWith('reading the simulator pasteboard: no answer')
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(late ? e.message : 'reading the simulator pasteboard failed')
+  }
+  // a body mocha abandoned while the read ran does not go on with what it read
+  requireCurrentAttempt()
+  return Buffer.from(got, 'base64').toString('utf8')
 }
 
 const runtimeId = async (): Promise<string | undefined> =>

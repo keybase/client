@@ -59,7 +59,7 @@ const TextView = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical" testID={TestIDs.FILES_TEXT_PREVIEW}>
+    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
       <Kb.WebView
         url={url}
         pinnedURLMode={true}
@@ -67,6 +67,7 @@ const TextView = (props: Props) => {
         injections={injections}
         onError={onUrlError}
         showLoadingStateUntilLoaded={true}
+        testID={TestIDs.FILES_TEXT_PREVIEW}
       />
     </Kb.Box2>
   )

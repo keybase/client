@@ -8,12 +8,15 @@
 // Appium's element rects, so they compare with the composer's and the keyboard's.
 import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
-import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
+import {appSnapshot, openUrl, waitFor} from './lifecycle'
+import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
+import {askApp, jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
+import {underDeadline} from '../../shared/deadline.ts'
 import {withHarnessRpcs} from '../gate/recorder.ts'
 import {
   carriedTeam,
@@ -26,10 +29,10 @@ import {
   inboxIn,
   innermost,
   persistedMismatch,
-  sheetItemLabels,
+  rectOf as frameOf,
+  type Rect as Frame,
   shiftIntoBand,
   type DrawnInboxItem,
-  type Rect as Frame,
   type Span,
   visibleBand,
   wholly as whollyInBand,
@@ -39,26 +42,6 @@ import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// Metro's inspector connection to the app drops now and then for a moment (the app keeps running);
-// an eval that fails to connect is tried again for a few seconds before it counts. A body that
-// changes the app (calls a handler, dispatches, sets or takes a global) passes {once: true}: after a
-// timeout or a dropped connection it may already have run, so only a failed page lookup, before
-// anything was sent, is tried again. Retried bodies are reads only.
-const READ_TRANSIENT = /no Metro inspector page|inspector connection failed|inspector evaluate timed out/
-const UNSENT = /no Metro inspector page/
-export const jsEval = async <R>(body: string, opts?: {once?: boolean}): Promise<R> => {
-  const end = Date.now() + 10_000
-  const transient = opts?.once ? UNSENT : READ_TRANSIENT
-  for (;;) {
-    try {
-      return await jsEvalOnce<R>(body)
-    } catch (e) {
-      if (!(e instanceof Error && transient.test(e.message)) || Date.now() > end) throw e
-      await sleep(500)
-    }
-  }
-}
 
 // -- reading the thread ---------------------------------------------------------------------------
 
@@ -991,42 +974,17 @@ const appKeyboardUp = async () =>
   jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`)
 const eitherSaysUp = async () => (await isKeyboardUp()) || (await appKeyboardUp())
 
-export const hideKeyboard = async () => {
-  if (!(await eitherSaysUp())) return
-  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
-  await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
-}
+// Bound: 5s, a hard deadline (no step starts after it): its reads are evals, each of which can take
+// 10s or more on a slow inspector.
+export const hideKeyboard = async () =>
+  underDeadline('hiding the keyboard', 5_000, async alive => {
+    if (!(await eitherSaysUp())) return
+    alive()
+    await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
+    await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
+  })
 
 // -- a message's menu ----------------------------------------------------------------------------
-
-const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND visible == 1')
-
-// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
-// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
-const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
-  waitFor(
-    what,
-    async () => {
-      if (await menuSheet().isExisting()) return true
-      await open()
-      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
-    },
-    {interval: 300, timeout}
-  )
-
-// Drags the open sheet up by 300 points, from near the screen's bottom, to bring later items on screen.
-const dragSheetUp = async () => {
-  const {height, width} = await browser.getWindowRect()
-  const x = Math.round(width / 2)
-  await browser
-    .action('pointer', {parameters: {pointerType: 'touch'}})
-    .move({x, y: height - 80})
-    .down()
-    .move({duration: 400, x, y: height - 380})
-    .pause(200)
-    .up()
-    .perform()
-}
 
 // Long-presses the message showing `text` (at its middle, found afresh each try) to open its menu,
 // a bottom sheet, and waits for the sheet.
@@ -1063,89 +1021,76 @@ export const rowCentre = async (text: string) => {
   return {x: Math.round(x + width / 2), y: Math.round(y + height / 2)}
 }
 
-// An item in the open message menu; its rows read ", <item>" (an icon, then the text).
-const menuItemPredicate = (label: string) =>
-  `-ios predicate string:type == "XCUIElementTypeOther" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
-export const menuItem = (label: string) => browser.$(`${menuItemPredicate(label)} AND visible == 1`)
-const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l => l === label || l.endsWith(`, ${label}`))
-
-// Every item label of the open menu sheet: the items drawn on screen inside the sheet, read as the
-// sheet is dragged up until a drag shows nothing new (its end), so an item below the fold counts.
-// Bound: 15s.
-export const menuLabels = async (): Promise<Array<string>> => {
-  if (!(await menuSheet().isExisting())) throw new Error('no menu sheet is open')
-  const seen = new Set<string>()
-  // one page source a reading (a call per element made a reading take seconds); `visible` is kept,
-  // so rows the sheet covers do not count
-  const shown = async () => sheetItemLabels(sourceElements(await browser.getPageSource())) ?? []
-  let before = ''
-  await waitFor(
-    'the menu sheet read to its end',
-    async () => {
-      const now = await shown()
-      // a sheet still sliding in reads no items: never the end, and nothing to drag yet
-      if (!now.length) return undefined
-      for (const l of now) seen.add(l)
-      const signature = now.join('\n')
-      if (signature === before) return true
-      before = signature
-      await dragSheetUp()
-      return undefined
-    },
-    {interval: 300, timeout: 15_000}
-  )
-  return [...seen]
-}
-
-// Whether the open menu sheet holds the item `label` anywhere in it (menuLabels). Bound: 15s.
-export const menuHas = async (label: string) => offers(await menuLabels(), label)
-export const menuOffers = offers
-
-// Scrolls the menu until `label` shows, and taps it. The sheet opens partway, so later items start
-// below the screen.
-export const chooseMenuItem = async (label: string) => {
-  await waitFor(
-    `"${label}" in the message menu`,
-    async () => {
-      const item = menuItem(label)
-      if (await item.isExisting()) {
-        // A tap lands at the item's middle; once that is on screen the item can be tapped. The sheet
-        // tops out with its last items low on the screen, where no drag moves them further up.
-        const {y} = await item.getLocation()
-        const {height: itemHeight} = await item.getSize()
-        const {height} = await browser.getWindowRect()
-        if (y + itemHeight / 2 < height) return true
-      }
-      await dragSheetUp()
-      return undefined
-    },
-    {interval: 300, timeout: 15_000}
-  )
-  // A tap while the sheet still settles after a drag can do nothing (seen live): the item is tapped
-  // again only while the sheet and the item are both still up, so a tap that took is never repeated.
-  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
-  // 5s wait was.
-  for (let tap = 1; ; tap++) {
-    await menuItem(label).click()
-    const closed = await menuSheet()
-      .waitForExist({reverse: true, timeout: 2_500})
-      .then(() => true)
-      .catch(() => false)
-    if (closed) return
-    // the tap took and the sheet is on its way down
-    if (!(await menuItem(label).isExisting())) {
-      await menuSheet().waitForExist({reverse: true, timeout: 2_500})
-      return
+// The frames of the open menu sheets (openSheets), read again once when none gives one (a sheet
+// re-rendering after a drag can fail its frame read); throws when the second read gives none either,
+// as a sheet with no measured top has no backdrop to tap. Bound: two reads 4.
+const openSheetFrames = async () => {
+  for (let read = 1; ; read++) {
+    const frames: Array<Frame> = []
+    for (const sh of await browser.$$(await openSheets()).getElements()) {
+      const r = await frameOf(sh)
+      if (r) frames.push(r)
     }
-    if (tap >= 2) throw new Error(`the menu sheet is still up after "${label}" was tapped twice`)
+    if (frames.length) return frames
+    if (read >= 2) throw new Error('the open menu sheet gives no frame: not tapping')
   }
 }
 
-export const closeMessageMenu = async () => {
-  if (!(await menuSheet().isExisting())) return
-  await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').click()
-  await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+// The window's safe-area top: the status bar's height, as WDA reports it. Bound: 1.
+const safeAreaTop = async () => {
+  const info = await browser.execute('mobile: deviceScreenInfo')
+  const h = (info as {statusBarSize?: {height?: number}} | undefined)?.statusBarSize?.height
+  if (typeof h !== 'number' || !(h > 0)) throw new Error('no status bar height from the device: not tapping')
+  return h
 }
+
+// Closes the open message menu with the sheet's own Close (one lying wholly on screen and inside a
+// measured open sheet), else with a tap on the backdrop above the sheet's top, at the middle of the
+// band below the safe-area top, when at least BACKDROP_MIN of that band shows. It never taps anywhere
+// else below the sheet's top: a sheet's first row is its quick reactions, where a tap writes. With neither, the sheet is dragged down by its top
+// edge (which lowers it or closes it) and read again, up to twice; then it fails. Bound: 19, a hard
+// deadline (no tap or drag starts after it): three rounds of reads (the window, the sheets read once
+// more when they give no frame, the Closes), two drags and their settles, the tap, the sheet gone 5.
+const BACKDROP_MIN = 44
+const CLOSE_MS = 19_000
+export const closeMessageMenu = async () =>
+  underDeadline('closing the message menu', CLOSE_MS, async alive => {
+    if (!(await (await menuSheet()).isExisting())) return
+    for (let drags = 0; ; drags++) {
+      if (!(await (await menuSheet()).isExisting())) break
+      const {height, width} = await browser.getWindowRect()
+      const sheets = await openSheetFrames()
+      const top = Math.min(...sheets.map(r => r.y))
+      let close: {x: number; y: number} | undefined
+      for (const c of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND (label == "Close" OR label ENDSWITH ", Close")').getElements()) {
+        const r = await frameOf(c)
+        // the sheet's own Close: inside a measured open sheet and wholly on screen
+        if (r && sheets.some(sh => frameInside(r, sh)) && frameInside(r, {height, width, x: 0, y: 0})) close = {x: r.x + r.width / 2, y: r.y + r.height / 2}
+      }
+      if (!close) {
+        // the backdrop band between the safe-area top (the status bar, where a tap may not reach the
+        // app) and the sheet's top
+        const safeTop = await safeAreaTop()
+        if (top - safeTop >= BACKDROP_MIN) close = {x: width / 2, y: (safeTop + top) / 2}
+      }
+      if (close) {
+        alive()
+        await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
+        break
+      }
+      if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
+      alive()
+      await browser
+        .action('pointer', {parameters: {pointerType: 'touch'}})
+        .move({x: Math.round(width / 2), y: Math.round(top + 8)})
+        .down()
+        .move({duration: 300, x: Math.round(width / 2), y: Math.round(Math.min(height - 40, top + 400))})
+        .up()
+        .perform()
+      await browser.pause(1_000)
+    }
+    await waitForSheetGone(5_000)
+  })
 
 // The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
 // items), read off the React tree.
@@ -1170,14 +1115,14 @@ const ROW_MENU_PRESSES = 3
 // Long-presses the inbox row of the conversation named `name` to open its menu, a bottom sheet of
 // the conversation's actions, finding the row afresh (scrollInboxTo) for each press. The sheet must
 // be the menu of `convID`, the conversation the caller means: any other is closed and refused, so
-// no item of it is ever tapped. Bound: an open sheet closed 5, three presses of scrollInboxTo 90,
-// the press 1 and the sheet 3, the menu's read 1 and its close 5 = 295.
+// no item of it is ever tapped. Bound: an open sheet closed 19, three presses of scrollInboxTo 90,
+// the press 1 and the sheet 3, the menu's read 1 and its close 19 = 323.
 export const openInboxRowMenu = async (name: string, convID: string) => {
   await closeMessageMenu()
   for (let press = 1; ; press++) {
     const row = await scrollInboxTo(name)
     await browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
-    if (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
+    if (await (await menuSheet()).waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
     if (press >= ROW_MENU_PRESSES) throw new Error(`the inbox row menu did not open after ${ROW_MENU_PRESSES} long presses`)
   }
   const shown = await inboxRowMenuConversations()
@@ -1186,10 +1131,6 @@ export const openInboxRowMenu = async (name: string, convID: string) => {
     throw new Error(`the inbox row menu open is not the asked-for conversation's (${shown.length} row menus drawn)`)
   }
 }
-
-// Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.
-export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
-  openSheetWith(what, async () => tap().catch(() => {}))
 
 // -- search filters ------------------------------------------------------------------------------
 
@@ -1226,7 +1167,6 @@ export const typeInSearchFilter = async (text: string) => {
   await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
   await typeIntoFocused('the search filter', text)
 }
-
 // -- thread search -------------------------------------------------------------------------------
 
 // The search bar's parts are its siblings in the accessibility tree, not its children.
@@ -1367,10 +1307,6 @@ export const pinnedBanner = () => el(T.CHAT_PINNED_BANNER)
 export const editCancel = () => el(T.CHAT_EDIT_CANCEL)
 
 // -- assertions ----------------------------------------------------------------------------------
-
-export const check = (ok: boolean, message: string) => {
-  if (!ok) throw new Error(message)
-}
 
 // Waits for the thread to settle and checks it rests at its end.
 // A still reading can land mid-animation: the list follows a new message with an animated scroll of
@@ -1871,44 +1807,6 @@ export const startAppAccountSwitch = async (username: string) => {
 
 // -- asking the phone's own service --------------------------------------------------------------
 
-// Where an ask's answer waits for the evals that poll it (an eval returns before an RPC answers).
-const APP_ASK_KEY = 'globalThis.__kbE2EAppAsk'
-let appAsks = 0
-type AppAnswer<R> = {ask: string} & ({state: 'pending'} | {state: 'answered'; value: R} | {state: 'failed'; error: string})
-
-// A function body for jsEval that runs `call` (an expression for a promise, evaluated in the app) and
-// keeps what it answers under `ask`, so an earlier ask answering late cannot replace a newer one's.
-const appAskBody = (ask: string, call: string) => `
-    const ask = ${JSON.stringify(ask)}
-    ${APP_ASK_KEY} = {ask, state: 'pending'}
-    const keep = r => { if (${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ask) ${APP_ASK_KEY} = {ask, ...r} }
-    Promise.resolve()
-      .then(() => ${call})
-      .then(value => keep({state: 'answered', value}), e => keep({state: 'failed', error: String(e && e.message)}))
-    return true
-  `
-
-// Asks the phone's own service through `call`, with the recorder paused (the census never credits
-// it), and returns the answer, which `call` projects to plain data. For read-backs of what lives
-// only on the phone, and for restores. Bound: `timeout`, plus the pause and resume.
-const askApp = async <R,>(what: string, call: string, timeout = 20_000): Promise<R> => {
-  // unique across runs too: the app's global outlives this process
-  const ask = `${Date.now()}-${++appAsks}`
-  const r = await withHarnessRpcs(what, async () => {
-    await jsEval(appAskBody(ask, call), {once: true})
-    return waitFor(
-      `the phone's service to answer ${what}`,
-      async () => {
-        const got = await jsEval<AppAnswer<R>>(`return ${APP_ASK_KEY} ?? {ask: '', state: 'pending'}`)
-        return got.ask === ask && got.state !== 'pending' ? got : undefined
-      },
-      {interval: 250, timeout}
-    )
-  })
-  if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${r.error}`)
-  return r.value
-}
-
 const RPC_CHAT = `kbModule('constants/rpc/rpc-chat-gen.tsx')`
 const RPC_GEN = `kbModule('constants/rpc/rpc-gen.tsx')`
 const CHAT_TYPES = `kbModule('constants/types/chat/index.tsx')`
@@ -2135,45 +2033,6 @@ export const iconButton = (label: string) =>
     `-ios predicate string:type == "XCUIElementTypeButton" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
   )
 
-// The one element on screen whose label is exactly `label`, of those `selector` finds: compared in
-// memory, so a label holding an account name never goes into a selector or an error. Where nested
-// elements expose the same label (a pressable box and its text) the innermost is it. Throws when
-// none or more than one is drawn; `what` names it.
-export const labelledElement = async (selector: string, label: string, what: string) => {
-  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
-  for (const e of await browser.$$(selector).getElements()) {
-    if ((await e.getAttribute('label').catch(() => null)) !== label) continue
-    const at = await e.getLocation().catch(() => undefined)
-    const size = await e.getSize().catch(() => undefined)
-    if (at && size) found.push({e, rect: {...at, ...size}})
-  }
-  const inner = innermost(found.map(f => f.rect))
-  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
-  return found[inner[0]!]!.e
-}
-
-// Every visible button, for labelledElement.
-export const BUTTON_ELEMENTS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
-
-// The visible button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap
-// 1 = 6.
-export const tapButton = async (label: string, what: string) =>
-  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS, label, what), {interval: 300, timeout: 5_000})).click()
-
-// The app's current route.
-export const currentRoute = async () => (await appSnapshot()).screen
-
-// Waits for the app's route to be `name` with params `ok` takes. Bound: 10.
-export const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
-  waitFor(
-    what,
-    async () => {
-      const s = await currentRoute()
-      return s?.name === name && ok(s.params ?? {}) ? true : undefined
-    },
-    {interval: 250, timeout: 10_000}
-  )
-
 const INBOX_METADATA = `kbModule('chat/inbox/metadata-store.tsx').useInboxMetadataState.getState()`
 const INBOX_LAYOUT = `kbModule('chat/inbox/layout-state.tsx')`
 
@@ -2212,43 +2071,6 @@ export const appInboxLists = async (convID: string) => {
 export const scrollInboxToEnd = async () => {
   if ((await seekInbox(() => undefined)) !== undefined) throw new Error('the inbox picked an item while scrolling to its end')
   return (await drawnInbox()).items.length
-}
-
-// What a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
-// merging its texts.
-export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
-
-// The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
-// tappable row merges its texts into one label), read off one page source (a call per element on a
-// screen of rows is too slow) and compared in memory; then that element fetched by its type and
-// frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
-// than one throws. `what` names it.
-export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) => {
-  const found = sourceElements(await browser.getPageSource()).filter(
-    e =>
-      types.includes(e.type) &&
-      e.attrs['visible'] === 'true' &&
-      (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(part => part.trim() === name)
-  )
-  const rects = found.map(e => ({
-    height: Number(e.attrs['height']),
-    width: Number(e.attrs['width']),
-    x: Number(e.attrs['x']),
-    y: Number(e.attrs['y']),
-  }))
-  const inner = innermost(rects)
-  if (inner.length !== 1) {
-    const at = inner.map(k => `${found[k]!.type.replace('XCUIElementType', '')} ${rects[k]!.x},${rects[k]!.y} ${rects[k]!.width}x${rects[k]!.height}`)
-    throw new Error(`${inner.length} of ${what} on screen, not one${at.length ? `: ${at.join('; ')}` : ''}`)
-  }
-  const i = inner[0]!
-  const r = rects[i]!
-  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
-  // nested boxes can share the row's frame exactly: any of them is the same tap, the deepest is taken
-  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.type}" AND ${at}`).getElements()
-  const deepest = els.at(-1)
-  if (!deepest) throw new Error(`no element at the frame of ${what}`)
-  return deepest
 }
 
 // A loaded message's link previews as the visible thread's store holds them: its id, the domains

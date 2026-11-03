@@ -1,4 +1,5 @@
-// Pure pieces of the iOS chat helpers (helpers/chat.ts), kept apart so they can be unit-tested.
+// Pieces of the iOS chat and row helpers (helpers/chat.ts, helpers/menus.ts), kept apart so they can be
+// unit-tested: pure, but for rectOf and elementInRow, which read the screen through `browser`.
 import {isDeepStrictEqual} from 'util'
 import {
   CHAT_INBOX_BIG_TEAM_HEADER,
@@ -7,7 +8,7 @@ import {
   CHAT_INBOX_ROW,
   CHAT_INBOX_UNREAD_SHORTCUT,
 } from '../../shared/test-ids.ts'
-import type {SourceElement} from './page-source-lib.ts'
+import {labelHas, type SourceElement} from './page-source-lib.ts'
 
 // Whether an inbox row's accessibility label is the row of `name`. A small conversation's row reads
 // "<name>, <time>, <snippet>" (after the pin's glyph when pinned), so the name is its whole first field (a name holding ", " spans
@@ -24,7 +25,7 @@ export const inboxRowMatches = (label: string, name: string) => {
 // Whether a forward picker result's accessibility label is the conversation named `name`: the row
 // reads its avatars' labels, if any, then the name, each a field of its own, so a longer name that
 // holds `name` is not it.
-export const forwardResultMatches = (label: string, name: string) => !!name && label.split(', ').includes(name)
+export const forwardResultMatches = (label: string, name: string) => !!name && labelHas(label, name)
 
 // Why a value read back after a relaunch is not the one wanted, or undefined when it is.
 export const persistedMismatch = (what: string, got: unknown, want: unknown) =>
@@ -202,9 +203,9 @@ export const shiftIntoBand = (row: Span, band: Span, margin: number) => {
   return 0
 }
 
-// Whether a measured frame is drawn wholly inside `rect` (to within a point) and on a screen
-// `screenHeight` tall, and is not empty: where a tap at its middle lands on it.
-export const frameInside = (frame: Rect, rect: Rect, screenHeight: number) =>
+// Whether `frame` has a size and lies wholly inside `rect` (to within a point: XCUITest rounds frames
+// to whole points), and on a screen `screenHeight` tall when given: where a tap at its middle lands on it.
+export const frameInside = (frame: Rect, rect: Rect, screenHeight = Infinity) =>
   frame.width > 0 &&
   frame.height > 0 &&
   frame.x >= rect.x - 1 &&
@@ -225,20 +226,27 @@ export const findInboxHeader = (items: ReadonlyArray<DrawnInboxItem>, team: stri
 // A rectangle in window points.
 export type Rect = {height: number; width: number; x: number; y: number}
 
+// XCUITest rounds frames to whole points, so a text can read a point past the box that holds it
+const ROUNDING = 1
 const contains = (outer: Rect, inner: Rect) =>
-  outer.x <= inner.x &&
-  outer.y <= inner.y &&
-  outer.x + outer.width >= inner.x + inner.width &&
-  outer.y + outer.height >= inner.y + inner.height
+  outer.x <= inner.x + ROUNDING &&
+  outer.y <= inner.y + ROUNDING &&
+  outer.x + outer.width + ROUNDING >= inner.x + inner.width &&
+  outer.y + outer.height + ROUNDING >= inner.y + inner.height
 
 // The indexes of the rects that hold no other rect of the list: where several nested elements expose
-// the same label (a pressable box and its text), the innermost is the one drawn. Rects with the same
-// frame (a text in a text) are one thing on screen: the first stands for them.
+// the same label (a pressable box and its text), the innermost is the one drawn. Two rects within
+// ROUNDING of each other each contain the other: the smaller area is the inner one, and of equal areas
+// (the same frame, a text in a text, or one shifted by the rounding) the first stands for both.
 export const innermost = (rects: ReadonlyArray<Rect>) => {
-  const same = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
-  return rects.flatMap((r, i) =>
-    rects.some((o, j) => (j !== i && contains(r, o) && !contains(o, r)) || (j < i && same(o, r))) ? [] : [i]
-  )
+  const area = (r: Rect) => r.width * r.height
+  // whether `o` (at j) is inside `r` (at i), so `r` is not the innermost
+  const holds = (r: Rect, i: number, o: Rect, j: number) => {
+    if (j === i || !contains(r, o)) return false
+    if (!contains(o, r)) return true
+    return area(o) < area(r) || (area(o) === area(r) && j < i)
+  }
+  return rects.flatMap((r, i) => (rects.some((o, j) => holds(r, i, o, j)) ? [] : [i]))
 }
 
 // The inbox search's name hits among `matches` (rects of elements that read the asked-for text): those
@@ -258,3 +266,34 @@ export const inNameSection = (matches: ReadonlyArray<Rect>, chatsHeader: Rect, l
 type NotifyKinds = Record<string, boolean> | null | undefined
 export const notifyChoiceOf = (kinds: NotifyKinds): 'never' | 'onAnyActivity' | 'onWhenAtMentioned' =>
   kinds?.['0'] ? 'onAnyActivity' : kinds?.['1'] ? 'onWhenAtMentioned' : 'never'
+
+// The index of the one rect of `rects` whose middle lies inside `row`: a testID repeated once per row
+// (a row's menu button), as drawn in that row. Throws when none or more than one does; `what` names it.
+export const inRow = (row: Rect, rects: ReadonlyArray<Rect>, what: string) => {
+  const inside = rects.flatMap((r, i) => {
+    const x = r.x + r.width / 2
+    const y = r.y + r.height / 2
+    return x >= row.x && x <= row.x + row.width && y >= row.y && y <= row.y + row.height ? [i] : []
+  })
+  if (inside.length !== 1) throw new Error(`${inside.length} of ${what} in the row, not one`)
+  return inside[0]!
+}
+
+// `e`'s frame in window points, or undefined when it has none (it left the tree). Reads the screen
+// through `browser`.
+export const rectOf = async (e: WebdriverIO.Element): Promise<Rect | undefined> => {
+  const at = await e.getLocation().catch(() => undefined)
+  const size = await e.getSize().catch(() => undefined)
+  return at && size ? {...at, ...size} : undefined
+}
+
+// The element with `testID` drawn inside the row at `rowRect` (window points), of those the testID
+// repeats on, one per row. Throws when none or more than one lies in it.
+export const elementInRow = async (rowRect: Rect, testID: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
+  for (const e of await browser.$$(`~${testID}`).getElements()) {
+    const rect = await rectOf(e)
+    if (rect) found.push({e, rect})
+  }
+  return found[inRow(rowRect, found.map(f => f.rect), testID)]!.e
+}

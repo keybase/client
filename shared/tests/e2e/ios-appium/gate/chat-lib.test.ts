@@ -1,11 +1,13 @@
 import {
   carriedTeam,
+  elementInRow,
   findInboxHeader,
   findInboxRow,
   isOneOnOneRow,
   forwardResultMatches,
   frameInside,
   inNameSection,
+  inRow,
   inboxIn,
   inboxRowMatches,
   innermost,
@@ -252,6 +254,9 @@ describe('frameInside', () => {
 })
 
 describe('innermost', () => {
+  test('a text a rounded point past its box is still inside it', () => {
+    expect(innermost([{height: 29, width: 122, x: 140, y: 745}, {height: 21, width: 99, x: 164, y: 749}])).toEqual([1])
+  })
   test('of a box and the text inside it, only the text', () => {
     const box = {height: 60, width: 300, x: 0, y: 100}
     const text = {height: 20, width: 100, x: 10, y: 110}
@@ -269,6 +274,27 @@ describe('innermost', () => {
     const box = {height: 60, width: 300, x: 0, y: 100}
     const text = {height: 20, width: 100, x: 10, y: 110}
     expect(innermost([box, text, {...text}])).toEqual([1])
+  })
+
+  // within the rounding each contains the other: the smaller area is the inner one, in either order
+  test('a rect inset 1pt inside another is the inner one', () => {
+    const box = {height: 30, width: 122, x: 140, y: 745}
+    const inset = {height: 28, width: 120, x: 141, y: 746}
+    expect(innermost([box, inset])).toEqual([1])
+    expect(innermost([inset, box])).toEqual([0])
+  })
+
+  test('a rect running 1pt past another of the same origin: the smaller is the inner one', () => {
+    const box = {height: 30, width: 122, x: 140, y: 745}
+    const past = {height: 31, width: 123, x: 140, y: 745}
+    expect(innermost([box, past])).toEqual([0])
+    expect(innermost([past, box])).toEqual([1])
+  })
+
+  test('two of one size shifted 1pt count once, as the first', () => {
+    const a = {height: 30, width: 122, x: 140, y: 745}
+    const b = {height: 30, width: 122, x: 141, y: 746}
+    expect(innermost([a, b])).toEqual([0])
   })
 })
 
@@ -393,5 +419,43 @@ describe('a one-on-one lookup and a group row', () => {
   test('a team row or a row the app does not draw at that frame is not taken', () => {
     expect(isOneOnOneRow([{...span(164), participants: ['testuser'], team: true}], 'testuser')(items[1]!)).toBe(false)
     expect(isOneOnOneRow([{...span(300), participants: ['testuser'], team: false}], 'testuser')(items[1]!)).toBe(false)
+  })
+})
+
+describe('the element of a repeated testID drawn in one row', () => {
+  const row = {height: 60, width: 390, x: 0, y: 200}
+  const at = (y: number, x = 340) => ({height: 30, width: 30, x, y})
+  test('picks the one whose middle lies in the row', () => {
+    expect(inRow(row, [at(130), at(215), at(285)], 'the row menu')).toBe(1)
+    // a rect that only overlaps the row's edge is the next row's
+    expect(inRow(row, [at(180), at(215), at(250)], 'the row menu')).toBe(1)
+  })
+  test('throws on none or two in the row', () => {
+    expect(() => inRow(row, [at(130), at(285)], 'the row menu')).toThrow('0 of the row menu in the row, not one')
+    expect(() => inRow(row, [at(205), at(225, 10)], 'the row menu')).toThrow('2 of the row menu in the row, not one')
+    expect(() => inRow(row, [], 'the row menu')).toThrow(/^0 of/)
+  })
+  test('elementInRow finds the elements by testID and returns the one in the row', async () => {
+    const els = [at(130), at(215), at(285)].map((r, i) => ({
+      elementId: `e${i}`,
+      getLocation: async () => Promise.resolve({x: r.x, y: r.y}),
+      getSize: async () => Promise.resolve({height: r.height, width: r.width}),
+    }))
+    const selectors: Array<string> = []
+    const g = globalThis as unknown as {browser?: unknown}
+    const saved = g.browser
+    g.browser = {
+      $$: (s: string) => {
+        selectors.push(s)
+        return {getElements: async () => Promise.resolve(els)}
+      },
+    }
+    try {
+      await expect(elementInRow(row, 'files-row-menu')).resolves.toBe(els[1])
+      expect(selectors).toEqual(['~files-row-menu'])
+      await expect(elementInRow({...row, y: 400}, 'files-row-menu')).rejects.toThrow(/^0 of files-row-menu/)
+    } finally {
+      g.browser = saved
+    }
   })
 })

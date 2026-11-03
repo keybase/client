@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
 import * as FS from '@/constants/fs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -97,6 +98,7 @@ const SyncToggle = (ownProps: OwnProps) => {
         label="Sync on this device"
         ref={popupAnchor}
         disabled={waiting}
+        testID={TestIDs.FILES_SYNC_TOGGLE}
       />
       {showingPopup && popup}
     </>

@@ -1,8 +1,8 @@
 // The iOS release gate's flow run: every attempt is recorded under tests/results/ios-report/attempts
 // (gate/attempt.ts), and onComplete writes them as the Playwright json report the release summary
 // and the census read. Every run, a direct `yarn test:e2e:ios:flows` too, then scans what it wrote
-// for the env file's secrets and the names of the paper keys it made: a file that holds one is
-// deleted and named, and the run fails.
+// for the env file's secrets and the names of the paper keys and the team invite links it made: a
+// file that holds one is deleted and named, and the run fails.
 import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
@@ -16,7 +16,16 @@ import {finishAttempt, type TestResult} from './gate/finish'
 import {noteProtocolResult} from './gate/hang'
 import {scanHeldSecrets} from './gate/run-secrets'
 import {forgetRunPaperKeyNames, SCAN_PAPER_KEY_NAMES_VAR, withPaperKeyNames} from '../accounts/paper-key-ledger'
-import {envSecrets, scanAndPurge, SECRET_SCAN_FILE, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan'
+import {
+  envSecrets,
+  forgetRunInviteLinks,
+  runInviteLinkSecrets,
+  SCAN_INVITE_LINKS_VAR,
+  scanAndPurge,
+  SECRET_SCAN_FILE,
+  watchEnvSecrets,
+  type SecretWatch,
+} from '../shared/gate/secret-scan'
 
 const PROJECT = 'ios-flows'
 
@@ -24,13 +33,14 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 // started in onPrepare: every value the env file's secrets held during the run
 let secretWatch: SecretWatch | undefined
-// A run the iOS release started leaves the paper key names to the release's own scan, which deletes
-// them; a direct run deletes them after its scan.
-const scansOwnNames = process.env[SCAN_PAPER_KEY_NAMES_VAR] !== '1'
+// A run the iOS release started leaves the paper key names and invite links to the release's own
+// scan, which deletes them; a direct run deletes them after its scan.
+const scansOwnRecords = process.env[SCAN_PAPER_KEY_NAMES_VAR] !== '1'
 
 const scanResults = () => {
   const watch = secretWatch
-  const scan = scanAndPurge([iosReportDir()], withPaperKeyNames(watch ? watch.secrets() : envSecrets(), process.env['KB_E2E_RUN_ID'] ?? ''))
+  const runId = process.env['KB_E2E_RUN_ID'] ?? ''
+  const scan = scanAndPurge([iosReportDir()], [...withPaperKeyNames(watch ? watch.secrets() : envSecrets(), runId), ...runInviteLinkSecrets(runId)])
   watch?.stop()
   for (const f of scan.hits) console.error(`[ios gate] secret found, deleted: ${f}`)
   console.log(`[ios gate] secrets: ${scan.line}`)
@@ -61,8 +71,9 @@ export const config: WebdriverIO.Config = {
     () => {
       fs.rmSync(iosReportDir(), {force: true, recursive: true})
       secretWatch = watchEnvSecrets()
-      // the flows record the names of the paper keys they make, for the scan
+      // the flows record the names of the paper keys and the invite links they make, for the scan
       process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
+      process.env[SCAN_INVITE_LINKS_VAR] = '1'
     },
   ],
   // wdio only logs a beforeTest error and runs the test anyway, so nothing here throws: what failed
@@ -123,7 +134,10 @@ export const config: WebdriverIO.Config = {
       try {
         scanResults()
       } finally {
-        if (scansOwnNames) forgetRunPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')
+        if (scansOwnRecords) {
+          forgetRunPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')
+          forgetRunInviteLinks(process.env['KB_E2E_RUN_ID'] ?? '')
+        }
       }
     }
   },

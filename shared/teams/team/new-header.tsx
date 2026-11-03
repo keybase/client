@@ -139,7 +139,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text type="Header" lineClamp={3} style={styles.flexShrink} selectable={true}>
             {meta.teamname}
           </Kb.Text>
-          {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
+          {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} testID={TestIDs.TEAMS_HEADER_RENAME} />}
         </Kb.Box2>
         {meta.isOpen && (
           <Kb.Meta variant="open" style={styles.openMeta} />

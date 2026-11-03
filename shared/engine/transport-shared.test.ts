@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import * as fs from 'fs'
 import * as path from 'path'
-import {redactRpcParams, redactRpcResult} from './transport-shared'
+import {isSecretParam, redactRpcParams, redactRpcResult} from './transport-shared'
+import {stripSecretParams} from '@/tests/e2e/ios-appium/gate/screen-params-lib'
 import type * as TS from './transport-shared'
 import type * as RT from './rpc-transport'
 
@@ -198,6 +199,64 @@ test('every enabled method that returns a bare string is redacted whole or known
 
 test("a wallet account's secret key result is redacted", () => {
   expect(redactRpcResult('stellar.1.local.getWalletAccountSecretKeyLocal', fixture)).toBe('<redacted>')
+})
+
+// The phone's join by a pasted invite link: the join call takes the link, the service asks the app to
+// confirm with the invite's details (no key), and the app's answer and the call's result log the
+// payload and booleans. None of the logged copies holds the link or its key.
+test('the invite-link join path logs no link and no key', () => {
+  const key = 'secretkey0123456789'
+  const link = `https://keybase.io/i/t/abcdefghijklmnop#${key}`
+  const details = {inviteID: 'f00d', inviterUsername: 'testuser', teamID: 'tid', teamName: {parts: ['team', 'sub']}}
+  const logged = [
+    redactRpcParams({sessionID: 1, tokenOrName: link}),
+    redactRpcParams({sessionID: 1, tokenOrName: link.toLowerCase()}),
+    redactRpcParams({details, sessionID: 1}),
+    redactRpcParams({payload: {method: 'keybase.1.teamsUi.confirmInviteLinkAccept', param: [{details, sessionID: 1}], response: {}}}),
+    redactRpcParams({wasOpenTeam: false, wasSeitan: true, wasTeamName: false, wasToken: true}),
+  ].map(l => JSON.stringify(l))
+  for (const l of logged) {
+    expect(l).not.toContain(key)
+    expect(l).not.toContain('keybase.io/i/t')
+  }
+  expect(logged[0]).toContain('<redacted>')
+})
+
+// A team page's load returns each invite link of the team with its url, key included, as the
+// invite's displayName (the team's Invite links read it from there). The logged result keeps the
+// link's id and drops its key.
+test("a team load's invite links are logged without their keys", () => {
+  const key = 'madeupkey0123456789'
+  const invite = {
+    displayName: `https://keybase.io/i/t/abcdefghijklmnop#${key}`,
+    // TeamInviteCategory.invitelink
+    inviteExt: {c: 7, invitelink: {annotatedUsedInvites: null}},
+    inviterUsername: 'testuser',
+    isValid: true,
+    teamName: 'testteam',
+    validityDescription: 'Expires in 7 days',
+  }
+  const logged = JSON.stringify(redactRpcResult('keybase.1.teams.getAnnotatedTeam', {invites: [invite], name: 'testteam', teamID: 'tid'}))
+  expect(logged).not.toContain(key)
+  expect(logged).toContain('keybase.io/i/t/abcdefghijklmnop#<redacted>')
+})
+
+// The e2e harness reads the visible screen's route params through this key list, so a secret route
+// param (an invite link's key, a token) never leaves the app.
+test('route params lose inviteKey and every key the RPC log redacts', () => {
+  const link = 'https://keybase.io/i/t/abcdefghijklmnop#secretkey0123456789'
+  const params = {
+    inviteDetails: {teamID: 'tid'},
+    inviteKey: link,
+    list: [{code: '123456', passphrase: fixture, phrase: fixture, status: {code: 7}}],
+    storeSecret: true,
+    tokenOrName: link,
+  }
+  expect(stripSecretParams(params, isSecretParam)).toEqual({
+    inviteDetails: {teamID: 'tid'},
+    list: [{status: {code: 7}}],
+    storeSecret: true,
+  })
 })
 
 describe('rpcLog and invoke end to end', () => {

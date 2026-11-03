@@ -7,6 +7,7 @@ import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {phoneDeviceId} from '../gate/accounts'
 import {relaunchApp} from '../gate/device'
+import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {step} from '../gate/step'
 import {findDeviceRow, openAddDevice, revokeFromDevicePage} from '../helpers/devices'
 import {el, labeled} from '../helpers/elements'
@@ -19,6 +20,9 @@ const PAPER_KEY_TEXT = '-ios predicate string:type == "XCUIElementTypeStaticText
 // phone. Its words are on screen while the paper key screen is up, and nothing hides them there: no
 // step, page source or label read runs until the screen has closed, and a screen that will not close
 // is ended by relaunching the app before any failure screenshot. Nothing reads the words.
+// the gate's secret-on-screen mark while the words may show
+const PAPER_KEY_SCREEN = "the paper key's words"
+
 describe('device paper key', function () {
   this.retries(0)
 
@@ -38,13 +42,17 @@ describe('device paper key', function () {
   }
 
   // The paper key screen is gone, whatever happened on it: acknowledged and closed, or the app
-  // relaunched (the screen has no other way out). Runs before any error leaves the test.
+  // relaunched (the screen has no other way out). Runs before any error leaves the test. Once it is
+  // gone, the gate's secret-on-screen mark is cleared; a screen still up keeps it.
   const closePaperKeyScreen = async () => {
-    if (!(await words().isExisting())) return
-    await acknowledgeAndClose().catch(() => {})
-    if (await words().waitForExist({reverse: true, timeout: 10_000}).then(() => true, () => false)) return
-    await relaunchApp()
-    if (await words().isExisting()) throw new Error('the paper key screen is still up after relaunching the app')
+    if (await words().isExisting()) {
+      await acknowledgeAndClose().catch(() => {})
+      if (!(await words().waitForExist({reverse: true, timeout: 10_000}).then(() => true, () => false))) {
+        await relaunchApp()
+        if (await words().isExisting()) throw new Error('the paper key screen is still up after relaunching the app')
+      }
+    }
+    clearSecretOnScreen(PAPER_KEY_SCREEN)
   }
 
   // What the test made, for its cleanup and the afterEach: set once `before` is read, before the key
@@ -120,6 +128,7 @@ describe('device paper key', function () {
         await withCleanup(
           async () => {
             // sends login.paperKey, which makes the key, then shows its words
+            markSecretOnScreen(PAPER_KEY_SCREEN)
             await labeled('Other', 'Create a paper key').click()
             await waitFor('the service to list a new, named paper key', async () => findMade(r), {interval: 1_000, timeout: 30_000})
             // The words' text is not a descendant of the words box in the accessibility tree (the box is

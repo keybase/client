@@ -17,6 +17,7 @@ import {useLoadedTeam} from '../team/use-loaded-team'
 import AddingMembers, {type DisabledRoles} from './adding-members'
 import DefaultChannels from './default-channels'
 import {setWizardRole, type AddMembersWizard} from './state'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const disabledRolesForNonKeybasePlural = {
   admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
@@ -314,6 +315,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
               : pluralize(capitalize(storeRole), memberCount)
           }
           onPress={() => setShowingMenu(true)}
+          testID={TestIDs.TEAMS_WIZARD_ROLE_BUTTON}
         />
       </FloatingRolePicker>
     </Kb.Box2>

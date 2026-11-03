@@ -12,8 +12,6 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   closeSearch,
   hideKeyboard,
@@ -31,6 +29,7 @@ import {
   showsText,
   waitForThreadStable,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectHost, pinnedOnHost} from '../helpers/chat-host'
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -71,7 +70,7 @@ describe('chat parity', function () {
   const bannerSays = async (text: string) => ((await pinnedBanner().getAttribute('label')) ?? '').includes(text)
 
   // e2e-scratch with search closed, no reply or menu open and an empty composer, after a timeout
-  // too. Worst case (s): close 5, keyboard 5, open 100, search 5, resetComposer 46 = 161.
+  // too. Worst case (s): close 19, keyboard 5, open 100, search 5, resetComposer 46 = 175.
   afterEach(async function () {
     this.timeout(180_000)
     await withCleanup(closeMessageMenu, [

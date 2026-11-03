@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
 import * as FS from '@/constants/fs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type ClickableProps = {
   onClick: () => void
@@ -38,12 +39,13 @@ export type PathItemActionHandle = {open: () => void}
 type ICProps = {
   measureRef: React.RefObject<Kb.MeasureRef | null>
   onClick: () => void
+  testID?: string
   sizeType: SizeType
   actionIconWhite?: boolean | undefined
 }
 function IconClickable(props: ICProps) {
   const theme = Kb.Styles.useTheme()
-  const {measureRef, actionIconWhite, sizeType, onClick} = props
+  const {measureRef, actionIconWhite, sizeType, onClick, testID} = props
   return (
     <Kb.WithTooltip tooltip="More actions">
       <Kb.Box2 direction="vertical" ref={measureRef}>
@@ -54,6 +56,7 @@ function IconClickable(props: ICProps) {
           padding="tiny"
           sizeType={sizeType}
           onClick={onClick}
+          testID={testID}
         />
       </Kb.Box2>
     </Kb.WithTooltip>
@@ -137,6 +140,7 @@ const PathItemAction = React.forwardRef<PathItemActionHandle, Props>((props, ref
           measureRef={popupAnchor}
           sizeType={props.clickable.sizeType ?? 'Default'}
           actionIconWhite={props.clickable.actionIconWhite}
+          testID={mode === 'row' ? TestIDs.FILES_ROW_MENU : undefined}
         />
       )}
       {showingPopup && popup}

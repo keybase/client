@@ -103,8 +103,33 @@ export const findModuleId = <Id,>(modules: Iterable<[Id, {verboseName?: string}]
 // Metro dev bundles register modules by path; this finds and requires one by that path.
 const prelude = `const findModuleId = ${findModuleId.toString()}; const kbModule = name => { const id = findModuleId(__r.getModules(), name); if (id === undefined) throw new Error('no module ' + name); return __r(id) };`
 
+// A stretch this long of the evaluated code, repeated in a failed eval's report, withholds that line.
+const QUOTED_RUN = 20
+export const WITHHELD_LINE = '(a line repeating the evaluated code, withheld)'
+
+// `report` with every line that repeats a QUOTED_RUN-character stretch of `code` withheld. An eval's
+// code can carry a secret (the text setPasteboard writes, a secret field's value), and a message the
+// app builds from that data must not take it into an error. Hermes quotes no source in its reports, so
+// what this withholds is a message built from the code's own data, or a long message the code spells out.
+// Compared lowercased: the app can lowercase what it is given (the join field does) before quoting it.
+export const withholdQuotedCode = (report: string, code: string) => {
+  const lower = code.toLowerCase()
+  const runs = new Set<string>()
+  for (let i = 0; i + QUOTED_RUN <= lower.length; i++) runs.add(lower.slice(i, i + QUOTED_RUN))
+  const quotes = (line: string) => {
+    const l = line.toLowerCase()
+    for (let i = 0; i + QUOTED_RUN <= l.length; i++) if (runs.has(l.slice(i, i + QUOTED_RUN))) return true
+    return false
+  }
+  return report
+    .split('\n')
+    .map(line => (quotes(line) ? WITHHELD_LINE : line))
+    .join('\n')
+}
+
 // Evaluates a synchronous function body in the page's JS runtime and returns its value. The body
-// can call kbModule('<path under shared/>') to reach an app module.
+// can call kbModule('<path under shared/>') to reach an app module. A failure's error never repeats the
+// body (withholdQuotedCode), and nothing here logs it.
 export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<R> => {
   const url = page.webSocketDebuggerUrl.replace('ws://localhost:', 'ws://127.0.0.1:')
   // The inspector proxy rejects connections without a local Origin; Node's WebSocket
@@ -112,6 +137,7 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
   const WS = (globalThis as unknown as {WebSocket: NodeWebSocketCtor}).WebSocket
   const ws = new WS(url, {headers: {Origin: metroOrigin}})
   try {
+    const expression = `(() => { ${prelude} ${body} })()`
     return await new Promise<R>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('inspector evaluate timed out')), 10000)
       ws.addEventListener('error', () => {
@@ -124,7 +150,6 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
         reject(new Error(INSPECTOR_CLOSED))
       })
       ws.addEventListener('open', () => {
-        const expression = `(() => { ${prelude} ${body} })()`
         ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true}}))
       })
       ws.addEventListener('message', e => {
@@ -134,7 +159,8 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
         if (m.result?.exceptionDetails) {
           // text can be just "Uncaught"; the thrown error's message is in its description
           const {exception, text} = m.result.exceptionDetails
-          reject(new Error(`app evaluate threw: ${[text, exception?.description].filter(Boolean).join(': ') || 'unknown'}`))
+          const report = [text, exception?.description].filter(Boolean).join(': ') || 'unknown'
+          reject(new Error(`app evaluate threw: ${withholdQuotedCode(report, expression)}`))
         } else {
           resolve(m.result?.result?.value as R)
         }

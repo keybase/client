@@ -162,6 +162,7 @@ const ThresholdDropdown = (
           </Kb.Text>
         }
         toggleOpen={toggleShowingMenu}
+        testID={TestIDs.SETTINGS_FILES_THRESHOLD}
       />
       <Kb.FloatingPicker
         items={allowedThresholds}
@@ -220,6 +221,7 @@ const FilesSettings = () => {
             disabled={areSettingsLoading}
             gapSize={Kb.Styles.globalMargins.small}
             style={styles.switch}
+            testID={TestIDs.SETTINGS_FILES_WARN_SWITCH}
           />
           {!!spaceAvailableNotificationThreshold && <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>}
           {!!spaceAvailableNotificationThreshold && (
@@ -236,6 +238,7 @@ const FilesSettings = () => {
             labelSubtitle="Syncing over Wi-Fi is always on"
             gapSize={Kb.Styles.globalMargins.small}
             style={styles.switch}
+            testID={TestIDs.SETTINGS_FILES_CELLULAR_SWITCH}
           />
         </Kb.Box2>
       </Kb.Box2>

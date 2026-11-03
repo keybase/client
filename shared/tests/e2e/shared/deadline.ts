@@ -12,6 +12,20 @@ export const withDeadline = async <T,>(p: Promise<T>, ms: number, what: string):
   }
 }
 
+// Runs `work` under a hard deadline of `ms`: past it the call rejects, and the `alive` check `work`
+// is handed throws, so a step it starts after then never runs (a call already sent finishes on its
+// own). For work that taps or types, which must not go on under a caller that has moved on.
+export const underDeadline = async <T,>(what: string, ms: number, work: (alive: () => void) => Promise<T>): Promise<T> => {
+  const end = Date.now() + ms
+  const alive = () => {
+    if (Date.now() > end) throw new Error(`${what}: past its ${ms / 1000}s deadline`)
+  }
+  const running = work(alive)
+  // its own rejection after the deadline has no one waiting on it
+  running.catch(() => {})
+  return withDeadline(running, ms, what)
+}
+
 export type AbortableResult<T> = {ok: true; value: T} | {ok: false; settled: boolean; message: string}
 
 // Runs `work` with a signal that aborts at `ms`. A timed-out run waits up to `settleMs` for the work
@@ -49,4 +63,29 @@ export const runAbortable = async <T,>(
   return settled
     ? {message: `${what}: not done in ${ms / 1000}s; stopped it`, ok: false, settled}
     : {message: `${what}: not done in ${ms / 1000}s, and still running ${settleMs / 1000}s after it was told to stop`, ok: false, settled}
+}
+
+// Asks `check` every `interval` ms until it answers something other than undefined, and returns that.
+// Past `timeout` it throws naming `what`, with the last error `check` threw. Framework-free: the host
+// read-backs the desktop and iOS flows share poll through it.
+export const waitFor = async <R,>(
+  what: string,
+  check: () => Promise<R | undefined>,
+  {interval = 1_000, timeout}: {interval?: number; timeout: number}
+): Promise<R> => {
+  const end = Date.now() + timeout
+  let lastErr: unknown
+  for (;;) {
+    try {
+      const r = await check()
+      if (r !== undefined) return r
+    } catch (e) {
+      lastErr = e
+    }
+    if (Date.now() > end) {
+      const detail = lastErr instanceof Error ? `: ${lastErr.message}` : ''
+      throw new Error(`timed out after ${timeout / 1000}s waiting for ${what}${detail}`)
+    }
+    await new Promise(resolve => setTimeout(resolve, interval))
+  }
 }

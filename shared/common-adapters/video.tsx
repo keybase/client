@@ -16,6 +16,8 @@ type Props = {
   allowFile?: boolean
   muted?: boolean
   autoPlay?: boolean
+  // mobile: on the player's box
+  testID?: string
 }
 
 const allowedHosts = new Set(['127.0.0.1', 'localhost'])
@@ -133,7 +135,7 @@ const DesktopVideo = (props: Props) => {
 
 const NativeVideo = (props: Props) => {
   const styles = useStyles()
-  const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
+  const {url: _url, allowFile, muted, onUrlError, autoPlay, testID} = props
   // normalize first: urlEscapeFilePath only escapes a path that already has the
   // file:// prefix, and normalizePath is what adds it
   const uri = Styles.urlEscapeFilePath(allowFile ? Styles.normalizePath(_url) : _url)
@@ -153,7 +155,7 @@ const NativeVideo = (props: Props) => {
 
   const content = (
     <DelayMount>
-      <Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.container}>
+      <Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.container} testID={testID}>
         <VideoView
           player={player}
           nativeControls={true}

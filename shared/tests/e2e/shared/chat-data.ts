@@ -751,8 +751,10 @@ export const retryTransient = async <R,>(f: () => Promise<R>, doneRe?: RegExp): 
     } catch (e) {
       const msg = message(e)
       if (attempt > 1 && doneRe?.test(msg)) return undefined
-      if (attempt >= 4 || !transientRe.test(msg)) throw e
-      log(`retrying after a passing server refusal: ${msg.split('\n')[0]?.slice(-120) ?? ''}`)
+      const reason = transientRe.exec(msg)?.[0]
+      if (attempt >= 4 || !reason) throw e
+      // only the matched reason: the rest of a CLI's error can quote a team's name or what it printed
+      log(`retrying after a passing server refusal: ${reason}`)
       await sleep(5_000)
     }
   }

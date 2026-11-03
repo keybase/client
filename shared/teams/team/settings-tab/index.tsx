@@ -12,6 +12,7 @@ import {useLoadedTeam} from '../use-loaded-team'
 import {invalidateLoadedTeams} from '../../use-teams-list'
 import {useIsBigTeam} from '../../common/use-loaded-team-channels'
 import {useSettingsTabState} from './use-settings'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   allowOpenTrigger: number
@@ -63,6 +64,7 @@ const SetMemberShowcase = (props: {
         }
         onCheck={props.setNewPublicityMember}
         style={styles.paddingRight}
+        testID={TestIDs.settingTestID(TestIDs.TEAMS_SETTINGS_FEATURE, props.newPublicityMember)}
       />
     </Kb.Box2>
   )
@@ -190,6 +192,7 @@ const IgnoreAccessRequests = (props: {
           </Kb.Box2>
         }
         onCheck={props.setNewIgnoreAccessRequests}
+        testID={TestIDs.settingTestID(TestIDs.TEAMS_SETTINGS_IGNORE_REQUESTS, props.newIgnoreAccessRequests)}
       />
     </Kb.Box2>
   )

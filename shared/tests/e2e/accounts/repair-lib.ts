@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {e2eConfigDir} from './env.ts'
-import {checkMode} from './paper-key-ledger.ts'
+import {checkMode} from './run-record.ts'
 
 // The env file's prefix every e2e test account's username has. The repair writes to the accounts
 // (blocks, a conversation's status, favorites), so it acts only on accounts that have it. Kept in the

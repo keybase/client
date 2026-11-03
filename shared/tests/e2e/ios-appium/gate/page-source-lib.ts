@@ -19,3 +19,41 @@ const attrsOf = (tag: string) => {
 
 export const sourceElements = (source: string): Array<SourceElement> =>
   [...source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>/g)].map(m => ({attrs: attrsOf(m[0]), type: m[1] ?? ''}))
+
+// Each of sourceElements' elements' parent, as an index into them (-1: none), read off the same tags.
+export const sourceParents = (source: string): Array<number> => {
+  const parents: Array<number> = []
+  const open: Array<number> = []
+  for (const m of source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>|<\/XCUIElementType[A-Za-z]+>/g)) {
+    if (m[0].startsWith('</')) {
+      open.pop()
+      continue
+    }
+    parents.push(open.at(-1) ?? -1)
+    if (!m[0].endsWith('/>')) open.push(parents.length - 1)
+  }
+  return parents
+}
+
+// The frame a page source element's attributes give, in window points.
+export const sourceRect = (attrs: Record<string, string>) => ({
+  height: Number(attrs['height']),
+  width: Number(attrs['width']),
+  x: Number(attrs['x']),
+  y: Number(attrs['y']),
+})
+
+// An XCUITest predicate clause for the element at exactly `r`, to fetch one read off a page source.
+export const framePredicate = (r: {height: number; width: number; x: number; y: number}) =>
+  `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+
+// The parts of an accessibility label: XCUITest joins a box's texts with ", ", and a text drawn with a
+// no-break space (a size, a date) reads as one with a space.
+export const labelParts = (label: string) =>
+  label
+    .replace(/[\u00a0\u2007\u202f]/g, ' ')
+    .split(', ')
+    .map(p => p.trim())
+
+// Whether `label` holds `part` as one of its parts.
+export const labelHas = (label: string, part: string) => labelParts(label).includes(part)

@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import {PdfEmbed} from '@/common-adapters/pdf-embed'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   url: string
@@ -22,6 +23,7 @@ const PdfViewNative = (props: Props) => {
         style={styles.webview}
         onError={props.onUrlError}
         showLoadingStateUntilLoaded={true}
+        testID={TestIDs.FILES_PDF_PREVIEW}
       />
     </Kb.Box2>
   )

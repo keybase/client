@@ -21,16 +21,14 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {inNameSection, type Rect} from '../gate/chat-lib'
-import {sourceElements} from '../gate/page-source-lib'
+import {inNameSection} from '../gate/chat-lib'
+import {labelParts, sourceElements, sourceRect} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
   appConversationMuted,
   appConversationPinned,
   appInboxLists,
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   closeSearch,
   expectPersists,
@@ -39,7 +37,6 @@ import {
   openConversation,
   openInboxRowMenu,
   openInfoPanel,
-  openMenuFrom,
   openThreadSearch,
   rowElement,
   scrollInboxTo,
@@ -55,6 +52,7 @@ import {
   visibleConversation,
   waitForRow,
 } from '../helpers/chat'
+import {check, chooseMenuItem, openMenuFrom} from '../helpers/menus'
 import {convStatus, expectConvStatus, expectHost, secondSender, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -64,8 +62,8 @@ describe('chat conversations', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   open      openConversation 100;  row  scrollInboxTo 120;  absent  inboxHasRow 120 (the same
   //             scroll);  header  scrollInboxToTeamHeader 120;  top  the inbox at its top 120
-  //   row menu  openInboxRowMenu 385 (an open sheet closed 5, three long presses of scrollInboxTo 120,
-  //             the press 1 and the sheet 3, the menu's conversation read 1, closed 5);  item
+  //   row menu  openInboxRowMenu 413 (an open sheet closed 19, three long presses of scrollInboxTo 120,
+  //             the press 1 and the sheet 3, the menu's conversation read 1, closed 19);  item
   //             chooseMenuItem 20;
   //             gear  openMenuFrom 15
   //   conv      the host's read of a conversation 75 (whoami 15, the call 60), polled 95 (20, overrun
@@ -175,19 +173,19 @@ describe('chat conversations', function () {
   }
 
   // Nothing a test changed left behind, after a timeout too. The host's restores go first, then the
-  // phone's screens. Worst case (s): close 5, keyboard 5, the statuses 490 (two conversations, each a
+  // phone's screens. Worst case (s): close 19, keyboard 5, the statuses 490 (two conversations, each a
   // read 75, the set 75 and its poll 95), the pins 245 (the same), a channel 120, the searches 52
   // (close 5, escapeToTabs 30, the tab 5, the field 1, the clear found 5 and tapped 1, the field gone
-  // 5) = 917.
+  // 5) = 931.
   afterEach(async function () {
     this.timeout(960_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, restoreStatuses, restorePins, channels.deleteAll, closeSearches])
   })
 
   it('the DM hidden from its inbox row leaves the inbox, and a new message brings it back', async function () {
-    // worst case (s): conv 75, row menu 385, the seq 2, item 20, calls 10, conv 95, row 120 (the
+    // worst case (s): conv 75, row menu 413, the seq 2, item 20, calls 10, conv 95, row 120 (the
     // self conversation), absent 120, the layout 10, step 2, peer 70, peer send 90, conv 95, row 120,
-    // step 2, open 100, the row 30, step 2 = 1348
+    // step 2, open 100, the row 30, step 2 = 1376
     this.timeout(1_380_000)
     const {convID} = data.direct
     const original = await convStatus(convID)
@@ -295,10 +293,10 @@ describe('chat conversations', function () {
   })
 
   it('the self conversation pinned from its row stays pinned through a relaunch, and unpins', async function () {
-    // worst case (s): self 60, gregor 75, conv 75, row menu 385, the seq 2, item 20, calls 10, gregor
-    // 95, app 20, step 2, relaunch 200, signed in 90, row 120, app 20, step 2, row menu 385, the seq 2,
-    // item 20, calls 10, gregor 95, app 20, step 2 = 1710
-    this.timeout(1_760_000)
+    // worst case (s): self 60, gregor 75, conv 75, row menu 413, the seq 2, item 20, calls 10, gregor
+    // 95, app 20, step 2, relaunch 200, signed in 90, row 120, app 20, step 2, row menu 413, the seq 2,
+    // item 20, calls 10, gregor 95, app 20, step 2 = 1766
+    this.timeout(1_800_000)
     const selfConvID = await directConvIDFromCli(data.smokeUser)
     const original = await pinnedConvs()
     check(!original.includes(selfConvID), 'the self conversation starts pinned (a failed restore left it pinned)')
@@ -354,19 +352,13 @@ describe('chat conversations', function () {
       'the channel among the name hits',
       async () => {
         const els = sourceElements(await browser.getPageSource()).filter(e => e.attrs['visible'] === 'true')
-        const rect = (a: Record<string, string>): Rect => ({
-          height: Number(a['height']),
-          width: Number(a['width']),
-          x: Number(a['x']),
-          y: Number(a['y']),
-        })
         const header = (name: string) =>
-          els.filter(e => e.type === 'XCUIElementTypeOther' && (e.attrs['label'] ?? '').split(', ')[0] === name).map(e => rect(e.attrs))
+          els.filter(e => e.type === 'XCUIElementTypeOther' && labelParts(e.attrs['label'] ?? '')[0] === name).map(e => sourceRect(e.attrs))
         const texts = (label: string) => {
           const seen = new Set<string>()
           return els
             .filter(e => e.type === 'XCUIElementTypeStaticText' && (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').trim() === label)
-            .map(e => rect(e.attrs))
+            .map(e => sourceRect(e.attrs))
             .filter(r => !seen.has(JSON.stringify(r)) && !!seen.add(JSON.stringify(r)))
         }
         const chats = header('Chats')

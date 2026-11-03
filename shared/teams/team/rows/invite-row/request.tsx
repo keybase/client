@@ -12,6 +12,7 @@ import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {ignoreRequest, removeMember} from '@/teams/actions'
 import {useAddToTeam} from '@/teams/common/use-add-to-team'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -144,6 +145,7 @@ const TeamRequestRow = (props: Props) => {
             style={styles.ignoreButton}
             onClick={showPopup}
             ref={popupAnchor}
+            testID={TestIDs.TEAMS_REQUEST_ROW_MENU}
           />
           {popup}
         </Kb.Box2>
@@ -151,6 +153,7 @@ const TeamRequestRow = (props: Props) => {
       onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
       style={props.waiting ? styles.disabled : styles.bg}
+      testID={TestIDs.TEAMS_REQUEST_ROW}
     />
   )
 }

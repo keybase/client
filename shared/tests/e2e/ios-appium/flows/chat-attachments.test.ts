@@ -26,8 +26,6 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
 import {
-  check,
-  chooseMenuItem,
   closeInfoPanel,
   closeMessageMenu,
   deletePhase,
@@ -49,6 +47,7 @@ import {
   waitForRow,
   waitForThreadStable,
 } from '../helpers/chat'
+import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
@@ -105,8 +104,8 @@ describe('chat attachments', function () {
     if (channel) await deleteThrowawayChannel(channel.topicName)
   })
 
-  // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 5,
-  // keyboard 5, the back 10, gone 5 = 25.
+  // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 19,
+  // keyboard 5, the back 10, gone 5 = 39.
   afterEach(async function () {
     this.timeout(40_000)
     await withCleanup(closeMessageMenu, [

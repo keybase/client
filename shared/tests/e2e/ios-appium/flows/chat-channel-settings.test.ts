@@ -22,15 +22,13 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {notifyChoiceOf} from '../gate/chat-lib'
+import {labelHas} from '../gate/page-source-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {
   appInboxLists,
-  check,
-  chooseMenuItem,
   closeMessageMenu,
   dragUntilOnScreen,
-  elementWithLabelPartIn,
   expectPersists,
   hideKeyboard,
   iconButton,
@@ -40,7 +38,6 @@ import {
   notifyRadioChosen,
   openConversation,
   openInfoPanel,
-  openMenuFrom,
   scrollInboxTo,
   searchFilter,
   tapControlIn,
@@ -48,6 +45,7 @@ import {
   typeInSearchFilter,
   visibleConversation,
 } from '../helpers/chat'
+import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom} from '../helpers/menus'
 import {expectHost, throwawayChannels} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
@@ -123,9 +121,9 @@ describe('chat channel settings', function () {
   }
 
   // Nothing a test changed left behind, after a timeout too: the host's restores first, then the
-  // phone's screens. Worst case (s): close 5, keyboard 5, the role 195 (a read 60, the clear 135),
+  // phone's screens. Worst case (s): close 19, keyboard 5, the role 195 (a read 60, the clear 135),
   // the notification setting 320 (a read 75, the current settings 75, the set 75, its poll 95), a
-  // channel 120 (each test makes one), escapeToTabs 30 = 675.
+  // channel 120 (each test makes one), escapeToTabs 30 = 689.
   afterEach(async function () {
     this.timeout(720_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, clearRole, restoreNotify, channels.deleteAll, escapeToTabs])
@@ -163,7 +161,7 @@ describe('chat channel settings', function () {
         for (const r of await browser.$$('-ios predicate string:type == "XCUIElementTypeOther" AND visible == 1').getElements()) {
           const label = (await r.getAttribute('label').catch(() => null)) ?? ''
           // its parts: the name, icons (glyphs), the member count, the button's label, the "…" icon
-          if (label.startsWith(rowLabel) && label.split(', ').includes('Join')) rows.push(r)
+          if (label.startsWith(rowLabel) && labelHas(label, 'Join')) rows.push(r)
         }
         if (rows.length !== 1) throw new Error(`${rows.length} rows of the channel offering Join, not one`)
         row = rows[0]

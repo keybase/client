@@ -16,6 +16,8 @@ type Props = {
   onTap?: () => void
   srcDims?: {height: number; width: number}
   boxCacheKey?: string
+  // mobile: on the view once the image is drawn in it
+  testID?: string
 }
 import Toast from './toast'
 import Text from './text'
@@ -246,7 +248,7 @@ type NativeSwipeDirection = 'left' | 'right' | 'up' | 'down'
 
 const NativeZoomableImage = (p: Props) => {
   const styles = useStyles()
-  const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
+  const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap, testID} = p
 
   const {isFetching, resolution} = useImageResolution({uri: src})
   const srcDims = p.srcDims?.width && p.srcDims.height ? p.srcDims : undefined
@@ -302,6 +304,7 @@ const NativeZoomableImage = (p: Props) => {
   }
 
   let content: React.ReactNode
+  let drawn = false
   if (
     (!imageResolution && isFetching) ||
     !imageResolutionHeight ||
@@ -312,6 +315,7 @@ const NativeZoomableImage = (p: Props) => {
     content = <></>
   } else {
     const size = fitContainer(imageResolutionWidth / imageResolutionHeight, containerSize)
+    drawn = true
     content = (
       <ImageNative
         contentFit="fill"
@@ -324,7 +328,7 @@ const NativeZoomableImage = (p: Props) => {
   }
 
   return (
-    <View style={Styles.collapseStyles([styles.container, style])} onLayout={onLayout}>
+    <View style={Styles.collapseStyles([styles.container, style])} onLayout={onLayout} testID={drawn ? testID : undefined}>
       <ResumableZoom
         maxScale={10}
         extendGestures={true}

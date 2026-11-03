@@ -5,6 +5,7 @@ import {formatPhoneNumber} from '@/util/phone-numbers'
 import * as Teams from '@/constants/teams'
 import {removePendingInvite} from '@/teams/actions'
 import {useLoadedTeam} from '../../use-loaded-team'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -33,6 +34,7 @@ const TeamInviteRow = (props: Props) => {
       action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
       onlyShowActionOnHover="fade"
       firstItem={firstItem}
+      testID={TestIDs.TEAMS_INVITE_ROW}
     />
   )
 }
@@ -61,6 +63,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
         small={true}
         icon="iconfont-ellipsis"
         onClick={showPopup}
+        testID={TestIDs.TEAMS_INVITE_ROW_MENU}
       />
       {popup}
     </>

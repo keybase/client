@@ -2,7 +2,19 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {setEnvVars} from '../../accounts/env'
-import {envSecrets, scanAndPurge, SECRET_SCAN_FILE, unscannedProblem, watchEnvSecrets} from './secret-scan'
+import {newRunId} from '../../accounts/run-id'
+import {
+  envSecrets,
+  forgetRunInviteLinks,
+  forgetStaleInviteLinks,
+  inviteLinkSecrets,
+  rememberInviteLink,
+  runInviteLinkSecrets,
+  scanAndPurge,
+  SECRET_SCAN_FILE,
+  unscannedProblem,
+  watchEnvSecrets,
+} from './secret-scan'
 
 let dir = ''
 beforeEach(() => {
@@ -107,4 +119,78 @@ test('a report is built only from results whose run scan passed after they were 
   const later = new Date(Date.now() + 5_000)
   fs.utimesSync(path.join(dir, 'results.json'), later, later)
   expect(unscannedProblem(dir)).toMatch(/written after/)
+})
+
+// the shape the CLI prints: /i/t/<short id>#<key>
+const link = 'https://keybase.io/i/t/AbCdEfGhIjKlMnOp#abcdefgh0123456789+xyz'
+const key = 'abcdefgh0123456789+xyz'
+
+test("a run's invite link is recorded mode 600, and its scan finds the link or its key in an artifact", () => {
+  const file = path.join(dir, 'keybase-e2e', 'invite-links.json')
+  const run = newRunId()
+  rememberInviteLink(link, run, file, true)
+  rememberInviteLink(link, run, file, true)
+  expect(fs.statSync(file).mode & 0o777).toBe(0o600)
+  expect(fs.statSync(path.dirname(file)).mode & 0o777).toBe(0o700)
+  const secrets = runInviteLinkSecrets(run, file)
+  expect(secrets).toEqual(expect.arrayContaining([link, link.toLowerCase(), key, encodeURIComponent(key)]))
+  expect(runInviteLinkSecrets(newRunId(Date.now() - 60 * 60_000), file)).toEqual([])
+
+  const results = path.join(dir, 'results')
+  fs.mkdirSync(results)
+  // the app lowercases what its join field is given; a log can hold the key alone
+  fs.writeFileSync(path.join(results, 'metro.log'), `tokenOrName: ${link.toLowerCase()}\n`)
+  fs.writeFileSync(path.join(results, 'route.json'), JSON.stringify({inviteKey: key}))
+  fs.writeFileSync(path.join(results, 'clean.log'), 'tokenOrName: <redacted>\n')
+  const scan = scanAndPurge([results], secrets)
+  expect(scan.hits.sort()).toEqual([path.join(results, 'metro.log'), path.join(results, 'route.json')])
+  expect(fs.existsSync(path.join(results, 'clean.log'))).toBe(true)
+
+  // the run's scan deletes the record once it has read it
+  forgetRunInviteLinks(run, file)
+  expect(runInviteLinkSecrets(run, file)).toEqual([])
+  expect(fs.existsSync(file)).toBe(false)
+})
+
+test("another run's link replaces the record, and the sweep deletes a record a run before it left", () => {
+  const file = path.join(dir, 'keybase-e2e', 'invite-links.json')
+  const now = Date.now()
+  const dead = newRunId(now - 10 * 60_000)
+  const current = newRunId(now)
+  rememberInviteLink(link, dead, file, true)
+  rememberInviteLink(`${link}2`, current, file, true)
+  expect(runInviteLinkSecrets(dead, file)).toEqual([])
+  forgetStaleInviteLinks(current, now, file)
+  expect(fs.existsSync(file)).toBe(true)
+  forgetRunInviteLinks(dead, file)
+  expect(fs.existsSync(file)).toBe(true)
+  fs.writeFileSync(file, JSON.stringify({links: [link], runId: dead}), {mode: 0o600})
+  forgetStaleInviteLinks(current, now, file)
+  expect(fs.existsSync(file)).toBe(false)
+})
+
+test('no invite link is recorded outside a scanning run, and a readable record is refused', () => {
+  const file = path.join(dir, 'keybase-e2e', 'invite-links.json')
+  rememberInviteLink(link, newRunId(), file, false)
+  expect(fs.existsSync(file)).toBe(false)
+  expect(() => rememberInviteLink(link, 'nope00', file, true)).toThrow(/no valid run id/)
+  expect(fs.existsSync(file)).toBe(false)
+
+  const run = newRunId()
+  rememberInviteLink(link, run, file, true)
+  fs.chmodSync(file, 0o644)
+  expect(() => runInviteLinkSecrets(run, file)).toThrow(/mode 644/)
+  let message = ''
+  try {
+    rememberInviteLink(link, run, file, true)
+  } catch (e) {
+    message = e instanceof Error ? e.message : ''
+  }
+  expect(message).toMatch(/mode 644/)
+  expect(message).not.toContain(key)
+})
+
+test("an invite link's scan values leave out what is too short to match", () => {
+  expect(inviteLinkSecrets('no-key-here')).toEqual(['no-key-here'])
+  expect(inviteLinkSecrets('https://keybase.io/i/t/abc#short')).toEqual(['https://keybase.io/i/t/abc#short'])
 })

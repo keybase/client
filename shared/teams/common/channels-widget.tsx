@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   channels: ReadonlyArray<T.Teams.ChannelNameID>
@@ -141,7 +142,12 @@ const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: (
     <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
       <Kb.Text type={isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
       {onRemove && (
-        <Kb.Icon type="iconfont-remove" onClick={onRemove} color={theme.black_20} />
+        <Kb.Icon
+          type="iconfont-remove"
+          onClick={onRemove}
+          color={theme.black_20}
+          testID={TestIDs.TEAMS_DEFAULT_CHANNEL_REMOVE}
+        />
       )}
     </Kb.Box2>
   )

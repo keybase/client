@@ -3,6 +3,7 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -133,6 +134,7 @@ const NewRepo = (ownProps: OwnProps) => {
             selected={makeDropdownItem(selectedTeam)}
             onChangedIdx={dropdownChanged}
             style={styles.dropdown}
+            testID={TestIDs.GIT_NEW_TEAM_DROPDOWN}
           />
         )}
         <Kb.Input3
@@ -149,6 +151,7 @@ const NewRepo = (ownProps: OwnProps) => {
             checked={notifyTeam}
             onCheck={setNotifyTeam}
             style={styles.checkbox}
+            testID={TestIDs.settingTestID(TestIDs.GIT_NEW_NOTIFY, notifyTeam)}
           />
         )}
       </Kb.Box2>

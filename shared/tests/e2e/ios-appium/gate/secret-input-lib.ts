@@ -25,7 +25,7 @@ export type FieldRead =
     }
   | {state: 'other field'; focusedID: string}
   | {state: 'set'; secure: boolean}
-  | {state: 'read'; length: number}
+  | {state: 'read'; length: number; text?: string}
 
 // Where the eval that resolves the field leaves the one function that writes it, for the eval that
 // carries the secret. It holds no secret, so one left behind (a transport failure before the
@@ -160,27 +160,34 @@ export const secretEvalBody = (secret: string) => `
   if (typeof sink !== 'function') return {state: 'no sink'}
   return sink(${JSON.stringify(secret)})`
 
-// How long the focused field's text is, when it is the field with fieldTestID: its value, or for a
-// field with none, the text RN's TextInput last had from the native field (its lastNativeText state,
-// the hook just before its {mostRecentEventCount, selection} one, in the nearest function component
-// above the host field); before any edit that is its defaultValue.
-export const lengthEvalBody = (fieldTestID: string) => `${resolveFocused(fieldTestID)}
+// The focused field's text, when it is the field with fieldTestID: its value, or for a field with
+// none, the text RN's TextInput last had from the native field (its lastNativeText state, the hook
+// just before its {mostRecentEventCount, selection} one, in the nearest function component above the
+// host field); before any edit that is its defaultValue. `answer` turns it into the eval's result.
+const focusedTextBody = (fieldTestID: string, answer: string) => `${resolveFocused(fieldTestID)}
   const r = resolveFocused()
   if (r.read) return r.read
   const {above, props} = r
-  const nativeLength = () => {
+  const nativeText = () => {
     const f = above.slice(0, 8).find(a => a.tag === 0)
     for (let h = f && f.memoizedState; h && h.next; h = h.next) {
       const next = h.next.memoizedState
       if (next && typeof next === 'object' && 'mostRecentEventCount' in next && 'selection' in next) {
-        if (h.memoizedState == null) return typeof props.defaultValue === 'string' ? props.defaultValue.length : 0
-        return String(h.memoizedState).length
+        if (h.memoizedState == null) return typeof props.defaultValue === 'string' ? props.defaultValue : ''
+        return String(h.memoizedState)
       }
     }
     return undefined
   }
-  const length = typeof props.value === 'string' ? props.value.length : nativeLength()
-  return length === undefined ? {state: 'no text state'} : {state: 'read', length}`
+  const text = typeof props.value === 'string' ? props.value : nativeText()
+  return text === undefined ? {state: 'no text state'} : ${answer}`
+
+// How long the focused field's text is (focusedTextBody), never the text itself: for a secret field.
+export const lengthEvalBody = (fieldTestID: string) => focusedTextBody(fieldTestID, "{state: 'read', length: text.length}")
+
+// The focused field's text (focusedTextBody), for a field that holds no secret (a file's name being
+// edited in a row whose one accessible element hides the field from XCUITest).
+export const textEvalBody = (fieldTestID: string) => focusedTextBody(fieldTestID, "{state: 'read', length: text.length, text}")
 
 // Focuses the one mounted text input with fieldTestID through its own focus(), as a tap would (an
 // XCUITest tap on a secure field does not always take).

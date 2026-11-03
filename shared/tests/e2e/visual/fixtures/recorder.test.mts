@@ -222,6 +222,21 @@ test('the call log holds every call while recording, flags paused ones, and keep
   assert.deepEqual(rt.recording.take(), ['chat.1.local.updateTyping'])
 })
 
+test("the call log keeps a bulk channel add's conversation ids, as hex, and nothing else of it", () => {
+  const {hook, rt} = runtime(true)
+  rt.recording.start()
+  const from = rt.recording.calls(Number.MAX_SAFE_INTEGER).seq
+  hook()?.invoke(
+    passingWith('chat.1.local.bulkAddToManyConvs', {conversations: [new Uint8Array([0, 171]), new Uint8Array([1, 2])], usernames: ['secret-user']})
+  )
+  const log = rt.recording.calls(from)
+  assert.deepEqual(
+    log.calls.map(({seq: _seq, ...c}) => c),
+    [{convs: ['00ab', '0102'], method: 'chat.1.local.bulkAddToManyConvs', paused: false}]
+  )
+  assert.doesNotMatch(JSON.stringify(log), /secret/)
+})
+
 test('the call log says which runtime and recording it belongs to, and whether it is recording now', () => {
   const {rt} = runtime()
   const other = runtime().rt
@@ -372,6 +387,37 @@ const container = (state: unknown) => {
   }
 }
 const stack = (...names: Array<string>) => ({index: names.length - 1, routes: names.map((name, i) => ({key: `${i}`, name}))})
+
+// an invite link joined from the phone: the route carries its key, and the join call carries the link
+const inviteLink = 'https://keybase.io/i/t/abcdefghijklmnop#secretkey0123456789'
+
+test('routes: a teamInviteLinkJoin route records its name, never its inviteKey', () => {
+  const {g, rec} = routeHarness()
+  g.nav = fakeNav({routes: [{key: 'a', name: 'teamsRoot'}]})
+  rec.start()
+  g.nav.emit({
+    routes: [
+      {key: 'a', name: 'teamsRoot'},
+      {key: 'b', name: 'teamInviteLinkJoin', params: {inviteDetails: {teamID: 'tid'}, inviteKey: inviteLink}},
+    ],
+  })
+  const got = rec.take()
+  assert.deepEqual(got, {routes: ['teamInviteLinkJoin'], startRoutes: ['teamsRoot']})
+  assert.doesNotMatch(JSON.stringify(got), /secretkey|keybase\.io/)
+})
+
+test('the call log keeps no param of the invite-link join', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  hook()?.invoke(passingWith('keybase.1.teams.teamAcceptInviteOrRequestAccess', {sessionID: 1, tokenOrName: inviteLink}))
+  const log = rt.recording.calls(0)
+  assert.deepEqual(
+    log.calls.map(c => c.method),
+    ['keybase.1.teams.teamAcceptInviteOrRequestAccess']
+  )
+  assert.doesNotMatch(JSON.stringify(log), /secretkey|keybase\.io/)
+  assert.doesNotMatch(JSON.stringify(rt.recording.take()), /secretkey|keybase\.io/)
+})
 
 test('routes from a remounted navigation container are recorded', () => {
   const first = container(stack('loggedIn'))

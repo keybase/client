@@ -1,6 +1,7 @@
 // Steps of a flow: screenshots attached to the running attempt, as the desktop flows' step.ts does.
 import {currentAttempt, requireCurrentAttempt} from './attempt'
 import {isAttemptOver} from './attempt-binding-lib'
+import {requireNoSecretOnScreen} from './secret-screen.ts'
 import {stepAttachmentName} from '../../shared/step-name.ts'
 
 const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
@@ -24,9 +25,11 @@ const settledScreenshot = async (): Promise<string> => {
 // report; with no marked step the first step is. {settle: false} takes it at once. {screenshot: false}
 // records only the step's name (a 'step' annotation), for a screen that shows more than the test's
 // own data, such as the inbox, which holds conversations that are not test ones.
-// Like every app command, refuses to run in a test body mocha timed out.
+// Like every app command, refuses to run in a test body mocha timed out; and refuses while a secret
+// is on screen (secret-screen.ts).
 export async function step(name: string, opts?: {card?: boolean; settle?: boolean} | {screenshot: false}): Promise<void> {
   const attempt = currentAttempt()
+  requireNoSecretOnScreen()
   const attName = stepAttachmentName(attempt.nextStepIndex(), name)
   if (opts && 'screenshot' in opts) {
     attempt.annotate('step', attName)

@@ -19,7 +19,6 @@ import * as T from '../../shared/test-ids'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {
-  check,
   closeMessageMenu,
   elementInRow,
   hideKeyboard,
@@ -29,6 +28,7 @@ import {
   sendMessage,
   storedUnfurls,
 } from '../helpers/chat'
+import {check} from '../helpers/menus'
 import {expectHost} from '../helpers/chat-host'
 import {waitFor} from '../helpers/lifecycle'
 
@@ -121,7 +121,7 @@ describe('chat unfurl', function () {
     changed = false
   }
 
-  // Worst case (s): close 5, keyboard 5, the settings 105 = 115.
+  // Worst case (s): close 19, keyboard 5, the settings 105 = 129.
   afterEach(async function () {
     this.timeout(130_000)
     await withCleanup(closeMessageMenu, [hideKeyboard, restoreSettings])

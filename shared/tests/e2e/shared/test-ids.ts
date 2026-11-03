@@ -146,6 +146,8 @@ export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
 export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
 export const CHAT_FORWARD_RESULT      = 'chat-forward-result'
 export const CHAT_FORWARD_CAPTION     = 'chat-forward-caption'
+// the caption field of the screen that sends an attachment (attachment-get-titles)
+export const CHAT_ATTACHMENT_CAPTION  = 'chat-attachment-caption'
 // a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
 // 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
 // of each group ends in the _SELECTED suffix
@@ -167,11 +169,23 @@ export const FILES_ROW = 'files-row'
 export const FILES_DOWNLOAD = 'files-download'
 // a running download's progress bar and time left, inside its card
 export const FILES_DOWNLOAD_PROGRESS = 'files-download-progress'
-// a text file's preview; on desktop only once its content has loaded
+// a text file's preview, once its content has loaded
 export const FILES_TEXT_PREVIEW = 'files-text-preview'
+// the phone's image, video (and audio) and pdf previews: the image once it is drawn, the pdf once its
+// page has loaded
+export const FILES_IMAGE_PREVIEW = 'files-image-preview'
+export const FILES_VIDEO_PREVIEW = 'files-video-preview'
+export const FILES_PDF_PREVIEW = 'files-pdf-preview'
+// a row's "..." menu button (one per row)
+export const FILES_ROW_MENU = 'files-row-menu'
 // the destination picker's new folder button, and the unsaved name row it adds
 export const FILES_NEW_FOLDER = 'files-new-folder'
 export const FILES_EDITING_ROW = 'files-editing-row'
+// the editing row's name field and its Create / Save button
+export const FILES_EDITING_INPUT = 'files-editing-input'
+export const FILES_EDITING_SAVE = 'files-editing-save'
+// a folder's "Sync on this device" switch
+export const FILES_SYNC_TOGGLE = 'files-sync-toggle'
 export const FILES_DESTINATION_PICKER = 'files-destination-picker'
 // the Finder (system file manager) integration banner at the top of Files
 export const FILES_SFMI_BANNER = 'files-sfmi-banner'
@@ -183,19 +197,69 @@ export const TEAMS_BODY         = 'teams-body'
 export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
+// a member row in a team's Members tab, and a channel row in its Channels tab
+export const TEAMS_MEMBER_ROW = 'teams-member-row'
+export const TEAMS_CHANNEL_ROW = 'teams-channel-row'
+// a member row on a channel's page, a pending invite's row and a request to join's row in a team's
+// Members tab
+export const TEAMS_CHANNEL_MEMBER_ROW = 'teams-channel-member-row'
+export const TEAMS_INVITE_ROW = 'teams-invite-row'
+export const TEAMS_REQUEST_ROW = 'teams-request-row'
+// a channel row of a member's "Add to channels" on the phone (the id says whether its circle is checked:
+// picked, #general, or a channel the member is already in)
+export const TEAMS_ADD_TO_CHANNELS_ROW = 'teams-add-to-channels-row'
+export const TEAMS_ADD_TO_CHANNELS_ROW_CHECKED = 'teams-add-to-channels-row-checked'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
 // a member row's selection circle, and the bar that shows while any member is selected
 export const TEAMS_MEMBER_CHECK = 'teams-member-check'
 export const TEAMS_SELECTION_POPUP = 'teams-selection-popup'
 export const TEAMS_ROLE_PICKER = 'teams-role-picker'
+// the add-members wizard's "Invite as:" role dropdown
+export const TEAMS_WIZARD_ROLE_BUTTON = 'teams-wizard-role-button'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
+// the team page header's edit icon by the team's name (a subteam's rename)
+export const TEAMS_HEADER_RENAME = 'teams-header-rename'
+// the delete-team confirm's three agreement switches
+export const TEAMS_DELETE_TEAM_CHATS_CHECK = 'teams-delete-team-chats-check'
+export const TEAMS_DELETE_TEAM_FOLDER_CHECK = 'teams-delete-team-folder-check'
+export const TEAMS_DELETE_TEAM_NOTIFY_CHECK = 'teams-delete-team-notify-check'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 // a bot's row menu (the ellipsis) in a team's Bots tab
 export const TEAMS_BOT_ROW_MENU = 'teams-bot-row-menu'
+// per-row buttons (one per row): a channel's edit and "..." menu, a member's, an invite's, a join
+// request's and an emoji's "..." menu
+export const TEAMS_CHANNEL_ROW_EDIT = 'teams-channel-row-edit'
+export const TEAMS_CHANNEL_ROW_MENU = 'teams-channel-row-menu'
+export const TEAMS_MEMBER_ROW_MENU = 'teams-member-row-menu'
+export const TEAMS_INVITE_ROW_MENU = 'teams-invite-row-menu'
+export const TEAMS_REQUEST_ROW_MENU = 'teams-request-row-menu'
+export const TEAMS_EMOJI_ROW_MENU = 'teams-emoji-row-menu'
+// a default channel pill's remove icon in the team settings (one per pill)
+export const TEAMS_DEFAULT_CHANNEL_REMOVE = 'teams-default-channel-remove'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
+// an emoji's row in a team's Emoji tab
+export const TEAMS_EMOJI_ROW = 'teams-emoji-row'
+// A settings switch or radio whose state the phone flows read (its control alone has none in the
+// accessibility tree): its testID is one of the bases below, then what it shows, on or off, or
+// pending while its value still loads or saves (what it shows then may not be the account's).
+export const SETTING_ON = '-on'
+export const SETTING_OFF = '-off'
+export const SETTING_PENDING = '-pending'
+export const settingTestID = (base: string, on: boolean, pending = false) =>
+  `${base}${pending ? SETTING_PENDING : on ? SETTING_ON : SETTING_OFF}`
+// the settings tab's "Feature team on your own profile" and "Don't allow requests to join this team"
+// switches (settingTestID bases), and the message deletion dropdown (a team's settings tab, a
+// conversation's info panel)
+export const TEAMS_SETTINGS_FEATURE = 'teams-settings-feature'
+export const TEAMS_SETTINGS_IGNORE_REQUESTS = 'teams-settings-ignore-requests'
+export const TEAMS_RETENTION_DROPDOWN = 'teams-retention-dropdown'
+// the "I understand..." switch of a destructive setting's warning (message deletion, open team)
+export const TEAMS_CONFIRM_WARNING_CHECK = 'teams-confirm-warning-check'
+// the Join a team dialog's "Token or team name" field
+export const TEAMS_JOIN_TEAM_INPUT = 'teams-join-team-input'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
 // which marks the settings tab's content).
@@ -209,6 +273,9 @@ export const TEAMS_SUBTEAMS_TAB = 'teams-subteams-tab'
 // a team row on a member's page: its expand caret, and the last-activity line it reveals
 export const TEAMS_MEMBER_TEAM_EXPAND = 'teams-member-team-expand'
 export const TEAMS_MEMBER_TEAM_ACTIVITY = 'teams-member-team-activity'
+// a team row on a member's page (it expands on a tap), and its role dropdown once expanded
+export const TEAMS_MEMBER_TEAM_ROW = 'teams-member-team-row'
+export const TEAMS_MEMBER_ROLE_BUTTON = 'teams-member-role-button'
 // an external team's page once its public info (or the error saying there is none) has loaded
 export const TEAMS_EXTERNAL_TEAM = 'teams-external-team'
 
@@ -239,6 +306,11 @@ export const SETTINGS_UNFURL_SAVE       = 'settings-unfurl-save'
 export const SETTINGS_DISPLAY           = 'settings-display'
 export const SETTINGS_FEEDBACK          = 'settings-feedback'
 export const SETTINGS_FILES             = 'settings-files'
+// the phone's Settings > Files: the low-space warning switch, its threshold dropdown and the
+// mobile-network sync switch
+export const SETTINGS_FILES_WARN_SWITCH = 'settings-files-warn-switch'
+export const SETTINGS_FILES_THRESHOLD = 'settings-files-threshold'
+export const SETTINGS_FILES_CELLULAR_SWITCH = 'settings-files-cellular-switch'
 // Settings-list ROW testIDs (distinct from the subpage content above). Needed
 // for Chat/Files because their row text collides with the bottom tab bar's
 // "Chat"/"Files" tabs, making a text match ambiguous.
@@ -276,10 +348,26 @@ export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 export const PROFILE_PAGE = 'profile-page'
 // the hover profile card's proof icons, drawn only once its identify is not checking
 export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
+// a profile's "..." actions menu button, and a team row of its "Add to team..." picker (the id says
+// whether the row is picked)
+export const PROFILE_ACTIONS_MENU = 'profile-actions-menu'
+export const PROFILE_ADD_TO_TEAM_ROW = 'profile-add-to-team-row'
+export const PROFILE_ADD_TO_TEAM_ROW_CHECKED = 'profile-add-to-team-row-checked'
 
 // Git
 export const GIT_REPO_LIST = 'git-repo-list'
 export const GIT_REPO_ROW  = 'git-repo-row'
+// the phone's "New encrypted git repository..." button, an expanded repo's clone URL copy button and
+// its "Announce pushes in" checkbox
+export const GIT_NEW_REPO = 'git-new-repo'
+export const GIT_REPO_COPY_URL = 'git-repo-copy-url'
+export const GIT_REPO_ANNOUNCE = 'git-repo-announce'
+// the new team repository screen's team dropdown (its label merges the team picked, or its prompt)
+export const GIT_NEW_TEAM_DROPDOWN = 'git-new-team-dropdown'
+// the "Notify the team" checkbox of the new team repository screen and of the delete screen
+// (settingTestID bases)
+export const GIT_NEW_NOTIFY = 'git-new-notify'
+export const GIT_DELETE_NOTIFY = 'git-delete-notify'
 
 // Crypto
 export const CRYPTO_INPUT         = 'crypto-input'
