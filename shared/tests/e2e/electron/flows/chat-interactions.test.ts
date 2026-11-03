@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {openConversationMatching, openFirstConversation} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // More chat visual states: reply/edit input modes, reaction picker, channel
@@ -30,7 +30,7 @@ test('reply-quote state in input', async ({page}, testInfo) => {
   await replyItem.click()
   const replyingTo = page.getByText('Replying to:')
   await expect(replyingTo).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'reply quote in input')
   await page.locator('.icon-gen-iconfont-remove:visible').first().click()
   await expect(replyingTo).not.toBeVisible({timeout: 5_000})
 })
@@ -62,7 +62,7 @@ test('edit-message mode in input', async ({page}, testInfo) => {
     test.skip()
     return
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'edit mode in input')
   await page.keyboard.press('Escape')
   await expect(saveButton).not.toBeVisible({timeout: 5_000})
 })
@@ -86,7 +86,7 @@ test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
   }
   await reacji.first().click()
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'reaction picker')
   await page.getByTestId(T.CHAT_MESSAGE_LIST).first().click({force: true, position: {x: 10, y: 10}})
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).not.toBeVisible({timeout: 5_000})
 })
@@ -110,7 +110,7 @@ test('channel mention popup in team conversation', async ({page}, testInfo) => {
     test.skip()
     return
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'channel mention popup')
   await page.keyboard.press('Meta+a')
   await page.keyboard.press('Backspace')
   await page.keyboard.press('Escape')
@@ -131,7 +131,7 @@ test('giphy preview renders', async ({page}, testInfo) => {
   await expect(tip).toBeVisible({timeout: 10_000})
   // give preview images a moment to load
   await page.waitForTimeout(1_500)
-  await snap(page, testInfo)
+  await step(page, testInfo, 'giphy preview')
   await page.keyboard.press('Meta+a')
   await page.keyboard.press('Backspace')
   await expect(tip).not.toBeVisible({timeout: 5_000})
@@ -149,7 +149,7 @@ test('info panel attachments tab', async ({page}, testInfo) => {
   await expect(page.getByTestId(T.CHAT_INFO_PANEL).getByText('Docs', {exact: true})).toBeVisible({
     timeout: 5_000,
   })
-  await snap(page, testInfo)
+  await step(page, testInfo, 'info panel attachments tab')
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})
 })
@@ -163,7 +163,7 @@ test('info panel settings tab', async ({page}, testInfo) => {
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).toBeVisible({timeout: 5_000})
   await page.getByTestId(T.CHAT_INFO_PANEL).getByText('Settings', {exact: true}).click()
   await expect(page.getByText('Mute all notifications').first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'info panel settings tab')
   await page.locator('.icon-gen-iconfont-info:visible').first().click()
   await expect(page.getByTestId(T.CHAT_INFO_PANEL)).not.toBeVisible({timeout: 5_000})
 })

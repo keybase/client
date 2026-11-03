@@ -10,7 +10,7 @@ import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
+const {parseCommand, runAa, runCheck, runGate, runRender, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
   await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
@@ -416,4 +416,98 @@ test('aa, check and gate never capture a live entry after a fixture entry withou
   await runGate(recording, ['--themes', 'light,dark'])
   assert.ok(events.some(ev => ev.kind === 'capture' && ev.e.fixture), 'the fixture entry ran')
   assert.deepEqual(liveAfterFixture(events), [])
+})
+
+// a run directory per run: its name is the start time
+let renderClock = 1_000_000
+const renderDeps = (over = {}) => ({
+  capture: async (): Promise<Capture> => {
+    throw new Error('should not capture')
+  },
+  closeCapture: async () => {},
+  currentShared: '/tree/shared',
+  entries,
+  log: () => {},
+  now: () => (renderClock += 1000),
+  servedFrom: () => '/tree/shared',
+  ...over,
+})
+
+const recorded = (rpcs: ReadonlyArray<string> = []) => ({routes: ['loggedIn', 'chatRoot'], rpcs: [...rpcs], startRoutes: ['loggedIn']})
+
+test('render: ids and globs select like check, with no base; frozen at run start + 60s, recording each entry', async () => {
+  const seen: Array<string> = []
+  const lines: Array<string> = []
+  const capture = async (e: TourEntry, o: {frozenAt: number; theme: string; platform: string; record?: boolean}): Promise<Capture> => {
+    seen.push(`${e.id} ${o.platform} ${o.theme} ${o.frozenAt} ${o.record}`)
+    return {coverage: null, masks: [], png: pngOf(false), recorded: recorded(['chat.1.local.getInboxAndUnboxUILocal']), status: 'ok'}
+  }
+  const code = await runRender(renderDeps({capture, log: (l: string) => lines.push(l), now: () => 5000}), ['tab/*'])
+  assert.equal(code, 0)
+  assert.deepEqual(seen, ['tab/chat desktop light 65000 true', 'tab/git desktop light 65000 true'])
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  assert.ok(dir, lines.join('\n'))
+  assert.ok(fs.existsSync(path.join(dir, 'tab__chat.png')))
+  const routes = JSON.parse(fs.readFileSync(path.join(dir, 'tab__chat.routes.json'), 'utf8')) as {id: string; routes: Array<string>; rpcs: Array<string>}
+  assert.deepEqual(routes, {id: 'tab/chat', routes: ['loggedIn', 'chatRoot'], rpcs: ['chat.1.local.getInboxAndUnboxUILocal'], startRoutes: ['loggedIn']})
+  const summary = JSON.parse(fs.readFileSync(path.join(dir, 'render.json'), 'utf8')) as {frozenAt: number; entries: Array<{id: string; status: string}>}
+  assert.equal(summary.frozenAt, 65000)
+  assert.deepEqual(summary.entries.map(e => `${e.id} ${e.status}`), ['tab/chat ok', 'tab/git ok'])
+  assert.match(lines.join('\n'), /✓ rendered 2 of 2/)
+})
+
+test('render: exits 1 listing each entry that failed, and still writes what it recorded', async () => {
+  const lines: Array<string> = []
+  const capture = async (e: TourEntry): Promise<Capture> =>
+    e.id === 'tab/git'
+      ? {coverage: null, error: 'fixture featured-bots: a reply still owed', masks: [], png: Buffer.alloc(0), recorded: recorded(), status: 'failed'}
+      : {coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'}
+  const code = await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), [])
+  assert.equal(code, 1)
+  const out = lines.join('\n')
+  assert.match(out, /✗ tab\/git desktop light failed: fixture featured-bots: a reply still owed/)
+  assert.match(out, /✗ 1 of 2 entries failed:\n {2}tab\/git: fixture featured-bots: a reply still owed/)
+  const dir = /^render: (.*)$/m.exec(out)?.[1]
+  assert.ok(dir)
+  assert.ok(fs.existsSync(path.join(dir, 'tab__git.routes.json')))
+  assert.ok(!fs.existsSync(path.join(dir, 'tab__git.png')))
+})
+
+test('render: notes the entries that opened an unread conversation (they marked it read), without refusing', async () => {
+  const lines: Array<string> = []
+  const capture = async (e: TourEntry): Promise<Capture> => ({
+    coverage: null,
+    masks: [],
+    png: pngOf(false),
+    recorded: recorded(e.id === 'tab/chat' ? ['chat.1.local.markAsReadLocal'] : []),
+    status: 'ok',
+  })
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), []), 0)
+  assert.match(lines.join('\n'), /opened an unread conversation \(and marked it read\): tab\/chat$/m)
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  const summary = JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {entries: Array<{id: string; openedUnread: boolean}>}
+  assert.deepEqual(summary.entries.map(e => `${e.id} ${e.openedUnread}`), ['tab/chat true', 'tab/git false'])
+})
+
+test('render: refuses --ios, --base and --coverage, an unknown id, and an app served from another tree', async () => {
+  await assert.rejects(runRender(renderDeps(), ['--ios']), /render is desktop only/)
+  await assert.rejects(runRender(renderDeps(), ['--base', 'HEAD']), /render takes no --base/)
+  await assert.rejects(runRender(renderDeps(), ['--coverage']), /render takes no --coverage/)
+  await assert.rejects(runRender(renderDeps(), ['nope/*']), /no tour entry matches nope\/\*/)
+  await assert.rejects(runRender(renderDeps({servedFrom: () => '/other/shared'}), []), /served from \/other\/shared/)
+})
+
+test('render: an unstable capture is rendered, and says so', async () => {
+  const lines: Array<string> = []
+  const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'unstable'})
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), ['tab/chat']), 0)
+  assert.match(lines.join('\n'), /✓ tab\/chat desktop light \(unstable: frames still changing at capture\)/)
+})
+
+test('render: a fixture entry that tried to mark its thread read is not noted: the fixture answers that call itself', async () => {
+  const fx: TourEntry = {fixture: {name: 'chat-thread-content'}, id: 'chat/content', nav: {tab: 'tabs.chatTab'}, platforms: ['desktop'], ready: 'x', seal: []}
+  const lines: Array<string> = []
+  const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(['chat.1.local.markAsReadLocal']), status: 'ok'})
+  assert.equal(await runRender(renderDeps({capture, entries: [fx], log: (l: string) => lines.push(l)}), []), 0)
+  assert.doesNotMatch(lines.join('\n'), /opened an unread conversation/)
 })

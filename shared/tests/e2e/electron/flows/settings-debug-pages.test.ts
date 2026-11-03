@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // Typography and Markdown are the __DEV__-only debug pages. They are long
@@ -57,7 +57,7 @@ for (let i = 0; i < MARKDOWN_SCREENS; i++) {
       test.skip()
       return
     }
-    await snap(page, testInfo)
+    await step(page, testInfo, `markdown debug page screen ${i + 1}`)
   })
 }
 
@@ -68,7 +68,7 @@ for (let i = 0; i < TYPOGRAPHY_SCREENS; i++) {
       test.skip()
       return
     }
-    await snap(page, testInfo)
+    await step(page, testInfo, `typography debug page screen ${i + 1}`)
   })
 }
 
@@ -83,7 +83,7 @@ test('typography debug page dark background', async ({page}, testInfo) => {
   const dark = page.getByTestId(T.SETTINGS_TYPOGRAPHY).getByText('Dark', {exact: true}).first()
   await dark.click()
   await page.waitForTimeout(300)
-  await snap(page, testInfo)
+  await step(page, testInfo, 'typography dark background')
   await dark.click()
 })
 
@@ -92,7 +92,7 @@ test('typography debug page underline decoration', async ({page}, testInfo) => {
   const controls = page.getByTestId(T.SETTINGS_TYPOGRAPHY)
   await controls.getByText('underline', {exact: true}).first().click()
   await page.waitForTimeout(300)
-  await snap(page, testInfo)
+  await step(page, testInfo, 'typography underline decoration')
   await controls.getByText('strikethrough', {exact: true}).first().click()
 })
 
@@ -101,7 +101,7 @@ test('typography debug page next sample', async ({page}, testInfo) => {
   const next = page.getByTestId(T.SETTINGS_TYPOGRAPHY).getByText('Next', {exact: true}).first()
   await next.click()
   await page.waitForTimeout(300)
-  await snap(page, testInfo)
+  await step(page, testInfo, 'typography next sample')
   // sampleIdx only counts up — cycle through the remaining 4 strings to land
   // back on the default sample.
   for (let i = 0; i < 4; i++) await next.click()

@@ -26,10 +26,11 @@ All from `shared/`. Add `--ios` for the phone; iOS is light only.
 | `yarn visual:check <id\|glob>…` | Captures the named entries from this tree and compares them with the base. `--theme t` |
 | `yarn visual:gate` | `check` over every entry, between two full seals |
 | `yarn visual:aa` | Captures every entry twice, twice over (fresh prepare per round), and compares each pair. Run it after changing the tour or drivers |
+| `yarn visual:render [ids…]` | Desktop only, no base: captures the named entries (all by default) from this tree with the same prepare, ready, setup, fixtures and settle, the clock frozen a minute past the run's start, and records each entry's routes and RPCs. Writes `render/<stamp>/<id>.png`, `<id>.routes.json` and `render.json`; exit 1 lists each entry that failed. For the release gate |
 | `yarn visual:coverage <range>` | Lists changed Box2 / ClickableBox call sites in `<range>` that no base capture drew |
 | `yarn visual:routes` | Lists every route, for checking what the tour leaves out |
 | `yarn visual:gallery` | Writes and opens a review page of the last base (or `--base`, `--desktop`, `--ios` shas): desktop and iOS shots side by side, a notes box per id, and "Copy notes" to paste the noted ids as a list |
-| `yarn visual:unit` | The gate's own unit tests |
+| `yarn visual:unit` | The gate's own unit tests, and the e2e report generator's |
 
 Ids are like `settings/display` or `team/members`; globs use `*` (`'settings/*'`).
 
@@ -47,7 +48,8 @@ yarn visual:gate && yarn visual:gate --ios     # everything
 `✗ id platform theme N px in WxH at (x,y) → <diff.png>`, `unstable`, or `failed: …`. Any
 non-`✓` line exits 1 and opens the HTML report (base/change slider, diff overlay, hatched masks);
 `KB_VISUAL_NO_OPEN=1` only prints its path, for unattended runs.
-Results live in `tests/results/visual/` (gitignored): `base/<sha>/<platform>/…` and `runs/<stamp>/`.
+Results live in `tests/results/visual/` (gitignored): `base/<sha>/<platform>/…`, `runs/<stamp>/` and
+`render/<stamp>/`.
 
 ## The base must contain the gate
 
@@ -137,7 +139,9 @@ The runtime (`fixtures/runtime.ts`) is in every dev build: the app entries (`app
 empty module (`vite.config.mts`, `desktop/vite.node.mts`, `metro.config.js`;
 `fixtures/prod-exclusion.test.mts`, which also refuses any other import of `fixtures/` from the app).
 The engine never imports it: while a fixture is active the runtime sets `__kbVisualRpc`, and the
-engine hands it every outgoing RPC and incoming call. A rule stubs an RPC (answered on a later tick, optionally with
+engine hands it every outgoing RPC and incoming call. The Electron e2e flows also set it, through
+`__kbE2ERecorder`, for each test (`coverage.json`: the RPC methods sent and the routes focused); with
+no fixture active that hook only notes each method and passes every call and payload through. A rule stubs an RPC (answered on a later tick, optionally with
 calls into its session first) or transforms the live answer; a fixture can also rewrite incoming
 calls (chat-thread-content adds its messages to a thread's replies), inject notifications after the
 entry's ready state shows or right after an incoming call (`follow`: coin flip statuses once the
@@ -230,7 +234,9 @@ change with `--compare <baseline dir>`.
   driver's Appium is killed when the process exits.
 - **Unread conversations.** Opening an unread conversation marks it read, so `base`, `check`,
   `gate` and `aa` refuse before capturing when the seal shows a conversation the tour opens as
-  unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun.
+  unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun. `render` has no base to
+  protect and reads no seal: it goes ahead, and names the live entries whose recording sent
+  `markAsReadLocal` (the app sends it only for a thread with messages past its read position).
 - **Read-only.** The tour only navigates, switches sub-tabs, opens popups, hovers, and presses or
   types into controls that change nothing but the screen in front of it. Nothing is sent, saved,
   toggled or confirmed, and every CLI call is read-only. Under a fixture, a write the app attempts

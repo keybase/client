@@ -1,7 +1,7 @@
 import type {Locator, Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings} from '@/tests/e2e/electron/helpers/navigate'
-import {snap} from '@/tests/e2e/electron/helpers/snap'
+import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
@@ -35,27 +35,31 @@ async function deleteTestEmail(page: Page): Promise<void> {
 test('add email modal opens', async ({page}, testInfo) => {
   await goToAccountPage(page)
   await deleteTestEmail(page) // self-heal from a crashed previous run
+  await step(page, testInfo, 'account page')
   await page.getByText('Add email', {exact: true}).click()
   const emailInput = page.getByPlaceholder('Email address')
   await expect(emailInput).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'add email modal', {card: true})
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(emailInput).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('added email row renders', async ({page}, testInfo) => {
   await goToAccountPage(page)
+  await step(page, testInfo, 'account page')
   if ((await page.getByText(EMAIL, {exact: true}).locator('visible=true').count()) === 0) {
     await page.getByText('Add email', {exact: true}).click()
     const emailInput = page.getByPlaceholder('Email address')
     await expect(emailInput).toBeVisible({timeout: 5_000})
     await emailInput.fill(EMAIL)
+    await step(page, testInfo, 'email typed')
     await page.getByText('Continue', {exact: true}).click()
   }
   await expect(page.getByText(EMAIL, {exact: true}).locator('visible=true').first()).toBeVisible({
     timeout: 15_000,
   })
-  await snap(page, testInfo)
+  await step(page, testInfo, 'email row in list', {card: true})
 })
 
 test('delete email confirm renders, then email is deleted', async ({page}, testInfo) => {
@@ -69,19 +73,23 @@ test('delete email confirm renders, then email is deleted', async ({page}, testI
   await page.getByText('Delete', {exact: true}).locator('visible=true').first().click()
   await expect(page.getByText('Delete email').first()).toBeVisible({timeout: 5_000})
   await expect(page.getByText(`${EMAIL}?`).first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'delete email confirm')
   await page.getByText('Yes, delete', {exact: true}).click()
   await expect(emailText).toHaveCount(0, {timeout: 10_000})
+  await step(page, testInfo, 'email row gone')
 })
 
 test('add phone modal opens', async ({page}, testInfo) => {
   await goToAccountPage(page)
+  await step(page, testInfo, 'account page')
   await page.getByText('Add phone number', {exact: true}).click()
   const continueButton = page.getByText('Continue', {exact: true}).locator('visible=true')
   await expect(continueButton.first()).toBeVisible({timeout: 5_000})
-  await snap(page, testInfo)
+  await step(page, testInfo, 'add phone modal', {card: true})
+  await manualEdge(page, testInfo, 'sms-code')
   await page.getByText('Cancel', {exact: true}).locator('visible=true').first().click()
   await expect(continueButton).toHaveCount(0, {timeout: 5_000})
+  await step(page, testInfo, 'modal closed')
 })
 
 test('sign out screen renders (without signing out)', async ({page}, testInfo) => {
@@ -92,8 +100,9 @@ test('sign out screen renders (without signing out)', async ({page}, testInfo) =
     test.skip()
     return
   }
-  await snap(page, testInfo)
+  await step(page, testInfo, 'sign out screen')
   // close the modal — never click the sign out button
   await closeModal(page)
   await expect(page.getByText('Do you know your password?')).not.toBeVisible({timeout: 5_000})
+  await step(page, testInfo, 'sign out screen closed')
 })
