@@ -69,14 +69,19 @@ export async function tapSettingsRow(text: string): Promise<void> {
   await byText(text).click()
 }
 
+const PAN_OVERSHOOT = 60
+
 const isStale = (e: unknown) => e instanceof Error && /stale element/i.test(`${e.name} ${e.message}`)
 
 // The frame of the row `find` finds, and the band between the nav bar's bottom and the tab bar's top,
-// read afresh; undefined when an element went stale between its find and its read (the list drew it
-// again, as it does after a drag). Bound: the row read 2, the bars read 2 and their frames 2 = 6.
+// read afresh; undefined when the row is not in the tree within a second, or an element went stale
+// between its find and its read (the list drew it again, as it does after a drag). Bound: the row's
+// wait 1 and its read 1, the bars read 2 and their frames 2 = 6.
 const rowAndBand = async (find: () => ChainablePromiseElement, height: number) => {
   try {
-    const row = await browser.getElementRect((await find().getElement()).elementId)
+    const found = find()
+    if (!(await found.waitForExist({interval: 100, timeout: 1_000}).then(() => true, () => false))) return undefined
+    const row = await browser.getElementRect((await found.getElement()).elementId)
     const bars = await browser
       .$$('-ios predicate string:type == "XCUIElementTypeTabBar" OR type == "XCUIElementTypeNavigationBar"')
       .getElements()
@@ -98,9 +103,9 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
 // scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
 // tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's frame
 // lies below the nav bar and above the tab bar; throws rather than let the caller tap a row that
-// overlaps the bar. Each check finds the row again (`find`), and one that read a stale element counts
-// as a check with no drag. Worst case (s): the window read 2, then four checks of 6 (rowAndBand) and
-// three drags of 1 = 29.
+// overlaps the bar. Each check finds the row again (`find`), and one that found no row or read a stale
+// element counts as a check with no drag. Worst case (s): the window read 2, then four checks of 6
+// (rowAndBand) and three drags of 1 = 29.
 export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
   const {height, width} = await browser.getWindowRect()
   let stale = false
@@ -111,17 +116,23 @@ export async function clearOfTabBar(find: () => ChainablePromiseElement, what: s
     const dy = dragToClear(read.row, read.top, read.bottom)
     if (dy === 0) return
     if (dy === undefined || i === 3) break
+    // A move this short reads as a tap on the row under the finger (live: it opened Advanced), so the
+    // touch goes PAN_OVERSHOOT past the target first, and comes back to it before lifting: the list
+    // pans, and comes to rest dy from where it was.
     const x = Math.round(width * 0.15)
     const from = Math.round(height / 2 - dy / 2)
+    const past = from + dy + Math.sign(dy) * PAN_OVERSHOOT
     await browser
-      .action('pointer')
+      .action('pointer', {parameters: {pointerType: 'touch'}})
       .move({x, y: from})
       .down()
-      .move({x, y: from + dy, duration: 300})
+      .move({duration: 300, x, y: past})
+      .move({duration: 200, x, y: from + dy})
+      .pause(200)
       .up()
       .perform()
   }
-  throw new Error(`${what} could not be brought clear of the tab bar${stale ? ' (its last read found it stale)' : ''}`)
+  throw new Error(`${what} could not be brought clear of the tab bar${stale ? ' (its last read found no row, or a stale one)' : ''}`)
 }
 
 // A modal's header Cancel (a native bar item), not a Cancel in the screen's body or footer.
