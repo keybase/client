@@ -59,6 +59,7 @@ import {
 import {ensureRunId, parseStampedName} from './run-id.ts'
 import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
+import {cryptoDir} from '../ios-appium/gate/crypto-lib.ts'
 import {forgetStaleInviteLinks} from '../shared/gate/secret-scan.ts'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
 import {localPgpFingerprints, purgeLocalPgp} from '../shared/pgp-purge.ts'
@@ -99,6 +100,8 @@ export type SweepResult = {
   errors: Array<string>
   // the provisioning homes earlier runs left, removed
   homes: Array<string>
+  // the scratch folders earlier runs left on this Mac, removed
+  scratch: Array<string>
 }
 
 const rpcTimeoutMs = 30_000
@@ -490,6 +493,22 @@ const removeStaleProvisionHomes = async (currentRunId: string, before: number, r
   }
 }
 
+// The iOS crypto flow's folders (/tmp/kb-e2e/crypto-<runid>) earlier runs left: a flow killed before
+// its after hook leaves the saltpack messages it wrote there.
+const removeStaleCryptoDirs = (currentRunId: string, before: number, result: SweepResult) => {
+  const root = path.dirname(cryptoDir(currentRunId))
+  for (const runId of staleRunIds(fs.existsSync(root) ? fs.readdirSync(root) : [], 'crypto-', currentRunId, before)) {
+    const dir = cryptoDir(runId)
+    try {
+      if (!fs.lstatSync(dir).isDirectory()) throw new Error('not a plain folder')
+      fs.rmSync(dir, {recursive: true})
+      result.scratch.push(dir)
+    } catch (e) {
+      result.errors.push(`${dir}: not removed: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+}
+
 // `localPgp` is the local keys the sweep selected: the first local key's delete purges them all, once
 // the keyring, read again, holds exactly those; the rest find it empty.
 const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv, localPgp: ReadonlySet<string>) => {
@@ -672,7 +691,7 @@ export const sweep = async (
 ): Promise<SweepResult> => {
   const {signal} = opts
   await requireMainIsSmoke(env)
-  const result: SweepResult = {deleted: [], errors: [], homes: [], kept: [], listOnly: [], notes: [], wouldDelete: []}
+  const result: SweepResult = {deleted: [], errors: [], homes: [], kept: [], listOnly: [], notes: [], scratch: [], wouldDelete: []}
   const main = mainActor(env)
   const ctx: SweepContext = {
     before: opts.before,
@@ -730,6 +749,7 @@ export const sweep = async (
     for (const c of after.left) result.errors.push(`${describeCandidate(c)}: still there ${recheckMs / 1000}s after its delete`)
   }
   if (!opts.dryRun) await removeStaleProvisionHomes(opts.runId, opts.before, result)
+  if (!opts.dryRun) removeStaleCryptoDirs(opts.runId, opts.before, result)
   // a run that died before its secret scan left its paper key names (the ledger has its keys) and its
   // invite links (the teams they joined went above)
   if (!opts.dryRun) {
@@ -748,6 +768,7 @@ export const formatSweep = (r: SweepResult, env: E2EEnv, dryRun: boolean) => {
   }
   block(dryRun ? 'would delete' : 'deleted', (dryRun ? r.wouldDelete : r.deleted).map(describeCandidate))
   if (!dryRun) block('removed homes', r.homes)
+  if (!dryRun) block('removed scratch folders', r.scratch)
   block('listed, not deleted', r.listOnly.map(n => `${describeCandidate(n.candidate)}: ${n.reason}`))
   // messages kept are many (seeded history, this run's): counted per account and reason
   const keptMessages = new Map<string, number>()
