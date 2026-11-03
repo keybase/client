@@ -30,11 +30,11 @@ import {
   appSnapshot,
   crashReportsSince,
   goLogMark,
-  goLogSince,
   waitForAppState,
   waitForAvatar200,
   waitForLinesInOrder,
 } from '../helpers/lifecycle'
+import {linesSince} from '../gate/go-log-lib.ts'
 import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {secondSender, throwawayChannels} from '../helpers/chat-host'
@@ -124,9 +124,9 @@ describe('app lifecycle', function () {
     await rec.checkpoint()
     check(!!rec.recordings.at(-1)?.startRoutes.includes('peopleRoot'), 'the relaunched app did not come up on People, the screen it saved')
     // Go's launch: not yet active (whichever launch callback lands first), then active
-    await waitForLinesInOrder('the phone service to record the launch', () => goLogSince(mark), [GO_LAUNCHING, GO_FOREGROUND])
+    await waitForLinesInOrder('the phone service to record the launch', () => linesSince(mark), [GO_LAUNCHING, GO_FOREGROUND])
     // the app holds the address of the image server Go started for it, not a stale one
-    const started = goLogSince(mark).flatMap(l => GO_HTTP_SRV.exec(l)?.[1] ?? []).at(-1)
+    const started = linesSince(mark).flatMap(l => GO_HTTP_SRV.exec(l)?.[1] ?? []).at(-1)
     check(started !== undefined && started === (await appSnapshot()).httpSrv.address, "the app does not hold the address of the image server Go started")
     await waitForAvatar200(smokeUser)
     await sameProcess(launched, since, 'after the launch')
@@ -147,12 +147,12 @@ describe('app lifecycle', function () {
     const before = await appIdentity()
     const goMark = goLogMark()
     await toBackground()
-    await waitForLinesInOrder('the phone service to record the app in the background', () => goLogSince(goMark), [GO_BACKGROUND])
+    await waitForLinesInOrder('the phone service to record the app in the background', () => linesSince(goMark), [GO_BACKGROUND])
     const text = e2eMarker('lifecycle-recv')
     await sendWithRetry(await secondSender(), convID, text)
     await toForeground()
 
-    await waitForLinesInOrder('the phone service to record the trip in order', () => goLogSince(goMark), [GO_BACKGROUND, GO_FOREGROUND])
+    await waitForLinesInOrder('the phone service to record the trip in order', () => linesSince(goMark), [GO_BACKGROUND, GO_FOREGROUND])
     await waitForAppState('active', undefined, 30_000)
     await expectScreen('the channel still up after the trip', 'chatConversation', p => p['conversationIDKey'] === convID)
     // the message the second account sent while the app was away, loaded and drawn
@@ -173,9 +173,9 @@ describe('app lifecycle', function () {
     const goMark = goLogMark()
     for (let i = 1; i <= CYCLES; i++) {
       await toBackground()
-      await waitForLinesInOrder(`the phone service to record trip ${i} to the background`, () => goLogSince(goMark), [...roundTrips(i - 1), GO_BACKGROUND])
+      await waitForLinesInOrder(`the phone service to record trip ${i} to the background`, () => linesSince(goMark), [...roundTrips(i - 1), GO_BACKGROUND])
       await toForeground()
-      await waitForLinesInOrder(`the phone service to record trip ${i} back`, () => goLogSince(goMark), roundTrips(i))
+      await waitForLinesInOrder(`the phone service to record trip ${i} back`, () => linesSince(goMark), roundTrips(i))
     }
     await waitForAppState('active', undefined, 30_000)
     await sameProcess(before, since, `after ${CYCLES} round trips`)
@@ -192,11 +192,11 @@ describe('app lifecycle', function () {
     await withNotificationCenter(async () => {
       await waitForAppState('inactive', undefined, 15_000)
       // Notification Center only resigns active; the same read that holds INACTIVE holds no BACKGROUND
-      await waitForLinesInOrder('the phone service to record the app inactive', () => goLogSince(goMark), [GO_INACTIVE])
-      check(!goLogSince(goMark).some(l => GO_BACKGROUND.test(l)), 'the app went to the background under Notification Center')
+      await waitForLinesInOrder('the phone service to record the app inactive', () => linesSince(goMark), [GO_INACTIVE])
+      check(!linesSince(goMark).some(l => GO_BACKGROUND.test(l)), 'the app went to the background under Notification Center')
     })
     // withNotificationCenter waited for the app to be active again
-    await waitForLinesInOrder('the phone service to record the app active again', () => goLogSince(goMark), [GO_INACTIVE, GO_FOREGROUND])
+    await waitForLinesInOrder('the phone service to record the app active again', () => linesSince(goMark), [GO_INACTIVE, GO_FOREGROUND])
     const focus = focusChanges(await appLogUntilMarker(mark, 'notification-center'))
     check(focusLeftAndBack(focus), `the app's focus went ${focus.join(', ') || 'nowhere'}, not inactive and back to active`)
     await expectScreen('People still up after Notification Center', 'peopleRoot')

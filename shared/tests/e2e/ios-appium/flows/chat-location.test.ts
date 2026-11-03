@@ -58,7 +58,8 @@ import {step} from '../gate/step'
 import {cancelAppOutbox, openConversation, typeInComposer, waitSignedIn} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
-import {goLogMark, goLogSince, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
+import {goLogMark, nsLogSince, waitFor, waitForAppState, waitForLinesInOrder} from '../helpers/lifecycle'
+import {linesSince} from '../gate/go-log-lib.ts'
 import {escapeToTabs} from '../helpers/navigate'
 import {throwawayChannels} from '../helpers/chat-host'
 import {masked} from '../helpers/teams'
@@ -120,7 +121,7 @@ describe('chat location', function () {
         if (isAttemptOver(e)) throw e
         await stopSharingFromApp(convID)
       }
-      await waitForLinesInOrder('the phone service to stop the live tracker', () => goLogSince(mark), [GO_STOP_ALL, GO_TRACKER_STOPPED], 60_000)
+      await waitForLinesInOrder('the phone service to stop the live tracker', () => linesSince(mark), [GO_STOP_ALL, GO_TRACKER_STOPPED], 60_000)
       sharingIn = undefined
     })
 
@@ -150,17 +151,17 @@ describe('chat location', function () {
       if (convIDs.size === 0) return
       const mark = goLogMark()
       await new Promise(resolve => setTimeout(resolve, OUTBOX_PULLS_MS))
-      const ids = failedOutboxIDs(goLogSince(mark), convIDs)
+      const ids = failedOutboxIDs(linesSince(mark), convIDs)
       if (ids.length) {
         await cancelAppOutbox(ids)
-        await waitFor('the phone service to cancel the outbox records', () => (ids.every(id => cancelledOutboxIDs(goLogSince(mark)).has(id)) ? true : undefined), {
+        await waitFor('the phone service to cancel the outbox records', () => (ids.every(id => cancelledOutboxIDs(linesSince(mark)).has(id)) ? true : undefined), {
           interval: 500,
           timeout: 20_000,
         })
       }
       const after = goLogMark()
       await new Promise(resolve => setTimeout(resolve, OUTBOX_PULLS_MS))
-      const left = [...outboxFlushes(goLogSince(after), {end: Date.now(), interval: DELIVERER_MS}).keys()].filter(c => convIDs.has(c))
+      const left = [...outboxFlushes(linesSince(after), {end: Date.now(), interval: DELIVERER_MS}).keys()].filter(c => convIDs.has(c))
       if (left.length) throw new Error(`the outbox still holds records for ${left.length} location channel(s) after the cancel`)
       convIDs.clear()
     })
@@ -233,7 +234,7 @@ describe('chat location', function () {
     const mark = goLogMark()
     moveTo(p)
     // the tracker can be busy posting the previous fix for up to a minute before it posts this one
-    await waitForLinesInOrder(what, () => goLogSince(mark), GO_MOVE_POSTED, 180_000)
+    await waitForLinesInOrder(what, () => linesSince(mark), GO_MOVE_POSTED, 180_000)
   }
 
   // Starts a 15 minute live share from the location screen, and waits for the service to track with the
@@ -245,7 +246,7 @@ describe('chat location', function () {
     const mark = goLogMark()
     sharingIn = convID
     await tapLocationButton(T.CHAT_LOCATION_LIVE_15M)
-    await waitForLinesInOrder('the phone service to start tracking', () => goLogSince(mark), [GO_START_TRACKING], 30_000)
+    await waitForLinesInOrder('the phone service to start tracking', () => linesSince(mark), [GO_START_TRACKING], 30_000)
     await waitFor('the native location watcher to run for the share', () => (watcherRunning(nsLogSince(WATCHER, since)) ? true : undefined), {
       interval: 1_000,
       timeout: 20_000,
@@ -290,7 +291,7 @@ describe('chat location', function () {
     const bgMark = goLogMark()
     await toBackground()
     // the service stays up for the share: inactive, then background active, never background
-    await waitForLinesInOrder('the app to go to the background while sharing', () => goLogSince(bgMark), GO_BACKGROUND_SHARING)
+    await waitForLinesInOrder('the app to go to the background while sharing', () => linesSince(bgMark), GO_BACKGROUND_SHARING)
     await movePosted(NEARER, 'the background move to be posted')
     await toForeground()
     await waitForAppState('active', undefined, 30_000)
@@ -300,7 +301,7 @@ describe('chat location', function () {
     const stopSince = new Date(Date.now() - 1_000)
     await stopFromComposer()
     // the tracker posts a last "done" update, which waits up to a minute for the unfurl that fails here
-    await waitForLinesInOrder('the phone service to stop tracking', () => goLogSince(stopMark), GO_STOPPED, 150_000)
+    await waitForLinesInOrder('the phone service to stop tracking', () => linesSince(stopMark), GO_STOPPED, 150_000)
     sharingIn = undefined
     await waitForLinesInOrder('the native location watcher to stop', () => nsLogSince(WATCHER, stopSince), [WATCHER_STOPPED])
     creditSurface('location')
@@ -332,7 +333,7 @@ describe('chat location', function () {
         moveTo(FAR)
       },
     })
-    await waitForLinesInOrder('the relaunched service to restore the share', () => goLogSince(mark), [GO_RESTORED], 120_000)
+    await waitForLinesInOrder('the relaunched service to restore the share', () => linesSince(mark), [GO_RESTORED], 120_000)
     await waitSignedIn()
     await movePosted(NEAR, 'a move to be posted once the relaunched app is in front')
     creditSurface('location')

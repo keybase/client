@@ -84,7 +84,8 @@ import {step} from '../gate/step'
 import {dragUntilOnScreen} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {tapButton} from '../helpers/files'
-import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
+import {goLogMark, waitFor} from '../helpers/lifecycle'
+import {linesSince} from '../gate/go-log-lib.ts'
 import {BUTTON_ELEMENTS, check, labelledElement, NAMED_ELEMENT_TYPES, screenRect} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openMore, openSettingsPage} from '../helpers/settings'
@@ -183,7 +184,7 @@ const roundTrip = async <V,>(c: Case<V>, was: V, other: V) => {
 // container) and its other lines never leave here: a failed read names neither. Bound: one read 1.
 const levelsSince = (mark: ReturnType<typeof goLogMark>) => {
   try {
-    return vdebugLevels(goLogSince(mark))
+    return vdebugLevels(linesSince(mark))
   } catch (e) {
     if (isAttemptOver(e)) throw e
     // no cause: the error names the log's path

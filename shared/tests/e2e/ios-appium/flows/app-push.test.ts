@@ -38,7 +38,8 @@ import {conversationOpened, expectScreen, fromPeople, leaveOnPeople} from '../ga
 import {step} from '../gate/step'
 import {findBanner, tapBanner, withNotificationCenter} from '../gate/system-ui'
 import {waitSignedIn} from '../helpers/chat'
-import {goLogMark, goLogSince, waitFor, waitForAppState} from '../helpers/lifecycle'
+import {goLogMark, waitFor, waitForAppState} from '../helpers/lifecycle'
+import {linesSince} from '../gate/go-log-lib.ts'
 import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {throwawayChannels} from '../helpers/chat-host'
@@ -129,7 +130,7 @@ describe('app push notifications', function () {
   const inBackground = async () => {
     const mark = goLogMark()
     await toBackground()
-    await waitFor('the phone service to record the app in the background', () => (goLogSince(mark).some(l => GO_BACKGROUND.test(l)) ? true : undefined), {
+    await waitFor('the phone service to record the app in the background', () => (linesSince(mark).some(l => GO_BACKGROUND.test(l)) ? true : undefined), {
       interval: 500,
       timeout: 20_000,
     })

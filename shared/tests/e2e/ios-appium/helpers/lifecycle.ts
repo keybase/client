@@ -10,7 +10,7 @@ import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {sessionPingDue} from '../gate/hang-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {appSnapshotBody} from '../gate/screen-params-lib.ts'
-import {goLogIn, linesSince, markFile, type LogMark} from '../gate/go-log-lib.ts'
+import {goLogIn, markFile, type LogMark} from '../gate/go-log-lib.ts'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
@@ -200,8 +200,6 @@ export const appDataContainer = (udid = deviceUdid()) => simctl('get_app_contain
 export const goLogPath = (udid = deviceUdid()) => goLogIn(appDataContainer(udid))
 
 export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(udid))
-
-export const goLogSince = (mark: LogMark): Array<string> => linesSince(mark)
 
 // Waits until `read` yields a line matching every pattern, in order. Returns the matched lines.
 export const waitForLinesInOrder = async (
