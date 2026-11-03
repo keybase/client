@@ -2,7 +2,6 @@
 // markConversationUnread, the one mark unread behind the thread popup, the storeless popup, the
 // info panel and the inbox swipe.
 import * as Meta from '@/constants/chat/meta'
-import * as OrangeLine from './orange-line-context'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
@@ -10,24 +9,28 @@ import {makeMessageText} from '@/constants/chat/message'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock, holdHandlerTimers, paramsOf, threadLoaded} from '@/test/fake-thread-load'
+import {settle} from '@/test/flush'
+import {useExplicitOrangeLineState} from './orange-line-context'
 import {makeThreadChatRpc} from './chat-rpc'
 import {markConversationUnread, type MarkUnreadThread} from './mark-unread'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const messageID = (n: number) => T.Chat.numberToMessageID(n)
 
-const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
-  }
-}
+const markAsRead = 'chat.1.local.markAsReadLocal'
+const conversationID = T.Chat.keyToConversationID(conversationIDKey)
 
-let rpc: FakeChatRpc
-let setOrangeLine: jest.SpyInstance
-const markReads = () => rpc.params('markRead')
-const loads = () => rpc.params('loadThread')
-const marked = (n: number) => [{conversationIDKey, forceUnread: true, msgID: messageID(n)}]
+// a mark unread is a load or two, then a mark read, each a round trip to the service
+const flushPromises = async () => settle(4)
+
+let fake: FakeEngine
+const markReads = () => paramsOf(fake, markAsRead)
+const loads = () => paramsOf(fake, getThreadNonblock)
+const marked = (n: number) => [{conversationID, forceUnread: true, msgID: messageID(n)}]
+// the orange line drawn for the conversation, if any
+const orangeLine = () => useExplicitOrangeLineState.getState().updates.get(conversationIDKey)?.ordinal
 
 const placeholders = (ids: ReadonlyArray<number>) =>
   JSON.stringify({
@@ -37,14 +40,15 @@ const placeholders = (ids: ReadonlyArray<number>) =>
     })),
   })
 
-// the service's answer to the load around the line, one pass each
+// The service's answer to the load around the line, one pass each. It replies only once its passes
+// have reached their handlers (the listener runs them on a timer after acking), as a service slow
+// to finish the load does; replying at once is the race the test.failing below covers.
 const aroundLine = (...passes: ReadonlyArray<ReadonlyArray<number>>) => {
-  rpc.on('loadThread', async p => {
-    await Promise.resolve()
+  answerThreadLoads(fake, async l => {
     const [cached, full] = passes
-    if (cached) p.onCachedThread?.(placeholders(cached))
-    if (full) p.onFullThread?.(placeholders(full))
-    return {offline: false}
+    if (cached) await l.cached(placeholders(cached))
+    if (full) await l.full(placeholders(full))
+    await settle()
   })
 }
 
@@ -68,8 +72,8 @@ const threadOf = (messages: ReadonlyArray<T.Chat.Message>, retired = () => false
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
-  rpc = installFakeChatRpc()
-  setOrangeLine = jest.spyOn(OrangeLine, 'setConversationOrangeLine').mockImplementation(() => {})
+  fake = installFakeEngine()
+  fake.answer(markAsRead, () => undefined)
   metasReceived(
     [{...Meta.makeConversationMeta(), conversationIDKey, maxVisibleMsgID: messageID(9)}],
     undefined,
@@ -78,7 +82,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -89,23 +92,23 @@ describe('without a thread', () => {
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
     expect(loads()).toEqual([
-      {
-        conversationIDKey,
-        messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: messageID(5)},
-        onCachedThread: expect.any(Function),
-        onFullThread: expect.any(Function),
+      expect.objectContaining({
+        conversationID,
         pagination: null,
-      },
+        query: expect.objectContaining({
+          messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: messageID(5)},
+        }),
+      }),
     ])
     expect(markReads()).toEqual(marked(4))
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(5))
+    expect(orangeLine()).toBe(T.Chat.numberToOrdinal(5))
   })
 
   test('no message given: the line is the newest visible message', async () => {
     aroundLine([7, 8, 9])
     markConversationUnread(conversationIDKey)
     await flushPromises()
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(9))
+    expect(orangeLine()).toBe(T.Chat.numberToOrdinal(9))
     expect(markReads()).toEqual(marked(8))
   })
 
@@ -120,21 +123,37 @@ describe('without a thread', () => {
     aroundLine([5, 6, 7])
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    rpc.fail('loadThread', new Error('offline'))
+    answerThreadLoads(fake, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
     expect(markReads()).toEqual([])
-    expect(setOrangeLine).not.toHaveBeenCalled()
+    expect(orangeLine()).toBeUndefined()
+  })
+
+  // loadConversationMessageIDs collects ids from the passes and reads them as soon as loadThread
+  // resolves. The session acks each pass at once and the listener runs its handler on a timer, so
+  // a service that replies right after its last pass settles the load before that pass is read:
+  // the ids come back empty and nothing is marked. Fails today; passes once the load waits for its
+  // passes.
+  test.failing('marks even when the service replies right after its last pass', async () => {
+    answerThreadLoads(fake, async l => {
+      const timers = holdHandlerTimers()
+      await l.full(placeholders([3, 4, 5, 6]))
+      return timers.replyFirst(threadLoaded)
+    })
+    markConversationUnread(conversationIDKey, messageID(5))
+    await flushPromises()
+    expect(markReads()).toEqual(marked(4))
   })
 
   test('a mark read the service refuses draws no line', async () => {
     aroundLine([3, 4, 5])
-    rpc.fail('markRead', new Error('offline'))
+    fake.answer(markAsRead, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     jest.spyOn(logger, 'error').mockImplementation(() => {})
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
     expect(markReads()).toEqual(marked(4))
-    expect(setOrangeLine).not.toHaveBeenCalled()
+    expect(orangeLine()).toBeUndefined()
   })
 
   test('with no meta (a row drawn from the layout) the line is the newest message loaded', async () => {
@@ -144,14 +163,13 @@ describe('without a thread', () => {
     markConversationUnread(conversationIDKey)
     await flushPromises()
     expect(loads()).toEqual([
-      {
-        conversationIDKey,
-        onCachedThread: expect.any(Function),
-        onFullThread: expect.any(Function),
+      expect.objectContaining({
+        conversationID,
         pagination: {last: false, next: '', num: 2, previous: ''},
-      },
+        query: expect.objectContaining({messageIDControl: null}),
+      }),
     ])
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(8))
+    expect(orangeLine()).toBe(T.Chat.numberToOrdinal(8))
     expect(markReads()).toEqual(marked(7))
   })
 
@@ -161,7 +179,7 @@ describe('without a thread', () => {
     markConversationUnread(conversationIDKey)
     await flushPromises()
     expect(loads()).toEqual([expect.objectContaining({pagination: {last: false, next: '', num: 2, previous: ''}})])
-    expect(loads()[0]).not.toHaveProperty('messageIDControl')
+    expect(loads()[0].query.messageIDControl).toBeNull()
     expect(markReads()).toEqual(marked(7))
   })
 
@@ -197,7 +215,7 @@ describe('with a thread', () => {
     await flushPromises()
     expect(loads()).toEqual([])
     expect(markReads()).toEqual(marked(5))
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(7.5))
+    expect(orangeLine()).toBe(T.Chat.numberToOrdinal(7.5))
   })
 
   test('an unsent row is not a read position', async () => {
@@ -231,15 +249,14 @@ describe('with a thread', () => {
   })
 
   test('a thread that retired while the mark read was on its way draws no line', async () => {
-    rpc.on('markRead', async () => {
+    fake.answer(markAsRead, () => {
       retired = true
-      await Promise.resolve()
     })
     let retired = false
     markConversationUnread(conversationIDKey, messageID(8), threadOf([textAt(5), textAt(8)], () => retired))
     await flushPromises()
     expect(markReads()).toEqual(marked(5))
-    expect(setOrangeLine).not.toHaveBeenCalled()
+    expect(orangeLine()).toBeUndefined()
   })
 
   test('a thread that retired while the service answered marks nothing', async () => {
@@ -250,6 +267,6 @@ describe('with a thread', () => {
     await flushPromises()
     expect(loads()).toHaveLength(1)
     expect(markReads()).toEqual([])
-    expect(setOrangeLine).not.toHaveBeenCalled()
+    expect(orangeLine()).toBeUndefined()
   })
 })

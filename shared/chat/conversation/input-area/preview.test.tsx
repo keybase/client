@@ -1,84 +1,97 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import type * as Constants from '@/constants'
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 
 type ConstantsModule = typeof Constants
-
-const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-let mockRetired = false
-// the thread's rpc, which retires with the thread
-let mockRpc: ChatRpcT.ChatThreadRpc | undefined
-const mockThreadRpc = () =>
-  (mockRpc ??= jest
-    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
-    .makeThreadChatRpc(() => mockRetired))
 
 jest.mock('@/constants', () => {
   const actual = jest.requireActual<ConstantsModule>('@/constants')
   return {...actual, Router2: {...actual.Router2, leaveConversation: jest.fn()}}
 })
-jest.mock('../thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
-  useThreadRpc: () => mockThreadRpc(),
-  useConversationThreadID: () => mockConversationIDKey,
-  useThreadMeta: (sel: (m: {channelname: string}) => unknown) => sel({channelname: 'general'}),
-}))
 
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as C from '@/constants'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
+import {threadWrapper} from '@/test/thread-tree'
 import Preview from './preview'
 
-let rpc: FakeChatRpc
+const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const joinConversation = 'chat.1.local.joinConversationByIDLocal'
+const refreshParticipants = 'chat.1.local.refreshParticipants'
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
+let fake: FakeEngine
+
+const renderPreview = () => {
+  render(<Preview />, {wrapper: threadWrapper(conversationIDKey).wrapper})
 }
 
 const click = async (label: string) => {
-  await act(async () => {
-    fireEvent.click(screen.getByText(label))
-    await flushPromises()
-  })
+  fireEvent.click(screen.getByText(label))
+  await flush()
 }
 
 const leaveConversation = () => C.Router2.leaveConversation as jest.Mock
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
-  mockRetired = false
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+  metasReceived([{...Meta.makeConversationMeta(), channelname: 'general', conversationIDKey}], undefined, {
+    force: true,
+  })
+  fake = installFakeEngine()
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.clearAllMocks()
   resetAllStores()
 })
 
-test('joining asks the service to join the channel', async () => {
-  render(<Preview />)
+test('the banner names the channel', () => {
+  renderPreview()
+  expect(screen.getByText('Would you like to join #general?')).toBeTruthy()
+})
+
+test('joining asks the service to join the channel, then to recompute its participants', async () => {
+  fake.answer(joinConversation, () => ({}))
+  fake.answer(refreshParticipants, () => null)
+  renderPreview()
   await click('Yes, join')
-  expect(rpc.calls('joinConversation')).toEqual([[mockConversationIDKey]])
+  const convID = T.Chat.keyToConversationID(conversationIDKey)
+  expect(fake.calls.map(c => c.method)).toEqual([joinConversation, refreshParticipants])
+  expect(paramsOf(fake, joinConversation)).toEqual([{convID}])
+  expect(paramsOf(fake, refreshParticipants)).toEqual([{convID}])
 })
 
 test('declining leaves the channel', async () => {
-  render(<Preview />)
+  renderPreview()
   await click('No, thanks')
-  expect(leaveConversation()).toHaveBeenCalledWith(mockConversationIDKey)
+  expect(leaveConversation()).toHaveBeenCalledWith(conversationIDKey)
 })
 
 // an account switch keeps the screen up until the provider rebuilds its thread for the next account
 describe('a banner whose thread has retired', () => {
   test('joins nothing', async () => {
-    render(<Preview />)
-    mockRetired = true
-    await click('Yes, join')
-    expect(rpc.calls('joinConversation')).toEqual([])
+    renderPreview()
+    // the account leaves; the click lands on the banner still showing before the provider rebuilds
+    act(() => {
+      useCurrentUserState.setState({uid: 'other-uid'})
+      fireEvent.click(screen.getByText('Yes, join'))
+    })
+    await flush()
+    expect(paramsOf(fake, joinConversation)).toEqual([])
   })
 })

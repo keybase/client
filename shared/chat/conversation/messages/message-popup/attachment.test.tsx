@@ -5,8 +5,11 @@ import {cleanup, render} from '@testing-library/react'
 import {makeMessageAttachment} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import {makeConversationMeta} from '@/constants/chat/meta'
+import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import type {Props as FloatingMenuProps} from '@/common-adapters/floating-menu'
 
+// the menu's popup chrome is a placeholder; what the popup offers is the items it hands the menu
 let menuItems: FloatingMenuProps['items'] = []
 jest.mock('@/common-adapters/floating-menu', () => ({
   __esModule: true,
@@ -14,14 +17,6 @@ jest.mock('@/common-adapters/floating-menu', () => ({
     menuItems = p.items
     return null
   },
-}))
-jest.mock('../../team-hooks', () => ({
-  useChatTeam: () => ({role: 'admin', teamname: '', yourOperations: {}}),
-  useChatTeamMembers: () => ({loading: false, members: new Map(), reload: async () => {}}),
-}))
-jest.mock('../../data-hooks', () => ({
-  useConversationMetadata: () => ({meta: {teamname: ''}, participants: {all: ['testuser', 'testuser-mac'], name: ['testuser', 'testuser-mac']}}),
-  useConversationParticipants: () => ({all: ['testuser', 'testuser-mac'], name: ['testuser', 'testuser-mac']}),
 }))
 
 import PopAttach from './attachment'
@@ -59,6 +54,13 @@ beforeEach(() => {
     deviceName: 'device-name',
     uid: 'uid',
     username: 'testuser',
+  })
+  // a one-on-one conversation, as the inbox delivered it
+  metasReceived([{...makeConversationMeta(), conversationIDKey, teamType: 'adhoc'}], undefined, {force: true})
+  participantInfoReceived(conversationIDKey, {
+    all: ['testuser', 'testuser-mac'],
+    contactName: new Map(),
+    name: ['testuser', 'testuser-mac'],
   })
 })
 

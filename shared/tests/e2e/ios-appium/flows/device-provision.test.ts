@@ -9,13 +9,17 @@ import {peerCli, socketAnswers, socketPathFor, startFileStoreHome} from '../../s
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {phoneDevice} from '../gate/accounts'
+import {postAddListReads, postAddReadsSummary} from '../gate/devices-lib'
+import {maskedByRole} from '../gate/run-errors-lib'
+import {callsSince, currentCallSeq} from '../gate/recorder'
 import {relaunchApp} from '../gate/device'
 import {submitProvisionPhrase} from '../gate/secret-input'
 import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {manualEdge, step} from '../gate/step'
-import {openAddDevice, openDevices, revokeFromDevicePage} from '../helpers/devices'
+import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {openAddDevice, revokeFromDevicePage} from '../helpers/devices'
 import {el, labeled} from '../helpers/elements'
-import {jsEval} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 
 // The phone approves a new computer: a fresh peer home (homes/prov-<runid>, the file secret store)
@@ -73,12 +77,12 @@ describe('device provision', function () {
 
   it('approves a computer that `keybase login` is provisioning, then revokes it', async function () {
     // Worst case from the helpers' bounds (s), so the cleanups always get to run: the phone's device
-    // 15, the home's service 30, openDevices 74, the chooser 20, the manual edge 5, the code page 40,
-    // the phrase 60, its submit 30, the CLI's login 120, the code page closing 30, whoami 15, the
-    // list 10, the devices list 15, a step 5, openDevices again 74, revokeFromDevicePage 470 and the
-    // shutdown 30 before its revoke = 1043. Cleanups: closing the code page 125, the retirement 70 =
-    // 195. Total 1238.
-    this.timeout(1_310_000)
+    // 15, the home's service 30, openDevices 74, the chooser 20, the manual edge 5, the call-log mark
+    // 2, the code page 40, the phrase 60, its submit 30, the CLI's login 120, the code page closing 30,
+    // whoami 15, the list 10, the devices list 15, a step 5, its reads after the add 22 (the wait 20,
+    // its last read 2), a step 5, revokeFromDevicePage 470 and the shutdown 30 before its revoke =
+    // 998. Cleanups: closing the code page 125, the retirement 70 = 195. Total 1193.
+    this.timeout(1_270_000)
     const env = loadE2EEnv()
     const runId = e2eRunId()
     const home = provisionHomeFor(runId)
@@ -88,6 +92,7 @@ describe('device provision', function () {
     if (fs.existsSync(home)) throw new Error(`${home} already exists: this run id already provisioned its device (one per run id)`)
 
     let provisionee: Provisionee | undefined
+    let addMark: Awaited<ReturnType<typeof currentCallSeq>> | undefined
     // a device the app did not revoke (the test failed first) is revoked under the phone's guard; the home goes
     const retireThis = async () => {
       provisionee?.kill()
@@ -107,6 +112,7 @@ describe('device provision', function () {
         await withCleanup(
           async () => {
             // sends device.deviceAdd; its secret exchange opens the code page
+            addMark = await currentCallSeq()
             markSecretOnScreen(CODE_PAGE)
             await labeled('Other', 'Add a computer').click()
             await codePage().waitForExist({timeout: 30_000, timeoutMsg: 'the code page did not open within 30s of Add a computer'})
@@ -128,10 +134,32 @@ describe('device provision', function () {
         await el(T.DEVICES_LIST).waitForExist({timeout: 15_000, timeoutMsg: 'the app did not go back to the devices list'})
         await step('Back on the devices list once the computer signed in')
 
-        // The list the app comes back to may not have the new computer yet: it reloads once when the
-        // add ends (a read that can run before the service has the device), and the service sends no
-        // device-history change for an add. Opening Devices again loads it afresh, as a person would.
-        await openDevices()
+        // The list refreshes itself after the add (on its focus and on the service's change to our
+        // user); findDeviceRow scans it once, so it waits for the latest of those reads to come back
+        // good first. A read can take seconds: one after an add re-fetches the account's keys.
+        const mark = addMark
+        if (!mark) throw new Error('no call-log mark from before the add')
+        const roles = [
+          {name, role: 'the new computer'},
+          {name: phone.deviceName, role: 'the phone'},
+          {name: env.smokeUser, role: 'the smoke account'},
+        ]
+        // what the reads did goes into a step either way, for a read that failed (the error only, masked)
+        let last = postAddListReads([])
+        const reads = await waitFor(
+          'the devices list to finish a read after the add',
+          async () => {
+            last = postAddListReads(await callsSince(mark))
+            return last.settled ? last : undefined
+          },
+          {interval: 500, timeout: 20_000}
+        ).catch(async (e: unknown) => {
+          if (isAttemptOver(e)) throw e
+          const summary = maskedByRole(postAddReadsSummary(last.reads), roles)
+          await step(summary, {screenshot: false})
+          throw new Error(`the devices list finished no good read within 20s of the add (${summary})`)
+        })
+        await step(maskedByRole(postAddReadsSummary(reads.reads), roles), {screenshot: false})
         await revokeFromDevicePage(env, {deviceID, shown: name}, 'computer', phone.deviceID, {
           // shut down before the revoke, so the device never acts on its own revoke
           beforeRevoke: async () => {

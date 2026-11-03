@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import {expect, jest, test, describe, beforeEach} from '@jest/globals'
 import * as T from '@/constants/types'
-import {RPCError} from '@/util/errors'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {
   addMembersToWizard,
   addMembersToWizardAndNav,
@@ -23,22 +23,20 @@ jest.mock('@/constants/platform', () => ({
   },
 }))
 
+// The service's answer: which of the asked-about assertions are already in the team
+const findAssertions = 'keybase.1.teams.findAssertionsInTeamNoResolve'
 let assertionsInTeam: Array<string> = []
-let findCalls = 0
-const findAssertions = jest
-  .spyOn(T.RPCGen, 'teamsFindAssertionsInTeamNoResolveRpcPromise')
-  .mockImplementation(async () => {
-    findCalls++
-    await Promise.resolve()
-    return assertionsInTeam as never
-  })
+let fake: FakeEngine
+const findCalls = () =>
+  fake.calls.filter(c => c.method === findAssertions).map(c => c.params as {assertions: Array<string>; teamID: string})
 
 beforeEach(() => {
   assertionsInTeam = []
-  findCalls = 0
   mockIsPhone = false
-  // the spy lives at module scope, so its recorded calls outlive each test
-  findAssertions.mockClear()
+  fake = installFakeEngine()
+  fake.answer(findAssertions, ({assertions}: {assertions: Array<string>}) =>
+    assertionsInTeam.filter(a => assertions.includes(a))
+  )
 })
 
 const convKey = (s: string) => s as T.Chat.ConversationIDKey
@@ -73,8 +71,8 @@ describe('addMembersToWizard', () => {
       {assertion: 'a@b.com', role: 'writer'},
       {assertion: 'testuser-mac', resolvedFrom: '+15551212', role: 'writer'},
     ])
-    expect(findCalls).toBe(1)
-    const arg = findAssertions.mock.calls[0]![0] as {assertions: Array<string>; teamID: string}
+    expect(findCalls()).toHaveLength(1)
+    const arg = findCalls()[0]!
     // a plain keybase username needs no lookup
     expect(arg.assertions).toEqual(['a@b.com', 'testuser-mac'])
     expect(arg.teamID).toBe(teamID)
@@ -83,7 +81,7 @@ describe('addMembersToWizard', () => {
   test('the new team wizard skips the rpc entirely - the team does not exist yet', async () => {
     const wizard = makeAddMembersWizard(T.Teams.newTeamWizardTeamID)
     const next = await addMembersToWizard(wizard, [{assertion: 'a@b.com', role: 'writer'}])
-    expect(findCalls).toBe(0)
+    expect(findCalls()).toEqual([])
     expect(next.addingMembers.map(m => m.assertion)).toEqual(['a@b.com'])
     expect(next.membersAlreadyInTeam).toEqual([])
   })
@@ -265,7 +263,7 @@ describe('searchResultsToMembers', () => {
 })
 
 test('a service failure adding members reports the service message, not [object Object]', async () => {
-  findAssertions.mockRejectedValueOnce(new RPCError('team is locked', T.RPCGen.StatusCode.scgeneric))
+  fake.answer(findAssertions, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'team is locked'))
   const onError = jest.fn()
   await addMembersToWizardAndNav(
     makeAddMembersWizard(teamID),

@@ -80,8 +80,8 @@ describe('teams avatar and emoji', function () {
 
   it("a subteam's avatar set from a corpus png picked in the photo picker", async function () {
     // worst case (s): corpus 840, subteam 915, host 135, opened 203 (60 of tries, overrun by one: team
-    // 109, tab 24, the header avatar 10), pin 1, header 8, press 12, screen 11, step 2, button 6, pick
-    // 58, png 162, step 2, pin 1, calls 2, button 6, waited for 12, polled 195, page 21, step 2 = 2594
+    // 109, tab 24, the header avatar 10), pin 1, header 8, press 12, screen 11, pick 58, png 162, step
+    // 2, pin 1, calls 2, button 6, waited for 12, polled 195, page 21, step 2 = 2586
     this.timeout(2_620_000)
     await ensurePhotoCorpus()
     const {name, teamID} = await makeOwnSubteamWithID('av', madeNames)
@@ -94,12 +94,7 @@ describe('teams avatar and emoji', function () {
     await revealTeamHeader()
     await pressTestID(T.TEAMS_HEADER_AVATAR, "the header's avatar")
     await expectScreen("the subteam's avatar editor", 'profileEditAvatar', p => onSubteam(p) && p['sendChatNotification'] === true)
-    // App bug (PR 9 removes this tap): the editor opens the photo picker as it mounts, but on iOS that
-    // picker is dropped while the modal is still presenting (seen live: none in 20s, no error), so the
-    // editor's own Pick an avatar opens it. Once the mount's picker shows, this fails loudly: the tap
-    // finds no button under the picker, or it lands on the picker and pickOnePhoto finds no picker.
-    await step("The subteam's avatar editor with no photo")
-    await tapButton('Pick an avatar', "the avatar editor's Pick an avatar")
+    // the editor opens the photo picker on its own once it has presented: nothing is tapped for it
     await pickOnePhoto('e2e-c.png')
     await requirePickedPng("the subteam's avatar editor to show the picked photo")
     creditSurface('photo-picker')

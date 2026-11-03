@@ -3,7 +3,7 @@
 // Native-only React Native packages with no desktop equivalent.
 // Used in two places:
 //   1. ignored-modules.js → webpack aliases them to null-module.js
-//   2. jest.config.js → Jest stubs them with test/mocks/native-module.js
+//   2. jest.config.js → Jest stubs each with its own empty module
 //
 // When a merged .tsx file adds a new native-only package in an isMobile branch, add it here.
 module.exports = [
@@ -21,7 +21,6 @@ module.exports = [
   'react-native-reanimated',
   'react-native-worklets',
   'expo',
-  'expo-video',
   'expo-image-picker',
   '@react-native-picker/picker',
   'expo-clipboard',

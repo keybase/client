@@ -34,6 +34,8 @@ type Session = {
   ignoreCache: boolean
   inFlight: boolean
   nonUserDetails: T.Tracker.NonUserDetails
+  // The own user changed while this identify was running, so its result may predate the change
+  rerunWhenDone: boolean
   startedAt: number
   username: string
 }
@@ -116,6 +118,7 @@ const makeSession = (username: string): Session => ({
   ignoreCache: false,
   inFlight: false,
   nonUserDetails: noNonUserDetails,
+  rerunWhenDone: false,
   startedAt: 0,
   username,
 })
@@ -249,14 +252,20 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
       // Only an identify that reached a result vouches for the session. One that
       // failed (network error, cancel) leaves it in 'checking', and an earlier
       // entry for it would otherwise bring that back on a reopen and skip the
-      // identify that should replace it.
+      // identify that should replace it. Nor does one the user changed under.
       const {state} = s.details
-      if (state === 'checking' || state === 'unknown') {
+      if (state === 'checking' || state === 'unknown' || s.rerunWhenDone) {
         lastCompleted.delete(s.username)
       } else {
         lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache, session: s})
       }
       dropSessionIfIdle(s)
+      // Not once the session is gone: nobody shows it any more, or a store reset (account switch)
+      // dropped it and its user is no longer the own user.
+      if (s.rerunWhenDone && sessions.get(s.username) === s) {
+        // as strong as the identify it replaces: a forced remote check stays forced
+        loadProfileIdentify(s.username, {freshAfter: Infinity, ignoreCache: s.ignoreCache})
+      }
     }
   }
 }
@@ -344,6 +353,7 @@ export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOp
   const generation = ++s.generation
   s.ignoreCache = ignoreCache
   s.inFlight = true
+  s.rerunWhenDone = false
   s.startedAt = Date.now()
   setDetails(
     s,
@@ -377,7 +387,9 @@ const ensureEngineSubscriptions = () => {
   subscribeToEngineAction('keybase.1.identify3Ui.identify3Result', action => {
     const {guiID, result} = action.payload.params
     const s = sessionForGuiID(guiID)
-    if (!s) {
+    // the result of an identify the own user changed under is replaced by its rerun's, so it is not
+    // shown as settled meanwhile
+    if (!s || s.rerunWhenDone) {
       return
     }
     setDetails(s, updateTrackerDetailsResult(s.details, identifyResultToDetailsState(result)))
@@ -445,7 +457,24 @@ const ensureEngineSubscriptions = () => {
       return
     }
     lastCompleted.delete(username)
-    if (!sessions.has(username)) {
+    const s = sessions.get(username)
+    if (!s) {
+      return
+    }
+    // After an account switch the service sends a burst of these (one per self load that found its
+    // cache stale). Restarting on each one queues an identify per notice behind the service's per-uid
+    // lock and keeps the profile checking until the last; one identify after the running one is enough.
+    if (s.inFlight) {
+      s.rerunWhenDone = true
+      // its result may already have landed, before the RPC returns
+      if (s.details.state !== 'checking') {
+        setDetails(
+          s,
+          produce(s.details, draft => {
+            draft.state = 'checking'
+          })
+        )
+      }
       return
     }
     loadProfileIdentify(username, {freshAfter: Date.now(), ignoreCache: false})

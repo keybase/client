@@ -13,18 +13,15 @@ import {
   useThreadLoadStatusOptions,
   useThreadLoadStatusReporter,
 } from './thread-load-status-context'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider} from './thread-context'
+import {microtasks} from '@/test/flush'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
-
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -41,12 +38,15 @@ afterEach(() => {
   resetAllStores()
 })
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID}>
-    <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
-      {children}
-    </ConversationThreadLoadStatusProvider>
-  </ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>
+      <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
+        {children}
+      </ConversationThreadLoadStatusProvider>
+    </ConversationThreadProvider>
+  </Nav>
 )
 
 test('thread load status reporter ignores stale conversation statuses', () => {
@@ -109,7 +109,7 @@ test('mounted stale-thread reload reports status through the provider', async ()
     } as never)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)

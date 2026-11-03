@@ -6,6 +6,7 @@ import {routeChatNotification} from '@/chat/notification-router'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider} from '../../thread-context'
 import {transformer, useBotCommandsUpdateState} from './commands'
 
@@ -26,12 +27,16 @@ const notifyBotCommandsStatus = (
 
 // the thread the hook is rendered inside; a test may move it to another conversation
 let threadID = convID
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={threadID}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={threadID}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 beforeEach(() => {
   threadID = convID
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'testuser-mac',

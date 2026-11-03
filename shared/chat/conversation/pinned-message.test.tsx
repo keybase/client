@@ -1,25 +1,20 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import type * as React from 'react'
-import * as T from '@/constants/types'
 
-const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const mockCenterOnMessage = jest.fn()
-let mockMeta: {pinnedMsg: unknown; teamID: string; teamname: string}
-let mockDeleteOtherMessages = false
-let mockThreadSearch: {query?: string} | undefined
-let mockRetired = false
-// the thread's rpc, which retires with the thread
-let mockRpc: ChatRpcT.ChatThreadRpc | undefined
-const mockThreadRpc = () =>
-  (mockRpc ??= jest
-    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
-    .makeThreadChatRpc(() => mockRetired))
-
+// the handlers the banner first rendered with, which a screen kept through an account switch still
+// holds: the close icon's onClick as 'close', the confirm's as 'Yes, unpin'
+const mockFirstHandler = new Map<string, () => void>()
+const mockKeepFirst = (name: string, f: () => void) => {
+  if (!mockFirstHandler.has(name)) {
+    mockFirstHandler.set(name, f)
+  }
+}
 // the popup is a positioned overlay; render its header and items inline so the confirm is clickable
 jest.mock('@/common-adapters', () => {
-  const actual = jest.requireActual<object>('@/common-adapters')
+  const actual = jest.requireActual<{Icon: React.ComponentType<{onClick?: () => void; type: string}>}>(
+    '@/common-adapters'
+  )
   const R = jest.requireActual<typeof React>('react')
   return {
     ...actual,
@@ -27,8 +22,13 @@ jest.mock('@/common-adapters', () => {
       header?: React.ReactNode
       items: ReadonlyArray<'Divider' | {onClick: () => void; title: string}>
       visible: boolean
-    }) =>
-      p.visible
+    }) => {
+      for (const i of p.items) {
+        if (i !== 'Divider') {
+          mockKeepFirst(i.title, i.onClick)
+        }
+      }
+      return p.visible
         ? R.createElement(
             'div',
             {'data-testid': 'unpin-popup'},
@@ -37,72 +37,100 @@ jest.mock('@/common-adapters', () => {
               i === 'Divider' ? null : R.createElement('button', {key: i.title, onClick: i.onClick}, i.title)
             )
           )
-        : null,
+        : null
+    },
+    Icon: (p: {onClick?: () => void; type: string}) => {
+      if (p.type === 'iconfont-close' && p.onClick) {
+        mockKeepFirst('close', p.onClick)
+      }
+      return R.createElement(actual.Icon, p)
+    },
     Markdown: ({children}: {children?: React.ReactNode}) => R.createElement('span', null, children),
   }
 })
-jest.mock('./thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
-  useThreadRpc: () => mockThreadRpc(),
-  useConversationThreadID: () => mockConversationIDKey,
-  useThreadMeta: (sel: (m: unknown) => unknown) => sel(mockMeta),
-}))
-jest.mock('./team-hooks', () => ({
-  useChatTeam: () => ({yourOperations: {deleteOtherMessages: mockDeleteOtherMessages}}),
-}))
-jest.mock('./center-context', () => ({
-  useConversationCenterActions: () => ({centerOnMessage: mockCenterOnMessage}),
-}))
-jest.mock('./thread-search-route', () => ({
-  useThreadSearchRoute: () => mockThreadSearch,
-}))
-jest.mock('@/stores/current-user', () => ({
-  useCurrentUserState: (sel: (s: unknown) => unknown) => sel({username: 'testuser'}),
-}))
 
-import {act, cleanup, fireEvent, render, renderHook} from '@testing-library/react'
+import * as T from '@/constants/types'
+import {act, cleanup, fireEvent, render, renderHook, waitFor} from '@testing-library/react'
 import * as C from '@/constants'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import {makeConversationMeta} from '@/constants/chat/meta'
+import {makeMessageText} from '@/constants/chat/message'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
+import HiddenString from '@/util/hidden-string'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
+import {ConversationThreadProvider} from './thread-context'
 import PinnedMessage, {usePinnedMessageShown} from './pinned-message'
 
-let rpc: FakeChatRpc
+const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const convID = T.Chat.keyToConversationID(conversationIDKey)
+const teamID = 'aabbccdd'
+const unpin = 'chat.1.local.unpinMessage'
+const ignorePin = 'chat.1.local.ignorePinnedMessage'
+const getTeamRoleMap = 'keybase.1.teams.getTeamRoleMap'
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
+let fake: FakeEngine
 
-// what each dismiss path sends to the service today
 const expectUnpinSent = () => {
-  expect(rpc.calls('unpinMessage')).toEqual([
-    [mockConversationIDKey, C.waitingKeyChatUnpin(mockConversationIDKey)],
-  ])
-  expect(C.waitingKeyChatUnpin(mockConversationIDKey)).toBe(
-    `chat:unpin:${T.Chat.conversationIDKeyToString(mockConversationIDKey)}`
-  )
+  expect(paramsOf(fake, unpin)).toEqual([{convID}])
 }
 const expectIgnoreSent = () => {
-  expect(rpc.calls('ignorePinnedMessage')).toEqual([[mockConversationIDKey]])
+  expect(paramsOf(fake, ignorePin)).toEqual([{convID}])
 }
 
 const setPinned = (pinnerUsername: string) => {
-  mockMeta = {
-    pinnedMsg: {
-      message: {
-        author: 'testuser-mac',
-        decoratedText: {stringValue: () => 'pinned words'},
-        id: T.Chat.numberToMessageID(42),
-        type: 'text',
+  metasReceived(
+    [
+      {
+        ...makeConversationMeta(),
+        conversationIDKey,
+        pinnedMsg: {
+          message: makeMessageText({
+            author: 'testuser-mac',
+            conversationIDKey,
+            decoratedText: new HiddenString('pinned words'),
+            id: T.Chat.numberToMessageID(42),
+          }),
+          pinnerUsername,
+        },
+        teamID,
+        teamname: 'testteam',
+        teamType: 'small',
       },
-      pinnerUsername,
-    },
-    teamID: 'team-id',
-    teamname: 'testteam',
-  }
+    ],
+    undefined,
+    {force: true}
+  )
+}
+
+// what the service's role map says you are in the team
+const roleInTeam = (role: T.RPCGen.TeamRole) => {
+  fake.answer(getTeamRoleMap, () => ({
+    teams: {[teamID]: {implicitRole: T.RPCGen.TeamRole.none, role}},
+    version: 1,
+  }))
+}
+
+const renderBanner = async (params: object = {}) => {
+  const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey, ...params}, route: 'chatRoot'})
+  const rendered = render(
+    <Nav>
+      <LoadedTeamsListProvider>
+        <ConversationThreadProvider id={conversationIDKey}>
+          <PinnedMessage />
+        </ConversationThreadProvider>
+      </LoadedTeamsListProvider>
+    </Nav>
+  )
+  // the teams list and role map the provider loads
+  await flush()
+  return rendered
 }
 
 const clickClose = (container: HTMLElement) => {
@@ -112,78 +140,100 @@ const clickClose = (container: HTMLElement) => {
 }
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
-  mockDeleteOtherMessages = false
-  mockRetired = false
+  mockFirstHandler.clear()
+  fake = installFakeEngine()
+  fake.answer('keybase.1.teams.teamListUnverified', () => ({teams: []}))
+  roleInTeam(T.RPCGen.TeamRole.writer)
+  fake.answer(unpin, () => {})
+  fake.answer(ignorePin, () => {})
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
   setPinned('testuser-mac')
 })
 
 afterEach(() => {
   cleanup()
-  mockThreadSearch = undefined
-  restoreChatRpc()
   jest.restoreAllMocks()
-  mockCenterOnMessage.mockReset()
   resetAllStores()
 })
 
+const switchAccount = () => {
+  act(() => {
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id2',
+      deviceName: 'testuser-mac',
+      uid: 'uid2',
+      username: 'testuser2',
+    })
+  })
+}
+
 test('someone else pinned it and you cannot admin-delete: close ignores the pin locally, no popup', async () => {
-  const {container, queryByTestId} = render(<PinnedMessage />)
+  const {container, queryByTestId} = await renderBanner()
   expect(container.textContent).toContain('pinned words')
 
   clickClose(container)
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 
   expect(queryByTestId('unpin-popup')).toBeNull()
   expectIgnoreSent()
-  expect(rpc.calls('unpinMessage')).toEqual([])
+  expect(paramsOf(fake, unpin)).toEqual([])
 })
 
 test('you pinned it: close opens the confirm popup, and confirming unpins for everyone', async () => {
   setPinned('testuser')
-  const {container, getByTestId, getByText, queryByTestId} = render(<PinnedMessage />)
+  const {container, getByTestId, getByText, queryByTestId} = await renderBanner()
 
   clickClose(container)
   expect(getByTestId('unpin-popup').textContent).toContain('Unpin this message?')
-  expect(rpc.calls('unpinMessage')).toEqual([])
+  expect(paramsOf(fake, unpin)).toEqual([])
 
   fireEvent.click(getByText('Yes, unpin'))
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 
   expectUnpinSent()
-  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
+  expect(paramsOf(fake, ignorePin)).toEqual([])
   expect(queryByTestId('unpin-popup')).toBeNull()
 })
 
 test('an admin who can delete others messages also unpins through the popup', async () => {
-  mockDeleteOtherMessages = true
-  const {container, getByText} = render(<PinnedMessage />)
+  roleInTeam(T.RPCGen.TeamRole.admin)
+  const {container, getByText} = await renderBanner()
 
   clickClose(container)
   fireEvent.click(getByText('Yes, unpin'))
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 
   expectUnpinSent()
-  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
+  expect(paramsOf(fake, ignorePin)).toEqual([])
 })
 
-test('an RPCError from unpin is logged via logger.error and not rethrown', async () => {
+// the role map is the service's answer: until it lands an admin is a plain reader here
+test('an admin whose role map has not loaded yet only ignores the pin', async () => {
+  fake.hold(getTeamRoleMap)
+  const {container, queryByTestId} = await renderBanner()
+
+  clickClose(container)
+  await flush()
+
+  expect(queryByTestId('unpin-popup')).toBeNull()
+  expectIgnoreSent()
+})
+
+test('a service error from unpin is logged via logger.error and not rethrown', async () => {
   setPinned('testuser')
-  rpc.fail('unpinMessage', new RPCError('cannot unpin', T.RPCGen.StatusCode.scgeneric))
+  fake.answer(unpin, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'cannot unpin'))
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-  const {container, getByText} = render(<PinnedMessage />)
+  const {container, getByText} = await renderBanner()
 
   clickClose(container)
   fireEvent.click(getByText('Yes, unpin'))
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 
   expect(error).toHaveBeenCalledTimes(1)
   expect(error.mock.calls[0]?.[0]).toMatch(/^pinMessage: .*cannot unpin/)
@@ -191,84 +241,97 @@ test('an RPCError from unpin is logged via logger.error and not rethrown', async
   expect(container.textContent).toContain('pinned words')
 })
 
-test('a non-RPCError from unpin is swallowed silently', async () => {
+// what reaches the catch from the real adapter is always an RPCError; a lost link is one too
+test('an unpin lost with the service link is logged like any service error', async () => {
   setPinned('testuser')
-  rpc.fail('unpinMessage', new Error('plain failure'))
+  fake.hold(unpin)
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-  const {container, getByText} = render(<PinnedMessage />)
+  const {container, getByText} = await renderBanner()
 
   clickClose(container)
   fireEvent.click(getByText('Yes, unpin'))
-  await act(async () => {
-    await flushPromises()
+  await flush()
+  act(() => {
+    fake.drop()
   })
+  await flush()
 
-  expect(error).not.toHaveBeenCalled()
-  expect(warn).not.toHaveBeenCalled()
+  expect(error).toHaveBeenCalledTimes(1)
+  expect(error.mock.calls[0]?.[0]).toMatch(/^pinMessage: /)
 })
 
 test('a failed ignore falls through to ignorePromise, which logs it', async () => {
-  const failure = new Error('ignore failed')
-  rpc.fail('ignorePinnedMessage', failure)
+  fake.answer(ignorePin, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'ignore failed'))
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-  const {container} = render(<PinnedMessage />)
+  const {container} = await renderBanner()
 
   clickClose(container)
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 
-  expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
+  expect(error).toHaveBeenCalledWith('ignorePromise error', expect.objectContaining({desc: 'ignore failed'}))
 })
 
 // an account switch keeps the screen up until the provider rebuilds its thread for the next account
 test('a banner whose thread has retired ignores nothing', async () => {
-  const {container} = render(<PinnedMessage />)
-  mockRetired = true
+  await renderBanner()
+  switchAccount()
 
-  clickClose(container)
-  await act(async () => {
-    await flushPromises()
+  act(() => {
+    mockFirstHandler.get('close')?.()
   })
+  await flush()
 
-  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
+  expect(mockFirstHandler.has('close')).toBe(true)
+  expect(paramsOf(fake, ignorePin)).toEqual([])
 })
 
 test('a banner whose thread retires while its unpin confirm is open unpins nothing', async () => {
   setPinned('testuser')
-  const {container, getByText} = render(<PinnedMessage />)
+  const {container} = await renderBanner()
 
   clickClose(container)
-  mockRetired = true
-  fireEvent.click(getByText('Yes, unpin'))
-  await act(async () => {
-    await flushPromises()
-  })
-
-  expect(rpc.calls('unpinMessage')).toEqual([])
-})
-
-test('while the unpin waiting key is set a spinner replaces the close icon', () => {
-  setPinned('testuser')
+  switchAccount()
   act(() => {
-    C.Waiting.useWaitingState.getState().dispatch.increment(C.waitingKeyChatUnpin(mockConversationIDKey))
+    mockFirstHandler.get('Yes, unpin')?.()
   })
-  const {container} = render(<PinnedMessage />)
-  expect(container.querySelector('.icon-gen-iconfont-close')).toBeNull()
+  await flush()
+
+  expect(mockFirstHandler.has('Yes, unpin')).toBe(true)
+  expect(paramsOf(fake, unpin)).toEqual([])
 })
 
-test('the pinned banner renders the pinned message', () => {
-  const {queryByText} = render(<PinnedMessage />)
+// the waiting key rides the real unpin call through the engine, which throttles a key coming on
+// (500ms) and lets one going off through at once
+test('while the unpin is in flight a spinner replaces the close icon, and the icon is back once it lands', async () => {
+  setPinned('testuser')
+  const held = fake.hold(unpin)
+  const {container, getByText} = await renderBanner()
+
+  clickClose(container)
+  fireEvent.click(getByText('Yes, unpin'))
+  await waitFor(() => expect(container.querySelector('.icon-gen-iconfont-close')).toBeNull())
+  expect(C.Waiting.useWaitingState.getState().counts.get(C.waitingKeyChatUnpin(conversationIDKey))).toBe(1)
+
+  held[0]!.reply(null)
+  await flush()
+  expect(container.querySelector('.icon-gen-iconfont-close')).not.toBeNull()
+})
+
+test('the pinned banner renders the pinned message', async () => {
+  const {queryByText} = await renderBanner()
   expect(queryByText('Pinned')).not.toBeNull()
 })
 
+const renderShown = (params: object = {}) => {
+  const {wrapper} = navigationWrapper({params: {conversationIDKey, ...params}, route: 'chatRoot'})
+  return renderHook(() => usePinnedMessageShown(), {wrapper}).result.current
+}
+
 // both layouts mount the banner only when this says so
 test('the pinned banner is shown while thread search is closed', () => {
-  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(true)
+  expect(renderShown()).toBe(true)
 })
 
 test('the pinned banner is not shown while thread search is open', () => {
-  mockThreadSearch = {}
-  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(false)
+  expect(renderShown({threadSearch: {}})).toBe(false)
 })

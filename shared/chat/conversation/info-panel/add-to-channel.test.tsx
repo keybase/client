@@ -1,31 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import type * as React from 'react'
-import type * as Meta from '@/constants/chat/meta'
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {flush} from '@/test/flush'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {resetAllStores} from '@/util/zustand'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 
-jest.mock('../team-hooks', () => ({
-  useChatTeamMembers: () => ({
-    loading: false,
-    members: new Map([
-      ['testuser', {fullName: '', needsPUK: false, status: 'active', type: 'writer', username: 'testuser'}],
-      ['testuser-mac', {fullName: '', needsPUK: false, status: 'active', type: 'writer', username: 'testuser-mac'}],
-    ]),
-  }),
-}))
-jest.mock('../data-hooks', () => ({
-  useConversationMetadata: () => ({
-    meta: {
-      ...jest.requireActual<typeof Meta>('@/constants/chat/meta').makeConversationMeta(),
-      channelname: 'random',
-    },
-    participants: {all: [], contactName: new Map(), name: []},
-  }),
-}))
 // Avatar needs native modules jsdom lacks, and the virtualized list renders nothing here:
 // render every row so a member can be ticked
 jest.mock('@/common-adapters', () => {
@@ -46,73 +32,97 @@ import AddToChannel, {addMembersToChannel} from './add-to-channel'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
-let rpc: FakeChatRpc
+const addToConversation = 'chat.1.local.bulkAddToConv'
+const refreshParticipants = 'chat.1.local.refreshParticipants'
+const convID = T.Chat.keyToConversationID(conversationIDKey)
+
+let fake: FakeEngine
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
-  restoreNavigator()
-  restoreChatRpc()
+  resetAllStores()
 })
 
 test('adding members refreshes the conversation participants', async () => {
+  fake.answer(addToConversation, () => null)
+  fake.answer(refreshParticipants, () => null)
 
   await addMembersToChannel(conversationIDKey, ['testuser', 'testuser-mac'])
 
-  expect(rpc.calls('addToConversation')).toEqual([[conversationIDKey, ['testuser', 'testuser-mac']]])
-  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
+  expect(paramsOf(fake, addToConversation)).toEqual([{convID, usernames: ['testuser', 'testuser-mac']}])
+  expect(paramsOf(fake, refreshParticipants)).toEqual([{convID}])
   // the refresh follows the add
-  expect(rpc.log.map(c => c.method)).toEqual(['addToConversation', 'refreshParticipants'])
+  expect(fake.calls.map(c => c.method)).toEqual([addToConversation, refreshParticipants])
 })
 
 test('a failed add never claims the participants are fresh', async () => {
-  rpc.fail('addToConversation', new Error('nope'))
+  fake.answer(addToConversation, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
 
-  await expect(addMembersToChannel(conversationIDKey, ['testuser'])).rejects.toThrow('nope')
-  expect(rpc.calls('refreshParticipants')).toEqual([])
+  await expect(addMembersToChannel(conversationIDKey, ['testuser'])).rejects.toMatchObject({desc: 'nope'})
+  expect(paramsOf(fake, refreshParticipants)).toEqual([])
 })
 
 test('a failed refresh does not fail the add', async () => {
-  rpc.fail('refreshParticipants', new Error('offline'))
+  fake.answer(addToConversation, () => null)
+  fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
 
   await expect(addMembersToChannel(conversationIDKey, ['testuser'])).resolves.toBeUndefined()
 })
 
 describe('the add-to-channel modal', () => {
-  const renderModal = () => {
-    const nav = installFakeNavigator({
-      modalRouteNames: ['chatAddToChannel'],
-      rootState: makeRootState({above: [{name: 'chatAddToChannel'}]}),
-    })
-    render(<AddToChannel conversationIDKey={conversationIDKey} teamID={'team-1'} />)
+  const member = (username: string) => ({
+    fullName: '',
+    needsPUK: false,
+    role: T.RPCGen.TeamRole.writer,
+    status: T.RPCGen.TeamMemberStatus.active,
+    username,
+    uv: {eldestSeqno: 1, uid: `${username}-uid`},
+  })
+
+  // The members load over teamGetMembersByID once the modal mounts; until it lands there is
+  // no one to tick
+  const renderModal = async () => {
+    metasReceived([
+      {...Meta.makeConversationMeta(), channelname: 'random', conversationIDKey, trustedState: 'trusted'},
+    ])
+    fake.answer('keybase.1.teams.teamGetMembersByID', () => [member('testuser'), member('testuser-mac')])
+    const {wrapper, ...nav} = navigationWrapper({route: 'chatAddToChannel'})
+    render(<AddToChannel conversationIDKey={conversationIDKey} teamID={'team-1'} />, {wrapper})
+    expect(screen.queryByText('testuser-mac')).toBeNull()
+    await flush()
+    expect(paramsOf(fake, 'keybase.1.teams.teamGetMembersByID')).toEqual([{id: 'team-1'}])
     return nav
   }
 
   test('adding the ticked members sends them and closes the modal', async () => {
-      const nav = renderModal()
+    fake.answer(addToConversation, () => null)
+    fake.answer(refreshParticipants, () => null)
+    const nav = await renderModal()
 
     fireEvent.click(screen.getByText('testuser-mac'))
     fireEvent.click(screen.getByText('Add 1 member'))
-    await flush()
+    await act(flush)
 
     // no waiting key
-    expect(rpc.calls('addToConversation')).toEqual([[conversationIDKey, ['testuser-mac']]])
-    expect(nav.types()).toContain('GO_BACK')
+    expect(paramsOf(fake, addToConversation)).toEqual([{convID, usernames: ['testuser-mac']}])
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+    expect(nav.visibleScreen()?.name).toBe('chatRoot')
   })
 
   test('a failed add shows the error in a banner and keeps the modal open', async () => {
-    rpc.fail('addToConversation', new Error('not a team member'))
-    const nav = renderModal()
+    fake.answer(addToConversation, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'not a team member'))
+    const nav = await renderModal()
 
     fireEvent.click(screen.getByText('testuser'))
     fireEvent.click(screen.getByText('Add 1 member'))
-    await flush()
+    await act(flush)
 
-    expect(screen.getByText('not a team member')).toBeTruthy()
-    expect(nav.types()).not.toContain('GO_BACK')
+    expect(screen.getByText(/not a team member/)).toBeTruthy()
+    expect(nav.visibleScreen()?.name).toBe('chatAddToChannel')
   })
 })

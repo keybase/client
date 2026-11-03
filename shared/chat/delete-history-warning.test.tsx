@@ -1,50 +1,48 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-
-let mockTlfname = ''
-
-jest.mock('./conversation/data-hooks', () => ({
-  useConversationMeta: () => ({tlfname: mockTlfname}),
-}))
-
-import {act, cleanup, fireEvent, render} from '@testing-library/react'
+import {cleanup, fireEvent, render} from '@testing-library/react'
 import * as C from '@/constants'
+import * as Meta from '@/constants/chat/meta'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {metasReceived} from './inbox/metadata-store'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import DeleteHistoryWarning from './delete-history-warning'
 
-let rpc: FakeChatRpc
+const deleteHistory = 'chat.1.local.postDeleteHistoryByAge'
+
+let fake: FakeEngine
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
-
 // what "clear for everyone" asks the service for
 const expectDeleteSent = (tlfName: string) => {
-  expect(rpc.calls('deleteHistory')).toEqual([[conversationIDKey, tlfName]])
+  expect(paramsOf(fake, deleteHistory)).toEqual([
+    {
+      age: 0,
+      conversationID: T.Chat.keyToConversationID(conversationIDKey),
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+      tlfName,
+      tlfPublic: false,
+    },
+  ])
 }
 
 const clickDelete = async (getByText: (t: string) => HTMLElement) => {
   fireEvent.click(getByText('Yes, clear for everyone'))
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
 }
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
-  mockTlfname = 'testuser,testuser-mac'
+  fake = installFakeEngine()
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, tlfname: 'testuser,testuser-mac'}])
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -52,8 +50,9 @@ afterEach(() => {
 test('confirming clears modals and deletes all history by age 0', async () => {
   const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
   const modalsClearedAtDelete: Array<boolean> = []
-  rpc.on('deleteHistory', () => {
+  fake.answer(deleteHistory, () => {
     modalsClearedAtDelete.push(clearModals.mock.calls.length === 1)
+    return {}
   })
   const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
 
@@ -66,7 +65,7 @@ test('confirming clears modals and deletes all history by age 0', async () => {
 })
 
 test('with no tlfname it warns and skips the RPC, but still clears modals', async () => {
-  mockTlfname = ''
+  resetAllStores()
   const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
   const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
@@ -74,13 +73,12 @@ test('with no tlfname it warns and skips the RPC, but still clears modals', asyn
   await clickDelete(getByText)
 
   expect(clearModals).toHaveBeenCalledTimes(1)
-  expect(rpc.calls('deleteHistory')).toEqual([])
+  expect(paramsOf(fake, deleteHistory)).toEqual([])
   expect(warn).toHaveBeenCalledWith('Deleting message history for non-existent TLF:')
 })
 
 test('a failed delete is only logged through ignorePromise', async () => {
-  const failure = new Error('delete broke')
-  rpc.fail('deleteHistory', failure)
+  fake.answer(deleteHistory, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'delete broke'))
   const clearModals = jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
   const {getByText} = render(<DeleteHistoryWarning conversationIDKey={conversationIDKey} />)
@@ -89,7 +87,10 @@ test('a failed delete is only logged through ignorePromise', async () => {
 
   expectDeleteSent('testuser,testuser-mac')
   expect(clearModals).toHaveBeenCalledTimes(1)
-  expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
+  expect(error).toHaveBeenCalledWith(
+    'ignorePromise error',
+    expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric, desc: 'delete broke'})
+  )
 })
 
 test('cancel navigates up and sends nothing', () => {
@@ -101,5 +102,5 @@ test('cancel navigates up and sends nothing', () => {
 
   expect(navigateUp).toHaveBeenCalledTimes(1)
   expect(clearModals).not.toHaveBeenCalled()
-  expect(rpc.calls('deleteHistory')).toEqual([])
+  expect(paramsOf(fake, deleteHistory)).toEqual([])
 })

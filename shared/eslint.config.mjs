@@ -275,6 +275,28 @@ export default [
     },
   },
   {
+    // CLAUDE.md "Tests run the real thing": navigation runs on the real library (test/navigation.tsx)
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    name: 'tests-run-the-real-thing',
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          message:
+            'Run the real React Navigation (test/navigation.tsx) instead of mocking it: a mock tests a model of the library.',
+          selector:
+            "CallExpression[callee.object.name='jest'][callee.property.name=/^(mock|doMock)$/][arguments.0.value=/^@react-navigation\\//]",
+        },
+        {
+          message:
+            'Run the real router on the real tree (test/navigation.tsx) instead of mocking it: a mock tests a model of navigation.',
+          selector:
+            "CallExpression[callee.object.name='jest'][callee.property.name=/^(mock|doMock)$/][arguments.0.value='@/constants/router']",
+        },
+      ],
+    },
+  },
+  {
     // vendored from react-native-zoom-toolkit; tracks upstream, don't hold it to our deprecation rule
     files: ['util/zoom-toolkit/**'],
     name: 'zoom-toolkit-vendored',

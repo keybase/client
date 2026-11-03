@@ -7,16 +7,10 @@ import {getInboxConversationMeta, getInboxConversationParticipants} from './meta
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {updateInboxTyping} from '@/chat/inbox/typing-state'
+import {useInboxTypingState} from '@/chat/inbox/typing-state'
 import {useUsersState} from '@/stores/users'
-
-jest.mock('@/chat/inbox/badge-state', () => ({
-  syncInboxBadgeState: jest.fn(),
-}))
-
-jest.mock('@/chat/inbox/typing-state', () => ({
-  updateInboxTyping: jest.fn(),
-}))
+import {installFakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -29,7 +23,7 @@ const msgID = T.Chat.numberToMessageID(101)
 // Routes a notification and reports what its inbox stage applied beyond the inbox stores: the inbox
 // item it hydrated and the reacjis it gave the daemon.
 const inboxApplied = (action: ChatNotification) => {
-  const hydrate = jest.spyOn(InboxMetadata, 'onIncomingInboxUIItem').mockImplementation(() => {})
+  const hydrate = jest.spyOn(InboxMetadata, 'onIncomingInboxUIItem')
   const before = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
   useDaemonState.setState(s => {
     s.bootstrapStatus = T.castDraft({userReacjis: before} as T.RPCGen.BootstrapStatus)
@@ -284,7 +278,7 @@ test('global message activity routing preserves returned global data', () => {
   expect(reactionResult.userReacjis).toEqual(userReacjis)
 })
 
-test('read message activity without attached inbox item refreshes service-owned metadata', () => {
+test('read message activity without attached inbox item refreshes service-owned metadata', async () => {
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -292,7 +286,8 @@ test('read message activity without attached inbox item refreshes service-owned 
     uid: 'uid',
     username: 'alice',
   })
-  const unbox = jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const fake = installFakeEngine()
+  fake.answer('chat.1.local.requestInboxUnbox', () => null)
 
   expect(
     inboxApplied({
@@ -312,9 +307,10 @@ test('read message activity without attached inbox item refreshes service-owned 
     } as never)
   ).toEqual({})
 
-  expect(unbox).toHaveBeenCalledWith({
-    convIDs: [T.Chat.keyToConversationID(convID)],
-  })
+  await settle()
+  expect(fake.calls.filter(c => c.method === 'chat.1.local.requestInboxUnbox').map(c => c.params as unknown)).toEqual([
+    expect.objectContaining({convIDs: [T.Chat.keyToConversationID(convID)]}),
+  ])
 })
 
 test('a failed message with no inbox item and transfer progress leave the inbox nothing to apply', () => {
@@ -395,7 +391,7 @@ test('global typing and participant updates route to inbox rows', () => {
     type: 'chat.1.NotifyChat.ChatTypingUpdate',
   } as never)
 
-  expect(updateInboxTyping).toHaveBeenCalledWith(typingUpdates)
+  expect([...(useInboxTypingState.getState().typing.get(convID) ?? [])]).toEqual(['bob'])
 
   const participantMap = {
     [T.Chat.conversationIDKeyToString(convID)]: [

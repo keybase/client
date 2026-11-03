@@ -2,99 +2,32 @@
 /// <reference types="jest" />
 import type * as React from 'react'
 import * as T from '@/constants/types'
-
-// the real list chrome is native/electron-only; we only care about which repos
-// survive parsing and how they are grouped and ordered
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Box2: passThrough,
-    ClickableBox: passThrough,
-    ErrorBanner: ({error}: {error?: Error}) =>
-      error ? React.createElement('div', null, error.message) : null,
-    FloatingMenu: () => React.createElement('div'),
-    Icon: () => React.createElement('div'),
-    Reloadable: passThrough,
-    SectionDivider: ({label}: {label?: string}) =>
-      React.createElement('div', {'data-section': label}, label),
-    SectionList: ({
-      renderItem,
-      renderSectionHeader,
-      sections,
-    }: {
-      renderItem: (p: {item: string}) => React.ReactNode
-      renderSectionHeader: (p: {section: {title: string}}) => React.ReactNode
-      sections: Array<{data: Array<string>; title: string}>
-    }) =>
-      React.createElement(
-        'div',
-        null,
-        sections.map(section =>
-          React.createElement(
-            'div',
-            {key: section.title},
-            renderSectionHeader({section}),
-            section.data.map(item => React.createElement('div', {key: item}, renderItem({item})))
-          )
-        )
-      ),
-    Styles: {
-      createStyleHook:
-        <S,>(styles: (theme: unknown) => S) =>
-        () =>
-          styles({blue: 'blue'}),
-      globalMargins: {small: 8, tiny: 4},
-      useTheme: () => ({blue: 'blue'}),
-    },
-    Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
-    usePopup2: () => ({popup: null, popupAnchor: null, showPopup: () => {}}),
-  }
-})
-jest.mock('./row', () => ({
-  __esModule: true,
-  default: ({expanded, git}: {expanded: boolean; git: {id: string; name: string; teamname?: string}}) =>
-    require('react').createElement(
-      'div',
-      {'data-expanded': expanded ? 'true' : 'false', 'data-repo': git.id},
-      git.teamname ? `${git.teamname}/${git.name}` : git.name
-    ),
-}))
-jest.mock('@/util/use-local-badging', () => {
-  const React = require('react')
-  return {
-    NewItemsContext: React.createContext(new Set<string>()),
-    useIsNew: () => false,
-    useLocalBadging: () => ({badged: new Set<string>()}),
-  }
-})
-
-let mockRPCResults: Array<T.RPCGen.GitRepoResult> = []
-jest.mock('@/util/use-rpc-load', () => {
-  const React = require('react')
-  return {
-    useRPCLoad: (
-      _call: unknown,
-      _args: unknown,
-      opts: {map: (r: unknown) => unknown; onResult?: (d: unknown) => void}
-    ) => {
-      const onResultRef = React.useRef(opts.onResult)
-      onResultRef.current = opts.onResult
-      const [data] = React.useState(() => opts.map(mockRPCResults))
-      // the real hook reports results from an effect, not during render
-      React.useEffect(() => {
-        onResultRef.current?.(data)
-      }, [data])
-      return {data, loadCount: 0, reload: () => {}}
-    },
-  }
-})
-
+import '@/test/viewport.desktop'
 import {cleanup, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import * as Tabs from '@/constants/tabs'
+import {installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Git from './index'
+
+const allMetadata = 'keybase.1.git.getAllGitMetadata'
+
+// The service answers the metadata load the screen makes when it is focused, and the badge dismiss
+const serve = (results: Array<T.RPCGen.GitRepoResult>) => {
+  const fake = installFakeEngine()
+  fake.answer(allMetadata, () => results)
+  fake.answer('keybase.1.gregor.dismissCategory', () => null)
+  return fake
+}
+
+// the git tab's root, on the real navigation tree, once the service has answered
+const renderGit = async (props: React.ComponentProps<typeof Git> = {}) => {
+  render(<Git {...props} />, {wrapper: navigationWrapper({route: 'gitRoot', tab: Tabs.gitTab}).wrapper})
+  await flush()
+}
 
 const makeOK = (
   name: string,
@@ -124,107 +57,131 @@ const makeOK = (
     state: T.RPCGen.GitRepoResultState.ok,
   }) as T.RPCGen.GitRepoResult
 
-const expandedRepos = () =>
-  [...document.querySelectorAll('[data-expanded="true"]')].map(n => n.getAttribute('data-repo'))
+const rows = () => [...document.querySelectorAll<HTMLElement>(`[data-testid="${TestIDs.GIT_REPO_ROW}"]`)]
+// a row's repo, as it draws it: teamname/name for a team repo
+const repoOf = (row: HTMLElement) => row.querySelector('.text_BodySemibold')?.textContent ?? ''
+// an expanded row shows the repo's clone url
+const expandedRepos = () => rows().filter(row => row.textContent.includes('Clone:')).map(repoOf)
 
+// the rows drawn after a section's header and before the next one's
 const reposInSection = (title: string) => {
-  const header = document.querySelector(`[data-section="${title}"]`)
-  const section = header?.parentElement
-  return [...(section?.querySelectorAll('[data-repo]') ?? [])].map(n => n.textContent)
+  const headers = [...document.querySelectorAll<HTMLElement>('.text_BodySmallSemibold')].filter(
+    h => h.textContent === 'Personal' || h.textContent === 'Team'
+  )
+  const header = headers.find(h => h.textContent === title)
+  if (!header) throw new Error(`no ${title} section`)
+  const next = headers[headers.indexOf(header) + 1]
+  const after = (a: Node, b: Node) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  return rows()
+    .filter(row => after(header, row) && (!next || after(row, next)))
+    .map(repoOf)
 }
 
 afterEach(() => {
   cleanup()
   resetAllStores()
-  mockRPCResults = []
 })
 
-test('personal and team repos are split into their own sections', () => {
-  mockRPCResults = [
+test('personal and team repos are split into their own sections', async () => {
+  serve([
     makeOK('zeta'),
     makeOK('beta', {folderType: T.RPCGen.FolderType.team, teamname: 'keybase'}),
     makeOK('alpha'),
-  ]
+  ])
 
-  render(<Git />)
+  await renderGit()
 
   expect(reposInSection('Personal')).toEqual(['alpha', 'zeta'])
   expect(reposInSection('Team')).toEqual(['keybase/beta'])
 })
 
-test('team repos sort by team name first, then repo name', () => {
-  mockRPCResults = [
+test('team repos sort by team name first, then repo name', async () => {
+  serve([
     makeOK('zeta', {folderType: T.RPCGen.FolderType.team, teamname: 'alphateam'}),
     makeOK('beta', {folderType: T.RPCGen.FolderType.team, teamname: 'zetateam'}),
     makeOK('alpha', {folderType: T.RPCGen.FolderType.team, teamname: 'alphateam'}),
-  ]
+  ])
 
-  render(<Git />)
+  await renderGit()
 
   expect(reposInSection('Team')).toEqual(['alphateam/alpha', 'alphateam/zeta', 'zetateam/beta'])
 })
 
-test('public repos are dropped entirely', () => {
-  mockRPCResults = [makeOK('secret'), makeOK('shouty', {folderType: T.RPCGen.FolderType.public})]
+test('public repos are dropped entirely', async () => {
+  serve([makeOK('secret'), makeOK('shouty', {folderType: T.RPCGen.FolderType.public})])
 
-  render(<Git />)
+  await renderGit()
 
   expect(reposInSection('Personal')).toEqual(['secret'])
   expect(reposInSection('Team')).toEqual([])
 })
 
-test('per-repo errors become global errors without dropping the good repos', () => {
-  const setGlobalError = jest.fn()
-  useConfigState.setState(s => ({...s, dispatch: {...s.dispatch, setGlobalError}}))
-  mockRPCResults = [
+test('per-repo errors become global errors without dropping the good repos', async () => {
+  serve([
     makeOK('good'),
     {err: 'repo is corrupt', state: T.RPCGen.GitRepoResultState.err} as T.RPCGen.GitRepoResult,
-  ]
+  ])
 
-  render(<Git />)
+  await renderGit()
 
   expect(reposInSection('Personal')).toEqual(['good'])
-  expect(setGlobalError).toHaveBeenCalledWith(
-    expect.objectContaining({message: 'Git repo error: repo is corrupt'})
-  )
+  expect(useConfigState.getState().globalError?.message).toBe('Git repo error: repo is corrupt')
 })
 
-test('repos with the same name in different teams keep separate rows', () => {
-  mockRPCResults = [
+test('repos with the same name in different teams keep separate rows', async () => {
+  serve([
     makeOK('shared', {folderType: T.RPCGen.FolderType.team, id: 'id-a', teamname: 'teama'}),
     makeOK('shared', {folderType: T.RPCGen.FolderType.team, id: 'id-b', teamname: 'teamb'}),
-  ]
+  ])
 
-  render(<Git />)
+  await renderGit()
 
   expect(reposInSection('Team')).toEqual(['teama/shared', 'teamb/shared'])
 })
 
-test('an empty result renders both sections with nothing in them', () => {
-  mockRPCResults = []
+test('an empty result renders both sections with nothing in them', async () => {
+  serve([])
 
-  render(<Git />)
+  await renderGit()
 
   expect(screen.queryByText('Personal')).not.toBeNull()
   expect(screen.queryByText('Team')).not.toBeNull()
-  expect(document.querySelectorAll('[data-repo]')).toHaveLength(0)
+  expect(rows()).toHaveLength(0)
 })
 
-test('a personal repo from the route params expands without a teamname', () => {
-  mockRPCResults = [makeOK('alpha'), makeOK('beta')]
+test('a personal repo from the route params expands without a teamname', async () => {
+  serve([makeOK('alpha'), makeOK('beta')])
 
-  render(<Git expandedRepoID="repo-alpha" />)
+  await renderGit({expandedRepoID: 'repo-alpha'})
 
-  expect(expandedRepos()).toEqual(['id-personal-alpha'])
+  expect(expandedRepos()).toEqual(['alpha'])
 })
 
-test('a team repo only expands for its own team', () => {
-  mockRPCResults = [
+test('a team repo only expands for its own team', async () => {
+  const fake = serve([
     makeOK('alpha'),
     makeOK('alpha', {folderType: T.RPCGen.FolderType.team, id: 'id-team-alpha', teamname: 'keybase'}),
-  ]
+  ])
+  // an expanded team repo looks up the channel its pushes are announced in
+  fake.answer('keybase.1.git.getTeamRepoSettings', () => ({channelName: 'general', chatDisabled: false}))
 
-  render(<Git expandedRepoID="repo-alpha" expandedTeamname="keybase" />)
+  await renderGit({expandedRepoID: 'repo-alpha', expandedTeamname: 'keybase'})
 
-  expect(expandedRepos()).toEqual(['id-team-alpha'])
+  expect(expandedRepos()).toEqual(['keybase/alpha'])
+})
+
+test('a repo from the route params expands once the list it is in arrives', async () => {
+  const fake = installFakeEngine()
+  const held = fake.hold(allMetadata)
+  fake.answer('keybase.1.gregor.dismissCategory', () => null)
+  await renderGit({expandedRepoID: 'repo-alpha'})
+  expect(rows()).toHaveLength(0)
+  expect(held.length).toBeGreaterThan(0)
+
+  // the screen keeps only its latest load's answer
+  held.forEach(h => h.reply([makeOK('alpha'), makeOK('beta')]))
+  await flush()
+
+  expect(reposInSection('Personal')).toEqual(['alpha', 'beta'])
+  expect(expandedRepos()).toEqual(['alpha'])
 })

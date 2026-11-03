@@ -46,16 +46,13 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import BotTeamPicker from './team-picker'
 
-const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
-  }
-}
+const search = 'chat.1.local.addBotConvSearch'
 
 const hit = (name: string, id: number, isTeam = true): T.RPCChat.ConvSearchHit => ({
   convID: new Uint8Array([id]),
@@ -64,54 +61,43 @@ const hit = (name: string, id: number, isTeam = true): T.RPCChat.ConvSearchHit =
   parts: isTeam ? null : ['testuser', 'testuser-mac'],
 })
 
-const deferred = <R,>() => {
-  let settle: {reject: (e: unknown) => void; resolve: (r: R) => void} = {reject: () => {}, resolve: () => {}}
-  const promise = new Promise<R>((resolve, reject) => {
-    settle = {reject, resolve}
-  })
-  return {promise, reject: (e: unknown) => settle.reject(e), resolve: (r: R) => settle.resolve(r)}
-}
-
 // the field's onChange is debounced by 200ms
 const typeTerm = async (term: string) => {
   fireEvent.change(screen.getByPlaceholderText('Search chats and teams...'), {target: {value: term}})
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 250))
-    await flushPromises()
   })
+  await flush()
 }
 
 const waitingAttr = () => (screen.queryByText('waiting:true') ? 'true' : 'false')
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 let info: jest.SpyInstance
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
   info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 describe('BotTeamPicker', () => {
   test('searches with an empty term on mount (no waiting key) and lists the hits', async () => {
-    const pending = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
-    rpc.on('searchBotDestinations', async () => pending.promise)
+    const held = fake.hold(search)
 
     render(<BotTeamPicker botUsername="helperbot" />)
-
-    expect(rpc.calls('searchBotDestinations')).toEqual([['']])
+    expect(waitingAttr()).toBe('true')
+    await flush()
+    expect(paramsOf(fake, search)).toEqual([{term: ''}])
     expect(waitingAttr()).toBe('true')
 
-    await act(async () => {
-      pending.resolve([hit('acme', 1), hit('testuser,testuser-mac', 2, false)])
-      await flushPromises()
-    })
+    held[0]!.reply([hit('acme', 1), hit('testuser,testuser-mac', 2, false)])
+    await flush()
 
     expect(waitingAttr()).toBe('false')
     expect(screen.getByText('acme')).toBeTruthy()
@@ -119,56 +105,46 @@ describe('BotTeamPicker', () => {
   })
 
   test('an empty result renders an empty list', async () => {
-    rpc.on('searchBotDestinations', () => [])
+    fake.answer(search, () => [])
 
     render(<BotTeamPicker botUsername="helperbot" />)
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
 
     expect(waitingAttr()).toBe('false')
     expect(screen.getByTestId('results').childElementCount).toBe(0)
   })
 
   test('typing searches again with the new term', async () => {
-    rpc.once('searchBotDestinations', () => [])
-    rpc.once('searchBotDestinations', () => [hit('acme', 1)])
+    fake.answer(search, (p: {term: string}) => (p.term ? [hit('acme', 1)] : []))
 
     render(<BotTeamPicker botUsername="helperbot" />)
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
     await typeTerm('ac')
 
-    expect(rpc.calls('searchBotDestinations')).toEqual([[''], ['ac']])
+    expect(paramsOf(fake, search)).toEqual([{term: ''}, {term: 'ac'}])
     expect(screen.getByText('acme')).toBeTruthy()
   })
 
   test('a failed search shows the error text in place of the list and logs', async () => {
-    rpc.fail('searchBotDestinations', new RPCError('search broke', 3))
+    fake.answer(search, () => fakeError(3, 'search broke'))
 
     render(<BotTeamPicker botUsername="helperbot" />)
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
 
     expect(waitingAttr()).toBe('false')
     expect(screen.getByText('Something went wrong, please try again.')).toBeTruthy()
     expect(screen.queryByTestId('results')).toBeNull()
     expect(info).toHaveBeenCalledWith(
-      'BotTeamPicker: error loading search results: ERROR CODE 3 - search broke'
+      'BotTeamPicker: error loading search results: ERROR CODE 3 - search broke in method chat.1.local.addBotConvSearch'
     )
   })
 
   // current behaviour: nothing clears the error, so a later successful search stays hidden
   test('the error text sticks after a later successful search', async () => {
-    rpc.failOnce('searchBotDestinations', new RPCError('search broke', 3))
-    rpc.on('searchBotDestinations', () => [hit('acme', 1)])
+    fake.answer(search, (p: {term: string}) => (p.term ? [hit('acme', 1)] : fakeError(3, 'search broke')))
 
     render(<BotTeamPicker botUsername="helperbot" />)
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
     await typeTerm('ac')
 
     expect(screen.getByText('Something went wrong, please try again.')).toBeTruthy()
@@ -177,36 +153,28 @@ describe('BotTeamPicker', () => {
 
   // current behaviour: results are not keyed to the term, so the last one to settle wins
   test('a slower earlier search overwrites the results of a later one', async () => {
-    const first = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
-    const second = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
-    rpc.once('searchBotDestinations', async () => first.promise)
-    rpc.once('searchBotDestinations', async () => second.promise)
+    const held = fake.hold(search)
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await typeTerm('ac')
+    expect(held.map(h => (h.params as {term: string}).term)).toEqual(['', 'ac'])
 
-    await act(async () => {
-      second.resolve([hit('acme', 1)])
-      await flushPromises()
-    })
+    held[1]!.reply([hit('acme', 1)])
+    await flush()
     expect(screen.getByText('acme')).toBeTruthy()
 
-    await act(async () => {
-      first.resolve([hit('stale', 2)])
-      await flushPromises()
-    })
+    held[0]!.reply([hit('stale', 2)])
+    await flush()
     expect(screen.queryByText('acme')).toBeNull()
     expect(screen.getByText('stale')).toBeTruthy()
   })
 
   test('picking a hit opens the install screen for that conversation', async () => {
     const navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
-    rpc.on('searchBotDestinations', () => [hit('acme', 7)])
+    fake.answer(search, () => [hit('acme', 7)])
 
     render(<BotTeamPicker botUsername="helperbot" />)
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
     fireEvent.click(screen.getByText('acme'))
 
     expect(navigateAppend).toHaveBeenCalledWith({

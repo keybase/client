@@ -7,24 +7,23 @@ import {
   textMessageMaxBytes,
   writeSharedTextFile,
 } from './shared-text-file'
+import type * as FsPaths from '@/test/expo-file-system-paths'
 
 type MockEntry = {kind: 'dir' | 'file'; uri: string; content?: string}
 const mockWritten = new Array<MockEntry>()
 const mockDeleted = new Array<string>()
 // the folders already in <cache>/shared-text, by name
 let mockListing: Array<string> | undefined
+// File IO is native; the uris are built with expo-file-system's own path utilities, and native
+// reports a directory's uri with a trailing slash.
 jest.mock('expo-file-system', () => {
-  const join = (parts: Array<unknown>) =>
-    parts
-      .map((p, i) => {
-        const s = typeof p === 'string' ? p : (p as {uri: string}).uri
-        return i === 0 ? s.replace(/\/$/, '') : encodeURIComponent(s)
-      })
-      .join('/')
+  const {PathUtilities} = jest.requireActual<typeof FsPaths>('@/test/expo-file-system-paths')
+  const join = (parts: Array<string | {uri: string}>) =>
+    PathUtilities.join(...parts.map(p => (typeof p === 'string' ? p : p.uri)))
   class Directory {
     uri: string
-    constructor(...parts: Array<unknown>) {
-      this.uri = join(parts) + '/'
+    constructor(...parts: Array<string | {uri: string}>) {
+      this.uri = join(parts).replace(/\/?$/, '/')
     }
     create() {
       mockWritten.push({kind: 'dir', uri: this.uri})
@@ -33,7 +32,7 @@ jest.mock('expo-file-system', () => {
       mockDeleted.push(this.uri)
     }
     get name() {
-      return decodeURIComponent(this.uri.replace(/\/$/, '').split('/').pop() ?? '')
+      return PathUtilities.basename(this.uri)
     }
     get exists() {
       return mockListing !== undefined
@@ -44,7 +43,7 @@ jest.mock('expo-file-system', () => {
   }
   class File {
     uri: string
-    constructor(...parts: Array<unknown>) {
+    constructor(...parts: Array<string | {uri: string}>) {
       this.uri = join(parts)
     }
     async write(content: string) {
@@ -111,9 +110,20 @@ test('the text is written to its own folder in the cache under its name, and rem
   expect(second.path).not.toBe(first.path)
   expect(mockWritten.filter(w => w.kind === 'file').map(w => w.content)).toEqual([text, text])
 
+  // the path handed on is the file native wrote
+  const written = mockWritten.filter(w => w.kind === 'file').map(w => decodeURIComponent(w.uri.replace('file://', '')))
+  expect(written).toEqual([first.path, second.path])
+
   first.remove()
   expect(mockDeleted).toHaveLength(1)
   expect(first.path.startsWith(decodeURIComponent(mockDeleted[0]!.replace('file://', '')))).toBe(true)
+})
+
+test('a name with characters a uri escapes still names the file native wrote', async () => {
+  const {path} = await writeSharedTextFile('100% sure? yes')
+  const [file] = mockWritten.filter(w => w.kind === 'file')
+  expect(file?.uri).toMatch(/\/100%25%20sure%3F%20yes\.txt$/)
+  expect(decodeURIComponent(file!.uri.replace('file://', ''))).toBe(path)
 })
 
 test('shared text fits after a draft when both, joined by a newline, are within the limit', () => {

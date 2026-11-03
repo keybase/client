@@ -1,7 +1,7 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {clearModals, navigateAppend, navigateUp, navUpToScreen} from '@/constants/router'
+import {clearModals, isModalUp, navigateAppend, navigateUp, navUpToScreen} from '@/constants/router'
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
@@ -85,7 +85,16 @@ export const clearNavBadges = () => {
   ignorePromise(f())
 }
 
-export const deleteTeam = (teamID: T.Teams.TeamID) => {
+export type TeamExitContext = 'teams' | 'chat'
+
+// Out of a team that was just left or deleted: closes its modals and goes back to the root of the tab
+// the leave or delete was started from.
+export const exitTeamTo = (context: TeamExitContext) => {
+  clearModals()
+  navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+}
+
+export const deleteTeam = (teamID: T.Teams.TeamID, context: TeamExitContext) => {
   const f = async () => {
     try {
       await T.RPCGen.teamsTeamDeleteRpcListener({
@@ -97,6 +106,9 @@ export const deleteTeam = (teamID: T.Teams.TeamID) => {
         params: {teamID},
         waitingKey: S.waitingKeyTeamsDeleteTeam(teamID),
       })
+      // the user may have gone elsewhere while the delete ran; only the confirm takes them away
+      if (!isModalUp('teamDeleteTeam', {teamID})) return
+      exitTeamTo(context)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('error:', error.message)
@@ -115,7 +127,7 @@ export const ignoreRequest = (teamID: T.Teams.TeamID, teamname: string, username
   ignorePromise(f())
 }
 
-export const leaveTeam = (teamname: string, permanent: boolean, context: 'teams' | 'chat') => {
+export const leaveTeam = (teamname: string, permanent: boolean, context: TeamExitContext) => {
   const f = async () => {
     logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
     try {
@@ -124,8 +136,7 @@ export const leaveTeam = (teamname: string, permanent: boolean, context: 'teams'
         S.waitingKeyTeamsLeaveTeam(teamname)
       )
       logger.info(`leaveTeam: left ${teamname} successfully`)
-      clearModals()
-      navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+      exitTeamTo(context)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('error:', error.message)

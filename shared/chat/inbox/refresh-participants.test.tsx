@@ -8,7 +8,9 @@ import logger from '@/logger'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {routeChatNotification} from '@/chat/notification-router'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import {participantInfoReceived, useInboxMetadataState} from './metadata'
 import {
   refreshConversationParticipants,
@@ -20,8 +22,11 @@ const convB = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 const teamID = 'team-1' as T.Teams.TeamID
 const otherTeamID = 'team-2' as T.Teams.TeamID
 
-let rpc: FakeChatRpc
-const refreshes = () => rpc.calls('refreshParticipants')
+const refreshParticipants = 'chat.1.local.refreshParticipants'
+let fake: FakeEngine
+// the conversation of each refresh the service received
+const refreshes = () =>
+  paramsOf(fake, refreshParticipants).map((p: {convID: Uint8Array}) => [T.Chat.conversationIDToKey(p.convID)])
 
 const noChanges = {keyRotated: false, membershipChanged: false, misc: false, renamed: false}
 
@@ -47,12 +52,12 @@ const teamChangedByID = (
   }) as never
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  fake.answer(refreshParticipants, () => {})
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -93,12 +98,10 @@ describe('refreshConversationParticipants', () => {
   })
 
   test('one conversation failing neither rejects nor skips the others', async () => {
-    rpc.on('refreshParticipants', async conversationIDKey => {
-      await Promise.resolve()
-      if (conversationIDKey === convA) {
-        throw new Error('offline')
-      }
-    })
+    fake.answer(refreshParticipants, (p: {convID: Uint8Array}) =>
+      T.Chat.conversationIDToKey(p.convID) === convA ? fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline') : {}
+    )
+    jest.spyOn(logger, 'info').mockImplementation(() => {})
 
     await expect(refreshConversationParticipants([convA, convB])).resolves.toBeUndefined()
     expect(refreshes()).toHaveLength(2)
@@ -106,55 +109,61 @@ describe('refreshConversationParticipants', () => {
 })
 
 describe('useRefreshParticipantsOnTeamMembershipChange', () => {
-  test('a membership change in this team refreshes the conversation', () => {
+  test('a membership change in this team refreshes the conversation', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID())
+    await flush()
 
     expect(refreshes()).toContainEqual([convA])
   })
 
   // teamChangedByID also fires for every message sent in the team; refreshing on those
   // would be one participant rpc per message for as long as the list is open
-  test('a team change that did not touch membership is ignored', () => {
+  test('a team change that did not touch membership is ignored', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, misc: true}}))
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, keyRotated: true}}))
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, renamed: true}}))
+    await flush()
 
     expect(refreshes()).toEqual([])
   })
 
-  test('a membership change in another team is ignored', () => {
+  test('a membership change in another team is ignored', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({teamID: otherTeamID}))
+    await flush()
 
     expect(refreshes()).toEqual([])
   })
 
-  test('a disabled watcher does not refresh', () => {
+  test('a disabled watcher does not refresh', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA, false))
 
     notifyEngineActionListeners(teamChangedByID())
+    await flush()
 
     expect(refreshes()).toEqual([])
   })
 
-  test('an adhoc conversation has no team to watch', () => {
+  test('an adhoc conversation has no team to watch', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(T.Teams.noTeamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({teamID: T.Teams.noTeamID}))
+    await flush()
 
     expect(refreshes()).toEqual([])
   })
 
-  test('an unmounted list stops refreshing', () => {
+  test('an unmounted list stops refreshing', async () => {
     const {unmount} = renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     unmount()
     notifyEngineActionListeners(teamChangedByID())
+    await flush()
 
     expect(refreshes()).toEqual([])
   })
@@ -227,7 +236,7 @@ describe('the refresh reaching the members list', () => {
 
 describe('refreshConversationParticipants failures', () => {
   test('a failed refresh is logged at info with the conversation id', async () => {
-    rpc.fail('refreshParticipants', new Error('offline'))
+    fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error')
 

@@ -237,6 +237,57 @@ test("the call log keeps a bulk channel add's conversation ids, as hex, and noth
   assert.doesNotMatch(JSON.stringify(log), /secret/)
 })
 
+test("the call log notes when a device list read or a device add is answered and its error, and hands the answer on as it came", () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  const from = rt.recording.calls(Number.MAX_SAFE_INTEGER).seq
+  const sent: Array<(err: unknown, result: unknown) => void> = []
+  const replies: Array<[unknown, unknown]> = []
+  const relayed = (method: string): Runtime.OutgoingCall => ({
+    deliver: () => assert.fail(`${method} got a delivery`),
+    method,
+    param: {},
+    real: done => {
+      sent.push(done)
+    },
+    reply: (err, result) => {
+      replies.push([err, result])
+    },
+  })
+  assert.equal(hook()?.invoke(relayed('keybase.1.device.deviceAdd')), true)
+  assert.equal(hook()?.invoke(relayed('keybase.1.device.deviceHistoryList')), true)
+  assert.equal(replies.length, 0)
+  const secretResult = [{name: 'secret-device'}]
+  sent[0]!(undefined, null)
+  hook()?.invoke(passing('a.after-the-add'))
+  const failure = new Error('the read failed')
+  sent[1]!(failure, undefined)
+  assert.deepEqual(replies, [
+    [undefined, null],
+    [failure, undefined],
+  ])
+  sent.length = 0
+  hook()?.invoke(relayed('keybase.1.device.deviceHistoryList'))
+  sent[0]!(undefined, secretResult)
+  assert.equal(replies.at(-1)?.[1], secretResult)
+  const log = rt.recording.calls(from)
+  assert.deepEqual(
+    log.calls.map(({seq: _seq, ...c}) => c),
+    [
+      {answer: {afterSeq: 2}, method: 'keybase.1.device.deviceAdd', paused: false},
+      {answer: {afterSeq: 3, error: 'the read failed'}, method: 'keybase.1.device.deviceHistoryList', paused: false},
+      {method: 'a.after-the-add', paused: false},
+      {answer: {afterSeq: 4}, method: 'keybase.1.device.deviceHistoryList', paused: false},
+    ]
+  )
+  assert.doesNotMatch(JSON.stringify(log), /secret/)
+})
+
+test('a device list read sent while nothing records is left to the engine', () => {
+  const {hook} = runtime(true)
+  assert.equal(hook()?.invoke(passing('keybase.1.device.deviceHistoryList')), false)
+})
+
 test('the call log says which runtime and recording it belongs to, and whether it is recording now', () => {
   const {rt} = runtime()
   const other = runtime().rt

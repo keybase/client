@@ -45,7 +45,7 @@ const ChannelPopup = (props: Props) => {
 
   const onAdd = () => onComplete(selected)
   return (
-    <Kb.Popup intent="dialog" onHidden={onCancel} snapPoints={['90%']}>
+    <Kb.Popup intent="dialog" onHidden={onCancel}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
@@ -71,32 +71,26 @@ const ChannelPopup = (props: Props) => {
           icon="iconfont-search"
         />
       </Kb.Box2>
-      <Kb.BoxGrow>
-        <Kb.List
-          itemHeight={{height: 48, type: 'fixed'}}
-          items={channelsFiltered}
-          keyProperty="conversationIDKey"
-          extraData={selected}
-          renderItem={(_, channel) => {
-            const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
-            const onClick = disabled ? undefined : () => onSelect(channel)
-            return (
-              <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick} direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
-                <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
-                  #{channel.channelname}
-                </Kb.Text>
-                <Kb.CheckCircle
-                  onCheck={onClick}
-                  checked={
-                    disabled || selected.some(c => c.conversationIDKey === channel.conversationIDKey)
-                  }
-                  disabled={disabled}
-                />
-              </Kb.ClickableBox>
-            )
-          }}
-        />
-      </Kb.BoxGrow>
+      {/* the sheet is a scroll view whose content has no fixed height, so the rows go straight in
+          it: a list that grows to fill its box would get no height there */}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {channelsFiltered.map(channel => {
+          const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
+          const onClick = disabled ? undefined : () => onSelect(channel)
+          return (
+            <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick} direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
+              <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
+                #{channel.channelname}
+              </Kb.Text>
+              <Kb.CheckCircle
+                onCheck={onClick}
+                checked={disabled || selected.some(c => c.conversationIDKey === channel.conversationIDKey)}
+                disabled={disabled}
+              />
+            </Kb.ClickableBox>
+          )
+        })}
+      </Kb.Box2>
     </Kb.Popup>
   )
 }

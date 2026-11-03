@@ -10,7 +10,7 @@ const mockKb = {
 }
 
 jest.mock('react-native', () => ({
-  __esModule: true,
+  ...jest.requireActual<object>('react-native'),
   ActionSheetIOS: {},
   PermissionsAndroid: {
     PERMISSIONS: {WRITE_EXTERNAL_STORAGE: 'android.permission.WRITE_EXTERNAL_STORAGE'},
@@ -18,25 +18,19 @@ jest.mock('react-native', () => ({
     request: (...a: Array<unknown>) => mockPerm.request(...a),
   },
 }))
-// jest.config maps every native-only package to one stub file, so a per-package
-// jest.mock would overwrite its siblings; mock that shared file once instead.
-jest.mock('../../test/mocks/native-module.js', () => ({
-  __esModule: true,
+jest.mock('expo-media-library', () => ({
   Asset: {create: (...a: Array<unknown>) => mockMedia.createAsset(...a)},
+  requestPermissionsAsync: (...a: Array<unknown>) => mockMedia.requestPermissionsAsync(...a),
+}))
+jest.mock('expo-file-system', () => ({
   File: class {
     delete() {}
   },
-  addNotificationRequest: (...a: Array<unknown>) => mockKb.addNotificationRequest(...a),
-  androidOpenFile: (...a: Array<unknown>) => mockKb.androidOpenFile(...a),
-  androidSaveToDownloads: (...a: Array<unknown>) => mockKb.androidSaveToDownloads(...a),
-  androidSaveToGallery: (...a: Array<unknown>) => mockKb.androidSaveToGallery(...a),
-  androidShare: jest.fn(),
-  androidShareText: jest.fn(),
-  iosShareFile: jest.fn(),
-  requestPermissionsAsync: (...a: Array<unknown>) => mockMedia.requestPermissionsAsync(...a),
 }))
-jest.mock('@/logger', () => ({__esModule: true, default: {debug: jest.fn(), info: jest.fn(), warn: jest.fn()}}))
+// mockKb is the native module, under react-native-kb's own wrapper
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 jest.mock('@/constants/platform', () => ({
+  ...jest.requireActual<object>('@/constants/platform'),
   get isAndroidPreQ() {
     return mockPlatform.isAndroidPreQ
   },
@@ -57,6 +51,8 @@ beforeEach(() => {
   g.isMobile = true
   g.isAndroid = true
   g.isIOS = false
+  jest.replaceProperty(Platform, 'OS', 'android')
+  fakeNativeKb.give(mockKb)
   mockPerm.request.mockReset().mockResolvedValue('granted')
   mockMedia.requestPermissionsAsync.mockReset().mockResolvedValue({granted: true})
   mockMedia.createAsset.mockReset().mockResolvedValue(undefined)
@@ -67,12 +63,15 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   g.isMobile = false
   g.isAndroid = false
   g.isIOS = false
 })
 
 import * as PlatformSpecific from './index'
+import {Platform} from 'react-native'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 
 test('requestPermissionsToWrite on Android 10+ resolves without prompting', async () => {
   const {requestPermissionsToWrite} = atAndroidSdk(29)

@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import {isWindowOpen} from '@/test/remote-windows'
 import {act, cleanup, render} from '@testing-library/react'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
@@ -10,23 +11,6 @@ import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {flush, tick} from '@/test/flush'
 import PinentryProxy from './remote-proxy.desktop'
-import type * as ReactTypes from 'react'
-
-// Whether the popup window is up: the proxy mounts the window hook only while it shows a prompt
-const mockPopup = {open: false}
-jest.mock('../desktop/remote/use-browser-window.desktop', () => ({
-  __esModule: true,
-  default: function useMockBrowserWindow() {
-    const {useEffect} = jest.requireActual<typeof ReactTypes>('react')
-    useEffect(() => {
-      mockPopup.open = true
-      return () => {
-        mockPopup.open = false
-      }
-    }, [])
-  },
-}))
-jest.mock('../desktop/remote/use-serialize-props.desktop', () => ({__esModule: true, default: () => {}}))
 
 afterEach(() => {
   cleanup()
@@ -70,7 +54,6 @@ test('a passphrase prompt held at logout is answered with input canceled', async
   await expect(stillWaiting(pushed)).resolves.toEqual(canceled)
   uninstallFakeEngine()
 })
-
 
 test('a second passphrase prompt cancels the held one once and stays pending itself', async () => {
   const logError = jest.spyOn(logger, 'error')
@@ -148,7 +131,7 @@ describe('a passphrase prompt the service stops waiting on', () => {
       pushed = fake.push('keybase.1.secretUi.getPassphrase', pinentry, {sessionID: 0})
     })
     await flush()
-    expect(mockPopup.open).toBe(true)
+    expect(isWindowOpen('pinentry')).toBe(true)
     return {fake, pushed, warned}
   }
 
@@ -162,7 +145,7 @@ describe('a passphrase prompt the service stops waiting on', () => {
     act(() => fake.cancelPush('keybase.1.secretUi.getPassphrase'))
     await pushed
     await flush()
-    expect(mockPopup.open).toBe(false)
+    expect(isWindowOpen('pinentry')).toBe(false)
     await submitLate()
     expect(warned).not.toHaveBeenCalledWith(expect.stringContaining('already settled'))
     // The fake records a write to a seqid it is no longer waiting on
@@ -174,7 +157,7 @@ describe('a passphrase prompt the service stops waiting on', () => {
     act(() => fake.drop())
     await pushed
     await flush()
-    expect(mockPopup.open).toBe(false)
+    expect(isWindowOpen('pinentry')).toBe(false)
     await submitLate()
     fake.restart()
     await flush()

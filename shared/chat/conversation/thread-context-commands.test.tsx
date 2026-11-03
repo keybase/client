@@ -3,11 +3,9 @@
 // The thread provider's commands that talk to the service: what each one sends, and what it does
 // to the thread store around the call.
 import * as Meta from '@/constants/chat/meta'
-import * as Router from '@/constants/router'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import RPCError from '@/util/rpcerror'
 import type * as React from 'react'
 import logger from '@/logger'
 import {act, cleanup, fireEvent, renderHook, screen} from '@testing-library/react'
@@ -16,7 +14,11 @@ import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/cons
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock, holdHandlerTimers, paramsOf, threadLoaded} from '@/test/fake-thread-load'
+import {flush, settle} from '@/test/flush'
+import {useWaitingState} from '@/stores/waiting'
+import {navigationWrapper, type InstalledNavigation} from '@/test/navigation'
 import {
   deleteMessage,
   dismissJourneycard,
@@ -27,6 +29,7 @@ import {
   toggleReaction,
 } from './message-commands'
 import {Collapsed} from './messages/attachment/shared'
+import {peekInputIntent} from './input-intent-store'
 import {useConversationAttachmentActions} from './attachment-actions'
 import {useConversationSendActions} from './send-actions'
 import {applyFailedMessageToThread} from './thread-engine'
@@ -39,16 +42,80 @@ import {
 } from './thread-context'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-let rpc: FakeChatRpc
+const convID = T.Chat.keyToConversationID(conversationIDKey)
+let fake: FakeEngine
 const tlfName = 'testuser,testuser2'
+const chatGui = T.RPCGen.TLFIdentifyBehavior.chatGui
 
-const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
-  }
+// The service methods the thread's commands reach
+const M = {
+  cancelPost: 'chat.1.local.CancelPost',
+  dismissJourneycard: 'chat.1.local.dismissJourneycard',
+  downloadAttachment: 'chat.1.local.DownloadFileAttachmentLocal',
+  makeAudioPreview: 'chat.1.local.makeAudioPreview',
+  makeUploadTempFile: 'chat.1.local.makeUploadTempFile',
+  markRead: 'chat.1.local.markAsReadLocal',
+  newConversation: 'chat.1.local.newConversationLocal',
+  pinMessage: 'chat.1.local.pinMessage',
+  postAttachment: 'chat.1.local.postFileAttachmentLocalNonblock',
+  postDelete: 'chat.1.local.postDeleteNonblock',
+  postEdit: 'chat.1.local.postEditNonblock',
+  postReaction: 'chat.1.local.postReactionNonblock',
+  postText: 'chat.1.local.postTextNonblock',
+  resolveUnfurlPrompt: 'chat.1.local.resolveUnfurlPrompt',
+  retryPost: 'chat.1.local.RetryPost',
+  toggleCollapse: 'chat.1.local.toggleMessageCollapse',
+  trackGiphySelect: 'chat.1.local.trackGiphySelect',
+  updateCategory: 'keybase.1.gregor.updateCategory',
+} as const
+const sent = (method: keyof typeof M) => paramsOf(fake, M[method])
+const serviceError = () => fakeError(T.RPCGen.StatusCode.scgeneric, 'nope')
+// Holds every call of the method until the test answers it
+const holdCalls = (method: keyof typeof M) => fake.hold(M[method])
+// Fails every call on a lost link: the engine reports it as a service error
+const dropLink = async () => {
+  fake.drop()
+  await settle()
 }
 
-const deferred = <V,>() => Promise.withResolvers<V>()
+const newConvID = new Uint8Array([9, 9, 9, 9])
+const newKey = T.Chat.conversationIDToKey(newConvID)
+// The new conversation's inbox item, as the service returns it
+const newConvItem = (over?: object) => ({
+  botAliases: {},
+  botCommands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+  channel: '',
+  commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+  convID: newKey,
+  headline: '',
+  headlineDecorated: '',
+  isDefaultConv: false,
+  isEmpty: true,
+  isPublic: false,
+  localVersion: 1,
+  maxMsgID: 0,
+  maxVisibleMsgID: 0,
+  memberStatus: T.RPCChat.ConversationMemberStatus.active,
+  membersType: T.RPCChat.ConversationMembersType.impteamnative,
+  name: tlfName,
+  readMsgID: 0,
+  snippet: '',
+  snippetDecorated: '',
+  snippetDecoration: T.RPCChat.SnippetDecoration.none,
+  status: T.RPCChat.ConversationStatus.unfiled,
+  teamType: T.RPCChat.TeamType.none,
+  time: 0,
+  tlfID: '',
+  topicType: T.RPCChat.TopicType.chat,
+  version: 1,
+  visibility: T.RPCGen.TLFVisibility.private,
+  ...over,
+})
+const created = (uiConv: object = newConvItem(), id = newConvID) => {
+  fake.answer(M.newConversation, () => ({conv: {info: {id}}, uiConv}))
+}
+// meta conversion only takes private conversations, so a public one has no meta
+const noMeta = () => newConvItem({visibility: T.RPCGen.TLFVisibility.public})
 
 const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
   makeMessageText({
@@ -60,8 +127,12 @@ const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
     ...over,
   })
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
+let nav: Omit<InstalledNavigation, 'setRootState' | 'unmount'>
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={conversationIDKey}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
@@ -105,16 +176,38 @@ type Commands = {
 }
 let cmd: Commands
 
+// Each call crosses the wire both ways, and a chained one again
 const run = async (f: () => void) => {
-  await act(async () => {
+  act(() => {
     f()
-    await flushPromises()
   })
+  await flush(8)
 }
 
 beforeEach(() => {
+  const {wrapper, ...recorder} = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'})
+  Nav = wrapper
+  nav = recorder
   useConfigState.setState({loggedIn: true})
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  // the calls that answer nothing
+  for (const m of [
+    M.cancelPost,
+    M.dismissJourneycard,
+    M.markRead,
+    M.pinMessage,
+    M.postDelete,
+    M.postEdit,
+    M.postReaction,
+    M.postText,
+    M.resolveUnfurlPrompt,
+    M.retryPost,
+    M.toggleCollapse,
+    M.trackGiphySelect,
+  ]) {
+    fake.answer(m, () => ({}))
+  }
+  fake.answer(M.updateCategory, () => new Uint8Array())
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'testuser-mac',
@@ -138,7 +231,6 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -148,38 +240,41 @@ describe('retryMessage', () => {
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'failed'})])
     await run(() => result.current.actions.retryMessage(outboxID))
-    expect(rpc.calls('retryPost')).toEqual([[outboxID]])
+    expect(sent('retryPost')).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
   })
 })
 
 describe('messageDelete', () => {
   test('a sent message is marked deleting and deleted by id', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postDelete', async () => pending.promise)
+    const held = holdCalls('postDelete')
     const {message} = renderThread([textAt(10), textAt(11)])
 
     act(() => {
       cmd.messageDelete(T.Chat.numberToOrdinal(10))
     })
     expect(message(10)?.submitState).toBe('deleting')
-    await act(async () => {
-      await flushPromises()
-    })
+    await flush()
     // the thread's own delete sends no clientPrev
-    expect(rpc.params('postDelete')).toEqual([
-      {conversationIDKey, messageID: T.Chat.numberToMessageID(10), outboxID: expect.any(Uint8Array), tlfName},
+    expect(sent('postDelete')).toEqual([
+      {
+        clientPrev: 0,
+        conversationID: convID,
+        identifyBehavior: chatGui,
+        outboxID: expect.any(Uint8Array),
+        supersedes: 10,
+        tlfName,
+        tlfPublic: false,
+      },
     ])
-    await act(async () => {
-      pending.resolve(undefined)
-      await flushPromises()
-    })
+    held[0]!.reply({})
+    await flush()
     // success leaves the row to the service's delete notification
     expect(message(10)?.submitState).toBe('deleting')
   })
 
   test('a sent message with an edit in flight shows deleting too; an unsent one keeps its state', () => {
-    rpc.on('postDelete', async () => deferred<undefined>().promise)
-    rpc.on('cancelPost', async () => deferred<undefined>().promise)
+    holdCalls('postDelete')
+    holdCalls('cancelPost')
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([
       textAt(10, {submitState: 'editing'}),
@@ -200,40 +295,41 @@ describe('messageDelete', () => {
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
-    expect(rpc.calls('postDelete')).toEqual([])
+    expect(sent('cancelPost')).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
+    expect(sent('postDelete')).toEqual([])
     expect(message(10)).toBeUndefined()
   })
 
   test('a message with neither id reverts', async () => {
     const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)})])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('cancelPost')).toEqual([])
+    expect(sent('cancelPost')).toEqual([])
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a service failure reverts the deleting state', async () => {
-    rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.postDelete, serviceError)
     const {message} = renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a failed cancel reverts and keeps the row', async () => {
-    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.cancelPost, serviceError)
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
   })
 
-  test('a non-service failure reverts and is rethrown to ignorePromise', async () => {
-    rpc.fail('postDelete', new Error('bug'))
-    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  // Every failure the engine reports is a service error, a lost link included
+  test('a delete on a lost service link reverts and is logged as a failed delete', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {message} = renderThread([textAt(10)])
+    await dropLink()
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('deleteMessage: failed to delete: '))
   })
 
   test('without meta the delete still posts, with an empty tlfName, and the row shows deleting', async () => {
@@ -242,7 +338,7 @@ describe('messageDelete', () => {
       metasReceived([], [conversationIDKey])
     })
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(sent('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
     expect(message(10)?.submitState).toBe('deleting')
   })
 
@@ -253,7 +349,7 @@ describe('messageDelete', () => {
       metasReceived([], [conversationIDKey])
     })
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
+    expect(sent('cancelPost')).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
     expect(message(10)).toBeUndefined()
   })
 })
@@ -262,8 +358,16 @@ describe('unfurlRemove', () => {
   test('deletes the unfurl message by id', async () => {
     renderThread()
     await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
-    expect(rpc.params('postDelete')).toEqual([
-      {conversationIDKey, messageID: T.Chat.numberToMessageID(33), tlfName},
+    expect(sent('postDelete')).toEqual([
+      {
+        clientPrev: 0,
+        conversationID: convID,
+        identifyBehavior: chatGui,
+        outboxID: null,
+        supersedes: 33,
+        tlfName,
+        tlfPublic: false,
+      },
     ])
   })
 
@@ -273,7 +377,7 @@ describe('unfurlRemove', () => {
       resetAllStores()
     })
     await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
-    expect(rpc.calls('postDelete')).toEqual([])
+    expect(sent('postDelete')).toEqual([])
   })
 })
 
@@ -296,10 +400,12 @@ describe('toggleMessageCollapse', () => {
   const renderCollapsed = (message: T.Chat.MessageAttachment) => {
     const {result} = renderHook(useConversationThreadActions, {
       wrapper: ({children}: {children: React.ReactNode}) => (
-        <ConversationThreadProvider id={conversationIDKey}>
-          {children}
-          <Collapsed isCollapsed={message.isCollapsed} ordinal={message.ordinal} />
-        </ConversationThreadProvider>
+        <Nav>
+          <ConversationThreadProvider id={conversationIDKey}>
+            {children}
+            <Collapsed isCollapsed={message.isCollapsed} ordinal={message.ordinal} />
+          </ConversationThreadProvider>
+        </Nav>
       ),
     })
     act(() => result.current.addMessages([message]))
@@ -308,32 +414,28 @@ describe('toggleMessageCollapse', () => {
   test('a collapsed attachment row toggles its own message by id, not by ordinal', async () => {
     renderCollapsed(sentAttachment())
     await clickCollapsed()
-    expect(rpc.params('toggleCollapse')).toEqual([
-      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(12)},
-    ])
+    expect(sent('toggleCollapse')).toEqual([{collapse: false, convID, msgID: 12}])
   })
 
   test('a row with no id yet toggles nothing', async () => {
     renderCollapsed(sentAttachment({id: T.Chat.numberToMessageID(0)}))
     await clickCollapsed()
-    expect(rpc.calls('toggleCollapse')).toEqual([])
+    expect(sent('toggleCollapse')).toEqual([])
   })
 
   test('a row whose ordinal is not its id reads its own collapsed state', async () => {
     renderThread([sentAttachment()])
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(12), T.Chat.numberToOrdinal(10.001)))
-    expect(rpc.params('toggleCollapse')).toEqual([
-      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(12)},
-    ])
+    expect(sent('toggleCollapse')).toEqual([{collapse: false, convID, msgID: 12}])
   })
 
   test('a message collapses or expands itself', async () => {
     renderThread([textAt(10), textAt(11, {isCollapsed: true})])
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(11), T.Chat.numberToOrdinal(11)))
-    expect(rpc.params('toggleCollapse')).toEqual([
-      {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(10)},
-      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(11)},
+    expect(sent('toggleCollapse')).toEqual([
+      {collapse: true, convID, msgID: 10},
+      {collapse: false, convID, msgID: 11},
     ])
   })
 
@@ -345,9 +447,9 @@ describe('toggleMessageCollapse', () => {
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(40), T.Chat.numberToOrdinal(10)))
     // an unfurl id the message does not carry reads as expanded
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(41), T.Chat.numberToOrdinal(10)))
-    expect(rpc.params('toggleCollapse')).toEqual([
-      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(40)},
-      {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(41)},
+    expect(sent('toggleCollapse')).toEqual([
+      {collapse: false, convID, msgID: 40},
+      {collapse: true, convID, msgID: 41},
     ])
   })
 })
@@ -356,24 +458,26 @@ describe('toggleMessageReaction', () => {
   test('posts with the thread clientPrev, the meta tlfName and the optimistic outbox id', async () => {
     const {result} = renderThread([textAt(10), textAt(12)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(rpc.params('postReaction')).toEqual([
+    expect(sent('postReaction')).toEqual([
       {
-        clientPrev: T.Chat.numberToMessageID(12),
-        conversationIDKey,
-        emoji: ':+1:',
-        messageID: T.Chat.numberToMessageID(10),
+        body: ':+1:',
+        clientPrev: 12,
+        conversationID: convID,
+        identifyBehavior: chatGui,
         outboxID: expect.any(Uint8Array),
+        supersedes: 10,
         tlfName,
+        tlfPublic: false,
       },
     ])
-    const outboxID = rpc.params('postReaction')[0]?.outboxID as Uint8Array
+    const outboxID = sent('postReaction')[0]?.outboxID as Uint8Array
     expect([...result.current.store.getState().optimisticReactionMap.keys()]).toEqual([
       T.Chat.rpcOutboxIDToOutboxID(outboxID),
     ])
   })
 
   test('a failed post drops the optimistic reaction', async () => {
-    rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.postReaction, serviceError)
     const {result} = renderThread([textAt(10)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
@@ -383,76 +487,91 @@ describe('toggleMessageReaction', () => {
     renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)}), textAt(11, {exploded: true})])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(11), ':+1:'))
-    expect(rpc.calls('postReaction')).toEqual([])
+    expect(sent('postReaction')).toEqual([])
   })
 })
 
 describe('messageReplyPrivately', () => {
   test('creates the adhoc conversation and opens it with the quote', async () => {
-    const newConvID = new Uint8Array([9, 9, 9, 9])
-    const newKey = T.Chat.conversationIDToKey(newConvID)
-    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
-    jest
-      .spyOn(Meta, 'inboxUIItemToConversationMeta')
-      .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey, tlfname: tlfName})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const held = fake.hold(M.newConversation)
     renderThread([textAt(10)])
 
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    expect(useWaitingState.getState().counts.get(Strings.waitingKeyChatCreating)).toBe(1)
+    held[0]!.reply({conv: {info: {id: newConvID}}, uiConv: newConvItem()})
+    await flush(8)
 
-    expect(rpc.calls('createAdhocConversation')).toEqual([
-      [['testuser', 'testuser2'], Strings.waitingKeyChatCreating],
-    ])
+    expect(sent('newConversation')).toEqual([expect.objectContaining({tlfName})])
     expect(getInboxConversationMeta(newKey)).toBeDefined()
-    expect(navigate).toHaveBeenCalledWith(newKey, 'createdMessagePrivately', {
-      intent: {text: '> message 10\n', type: 'injectText'},
-    })
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: newKey}})
+    expect(peekInputIntent(newKey, ['injectText'])).toEqual({text: '> message 10\n', type: 'injectText'})
   })
 
   test('a missing message creates nothing', async () => {
     renderThread()
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('createAdhocConversation')).toEqual([])
+    expect(fake.calls).toEqual([])
   })
 })
 
 describe('setMarkAsUnread', () => {
-  const markReads = () => rpc.params('markRead')
+  const markReads = () => sent('markRead')
+  // the messages the service streams back for a centered load around the line
+  const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
 
   test('a loaded thread marks unread from the newest message below the line', async () => {
     const {result} = renderThread([textAt(10), textAt(15), textAt(20)])
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
-    expect(rpc.calls('loadThread')).toEqual([])
-    expect(markReads()).toEqual([
-      {conversationIDKey, forceUnread: true, msgID: T.Chat.numberToMessageID(15)},
-    ])
+    expect(paramsOf(fake, getThreadNonblock)).toEqual([])
+    expect(markReads()).toEqual([{conversationID: convID, forceUnread: true, msgID: 15}])
   })
 
   test('no read position uses the meta line', async () => {
     const {result} = renderThread([textAt(10), textAt(15), textAt(20)])
     await run(() => result.current.actions.setMarkAsUnread())
-    expect(markReads()).toEqual([expect.objectContaining({msgID: T.Chat.numberToMessageID(15)})])
+    expect(markReads()).toEqual([expect.objectContaining({msgID: 15})])
   })
 
+  // the service streams the cached pass, then answers once that has been handed to its handler
   test('an empty thread asks the service for the messages around the line', async () => {
-    rpc.on('loadThread', async p => {
-      const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
-      p.onCachedThread?.(JSON.stringify({messages: [valid(20), valid(18)]}))
-      await Promise.resolve()
-      return {offline: false}
+    answerThreadLoads(fake, async l => {
+      await l.cached(JSON.stringify({messages: [valid(20), valid(18)]}))
+      await new Promise(resolve => setTimeout(resolve, 0))
     })
     const {result} = renderThread()
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
-    expect(rpc.params('loadThread')[0]?.messageIDControl).toEqual({
+    await act(settle)
+    await flush(8)
+    expect(paramsOf(fake, getThreadNonblock)[0]?.query.messageIDControl).toEqual({
       mode: T.RPCChat.MessageIDControlMode.centered,
       num: 3,
-      pivot: T.Chat.numberToMessageID(20),
+      pivot: 20,
     })
-    expect(markReads()).toEqual([expect.objectContaining({msgID: T.Chat.numberToMessageID(18)})])
+    expect(markReads()).toEqual([expect.objectContaining({msgID: 18})])
+  })
+
+  // BUG: loadConversationMessageIDs (data-hooks) reads the ids the passes streamed as soon as the
+  // load resolves. The listener hands each pass to its handler on a 0ms timer after the session
+  // acked it, and the service answers once the ack reaches it, so a service that answers at once
+  // resolves the load before the pass is read: no message below the line is known, and nothing is
+  // marked.
+  test.failing('an empty thread marks unread around the line when the service answers at once', async () => {
+    answerThreadLoads(fake, async l => {
+      const timers = holdHandlerTimers()
+      await l.cached(JSON.stringify({messages: [valid(20), valid(18)]}))
+      return timers.replyFirst(threadLoaded)
+    })
+    const {result} = renderThread()
+    act(() => {
+      result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20))
+    })
+    await flush(10)
+    expect(paramsOf(fake, getThreadNonblock)).toHaveLength(1)
+    expect(markReads()).toEqual([expect.objectContaining({msgID: 18})])
   })
 
   test('an empty thread whose load fails marks nothing', async () => {
-    rpc.fail('loadThread', new Error('offline'))
+    answerThreadLoads(fake, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     const {result} = renderThread()
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
     expect(markReads()).toEqual([])
@@ -470,11 +589,13 @@ describe('setExplodingMode', () => {
   test('a local change is persisted to gregor, an incoming one is not', async () => {
     const {result} = renderThread()
     await run(() => result.current.actions.setExplodingMode(60, true))
-    expect(rpc.calls('setExplodingMode')).toEqual([])
+    expect(sent('updateCategory')).toEqual([])
     expect(result.current.store.getState().explodingMode).toBe(60)
 
     await run(() => result.current.actions.setExplodingMode(300))
-    expect(rpc.calls('setExplodingMode')).toEqual([[conversationIDKey, 300]])
+    expect(sent('updateCategory')).toEqual([
+      {body: '300', category: `exploding:${conversationIDKey}`, dtime: {offset: 0, time: 0}},
+    ])
     expect(result.current.store.getState().explodingMode).toBe(300)
   })
 })
@@ -483,12 +604,12 @@ describe('journeycards and unfurl prompts', () => {
   test('dismissing a journeycard tells the service and drops the row', async () => {
     const {message} = renderThread([textAt(10)])
     await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('dismissJourneycard')).toEqual([[conversationIDKey, T.RPCChat.JourneycardType.welcome]])
+    expect(sent('dismissJourneycard')).toEqual([{cardType: T.RPCChat.JourneycardType.welcome, convID}])
     expect(message(10)).toBeUndefined()
   })
 
   test('the row goes even when the service refuses', async () => {
-    rpc.fail('dismissJourneycard', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.dismissJourneycard, serviceError)
     jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {message} = renderThread([textAt(10)])
     await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
@@ -504,7 +625,9 @@ describe('journeycards and unfurl prompts', () => {
     const answer = {actionType: T.RPCChat.UnfurlPromptAction.always} as T.RPCChat.UnfurlPromptResult
     await run(() => result.current.resolveUnfurlPrompt(messageID, 'a.com', answer))
     expect(result.current.store.getState().unfurlPrompt.get(messageID)?.has('a.com')).toBe(false)
-    expect(rpc.params('resolveUnfurlPrompt')).toEqual([{conversationIDKey, messageID, result: answer}])
+    expect(sent('resolveUnfurlPrompt')).toEqual([
+      {convID, identifyBehavior: chatGui, msgID: 50, result: {actionType: T.RPCChat.UnfurlPromptAction.always}},
+    ])
   })
 })
 
@@ -516,7 +639,7 @@ test('an attachment on the thread is no different for delete', async () => {
   })
   renderThread([attachment])
   await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-  expect(rpc.params('postDelete')).toEqual([expect.objectContaining({messageID: T.Chat.numberToMessageID(10)})])
+  expect(sent('postDelete')).toEqual([expect.objectContaining({supersedes: 10})])
 })
 
 describe('messageDelete edges', () => {
@@ -524,13 +647,12 @@ describe('messageDelete edges', () => {
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
-    expect(rpc.log).toEqual([])
+    expect(fake.calls).toEqual([])
     expect(warn).toHaveBeenCalledWith('deleteMessage: message not in the thread')
   })
 
   test('an attachment row shows deleting, like a text row', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postDelete', async () => pending.promise)
+    const held = holdCalls('postDelete')
     const attachment = makeMessageAttachment({
       conversationIDKey,
       id: T.Chat.numberToMessageID(10),
@@ -538,17 +660,14 @@ describe('messageDelete edges', () => {
     })
     const {message} = renderThread([attachment])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('postDelete')).toHaveLength(1)
+    expect(sent('postDelete')).toHaveLength(1)
     expect(message(10)?.submitState).toBe('deleting')
-    await act(async () => {
-      pending.resolve(undefined)
-      await flushPromises()
-    })
+    held[0]!.reply({})
+    await flush()
   })
 
   test('a failed attachment delete reverts its deleting state', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postDelete', async () => pending.promise)
+    const held = holdCalls('postDelete')
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const attachment = makeMessageAttachment({
       conversationIDKey,
@@ -558,15 +677,13 @@ describe('messageDelete edges', () => {
     const {message} = renderThread([attachment])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBe('deleting')
-    await act(async () => {
-      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-      await flushPromises()
-    })
+    held[0]!.reply(serviceError())
+    await flush()
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a failed upload whose cancel fails is failed again, not sent', async () => {
-    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.cancelPost, serviceError)
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const attachment = makeMessageAttachment({
@@ -578,12 +695,12 @@ describe('messageDelete edges', () => {
     })
     const {message} = renderThread([attachment])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
+    expect(sent('cancelPost')).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
     expect(message(10)?.submitState).toBe('failed')
   })
 
   test('a pending text whose cancel fails is pending again', async () => {
-    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.cancelPost, serviceError)
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([
@@ -601,7 +718,7 @@ describe('messageDelete edges', () => {
   })
 
   test('a service failure is logged as a warning', async () => {
-    rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.postDelete, serviceError)
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error')
     renderThread([textAt(10)])
@@ -611,8 +728,7 @@ describe('messageDelete edges', () => {
   })
 
   test('a server update to the row while its delete is in flight keeps it deleting', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postDelete', async () => pending.promise)
+    const held = holdCalls('postDelete')
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {message, result} = renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
@@ -622,25 +738,20 @@ describe('messageDelete edges', () => {
     const updated = message(10)
     expect(updated?.submitState).toBe('deleting')
     expect(updated?.type === 'text' && updated.text.stringValue()).toBe('unfurled')
-    await act(async () => {
-      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-      await flushPromises()
-    })
+    held[0]!.reply(serviceError())
+    await flush()
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a failed delete undoes only its own mark: a second delete of the row still pending keeps it deleting', async () => {
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const second = deferred<undefined>()
-    rpc.once('postDelete', () => undefined)
-    rpc.once('postDelete', async () => second.promise)
+    const held = holdCalls('postDelete')
     const {message} = renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    await act(async () => {
-      second.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-      await flushPromises()
-    })
+    held[0]!.reply({})
+    held[1]!.reply(serviceError())
+    await flush()
     expect(message(10)?.submitState).toBe('deleting')
   })
 
@@ -648,7 +759,7 @@ describe('messageDelete edges', () => {
     const {message, result} = renderThread([textAt(10), textAt(11)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBe('deleting')
-    const deleteOutboxID = rpc.params('postDelete')[0]?.outboxID
+    const deleteOutboxID = sent('postDelete')[0]?.outboxID as Uint8Array
     act(() => {
       applyFailedMessageToThread(
         conversationIDKey,
@@ -767,8 +878,7 @@ describe('messageDelete edges', () => {
   test.each(['pending', 'failed'] as const)(
     'an unsent %s upload keeps its state until the cancel lands',
     async submitState => {
-      const pending = deferred<undefined>()
-      rpc.on('cancelPost', async () => pending.promise)
+      const held = holdCalls('cancelPost')
       const outboxID = T.Chat.stringToOutboxID('0a0b')
       const {message} = renderThread([
         makeMessageAttachment({
@@ -781,17 +891,15 @@ describe('messageDelete edges', () => {
       ])
       await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
       expect(message(10)?.submitState).toBe(submitState)
-      await act(async () => {
-        pending.resolve(undefined)
-        await flushPromises()
-      })
+      held[0]!.reply({})
+      await flush()
       expect(message(10)).toBeUndefined()
     }
   )
 
   test('only a sent row shows deleting', async () => {
-    rpc.on('cancelPost', async () => new Promise<undefined>(() => {}))
-    rpc.on('postDelete', async () => new Promise<undefined>(() => {}))
+    holdCalls('cancelPost')
+    holdCalls('postDelete')
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([
       textAt(10, {id: T.Chat.numberToMessageID(0), outboxID}),
@@ -812,7 +920,7 @@ describe('messageDelete edges', () => {
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, tlfname: ''}], undefined, {force: true})
     renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(sent('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
   })
 })
 
@@ -841,7 +949,7 @@ describe('toggleMessageReaction edges', () => {
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     const [reaction] = [...result.current.store.getState().optimisticReactionMap.values()]
     expect(reaction?.add).toBe(false)
-    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({emoji: ':+1:'})])
+    expect(sent('postReaction')).toEqual([expect.objectContaining({body: ':+1:'})])
   })
 
   test('someone else reacting with it is still an add', async () => {
@@ -852,8 +960,7 @@ describe('toggleMessageReaction edges', () => {
   })
 
   test('a second toggle while the first is pending reads the optimistic state', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postReaction', async () => pending.promise)
+    const held = holdCalls('postReaction')
     const {result} = renderThread([textAt(10)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
@@ -861,20 +968,16 @@ describe('toggleMessageReaction edges', () => {
       true,
       false,
     ])
-    const [first, second] = rpc.params('postReaction')
+    const [first, second] = sent('postReaction')
     expect(first?.outboxID).not.toEqual(second?.outboxID)
-    await act(async () => {
-      pending.resolve(undefined)
-      await flushPromises()
-    })
+    held.forEach(h => h.reply({}))
+    await flush()
   })
 
   test('the clientPrev skips trailing unsent messages', async () => {
     renderThread([textAt(10), textAt(12), textAt(13, {id: T.Chat.numberToMessageID(0)})])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(rpc.params('postReaction')).toEqual([
-      expect.objectContaining({clientPrev: T.Chat.numberToMessageID(12)}),
-    ])
+    expect(sent('postReaction')).toEqual([expect.objectContaining({clientPrev: 12})])
   })
 
   test('nothing happens for an empty emoji, a missing message or no user', async () => {
@@ -891,22 +994,25 @@ describe('toggleMessageReaction edges', () => {
       })
     })
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(rpc.calls('postReaction')).toEqual([])
+    expect(sent('postReaction')).toEqual([])
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
   })
 
-  test('a non-service failure also drops the reaction and is logged as an error', async () => {
-    const bug = new Error('bug')
-    rpc.fail('postReaction', bug)
+  // Every failure the engine reports is a service error, a lost link included, so the error-level
+  // branch is for a bug in the app's own code and the service cannot reach it
+  test('a lost service link also drops the reaction and is logged as info', async () => {
+    const info = jest.spyOn(logger, 'info')
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {result} = renderThread([textAt(10)])
+    await dropLink()
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
-    expect(error).toHaveBeenCalledWith('toggleReaction: failed to post', bug)
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('toggleReaction: failed to post'))
+    expect(error).not.toHaveBeenCalled()
   })
 
   test('a service failure is logged as info', async () => {
-    rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(M.postReaction, serviceError)
     const info = jest.spyOn(logger, 'info')
     renderThread([textAt(10)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
@@ -920,21 +1026,14 @@ describe('toggleMessageReaction edges', () => {
       useInboxMetadataState.setState({metas: new Map()})
     })
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(sent('postReaction')).toEqual([expect.objectContaining({tlfName: ''})])
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(1)
   })
 })
 
 describe('messageReplyPrivately edges', () => {
-  const newConvID = new Uint8Array([9, 9, 9, 9])
-  const newKey = T.Chat.conversationIDToKey(newConvID)
-
   test('a non-text message makes the conversation but does not open it', async () => {
-    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
-    jest
-      .spyOn(Meta, 'inboxUIItemToConversationMeta')
-      .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    created()
     const attachment = makeMessageAttachment({
       author: 'testuser2',
       conversationIDKey,
@@ -943,29 +1042,26 @@ describe('messageReplyPrivately edges', () => {
     })
     renderThread([attachment])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('createAdhocConversation')).toHaveLength(1)
-    expect(navigate).not.toHaveBeenCalled()
+    expect(sent('newConversation')).toHaveLength(1)
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(getInboxConversationMeta(newKey)).toBeUndefined()
   })
 
   test('no meta for the new conversation, no navigation', async () => {
-    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
-    jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
+    created(noMeta())
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(navigate).not.toHaveBeenCalled()
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(warn).toHaveBeenCalledWith('replyPrivately: unable to make meta')
   })
 
   test('an empty conversation id, no navigation', async () => {
-    rpc.on('createAdhocConversation', () => ({conv: {info: {id: new Uint8Array()}}, uiConv: {}}) as never)
+    created(newConvItem(), new Uint8Array())
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(navigate).not.toHaveBeenCalled()
+    expect(nav.visibleScreen()).toMatchObject({name: 'chatRoot', params: {conversationIDKey}})
     expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 
@@ -976,7 +1072,7 @@ describe('messageReplyPrivately edges', () => {
       useCurrentUserState.getState().dispatch.setBootstrap({deviceID: '', deviceName: '', uid: '', username: ''})
     })
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('createAdhocConversation')).toEqual([])
+    expect(fake.calls).toEqual([])
   })
 })
 
@@ -984,61 +1080,65 @@ describe('collapse and unfurl edges', () => {
   test('a message missing from the thread reads as expanded', async () => {
     renderThread()
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
-    expect(rpc.params('toggleCollapse')).toEqual([
-      {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(10)},
-    ])
+    expect(sent('toggleCollapse')).toEqual([{collapse: true, convID, msgID: 10}])
   })
 
-  test('a service refusal of a collapse is logged; any other failure goes to ignorePromise', async () => {
-    rpc.failOnce('toggleCollapse', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-    rpc.failOnce('toggleCollapse', new Error('bug'))
+  // Every failure the engine reports is a service error, a lost link included, so the
+  // ignorePromise branch is for a bug in the app's own code and the service cannot reach it
+  test('a service refusal of a collapse, or a lost link, is logged as a failed toggle', async () => {
+    fake.answer(M.toggleCollapse, serviceError)
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('toggleCollapse: failed to toggle collapse: '))
-    expect(error).not.toHaveBeenCalled()
+    await dropLink()
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
-    expect(error).toHaveBeenCalledWith('ignorePromise error', new Error('bug'))
+    expect(warn.mock.calls.filter(c => String(c[0]).startsWith('toggleCollapse'))).toEqual([
+      [expect.stringContaining('toggleCollapse: failed to toggle collapse: ')],
+      [expect.stringContaining('toggleCollapse: failed to toggle collapse: ')],
+    ])
+    expect(error).not.toHaveBeenCalled()
   })
 
-  test('a service refusal of an unfurl remove is logged; any other failure goes to ignorePromise', async () => {
-    rpc.failOnce('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-    rpc.failOnce('postDelete', new Error('bug'))
+  test('a service refusal of an unfurl remove, or a lost link, is logged as a failed remove', async () => {
+    fake.answer(M.postDelete, serviceError)
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderThread()
     await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('removeUnfurl: failed to remove unfurl: '))
-    expect(error).not.toHaveBeenCalled()
+    await dropLink()
     await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
-    expect(error).toHaveBeenCalledWith('ignorePromise error', new Error('bug'))
+    expect(warn.mock.calls.filter(c => String(c[0]).startsWith('removeUnfurl'))).toEqual([
+      [expect.stringContaining('removeUnfurl: failed to remove unfurl: ')],
+      [expect.stringContaining('removeUnfurl: failed to remove unfurl: ')],
+    ])
+    expect(error).not.toHaveBeenCalled()
   })
 })
 
 describe('dismissJourneycard edges', () => {
   test('the row stays until the service answers', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('dismissJourneycard', async () => pending.promise)
+    const held = holdCalls('dismissJourneycard')
     const {message} = renderThread([textAt(10)])
     await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
     expect(message(10)).toBeDefined()
-    await act(async () => {
-      pending.resolve(undefined)
-      await flushPromises()
-    })
+    held[0]!.reply({})
+    await flush()
     expect(message(10)).toBeUndefined()
   })
 
-  test('a service refusal is logged; any other failure is swallowed; the row goes either way', async () => {
+  // Every failure the engine reports is a service error, a lost link included
+  test('a service refusal and a lost link are both logged; the row goes either way', async () => {
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    rpc.failOnce('dismissJourneycard', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-    rpc.failOnce('dismissJourneycard', new Error('bug'))
+    fake.answer(M.dismissJourneycard, serviceError)
     const {message} = renderThread([textAt(10), textAt(11)])
     await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
+    await dropLink()
     await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(11)))
-    expect(error).toHaveBeenCalledTimes(1)
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to dismiss journeycard: '))
+    expect(error.mock.calls).toEqual([
+      [expect.stringContaining('Failed to dismiss journeycard: ')],
+      [expect.stringContaining('Failed to dismiss journeycard: ')],
+    ])
     expect(message(10)).toBeUndefined()
     expect(message(11)).toBeUndefined()
   })
@@ -1074,21 +1174,7 @@ describe('a screen kept through an account switch, before the provider rebuilds 
     })
     return rendered.result.current
   }
-  const sent = () =>
-    (
-      [
-        'downloadAttachment',
-        'makeAudioPreview',
-        'makeUploadTempFile',
-        'pinMessage',
-        'postAttachment',
-        'postDelete',
-        'postEdit',
-        'postText',
-        'resolveUnfurlPrompt',
-        'trackGiphySelect',
-      ] as const
-    ).flatMap(method => rpc.calls(method).map(() => method))
+  const asked = () => fake.calls.map(c => c.method)
 
   test('its commands, sends and attachment actions ask the service nothing', async () => {
     const screen = renderScreen()
@@ -1108,22 +1194,21 @@ describe('a screen kept through an account switch, before the provider rebuilds 
       // the thread's rpc never answers once it has retired, so nothing awaits this
       void screen.send.sendAudioRecording('/tmp/a.m4a', 1000, [1])
     })
-    expect(sent()).toEqual([])
+    expect(asked()).toEqual([])
   })
 
   test('before the switch its paste uploads the image', async () => {
+    fake.hold(M.makeUploadTempFile)
     const screen = renderScreen()
     await run(() => {
       screen.attachments.pasteAttachment(new Uint8Array([1]))
     })
-    expect(sent()).toEqual(['makeUploadTempFile'])
+    expect(asked()).toEqual([M.makeUploadTempFile])
   })
 
   test('a giphy or audio send that was waiting on the service when the account left posts nothing', async () => {
-    const tracked = deferred<undefined>()
-    const preview = deferred<T.RPCChat.MakePreviewRes>()
-    rpc.on('trackGiphySelect', async () => tracked.promise)
-    rpc.on('makeAudioPreview', async () => preview.promise)
+    const tracked = fake.hold(M.trackGiphySelect)
+    const preview = fake.hold(M.makeAudioPreview)
     const screen = renderScreen()
     let audio: Promise<void> | undefined
     await run(() => {
@@ -1131,13 +1216,13 @@ describe('a screen kept through an account switch, before the provider rebuilds 
       audio = screen.send.sendAudioRecording('/tmp/a.m4a', 1000, [1])
     })
     nextAccount()
+    tracked[0]!.reply({})
+    preview[0]!.reply({filename: 'preview.png', mimeType: 'image/png', previewMimeType: 'image/png'})
     await act(async () => {
-      tracked.resolve(undefined)
-      preview.resolve({} as T.RPCChat.MakePreviewRes)
       await audio
-      await flushPromises()
     })
-    expect(rpc.calls('postText')).toEqual([])
-    expect(rpc.calls('postAttachment')).toEqual([])
+    await flush(8)
+    expect(sent('postText')).toEqual([])
+    expect(sent('postAttachment')).toEqual([])
   })
 })

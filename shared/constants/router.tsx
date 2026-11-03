@@ -83,6 +83,9 @@ export const getVisiblePath = (includeModals?: boolean) => NavTree.visiblePath(g
 
 export const getModalStack = () => NavTree.modalStack(getRootState())
 
+export const isModalUp = (name: RouteKeys, params?: Readonly<Record<string, unknown>>) =>
+  NavTree.isModalUp(getRootState(), name, params)
+
 export const getVisibleScreen = (includeModals?: boolean) =>
   NavTree.visibleScreen(getRootState(), {includeModals})
 
@@ -105,15 +108,21 @@ export const useSafeFocusEffect = (fn: React.EffectCallback) => {
       return undefined
     }
     let cleanup: ReturnType<React.EffectCallback>
+    // The library also emits 'focus' for a screen that mounted focused; as its own useFocusEffect
+    // does, a focus while already focused runs nothing.
+    let focused = false
     const runCleanup = () => {
+      focused = false
       if (typeof cleanup === 'function') {
         cleanup()
       }
       cleanup = undefined
     }
     const runEffect = () => {
+      if (focused) return
       runCleanup()
       cleanup = fn()
+      focused = true
     }
     if (navigation.isFocused()) {
       runEffect()
@@ -160,8 +169,8 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
-// Free-function facade over the default Navigator. Every call site in the app goes
-// through these; the adapter underneath is what tests swap.
+// Free-function facade over the Navigator. Every call site in the app goes through these; tests run
+// them on the real library (test/navigation.tsx).
 export const clearModals = () => {
   getNavigator().clearModals()
 }

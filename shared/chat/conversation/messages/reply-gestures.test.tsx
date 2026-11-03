@@ -9,6 +9,7 @@ import type * as InboxMetadata from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {Props as SwipeableProps} from '@/common-adapters/swipeable-row.shared'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {ConversationThreadProvider} from '../thread-context'
 import {MessageContext} from './ids-context'
@@ -50,15 +51,23 @@ const setCannotWrite = (cannotWrite: boolean) => {
   })
 }
 
-const Row = (p: React.PropsWithChildren) => (
-  <ConversationThreadProvider id={convID}>
-    <ConversationInputProvider id={convID}>
-      <MessageContext value={{isHighlighted: false, ordinal}}>{p.children}</MessageContext>
-    </ConversationInputProvider>
-  </ConversationThreadProvider>
-)
-
 const g = globalThis as unknown as {isMobile: boolean}
+
+// a thread row, rendered in the conversation screen of the layout the test runs as
+const renderRow = (children: React.ReactNode) => {
+  const {wrapper: Nav} = g.isMobile
+    ? navigationWrapper({layout: 'phone', params: {conversationIDKey: convID}, route: 'chatConversation'})
+    : navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'})
+  return render(
+    <Nav>
+      <ConversationThreadProvider id={convID}>
+        <ConversationInputProvider id={convID}>
+          <MessageContext value={{isHighlighted: false, ordinal}}>{children}</MessageContext>
+        </ConversationInputProvider>
+      </ConversationThreadProvider>
+    </Nav>
+  )
+}
 const wasMobile = g.isMobile
 
 // the thread provider builds a thread only for a signed-in account
@@ -82,11 +91,7 @@ afterEach(() => {
 
 describe('the hover Reply', () => {
   const hasReply = () => {
-    const {container} = render(
-      <Row>
-        <EmojiRow hasUnfurls={false} messageType="text" />
-      </Row>
-    )
+    const {container} = renderRow(<EmojiRow hasUnfurls={false} messageType="text" />)
     return !!container.querySelector('.icon-gen-iconfont-reply')
   }
 
@@ -104,11 +109,7 @@ describe('the hover Reply', () => {
 describe('swipe-to-reply', () => {
   const swipeEnabled = () => {
     g.isMobile = true
-    render(
-      <Row>
-        <LongPressable>{null}</LongPressable>
-      </Row>
-    )
+    renderRow(<LongPressable>{null}</LongPressable>)
     return mockSwipeable?.enabled !== false
   }
 
@@ -130,12 +131,8 @@ test('rows read whether they can reply from the thread, not from the inbox store
   setCannotWrite(false)
   const inboxReadsFor = (rows: number) => {
     mockInboxReads = 0
-    const {unmount} = render(
-      <Row>
-        {Array.from({length: rows}, (_, i) => (
-          <LongPressable key={i}>{null}</LongPressable>
-        ))}
-      </Row>
+    const {unmount} = renderRow(
+      Array.from({length: rows}, (_, i) => <LongPressable key={i}>{null}</LongPressable>)
     )
     const count = mockInboxReads
     unmount()

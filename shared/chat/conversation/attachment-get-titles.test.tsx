@@ -1,28 +1,28 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as C from '@/constants'
-import * as MediaProcess from '@/util/media-process'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {settle} from '@/test/flush'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import type * as ReactTypes from 'react'
 import type {VideoEdit} from '@/util/media-process'
-import {processMedia} from 'react-native-kb'
+import type {processMedia} from 'react-native-kb'
+import {Platform} from 'react-native'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 import AttachmentGetTitles, {pathToAttachmentType} from './attachment-get-titles'
 import {peekInputIntent} from './input-intent-store'
 
-// Native-only packages resolve to this one stub through jest.config's
-// moduleNameMapper, so it carries the export and the file deletes the real
-// processPaths makes.
-jest.mock('@/test/mocks/native-module', () => {
+// File IO is native: this one records the deletes the real processPaths makes.
+jest.mock('expo-file-system', () => {
   const deleted: Array<string> = []
   return {
-    ...jest.requireActual<object>('@/test/mocks/native-module'),
     File: class {
       private readonly path: string
       constructor(path: string) {
@@ -33,9 +33,9 @@ jest.mock('@/test/mocks/native-module', () => {
       }
     },
     deleted,
-    processMedia: jest.fn(),
   }
 })
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 
 // A clip whose name says so comes in trimmed, as if the user had dragged the handles.
 jest.mock('./attachment-trim', () => {
@@ -55,8 +55,43 @@ jest.mock('./attachment-trim', () => {
   return {__esModule: true, default: MockTrim}
 })
 
-const processMediaMock = processMedia as jest.MockedFunction<typeof processMedia>
-const {deleted} = jest.requireMock<{deleted: Array<string>}>('@/test/mocks/native-module')
+// the native processMedia, under react-native-kb's own wrapper, which runs it on iOS alone
+const processMediaMock: jest.MockedFunction<typeof processMedia> = jest.fn()
+const {deleted} = jest.requireMock<{deleted: Array<string>}>('expo-file-system')
+
+const getPreference = 'keybase.1.incomingShare.getPreference'
+const postAttachment = 'chat.1.local.postFileAttachmentLocalNonblock'
+const cancelUploadTempFile = 'chat.1.local.cancelUploadTempFile'
+let fake: FakeEngine
+// the service, with the user's share compression preference
+const serve = (compressPreference: T.RPCGen.IncomingShareCompressPreference) => {
+  fake = installFakeEngine()
+  fake.answer(getPreference, () => ({compressPreference}))
+  fake.answer(postAttachment, () => ({outboxID: new Uint8Array([1])}))
+  fake.answer(cancelUploadTempFile, () => null)
+  // the screen fetches a conversation meta the store does not hold whole; the service has none
+  fake.answer('chat.1.local.getInboxAndUnboxUILocal', () => ({conversations: null}))
+}
+// Long enough for a call to cross to the service and its answer back, a few in a row
+const serviceTurns = async () => {
+  for (let i = 0; i < 4; i++) {
+    await settle()
+  }
+}
+// each upload as the service received it
+const posted = () =>
+  paramsOf(fake, postAttachment).map(p => p.arg as {conversationID: Uint8Array; filename: string; title: string; tlfName: string})
+const cancelled = () => paramsOf(fake, cancelUploadTempFile).map(p => p.outboxID as Uint8Array)
+
+beforeEach(() => {
+  processMediaMock.mockReset()
+  deleted.length = 0
+  fakeNativeKb.give({processMedia: processMediaMock})
+  jest.replaceProperty(Platform, 'OS', 'ios')
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+})
 
 describe('pathToAttachmentType', () => {
   test('common image extensions preview as images, case insensitively', () => {
@@ -84,17 +119,13 @@ describe('pathToAttachmentType', () => {
 
 describe('Send on iOS', () => {
   const g = globalThis as unknown as {isIOS: boolean}
-  let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
   beforeEach(() => {
     // the export runs on iOS; the desktop layout renders under jsdom
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+    serve(T.RPCGen.IncomingShareCompressPreference.compressed)
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
@@ -102,13 +133,12 @@ describe('Send on iOS', () => {
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
 
   test('a Send pressed after an account switch, on a screen the switch left up, exports and uploads nothing', async () => {
-    jest.spyOn(MediaProcess, 'processPaths').mockResolvedValue([{path: '/tmp/clip-small.mp4'}])
+    processMediaMock.mockResolvedValue('file:///tmp/clip-small.mp4')
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -123,16 +153,16 @@ describe('Send on iOS', () => {
     })
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    expect(MediaProcess.processPaths).not.toHaveBeenCalled()
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(processMediaMock).not.toHaveBeenCalled()
+    expect(posted()).toEqual([])
     expect(C.Router2.clearModals).not.toHaveBeenCalled()
   })
 
   test('an export that finishes after an account switch uploads nothing and leaves navigation alone', async () => {
-    const exported = Promise.withResolvers<Array<MediaProcess.ProcessResult>>()
-    jest.spyOn(MediaProcess, 'processPaths').mockReturnValue(exported.promise)
+    const exported = Promise.withResolvers<string>()
+    processMediaMock.mockReturnValue(exported.promise)
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -142,19 +172,19 @@ describe('Send on iOS', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    expect(MediaProcess.processPaths).toHaveBeenCalled()
+    expect(processMediaMock).toHaveBeenCalled()
     act(() => {
       useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
       useConfigState.getState().dispatch.setUserSwitching(false)
       useConfigState.getState().dispatch.setLoggedIn(true)
     })
     await act(async () => {
-      exported.resolve([{path: '/tmp/clip-small.mp4'} as MediaProcess.ProcessResult])
-      await new Promise(resolve => setTimeout(resolve, 0))
+      exported.resolve('file:///tmp/clip-small.mp4')
+      await serviceTurns()
     })
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(C.Router2.clearModals).not.toHaveBeenCalled()
   })
 
@@ -166,11 +196,11 @@ describe('Send on iOS', () => {
   test('a failed export stops the Send spinner, shows the error, and Send retries while Send original stays offered', async () => {
     const failure = 'Image processing failed: Failed to create JPEG data'
     const converted = '/tmp/AV1 Image File Format.converted.jpg'
-    jest
-      .spyOn(MediaProcess, 'processPaths')
-      .mockResolvedValueOnce([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
-      .mockResolvedValueOnce([{error: failure, path: '/tmp/AV1 Image File Format.avif'}])
-      .mockResolvedValueOnce([{path: converted}])
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    processMediaMock
+      .mockRejectedValueOnce(new Error(failure))
+      .mockRejectedValueOnce(new Error(failure))
+      .mockResolvedValueOnce(`file://${converted}`)
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -180,32 +210,37 @@ describe('Send on iOS', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     expect(screen.getByText(failure)).toBeTruthy()
     expect(screen.getByText('Send original')).toBeTruthy()
     expect(isWaitingOrDisabled('Send')).toBe(false)
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
 
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    expect(MediaProcess.processPaths).toHaveBeenCalledTimes(2)
+    expect(processMediaMock).toHaveBeenCalledTimes(2)
 
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     // as Keep full size would: the avif goes out as a JPEG, never as is
-    expect(MediaProcess.processPaths).toHaveBeenLastCalledWith(
-      [{path: '/tmp/AV1 Image File Format.avif'}],
-      {compress: false, stripLocation: true},
-      expect.any(Function)
+    // path, isVideo, compress, trim start and end, removeAudio, stripLocation
+    expect(processMediaMock).toHaveBeenLastCalledWith(
+      '/tmp/AV1 Image File Format.avif',
+      false,
+      false,
+      0,
+      0,
+      false,
+      true
     )
-    const params = rpc.params('postAttachment')
+    const params = posted()
     expect(params).toHaveLength(1)
-    expect(params[0]).toMatchObject({filename: converted})
+    expect(params[0]).toMatchObject({filename: `file://${converted}`})
   })
 
   test('a failure with no message still shows an error and offers Send original', async () => {
@@ -220,7 +255,7 @@ describe('Send on iOS', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     expect(screen.getByText('Processing failed')).toBeTruthy()
     expect(screen.getByText('Send original')).toBeTruthy()
@@ -228,8 +263,7 @@ describe('Send on iOS', () => {
 
   test('an account switch while Send waits on the preference ends the spinner', async () => {
     const pref = Promise.withResolvers<{compressPreference: T.RPCGen.IncomingShareCompressPreference}>()
-    jest.spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise').mockReturnValue(pref.promise)
-    jest.spyOn(MediaProcess, 'processPaths')
+    fake.answer(getPreference, async () => pref.promise)
     render(
       <AttachmentGetTitles
         conversationIDKey={conversationIDKey}
@@ -239,7 +273,7 @@ describe('Send on iOS', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     expect(isWaitingOrDisabled('Send')).toBe(true)
     act(() => {
@@ -249,15 +283,14 @@ describe('Send on iOS', () => {
     })
     await act(async () => {
       pref.resolve({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    expect(MediaProcess.processPaths).not.toHaveBeenCalled()
+    expect(processMediaMock).not.toHaveBeenCalled()
     expect(isWaitingOrDisabled('Send')).toBe(false)
   })
 })
 
 describe('Send with an unresolved tlfName', () => {
-  let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
   const g = globalThis as unknown as {isIOS: boolean}
@@ -265,11 +298,8 @@ describe('Send with an unresolved tlfName', () => {
   beforeEach(() => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    // keep full size: nothing to export, so Send uploads directly
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+        // keep full size: nothing to export, so Send uploads directly
+serve(T.RPCGen.IncomingShareCompressPreference.original)
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
@@ -277,7 +307,6 @@ describe('Send with an unresolved tlfName', () => {
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
@@ -300,11 +329,14 @@ describe('Send with an unresolved tlfName', () => {
     renderTitles('')
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    const params = rpc.params('postAttachment')
+    const params = posted()
     expect(params).toHaveLength(1)
-    expect(params[0]).toMatchObject({tlfName: 'testuser,testuser2'})
+    expect(params[0]).toMatchObject({
+      conversationID: T.Chat.keyToConversationID(conversationIDKey),
+      tlfName: 'testuser,testuser2',
+    })
   })
 
   test('Send is disabled until a tlfName is known', async () => {
@@ -316,9 +348,9 @@ describe('Send with an unresolved tlfName', () => {
     expect(sendDisabled()).toBe(true)
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(C.Router2.clearModals).not.toHaveBeenCalled()
     act(() => {
       metasReceived(
@@ -332,7 +364,6 @@ describe('Send with an unresolved tlfName', () => {
 })
 
 describe('Send with compression off', () => {
-  let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
   const g = globalThis as unknown as {isIOS: boolean}
@@ -340,10 +371,7 @@ describe('Send with compression off', () => {
   beforeEach(() => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+    serve(T.RPCGen.IncomingShareCompressPreference.original)
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
@@ -351,7 +379,6 @@ describe('Send with compression off', () => {
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
@@ -366,42 +393,33 @@ describe('Send with compression off', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
   }
 
   test('an image still goes to the native processor, which decides whether it must become a JPEG', async () => {
-    jest.spyOn(MediaProcess, 'processPaths').mockResolvedValue([{path: '/tmp/scan.jpg'}])
+    processMediaMock.mockResolvedValue('file:///tmp/scan.jpg')
     await send('/tmp/scan.tiff')
-    expect(MediaProcess.processPaths).toHaveBeenCalledWith(
-      [{edit: undefined, path: '/tmp/scan.tiff'}],
-      {compress: false},
-      expect.any(Function)
-    )
-    const params = rpc.params('postAttachment')
+    expect(processMediaMock.mock.calls).toEqual([['/tmp/scan.tiff', false, false, 0, 0, false, false]])
+    const params = posted()
     expect(params).toHaveLength(1)
-    expect(params[0]).toMatchObject({filename: '/tmp/scan.jpg'})
+    expect(params[0]).toMatchObject({filename: 'file:///tmp/scan.jpg'})
   })
 
   test('a non-media file uploads as is', async () => {
-    jest.spyOn(MediaProcess, 'processPaths')
     await send('/tmp/a.pdf')
-    expect(MediaProcess.processPaths).not.toHaveBeenCalled()
-    expect(rpc.params('postAttachment')).toHaveLength(1)
+    expect(processMediaMock).not.toHaveBeenCalled()
+    expect(posted()).toHaveLength(1)
   })
 })
 
 describe('Send tapped twice', () => {
-  let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
   const g = globalThis as unknown as {isIOS: boolean}
 
   beforeEach(() => {
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+    serve(T.RPCGen.IncomingShareCompressPreference.compressed)
     // the screen stays mounted, as it does while the modal animates away
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
@@ -410,7 +428,6 @@ describe('Send tapped twice', () => {
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
@@ -426,7 +443,7 @@ describe('Send tapped twice', () => {
     for (let i = 0; i < 2; i++) {
       await act(async () => {
         fireEvent.click(screen.getByText('Send'))
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await serviceTurns()
       })
     }
   }
@@ -434,30 +451,24 @@ describe('Send tapped twice', () => {
   test('on desktop it uploads once', async () => {
     g.isIOS = false
     await sendTwice()
-    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    expect(posted()).toHaveLength(1)
   })
 
   test('on iOS, with nothing to process, it uploads once', async () => {
     g.isIOS = true
     await sendTwice()
-    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    expect(posted()).toHaveLength(1)
   })
 })
 
 describe('Send on iOS, with the real export bookkeeping', () => {
   const g = globalThis as unknown as {isIOS: boolean}
-  let rpc: FakeChatRpc
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
   beforeEach(() => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    processMediaMock.mockReset()
-    deleted.length = 0
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed})
+    serve(T.RPCGen.IncomingShareCompressPreference.compressed)
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
     jest.spyOn(C.Router2, 'navigateToThread').mockImplementation(() => {})
   })
@@ -465,7 +476,6 @@ describe('Send on iOS, with the real export bookkeeping', () => {
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
@@ -477,9 +487,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     extra: {pickedAsFiles?: boolean; selectConversationWithReason?: 'extension'; inputPrefillText?: string} = {}
   ) => {
     if (keepFullSize) {
-      jest
-        .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-        .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+      fake.answer(getPreference, () => ({compressPreference: T.RPCGen.IncomingShareCompressPreference.original}))
     }
     const pending = new Map<string, PromiseWithResolvers<string>>()
     processMediaMock.mockImplementation(async path => {
@@ -497,7 +505,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText(paths.length > 1 ? 'Send All' : 'Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     // processPaths exports one item at a time; an Error fails that item
     const finish = async (path: string, out: string | Error) => {
@@ -509,7 +517,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
         } else {
           p?.reject(out)
         }
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await serviceTurns()
       })
     }
     return {finish, view}
@@ -520,7 +528,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     expect(processMediaMock).toHaveBeenCalled()
     view.unmount()
     await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
   })
 
@@ -532,7 +540,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       useConfigState.getState().dispatch.setLoggedIn(true)
     })
     await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
   })
 
@@ -540,7 +548,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     const {finish} = await sendAndHoldExport(['/tmp/clip.mov'])
     expect(deleted).toEqual([])
     await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
-    const params = rpc.params('postAttachment')
+    const params = posted()
     expect(params).toHaveLength(1)
     expect(params[0]).toMatchObject({filename: '/tmp/clip-small.mp4'})
     expect(deleted).toEqual(['/tmp/clip.mov'])
@@ -551,7 +559,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/clip.mov', '/tmp/clip-small.mp4')
     await finish('/tmp/photo.jpg', new Error('nope'))
     expect(screen.getByText('nope')).toBeTruthy()
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(deleted).toEqual(['/tmp/clip-small.mp4'])
   })
 
@@ -563,7 +571,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     deleted.length = 0
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     // only the images, with compression off and their location stripped; the clip goes as is
     expect(processMediaMock.mock.calls.slice(3).map(c => [c[0], c[2], c[6]])).toEqual([
@@ -574,7 +582,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       ['/tmp/photo.webp', false, true],
     ])
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
-    expect(rpc.params('postAttachment').map(p => (p as {filename: string}).filename)).toEqual([
+    expect(posted().map(p => p.filename)).toEqual([
       '/tmp/clip.mov',
       '/tmp/photo.jpg',
       'file:///tmp/photo.converted.jpg',
@@ -591,11 +599,11 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/photo.jpg', 'file:///tmp/photo.compressed.jpg')
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     expect(processMediaMock.mock.calls.slice(2).map(c => c[0])).toEqual(['/tmp/photo.jpg'])
     await finish('/tmp/photo.jpg', 'file:///tmp/photo.jpg')
-    expect(rpc.params('postAttachment').map(p => (p as {filename: string}).filename)).toEqual([
+    expect(posted().map(p => p.filename)).toEqual([
       '/tmp/trimmed.mov',
       '/tmp/photo.jpg',
     ])
@@ -608,7 +616,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/photo.webp', new Error('nope'))
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     expect(processMediaMock.mock.calls.slice(2).map(c => [c[0], c[2], c[6]])).toEqual([
       ['/tmp/photo.jpg', false, false],
@@ -618,11 +626,11 @@ describe('Send on iOS, with the real export bookkeeping', () => {
   const sendOriginal = async () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Send original'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
   }
-  const uploaded = () => rpc.params('postAttachment').map(p => (p as {filename: string}).filename)
-  const uploadedTitles = () => rpc.params('postAttachment').map(p => (p as {title: string}).title)
+  const uploaded = () => posted().map(p => p.filename)
+  const uploadedTitles = () => posted().map(p => p.title)
   const pendingNotice = () => peekInputIntent(conversationIDKey, ['injectText'])?.notice
 
   test('Send original drops an image it can neither convert nor send without its location, and sends the rest', async () => {
@@ -642,7 +650,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       "Not sent: bad.webp couldn't be converted to a JPEG, and the original can include its location."
     )
     // nothing was cancelled but the dropped item's own handle
-    expect(rpc.params('cancelUploadTempFile')).toEqual([new Uint8Array([9])])
+    expect(cancelled()).toEqual([new Uint8Array([9])])
     // the upload reads the converted copy, so only its original is spent; the
     // dropped image and the passthrough keep theirs
     expect(deleted).toEqual(['/tmp/good.webp'])
@@ -669,7 +677,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     )
     await act(async () => {
       fireEvent.click(screen.getByText('Send All'))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await serviceTurns()
     })
     await sendOriginal()
     expect(uploaded()).toEqual(['/tmp/clip.mov', '/tmp/photo.jpg'])
@@ -681,7 +689,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
     await sendOriginal()
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(
       screen.getByText(
         "Nothing was sent. bad.webp couldn't be converted to a JPEG, and the original can include its location."
@@ -737,7 +745,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     await sendOriginal()
     view.unmount()
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
   })
 
@@ -755,8 +763,8 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     })
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
     await finish('/tmp/bad.webp', new Error('Image processing failed: Failed to decode image'))
-    expect(rpc.calls('postAttachment')).toEqual([])
-    expect(rpc.calls('cancelUploadTempFile')).toEqual([])
+    expect(posted()).toEqual([])
+    expect(cancelled()).toEqual([])
     expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
   })
 
@@ -772,7 +780,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       useConfigState.getState().dispatch.setLoggedIn(true)
     })
     await finish('/tmp/photo.webp', 'file:///tmp/photo.converted.jpg')
-    expect(rpc.calls('postAttachment')).toEqual([])
+    expect(posted()).toEqual([])
     expect(deleted).toEqual(['file:///tmp/photo.converted.jpg'])
   })
 
@@ -816,14 +824,14 @@ describe('Send on iOS, with the real export bookkeeping', () => {
     test('success keeps a passthrough, which is the upload', async () => {
       const {finish} = await sendAndHoldExport([cover, passthrough], true)
       await finish(passthrough, `file://${passthrough}`)
-      expect(rpc.params('postAttachment')[1]).toMatchObject({filename: passthrough})
+      expect(posted()[1]).toMatchObject({filename: passthrough})
       expect(deleted).toEqual([])
     })
 
     test('success deletes a transcoded original and keeps its output', async () => {
       const {finish} = await sendAndHoldExport([transcoded])
       await finish(transcoded, transcodedOut)
-      expect(rpc.params('postAttachment')[0]).toMatchObject({filename: transcodedOut})
+      expect(posted()[0]).toMatchObject({filename: transcodedOut})
       expect(deleted).toEqual([transcoded])
     })
 
@@ -851,7 +859,7 @@ describe('Send on iOS, with the real export bookkeeping', () => {
       })
       await finish(passthrough, `file://${passthrough}`)
       await finish('/tmp/scan.tiff', 'file:///tmp/scan.jpg')
-      expect(rpc.calls('postAttachment')).toEqual([])
+      expect(posted()).toEqual([])
       expect(deleted).toEqual(['file:///tmp/scan.jpg'])
     })
 

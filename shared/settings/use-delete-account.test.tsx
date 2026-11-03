@@ -1,166 +1,136 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-// useRPC is exported as a re-export getter (non-configurable), so we mock the
-// module to make it a plain configurable property that jest.spyOn can wrap.
 const mockAndroidIsTestDevice = {value: false}
 jest.mock('@/constants', () => ({
-  ...(jest.requireActual('@/constants') as object),
+  ...jest.requireActual<object>('@/constants'),
   // a live getter so a test can flip the platform flag the hook reads
   get androidIsTestDevice() {
     return mockAndroidIsTestDevice.value
   },
-  useRPC: jest.fn(),
 }))
 import {act, cleanup, renderHook} from '@testing-library/react'
-import * as C from '@/constants'
 import * as T from '@/constants/types'
-import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {navigationWrapper, type NavigationRecorder} from '@/test/navigation'
 import {useDeleteAccount} from './use-delete-account'
 
-type DeleteSubmit = (
-  args: [{passphrase?: string}, string],
-  resolve: () => void,
-  reject: (error: RPCError) => void
-) => void
+const deleteRpc = 'keybase.1.login.accountDelete'
 
-// The delete flow runs from a confirmation modal, so the fake starts with one open:
-// clearModals only has something to dispatch when a modal is actually on screen.
-const deleteModal = 'settingsDeleteConfirm'
-let nav: FakeNavigator
+// The delete flow runs from its confirmation modal, so the hook renders as that route.
+let nav: NavigationRecorder
+const renderDelete = () => {
+  const {wrapper, ...recorder} = navigationWrapper({route: 'deleteConfirm'})
+  nav = recorder
+  return renderHook(() => useDeleteAccount(), {wrapper})
+}
 
-beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [deleteModal],
-    rootState: makeRootState({above: [{name: deleteModal}]}),
-  })
-})
-
-const mockDeleteRPC = () => {
-  const pending = new Array<{reject: (error: RPCError) => void; resolve: () => void}>()
-  const submit = jest.fn(
-    (
-      _args: Parameters<DeleteSubmit>[0],
-      resolve: Parameters<DeleteSubmit>[1],
-      reject: Parameters<DeleteSubmit>[2]
-    ) => {
-      pending.push({reject, resolve})
-    }
-  )
-  jest.spyOn(C, 'useRPC').mockImplementation((() => submit) as never)
-  return {
-    rejectNext: (error: RPCError) => pending.shift()?.reject(error),
-    resolveNext: () => pending.shift()?.resolve(),
-    submit,
-  }
+const stillOnConfirm = () => {
+  expect(nav.actions).toEqual([])
+  expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['deleteConfirm'])
 }
 
 afterEach(() => {
-  restoreNavigator()
   cleanup()
   mockAndroidIsTestDevice.value = false
-  jest.clearAllMocks()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('refuses to delete when there is no logged in user', () => {
-  const rpc = mockDeleteRPC()
-  const {result} = renderHook(() => useDeleteAccount())
+test('refuses to delete when there is no logged in user', async () => {
+  const fake = installFakeEngine()
+  const {result} = renderDelete()
 
   expect(() => result.current('hunter2')).toThrow('Unable to delete account: no username set')
-  expect(rpc.submit).not.toHaveBeenCalled()
+  await flush()
+  expect(fake.calls).toEqual([])
 })
 
-test('deletes forever, records the deleted self and sends the user to login', () => {
+test('deletes forever once the service answers, records the deleted self and clears the modal', async () => {
   useCurrentUserState.setState({username: 'testuser'})
-  const setJustDeletedSelf = jest.fn()
-  useConfigState.setState(s => ({...s, dispatch: {...s.dispatch, setJustDeletedSelf}}))
-  const rpc = mockDeleteRPC()
+  const fake = installFakeEngine()
+  const held = fake.hold(deleteRpc)
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
   })
+  await flush()
 
-  expect(rpc.submit).toHaveBeenCalledWith(
-    [{passphrase: 'hunter2'}, C.waitingKeySettingsGeneric],
-    expect.any(Function),
-    expect.any(Function)
-  )
+  expect(held.map(h => h.params as unknown)).toEqual([expect.objectContaining({passphrase: 'hunter2'})])
+  // nothing moves while the service is still deleting
+  expect(useConfigState.getState().justDeletedSelf).toBe('')
+  stillOnConfirm()
 
-  act(() => {
-    rpc.resolveNext()
-  })
+  held[0]!.reply(null)
+  await flush()
 
-  expect(setJustDeletedSelf).toHaveBeenCalledWith('testuser')
-  // clearModals: the confirmation modal is reset away, leaving only the tab navigator
-  const cleared = nav.actions.find(a => a.type === 'RESET')
-  expect((cleared?.payload as {routes: Array<{name: string}>} | undefined)?.routes.map(r => r.name)).toEqual([
-    'loggedIn',
-  ])
-  expect(nav.pushes()).toContainEqual({name: C.Tabs.loginTab, params: {}})
+  expect(useConfigState.getState().justDeletedSelf).toBe('testuser')
+  // the confirmation modal is cleared away, leaving only the tab navigator
+  expect(NavTree.modalStack(nav.getRootState())).toEqual([])
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
+  expect(nav.pushes()).toEqual([])
 })
 
-test('passes an undefined passphrase through for accounts without one', () => {
+test('passes no passphrase through for accounts without one', async () => {
   useCurrentUserState.setState({username: 'testuser'})
-  const rpc = mockDeleteRPC()
+  const fake = installFakeEngine()
+  const held = fake.hold(deleteRpc)
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current()
   })
+  await flush()
 
-  expect(rpc.submit).toHaveBeenCalledWith(
-    [{passphrase: undefined}, C.waitingKeySettingsGeneric],
-    expect.any(Function),
-    expect.any(Function)
-  )
+  // undefined crosses the wire as null
+  expect(held[0]!.params).toEqual(expect.objectContaining({passphrase: null}))
+  held[0]!.reply(null)
+  await flush()
 })
 
-test('pre-launch test devices never reach the delete rpc', () => {
+test('pre-launch test devices never reach the delete rpc', async () => {
   // android pre-launch reports drive the whole app; deleting the account they
   // run under would be catastrophic
   useCurrentUserState.setState({username: 'testuser'})
   mockAndroidIsTestDevice.value = true
-  const rpc = mockDeleteRPC()
+  const fake = installFakeEngine()
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
   })
+  await flush()
 
-  expect(rpc.submit).not.toHaveBeenCalled()
-  expect(nav.actions).toEqual([])
+  expect(fake.calls).toEqual([])
+  stillOnConfirm()
 })
 
-test('logs and stays put when the delete rpc fails', () => {
+test('logs and stays put when the delete rpc fails', async () => {
   useCurrentUserState.setState({username: 'testuser'})
-  const setJustDeletedSelf = jest.fn()
-  useConfigState.setState(s => ({...s, dispatch: {...s.dispatch, setJustDeletedSelf}}))
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-  const rpc = mockDeleteRPC()
+  const fake = installFakeEngine()
+  fake.answer(deleteRpc, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
 
-  const {result} = renderHook(() => useDeleteAccount())
+  const {result} = renderDelete()
 
   act(() => {
     result.current('hunter2')
   })
-  act(() => {
-    rpc.rejectNext(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-  })
+  await flush()
 
   expect(warnSpy).toHaveBeenCalledWith(
     'Error deleting account',
     expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric})
   )
-  expect(setJustDeletedSelf).not.toHaveBeenCalled()
-  expect(nav.actions).toEqual([])
+  expect(useConfigState.getState().justDeletedSelf).toBe('')
+  stillOnConfirm()
 })

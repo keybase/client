@@ -3,8 +3,10 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -33,24 +35,28 @@ jest.mock('@/util/electron', () => {
 
 describe('Send without a tlfName prop on darwin', () => {
   const g = globalThis as unknown as {isIOS: boolean}
-  let rpc: FakeChatRpc
+  let fake: FakeEngine
+  const getUploadTempFile = 'chat.1.local.getUploadTempFile'
+  const postAttachment = 'chat.1.local.postFileAttachmentLocalNonblock'
   const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
   beforeEach(() => {
     g.isIOS = true
     useConfigState.getState().dispatch.setLoggedIn(true)
-    rpc = installFakeChatRpc()
-    jest
-      .spyOn(T.RPCGen, 'incomingShareGetPreferenceRpcPromise')
-      .mockResolvedValue({compressPreference: T.RPCGen.IncomingShareCompressPreference.original})
+    fake = installFakeEngine()
+    fake.answer('keybase.1.incomingShare.getPreference', () => ({
+      compressPreference: T.RPCGen.IncomingShareCompressPreference.original,
+    }))
+    fake.answer(postAttachment, () => ({outboxID: new Uint8Array([7])}))
+    // the screen fetches a conversation meta the store does not hold whole; the service has none
+    fake.answer('chat.1.local.getInboxAndUnboxUILocal', () => ({conversations: null}))
     jest.spyOn(C.Router2, 'clearModals').mockImplementation(() => {})
-    rpc.on('getUploadTempFile', async () => await Promise.resolve('/tmp/chat-upload-temp'))
+    fake.answer(getUploadTempFile, () => '/tmp/chat-upload-temp')
   })
 
   afterEach(() => {
     g.isIOS = false
     cleanup()
-    restoreChatRpc()
     jest.restoreAllMocks()
     resetAllStores()
   })
@@ -67,14 +73,15 @@ describe('Send without a tlfName prop on darwin', () => {
         pathAndOutboxIDs={[{outboxID: new Uint8Array([7]), path: '/tmp/a.pdf'}]}
       />
     )
-    await act(async () => {
-      fireEvent.click(screen.getByText('Send'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-    expect(rpc.calls('getUploadTempFile')).toHaveLength(1)
+    fireEvent.click(screen.getByText('Send'))
+    await flush(12)
+    const temp = paramsOf(fake, getUploadTempFile)
+    expect(temp).toEqual([{filename: '/tmp/a.pdf', outboxID: expect.any(Uint8Array)}])
     expect(mockCopy).toHaveBeenCalledWith('/tmp/chat-upload-temp', '/tmp/a.pdf')
-    expect(rpc.params('postAttachment')[0]).toMatchObject({
+    // the copy is posted under the outbox ID its temp file was made for
+    expect(paramsOf(fake, postAttachment)[0].arg).toMatchObject({
       filename: '/tmp/chat-upload-temp',
+      outboxID: temp[0].outboxID,
       tlfName: 'testuser,testuser2',
     })
   })

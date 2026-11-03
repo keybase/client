@@ -27,9 +27,10 @@ const promiseRpc = 'keybase.1.teams.teamIgnoreRequest'
 const waitingKey = testWaitingKey('waiting-test')
 const devices = [{deviceID: 'd1', name: 'phone', type: 'mobile'}] as unknown as ReadonlyArray<T.RPCGen.Device>
 
-// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
-// becomes the GUI's on the next
+// The push crosses IPC; the listener hands incoming calls to their handlers on a timer, and a prompt
+// they leave unanswered becomes the GUI's on the next
 const afterTimers = async () => {
+  await tick()
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setTimeout(resolve, 0))
 }
@@ -186,6 +187,7 @@ describe('a listener', () => {
     await afterTimers()
     expect(count(fake)).toBe(0)
     fake.cancelPush(prompt)
+    await tick()
     expect(count(fake)).toBe(1)
     held[0]!.reply(undefined)
     await ended
@@ -337,6 +339,8 @@ describe('how a held prompt ends', () => {
     const sessionID = fake.calls[0]!.params.sessionID as number
     const counts = recordCounts()
     const pushed = fake.push('keybase.1.teamsUi.confirmRootTeamDelete', {teamName: 'testteam'}, {sessionID})
+    // It reaches the GUI and waits on the listener's timer
+    await tick()
     useConfigState.getState().dispatch.setLoggedIn(false)
     await expect(pushed).resolves.toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
     expect(onConfirm).not.toHaveBeenCalled()

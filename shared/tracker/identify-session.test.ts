@@ -1,12 +1,15 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import {act} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {settle} from '@/test/flush'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {
   getProfileDetails,
   loadProfileIdentify,
@@ -405,7 +408,7 @@ test('a block notification releases expired sessions instead of updating them', 
 })
 
 describe('identify failures through the engine listener', () => {
-  let nav: FakeNavigator
+  let nav: InstalledNavigation
   const profileStack = [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]
 
   const failIdentify = async (code: T.RPCGen.StatusCode) => {
@@ -415,18 +418,21 @@ describe('identify failures through the engine listener', () => {
     // A user that is not one yet loads its non-user details next
     fake.hold('keybase.1.userSearch.getNonUserDetails')
     unsubscribes.push(subscribeToProfile('testuser', () => {}))
-    loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: false})
-    await settle()
+    // a failure can navigate, which renders the tree
+    await act(async () => {
+      loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: false})
+      await settle()
+    })
   }
 
   const unsubscribes: Array<() => void> = []
   afterEach(() => {
     unsubscribes.splice(0).forEach(u => u())
-    restoreNavigator()
+    nav.unmount()
   })
 
   test('an assertion that resolves to no user is not a user yet', async () => {
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(T.RPCGen.StatusCode.scresolutionfailed)
 
     expect(getProfileDetails('testuser')?.state).toBe('notAUserYet')
@@ -434,11 +440,14 @@ describe('identify failures through the engine listener', () => {
   })
 
   test('a profile link to a user that does not exist replaces the profile with the link error', async () => {
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(T.RPCGen.StatusCode.scnotfound)
 
     expect(nav.types()[0]).toBe('GO_BACK')
-    expect(nav.navigations()).toEqual([expect.objectContaining({name: 'keybaseLinkError'})])
+    expect(nav.visibleScreen()?.name).toBe('keybaseLinkError')
+    // the profile is gone, not left under the error
+    const chatStack = nav.getRootState()?.routes?.[0]?.state?.routes.find(r => r.name === 'tabs.chatTab')?.state
+    expect(chatStack?.routes.map(r => r.name)).toEqual(['chatRoot', 'keybaseLinkError'])
     expect(getProfileDetails('testuser')?.state).toBe('error')
   })
 
@@ -447,7 +456,7 @@ describe('identify failures through the engine listener', () => {
     ['an input cancel', T.RPCGen.StatusCode.scinputcanceled],
   ])('%s logs no error and navigates nowhere', async (_, code) => {
     const errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    nav = installNavigation({rootState: makeRootState({tabStack: profileStack})})
     await failIdentify(code)
 
     expect(errorLog).not.toHaveBeenCalled()
@@ -455,11 +464,172 @@ describe('identify failures through the engine listener', () => {
   })
 
   test('a user that does not exist leaves the screen alone when the profile is not showing', async () => {
-    nav = installFakeNavigator({rootState: makeRootState()})
+    nav = installNavigation({rootState: makeRootState()})
     await failIdentify(T.RPCGen.StatusCode.scnotfound)
 
     expect(nav.types()).toEqual([])
     // the hover card / list showing it stops checking even though nothing navigates
     expect(getProfileDetails('testuser')?.state).toBe('error')
+  })
+})
+
+describe('own user changed notices', () => {
+  const ownUid = 'testuser-uid'
+  // identifies that have not returned yet, oldest first
+  type Held = {fail: (e: Error) => void; result: () => void; returns: () => void}
+  let pending: Array<Held> = []
+
+  const userChanged = () =>
+    notifyEngineActionListeners({
+      payload: {params: {uid: ownUid}},
+      type: 'keybase.1.NotifyUsers.userChanged',
+    } as never)
+
+  // the service sends the result, then the call returns
+  const finishOldest = async () => {
+    const held = pending.shift()
+    held?.result()
+    held?.returns()
+    await flush()
+  }
+
+  beforeEach(() => {
+    pending = []
+    useCurrentUserState.setState({uid: ownUid, username: 'testuser'})
+    identifySpy.mockImplementation((async (p: {params: {guiID: string}}) =>
+      new Promise<void>((resolve, reject) => {
+        pending.push({
+          fail: reject,
+          result: () =>
+            notifyEngineActionListeners({
+              payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+              type: 'keybase.1.identify3Ui.identify3Result',
+            } as never),
+          returns: resolve,
+        })
+      })) as never)
+  })
+
+  test('a burst during a running identify adds one identify after it, not one per notice', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    const firstGuiID = getProfileDetails('testuser')?.guiID
+    userChanged()
+    userChanged()
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    // the running identify is not superseded: its result still lands
+    expect(getProfileDetails('testuser')?.guiID).toBe(firstGuiID)
+
+    await finishOldest()
+    // its result may predate the change, so one more runs and the profile is checking again
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    await finishOldest()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('a notice with no identify running starts one right away', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+    unsub()
+  })
+
+  test('an identify the user changed under does not count as a recent check once its profile closed', async () => {
+    const mount = {freshAfter: 0, ignoreCache: false, maxAgeMs: 30_000}
+    const unsubA = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', mount)
+    userChanged()
+    unsubA()
+    await finishOldest()
+    // nobody shows the profile, so the follow-up identify is not run now ...
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+
+    // ... and the reopen checks again instead of trusting the result from before the change
+    const unsubB = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', mount)
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    unsubB()
+  })
+
+  test('an identify left running by an account switch does not start another for the old user', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    resetAllStores()
+    await finishOldest()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    unsub()
+  })
+
+  test('a result that lands after a notice is not shown as settled before the rerun', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    pending[0]?.result()
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    pending.shift()?.returns()
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('a notice after the result landed puts the profile back to checking until the rerun settles', async () => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    pending[0]?.result()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+
+    // the call has not returned yet, so the identify is still running
+    userChanged()
+    expect(identifySpy).toHaveBeenCalledTimes(1)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+
+    pending.shift()?.returns()
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(getProfileDetails('testuser')?.state).toBe('checking')
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test('an identify that fails after a notice still runs its rerun, which settles the profile', async () => {
+    jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: false})
+    userChanged()
+    pending.shift()?.fail(new RPCError('network', T.RPCGen.StatusCode.scgeneric))
+    await flush()
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+
+    await finishOldest()
+    expect(getProfileDetails('testuser')?.state).toBe('valid')
+    unsub()
+  })
+
+  test.each([true, false])('the rerun is as strong as the identify it replaces (ignoreCache %s)', async ignoreCache => {
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache})
+    userChanged()
+    await finishOldest()
+
+    expect(identifySpy).toHaveBeenCalledTimes(2)
+    expect(identifySpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({params: expect.objectContaining({ignoreCache})})
+    )
+    unsub()
   })
 })

@@ -4,9 +4,6 @@ import {cleanup, fireEvent, render} from '@testing-library/react'
 import {cropViewToRect, type CropView} from '@/util/crop'
 import ZoomableImage from './zoomable-image'
 
-// the toast reads the color scheme, which the test renderer lacks; it plays no part in the view
-jest.mock('./toast', () => ({__esModule: true, default: () => null}))
-
 afterEach(() => {
   cleanup()
 })

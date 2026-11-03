@@ -1,34 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import * as T from '@/constants/types'
+import {setImmediate} from 'node:timers'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
-
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const Pass = ({children}: {children?: React.ReactNode}) => React.createElement('div', null, children)
-  return {
-    Avatar: () => null,
-    Box2: Pass,
-    Divider: () => null,
-    ListItem: ({body, onClick}: {body?: React.ReactNode; onClick?: () => void}) =>
-      React.createElement('button', {onClick, type: 'button'}, body),
-    ProgressIndicator: () => null,
-    ScrollView: Pass,
-    Styles: {
-      createStyleHook: () => () => ({}),
-      platformStyles: () => ({}),
-    },
-    Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
-  }
-})
-
 import AccountSwitcher from '.'
 
+let fake: FakeEngine
+
 beforeEach(() => {
+  fake = installFakeEngine()
   useCurrentUserState
     .getState()
     .dispatch.setBootstrap({deviceID: 'd', deviceName: 'dn', uid: 'testuser', username: 'testuser'})
@@ -45,25 +28,39 @@ afterEach(() => {
   })
 })
 
-const loginSpy = () => jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(async () => new Promise(() => {}))
+const login = 'keybase.1.login.login'
+// The service holds the login open, as it does while it works
+const holdLogin = () => fake.hold(login)
+const settle = async () =>
+  act(async () => {
+    await new Promise<void>(resolve => setImmediate(resolve))
+    await new Promise<void>(resolve => setImmediate(resolve))
+  })
 
-test('an account row starts a switch when no switch is running', () => {
-  const login = loginSpy()
+test('an account row starts a switch when no switch is running', async () => {
+  const held = holdLogin()
   render(<AccountSwitcher />)
 
-  fireEvent.click(screen.getByRole('button', {name: 'testuser-mac'}))
+  fireEvent.click(screen.getByText('testuser-mac'))
+  await settle()
 
-  expect(login).toHaveBeenCalled()
+  expect(held.map(c => (c.params as {username: string}).username)).toEqual(['testuser-mac'])
 })
 
-test('account rows are disabled while a switch is running, even after the reset clears the login waiting key', () => {
-  const login = loginSpy()
+test('account rows are disabled while a switch is running, even after the reset clears the login waiting key', async () => {
+  const held = holdLogin()
   act(() => {
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-other')
   })
-  render(<AccountSwitcher />)
+  const {container} = render(<AccountSwitcher />)
+  const html = () => (container as unknown as {innerHTML: string}).innerHTML
+  const before = html()
 
-  fireEvent.click(screen.getByRole('button', {name: 'testuser-mac'}))
+  fireEvent.click(screen.getByText('testuser-mac'))
+  await settle()
 
-  expect(login).not.toHaveBeenCalled()
+  // the row takes no click: no spinner on it, and nothing reaches the service
+  expect(html()).toBe(before)
+  expect(held).toEqual([])
+  expect(fake.calls).toEqual([])
 })

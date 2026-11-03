@@ -1,51 +1,14 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 import {flush, tick} from '@/test/flush'
 import {RPCError} from '@/util/errors'
 import Choice, {generatePgp, validatePgpInfo} from './choice'
 
-// The real components need electron rendering; only the text, inputs and buttons matter here.
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Animation: () => null,
-    Box2: passThrough,
-    Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
-      React.createElement('button', {onClick, type: 'button'}, label),
-    ConfirmButtons: ({confirmLabel, onCancel, onConfirm}: {confirmLabel: string; onCancel: () => void; onConfirm: () => void}) =>
-      React.createElement(
-        'div',
-        null,
-        React.createElement('button', {onClick: onCancel, type: 'button'}, 'Cancel'),
-        React.createElement('button', {onClick: onConfirm, type: 'button'}, confirmLabel)
-      ),
-    Checkbox: ({checked, label, onCheck}: {checked: boolean; label: string; onCheck: (c: boolean) => void}) =>
-      React.createElement('button', {onClick: () => onCheck(!checked), type: 'button'}, label),
-    IconAuto: () => null,
-    Input3: ({onChangeText, placeholder, value}: {onChangeText: (t: string) => void; placeholder: string; value: string}) =>
-      React.createElement('input', {onChange: (e: {target: {value: string}}) => onChangeText(e.target.value), placeholder, value}),
-    ListItem: ({body, onClick}: {body: React.ReactNode; onClick: () => void}) =>
-      React.createElement('div', {onClick}, body),
-    ModalScreen: ({children, footer}: {children?: React.ReactNode; footer?: React.ReactNode}) =>
-      React.createElement('div', null, children, footer),
-    ScrollView: passThrough,
-    Styles: {
-      castStyleDesktop: (s: unknown) => s,
-      createStyleHook: () => () => ({}),
-      globalMargins: {},
-      globalStyles: {},
-      platformStyles: () => ({}),
-    },
-    Text: passThrough,
-  }
-})
 jest.mock('@/profile/platform-icon', () => () => null)
 
 const pgpRpc = 'keybase.1.pgp.pgpKeyGenDefault'
@@ -62,8 +25,10 @@ const makeInfo = (overrides?: Partial<Parameters<typeof validatePgpInfo>[0]>) =>
   ...overrides,
 })
 
-// The listener hands incoming calls to their handlers on a timer, then React commits the step
+// The push crosses IPC, the listener hands incoming calls to their handlers on a timer, then React
+// commits the step
 const settle = async () => {
+  await flush(1)
   await act(async () => new Promise(resolve => setTimeout(resolve, 0)))
   await flush()
 }
@@ -72,25 +37,23 @@ const pushKey = async (fake: FakeEngine, sessionID: number) =>
   fake.push(keyGenerated, {key: {key: publicKey}, kid: 'kid'}, {sessionID})
 
 describe('the generate flow', () => {
-  let nav: FakeNavigator
-
-  beforeEach(() => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['profilePgp'],
-      rootState: makeRootState({above: [{name: 'profilePgp'}]}),
-    })
-  })
+  // The screen as a real modal route; clearing the modals unmounts it, as in the app.
+  let nav: ReturnType<typeof navigationWrapper>
+  const renderChoice = () => {
+    nav = navigationWrapper({route: 'profilePgp'})
+    render(<Choice />, {wrapper: nav.wrapper})
+  }
+  const modalsCleared = () => NavTree.modalStack(nav.getRootState()).length === 0
 
   afterEach(() => {
     cleanup()
-    restoreNavigator()
   })
 
   // Renders the screen and walks it to the generate step; the service holds the RPC
   const startGenerating = async (onEngineIncoming?: () => void) => {
     const fake = installFakeEngine({onEngineIncoming})
     const held = fake.hold(pgpRpc)
-    render(<Choice />)
+    renderChoice()
     fireEvent.click(screen.getByText('Get a new PGP key'))
     fireEvent.change(screen.getByPlaceholderText('Your full name'), {target: {value: 'Test User'}})
     fireEvent.change(screen.getByPlaceholderText('Email 1'), {target: {value: 'testuser@example.com'}})
@@ -114,7 +77,7 @@ describe('the generate flow', () => {
     'the key is recorded and acked, then Done answers whether to store it on the server (%s)',
     async store => {
       const {fake, held, sessionID} = await startGenerating()
-      await expect(pushKey(fake, sessionID)).resolves.toEqual({result: undefined})
+      await expect(pushKey(fake, sessionID)).resolves.toEqual({result: null})
       const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
       await settle()
       expect(screen.getByText('Here is your unique public key!')).toBeTruthy()
@@ -124,7 +87,7 @@ describe('the generate flow', () => {
       }
       fireEvent.click(screen.getByText(store ? 'Done, post to Keybase' : 'Done'))
       await expect(pushed).resolves.toEqual({result: store})
-      expect(nav.modalsCleared()).toBe(true)
+      expect(modalsCleared()).toBe(true)
       held[0]!.reply(undefined)
       await flush()
     }
@@ -139,13 +102,14 @@ describe('the generate flow', () => {
     fireEvent.click(screen.getByText("Store encrypted private key on Keybase's server"))
     fireEvent.click(screen.getByText('Done, post to Keybase'))
     await expect(pushed).resolves.toEqual({result: true})
-    // clearModals unmounts the screen
-    cleanup()
+    // clearing the modals unmounted the screen
+    expect(modalsCleared()).toBe(true)
+    expect(screen.queryByText('Here is your unique public key!')).toBeNull()
     void fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
     await settle()
     expect(onEngineIncoming).toHaveBeenCalledTimes(1)
     expect(onEngineIncoming.mock.calls[0]![0].type).toBe('keybase.1.secretUi.getPassphrase')
-    await expect(fake.push('keybase.1.pgpUi.finished', {}, {sessionID})).resolves.toEqual({result: undefined})
+    await expect(fake.push('keybase.1.pgpUi.finished', {}, {sessionID})).resolves.toEqual({result: null})
     held[0]!.reply(undefined)
     await flush()
   })
@@ -185,19 +149,19 @@ describe('the generate flow', () => {
   test('cancel while generating clears the modals and refuses the key', async () => {
     const {fake, held, sessionID} = await startGenerating()
     fireEvent.click(screen.getByText('Cancel'))
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modalsCleared()).toBe(true)
     await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
   })
 
   test('cancel at the info step goes back to the choice without starting anything', async () => {
     const fake = installFakeEngine()
-    render(<Choice />)
+    renderChoice()
     fireEvent.click(screen.getByText('Get a new PGP key'))
     fireEvent.click(screen.getByText('Cancel'))
     await flush()
     expect(screen.getByText('I have one already')).toBeTruthy()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
     expect(fake.calls).toEqual([])
   })
 })

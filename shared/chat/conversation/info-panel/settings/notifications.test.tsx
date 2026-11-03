@@ -4,29 +4,55 @@ import * as T from '@/constants/types'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {flush} from '@/test/flush'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {resetAllStores} from '@/util/zustand'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-
-let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
-jest.mock('../../data-hooks', () => ({
-  useConversationMeta: () => mockMeta,
-}))
+const convID = T.Chat.keyToConversationID(conversationIDKey)
+const setSettings = 'chat.1.local.setAppNotificationSettingsLocal'
 
 import Notifications from './notifications'
 
 // The combined desktop/mobile choice the service is sent.
 const choice = (desktop: T.Chat.NotificationsType, mobile: T.Chat.NotificationsType) => ({desktop, mobile})
 
-const renderNotifications = (over: Partial<T.Chat.ConversationMeta> = {}) => {
-  mockMeta = {
-    ...makeConversationMeta(),
-    conversationIDKey,
-    notificationsDesktop: 'onAnyActivity',
-    notificationsGlobalIgnoreMentions: false,
-    notificationsMobile: 'never',
-    ...over,
+type WireSetting = {deviceType: T.RPCGen.DeviceType; enabled: boolean; kind: T.RPCChat.NotificationKind}
+
+// The choice a setAppNotificationSettingsLocal call carries, read back from its per-device kinds
+const sentChoice = (p: {settings: Array<WireSetting>}) => {
+  const forDevice = (deviceType: T.RPCGen.DeviceType): T.Chat.NotificationsType => {
+    const on = (kind: T.RPCChat.NotificationKind) =>
+      p.settings.some(s => s.deviceType === deviceType && s.kind === kind && s.enabled)
+    return on(T.RPCChat.NotificationKind.generic)
+      ? 'onAnyActivity'
+      : on(T.RPCChat.NotificationKind.atmention)
+        ? 'onWhenAtMentioned'
+        : 'never'
   }
+  return choice(forDevice(T.RPCGen.DeviceType.desktop), forDevice(T.RPCGen.DeviceType.mobile))
+}
+
+const sent = () =>
+  paramsOf(fake, setSettings).map((p: {channelWide: boolean; convID: Uint8Array; settings: Array<WireSetting>}) => ({
+    channelWide: p.channelWide,
+    convID: p.convID,
+    ...sentChoice(p),
+  }))
+
+const renderNotifications = (over: Partial<T.Chat.ConversationMeta> = {}) => {
+  metasReceived([
+    {
+      ...makeConversationMeta(),
+      conversationIDKey,
+      notificationsDesktop: 'onAnyActivity',
+      notificationsGlobalIgnoreMentions: false,
+      notificationsMobile: 'never',
+      trustedState: 'trusted',
+      ...over,
+    },
+  ])
   return render(<Notifications conversationIDKey={conversationIDKey} />)
 }
 
@@ -42,44 +68,53 @@ const selectedLabels = (container: HTMLElement) =>
     r => r.parentElement?.querySelector('.text_Body')?.textContent
   )
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
-  restoreChatRpc()
-  mockMeta = makeConversationMeta()
+  resetAllStores()
 })
 
 describe('saveNotifications', () => {
   test('choosing a desktop setting sends the choice with the current mobile setting', async () => {
+    fake.answer(setSettings, () => null)
     renderNotifications()
 
     clickDesktop('Only when @mentioned')
     await flush()
 
     // exactly one call, with no waiting key
-    expect(rpc.calls('setNotificationSettings')).toEqual([
-      [{channelWide: false, conversationIDKey, ...choice('onWhenAtMentioned', 'never')}],
+    expect(paramsOf(fake, setSettings)).toEqual([
+      {
+        channelWide: false,
+        convID,
+        settings: [
+          {deviceType: T.RPCGen.DeviceType.desktop, enabled: true, kind: T.RPCChat.NotificationKind.atmention},
+          {deviceType: T.RPCGen.DeviceType.desktop, enabled: false, kind: T.RPCChat.NotificationKind.generic},
+          {deviceType: T.RPCGen.DeviceType.mobile, enabled: false, kind: T.RPCChat.NotificationKind.atmention},
+          {deviceType: T.RPCGen.DeviceType.mobile, enabled: false, kind: T.RPCChat.NotificationKind.generic},
+        ],
+      },
     ])
   })
 
   test('choosing a mobile setting sends the choice with the current desktop setting', async () => {
+    fake.answer(setSettings, () => null)
     renderNotifications()
 
     clickMobile('On any activity')
     await flush()
 
-    expect(rpc.params('setNotificationSettings')).toEqual([
-      {channelWide: false, conversationIDKey, ...choice('onAnyActivity', 'onAnyActivity')},
-    ])
+    expect(sent()).toEqual([{channelWide: false, convID, ...choice('onAnyActivity', 'onAnyActivity')}])
   })
 
   test('successive choices each resend the combined desktop and mobile state', async () => {
+    fake.answer(setSettings, () => null)
     renderNotifications({notificationsDesktop: 'onWhenAtMentioned', notificationsMobile: 'onAnyActivity'})
 
     clickDesktop('Never')
@@ -87,32 +122,24 @@ describe('saveNotifications', () => {
     clickMobile('Only when @mentioned')
     await flush()
 
-    expect(rpc.params('setNotificationSettings').map(p => choice(p.desktop, p.mobile))).toEqual([
+    expect(sent().map(p => choice(p.desktop, p.mobile))).toEqual([
       choice('never', 'onAnyActivity'),
       choice('never', 'onWhenAtMentioned'),
     ])
   })
 
   test('the ignore @here/@channel checkbox flips channelWide and resends the current settings', async () => {
+    fake.answer(setSettings, () => null)
     renderNotifications()
 
     fireEvent.click(screen.getByText(/mentions/))
     await flush()
 
-    expect(rpc.params('setNotificationSettings')).toEqual([
-      {channelWide: true, conversationIDKey, ...choice('onAnyActivity', 'never')},
-    ])
+    expect(sent()).toEqual([{channelWide: true, convID, ...choice('onAnyActivity', 'never')}])
   })
 
   test('a successful save shows the spinner while waiting and then Saved, with no error', async () => {
-    let resolveSave: (() => void) | undefined
-    rpc.on(
-      'setNotificationSettings',
-      async () =>
-        new Promise<void>(resolve => {
-          resolveSave = resolve
-        })
-    )
+    const held = fake.hold(setSettings)
     const {container} = renderNotifications()
 
     clickDesktop('Only when @mentioned')
@@ -121,7 +148,7 @@ describe('saveNotifications', () => {
     expect(saveIndicator(container).childElementCount).toBeGreaterThan(0)
     expect(saveIndicator(container).textContent).not.toContain('Saved')
 
-    resolveSave?.()
+    held[0]!.reply(null)
     await flush()
 
     expect(saveIndicator(container).textContent).toContain('Saved')
@@ -129,8 +156,10 @@ describe('saveNotifications', () => {
     expect(container.textContent).not.toContain('Failed')
   })
 
-  test('a failed save shows the error message in a red banner and keeps the new choice selected', async () => {
-    rpc.fail('setNotificationSettings', new Error('service said no'))
+  // the engine's RPCError is not an Error, so the banner shows the generic text (see the failing
+  // test below)
+  test('a failed save shows the error in a red banner and keeps the new choice selected', async () => {
+    fake.answer(setSettings, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'service said no'))
     const {container} = renderNotifications()
 
     clickDesktop('Only when @mentioned')
@@ -143,8 +172,18 @@ describe('saveNotifications', () => {
     expect(saveIndicator(container).textContent).toContain('Saved')
   })
 
-  test('a failure without a message falls back to generic error text', async () => {
-    rpc.fail('setNotificationSettings', new Error(''))
+  test("a service failure shows the service's reason in the banner", async () => {
+    fake.answer(setSettings, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'service said no'))
+    renderNotifications()
+
+    clickDesktop('Never')
+    await flush()
+
+    expect(screen.getByText(/service said no/)).toBeTruthy()
+  })
+
+  test('a failure without a description falls back to generic error text', async () => {
+    fake.answer(setSettings, () => fakeError(T.RPCGen.StatusCode.scgeneric, ''))
     renderNotifications()
 
     clickDesktop('Never')
@@ -154,30 +193,26 @@ describe('saveNotifications', () => {
   })
 
   test('the next save clears a previous error banner', async () => {
-    rpc.failOnce('setNotificationSettings', new Error('service said no'))
-    rpc.once('setNotificationSettings', () => undefined)
+    const held = fake.hold(setSettings)
     renderNotifications()
 
     clickDesktop('Never')
+    await flush()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'service said no'))
     await flush()
     expect(screen.queryByText('service said no')).toBeTruthy()
 
     clickMobile('On any activity')
     await flush()
+    held[1]!.reply(null)
+    await flush()
 
-    expect(rpc.calls('setNotificationSettings')).toHaveLength(2)
+    expect(paramsOf(fake, setSettings)).toHaveLength(2)
     expect(screen.queryByText('service said no')).toBeNull()
   })
 
   test('a failure of an older save is ignored once a newer save has started', async () => {
-    const rejects: Array<(e: Error) => void> = []
-    rpc.on(
-      'setNotificationSettings',
-      async () =>
-        new Promise<void>((_resolve, reject) => {
-          rejects.push(reject)
-        })
-    )
+    const held = fake.hold(setSettings)
     renderNotifications()
 
     clickDesktop('Never')
@@ -185,12 +220,12 @@ describe('saveNotifications', () => {
     clickMobile('On any activity')
     await flush()
 
-    rejects[0]?.(new Error('stale failure'))
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'stale failure'))
     await flush()
 
     expect(screen.queryByText('stale failure')).toBeNull()
 
-    rejects[1]?.(new Error('current failure'))
+    held[1]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'current failure'))
     await flush()
 
     expect(screen.getByText('current failure')).toBeTruthy()

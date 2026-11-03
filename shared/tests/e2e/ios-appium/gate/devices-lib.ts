@@ -6,6 +6,8 @@
 import {DEVICES_ROW} from '../../shared/test-ids.ts'
 import {escapePredicate} from '../helpers/elements.ts'
 import {sourceElements} from './page-source-lib.ts'
+import type {LoggedCall} from '../../shared/call-log.ts'
+import {uiCallsOf} from './recorder-lib.ts'
 
 export type ListRow = {label: string; visible: boolean; y: number}
 
@@ -88,4 +90,29 @@ export const deviceListProblem = (shown: ReadonlyArray<string>, active: Readonly
   ]
     .filter(Boolean)
     .join('; ')
+}
+
+// The devices list's reads after a device add, from the app's call log (calls the UI sent since a mark
+// taken before the add): each deviceHistoryList that went out after the add was answered, with its
+// error if it failed. `settled` once the add was answered and the latest read since then was answered
+// without an error: the list then shows what the service had then. An earlier read never answered
+// (cancelled, or its screen unmounted) does not hold it up; a failed latest read leaves the list as it
+// was, so it settles nothing.
+export const postAddListReads = (calls: ReadonlyArray<LoggedCall>): {settled: boolean; reads: Array<{answered: boolean; error?: string}>} => {
+  const add = uiCallsOf(calls, 'keybase.1.device.deviceAdd').at(-1)
+  if (!add?.answer) return {reads: [], settled: false}
+  const after = add.answer.afterSeq
+  const reads = uiCallsOf(calls, 'keybase.1.device.deviceHistoryList')
+    .filter(c => c.seq > after)
+    .map(c => (c.answer ? {answered: true, ...(c.answer.error === undefined ? {} : {error: c.answer.error})} : {answered: false}))
+  const latest = reads.at(-1)
+  const settled = !!latest?.answered && latest.error === undefined
+  return {reads, settled}
+}
+
+// A step name for the reads: how many there were, and each failed one's error.
+export const postAddReadsSummary = (reads: ReadonlyArray<{answered: boolean; error?: string}>) => {
+  const failed = reads.filter(r => r.error !== undefined)
+  const head = `The devices list read ${reads.length} time${reads.length === 1 ? '' : 's'} after the add`
+  return failed.length ? `${head}, ${failed.length} failed: ${failed.map(r => r.error).join('; ')}` : `${head}, none failed`
 }

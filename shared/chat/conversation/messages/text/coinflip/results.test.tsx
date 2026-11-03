@@ -1,25 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import * as T from '@/constants/types'
-
-// the real chrome is native/electron-only; all that matters here is whether the
-// hands presentation renders anything at all
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Box2: passThrough,
-    Icon: () => React.createElement('div'),
-    Styles: {
-      createStyleHook: () => () => ({}),
-      createThemedHook: () => () => ({}),
-    },
-    Text: passThrough,
-  }
-})
-
 import {cleanup, render} from '@testing-library/react'
 import CoinFlipResult from './results'
 

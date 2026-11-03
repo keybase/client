@@ -652,15 +652,6 @@ export const channelMembersFromCli = async (topicName: string) => {
   return [...(members.owners ?? []), ...(members.admins ?? []), ...(members.writers ?? []), ...(members.readers ?? [])].map(m => m.username)
 }
 
-// Reads an e2e team channel as the host's account (smoke, on its other device), which moves its read
-// pointer to the channel's newest message, deleted ones included: a cleanup for a channel the phone
-// cannot read back itself (see channelUnreadFromCli). One call, bounded by `timeoutMs`.
-export const markChannelReadFromCli = async (topicName: E2EChannel, timeoutMs = 20_000) => {
-  const accounts = e2eAccounts()
-  await requireMainIsSmoke(accounts)
-  await withApi(async api => api.callWithin('read', {channel: channelRef(accounts.team, topicName), pagination: {num: 1}}, timeoutMs))
-}
-
 // Whether the host's account has an e2e team channel unread, as its inbox holds it: its read pointer
 // is behind the newest visible message, its own messages included (a mark unread from another device
 // moves the pointer back; opening the thread there moves it forward). One try, bounded: the host

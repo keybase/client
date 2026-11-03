@@ -31,9 +31,9 @@ jest.mock('./device-icon', () => ({
   default: ({style}: {style?: {opacity?: number} | null}) =>
     require('react').createElement('div', {'data-dimmed': String(style?.opacity === 0.3)}),
 }))
-jest.mock('@/util/use-local-badging', () => ({useIsNew: () => false}))
 
 import {cleanup, render, screen} from '@testing-library/react'
+import {NewItemsContext} from '@/util/use-local-badging'
 import DeviceRow from './row'
 
 const day = 24 * 60 * 60 * 1000
@@ -82,4 +82,22 @@ test('an active device with no last used time says so rather than reading as rev
 
   expect(screen.getByText('Last used unknown')).not.toBeNull()
   expect(decorations()).not.toContain('line-through')
+})
+
+test('a device in the badged set is marked new, unless it is this device', () => {
+  const badged = new Set(['id-1'])
+  const {unmount} = render(
+    <NewItemsContext value={badged}>
+      <DeviceRow canRevoke={true} device={makeDevice()} firstItem={true} />
+    </NewItemsContext>
+  )
+  expect(document.querySelector('[data-meta]')).not.toBeNull()
+  unmount()
+
+  render(
+    <NewItemsContext value={badged}>
+      <DeviceRow canRevoke={true} device={makeDevice({currentDevice: true})} firstItem={true} />
+    </NewItemsContext>
+  )
+  expect(document.querySelector('[data-meta]')).toBeNull()
 })

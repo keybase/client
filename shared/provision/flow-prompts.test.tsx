@@ -1,5 +1,5 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {resetAllStores} from '@/util/zustand'
@@ -7,9 +7,9 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle as settleTimers, tick} from '@/test/flush'
 import logger from '@/logger'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 
 import {
   cancelProvision,
@@ -24,39 +24,32 @@ const getPassphrase = 'keybase.1.secretUi.getPassphrase'
 const secret = 'keybase.1.provisionUi.DisplayAndPromptSecret'
 const exchanged = 'keybase.1.provisionUi.DisplaySecretExchanged'
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 let fake: FakeEngine
 
-// Provisioning runs from a modal, so the fake starts with one open: clearModals only has
-// something to dispatch when a modal is actually on screen. This one is never a
-// navigation target below, so a replace onto another screen stays a replace.
+// Provisioning runs from a modal, so the tree starts with one open under the username screen the
+// attempt is submitted from: clearModals only has something to remove when a modal is on screen.
 const openModal = 'deviceAdd'
 
 beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [openModal],
-    rootState: makeRootState({above: [{name: openModal}]}),
+  // The flow navigates from its own async work, as in the app, not from inside act(); test/flush
+  // pulls in testing-library, which would otherwise make this an act environment.
+  ;(globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = false
+  nav = installNavigation({
+    rootState: makeRootState({above: [{name: openModal}, {name: 'username', params: {username: 'testuser'}}]}),
   })
   fake = installFakeEngine()
 })
 
 afterEach(() => {
   cancelProvision()
-  restoreNavigator()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-// The listener hands incoming calls to their handlers on a timer, and a flow reading a dialog's events
-// sees its end on another
-const settle = async () => {
-  for (let i = 0; i < 2; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise(resolve => setTimeout(resolve, 0))
-    // eslint-disable-next-line no-await-in-loop
-    await tick()
-  }
-}
+// What the service sent crosses IPC, the listener hands incoming calls to their handlers on a timer,
+// and a flow reading a dialog's events sees its end on another
+const settle = async () => settleTimers(2)
 
 const startAttempt = async () => {
   const held = fake.hold(login)
@@ -79,6 +72,16 @@ const pushPassphrase = async (
   return answered
 }
 
+// What the flow asked for: each push or replace it dispatched.
+const navigations = () =>
+  nav.actions
+    .filter(a => a.type === 'PUSH' || a.type === 'REPLACE')
+    .map(a => ({name: a.payload?.['name'], params: a.payload?.['params'], replace: a.type === 'REPLACE'}))
+// The root stack's screens, from the library's state.
+const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
+const modalsCleared = () => !rootNames()?.includes(openModal)
+const visible = () => nav.visibleScreen()
+
 // Turning waiting on is throttled; turning it off is not
 const waitingCount = () => {
   fake.engine._throttledDispatchWaitingAction.flush()
@@ -92,12 +95,13 @@ describe('final error handling', () => {
     reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
     await settle()
 
-    expect(nav.navigations()).toContainEqual({
+    // the username screen it was submitted from shows the error in place
+    expect(visible()).toMatchObject({
       name: 'username',
       params: {inlineErrorCode: T.RPCGen.StatusCode.scnotfound, username: 'testuser'},
-      replace: true,
     })
-    expect(nav.modalsCleared()).toBe(false)
+    expect(rootNames()).toEqual(['loggedIn', openModal, 'username'])
+    expect(modalsCleared()).toBe(false)
   })
 
   test('a malformed username also stays on the username screen', async () => {
@@ -106,11 +110,12 @@ describe('final error handling', () => {
     reply(fakeError(T.RPCGen.StatusCode.scbadusername, 'bad username'))
     await settle()
 
-    expect(nav.navigations()).toContainEqual({
+    // the username screen it was submitted from shows the error in place
+    expect(visible()).toMatchObject({
       name: 'username',
       params: {inlineErrorCode: T.RPCGen.StatusCode.scbadusername, username: 'testuser'},
-      replace: true,
     })
+    expect(rootNames()).toEqual(['loggedIn', openModal, 'username'])
   })
 
   test('any other error clears modals and shows the error screen with the rpc details', async () => {
@@ -119,8 +124,8 @@ describe('final error handling', () => {
     reply(fakeError(T.RPCGen.StatusCode.scdeviceprovisionoffline, 'something broke'))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toContainEqual({
+    expect(modalsCleared()).toBe(true)
+    expect(navigations()).toContainEqual({
       name: 'error',
       params: {
         error: expect.objectContaining({
@@ -129,8 +134,11 @@ describe('final error handling', () => {
         }),
         username: 'testuser',
       },
-      replace: true,
+      replace: false,
     })
+    // the error opens above the tabs; a replace here used to take loggedIn with it
+    expect(rootNames()).toEqual(['loggedIn', 'error'])
+    expect(visible()?.name).toBe('error')
   })
 
   test('an error caused by our own cancel shows nothing', async () => {
@@ -139,8 +147,8 @@ describe('final error handling', () => {
     reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Input canceled'))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).toEqual([])
+    expect(modalsCleared()).toBe(false)
+    expect(navigations()).toEqual([])
   })
 
   test('a kex cancel from the daemon shows nothing', async () => {
@@ -149,8 +157,8 @@ describe('final error handling', () => {
     reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'kex canceled by caller'))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).toEqual([])
+    expect(modalsCleared()).toBe(false)
+    expect(navigations()).toEqual([])
   })
 
   test.each([
@@ -163,8 +171,8 @@ describe('final error handling', () => {
     reply(fakeError(code, desc))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).toEqual([])
+    expect(modalsCleared()).toBe(false)
+    expect(navigations()).toEqual([])
     expect(logError).not.toHaveBeenCalled()
   })
 
@@ -174,10 +182,11 @@ describe('final error handling', () => {
     fake.drop()
     await settle()
 
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toContainEqual(
+    expect(modalsCleared()).toBe(true)
+    expect(navigations()).toContainEqual(
       expect.objectContaining({name: 'error', params: expect.objectContaining({username: 'testuser'})})
     )
+    expect(visible()?.name).toBe('error')
   })
 
   test('a lost service connection ends the run', async () => {
@@ -204,9 +213,10 @@ describe('passphrase prompts', () => {
     void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
     await settle()
 
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
     ])
+    expect(rootNames()).toEqual(['loggedIn', openModal, 'username', 'password'])
   })
 
   test('the service rejecting the password is rewritten to a readable error and replaces the screen', async () => {
@@ -214,9 +224,10 @@ describe('passphrase prompts', () => {
     void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, invalidPasswordErrorString)
     await settle()
 
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {name: 'password', params: {error: 'Incorrect password.', username: 'testuser'}, replace: true},
     ])
+    expect(rootNames()).toEqual(['loggedIn', openModal, 'password'])
   })
 
   // In the app the retry prompt arrives while the password screen from the first prompt is
@@ -230,7 +241,7 @@ describe('passphrase prompts', () => {
     await settle()
 
     expect(nav.types()).toEqual(['SET_PARAMS'])
-    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
+    expect(visible()).toMatchObject({
       name: 'password',
       params: {error: 'Incorrect password.', username: 'testuser'},
     })
@@ -241,7 +252,7 @@ describe('passphrase prompts', () => {
     void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, 'Try again')
     await settle()
 
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {name: 'password', params: {error: 'Try again', username: 'testuser'}, replace: true},
     ])
   })
@@ -258,7 +269,7 @@ describe('passphrase prompts', () => {
     void pushPassphrase(push, T.RPCGen.PassphraseType.paperKey)
     await settle()
 
-    expect(nav.navigations()).toContainEqual({
+    expect(navigations()).toContainEqual({
       name: 'paperkey',
       params: {deviceName: 'paper key one', error: undefined},
       replace: false,
@@ -269,13 +280,13 @@ describe('passphrase prompts', () => {
     const {push} = await startAttempt()
     const answered = pushPassphrase(push, T.RPCGen.PassphraseType.verifyPassPhrase)
     await settle()
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
     await expect(answered).resolves.toEqual({
       error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
     })
     void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
     await settle()
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
     ])
   })
@@ -287,7 +298,7 @@ describe('text code prompt', () => {
     const answered = push(secret, {phrase: 'one two three', previousErr: ''})
     await settle()
 
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {
         name: 'codePage',
         params: {
@@ -310,7 +321,7 @@ describe('text code prompt', () => {
     void push(secret, {phrase: 'four five six', previousErr: 'nope'})
     await settle()
 
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       expect.objectContaining({
         name: 'codePage',
         params: expect.objectContaining({error: 'nope', textCode: 'four five six'}),
@@ -396,7 +407,7 @@ test('starting provisioning while logged in logs out first', async () => {
   expect(fake.calls).toEqual([
     {method: 'keybase.1.login.logout', params: expect.objectContaining({force: false, keepSecrets: true})},
   ])
-  expect(nav.navigations()).toContainEqual({
+  expect(navigations()).toContainEqual({
     name: 'username',
     params: {fromReset: false, username: 'testuser'},
     replace: false,

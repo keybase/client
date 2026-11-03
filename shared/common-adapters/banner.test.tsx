@@ -1,28 +1,12 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
-import {cleanup, render, screen} from '@testing-library/react'
-
-jest.mock('./box', () => ({
-  Box2: ({children}: {children?: React.ReactNode}) => require('react').createElement('div', null, children),
-}))
-jest.mock('./icon', () => ({
-  __esModule: true,
-  default: ({type, onClick}: {type: string; onClick?: () => void}) =>
-    require('react').createElement('button', {'data-testid': 'icon', onClick, type: 'button'}, type),
-}))
-jest.mock('./text', () => ({
-  __esModule: true,
-  default: ({children, onClick, className}: Record<string, unknown> & {children?: React.ReactNode}) =>
-    require('react').createElement(
-      'span',
-      {className: className as string, 'data-clickable': onClick ? 'true' : undefined, onClick},
-      children
-    ),
-}))
+import {cleanup, render} from '@testing-library/react'
 
 import {Banner, BannerParagraph, ErrorBanner} from './banner'
+
+const closeIcon = () => document.querySelector<HTMLElement>('.icon-gen-iconfont-close')
+const clickable = () => document.querySelector<HTMLElement>('.text_clickable')
 
 const nbsp = ' '
 
@@ -56,13 +40,13 @@ describe('ErrorBanner', () => {
   test('onClose adds a dismiss icon that fires', () => {
     const onClose = jest.fn()
     render(<ErrorBanner error="something broke" onClose={onClose} />)
-    screen.getByTestId('icon').click()
+    closeIcon()?.click()
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   test('no onClose means no dismiss icon', () => {
     render(<ErrorBanner error="something broke" />)
-    expect(screen.queryByTestId('icon')).toBeNull()
+    expect(closeIcon()).toBeNull()
   })
 })
 
@@ -96,7 +80,8 @@ describe('BannerParagraph', () => {
   test('clickable segments get the underline treatment and fire', () => {
     const onClick = jest.fn()
     render(<BannerParagraph bannerColor="red" content={[{onClick, text: 'click me'}]} />)
-    const el = document.querySelector('[data-clickable="true"]') as HTMLElement
+    const el = clickable()
+    if (!el) throw new Error('no clickable text')
     expect(el.textContent).toBe('click me')
     expect(el.className).toContain('underline-hover-no-underline')
     el.click()
@@ -105,7 +90,8 @@ describe('BannerParagraph', () => {
 
   test('non clickable segments carry no underline class', () => {
     render(<BannerParagraph bannerColor="red" content={['plain']} />)
-    expect(document.querySelector('[data-clickable="true"]')).toBeNull()
+    expect(clickable()).toBeNull()
+    expect(document.querySelector('.underline-hover-no-underline')).toBeNull()
   })
 
   test('mixes strings and segment objects in order', () => {

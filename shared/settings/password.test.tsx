@@ -1,100 +1,69 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import type * as React from 'react'
-
-// useRPC is exported as a re-export getter (non-configurable), so we mock the
-// module to make it a plain configurable property that jest.spyOn can wrap.
-jest.mock('@/constants', () => ({
-  ...(jest.requireActual('@/constants') as object),
-  useRPC: jest.fn(),
-}))
-// the real components pull in native/electron-only rendering; we only care
-// about the password validation logic here
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Banner: passThrough,
-    BannerParagraph: ({content}: {content?: string}) => React.createElement('div', null, content),
-    Box2: passThrough,
-    Button: ({label, disabled, onClick}: {label?: string; disabled?: boolean; onClick?: () => void}) =>
-      React.createElement('button', {disabled, onClick, type: 'button'}, label),
-    Checkbox: ({label, onCheck}: {label?: string; onCheck?: () => void}) =>
-      React.createElement('button', {onClick: onCheck, type: 'button'}, label),
-    Icon: () => React.createElement('div'),
-    Input3: ({
-      placeholder,
-      onChangeText,
-      value,
-    }: {
-      placeholder?: string
-      onChangeText?: (t: string) => void
-      value?: string
-    }) =>
-      React.createElement('input', {
-        onChange: (e: {target: {value: string}}) => onChangeText?.(e.target.value),
-        placeholder,
-        value,
-      }),
-    ModalScreen: ({banner, children, footer}: {banner?: React.ReactNode; children?: React.ReactNode; footer?: React.ReactNode}) =>
-      React.createElement('div', null, banner, children, footer),
-    RoundedBox: passThrough,
-    Styles: {
-      createStyleHook:
-        <S,>(styles: (theme: unknown) => S) =>
-        () =>
-          styles({blueGrey: 'blueGrey', green: 'green'}),
-      globalMargins: {small: 8, tiny: 4, xtiny: 2},
-      globalStyles: {flexOne: {}},
-      isTablet: false,
-      useTheme: () => ({blueGrey: 'blueGrey', green: 'green'}),
-    },
-    Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
-  }
-})
-
 import {act, cleanup, fireEvent, render, renderHook, screen} from '@testing-library/react'
-import * as C from '@/constants'
-import RPCError from '@/util/rpcerror'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
 import {UpdatePassword, useSubmitNewPassword} from './password'
+
+const changeRpc = 'keybase.1.account.passphraseChange'
+const canLogoutRpc = 'keybase.1.user.canLogout'
+const logoutRpc = 'keybase.1.login.logout'
 
 const typePasswords = (password: string, confirm: string) => {
   fireEvent.change(screen.getByPlaceholderText('New password'), {target: {value: password}})
   fireEvent.change(screen.getByPlaceholderText('Confirm password'), {target: {value: confirm}})
 }
 
-const saveButton = () => screen.getByText('Save') as HTMLButtonElement
+const saveButton = () => screen.getByText('Save').parentElement!
+const saveDisabled = () => (saveButton() as unknown as {className: string}).className.includes('button--disabled')
 
-let nav: FakeNavigator
+// The screen as the app shows it: a modal over the chat tab.
+const renderScreen = (props: Partial<React.ComponentProps<typeof UpdatePassword>> = {}) => {
+  const onSave = jest.fn()
+  const {wrapper} = navigationWrapper({route: 'settingsTabs.password'})
+  const r = render(<UpdatePassword error="" onSave={onSave} {...props} />, {wrapper})
+  return {...r, onSave}
+}
 
-beforeEach(() => {
-  nav = installFakeNavigator()
-})
+// The hook as the password screen runs it.
+const renderSubmit = (thenLogout: boolean) => {
+  const fake = installFakeEngine()
+  const nav = navigationWrapper({route: 'settingsTabs.password'})
+  const {result} = renderHook(() => useSubmitNewPassword(thenLogout), {wrapper: nav.wrapper})
+  const passwordShown = () =>
+    NavTree.visibleScreen(nav.getRootState(), {includeModals: true})?.name === 'settingsTabs.password'
+  const save = async (password: string) => {
+    act(() => {
+      result.current.onSave(password)
+    })
+    await flush()
+  }
+  return {fake, nav, passwordShown, result, save}
+}
+
+const methods = (fake: FakeEngine) => fake.calls.map(c => c.method)
 
 afterEach(() => {
-  restoreNavigator()
   cleanup()
-  jest.clearAllMocks()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('save stays disabled until both passwords match and are long enough', () => {
-  const onSave = jest.fn()
-  render(<UpdatePassword error="" onSave={onSave} />)
+  const {onSave} = renderScreen()
 
-  expect(saveButton().disabled).toBe(true)
+  expect(saveDisabled()).toBe(true)
 
   typePasswords('short', 'short')
-  expect(saveButton().disabled).toBe(true)
+  expect(saveDisabled()).toBe(true)
   expect(screen.queryByText('Password must be at least 8 characters.')).not.toBeNull()
 
   typePasswords('longenough', 'longenough')
-  expect(saveButton().disabled).toBe(false)
+  expect(saveDisabled()).toBe(false)
   expect(screen.queryByText('Passwords match.')).not.toBeNull()
 
   fireEvent.click(saveButton())
@@ -102,19 +71,18 @@ test('save stays disabled until both passwords match and are long enough', () =>
 })
 
 test('mismatched passwords show an error and block saving', () => {
-  const onSave = jest.fn()
-  render(<UpdatePassword error="" onSave={onSave} />)
+  const {onSave} = renderScreen()
 
   typePasswords('longenough', 'longenoughbutdifferent')
   expect(screen.queryByText('Passwords must match.')).not.toBeNull()
-  expect(saveButton().disabled).toBe(true)
+  expect(saveDisabled()).toBe(true)
 
   fireEvent.click(saveButton())
   expect(onSave).not.toHaveBeenCalled()
 })
 
 test('the PGP warning shows only when there is no other error', () => {
-  const {rerender} = render(<UpdatePassword error="" hasPGPKeyOnServer={true} onSave={jest.fn()} />)
+  const {rerender} = renderScreen({hasPGPKeyOnServer: true})
   expect(screen.queryByText(/delete your PGP key/)).not.toBeNull()
 
   rerender(<UpdatePassword error="boom" hasPGPKeyOnServer={true} onSave={jest.fn()} />)
@@ -122,142 +90,80 @@ test('the PGP warning shows only when there is no other error', () => {
   expect(screen.queryByText('boom')).not.toBeNull()
 })
 
-type ChangeSubmit = (
-  args: [{force: boolean; oldPassphrase: string; passphrase: string}, string],
-  resolve: () => void,
-  reject: (error: RPCError) => void
-) => void
+test('useSubmitNewPassword force-changes the password and navigates back once the service answers', async () => {
+  const {fake, nav, passwordShown, result, save} = renderSubmit(false)
+  const held = fake.hold(changeRpc)
 
-const mockChangeRPC = () => {
-  const pending = new Array<{reject: (error: RPCError) => void; resolve: () => void}>()
-  const submit = jest.fn(
-    (
-      _args: Parameters<ChangeSubmit>[0],
-      resolve: Parameters<ChangeSubmit>[1],
-      reject: Parameters<ChangeSubmit>[2]
-    ) => {
-      pending.push({reject, resolve})
-    }
+  await save('longenough')
+
+  expect(held[0]!.params).toEqual(
+    expect.objectContaining({force: true, oldPassphrase: '', passphrase: 'longenough'})
   )
-  jest.spyOn(C, 'useRPC').mockImplementation((() => submit) as never)
-  return {
-    rejectNext: (error: RPCError) => pending.shift()?.reject(error),
-    resolveNext: () => pending.shift()?.resolve(),
-    submit,
-  }
-}
+  expect(result.current.waitingForResponse).toBe(true)
+  expect(passwordShown()).toBe(true)
 
-test('useSubmitNewPassword force-changes the password and navigates back', () => {
-  const rpc = mockChangeRPC()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
-
-  act(() => {
-    result.current.onSave('longenough')
-  })
-
-  expect(rpc.submit).toHaveBeenCalledWith(
-    [{force: true, oldPassphrase: '', passphrase: 'longenough'}, C.waitingKeySettingsGeneric],
-    expect.any(Function),
-    expect.any(Function)
-  )
-
-  act(() => {
-    rpc.resolveNext()
-  })
+  held[0]!.reply(null)
+  await flush()
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
   expect(result.current.error).toBe('')
+  expect(result.current.waitingForResponse).toBe(false)
 })
 
-// dispatches per rpc so the password change and the canLogout probe inside
-// useRequestLogout can be told apart
-const mockRPCsByFn = () => {
-  const pending = new Map<unknown, Array<{resolve: (r?: unknown) => void}>>()
-  const submits = new Map<unknown, jest.Mock>()
-  jest.spyOn(C, 'useRPC').mockImplementation(((rpc: unknown) => {
-    let submit = submits.get(rpc)
-    if (!submit) {
-      submit = jest.fn((_args: unknown, resolve: (r?: unknown) => void) => {
-        const q = pending.get(rpc) ?? []
-        q.push({resolve})
-        pending.set(rpc, q)
-      })
-      submits.set(rpc, submit)
-    }
-    return submit
-  }) as never)
-  return {
-    resolveNext: (rpc: unknown, result?: unknown) => pending.get(rpc)?.shift()?.resolve(result),
-    submitFor: (rpc: unknown) => submits.get(rpc),
-  }
-}
+test('useSubmitNewPassword logs the user out after a successful change when asked to', async () => {
+  const {fake, nav, passwordShown, save} = renderSubmit(true)
+  const held = fake.hold(changeRpc)
+  fake.answer(canLogoutRpc, () => ({canLogout: true, reason: ''}))
+  fake.answer(logoutRpc, () => null)
 
-test('useSubmitNewPassword logs the user out after a successful change when asked to', () => {
-  const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(true))
+  await save('longenough')
+  expect(methods(fake)).toEqual([changeRpc])
 
-  act(() => {
-    result.current.onSave('longenough')
-  })
-  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+  held[0]!.reply(null)
+  await flush()
 
-  act(() => {
-    rpcs.resolveNext(T.RPCGen.accountPassphraseChangeRpcPromise)
-  })
-
-  // requestLogout() starts by asking the service whether logging out is safe
-  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).toHaveBeenCalled()
+  // requestLogout() asks the service whether logging out is safe, then logs out
+  expect(methods(fake)).toEqual([changeRpc, canLogoutRpc, logoutRpc])
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
 })
 
-test('useSubmitNewPassword leaves the session alone when it is not asked to log out', () => {
-  const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
+test('useSubmitNewPassword leaves the session alone when it is not asked to log out', async () => {
+  const {fake, nav, passwordShown, save} = renderSubmit(false)
+  fake.answer(changeRpc, () => null)
 
-  act(() => {
-    result.current.onSave('longenough')
-  })
-  act(() => {
-    rpcs.resolveNext(T.RPCGen.accountPassphraseChangeRpcPromise)
-  })
+  await save('longenough')
 
-  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+  expect(methods(fake)).toEqual([changeRpc])
   expect(nav.types()).toContain('GO_BACK')
+  expect(passwordShown()).toBe(false)
 })
 
-test('useSubmitNewPassword does not log out when the change fails', () => {
-  const rpcs = mockRPCsByFn()
-  const {result} = renderHook(() => useSubmitNewPassword(true))
+test('useSubmitNewPassword does not log out when the change fails', async () => {
+  const {fake, nav, passwordShown, result, save} = renderSubmit(true)
+  fake.answer(changeRpc, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'too weak'))
 
-  act(() => {
-    result.current.onSave('longenough')
-  })
-  act(() => {
-    // the reject callback is the third argument; drive it through the raw mock
-    const submit = rpcs.submitFor(T.RPCGen.accountPassphraseChangeRpcPromise)!
-    const reject = submit.mock.calls[0]![2] as (e: RPCError) => void
-    reject(new RPCError('too weak', T.RPCGen.StatusCode.scgeneric))
-  })
+  await save('longenough')
 
-  expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
+  expect(methods(fake)).toEqual([changeRpc])
   expect(nav.types()).not.toContain('GO_BACK')
+  expect(passwordShown()).toBe(true)
   expect(result.current.error).toBe('too weak')
 })
 
-test('useSubmitNewPassword shows the service description on failure and clears it on retry', () => {
-  const rpc = mockChangeRPC()
-  const {result} = renderHook(() => useSubmitNewPassword(false))
+test('useSubmitNewPassword shows the service description on failure and clears it on retry', async () => {
+  const {fake, nav, passwordShown, result, save} = renderSubmit(false)
+  const held = fake.hold(changeRpc)
 
-  act(() => {
-    result.current.onSave('longenough')
-  })
-  act(() => {
-    rpc.rejectNext(new RPCError('too weak', T.RPCGen.StatusCode.scgeneric))
-  })
+  await save('longenough')
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'too weak'))
+  await flush()
   expect(result.current.error).toBe('too weak')
   expect(nav.types()).not.toContain('GO_BACK')
+  expect(passwordShown()).toBe(true)
 
-  act(() => {
-    result.current.onSave('longenough2')
-  })
+  await save('longenough2')
   expect(result.current.error).toBe('')
+  held[1]!.reply(null)
+  await flush()
 })

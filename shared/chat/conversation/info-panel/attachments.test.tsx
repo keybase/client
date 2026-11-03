@@ -5,17 +5,28 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {useWaitingState} from '@/stores/waiting'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import {useAttachmentSections} from './attachments'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const loadGallery = 'chat.1.local.loadGallery'
 
-type GalleryParams = Parameters<FakeChatRpc['loadGallery']>[0]
+type GalleryParams = {fromMsgID?: number | null; sessionID: number}
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
+// The view starts its load on a 1ms timer and batches hits into the list on a 16ms one; the
+// listener hands each streamed hit to the view on a timer of its own
+const settle = async () => {
+  await flush()
+  await act(async () => new Promise(resolve => setTimeout(resolve, 20)))
+  await flush()
+}
+
+// The service streams a gallery hit into the load's session, as chatLoadGalleryHit
+const pushHit = async (p: GalleryParams, message: T.RPCChat.UIMessage) => {
+  await fake.push('chat.1.chatUi.chatLoadGalleryHit', {message}, {sessionID: p.sessionID})
 }
 
 const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.RPCChat.UIMessage => ({
@@ -73,11 +84,10 @@ const renderAttachmentSections = (loadImmediately = true) =>
     {initialProps: {loadImmediately}}
   )
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
-  jest.useFakeTimers()
+  fake = installFakeEngine()
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -87,71 +97,58 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  jest.useRealTimers()
   cleanup()
   jest.restoreAllMocks()
-  restoreChatRpc()
   resetAllStores()
 })
 
 test('attachment gallery loads media, dedupes hits, and loads more from the oldest hit', async () => {
   const requests = new Array<GalleryParams>()
-  rpc.on('loadGallery', async p => {
+  fake.answer(loadGallery, async (p: GalleryParams) => {
     requests.push(p)
     if (requests.length === 1) {
-      p.onHit(makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'older gallery hit'))
-      p.onHit(makeValidTextUIMessage(T.Chat.numberToMessageID(101), 'newer gallery hit'))
-      p.onHit(makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'duplicate gallery hit'))
+      await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'older gallery hit'))
+      await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(101), 'newer gallery hit'))
+      await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'duplicate gallery hit'))
     }
-    await Promise.resolve()
     return {last: requests.length > 1}
   })
   const {result} = renderAttachmentSections()
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
-  const {onHit, ...firstRequest} = requests[0]!
-  expect(firstRequest).toEqual({
-    conversationIDKey: convID,
-    fromMessageID: undefined,
+  // no fromMsgID on the first page: the adapter's undefined crosses the wire as null
+  expect(paramsOf(fake, loadGallery)[0]).toEqual({
+    convID: T.Chat.keyToConversationID(convID),
+    fromMsgID: null,
     num: 50,
-    viewType: T.RPCChat.GalleryItemTyp.media,
+    typ: T.RPCChat.GalleryItemTyp.media,
   })
-  expect(typeof onHit).toBe('function')
   const loadMoreSection = result.current.sections.at(-1)
   const loadMoreButton = loadMoreSection?.renderItem?.({
     index: 0,
     item: {type: 'load-more'},
   } as never) as {props: {onClick: () => void}} | undefined
 
-  await act(async () => {
+  act(() => {
     loadMoreButton?.props.onClick()
-    await flushPromises()
   })
+  await settle()
 
-  expect(requests[1]?.fromMessageID).toBe(T.Chat.numberToMessageID(100))
+  expect(requests[1]?.fromMsgID).toBe(T.Chat.numberToMessageID(100))
 })
 
 test('attachment gallery exposes error retry and empty success states', async () => {
   let shouldFail = true
   const requests = new Array<GalleryParams>()
-  rpc.on('loadGallery', async p => {
+  fake.answer(loadGallery, (p: GalleryParams) => {
     requests.push(p)
-    await Promise.resolve()
-    if (shouldFail) {
-      throw new Error('gallery failed')
-    }
-    return {last: true}
+    return shouldFail ? fakeError(T.RPCGen.StatusCode.scgeneric, 'gallery failed') : {last: true}
   })
+  jest.spyOn(logger, 'error').mockImplementation(() => {})
   const {result} = renderAttachmentSections()
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
   const errorSection = result.current.sections.at(-1)
   const retryButton = errorSection?.renderItem?.({
@@ -161,10 +158,10 @@ test('attachment gallery exposes error retry and empty success states', async ()
   expect(retryButton?.props.label).toBe('Error loading, try again')
 
   shouldFail = false
-  await act(async () => {
+  act(() => {
     retryButton?.props.onClick()
-    await flushPromises()
   })
+  await settle()
 
   expect(requests).toHaveLength(2)
   expect(result.current.sections.some(section => section.data.some(item => item.type === 'no-attachments'))).toBe(
@@ -174,88 +171,63 @@ test('attachment gallery exposes error retry and empty success states', async ()
 
 test('attachment gallery waits to load until the attachments view is active', async () => {
   const requests = new Array<GalleryParams>()
-  rpc.on('loadGallery', async p => {
+  fake.answer(loadGallery, (p: GalleryParams) => {
     requests.push(p)
-    await Promise.resolve()
     return {last: true}
   })
   const {rerender} = renderAttachmentSections(false)
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
   expect(requests).toHaveLength(0)
 
-  await act(async () => {
+  act(() => {
     rerender({loadImmediately: true})
-    await flushPromises()
   })
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
   expect(requests).toHaveLength(1)
 })
 
 test('attachment gallery ignores hits that arrive after unmount cleanup', async () => {
-  let request: GalleryParams | undefined
-  let resolveLoad: ((result: {last: boolean}) => void) | undefined
-  rpc.on('loadGallery', async p => {
-    const result = await new Promise<{last: boolean}>(resolve => {
-      request = p
-      resolveLoad = resolve
-    })
-    return result
-  })
-  const {unmount} = renderAttachmentSections()
+  const held = fake.hold(loadGallery)
+  const {result, unmount} = renderAttachmentSections()
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
+  const sectionsAtUnmount = result.current.sections
   unmount()
 
-  request?.onHit(makeValidTextUIMessage(T.Chat.numberToMessageID(300), 'stale hit'))
-  await act(async () => {
-    resolveLoad?.({last: false})
-    await flushPromises()
-  })
+  const p = held[0]!.params as GalleryParams
+  await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(300), 'stale hit'))
+  held[0]!.reply({last: false})
+  await settle()
 
-  expect(request?.conversationIDKey).toEqual(convID)
+  expect(paramsOf(fake, loadGallery)[0]?.convID).toEqual(T.Chat.keyToConversationID(convID))
+  expect(JSON.stringify(result.current.sections)).toBe(JSON.stringify(sectionsAtUnmount))
 })
 
-test('attachment gallery sends only the load params and the hit callback, with no waiting key', async () => {
-  rpc.on('loadGallery', () => ({last: true}))
+test('attachment gallery sends only the load params, with no waiting key', async () => {
+  fake.answer(loadGallery, () => ({last: true}))
   renderAttachmentSections()
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
-  const calls = rpc.calls('loadGallery')
+  const calls = paramsOf(fake, loadGallery)
   expect(calls).toHaveLength(1)
-  expect(calls[0]).toHaveLength(1)
-  expect(Object.keys(calls[0]![0]).sort()).toEqual(['conversationIDKey', 'fromMessageID', 'num', 'onHit', 'viewType'])
-  expect(typeof calls[0]![0].onHit).toBe('function')
+  expect(Object.keys(calls[0]).sort()).toEqual(['convID', 'fromMsgID', 'num', 'typ'])
+  expect(useWaitingState.getState().counts.size).toBe(0)
 })
 
 test('attachment gallery logs a failed load as an error with the load context', async () => {
-  rpc.fail('loadGallery', new Error('gallery failed'))
+  fake.answer(loadGallery, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'gallery failed'))
   const logError = jest.spyOn(logger, 'error').mockImplementation(() => {})
   renderAttachmentSections()
 
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
+  await settle()
 
   expect(logError).toHaveBeenCalledWith(
-    'failed to load attachment view: gallery failed',
+    `failed to load attachment view: ERROR CODE ${T.RPCGen.StatusCode.scgeneric} - gallery failed in method ${loadGallery}`,
     expect.objectContaining({
       conversationIDKey: convID,
       fromMsgID: undefined,

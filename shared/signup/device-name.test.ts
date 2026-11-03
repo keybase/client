@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {flush} from '@/test/flush'
 import {checkDeviceNameAndSignup, isDeviceNameDisabled, makeCleanDeviceName} from './device-name'
 
 describe('isDeviceNameDisabled', () => {
@@ -220,7 +220,8 @@ describe('checkDeviceNameAndSignup through the engine listener', () => {
       showPermissionsPrompt,
       navigateAppend as never
     )
-    await tick()
+    // The device name check goes to the service and back before the signup call goes out
+    await flush()
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scbadsignupusernametaken, 'username taken'))
     await done
 
@@ -245,7 +246,8 @@ describe('checkDeviceNameAndSignup through the engine listener', () => {
       showPermissionsPrompt,
       navigateAppend as never
     )
-    await tick()
+    // The device name check goes to the service and back before the signup call goes out
+    await flush()
     fail(held, fake)
     await done
     return {navigateAppend, showPermissionsPrompt}

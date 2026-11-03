@@ -3,13 +3,13 @@
 // ProxyNativeTransport, node the real EngineRelay; only the socket and the Electron IPC between the
 // two processes are stood in for.
 import {EventEmitter} from 'events'
-import {setImmediate} from 'node:timers'
 import {decodeMulti} from '@msgpack/msgpack'
 import {Engine} from '@/engine'
 import {EngineRelay} from '@/desktop/app/engine-relay.desktop'
 import {encodeFrame, type RPCMessage} from '@/engine/rpc-transport'
 import type {CreateClientType} from '@/engine/index.platform'
 import type {KB2} from '@/util/electron'
+import {IpcChannel} from './ipc-channel'
 
 class MockSocket extends EventEmitter {
   written = new Array<Uint8Array>()
@@ -75,11 +75,12 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   const made: {renderer?: Engine} = {}
   // Electron IPC is asynchronous both ways: what one process sends arrives a turn later, in order.
   // So a renderer call can reach the relay after the socket died but before the renderer has heard.
-  const inTransit = new Array<() => void>()
+  // It structured-clones what is sent at send time, so the receiver never shares the sender's object.
+  const ipc = new IpcChannel()
   // Set before anything global changes, so a setup that throws part way is still undone
   teardown = () => {
     try {
-      inTransit.length = 0
+      ipc.clear()
       made.renderer?._rpcClient.transport.close()
     } finally {
       preload.functions = functions
@@ -96,28 +97,24 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     return s
   }
 
-  const deliverNext = () => inTransit.shift()?.()
-  const overIPC = (deliver: () => void) => {
-    inTransit.push(deliver)
-    setImmediate(deliverNext)
-  }
-  const deliverAll = () => {
-    while (inTransit.length) {
-      deliverNext()
-    }
-  }
 
   let rendererIncoming: ((data: unknown) => void) | undefined
   // preload: node forwards the service's bytes and the relay's link frames to the main window's
   // 'engineIncoming'
-  const relay = new EngineRelay(data => overIPC(() => rendererIncoming?.(data)))
+  const relay = new EngineRelay(data => {
+    const sent = structuredClone(data)
+    ipc.send(() => rendererIncoming?.(sent))
+  })
 
   preload.functions = {
     ...functions,
     // ipc-handlers.desktop.tsx: the renderer's engineSend, engineRestartLink and engineDropLink land on the relay
-    engineRestartLink: () => overIPC(() => relay.restartLink({afterDelay: true})),
-    engineDropLink: () => overIPC(() => relay.dropLink()),
-    engineSend: send => overIPC(() => relay.send(send)),
+    engineRestartLink: () => ipc.send(() => relay.restartLink({afterDelay: true})),
+    engineDropLink: () => ipc.send(() => relay.dropLink()),
+    engineSend: send => {
+      const sent = structuredClone(send)
+      ipc.send(() => relay.send(sent))
+    },
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
         rendererIncoming = cb
@@ -137,7 +134,7 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   // then the renderer's listeners are ready
   currentSocket().emit('connect')
   relay.replayLinkState()
-  deliverAll()
+  ipc.deliverAll()
   if (opts?.listenersReady !== false) {
     renderer.listenersAreReady()
   }
@@ -148,13 +145,13 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     listenersReadyAgain: () => renderer.listenersAreReady(),
     renderer: renderer._rpcClient,
     rendererReloads: () => {
-      deliverAll()
+      ipc.deliverAll()
       relay.restartLink()
       currentSocket().emit('connect')
     },
     socketsOpened: () => mockSockets.length,
     serviceComesBack: () => {
-      deliverAll()
+      ipc.deliverAll()
       const before = mockSockets.length
       jest.advanceTimersByTime(reconnectDelayMs)
       if (mockSockets.length !== before + 1) {

@@ -27,9 +27,10 @@ const log = 'keybase.1.logUi.log'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 const waitingKey = testWaitingKey('session-cancel-test')
 
-// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
-// becomes the GUI's on the next
+// The push crosses IPC; the listener hands incoming calls to their handlers on a timer, and a prompt
+// they leave unanswered becomes the GUI's on the next
 const afterTimers = async () => {
+  await tick()
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setTimeout(resolve, 0))
 }
@@ -92,7 +93,7 @@ test('a late plain call on a cancelled session is acked and never reaches the ap
   const {cancel, fake, sessionID} = await start(onEngineIncoming)
   cancel()
   await expect(fake.push(log, {level: 0, text: {data: 'hi', markup: false}}, {sessionID})).resolves.toEqual({
-    result: undefined,
+    result: null,
   })
   expect(onEngineIncoming).not.toHaveBeenCalled()
 })
@@ -112,6 +113,7 @@ test('a link drop ends the refusal', async () => {
   const {cancel, fake, sessionID} = await start()
   cancel()
   fake.drop()
+  await tick()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
 })
 
@@ -119,6 +121,9 @@ test('an engine reset ends the refusal', async () => {
   const {cancel, fake, sessionID} = await start()
   cancel()
   fake.engine.reset()
+  // engineDropLink reaches the relay, and its link-down frame comes back
+  await tick()
+  await tick()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
 })
 
@@ -207,7 +212,7 @@ describe('a service cancel of one prompt', () => {
     await expect(second).resolves.toEqual({result: true})
     expect(answered).not.toHaveBeenCalled()
     held[0]!.reply(undefined)
-    await expect(ended).resolves.toBeUndefined()
+    await expect(ended).resolves.toBeNull()
     expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
   })
 
@@ -219,6 +224,8 @@ describe('a service cancel of one prompt', () => {
     expect(onPrompt).toHaveBeenCalledTimes(1)
     expect(waitingCount(fake)).toBe(0)
     fake.cancelPush(prompt)
+    expect(waitingCount(fake)).toBe(0)
+    await tick()
     expect(waitingCount(fake)).toBe(1)
     held[0]!.reply(undefined)
     await ended
@@ -261,6 +268,8 @@ describe('a service cancel of one prompt', () => {
     expect(onPrompt).toHaveBeenCalledTimes(1)
     expect(waitingCount(fake)).toBe(0)
     fake.cancelPush(prompt)
+    expect(waitingCount(fake)).toBe(0)
+    await tick()
     expect(waitingCount(fake)).toBe(1)
     held[0]!.reply(undefined)
     await ended

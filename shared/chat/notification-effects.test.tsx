@@ -7,7 +7,6 @@
 // stores, the service calls (inbox unbox, thread load, mark read), the daemon's reacjis, the
 // users store and desktop notifications.
 import * as React from 'react'
-import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import HiddenString from '@/util/hidden-string'
@@ -24,10 +23,13 @@ import {useInboxTypingState} from '@/chat/inbox/typing-state'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
+import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
 import {resetAllStores} from '@/util/zustand'
 import {flush} from '@/test/flush'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads} from '@/test/fake-thread-load'
+import {navigationWrapper} from '@/test/navigation'
 import {
   ConversationThreadProvider,
   useConversationThreadActions,
@@ -300,8 +302,9 @@ const incomingMessage = (
     },
   })
 
-const lookingAt = new Set<T.Chat.ConversationIDKey>()
-let rpc: FakeChatRpc
+// The chat root shows A, so the user is looking at A only while the app is focused and in use
+const lookAtA = () => useShellState.setState({active: true, appFocused: true})
+let fake: FakeEngine
 
 const recordStoreChanges = () => {
   const unsubs = [
@@ -344,8 +347,10 @@ const settle = async () => {
 const mountScreens = async (ids: ReadonlyArray<T.Chat.ConversationIDKey>, afterMount?: () => void) =>
   mountTree(<Screens ids={ids} />, afterMount)
 
+// the screens are mounted in desktop's chat root, showing A
 const mountTree = async (tree: React.ReactElement, afterMount?: () => void) => {
-  const rendered = render(tree)
+  const {wrapper} = navigationWrapper({params: {conversationIDKey: convA}, route: 'chatRoot'})
+  const rendered = render(tree, {wrapper})
   await settle()
   act(() => {
     for (const m of mounted.values()) {
@@ -402,8 +407,7 @@ beforeEach(() => {
       userReacjis: {skinTone: 0, topReacjis: null},
     } as T.RPCGen.BootstrapStatus)
   })
-  lookingAt.clear()
-  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockImplementation(id => lookingAt.has(id))
+  useShellState.setState({active: false, appFocused: false})
   const unboxRows = InboxMetadata.unboxRows
   jest.spyOn(InboxMetadata, 'unboxRows').mockImplementation(ids => {
     record(`unboxRows:${ids.map(label).join(',')}`)
@@ -414,26 +418,29 @@ beforeEach(() => {
     record(`forceUnboxRows:${ids.map(label).join(',')}`)
     forceUnboxRowsForService(ids)
   })
-  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockImplementation(async p => {
+  // the service calls, recorded as the service receives them
+  fake = installFakeEngine()
+  fake.answer('chat.1.local.requestInboxUnbox', (p: {convIDs?: ReadonlyArray<Uint8Array> | null}) => {
     record(`rpc:unbox:${(p.convIDs ?? []).map(c => label(T.Chat.conversationIDToKey(c))).join(',')}`)
-    return Promise.resolve()
   })
-  jest.spyOn(T.RPCChat, 'localRequestInboxLayoutRpcPromise').mockImplementation(async () => {
+  fake.answer('chat.1.local.requestInboxLayout', () => {
     record('rpc:inboxLayout')
-    return Promise.resolve()
   })
   jest.mocked(NotifyPopup).mockImplementation((title, opts) => {
     record(`desktopNotification:${title}:${opts?.body ?? ''}`)
   })
-  rpc = installFakeChatRpc()
-  rpc.on('loadThread', p => {
+  // a load around a message names the control's mode after its reason
+  answerThreadLoads(fake, load => {
+    const p = load.params as {query: {messageIDControl: T.RPCChat.MessageIDControl | null}; reason: T.RPCChat.GetThreadReason}
+    const control = p.query.messageIDControl
     record(
-      `rpc:loadThread:${label(p.conversationIDKey)}:${p.reason === undefined ? 'around' : T.RPCChat.GetThreadReason[p.reason]}`
+      `rpc:loadThread:${label(load.conversationIDKey)}:${T.RPCChat.GetThreadReason[p.reason]}${
+        control ? `:${T.RPCChat.MessageIDControlMode[control.mode]}` : ''
+      }`
     )
-    return {offline: false}
   })
-  rpc.on('markRead', p => {
-    record(`rpc:markRead:${label(p.conversationIDKey)}`)
+  fake.answer('chat.1.local.markAsReadLocal', (p: {conversationID: Uint8Array}) => {
+    record(`rpc:markRead:${label(T.Chat.conversationIDToKey(p.conversationID))}`)
   })
 })
 
@@ -442,7 +449,6 @@ afterEach(() => {
   stopRecording = undefined
   cleanup()
   mounted.clear()
-  restoreChatRpc()
   jest.restoreAllMocks()
   jest.mocked(NotifyPopup).mockReset()
   // a store reset keeps the switch flag, and a switch left open stops the next one resetting
@@ -510,7 +516,7 @@ const cases: Array<Case> = [
       none: ['inbox:metas'],
     },
     name: 'incoming message, conversation being looked at',
-    setup: () => lookingAt.add(convA),
+    setup: lookAtA,
   },
   {
     action: () => incomingMessage(convA, 31),
@@ -613,8 +619,8 @@ const cases: Array<Case> = [
         membersUpdate: {convID: rpcConvID(convA), members: null},
       }),
     expected: {
-      A: ['forceUnboxRows:A', 'rpc:unbox:A', 'unboxRows:A'],
-      'A+B': ['forceUnboxRows:A', 'rpc:unbox:A', 'unboxRows:A'],
+      A: ['forceUnboxRows:A', 'unboxRows:A', 'rpc:unbox:A'],
+      'A+B': ['forceUnboxRows:A', 'unboxRows:A', 'rpc:unbox:A'],
       none: ['forceUnboxRows:A', 'rpc:unbox:A'],
     },
     name: 'membersUpdate',
@@ -707,8 +713,8 @@ const cases: Array<Case> = [
         messagesUpdated: {convID: rpcConvID(convA), updates: [makeValidText(msgID(20), 'edited')]},
       }),
     expected: {
-      A: ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
-      'A+B': ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
+      A: ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:general:centered'],
+      'A+B': ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:general:centered'],
       none: none,
     },
     name: 'messagesUpdated',
@@ -807,8 +813,8 @@ const cases: Array<Case> = [
     expected: {
       A: [
         'forceUnboxRows:A',
-        'rpc:unbox:A',
         'forceUnboxRows:A,C',
+        'rpc:unbox:A',
         'rpc:unbox:C',
         'rpc:loadThread:A:general',
         'inbox:metas',
@@ -816,14 +822,14 @@ const cases: Array<Case> = [
       ],
       'A+B': [
         'forceUnboxRows:A',
-        'rpc:unbox:A',
         'forceUnboxRows:A,C',
+        'rpc:unbox:A',
         'rpc:unbox:C',
         'rpc:loadThread:A:general',
         'inbox:metas',
         'rpc:unbox:A',
       ],
-      none: ['forceUnboxRows:A', 'rpc:unbox:A', 'forceUnboxRows:A,C', 'rpc:unbox:C', 'rpc:unbox:A'],
+      none: ['forceUnboxRows:A', 'forceUnboxRows:A,C', 'rpc:unbox:A', 'rpc:unbox:C', 'rpc:unbox:A'],
     },
     name: 'ChatThreadsStale',
   },
@@ -1016,8 +1022,8 @@ const cases: Array<Case> = [
     action: () =>
       engineAction('chat.1.NotifyChat.ChatAttachmentDownloadComplete', {convID: rpcConvID(convA), msgID: 20}),
     expected: {
-      A: ['rpc:loadThread:A:around'],
-      'A+B': ['rpc:loadThread:A:around'],
+      A: ['rpc:loadThread:A:general:centered'],
+      'A+B': ['rpc:loadThread:A:general:centered'],
       none: none,
     },
     name: 'ChatAttachmentDownloadComplete of the message a storeless consumer shows',
@@ -1228,6 +1234,8 @@ describe('an account switch', () => {
     await notify(explodingModeIn(convA, 300))
     expect(after?.store.getState().explodingMode).toBe(300)
     expect(before?.store.getState().explodingMode).toBe(0)
+    // a thread is marked read only while the app is focused
+    act(lookAtA)
     act(() => {
       after?.actions.markThreadAsRead()
     })
@@ -1342,9 +1350,9 @@ describe('mounted conversation screens', () => {
     )
     expect(timeline.filter(e => e.startsWith('unboxRows') || e.startsWith('rpc:unbox'))).toEqual([
       'unboxRows:A',
+      'unboxRows:A',
+      'unboxRows:A',
       'rpc:unbox:A',
-      'unboxRows:A',
-      'unboxRows:A',
     ])
   })
 })

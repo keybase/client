@@ -1,4 +1,4 @@
-import {hiddenSimctlArgs, maskedRunError, scrub} from './run-errors-lib'
+import {hiddenSimctlArgs, maskedByRole, maskedRunError, scrub} from './run-errors-lib'
 
 const udid = '00000000-1111-2222-3333-444444444444'
 const link = 'keybase://profile/show/testuser'
@@ -47,4 +47,13 @@ test('a kill by signal and a spawn failure say so; a Buffer stderr is read', () 
 
 test('scrub replaces a longer hidden arg before a shorter one inside it', () => {
   expect(scrub('a /tmp/x/y b /tmp/x', ['/tmp/x', '/tmp/x/y'])).toBe('a <hidden> b <hidden>')
+})
+
+test('maskedByRole replaces each name with its role, the longest name first', () => {
+  const roles = [
+    {name: 'testuser', role: 'the smoke account'},
+    {name: 'testuser-mac', role: 'the new computer'},
+    {name: '', role: 'nothing'},
+  ]
+  expect(maskedByRole('testuser-mac of testuser failed', roles)).toBe('the new computer of the smoke account failed')
 })

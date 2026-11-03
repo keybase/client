@@ -1,40 +1,12 @@
 /// <reference types="jest" />
 
-let mockLoggedIn = true
-let mockUserSwitching = false
-let mockUsername = 'testuser'
-const mockLoggerInfo = jest.fn()
-const mockLoggerWarn = jest.fn()
-
-jest.mock('@/logger', () => ({
-  __esModule: true,
-  default: {
-    error: () => {},
-    info: (...args: Array<unknown>) => mockLoggerInfo(...args),
-    warn: (...args: Array<unknown>) => mockLoggerWarn(...args),
-  },
-}))
-
-jest.mock('@/stores/config', () => ({
-  isChatSessionReady: () => mockLoggedIn && !mockUserSwitching,
-  useConfigState: {
-    getState: () => ({
-      loggedIn: mockLoggedIn,
-      userSwitching: mockUserSwitching,
-    }),
-  },
-}))
-
-jest.mock('@/stores/current-user', () => ({
-  useCurrentUserState: {
-    getState: () => ({
-      username: mockUsername,
-    }),
-  },
-}))
-
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import * as T from '@/constants/types'
+import logger from '@/logger'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {resetAllStores} from '@/util/zustand'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {useInboxLayoutState} from './layout-state'
 
 const emptyLayout: T.RPCChat.UIInboxLayout = {
@@ -48,18 +20,19 @@ const layoutWithRows: T.RPCChat.UIInboxLayout = {
   totalSmallTeams: 1,
 }
 
+let fake: FakeEngine
+const layoutRequests = () =>
+  fake.calls.filter(c => c.method === 'chat.1.local.requestInboxLayout').map(c => c.params as {reselectMode: unknown})
+
 beforeEach(() => {
-  mockLoggedIn = true
-  mockUserSwitching = false
-  mockUsername = 'testuser'
-  mockLoggerInfo.mockClear()
-  mockLoggerWarn.mockClear()
-  useInboxLayoutState.getState().dispatch.resetState()
-  jest.spyOn(T.RPCChat, 'localRequestInboxLayoutRpcPromise').mockResolvedValue(undefined)
+  resetAllStores()
+  useConfigState.setState({loggedIn: true, userSwitching: false})
+  useCurrentUserState.setState({username: 'testuser'})
+  fake = installFakeEngine()
+  fake.answer('chat.1.local.requestInboxLayout', () => null)
 })
 
 afterEach(() => {
-  useInboxLayoutState.getState().dispatch.resetState()
   jest.restoreAllMocks()
 })
 
@@ -71,24 +44,31 @@ test('refresh never forces a reselect, before or after the layout has loaded', a
   dispatch.updateLayout(JSON.stringify(emptyLayout))
   await dispatch.refresh('inboxStale')
 
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledTimes(2)
-  for (const call of jest.mocked(T.RPCChat.localRequestInboxLayoutRpcPromise).mock.calls) {
-    expect(call[0]).toEqual({reselectMode: T.RPCChat.InboxLayoutReselectMode.default})
-  }
+  expect(layoutRequests()).toEqual([
+    expect.objectContaining({reselectMode: T.RPCChat.InboxLayoutReselectMode.default}),
+    expect.objectContaining({reselectMode: T.RPCChat.InboxLayoutReselectMode.default}),
+  ])
 })
 
 test('refresh is gated on a logged-in user', async () => {
-  mockLoggedIn = false
+  useConfigState.setState({loggedIn: false})
   await useInboxLayoutState.getState().dispatch.refresh('bootstrap')
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).not.toHaveBeenCalled()
+  expect(layoutRequests()).toEqual([])
 
-  mockLoggedIn = true
-  mockUsername = ''
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.setState({username: ''})
   await useInboxLayoutState.getState().dispatch.refresh('bootstrap')
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).not.toHaveBeenCalled()
+  expect(layoutRequests()).toEqual([])
+})
+
+test('refresh does not ask the service while an account switch is under way', async () => {
+  useConfigState.setState({userSwitching: true})
+  await useInboxLayoutState.getState().dispatch.refresh('bootstrap')
+  expect(layoutRequests()).toEqual([])
 })
 
 test('updateLayout ignores invalid JSON without changing state', () => {
+  const warn = jest.spyOn(logger, 'warn')
   const {dispatch} = useInboxLayoutState.getState()
   dispatch.setRetriedOnCurrentEmpty(true)
 
@@ -99,7 +79,7 @@ test('updateLayout ignores invalid JSON without changing state', () => {
     layout: undefined,
     retriedOnCurrentEmpty: true,
   })
-  expect(mockLoggerWarn).toHaveBeenCalledWith(
+  expect(warn).toHaveBeenCalledWith(
     expect.stringContaining('failed to JSON parse inbox layout'),
     expect.any(SyntaxError)
   )
@@ -144,7 +124,7 @@ test('resetState restores the initial layout store and keeps dispatch usable', a
   })
 
   await dispatch.refresh('bootstrap')
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledWith({
-    reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
-  })
+  expect(layoutRequests()).toEqual([
+    expect.objectContaining({reselectMode: T.RPCChat.InboxLayoutReselectMode.default}),
+  ])
 })

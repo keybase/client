@@ -32,7 +32,7 @@ const startRecover = async (fake: FakeEngine, globalFallthrough?: ReadonlyArray<
 test('an undeclared notification is acked as before and fails the test', async () => {
   const fake = installFakeEngine()
   const sessionID = await startRecover(fake)
-  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: undefined})
+  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: null})
   expect(() => uninstallFakeEngine()).toThrow(undeclared(resetMessage))
 })
 
@@ -48,7 +48,7 @@ test('an undeclared prompt is refused as before and fails the test', async () =>
 test('a declared prefix falls through silently', async () => {
   const fake = installFakeEngine()
   const sessionID = await startRecover(fake, ['keybase.1.loginUi.displayReset'])
-  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: undefined})
+  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: null})
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
@@ -58,7 +58,7 @@ test('a plain call declares nothing, so nothing it receives is reported', async 
   void T.RPCGen.configGetBootstrapStatusRpcPromise().catch(() => {})
   await tick()
   const sessionID = fake.calls[0]!.params.sessionID as number
-  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: undefined})
+  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: null})
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
@@ -80,7 +80,7 @@ test('outside the fake engine a production build says nothing', async () => {
   const fake = installFakeEngine()
   fake.engine.onUndeclaredIncoming = undefined
   const sessionID = await startRecover(fake)
-  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: undefined})
+  await expect(fake.push(resetMessage, {kind: 0}, {sessionID})).resolves.toEqual({result: null})
   expect(logged).not.toHaveBeenCalled()
   expect(() => uninstallFakeEngine()).not.toThrow()
 })

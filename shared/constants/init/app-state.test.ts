@@ -2,22 +2,16 @@
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
 import logger from '@/logger'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 import {applyMobileAppState, listenForAppLifecycle} from './shared'
 
 type Lifecycle = 'active' | 'inactive' | 'background'
 
-const mockNative: {listeners: Array<(state: string) => void>; state: string} = {listeners: [], state: 'active'}
+// what getAppLifecycleState answers; react-native-kb's own wrapper runs over the fake module
+let nativeState = 'active'
 const mockRNAppStateListeners: Array<(state: string) => void> = []
 
-jest.mock('react-native-kb', () => ({
-  addAppLifecycleListener: (cb: (state: string) => void) => {
-    mockNative.listeners.push(cb)
-    return () => {
-      mockNative.listeners = mockNative.listeners.filter(l => l !== cb)
-    }
-  },
-  getAppLifecycleState: () => mockNative.state,
-}))
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 
 jest.mock('react-native', () => ({
   ...jest.requireActual<object>('react-native'),
@@ -31,7 +25,7 @@ jest.mock('react-native', () => ({
 }))
 
 const g = globalThis as unknown as {isMobile: boolean}
-const nativeSays = (state: string) => mockNative.listeners.forEach(l => l(state))
+const nativeSays = (state: string) => fakeNativeKb.emit('onAppLifecycle', {state})
 let stopListening: (() => void) | undefined
 
 beforeEach(() => {
@@ -39,8 +33,8 @@ beforeEach(() => {
   resetAllStores()
   // the shell store keeps its state across an account-level reset on purpose
   useShellState.setState({mobileAppState: 'unknown'})
-  mockNative.listeners = []
-  mockNative.state = 'active'
+  nativeState = 'active'
+  fakeNativeKb.give({getAppLifecycleState: () => nativeState})
   mockRNAppStateListeners.length = 0
   jest.spyOn(logger, 'info').mockImplementation(() => {})
   jest.spyOn(logger, 'warn').mockImplementation(() => {})
@@ -55,7 +49,7 @@ afterEach(() => {
 
 describe('the app state native reports', () => {
   test.each<Lifecycle>(['active', 'inactive', 'background'])('%s arrives through the native event', state => {
-    mockNative.state = 'background'
+    nativeState = 'background'
     stopListening = listenForAppLifecycle()
     useShellState.setState({mobileAppState: 'unknown'})
     nativeSays(state)
@@ -63,7 +57,7 @@ describe('the app state native reports', () => {
   })
 
   test('is seeded from the state native already holds, since earlier events went to no listener', () => {
-    mockNative.state = 'inactive'
+    nativeState = 'inactive'
     stopListening = listenForAppLifecycle()
     expect(useShellState.getState().mobileAppState).toBe('inactive')
   })
@@ -101,6 +95,7 @@ describe('the app state native reports', () => {
     stop()
     nativeSays('background')
     expect(useShellState.getState().mobileAppState).toBe('active')
+    expect(fakeNativeKb.count('onAppLifecycle')).toBe(0)
   })
 
   test('desktop has no lifecycle to learn', () => {

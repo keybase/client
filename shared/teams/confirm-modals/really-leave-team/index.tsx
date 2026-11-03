@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import LastOwnerDialog from './last-owner'
 import AvatarBadge from '../avatar-badge'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {exitTeamTo, type TeamExitContext} from '@/teams/actions'
 
 type Props = {
   error: string
@@ -78,10 +79,10 @@ const useStyles = Kb.Styles.createStyleHook(
     }) as const
 )
 
-type OwnProps = {teamID: T.Teams.TeamID}
+type OwnProps = {teamID: T.Teams.TeamID; context: TeamExitContext}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
-  const teamID = op.teamID
+  const {teamID, context} = op
   const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
   const teamname = teamMeta.teamname
   const open = teamDetails.settings.open
@@ -95,7 +96,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const error = C.Waiting.useAnyErrors(waitingKey)
   const onDeleteTeam = () => {
     C.Router2.navigateUp()
-    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {context, teamID}})
   }
   const _onLeave = (permanent: boolean) => {
     if (!teamname) {
@@ -103,10 +104,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     }
     leaveTeamRPC(
       [{name: teamname, permanent}, waitingKey],
-      () => {
-        C.Router2.clearModals()
-        C.Router2.navUpToScreen('teamsRoot')
-      },
+      () => exitTeamTo(context),
       () => {}
     )
   }

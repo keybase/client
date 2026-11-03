@@ -30,8 +30,9 @@ const rejection = async (p: Promise<unknown>) =>
     (e: unknown) => e as RPCError
   )
 
-// The listener hands incoming calls to their handlers on a timer
+// The push crosses IPC, and the listener hands incoming calls to their handlers on a timer
 const afterTimers = async () => {
+  await tick()
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setTimeout(resolve, 0))
 }
@@ -90,6 +91,7 @@ describe('the code, desc and kind of each error the client makes', () => {
     // A background session, which the switch's cancel leaves running
     const held = fake.hold('keybase.1.SimpleFS.simpleFSUserEditHistory')
     const p = T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+    await tick()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
     held[0]!.reply({folders: []})
     expect(await rejection(p)).toMatchObject({
@@ -295,6 +297,7 @@ describe('telling errors apart', () => {
     const held = fake.hold('keybase.1.login.getConfiguredAccounts')
     useConfigState.getState().dispatch.setLoggedIn(true)
     const p = T.RPCGen.loginGetConfiguredAccountsRpcPromise()
+    await tick()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
     held[0]!.reply([])
     await expect(p).resolves.toEqual([])

@@ -1,20 +1,19 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-jest.mock('@/constants/router', () => ({
-  ...jest.requireActual('@/constants/router'),
-  navigateAppendOnceRootHas: jest.fn(),
-}))
 
 import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
-import {navigateAppendOnceRootHas} from '../../constants/router'
-import {RPCError} from '../../util/errors'
 import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 import {useWaitingState} from '../waiting'
 import {waitingKeyConfigLogin} from '../../constants/strings'
-import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import * as NavTree from '../../constants/nav-tree'
+import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
+import {act} from '@testing-library/react'
+import {installNavigation, makeRootState} from '@/test/navigation'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
@@ -156,122 +155,154 @@ test('loggedIn and loggedOut notifications do not set the session themselves', (
 })
 
 describe('login', () => {
-  const mockOnceRootHas = jest.mocked(navigateAppendOnceRootHas)
+  const loginRpc = 'keybase.1.login.login'
+  const bootstrapRpc = 'keybase.1.config.getBootstrapStatus'
   const originalDaemonDispatch = useDaemonState.getState().dispatch
-  let refresh: jest.Mock
+  // whether the switch was still running each time the session was read
+  let switchingWhenRead: Array<boolean>
   beforeEach(() => {
-    refresh = jest.fn()
-    useDaemonState.setState({dispatch: {...originalDaemonDispatch, refreshSessionFromDaemon: refresh}})
+    switchingWhenRead = []
+    // the real read, recording when it starts
+    useDaemonState.setState({
+      dispatch: {
+        ...originalDaemonDispatch,
+        refreshSessionFromDaemon: reason => {
+          switchingWhenRead.push(useConfigState.getState().userSwitching)
+          originalDaemonDispatch.refreshSessionFromDaemon(reason)
+        },
+      },
+    })
   })
   afterEach(() => {
     jest.restoreAllMocks()
     useDaemonState.setState({dispatch: originalDaemonDispatch})
-    mockOnceRootHas.mockReset()
   })
 
-  const flush = async () => new Promise(resolve => setImmediate(resolve))
+  const flush = settle
+
+  // The service: what the session read answers, and every login held for the test to end
+  const serve = (): {fake: FakeEngine; logins: ReturnType<FakeEngine['hold']>} => {
+    const fake = installFakeEngine()
+    fake.answer(bootstrapRpc, () => ({
+      deviceID: '',
+      deviceName: '',
+      fullname: '',
+      httpSrvInfo: null,
+      loggedIn: false,
+      registered: true,
+      uid: '',
+      userReacjis: {skinTone: 0, topReacjis: null},
+      username: '',
+    }))
+    return {fake, logins: fake.hold(loginRpc)}
+  }
+  const sessionReads = (fake: FakeEngine) => fake.calls.filter(c => c.method === bootstrapRpc).length
+
+  const loginEnding = async (answer: unknown, switching = false) => {
+    const {fake, logins} = serve()
+    const {dispatch} = useConfigState.getState()
+    if (switching) dispatch.setUserSwitching(true, 'testuser')
+    dispatch.login('testuser', switching ? '' : 'password')
+    await flush()
+    logins[0]!.reply(answer)
+    await flush()
+    return fake
+  }
 
   test('reads the session from the daemon when the login succeeds', async () => {
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockResolvedValue(undefined)
-    useConfigState.getState().dispatch.login('testuser', 'password')
-    await flush()
+    const fake = await loginEnding(null)
 
-    expect(refresh).toHaveBeenCalledTimes(1)
+    expect(sessionReads(fake)).toBe(1)
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().loginError).toBeUndefined()
   })
 
   test('reads the session from the daemon when already logged in', async () => {
-    jest
-      .spyOn(T.RPCGen, 'loginLoginRpcListener')
-      .mockRejectedValue(new RPCError('already logged in', T.RPCGen.StatusCode.scalreadyloggedin))
-    useConfigState.getState().dispatch.login('testuser', 'password')
-    await flush()
+    const fake = await loginEnding(fakeError(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in'))
 
-    expect(refresh).toHaveBeenCalledTimes(1)
+    expect(sessionReads(fake)).toBe(1)
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().loginError).toBeUndefined()
   })
 
   test('a failed switch stops switching before it reads the session, so a logged-out reply applies', async () => {
-    jest
-      .spyOn(T.RPCGen, 'loginLoginRpcListener')
-      .mockRejectedValue(new RPCError('bad password', T.RPCGen.StatusCode.scgeneric))
-    const switchingWhenRead: Array<boolean> = []
-    refresh.mockImplementation(() => switchingWhenRead.push(useConfigState.getState().userSwitching))
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
-    useConfigState.getState().dispatch.login('testuser', 'password')
-    await flush()
+    const fake = await loginEnding(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'), true)
 
     expect(switchingWhenRead).toEqual([false])
+    expect(sessionReads(fake)).toBe(1)
     expect(useConfigState.getState().loginError).toBeDefined()
   })
 
-  const switchWithLoginFailure = async (failure: unknown) => {
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(failure)
+  test('an account that needs provisioning ends the switch, and lands on username once the logged-out stack is up', async () => {
+    const nav = installNavigation({rootState: makeRootState()})
+    const {fake, logins} = serve()
     const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true, 'testuser')
-    dispatch.login('testuser', '')
-    await flush()
-  }
+    await act(async () => {
+      dispatch.setUserSwitching(true, 'testuser')
+      dispatch.login('testuser', '')
+      await flush()
+    })
 
-  test('an account that needs provisioning ends the switch before handing off to username', async () => {
-    let switchingAtHandOff: boolean | undefined
-    mockOnceRootHas.mockImplementation(() => {
-      switchingAtHandOff = useConfigState.getState().userSwitching
-    })
-    const cancelled = jest.fn().mockRejectedValue(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(listener => {
-      const prompt = (listener as any).customResponseIncomingCallMap['keybase.1.provisionUi.PromptNewDeviceName']
-      prompt({}, {error: jest.fn(), result: jest.fn()})
-      return cancelled()
-    })
-    const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true, 'testuser')
-    dispatch.login('testuser', '')
-    await flush()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const answered = await act(async () =>
+      fake.push('keybase.1.provisionUi.PromptNewDeviceName', {errorMessage: '', existingDevices: null}, {sessionID})
+    )
+    // the login cancels the prompt itself and hands off to the provision flow
+    expect(answered.error).toEqual(expect.objectContaining({desc: 'Canceling RPC'}))
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    // the logged-out stack is not up yet, so nothing is pushed
+    expect(nav.pushes()).toEqual([])
 
-    expect(mockOnceRootHas).toHaveBeenCalledWith('loggedOut', {
-      name: 'username',
-      params: {autoSubmit: true, username: 'testuser'},
+    // the service's logout brings the logged-out root
+    nav.setLoggedIn(false)
+    expect(nav.visibleScreen()).toEqual(
+      expect.objectContaining({name: 'username', params: {autoSubmit: true, username: 'testuser'}})
+    )
+
+    await act(async () => {
+      logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
+      await flush()
     })
-    expect(switchingAtHandOff).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
   })
 
   test('a prompt login cancelled itself clears userSwitching without a login error', async () => {
-    await switchWithLoginFailure(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+    await loginEnding(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'), true)
 
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
     expect(state.loginError).toBeUndefined()
   })
 
+  // Not something the engine produces; the login's own code throwing is what this guards
   test('a failure that is not an RPCError clears userSwitching', async () => {
-    await switchWithLoginFailure(new Error('boom'))
+    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(new Error('boom'))
+    const {dispatch} = useConfigState.getState()
+    dispatch.setUserSwitching(true, 'testuser')
+    dispatch.login('testuser', '')
+    await flush()
 
     expect(useConfigState.getState().userSwitching).toBe(false)
   })
 
   test("a login that fails after a switch started leaves the switch alone, and the newer one's failure still ends it", async () => {
-    const rejects: Array<(e: unknown) => void> = []
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(
-      async () => new Promise<void>((_resolve, reject) => rejects.push(reject))
-    )
+    const {logins} = serve()
     const {dispatch} = useConfigState.getState()
     dispatch.login('testuser', 'password')
     await flush()
     // e.g. a tapped push for another account while a password login is still running
     dispatch.switchToAccount('testuser-mac')
     await flush()
+    expect(logins).toHaveLength(2)
 
-    rejects[0]?.(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
     await flush()
     let state = useConfigState.getState()
     expect(state.userSwitching).toBe(true)
     expect(state.userSwitchingTo).toBe('testuser-mac')
     expect(state.loginError).toBeUndefined()
 
-    rejects[1]?.(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+    logins[1]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
     await flush()
     state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
@@ -279,30 +310,38 @@ describe('login', () => {
   })
 
   test('prompts that arrive for a login after a switch started do not end the switch', async () => {
-    const listeners: Array<any> = []
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(async listener => {
-      listeners.push(listener)
-      return new Promise<void>(() => {})
-    })
+    const nav = installNavigation({rootState: makeRootState()})
+    const {fake, logins} = serve()
     const {dispatch} = useConfigState.getState()
-    dispatch.login('testuser', 'password')
-    await flush()
-    // e.g. a tapped push for another account while a password login is still running
-    dispatch.switchToAccount('testuser-mac')
-    await flush()
+    await act(async () => {
+      dispatch.login('testuser', 'password')
+      await flush()
+      // e.g. a tapped push for another account while a password login is still running
+      dispatch.switchToAccount('testuser-mac')
+      await flush()
 
-    const response = () => ({error: jest.fn(), result: jest.fn()})
-    const stale = listeners[0].customResponseIncomingCallMap
-    stale['keybase.1.provisionUi.PromptNewDeviceName']({}, response())
-    stale['keybase.1.secretUi.getPassphrase'](
-      {pinentry: {retryLabel: 'Incorrect password.', type: T.RPCGen.PassphraseType.passPhrase}},
-      response()
-    )
+      const staleSession = fake.calls[0]!.params.sessionID as number
+      await fake.push(
+        'keybase.1.provisionUi.PromptNewDeviceName',
+        {errorMessage: '', existingDevices: null},
+        {sessionID: staleSession}
+      )
+      await fake.push(
+        'keybase.1.secretUi.getPassphrase',
+        {pinentry: {retryLabel: 'Incorrect password.', type: T.RPCGen.PassphraseType.passPhrase}},
+        {sessionID: staleSession}
+      )
+      await flush()
+    })
 
     const state = useConfigState.getState()
-    expect(mockOnceRootHas).not.toHaveBeenCalled()
     expect(state.userSwitching).toBe(true)
     expect(state.loginError).toBeUndefined()
+    // nothing waits to push username when a logged-out stack comes up
+    nav.setLoggedIn(false)
+    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('login')
+    expect(nav.pushes()).toEqual([])
+    logins.forEach(l => l.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'done')))
   })
 
   test.each([
@@ -311,7 +350,7 @@ describe('login', () => {
     ['keybase.1.provisionUi.switchToGPGSignOK', {importError: '', key: {}}, false],
   ] as const)('login answers %s with the zero value, once', async (method, params, answer) => {
     const fake = installFakeEngine()
-    fake.hold('keybase.1.login.login')
+    fake.hold(loginRpc)
     useConfigState.getState().dispatch.login('testuser', 'password')
     await flush()
     const sessionID = fake.calls[0]!.params.sessionID as number
@@ -322,7 +361,7 @@ describe('login', () => {
   })
 
   test('an RPC error clears userSwitching and records the login error', async () => {
-    await switchWithLoginFailure(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+    await loginEnding(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'), true)
 
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
@@ -330,16 +369,8 @@ describe('login', () => {
   })
 
   describe('through the engine listener', () => {
-    const switchFailingWith = async (code: T.RPCGen.StatusCode, desc: string) => {
-      const fake = installFakeEngine()
-      const held = fake.hold('keybase.1.login.login')
-      const {dispatch} = useConfigState.getState()
-      dispatch.setUserSwitching(true, 'testuser')
-      dispatch.login('testuser', '')
-      await flush()
-      held[0]!.reply(fakeError(code, desc))
-      await flush()
-    }
+    const switchFailingWith = async (code: T.RPCGen.StatusCode, desc: string) =>
+      loginEnding(fakeError(code, desc), true)
 
     test('a service error ends the switch and records the nice error', async () => {
       await switchFailingWith(T.RPCGen.StatusCode.scbadloginpassword, 'bad password')
@@ -352,12 +383,12 @@ describe('login', () => {
     })
 
     test('already logged in ends the switch without a login error', async () => {
-      await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
+      const fake = await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
 
       const state = useConfigState.getState()
       expect(state.userSwitching).toBe(false)
       expect(state.loginError).toBeUndefined()
-      expect(refresh).toHaveBeenCalledTimes(1)
+      expect(sessionReads(fake)).toBe(1)
     })
 
     test.each([
@@ -419,20 +450,23 @@ test('setUserSwitching records whether the switch started logged in, through the
   expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(false)
 })
 
-test('switchToAccount starts a switch to its target and logs in, and refuses while one is running', () => {
-  const loginSpy = jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockReturnValue(new Promise(() => {}))
+test('switchToAccount starts a switch to its target and logs in, and refuses while one is running', async () => {
+  const fake = installFakeEngine()
+  const logins = fake.hold('keybase.1.login.login')
   const {dispatch} = useConfigState.getState()
 
   expect(dispatch.switchToAccount('testuser')).toBe(true)
   expect(useConfigState.getState().userSwitchingTo).toBe('testuser')
-  expect(loginSpy).toHaveBeenCalledTimes(1)
+  await settle()
+  expect(logins.map(l => l.params.username as unknown)).toEqual(['testuser'])
 
   expect(dispatch.switchToAccount('testuser-mac')).toBe(false)
   expect(useConfigState.getState().userSwitchingTo).toBe('testuser')
-  expect(loginSpy).toHaveBeenCalledTimes(1)
+  await settle()
+  expect(logins).toHaveLength(1)
 
-  loginSpy.mockRestore()
   dispatch.setUserSwitching(false)
+  logins[0]!.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'done'))
 })
 
 test('a logout starts a new account generation before anything reacts to it', () => {

@@ -4,6 +4,7 @@ import type * as EngineGen from '@/constants/rpc'
 import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {registerIncomingAnswerer} from './incoming-answerers'
 import logger from '@/logger'
+import {tick} from '@/test/flush'
 
 const unregisters = new Array<() => void>()
 const register: typeof registerIncomingAnswerer = (method, answer, options) => {
@@ -97,7 +98,7 @@ test('a void custom call with no session is auto-answered once and dispatched wi
   const onEngineIncoming = jest.fn()
   const fake = installFakeEngine({onEngineIncoming})
   const params = {problemSetDevices: {devices: null, problemSet: {kid: '', tlfs: null, user: {uid: '', username: 'testuser'}}}}
-  await expect(fake.push('keybase.1.rekeyUI.refresh', params, {sessionID: 0})).resolves.toEqual({result: undefined})
+  await expect(fake.push('keybase.1.rekeyUI.refresh', params, {sessionID: 0})).resolves.toEqual({result: null})
   expect(onEngineIncoming).toHaveBeenCalledTimes(1)
   expect(onEngineIncoming.mock.calls[0]![0]).toEqual({
     payload: {params: {...params, sessionID: 0}},
@@ -112,7 +113,7 @@ test('a void custom call with no session is auto-answered once and dispatched wi
 test('delegateRekeyUI is answered by the engine with no value', async () => {
   const onEngineIncoming = jest.fn()
   const fake = installFakeEngine({onEngineIncoming})
-  await expect(fake.push('keybase.1.rekeyUI.delegateRekeyUI', {})).resolves.toEqual({result: undefined})
+  await expect(fake.push('keybase.1.rekeyUI.delegateRekeyUI', {})).resolves.toEqual({result: null})
   expect(onEngineIncoming.mock.calls.map(c => c[0])).toEqual([
     {payload: {params: {}}, type: 'keybase.1.rekeyUI.delegateRekeyUI'},
   ])
@@ -135,21 +136,26 @@ test('an answerer that throws is answered once with input canceled, and the acti
 })
 
 describe('a prompt a registered answerer holds', () => {
-  const holdOne = (fake: ReturnType<typeof installFakeEngine>) => {
+  const holdOne = async (fake: ReturnType<typeof installFakeEngine>) => {
     const responses = new Array<{result: (r: T.RPCGen.GetPassphraseRes) => void}>()
     const onCancelled = jest.fn()
     register('keybase.1.secretUi.getPassphrase', (_, response) => void responses.push(response), {onCancelled})
     const pushed = fake.push('keybase.1.secretUi.getPassphrase', pinentry, {sessionID: 0})
+    await tick()
     return {onCancelled, pushed, responses}
   }
   const answer = {passphrase: 'testpass', storeSecret: false}
-  const afterTimers = async () => new Promise(resolve => setTimeout(resolve, 0))
+  const afterTimers = async () => {
+    await tick()
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
 
   test('is dropped unanswered when the service cancels it, and its answerer is told', async () => {
     const fake = installFakeEngine()
-    const {onCancelled, pushed, responses} = holdOne(fake)
+    const {onCancelled, pushed, responses} = await holdOne(fake)
     fake.cancelPush('keybase.1.secretUi.getPassphrase')
     await pushed
+    await tick()
     expect(onCancelled).toHaveBeenCalledTimes(1)
     expect(onCancelled).toHaveBeenCalledWith(responses[0])
     responses[0]!.result(answer)
@@ -159,9 +165,10 @@ describe('a prompt a registered answerer holds', () => {
 
   test('is dropped unanswered when the link drops, and nothing reaches the next link', async () => {
     const fake = installFakeEngine()
-    const {onCancelled, pushed, responses} = holdOne(fake)
+    const {onCancelled, pushed, responses} = await holdOne(fake)
     fake.drop()
     await pushed
+    await tick()
     expect(onCancelled).toHaveBeenCalledTimes(1)
     responses[0]!.result(answer)
     fake.restart()
@@ -171,8 +178,11 @@ describe('a prompt a registered answerer holds', () => {
 
   test('is dropped unanswered when the engine resets', async () => {
     const fake = installFakeEngine()
-    const {onCancelled, responses} = holdOne(fake)
+    const {onCancelled, responses} = await holdOne(fake)
     fake.engine.reset()
+    // engineDropLink reaches the relay, and its link-down frame comes back
+    await tick()
+    await tick()
     expect(onCancelled).toHaveBeenCalledTimes(1)
     responses[0]!.result(answer)
     await afterTimers()
@@ -181,10 +191,11 @@ describe('a prompt a registered answerer holds', () => {
 
   test('is not reported cancelled once its answerer answered', async () => {
     const fake = installFakeEngine()
-    const {onCancelled, pushed, responses} = holdOne(fake)
+    const {onCancelled, pushed, responses} = await holdOne(fake)
     responses[0]!.result(answer)
     await expect(pushed).resolves.toEqual({result: answer})
     fake.drop()
+    await tick()
     expect(onCancelled).not.toHaveBeenCalled()
     uninstallFakeEngine()
   })
@@ -194,6 +205,7 @@ test('a oneway rekeySendEvent with session 0 is dispatched', async () => {
   const onEngineIncoming = jest.fn()
   const fake = installFakeEngine({onEngineIncoming})
   await fake.push('keybase.1.rekeyUI.rekeySendEvent', {event: {eventType: 0}}, {oneway: true, sessionID: 0})
+  await tick()
   expect(onEngineIncoming.mock.calls.map(c => c[0])).toEqual([
     {payload: {params: {event: {eventType: 0}, sessionID: 0}}, type: 'keybase.1.rekeyUI.rekeySendEvent'},
   ])

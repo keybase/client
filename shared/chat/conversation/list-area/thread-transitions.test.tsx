@@ -13,6 +13,7 @@ import {metasReceived} from '@/chat/inbox/metadata'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
+import {navigationWrapper} from '@/test/navigation'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {emptyThread, range, threadTransitions, type ThreadSnapshot} from './thread-test-driver'
 
@@ -28,11 +29,15 @@ const textAt = (n: number) =>
     timestamp: 100,
   })
 
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  <Nav>
+    <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+  </Nav>
 )
 
 beforeEach(() => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',

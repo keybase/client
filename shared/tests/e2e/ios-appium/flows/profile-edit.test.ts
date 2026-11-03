@@ -88,10 +88,10 @@ describe('profile edit', function () {
     )
 
   it('edit name, bio and location, read back on the server and after a relaunch', async function () {
-    // worst case (s): profile 63, step 2, settled 61, screen 11, field 11, fill 26 x3, step 2, calls 2,
+    // worst case (s): profile 63, step 2, settled 16, screen 11, field 11, fill 26 x3, step 2, calls 2,
     // button 7, waited for 12, calls 2, screen 21, polled 180, relaunch 200, signed in 90, account 1,
-    // profile 63, shown 31 x3, step 2 = 901
-    this.timeout(950_000)
+    // profile 63, shown 31 x3, step 2 = 856
+    this.timeout(900_000)
     check(original !== undefined, 'the original profile fields were never read')
     const before = original!
     const runId = e2eRunId()
@@ -100,13 +100,12 @@ describe('profile edit', function () {
     await openOwnProfile()
     // the own profile lists its featured teams and followers, which are not test ones
     await step('The own profile', {screenshot: false})
-    // the own profile draws its buttons only once its identify ends, and after an account switch the
-    // service's user-changed notices restart that identify again and again (seen live: ten restarts
-    // over 19s right after teams-second's switch back to smoke). Bound: 60s, the tap 1.
+    // the own profile draws its buttons once its identify settles, and a user-changed notice during
+    // that identify (right after an account switch) runs a second one. Bound: 15s, the tap 1.
     const edit = await waitFor(
       "the profile's Edit profile",
       async () => buttonLabelled('Edit profile', "the profile's Edit profile"),
-      {interval: 500, timeout: 60_000}
+      {interval: 500, timeout: 15_000}
     )
     await edit.click()
     await expectScreen('Edit profile', 'profileEdit')

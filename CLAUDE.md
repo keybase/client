@@ -27,6 +27,12 @@
 - Before calling code dead, search the whole repo (desktop, native, Go callers, string-built names), not one directory.
 - Prefer fixes that keep underlying state truthful (e.g. a UI-level hold) over changing state semantics, unless asked.
 
+## Tests run the real thing
+- Unit tests exercise the real library and the real app modules. Never write a fake that models a library's behavior (its timing, events, focus, routing, layout) or stands in for one of our own hooks/stores. A test built on a model checks the model: it passes on fiction, and reviews and fixes then get built on it.
+- Navigation: use `shared/test/navigation.tsx` (the app's tree on the real React Navigation core and the real `navigationRef`). Never `jest.mock('@react-navigation/...')` or `jest.mock('@/constants/router')`.
+- Mock only true edges: native modules with no JS implementation, network/IO, the Go service (`test/fake-engine.ts`). Mock at the lowest layer, and never invent ordering, timing or state there.
+- A claim about how a library behaves (from a review, a comment, or a fake) gets a probe against the real library before any code changes for it.
+
 ## Working Directory
 Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths for file ops. For Bash: always `cd shared/` first.
 

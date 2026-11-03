@@ -9,14 +9,17 @@ import * as Metadata from '@/chat/inbox/metadata'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
-import {act, cleanup, render, renderHook} from '@testing-library/react'
+import {act, cleanup, render, renderHook, waitFor} from '@testing-library/react'
 import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
-import {useUsersState} from '@/stores/users'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import * as Router from '@/constants/router'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock, paramsOf} from '@/test/fake-thread-load'
+import {tick} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
 import {
   ConversationThreadProvider,
   ShownUsernameCacheContext,
@@ -30,31 +33,39 @@ import {
   type ConversationThreadActions,
 } from './thread-context'
 
-// the route's focus, both as the screen last rendered it and as navigation reports it now
-let mockRouteFocused = true
-let mockRouteFocusedNow = true
-jest.mock('@react-navigation/core', () => {
-  const actual = jest.requireActual<{useNavigation: () => object}>('@react-navigation/core')
-  return {
-    ...actual,
-    useIsFocused: () => mockRouteFocused,
-    useNavigation: () => ({...actual.useNavigation(), isFocused: () => mockRouteFocusedNow}),
-  }
-})
-const setRouteFocused = (focused: boolean) => {
-  mockRouteFocused = focused
-  mockRouteFocusedNow = focused
+// The thread is the conversation on desktop's chat root. A modal over it takes the route's focus,
+// as it does in the app, and closing it gives the focus back.
+const threadRoute = () => navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
+const coverThread = () => {
+  Router.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+}
+const uncoverThread = () => {
+  Router.clearModals()
 }
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
-const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
-  }
+// What the thread asked has crossed to the service. Real hops (node:timers), so this also works
+// under fake timers.
+const delivered = async () => {
+  await tick()
+  await tick()
 }
+
+// a round trip to the service and back
+const flushPromises = async () => {
+  await delivered()
+  await delivered()
+}
+
+const markAsRead = 'chat.1.local.markAsReadLocal'
+const requestInboxUnbox = 'chat.1.local.requestInboxUnbox'
+const userCard = 'keybase.1.user.userCard'
+const retryPost = 'chat.1.local.RetryPost'
+const updateCategory = 'keybase.1.gregor.updateCategory'
+const dismissCategory = 'keybase.1.gregor.dismissCategory'
 
 const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
   makeMessageText({
@@ -86,8 +97,11 @@ const useHarness = () => ({
 })
 
 const renderThread = (id = convID) => {
+  const Nav = threadRoute()
   const wrapper = ({children}: {children: React.ReactNode}) => (
-    <ConversationThreadProvider id={id}>{children}</ConversationThreadProvider>
+    <Nav>
+      <ConversationThreadProvider id={id}>{children}</ConversationThreadProvider>
+    </Nav>
   )
   const rendered = renderHook(useHarness, {wrapper})
   const h = () => rendered.result.current
@@ -96,11 +110,16 @@ const renderThread = (id = convID) => {
 }
 
 // What a latest-page load that may mark read leaves behind: the window, and mark read armed.
-const armWith = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.Message>) => {
+const armWith = (
+  actions: ConversationThreadActions,
+  messages: ReadonlyArray<T.Chat.Message>,
+  fullPass = true
+) => {
   act(() => {
     actions.applyThreadLoad({
       centered: false,
       enableActiveMarkRead: true,
+      fullPass,
       messages,
       moreToLoad: false,
       scrollDirection: 'none',
@@ -114,8 +133,22 @@ const fakeTimers = () => {
   jest.useFakeTimers()
 }
 
-const markReads = () => rpc.params('markRead')
-const loads = () => rpc.params('loadThread')
+type MarkAsReadParams = {conversationID: Uint8Array; forceUnread: boolean; msgID: T.Chat.MessageID}
+type ThreadLoadParams = {
+  pagination: T.RPCChat.UIPagination | null
+  query: {messageIDControl: T.RPCChat.MessageIDControl | null}
+}
+const markReads = () =>
+  paramsOf(fake, markAsRead).map(({conversationID, forceUnread, msgID}: MarkAsReadParams) => ({
+    conversationIDKey: T.Chat.conversationIDToKey(conversationID),
+    forceUnread,
+    msgID,
+  }))
+const loads = () =>
+  paramsOf(fake, getThreadNonblock).map(({pagination, query}: ThreadLoadParams) => ({
+    messageIDControl: query.messageIDControl,
+    pagination,
+  }))
 
 const run = async (f: () => void) => {
   await act(async () => {
@@ -144,8 +177,12 @@ const HideableThread = (p: {into: (v: Probed) => void; mode: 'hidden' | 'visible
 }
 
 beforeEach(() => {
-  setRouteFocused(true)
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  answerThreadLoads(fake)
+  fake.answer(markAsRead, () => undefined)
+  fake.answer(retryPost, () => undefined)
+  fake.answer(updateCategory, () => new Uint8Array([9]))
+  fake.answer(dismissCategory, () => undefined)
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -159,7 +196,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   jest.useRealTimers()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -225,6 +261,85 @@ describe('mark read gating', () => {
     expect(markReads()).toEqual([])
   })
 
+  const deletedAt = (n: number) =>
+    makeMessageDeleted({
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(n),
+      ordinal: T.Chat.numberToOrdinal(n),
+    })
+  const msgID = T.Chat.numberToMessageID
+
+  test('newest messages that never load (deleted texts, then their deletes) are marked read up to the max id', async () => {
+    // 403 text; 404, 405, 408, 409 texts since deleted (hidden placeholders in the load); 406, 407,
+    // 410, 411 the deletes themselves, which the load never asks for
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(403)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(404), deletedAt(405), deletedAt(408), deletedAt(409)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 411}])
+  })
+
+  test('newest loaded 403 is the newest visible message: marked read up to the max id 411', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(403), readMsgID: msgID(403)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(400), textAt(403)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 411}])
+  })
+
+  test('a visible message newer than the window is never skipped over', async () => {
+    // the inbox already knows 412, the thread has not got it yet
+    setMeta({maxMsgID: msgID(412), maxVisibleMsgID: msgID(412), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(400), textAt(403), deletedAt(409)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 409}])
+  })
+
+  test('a placeholder from the cached pass does not lift the read past a gap the cache may hold', async () => {
+    // the cache holds 403 and a placeholder for 409, but not the visible 406 the service still has
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(409)], false)
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 403}])
+  })
+
+  test('a thread ahead of the inbox meta marks read at its own newest message', async () => {
+    setMeta({maxMsgID: msgID(405), maxVisibleMsgID: msgID(405), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), textAt(408), deletedAt(410)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 410}])
+  })
+
+  test('a window short of the latest message marks nothing, whatever the max id', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(403), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    act(() => {
+      h().actions.applyThreadLoad({
+        centered: true,
+        enableActiveMarkRead: true,
+        fullPass: true,
+        messages: [textAt(403)],
+        moreToLoad: false,
+        scrollDirection: 'none',
+      })
+    })
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([])
+  })
+
+  test('messagesClear forgets the ids the dropped window carried', async () => {
+    setMeta({maxMsgID: msgID(411), maxVisibleMsgID: msgID(409), readMsgID: msgID(400)})
+    const {h} = renderThread()
+    armWith(h().actions, [textAt(403), deletedAt(409)])
+    act(() => h().actions.messagesClear())
+    armWith(h().actions, [textAt(403)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 403}])
+  })
+
   test('app focus: refused while unfocused, marked when focus comes back', async () => {
     const {h} = renderThread()
     armWith(h().actions, [textAt(10)])
@@ -236,14 +351,12 @@ describe('mark read gating', () => {
   })
 
   test('route focus: refused while covered, marked when the route is focused again', async () => {
-    const {h, rendered} = renderThread()
+    const {h} = renderThread()
     armWith(h().actions, [textAt(10)])
-    setRouteFocused(false)
-    rendered.rerender()
+    act(coverThread)
     await run(() => h().actions.markThreadAsRead())
     expect(markReads()).toEqual([])
-    setRouteFocused(true)
-    await run(() => rendered.rerender())
+    await run(uncoverThread)
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
@@ -252,14 +365,16 @@ describe('mark read gating', () => {
     const into = (v: Probed) => {
       actions = v.actions
     }
-    const {rerender} = render(<HideableThread into={into} mode="visible" />)
-    setRouteFocused(false)
+    const {rerender} = render(<HideableThread into={into} mode="visible" />, {wrapper: threadRoute()})
+    act(coverThread)
     rerender(<HideableThread into={into} mode="hidden" />)
     armWith(actions!, [textAt(10)])
     await run(() => actions?.markThreadAsRead())
     expect(markReads()).toEqual([])
-    setRouteFocused(true)
-    await run(() => rerender(<HideableThread into={into} mode="visible" />))
+    await run(() => {
+      uncoverThread()
+      rerender(<HideableThread into={into} mode="visible" />)
+    })
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
@@ -273,20 +388,33 @@ describe('mark read gating', () => {
         <HideableThread into={into} mode={mode} />
       </React.StrictMode>
     )
-    const {rerender} = render(tree('visible'))
-    setRouteFocused(false)
+    const {rerender} = render(tree('visible'), {wrapper: threadRoute()})
+    act(coverThread)
     rerender(tree('hidden'))
     armWith(actions!, [textAt(10)])
-    setRouteFocused(true)
-    await run(() => rerender(tree('visible')))
+    await run(() => {
+      uncoverThread()
+      rerender(tree('visible'))
+    })
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
   test('a load that finishes after the route loses focus, before the screen renders again, is not marked read', async () => {
     const {h} = renderThread()
-    mockRouteFocusedNow = false
-    armWith(h().actions, [textAt(10)])
-    await run(() => h().actions.markThreadAsRead())
+    // one batch: the navigation lands in the library's state, and the load finishes and marks read,
+    // all before React renders the screen again
+    await run(() => {
+      coverThread()
+      h().actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: true,
+        fullPass: true,
+        messages: [textAt(10)],
+        moreToLoad: false,
+        scrollDirection: 'none',
+      })
+      h().actions.markThreadAsRead()
+    })
     expect(markReads()).toEqual([])
   })
 
@@ -454,7 +582,7 @@ describe('applyThreadLoad', () => {
 })
 
 describe('load throttle', () => {
-  test('scroll loads inside 500ms collapse to the first and the last', () => {
+  test('scroll loads inside 500ms collapse to the first and the last', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -462,14 +590,16 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 2, reason: 'scroll back', scrollDirection: 'back'})
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 3, reason: 'scroll back', scrollDirection: 'back'})
     })
+    await delivered()
     expect(loads().map(p => p.pagination?.num)).toEqual([1])
     act(() => {
       jest.advanceTimersByTime(500)
     })
+    await delivered()
     expect(loads().map(p => p.pagination?.num)).toEqual([1, 3])
   })
 
-  test('a scroll back and a scroll forward close together both load', () => {
+  test('a scroll back and a scroll forward close together both load', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -477,12 +607,13 @@ describe('load throttle', () => {
       jest.advanceTimersByTime(100)
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 2, reason: 'scroll forward', scrollDirection: 'forward'})
     })
+    await delivered()
     expect(loads().map(p => p.pagination?.num)).toEqual([1, 2])
   })
 
   // The service's own cursor is reset by every newest-page reload (focus, stale), and a newer page read
   // from it would come back empty and end paging; one asked for from the newest row loaded cannot.
-  test('a scroll forward asks for messages newer than the newest one loaded', () => {
+  test('a scroll forward asks for messages newer than the newest one loaded', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -497,6 +628,7 @@ describe('load throttle', () => {
     act(() => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll forward', scrollDirection: 'forward'})
     })
+    await delivered()
     const sent = loads().at(-1)
     // Still a forward page to the service, which cancels overlapping first-page loads.
     expect(sent?.pagination?.previous).toBeTruthy()
@@ -507,7 +639,7 @@ describe('load throttle', () => {
     })
   })
 
-  test('a scroll back asks for messages older than the oldest one loaded', () => {
+  test('a scroll back asks for messages older than the oldest one loaded', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -522,6 +654,7 @@ describe('load throttle', () => {
     act(() => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
     })
+    await delivered()
     const sent = loads().at(-1)
     expect(sent?.pagination?.next).toBeTruthy()
     expect(sent?.messageIDControl).toEqual({
@@ -533,7 +666,7 @@ describe('load throttle', () => {
 
   // A page of messages the thread never renders leaves the window's ends where they were; asking
   // from those again would fetch the same page for good.
-  test('a scroll page asks from past the messages earlier pages that way carried, rendered or not', () => {
+  test('a scroll page asks from past the messages earlier pages that way carried, rendered or not', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     const deletedAt = (n: number) =>
@@ -569,6 +702,7 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll forward', scrollDirection: 'forward'})
     })
+    await delivered()
     expect(loads().slice(-2).map(p => p.messageIDControl?.pivot)).toEqual([
       T.Chat.numberToMessageID(8),
       T.Chat.numberToMessageID(13),
@@ -588,10 +722,11 @@ describe('load throttle', () => {
       jest.advanceTimersByTime(1000)
       h().actions.loadMoreMessages({numberOfMessagesToLoad: 7, reason: 'scroll back', scrollDirection: 'back'})
     })
+    await delivered()
     expect(loads().at(-1)?.messageIDControl?.pivot).toEqual(T.Chat.numberToMessageID(20))
   })
 
-  test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', () => {
+  test('a centered, message-id or jump-to-recent load runs at once and drops the pending one', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     const pending = () => {
@@ -618,10 +753,11 @@ describe('load throttle', () => {
       jest.advanceTimersByTime(1000)
     })
     // each pending pair ran its first call; none of the trailing second calls (num 2) ever ran
+    await delivered()
     expect(loads().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([1, 100, 1, 5, 1, 100])
   })
 
-  test('a centered, message-id or jump-to-recent load drops a pending newer scroll load', () => {
+  test('a centered, message-id or jump-to-recent load drops a pending newer scroll load', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     const pending = () => {
@@ -647,10 +783,11 @@ describe('load throttle', () => {
     act(() => {
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(loads().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([1, 100, 1, 5, 1, 100])
   })
 
-  test('cancel drops a pending newer scroll load', () => {
+  test('cancel drops a pending newer scroll load', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -659,10 +796,11 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages.cancel()
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(loads()).toHaveLength(1)
   })
 
-  test('cancel drops the pending load', () => {
+  test('cancel drops the pending load', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -671,10 +809,11 @@ describe('load throttle', () => {
       h().actions.loadMoreMessages.cancel()
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(loads()).toHaveLength(1)
   })
 
-  test('unmounting drops the pending load', () => {
+  test('unmounting drops the pending load', async () => {
     jest.useFakeTimers()
     const {h, rendered} = renderThread()
     act(() => {
@@ -685,6 +824,7 @@ describe('load throttle', () => {
     act(() => {
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(loads()).toHaveLength(1)
   })
 })
@@ -704,9 +844,10 @@ describe('scroll gate', () => {
         p.messageIDControl?.mode === T.RPCChat.MessageIDControlMode.newermessages
     )
 
-  test('older: nothing at the top of the thread or with no rows', () => {
+  test('older: nothing at the top of the thread or with no rows', async () => {
     const {h} = renderThread()
     act(() => h().loadOlder(5))
+    await delivered()
     expect(back()).toHaveLength(0)
     act(() => {
       h().actions.applyThreadLoad({
@@ -718,12 +859,14 @@ describe('scroll gate', () => {
       })
     })
     act(() => h().loadOlder(0))
+    await delivered()
     expect(back()).toHaveLength(0)
     act(() => h().loadOlder(5))
+    await delivered()
     expect(back().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([100])
   })
 
-  test('older: the same row count inside 500ms is refused, after it or a new count is not', () => {
+  test('older: the same row count inside 500ms is refused, after it or a new count is not', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => {
@@ -740,44 +883,51 @@ describe('scroll gate', () => {
     act(() => {
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(back()).toHaveLength(1)
     act(() => h().loadOlder(5))
+    await delivered()
     expect(back()).toHaveLength(2)
     act(() => {
       jest.advanceTimersByTime(100)
       h().loadOlder(6)
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(back()).toHaveLength(3)
   })
 
-  test('newer: gated the same way, without a more-to-load check', () => {
+  test('newer: gated the same way, without a more-to-load check', async () => {
     jest.useFakeTimers()
     const {h} = renderThread()
     act(() => h().loadNewer(0))
+    await delivered()
     expect(forward()).toHaveLength(0)
     act(() => h().loadNewer(5))
     act(() => h().loadNewer(5))
     act(() => {
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(forward().map(p => p.pagination?.num ?? p.messageIDControl?.num)).toEqual([100])
   })
 
-  test('scroll options reach the load', () => {
+  test('scroll options reach the load', async () => {
     const {h} = renderThread()
     const onThreadLoadStatus = jest.fn()
-    rpc.on('loadThread', p => {
-      p.onThreadStatus?.({typ: T.RPCChat.UIChatThreadStatusTyp.server})
-      return {offline: false}
+    answerThreadLoads(fake, async l => {
+      await l.status({typ: T.RPCChat.UIChatThreadStatusTyp.server})
     })
     act(() => h().loadNewer(5, {onThreadLoadStatus}))
-    expect(onThreadLoadStatus).toHaveBeenCalledWith(convID, T.RPCChat.UIChatThreadStatusTyp.server)
+    // the status reaches its handler on the listener's timer
+    await waitFor(() =>
+      expect(onThreadLoadStatus).toHaveBeenCalledWith(convID, T.RPCChat.UIChatThreadStatusTyp.server)
+    )
   })
 })
 
 describe('centered, jump to recent and selected conversation', () => {
-  test('a centered load clears the window, drops the username cache and pivots on the message', () => {
+  test('a centered load clears the window, drops the username cache and pivots on the message', async () => {
     const {h, state} = renderThread()
     act(() => h().actions.addMessages([textAt(10)]))
     h().shownUsernameCache?.set(T.Chat.numberToOrdinal(10), 'testuser2')
@@ -786,6 +936,7 @@ describe('centered, jump to recent and selected conversation', () => {
     expect(state().clearVersion).toBe(clearVersion + 1)
     expect(state().messageMap.size).toBe(0)
     expect(h().shownUsernameCache?.size).toBe(0)
+    await delivered()
     expect(loads().at(-1)?.messageIDControl).toEqual({
       mode: T.RPCChat.MessageIDControlMode.centered,
       num: 100,
@@ -803,10 +954,9 @@ describe('centered, jump to recent and selected conversation', () => {
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
-  test('selecting asks for an unbox, a one-on-one bio and a focused load', () => {
-    const unbox = jest.spyOn(Metadata, 'unboxRows')
-    const getBio = jest.fn()
-    useUsersState.setState(s => ({...s, dispatch: {...s.dispatch, getBio}}))
+  test('selecting asks for an unbox, a one-on-one bio and a focused load', async () => {
+    fake.answer(requestInboxUnbox, () => undefined)
+    fake.answer(userCard, () => ({bioDecorated: 'a bio'}))
     Metadata.participantInfoReceived(convID, {
       all: ['testuser', 'testuser2'],
       contactName: new Map(),
@@ -814,14 +964,15 @@ describe('centered, jump to recent and selected conversation', () => {
     })
     const {h} = renderThread()
     act(() => h().selectedConversation())
-    expect(unbox).toHaveBeenCalledWith([convID])
-    expect(getBio).toHaveBeenCalledWith('testuser2')
+    await flushPromises()
+    expect(paramsOf(fake, requestInboxUnbox)).toEqual([{convIDs: [T.Chat.keyToConversationID(convID)]}])
+    expect(paramsOf(fake, userCard)).toEqual([{useSession: true, username: 'testuser2'}])
+    await delivered()
     expect(loads()).toHaveLength(1)
   })
 
-  test('selecting with skipThreadLoad does not load; no bio for groups or SBS', () => {
-    const getBio = jest.fn()
-    useUsersState.setState(s => ({...s, dispatch: {...s.dispatch, getBio}}))
+  test('selecting with skipThreadLoad does not load; no bio for groups or SBS', async () => {
+    fake.answer(requestInboxUnbox, () => undefined)
     Metadata.participantInfoReceived(convID, {
       all: ['testuser', 'someone@twitter'],
       contactName: new Map(),
@@ -829,7 +980,9 @@ describe('centered, jump to recent and selected conversation', () => {
     })
     const {h} = renderThread()
     act(() => h().selectedConversation({skipThreadLoad: true}))
-    expect(getBio).not.toHaveBeenCalled()
+    await flushPromises()
+    expect(paramsOf(fake, userCard)).toEqual([])
+    await delivered()
     expect(loads()).toHaveLength(0)
   })
 })
@@ -883,7 +1036,7 @@ describe('store writes', () => {
 
   test('an errored outbox row is retried locally and with the service', async () => {
     const {h, state} = renderThread()
-    const outboxID = T.Chat.stringToOutboxID('outbox-1')
+    const outboxID = T.Chat.stringToOutboxID('ab01')
     act(() =>
       h().actions.addMessages([
         textAt(10, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'pending'}),
@@ -895,14 +1048,14 @@ describe('store writes', () => {
     await run(() => h().actions.retryMessage(outboxID))
     m = state().messageMap.get(T.Chat.numberToOrdinal(10))
     expect([m?.submitState, m?.errorReason]).toEqual(['pending', undefined])
-    expect(rpc.calls('retryPost')).toEqual([[outboxID]])
+    expect(paramsOf(fake, retryPost)).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
   })
 
   test('retrying an outbox id the thread does not hold warns and asks nothing', async () => {
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {h} = renderThread()
     await run(() => h().actions.retryMessage(T.Chat.stringToOutboxID('nope')))
-    expect(rpc.calls('retryPost')).toEqual([])
+    expect(paramsOf(fake, retryPost)).toEqual([])
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('retryMessage: no message for outbox id'))
   })
 
@@ -954,7 +1107,7 @@ describe('store writes', () => {
     act(() => h().actions.receiveRequestInfo(T.Chat.numberToMessageID(11), request))
     expect(state().accountsInfoMap.get(T.Chat.numberToMessageID(10))).toEqual(payment)
     expect(state().accountsInfoMap.get(T.Chat.numberToMessageID(11))).toEqual(request)
-    expect(state().paymentStatusMap.get('p1' as T.Wallets.PaymentID)).toEqual(payment)
+    expect(state().paymentStatusMap.get('p1')).toEqual(payment)
   })
 
   test('unfurl prompts collect domains per message and clear one at a time', () => {
@@ -1055,7 +1208,7 @@ describe('exploding mode', () => {
     await run(() => h().actions.setExplodingMode(0))
     await run(() => h().actions.setExplodingMode(60))
     expect(state().explodingMode).toBe(60)
-    expect(rpc.log.map(l => l.method)).toEqual(['clearExplodingMode', 'setExplodingMode'])
+    expect(fake.calls.map(c => c.method)).toEqual([dismissCategory, updateCategory])
   })
 })
 
@@ -1087,7 +1240,8 @@ describe('provider lifecycle', () => {
         <ConversationThreadProvider id={convID}>
           <Probe into={v => (inner = v)} />
         </ConversationThreadProvider>
-      </ConversationThreadProvider>
+      </ConversationThreadProvider>,
+      {wrapper: threadRoute()}
     )
     expect(inner.store).toBe(outer.store)
     expect(inner.actions).toBe(outer.actions)
@@ -1103,7 +1257,7 @@ describe('provider lifecycle', () => {
     expect(a.state().typing.size).toBe(0)
   })
 
-  test('hiding the provider drops a pending load but keeps the store', () => {
+  test('hiding the provider drops a pending load but keeps the store', async () => {
     fakeTimers()
     let actions: ConversationThreadActions | undefined
     let store: ConversationThreadStoreApi | undefined
@@ -1111,7 +1265,7 @@ describe('provider lifecycle', () => {
       actions = v.actions
       store = v.store
     }
-    const {rerender} = render(<HideableThread into={into} mode="visible" />)
+    const {rerender} = render(<HideableThread into={into} mode="visible" />, {wrapper: threadRoute()})
     act(() => {
       actions?.addMessages([textAt(10)])
       actions?.loadMoreMessages({numberOfMessagesToLoad: 1, reason: 'scroll back', scrollDirection: 'back'})
@@ -1122,6 +1276,7 @@ describe('provider lifecycle', () => {
     act(() => {
       jest.advanceTimersByTime(1000)
     })
+    await delivered()
     expect(loads()).toHaveLength(1)
     rerender(<HideableThread into={into} mode="visible" />)
     expect(store).toBe(storeBefore)

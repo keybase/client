@@ -2,8 +2,14 @@
 //
 // Everything that changes navigation goes through a Navigator: a thing that can
 // dispatch an action, read the root state, say whether it is ready, and be listened
-// to. There are exactly two implementations - the real binding to the app's
-// NavigationContainerRef (below), and the in-memory fake in test/fake-navigator.
+// to. It is bound to the app's NavigationContainerRef (below); tests mount the real
+// library on that same ref (test/navigation).
+//
+// React Navigation has a dispatch in getRootState() as soon as dispatch returns; only
+// the 'state' event waits for React to render it. So an operation can read the tree
+// straight after an earlier one and see its result. The exception is a navigator a
+// reset rebuilds or a tab focused for the first time: its nested state is in the tree
+// once it has rendered.
 //
 // The operations here are the ones that need the tree shape to decide what to
 // dispatch; they read it through NavTree and never re-derive it. The Navigator does
@@ -29,9 +35,7 @@ import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/rou
 type ContainerRef = NavigationContainerRef<RootParamList>
 type NavAction = Parameters<ContainerRef['dispatch']>[0]
 
-// What an adapter has to provide. Deliberately the smallest surface that the
-// operations below need, so a fake is a handful of lines rather than a mock of
-// React Navigation.
+// What an adapter has to provide: the smallest surface the operations below need.
 export type NavigatorRef = {
   isReady: () => boolean
   getRootState: () => NavTree.NavState | undefined
@@ -73,13 +77,9 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 // user has moved on to
 const modalsWaitMs = 1000
 
-export const makeNavigator = (ref: NavigatorRef): Navigator => {
-  // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
-  // visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
-  // thread queueing both). Track the in-flight push until the next state event; the time bound is a
-  // backstop in case the container tears down before the listener fires.
-  let pendingAppend: {name: string; params?: object; time: number} | undefined
+let nextChatRootKey = 0
 
+const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateUp = () => {
     if (DEBUG_NAV) {
       console.log('[Nav] navigateUp')
@@ -152,26 +152,15 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       if (visible?.name === routeName) {
         ref.dispatch(CommonActions.setParams(params))
         return true
-      } else {
+      }
+      // A modal replaces only a modal. With none up, the replace would reach the root stack and
+      // replace loggedIn, taking the tabs with it; there the modal opens above them instead.
+      if (!NavTree.isModalRouteName(routeName) || NavTree.modalStack(ns).length > 0) {
         ref.dispatch(StackActions.replace(routeName, params))
         return true
       }
     }
 
-    if (
-      pendingAppend?.name === routeName &&
-      shallowEqual(pendingAppend.params, params) &&
-      Date.now() - pendingAppend.time < 1000
-    ) {
-      console.log('Skipping append dupe (uncommitted)')
-      // An identical push is already in flight and uncommitted.
-      return true
-    }
-    pendingAppend = {name: routeName, params, time: Date.now()}
-    const unsub = ref.addListener('state', () => {
-      pendingAppend = undefined
-      unsub()
-    })
     ref.dispatch(StackActions.push(routeName, params))
     return true
   }
@@ -207,50 +196,48 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
     }
     if (!ref.isReady()) return
-    const activeStackState = NavTree.activeStack(ref.getRootState())
-    const activeStackKey = activeStackState?.key
+    const rs = ref.getRootState()
+    const routeName = typeof nameOrPath === 'string' ? nameOrPath : nameOrPath.name
+    const target = NavTree.upToScreenTarget(rs, routeName)
+    const rootScreen = rs?.routes?.[0]?.name
+    if (target?.closeAboveTabs && rs?.key && rootScreen) {
+      ref.dispatch({...StackActions.popTo(rootScreen), target: rs.key})
+    }
+    // another tab's root on a phone: no stack here can take it, so closing what was above is all
+    if (target && !target.found) return
+
+    const found = target?.found
+    const stack = found?.stack ?? NavTree.activeStack(rs)
+    const stackKey = stack?.key
+    const targeted = (action: {type: string; payload?: object}) => (stackKey ? {...action, target: stackKey} : action)
+
     if (typeof nameOrPath === 'string') {
-      const action = StackActions.popTo(nameOrPath)
-      ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+      ref.dispatch(targeted(StackActions.popTo(nameOrPath)))
       return
     }
 
-    const routeName = nameOrPath.name
     const params = nameOrPath.params as object
-
-    const activeStackRoutes = activeStackState?.routes as Array<NavTree.Route> | undefined
-    let routeIndex = -1
-    if (activeStackRoutes) {
-      for (let i = activeStackRoutes.length - 1; i >= 0; i--) {
-        if (activeStackRoutes[i]?.name === routeName) {
-          routeIndex = i
-          break
-        }
-      }
-    }
-    if (routeIndex >= 0 && activeStackState) {
-      const nextRoutes = activeStackRoutes!
-        .slice(0, routeIndex + 1)
-        .map((route, index) => (index === routeIndex ? {...route, params} : route))
+    if (found) {
+      const nextRoutes = (found.stack.routes as Array<NavTree.Route>)
+        .slice(0, found.index + 1)
+        .map((route, index) => (index === found.index ? {...route, params} : route))
       ref.dispatch({
         ...CommonActions.reset({
-          ...activeStackState,
-          index: routeIndex,
+          ...found.stack,
+          index: found.index,
           routes: nextRoutes,
         } as Parameters<typeof CommonActions.reset>[0]),
-        target: activeStackKey,
+        target: stackKey,
       })
       return
     }
 
     if (replaceIfMissing) {
-      const action = StackActions.replace(routeName, params)
-      ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+      ref.dispatch(targeted(StackActions.replace(routeName, params)))
       return
     }
 
-    const action = StackActions.popTo(routeName)
-    ref.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+    ref.dispatch(targeted(StackActions.popTo(routeName)))
   }
 
   const switchTab = (name: Tabs.AppTab) => {
@@ -281,13 +268,16 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     const currentChatRoot = chatStackRoutes?.[0]
     const updatedRoutes = tabRoutes.map((route, i) => {
       if (i !== chatTabIndex) return route
-      const currentParams = currentChatRoot?.name === 'chatRoot' ? currentChatRoot.params : undefined
+      const reused = currentChatRoot?.name === 'chatRoot' ? currentChatRoot : undefined
+      // A mounted stack's state is stale: false, which the library takes as given, keys included, so
+      // the route needs its own: the chat root keeps its key (its screen is not remounted), and a new
+      // one gets a fresh key.
       return {
         ...route,
         state: {
           ...(route.state ?? {}),
           index: 0,
-          routes: [{name: 'chatRoot', params: {...currentParams, ...params}}],
+          routes: [{key: reused?.key ?? `chatRoot-${nextChatRootKey++}`, name: 'chatRoot', params: {...reused?.params, ...params}}],
         },
       }
     })
@@ -333,9 +323,17 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  // Targets the route's own navigator: React Navigation hands an action to the focused navigator,
+  // and SET_PARAMS never travels down from it, so under a modal a route in a tab stack is out of reach.
   const setRouteParams = (routeKey: string | undefined, params: object): boolean => {
     if (!ref.isReady()) return false
-    ref.dispatch({...CommonActions.setParams(params), source: routeKey})
+    const holder = routeKey ? NavTree.navigatorHoldingRoute(ref.getRootState(), routeKey) : undefined
+    // A navigator a reset just rebuilt has no key until it renders; the focused one gets it then.
+    ref.dispatch({
+      ...CommonActions.setParams(params),
+      source: routeKey,
+      ...(holder?.key ? {target: holder.key} : {}),
+    })
     return true
   }
 
@@ -403,12 +401,4 @@ const containerRefAdapter: NavigatorRef = {
 
 const realNavigator = makeNavigator(containerRefAdapter)
 
-let currentNavigator: Navigator = realNavigator
-
-export const getNavigator = () => currentNavigator
-
-// Swaps in another adapter - the in-memory fake in tests. Passing nothing restores
-// the real one.
-export const setNavigator = (navigator?: Navigator) => {
-  currentNavigator = navigator ?? realNavigator
-}
+export const getNavigator = () => realNavigator

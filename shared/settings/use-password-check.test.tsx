@@ -1,44 +1,14 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-// useRPC is exported as a re-export getter (non-configurable), so we mock the
-// module to make it a plain configurable property that jest.spyOn can wrap.
-jest.mock('@/constants', () => ({
-  ...(jest.requireActual('@/constants') as object),
-  useRPC: jest.fn(),
-}))
-
 import {act, cleanup, renderHook} from '@testing-library/react'
-import * as C from '@/constants'
 import * as T from '@/constants/types'
-import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {usePasswordCheck} from './use-password-check'
 
-type CheckSubmit = (
-  args: [{passphrase: string}, string],
-  resolve: (correct: boolean) => void,
-  reject: (error: RPCError) => void
-) => void
-
-const mockCheckRPC = () => {
-  const pending = new Array<{reject: (error: RPCError) => void; resolve: (correct: boolean) => void}>()
-  const submit = jest.fn(
-    (
-      _args: Parameters<CheckSubmit>[0],
-      resolve: Parameters<CheckSubmit>[1],
-      reject: Parameters<CheckSubmit>[2]
-    ) => {
-      pending.push({reject, resolve})
-    }
-  )
-  jest.spyOn(C, 'useRPC').mockImplementation((() => submit) as never)
-  return {
-    rejectNext: (error: RPCError) => pending.shift()?.reject(error),
-    resolveNext: (correct: boolean) => pending.shift()?.resolve(correct),
-    submit,
-  }
-}
+const checkRpc = 'keybase.1.account.passphraseCheck'
 
 afterEach(() => {
   cleanup()
@@ -46,71 +16,60 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('checkPassword forwards the passphrase and records the answer', () => {
-  const rpc = mockCheckRPC()
+const renderCheck = () => {
+  const fake = installFakeEngine()
+  const held = fake.hold(checkRpc)
   const {result} = renderHook(() => usePasswordCheck())
+  const check = async (passphrase: string) => {
+    act(() => {
+      result.current.checkPassword(passphrase)
+    })
+    await flush()
+  }
+  const answer = async (a: unknown) => {
+    held.shift()!.reply(a)
+    await flush()
+  }
+  return {answer, check, held, result}
+}
+
+test('checkPassword forwards the passphrase and records the answer once the service gives it', async () => {
+  const {answer, check, held, result} = renderCheck()
 
   expect(result.current.checkPasswordIsCorrect).toBeUndefined()
 
-  act(() => {
-    result.current.checkPassword('open sesame')
-  })
+  await check('open sesame')
+  expect(held[0]!.params).toEqual(expect.objectContaining({passphrase: 'open sesame'}))
+  expect(result.current.checkPasswordIsCorrect).toBeUndefined()
 
-  expect(rpc.submit).toHaveBeenCalledWith(
-    [{passphrase: 'open sesame'}, C.waitingKeySettingsCheckPassword],
-    expect.any(Function),
-    expect.any(Function)
-  )
-
-  act(() => {
-    rpc.resolveNext(true)
-  })
+  await answer(true)
   expect(result.current.checkPasswordIsCorrect).toBe(true)
 
-  act(() => {
-    result.current.checkPassword('nope')
-  })
-  act(() => {
-    rpc.resolveNext(false)
-  })
+  await check('nope')
+  await answer(false)
   expect(result.current.checkPasswordIsCorrect).toBe(false)
 })
 
-test('a new check clears the previous answer while it is in flight', () => {
-  const rpc = mockCheckRPC()
-  const {result} = renderHook(() => usePasswordCheck())
+test('a new check clears the previous answer while it is in flight', async () => {
+  const {answer, check, result} = renderCheck()
 
-  act(() => {
-    result.current.checkPassword('open sesame')
-  })
-  act(() => {
-    rpc.resolveNext(true)
-  })
+  await check('open sesame')
+  await answer(true)
   expect(result.current.checkPasswordIsCorrect).toBe(true)
 
-  act(() => {
-    result.current.checkPassword('again')
-  })
+  await check('again')
   expect(result.current.checkPasswordIsCorrect).toBeUndefined()
+  await answer(false)
 })
 
-test('errors clear the answer and are logged rather than surfaced', () => {
+test('errors clear the answer and are logged rather than surfaced', async () => {
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-  const rpc = mockCheckRPC()
-  const {result} = renderHook(() => usePasswordCheck())
+  const {answer, check, result} = renderCheck()
 
-  act(() => {
-    result.current.checkPassword('open sesame')
-  })
-  act(() => {
-    rpc.resolveNext(true)
-  })
-  act(() => {
-    result.current.checkPassword('boom')
-  })
-  act(() => {
-    rpc.rejectNext(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-  })
+  await check('open sesame')
+  await answer(true)
+  await check('boom')
+  await answer(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
 
   expect(result.current.checkPasswordIsCorrect).toBeUndefined()
   expect(warnSpy).toHaveBeenCalledWith(
@@ -119,19 +78,29 @@ test('errors clear the answer and are logged rather than surfaced', () => {
   )
 })
 
-test('reset clears the answer', () => {
-  const rpc = mockCheckRPC()
-  const {result} = renderHook(() => usePasswordCheck())
+test('reset clears the answer', async () => {
+  const {answer, check, result} = renderCheck()
 
-  act(() => {
-    result.current.checkPassword('open sesame')
-  })
-  act(() => {
-    rpc.resolveNext(true)
-  })
+  await check('open sesame')
+  await answer(true)
 
   act(() => {
     result.current.reset()
   })
   expect(result.current.checkPasswordIsCorrect).toBeUndefined()
+})
+
+test("an older check's late answer does not stand for the newer passphrase", async () => {
+  const {check, held, result} = renderCheck()
+
+  await check('the right one')
+  await check('a wrong one')
+  // the service answers the newer check first, then the older
+  const [older, newer] = [held.shift()!, held.shift()!]
+  newer.reply(false)
+  await flush()
+  older.reply(true)
+  await flush()
+
+  expect(result.current.checkPasswordIsCorrect).toBe(false)
 })

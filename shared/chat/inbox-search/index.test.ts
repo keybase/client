@@ -17,9 +17,8 @@ type CapturedSection = {
 
 const mockSections: Array<Array<CapturedSection>> = []
 
-// The real SectionList is react-native's, which the desktop test env stubs out.
-// Standing in for it lets the container's section derivation run for real and
-// hands us the sections it built.
+// A probe in place of the list view: the container's section derivation runs for real and the probe
+// hands us the sections it built. Rows are not rendered; nothing here reads them.
 jest.mock('@/common-adapters/section-list', () => ({
   __esModule: true,
   default: (p: {sections: Array<CapturedSection>}) => {

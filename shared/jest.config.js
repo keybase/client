@@ -12,9 +12,21 @@ process.env.TZ = 'Pacific/Chatham'
 // Add new native packages to native-only-modules.js, not here.
 const nativeOnlyModules = require('./native-only-modules')
 
-const nativeModuleStub = '<rootDir>/test/mocks/native-module.js'
+// The desktop build's own stubs (vite.config.mts stubbedModules), so jest runs what desktop runs,
+// and the one stub with exports desktop doesn't need.
+const stubs = {
+  '@react-native-picker/picker': '<rootDir>/desktop/stubs/react-native-picker.js',
+  // constants/platform calls these at import time under isIOS, which some tests set
+  'expo-glass-effect': '<rootDir>/test/mocks/expo-glass-effect.js',
+  'react-native-safe-area-context': '<rootDir>/desktop/stubs/react-native-safe-area-context.js',
+}
+// The rest are empty, as desktop's empty-module.js is, each in its own file under test/mocks/native/
+// (the name with / as __): Jest keys its registry by path, so with one shared file a jest.mock of one
+// package would replace them all. native-only-stubs.test.ts checks the files match the list.
+const nativeStubFile = name => `<rootDir>/test/mocks/native/${name.replace(/\//g, '__')}.js`
+const escapeRe = name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const nativeModuleMapper = Object.fromEntries(
-  nativeOnlyModules.map(name => [`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, nativeModuleStub])
+  nativeOnlyModules.map(name => [`^${escapeRe(name)}$`, stubs[name] ?? nativeStubFile(name)])
 )
 
 module.exports = {
@@ -35,12 +47,9 @@ module.exports = {
     '\\.(css)$': '<rootDir>/test/mocks/style.js',
     '\\.(png|jpe?g|gif|svg)$': '<rootDir>/test/mocks/file.js',
     '^@/(.*)$': '<rootDir>/$1',
-    '^@/logger$': '<rootDir>/test/mocks/logger.js',
-    '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
-    '^@react-navigation/native$': '<rootDir>/test/mocks/react-navigation-native.js',
-    '^expo-glass-effect$': '<rootDir>/test/mocks/expo-glass-effect.js',
     '^lottie-web$': '<rootDir>/test/mocks/lottie-web.js',
-    '^react-native$': '<rootDir>/test/mocks/react-native.js',
+    // the library desktop runs (vite.config.mts), not a model of it
+    '^react-native$': '<rootDir>/node_modules/react-native-web/dist/cjs/index.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
   setupFilesAfterEnv: ['<rootDir>/test/fail-on-console.js'],
@@ -61,8 +70,8 @@ module.exports = {
   transform: {
     '^.+\\.(js|jsx|mjs|ts|tsx)$': 'babel-jest',
   },
-  // emoji-regex 11 ships only ESM, so jest has to transform it to CJS.
+  // emoji-regex 11 and React Navigation's ESM-only dependencies have to be transformed to CJS.
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@legendapp|sf-symbols-typescript|emoji-regex)/)',
+    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@legendapp|sf-symbols-typescript|emoji-regex|nanoid|use-latest-callback|query-string|decode-uri-component|split-on-first|filter-obj|escape-string-regexp)/)',
   ],
 }

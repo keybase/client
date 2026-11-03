@@ -4,6 +4,7 @@ import {
   activeStack,
   currentTab,
   isLoggedIn,
+  isModalUp,
   modalStack,
   modalState,
   previousRouteIsModal,
@@ -11,6 +12,7 @@ import {
   setModalRouteNames,
   tabNavigatorState,
   tabState,
+  upToScreenTarget,
   visiblePath,
   visibleScreen,
 } from './nav-tree'
@@ -147,6 +149,20 @@ test('modalStack holds only the registered modal names above the tab navigator',
   expect(modalStack({index: 0, routes: [{key: 'l', name: 'loggedOut'}]} as any)).toEqual([])
 })
 
+// A team's delete confirm decides whether its delete still takes the user away when it returns.
+test('isModalUp matches a modal by name and the params given', () => {
+  setModalRouteNames(['chatInfoPanel', 'teamDeleteTeam'])
+  const navState = makePhoneNavState([{name: 'team', params: {teamID: 'T1'}}, {name: 'teamDeleteTeam', params: {context: 'teams', teamID: 'T1'}}])
+
+  expect(isModalUp(navState, 'teamDeleteTeam', {teamID: 'T1'})).toBe(true)
+  expect(isModalUp(navState, 'teamDeleteTeam')).toBe(true)
+  expect(isModalUp(navState, 'teamDeleteTeam', {teamID: 'T2'})).toBe(false)
+  // a screen above the tabs that is not a modal
+  expect(isModalUp(navState, 'team', {teamID: 'T1'})).toBe(false)
+  expect(isModalUp(makePhoneNavState([{name: 'team', params: {teamID: 'T1'}}]), 'teamDeleteTeam', {teamID: 'T1'})).toBe(false)
+  expect(isModalUp(undefined, 'teamDeleteTeam')).toBe(false)
+})
+
 test('tabNavigatorState is the tab navigator, and nothing when logged out', () => {
   expect(tabNavigatorState(makePhoneNavState())?.key).toBe('tabs')
   expect(tabNavigatorState({index: 0, routes: [{key: 'l', name: 'loggedOut', state: {key: 'out'}}]} as any)).toBeUndefined()
@@ -178,6 +194,55 @@ test('activeStack stops at the root stack when a modal is on top', () => {
 test('activeStack of an empty state is undefined', () => {
   expect(activeStack(undefined)).toBeUndefined()
   expect(activeStack({routes: []} as any)).toBeUndefined()
+})
+
+// ---- upToScreenTarget ----
+
+// A phone's device page: the devices list and the page sit above the tab bar, over a Settings
+// stack that holds only settingsRoot.
+const phoneDevicePage = () =>
+  makePhoneNavState([{name: 'settingsTabs.devicesTab'}, {name: 'devicePage', params: {deviceID: 'D'}}])
+
+test('upToScreenTarget finds a screen above the tabs in the root stack', () => {
+  const target = upToScreenTarget(phoneDevicePage(), 'settingsTabs.devicesTab')
+
+  expect(target?.found?.stack.key).toBe('root')
+  expect(target?.found?.index).toBe(1)
+  expect(target?.closeAboveTabs).toBe(false)
+})
+
+test("upToScreenTarget finds a tab's root under screens above the tabs, which close first", () => {
+  const target = upToScreenTarget(makePhoneNavState([{name: 'team'}]), 'chatRoot')
+
+  expect(target?.found?.stack.key).toBe('chatStack')
+  expect(target?.found?.index).toBe(0)
+  expect(target?.closeAboveTabs).toBe(true)
+})
+
+test('upToScreenTarget with nothing above the tabs looks in the selected tab stack only', () => {
+  const target = upToScreenTarget(makePhoneNavState(), 'chatRoot')
+
+  expect(target).toEqual({closeAboveTabs: false, found: {index: 0, stack: activeStack(makePhoneNavState())}})
+})
+
+// The modal's own flow (a wizard going back to an earlier step of itself) stays in the active stack.
+test('upToScreenTarget with a modal up looks in the active stack only', () => {
+  const navState = makePhoneNavState([{name: 'team'}, {name: 'chatInfoPanel'}])
+
+  expect(upToScreenTarget(navState, 'team')).toEqual({closeAboveTabs: false, found: {index: 1, stack: navState}})
+  expect(upToScreenTarget(navState, 'chatRoot')).toBeUndefined()
+  expect(upToScreenTarget(navState, 'teamsRoot')).toBeUndefined()
+})
+
+// A team page opened from the Chat tab: teamsRoot is in no stack a phone shows.
+test("upToScreenTarget of another tab's root under screens above the tabs closes them", () => {
+  expect(upToScreenTarget(makePhoneNavState([{name: 'team'}]), 'teamsRoot')).toEqual({closeAboveTabs: true})
+})
+
+test('upToScreenTarget of a screen nowhere on the way back is undefined', () => {
+  expect(upToScreenTarget(phoneDevicePage(), 'teamMember')).toBeUndefined()
+  expect(upToScreenTarget(makePhoneNavState(), 'teamsRoot')).toBeUndefined()
+  expect(upToScreenTarget(undefined, 'chatRoot')).toBeUndefined()
 })
 
 // ---- builders ----

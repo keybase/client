@@ -84,7 +84,8 @@ const useTabsState = (
 const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
   const navUpToScreen = C.Router2.navUpToScreen
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (action.payload.params.teamID === teamID) {
+    // a delete from this team's confirm navigates once its RPC returns
+    if (action.payload.params.teamID === teamID && !C.Router2.isModalUp('teamDeleteTeam', {teamID})) {
       navUpToScreen('teamsRoot')
     }
   })

@@ -60,14 +60,6 @@ let modalRouteNames: ReadonlySet<string> | undefined
 export const setModalRouteNames = (names: Iterable<string>) => {
   modalRouteNames = new Set<string>(names)
 }
-// For tests that register their own: returns a function that puts back the registration as
-// it is now, including "not registered".
-export const saveModalRouteNames = () => {
-  const saved = modalRouteNames
-  return () => {
-    modalRouteNames = saved
-  }
-}
 export const isModalRouteName = (name: string) => {
   if (!modalRouteNames) {
     throw new Error('modalRouteNames not registered; call setModalRouteNames at startup')
@@ -112,6 +104,17 @@ export const modalStack = (state?: Immutable<NavState>): Immutable<Array<Route>>
   return (state.routes?.slice(1) ?? []).filter(r => isModalRouteName(r.name)) as Immutable<Array<Route>>
 }
 
+// Whether a modal of that name is up whose params hold every entry of `params`.
+export const isModalUp = (
+  state: Immutable<NavState> | undefined,
+  name: string,
+  params: Readonly<Record<string, unknown>> = {}
+) =>
+  modalStack(state).some(r => {
+    const rp = r.params as Readonly<Record<string, unknown>> | undefined
+    return r.name === name && Object.entries(params).every(([k, v]) => rp?.[k] === v)
+  })
+
 // The innermost stack the user is looking at - the one a push/pop should target.
 export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | undefined => {
   const descend = (s: Immutable<NavState> | undefined, depth: number): Immutable<NavState> | undefined => {
@@ -130,6 +133,42 @@ export const activeStack = (state?: Immutable<NavState>): Immutable<NavState> | 
     return descend(childRoute?.state, depth + 1) ?? (s.type === 'stack' ? s : undefined)
   }
   return descend(state, 0)
+}
+
+export type UpToScreenTarget = {
+  // the stack holding the nearest route of that name, and where; none for another tab's root
+  found?: {stack: Immutable<NonNullable<NavState>>; index: number}
+  // the screens above the tab bar close first: `found` is under them, or nothing on a phone holds it
+  closeAboveTabs: boolean
+}
+
+const tabRootNames = new Set<string>(Object.values(tabRoots).filter(Boolean))
+
+// What navUpToScreen acts on to go back to `name`. With no modal up, non-modal screens above the tab
+// bar are looked in first, then the selected tab's stack. Only a phone has such screens: it keeps
+// every screen but a tab's root in the root stack, over tab stacks that register only their root,
+// while tablet and desktop register only modals above the tabs. On a phone another tab's root is
+// in neither, so all it gets is the screens above the tabs closing, as a tablet or desktop pops
+// everything above that root. With a modal up only the active stack is looked in. Undefined when
+// there is nothing to act on.
+export const upToScreenTarget = (
+  state: Immutable<NavState> | undefined,
+  name: string
+): UpToScreenTarget | undefined => {
+  const lastIndexOf = (s?: Immutable<NavState>) => (s?.routes ?? []).map(r => r.name).lastIndexOf(name)
+  const aboveTabs = !!state && isLoggedIn(state) && (state.index ?? 0) > 0 && modalStack(state).length === 0
+  if (state && aboveTabs) {
+    const i = lastIndexOf(state)
+    if (i > 0) {
+      return {closeAboveTabs: false, found: {index: i, stack: state}}
+    }
+  }
+  const active = activeStack(state)
+  const j = lastIndexOf(active)
+  if (active && j >= 0) {
+    return {closeAboveTabs: aboveTabs, found: {index: j, stack: active}}
+  }
+  return aboveTabs && tabRootNames.has(name) ? {closeAboveTabs: true} : undefined
 }
 
 // loggedIn/tab/stack items, plus whatever sits above the tab navigator.
@@ -183,6 +222,19 @@ export const visiblePath = (
 
 export const visibleScreen = (state?: Immutable<NavState>, opts?: {includeModals?: boolean}) =>
   visiblePath(state, opts).at(-1)
+
+// The navigator whose routes include the route with this key, wherever it is in the tree.
+export const navigatorHoldingRoute = (
+  state: Immutable<NavState> | undefined,
+  routeKey: string
+): Immutable<NavState> | undefined => {
+  for (const route of (state?.routes ?? []) as Immutable<Array<Route>>) {
+    if (route.key === routeKey) return state
+    const inner = navigatorHoldingRoute(route.state as Immutable<NavState> | undefined, routeKey)
+    if (inner) return inner
+  }
+  return undefined
+}
 
 // ---- Builders ----
 

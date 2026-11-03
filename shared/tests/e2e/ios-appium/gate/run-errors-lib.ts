@@ -22,8 +22,11 @@ export const hiddenSimctlArgs = (args: ReadonlyArray<string>) => args.slice(1).f
 
 const HIDDEN = '<hidden>'
 
-export const scrub = (text: string, hidden: ReadonlyArray<string>) =>
-  [...hidden].sort((a, b) => b.length - a.length).reduce((t, h) => (h ? t.split(h).join(HIDDEN) : t), text)
+// `text` with each name replaced by its role (longest name first, so a name inside another goes too).
+export const maskedByRole = (text: string, roles: ReadonlyArray<{name: string; role: string}>) =>
+  [...roles].filter(r => r.name).sort((a, b) => b.name.length - a.name.length).reduce((t, r) => t.split(r.name).join(r.role), text)
+
+export const scrub = (text: string, hidden: ReadonlyArray<string>) => maskedByRole(text, hidden.map(name => ({name, role: HIDDEN})))
 
 type ChildError = {code?: unknown; signal?: unknown; status?: unknown; stderr?: unknown}
 

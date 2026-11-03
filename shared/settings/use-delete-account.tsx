@@ -7,7 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 export const useDeleteAccount = () => {
   const username = useCurrentUserState(s => s.username)
   const setJustDeletedSelf = useConfigState(s => s.dispatch.setJustDeletedSelf)
-  const {clearModals, navigateAppend} = C.Router2
+  const {clearModals} = C.Router2
   const deleteAccountRPC = C.useRPC(T.RPCGen.loginAccountDeleteRpcPromise)
 
   const deleteAccountForever = (passphrase?: string) => {
@@ -23,8 +23,8 @@ export const useDeleteAccount = () => {
       [{passphrase}, C.waitingKeySettingsGeneric],
       () => {
         setJustDeletedSelf(username)
+        // the service logs out after a delete, and the logged-out root it brings shows login
         clearModals()
-        navigateAppend({name: C.Tabs.loginTab, params: {}})
       },
       error => {
         logger.warn('Error deleting account', error)

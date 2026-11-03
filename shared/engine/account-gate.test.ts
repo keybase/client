@@ -1,15 +1,17 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 // Calls made while the app switches accounts wait for the switch to end, and calls that outlive an
 // account never wait.
 import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {installNavigation} from '@/test/navigation'
 import {openDialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
-import {settle} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
+import {act} from '@testing-library/react'
 import {testWaitingKey} from '@/test/waiting-key'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -105,7 +107,7 @@ describe('a call made during a switch', () => {
     await settle()
     expect(methodsSent(fake)).toEqual([])
     endSwitch()
-    await expect(p).resolves.toBeUndefined()
+    await expect(p).resolves.toBeNull()
     uninstallFakeEngine()
   })
 
@@ -121,7 +123,7 @@ describe('a call made during a switch', () => {
     await settle()
     expect(methodsSent(fake)).toEqual([])
     endSwitch()
-    await expect(dialog.done).resolves.toBeUndefined()
+    await expect(dialog.done).resolves.toBeNull()
     uninstallFakeEngine()
   })
 
@@ -185,6 +187,8 @@ describe('a call made during a switch', () => {
     const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise())
     fake.drop()
     fake.restart()
+    // The renderer hears the link go down and come back before the switch ends
+    await tick()
     endSwitch()
     expect(await p).toEqual({r: {}})
     uninstallFakeEngine()
@@ -280,16 +284,19 @@ describe('every way a switch ends lets its calls out', () => {
     )
   })
 
+  // The provisioning prompt navigates, so the app's tree is up, and the tab bar it draws renders
+  // from the stores the switch changes: those changes are made inside act.
   test('the account needing provisioning', async () => {
-    installFakeNavigator()
+    installNavigation()
     let login: ReturnType<typeof switchLogin> | undefined
-    try {
-      await heldThenEnded(
-        async fake => {
+    await heldThenEnded(
+      async fake =>
+        act(async () => {
           login = switchLogin(fake)
           await login.begin()
-        },
-        async fake => {
+        }),
+      async fake =>
+        act(async () => {
           await fake.push(
             'keybase.1.provisionUi.PromptNewDeviceName',
             {errorMessage: '', existingDevices: []},
@@ -298,10 +305,7 @@ describe('every way a switch ends lets its calls out', () => {
           await settle()
           login!.held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
           await settle()
-        }
-      )
-    } finally {
-      restoreNavigator()
-    }
+        })
+    )
   })
 })

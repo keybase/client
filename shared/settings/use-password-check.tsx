@@ -6,18 +6,21 @@ import logger from '@/logger'
 export const usePasswordCheck = () => {
   const checkPasswordRPC = C.useRPC(T.RPCGen.accountPassphraseCheckRpcPromise)
   const [checkPasswordIsCorrect, setCheckPasswordIsCorrect] = React.useState<boolean | undefined>(undefined)
+  // Only the latest check's answer stands: answers can come back out of order.
+  const latestCheckRef = React.useRef(0)
 
   const checkPassword = React.useCallback(
     (passphrase: string) => {
+      const checkID = ++latestCheckRef.current
       setCheckPasswordIsCorrect(undefined)
       checkPasswordRPC(
         [{passphrase}, C.waitingKeySettingsCheckPassword],
         result => {
-          setCheckPasswordIsCorrect(result)
+          if (checkID === latestCheckRef.current) setCheckPasswordIsCorrect(result)
         },
         error => {
           logger.warn('Error checking password', error)
-          setCheckPasswordIsCorrect(undefined)
+          if (checkID === latestCheckRef.current) setCheckPasswordIsCorrect(undefined)
         }
       )
     },
@@ -25,6 +28,7 @@ export const usePasswordCheck = () => {
   )
 
   const reset = React.useCallback(() => {
+    latestCheckRef.current++
     setCheckPasswordIsCorrect(undefined)
   }, [])
 

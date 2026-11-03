@@ -1,9 +1,10 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {settle as settleTimers, tick} from '@/test/flush'
+import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 
 import {
   cancelProvision,
@@ -26,38 +27,40 @@ const getPassphrase = 'keybase.1.secretUi.getPassphrase'
 const secret = 'keybase.1.provisionUi.DisplayAndPromptSecret'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 
-let nav: FakeNavigator
+let nav: InstalledNavigation
 let fake: FakeEngine
 
-// Provisioning runs from a modal, so the fake starts with one open: clearModals only has
-// something to dispatch when a modal is actually on screen. This one is never a
-// navigation target below, so a replace onto another screen stays a replace.
+// Provisioning runs from a modal, so the tree starts with one open under the username screen the
+// attempt is submitted from: clearModals only has something to remove when a modal is on screen.
 const openModal = 'deviceAdd'
 
 beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [openModal],
-    rootState: makeRootState({above: [{name: openModal}]}),
+  // The flow navigates from its own async work, as in the app, not from inside act(); test/flush
+  // pulls in testing-library, which would otherwise make this an act environment.
+  ;(globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = false
+  nav = installNavigation({
+    rootState: makeRootState({above: [{name: openModal}, {name: 'username', params: {username: 'testuser'}}]}),
   })
   fake = installFakeEngine()
 })
 
 afterEach(() => {
   cancelProvision()
-  restoreNavigator()
   resetAllStores()
 })
 
-// The listener hands incoming calls to their handlers on a timer, and a flow reading a dialog's events
-// sees its end on another
-const settle = async () => {
-  for (let i = 0; i < 2; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise(resolve => setTimeout(resolve, 0))
-    // eslint-disable-next-line no-await-in-loop
-    await tick()
-  }
-}
+// What the flow asked for: each push or replace it dispatched.
+const navigations = () =>
+  nav.actions
+    .filter(a => a.type === 'PUSH' || a.type === 'REPLACE')
+    .map(a => ({name: a.payload?.['name'], params: a.payload?.['params'], replace: a.type === 'REPLACE'}))
+// The root stack's screens, from the library's state.
+const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
+const modalsCleared = () => !rootNames()?.includes(openModal)
+
+// What the service sent crosses IPC, the listener hands incoming calls to their handlers on a timer,
+// and a flow reading a dialog's events sees its end on another
+const settle = async () => settleTimers(2)
 
 const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop' | 'backup') => ({
   deviceID,
@@ -88,7 +91,7 @@ const pushPassword = async (attempt: number) =>
 
 test('startProvision navigates to the username screen', () => {
   startProvision('alice', true)
-  expect(nav.navigations()).toContainEqual({
+  expect(navigations()).toContainEqual({
     name: 'username',
     params: {fromReset: true, username: 'alice'},
     replace: false,
@@ -103,7 +106,7 @@ describe('login', () => {
     const answered = push(chooseDevice, {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]}, 0)
     await settle()
 
-    expect(nav.navigations()).toContainEqual({
+    expect(navigations()).toContainEqual({
       name: 'selectOtherDevice',
       params: {
         devices: [
@@ -136,7 +139,7 @@ describe('login', () => {
     // first attempt: the user names the device and picks the other device, then gets the password screen
     const name1 = push(deviceName, {errorMessage: '', existingDevices: []}, 0)
     await settle()
-    expect(nav.navigations()).toContainEqual({
+    expect(navigations()).toContainEqual({
       name: 'setPublicName',
       params: {devices: [], error: undefined},
       replace: false,
@@ -151,7 +154,7 @@ describe('login', () => {
 
     const password = pushPassword(0)
     await settle()
-    expect(nav.navigations()).toContainEqual({
+    expect(navigations()).toContainEqual({
       name: 'password',
       params: {error: undefined, username: 'testuser'},
       replace: false,
@@ -171,7 +174,7 @@ describe('login', () => {
     expect(nav.actions).toEqual([])
     void push(chooseDevice, {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]}, 1)
     await settle()
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {name: 'selectOtherDevice', params: {devices: [expect.objectContaining({name: 'phone'})], username: 'testuser'}, replace: false},
     ])
     held[1]!.reply(undefined)
@@ -240,7 +243,7 @@ describe('login', () => {
 
     // parked: no restart, no error navigation
     expect(held).toHaveLength(1)
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
   })
 
   test('resubmit while parked restarts and replays the recorded answers', async () => {
@@ -283,7 +286,7 @@ describe('login', () => {
     submitProvisionPassphrase('hunter2')
     await settle()
     expect(held).toHaveLength(1)
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
   })
 
   test('cancel with a prompt open refuses it and ends the run', async () => {
@@ -301,7 +304,7 @@ describe('login', () => {
     expect(held).toHaveLength(1)
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
-    expect(nav.navigations()).toEqual([{name: 'password', params: {error: undefined, username: 'testuser'}, replace: false}])
+    expect(navigations()).toEqual([{name: 'password', params: {error: undefined, username: 'testuser'}, replace: false}])
   })
 
   test('a prompt arriving after pause is refused and does not navigate', async () => {
@@ -359,7 +362,7 @@ describe('login', () => {
     nav.clearActions()
     const password2 = pushPassword(1)
     await settle()
-    expect(nav.navigations()).toEqual([{name: 'password', params: {error: undefined, username: 'testuser2'}, replace: false}])
+    expect(navigations()).toEqual([{name: 'password', params: {error: undefined, username: 'testuser2'}, replace: false}])
     submitProvisionPassphrase('hunter2')
     await expect(password2).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
   })
@@ -368,7 +371,7 @@ describe('login', () => {
     const held = await startLogin()
     const shown = push(secret, {phrase: 'one two three', previousErr: ''}, 0)
     await settle()
-    expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
+    expect(navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
 
     // the other device entered the code: the service stops asking this one
     fake.cancelPush(secret)
@@ -387,7 +390,7 @@ describe('login', () => {
     held[0]!.reply(undefined)
     await settle()
     expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
-    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([])
+    expect(navigations().filter(n => n.name === 'error')).toEqual([])
   })
 
   test('the gpg and email prompts are refused, once each', async () => {
@@ -400,7 +403,7 @@ describe('login', () => {
     ]) {
       await expect(push(method, {}, 0)).resolves.toEqual({error: inputCanceled})
     }
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
   })
 
   test('the reset prompt during login is answered nothing, once', async () => {
@@ -408,14 +411,14 @@ describe('login', () => {
     await expect(
       push('keybase.1.loginUi.promptResetAccount', {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}}, 0)
     ).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.nothing})
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
   })
 
   test('the primary paper key notice and the success notices show nothing', async () => {
     await startLogin()
     await push('keybase.1.loginUi.displayPrimaryPaperKey', {phrase: 'a b c'}, 0)
     await push('keybase.1.provisionUi.ProvisionerSuccess', {deviceName: 'dev1', deviceType: 'mobile'}, 0)
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
   })
 })
 
@@ -451,7 +454,7 @@ describe('add device', () => {
     await startAdd()
     const answered = pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
     await settle()
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       {
         name: 'codePage',
         params: {error: undefined, otherDevice: expect.objectContaining({name: '', type: 'mobile'}), textCode: 'one two three'},
@@ -464,7 +467,7 @@ describe('add device', () => {
     await pushAdd('keybase.1.provisionUi.ProvisionerSuccess', {deviceName: 'phone', deviceType: 'mobile'}, 0)
     held[0]!.reply(undefined)
     await settle()
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modalsCleared()).toBe(true)
   })
 
   test('a previous error replaces the code page', async () => {
@@ -472,7 +475,7 @@ describe('add device', () => {
     await startAdd()
     void pushAdd(secret, {phrase: 'four five six', previousErr: 'nope'}, 0)
     await settle()
-    expect(nav.navigations()).toEqual([
+    expect(navigations()).toEqual([
       expect.objectContaining({name: 'codePage', params: expect.objectContaining({error: 'nope'}), replace: true}),
     ])
   })
@@ -482,29 +485,29 @@ describe('add device', () => {
     await startAdd()
     const answered1 = pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
     await settle()
-    expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
+    expect(navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
 
     // the user cancels, then tries again: the dead run must not clear modals or eat the new run's UI
     startAddNewDevice('mobile')
     await expect(answered1).resolves.toEqual({error: inputCanceled})
     await settle()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
     expect(held).toHaveLength(2)
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
 
     nav.clearActions()
     const answered2 = pushAdd(secret, {phrase: 'four five six', previousErr: ''}, 1)
     await settle()
-    expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
+    expect(navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
     submitProvisionTextCode('four five six')
     await expect(answered2).resolves.toEqual({result: {phrase: 'four five six', secret: null}})
 
     held[1]!.reply(undefined)
     await settle()
     // the successful run still clears modals when it finishes
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modalsCleared()).toBe(true)
   })
 
   test('cancel before any prompt kills the RPC at its first prompt', async () => {
@@ -517,11 +520,11 @@ describe('add device', () => {
     await expect(pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)).resolves.toEqual({
       error: inputCanceled,
     })
-    expect(nav.navigations()).toEqual([])
+    expect(navigations()).toEqual([])
 
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
   })
 
   test('pause is a full cancel', async () => {
@@ -538,7 +541,7 @@ describe('add device', () => {
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
     expect(held).toHaveLength(1)
-    expect(nav.modalsCleared()).toBe(false)
+    expect(modalsCleared()).toBe(false)
   })
 
   test('a failure clears modals and shows nothing else', async () => {
@@ -546,8 +549,9 @@ describe('add device', () => {
     await startAdd()
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'kex failed'))
     await settle()
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toEqual([])
+    expect(modalsCleared()).toBe(true)
+    expect(rootNames()).toEqual(['loggedIn'])
+    expect(navigations()).toEqual([])
   })
 
   test('the service cancelling the secret prompt, then the provisioner success, closes the modals', async () => {
@@ -562,7 +566,7 @@ describe('add device', () => {
     submitProvisionTextCode('one two three')
     held[0]!.reply(undefined)
     await settle()
-    expect(nav.modalsCleared()).toBe(true)
+    expect(modalsCleared()).toBe(true)
   })
 
   test('starting add-device ends a running login', async () => {

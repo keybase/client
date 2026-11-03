@@ -4,11 +4,11 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import logger from '@/logger'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
-import type * as React from 'react'
+import * as React from 'react'
 import {useContext} from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import {act, cleanup, render, renderHook} from '@testing-library/react'
+import {act, cleanup, render, renderHook, screen} from '@testing-library/react'
 import {Freeze} from 'react-freeze'
 import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
@@ -23,11 +23,17 @@ import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
 import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
-import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
+import {useComposerInput, type ComposerInput} from './composer'
+import {Input as PlatformTextInput} from './normal/input'
+import {CHAT_INPUT} from '@/tests/e2e/shared/test-ids'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
-import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
+import {makeRootState, navigationWrapper, type RenderInNavigationOptions} from '@/test/navigation'
+import {navigationRef} from '@/constants/navigator'
 import * as NavTree from '@/constants/nav-tree'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeAnswer, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {tick} from '@/test/flush'
+import type {RPCError} from '@/util/errors'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
 import {ThreadRefsContext, ThreadRefsProvider} from '../normal/context'
 
@@ -69,9 +75,16 @@ const mockHandle = () =>
         return true
       },
     }) as NonNullable<Parameters<PlatformInputProps['setInputRef']>[0]>
-// Stands in for the real composer input, setting its handle the way the real inputs do, as the
+// Stands in for the real composer input bar (the module's default; its low-level Input is the real
+// one), setting its handle the way the real inputs do, as the
 // commit is made; mockNullInputRef leaves it unset.
+// input.tsx pulls in the native-only halves of the input bar at module scope; the desktop low-level
+// input used here uses none of them
+jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
+jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
+jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
 jest.mock('./normal/input', () => ({
+  ...jest.requireActual<object>('./normal/input'),
   __esModule: true,
   default: function MockPlatformInput(p: PlatformInputProps) {
     mockPlatformInputProps = p
@@ -85,9 +98,19 @@ jest.mock('./normal/input', () => ({
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
+const isFakeTimers = () => typeof (setTimeout as unknown as {clock?: unknown}).clock === 'object'
+// Long enough for a call to cross to the service and its answer back, a few in a row, and for the
+// listener to run what the service sent the GUI, which it does on a 0ms timer. The crossing rides
+// node:timers' setImmediate, which fake timers leave alone.
 const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
+  for (let i = 0; i < 4; i++) {
+    await tick()
+    if (isFakeTimers()) {
+      jest.advanceTimersByTime(0)
+    } else {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    }
+    await tick()
   }
 }
 
@@ -127,43 +150,133 @@ const makeGiphyResult = (targetUrl = 'https://media.giphy.com/media/target/giphy
 const makeOutboxID = (label: string): T.Chat.OutboxID =>
   T.Chat.rpcOutboxIDToOutboxID(new TextEncoder().encode(label))
 
-let rpc: FakeChatRpc
+const postText = 'chat.1.local.postTextNonblock'
+const postEdit = 'chat.1.local.postEditNonblock'
+const trackGiphySelect = 'chat.1.local.trackGiphySelect'
+const unfurlPreview = 'chat.1.local.unfurlPreviewLocal'
+const saveDraft = 'chat.1.local.updateUnsentText'
+const setTyping = 'chat.1.local.updateTyping'
+const convIDBytes = T.Chat.keyToConversationID(convID)
 
+let fake: FakeEngine
+const posted = {outboxID: new Uint8Array([1])}
+
+// what the service received for `method`, once what the GUI sent has crossed to it
+const sent = async (method: string) => {
+  await act(flushPromises)
+  return paramsOf(fake, method)
+}
+
+// the service takes each post; returns the last one it received
 const mockPostText = () => {
-  rpc.on('postText', async () => {
-    await Promise.resolve()
+  fake.answer(postText, () => posted)
+  return async () => (await sent(postText)).at(-1) as
+    | {body: string; replyTo?: T.Chat.MessageID | null; unfurlSuppress: ReadonlyArray<string>}
+    | undefined
+}
+
+// the service takes each post as text carrying a stellar payment, and the user backs out of it:
+// it tells the GUI's session the payment was canceled before it answers
+const cancelStellarOnPost = () => {
+  fake.answer(postText, async (params: {sessionID: number}) => {
+    await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: params.sessionID})
+    return posted
   })
-  return () => rpc.params('postText').at(-1)
+}
+
+// holds each post; the test plays the service: cancel() reports the stellar payment backed out of
+// on the post's session, then answers the post
+const holdPostText = () => {
+  const held = fake.hold(postText)
+  return {
+    cancel: async () => {
+      const call = held.at(-1)
+      if (!call) throw new Error('no post held')
+      await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: call.params.sessionID as number})
+      call.reply(posted)
+      await act(flushPromises)
+    },
+    held,
+  }
+}
+
+const answerPreviews = (answer: () => FakeAnswer) => fake.answer(unfurlPreview, answer)
+
+// The real navigation tree every provider here renders in, as the route its thread is on: the
+// conversation on the chat root, unless a test builds another with showRoute before rendering.
+let navigation: ReturnType<typeof navigationWrapper>
+const showRoute = (p: RenderInNavigationOptions) => {
+  navigation = navigationWrapper(p)
+  return navigation
+}
+function Nav(p: React.PropsWithChildren) {
+  const Tree = navigation.wrapper
+  return <Tree>{p.children}</Tree>
 }
 
 const wrapperFor = (id: T.Chat.ConversationIDKey) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
-      <ConversationThreadProvider id={id}>
-        <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={id}>
+          <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
+        </ConversationThreadProvider>
+      </Nav>
     )
   }
 
-// the provider-only harness: a fake input stands in for the composer so what an action puts
-// into the composer can be read back off it
-const fakeInputWrapperFor = (id: T.Chat.ConversationIDKey, fake: FakeComposerInput) =>
+// The composer's real low-level input, mounted on the conversation's composer as the input bar
+// mounts it, so what an action puts into the composer can be read back off the element. onInput
+// sees each handle the input hands the composer.
+function ComposerField(p: {onInput?: (input: ComposerInput) => void}) {
+  const {onInput} = p
+  const {setInput, textChanged} = useComposerInput(undefined, false)
+  const ref = React.useCallback(
+    (input: ComposerInput | null) => {
+      if (input) onInput?.(input)
+      setInput(input)
+    },
+    [onInput, setInput]
+  )
+  return <PlatformTextInput multiline={true} onChangeText={textChanged} ref={ref} />
+}
+
+// The ComposerField the next render mounts: what it shows (the inputs already on screen come before
+// it), and how often the composer focused it, through a call-through spy on its handle's focus.
+const nextField = () => {
+  const index = screen.queryAllByTestId(CHAT_INPUT).length
+  const focuses = new Set<jest.SpiedFunction<ComposerInput['focus']>>()
+  const onInput = (input: ComposerInput) => {
+    focuses.add(jest.spyOn(input, 'focus'))
+  }
+  return {
+    get focusCount() {
+      return [...focuses].reduce((n, f) => n + f.mock.calls.length, 0)
+    },
+    onInput,
+    get text() {
+      return (screen.getAllByTestId(CHAT_INPUT)[index] as unknown as {value: string}).value
+    },
+  }
+}
+
+const fieldWrapperFor = (id: T.Chat.ConversationIDKey, field: ReturnType<typeof nextField>) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
-      <ConversationThreadProvider id={id}>
-        <ConversationInputProvider id={id}>
-          <FakeComposerInputView fake={fake} />
-          {p.children}
-        </ConversationInputProvider>
-      </ConversationThreadProvider>
+      <Nav>
+        <ConversationThreadProvider id={id}>
+          <ConversationInputProvider id={id}>
+            <ComposerField onInput={field.onInput} />
+            {p.children}
+          </ConversationInputProvider>
+        </ConversationThreadProvider>
+      </Nav>
     )
   }
 
 const renderInput = (id = convID) => {
-  const composerInput = makeFakeComposerInput()
-  const rendered = renderHook(() => useConversationInput(s => s), {
-    wrapper: fakeInputWrapperFor(id, composerInput),
-  })
+  const composerInput = nextField()
+  const rendered = renderHook(() => useConversationInput(s => s), {wrapper: fieldWrapperFor(id, composerInput)})
   return {composerInput, result: rendered.result, unmount: rendered.unmount}
 }
 
@@ -192,13 +305,13 @@ function renderComposerWithProbe(onRender: (h: InputHandles) => void, id = convI
 }
 
 const renderInputWithThreadActions = (id = convID) => {
-  const composerInput = makeFakeComposerInput()
+  const composerInput = nextField()
   const {result} = renderHook(
     () => ({
       input: useConversationInput(s => s),
       threadActions: useConversationThreadActions(),
     }),
-    {wrapper: fakeInputWrapperFor(id, composerInput)}
+    {wrapper: fieldWrapperFor(id, composerInput)}
   )
   return {composerInput, result}
 }
@@ -210,7 +323,11 @@ const notifyInputEngineAction = (action: Parameters<typeof routeChatNotification
 }
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  showRoute({params: {conversationIDKey: convID}, route: 'chatRoot'})
+  fake = installFakeEngine()
+  // every keystroke saves the draft and reports typing
+  fake.answer(saveDraft, () => null)
+  fake.answer(setTyping, () => null)
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -227,10 +344,8 @@ afterEach(() => {
   mockInput.selection = undefined
   mockInput.text = ''
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
-  restoreNavigator()
 })
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
@@ -385,21 +500,20 @@ test('sendComposerText sends reply context and clears transient composer state',
   expect(result.current.input.giphyWindow).toBe(false)
   // the composer's submit clears the text; the send leaves it to that
   expect(composerInput.text).toBe('reply text')
-  expect(getLastPost()?.text).toBe('sent reply')
-  expect(getLastPost()?.replyTo).toBe(replyMessageID)
+  expect((await getLastPost())?.body).toBe('sent reply')
+  expect((await getLastPost())?.replyTo).toBe(replyMessageID)
 })
 
 test('sendComposerText restores text when a stellar flow is canceled', async () => {
-  const getLastPost = mockPostText()
+  const post = holdPostText()
   const {composerInput, result} = renderInput()
 
   act(() => {
     result.current.dispatch.sendComposerText('restore me')
   })
-  await flushPromises()
-  act(() => {
-    getLastPost()?.onStellarCanceled?.()
-  })
+  await act(flushPromises)
+  expect(post.held).toHaveLength(1)
+  await post.cancel()
 
   expect(composerInput.text).toBe('restore me')
 })
@@ -407,6 +521,7 @@ test('sendComposerText restores text when a stellar flow is canceled', async () 
 test('sendComposerText edits the selected message and clears edit state', async () => {
   const editOrdinal = T.Chat.numberToOrdinal(901)
   const editMessageID = T.Chat.numberToMessageID(901)
+  fake.answer(postEdit, () => posted)
   const {result} = renderInputWithThreadActions()
   act(() => {
     result.current.threadActions.addMessages(
@@ -437,8 +552,12 @@ test('sendComposerText edits the selected message and clears edit state', async 
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(result.current.input.commandMarkdown).toBeUndefined()
-  expect(rpc.params('postEdit')).toEqual([
-    expect.objectContaining({conversationIDKey: convID, messageID: editMessageID, text: 'new text'}),
+  expect(await sent(postEdit)).toEqual([
+    expect.objectContaining({
+      body: 'new text',
+      conversationID: convIDBytes,
+      target: expect.objectContaining({messageID: editMessageID}),
+    }),
   ])
 })
 
@@ -446,6 +565,7 @@ test('giphy engine events and send path update the input owner', async () => {
   const replyOrdinal = T.Chat.numberToOrdinal(1001)
   const replyMessageID = T.Chat.numberToMessageID(1001)
   const getLastPost = mockPostText()
+  fake.answer(trackGiphySelect, () => null)
   const {composerInput, result} = renderInputWithThreadActions()
   const giphyResult = makeGiphyResult()
 
@@ -483,9 +603,9 @@ test('giphy engine events and send path update the input owner', async () => {
   })
   await flushPromises()
 
-  expect(rpc.calls('trackGiphySelect')).toEqual([[giphyResult]])
-  expect(getLastPost()?.text).toBe(giphyResult.targetUrl)
-  expect(getLastPost()?.replyTo).toBe(replyMessageID)
+  expect(await sent(trackGiphySelect)).toEqual([{result: giphyResult}])
+  expect((await getLastPost())?.body).toBe(giphyResult.targetUrl)
+  expect((await getLastPost())?.replyTo).toBe(replyMessageID)
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(composerInput.text).toBe('')
@@ -499,9 +619,10 @@ test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () 
   act(() => {
     result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
   })
-  await flushPromises()
+  // the cancel puts the text back into the input
+  await act(flushPromises)
 
-  expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
+  expect((await getLastPost())?.unfurlSuppress).toEqual(['http://a.com'])
   expect(getSuppressedURLs(convID)).toEqual([])
 })
 
@@ -518,7 +639,7 @@ test('a send with no snapshot leaves the composer dismissals alone', async () =>
   })
   await flushPromises()
 
-  expect(getLastPost()?.unfurlSuppress).toEqual([])
+  expect((await getLastPost())?.unfurlSuppress).toEqual([])
   expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
 })
 
@@ -526,7 +647,7 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
   jest.useFakeTimers()
   try {
     const getLastPost = mockPostText()
-    rpc.on('getUnfurlPreviews', () => [
+    answerPreviews(() => [
       {
         unfurl: {generic: {siteName: 'a', title: 'a', url: 'http://a.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
         url: 'http://a.com',
@@ -562,8 +683,8 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
       await flushPromises()
     })
 
-    expect(getLastPost()?.text).toBe(text)
-    expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
+    expect((await getLastPost())?.body).toBe(text)
+    expect((await getLastPost())?.unfurlSuppress).toEqual(['http://a.com'])
   } finally {
     jest.useRealTimers()
   }
@@ -574,7 +695,7 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
   try {
     mockOnClear = () => useUnfurlPreviewState.getState().dispatch.keepOnly(convID, [])
     const getLastPost = mockPostText()
-    rpc.on('getUnfurlPreviews', () => [])
+    answerPreviews(() => [])
     renderComposer()
     act(() => {
       useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
@@ -595,7 +716,7 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
       await flushPromises()
     })
 
-    expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
+    expect((await getLastPost())?.unfurlSuppress).toEqual(['http://a.com'])
   } finally {
     jest.useRealTimers()
   }
@@ -619,7 +740,7 @@ test('a landed send leaves a dismissal made while it was in flight alone', async
 // an edit posts as MessageType_EDIT, which the unfurler does not extract urls from, so
 // there is nothing to preview and no scrape to pay for
 test('no preview is fetched while editing', async () => {
-  rpc.on('getUnfurlPreviews', () => [])
+  answerPreviews(() => [])
   jest.useFakeTimers()
   try {
     // the composer and the handles that drive it have to share one provider, or the editing
@@ -639,7 +760,7 @@ test('no preview is fetched while editing', async () => {
       jest.advanceTimersByTime(1000)
       await flushPromises()
     })
-    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
+    expect(await sent(unfurlPreview)).toEqual([])
   } finally {
     jest.useRealTimers()
   }
@@ -648,16 +769,14 @@ test('no preview is fetched while editing', async () => {
 test('a canceled stellar send restores the dismissed unfurl urls for the resend', async () => {
   // the composer clears its dismissals before the send resolves, so a cancel has to put
   // the snapshot back or the restored text re-unfurls what the user dismissed
-  rpc.on('postText', async p => {
-    p.onStellarCanceled?.()
-    await Promise.resolve()
-  })
+  cancelStellarOnPost()
   const {result} = renderInput()
 
   act(() => {
     result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
   })
-  await flushPromises()
+  // the cancel puts the text back into the input
+  await act(flushPromises)
 
   expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
 })
@@ -665,16 +784,14 @@ test('a canceled stellar send restores the dismissed unfurl urls for the resend'
 test('a canceled stellar send leaves a failed preview unrecorded as a dismissal', async () => {
   // a failure is re-derived by the next fetch, a dismissal never is, so restoring one as
   // the other would keep the url suppressed even after it starts scraping again
-  rpc.on('postText', async p => {
-    p.onStellarCanceled?.()
-    await Promise.resolve()
-  })
+  cancelStellarOnPost()
   const {result} = renderInput()
 
   act(() => {
     result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
   })
-  await flushPromises()
+  // the cancel puts the text back into the input
+  await act(flushPromises)
 
   expect(useUnfurlPreviewState.getState().dismissed.get(convID)).toBeUndefined()
   expect(getSuppressedURLs(convID)).toEqual([])
@@ -692,7 +809,7 @@ test('a send suppresses what failed to preview as well as what was dismissed', a
   })
   await flushPromises()
 
-  expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
+  expect((await getLastPost())?.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {
@@ -872,7 +989,7 @@ test('an intent for one conversation is not delivered to a different conversatio
 })
 
 test('two setEditing writes before the input provider mounts: the second one applies', () => {
-  const composerInput = makeFakeComposerInput()
+  const composerInput = nextField()
   const firstOrdinal = T.Chat.numberToOrdinal(211)
   const secondOrdinal = T.Chat.numberToOrdinal(212)
   let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
@@ -881,7 +998,8 @@ test('two setEditing writes before the input provider mounts: the second one app
   const {rerender} = render(
     <ConversationThreadProvider id={convID}>
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
-    </ConversationThreadProvider>
+    </ConversationThreadProvider>,
+    {wrapper: Nav}
   )
 
   act(() => {
@@ -909,7 +1027,7 @@ test('two setEditing writes before the input provider mounts: the second one app
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
       <ConversationInputProvider id={convID}>
         <InputStateProbe onState={state => (inputState = state)} />
-        <FakeComposerInputView fake={composerInput} />
+        <ComposerField onInput={composerInput.onInput} />
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
@@ -949,7 +1067,7 @@ test('commandStatus reaches a mounted provider but is dropped when none is mount
 })
 
 test('setThreadInputEditing reaches the store with no provider mounted, then applies on mount', () => {
-  const composerInput = makeFakeComposerInput()
+  const composerInput = nextField()
   const editOrdinal = T.Chat.numberToOrdinal(801)
   let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
   let inputState: ConversationInputState | undefined
@@ -957,7 +1075,8 @@ test('setThreadInputEditing reaches the store with no provider mounted, then app
   const {rerender} = render(
     <ConversationThreadProvider id={convID}>
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
-    </ConversationThreadProvider>
+    </ConversationThreadProvider>,
+    {wrapper: Nav}
   )
 
   act(() => {
@@ -981,7 +1100,7 @@ test('setThreadInputEditing reaches the store with no provider mounted, then app
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
       <ConversationInputProvider id={convID}>
         <InputStateProbe onState={state => (inputState = state)} />
-        <FakeComposerInputView fake={composerInput} />
+        <ComposerField onInput={composerInput.onInput} />
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
@@ -1056,7 +1175,7 @@ test('a commandStatus written while the provider is frozen is applied on thaw', 
     </ConversationThreadProvider>
   )
 
-  const {rerender} = render(tree(false))
+  const {rerender} = render(tree(false), {wrapper: Nav})
   act(() => {
     rerender(tree(true))
   })
@@ -1074,7 +1193,7 @@ test('a commandStatus written while the provider is frozen is applied on thaw', 
 })
 
 describe('a pending draft save', () => {
-  const typeThenWait = (switchAccount: boolean) => {
+  const typeThenWait = async (switchAccount: boolean) => {
     jest.useFakeTimers()
     try {
       renderComposer()
@@ -1098,24 +1217,24 @@ describe('a pending draft save', () => {
       act(() => {
         jest.advanceTimersByTime(250)
       })
-      return rpc.params('saveDraft').map(p => p.text)
+      return (await sent(saveDraft)).map(p => p.text as string)
     } finally {
       jest.useRealTimers()
     }
   }
 
-  test('is saved for the account that typed it', () => {
-    expect(typeThenWait(false)).toContain('ab')
+  test('is saved for the account that typed it', async () => {
+    expect(await typeThenWait(false)).toContain('ab')
   })
 
-  test('is not saved for the next account when a switch lands first', () => {
-    expect(typeThenWait(true)).not.toContain('ab')
+  test('is not saved for the next account when a switch lands first', async () => {
+    expect(await typeThenWait(true)).not.toContain('ab')
   })
 })
 
 // A thread retires for good the first time it finds another account signed in, even if its own
 // signs back in before the screen is built again; the composer's draft save is the thread's.
-test('a pending draft save from a retired thread asks nothing, even with its account signed back in', () => {
+test('a pending draft save from a retired thread asks nothing, even with its account signed back in', async () => {
   jest.useFakeTimers()
   try {
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID}], undefined, {force: true})
@@ -1137,7 +1256,7 @@ test('a pending draft save from a retired thread asks nothing, even with its acc
     act(() => {
       jest.advanceTimersByTime(250)
     })
-    expect(rpc.params('saveDraft').map(p => p.text)).not.toContain('ab')
+    expect((await sent(saveDraft)).map(p => p.text as string)).not.toContain('ab')
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe(draftBefore)
   } finally {
     jest.useRealTimers()
@@ -1145,7 +1264,7 @@ test('a pending draft save from a retired thread asks nothing, even with its acc
 })
 
 describe('a draft typed just before leaving the conversation', () => {
-  const typeThenUnmount = (switchAccount: boolean) => {
+  const typeThenUnmount = async (switchAccount: boolean) => {
     jest.useFakeTimers()
     try {
       const {unmount} = renderComposer()
@@ -1167,18 +1286,18 @@ describe('a draft typed just before leaving the conversation', () => {
         })
       }
       unmount()
-      return rpc.params('saveDraft').map(p => p.text)
+      return (await sent(saveDraft)).map(p => p.text as string)
     } finally {
       jest.useRealTimers()
     }
   }
 
-  test('is saved when the composer unmounts', () => {
-    expect(typeThenUnmount(false)).toContain('ab')
+  test('is saved when the composer unmounts', async () => {
+    expect(await typeThenUnmount(false)).toContain('ab')
   })
 
-  test('is not saved for the next account when the unmount comes from a switch', () => {
-    expect(typeThenUnmount(true)).not.toContain('ab')
+  test('is not saved for the next account when the unmount comes from a switch', async () => {
+    expect(await typeThenUnmount(true)).not.toContain('ab')
   })
 })
 
@@ -1195,7 +1314,7 @@ describe('the composer text', () => {
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const utils = render(tree(false))
+    const utils = render(tree(false), {wrapper: Nav})
     return {
       getHandles: () => handles!,
       setShowInput: (show: boolean) => {
@@ -1213,10 +1332,10 @@ describe('the composer text', () => {
   }
 
   beforeEach(() => {
-    rpc.on('getUnfurlPreviews', () => [])
+    answerPreviews(() => [])
   })
 
-  test('the injected text is echoed back through onChangeText, which saves it as the draft', () => {
+  test('the injected text is echoed back through onChangeText, which saves it as the draft', async () => {
     let handles: InputHandles | undefined
     renderComposerWithProbe(h => (handles = h))
 
@@ -1224,7 +1343,7 @@ describe('the composer text', () => {
       handles?.input.dispatch.injectIntoInput('echoed')
     })
 
-    expect(rpc.params('saveDraft').map(p => p.text)).toContain('echoed')
+    expect((await sent(saveDraft)).map(p => p.text as string)).toContain('echoed')
   })
 
   test('an inject made while the input is unmounted lands when it mounts, with its focus', () => {
@@ -1340,7 +1459,7 @@ describe('the composer text', () => {
         await flushPromises()
       })
 
-      expect(getLastPost()?.text).toBe('going out')
+      expect((await getLastPost())?.body).toBe('going out')
       expect(mockInput.text).toBe('')
       expect(clears).toEqual(['going out'])
     } finally {
@@ -1349,18 +1468,17 @@ describe('the composer text', () => {
   })
 
   test('a canceled stellar send puts the text back into the input', async () => {
-    const getLastPost = mockPostText()
+    const post = holdPostText()
     let handles: InputHandles | undefined
     renderComposerWithProbe(h => (handles = h))
 
     act(() => {
       handles?.input.dispatch.sendComposerText('+1xlm@testuser')
     })
-    await flushPromises()
+    await act(flushPromises)
+    expect(post.held).toHaveLength(1)
     expect(mockInput.text).toBe('')
-    act(() => {
-      getLastPost()?.onStellarCanceled?.()
-    })
+    await post.cancel()
 
     expect(mockInput.text).toBe('+1xlm@testuser')
   })
@@ -1418,7 +1536,7 @@ describe('focusing the composer from the thread', () => {
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const utils = render(tree(true))
+    const utils = render(tree(true), {wrapper: Nav})
     return {
       focusInput: () => focusInput?.(),
       setShowInput: (show: boolean) => {
@@ -1462,15 +1580,40 @@ describe('focusing the composer from the thread', () => {
 
 describe('reply', () => {
   const replyOrdinal = T.Chat.numberToOrdinal(1201)
-  // menuUp: the phone message menu, a modal route above the thread, is still up when Reply runs
-  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID, menuUp = false) =>
-    installFakeNavigator({
-      modalRouteNames: ['chatMessagePopup'],
-      rootState: makeRootState({
-        above: menuUp ? [{name: 'chatMessagePopup'}] : [],
-        tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey, threadSearch}}],
-      }),
+  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID) => {
+    // a phone: the thread screen sits in the root stack above the tabs
+    const nav = showRoute({
+      layout: 'phone',
+      rootState: makeRootState({above: [{name: 'chatConversation', params: {conversationIDKey, threadSearch}}]}),
+      route: 'chatConversation',
     })
+    // the listeners our code holds on the container right now: what it asked of the
+    // library, not a model of it
+    let stateListeners = 0
+    const addListener = navigationRef.addListener.bind(navigationRef)
+    jest.spyOn(navigationRef, 'addListener').mockImplementation(((type: 'state', cb: () => void) => {
+      const unsub = addListener(type, cb)
+      stateListeners++
+      let subscribed = true
+      return () => {
+        if (subscribed) {
+          subscribed = false
+          stateListeners--
+        }
+        unsub()
+      }
+    }) as typeof navigationRef.addListener)
+    return {...nav, listenerCount: () => stateListeners}
+  }
+  // the phone message menu, a modal route, opened above the thread once it is up, as a long press
+  // does; it is still up when Reply runs. (A thread that starts under a modal is paused from its
+  // first render, so it never runs.)
+  const openMenu = (nav: ReturnType<typeof installThread>) => {
+    act(() => {
+      navigationRef.navigate('chatMessagePopup', {conversationIDKey: convID, messageID: T.Chat.numberToMessageID(1201)})
+    })
+    nav.clearActions()
+  }
   const threadParams = (nav: ReturnType<typeof installThread>) =>
     NavTree.visibleScreen(nav.getRootState(), {includeModals: false})?.params as {threadSearch?: object} | undefined
 
@@ -1488,8 +1631,9 @@ describe('reply', () => {
   })
 
   test('under the message menu, closes search behind it and focuses only once the menu is gone', () => {
-    const nav = installThread({query: 'needle'}, convID, true)
+    const nav = installThread({query: 'needle'})
     const {composerInput, result} = renderInput()
+    openMenu(nav)
 
     act(() => {
       result.current.dispatch.reply(replyOrdinal)
@@ -1502,14 +1646,15 @@ describe('reply', () => {
       clearModals()
     })
 
-    expect(nav.modalsCleared()).toBe(true)
+    expect(NavTree.modalStack(nav.getRootState())).toEqual([])
     expect(composerInput.focusCount).toBe(1)
   })
 
   // one wait at a time: a Reply replaces the one before it
   test('a second Reply under the menu leaves one wait, and focuses once', () => {
-    const nav = installThread({query: 'needle'}, convID, true)
+    const nav = installThread({query: 'needle'})
     const {composerInput, result} = renderInput()
+    openMenu(nav)
 
     act(() => {
       result.current.dispatch.reply(replyOrdinal)
@@ -1529,10 +1674,14 @@ describe('reply', () => {
 
   // a menu gone much later is no longer the moment the user asked for the keyboard
   test('a menu that stays up past a second drops the focus', () => {
+    const nav = installThread({query: 'needle'})
+    const {composerInput, result} = renderInput()
+    openMenu(nav)
+    // Only the wait's own clock is faked. The stack pauses a covered screen on a timer of its own,
+    // which runs the thread's effect cleanups, and those drop the wait too; a phone's native stack
+    // keeps the screen under a modal running, so that timer must not fire here.
     jest.useFakeTimers()
     try {
-      const nav = installThread({query: 'needle'}, convID, true)
-      const {composerInput, result} = renderInput()
       act(() => {
         result.current.dispatch.reply(replyOrdinal)
       })
@@ -1552,8 +1701,9 @@ describe('reply', () => {
   })
 
   test('leaving the conversation drops the wait', () => {
-    const nav = installThread({query: 'needle'}, convID, true)
+    const nav = installThread({query: 'needle'})
     const {result, unmount} = renderInput()
+    openMenu(nav)
     act(() => {
       result.current.dispatch.reply(replyOrdinal)
     })
@@ -1568,17 +1718,17 @@ describe('reply', () => {
   // closing search brings the composer back
   test('with no input attached, the input is focused once the composer comes back', () => {
     installThread({query: 'needle'})
-    const composerInput = makeFakeComposerInput()
+    const composerInput = nextField()
     let dispatch: ConversationInputState['dispatch'] | undefined
     const tree = (showInput: boolean) => (
       <ConversationThreadProvider id={convID}>
         <ConversationInputProvider id={convID}>
-          {showInput && <FakeComposerInputView fake={composerInput} />}
+          {showInput && <ComposerField onInput={composerInput.onInput} />}
           <InputProbe onRender={h => (dispatch = h.input.dispatch)} />
         </ConversationInputProvider>
       </ConversationThreadProvider>
     )
-    const {rerender} = render(tree(false))
+    const {rerender} = render(tree(false), {wrapper: Nav})
 
     act(() => {
       dispatch?.reply(replyOrdinal)
@@ -1592,8 +1742,7 @@ describe('reply', () => {
   })
 
   // the search UI unmounting is what cancels its search, once
-  test('closing thread search leaves cancelling the search to the search UI', () => {
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue(undefined)
+  test('closing thread search leaves cancelling the search to the search UI', async () => {
     const nav = installThread({query: 'needle'})
     const {result} = renderInput()
 
@@ -1602,7 +1751,7 @@ describe('reply', () => {
     })
 
     expect(threadParams(nav)?.threadSearch).toBeUndefined()
-    expect(cancel).not.toHaveBeenCalled()
+    expect(await sent('chat.1.local.cancelActiveSearch')).toEqual([])
   })
 
   test('leaves navigation alone when thread search is closed', () => {
@@ -1618,8 +1767,9 @@ describe('reply', () => {
   })
 
   test("does not close another conversation's thread search", () => {
-    const nav = installThread({query: 'needle'}, otherConvID, true)
+    const nav = installThread({query: 'needle'}, otherConvID)
     const {result} = renderInput()
+    openMenu(nav)
 
     act(() => {
       result.current.dispatch.reply(replyOrdinal)
@@ -1679,8 +1829,8 @@ describe('composer typing and draft RPCs', () => {
       jest.advanceTimersByTime(ms)
     })
   }
-  const typing = () => rpc.calls('setTyping')
-  const saveDraft = () => rpc.params('saveDraft')
+  const typing = async () => sent(setTyping)
+  const drafts = async () => sent(saveDraft)
 
   beforeEach(() => {
     jest.useFakeTimers()
@@ -1689,31 +1839,31 @@ describe('composer typing and draft RPCs', () => {
     jest.useRealTimers()
   })
 
-  test('typing is sent on the leading edge, then at most once per 1000ms while text stays non-empty', () => {
+  test('typing is sent on the leading edge, then at most once per 1000ms while text stays non-empty', async () => {
     seedMeta()
     renderComposer()
 
     type('a')
-    expect(typing()).toEqual([[convID, true]])
+    expect(await typing()).toEqual([{conversationID: convIDBytes, typing: true}])
 
     advance(100)
     type('ab')
     advance(100)
     type('abc')
-    expect(typing()).toHaveLength(1)
+    expect(await typing()).toHaveLength(1)
 
     // trailing edge of the 1000ms window
     advance(799)
-    expect(typing()).toHaveLength(1)
+    expect(await typing()).toHaveLength(1)
     advance(1)
-    expect(typing()).toHaveLength(2)
-    expect(typing().at(-1)).toEqual([convID, true])
+    expect(await typing()).toHaveLength(2)
+    expect((await typing()).at(-1)).toEqual({conversationID: convIDBytes, typing: true})
 
     advance(5000)
-    expect(typing()).toHaveLength(2)
+    expect(await typing()).toHaveLength(2)
   })
 
-  test('emptying the composer cancels a pending typing=true and sends typing=false right away', () => {
+  test('emptying the composer cancels a pending typing=true and sends typing=false right away', async () => {
     seedMeta()
     renderComposer()
 
@@ -1722,23 +1872,23 @@ describe('composer typing and draft RPCs', () => {
     type('ab')
     advance(100)
     type('')
-    expect(typing()).toEqual([
-      [convID, true],
-      [convID, false],
+    expect(await typing()).toEqual([
+      {conversationID: convIDBytes, typing: true},
+      {conversationID: convIDBytes, typing: false},
     ])
 
     // the cancelled trailing typing=true never goes out
     advance(5000)
-    expect(typing()).toHaveLength(2)
+    expect(await typing()).toHaveLength(2)
   })
 
-  test('the draft is saved with the conversation id, text and tlf name, throttled to one trailing save per 200ms', () => {
+  test('the draft is saved with the conversation id, text and tlf name, throttled to one trailing save per 200ms', async () => {
     seedMeta()
     renderComposer()
 
     type('a')
-    expect(saveDraft()).toEqual([
-      {conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'},
+    expect(await drafts()).toEqual([
+      {conversationID: convIDBytes, text: 'a', tlfName: 'testuser,testuser-mac'},
     ])
     // the local meta draft is updated alongside the save
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
@@ -1747,30 +1897,30 @@ describe('composer typing and draft RPCs', () => {
     type('ab')
     advance(50)
     type('abc')
-    expect(saveDraft()).toHaveLength(1)
+    expect(await drafts()).toHaveLength(1)
 
     advance(100)
-    expect(saveDraft()).toEqual([
-      {conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'},
-      {conversationIDKey: convID, text: 'abc', tlfName: 'testuser,testuser-mac'},
+    expect(await drafts()).toEqual([
+      {conversationID: convIDBytes, text: 'a', tlfName: 'testuser,testuser-mac'},
+      {conversationID: convIDBytes, text: 'abc', tlfName: 'testuser,testuser-mac'},
     ])
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('abc')
 
     advance(1000)
-    expect(saveDraft()).toHaveLength(2)
+    expect(await drafts()).toHaveLength(2)
   })
 
-  test('a pending draft is flushed with its params on unmount', () => {
-    jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  test('a pending draft is flushed with its params on unmount', async () => {
+    fake.answer('chat.1.local.requestInboxUnbox', () => null)
     seedMeta()
     const {unmount} = renderComposer()
 
     type('a')
     type('ab')
-    expect(saveDraft()).toHaveLength(1)
+    expect(await drafts()).toHaveLength(1)
     unmount()
-    expect(saveDraft().at(-1)).toEqual({
-      conversationIDKey: convID,
+    expect((await drafts()).at(-1)).toEqual({
+      conversationID: convIDBytes,
       text: 'ab',
       tlfName: 'testuser,testuser-mac',
     })
@@ -1787,7 +1937,7 @@ describe('composer typing and draft RPCs', () => {
     })
   }
 
-  test('after an account switch the composer left from the old account neither saves nor updates the draft', () => {
+  test('after an account switch the composer left from the old account neither saves nor updates the draft', async () => {
     seedMeta()
     renderComposer()
     const oldComposer = mockPlatformInputProps
@@ -1797,11 +1947,11 @@ describe('composer typing and draft RPCs', () => {
       oldComposer?.onChangeText('a')
     })
     advance(1000)
-    expect(saveDraft()).toEqual([])
+    expect(await drafts()).toEqual([])
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
   })
 
-  test('after an account switch the composer left from the old account sends no typing', () => {
+  test('after an account switch the composer left from the old account sends no typing', async () => {
     seedMeta()
     renderComposer()
     const oldComposer = mockPlatformInputProps
@@ -1814,24 +1964,24 @@ describe('composer typing and draft RPCs', () => {
     act(() => {
       oldComposer?.onChangeText('')
     })
-    expect(typing()).toEqual([])
+    expect(await typing()).toEqual([])
   })
 
-  test('after an account switch the composer is built again and saves for the new account', () => {
+  test('after an account switch the composer is built again and saves for the new account', async () => {
     seedMeta()
     renderComposer()
     switchToSecondAccount()
 
     type('a')
     advance(1000)
-    expect(saveDraft()).toEqual([{conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'}])
+    expect(await drafts()).toEqual([{conversationID: convIDBytes, text: 'a', tlfName: 'testuser,testuser-mac'}])
   })
 
   test('rejected typing and draft RPCs are only logged, and later keystrokes still send', async () => {
-    const typingError = new Error('typing failed')
-    const draftError = new Error('draft failed')
-    rpc.fail('setTyping', typingError)
-    rpc.fail('saveDraft', draftError)
+    const typingError = expect.objectContaining({desc: 'typing failed'}) as unknown as RPCError
+    const draftError = expect.objectContaining({desc: 'draft failed'}) as unknown as RPCError
+    fake.answer(setTyping, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'typing failed'))
+    fake.answer(saveDraft, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'draft failed'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     seedMeta()
     renderComposer()
@@ -1847,10 +1997,10 @@ describe('composer typing and draft RPCs', () => {
 
     advance(2000)
     type('ab')
-    expect(typing()).toHaveLength(2)
-    expect(saveDraft()).toHaveLength(2)
-    expect(saveDraft().at(-1)).toEqual({
-      conversationIDKey: convID,
+    expect(await typing()).toHaveLength(2)
+    expect(await drafts()).toHaveLength(2)
+    expect((await drafts()).at(-1)).toEqual({
+      conversationID: convIDBytes,
       text: 'ab',
       tlfName: 'testuser,testuser-mac',
     })

@@ -2,20 +2,21 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
-import {act, render} from '@testing-library/react'
+import {act, render as renderOutsideNav} from '@testing-library/react'
 import {OverlayEntry} from './overlay/entry.desktop'
-import {EscapeHandler, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {EscapeHandler, RouteModal, setupOverlayDom, showModals} from '@/test/overlay-dom.desktop'
+import * as NavTree from '@/constants/nav-tree'
+import {navigationWrapper} from '@/test/navigation'
 
-jest.mock('@/constants', () => ({
-  Router2: {
-    useSafeFocusEffect: (cb: () => (() => void) | undefined) => require('react').useEffect(cb, [cb]),
-  },
-}))
-jest.mock('@/constants/platform', () => ({isMac: true}))
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isMac: true}))
 
 import {useHotKey} from './hot-key'
 
 setupOverlayDom()
+
+// as the app's screens are: inside a route of the real navigation tree
+const render = (ui: React.ReactElement) =>
+  renderOutsideNav(ui, {wrapper: navigationWrapper({route: 'chatRoot'}).wrapper})
 
 const HotKey = (p: {keys: string; cb: () => void}) => {
   useHotKey(p.keys, p.cb)
@@ -114,6 +115,22 @@ describe('useHotKey with modals', () => {
     pressEscape()
     expect(rootHotKey).toHaveBeenCalledTimes(1)
     expect(rootEscape).toHaveBeenCalledTimes(1)
+  })
+
+  // the inbox's Escape while a modal route is up over the chat tab: the route's own modal takes it
+  test('a screen under a modal route stays quiet, and gets its key back once the route closes', () => {
+    const inbox = jest.fn()
+    const nav = showModals([{name: 'chatNewChat', render: () => <RouteModal>new chat</RouteModal>}], {
+      under: () => <HotKey keys="esc" cb={inbox} />,
+    })
+    const modalOpen = () => NavTree.modalStack(nav.getRootState()).length > 0
+    expect(modalOpen()).toBe(true)
+    pressEscape()
+    expect(inbox).not.toHaveBeenCalled()
+    expect(modalOpen()).toBe(false)
+
+    pressEscape()
+    expect(inbox).toHaveBeenCalledTimes(1)
   })
 
   test('with no modal open hot keys fire as usual', () => {

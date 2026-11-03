@@ -1,15 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 
-// each icon's latest onClick, by icon type
+// each icon's latest onClick, by icon type, and the wave button's first onWave: the handlers a
+// screen kept through an account switch still holds
 const mockIconOnClick = new Map<string, () => void>()
+let mockFirstOnWave: (() => void) | undefined
 jest.mock('@/common-adapters', () => {
-  const actual = jest.requireActual<{Icon: React.ComponentType<{onClick?: () => void; type: string}>}>(
-    '@/common-adapters'
-  )
+  const actual = jest.requireActual<{
+    Icon: React.ComponentType<{onClick?: () => void; type: string}>
+    WaveButton: React.ComponentType<{onWave: () => void}>
+  }>('@/common-adapters')
   const R = jest.requireActual<typeof React>('react')
   return {
     ...actual,
@@ -19,76 +21,112 @@ jest.mock('@/common-adapters', () => {
       }
       return R.createElement(actual.Icon, p)
     },
+    WaveButton: (p: {onWave: () => void}) => {
+      mockFirstOnWave ??= p.onWave
+      return R.createElement(actual.WaveButton, p)
+    },
   }
 })
 
-const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const mockTeamID = 'aabbccdd'
-let mockRetired = false
-// the thread's rpc, which retires with the thread
-let mockRpc: ChatRpcT.ChatThreadRpc | undefined
-const mockThreadRpc = () =>
-  (mockRpc ??= jest
-    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
-    .makeThreadChatRpc(() => mockRetired))
-let mockOwnMessage = false
-
-jest.mock('../conversation/thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
-  useThreadRpc: () => mockThreadRpc(),
-  useConversationThreadID: () => mockConversationIDKey,
-  useConversationThreadStore: () => ({getState: () => ({messageMap: new Map(), messageOrdinals: []})}),
-  useConversationThreadSelector: (
-    sel: (s: {messageMap: Map<number, {author: string}>; messageOrdinals: Array<number>}) => unknown
-  ) =>
-    sel({
-      messageMap: new Map(mockOwnMessage ? [[1, {author: 'testuser'}]] : []),
-      messageOrdinals: mockOwnMessage ? [1] : [],
-    }),
-  useThreadMeta: (sel: (m: {teamID: string; teamname: string; tlfname: string}) => unknown) =>
-    sel({teamID: mockTeamID, teamname: 'testteam', tlfname: 'testteam'}),
-}))
-jest.mock('./block-buttons-state', () => ({
-  useBlockButtonsInfo: () => ({adder: 'testuser-mac'}),
-}))
-
 import * as Meta from '@/constants/chat/meta'
+import {useEffect} from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {makeMessageText} from '@/constants/chat/message'
 import {metasReceived} from '@/chat/inbox/metadata'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
+import {threadWrapper} from '@/test/thread-tree'
+import {useConversationThreadActions} from '../conversation/thread-context'
 import BlockButtons from './invitation-to-block'
 
-let rpc: FakeChatRpc
+const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const teamID = 'aabbccdd'
+const dismissBlockButtons = 'keybase.1.user.dismissBlockButtons'
+const postText = 'chat.1.local.postTextNonblock'
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
+let fake: FakeEngine
+
+const ownMessage = () =>
+  makeMessageText({
+    author: 'testuser',
+    conversationIDKey,
+    id: T.Chat.numberToMessageID(1),
+    ordinal: T.Chat.numberToOrdinal(1),
+  })
+
+// the first thread's actions, which a screen kept through an account switch still holds
+let firstThreadActions: ReturnType<typeof useConversationThreadActions> | undefined
+// adds a message of your own to the thread when asked
+const ThreadActions = (p: {ownMessage: boolean}) => {
+  const actions = useConversationThreadActions()
+  useEffect(() => {
+    if (!firstThreadActions) firstThreadActions = actions
+  }, [actions])
+  const {addMessages} = actions
+  const {ownMessage: own} = p
+  useEffect(() => {
+    if (own) {
+      addMessages([ownMessage()])
+    }
+  }, [addMessages, own])
+  return null
 }
 
-const renderBanner = async () => {
-  render(<BlockButtons />)
-  await act(async () => {
-    await flushPromises()
-  })
+const renderBanner = async (opts?: {ownMessage?: boolean}) => {
+  render(
+    <>
+      <ThreadActions ownMessage={!!opts?.ownMessage} />
+      <BlockButtons />
+    </>,
+    {wrapper: threadWrapper(conversationIDKey).wrapper}
+  )
+  // the block-buttons state the banner loads from gregor
+  await flush()
 }
 
 const clickDismiss = async () => {
   const onClick = mockIconOnClick.get('iconfont-remove')
   expect(onClick).toBeTruthy()
-  await act(async () => {
+  act(() => {
     onClick?.()
-    await flushPromises()
+  })
+  await flush()
+}
+
+const switchAccount = () => {
+  act(() => {
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id2',
+      deviceName: 'testuser-mac',
+      uid: 'uid2',
+      username: 'testuser2',
+    })
   })
 }
 
 beforeEach(() => {
   mockIconOnClick.clear()
-  rpc = installFakeChatRpc()
-  mockRetired = false
-  mockOwnMessage = false
+  mockFirstOnWave = undefined
+  firstThreadActions = undefined
+  fake = installFakeEngine()
+  // gregor holds the banner for this team: testuser-mac added you
+  fake.answer('keybase.1.gregor.getState', () => ({
+    items: [
+      {
+        item: {
+          body: new TextEncoder().encode(JSON.stringify({adder: 'testuser-mac'})),
+          category: `blockButtons.${teamID}`,
+        },
+      },
+    ],
+  }))
+  fake.answer(dismissBlockButtons, () => {})
+  fake.answer(postText, () => {})
+  useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'testuser-mac',
@@ -96,49 +134,54 @@ beforeEach(() => {
     username: 'testuser',
   })
   metasReceived(
-    [{...Meta.makeConversationMeta(), conversationIDKey: mockConversationIDKey, tlfname: 'testteam'}],
+    [
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey,
+        teamID,
+        teamType: 'small',
+        teamname: 'testteam',
+        tlfname: 'testteam',
+      },
+    ],
     undefined,
     {force: true}
   )
 })
 
 const clickWave = async () => {
-  await act(async () => {
+  act(() => {
     fireEvent.click(screen.getByText('Wave at everyone'))
-    await flushPromises()
   })
+  await flush()
 }
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   resetAllStores()
 })
 
 test('dismissing asks the service to dismiss the banner', async () => {
   await renderBanner()
   await clickDismiss()
-  expect(rpc.calls('dismissBlockButtons')).toEqual([[mockTeamID]])
+  expect(paramsOf(fake, dismissBlockButtons)).toEqual([{tlfID: teamID}])
 })
 
 test('a message of your own in the thread dismisses the banner', async () => {
-  mockOwnMessage = true
-  await renderBanner()
-  expect(rpc.calls('dismissBlockButtons')).toEqual([[mockTeamID]])
+  await renderBanner({ownMessage: true})
+  expect(paramsOf(fake, dismissBlockButtons)).toEqual([{tlfID: teamID}])
 })
 
 test('waving posts a plain wave into the conversation', async () => {
   await renderBanner()
   await clickWave()
-  expect(rpc.params('postText')).toEqual([
-    {
-      clientPrev: T.Chat.numberToMessageID(0),
-      conversationIDKey: mockConversationIDKey,
-      ephemeralLifetime: 0,
-      onStellarCanceled: expect.any(Function),
-      text: ':wave:',
+  expect(paramsOf(fake, postText)).toEqual([
+    expect.objectContaining({
+      body: ':wave:',
+      clientPrev: 0,
+      conversationID: T.Chat.keyToConversationID(conversationIDKey),
       tlfName: 'testteam',
-    },
+    }),
   ])
 })
 
@@ -146,22 +189,36 @@ test('waving posts a plain wave into the conversation', async () => {
 describe('a banner whose thread has retired', () => {
   test('dismisses nothing when clicked', async () => {
     await renderBanner()
-    mockRetired = true
-    await clickDismiss()
-    expect(rpc.calls('dismissBlockButtons')).toEqual([])
+    const onClick = mockIconOnClick.get('iconfont-remove')
+    switchAccount()
+    act(() => {
+      onClick?.()
+    })
+    await flush()
+    expect(onClick).toBeTruthy()
+    expect(paramsOf(fake, dismissBlockButtons)).toEqual([])
   })
 
   test('waves nothing', async () => {
     await renderBanner()
-    mockRetired = true
-    await clickWave()
-    expect(rpc.calls('postText')).toEqual([])
+    expect(mockFirstOnWave).toBeDefined()
+    switchAccount()
+    act(() => {
+      mockFirstOnWave?.()
+    })
+    await flush()
+    expect(paramsOf(fake, postText)).toEqual([])
   })
 
-  test('dismisses nothing for a message of your own', async () => {
-    mockOwnMessage = true
-    mockRetired = true
+  // a retired store drops what it is handed, so nothing of yours ever shows in its thread
+  test('dismisses nothing for a message of your own handed to it', async () => {
     await renderBanner()
-    expect(rpc.calls('dismissBlockButtons')).toEqual([])
+    switchAccount()
+    act(() => {
+      firstThreadActions?.addMessages([ownMessage()])
+    })
+    await flush()
+    expect(firstThreadActions).toBeDefined()
+    expect(paramsOf(fake, dismissBlockButtons)).toEqual([])
   })
 })

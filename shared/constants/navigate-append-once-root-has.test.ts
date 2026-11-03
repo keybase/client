@@ -1,103 +1,71 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
+// A push whose target lives in a root group a store change is about to mount, on the real tree:
+// the logged-out stack, mounted by the session logging out.
 import logger from '@/logger'
-import {navigateAppendOnceRootHas, navigationRef} from '@/constants/router'
+import {navigateAppend, navigateAppendOnceRootHas, navigateUp} from '@/constants/router'
+import {installNavigation, makeRootState, renders, rendersUntil, type MountedNavigation} from '@/test/navigation'
 
-const dispatch = jest.fn()
-const listeners = new Set<() => void>()
-let rootState: unknown
-
-const loggedIn = {key: 'loggedIn-1', name: 'loggedIn'}
-const loggedOut = {
-  key: 'loggedOut-1',
-  name: 'loggedOut',
-  state: {index: 0, key: 'loggedOutStack-1', routes: [{key: 'login-1', name: 'login'}], type: 'stack'},
-}
-
-const setRootRoutes = (routes: Array<unknown>) => {
-  rootState = {index: routes.length - 1, key: 'root-1', routeNames: [], routes, stale: false, type: 'stack'}
-}
-const emitState = () => {
-  for (const l of [...listeners]) {
-    l()
-  }
-}
-
-beforeEach(() => {
-  dispatch.mockReset()
-  listeners.clear()
-  // the jest mock's container ref is a plain object, so stub its methods directly
-  const nr = navigationRef as unknown as Record<string, unknown>
-  nr['current'] = {}
-  nr['dispatch'] = dispatch
-  nr['getRootState'] = () => rootState
-  nr['isReady'] = () => true
-  nr['addListener'] = (_: string, cb: () => void) => {
-    listeners.add(cb)
-    return () => listeners.delete(cb)
-  }
-})
+let nav: MountedNavigation
 
 afterEach(() => {
-  jest.useRealTimers()
   jest.restoreAllMocks()
 })
 
-// These drive the real container adapter, whose Navigator lives for the whole file. Each test
-// pushes distinct params: its in-flight dupe check would otherwise swallow a same-shaped push
-// from an earlier test.
-const pushOf = (username: string) =>
-  expect.objectContaining({payload: {name: 'username', params: {username}}, type: 'PUSH'})
+
+const usernamePush = (username: string) => ({name: 'username', params: {username}})
+const pushesOfUsername = () => nav.pushes().filter(p => p.name === 'username')
 
 test('pushes right away when the root already has the route', () => {
-  setRootRoutes([loggedOut])
+  nav = installNavigation({rootState: makeRootState({loggedIn: false})})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-a'}} as never)
+  navigateAppendOnceRootHas('loggedOut', usernamePush('testuser') as never)
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-a'))
+  expect(nav.pushes()).toEqual([usernamePush('testuser')])
+  expect(nav.visibleScreen()).toMatchObject(usernamePush('testuser'))
 })
 
-test('waits for the root route to mount, then pushes once', () => {
-  setRootRoutes([loggedIn])
+test('waits for the root route to mount, then pushes once', async () => {
+  nav = installNavigation({rootState: makeRootState()})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-b'}} as never)
-  expect(dispatch).not.toHaveBeenCalled()
+  navigateAppendOnceRootHas('loggedOut', usernamePush('testuser') as never)
+  expect(nav.actions).toEqual([])
 
-  emitState()
-  expect(dispatch).not.toHaveBeenCalled()
+  // a state change that does not mount the group
+  navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
+  await renders(100)
+  expect(pushesOfUsername()).toEqual([])
 
-  setRootRoutes([loggedOut])
-  emitState()
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-b'))
+  nav.setLoggedIn(false)
+  await rendersUntil(() => pushesOfUsername().length > 0)
+  expect(pushesOfUsername()).toEqual([usernamePush('testuser')])
+  expect(nav.visibleScreen()).toMatchObject(usernamePush('testuser'))
 
-  emitState()
-  expect(dispatch).toHaveBeenCalledTimes(1)
+  navigateUp()
+  await renders(100)
+  expect(pushesOfUsername()).toHaveLength(1)
 })
 
-test('gives up if the root route does not mount before the timeout', () => {
-  jest.useFakeTimers()
-  setRootRoutes([loggedIn])
-
+test('gives up if the root route does not mount before the timeout', async () => {
+  nav = installNavigation({rootState: makeRootState()})
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-c'}} as never, 5000)
-  jest.advanceTimersByTime(5000)
+  navigateAppendOnceRootHas('loggedOut', usernamePush('testuser') as never, 20)
+  await rendersUntil(() => warn.mock.calls.length > 0)
   expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedOut never mounted, dropping username'))
 
-  setRootRoutes([loggedOut])
-  emitState()
-  expect(dispatch).not.toHaveBeenCalled()
+  nav.setLoggedIn(false)
+  await renders(100)
+  expect(nav.pushes()).toEqual([])
+  expect(nav.visibleScreen()?.name).toBe('login')
 })
 
 test('logs the push it drops when there is no navigator', () => {
-  setRootRoutes([loggedIn])
-  const nr = navigationRef as unknown as Record<string, unknown>
-  nr['isReady'] = () => false
+  nav = installNavigation({ready: false})
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-d'}} as never)
+  navigateAppendOnceRootHas('loggedOut', usernamePush('testuser') as never)
 
   expect(warn).toHaveBeenCalledWith(expect.stringContaining('no navigator, dropping username'))
-  expect(dispatch).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })

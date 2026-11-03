@@ -1,17 +1,24 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {act, cleanup, renderHook} from '@testing-library/react'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
+import * as Tabs from '@/constants/tabs'
+import {navigateAppend, navigateUp, switchTab} from '@/constants/router'
+import {installNavigation, makeRootState, navigationWrapper} from '@/test/navigation'
 
-jest.mock('@/constants', () => ({
-  Router2: {
-    // react-navigation's useFocusEffect re-runs when the callback identity changes
-    useSafeFocusEffect: (cb: () => (() => void) | undefined) => require('react').useEffect(cb, [cb]),
-  },
-}))
-jest.mock('@/constants/platform', () => ({isMac: true}))
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isMac: true}))
 
 import {useHotKey} from './hot-key'
+import {flush} from '@/test/flush'
+
+// as a screen of the app runs it: inside a route of the real navigation tree
+const renderInRoute = <P,>(hook: (p: P) => void, initialProps?: P) =>
+  renderHook(hook, {initialProps, wrapper: navigationWrapper({route: 'chatRoot'}).wrapper})
+
+const HotKey = (p: {keys: Array<string>; cb: (key: string) => void}) => {
+  useHotKey(p.keys, p.cb)
+  return null
+}
 
 type MutableGlobals = {isMobile: boolean}
 const g = globalThis as unknown as MutableGlobals
@@ -41,20 +48,20 @@ describe('useHotKey', () => {
 
   test('fires the callback with the combo that matched', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['mod+k'], cb))
+    renderInRoute(() => useHotKey(['mod+k'], cb))
     press({key: 'k', metaKey: true})
     expect(cb).toHaveBeenCalledWith('mod+k')
   })
 
   test('a matched key is prevented and stopped', () => {
-    renderHook(() => useHotKey(['mod+k'], jest.fn()))
+    renderInRoute(() => useHotKey(['mod+k'], jest.fn()))
     const event = press({key: 'k', metaKey: true})
     expect(event.defaultPrevented).toBe(true)
   })
 
   test('an unmatched key is left alone', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['mod+k'], cb))
+    renderInRoute(() => useHotKey(['mod+k'], cb))
     const event = press({key: 'j', metaKey: true})
     expect(cb).not.toHaveBeenCalled()
     expect(event.defaultPrevented).toBe(false)
@@ -62,7 +69,7 @@ describe('useHotKey', () => {
 
   test('mod requires meta on mac and rejects a bare key', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['mod+k'], cb))
+    renderInRoute(() => useHotKey(['mod+k'], cb))
     press({key: 'k'})
     press({key: 'k', ctrlKey: true})
     expect(cb).not.toHaveBeenCalled()
@@ -70,7 +77,7 @@ describe('useHotKey', () => {
 
   test('modifier state must match exactly for non-mod combos', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['esc'], cb))
+    renderInRoute(() => useHotKey(['esc'], cb))
     press({key: 'Escape', shiftKey: true})
     expect(cb).not.toHaveBeenCalled()
     press({key: 'Escape'})
@@ -88,7 +95,7 @@ describe('useHotKey', () => {
     ]
     for (const [combo, key] of cases) {
       const cb = jest.fn()
-      const {unmount} = renderHook(() => useHotKey([combo], cb))
+      const {unmount} = renderInRoute(() => useHotKey([combo], cb))
       press({key})
       expect(cb).toHaveBeenCalledWith(combo)
       unmount()
@@ -97,14 +104,14 @@ describe('useHotKey', () => {
 
   test('key matching is case insensitive', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['mod+K'], cb))
+    renderInRoute(() => useHotKey(['mod+K'], cb))
     press({key: 'K', metaKey: true})
     expect(cb).toHaveBeenCalledTimes(1)
   })
 
   test('a string of comma separated keys registers each one', () => {
-    const cb = jest.fn()
-    renderHook(() => useHotKey('esc,mod+k', cb))
+    const cb = jest.fn((_key: string) => {})
+    renderInRoute(() => useHotKey('esc,mod+k', cb))
     press({key: 'Escape'})
     press({key: 'k', metaKey: true})
     expect(cb.mock.calls.map(c => c[0])).toEqual(['esc', 'mod+k'])
@@ -113,19 +120,25 @@ describe('useHotKey', () => {
   test('the most recently mounted listener wins (LIFO)', () => {
     const first = jest.fn()
     const second = jest.fn()
-    renderHook(() => useHotKey(['esc'], first))
-    const later = renderHook(() => useHotKey(['esc'], second))
+    const Screen = (p: {later: boolean}) => (
+      <>
+        <HotKey keys={['esc']} cb={first} />
+        {p.later ? <HotKey keys={['esc']} cb={second} /> : null}
+      </>
+    )
+    const {rerender} = render(<Screen later={false} />, {wrapper: navigationWrapper({route: 'chatRoot'}).wrapper})
+    rerender(<Screen later={true} />)
     press({key: 'Escape'})
     expect(second).toHaveBeenCalledTimes(1)
     expect(first).not.toHaveBeenCalled()
-    later.unmount()
+    rerender(<Screen later={false} />)
     press({key: 'Escape'})
     expect(first).toHaveBeenCalledTimes(1)
   })
 
   test('unmounting removes the listener', () => {
     const cb = jest.fn()
-    const {unmount} = renderHook(() => useHotKey(['esc'], cb))
+    const {unmount} = renderInRoute(() => useHotKey(['esc'], cb))
     unmount()
     press({key: 'Escape'})
     expect(cb).not.toHaveBeenCalled()
@@ -134,9 +147,7 @@ describe('useHotKey', () => {
   test('the latest callback is used without re-registering', () => {
     const first = jest.fn()
     const second = jest.fn()
-    const {rerender} = renderHook(({cb}: {cb: () => void}) => useHotKey(['esc'], cb), {
-      initialProps: {cb: first},
-    })
+    const {rerender} = renderInRoute(({cb}: {cb: () => void}) => useHotKey(['esc'], cb), {cb: first})
     rerender({cb: second})
     press({key: 'Escape'})
     expect(first).not.toHaveBeenCalled()
@@ -145,7 +156,7 @@ describe('useHotKey', () => {
 
   test('typing in an input does not trigger hot keys', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['esc'], cb))
+    renderInRoute(() => useHotKey(['esc'], cb))
     const input = document.createElement('input')
     document.body.appendChild(input)
     press({key: 'Escape', target: input})
@@ -155,7 +166,7 @@ describe('useHotKey', () => {
 
   test('inputs opted in with data-allow-keyboard-shortcuts still trigger hot keys', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey(['esc'], cb))
+    renderInRoute(() => useHotKey(['esc'], cb))
     const input = document.createElement('input')
     input.setAttribute('data-allow-keyboard-shortcuts', 'true')
     document.body.appendChild(input)
@@ -166,7 +177,7 @@ describe('useHotKey', () => {
 
   test('an empty key list registers nothing', () => {
     const cb = jest.fn()
-    renderHook(() => useHotKey([], cb))
+    renderInRoute(() => useHotKey([], cb))
     press({key: 'Escape'})
     expect(cb).not.toHaveBeenCalled()
   })
@@ -174,7 +185,10 @@ describe('useHotKey', () => {
   test('mobile is a no-op', () => {
     g.isMobile = true
     const cb = jest.fn()
-    renderHook(() => useHotKey(['esc'], cb))
+    // a phone's tree: the desktop tab bar is never drawn on mobile
+    renderHook(() => useHotKey(['esc'], cb), {
+      wrapper: navigationWrapper({layout: 'phone', route: 'chatRoot'}).wrapper,
+    })
     press({key: 'Escape'})
     expect(cb).not.toHaveBeenCalled()
   })
@@ -183,11 +197,97 @@ describe('useHotKey', () => {
     const first = jest.fn()
     const second = jest.fn()
     // keys is a new array literal on every render, mirroring how callers pass it
-    const older = renderHook(({k}: {k: string}) => useHotKey([k], first), {initialProps: {k: 'esc'}})
-    renderHook(() => useHotKey(['esc'], second))
-    older.rerender({k: 'esc'})
+    const Screen = (p: {n: number}) => (
+      <>
+        <HotKey keys={['esc']} cb={first} key="older" />
+        {p.n >= 0 ? <HotKey keys={['esc']} cb={second} key="newer" /> : null}
+      </>
+    )
+    const {rerender} = render(<Screen n={-1} />, {wrapper: navigationWrapper({route: 'chatRoot'}).wrapper})
+    rerender(<Screen n={0} />)
+    rerender(<Screen n={1} />)
     press({key: 'Escape'})
     expect(second).toHaveBeenCalledTimes(1)
     expect(first).not.toHaveBeenCalled()
+  })
+})
+
+describe('useHotKey across screens', () => {
+  afterEach(cleanup)
+
+  const installScreens = (screens: {[route: string]: () => void}) =>
+    installNavigation({
+      rootState: makeRootState({tab: Tabs.chatTab}),
+      screen: route => {
+        const cb = screens[route.name]
+        return cb ? <HotKey keys={['esc']} cb={cb} /> : null
+      },
+    })
+
+  test('switching tabs hands the key to the tab shown', () => {
+    const onChat = jest.fn()
+    const onPeople = jest.fn()
+    installScreens({chatRoot: onChat, peopleRoot: onPeople})
+    act(() => {
+      switchTab(Tabs.peopleTab)
+    })
+    press({key: 'Escape'})
+    expect(onPeople).toHaveBeenCalledTimes(1)
+    expect(onChat).not.toHaveBeenCalled()
+
+    act(() => {
+      switchTab(Tabs.chatTab)
+    })
+    press({key: 'Escape'})
+    expect(onChat).toHaveBeenCalledTimes(1)
+    expect(onPeople).toHaveBeenCalledTimes(1)
+  })
+
+  test('a screen pushed on top takes the key, and the screen under gets it back once it is popped', () => {
+    const onInbox = jest.fn()
+    const onThread = jest.fn()
+    installScreens({chatConversation: onThread, chatRoot: onInbox})
+    act(() => {
+      navigateAppend({name: 'chatConversation', params: {}})
+    })
+    press({key: 'Escape'})
+    expect(onThread).toHaveBeenCalledTimes(1)
+    expect(onInbox).not.toHaveBeenCalled()
+
+    act(() => {
+      navigateUp()
+    })
+    press({key: 'Escape'})
+    expect(onInbox).toHaveBeenCalledTimes(1)
+    expect(onThread).toHaveBeenCalledTimes(1)
+  })
+
+  test('a tab switched away from stays quiet, even when the tab shown has no hot key', () => {
+    const onChat = jest.fn()
+    installScreens({chatRoot: onChat})
+    act(() => {
+      switchTab(Tabs.peopleTab)
+    })
+    press({key: 'Escape'})
+    expect(onChat).not.toHaveBeenCalled()
+  })
+
+  // native-stack keeps a covered screen rendered for its pause delay (500ms); the key goes with
+  // focus, so it is quiet from the moment it is covered, not once the stack pauses it
+  test('a covered screen goes quiet as soon as it is covered, and has the key again when uncovered', async () => {
+    const onInbox = jest.fn()
+    installScreens({chatRoot: onInbox})
+    act(() => {
+      navigateAppend({name: 'chatConversation', params: {}})
+    })
+    await flush()
+    press({key: 'Escape'})
+    expect(onInbox).not.toHaveBeenCalled()
+
+    act(() => {
+      navigateUp()
+    })
+    press({key: 'Escape'})
+    expect(onInbox).toHaveBeenCalledTimes(1)
   })
 })

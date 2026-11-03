@@ -1,32 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
 import {cleanup, render, screen} from '@testing-library/react'
-
-jest.mock('./button', () => ({
-  __esModule: true,
-  default: ({label, onClick, disabled}: {label?: string; onClick?: () => void; disabled?: boolean}) =>
-    require('react').createElement('button', {disabled, onClick, type: 'button'}, label),
-}))
-jest.mock('./waiting-button', () => ({
-  __esModule: true,
-  default: ({label, onClick}: {label?: string; onClick?: () => void}) =>
-    require('react').createElement('button', {onClick, type: 'button'}, label),
-}))
-jest.mock('./button-bar', () => ({
-  __esModule: true,
-  default: ({children}: {children?: React.ReactNode}) =>
-    require('react').createElement('div', null, children),
-}))
-jest.mock('./box', () => ({
-  Box2: ({children}: {children?: React.ReactNode}) => require('react').createElement('div', null, children),
-}))
-jest.mock('@/styles', () => ({
-  createStyleHook: <T,>(styles: (theme: unknown) => T) => () => styles({}),
-  globalStyles: {flexOne: {}},
-  useTheme: () => ({}),
-}))
 
 import ConfirmButtons from './confirm-buttons'
 

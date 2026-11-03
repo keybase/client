@@ -390,8 +390,8 @@ describe('teams settings', function () {
     const onSubteam = (p: Params) => p['teamID'] === teamID
 
     await press(await addChannels(), "the default channels' Add channels")
-    // the popup opens partway, its channel rows below the screen's bottom: it is dragged up until the
-    // channel shows
+    // the popup hugs its rows up to the screen's height; a row below the screen's bottom is dragged up
+    // until it shows
     const pick = await waitFor(
       'the channel in the popup',
       async () => {

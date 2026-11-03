@@ -20,10 +20,6 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // 20.7pt below the viewport (758.7 vs 738); it passes on the other runs
     'chat-scroll › chat scroll › back to the end › dragging back down re-pins it, and a later incoming message keeps the end':
       "the thread list's follow of a new row at the end can stop short of the row's full height (the burst entry's maintainVisibleContentPosition autoscroll, here with one row after a drag re-pinned the end); intermittent, suspected on master",
-    // confirmed live (PR 6, three runs): the default channels' popup opens to 90% of the screen and
-    // its search reads "Search 1 channel", but no channel row is drawn, so there is nothing to pick
-    "teams-settings › teams settings › a channel added to a subteam's default channels from the popup, and removed from its pill":
-      "the phone's default-channels popup (teams/team/settings-tab/channel-popup.tsx) draws its channel list empty though it holds the channel (its count shows in the search placeholder); the list sits in a Kb.BoxGrow inside the sheet, likely laid out at no height; the file is the same on master (PR 9)",
     // PR 7 live (both release-only runs, 12:16 and 13:00): the peer's decrypt adds per-user keys 1..19
     // while the phone encrypted to 21 ("no suitable key found"); a restart of the peer does not help.
     // In a full run it can pass: the chat flows before it send from the second peer, which syncs its

@@ -8,7 +8,10 @@ import {act, cleanup, render} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {metasReceived} from '@/chat/inbox/metadata'
 import * as Router from '@/constants/router'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
+import {RPCError} from '@/util/errors'
 // loaded here, while isMobile is still false, so only location-popup itself sees the mobile flag
 import '@/common-adapters'
 import '@/stores/config'
@@ -49,14 +52,10 @@ g.isMobile = false
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
-let rpc: FakeChatRpc
-const updates = () => rpc.calls('updateLocation')
-
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
+const locationUpdate = 'chat.1.local.locationUpdate'
+let fake: FakeEngine
+// each fix the service was sent
+const updates = () => paramsOf(fake, locationUpdate).map(p => p.coord as unknown)
 
 const makeLocation = (coords: Partial<ExpoLocation.LocationObjectCoords>): ExpoLocation.LocationObject => ({
   coords: {
@@ -79,27 +78,25 @@ const renderPopup = async () => {
     {force: true}
   )
   const r = render(<LocationPopup conversationIDKey={convID} />)
-  await act(async () => {
-    await flushPromises()
-  })
+  await flush()
   return r
 }
 
 const emit = async (coords: Partial<ExpoLocation.LocationObjectCoords>) => {
-  await act(async () => {
+  act(() => {
     mockWatchCallback?.(makeLocation(coords))
-    await flushPromises()
   })
+  await flush()
 }
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  fake.answer(locationUpdate, () => null)
   jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   mockWatchCallback = undefined
   mockRemove.mockClear()
   mockWatchPositionAsync.mockClear()
@@ -117,31 +114,31 @@ describe('location popup position watcher', () => {
 
     await emit({accuracy: 12.9, altitude: 100, latitude: 37.5, longitude: -122.25})
     // accuracy is floored, and only accuracy/lat/lon are sent
-    expect(updates()).toEqual([[{accuracy: 12, lat: 37.5, lon: -122.25}]])
+    expect(updates()).toEqual([{accuracy: 12, lat: 37.5, lon: -122.25}])
 
     await emit({accuracy: null, latitude: 1.5, longitude: 2.5})
     // a missing accuracy is sent as 0
     expect(updates()).toEqual([
-      [{accuracy: 12, lat: 37.5, lon: -122.25}],
-      [{accuracy: 0, lat: 1.5, lon: 2.5}],
+      {accuracy: 12, lat: 37.5, lon: -122.25},
+      {accuracy: 0, lat: 1.5, lon: 2.5},
     ])
   })
 
   test('a rejected location update is only logged and later fixes still send', async () => {
-    const failure = new Error('location update failed')
-    rpc.fail('updateLocation', failure)
+    fake.answer(locationUpdate, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'location update failed'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const commandStatus = jest.spyOn(Router, 'setThreadInputCommandStatus')
     await renderPopup()
 
     await emit({accuracy: 5, latitude: 10, longitude: 20})
-    expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+    expect((error.mock.calls[0]?.[1] as RPCError).desc).toBe('location update failed')
     // not treated as a permission failure: no error status is pushed to the composer
     expect(commandStatus).not.toHaveBeenCalled()
 
     await emit({accuracy: 6, latitude: 11, longitude: 21})
     expect(updates()).toHaveLength(2)
-    expect(updates().at(-1)).toEqual([{accuracy: 6, lat: 11, lon: 21}])
+    expect(updates().at(-1)).toEqual({accuracy: 6, lat: 11, lon: 21})
   })
 
   test('unmounting removes the watch subscription', async () => {

@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import {resetAllStores} from '../../util/zustand'
-import * as T from '@/constants/types'
+import {installFakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
 import {useDarkModeState} from '../darkmode'
 
 jest.mock('@/util/electron', () => ({
@@ -48,17 +49,14 @@ test('dark mode preference drives isDarkMode and resets with the stored override
 })
 
 test('loading the stored preference applies it to the native theme without writing it back', async () => {
-  const getValue = jest
-    .spyOn(T.RPCGen, 'configGuiGetValueRpcPromise')
-    .mockResolvedValue({isNull: false, s: 'alwaysDark'} as T.RPCGen.ConfigValue)
-  const setValue = jest.spyOn(T.RPCGen, 'configGuiSetValueRpcPromise').mockResolvedValue(undefined)
+  const fake = installFakeEngine()
+  fake.answer('keybase.1.config.guiGetValue', () => ({isNull: false, s: 'alwaysDark'}))
 
   useDarkModeState.getState().dispatch.loadDarkPrefs()
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await settle()
 
   expect(useDarkModeState.getState().darkModePreference).toBe('alwaysDark')
   expect(mockSetNativeTheme).toHaveBeenCalledWith('dark')
-  expect(setValue).not.toHaveBeenCalled()
-  getValue.mockRestore()
-  setValue.mockRestore()
+  // a write back would reach the service as keybase.1.config.guiSetValue
+  expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.guiGetValue'])
 })
