@@ -10,6 +10,7 @@ import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {sessionPingDue} from '../gate/hang-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {appSnapshotBody} from '../gate/screen-params-lib.ts'
+import {goLogIn, linesSince, markFile, type LogMark} from '../gate/go-log-lib.ts'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
@@ -192,52 +193,11 @@ export const waitForAvatar200 = async (username: string, device = deviceName(), 
 
 // -- logs --------------------------------------------------------------------
 
-type LogMark = {file: string; offset: number; ino: number}
-
-const readFrom = (file: string, offset: number) => {
-  const size = fs.statSync(file).size
-  if (size <= offset) return ''
-  const fd = fs.openSync(file, 'r')
-  try {
-    const buf = Buffer.alloc(size - offset)
-    fs.readSync(fd, buf, 0, buf.length, offset)
-    return buf.toString('utf8')
-  } finally {
-    fs.closeSync(fd)
-  }
-}
-
-const markFile = (file: string): LogMark => {
-  const st = statOrUndefined(file)
-  return {file, ino: st?.ino ?? 0, offset: st?.size ?? 0}
-}
-
-// Lines written to the file since the mark. The Go log is replaced by a new file when the app
-// launches and rotated aside when it grows too big, so when the file at the path is no longer
-// the marked one, the rest of the marked file (found by inode, if still there) is read first,
-// then the new file from its start.
-const linesSince = (mark: LogMark): Array<string> => {
-  const st = statOrUndefined(mark.file)
-  if (!st) return []
-  let text: string
-  if (st.ino === mark.ino) {
-    text = readFrom(mark.file, mark.offset)
-  } else {
-    const dir = path.dirname(mark.file)
-    const moved = fs
-      .readdirSync(dir)
-      .map(n => path.join(dir, n))
-      .find(p => statOrUndefined(p)?.ino === mark.ino)
-    text = (moved ? readFrom(moved, mark.offset) : '') + readFrom(mark.file, 0)
-  }
-  return text.split('\n').filter(Boolean)
-}
-
 // The app's data container (a path on this Mac). It moves on reinstall, so resolve it each time.
 export const appDataContainer = (udid = deviceUdid()) => simctl('get_app_container', udid, BUNDLE_ID, 'data').trim()
 
 // The Go service log inside the app's data container.
-export const goLogPath = (udid = deviceUdid()) => path.join(appDataContainer(udid), 'Library/Caches/Keybase/logs/ios.log')
+export const goLogPath = (udid = deviceUdid()) => goLogIn(appDataContainer(udid))
 
 export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(udid))
 

@@ -80,6 +80,7 @@ import {
   appPendingOutbox,
   BUNDLE_ID,
   forgetMetroPidfile,
+  goLogMarkFor,
   METRO_PORT,
   metroGroups,
   processes,
@@ -421,13 +422,14 @@ const main = async () => {
       },
       sharedDir,
     })
+    const goLogMark = goLogMarkFor(id)
     const launchedAt = Date.now()
     const account = await relaunchApp({device, log, udid: id})
     const problem =
       notSmokeProblem(account, e2eEnv) ??
       pushPermissionProblem(await appHasPushPermission(device), device) ??
       locationStartProblem(await appLocationPermission(device), device, id) ??
-      pendingOutboxProblem(await appPendingOutbox(id, launchedAt), device)
+      pendingOutboxProblem(await appPendingOutbox(goLogMark, launchedAt), device)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}
