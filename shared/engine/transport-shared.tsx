@@ -46,6 +46,10 @@ const secretResultMethods = new Set([
   'botTokenCreate',
   'teamCreateSeitanTokenV2',
   'getInvitationCode',
+  // the signed message
+  'saltpackSignString',
+  // a wallet account's secret key (the wallet screens' reveal and remove)
+  'getWalletAccountSecretKeyLocal',
 ])
 const redactMaxDepth = 12
 

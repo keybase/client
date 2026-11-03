@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as fs from 'fs'
 import * as path from 'path'
-import {redactRpcParams} from './transport-shared'
+import {redactRpcParams, redactRpcResult} from './transport-shared'
 import type * as TS from './transport-shared'
 import type * as RT from './rpc-transport'
 
@@ -135,6 +135,52 @@ test('every secret-shaped field name in rpc-gen is redacted or known not to be a
     .filter(([name]) => JSON.stringify(redactRpcParams({[name]: 'x'})) !== JSON.stringify({[name]: '<redacted>'}))
     .map(([name, types]) => `${name}: ${[...types].join(' | ')}`)
   expect(unredacted).toEqual([])
+})
+
+// Every enabled method (rpc-gen's createRpc calls, from enabled-calls.json) whose result is a bare
+// string, or an alias of one, has no key to redact by: its result is redacted whole, or it is listed
+// here as not a secret. A new secret-returning method fails this instead of logging.
+const notSecretResults: Record<string, string> = {
+  'chat.1.local.getUploadTempFile': 'a temp file path',
+  'chat.1.local.makeUploadTempFile': 'a temp file path',
+  'chat.1.local.normalizeUnfurlDomain': 'a domain',
+  'chat.1.local.unboxMobilePushNotification': "a push's message text",
+  'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload': 'a temp folder path',
+  'keybase.1.SimpleFS.simpleFSStartDownload': 'a download id',
+  'keybase.1.SimpleFS.simpleFSStartUpload': 'an upload id',
+  'keybase.1.account.guessCurrentLocation': 'a country code',
+  'keybase.1.config.logSend': 'a log send id',
+  'keybase.1.git.createPersonalRepo': 'a repo id',
+  'keybase.1.git.createTeamRepo': 'a repo id',
+  'keybase.1.kbfsMount.GetCurrentMountDir': 'a folder path',
+  'keybase.1.saltpack.saltpackSaveCiphertextToFile': 'the path of the file it wrote',
+  'keybase.1.saltpack.saltpackSaveSignedMsgToFile': 'the path of the file it wrote',
+  'keybase.1.saltpack.saltpackSignFile': 'the path of the file it wrote',
+  'keybase.1.teams.getTeamID': 'a team id',
+  'keybase.1.teams.teamCreateFancy': 'a team id',
+}
+test('every enabled method that returns a bare string is redacted whole or known not to return a secret', () => {
+  const dir = path.join(__dirname, '../constants/rpc')
+  const stringTypes = new Set(['string'])
+  const outParams = new Map<string, string>()
+  const enabled = new Set<string>()
+  for (const f of fs.readdirSync(dir).filter(f => /^rpc-.*gen\.tsx$/.test(f))) {
+    const text = fs.readFileSync(path.join(dir, f), 'utf8')
+    for (const [, name = ''] of text.matchAll(/^export type (\w+) = string$/gm)) stringTypes.add(name)
+    for (const [, method = '', out = ''] of text.matchAll(/^ {2}'([\w.]+)': \{\n {4}inParam: [^\n]*\n {4}outParam: ([^,\n]+),/gm)) outParams.set(method, out)
+    for (const [, method = ''] of text.matchAll(/^export const \w+ = createRpc\('([\w.]+)'\)/gm)) enabled.add(method)
+  }
+  expect(enabled.size).toBeGreaterThan(100)
+  expect([...enabled].filter(m => !outParams.has(m))).toEqual([])
+  const unredacted = [...enabled]
+    .filter(m => stringTypes.has(outParams.get(m) ?? ''))
+    .filter(m => !(m in notSecretResults))
+    .filter(m => redactRpcResult(m, fixture) !== '<redacted>')
+  expect(unredacted).toEqual([])
+})
+
+test("a wallet account's secret key result is redacted", () => {
+  expect(redactRpcResult('stellar.1.local.getWalletAccountSecretKeyLocal', fixture)).toBe('<redacted>')
 })
 
 describe('rpcLog and invoke end to end', () => {
