@@ -168,8 +168,7 @@ export const isSubframeURLAllowed = (url: unknown) => {
   const u = parseURL(url)
   if (!u) return false
   if (u.href === 'about:blank') return true
-  if (localServerURL(url)) return isPreviewURL(url)
-  return u.protocol === 'chrome-extension:' && u.host === pdfViewerID
+  return isPreviewURL(url) || (u.protocol === 'chrome-extension:' && u.host === pdfViewerID)
 }
 
 export type ResponseHeaders = Record<string, Array<string>>

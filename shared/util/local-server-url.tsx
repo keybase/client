@@ -17,7 +17,8 @@ export const localServerURL = (url: unknown) => {
 export const isKbfsPath = (pathname: string) => pathname.startsWith('/files/')
 const isPreviewPath = (pathname: string) => pathname === '/at' || isKbfsPath(pathname)
 
-// A chat attachment or KBFS file preview, which PDF previews load in an <embed>
+// A chat attachment or KBFS file preview, which PDF previews load in an <embed>. The service's
+// ports are not fixed, so any 127.0.0.1 port is accepted.
 export const isPreviewURL = (url: unknown) => {
   const local = localServerURL(url)
   return !!local && isPreviewPath(local.pathname)

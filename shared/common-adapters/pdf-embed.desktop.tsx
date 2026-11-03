@@ -1,3 +1,4 @@
+import logger from '@/logger'
 import {isPreviewURL} from '@/util/local-server-url'
 
 type TrustedTypes = {
@@ -9,7 +10,10 @@ declare const trustedTypes: TrustedTypes
 
 let policy: ReturnType<TrustedTypes['createPolicy']> | undefined
 const trustedPdfURL = (url: string) => {
-  if (!isPreviewURL(url)) return undefined
+  if (!isPreviewURL(url)) {
+    logger.warn('PdfEmbed: not a local preview URL, not loading it')
+    return undefined
+  }
   // The name must be in the trusted-types allow-list in vite.config.mts. The policy itself rejects
   // anything but a local preview URL so it stays safe whoever calls it.
   policy ??= trustedTypes.createPolicy('kb-pdf-preview', {
