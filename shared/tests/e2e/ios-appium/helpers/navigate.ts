@@ -101,9 +101,9 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
 }
 
 // scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
-// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's frame
-// lies below the nav bar and above the tab bar; throws rather than let the caller tap a row that
-// overlaps the bar. Each check finds the row again (`find`), and one that found no row or read a stale
+// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's middle,
+// where the caller's click taps it, lies well inside the nav bar and the tab bar (dragToClear);
+// throws rather than let the caller tap a row whose middle is under a bar. Each check finds the row again (`find`), and one that found no row or read a stale
 // element counts as a check with no drag. Worst case (s): the window read 2, then four checks of 6
 // (rowAndBand) and three drags of 1 = 29.
 export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
