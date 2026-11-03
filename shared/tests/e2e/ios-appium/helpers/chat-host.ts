@@ -31,10 +31,15 @@ type WithPin = MainConversation & {
 export const pinnedOnHost = async (convID: string) =>
   ((await mainConversation(convID)) as WithPin).info.pinnedMsg?.message?.valid?.serverHeader?.messageID ?? null
 
-// The second account's peer service, found by the first test that needs it: one that is missing
-// fails only the tests that need it, with the reason.
+// The second account's peer service, found by the first test that needs it and kept for the run. A
+// lookup that fails is not kept: it fails the test that asked, with the reason, and the next test
+// that needs the peer looks again.
 let second: Promise<IncomingSender> | undefined
-export const secondSender = async () => (second ??= peerSender(loadE2EEnv()))
+export const secondSender = async () =>
+  (second ??= peerSender(loadE2EEnv()).catch((e: unknown) => {
+    second = undefined
+    throw e
+  }))
 
 // The throwaway channels of KB_E2E_TEAM one flow makes, each noted once made so the flow's
 // afterEach deletes it. Bound of deleteAll: deleteThrowawayChannel 120 a channel.
