@@ -334,56 +334,64 @@ describe('crypto roundtrip', function () {
     })
   }
 
+  // The phone makes a saltpack message of `kind` with the operation `tab`: its screen opened, the second
+  // account added as a recipient when `toSecond`, this run's marker `label` typed, the operation run,
+  // its output copied and closed. Bound: crypto 115, tab 29, type 30, step 2, run 28, copy 147, done
+  // 22, mark 2, step 2 = 377; with toSecond, the recipient 94 and step 2 more = 473.
+  const phoneMakes = async (tab: CryptoTab, method: string, kind: ArmorKind, label: string, {toSecond = false} = {}) => {
+    const marker = e2eMarker(label)
+    await openCrypto()
+    await openCryptoTab(tab)
+    if (toSecond) {
+      await addSecondAsRecipient()
+      await step('The second account as the recipient')
+    }
+    await typeMarker(marker, tab)
+    await step(`The marker typed to ${tab}${toSecond ? ' for both' : ''}`, {card: true})
+
+    markArmorShown()
+    await runOperation(tab, method)
+    const armor = await copyOutput(kind)
+    await closeCryptoOutput(tab)
+    await clearArmorShown()
+    await step(`The ${kind === 'SIGNED' ? 'signed message' : 'ciphertext'} copied and its output closed`)
+    return {armor, marker}
+  }
+
+  // The phone reads `armor` (a saltpack message) with the operation `tab`: its screen opened, the
+  // message pasted, the operation run and its output checked by `expectOutcome`, then closed and left.
+  // Bound: crypto 115, tab 29, step 2, paste 130, run 28, done 22, leave 24, mark 2, step 2 = 354, plus
+  // expectOutcome's.
+  const phoneReads = async (tab: CryptoTab, method: string, armor: string, expectOutcome: () => Promise<void>, stepName: string) => {
+    await openCrypto()
+    await openCryptoTab(tab)
+    await step(`The ${tab} screen`)
+
+    await pasteArmor(armor, tab)
+    await runOperation(tab, method)
+    await expectOutcome()
+    await closeCryptoOutput(tab)
+    await leaveCryptoTab(tab)
+    await clearArmorShown()
+    await step(stepName, {card: true})
+  }
+
   // -- the phone encrypts or signs, the host or the peer reads it --------------------------------
 
   it('text encrypted to self decrypts on the host to the marker', async function () {
-    // worst case (s): crypto 115, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 454
+    // worst case (s): phoneMakes 377, host 75, step 2 = 454
     this.timeout(470_000)
-    const marker = e2eMarker('crypto-self')
-    await openCrypto()
-    await openCryptoTab('encrypt')
-    await typeMarker(marker, 'encrypt')
-    await step('The marker typed to encrypt', {card: true})
-
-    markArmorShown()
-    await runOperation('encrypt', ENCRYPT)
-    const ciphertext = await copyOutput('ENCRYPTED')
-    await closeCryptoOutput('encrypt')
-    await clearArmorShown()
-    await step('The ciphertext copied and its output closed')
-
-    const plain = await readsBy(host, ['decrypt'], ciphertext, 'to-self')
+    const {armor, marker} = await phoneMakes('encrypt', ENCRYPT, 'ENCRYPTED', 'crypto-self')
+    const plain = await readsBy(host, ['decrypt'], armor, 'to-self')
     check(plain === marker, "the host's decrypt of the phone's ciphertext is not the marker")
     await step('The host decrypted it to the marker')
   })
 
-  // The phone encrypts this run's marker `label` to the second account and self, through the
-  // recipients search, and copies the ciphertext. Bound: crypto 115, tab 29, recipient 94, step 2,
-  // type 30, step 2, run 28, copy 147, done 22, mark 2, step 2 = 473.
-  const encryptForSecond = async (label: string) => {
-    const marker = e2eMarker(label)
-    await openCrypto()
-    await openCryptoTab('encrypt')
-    await addSecondAsRecipient()
-    await step('The second account as the recipient')
-    await typeMarker(marker, 'encrypt')
-    await step('The marker typed to encrypt for both', {card: true})
-
-    markArmorShown()
-    await runOperation('encrypt', ENCRYPT)
-    const ciphertext = await copyOutput('ENCRYPTED')
-    await closeCryptoOutput('encrypt')
-    await clearArmorShown()
-    await step('The ciphertext copied and its output closed')
-    return {ciphertext, marker}
-  }
-
   it('text encrypted to the second account and self decrypts on the host', async function () {
-    // worst case (s): encryptForSecond 473, host 75, step 2 = 550
+    // worst case (s): phoneMakes 473, host 75, step 2 = 550
     this.timeout(570_000)
-    const {ciphertext, marker} = await encryptForSecond('crypto-to-second')
-    const bySelf = await readsBy(host, ['decrypt'], ciphertext, 'to-second-self')
+    const {armor, marker} = await phoneMakes('encrypt', ENCRYPT, 'ENCRYPTED', 'crypto-to-second', {toSecond: true})
+    const bySelf = await readsBy(host, ['decrypt'], armor, 'to-second-self')
     check(bySelf === marker, "the host's decrypt of the phone's ciphertext is not the marker")
     await step('The host decrypted it to the marker')
   })
@@ -392,34 +400,21 @@ describe('crypto roundtrip', function () {
   // keyring without syncing it, so once the account's key rolled on another device it cannot decrypt
   // a message to the newest key.
   it('text encrypted to the second account decrypts on its peer', async function () {
-    // worst case (s): encryptForSecond 473, second 105, step 2 = 580
+    // worst case (s): phoneMakes 473, second 105, step 2 = 580
     this.timeout(600_000)
-    const {ciphertext, marker} = await encryptForSecond('crypto-peer')
-    const bySecond = await readsBy(second, ['decrypt'], ciphertext, 'to-second')
+    const {armor, marker} = await phoneMakes('encrypt', ENCRYPT, 'ENCRYPTED', 'crypto-peer', {toSecond: true})
+    const bySecond = await readsBy(second, ['decrypt'], armor, 'to-second')
     check(bySecond === marker, "the second account's decrypt of the phone's ciphertext is not the marker")
     await step('The second account decrypted it to the marker')
   })
 
   it('signed text verifies on the host as the smoke account’s', async function () {
-    // worst case (s): crypto 115, tab 29, type 30, step 2, run 28, copy 147, done 22, mark 2, step 2,
-    // host 75, step 2 = 454
+    // worst case (s): phoneMakes 377, host 75, step 2 = 454
     this.timeout(470_000)
     const {smokeUser} = loadE2EAccounts()
-    const marker = e2eMarker('crypto-sign')
-    await openCrypto()
-    await openCryptoTab('sign')
-    await typeMarker(marker, 'sign')
-    await step('The marker typed to sign', {card: true})
-
-    markArmorShown()
-    await runOperation('sign', SIGN)
-    const signed = await copyOutput('SIGNED')
-    await closeCryptoOutput('sign')
-    await clearArmorShown()
-    await step('The signed message copied and its output closed')
-
+    const {armor, marker} = await phoneMakes('sign', SIGN, 'SIGNED', 'crypto-sign')
     // -S: the verify fails unless the smoke account signed it
-    const verified = await readsBy(host, ['verify', '-S', smokeUser], signed, 'signed')
+    const verified = await readsBy(host, ['verify', '-S', smokeUser], armor, 'signed')
     check(verified === marker, "the host's verify of the phone's signed message is not the marker")
     await step('The host verified it as the smoke account’s')
   })
@@ -427,44 +422,38 @@ describe('crypto roundtrip', function () {
   // -- the second account's peer makes it, the phone reads it ---------------------------------------
 
   it('the second account’s ciphertext decrypts to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 488
+    // worst case (s): second 105, phoneReads 354, output 16, signer 6 = 481
     this.timeout(500_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-from-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, smokeUser], 'from-second', 'ENCRYPTED')
-    await openCrypto()
-    await openCryptoTab('decrypt')
-    await step('The decrypt screen')
-
-    await pasteArmor(ciphertext, 'decrypt')
-    await runOperation('decrypt', DECRYPT)
-    await expectOutput(marker)
-    await expectSignedBySecond()
-    await closeCryptoOutput('decrypt')
-    await leaveCryptoTab('decrypt')
-    await clearArmorShown()
-    await step('Decrypted to the marker, signed by the second account', {card: true})
+    await phoneReads(
+      'decrypt',
+      DECRYPT,
+      ciphertext,
+      async () => {
+        await expectOutput(marker)
+        await expectSignedBySecond()
+      },
+      'Decrypted to the marker, signed by the second account'
+    )
   })
 
   it('the second account’s signed text verifies to the marker, signed by it', async function () {
-    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, output 16, signer 6,
-    // done 22, leave 24, mark 2, step 2 = 488
+    // worst case (s): second 105, phoneReads 354, output 16, signer 6 = 481
     this.timeout(500_000)
     const marker = e2eMarker('crypto-signed-by-second')
     const signed = await madeBy(second, ['sign', '-m', marker], 'signed-by-second', 'SIGNED')
-    await openCrypto()
-    await openCryptoTab('verify')
-    await step('The verify screen')
-
-    await pasteArmor(signed, 'verify')
-    await runOperation('verify', VERIFY)
-    await expectOutput(marker)
-    await expectSignedBySecond()
-    await closeCryptoOutput('verify')
-    await leaveCryptoTab('verify')
-    await clearArmorShown()
-    await step('Verified to the marker, signed by the second account', {card: true})
+    await phoneReads(
+      'verify',
+      VERIFY,
+      signed,
+      async () => {
+        await expectOutput(marker)
+        await expectSignedBySecond()
+      },
+      'Verified to the marker, signed by the second account'
+    )
   })
 
   // -- what the phone refuses -----------------------------------------------------------------------
@@ -472,46 +461,30 @@ describe('crypto roundtrip', function () {
   // Text the second account encrypted for itself alone: no key of the smoke account opens it (the
   // service's decryption-key-not-found cause), which the app words for the reader.
   it('ciphertext for someone else says so', async function () {
-    // worst case (s): second 105, crypto 115, tab 29, step 2, paste 130, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 483
+    // worst case (s): second 105, phoneReads 354, banner 17 = 476
     this.timeout(500_000)
     const {secondUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-for-second')
     const ciphertext = await madeBy(second, ['encrypt', '-m', marker, secondUser], 'for-second', 'ENCRYPTED')
-    await openCrypto()
-    await openCryptoTab('decrypt')
-    await step('The decrypt screen')
-
-    await pasteArmor(ciphertext, 'decrypt')
-    await runOperation('decrypt', DECRYPT)
-    await expectRefused(FOR_SOMEONE_ELSE, 'the encrypted-for-someone-else banner')
-    await closeCryptoOutput('decrypt')
-    await leaveCryptoTab('decrypt')
-    await clearArmorShown()
-    await step('Ciphertext for someone else refused', {card: true})
+    await phoneReads(
+      'decrypt',
+      DECRYPT,
+      ciphertext,
+      async () => expectRefused(FOR_SOMEONE_ELSE, 'the encrypted-for-someone-else banner'),
+      'Ciphertext for someone else refused'
+    )
   })
 
   // A changed body character fails the stream with no cause the service names, so the app shows its
   // generic message.
   it('tampered ciphertext fails to decrypt', async function () {
-    // worst case (s): host 75, crypto 115, tab 29, step 2, paste 130, run 28, banner 17, done 22,
-    // leave 24, mark 2, step 2 = 453
+    // worst case (s): host 75, phoneReads 354, banner 17 = 446
     this.timeout(470_000)
     const {smokeUser} = loadE2EAccounts()
     const marker = e2eMarker('crypto-tampered')
     const ciphertext = await madeBy(host, ['encrypt', '-m', marker, smokeUser], 'to-tamper', 'ENCRYPTED')
     const bad = tamper(ciphertext)
     check(bad !== ciphertext, 'the tampered ciphertext is unchanged')
-    await openCrypto()
-    await openCryptoTab('decrypt')
-    await step('The decrypt screen')
-
-    await pasteArmor(bad, 'decrypt')
-    await runOperation('decrypt', DECRYPT)
-    await expectRefused(FAILED_TO_DECRYPT, 'the failed-to-decrypt banner')
-    await closeCryptoOutput('decrypt')
-    await leaveCryptoTab('decrypt')
-    await clearArmorShown()
-    await step('Tampered ciphertext refused', {card: true})
+    await phoneReads('decrypt', DECRYPT, bad, async () => expectRefused(FAILED_TO_DECRYPT, 'the failed-to-decrypt banner'), 'Tampered ciphertext refused')
   })
 })
