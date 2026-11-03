@@ -24,7 +24,7 @@ import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
 import {FILES_APP, imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
 import {APPLE_PARK} from '../gate/location-lib.ts'
-import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
+import {guarded} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {
   copyPhoto,
@@ -54,7 +54,6 @@ import {check} from '../helpers/menus'
 
 const POST_ATTACHMENT = 'chat.1.local.postFileAttachmentLocalNonblock'
 const POST_TEXT = 'chat.1.local.postTextNonblock'
-const SEED_FOLDER = 'the share flow\'s seed folder'
 const PASTEBOARD = 'the share flow\'s pasteboard overwrite'
 
 const localPath = (p: string) => (p.startsWith('file://') ? p.slice('file://'.length) : p)
@@ -92,24 +91,14 @@ describe('share extension', function () {
       removeSharePayloads,
       () => {
         if (!seeded) return
-        try {
-          removeSeedFolder(seeded)
-        } catch (e) {
-          poisonGate(SEED_FOLDER, "remove this run's e2e-<runid>-share-<hex> folder from the Files app's On My iPhone on the simulator")
-          throw e
-        }
-        clearGatePoison(SEED_FOLDER)
+        removeSeedFolder(seeded)
         seeded = undefined
       },
       async () => {
         if (!pasted) return
-        try {
-          await setPasteboard(e2eMarker('share-paste-over'))
-        } catch (e) {
-          poisonGate(PASTEBOARD, "copy any text on the simulator, over the corpus image the share flow's paste left on its pasteboard")
-          throw e
-        }
-        clearGatePoison(PASTEBOARD)
+        await guarded(PASTEBOARD, "copy any text on the simulator, over the corpus image the share flow's paste left on its pasteboard", async () =>
+          setPasteboard(e2eMarker('share-paste-over'))
+        )
         pasted = false
       },
       () => {

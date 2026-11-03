@@ -52,7 +52,7 @@ import {
   type Point,
 } from '../gate/location-lib.ts'
 import {cancelledOutboxIDs, failedOutboxIDs, outboxFlushes} from '../gate/outbox-lib.ts'
-import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
+import {guarded} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {cancelAppOutbox, openConversation, typeInComposer, waitSignedIn} from '../helpers/chat'
@@ -103,19 +103,6 @@ describe('chat location', function () {
   const channels = new Set<string>()
   // and their conversation ids, whose outbox records the afterEach cancels
   const convIDs = new Set<string>()
-
-  // Runs `restore`; a failure poisons the gate (the phone or the account is left changed for every
-  // later flow), a success clears that poison.
-  const guarded = async (what: string, byHand: string, restore: () => Promise<void>) => {
-    try {
-      await restore()
-    } catch (e) {
-      if (isAttemptOver(e)) throw e
-      poisonGate(what, byHand)
-      throw e
-    }
-    clearGatePoison(what)
-  }
 
   // From the composer, else the app's own send (recorder paused); then the service's stop and the live
   // tracker's own stop, read off its log. Bound: mark 120, open 100, composer 8, the app's send 3, the

@@ -39,7 +39,7 @@ import {requireSecondNotBlocked} from '../gate/blocks'
 import {grantPrivacy, imageProps, launchIfGone, restorePrivacy} from '../gate/device'
 import type {PrivacyRestore} from '../gate/device-lib'
 import {sourceElements} from '../gate/page-source-lib.ts'
-import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
+import {guarded} from '../gate/poison-lib.ts'
 import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {cleanupPlan, newAssetIds, noisePng, requireSavedImage, requireWholeLibraryRead} from '../gate/save-photos-lib.ts'
 import {step} from '../gate/step'
@@ -124,7 +124,7 @@ describe('save to photos', function () {
     const before = libraryBefore
     if (!before) return
     let left: Array<string> = [...saved]
-    try {
+    await guarded(SAVED_PHOTO, () => byHand(left), async () => {
       const plan = cleanupPlan(saved, before, await libraryAssetIds())
       left = [...plan.toDelete, ...plan.unrecorded]
       for (const id of plan.toDelete) {
@@ -133,13 +133,9 @@ describe('save to photos', function () {
         left = left.filter(l => l !== id)
       }
       if (plan.unrecorded.length) throw new Error(`the photo library holds ${plan.unrecorded.length} asset(s) new since the test began that it never recorded as saved: not deleted`)
-    } catch (e) {
-      poisonGate(SAVED_PHOTO, byHand(left))
-      throw e
-    }
+    })
     saved.clear()
     libraryBefore = undefined
-    clearGatePoison(SAVED_PHOTO)
   }
 
   // restorePrivacy reads each back, waits out the kill a photos reset brings (so launchIfGone, next,

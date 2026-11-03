@@ -233,11 +233,21 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
 // The path of a seed folder of this run in On My iPhone, for the link the Files app opens it by.
 export const seedFolderPath = (folder: string) => requireSeedFolder(folder)
 
-// Removes a seed folder of this run and reads back that it is gone; one already gone is left be.
+const SEED_FOLDER = 'a seed folder in On My iPhone'
+
+// Removes a seed folder of this run and reads back that it is gone; one already gone is left be. A
+// folder left there poisons the gate (every later document picker shows it); a removal that lands
+// clears that.
 export const removeSeedFolder = (folder: string) => {
-  const dir = requireSeedFolder(folder)
-  quietFs('removing the seed folder', () => fs.rmSync(dir, {force: true, recursive: true}))
-  if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
+  try {
+    const dir = requireSeedFolder(folder)
+    quietFs('removing the seed folder', () => fs.rmSync(dir, {force: true, recursive: true}))
+    if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
+  } catch (e) {
+    poisonGate(SEED_FOLDER, `remove the folder ${folder} from the Files app's On My iPhone on the simulator`)
+    throw e
+  }
+  clearGatePoison(SEED_FOLDER)
 }
 
 export type PickedFile = {path: string; sha256: string; size: number}
