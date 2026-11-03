@@ -6,24 +6,55 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
-import {byText, el, waitForTestID} from './elements'
+import type {ChainablePromiseElement} from 'webdriverio'
+import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
+import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
+import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
+import {withHarnessRpcs} from '../gate/recorder.ts'
+import {
+  carriedTeam,
+  findInboxHeader,
+  findInboxRow,
+  frameInside,
+  inboxRowCandidates,
+  isOneOnOneRow,
+  type AppSmallRow,
+  inboxIn,
+  innermost,
+  persistedMismatch,
+  sheetItemLabels,
+  shiftIntoBand,
+  type DrawnInboxItem,
+  type Rect as Frame,
+  type Span,
+  visibleBand,
+  wholly as whollyInBand,
+} from '../gate/chat-lib.ts'
+import {sourceElements} from '../gate/page-source-lib.ts'
+import {loadE2EAccounts} from '../../accounts/env'
+import {relaunchApp} from '../gate/device.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // Metro's inspector connection to the app drops now and then for a moment (the app keeps running);
-// an eval that fails to connect is tried again for a few seconds before it counts.
-export const jsEval = async <R>(body: string): Promise<R> => {
+// an eval that fails to connect is tried again for a few seconds before it counts. A body that
+// changes the app (calls a handler, dispatches, sets or takes a global) passes {once: true}: after a
+// timeout or a dropped connection it may already have run, so only a failed page lookup, before
+// anything was sent, is tried again. Retried bodies are reads only.
+const READ_TRANSIENT = /no Metro inspector page|inspector connection failed|inspector evaluate timed out/
+const UNSENT = /no Metro inspector page/
+export const jsEval = async <R>(body: string, opts?: {once?: boolean}): Promise<R> => {
   const end = Date.now() + 10_000
+  const transient = opts?.once ? UNSENT : READ_TRANSIENT
   for (;;) {
     try {
       return await jsEvalOnce<R>(body)
     } catch (e) {
-      const transient = e instanceof Error && /no Metro inspector page|inspector connection failed|inspector evaluate timed out/.test(e.message)
-      if (!transient || Date.now() > end) throw e
+      if (!(e instanceof Error && transient.test(e.message)) || Date.now() > end) throw e
       await sleep(500)
     }
   }
@@ -63,20 +94,16 @@ export type ThreadReading = {
 // e2eListInternals(list): the VirtualizedList (FlatList's _listRef) fields the readers use.
 // e2eThreadContexts(fiber): the conversation's centre context value and thread store, from the
 // providers above its list.
-export const threadListPrelude = `
+// It starts with fiberPrelude (e2eRootFiber, e2eHostOf), so a body that has it needs no other.
+export const threadListPrelude = `${fiberPrelude}
   const e2eFail = what => { throw new Error('e2e thread reader: ' + what + ' (React Native or app internals changed?)') }
   const e2eVisibleConvID = () => {
     const screen = kbModule('constants/router.tsx').getVisibleScreen()
     return (screen && screen.params && screen.params.conversationIDKey) || null
   }
   const e2eThreadList = convID => {
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    if (!hook || typeof hook.getFiberRoots !== 'function') e2eFail('no __REACT_DEVTOOLS_GLOBAL_HOOK__.getFiberRoots')
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    if (!root || !root.current) e2eFail('no React root fiber')
     let keyed
-    const stack = [root.current]
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)}) {
@@ -212,7 +239,7 @@ const startThreadSampler = async () => {
       }
     }, 16)
     return true
-  `)
+  `, {once: true})
   if (!ok) throw new Error('no thread list on screen to sample')
 }
 
@@ -226,7 +253,7 @@ const stopThreadSampler = async () => {
     g.__e2eSamples = undefined
     g.__e2eSamplerError = undefined
     return {error, samples: s}
-  `)
+  `, {once: true})
   if (error) throw new Error(`the thread sampler stopped: ${error}`)
   return samples
 }
@@ -252,19 +279,24 @@ export const requireThread = async () => {
 }
 
 // The visible conversation's thread store (from the provider above its list), as `store` and `st`;
-// both undefined while no thread list is mounted.
+// both undefined while no thread list is mounted. A reader whose empty answer means "not in the
+// thread" calls e2eRequireThreadStore() first, so a missing store is never read as gone.
 export const threadStoreBody = `${threadListPrelude}
   const convID = e2eVisibleConvID()
   const listFiber = convID ? e2eThreadList(convID) : null
   const store = listFiber ? e2eThreadContexts(listFiber).store : undefined
   const st = store && store.getState()
   const bodyOf = m => (m.text && m.text.stringValue ? m.text.stringValue() : '') + ' ' + (m.title || '')
+  const e2eRequireThreadStore = () => {
+    if (!st) throw new Error('no thread store: no thread list is mounted for the visible conversation')
+  }
 `
 
 // The ordinals of the loaded messages whose text (or attachment title) contains `text`, oldest first.
+// Throws while no thread is mounted.
 export const ordinalsWithText = async (text: string) =>
   jsEval<Array<number>>(`${threadStoreBody}
-    if (!st) return []
+    e2eRequireThreadStore()
     return (st.messageOrdinals || []).filter(o => {
       const m = st.messageMap.get(o)
       return m && bodyOf(m).includes(${JSON.stringify(text)})
@@ -281,15 +313,52 @@ export const rowText = async (ordinal: number) => {
   return text
 }
 
-// A loaded message, as the store holds the parts the flows read.
-export type StoredMessage = {reactions: Array<{emoji: string; users: Array<string>}>; text: string; type: string}
+// A loaded message, as the store holds the parts the flows read: `id` is its message id (0 until the
+// service has one for it).
+type StoredMessage = {
+  author: string
+  id: number
+  reactions: Array<{emoji: string; users: Array<string>}>
+  text: string
+  type: string
+}
 export const storedMessage = async (ordinal: number) =>
   jsEval<StoredMessage | null>(`${threadStoreBody}
     const m = st && st.messageMap.get(${ordinal})
     if (!m) return null
     const reactions = []
     if (m.reactions) for (const [emoji, r] of m.reactions) reactions.push({emoji, users: [...(r.users || [])].map(u => u.username)})
-    return {reactions, text: bodyOf(m).trim(), type: m.type}
+    return {author: m.author, id: Number(m.id) || 0, reactions, text: bodyOf(m).trim(), type: m.type}
+  `)
+// A sent message's id, once the service has given it one. Bound: 10.
+export const messageIDAt = async (ordinal: number) =>
+  waitFor('the message id', async () => (await storedMessage(ordinal))?.id || undefined, {interval: 250, timeout: 10_000})
+
+// A loaded attachment as the store holds it: how the thread draws it ('attachment:image',
+// 'attachment:video', 'attachment:file', ...), whether its preview has a url, whether it is shown
+// collapsed, and the transfer under way, if any. Null for a message that is not an attachment.
+export type StoredAttachment = {
+  author: string
+  collapsed: boolean
+  hasPreview: boolean
+  id: number
+  renderType: string
+  title: string
+  transferState: string | null
+}
+export const storedAttachment = async (ordinal: number) =>
+  jsEval<StoredAttachment | null>(`${threadStoreBody}
+    const m = st && st.messageMap.get(${ordinal})
+    if (!m || m.type !== 'attachment') return null
+    return {
+      author: m.author,
+      collapsed: !!m.isCollapsed,
+      hasPreview: !!m.previewURL,
+      id: Number(m.id) || 0,
+      renderType: String(st.messageTypeMap.get(${ordinal}) || ''),
+      title: m.title || '',
+      transferState: m.transferState || null,
+    }
   `)
 
 // Waits for the one message containing `text` to be in the thread and returns its ordinal.
@@ -306,7 +375,7 @@ export const waitForRow = async (text: string, timeout = 15_000) =>
 
 // The bottom of the thread a reader can see: the top of the composer, or of the search bar that
 // takes its place while thread search is open.
-export const composerTop = async () => {
+const composerTop = async () => {
   const search = el(T.CHAT_THREAD_SEARCH)
   if (await search.isExisting()) return search.getLocation('y')
   // the input sits in the composer bar with a margin above it
@@ -361,7 +430,7 @@ export const waitForThreadStable = async (timeout = 10_000) => {
 
 // At the end: holding the newest message (nothing newer to load), resting at the offset the list
 // keeps its newest row above the composer from, with that row in view.
-export const endGapMax = 40
+const endGapMax = 40
 export const isAtEnd = (t: ThreadReading, v: Viewport) => {
   const gap = newestGap(t, v)
   return !t.moreToLoadForward && gap !== undefined && gap >= -1 && gap <= endGapMax
@@ -430,21 +499,15 @@ export const tapStatusBar = async () => {
 
 // -- conversations ------------------------------------------------------------------------------
 
-// Opens a conversation by id through a keybase://convid link (the deep-link path the app itself
-// handles), from the chat tab's root, so the thread mounts afresh. Waits for its list to read.
-export const openConversation = async (convID: string) => {
-  await hideKeyboard()
-  await escapeToTabs()
-  await navigateToChat()
-  openUrl(`keybase://convid/${convID}`)
-  await waitFor(
-    'the conversation to open',
-    async () => {
-      const {screen} = await appSnapshot()
-      return screen?.name === 'chatConversation' && screen.params?.['conversationIDKey'] === convID ? true : undefined
-    },
-    {interval: 250, timeout: 20_000}
-  )
+// The conversation the visible screen shows once a chat thread is pushed, or undefined before then.
+const openedConversation = async () => {
+  const {screen} = await appSnapshot()
+  const id = screen?.name === 'chatConversation' ? screen.params?.['conversationIDKey'] : undefined
+  return typeof id === 'string' ? id : undefined
+}
+
+// Waits for an opened conversation's thread to mount: its composer, the native push, and its list.
+const waitForThread = async (convID: string) => {
   await waitForTestID(T.CHAT_INPUT, 15_000)
   // JS names the screen before the native push lands; until it does the tab root still looks current
   await browser.waitUntil(async () => !(await atTabs()), {interval: 150, timeout: 5_000}).catch(() => {})
@@ -454,9 +517,345 @@ export const openConversation = async (convID: string) => {
   })
 }
 
+// Opens a conversation by id through a keybase://convid link (the deep-link path the app itself
+// handles), from the chat tab's root, so the thread mounts afresh. Waits for its list to read.
+export const openConversation = async (convID: string) => {
+  await hideKeyboard()
+  await escapeToTabs()
+  await navigateToChat()
+  openUrl(`keybase://convid/${convID}`)
+  await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
+    interval: 250,
+    timeout: 20_000,
+  })
+  await waitForThread(convID)
+}
+
+// The inbox from its top to its end is ~8 pages on the test account (each drag ~3s, the app settling)
+const INBOX_SCROLL_MS = 60_000
+// how far inside the band's edges a row must sit to count as in view
+const INBOX_MARGIN = 4
+
+// midX: the middle of the element across (the inbox is a column of its own on a tablet)
+type Rect = Span & {midX: number}
+const rectOf = async (e: WebdriverIO.Element): Promise<Rect> => {
+  const {x, y} = await e.getLocation()
+  const {height, width} = await e.getSize()
+  return {bottom: y + height, midX: Math.round(x + width / 2), top: y}
+}
+
+// A slow finger drag on the inbox list, held still before lifting so it does not fling on.
+// Positive dy drags the content down (toward the inbox's top).
+const dragInbox = async (list: Rect, dy: number) => {
+  const x = list.midX
+  const room = list.bottom - list.top - 40
+  const d = Math.sign(dy) * Math.min(Math.abs(dy), room)
+  const mid = (list.top + list.bottom) / 2
+  const from = Math.round(mid - d / 2)
+  await browser
+    .action('pointer', {parameters: {pointerType: 'touch'}})
+    .move({x, y: from})
+    .down()
+    .move({duration: 500, x, y: Math.round(from + d)})
+    .pause(300)
+    .up()
+    .perform()
+}
+
+// What the inbox draws now, from one page source (inboxIn): a WebDriver call per element and
+// attribute costs ~65ms, which put a whole inbox seek past its bound. Working out `visible` for every
+// element is most of a source's cost (~1.5s against ~0.1s on a long inbox), and inboxIn reads none
+// of the attributes left out.
+const drawnInbox = async () =>
+  inboxIn(
+    sourceElements(
+      await browser.execute<string, [{excludedAttributes: string; format: string}]>('mobile: source', {
+        excludedAttributes: 'visible,accessible,enabled,index,traits',
+        format: 'xml',
+      })
+    )
+  )
+
+// The element behind a drawn inbox item: the one of its kind at its span.
+const elementOfItem = async (item: DrawnInboxItem) => {
+  const id = item.kind === 'small' ? T.CHAT_INBOX_ROW : item.kind === 'channel' ? T.CHAT_INBOX_CHANNEL_ROW : T.CHAT_INBOX_BIG_TEAM_HEADER
+  for (const e of await browser.$$(`~${id}`).getElements()) {
+    const r = await rectOf(e).catch(() => undefined)
+    if (r && Math.abs(r.top - item.span.top) < 1 && Math.abs(r.bottom - item.span.bottom) < 1) return e
+  }
+  throw new Error('the inbox item found moved before it could be tapped')
+}
+
+// The chat tab's inbox dragged to its top (until a drag down changes nothing), from the tab root.
+// Returns the list's rect and the deadline of the scroll it starts (INBOX_SCROLL_MS).
+const inboxAtTop = async () => {
+  await hideKeyboard()
+  await escapeToTabs()
+  await navigateToChat()
+  await waitForTestID(T.CHAT_INBOX_LIST, 15_000)
+  const list = await rectOf(await el(T.CHAT_INBOX_LIST).getElement())
+  const deadline = Date.now() + INBOX_SCROLL_MS
+  // iOS scrolls the list to its top on a status bar tap; the drags below confirm it got there (and
+  // finish the job if it did not), instead of one drag per page the list was scrolled down
+  await tapStatusBar()
+  for (let before = await drawnInbox(); ; ) {
+    if (Date.now() > deadline) throw new Error(`the inbox did not reach its top in ${INBOX_SCROLL_MS / 1000}s`)
+    await dragInbox(list, list.bottom - list.top)
+    const now = await drawnInbox()
+    if (now.signature === before.signature) return {deadline, drawn: now, list}
+    before = now
+  }
+}
+
+// The chat tab's inbox at its top, where its search placeholder is.
+export const scrollInboxToTop = async () => {
+  await inboxAtTop()
+}
+
+// How many drags in a row must change nothing before the inbox counts as at its end.
+const INBOX_END_STILL_DRAGS = 2
+
+// Drags the inbox from its top down until `find` picks a drawn item (its index in the drawing), and
+// brings that item wholly into view: inside the list less what floats over it (the unread shortcut,
+// the Big teams divider, the tab bar). `find` is handed the team whose section runs above the
+// drawing's first header (unknown, no team's, until a header has been seen there). Returns the
+// item's element, or undefined once the inbox's end is drawn with nothing picked; fails after
+// INBOX_SCROLL_MS. The native inbox draws only the rows near what it shows, hence the drags.
+const seekInbox = async (
+  find: (items: ReadonlyArray<DrawnInboxItem>, carried: string | undefined) => number | undefined | Promise<number | undefined>
+): Promise<WebdriverIO.Element | undefined> => {
+  const started = Date.now()
+  const top = await inboxAtTop()
+  const {deadline, list} = top
+  let drawn = top.drawn
+  const atTop = Date.now() - started
+  const page = list.bottom - list.top
+  let carried: string | undefined
+  // geometry only, for the timeout's error: never a row's label
+  let passes = 0
+  let last = 'not drawn'
+  // drags in a row that changed nothing, paging on and bringing a found item into view
+  let still = 0
+  let stillShifts = 0
+  for (;;) {
+    if (Date.now() > deadline) {
+      const where = `list ${Math.round(list.top)}..${Math.round(list.bottom)}, ${passes} passes after ${atTop}ms to reach the top, last: ${last}`
+      throw new Error(`the inbox item asked for is not in view after ${INBOX_SCROLL_MS / 1000}s of scrolling (${where})`)
+    }
+    passes++
+    const at = await find(drawn.items, carried)
+    // every drag below moves the content, so the section at the top is read off this drawing first
+    carried = carriedTeam(drawn.items, list.top, carried)
+    if (at !== undefined) {
+      const band = visibleBand(list, drawn.covers)
+      const span = drawn.items[at]!.span
+      last = `drawn at ${Math.round(span.top)}..${Math.round(span.bottom)}, band ${Math.round(band.top)}..${Math.round(band.bottom)}`
+      if (whollyInBand(span, band, INBOX_MARGIN)) return elementOfItem(drawn.items[at]!)
+      // drawn but not wholly in view: bring it into the band
+      await dragInbox(list, shiftIntoBand(span, band, INBOX_MARGIN))
+      const shifted = await drawnInbox()
+      // as at the end: one still drag may be a tap or a settling list, two in a row cannot move it
+      stillShifts = shifted.signature === drawn.signature ? stillShifts + 1 : 0
+      if (stillShifts >= INBOX_END_STILL_DRAGS) {
+        throw new Error(`the inbox item asked for cannot be brought wholly into view: ${stillShifts} drags to move it changed nothing (${last})`)
+      }
+      drawn = shifted
+      continue
+    }
+    await dragInbox(list, -page)
+    // the drawing after the drag is the next pass's: one page source a pass
+    const next = await drawnInbox()
+    // A drag that changed nothing is the end only when the next one changes nothing too: a drag
+    // taken as a tap, or one while the list still settles, also leaves the drawing as it was.
+    still = next.signature === drawn.signature ? still + 1 : 0
+    if (still >= INBOX_END_STILL_DRAGS) return undefined
+    drawn = next
+  }
+}
+
+// The frames an eval's e2eMeasure(key, hosts) puts at globalThis[key], in its hosts' order, once
+// every one is measured. Bound: 3.
+const measured = async (key: string, what: string) =>
+  waitFor(what, async () => (await jsEval<Array<Frame> | null>(`return globalThis[${JSON.stringify(key)}] || null`)) ?? undefined, {
+    interval: 100,
+    timeout: 3_000,
+  })
+
+// The app's drawn small conversation rows (AppSmallRow): each row's tappable box measured, and its
+// top line's participants and team. Bound: the read 1, the measures 3.
+const appSmallRows = async (): Promise<Array<AppSmallRow>> => {
+  const lines = await jsEval<Array<{participants: Array<string>; team: boolean}>>(
+    `${fiberPrelude}
+    const boxes = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.tag !== 5 && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_INBOX_ROW)}) boxes.push(f)
+      else if (f.child) stack.push(f.child)
+      if (f.sibling) stack.push(f.sibling)
+    }
+    const rows = []
+    for (const box of boxes) {
+      let line
+      const inner = box.child ? [box.child] : []
+      while (inner.length && !line) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        if (p && Array.isArray(p.participants) && 'teamDisplayName' in p) line = p
+        if (f.sibling) inner.push(f.sibling)
+        if (f.child) inner.push(f.child)
+      }
+      const host = e2eHostOf(box)
+      if (line && host) rows.push({host, participants: [...line.participants], team: !!line.teamDisplayName})
+    }
+    e2eMeasure('__e2eSmallRows', rows.map(r => r.host))
+    return rows.map(r => ({participants: r.participants, team: r.team}))
+  `,
+    {once: true}
+  )
+  const frames = await measured('__e2eSmallRows', `the ${lines.length} inbox rows measured`)
+  return lines.map((l, i) => ({...l, bottom: frames[i]!.y + frames[i]!.height, top: frames[i]!.y}))
+}
+
+// The drawn row named `name` in this drawing (findInboxRow). A small conversation's must also be the
+// app's one-on-one row with `name` (isOneOnOneRow), read only once a label matched: a group whose
+// first participant is `name` reads the same.
+const inboxRowNamed = async (items: ReadonlyArray<DrawnInboxItem>, name: string, team: string, carried: string | undefined) => {
+  if (name.startsWith('#') || !inboxRowCandidates(items, name, team, carried).length) return findInboxRow(items, name, team, carried)
+  return findInboxRow(items, name, team, carried, isOneOnOneRow(await appSmallRows(), name))
+}
+
+// The inbox row of the conversation named `name`, wholly in view: a small conversation by its name
+// (a one-on-one row only, inboxRowNamed), a channel as "#channel" and only among KB_E2E_TEAM's
+// channels (findInboxRow; a name more than one drawn row matches is refused). Fails at the inbox's end
+// or after INBOX_SCROLL_MS. Its errors name neither `name` nor any row: the inbox holds conversations
+// other than the test ones.
+export const scrollInboxTo = async (name: string): Promise<WebdriverIO.Element> => {
+  const {team} = loadE2EAccounts()
+  const row = await seekInbox(async (items, carried) => inboxRowNamed(items, name, team, carried))
+  if (!row) throw new Error('the inbox row asked for is not in the inbox (scrolled to its end)')
+  return row
+}
+
+// Whether the inbox draws a row of the conversation named `name` (as scrollInboxTo finds it) anywhere
+// from its top to its end. false needs the whole inbox scrolled, so a caller checks a row it expects
+// is there first, which shows the inbox loaded, and pairs it with appInboxLists.
+export const inboxHasRow = async (name: string) => {
+  const {team} = loadE2EAccounts()
+  return (await seekInbox(async (items, carried) => inboxRowNamed(items, name, team, carried))) !== undefined
+}
+
+// The gear of the big team header of `team`, by its exact name (findInboxHeader), wholly in view.
+export const scrollInboxToTeamHeader = async (team: string): Promise<WebdriverIO.Element> => {
+  const gear = await seekInbox(items => findInboxHeader(items, team))
+  if (!gear) throw new Error('the team header asked for is not in the inbox (scrolled to its end)')
+  return gear
+}
+
+// Opens the conversation named `name` by tapping its inbox row (scrollInboxTo), and waits for its
+// thread. Returns its conversation id.
+export const openFromInbox = async (name: string) => {
+  for (let tap = 1; ; tap++) {
+    const row = await scrollInboxTo(name)
+    await row.click()
+    // a tap the list takes as the end of a scroll opens nothing; tap again
+    const convID = await waitFor('the conversation of the tapped inbox row to open', openedConversation, {
+      interval: 250,
+      timeout: 5_000,
+    }).catch((e: unknown) => {
+      if (tap >= 3) throw e
+      return undefined
+    })
+    if (convID) {
+      await waitForThread(convID)
+      return convID
+    }
+  }
+}
+
+// Whether what a flow changed survives a relaunch of the app: relaunches it (a new JS runtime, the
+// recording checkpointed on both sides) and waits for it to sign in, then `read`, which goes back to
+// where the value shows and reads it, and checks it equals `want`. It proves the change persisted
+// only when `want` differs from what the app shows by default: the caller picks a non-default value.
+// Bound: relaunchApp 200, waitSignedIn 90, then `read`'s own.
+export const expectPersists = async <V,>(what: string, read: () => Promise<V>, want: V) => {
+  await relaunchApp()
+  await waitSignedIn()
+  const miss = persistedMismatch(what, await read(), want)
+  if (miss) throw new Error(miss)
+}
+
+// -- notification settings (the info panel's Settings tab) --------------------------------------
+
+const NOTIFY_LABELS = {never: 'Never', onAnyActivity: 'On any activity', onWhenAtMentioned: 'Only when @mentioned'} as const
+type NotifyGroup = 'desktop' | 'mobile'
+export type NotifyChoice = keyof typeof NOTIFY_LABELS
+
+// the full-width box around one choice's radio, chosen or not
+export const notifyRadioBox = (group: NotifyGroup, choice: NotifyChoice) =>
+  browser.$(`-ios predicate string:name BEGINSWITH "${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-${choice}"`)
+
+// Taps a notification choice's radio: its own clickable (the circle and its label) inside the box,
+// since the box runs the panel's width and its middle can fall past the label. The tree shows the
+// clickable as the box's sibling, inside the box's frame, not as its child. Bound: the box 10, the
+// clickable 10, the tap 1 = 21s.
+export const tapNotifyRadio = async (group: NotifyGroup, choice: NotifyChoice) => {
+  const box = notifyRadioBox(group, choice)
+  await box.waitForExist({interval: 150, timeout: 10_000, timeoutMsg: `the ${group} "${NOTIFY_LABELS[choice]}" radio never appeared`})
+  const radio = await waitFor(
+    `the clickable in the ${group} "${NOTIFY_LABELS[choice]}" radio's box`,
+    async () => {
+      const {x, y} = await box.getLocation()
+      const {height, width} = await box.getSize()
+      // the clickable and its label's text (reported twice) both lie in the box: the innermost counts
+      const inBox: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+      const seen: Array<string> = []
+      for (const e of await browser.$$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}" AND visible == 1`).getElements()) {
+        const at = await e.getLocation().catch(() => undefined)
+        const size = await e.getSize().catch(() => undefined)
+        if (!at || !size) continue
+        const mx = at.x + size.width / 2
+        const my = at.y + size.height / 2
+        seen.push(`${Math.round(mx)},${Math.round(my)}`)
+        if (mx >= x && mx <= x + width && my >= y && my <= y + height) inBox.push({e, rect: {...at, ...size}})
+      }
+      const inside = innermost(inBox.map(c => c.rect)).map(i => inBox[i]!.e)
+      if (inside.length === 1) return inside[0]
+      // geometry only, for the timeout's message
+      throw new Error(`${inside.length} in the box at ${x},${y} ${width}x${height}; middles seen: ${seen.join(' ') || 'none'}`)
+    },
+    // one pass reads the box and both groups' choices, several calls each, slower while recording
+    {interval: 150, timeout: 10_000}
+  )
+  await radio.click()
+}
+
+// The chosen notification choice of a group, read off its radios' testIDs; undefined while none shows.
+export const notifyRadioChosen = async (group: NotifyGroup): Promise<NotifyChoice | undefined> => {
+  const prefix = `${T.CHAT_NOTIFY_RADIO_PREFIX}${group}-`
+  const chosen = browser.$(
+    `-ios predicate string:name BEGINSWITH "${prefix}" AND name ENDSWITH "${T.CHAT_NOTIFY_RADIO_SELECTED_SUFFIX}"`
+  )
+  if (!(await chosen.isExisting())) return undefined
+  const id = (await chosen.getAttribute('name')) ?? ''
+  const choice = id.slice(prefix.length, id.length - T.CHAT_NOTIFY_RADIO_SELECTED_SUFFIX.length)
+  return choice in NOTIFY_LABELS ? (choice as NotifyChoice) : undefined
+}
+
 // -- accounts -----------------------------------------------------------------------------------
 
 export const signedInAs = async () => jsEval<AppAccount>(APP_ACCOUNT_BODY)
+
+// Waits for the app, just relaunched, to be signed in with no account switch under way. Bound: 90.
+export const waitSignedIn = async () =>
+  waitFor(
+    'the relaunched app to sign in',
+    async () => {
+      const a = await signedInAs().catch(() => undefined)
+      return a?.loggedIn && !a.switching ? true : undefined
+    },
+    {interval: 1_000, timeout: 90_000}
+  )
 
 // Opens the account switcher sheet from the chat tab's avatar.
 export const openAccountSwitcher = async () => {
@@ -499,41 +898,10 @@ export const switchAppAccount = async (username: string) => {
   await escapeToTabs()
 }
 
-// Deletes a team channel as the app's account (an admin of the team): an evaluate returns
-// synchronously, so it starts the RPC and polls for its outcome.
-export const deleteChannelAsApp = async (convID: string, channelName: string) => {
-  const key = `__e2eDelete${Date.now()}`
-  await jsEval(`
-    const g = globalThis; g.${key} = 'pending'
-    kbModule('constants/rpc/rpc-chat-gen.tsx')
-      .localDeleteConversationLocalRpcPromise({
-        channelName: ${JSON.stringify(channelName)},
-        confirmed: true,
-        convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(convID)}),
-      })
-      .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) })
-    return true
-  `)
-  const state = await waitFor(
-    `#${channelName} to be deleted`,
-    async () => {
-      const now = await jsEval<string>(`return globalThis.${key}`)
-      return now === 'pending' ? undefined : now
-    },
-    {interval: 250, timeout: 20_000}
-  )
-  if (state !== 'done') throw new Error(`deleting #${channelName} failed: ${state}`)
-}
-
 // -- composer ------------------------------------------------------------------------------------
 
 // The composer's text, read from the input element.
-export const composerText = async () => {
-  const v = await el(T.CHAT_INPUT).getAttribute('value')
-  // an empty UITextView reports its placeholder as its value
-  const placeholder = await el(T.CHAT_INPUT).getAttribute('placeholderValue').catch(() => null)
-  return v === null || v === placeholder ? '' : v
-}
+export const composerText = async () => fieldText(el(T.CHAT_INPUT))
 
 export const waitForComposerText = async (text: string, timeout = 5_000) =>
   waitFor(`the composer to read "${text}"`, async () => ((await composerText()) === text ? true : undefined), {
@@ -547,47 +915,140 @@ export const typeInComposer = async (text: string) => {
   await el(T.CHAT_INPUT).addValue(text)
 }
 
+// Bound: clearFieldByKeys 16, the composer read empty 5 = 21s.
 export const clearComposer = async () => {
-  if ((await composerText()) === '') return
-  await el(T.CHAT_INPUT).clearValue()
+  await clearFieldByKeys(el(T.CHAT_INPUT))
   await waitForComposerText('')
 }
 
+// Ends whatever the open conversation's composer holds (an edit, a reply, text), which saves an
+// empty draft; nothing where the conversation draws no composer. Cleanup only: it does what the
+// composer needs, whatever a test left. Bound: the composer read 5, the edit bar 5 and its wait 5,
+// the reply bar 5 and its wait 5, clear 21 = 46.
+export const resetComposer = async () => {
+  if (!(await el(T.CHAT_INPUT).isExisting())) return
+  if (await editCancel().isExisting()) await editCancel().click()
+  if (await replyPreview().isExisting()) await el(T.CHAT_REPLY_CANCEL).click()
+  await editCancel().waitForExist({reverse: true, timeout: 5_000})
+  await replyPreview().waitForExist({reverse: true, timeout: 5_000})
+  await clearComposer()
+}
+
+// The open suggestion list's rows, each with the words of its label (a row's label merges what it
+// shows); the highlighted one carries its own testID. A user row holds an account name, so callers
+// pick rows by their words in memory.
+export const suggestionRows = async () => {
+  const found = [...(await els(T.CHAT_SUGGESTION_ROW).getElements()), ...(await els(T.CHAT_SUGGESTION_ROW_SELECTED).getElements())]
+  return Promise.all(found.map(async e => ({e, words: ((await e.getAttribute('label')) ?? '').split(/[ ,]+/).filter(w => !!w)})))
+}
+
 // Sends `text` through the composer's send button and returns the ordinal of its row.
+// A Send tap right after the typing has now and then not taken: the text stayed in the composer and
+// nothing was sent. Send is tapped a second time only when the first sent nothing (no row with the
+// text, the composer not emptied), read again right before the second tap since the first can land
+// after its 3s of reads, so nothing is sent twice. Bound 25: the typing 5, the button 5, the first
+// tap (the tap 1, 3s of reads) 4, the second (a read 1, the tap 1, 3s of reads) 5, the row 6.
 export const sendMessage = async (text: string) => {
   await typeInComposer(text)
   await waitForTestID(T.CHAT_SEND_BUTTON, 5_000)
-  await el(T.CHAT_SEND_BUTTON).click()
-  return waitForRow(text)
+  const took = async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === ''
+  for (let i = 0; ; i++) {
+    if (i > 0 && (await took())) break
+    await el(T.CHAT_SEND_BUTTON).click()
+    const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval: 250, timeout: 3_000}).catch(
+      (e: unknown) => {
+        if (isAttemptOver(e)) throw e
+        return false
+      }
+    )
+    if (sent) break
+    if (i === 1) throw new Error('two taps on Send sent nothing: the text is still in the composer')
+    console.log('sendMessage: the first Send tap sent nothing; tapping it again')
+  }
+  return waitForRow(text, 6_000)
 }
 
 export const isKeyboardUp = async () => browser.isKeyboardShown().catch(() => false)
 
+// Waits for the keyboard to be up as the app sees it: WDA reports it as soon as an input takes focus,
+// while RN's Keyboard.metrics() (what the thread's keyboardTop reads) is set only once it has shown.
+export const waitForKeyboard = async (timeout = 5_000) =>
+  waitFor(
+    'the keyboard',
+    async () =>
+      (await isKeyboardUp()) &&
+      (await jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`))
+        ? true
+        : undefined,
+    {interval: 200, timeout}
+  )
+
 // Closes the keyboard the way the app does (WDA's own hideKeyboard cannot find a way to close this
 // app's keyboards), and waits for it to go.
+// The keyboard counts as up when either WDA or the app says so: WDA's isKeyboardShown has read false
+// with the keyboard drawn, and then a hide that trusted it alone did nothing.
+const appKeyboardUp = async () =>
+  jsEval<boolean>(`const m = kbModule('node_modules/react-native/index.js').Keyboard.metrics(); return !!m && m.height > 0`)
+const eitherSaysUp = async () => (await isKeyboardUp()) || (await appKeyboardUp())
+
 export const hideKeyboard = async () => {
-  if (!(await isKeyboardUp())) return
-  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`)
-  await waitFor('the keyboard to close', async () => ((await isKeyboardUp()) ? undefined : true), {interval: 200, timeout: 5_000})
+  if (!(await eitherSaysUp())) return
+  await jsEval(`kbModule('node_modules/react-native/index.js').Keyboard.dismiss(); return true`, {once: true})
+  await waitFor('the keyboard to close', async () => ((await eitherSaysUp()) ? undefined : true), {interval: 200, timeout: 5_000})
 }
 
 // -- a message's menu ----------------------------------------------------------------------------
 
 const menuSheet = () => browser.$('-ios predicate string:label == "Bottom Sheet" AND visible == 1')
 
+// Opens a menu sheet with `open` (a tap or a long press, done afresh each try, as the sheet ignores
+// one that lands while the screen is still settling), and waits for the sheet. Bound: `timeout`.
+const openSheetWith = async (what: string, open: () => Promise<unknown>, timeout = 15_000) =>
+  waitFor(
+    what,
+    async () => {
+      if (await menuSheet().isExisting()) return true
+      await open()
+      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
+    },
+    {interval: 300, timeout}
+  )
+
+// Drags the open sheet up by 300 points, from near the screen's bottom, to bring later items on screen.
+const dragSheetUp = async () => {
+  const {height, width} = await browser.getWindowRect()
+  const x = Math.round(width / 2)
+  await browser
+    .action('pointer', {parameters: {pointerType: 'touch'}})
+    .move({x, y: height - 80})
+    .down()
+    .move({duration: 400, x, y: height - 380})
+    .pause(200)
+    .up()
+    .perform()
+}
+
 // Long-presses the message showing `text` (at its middle, found afresh each try) to open its menu,
 // a bottom sheet, and waits for the sheet.
 export const openMessageMenu = async (text: string) => {
-  await waitFor(
-    `the menu of the message "${text}"`,
-    async () => {
-      if (await menuSheet().isExisting()) return true
-      const {x, y} = await rowCentre(text)
-      await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
-      return (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) ? true : undefined
-    },
-    {interval: 300, timeout: 15_000}
-  )
+  await openSheetWith(`the menu of the message "${text}"`, async () => {
+    const {x, y} = await rowCentre(text)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
+  })
+}
+
+// Long-presses the drawn row at `ordinal` (at its middle, read afresh each try) to open its menu, for
+// a message whose text must stay out of selectors, logs and errors.
+export const openMessageMenuAt = async (ordinal: number) => {
+  await openSheetWith(`the menu of the message at ${ordinal}`, async () => {
+    const r = rowOf(await requireThread(), ordinal)
+    if (!r) throw new Error(`row ${ordinal} is not drawn`)
+    // on its last line, the message's body: a row that opens a run of messages draws its author line
+    // above, outside the long-pressable body
+    const {width} = await browser.getWindowRect()
+    const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
+  })
 }
 
 // The row showing `text` in the thread list (rows expose their text as their accessibility name;
@@ -606,7 +1067,39 @@ export const rowCentre = async (text: string) => {
 const menuItemPredicate = (label: string) =>
   `-ios predicate string:type == "XCUIElementTypeOther" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
 export const menuItem = (label: string) => browser.$(`${menuItemPredicate(label)} AND visible == 1`)
-export const menuHas = async (label: string) => browser.$(menuItemPredicate(label)).isExisting()
+const offers = (labels: ReadonlyArray<string>, label: string) => labels.some(l => l === label || l.endsWith(`, ${label}`))
+
+// Every item label of the open menu sheet: the items drawn on screen inside the sheet, read as the
+// sheet is dragged up until a drag shows nothing new (its end), so an item below the fold counts.
+// Bound: 15s.
+export const menuLabels = async (): Promise<Array<string>> => {
+  if (!(await menuSheet().isExisting())) throw new Error('no menu sheet is open')
+  const seen = new Set<string>()
+  // one page source a reading (a call per element made a reading take seconds); `visible` is kept,
+  // so rows the sheet covers do not count
+  const shown = async () => sheetItemLabels(sourceElements(await browser.getPageSource())) ?? []
+  let before = ''
+  await waitFor(
+    'the menu sheet read to its end',
+    async () => {
+      const now = await shown()
+      // a sheet still sliding in reads no items: never the end, and nothing to drag yet
+      if (!now.length) return undefined
+      for (const l of now) seen.add(l)
+      const signature = now.join('\n')
+      if (signature === before) return true
+      before = signature
+      await dragSheetUp()
+      return undefined
+    },
+    {interval: 300, timeout: 15_000}
+  )
+  return [...seen]
+}
+
+// Whether the open menu sheet holds the item `label` anywhere in it (menuLabels). Bound: 15s.
+export const menuHas = async (label: string) => offers(await menuLabels(), label)
+export const menuOffers = offers
 
 // Scrolls the menu until `label` shows, and taps it. The sheet opens partway, so later items start
 // below the screen.
@@ -623,28 +1116,115 @@ export const chooseMenuItem = async (label: string) => {
         const {height} = await browser.getWindowRect()
         if (y + itemHeight / 2 < height) return true
       }
-      const {height, width} = await browser.getWindowRect()
-      const x = Math.round(width / 2)
-      await browser
-        .action('pointer', {parameters: {pointerType: 'touch'}})
-        .move({x, y: height - 80})
-        .down()
-        .move({duration: 400, x, y: height - 380})
-        .pause(200)
-        .up()
-        .perform()
+      await dragSheetUp()
       return undefined
     },
     {interval: 300, timeout: 15_000}
   )
-  await menuItem(label).click()
-  await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+  // A tap while the sheet still settles after a drag can do nothing (seen live): the item is tapped
+  // again only while the sheet and the item are both still up, so a tap that took is never repeated.
+  // Bound: two tries of the tap and 2.5s, or one and a last 2.5s for the sheet to go = 5s, as the one
+  // 5s wait was.
+  for (let tap = 1; ; tap++) {
+    await menuItem(label).click()
+    const closed = await menuSheet()
+      .waitForExist({reverse: true, timeout: 2_500})
+      .then(() => true)
+      .catch(() => false)
+    if (closed) return
+    // the tap took and the sheet is on its way down
+    if (!(await menuItem(label).isExisting())) {
+      await menuSheet().waitForExist({reverse: true, timeout: 2_500})
+      return
+    }
+    if (tap >= 2) throw new Error(`the menu sheet is still up after "${label}" was tapped twice`)
+  }
 }
 
 export const closeMessageMenu = async () => {
   if (!(await menuSheet().isExisting())) return
   await browser.$('-ios predicate string:label == "Bottom sheet backdrop"').click()
   await menuSheet().waitForExist({reverse: true, timeout: 5_000})
+}
+
+// The conversations whose inbox row menu the app draws now (a small row's menu: the one with its pin
+// items), read off the React tree.
+const inboxRowMenuConversations = async () =>
+  jsEval<Array<string>>(`${fiberPrelude}
+    const out = new Set()
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && p.showPinItems === true && p.visible === true && typeof p.onHidden === 'function' && typeof p.conversationIDKey === 'string') {
+        out.add(p.conversationIDKey)
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return [...out]
+  `)
+
+const ROW_MENU_PRESSES = 3
+
+// Long-presses the inbox row of the conversation named `name` to open its menu, a bottom sheet of
+// the conversation's actions, finding the row afresh (scrollInboxTo) for each press. The sheet must
+// be the menu of `convID`, the conversation the caller means: any other is closed and refused, so
+// no item of it is ever tapped. Bound: an open sheet closed 5, three presses of scrollInboxTo 90,
+// the press 1 and the sheet 3, the menu's read 1 and its close 5 = 295.
+export const openInboxRowMenu = async (name: string, convID: string) => {
+  await closeMessageMenu()
+  for (let press = 1; ; press++) {
+    const row = await scrollInboxTo(name)
+    await browser.execute('mobile: touchAndHold', {duration: 0.8, elementId: row.elementId})
+    if (await menuSheet().waitForExist({interval: 150, timeout: 3_000}).catch(() => false)) break
+    if (press >= ROW_MENU_PRESSES) throw new Error(`the inbox row menu did not open after ${ROW_MENU_PRESSES} long presses`)
+  }
+  const shown = await inboxRowMenuConversations()
+  if (shown.length !== 1 || shown[0] !== convID) {
+    await closeMessageMenu()
+    throw new Error(`the inbox row menu open is not the asked-for conversation's (${shown.length} row menus drawn)`)
+  }
+}
+
+// Opens the menu sheet `tap` shows (a tap on a gear, a dropdown). Bound: 15s.
+export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
+  openSheetWith(what, async () => tap().catch(() => {}))
+
+// -- search filters ------------------------------------------------------------------------------
+
+// The search filter on screen (common-adapters/search-filter.tsx: the inbox filter, the forward,
+// channel, member and bot pickers). Its box is one accessible element on iOS, so the text field in it
+// is not in the tree: its text goes in through the focused field.
+export const searchFilter = () => browser.$(`-ios predicate string:name == "${T.SEARCH_FILTER}" AND visible == 1`)
+
+// Types `text` into whatever input has the keyboard's focus, as key presses (WDA types them through
+// the keyboard). The error says what was typed into, never the text: it can hold an account name.
+export const typeIntoFocused = async (what: string, text: string) => {
+  const actions = [...text].flatMap(c => [
+    {type: 'keyDown', value: c},
+    {type: 'keyUp', value: c},
+  ])
+  try {
+    await browser.performActions([{actions, id: 'keyboard', type: 'key'}])
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    // the cause would carry the text
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(`typing into ${what} failed`)
+  } finally {
+    await browser.releaseActions().catch(() => {})
+  }
+}
+
+// Focuses the search filter on screen (a tap on its box, unless the keyboard is already up) and
+// types `text` into it. Bound: the filter 10, the tap 1, the keyboard 5, the keys 5 = 21s.
+export const typeInSearchFilter = async (text: string) => {
+  const filter = searchFilter()
+  await filter.waitForExist({timeout: 10_000})
+  if (!(await isKeyboardUp())) await filter.click()
+  await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+  await typeIntoFocused('the search filter', text)
 }
 
 // -- thread search -------------------------------------------------------------------------------
@@ -660,20 +1240,29 @@ const headerMenuItem = (label: string) =>
   )
 
 // Opens `item` from the conversation header's menu, and waits for `opened` to say it took.
+// Each tap waits for its effect before the next: the menu closes as soon as its item is tapped but
+// what it opens can take longer to show, and a More tapped in that gap reopens the menu over it (seen
+// live: thread search open under the header menu). Bound: 15s.
 export const openHeaderMenuItem = async (item: string, opened: () => Promise<boolean>) => {
   await hideKeyboard()
+  const settle = async (what: string, done: () => Promise<boolean>) =>
+    waitFor(what, async () => ((await done()) ? true : undefined), {interval: 250, timeout: 3_000}).catch((e: unknown) => {
+      if (isAttemptOver(e)) throw e
+    })
   await waitFor(
     `${item} to open from the header menu`,
     async () => {
       if (await opened()) return true
       if (await headerMenuItem(item).isExisting()) {
         await headerMenuItem(item).click().catch(() => {})
+        await settle(`${item} to open`, opened)
       } else {
         await browser.$('~More').click().catch(() => {})
+        await settle('the header menu', async () => (await opened()) || (await headerMenuItem(item).isExisting()))
       }
       return undefined
     },
-    {interval: 500, timeout: 15_000}
+    {interval: 250, timeout: 15_000}
   )
 }
 
@@ -689,11 +1278,8 @@ const counterText = async () => {
 // The search bar's text as the app holds it (its input's value prop), which trails the keys typed
 // into the native field while the JS thread is busy.
 const searchBarText = async () =>
-  jsEval<string | null>(`
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    const stack = [root.current]
+  jsEval<string | null>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
     while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
@@ -720,7 +1306,7 @@ export const searchFor = async (query: string, timeout = 30_000) => {
   const end = Date.now() + timeout
   for (;;) {
     await input.waitForExist({timeout: 5_000})
-    await input.clearValue().catch(() => {})
+    await clearFieldByKeys(input)
     await input.addValue(query)
     // Only not holding the query yet is waited out (and the query typed again); any other failure
     // (a lost session, the eval itself) is thrown. The wait ends with the overall deadline.
@@ -755,10 +1341,19 @@ export const searchAgain = async () => {
   await searchInput().addValue('\n')
 }
 
+// A tap can only put the keyboard away (seen live after a drag): Cancel is tapped again while the
+// search bar and its Cancel are both still up. Bound: two tries of the tap and 2.5s = 5s.
 export const closeSearch = async () => {
   const cancel = browser.$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Cancel" AND visible == 1')
-  await cancel.click()
-  await el(T.CHAT_THREAD_SEARCH).waitForExist({reverse: true, timeout: 5_000})
+  for (let tap = 1; ; tap++) {
+    await cancel.click()
+    const closed = await el(T.CHAT_THREAD_SEARCH)
+      .waitForExist({reverse: true, timeout: 2_500})
+      .then(() => true)
+      .catch(() => false)
+    if (closed) return
+    if (tap >= 2 || !(await cancel.isExisting())) throw new Error('thread search is still open after its Cancel was tapped')
+  }
 }
 
 export const searchOpen = async () => el(T.CHAT_THREAD_SEARCH).isExisting()
@@ -770,7 +1365,6 @@ export const catchUpPill = () => el(T.CHAT_CATCH_UP)
 export const replyPreview = () => el(T.CHAT_REPLY_PREVIEW)
 export const pinnedBanner = () => el(T.CHAT_PINNED_BANNER)
 export const editCancel = () => el(T.CHAT_EDIT_CANCEL)
-
 
 // -- assertions ----------------------------------------------------------------------------------
 
@@ -831,19 +1425,6 @@ export const pickAnchor = (t: ThreadReading, v: Viewport, margin = 20) => {
   return row
 }
 
-// Runs a check that fails today because of an app bug. The test passes while the check fails, and
-// fails once the check passes, so the mark is removed with the fix. `bug` names it; `origin` says
-// in one line whether it exists on master or came with this branch, and what that rests on.
-export const expectedFailure = async ({bug, origin}: {bug: string; origin: string}, body: () => unknown) => {
-  try {
-    await body()
-  } catch (e) {
-    console.log(`expected failure (${bug}; ${origin}): ${e instanceof Error ? e.message : String(e)}`)
-    return
-  }
-  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug}; ${origin})`)
-}
-
 // Whether an element whose label contains `text` sits inside the element with testID `id` (the tree
 // is flattened, so what a box shows are its siblings, placed inside its rect).
 export const showsText = async (id: string, text: string) => {
@@ -859,15 +1440,126 @@ export const showsText = async (id: string, text: string) => {
   return false
 }
 
-// Where a message is in its delete: shown, shown while its delete is in flight, or gone.
+// The one element `selector` matches whose middle lies inside the thread row at `ordinal` (the tree
+// is flattened, so what a row draws are elements placed inside the rect the list measured for it).
+// Throws when the row is not drawn, or when none or more than one match; `what` names the element.
+export const elementInRow = async (selector: string, ordinal: number, what: string) => {
+  const r = rowOf(await requireThread(), ordinal)
+  if (!r) throw new Error(`row ${ordinal} is not drawn, so ${what} in it cannot be found`)
+  // RN text is often reported as nested nodes (a StaticText in a StaticText, in a labelled box), so
+  // of the matches that nest or share a frame, only the innermost counts
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const mids: Array<number> = []
+  const inside: Array<WebdriverIO.Element> = []
+  for (const i of innermost(found.map(f => f.rect))) {
+    const {e, rect} = found[i]!
+    const mid = rect.y + rect.height / 2
+    mids.push(Math.round(mid))
+    if (mid >= r.top && mid <= r.bottom) inside.push(e)
+  }
+  if (inside.length !== 1) {
+    const span = `${Math.round(r.top)}..${Math.round(r.bottom)}`
+    throw new Error(`${inside.length} of ${what} in row ${ordinal} (${span}), not one; candidates' middles: ${mids.join(', ') || 'none'}`)
+  }
+  return inside[0]!
+}
+
+// The corner fullscreen button of the video at `ordinal`, titled `title`, in a row wholly in view.
+// The poster is a Pressable, which iOS accessibility makes one element, so the button on the poster
+// is not in the tree; a tap on the row plays the video inline, where the button is its own element.
+// Bound: the row 2, the tap 1, the button 10 and its read 2 = 15s.
+export const videoFullscreenButton = async (title: string, ordinal: number) => {
+  const row = await elementInRow(
+    `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ", ${title}, "`,
+    ordinal,
+    'the video row'
+  )
+  await row.click()
+  await waitFor(
+    "the video's fullscreen button",
+    async () => ((await browser.$$(`~${T.CHAT_VIDEO_FULLSCREEN}`).length) > 0 ? true : undefined),
+    {interval: 500, timeout: 10_000}
+  )
+  return elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
+}
+
+// Closes the conversation's info panel, a modal sheet, with its header's Done (a back swipe from the
+// left edge does not close a sheet), and waits for it to go. Bound: 3 tries of the tap and 5s = 16s.
+export const closeInfoPanel = async () => {
+  const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
+  for (let i = 0; i < 3; i++) {
+    if (!(await el(T.CHAT_INFO_PANEL).isExisting())) return
+    await browser.$(done).click().catch(() => {})
+    const gone = await el(T.CHAT_INFO_PANEL)
+      .waitForExist({reverse: true, timeout: 5_000})
+      .then(() => true)
+      .catch(() => false)
+    if (gone) return
+  }
+  throw new Error('the info panel did not close from its Done button')
+}
+
+// Drags the thread until the loaded row at `ordinal` sits wholly in the reader's view, and returns
+// that reading. Fails when the row is not loaded, or after `timeout`.
+export const scrollRowIntoView = async (ordinal: number, timeout = 30_000) =>
+  waitFor(
+    `row ${ordinal} wholly in view`,
+    async () => {
+      const t = await waitForThreadStable()
+      if (!t.ordinals.includes(ordinal)) throw new Error(`row ${ordinal} is not loaded`)
+      const v = await viewport(t)
+      const r = rowOf(t, ordinal)
+      if (wholly(r, v)) return t
+      // positive drags bring older rows (above) down into view
+      const dy = r ? (r.top < v.top ? v.top - r.top + 20 : v.bottom - r.bottom - 20) : ordinal < (t.rows[0]?.ordinal ?? 0) ? 300 : -300
+      await dragThread(dy)
+      return undefined
+    },
+    {interval: 0, timeout}
+  )
+
+// What the info panel's attachments tab lists now, read off its rows' props: the Media grid's
+// thumbnails (message id, and whether the thumb is a video's) and the Docs list's rows (message id
+// and the name it shows).
+type GalleryListing = {docs: Array<{id: number; name: string}>; media: Array<{id: number; video: boolean}>}
+export const galleryListing = async () =>
+  jsEval<GalleryListing>(`${fiberPrelude}
+    const media = []
+    const docs = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      // a media thumb's props hold its thumb and sizing; a doc row's its item of type doc
+      if (p && p.thumb && p.sizing && typeof p.thumb.id === 'number' && typeof p.thumb.typ === 'number') {
+        media.push({id: p.thumb.id, video: p.thumb.typ === 1})
+      } else if (p && p.item && p.item.type === 'doc' && p.item.message && typeof p.item.name === 'string') {
+        docs.push({id: Number(p.item.message.id) || 0, name: p.item.name})
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    const once = (xs, key) => xs.filter((x, i) => xs.findIndex(y => key(y) === key(x)) === i)
+    return {docs: once(docs, d => d.id), media: once(media, m => m.id)}
+  `)
+
+// Where a message is in its delete: shown, shown while its delete is in flight, or gone from a thread
+// that is mounted. Throws while no thread is mounted.
 export type DeletePhase = 'gone' | 'row' | 'row+deleting'
 export const deletePhase = async (ordinal: number) =>
   jsEval<DeletePhase>(`${threadStoreBody}
-    if (!st || !(st.messageOrdinals || []).includes(${ordinal})) return 'gone'
+    e2eRequireThreadStore()
+    if (!(st.messageOrdinals || []).includes(${ordinal})) return 'gone'
     return [...st.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
   `)
 
-// The chat badge's unread count for a conversation.
+// The chat badge's unread count for a conversation. A 0 does not prove the badge store has loaded
+// (right after a relaunch it reads 0 before it has), so after a relaunch only presence checks rely on it.
 export const unreadCount = async (convID: string) =>
   jsEval<number>(`return (kbModule('chat/inbox/badge-state.tsx').useInboxBadgeState.getState().counts.get(${JSON.stringify(convID)}) || {}).unreadCount || 0`)
 
@@ -903,92 +1595,232 @@ export const visibleConversation = async () =>
 
 // -- standing in for the service, and reading what the app asked of it ---------------------------
 
-// Watches the visible thread's row at `ordinal` from inside the app, every 16ms: logs each change of
-// its delete phase to the console (so Metro's log holds it in order with the RPC log), and from the
-// moment its delete is in flight hands the app a ChatThreadsStale for the conversation every 100ms,
-// as the service sends one when a thread changed underneath it; each makes the thread reload. Stops
-// by itself once the row is gone or after 15s.
-export const watchDeleteThroughReloads = async (ordinal: number) => {
-  const ok = await jsEval<boolean>(`${threadStoreBody}
-    if (!store) return false
-    const g = globalThis
-    if (g.__e2eDeleteWatch) clearInterval(g.__e2eDeleteWatch)
-    const router = kbModule('chat/notification-router.tsx')
-    const types = kbModule('constants/types/chat/index.tsx')
-    const started = Date.now()
-    let phase
-    let lastStale = Date.now()
-    g.__e2eStaleCount = 0
-    g.__e2eDeleteWatch = setInterval(() => {
-      const s = store.getState()
-      const now = !(s.messageOrdinals || []).includes(${ordinal}) ? 'gone' : [...s.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
-      if (now !== phase) {
-        phase = now
-        console.log('e2e-row-phase ' + now)
+// Taps the pressable text rendering exactly `text` in the message at `ordinal` at its own frame.
+// XCUITest can report such a text with its line's full width (the "Collapsed" label of a collapsed
+// attachment: 0..402 while the word sits at the left), so a tap on the element's middle lands beside
+// the word and does nothing (seen live). The app's tree finds exactly one text with that handler in
+// the message, its own view is measured, and the tap lands at that frame's middle only if the frame
+// lies wholly inside `element` (the text's element, so the window is the screen here) and on screen.
+// The evals send nothing. Bound: 5s.
+export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, text: string) => {
+  const started = await jsEval<number>(`${fiberPrelude}
+    const label = ${JSON.stringify(text)}
+    const hits = []
+    for (const row of e2eMessageFibers(${ordinal})) {
+      const inner = row.child ? [row.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        if (f.tag !== 5 && p && p.children === label && typeof p.onClick === 'function' && !hits.some(h => h.memoizedProps.onClick === p.onClick)) hits.push(f)
       }
-      if (now === 'gone' || Date.now() - started > 15000) {
-        clearInterval(g.__e2eDeleteWatch)
-        g.__e2eDeleteWatch = undefined
-        return
-      }
-      if (now === 'row+deleting' && Date.now() - lastStale >= 100) {
-        lastStale = Date.now()
-        g.__e2eStaleCount++
-        router.routeChatNotification({
-          payload: {params: {updates: [{convID: types.keyToConversationID(convID), updateType: 1}]}},
-          type: 'chat.1.NotifyChat.ChatThreadsStale',
-        })
-      }
-    }, 16)
-    return true
-  `)
-  if (!ok) throw new Error('no thread store on screen to watch')
+    }
+    if (hits.length !== 1) return hits.length
+    const host = e2eHostOf(hits[0])
+    if (!host) return -1
+    e2eMeasure('__e2eTextFrame', [host])
+    return 1
+  `, {once: true})
+  if (started !== 1) {
+    throw new Error(started === -1 ? `the "${text}" text has no view to measure` : `${started} pressable "${text}" texts in the message at ${ordinal}, not one`)
+  }
+  const [frame] = await measured('__e2eTextFrame', `the "${text}" text measured`)
+  const at = await element.getLocation()
+  const size = await element.getSize()
+  const {height: window} = await browser.getWindowRect()
+  if (!frame || !frameInside(frame, {...at, ...size}, window)) {
+    throw new Error(`the "${text}" text is not wholly inside its element on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
+  }
+  console.log(`  tapTextIn: "${text}" at ${JSON.stringify(frame)} in its element ${JSON.stringify({...at, ...size})}`)
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
 }
 
-export const staleNotificationsSent = async () => jsEval<number>(`return globalThis.__e2eStaleCount || 0`)
+// Presses the inline pressable text `text` (a link drawn inside a message's text, such as a failed
+// send's "Edit or Cancel") of the visible thread's message at `ordinal`. On iOS such a text has no
+// accessibility element (the row is one element) and no frame of its own (Fabric draws it inside its
+// paragraph as virtual text), so the simulator cannot tap it. Ledger ruling, after the camera and QR
+// precedent: the flow calls the handler a tap fires, found in the app's tree under that message
+// only, exactly one text rendering exactly `text`; the caller adds a manualEdge so a person checks
+// the physical tap. It is the app's own UI handler, so what it sends is credited (no
+// withHarnessRpcs).
+export const pressInlineText = async (ordinal: number, text: string) => {
+  const found = await jsEval<number>(`${fiberPrelude}
+    const label = ${JSON.stringify(text)}
+    // the composite texts with a click handler rendering exactly the label (the host virtual text
+    // under each carries the same handler)
+    const hits = []
+    for (const row of e2eMessageFibers(${ordinal})) {
+      const inner = row.child ? [row.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        const p = f.memoizedProps
+        // from the row's first child, every child and sibling stays inside the row
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        if (f.tag !== 5 && p && p.children === label && typeof p.onClick === 'function') hits.push(p.onClick)
+      }
+    }
+    if (hits.length === 1) hits[0]()
+    return hits.length
+  `, {once: true})
+  if (found !== 1) throw new Error(`${found} pressable "${text}" texts in the message at ${ordinal}, not one`)
+}
 
-// Chooses Delete in the open message menu from inside the app, right behind a ChatThreadsStale for
-// the visible conversation in the same task: the thread's reload is asked for just ahead of the
-// delete, so its pass can come back while the delete is still on its way (a phone's delete lands
-// within a tick or two of the tap, before a reload the tap starts). The menu stays open; close it
-// after.
-export const chooseDeleteBehindAReload = async () => {
-  const ok = await jsEval<boolean>(`
-    const screen = kbModule('constants/router.tsx').getVisibleScreen()
-    const convID = screen && screen.params && screen.params.conversationIDKey
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    let onClick
-    const stack = [root.current]
-    while (stack.length && !onClick) {
+// Taps the button labelled exactly `label` inside a tappable row the accessibility tree shows as
+// one element (the row's box merges what it holds, so the button has no element of its own): the
+// app's tree finds the one button with that label under the one component whose prop `prop` equals
+// `value`, its native view and that component's own view are measured (in the app's window, which
+// for a modal is the sheet, not the screen), the row's element places them on screen, and the tap
+// lands at the middle of the button's frame only if it lies wholly inside `row` (the row's own
+// element, which must be the measured row's size) and on screen (ledger ruling, the shape of the
+// inline-text one for a control with a view). The evals send nothing. Bound: 5s.
+export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: string; value: string}, label: string) => {
+  const started = await jsEval<number>(`${fiberPrelude}
+    const prop = ${JSON.stringify(scope.prop)}
+    const value = ${JSON.stringify(scope.value)}
+    const label = ${JSON.stringify(label)}
+    const read = p => prop.split('.').reduce((v, k) => (v && typeof v === 'object' ? v[k] : undefined), p)
+    const scopes = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.sibling) stack.push(f.sibling)
+      if (f.memoizedProps && read(f.memoizedProps) === value) scopes.push(f)
+      else if (f.child) stack.push(f.child)
+    }
+    const buttons = []
+    for (const s of scopes) {
+      const inner = s.child ? [s.child] : []
+      while (inner.length) {
+        const f = inner.pop()
+        if (f.child) inner.push(f.child)
+        if (f.sibling) inner.push(f.sibling)
+        const p = f.memoizedProps
+        if (f.tag !== 5 && p && p.label === label && typeof p.onClick === 'function') buttons.push(f)
+      }
+    }
+    if (buttons.length !== 1 || scopes.length !== 1) return buttons.length === 1 ? -2 : buttons.length
+    // a component's own native view: its first host descendant
+    const button = e2eHostOf(buttons[0])
+    const row = e2eHostOf(scopes[0])
+    if (!button || !row) return -1
+    // both in the same coordinates (a modal's root view, not the screen); the row's element on screen
+    // places them
+    e2eMeasure('__e2eControlFrames', [button, row])
+    return 1
+  `, {once: true})
+  if (started !== 1) {
+    throw new Error(
+      started === -1
+        ? `the "${label}" button or its row has no view to measure`
+        : started === -2
+          ? 'more than one component matches the row asked for'
+          : `${started} "${label}" buttons in the row asked for, not one`
+    )
+  }
+  const [button, measuredRow] = await measured('__e2eControlFrames', `the "${label}" button measured`)
+  if (!button || !measuredRow) throw new Error(`the "${label}" button or its row was not measured`)
+  const at = await row.getLocation()
+  const size = await row.getSize()
+  // the row's view and its element are the same box: the difference places the button on screen
+  if (Math.abs(measuredRow.width - size.width) > 1 || Math.abs(measuredRow.height - size.height) > 1) {
+    throw new Error(`the row measured ${JSON.stringify(measuredRow)} is not the row element ${JSON.stringify({...at, ...size})}`)
+  }
+  const frame = {...button, x: button.x + at.x - measuredRow.x, y: button.y + at.y - measuredRow.y}
+  const {height: window} = await browser.getWindowRect()
+  if (!frameInside(frame, {...at, ...size}, window)) {
+    throw new Error(`the "${label}" button is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
+  }
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+}
+
+// Taps the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") at its own frame, and
+// waits for it to turn. XCUITest's frames for a modal's switches and their labels are not where they
+// are drawn (taps there did nothing, seen live), and measureInWindow is in the modal's window, not the
+// screen: the switch's view is placed on screen by `anchor`, a button in the same modal whose element
+// is on screen (the modal's Finish). The app's tree finds exactly one switch with exactly `label` and
+// the buttons labelled `anchorLabel` whose measured size is the anchor element's (one frame); the tap
+// lands at the middle of the switch's frame only if it is on screen. The evals send nothing. Returns
+// whether it was on before. Bound: 3 measured, the tap 1, the turn 5 = 9s.
+export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Element, anchorLabel: string) => {
+  const switchOn = async () =>
+    jsEval<Array<boolean>>(`${fiberPrelude}
+      const out = []
+      const stack = [e2eRootFiber()]
+      while (stack.length) {
+        const f = stack.pop()
+        const p = f.memoizedProps
+        if (f.tag !== 5 && p && p.label === ${JSON.stringify(label)} && typeof p.on === 'boolean' && typeof p.onClick === 'function') out.push(p.on)
+        if (f.sibling) stack.push(f.sibling)
+        if (f.child) stack.push(f.child)
+      }
+      return out
+    `)
+  const started = await jsEval<number>(`${fiberPrelude}
+    const label = ${JSON.stringify(label)}
+    const anchorLabel = ${JSON.stringify(anchorLabel)}
+    const switches = []
+    const anchors = []
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
       const f = stack.pop()
       const p = f.memoizedProps
-      const item = p && (p.item || p)
-      if (item && item.title === 'Delete' && item.rightTitle === 'for everyone' && typeof item.onClick === 'function') onClick = item.onClick
+      // a component and its wrapper carry the same props: one switch is one handler
+      if (f.tag !== 5 && p && p.label === label && typeof p.on === 'boolean' && typeof p.onClick === 'function' && !switches.some(s => s.memoizedProps.onClick === p.onClick)) switches.push(f)
+      if (f.tag !== 5 && p && p.label === anchorLabel && typeof p.onClick === 'function') anchors.push(f)
       if (f.sibling) stack.push(f.sibling)
       if (f.child) stack.push(f.child)
     }
-    if (!onClick || !convID) return false
-    globalThis.__e2eStaleCount = (globalThis.__e2eStaleCount || 0) + 1
-    kbModule('chat/notification-router.tsx').routeChatNotification({
-      payload: {params: {updates: [{convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(convID), updateType: 1}]}},
-      type: 'chat.1.NotifyChat.ChatThreadsStale',
-    })
-    onClick()
-    return true
-  `)
-  if (!ok) throw new Error('no Delete for everyone in an open message menu')
+    if (switches.length !== 1) return switches.length
+    // the switch's own tappable box: the component under it carrying its handler
+    const sw = switches[0]
+    let box
+    const inner = [sw.child]
+    while (inner.length && !box) {
+      const f = inner.shift()
+      if (!f) continue
+      if (f.tag !== 5 && f.memoizedProps && f.memoizedProps.onClick === sw.memoizedProps.onClick) box = f
+      if (f.child) inner.push(f.child)
+      if (f.sibling) inner.push(f.sibling)
+    }
+    const host = box && e2eHostOf(box)
+    const anchorHosts = anchors.map(e2eHostOf).filter(Boolean)
+    if (!host || !anchorHosts.length) return -1
+    // the switch first, then every anchor
+    e2eMeasure('__e2eSwitchFrames', [host, ...anchorHosts])
+    return 1
+  `, {once: true})
+  if (started !== 1) {
+    throw new Error(started === -1 ? 'the switch asked for or its anchor has no view to measure' : `${started} switches with the label asked for, not one`)
+  }
+  const [sw, ...anchors] = await measured('__e2eSwitchFrames', 'the switch measured')
+  if (!sw) throw new Error('the switch was not measured')
+  const at = await anchor.getLocation()
+  const size = await anchor.getSize()
+  const sized = anchors.filter(a => Math.abs(a.width - size.width) <= 1 && Math.abs(a.height - size.height) <= 1)
+  const placed = new Set(sized.map(a => `${a.x},${a.y}`))
+  if (placed.size !== 1) throw new Error(`${placed.size} "${anchorLabel}" frames the size of its element, not one`)
+  const ref = sized[0]!
+  const frame = {...sw, x: sw.x + at.x - ref.x, y: sw.y + at.y - ref.y}
+  const {height: window, width} = await browser.getWindowRect()
+  if (frame.width <= 0 || frame.height <= 0 || frame.x < 0 || frame.y < 0 || frame.x + frame.width > width || frame.y + frame.height > window) {
+    throw new Error(`the switch is not wholly on screen: ${JSON.stringify(frame)}`)
+  }
+  const before = await switchOn()
+  if (!before.length || before.some(o => o !== before[0])) throw new Error(`the switch reads ${JSON.stringify(before)}`)
+  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  // an unmounted switch reads no value, which is not a turn
+  await waitFor(
+    'the switch to turn',
+    async () => {
+      const now = await switchOn()
+      return now.length > 0 && now.every(o => o !== before[0]) ? true : undefined
+    },
+    {interval: 200, timeout: 5_000}
+  )
+  return before[0]!
 }
-
-// What the app logged, in order, from Metro's log lines: its e2e-row-phase markers, and 'pass' for
-// each thread pass the service sent it (chatThreadCached / chatThreadFull).
-export const rowPhasesAndPasses = (lines: ReadonlyArray<string>) =>
-  lines.flatMap(l => {
-    const phase = /e2e-row-phase (\S+)/.exec(l)?.[1]
-    if (phase) return [phase]
-    return /IN >>.*chat\.1\.chatUi\.chatThread(Cached|Full)/.test(l) ? ['pass'] : []
-  })
 
 // The waiting keys the app holds right now (a spinner or a disabled control waits on each).
 export const heldWaitingKeys = async () =>
@@ -996,38 +1828,436 @@ export const heldWaitingKeys = async () =>
     `return [...kbModule('stores/waiting.tsx').useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)`
   )
 
-const accountChangedMarker = 'e2e-signed-in-account-changed'
-
-// Logs a marker to the console the moment the signed-in account changes, so Metro's log shows which
-// of the app's calls came after it.
-export const markAccountChange = async () =>
-  jsEval(`
+// Notes the recorder's call seq the moment the signed-in account changes, so callsSince of it lists
+// only the calls made after the change. Read it with accountChangedSeq; stopAccountChangeWatch ends it.
+export const watchAccountChange = async () =>
+  jsEval<boolean>(`
     const g = globalThis
+    const recorder = g.__kbE2ERecorder
+    if (!recorder) throw new Error('e2e account watch: the app has no __kbE2ERecorder')
     if (g.__e2eUidWatch) g.__e2eUidWatch()
+    g.__e2eAccountChangedSeq = null
     g.__e2eUidWatch = kbModule('stores/current-user.tsx').useCurrentUserState.subscribe((s, prev) => {
-      if (s.uid !== prev.uid) console.log(${JSON.stringify(accountChangedMarker)})
+      if (s.uid !== prev.uid && g.__e2eAccountChangedSeq === null) g.__e2eAccountChangedSeq = recorder.calls(Number.MAX_SAFE_INTEGER).seq
     })
     return true
-  `)
+  `, {once: true})
 
-// The RPCs the app sent, read off Metro's log lines in order, each marked with whether the marker of
-// markAccountChange came before it.
-export const outgoingRpcs = (lines: ReadonlyArray<string>) => {
-  let changed = false
-  const calls: Array<{afterAccountChange: boolean; method: string; params: string}> = []
-  for (const l of lines) {
-    if (l.includes(accountChangedMarker)) changed = true
-    const call = /<< OUT\s*((?:chat|keybase)\.1\.[\w.]+)\[\+calling\].*?\[\+calling\] \S+ (\{.*)$/.exec(l)
-    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
-  }
-  return calls
+// The call seq at the first account change since watchAccountChange, or null before one.
+export const accountChangedSeq = async () => jsEval<number | null>(`return globalThis.__e2eAccountChangedSeq ?? null`)
+
+// Cleanup: nothing when no watch runs.
+export const stopAccountChangeWatch = async () => {
+  await jsEval<boolean>(`
+    const g = globalThis
+    if (g.__e2eUidWatch) g.__e2eUidWatch()
+    g.__e2eUidWatch = undefined
+    return true
+  `, {once: true})
 }
 
 // Starts a switch to another account signed in on this device through the app's own switch (what
 // the account switcher's row calls), for a flow that keeps typing while it runs.
 export const startAppAccountSwitch = async (username: string) => {
-  const started = await jsEval<boolean>(
-    `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+  // only the dispatch is paused: the flow's typing during the switch must still be credited
+  const started = await withHarnessRpcs('the account switch', async () =>
+    jsEval<boolean>(
+      `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`,
+      {once: true}
+    )
   )
-  if (!started) throw new Error(`the app would not switch to ${username}`)
+  if (!started) throw new Error('the app would not start the account switch')
 }
+
+// -- asking the phone's own service --------------------------------------------------------------
+
+// Where an ask's answer waits for the evals that poll it (an eval returns before an RPC answers).
+const APP_ASK_KEY = 'globalThis.__kbE2EAppAsk'
+let appAsks = 0
+type AppAnswer<R> = {ask: string} & ({state: 'pending'} | {state: 'answered'; value: R} | {state: 'failed'; error: string})
+
+// A function body for jsEval that runs `call` (an expression for a promise, evaluated in the app) and
+// keeps what it answers under `ask`, so an earlier ask answering late cannot replace a newer one's.
+const appAskBody = (ask: string, call: string) => `
+    const ask = ${JSON.stringify(ask)}
+    ${APP_ASK_KEY} = {ask, state: 'pending'}
+    const keep = r => { if (${APP_ASK_KEY} && ${APP_ASK_KEY}.ask === ask) ${APP_ASK_KEY} = {ask, ...r} }
+    Promise.resolve()
+      .then(() => ${call})
+      .then(value => keep({state: 'answered', value}), e => keep({state: 'failed', error: String(e && e.message)}))
+    return true
+  `
+
+// Asks the phone's own service through `call`, with the recorder paused (the census never credits
+// it), and returns the answer, which `call` projects to plain data. For read-backs of what lives
+// only on the phone, and for restores. Bound: `timeout`, plus the pause and resume.
+const askApp = async <R,>(what: string, call: string, timeout = 20_000): Promise<R> => {
+  // unique across runs too: the app's global outlives this process
+  const ask = `${Date.now()}-${++appAsks}`
+  const r = await withHarnessRpcs(what, async () => {
+    await jsEval(appAskBody(ask, call), {once: true})
+    return waitFor(
+      `the phone's service to answer ${what}`,
+      async () => {
+        const got = await jsEval<AppAnswer<R>>(`return ${APP_ASK_KEY} ?? {ask: '', state: 'pending'}`)
+        return got.ask === ask && got.state !== 'pending' ? got : undefined
+      },
+      {interval: 250, timeout}
+    )
+  })
+  if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${r.error}`)
+  return r.value
+}
+
+const RPC_CHAT = `kbModule('constants/rpc/rpc-chat-gen.tsx')`
+const RPC_GEN = `kbModule('constants/rpc/rpc-gen.tsx')`
+const CHAT_TYPES = `kbModule('constants/types/chat/index.tsx')`
+
+// The emoji skin tone the phone's service keeps for the signed-in account (ReacjiSkinTone: 0 the
+// default, 1 to 5). The service keeps it on the device, so the host cannot read the phone's.
+export const appSkinTone = async () =>
+  askApp<number>(
+    "the phone's skin tone",
+    `${RPC_GEN}.configGetBootstrapStatusRpcPromise().then(s => (s && s.userReacjis && s.userReacjis.skinTone) || 0)`
+  )
+
+// Restores the phone's skin tone through its service (a restore only: the UI's pick is what counts).
+export const restoreAppSkinTone = async (tone: number) => {
+  await askApp<boolean>(
+    'restoring the skin tone',
+    `${RPC_CHAT}.localPutReacjiSkinToneRpcPromise({skinTone: ${Number(tone)}}).then(() => true)`
+  )
+}
+
+// The skin tone the app holds now (what its pickers show), read off its daemon store, or undefined
+// before its bootstrap status has loaded.
+export const shownSkinTone = async () =>
+  jsEval<number | null>(`
+    const s = kbModule('stores/daemon.tsx').useDaemonState.getState().bootstrapStatus
+    return s ? (s.userReacjis && s.userReacjis.skinTone) || 0 : null
+  `).then(t => t ?? undefined)
+
+// The id of the message pinned in a conversation as the phone's own service shows it to the
+// signed-in account, or null when it shows none (none pinned, or this device dismissed the pin: the
+// service keeps a dismissal on the device that made it).
+export const appPinnedMessageID = async (convID: string) =>
+  askApp<number | null>(
+    'the pin as the phone reads it',
+    `${RPC_CHAT}.localGetInboxAndUnboxUILocalRpcPromise({
+       identifyBehavior: 6,
+       query: {computeActiveList: false, convIDs: [${CHAT_TYPES}.keyToConversationID(${JSON.stringify(convID)})], readOnly: false, unreadOnly: false},
+     }).then(res => {
+       const conv = (res.conversations || [])[0]
+       if (!conv) throw new Error('the phone reads no such conversation')
+       const pinned = conv.pinnedMsg
+       return pinned ? (pinned.message && pinned.message.valid ? pinned.message.valid.messageID : -1) : null
+     })`
+  )
+
+// Cancels outbox records on the phone's own service, by their outbox ids: a cleanup, never the
+// UI's Cancel. CancelPost of a record already gone answers too.
+export const cancelAppOutbox = async (outboxIDs: ReadonlyArray<string>) => {
+  for (const id of outboxIDs) {
+    await askApp<boolean>(
+      'cancelling a stuck outbox record',
+      `${RPC_CHAT}.localCancelPostRpcPromise({outboxID: ${CHAT_TYPES}.outboxIDToRpcOutboxID(${JSON.stringify(id)})}).then(() => true)`
+    )
+  }
+}
+
+// -- a message's send state ----------------------------------------------------------------------
+
+// A loaded message's state as the store holds it: whether it was edited, whether it explodes (and
+// has, and who exploded it early), and, while it is not yet sent, its outbox record: its submit state
+// and the error the service gave (errorTyp, OutboxErrorType: 3 is too long).
+type StoredMessageState = {
+  edited: boolean
+  errorTyp: number | null
+  exploded: boolean
+  explodedBy: string
+  exploding: boolean
+  id: number
+  outboxID: string | null
+  submitState: string | null
+  text: string
+}
+// null when the mounted thread has no such message; throws while no thread is mounted.
+export const storedMessageState = async (ordinal: number) =>
+  jsEval<StoredMessageState | null>(`${threadStoreBody}
+    e2eRequireThreadStore()
+    const m = st.messageMap.get(${ordinal})
+    if (!m) return null
+    return {
+      edited: !!m.hasBeenEdited,
+      errorTyp: typeof m.errorTyp === 'number' ? m.errorTyp : null,
+      exploded: !!m.exploded,
+      explodedBy: m.explodedBy || '',
+      exploding: !!m.exploding,
+      id: Number(m.id) || 0,
+      outboxID: m.outboxID ? String(m.outboxID) : null,
+      submitState: m.submitState || null,
+      text: bodyOf(m).trim(),
+    }
+  `)
+
+// The outbox ids of the visible thread's loaded messages, not yet sent, whose text contains `text`.
+export const outboxIDsWithText = async (text: string) =>
+  jsEval<Array<string>>(`${threadStoreBody}
+    if (!st) return []
+    const out = []
+    for (const o of st.messageOrdinals || []) {
+      const m = st.messageMap.get(o)
+      if (m && !Number(m.id) && m.outboxID && bodyOf(m).includes(${JSON.stringify(text)})) out.push(String(m.outboxID))
+    }
+    return out
+  `)
+
+// The exploding mode the visible thread's composer sends with, in seconds (0: off).
+export const explodingModeSeconds = async () =>
+  jsEval<number | null>(`${threadStoreBody}
+    return st ? st.explodingMode || 0 : null
+  `)
+
+// -- the composer's pasteboard -------------------------------------------------------------------
+
+// The edit menu's Paste: only its tappable MenuItem or Button, not the StaticText it also exposes.
+const PASTE_ITEM =
+  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
+
+// Long-presses the composer until its edit menu shows Paste, and taps it: what a person does to paste.
+// The pasteboard is set before (gate/device.ts setPasteboard). Bound: six tries of about 3s.
+export const pasteIntoComposer = async () => {
+  const input = await el(T.CHAT_INPUT).getElement()
+  await input.click()
+  for (let i = 0; i < 6; i++) {
+    await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: input.elementId})
+    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).catch(() => false)) {
+      await browser.$(PASTE_ITEM).click()
+      return
+    }
+    await sleep(300)
+  }
+  throw new Error("the composer's edit menu never offered Paste")
+}
+
+// -- the GIF picker ------------------------------------------------------------------------------
+
+// Whether the visible screen draws the GIF picker: the phone's is a web view of the service's
+// gallery page (its url's key starts "gg"), read off the React tree.
+export const giphyGalleryShown = async () =>
+  jsEval<boolean>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && p.source && typeof p.source.uri === 'string' && /[?&]key=gg/.test(p.source.uri)) return true
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return false
+  `)
+
+// -- the info panel, labels and the inbox's own state --------------------------------------------
+
+// Opens the visible conversation's info panel from the header's More menu and, given one, a tab of
+// it (its testID). Bound: the header menu 15, the tab 5 and its taps 5 = 25.
+export const openInfoPanel = async (tab?: string) => {
+  await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+  if (tab === undefined) return
+  await el(tab).waitForExist({timeout: 5_000})
+  // a tap while the panel still comes up can do nothing (seen live): tapped again until the panel's
+  // tabs read it selected
+  await waitFor(
+    'the info panel tab to be selected',
+    async () => {
+      if (await infoPanelTabSelected(tab)) return true
+      await el(tab).click()
+      return (await infoPanelTabSelected(tab)) ? true : undefined
+    },
+    {interval: 500, timeout: 5_000}
+  )
+}
+
+// Whether the info panel's tab with testID `tab` is the selected one, read off the tabs' props.
+const infoPanelTabSelected = async (tab: string) =>
+  jsEval<boolean>(`${fiberPrelude}
+    const stack = [e2eRootFiber()]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && Array.isArray(p.tabs) && p.selectedTab !== undefined) {
+        const t = p.tabs.find(x => x && x.testID === ${JSON.stringify(tab)})
+        if (t) return p.selectedTab === t.title
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return false
+  `)
+
+// Drags the screen's scrolling content up until `target` sits on screen, with room above the bottom
+// edge for a tap, as a person scrolls a settings list to an item below the fold; or, at the content's
+// end (a drag no longer moves it), wholly on screen. Bound: `timeout`.
+export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
+  let lastY: number | undefined
+  return waitFor(
+    `${what} on screen`,
+    async () => {
+      const e = target()
+      if (await e.isExisting()) {
+        const {y} = await e.getLocation()
+        const {height} = await e.getSize()
+        const {height: window} = await browser.getWindowRect()
+        if (y > 0 && y + height / 2 < window - 80) return true
+        if (lastY !== undefined && Math.abs(lastY - y) < 1 && y > 0 && y + height <= window) return true
+        lastY = y
+      }
+      const {height, width} = await browser.getWindowRect()
+      const x = Math.round(width / 2)
+      await browser
+        .action('pointer', {parameters: {pointerType: 'touch'}})
+        .move({x, y: Math.round(height * 0.7)})
+        .down()
+        .move({duration: 400, x, y: Math.round(height * 0.3)})
+        .pause(200)
+        .up()
+        .perform()
+      return undefined
+    },
+    {interval: 300, timeout}
+  )
+}
+
+// A button by its text, which an icon before it puts after its glyph and ", " in its label (the info
+// panel's "Leave channel" and "Block" read "<glyph>, Leave channel" and "<glyph>, Block").
+export const iconButton = (label: string) =>
+  browser.$(
+    `-ios predicate string:type == "XCUIElementTypeButton" AND (label == ${JSON.stringify(label)} OR label ENDSWITH ${JSON.stringify(`, ${label}`)})`
+  )
+
+// The one element on screen whose label is exactly `label`, of those `selector` finds: compared in
+// memory, so a label holding an account name never goes into a selector or an error. Where nested
+// elements expose the same label (a pressable box and its text) the innermost is it. Throws when
+// none or more than one is drawn; `what` names it.
+export const labelledElement = async (selector: string, label: string, what: string) => {
+  const found: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
+  for (const e of await browser.$$(selector).getElements()) {
+    if ((await e.getAttribute('label').catch(() => null)) !== label) continue
+    const at = await e.getLocation().catch(() => undefined)
+    const size = await e.getSize().catch(() => undefined)
+    if (at && size) found.push({e, rect: {...at, ...size}})
+  }
+  const inner = innermost(found.map(f => f.rect))
+  if (inner.length !== 1) throw new Error(`${inner.length} of ${what} on screen, not one`)
+  return found[inner[0]!]!.e
+}
+
+// Every visible button, for labelledElement.
+export const BUTTON_ELEMENTS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
+
+// The visible button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap
+// 1 = 6.
+export const tapButton = async (label: string, what: string) =>
+  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS, label, what), {interval: 300, timeout: 5_000})).click()
+
+// The app's current route.
+export const currentRoute = async () => (await appSnapshot()).screen
+
+// Waits for the app's route to be `name` with params `ok` takes. Bound: 10.
+export const expectRoute = async (what: string, name: string, ok: (params: Record<string, unknown>) => boolean = () => true) =>
+  waitFor(
+    what,
+    async () => {
+      const s = await currentRoute()
+      return s?.name === name && ok(s.params ?? {}) ? true : undefined
+    },
+    {interval: 250, timeout: 10_000}
+  )
+
+const INBOX_METADATA = `kbModule('chat/inbox/metadata-store.tsx').useInboxMetadataState.getState()`
+const INBOX_LAYOUT = `kbModule('chat/inbox/layout-state.tsx')`
+
+// Whether the app holds a conversation muted (its inbox metadata), or undefined before it has loaded it.
+export const appConversationMuted = async (convID: string) =>
+  jsEval<boolean | null>(`
+    const m = ${INBOX_METADATA}.metas.get(${JSON.stringify(convID)})
+    return m ? !!m.isMuted : null
+  `).then(v => v ?? undefined)
+
+// Whether the app's inbox layout pins a small conversation, or undefined while the layout has no row
+// for it.
+export const appConversationPinned = async (convID: string) =>
+  jsEval<boolean | null>(`
+    const l = ${INBOX_LAYOUT}
+    const row = l.getSmallLayoutRow(l.useInboxLayoutState.getState(), ${JSON.stringify(convID)})
+    return row ? !!row.isPinned : null
+  `).then(v => v ?? undefined)
+
+// Whether the app's inbox layout lists the conversation (as a small row or a big team's channel).
+// Throws while the app holds no layout, so an absence is never read off an inbox not loaded yet.
+export const appInboxLists = async (convID: string) => {
+  const listed = await jsEval<boolean | null>(`
+    const l = ${INBOX_LAYOUT}
+    const s = l.useInboxLayoutState.getState()
+    if (!s.layout) return null
+    const id = ${JSON.stringify(convID)}
+    return !!(l.getSmallLayoutRow(s, id) || l.getBigLayoutChannelRow(s, id))
+  `)
+  if (listed === null) throw new Error('the app holds no inbox layout yet')
+  return listed
+}
+
+// The inbox dragged from its top to its end (until two drags up in a row change nothing). Returns how many items
+// (rows and team headers) the inbox draws there. Same bound as scrollInboxTo.
+export const scrollInboxToEnd = async () => {
+  if ((await seekInbox(() => undefined)) !== undefined) throw new Error('the inbox picked an item while scrolling to its end')
+  return (await drawnInbox()).items.length
+}
+
+// What a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
+// merging its texts.
+export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
+
+// The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
+// tappable row merges its texts into one label), read off one page source (a call per element on a
+// screen of rows is too slow) and compared in memory; then that element fetched by its type and
+// frame, so no selector or error ever holds `name`. The innermost of nested matches; none or more
+// than one throws. `what` names it.
+export const elementWithLabelPartIn = async (types: ReadonlyArray<string>, name: string, what: string) => {
+  const found = sourceElements(await browser.getPageSource()).filter(
+    e =>
+      types.includes(e.type) &&
+      e.attrs['visible'] === 'true' &&
+      (e.attrs['label'] ?? '').replace(/\u00a0/g, ' ').split(', ').some(part => part.trim() === name)
+  )
+  const rects = found.map(e => ({
+    height: Number(e.attrs['height']),
+    width: Number(e.attrs['width']),
+    x: Number(e.attrs['x']),
+    y: Number(e.attrs['y']),
+  }))
+  const inner = innermost(rects)
+  if (inner.length !== 1) {
+    const at = inner.map(k => `${found[k]!.type.replace('XCUIElementType', '')} ${rects[k]!.x},${rects[k]!.y} ${rects[k]!.width}x${rects[k]!.height}`)
+    throw new Error(`${inner.length} of ${what} on screen, not one${at.length ? `: ${at.join('; ')}` : ''}`)
+  }
+  const i = inner[0]!
+  const r = rects[i]!
+  const at = `rect.x == ${r.x} AND rect.y == ${r.y} AND rect.width == ${r.width} AND rect.height == ${r.height}`
+  // nested boxes can share the row's frame exactly: any of them is the same tap, the deepest is taken
+  const els = await browser.$$(`-ios predicate string:type == "${found[i]!.type}" AND ${at}`).getElements()
+  const deepest = els.at(-1)
+  if (!deepest) throw new Error(`no element at the frame of ${what}`)
+  return deepest
+}
+
+// A loaded message's link previews as the visible thread's store holds them: its id, the domains
+// the service asks the sender about (the unfurl prompt), and how many previews it carries.
+type StoredUnfurls = {id: number; prompts: Array<string>; unfurls: number}
+export const storedUnfurls = async (ordinal: number) =>
+  jsEval<StoredUnfurls | null>(`${threadStoreBody}
+    const m = st && st.messageMap.get(${ordinal})
+    if (!m) return null
+    const prompts = st.unfurlPrompt.get(m.id)
+    return {id: Number(m.id) || 0, prompts: prompts ? [...prompts] : [], unfurls: m.unfurls ? m.unfurls.size : 0}
+  `)

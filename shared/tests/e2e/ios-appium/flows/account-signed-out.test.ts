@@ -22,7 +22,8 @@ import {dismissKeyboard} from '../helpers/navigate'
 //
 // Every timeout is the sum of the helpers' bounds (s): signing out (switcher 60, its tap and the login
 // list 65) 125 and the restore 275 around every test; a tap to a screen 25 (5 tries of 5s), a back 100
-// (5 of 20s), a typed field 20, a swipe 3.
+// (5 of 20s), a typed field 52 (the field 10, twice enterText's clearFieldByKeys 16 and the read-back
+// 5), the paper key field 36 (the field 10, clearFieldByKeys 16, the read-back 10), a swipe 3.
 
 const SIGN_OUT_AND_BACK_MS = 400_000
 
@@ -95,7 +96,7 @@ const openUsernameScreen = async () => {
 
 describe('account signed out', () => {
   it('feedback opens from the login screen and sends nothing', async function () {
-    // the sign-out and back, a tap 25, the form 20, a back 100 = 505
+    // the sign-out and back 400, a tap 25, the form 20, a back 100 = 545
     this.timeout(SIGN_OUT_AND_BACK_MS + 150_000)
     await signedOutThenBack(async () => {
       await screenTap('Problems logging in?', 'signupSendFeedbackLoggedOut')
@@ -107,8 +108,8 @@ describe('account signed out', () => {
   })
 
   it('forgot username answers for an example.com address', async function () {
-    // the sign-out and back, two taps 50, a field 20, the answer 20 = 450
-    this.timeout(SIGN_OUT_AND_BACK_MS + 100_000)
+    // the sign-out and back 400, two taps 50, a field 52, the answer 20 = 522
+    this.timeout(SIGN_OUT_AND_BACK_MS + 140_000)
     await signedOutThenBack(async () => {
       await openUsernameScreen()
       await screenTap('Forgot username?', 'forgotUsername')
@@ -123,8 +124,8 @@ describe('account signed out', () => {
   })
 
   it('an unknown username shows the not-found banner', async function () {
-    // the sign-out and back, a tap 25, a field 20, the answer 20 = 425
-    this.timeout(SIGN_OUT_AND_BACK_MS + 80_000)
+    // the sign-out and back 400, a tap 25, a field 52, the answer 20 = 497
+    this.timeout(SIGN_OUT_AND_BACK_MS + 120_000)
     const unknown = `e2e${e2eRunId()}nouser`
     await signedOutThenBack(async () => {
       await openUsernameScreen()
@@ -142,9 +143,9 @@ describe('account signed out', () => {
   })
 
   it('signup checks the username and device name and stops before submitting', async function () {
-    // the sign-out and back, a tap 25, the policy 10, four fields 80 with their answers 65, the
-    // device name screen 20, two backs 200 = 760
-    this.timeout(SIGN_OUT_AND_BACK_MS + 450_000)
+    // the sign-out and back 400, a tap 25, the policy 10, five fields 260 with their answers 65, the
+    // device name screen 20, two backs 200 = 980
+    this.timeout(SIGN_OUT_AND_BACK_MS + 600_000)
     const {secondUser} = loadE2EAccounts()
     const fresh = `e2e${e2eRunId()}su`
     await signedOutThenBack(async () => {
@@ -228,7 +229,7 @@ describe('account signed out', () => {
 
     it('lists the devices, explains one, and refuses a wrong paper key', async function () {
       // a tap 25, the selector 40, two scrolls 180, two taps 50, the explain screen 20, three backs
-      // 300, a field 20, the error 30 = 665
+      // 300, the paper key field 36, the error 30 = 681
       this.timeout(AS_SECOND_MS + 700_000)
       await fromSecondsLoginScreen(async () => {
         const picks = recoveryPicks((await waitForScreen('recoverPasswordDeviceSelector'))['devices'], deviceNameCandidates('second'))

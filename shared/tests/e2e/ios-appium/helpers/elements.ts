@@ -24,12 +24,60 @@ export const waitForTestID = async (id: string, timeout = 5000) =>
 // by the runner via KB_IOS_DEVICE.
 const isOldDevice = (): boolean => /old$/i.test(process.env['KB_IOS_DEVICE'] ?? '')
 
+// What a field holds, read from its element: an empty one reports its placeholder as its value.
+export const fieldText = async (field: ChainablePromiseElement) => {
+  const value = await field.getAttribute('value')
+  const placeholder = await field.getAttribute('placeholderValue').catch(() => null)
+  return value === null || value === placeholder ? '' : value
+}
+
+// The part of an element's frame that is on screen and above the keyboard, or undefined when too
+// little of it is to tap.
+const tappableFrame = async (field: ChainablePromiseElement) => {
+  const r = await field.getElementRect(await field.elementId)
+  const win = await browser.getWindowRect()
+  const keyboard = browser.$('-ios class chain:**/XCUIElementTypeKeyboard')
+  const keyboardTop = (await keyboard.isExisting()) ? await keyboard.getLocation('y') : win.height
+  const left = Math.max(r.x, 0)
+  const top = Math.max(r.y, 0)
+  const right = Math.min(r.x + r.width, win.width)
+  const bottom = Math.min(r.y + r.height, win.height, keyboardTop)
+  return right - left >= 10 && bottom - top >= 10 ? {bottom, right} : undefined
+}
+
+const CLEAR_ROUNDS = 3
+
+// Deletes what a field holds with backspace keys. A field is never set or cleared with WDA's
+// setValue, clearValue or elementClear: after any of them the app's process stays in
+// hardware-keyboard mode, so a later focus draws no software keyboard until the app relaunches.
+// The caret may sit anywhere (a draft an earlier test left, a scrolled multi-line field), so each
+// round taps the bottom-right corner of the field's part on screen and above the keyboard (the end
+// of the text drawn there), presses backspace once per character the field holds, and reads the
+// field back, until it is empty (at most CLEAR_ROUNDS rounds). addValue taps the field again only
+// when it has no keyboard focus (fb_prepareForTextInputWithSnapshot in WDA's
+// XCUIElement+FBTyping.m), so the corner tap's caret holds. Errors give the count, never the text.
+// Bound: CLEAR_ROUNDS rounds of (the read 1, the frame 1, the tap 1, the keys 2) 15, the last read
+// 1 = 16s.
+export const clearFieldByKeys = async (field: ChainablePromiseElement) => {
+  for (let round = 0; ; round++) {
+    const held = [...(await fieldText(field))].length
+    if (!held) return
+    if (round === CLEAR_ROUNDS) throw new Error(`the field still holds ${held} characters after ${CLEAR_ROUNDS} rounds of backspaces`)
+    const frame = await tappableFrame(field)
+    if (!frame) throw new Error('the field is off screen or under the keyboard: no place to put its caret')
+    await browser.execute('mobile: tap', {x: Math.round(frame.right - 4), y: Math.round(frame.bottom - 4)})
+    await field.addValue('\b'.repeat(held))
+  }
+}
+
 // Enter text into a field. The testID is on the real input element (see Input3),
 // so el(id) is the editable itself. iOS-16.4 sims must paste (per-key injection
-// crashes RN there — see pasteText). On modern iOS, setValue works where the
-// input surfaces as a settable element (chat, sign, iPhone); the modern-iPad
-// encrypt input surfaces as an XCUIElementTypeOther (setValue → "element wasn't
-// found"), so fall back to pasting, which works regardless of element type.
+// crashes RN there — see pasteText). On modern iOS what the field holds is
+// deleted by keys (clearFieldByKeys) and the text goes in as key presses
+// (addValue) where the input surfaces as a typeable element (chat, sign,
+// iPhone); the modern-iPad encrypt input surfaces as an XCUIElementTypeOther
+// (addValue → "element wasn't found"), so fall back to pasting, which works
+// regardless of element type.
 export const enterText = async (id: string, text: string): Promise<void> => {
   if (browser.isAndroid) {
     await androidEnterText(id, text)
@@ -40,7 +88,9 @@ export const enterText = async (id: string, text: string): Promise<void> => {
     return
   }
   try {
-    await el(id).setValue(text)
+    const field = el(id)
+    await clearFieldByKeys(field)
+    await field.addValue(text)
   } catch {
     await pasteText(id, text)
   }
@@ -79,7 +129,7 @@ const androidEnterText = async (id: string, text: string): Promise<void> => {
 // modern-iPad fallback for inputs that don't expose as a settable element.
 // Everything here is element-based (the testID is on the real input) — no
 // coordinates: focus the field, long-press IT to raise the edit menu, tap Paste.
-export const pasteText = async (id: string, text: string): Promise<void> => {
+const pasteText = async (id: string, text: string): Promise<void> => {
   await browser.execute('mobile: setPasteboard', {
     content: Buffer.from(text).toString('base64'),
     encoding: 'base64',

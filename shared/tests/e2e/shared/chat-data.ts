@@ -1,11 +1,12 @@
 // Seeded chat data for the chat e2e flows, created through the local `keybase` CLI against the
 // running service (signed in as KB_SMOKE_USER, who owns KB_E2E_TEAM). Every step checks what is
 // already there first, so running it again only fills in what is missing. Node-only: shared by
-// the Electron flows and, later, the iOS ones (both drive a host that has the CLI).
+// the Electron and iOS flows (both drive a host that has the CLI, signed in as KB_SMOKE_USER).
 //
 // Accounts and the team come from the environment or ~/.config/keybase-e2e/env, never from this file:
 //   KB_SMOKE_USER  the account the app under test is signed in as, and the team owner
-//   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages)
+//   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages from its peer
+//                  service, peer-actors.ts)
 //   KB_E2E_TEAM    the team the e2e channels live in
 import {spawn, type ChildProcessWithoutNullStreams} from 'child_process'
 import {randomBytes} from 'crypto'
@@ -13,8 +14,10 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
+import {CORPUS} from '../fixtures/corpus/corpus.ts'
 import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
+import {requireMainIsSmoke} from './peer-service.ts'
 
 // The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
 export const e2eAccounts = (): E2EAccounts => loadE2EAccounts()
@@ -49,7 +52,7 @@ export const LONG_SEARCH_TOKENS = {
 const tokenAt = new Map<number, string>(Object.values(LONG_SEARCH_TOKENS).map(t => [t.index, t.token]))
 
 // Every tenth message runs to three lines, so rows are not all one height.
-export const longBody = (index: number) => {
+const longBody = (index: number) => {
   const token = tokenAt.get(index)
   const first = token ? `${longMarker(index)} ${token}` : longMarker(index)
   return index % 10 === 0 ? `${first}\nsecond line of ${index}\nthird line of ${index}` : first
@@ -66,16 +69,16 @@ const shortBody = (index: number) =>
 // page of the newest messages is mostly the deleted ones, which draw nothing, so the rows a phone's
 // first page draws do not fill its view: the thread has to load older pages with nobody scrolling.
 export const SPARSE_OLDER = 30
-export const SPARSE_DELETED = 18
+const SPARSE_DELETED = 18
 export const SPARSE_NEWER = 2
 export const sparseMarker = (index: number) => `e2e-sparse-${String(index).padStart(4, '0')}`
 
 // e2e-scratch keeps at least this many text messages, so the scroll flows that post to it have
 // history above the viewport to scroll into from the first run on.
-export const SCRATCH_MIN_TEXTS = 60
+const SCRATCH_MIN_TEXTS = 60
 const scratchPadMarker = (index: number) => `e2e-scratch-pad-${String(index).padStart(4, '0')}`
 
-export const READONLY_COUNT = 3
+const READONLY_COUNT = 3
 export const readonlyMarker = (index: number) => `e2e-readonly-${String(index).padStart(4, '0')}`
 
 // e2e runners start in shared/
@@ -101,23 +104,33 @@ type ApiResponse<R> = {error?: ApiError; result?: R}
 
 type ChannelRef = {members_type: 'team'; name: string; topic_name: string}
 
+// A message the API could not unbox comes as {error} with no msg.
 type ApiMessage = {
-  msg: {
+  error?: string
+  msg?: {
     id: number
     content: {
       type: string
       text?: {body: string}
       attachment?: {object?: {filename?: string; title?: string}}
     }
+    // each emoji's reactions, by the usernames that reacted
+    reactions?: {reactions?: Record<string, {users?: Record<string, unknown> | null}> | null} | null
     sender: {username: string}
+    // when the server took it, in its own clock
+    sent_at_ms?: number
   }
 }
-export type CliMessage = ApiMessage['msg']
+export type CliMessage = NonNullable<ApiMessage['msg']>
 
-type ReadResult = {
+export type ReadResult = {
   messages?: Array<ApiMessage>
   pagination?: {next?: string; last?: boolean}
 }
+
+// A read's messages, newest first, leaving out those the API could not unbox (the app draws no row
+// for one).
+const unboxed = (res: ReadResult): Array<CliMessage> => (res.messages ?? []).flatMap(m => (m.msg ? [m.msg] : []))
 
 type ConvSummary = {id: string; channel: {topic_name?: string}}
 
@@ -139,15 +152,15 @@ class ChatApi {
     this.lines = readline.createInterface({input: this.proc.stdout})[Symbol.asyncIterator]()
   }
 
-  private async callOnce<R>(method: string, options: object): Promise<R> {
+  private async callOnce<R>(method: string, options: object, timeoutMs = cliTimeoutMs): Promise<R> {
     this.proc.stdin.write(`${JSON.stringify({method, params: {options}})}\n`)
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeout = new Promise<never>((_resolve, reject) => {
       timer = setTimeout(() => {
         // its answer can no longer be matched to its call, so the process goes with it
         this.proc.kill()
-        reject(new Error(`keybase chat api ${method}: no answer in ${cliTimeoutMs / 1000}s`))
-      }, cliTimeoutMs)
+        reject(new Error(`keybase chat api ${method}: no answer in ${timeoutMs / 1000}s`))
+      }, timeoutMs)
     })
     const next = await Promise.race([this.lines.next(), timeout]).finally(() => clearTimeout(timer))
     if (next.done) {
@@ -159,6 +172,12 @@ class ChatApi {
       throw new Error(`chat api ${method}: ${res.error.message}`)
     }
     return res.result as R
+  }
+
+  // One try with its own deadline, for a read polled by a caller that bounds its own wait: a rate
+  // limit is thrown like any other error.
+  async callWithin<R>(method: string, options: object, timeoutMs: number): Promise<R> {
+    return this.callOnce<R>(method, options, timeoutMs)
   }
 
   // Retries rate-limit errors (the service allows about 9000 chat calls per 15 minutes), waiting
@@ -231,7 +250,7 @@ const channelRef = (team: string, topicName: string): ChannelRef => ({
 
 // Every message in the channel, oldest first. Peeks, so reading does not mark the channel read.
 const readAll = async (api: ChatApi, channel: ChannelRef) => {
-  const out: Array<ApiMessage['msg']> = []
+  const out: Array<CliMessage> = []
   let next: string | undefined
   for (;;) {
     const res = await api.call<ReadResult>('read', {
@@ -239,14 +258,14 @@ const readAll = async (api: ChatApi, channel: ChannelRef) => {
       pagination: next ? {next, num: 500} : {num: 500},
       peek: true,
     })
-    out.push(...(res.messages ?? []).map(m => m.msg))
+    out.push(...unboxed(res))
     if (!res.pagination?.next || res.pagination.last || !res.messages?.length) break
     next = res.pagination.next
   }
   return out.reverse()
 }
 
-const textBodies = (msgs: ReadonlyArray<ApiMessage['msg']>) =>
+const textBodies = (msgs: ReadonlyArray<CliMessage>) =>
   msgs.filter(m => m.content.type === 'text').map(m => m.content.text?.body ?? '')
 
 const listChannels = async (api: ChatApi, team: string) => {
@@ -342,6 +361,45 @@ const seedScratch = async (api: ChatApi, team: string) => {
   }
 }
 
+// The text a scratch anchor carries: unstamped, so the sweeper never deletes it.
+const SCRATCH_ANCHOR = 'e2e scratch anchor'
+// The page of newest messages the app loads when it opens a thread.
+const THREAD_PAGE = 60
+// What the app draws a row for: Go's chat1 visibleMessageTypes (go/protocol/chat1/extras.go:237),
+// and metadata, which the thread load asks for (threadLoadMessageTypes in
+// chat/conversation/chat-rpc.tsx) and uiMessageToMessage (constants/chat/message.tsx) makes a
+// channel rename row.
+const ROW_TYPES = new Set([
+  'text',
+  'attachment',
+  'join',
+  'leave',
+  'system',
+  'sendpayment',
+  'requestpayment',
+  'flip',
+  'headline',
+  'pin',
+  'metadata',
+])
+
+// The newest message of a read that the app draws a row for.
+export const newestDrawn = (res: ReadResult) => unboxed(res).find(m => ROW_TYPES.has(m.content.type))
+
+// The sweeper deletes the stamped messages each run posts to scratch, so its newest page can fill up
+// with deletes; the app then opens the thread with no row and never pages further back (PR 9). When
+// the newest page has nothing the app draws, the host posts one unstamped anchor as the smoke account
+// (from the host, never the app, so it counts as no coverage) and reads it back.
+const anchorScratch = async (api: ChatApi, team: string) => {
+  const channel = channelRef(team, E2E_CHANNELS.scratch)
+  const newest = async () => api.call<ReadResult>('read', {channel, pagination: {num: THREAD_PAGE}, peek: true})
+  if (newestDrawn(await newest())) return
+  log(`anchoring #${E2E_CHANNELS.scratch}: its newest page is all deletes`)
+  await sendText(api, channel, SCRATCH_ANCHOR)
+  const top = newestDrawn(await newest())
+  if (top?.content.text?.body !== SCRATCH_ANCHOR) throw new Error(`#${E2E_CHANNELS.scratch}'s anchor did not land as its newest message`)
+}
+
 const seedReadonly = async (api: ChatApi, team: string) => {
   const channel = channelRef(team, E2E_CHANNELS.readonly)
   const bodies = new Set(textBodies(await readAll(api, channel)))
@@ -376,21 +434,21 @@ const seedMedia = async (api: ChatApi, team: string) => {
 
 // The smoke user's one-on-one conversation with the second account: its conversation id, and its
 // tlf name (both names, sorted), which is what a send to it names.
-export type DirectConversation = {convID: string; tlfName: string}
+type DirectConversation = {convID: string; tlfName: string}
 
-const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
+export const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
 
 // Reads the conversation's newest message to learn its id; a first send creates it.
 const ensureDirect = async (api: ChatApi, smokeUser: string, secondUser: string): Promise<DirectConversation> => {
   const tlfName = directTlfName(smokeUser, secondUser)
   const channel = {name: tlfName}
   const newest = async () => {
-    const res = await api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {
+    const res = await api.call<{messages?: Array<{msg?: {conversation_id: string}}>}>('read', {
       channel,
       pagination: {num: 1},
       peek: true,
     })
-    return res.messages?.[0]?.msg.conversation_id
+    return res.messages?.[0]?.msg?.conversation_id
   }
   let convID = await newest().catch(() => undefined)
   if (!convID) {
@@ -451,6 +509,7 @@ export const ensureChatData = async (): Promise<ChatData> => {
       await seedShort(api, team)
       await seedSparse(api, team)
       await seedScratch(api, team)
+      await anchorScratch(api, team)
       await seedReadonly(api, team)
       await seedMedia(api, team)
       const direct = await ensureDirect(api, accounts.smokeUser, secondUser)
@@ -472,9 +531,9 @@ const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   }
 }
 
-// A text message sent through the host's CLI (not the app under test), as whichever account the
-// CLI is signed in as: the smoke user for the desktop flows, the second account for the iOS ones
-// (see cli-account.ts).
+// A text message sent through the host's CLI (not the app under test), as the smoke user: on the
+// phone that is the account's own message from another device, not an incoming one (peer-actors.ts
+// sends those).
 export const sendFromCli = async (topicName: E2EChannel, body: string) => {
   const {team} = e2eAccounts()
   await withApi(async api => sendText(api, channelRef(team, topicName), body))
@@ -499,13 +558,41 @@ export const attachFromCli = async (topicName: E2EChannel, title: string) => {
   await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: image.file, title}))
 }
 
+// A corpus file (fixtures/corpus) sent through the host's CLI into a channel
+// createThrowawayChannel made in this run, titled `title`: the smoke user's own attachment from
+// another device.
+export const attachToThrowawayFromCli = async (topicName: string, file: string, title: string) => {
+  if (parseStampedName(topicName, 'dashed')?.runId !== currentRunId()) throw new Error(`#${topicName} is not a channel of this run`)
+  if (!CORPUS.some(c => c.file === file)) throw new Error(`${file} is not a corpus file`)
+  const {team} = e2eAccounts()
+  await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: file, title}))
+}
+
 // The newest `num` messages of an e2e team channel, or of a one-on-one conversation named by its
 // tlf name, newest first, read through the host's CLI. Peeks, so reading does not mark it read.
 export const readFromCli = async (where: {topicName: string} | {tlfName: string}, num = 50): Promise<Array<CliMessage>> => {
   const {team} = e2eAccounts()
   const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
   const res = await withApi(async api => api.call<ReadResult>('read', {channel, pagination: {num}, peek: true}))
-  return (res.messages ?? []).map(m => m.msg)
+  return unboxed(res)
+}
+
+// The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read
+// through the host's CLI by paging back from the newest. Peeks. Bound: each page one call of 60s, at
+// most `maxPages` pages.
+export const oldestFromCli = async (where: {topicName: string} | {tlfName: string}, count: number, maxPages = 5): Promise<Array<CliMessage>> => {
+  const {team} = e2eAccounts()
+  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
+  let all: Array<CliMessage> = []
+  let next: string | undefined
+  for (let page = 0; page < maxPages; page++) {
+    const pagination = {num: 1000, ...(next ? {next} : {})}
+    const res = await withApi(async api => api.callWithin<ReadResult>('read', {channel, pagination, peek: true}, 60_000))
+    all = [...all, ...unboxed(res)]
+    next = res.pagination?.next
+    if (res.pagination?.last || !next || !res.messages?.length) return all.slice(-count).reverse()
+  }
+  throw new Error(`the conversation holds more than ${maxPages} pages of messages`)
 }
 
 // The bot commands offered in a channel (none unless the team has a bot installed).
@@ -526,10 +613,9 @@ const currentRunId = () => {
 
 // A channel for one run's membership flows, named stampedChannelName(label + 2 random hex
 // characters) (so the label is at most 7 characters; the random part keeps a retry from meeting a
-// channel an earlier try failed to delete), created by the CLI's account (the team owner for the
-// desktop flows, the second account, a writer, for the iOS ones) with the second account in it,
-// unless `withSecond` is false. Throws when the channel already exists. Callers delete it by the
-// returned topicName.
+// channel an earlier try failed to delete), created by the host CLI's account (the smoke user, the
+// team owner) with the second account in it, unless `withSecond` is false. Throws when the channel
+// already exists. Callers delete it by the returned topicName.
 export const createThrowawayChannel = async (label: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
   const {secondUser, team} = e2eAccounts()
   const topicName = stampedChannelName(`${label}${randomBytes(1).toString('hex')}`, currentRunId())
@@ -547,6 +633,35 @@ export const channelMembersFromCli = async (topicName: string) => {
   const {team} = e2eAccounts()
   const members = await withApi(async api => api.call<Members>('listmembers', {channel: channelRef(team, topicName)}))
   return [...(members.owners ?? []), ...(members.admins ?? []), ...(members.writers ?? []), ...(members.readers ?? [])].map(m => m.username)
+}
+
+// Reads an e2e team channel as the host's account (smoke, on its other device), which moves its read
+// pointer to the channel's newest message, deleted ones included: a cleanup for a channel the phone
+// cannot read back itself (see channelUnreadFromCli). One call, bounded by `timeoutMs`.
+export const markChannelReadFromCli = async (topicName: E2EChannel, timeoutMs = 20_000) => {
+  const accounts = e2eAccounts()
+  await requireMainIsSmoke(accounts)
+  await withApi(async api => api.callWithin('read', {channel: channelRef(accounts.team, topicName), pagination: {num: 1}}, timeoutMs))
+}
+
+// Whether the host's account has an e2e team channel unread, as its inbox holds it: its read pointer
+// is behind the newest visible message, its own messages included (a mark unread from another device
+// moves the pointer back; opening the thread there moves it forward). One try, bounded: the host
+// check 15s, the read `timeoutMs`; callers poll it within their own deadline.
+export const channelUnreadFromCli = async (topicName: E2EChannel, timeoutMs = 10_000) => {
+  const accounts = e2eAccounts()
+  await requireMainIsSmoke(accounts)
+  const {team} = accounts
+  const res = await withApi(async api =>
+    api.callWithin<{conversations?: Array<ConvSummary & {unread?: boolean}>}>('listconvsonname', {
+      members_type: 'team',
+      name: team,
+      topic_type: 'CHAT',
+    }, timeoutMs)
+  )
+  const conv = (res.conversations ?? []).find(c => c.channel.topic_name === topicName)
+  if (!conv) throw new Error(`#${topicName} is not among the team's channels`)
+  return conv.unread === true
 }
 
 // The lowest team role that can post in a team channel, as the CLI prints it.
@@ -590,14 +705,34 @@ export const deleteThrowawayChannel = async (topicName: string) => {
   await cliConfirmed(['chat', 'delete-channel', team, topicName], 'please type:', `nuke ${topicName}`)
 }
 
+// Thrown by directConvIDFromCli for a conversation with no id to read yet: never created (the chat
+// API answers "no conversations matched"), or created with no messages.
+export class NoMessagesYet extends Error {
+  constructor() {
+    super('the conversation does not exist yet or has no messages to read its id from')
+  }
+}
+
+// What directConvIDFromCli throws for its read failing with `e`: NoMessagesYet for a conversation
+// that does not exist, else the error with the conversation's name and each account in it masked
+// (the CLI echoes the name it was given).
+export const directReadFailure = (e: unknown, tlfName: string): Error => {
+  const text = e instanceof Error ? e.message : String(e)
+  if (text.includes('no conversations matched')) return new NoMessagesYet()
+  const names = [tlfName, ...tlfName.split(',')].filter(Boolean).sort((a, b) => b.length - a.length)
+  return new Error(`reading the conversation's id failed: ${names.reduce((t, n) => t.split(n).join('<name>'), text)}`)
+}
+
 // The id of a one-on-one conversation (or the self conversation, named by the user alone), read
 // from its newest message through the host's CLI. Peeks.
 export const directConvIDFromCli = async (tlfName: string) => {
   const res = await withApi(async api =>
-    api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
-  )
-  const id = res.messages?.[0]?.msg.conversation_id
-  if (!id) throw new Error('the conversation has no messages to read its id from')
+    api.call<{messages?: Array<{msg?: {conversation_id: string}}>}>('read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
+  ).catch((e: unknown) => {
+    throw directReadFailure(e, tlfName)
+  })
+  const id = res.messages?.[0]?.msg?.conversation_id
+  if (!id) throw new NoMessagesYet()
   return id
 }
 

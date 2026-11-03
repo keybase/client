@@ -31,10 +31,11 @@ type DropdownButtonProps = {
   toggleOpen: (e?: React.BaseSyntheticEvent) => void
   inline?: boolean
   loading?: boolean
+  testID?: string
 }
 export const DropdownButton = (props: DropdownButtonProps) => {
   const styles = useStyles()
-  const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
+  const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected, testID} = props
   return (
     <Kb.ClickableBox
       onClick={!disabled ? toggleOpen : undefined}
@@ -42,6 +43,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
       alignItems="center"
       fullWidth={!inline}
       ref={popupAnchor}
+      testID={testID}
       className={Styles.classNames('dropdown_border', {
         hover: !disabled,
       })}

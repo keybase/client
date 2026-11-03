@@ -25,7 +25,12 @@ const UnfurlPrompt = (p: Props) => {
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
         </Kb.Box2>
-        <Kb.Checkbox checked={remember} onCheck={setRemember} label={`Remember for ${domain}`} />
+        <Kb.Checkbox
+          checked={remember}
+          onCheck={setRemember}
+          label={`Remember for ${domain}`}
+          testID={TestIDs.CHAT_UNFURL_PROMPT_REMEMBER}
+        />
         <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
           <Kb.Button label="Yes" small={true} onClick={() => onAnswer(true, remember)} testID={TestIDs.CHAT_UNFURL_PROMPT_YES} />
           <Kb.Button

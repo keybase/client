@@ -11,6 +11,9 @@ const resetStart = 'owner: excluded (account reset start and cancel)'
 
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
+    chatMessagePopup: 'dead: the app never navigates to it (message menus open in place)',
+    chatUnfurlMapPopup:
+      "opened only from a map unfurl, and none is made: Keybase's maps proxy (maps-proxy.core.keybaseapi.com) returns 403 because its Google Maps billing is disabled",
     kextPermission: `${desktopOnly} (the macOS kernel extension permission popup; Settings > Files shows its entry only on macOS and Windows)`,
     paperkey: phoneNew,
     recoverPasswordPgpWarning:
@@ -25,6 +28,14 @@ export const IOS_EXCLUSIONS: Exclusions = {
     signupError: 'manual-only: signup-submit (shown only when the final submit fails)',
   },
   rpcs: {
+    'chat.1.local.addTeamMemberAfterReset': 'needs a member who reset their account; account resets are owner: excluded',
+    'chat.1.local.dismissJourneycard':
+      "server feature flag 'journeycard' is off for the test accounts (journey_card_manager.go checkFeature); no card is shown, so nothing can be dismissed",
+    'chat.1.local.RetryPost':
+      'no failed send that offers Retry can be made on demand: a text over the length limit offers Edit or Cancel, a min writer or restricted bot refusal offers neither (chat/conversation/messages/wrapper/wrapper.tsx getEcrType), and the failures left (offline for 10 minutes, 180 attempts, a failed identify) need the service cut off or a broken account',
+    'chat.1.local.setWelcomeMessage': 'dead: no call site in the app',
+    'chat.1.local.trackGiphySelect':
+      "desktop only: the phone picks a GIF inside a WebView of the Go service's gallery page (chat/conversation/giphy/index.tsx NativeGiphySearch), which posts and tracks the pick itself; only the desktop grid sends this RPC",
     'keybase.1.account.cancelReset': resetStart,
     'keybase.1.account.enterResetPipeline': resetStart,
     'keybase.1.config.startUpdateIfNeeded': `${desktopOnly}: the desktop app updater (desktop/renderer/remote-event-handler.desktop.tsx)`,
@@ -33,8 +44,13 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.install.installFuse': `${desktopOnly}: the FUSE driver install (util/fs-platform.tsx returns before it on mobile)`,
     'keybase.1.install.installKBFS': `${desktopOnly}: the KBFS install (util/fs-platform.tsx returns before it on mobile)`,
     'keybase.1.install.uninstallKBFS': `${desktopOnly}: the KBFS uninstall (util/fs-platform.tsx returns before it on mobile)`,
+    'keybase.1.login.paperKeySubmit':
+      'sent only from chatEnterPaperkey (chat/conversation/rekey/enter-paper-key.tsx), which needs a folder waiting on a rekey and a real paper key; no real paper key is ever submitted',
     'keybase.1.rekey.rekeyStatusFinish': `${desktopOnly}: the desktop unlock-folders window (desktop/renderer/remote-event-handler.desktop.tsx)`,
     'keybase.1.signup.signup': 'manual-only: signup-submit',
+    'keybase.1.user.blockUser': 'dead: no call site in the app (blocking goes through setUserBlocks)',
+    'keybase.1.user.reportUser': 'manual-only: block-report-submit',
+    'keybase.1.user.unblockUser': 'dead: no call site in the app (unblocking goes through setUserBlocks)',
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {

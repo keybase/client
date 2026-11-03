@@ -1004,7 +1004,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.ClickableBox direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
+    <Kb.ClickableBox direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu} testID={TestIDs.CHAT_EXPLODING_BUTTON}>
       {isExploding ? (
         <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>

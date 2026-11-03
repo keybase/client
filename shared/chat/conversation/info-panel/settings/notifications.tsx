@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {muteConversationPromise} from '../../status-actions'
@@ -14,6 +15,9 @@ type UnmutedProps = {
   setMobile: (n: T.Chat.NotificationsType) => void
   toggleChannelWide: () => void
 }
+
+const radioTestID = (group: 'desktop' | 'mobile', choice: T.Chat.NotificationsType, selected: boolean) =>
+  `${TestIDs.CHAT_NOTIFY_RADIO_PREFIX}${group}-${choice}${selected ? TestIDs.CHAT_NOTIFY_RADIO_SELECTED_SUFFIX : ''}`
 
 const UnmutedNotificationPrefs = (props: UnmutedProps) => {
   const styles = useStyles()
@@ -44,7 +48,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
       )}
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('desktop', 'onAnyActivity', desktop === 'onAnyActivity')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('onAnyActivity')}
@@ -52,7 +56,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
             label="On any activity"
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('desktop', 'onWhenAtMentioned', desktop === 'onWhenAtMentioned')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('onWhenAtMentioned')}
@@ -60,7 +64,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
             label="Only when @mentioned"
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('desktop', 'never', desktop === 'never')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('never')}
@@ -72,7 +76,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
 
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Mobile notifications</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('mobile', 'onAnyActivity', mobile === 'onAnyActivity')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('onAnyActivity')}
@@ -80,7 +84,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
             label="On any activity"
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('mobile', 'onWhenAtMentioned', mobile === 'onWhenAtMentioned')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('onWhenAtMentioned')}
@@ -88,7 +92,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
             label="Only when @mentioned"
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton} testID={radioTestID('mobile', 'never', mobile === 'never')}>
           <Kb.RadioButton
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('never')}
@@ -182,6 +186,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
             saveMuted(!muted)
           }}
           label="Mute all notifications"
+          testID={TestIDs.CHAT_INFO_PANEL_MUTE}
         />
         <Kb.Icon type="iconfont-shh" style={styles.icon} color={theme.black_20} />
         <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />

@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../accounts/run-id'
-import {createThrowawaySubteam} from './chat-data'
+import {createThrowawaySubteam, directReadFailure, newestDrawn, NoMessagesYet} from './chat-data'
 
 // A stand-in `keybase` (KB_CLI): `team create` passes, `team add-member` fails, and `team delete`
 // asks for its confirmation and then fails.
@@ -49,3 +49,39 @@ test('createThrowawaySubteam keeps the setup error when deleting the half-made s
   expect(err.errors.map((e: unknown) => String(e))).toEqual([expect.stringMatching(/add-member boom/), expect.stringMatching(/delete boom/)])
   expect(String(err.cause)).toMatch(/delete boom/)
 }, 20_000)
+
+describe('directReadFailure', () => {
+  const tlf = 'testuser,testuser-mac'
+  test('a conversation that does not exist reads as NoMessagesYet', () => {
+    expect(directReadFailure(new Error(`chat api read: no conversations matched "${tlf}"`), tlf)).toBeInstanceOf(NoMessagesYet)
+  })
+
+  test('any other failure is rethrown with the conversation and account names masked', () => {
+    const e = directReadFailure(new Error(`chat api read: 504 Gateway Timeout for "${tlf}" (testuser-mac)`), tlf)
+    expect(e).not.toBeInstanceOf(NoMessagesYet)
+    expect(e.message).toContain('504 Gateway Timeout')
+    expect(e.message).not.toMatch(/testuser/)
+  })
+})
+
+const apiMsg = (id: number, type: string, body?: string) => ({
+  msg: {content: {type, ...(body ? {text: {body}} : {})}, id, sender: {username: 'testuser'}},
+})
+
+test('the newest drawn message skips what the app draws no row for, and messages that did not unbox', () => {
+  const res = {
+    messages: [
+      {error: 'could not unbox'},
+      apiMsg(9, 'delete'),
+      apiMsg(8, 'attachmentuploaded'),
+      apiMsg(7, 'reaction'),
+      apiMsg(6, 'deletehistory'),
+      apiMsg(5, 'text', 'anchor'),
+      apiMsg(4, 'text', 'older'),
+    ],
+  }
+  expect(newestDrawn(res)?.id).toBe(5)
+  expect(newestDrawn({messages: [apiMsg(3, 'metadata'), apiMsg(2, 'text', 'x')]})?.id).toBe(3)
+  expect(newestDrawn({messages: [{error: 'could not unbox'}, apiMsg(1, 'edit')]})).toBeUndefined()
+  expect(newestDrawn({})).toBeUndefined()
+})

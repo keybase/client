@@ -102,11 +102,10 @@ describe('harness simulator helpers', () => {
     await escapeToTabs()
   })
 
-  // Appium's own setPasteboard backs pasteText, and `simctl pbpaste` reads back empty on this host's
-  // simulators, so reading the text back is not possible; this checks the stdin write is accepted.
-  // The app never reads it here, so nothing credits the pasteboard surface.
-  it('writes the pasteboard text over stdin', () => {
-    expect(() => setPasteboard(`harness pasteboard "quoted" $HOME ${Date.now()}`)).not.toThrow()
+  // setPasteboard reads the text back from the simulator's pasteboard itself. The app never pastes it
+  // here, so nothing credits the pasteboard surface.
+  it('writes the pasteboard text and reads it back', async () => {
+    await setPasteboard('harness pasteboard "quoted" $HOME and a backslash \\ filler')
   })
 
   it('relaunches the app and keeps recording across the new runtime', async () => {

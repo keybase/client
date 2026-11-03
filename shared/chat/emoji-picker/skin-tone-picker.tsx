@@ -49,6 +49,7 @@ function SkinTonePicker(props: Props) {
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}
+      testID={TestIDs.CHAT_SKIN_TONE_OPTION_PREFIX + skinTone}
       onClick={() => {
         setSkinTone(skinTone)
         setExpanded(false)

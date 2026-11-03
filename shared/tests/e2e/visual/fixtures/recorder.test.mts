@@ -148,6 +148,115 @@ test('start() alone leaves out RPCs sent before it', () => {
   assert.deepEqual(rt.recording.take(), ['x.y.z'])
 })
 
+// an outgoing call with params, passed through like `passing`
+const passingWith = (method: string, param: unknown): Runtime.OutgoingCall => ({...passing(method), param})
+
+test('a call while paused is left out of the recording and the boot list; calls before the pause and after the resume are in', () => {
+  const {hook, rt} = runtime(true)
+  hook()?.invoke(passing('boot.before'))
+  const boot = rt.recording.pause()
+  hook()?.invoke(passing('boot.paused'))
+  rt.recording.resume(boot)
+  rt.recording.start({includeBoot: true})
+  hook()?.invoke(passing('a.before'))
+  const t = rt.recording.pause()
+  hook()?.invoke(passing('a.paused'))
+  rt.recording.resume(t)
+  hook()?.invoke(passing('a.after'))
+  assert.deepEqual(rt.recording.take(), ['boot.before', 'a.before', 'a.after'])
+})
+
+test('two open pauses keep the recorder paused until both resume; a stale or unknown token changes nothing', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  const one = rt.recording.pause()
+  const two = rt.recording.pause()
+  assert.notEqual(one, two)
+  rt.recording.resume(one)
+  rt.recording.resume(one)
+  rt.recording.resume('unknown')
+  hook()?.invoke(passing('a.still-paused'))
+  rt.recording.resume(two)
+  hook()?.invoke(passing('a.resumed'))
+  const three = rt.recording.pause()
+  rt.recording.resume(two)
+  hook()?.invoke(passing('a.paused-again'))
+  rt.recording.resume(three)
+  assert.deepEqual(rt.recording.take(), ['a.resumed'])
+})
+
+test('start() drops every open pause, so one left open cannot silence the next recording', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  const left = rt.recording.pause()
+  rt.recording.start()
+  hook()?.invoke(passing('a.next'))
+  rt.recording.resume(left)
+  assert.deepEqual(rt.recording.take(), ['a.next'])
+})
+
+test('the call log holds every call while recording, flags paused ones, and keeps no param but typing', () => {
+  const {hook, rt} = runtime(true)
+  hook()?.invoke(passing('boot.only'))
+  rt.recording.start()
+  const from = rt.recording.calls(Number.MAX_SAFE_INTEGER).seq
+  hook()?.invoke(passingWith('chat.1.local.updateTyping', {conversationID: 'secret-conv', typing: true}))
+  const t = rt.recording.pause()
+  hook()?.invoke(passingWith('chat.1.local.postTextNonblock', {body: 'secret-text', typing: true}))
+  rt.recording.resume(t)
+  hook()?.invoke(passingWith('chat.1.local.updateTyping', {conversationID: 'secret-conv', typing: false}))
+  const log = rt.recording.calls(from)
+  assert.deepEqual(
+    log.calls.map(({seq: _seq, ...c}) => c),
+    [
+      {method: 'chat.1.local.updateTyping', paused: false, typing: true},
+      {method: 'chat.1.local.postTextNonblock', paused: true},
+      {method: 'chat.1.local.updateTyping', paused: false, typing: false},
+    ]
+  )
+  assert.equal(log.seq, log.calls.at(-1)?.seq)
+  assert.ok(log.calls.every((c, i) => i === 0 || c.seq > log.calls[i - 1]!.seq))
+  assert.doesNotMatch(JSON.stringify(log), /secret/)
+  assert.deepEqual(rt.recording.calls(log.seq).calls, [])
+  assert.equal(rt.recording.calls(log.seq).seq, log.seq)
+  assert.deepEqual(rt.recording.take(), ['chat.1.local.updateTyping'])
+})
+
+test('the call log says which runtime and recording it belongs to, and whether it is recording now', () => {
+  const {rt} = runtime()
+  const other = runtime().rt
+  assert.equal(rt.recording.calls(0).recording, false)
+  rt.recording.start()
+  const at = rt.recording.calls(0)
+  assert.equal(at.recording, true)
+  assert.notEqual(at.runtime, other.recording.calls(0).runtime)
+  rt.recording.take()
+  assert.equal(rt.recording.calls(0).recording, false)
+  assert.equal(rt.recording.calls(0).runtime, at.runtime)
+  rt.recording.start()
+  assert.equal(rt.recording.calls(0).generation, at.generation + 1)
+})
+
+test('the call log keeps only the latest calls', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  for (let i = 0; i < 10_000; i++) hook()?.invoke(passing(`a.${i}`))
+  const log = rt.recording.calls(0)
+  assert.ok(log.calls.length < 10_000)
+  assert.equal(log.calls.at(-1)?.method, 'a.9999')
+  assert.equal(log.seq, log.calls.at(-1)?.seq)
+  // everything before the oldest kept call is reported dropped
+  assert.equal(log.droppedThrough, log.calls[0]!.seq - 1)
+  assert.ok(log.droppedThrough > 0)
+})
+
+test('a log that dropped nothing reports nothing dropped', () => {
+  const {hook, rt} = runtime()
+  rt.recording.start()
+  hook()?.invoke(passing('a.b'))
+  assert.equal(rt.recording.calls(0).droppedThrough, 0)
+})
+
 type Listener = (e: {data?: {state?: unknown}}) => void
 const fakeNav = (state: unknown) => {
   const listeners = new Set<Listener>()

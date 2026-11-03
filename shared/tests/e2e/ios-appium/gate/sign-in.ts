@@ -18,6 +18,7 @@ import {
   passwordScreenProblem,
   storedSecretIn,
 } from './app-account-lib.ts'
+import {withHarnessRpcs} from './recorder'
 import {pressBackToLoginList, tapUntil} from './screens'
 import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
 
@@ -28,12 +29,14 @@ let asks = 0
 export const storedSecretOf = async (username: string): Promise<boolean> => {
   // unique across runs too: the app's global outlives this process
   const ask = `${Date.now()}-${++asks}`
-  await jsEval(configuredAccountsAskBody(ask))
-  const r = await waitFor(
-    "the phone's service to list its configured accounts",
-    async () => answerTo(await jsEval<ConfiguredAccounts>(CONFIGURED_ACCOUNTS_READ_BODY), ask),
-    {interval: 250, timeout: 20_000}
-  )
+  const r = await withHarnessRpcs('the configured-accounts ask', async () => {
+    await jsEval(configuredAccountsAskBody(ask))
+    return waitFor(
+      "the phone's service to list its configured accounts",
+      async () => answerTo(await jsEval<ConfiguredAccounts>(CONFIGURED_ACCOUNTS_READ_BODY), ask),
+      {interval: 250, timeout: 20_000}
+    )
+  })
   const stored = storedSecretIn(r, username)
   if (typeof stored === 'string') throw new Error(stored)
   return stored

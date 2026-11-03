@@ -15,8 +15,14 @@
 // Paper keys only ever travel through stdin and the env file; anything echoed is redacted.
 //
 // --check changes nothing: it exits 1 listing what setup would have to do, or what it cannot fix:
-// the smoke account blocking the second one, or the second one not a writer in KB_E2E_TEAM and a
-// member of every e2e channel.
+// the second account not a writer in KB_E2E_TEAM and a member of every e2e channel.
+//
+// Without --check, setup also repairs what a block flow (chat-blocks) that failed its restore
+// leaves: the smoke account blocking the second one, their DM's status blocked, and the
+// smoke+second folder ignored. It unblocks and puts the DM back to unfiled, and makes the folder a
+// favorite again if setup recorded it as one (~/.config/keybase-e2e/pair-folder.json); each read back. It writes only when both
+// accounts' names start with the env file's KB_E2E_TEST_ACCOUNT_PREFIX; --check reports the variable
+// missing only when there is something to repair.
 import * as fs from 'fs'
 import * as path from 'path'
 import {parseArgs} from 'util'
@@ -40,9 +46,12 @@ import {
   stopPeerHomeService,
   withSignalsDeferred,
 } from './peer-homes.ts'
+import {notTestAccountsProblem, pairWasFavorite, PAIR_FAVORITE_VAR, recordPairFavorite, TEST_ACCOUNT_PREFIX_VAR} from './repair-lib.ts'
 import {ensureRunId} from './run-id.ts'
 import {maskAccounts, signedInName} from './sweep-lib.ts'
-import {E2E_CHANNELS} from '../shared/chat-data.ts'
+import {E2E_CHANNELS, directConvIDFromCli, directTlfName, NoMessagesYet} from '../shared/chat-data.ts'
+import {pairFavoriteState, refavoritePair} from '../shared/favorites.ts'
+import {conversationStatus, mainConversation, mainRpc, restoreConversationStatus} from '../shared/main-rpc.ts'
 import {keybaseBin} from '../shared/keybase-bin.ts'
 import {connectPeerRpc} from '../shared/peer-rpc.ts'
 import {
@@ -72,7 +81,7 @@ const envFile = defaultEnvPath()
 type Vars = Record<string, string>
 const loadVars = (): Vars => {
   const vars: Vars = {...readEnvFile(envFile)}
-  for (const k of ['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM']) {
+  for (const k of ['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM', TEST_ACCOUNT_PREFIX_VAR]) {
     const v = process.env[k]
     if (v) vars[k] = v
   }
@@ -145,8 +154,20 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
     rpc.close()
   }
   if (blocks.some(b => b.username === second && (b.chatBlocked || b.followBlocked))) {
-    problems.push('the smoke account blocks the second account; unblock it (Settings > Blocked in the app)')
+    problems.push('the smoke account blocks the second account (setup repairs it)')
   }
+  const leftover = await blockLeftovers(vars)
+  if (leftover.dmBlocked) problems.push("the smoke account's DM with the second account is blocked (setup repairs it)")
+  // flagged only when setup would repair it: an ignored folder never recorded as a favorite may be
+  // ignored on purpose
+  if (leftover.folderIgnored && pairWasFavorite(vars)) {
+    problems.push('the smoke+second folder is ignored but was a favorite (setup repairs it)')
+  }
+  // the repair writes only to test accounts (KB_E2E_TEST_ACCOUNT_PREFIX), so with something to repair
+  // say now whether it would refuse
+  const repairs = problems.some(p => p.endsWith('(setup repairs it)'))
+  const notTest = repairs ? notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], vars['KB_SMOKE_USER'] ?? '', second) : undefined
+  if (notTest) problems.push(notTest)
   const members = async (topicName: string) =>
     (await mainChatApi({
       method: 'listmembers',
@@ -160,6 +181,67 @@ const accountProblems = async (vars: Vars): Promise<string[]> => {
     if (!all.some(m => m.username === second)) problems.push(`the second account is not a member of #${topicName}`)
   }
   return problems
+}
+
+// What a block of the second account leaves besides the block itself: the DM's status blocked, and
+// the smoke+second folder ignored. A DM never created, or with no messages yet, has no status to read
+// (NoMessagesYet); any other failure to read it is thrown with the names masked, so --check never
+// reports a DM it could not read as fine.
+const blockLeftovers = async (vars: Vars) => {
+  const tlfName = directTlfName(vars['KB_SMOKE_USER'] ?? '', vars['KB_SECOND_USER'] ?? '')
+  const convID = await directConvIDFromCli(tlfName).catch((e: unknown) => {
+    if (e instanceof NoMessagesYet) return undefined
+    throw e
+  })
+  const dmBlocked = !!convID && (await mainConversation(convID)).info.status === conversationStatus.blocked
+  return {convID, dmBlocked, folderIgnored: (await pairFavoriteState()).ignored}
+}
+
+const pollUntil = async (what: string, ok: () => Promise<boolean>) => {
+  const deadline = Date.now() + 20_000
+  while (!(await ok())) {
+    if (Date.now() > deadline) throw new Error(`${what} did not read back within 20s`)
+    await sleep(1_000)
+  }
+}
+
+// Repairs a block flow's leftovers (see the top): each only when it is there, each read back. Reads
+// first; before the first write it refuses unless both accounts are test accounts. The folder is made
+// a favorite again only when the gate's state dir records it was one (repair-lib.ts; PAIR_FAVORITE_VAR
+// in the env is a manual override); otherwise it is left as it is. A folder seen as a favorite is
+// recorded there, for a later repair.
+const repairBlockLeftovers = async (vars: Vars) => {
+  const smoke = vars['KB_SMOKE_USER'] ?? ''
+  const second = vars['KB_SECOND_USER'] ?? ''
+  type Block = {username: string; chatBlocked: boolean; followBlocked: boolean}
+  const blocked = async () =>
+    ((await mainRpc<Array<Block> | null>('keybase.1.user.getUserBlocks', {sessionID: 0, usernames: [second]})) ?? []).some(
+      b => b.username === second && (b.chatBlocked || b.followBlocked)
+    )
+  const isBlocked = await blocked()
+  const {convID, dmBlocked, folderIgnored} = await blockLeftovers(vars)
+  const refavorite = folderIgnored && pairWasFavorite(vars)
+  if (folderIgnored && !refavorite) say(`the smoke+second folder is ignored, and neither the gate's record nor ${PAIR_FAVORITE_VAR} says it was a favorite: left as it is`)
+  if (isBlocked || dmBlocked || refavorite) {
+    const problem = notTestAccountsProblem(vars[TEST_ACCOUNT_PREFIX_VAR], smoke, second)
+    if (problem) throw new Error(problem)
+  }
+  if (isBlocked) {
+    say('unblocking the second account')
+    await mainRpc('keybase.1.user.setUserBlocks', {blocks: [{setChatBlock: false, setFollowBlock: false, username: second}], sessionID: 0})
+    await pollUntil('the unblock', async () => !(await blocked()))
+  }
+  if (convID && dmBlocked) {
+    say("putting the DM with the second account back to unfiled")
+    await restoreConversationStatus(convID, conversationStatus.unfiled)
+    await pollUntil("the DM's status", async () => (await mainConversation(convID)).info.status === conversationStatus.unfiled)
+  }
+  if (refavorite) {
+    say('making the smoke+second folder a favorite again')
+    await refavoritePair()
+  }
+  const folder = await pairFavoriteState()
+  if (folder.favorite && !folder.ignored) recordPairFavorite()
 }
 
 // Detached: the terminal's Ctrl-C must not kill a switch half done (withSignalsDeferred holds it
@@ -381,7 +463,7 @@ const run = async () => {
   if (values.check) {
     const problems = [...(await Promise.all(peerRoles.map(async r => problemsFor(r, vars)))).flat(), ...(await accountProblems(vars))]
     if (problems.length) {
-      say(`e2e accounts are not ready:\n  ${problems.join('\n  ')}\nrun: yarn test:e2e:accounts:setup (it cannot fix blocks, team roles or channel membership)`)
+      say(`e2e accounts are not ready:\n  ${problems.join('\n  ')}\nrun: yarn test:e2e:accounts:setup (it cannot fix team roles or channel membership)`)
       return 1
     }
     say('e2e peers are ready')
@@ -404,6 +486,7 @@ const run = async () => {
     await restoreMain(smoke)
     await requireMainIsSmoke({smokeUser: smoke})
   }
+  await repairBlockLeftovers(vars)
   say('e2e peers are ready')
   return 0
 }

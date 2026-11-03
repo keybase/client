@@ -31,6 +31,8 @@ export const CHAT_BOT_PERMS             = 'chat-bot-perms'
 export const CHAT_BOT_EDIT_BUTTON       = 'chat-bot-edit-button'
 export const CHAT_BOT_CHANNELS_DROPDOWN = 'chat-bot-channels-dropdown'
 export const CHAT_BOT_CHANNEL_PICKER    = 'chat-bot-channel-picker'
+// the install screen's In these channels dropdown itself, the box a tap opens the picker from
+export const CHAT_BOT_CHANNELS_BUTTON   = 'chat-bot-channels-button'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 // a bot command's help, shown over the composer once its text names the command
 export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
@@ -89,6 +91,8 @@ export const CHAT_UNFURL_PROMPT       = 'chat-unfurl-prompt'
 // the link preview prompt's answers, and a posted generic (website) preview
 export const CHAT_UNFURL_PROMPT_YES   = 'chat-unfurl-prompt-yes'
 export const CHAT_UNFURL_PROMPT_NO    = 'chat-unfurl-prompt-no'
+// the prompt's Remember for <domain> switch (on the phone only its switch takes a tap)
+export const CHAT_UNFURL_PROMPT_REMEMBER = 'chat-unfurl-prompt-remember'
 export const CHAT_UNFURL_GENERIC      = 'chat-unfurl-generic'
 export const CHAT_PAYMENT             = 'chat-payment'
 export const CHAT_JOURNEY_CARD        = 'chat-journey-card'
@@ -105,6 +109,8 @@ export const CHAT_ORANGE_LINE         = 'chat-orange-line'
 // the emoji picker's skin tone button, and the tones it expands to
 export const CHAT_SKIN_TONE_BUTTON    = 'chat-skin-tone-button'
 export const CHAT_SKIN_TONE_OPTIONS   = 'chat-skin-tone-options'
+// one skin tone in the expanded options: the prefix, then the tone's code ('1F3FA' is the default yellow)
+export const CHAT_SKIN_TONE_OPTION_PREFIX = 'chat-skin-tone-option-'
 // a git push system message's body
 export const CHAT_GIT_PUSH            = 'chat-git-push'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
@@ -119,6 +125,36 @@ export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
 export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 // a conversation result in the send-to-chat picker (Files > Share to Chat)
 export const CHAT_SEND_TO_CHAT_ROW    = 'chat-send-to-chat-row'
+// the phone composer's exploding timer, left of the input (it opens the explode-after sheet)
+export const CHAT_EXPLODING_BUTTON    = 'chat-exploding-button'
+// one of the phone message menu's quick reactions: the prefix, then the emoji's name (':+1:')
+export const CHAT_QUICK_REACTION_PREFIX = 'chat-quick-reaction-'
+// the pinned banner's close icon while it hides the pin for you without asking (CHAT_PINNED_UNPIN otherwise)
+export const CHAT_PINNED_DISMISS      = 'chat-pinned-dismiss'
+// the inbox's search placeholder, which opens the inbox filter
+export const CHAT_INBOX_SEARCH        = 'chat-inbox-search'
+// a big team's inbox header gear, which opens its team menu; and a channel row under it
+export const CHAT_INBOX_BIG_TEAM_HEADER = 'chat-inbox-big-team-header'
+export const CHAT_INBOX_CHANNEL_ROW   = 'chat-inbox-channel-row'
+// what floats over the bottom of the phone inbox: the unread shortcut and the Big teams divider
+export const CHAT_INBOX_UNREAD_SHORTCUT = 'chat-inbox-unread-shortcut'
+export const CHAT_INBOX_BIG_TEAMS_DIVIDER = 'chat-inbox-big-teams-divider'
+// the inbox header's New chat button
+export const CHAT_NEW_CHAT_BUTTON     = 'chat-new-chat-button'
+// the forward picker's search box, a conversation in its results, and the caption box an attachment's
+// forward asks for
+export const CHAT_FORWARD_SEARCH      = 'chat-forward-search'
+export const CHAT_FORWARD_RESULT      = 'chat-forward-result'
+export const CHAT_FORWARD_CAPTION     = 'chat-forward-caption'
+// a conversation's notification choice in its info panel: the prefix, then the group ('desktop' or
+// 'mobile'), '-' and the choice ('onAnyActivity', 'onWhenAtMentioned' or 'never'); the chosen one
+// of each group ends in the _SELECTED suffix
+export const CHAT_NOTIFY_RADIO_PREFIX = 'chat-notify-radio-'
+export const CHAT_NOTIFY_RADIO_SELECTED_SUFFIX = '-selected'
+// the info panel's Mute all notifications switch (on the phone only its switch takes a tap)
+export const CHAT_INFO_PANEL_MUTE     = 'chat-info-panel-mute'
+// the info panel's Minimum role to post dropdown, which opens the role menu
+export const CHAT_MIN_WRITER_ROLE_DROPDOWN = 'chat-min-writer-role-dropdown'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
@@ -157,6 +193,8 @@ export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
+// a bot's row menu (the ellipsis) in a team's Bots tab
+export const TEAMS_BOT_ROW_MENU = 'teams-bot-row-menu'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
@@ -280,6 +318,10 @@ export const UNLOCK_FOLDERS_PAPER_KEY_INPUT = 'unlock-folders-paper-key-input'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
+// the phone search filter's X, which clears it or, where the filter has a cancel, ends its search
+export const SEARCH_FILTER_CLEAR = 'search-filter-clear'
+// the phone search filter's box: one accessible element on iOS, so its text field is not in the tree
+export const SEARCH_FILTER = 'search-filter'
 // The X on a desktop modal route. Needed because a page-wide search for the
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.

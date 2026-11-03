@@ -11,7 +11,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 import {navigateToChat, navigateToPeople} from './navigate'
 import {retriedNavigation} from './step'
 import {E2E_CHANNELS, e2eAccounts, type E2EChannel} from '@/tests/e2e/shared/chat-data'
-import {peerSender} from '@/tests/e2e/shared/peer-actors'
+import {peerSender, sendWithRetry} from '@/tests/e2e/shared/peer-actors'
 import {loadE2EEnv} from '@/tests/e2e/accounts/env'
 
 // The same tolerance the thread itself treats as at the end (list-area's endTolerancePx).
@@ -459,22 +459,10 @@ export const openUserProfile = async (page: Page, username: string) => {
 export const inboxRow = (page: Page, title: string) =>
   page.getByTestId(T.CHAT_INBOX_ROW).filter({has: page.locator(`[title="${title}"]`)})
 
-// The second account sends `text` from its peer service. A channel made moments earlier can be
-// missing from the peer's inbox for a few seconds: a send that finds no such conversation (and so
-// sent nothing) is tried again.
-export const sendAsSecond = async (convID: string, text: string) => {
-  const sender = await peerSender(loadE2EEnv())
-  const deadline = Date.now() + 30_000
-  for (;;) {
-    try {
-      await sender.send(convID, text)
-      return
-    } catch (e) {
-      if (!String(e).includes('no conversations matched') || Date.now() > deadline) throw e
-      await new Promise(resolve => setTimeout(resolve, 2_000))
-    }
-  }
-}
+// The second account sends `text` from its peer service, tried again while a channel made moments
+// earlier is still missing from the peer's inbox (sendWithRetry).
+export const sendAsSecond = async (convID: string, text: string) =>
+  sendWithRetry(await peerSender(loadE2EEnv()), convID, text)
 
 // Scrolls the inbox to its top, then down until `target` is in view: the inbox draws only the rows near
 // what it shows. Fails naming `what` when it does not come into view in time.

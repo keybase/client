@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
@@ -53,6 +54,7 @@ const BigTeamHeader = (props: Props) => {
         onClick={showPopup}
         ref={popupAnchor}
         style={styles.showMenu}
+        testID={TestIDs.CHAT_INBOX_BIG_TEAM_HEADER}
       >
         <Kb.Icon
           className="hover_contained_color_black"

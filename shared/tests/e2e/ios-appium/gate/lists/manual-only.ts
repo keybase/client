@@ -58,6 +58,26 @@ export const IOS_MANUAL_ONLY = {
       'On a device: run `keybase login` on a new computer and pick the phone, then on the phone Settings > Devices > Add a device or paper key > Add a computer and scan the QR code the computer shows; the computer lands signed in.',
     title: 'Camera: approving a new computer by scanning its QR code',
   },
+  'delete-through-reloads': {
+    doByHand:
+      'In a chat, turn the network off, delete one of your own messages for everyone, pull the thread to reload it: the row stays and shows deleting. Turn the network back on: the row goes.',
+    title: 'A chat delete waiting on the network keeps its row through reloads',
+  },
+  'failed-send-cancel': {
+    doByHand:
+      "In a chat, paste a message over 10,000 characters and send it: it fails as too long with \"Edit or Cancel\" under it. Tap Cancel: the message goes and does not come back after reopening the conversation.",
+    title: "Tapping a failed message's inline Cancel",
+  },
+  'giphy-pick': {
+    doByHand:
+      "In a throwaway chat channel, tap + then Share a GIF, type a search after /giphy, and tap a GIF in the picker: it posts to the channel and the picker closes. Delete the channel after.",
+    title: 'Picking a GIF in the phone GIF picker',
+  },
+  'hardware-keyboard-enter': {
+    doByHand:
+      'On an iPad or a phone with a hardware keyboard: in a chat composer, type two words with Shift-Enter between them (a new line), then press Enter; the message sends with both lines.',
+    title: 'Hardware keyboard Shift-Enter and Enter in a chat composer',
+  },
   'phone-new-device': {
     doByHand: 'On a fresh install, add this phone as a new device from an existing device (scan or type the code), then check it lands signed in.',
     title: 'Phone as a new device',

@@ -7,7 +7,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
 import {escapeToTabs} from './helpers/navigate'
-import {attemptToken, iosReportDir, readAttempts, readRunErrors} from './gate/attempt'
+import {attemptToken, iosReportDir, leaveBody, readAttempts, readRunErrors, requireCurrentAttempt, runAttempt} from './gate/attempt'
 import {type Recorder, recorders} from './gate/recording'
 import {PhoneRecording} from './gate/recorder'
 import {buildPwReport} from './gate/results-lib'
@@ -103,7 +103,19 @@ export const config: WebdriverIO.Config = {
       }
     )
   },
-  afterTest: async (_test, _context, result: TestResult) => finishAttempt(result),
+  // The body may still be running (wdio's timer gave up on it): it is stopped first, and the failure
+  // capture runs as a hook, bound to the attempt but to no body.
+  afterTest: async (_test, _context, result: TestResult) => {
+    const token = leaveBody()
+    await runAttempt(token, async () => finishAttempt(result))
+  },
+  // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async
+  // context, before sending it: a test body that is over is refused here. A request already sent, its
+  // connection retries included, still completes.
+  transformRequest: requestOptions => {
+    requireCurrentAttempt()
+    return requestOptions
+  },
   onComplete: (exitCode: number) => {
     try {
       writeResults(exitCode)

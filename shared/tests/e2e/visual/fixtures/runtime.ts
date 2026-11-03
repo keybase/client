@@ -18,9 +18,12 @@
 // changes nothing: invoke returns false, so the engine sends the call itself, and incoming hands back
 // the payload it was given. In a desktop app the harness launched (KB_E2E_TEST=1), it also notes the
 // methods sent from startup until the first take(), so the first test's recording can include them;
-// any other dev app has no hook outside a fixture or a recording.
+// any other dev app has no hook outside a fixture or a recording. A driver that makes the app send an
+// RPC itself (an eval calling one) pauses the recorder around it, so the recording credits only what
+// the UI sent; the call log still lists those calls, flagged paused.
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
 import type {FixtureContext, FixtureDef, RpcRule, StartedBy, StoreApi, StoreKey, Stores} from './def.ts'
+import type {CallLog, LoggedCall} from '../../shared/call-log.ts'
 import {chatThreadContent} from './chat-thread.ts'
 import {globalError, runtimeStats} from './debug.ts'
 import {deviceLastUsed} from './devices.ts'
@@ -94,7 +97,17 @@ export type E2ERecorder = {
   // that differed from the one before, so a screen left on from before start() is in routes only
   // when the app showed it again in a later state.
   take: () => {rpcs: Array<string>; routes: Array<string>; startRoutes: Array<string>}
+  // While any pause's token is open, outgoing calls go into neither the recording nor the boot list.
+  // Resuming a token that is not open changes nothing; start() drops every open token.
+  pause: () => string
+  resume: (token: string) => void
+  // the calls sent while recording after `sinceSeq`, the latest seq, and which runtime and recording
+  // the log belongs to
+  calls: (sinceSeq: number) => CallLog
 }
+
+// the most calls the log keeps; older ones drop off
+const CALL_LOG_SIZE = 4000
 
 // What the route recorder needs of the app's navigation container (router-v2/router.tsx sets it on
 // window.DEBUGNavigator in a dev app).
@@ -273,6 +286,24 @@ export const createRuntime = (deps: {
   let recorded: Set<string> | undefined
   // the methods sent since creation, until the first take()
   let boot: Set<string> | undefined = deps.recordBoot ? new Set() : undefined
+  const pauses = new Set<string>()
+  // random per runtime, so a token from another runtime is never open in this one
+  const pauseBase = Math.random().toString(36).slice(2)
+  let pauseCount = 0
+  // counts start()s, so a reader can tell a recording that stopped and started again since its mark
+  let generation = 0
+  let callLog: Array<LoggedCall> = []
+  let callSeq = 0
+  const logCall = (call: OutgoingCall) => {
+    const entry: LoggedCall = {method: call.method, paused: pauses.size > 0, seq: ++callSeq}
+    // the only param value kept: whether a typing update says the user is typing
+    if (call.method === 'chat.1.local.updateTyping') {
+      const typing = (call.param as {typing?: unknown} | undefined)?.typing
+      if (typeof typing === 'boolean') entry.typing = typing
+    }
+    callLog.push(entry)
+    if (callLog.length > CALL_LOG_SIZE * 2) callLog = callLog.slice(-CALL_LOG_SIZE)
+  }
   const sync = () => deps.install(cur || recorded || boot ? rpc : undefined)
 
   type Payload = {method: string; param: object}
@@ -348,8 +379,11 @@ export const createRuntime = (deps: {
       return payload
     },
     invoke: call => {
-      recorded?.add(call.method)
-      boot?.add(call.method)
+      if (recorded) logCall(call)
+      if (!pauses.size) {
+        recorded?.add(call.method)
+        boot?.add(call.method)
+      }
       const a = cur
       if (!a) return false
       const sessionID = (call.param as {sessionID?: unknown} | undefined)?.sessionID
@@ -460,7 +494,29 @@ export const createRuntime = (deps: {
     version: FIXTURE_RUNTIME_VERSION,
   }
   const recording = {
+    calls: (sinceSeq: number): CallLog => {
+      const kept = callLog.slice(-CALL_LOG_SIZE)
+      return {
+        calls: kept.filter(c => c.seq > sinceSeq),
+        // seqs run without gaps, so everything before the oldest kept call was dropped
+        droppedThrough: kept.length ? kept[0]!.seq - 1 : callSeq,
+        generation,
+        recording: !!recorded,
+        runtime: pauseBase,
+        seq: callSeq,
+      }
+    },
+    pause: () => {
+      const token = `${pauseBase}-${++pauseCount}`
+      pauses.add(token)
+      return token
+    },
+    resume: (token: string) => {
+      pauses.delete(token)
+    },
     start: (opts?: {includeBoot?: boolean}) => {
+      pauses.clear()
+      generation++
       recorded = new Set(opts?.includeBoot ? boot : undefined)
       sync()
     },
@@ -519,6 +575,9 @@ if (__DEV__) {
       recording.start(opts)
       routes.start()
     },
+    calls: recording.calls,
+    pause: recording.pause,
+    resume: recording.resume,
     take: () => ({...routes.take(), rpcs: recording.take()}),
   }
 }

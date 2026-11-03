@@ -112,8 +112,8 @@ const PinnedMessage = function PinnedMessage() {
         <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
           <Kb.Icon
             onClick={onIconClick}
-            // only while the click asks first: without the prompt it hides the pin for you at once
-            testID={dismissUnpins ? TestIDs.CHAT_PINNED_UNPIN : undefined}
+            // UNPIN only while the click asks first: without the prompt it hides the pin for you at once
+            testID={dismissUnpins ? TestIDs.CHAT_PINNED_UNPIN : TestIDs.CHAT_PINNED_DISMISS}
             type="iconfont-close"
             sizeType="Small"
             color={theme.black_20}

@@ -82,7 +82,6 @@
     "test:e2e:ios:iphone-old": "bash tests/e2e/run-ios-appium.sh iPhoneTestOld",
     "test:e2e:ios:ipad-old": "bash tests/e2e/run-ios-appium.sh iPadTestOld",
     "test:e2e:ios:lifecycle": "bash tests/e2e/run-ios-lifecycle.sh iPhoneTest",
-    "test:e2e:ios:chat": "bash tests/e2e/run-ios-chat.sh iPhoneTest",
     "test:e2e:ios:share": "bash tests/e2e/run-ios-share.sh iPhoneTest",
     "test:e2e:ios:flows": "wdio run tests/e2e/ios-appium/wdio.gate.conf.ts",
     "test:e2e:ios:census": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/census.mts",

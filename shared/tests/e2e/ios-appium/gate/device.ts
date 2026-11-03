@@ -2,7 +2,6 @@
 // a new JS runtime: it checkpoints the attempt's recording on both sides of the restart.
 // Delivering something to the app proves nothing about it, so these credit nothing: a flow calls
 // creditSurface(<surface>) once it has asserted the app used what was delivered.
-import {execFileSync} from 'child_process'
 import {
   activateApp,
   appPid,
@@ -21,8 +20,8 @@ import {RUNTIME_BODY} from '../../shared/phone-recorder.ts'
 import {ensureErrorCapture, takeErrors} from './errors.ts'
 import {openAttemptToken} from './attempt.ts'
 import {attemptRecording, openAttemptRecording, recorders} from './recording.ts'
+import {withHarnessRpcs} from './recorder.ts'
 
-const PASTEBOARD_MS = 30_000
 const RUNTIME_WAIT_MS = 120_000
 const PRIVACY_KILL_MS = 15_000
 
@@ -40,15 +39,41 @@ export const addPhotos = (paths: Array<string>) => {
 // The flow credits 'location' once it has asserted the app used the location.
 export const setLocation = (lat: number, lon: number) => simctlSetLocation(lat, lon)
 
-// The text goes over stdin, never the command line; never use these for a secret. The flow credits
-// 'pasteboard' once it has asserted the pasted text landed in the app.
-export const setPasteboard = (text: string) => {
-  execFileSync('xcrun', ['simctl', 'pbcopy', deviceUdid()], {
-    input: text,
-    killSignal: 'SIGKILL',
-    stdio: ['pipe', 'pipe', 'pipe'],
-    timeout: PASTEBOARD_MS,
+// Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator
+// (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
+// own clipboard module writes it, over Metro (it sends no RPC; the recorder is paused all the same).
+// Never use it for a secret. The flow credits 'pasteboard' once it has asserted the pasted text landed
+// in the app. Bound: the write 30, its outcome 10, its read back 10 = 50s.
+export const setPasteboard = async (text: string) => {
+  // an eval body runs synchronously, so the write's promise settles into a global the harness polls;
+  // its outcome holds no text, and a failure says only that the write failed
+  await withHarnessRpcs('the pasteboard write', async () => {
+    await jsEval(`
+      const g = globalThis
+      g.__e2ePasteboard = 'pending'
+      Promise.resolve()
+        .then(() => kbModule('node_modules/expo-clipboard/build/Clipboard.js').setStringAsync(${JSON.stringify(text)}))
+        .then(ok => { g.__e2ePasteboard = ok === false ? 'refused' : 'ok' }, () => { g.__e2ePasteboard = 'failed' })
+      return true
+    `)
+    const outcome = await waitFor(
+      'the app to finish the pasteboard write',
+      async () => {
+        const o = await jsEval<string | null>('return globalThis.__e2ePasteboard ?? null')
+        return o && o !== 'pending' ? o : undefined
+      },
+      {interval: 200, timeout: 10_000}
+    )
+    if (outcome !== 'ok') throw new Error(`the app's clipboard write ${outcome === 'refused' ? 'was refused' : 'failed'}`)
   })
+  await waitFor(
+    'the pasteboard to hold the text',
+    async () => {
+      const got = await browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'})
+      return Buffer.from(got, 'base64').toString('utf8') === text ? true : undefined
+    },
+    {interval: 500, timeout: 10_000}
+  )
 }
 
 const runtimeId = async (): Promise<string | undefined> =>

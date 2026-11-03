@@ -6,7 +6,8 @@ import * as fs from 'fs'
 import {withDeadline} from '../../shared/deadline.ts'
 import {appPid, crashReportsSince} from '../helpers/lifecycle'
 import {RELAUNCHED_SMOKE_MS, requireRelaunchedAppIsSmoke} from './accounts.ts'
-import {type AttemptToken, endedRecord, openAttemptToken, runAttempt} from './attempt.ts'
+import {type AttemptToken, endedRecord, openAttemptToken, requireCurrentAttempt, runAttempt} from './attempt.ts'
+import {isAttemptOver} from './attempt-binding-lib.ts'
 import {makeCrashRecovery, REPORT_WAIT_MS} from './crash-lib.ts'
 import {relaunchHungApp} from './device.ts'
 import {RELAUNCH_MS} from './hang.ts'
@@ -48,7 +49,15 @@ const noted = (token: AttemptToken | undefined, why: string | undefined) => {
 // the root afterEach.
 export const crashDuringAttempt = async () => {
   const token = openAttemptToken()
-  noted(token, await recovery.recover({crashOnly: true}))
+  // A body mocha timed out checks nothing: the root afterEach brings the app back. A check runs as the
+  // attempt but bound to no body, so the body ending while it relaunches never refuses its commands.
+  try {
+    requireCurrentAttempt()
+  } catch (e) {
+    if (isAttemptOver(e)) return undefined
+    throw e
+  }
+  noted(token, await runAttempt(token, async () => recovery.recover({crashOnly: true})))
   return token && crashes.get(token)
 }
 

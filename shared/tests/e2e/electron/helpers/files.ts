@@ -6,38 +6,16 @@ import {randomBytes} from 'crypto'
 import {expect, type Locator, type Page} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {parseStampedName} from '@/tests/e2e/accounts/run-id'
-import {mainRpc} from '@/tests/e2e/shared/main-rpc'
+import {pairFolder} from '@/tests/e2e/shared/favorites'
 import {requireMainIsSmoke, runKeybase} from '@/tests/e2e/shared/peer-service'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {e2eRunId} from './fixtures'
 import {openMenu} from './menu'
 import {retriedNavigation} from './step'
 
+export {pairFavoriteState, pairFolder, refavoritePair} from '@/tests/e2e/shared/favorites'
+
 export const smokeFolder = () => `/keybase/private/${loadE2EAccounts().smokeUser}`
-export const pairFolder = () => {
-  const {smokeUser, secondUser} = loadE2EAccounts()
-  return `/keybase/private/${[smokeUser, secondUser].sort().join(',')}`
-}
-
-// Whether the smoke+second folder is in the smoke account's favorites or its ignored folders.
-// Blocking the second account ignores it, and unblocking leaves it ignored.
-type FavoriteFolder = {name: string; folderType: number}
-const privateFolderType = 1
-const pairName = () => pairFolder().slice(pairFolder().lastIndexOf('/') + 1)
-export const pairFavoriteState = async () => {
-  const res = await mainRpc<{favoriteFolders: Array<FavoriteFolder> | null; ignoredFolders: Array<FavoriteFolder> | null}>(
-    'keybase.1.favorite.getFavorites',
-    {}
-  )
-  const has = (list: Array<FavoriteFolder> | null) => !!list?.some(f => f.name === pairName() && f.folderType === privateFolderType)
-  return {favorite: has(res.favoriteFolders), ignored: has(res.ignoredFolders)}
-}
-
-// Makes the smoke+second folder a favorite again (it was one before the flow), and reads that back.
-export const refavoritePair = async () => {
-  await mainRpc('keybase.1.favorite.favoriteAdd', {folder: {created: false, folderType: privateFolderType, name: pairName()}})
-  await expect.poll(pairFavoriteState, {message: 'the smoke+second folder after favoriteAdd', timeout: 20_000}).toEqual({favorite: true, ignored: false})
-}
 
 // e2e-<runid>-<label>, the name of an entry a flow makes.
 export const stampedEntry = (label: string) => {

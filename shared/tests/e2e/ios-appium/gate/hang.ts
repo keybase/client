@@ -9,7 +9,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {withDeadline} from '../../shared/deadline.ts'
 import {appPid} from '../helpers/lifecycle'
-import {iosReportDir} from './attempt.ts'
+import {attemptToken, iosReportDir, runAttempt} from './attempt.ts'
 import {relaunchHungApp} from './device.ts'
 import {makeHangWatch, makeWatchSlot, protocolSucceeded, settleRelaunch, STUCK_READS} from './hang-lib.ts'
 
@@ -59,20 +59,27 @@ const keepSample = (report: string) => {
 const slot = makeWatchSlot()
 
 // Starts the watch for one test body, stopping any earlier one (a body mocha timed out never stopped
-// its own). Started inside the attempt, as the relaunch moves the attempt's recording to the new
-// runtime. The promise resolves with the reason once the watch has relaunched a hung app; it never
-// resolves otherwise.
+// its own). Started inside the body's attempt, as the relaunch moves the attempt's recording to the
+// new runtime. The relaunch runs as a hook bound to the attempt, not as the body: mocha can time the
+// body out mid-relaunch, and the hook after it waits for the relaunch, which must not then be refused
+// as attempt over. The promise resolves with the reason once the watch has relaunched a hung app; it
+// never resolves otherwise.
 export const startHangWatch = async (): Promise<string> => {
+  const token = attemptToken()
   const watch = makeHangWatch({
     appPid: () => appPid(),
     cpuPercent: appCpuPercent,
     keep: keepSample,
-    relaunch: async () => withDeadline(relaunchHungApp(), RELAUNCH_MS, 'relaunching the hung app'),
+    relaunch: async () => runAttempt(token, async () => withDeadline(relaunchHungApp(), RELAUNCH_MS, 'relaunching the hung app')),
     sample: sampleApp,
     succeeded: () => succeeded,
   })
   let busy = false
-  const timer = setInterval(() => {
+  // The timer is started bound to no body, as a hook's work: its reads must keep running once the body
+  // is over (a mocha timeout runs the flow's afterEach hooks before the root one stops the watch),
+  // and a timer started in the body's context would refuse them as attempt over.
+  const timer = runAttempt(undefined, () =>
+    setInterval(() => {
     if (busy) return
     busy = true
     // a read that failed (the app exiting mid-sample) only waits for the next
@@ -82,7 +89,8 @@ export const startHangWatch = async (): Promise<string> => {
       .finally(() => {
         busy = false
       })
-  }, READ_EVERY_MS)
+    }, READ_EVERY_MS)
+  )
   slot.start({
     relaunching: watch.relaunching,
     stop: () => {

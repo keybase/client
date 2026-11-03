@@ -5,20 +5,26 @@
 // never ran (a hook failed first). A hook's error is kept so that record can cite it.
 import * as path from 'path'
 import {HANG_SETTLE_MS, settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
-import {setBeforeCleanupSteps} from '../../shared/cleanup.ts'
+import {setBeforeCleanupSteps, setCleanupStepKeeper} from '../../shared/cleanup.ts'
 import {CRASH_RECOVERY_MS, crashDuringAttempt, recoverGoneApp, settleCrashRecovery} from './crash.ts'
 import {
   addEndedAttemptError,
   beginAttempt,
   endAttemptOf,
   endedRecord,
+  endRunningBodies,
   failEndedAttempt,
+  keepCleanupSteps,
   recordRunError,
   recordSkipped,
   runAttempt,
+  runAttemptBody,
+  runLeftSteps,
+  settleBody,
+  takeLeftCleanup,
   type AttemptToken,
 } from './attempt.ts'
-import {requireAppIsSmoke} from './accounts.ts'
+import {requireAppIsSmoke, restoreToSmoke} from './accounts.ts'
 import {finishAttempt} from './finish.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
 
@@ -36,12 +42,19 @@ const plain = {
 
 // each hook's error, which mocha keeps nowhere the root hooks can read
 const hookErrors = new WeakMap<Mocha.Runnable, string>()
+// Every hook, the root ones included, runs through this. Mocha runs a hook only once it is done with
+// the test body before it, so a body still running is one it timed out: it is over from here, and its
+// next app command throws. The hook runs bound to no body, whatever context it inherited.
 const kept = (fn: (this: Mocha.Context) => unknown) =>
   async function (this: Mocha.Context) {
+    for (const title of endRunningBodies()) {
+      // eslint-disable-next-line no-console
+      console.log(`mocha moved on from "${title}" while its body still ran: the body's next app command throws`)
+    }
     // read before the await: a timed-out hook rejects late, when this.test names a later runnable
     const runnable = this.test
     try {
-      await fn.call(this)
+      await runAttempt(undefined, () => fn.call(this))
     } catch (e) {
       if (runnable) hookErrors.set(runnable, message(e))
       throw e
@@ -104,13 +117,27 @@ const crashCheckedAfter = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
     if (failure) throw failure.e
   }
 
+// Each test function marks its body settled as it ends, so wdio's afterTest, which runs after it in
+// the body's frame, tells a body that ended on its own from one its timer gave up on.
+const settling = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
+  async function (this: Mocha.Context) {
+    try {
+      await fn.call(this)
+    } finally {
+      settleBody()
+    }
+  }
 const declareTest = (t: Declare) =>
   function (this: unknown, ...args: Array<unknown>) {
     insideDescribe('a test')
-    const [title, fn, ...rest] = args
-    // a done-callback body (fn.length > 0) is left as it is: gate bodies are async
-    if (typeof fn === 'function' && fn.length === 0) return t.call(this, title, crashCheckedAfter(fn as Mocha.AsyncFunc), ...rest)
-    return t.apply(this, args)
+    // the crash check is part of the body, so the body settles after it; a done-callback body
+    // (length > 0) gets no crash check: gate bodies are async
+    return t.apply(
+      this,
+      args.map(a =>
+        typeof a === 'function' ? settling(a.length === 0 ? crashCheckedAfter(a as Mocha.AsyncFunc) : (a as Mocha.AsyncFunc)) : a
+      )
+    )
   }
 globalThis.it = Object.assign(declareTest(plain.it as Declare), {
   only: declareTest(plain.it.only as Declare),
@@ -144,6 +171,28 @@ setBeforeCleanupSteps(async () => {
   await settleHangRelaunch()
   await crashDuringAttempt()
 })
+// and are kept with the body, for the root afterEach to take over if the gate ends it
+setCleanupStepKeeper(keepCleanupSteps)
+
+// The largest cleanup a flow declares (account-login's, 685s), waiting out the step the body was
+// running (RUNNING_STEP_WAIT_MS, 60s) and restoreToSmoke (275s) = 1020s.
+const LEFT_CLEANUP_MS = 1_060_000
+
+// A body the gate ended while it still ran (its app hung and was relaunched, or mocha or wdio timed
+// it out) had every app command of its own refused from then, its cleanup's included. What that
+// cleanup had left runs here instead, after the relaunch, and then the app is put back on the smoke
+// account and read back (every flow ends there). Returns why it failed, if it did.
+const runLeftCleanup = async (token: AttemptToken, steps: Array<() => unknown>): Promise<string | undefined> => {
+  const backOnSmoke = async () => {
+    try {
+      await restoreToSmoke()
+    } catch (e) {
+      throw new Error(`putting the app back on the smoke account: ${message(e)}`, {cause: e})
+    }
+  }
+  const errors = await runLeftSteps(token, [...steps, backOnSmoke], LEFT_CLEANUP_MS, 'the cleanup the ended body left')
+  return errors.length ? `the cleanup its body left, run once the gate ended the body, failed: ${errors.join('; ')}` : undefined
+}
 
 globalThis.before = declareHook(plain.before)
 globalThis.beforeEach = declareHook(plain.beforeEach)
@@ -170,9 +219,6 @@ type Body = Mocha.AsyncFunc & {gateBody?: Mocha.AsyncFunc}
 const attempts = new WeakMap<Mocha.Test, AttemptToken>()
 // why an attempt's body threw, for one wdio's afterTest never reached (the account check refused it)
 const bodyErrors = new WeakMap<AttemptToken, string>()
-// how long a body whose app hung gets to fail its stuck command and run its cleanup
-const HUNG_BODY_SETTLE_MS = 120_000
-const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const NOT_RECORDED = 'the test passed, but wdio afterTest did not record its attempt'
 
 plain.beforeEach(
@@ -194,13 +240,14 @@ plain.beforeEach(
     const body = ((test.fn as Body).gateBody ?? test.fn) as Mocha.AsyncFunc
     const wrapped: Body = async function (this: Mocha.Context) {
       // An app stuck for good is killed and relaunched (hang.ts), and the test fails of its hang at
-      // once: the body gets a bounded time for its stuck command to fail and its cleanup to run, then
-      // the attempt ends, so anything of the body's still going finds it over.
+      // once. The body is over from then, so its stuck command's next one throws attempt over and the
+      // hooks after it drive the relaunched app.
       let hung: Promise<string> = new Promise(() => {})
-      const run = runAttempt(token, async () => {
-        // inside the attempt: a relaunch moves the attempt's recording to the app's new runtime. This
-        // line runs before runAttempt returns (AsyncLocalStorage.run calls the callback at once, and
-        // nothing awaits before it), so the race below already has the watch's promise.
+      const run = runAttemptBody(token, test.fullTitle(), async () => {
+        // inside the body: the watch reads the app as the body, and its relaunch moves the attempt's
+        // recording to the app's new runtime. This line runs before runAttemptBody returns (it calls
+        // AsyncLocalStorage.run, which calls the callback at once, and nothing awaits before either),
+        // so the race below already has the watch's promise.
         hung = startHangWatch()
         await requireAppIsSmoke()
         await body.call(this)
@@ -209,7 +256,8 @@ plain.beforeEach(
       try {
         hang = await Promise.race([run.then(() => undefined), hung])
         if (hang) {
-          await Promise.race([run.catch(() => {}), sleep(HUNG_BODY_SETTLE_MS)])
+          // the body is the only one running: mocha ended any earlier one as a hook began
+          endRunningBodies()
           throw new Error(hang)
         }
       } catch (e) {
@@ -235,12 +283,19 @@ plain.beforeEach(
 )
 
 // Ends an attempt wdio's afterTest did not end, or fails one that ended passed for what failed after
-// its body. `gone` is why the app was gone at the test's end (crash.ts), which fails it either way.
-const endTheAttempt = async (test: Mocha.Test, token: AttemptToken, gone: string | undefined) => {
+// its body. `gone` is why the app was gone at the test's end (crash.ts), and `cleanupError` why the
+// cleanup its ended body left failed, each of which fails it either way.
+const endTheAttempt = async (
+  test: Mocha.Test,
+  token: AttemptToken,
+  gone: string | undefined,
+  cleanupError: string | undefined
+) => {
   const hookError = failuresOf(suitesOf(test), ['_beforeEach', '_afterEach']).join('; ') || undefined
   const ended = endedRecord(token)
   if (ended) {
-    if (hookError) failEndedAttempt(token, hookError)
+    const after = [hookError, cleanupError].filter(Boolean).join('; ')
+    if (after) failEndedAttempt(token, after)
     // a crash the body already failed of is in its error
     if (gone && !endedRecord(token)?.error?.includes(gone)) addEndedAttemptError(token, gone)
     return
@@ -249,11 +304,12 @@ const endTheAttempt = async (test: Mocha.Test, token: AttemptToken, gone: string
     endAttemptOf(token, {durationMs: test.duration ?? 0, status: 'skipped'})
     return
   }
+  // a timed-out body's own error came after the timeout (its next app command threw attempt over)
   const cause =
     hookError ??
-    bodyErrors.get(token) ??
-    (test.timedOut ? timeoutMessage(test.timeout()) : 'the attempt ended without wdio afterTest recording it')
-  const error = gone && !cause.includes(gone) ? `${gone}; then: ${cause}` : cause
+    (test.timedOut ? timeoutMessage(test.timeout()) : (bodyErrors.get(token) ?? 'the attempt ended without wdio afterTest recording it'))
+  const crashed = gone && !cause.includes(gone) ? `${gone}; then: ${cause}` : cause
+  const error = cleanupError ? `${crashed}; then ${cleanupError}` : crashed
   try {
     await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
   } catch (e) {
@@ -267,9 +323,9 @@ const endTheAttempt = async (test: Mocha.Test, token: AttemptToken, gone: string
 // flow afterEach failed after it or the app was gone at its end.
 plain.afterEach(
   kept(async function (this: Mocha.Context) {
-    // waiting out a relaunch (HANG_SETTLE_MS), bringing back a gone app (CRASH_RECOVERY_MS) and then
-    // ending the attempt (its screenshot and logs)
-    this.timeout(HANG_SETTLE_MS + CRASH_RECOVERY_MS + 90_000)
+    // waiting out a relaunch (HANG_SETTLE_MS), bringing back a gone app (CRASH_RECOVERY_MS), the cleanup
+    // an ended body left (LEFT_CLEANUP_MS), then ending the attempt (its screenshot and logs, 90s)
+    this.timeout(HANG_SETTLE_MS + CRASH_RECOVERY_MS + LEFT_CLEANUP_MS + 90_000)
     // a body mocha timed out is still running and never stopped its watch, and a relaunch the watch
     // started may still be running
     stopHangWatch()
@@ -287,7 +343,16 @@ plain.afterEach(
     } catch (e) {
       stop = e instanceof Error ? e : new Error(String(e))
     }
-    if (test && token) await endTheAttempt(test, token, [gone, stop?.message].filter(Boolean).join('; ') || undefined)
+    if (!test || !token) {
+      if (stop) throw stop
+      return
+    }
+    // What an ended body's cleanup left runs on the app brought back, never once the gate is stopping.
+    const left = takeLeftCleanup(token)
+    const cleanupError = left && !stop ? await runLeftCleanup(token, left) : undefined
+    // the next test refuses on its own (requireAppIsSmoke) when the app is not back on smoke
+    if (cleanupError) recordRunError(`${test.fullTitle()}: ${cleanupError}`)
+    await endTheAttempt(test, token, [gone, stop?.message].filter(Boolean).join('; ') || undefined, cleanupError)
     if (stop) throw stop
   })
 )

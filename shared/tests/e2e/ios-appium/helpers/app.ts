@@ -1,11 +1,19 @@
 import {execFileSync} from 'child_process'
+import {maskedRunError} from '../gate/run-errors-lib.ts'
 import {existsSync} from 'fs'
 import * as path from 'path'
 
 // A synchronous child blocks the event loop, so mocha's per-test timeout can never fire while it
 // runs: every one needs its own deadline. simctl, for one, can wait forever on an Xcode
 // first-launch install. On a timeout the child is killed and this throws.
-export function runSync(file: string, args: ReadonlyArray<string>, timeoutMs: number): string {
+// `masked`: the argv holds a link, a path or a name, so a failure says only `masked.what` and how it
+// failed, with `masked.hidden` replaced in the child's stderr (gate/run-errors-lib.ts).
+export function runSync(
+  file: string,
+  args: ReadonlyArray<string>,
+  timeoutMs: number,
+  masked?: {what: string; hidden: ReadonlyArray<string>}
+): string {
   try {
     return execFileSync(file, args, {
       encoding: 'utf8',
@@ -14,6 +22,7 @@ export function runSync(file: string, args: ReadonlyArray<string>, timeoutMs: nu
       timeout: timeoutMs,
     })
   } catch (e) {
+    if (masked) throw maskedRunError(masked.what, e, timeoutMs, masked.hidden)
     if ((e as {code?: string}).code === 'ETIMEDOUT') {
       throw new Error(`${[file, ...args].join(' ')} did not finish within ${timeoutMs / 1000}s; killed it`, {
         cause: e,
