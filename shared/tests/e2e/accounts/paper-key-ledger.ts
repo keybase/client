@@ -84,7 +84,7 @@ const NAMES_FILE = 'paper-key-names.json'
 // and by a direct iOS flow run for its own.
 export const SCAN_PAPER_KEY_NAMES_VAR = 'KB_E2E_SCAN_PAPER_KEY_NAMES'
 const scansPaperKeyNames = () => process.env[SCAN_PAPER_KEY_NAMES_VAR] === '1'
-export const paperKeyNamesPath = () => path.join(e2eConfigDir(), NAMES_FILE)
+const paperKeyNamesPath = () => path.join(e2eConfigDir(), NAMES_FILE)
 
 type RunNames = {runId: string; names: Array<string>}
 
