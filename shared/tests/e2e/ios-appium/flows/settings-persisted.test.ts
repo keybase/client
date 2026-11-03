@@ -55,7 +55,7 @@ import {
   type UnfurlSettings,
 } from '../../shared/settings'
 import * as T from '../../shared/test-ids'
-import {requireAppIsSmoke} from '../gate/accounts'
+import {relaunchOnSmoke, requireAppIsSmoke} from '../gate/accounts'
 import {
   compressPreference,
   darkModeState,
@@ -77,13 +77,12 @@ import {
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
-import {relaunchApp} from '../gate/device'
 import {frameInside, rectOf} from '../gate/chat-lib.ts'
 import {proxySaveWrites, rectsOverlap, settingSelector, settingShown, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
-import {dragUntilOnScreen, waitSignedIn} from '../helpers/chat'
+import {dragUntilOnScreen} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {tapButton} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
@@ -184,13 +183,6 @@ const openNotifications = async () => openSettingsPage('Notifications', 'setting
 const openDisplay = async () => openSettingsPage('Display', 'settingsTabs.displayTab', T.SETTINGS_DISPLAY)
 const openAdvanced = async () => openSettingsPage('Advanced', 'settingsTabs.advancedTab', T.SETTINGS_ADVANCED)
 
-// A relaunch, back on the smoke account. Bound: relaunchApp 200, signed in 90, the account 1 = 291.
-const relaunched = async () => {
-  await relaunchApp()
-  await waitSignedIn()
-  await requireAppIsSmoke()
-}
-
 // -- one setting, changed and back ---------------------------------------------------------------
 
 type Case<V> = {
@@ -219,7 +211,7 @@ const roundTrip = async <V,>(c: Case<V>, was: V, other: V) => {
   await expectShown(c.shown(other), `${c.what} after the change`)
   await step(`${c.what} changed`, {card: true})
 
-  await relaunched()
+  await relaunchOnSmoke()
   await c.open()
   await expectShown(c.shown(other), `${c.what} after a relaunch`)
   await settles(`${c.what} to read back changed after a relaunch`, c.read, other)
@@ -709,7 +701,7 @@ describe('settings persisted', function () {
     check(await phoneReachesServer(), "the phone's service does not reach the server after the proxy save")
     await step('Proxy settings saved', {card: true})
 
-    await relaunched()
+    await relaunchOnSmoke()
     await settles('the proxy settings to read back as saved after a relaunch', proxyData, written)
     check(await phoneReachesServer(), "the phone's service does not reach the server after a relaunch")
     await openAdvanced()
@@ -733,7 +725,7 @@ describe('settings persisted', function () {
     // lines written since the mark, which is taken before the relaunch, are the new process's (or
     // the old one's last moments, which set no level), so no earlier launch's level is read
     const fromLaunch = logMark()
-    await relaunched()
+    await relaunchOnSmoke()
     const was = levelsSince(fromLaunch).at(-1) ?? 'vlog0'
     check(!vdebugDetailed(was), 'refusing: KBFS detailed logging is already on in the relaunched app, so the button cannot be seen to turn it on')
     touched.debugLevel = was
@@ -826,7 +818,7 @@ describe('settings persisted', function () {
     await step('The perf row in the More list')
 
     // the setting is kept in the phone's service config, so a relaunch starts them again
-    await relaunched()
+    await relaunchOnSmoke()
     await el(T.RUNTIME_STATS).waitForExist({timeout: 20_000, timeoutMsg: 'the runtime stats overlay never showed after a relaunch'})
     await settles('the runtime stats setting on after a relaunch', runtimeStatsEnabled, true)
     creditSurface('relaunch')

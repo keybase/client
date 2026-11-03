@@ -9,12 +9,11 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {profileFields, restoreProfileFields, type ProfileFields} from '../../shared/profile'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
-import {requireAppIsSmoke} from '../gate/accounts'
+import {relaunchOnSmoke} from '../gate/accounts'
 import {creditSurface} from '../gate/attempt'
-import {relaunchApp} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
-import {closeMessageMenu, dragUntilOnScreen, waitSignedIn} from '../helpers/chat'
+import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
 import {el, waitForTestID} from '../helpers/elements'
 import {buttonLabelled, fillField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
@@ -135,9 +134,7 @@ describe('profile edit', function () {
     )
 
     // a relaunch reads the profile afresh
-    await relaunchApp()
-    await waitSignedIn()
-    await requireAppIsSmoke()
+    await relaunchOnSmoke()
     await openOwnProfile()
     await profileShows(wanted.fullName, 'the new full name on the profile after a relaunch')
     await profileShows(wanted.bio, 'the new bio on the profile after a relaunch')

@@ -26,14 +26,14 @@ import {withCleanup} from '../../shared/cleanup.ts'
 import {requireFollowTarget, serverSaysFollowsSecond, setFollowSecondFromCli} from '../../shared/people'
 import * as T from '../../shared/test-ids'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {requireAppIsSmoke} from '../gate/accounts'
+import {relaunchOnSmoke} from '../gate/accounts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
-import {openLink, relaunchApp} from '../gate/device'
+import {openLink} from '../gate/device'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {trackerState} from '../gate/app-ask'
 import {step} from '../gate/step'
-import {closeMessageMenu, waitSignedIn} from '../helpers/chat'
+import {closeMessageMenu} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
@@ -113,9 +113,7 @@ describe('people follow', function () {
         })) {
           return true
         }
-        await relaunchApp()
-        await waitSignedIn()
-        await requireAppIsSmoke()
+        await relaunchOnSmoke()
         await openSecondProfile()
         return undefined
       },

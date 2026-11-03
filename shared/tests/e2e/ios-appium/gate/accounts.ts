@@ -3,10 +3,11 @@
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
 import {el, labeled} from '../helpers/elements'
-import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
+import {openAccountSwitcher, signedInAs, switchAppAccount, waitSignedIn} from '../helpers/chat'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {thenRestoring} from '../../shared/restore.ts'
+import {relaunchApp} from './device.ts'
 import {pressBackToLoginList, tapUntil} from './screens'
 import {notSmokeProblem, settledAccount, PHONE_DEVICE_BODY, type PhoneDevice, phoneDeviceProblem} from './app-account-lib.ts'
 
@@ -18,6 +19,13 @@ export const appAccount = signedInAs
 export const requireAppIsSmoke = async () => {
   const problem = notSmokeProblem(await signedInAs(), loadE2EAccounts())
   if (problem) throw new Error(problem)
+}
+
+// A relaunch, back on the smoke account. Bound: relaunchApp 200, signed in 90, the account 1 = 291.
+export const relaunchOnSmoke = async () => {
+  await relaunchApp()
+  await waitSignedIn()
+  await requireAppIsSmoke()
 }
 
 // covers settledAccount's wait for a signed-out answer to hold, and a slow first answer
