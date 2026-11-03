@@ -462,7 +462,7 @@ export const makeThreadStore = (
       s.loaded = true
       if (p.fullPass) {
         for (const {id} of p.messages) {
-          if (id > 0 && id > (s.newestLoadedMessageID ?? 0)) s.newestLoadedMessageID = id
+          if (id > (s.newestLoadedMessageID ?? 0)) s.newestLoadedMessageID = id
         }
       }
       // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
