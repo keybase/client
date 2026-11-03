@@ -35,11 +35,11 @@ import {
 import {waitFor} from './lifecycle'
 import {backUntil, barButton, goBack, openTabRoot} from './navigate'
 
-// what a text a flow reads or taps can be drawn as: its own text, a pressable text (a link), or a
-// tappable box merging its texts; as element types, for a read off one page source (an attribute call
-// per element of every labelled box on a screen took minutes), and as a selector of the visible ones
-export const TEXT_TYPES = NAMED_ELEMENT_TYPES
-export const TEXTS = `-ios predicate string:(${TEXT_TYPES.map(t => `type == "${t}"`).join(' OR ')}) AND label != "" AND visible == 1`
+// The visible texts a flow reads or taps, drawn as menus' NAMED_ELEMENT_TYPES: its own text, a
+// pressable text (a link), or a tappable box merging its texts. A read of many goes off one page
+// source by those types instead (an attribute call per element of every labelled box on a screen took
+// minutes).
+export const TEXTS = `-ios predicate string:(${NAMED_ELEMENT_TYPES.map(t => `type == "${t}"`).join(' OR ')}) AND label != "" AND visible == 1`
 // what a header's text action (Skip) can be drawn as: a native bar button, or a pressable text
 const HEADER_ACTION_TYPES = ['XCUIElementTypeButton', 'XCUIElementTypeStaticText', 'XCUIElementTypeLink']
 
@@ -254,13 +254,13 @@ export const backToTeamsRoot = async (what: string) => backUntil(`back from ${wh
 // card reads "<title>, <subtitle>"), once it is drawn; `opts` as drawnElementIn's (forTap for a text
 // about to be tapped). Bound: `timeout`, plus one read 1.
 export const textPartShown = async (part: string, what: string, timeout = 5_000, opts?: DrawnOptions) =>
-  waitFor(what, async () => elementWithLabelPartIn(TEXT_TYPES, part, what, opts), {interval: 250, timeout})
+  waitFor(what, async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, part, what, opts), {interval: 250, timeout})
 
 
 // The one visible text reading exactly `label`, once it is drawn; `opts` as textPartShown's. Bound:
 // `timeout`, plus one read 1.
 export const textShown = async (label: string, what: string, timeout = 5_000, opts?: DrawnOptions) =>
-  waitFor(what, async () => elementLabelledIn(TEXT_TYPES, label, what, opts), {interval: 250, timeout})
+  waitFor(what, async () => elementLabelledIn(NAMED_ELEMENT_TYPES, label, what, opts), {interval: 250, timeout})
 
 // Taps the Teams tab's card `label` ("Create a team", "Join a team"): a tappable box whose label
 // merges its texts, not a button. Bound: 5s, the tap 1.
@@ -325,7 +325,7 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
 // the rect; then fetched by its type and frame. `what` names it. Throws when none or more than one is.
 // Bound: one read 2.
 export const labelPartInside = async (rect: Rect, selector: string, part: string, what: string) => {
-  const types = selector === BUTTON_ELEMENTS ? ['XCUIElementTypeButton'] : TEXT_TYPES
+  const types = selector === BUTTON_ELEMENTS ? ['XCUIElementTypeButton'] : NAMED_ELEMENT_TYPES
   const inRect = sourceElements(await browser.getPageSource())
     .filter(e => types.includes(e.type) && (e.attrs['label'] ?? '') !== '')
     .filter(e => labelHas(e.attrs['label'] ?? '', part))

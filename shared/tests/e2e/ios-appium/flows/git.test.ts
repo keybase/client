@@ -28,7 +28,7 @@ import {el, waitForTestID} from '../helpers/elements'
 import {drag, fillField, pressTestID, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, dragSheetUp, onScreen, openMenuFrom, press} from '../helpers/menus'
+import {check, chooseMenuItem, dragSheetUp, NAMED_ELEMENT_TYPES, onScreen, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
 import {labelHas, labelParts, sourceElements} from '../gate/page-source-lib.ts'
 import {
@@ -39,7 +39,6 @@ import {
   onlyField,
   openTeamFromList,
   requireOnSubteam,
-  TEXT_TYPES,
   textPartShown,
   TEXTS,
 } from '../helpers/teams'
@@ -132,7 +131,7 @@ describe('git', function () {
         // taken as shown); else a drag that changed nothing reached the list's end (or the list fits):
         // turn around
         const off = sourceElements(await browser.getPageSource()).find(
-          e => TEXT_TYPES.includes(e.type) && labelHas(e.attrs['label'] ?? '', label)
+          e => NAMED_ELEMENT_TYPES.includes(e.type) && labelHas(e.attrs['label'] ?? '', label)
         )
         if (off) {
           const y = Number(off.attrs['y'])

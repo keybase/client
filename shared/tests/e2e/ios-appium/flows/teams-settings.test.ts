@@ -37,7 +37,7 @@ import {el} from '../helpers/elements'
 import {buttonLabelled, drag, filesRowNamed, fillField, pressTestID, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, elementWithLabelPartIn, onScreen, openMenuFrom, press} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, NAMED_ELEMENT_TYPES, onScreen, openMenuFrom, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {
   backToTeamPage,
@@ -51,7 +51,6 @@ import {
   openSubteamUntil,
   requireOnSubteam,
   revealTeamHeader,
-  TEXT_TYPES,
   textShown,
 } from '../helpers/teams'
 
@@ -378,7 +377,7 @@ describe('teams settings', function () {
         c => c.channel
       )
     check(!(await masked(defaults)).includes(channel), 'a new channel is a default one')
-    const addChannels = async () => elementWithLabelPartIn(TEXT_TYPES, 'Add channels', "the default channels' Add channels", {forTap: true})
+    const addChannels = async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, 'Add channels', "the default channels' Add channels", {forTap: true})
     // a team with more than one channel draws its default channels; the app sees the host's channel
     // once it loads the team afresh
     await openSubteamUntil("the subteam's default channels", name, teamID, SETTINGS, async () =>
@@ -396,7 +395,7 @@ describe('teams settings', function () {
     const pick = await waitFor(
       'the channel in the popup',
       async () => {
-        const found = await elementWithLabelPartIn(TEXT_TYPES, `#${channel}`, 'the channel in the popup', {forTap: true}).catch(() => undefined)
+        const found = await elementWithLabelPartIn(NAMED_ELEMENT_TYPES, `#${channel}`, 'the channel in the popup', {forTap: true}).catch(() => undefined)
         if (found && (await onScreen(found))) return found
         const {height} = await browser.getWindowRect()
         await drag(height - 80, height - 380)
@@ -426,7 +425,7 @@ describe('teams settings', function () {
     await expectHost('the channel no longer a default one', defaults, d => !d.includes(channel))
     // both counted off one page source: none of the channel's, and #general's drawn in the same read
     const pills = async () => {
-      const drawn = sourceElements(await browser.getPageSource()).filter(e => TEXT_TYPES.includes(e.type) && e.attrs['visible'] === 'true')
+      const drawn = sourceElements(await browser.getPageSource()).filter(e => NAMED_ELEMENT_TYPES.includes(e.type) && e.attrs['visible'] === 'true')
       const count = (label: string) =>
         innermost(
           drawn
